@@ -1,0 +1,1 @@
+{"name":"piyali-ios-backend-contract","private":true,"type":"module","scripts":{"test":"node --test app-check.test.js"},"dependencies":{"jose":"^6.1.0"}}

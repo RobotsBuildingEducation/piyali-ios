@@ -1,0 +1,59 @@
+# Piyali for iPhone
+
+A functional native SwiftUI iPhone client for the main Piyali language-learning product. This repository is independent of the reference React web app. It contains no citizenship, links directory, landing-page experiments or other external route implementations.
+
+Reference snapshot: `RobotsBuildingEducation/nosabos` commit `87d6fdc7954b89e021f336064fd6bf20a81d39f5`. Content export reads the reference checkout without changing it.
+
+Open **Piyali.xcodeproj** in Xcode 26 or newer. Minimum iOS version is 17. Choose an iPhone simulator and run the **Piyali** scheme. Firebase configuration is optional for opening the app and practicing bundled content. All interfaces use ordinary SwiftUI controls; visual design is intentionally deferred.
+
+## Included
+
+- Native Nostr account creation and existing nsec import; device-only Keychain storage; authenticated private-key backup.
+- Onboarding, target/support-language selection, CEFR selection, personal learning goals and daily XP goals.
+- Authored CEFR curriculum exported from the reference: seven levels, 14 practice languages, 8,736 language-specific lessons; 1,150 localized flashcards including Pre-A1; 1,190 authored phonics language/support/level decks. Nahuatl and Yucatec Maya data remain available for existing learners; selectors follow the web's hidden-alpha behavior.
+- Lesson skill requirements and completion, XP, streaks, daily practice plate companion type unlocks, and the reference performance score rules. Focused goal plans and mistake repair adapt generated activities to specific objectives. The authored achievement catalog shows evidenced native progression, and voice-journey milestones support private recordings.
+- Offline flashcards and phonics with speech playback. AI activities cover vocabulary, grammar, reading, listening, speaking, character stories, role-play conversation and text adventures.
+- Tutor chat, speech recognition, spoken replies and native Firebase Gemini Live voice sessions with streaming PCM audio, transcripts and interruption handling.
+- Notes creation/editing/deletion, saved explanations, conversation notes, learning history, grammar guides and real-world practice reflections.
+- Firebase AI Logic (Vertex AI), existing Cloudflare Responses fallback, Firebase App Check and Firestore sync.
+- Public Nostr learning teams with verified events, relay acknowledgments, creation, leave/delete and opt-in progress publication.
+- Subscription paywall with signed Nostr Patreon restore, StoreKit purchase/restore and storefront-controlled web payment link to the actual `/subscribe` route.
+
+## Connect services
+
+**Firebase and App Store setup are still required.** Start with [docs/BACKEND_SETUP.md](docs/BACKEND_SETUP.md). It explains native Firebase registration, App Check, Cloudflare's required native App ID allowlist, the existing API contracts, StoreKit product IDs, web subscription linking and deployment boundaries.
+
+Place a real **iOS** `GoogleService-Info.plist` in `Piyali/Resources/` and regenerate the Xcode project. This file is gitignored. Optional `AppConfiguration.local.plist` overrides the public configuration without committing local settings. Server secrets never belong in the app.
+
+Existing backend deployment and the reference checkout have not been changed. `BackendReference/` contains a tested App Check allowlist validator for the separately managed Cloudflare worker; it is an integration reference and has not been deployed.
+
+## Build and verify
+
+```sh
+brew install xcodegen
+xcodegen generate
+swift test
+npm ci --prefix BackendReference
+npm test --prefix BackendReference
+xcodebuild -project Piyali.xcodeproj -scheme Piyali \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+  -derivedDataPath DerivedData CODE_SIGN_IDENTITY=- test
+```
+
+The Xcode project and Swift Package resolution are committed. `project.yml` is the project source. The standalone core package tests progress, streaks, accent-sensitive answers, persistence and all authored content. Xcode tests verify Nostr signatures and tampering; UI smoke tests cover account creation, onboarding, offline practice, note persistence after relaunch and the tutor paywall. Simulator tests use ad hoc signing because Keychain requires signing entitlements. Do not disable signing for interactive simulator runs.
+
+To refresh content from a local web reference checkout (read-only):
+
+```sh
+node scripts/export-content.mjs /absolute/path/to/reference/nosabos
+```
+
+The exporter uses the reference's existing `esbuild` install. Only this repo's bundled gzip JSON files are written. Run the content tests after re-exporting.
+
+## First-build boundaries
+
+This is a functional native foundation, not a claim that every web feature has already reached parity. No live services, App Store products or production deployments have been provisioned by this repo. Simulator tests cannot validate real paid transactions or physical-device audio quality.
+
+The current implementation uses its own versioned Firestore progress field and imports initial web preferences/XP; it does not fully reconcile native progress with every web map. Multi-device native sync is last writer wins. Voice milestone recordings are stored locally and their filenames appear in cloud state; audio files do not sync automatically. NIP-46 remote signing, NIP-07 browser signers, legacy Firestore-only teams, Cashu/Lightning wallets and nutzaps, the graphical RPG world, the standalone web placement test, automatic goal-blueprint scheduling and cross-platform achievement sync are not yet ported. The RPG learning mode is a native text adventure, and companion functionality is represented by state and controls. OpenAI WebRTC and Cloudflare audio-cache playback remain separate follow-up transports; Gemini Live is the implemented continuous voice path.
+
+The public curriculum contains 14 languages while the visible target selector includes the 12 languages currently shown by the main web app. Support language explains authored content and generated exercises; the first-build interface controls are English.

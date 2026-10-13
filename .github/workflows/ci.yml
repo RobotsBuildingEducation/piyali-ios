@@ -1,0 +1,20 @@
+name: iPhone checks
+on: [push, pull_request]
+jobs:
+  core:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - run: swift test
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: BackendReference/package-lock.json
+      - run: npm ci --prefix BackendReference
+      - run: npm test --prefix BackendReference
+  iphone:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - run: xcodebuild -project Piyali.xcodeproj -scheme Piyali -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build

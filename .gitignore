@@ -1,0 +1,13 @@
+.DS_Store
+.build/
+DerivedData/
+.sdk-reference/
+.export*/
+.export*.mjs
+xcuserdata/
+*.xcuserstate
+Piyali/Resources/GoogleService-Info.plist
+Piyali/Resources/AppConfiguration.local.plist
+.env*
+
+BackendReference/node_modules/
