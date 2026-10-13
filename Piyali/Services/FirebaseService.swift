@@ -70,6 +70,13 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                 state.courseCompletion?[state.target]?[mode] = counts
             }
         }
+        let day = CalendarDay.key(Date())
+        let quest = try await user.collection("questDays").document("\(state.target)_\(day)").getDocument(source:.server)
+        if state.goalArtifacts == nil { state.goalArtifacts = [:] }
+        for mode in ["flashcards","phonics"] {
+            let artifact = JSONValue.foundation(quest.data()?[GoalPractice.artifactField(mode:mode)] as? [String:Any] ?? [:])
+            if !artifact["ownerKey"].string.isEmpty { state.goalArtifacts?[artifact["ownerKey"].string] = artifact }
+        }
         let memory = try await user.collection("companion").document(state.target).getDocument(source:.server)
         if state.companionMemory == nil { state.companionMemory = [:] }
         state.companionMemory?[state.target] = try Self.memoryNotes(memory.data()?["notes"])
@@ -92,13 +99,16 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                 } catch { errorPointer?.pointee = error as NSError; return nil }
             }
         }
+        for change in (state.pendingGoalChanges ?? []).sorted(by:{ $0.date < $1.date }) {
+            try await applyGoal(change,state:state,user:user,database:database)
+        }
         for change in (state.pendingChanges ?? []).sorted(by:{ $0.date < $1.date }) {
             try await apply(change, state:state, user:user, database:database)
         }
         for change in (state.pendingMemoryChanges ?? []).sorted(by:{ $0.date < $1.date }) {
             try await applyMemory(change,user:user,database:database)
         }
-        var snapshotState = state; snapshotState.pendingChanges = []; snapshotState.pendingMemoryChanges = []; snapshotState.preferencesModifiedAt = nil
+        var snapshotState = state; snapshotState.pendingChanges = []; snapshotState.pendingMemoryChanges = []; snapshotState.pendingGoalChanges = []; snapshotState.preferencesModifiedAt = nil
         let uploaded = snapshotState
         // Keep other-device completion evidence. Preference writes occur only after an explicit local change.
         _ = try await database.runTransaction { transaction, errorPointer -> Any? in
@@ -112,20 +122,76 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                 }
                 merged = WebProgressContract.imported(Self.normalized(fields),native:merged)
                 // Companion memory has its own shared web document, not a second snapshot authority.
-                merged.companionMemory = nil; merged.pendingMemoryChanges = []; merged.acknowledgedEventIDs = nil
+                merged.companionMemory = nil; merged.pendingMemoryChanges = []; merged.goalIntelligence = nil; merged.goalArtifacts = nil; merged.pendingGoalChanges = []; merged.acknowledgedEventIDs = nil
                 var patch: [String:Any] = ["local_npub":npub,"iosStateJSON":String(decoding:try JSONEncoder().encode(merged),as:UTF8.self),"iosStateVersion":2,"iosUpdatedAt":FieldValue.serverTimestamp()]
-                if state.preferencesModifiedAt.map({ $0 > (WebProgressContract.date(Self.normalized(fields)["iosPreferencesModifiedAt"]) ?? .distantPast) }) == true || !snapshot.exists {
+                if state.preferencesModifiedAt.map({ $0 > (WebProgressContract.date(Self.normalized(fields)["iosPreferencesModifiedAt"]) ?? .distantPast) }) == true || fields["iosStateJSON"] == nil || !snapshot.exists {
                     patch["iosPreferencesModifiedAt"] = WebProgressContract.iso(state.preferencesModifiedAt ?? Date())
-                    patch["displayName"] = state.name; patch["language"] = state.support
-                    patch["dailyGoalXp"] = state.dailyGoal; patch["dailyGoalPetName"] = state.companionName; patch["dailyGoalPetType"] = state.effectiveCompanionType
-                    patch["onboarding"] = ["completed":state.onboardingComplete]
-                    patch["progress"] = ["targetLang":state.target,"supportLang":state.support,"cefrLevel":state.level,"activeLessonLevels":state.lessonLevels ?? [state.target:state.level],"activeFlashcardLevels":state.flashcardLevels ?? [state.target:state.flashcardLevel]]
+                    let profile = state.preferencesModifiedAt == nil ? merged : state
+                    patch["displayName"] = profile.name; patch["language"] = profile.support
+                    patch["dailyGoalXp"] = profile.dailyGoal; patch["dailyGoalPetName"] = profile.companionName; patch["dailyGoalPetType"] = profile.effectiveCompanionType
+                    patch["onboarding"] = ["completed":profile.onboardingComplete]
+                    patch["progress"] = ["targetLang":profile.target,"supportLang":profile.support,"cefrLevel":profile.level,"activeLessonLevels":profile.lessonLevels ?? [profile.target:profile.level],"activeFlashcardLevels":profile.flashcardLevels ?? [profile.target:profile.flashcardLevel]]
                 }
                 transaction.setData(patch,forDocument:user,merge:true)
                 return true
             } catch { errorPointer?.pointee = error as NSError; return nil }
         }
         return try await load(npub:npub,local:uploaded)
+    }
+    private func applyGoal(_ change: GoalChange, state: LearnerState, user: DocumentReference, database: Firestore) async throws {
+        let receiptID = SHA256.hash(data:Data(("goal:" + change.id.uuidString).utf8)).map { String(format:"%02x",$0) }.joined()
+        let receipt = user.collection("iosPracticeReceipts").document(receiptID)
+        let artifactMode = change.payload["mode"].string
+        let quest = user.collection("questDays").document("\(change.target)_\(change.payload["dayKey"].string)")
+        let day = CalendarDay.key(change.date), month = user.collection("xpHistory").document(String(day.prefix(7)))
+        _ = try await database.runTransaction { transaction,errorPointer -> Any? in
+            do {
+                let existing = try transaction.getDocument(receipt)
+                let snapshot = try transaction.getDocument(user)
+                let fields = Self.normalized(snapshot.data() ?? [:])
+                if existing.exists { Self.acknowledge(change.id,user:user,fields:fields,transaction:transaction); return false }
+                let monthFields = Self.normalized(try transaction.getDocument(month).data() ?? [:])
+                let original = JSONValue.foundation((fields["learningIntelligence"] as? [String:[String:Any]])?[change.target] ?? [:])
+                let result = GoalPractice.applying(change,to:original)
+                var reward = result.reward
+                if [.artifact,.outcome].contains(change.action) {
+                    let questFields = Self.normalized(try transaction.getDocument(quest).data() ?? [:])
+                    if GoalPractice.active(original)?["id"] == change.payload["goalId"], original["dailyGoal"]["blueprint"]["dayKey"] == change.payload["dayKey"] {
+                        let field = GoalPractice.artifactField(mode:artifactMode)
+                        let artifact = GoalPractice.applyingArtifact(change,to:JSONValue.foundation(questFields[field] as? [String:Any] ?? [:]))
+                        if !artifact.artifact.object.isEmpty { transaction.setData([field:artifact.artifact.foundation],forDocument:quest,merge:true) }
+                        reward += artifact.reward
+                    }
+                }
+                var root: [String:Any] = ["local_npub":user.documentID,"iosRecentEventIDs":Self.recentIDs(fields,adding:change.id)]
+                let changed = result.bucket.object.filter { ["version","activeGoal","goalProgress","dailyGoal"].contains($0.key) }
+                if !changed.isEmpty { root["learningIntelligence"] = [change.target:JSONValue.object(changed).foundation] }
+                if !snapshot.exists { root["dailyGoalXp"] = state.dailyGoal; root["createdAt"] = WebProgressContract.iso(change.date) }
+                if reward > 0 {
+                    let practice = PracticeChange(date:change.date,dayKey:day,target:change.target,level:change.payload["cefrLevel"].string,amount:reward,source:.goalMode)
+                    var awardFields = fields
+                    if awardFields["dailyGoalXp"] == nil { awardFields["dailyGoalXp"] = state.dailyGoal }
+                    let award = WebProgressContract.rootPatch(fields:awardFields,month:monthFields,change:practice)
+                    root.merge(award.root) { _,new in new }
+                    transaction.setData(award.month,forDocument:month,merge:true)
+                }
+                if result.bucket["dailyGoal"]["completed"].boolean && !original["dailyGoal"]["completed"].boolean {
+                    var progress = root["progress"] as? [String:Any] ?? fields["progress"] as? [String:Any] ?? [:]
+                    var activity = progress["goalDailyActivity"] as? [String:[String:Any]] ?? [:]
+                    var days = activity[change.target] ?? [:]; days[change.payload["dayKey"].string] = 1; activity[change.target] = days
+                    progress["goalDailyActivity"] = activity; root["progress"] = progress
+                }
+                transaction.setData(root,forDocument:user,merge:true)
+                // Replace the owned goal maps as whole fields so a new day cannot inherit old mode counts or blueprint targets.
+                var exactGoalFields: [AnyHashable:Any] = [:]
+                for (key,value) in changed {
+                    exactGoalFields[FieldPath(["learningIntelligence",change.target,key])] = try JSONSerialization.jsonObject(with:Data(value.json.utf8),options:.fragmentsAllowed)
+                }
+                if !exactGoalFields.isEmpty { transaction.updateData(exactGoalFields,forDocument:user) }
+                transaction.setData(["eventID":change.id.uuidString,"source":"goal-" + change.action.rawValue,"targetLang":change.target,"syncedAt":FieldValue.serverTimestamp()],forDocument:receipt)
+                return true
+            } catch { errorPointer?.pointee = error as NSError; return nil }
+        }
     }
     private func apply(_ change: PracticeChange, state: LearnerState, user: DocumentReference, database: Firestore) async throws {
         let stable = [.lesson,.goal,.repair].contains(change.source) ? "\(change.source.rawValue):\(change.target):\(change.contentID ?? change.id.uuidString)" : change.id.uuidString

@@ -8,6 +8,7 @@ import SwiftUI
     @Published var cards: [Flashcard] = []
     @Published var phonics: [PhonicsCard] = []
     var curriculumIndex: [String:[String:[String]]] = [:]
+    private var phonicsLibrary: [String:[PhonicsCard]] = [:]
     var flashcardIndex: [String:[String]] = [:]
     @Published var achievements: [AchievementDefinition] = []
     @Published var error: String?
@@ -19,6 +20,7 @@ import SwiftUI
     let teams = NostrTeamsService()
     private var lastPersisted = LearnerState()
     private var saveTask: Task<Void, Never>?
+    private var goalTasks: [String:Task<Void,Error>] = [:]
     private var contentTask: Task<Void, Never>?
     var selectedLesson: Lesson? { units.flatMap(\.lessons).first { !learner.completed.contains(learner.completionKey($0.id)) } ?? units.last?.lessons.last }
     init() {
@@ -65,14 +67,14 @@ import SwiftUI
         loadingContent = true
         let task = Task { [weak self] in
             do {
-                let data = try await Task.detached(priority: .userInitiated) { () -> ([LearningUnit], [Flashcard], [PhonicsCard]) in
+                let data = try await Task.detached(priority: .userInitiated) { () -> ([LearningUnit], [Flashcard], [PhonicsCard], [String:[PhonicsCard]]) in
                     let curriculum = try ContentLibrary.load([String:[LearningUnit]].self, name: "curriculum-" + target)
                     let cards = try ContentLibrary.load([Flashcard].self, name: "flashcards").filter { $0.cefrLevel == cardLevel }
                     let allPhonics = try ContentLibrary.load([String:[PhonicsCard]].self, name: "phonics")
-                    return (curriculum[level] ?? [], cards, allPhonics["\(target):\(support):\(level)"] ?? [])
+                    return (curriculum[level] ?? [], cards, allPhonics["\(target):\(support):\(level)"] ?? [], allPhonics)
                 }.value
                 guard !Task.isCancelled else { return }
-                self?.units = data.0; self?.cards = data.1; self?.phonics = data.2
+                self?.units = data.0; self?.cards = data.1; self?.phonics = data.2; self?.phonicsLibrary = data.3
             } catch { if !Task.isCancelled { self?.error = error.localizedDescription } }
             if !Task.isCancelled { self?.loadingContent = false }
         }
@@ -80,6 +82,7 @@ import SwiftUI
     }
     private func writeLocal() throws { try JSONEncoder().encode(learner).write(to:localURL,options:[.atomic,.completeFileProtection]) }
     func persist() {
+        if learner.onboardingComplete && !learner.goal.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty && (learner.goalBucket["activeGoal"]["id"].string.isEmpty || learner.goal != learner.goalBucket["activeGoal"]["text"].string) { learner.editGoal(learner.goal) }
         if learner.name != lastPersisted.name || learner.target != lastPersisted.target || learner.support != lastPersisted.support || learner.level != lastPersisted.level || learner.dailyGoal != lastPersisted.dailyGoal || learner.companionName != lastPersisted.companionName || learner.companionType != lastPersisted.companionType || learner.onboardingComplete != lastPersisted.onboardingComplete || learner.flashcardLevels != lastPersisted.flashcardLevels || learner.lessonLevels != lastPersisted.lessonLevels { learner.preferencesModifiedAt = Date() }
         do { try writeLocal(); lastPersisted = learner }
         catch { self.error = "Could not save progress: \(error.localizedDescription)"; return }
@@ -100,7 +103,7 @@ import SwiftUI
         }
     }
     private var synchronizedStatus: String {
-        (learner.pendingChanges ?? []).isEmpty && (learner.pendingMemoryChanges ?? []).isEmpty && (learner.pendingPlacements ?? [:]).isEmpty ? "Synced with Firebase" : "Saved on iPhone; cloud sync pending"
+        (learner.pendingChanges ?? []).isEmpty && (learner.pendingMemoryChanges ?? []).isEmpty && (learner.pendingPlacements ?? [:]).isEmpty && (learner.pendingGoalChanges ?? []).isEmpty ? "Synced with Firebase" : "Saved on iPhone; cloud sync pending"
     }
     private func applyAcknowledgment(_ cloud: LearnerState, sent: LearnerState) throws {
         let target = learner.target, support = learner.support, level = learner.level, cardLevel = learner.flashcardLevel
@@ -129,7 +132,7 @@ import SwiftUI
     func record(exercise: Exercise, answer: String, grade: Grade, mode: PracticeMode, lesson: Lesson?, flashcardID: String? = nil) {
         learner.history.insert(HistoryEntry(date: Date(), target: learner.target, mode: mode.rawValue, question: exercise.question, answer: answer, feedback: grade.feedback, correct: grade.correct,repairInMemory:!grade.correct), at: 0)
         learner.history = Array(learner.history.prefix(500))
-        learner.assess(correct: grade.correct, independent: exercise.choices.isEmpty)
+        learner.assess(correct: grade.correct, independent: exercise.choices.isEmpty, questionLevel:lesson?.id.hasPrefix("goal-") == true ? lesson?.agenda["cefrLevel"].string : nil)
         if !grade.correct {
             let source = flashcardID != nil ? "flashcard" : mode == .speaking || mode == .stories ? "story" : mode.rawValue.lowercased()
             learner.captureMemory(mode:source,concept:exercise.question,answer:answer,expected:grade.correctedAnswer,feedback:grade.feedback,context:lesson?.id ?? "")
@@ -145,6 +148,133 @@ import SwiftUI
         }
         persist()
     }
+    var readyGoal: JSONValue? {
+        guard !(learner.pendingGoalChanges ?? []).contains(where:{ $0.target == learner.target && [.edit,.blueprint].contains($0.action) }) else { return nil }
+        return learner.dailyGoalTask
+    }
+    var goalPreparationKey: String { "\(identity.npub):\(learner.target):\(learner.goal):\(learner.goalBucket["activeGoal"]["status"].string):\(CalendarDay.key(Date())):\(subscription.hasAccess)" }
+    func prepareGoal() async throws {
+        guard subscription.hasAccess, !learner.goal.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else { return }
+        if learner.goalBucket["activeGoal"]["id"].string.isEmpty { learner.editGoal(learner.goal); persist() }
+        let key = goalPreparationKey
+        if let task = goalTasks[key] { return try await task.value }
+        let task = Task { @MainActor in try await self.buildDailyGoal() }
+        goalTasks[key] = task
+        defer { goalTasks.removeValue(forKey:key) }
+        try await task.value
+    }
+    private func buildDailyGoal() async throws {
+        let account = identity.npub, target = learner.target, day = CalendarDay.key(Date())
+        if learner.goalBucket["activeGoal"]["id"].string.isEmpty { learner.editGoal(learner.goal); persist() }
+        await sync()
+        guard identity.npub == account, learner.target == target else { return }
+        guard (learner.pendingGoalChanges ?? []).filter({ $0.target == target }).isEmpty else { throw AppError.message("Reconnect and sync to save your goal across devices.") }
+        guard let goal = GoalPractice.active(learner.goalBucket) else { return }
+        if readyGoal != nil { return }
+        let progress = learner.goalBucket["goalProgress"], state = learner
+        var raw: JSONValue = .object([:])
+        do {
+            raw = try await ai.goalBlueprint(learner:state,goal:goal)
+        } catch { /* The web's deterministic tutor/lesson task remains usable when generation fails. */ }
+        guard identity.npub == account, learner.target == target, GoalPractice.active(learner.goalBucket)?["id"] == goal["id"], CalendarDay.key(Date()) == day else { return }
+        let blueprint = GoalPractice.blueprint(raw:raw,goal:goal,target:target,day:day,level:state.level,rating:state.rating,progress:progress)
+        learner.applyGoal(GoalChange(action:.blueprint,target:target,payload:blueprint)); persist(); await sync()
+        guard identity.npub == account, learner.target == target else { return }
+        guard readyGoal != nil else { throw AppError.message("Your task is ready. Reconnect and sync to save the same task across devices.") }
+    }
+    func setGoalStatus(_ status: String) { learner.editGoal(learner.goal,status:status); persist() }
+    func goalArtifact(_ blueprint: JSONValue, mode: String) -> JSONValue {
+        let key = GoalPractice.artifactKey(target:learner.target,day:blueprint["dayKey"].string,mode:mode,goalID:blueprint["goalId"].string)
+        let artifact = learner.goalArtifacts?[key] ?? .object([:])
+        guard mode == "phonics", !artifact["cards"].array.isEmpty else { return artifact }
+        let authored = LearningLanguages.levels.flatMap { phonicsLibrary["\(learner.target):\(learner.support):\($0)"] ?? [] }
+        let cards = artifact["cards"].array.compactMap { saved -> JSONValue? in
+            guard let source = authored.first(where:{ $0.id == saved["authoredId"].string }), let data = try? JSONEncoder().encode(source), let localized = try? JSONDecoder().decode(JSONValue.self,from:data) else { return nil }
+            return localized.setting("id",saved["id"]).setting("authoredId",saved["authoredId"]).setting("practiceRole",saved["practiceRole"]).setting("isGoal",.bool(true))
+        }
+        return artifact.setting("cards",.array(cards)).setting("requiresTutor",.bool(cards.isEmpty))
+    }
+    func prepareGoalDeck(_ blueprint: JSONValue, mode: String) async throws {
+        guard goalIsCurrent(blueprint), subscription.hasAccess else { return }
+        let account = identity.npub, target = learner.target, state = learner
+        if !goalArtifact(blueprint,mode:mode)["cards"].array.isEmpty || goalArtifact(blueprint,mode:mode)["requiresTutor"].boolean { return }
+        var cards: [JSONValue] = []
+        if mode == "flashcards" {
+            var entries: [JSONValue] = []
+            do {
+                let raw = try await ai.structured(JSONValue.self,prompt:"Generate exactly three recall cards preparing this goal. Goal data: \(blueprint.json). Use current Elo \(state.rating) and prior evidence \(state.goalBucket["goalProgress"].json) to adapt recall challenge and support. Needed language may exceed CEFR with simple cues in \(state.support). Return JSON array [{\"target\":\"answer in \(target)\",\"support\":\"translation cue in \(state.support)\"}].")
+                entries = raw.array.filter { !$0["target"].string.isEmpty && !$0["support"].string.isEmpty }
+            } catch { /* Blueprint chunks remain usable. */ }
+            if entries.isEmpty { entries = GoalPractice.list(blueprint["targetLanguage"]).map { .object(["target":.string($0),"support":blueprint["objective"]]) } }
+            if !entries.isEmpty {
+                cards = (0..<3).map { index in
+                    let entry = entries[index % entries.count]
+                    var concept: [String:JSONValue] = [target:entry["target"]]
+                    concept[state.support == target ? "iosCue" : state.support] = entry["support"]
+                    return .object(["id":.string("goal-\(blueprint["goalId"].string)-\(blueprint["dayKey"].string)-c\(index)"),"isGoal":.bool(true),"category":.string("goal"),"type":.string("phrase"),"cefrLevel":blueprint["cefrLevel"],"concept":.object(concept)])
+                }
+            }
+        } else if mode == "phonics" {
+            let all = phonicsLibrary.isEmpty ? try ContentLibrary.load([String:[PhonicsCard]].self,name:"phonics") : phonicsLibrary
+            let requested = all["\(target):\(state.support):\(blueprint["cefrLevel"].string)"] ?? []
+            let chunks = GoalPractice.list(blueprint["targetLanguage"])
+            let levels = LearningLanguages.levels
+            let first = requested.first { $0.practiceWord == chunks.first } ?? levels.flatMap { all["\(target):\(state.support):\($0)"] ?? [] }.first { $0.practiceWord == chunks.first }
+            if let first, let level = levels.first(where:{ (all["\(target):\(state.support):\($0)"] ?? []).contains(where:{ $0.id == first.id }) }) {
+                let siblings = all["\(target):\(state.support):\(level)"] ?? []
+                let selected = Array(([first] + siblings.filter { $0.id != first.id }).prefix(2))
+                cards = try selected.enumerated().map { index,card in
+                    var fields = try JSONDecoder().decode(JSONValue.self,from:JSONEncoder().encode(card))
+                    fields = fields.setting("authoredId",.string(card.id)).setting("id",.string("focused-" + GoalPractice.artifactKey(target:target,day:blueprint["dayKey"].string,mode:mode,goalID:blueprint["goalId"].string) + "-\(index)"))
+                    return fields.setting("practiceRole",.string(index == 0 ? "original" : "transfer")).setting("isGoal",.bool(true))
+                }
+            }
+        }
+        guard identity.npub == account, learner.target == target, goalIsCurrent(blueprint) else { return }
+        let payload = blueprint.setting("mode",.string(mode)).setting("cards",.array(cards)).setting("requiresTutor",.bool(cards.isEmpty))
+        learner.applyGoal(GoalChange(action:.artifact,target:target,payload:payload)); persist(); await sync()
+        guard identity.npub == account, learner.target == target else { return }
+        guard !(learner.pendingGoalChanges ?? []).contains(where:{ $0.target == target && $0.action == .artifact }) else { throw AppError.message("Reconnect to save this practice deck across devices.") }
+    }
+    func recordGoalPreparation(_ blueprint: JSONValue, mode: String, card: JSONValue, success: Bool, answer: String) {
+        guard goalIsCurrent(blueprint) else { return }
+        let item = mode == "phonics" ? card["practiceWord"].string : card["concept"][learner.target].string
+        let support = mode == "phonics" ? "modeled" : "prompted"
+        let payload = blueprint.setting("mode",.string(mode)).setting("cardID",card["id"]).setting("success",.bool(success)).setting("support",.string(support)).setting("item",.string(item)).setting("transfer",.bool(card["practiceRole"].string == "transfer"))
+        learner.applyGoal(GoalChange(action:.outcome,target:learner.target,payload:payload))
+        learner.assess(correct:success,independent:false,questionLevel:blueprint["cefrLevel"].string)
+        let observation = "\(success ? "Correct" : "Unsuccessful") \(mode == "phonics" ? "modeled practice of" : "recall of") \(item): \(answer). Preparation, not independent production."
+        let evidence = payload.setting("target",.string(item)).setting("observation",.string(observation)).setting("domain",.string(mode == "phonics" ? "pronunciation" : "recall")).setting("expectedAnswer",.string(item))
+        learner.applyGoal(GoalChange(action:.evidence,target:learner.target,payload:evidence))
+        if mode == "phonics" {
+            let artifact = goalArtifact(blueprint,mode:mode), required = Array(artifact["cards"].array.prefix(2))
+            if required.count == 2 && required.allSatisfy({ artifact["outcomes"][$0["id"].string]["success"].boolean }) {
+                recordGoalAttempt(blueprint,mode:mode,success:true,support:"modeled",observation:required.map { $0["practiceWord"].string + " pronounced successfully after a model" }.joined(separator:"; "),domain:"pronunciation")
+            }
+        }
+        persist()
+    }
+    func goalIsCurrent(_ blueprint: JSONValue) -> Bool {
+        guard let daily = readyGoal else { return false }
+        return daily["blueprint"]["goalId"] == blueprint["goalId"] && daily["blueprint"]["dayKey"] == blueprint["dayKey"] && blueprint["lang"].string == learner.target
+    }
+    func recordGoalAttempt(_ blueprint: JSONValue, mode: String, success: Bool, support: String, observation: String, domain: String = "production") {
+        guard goalIsCurrent(blueprint) else { return }
+        let payload: JSONValue = .object(["goalId":blueprint["goalId"],"dayKey":blueprint["dayKey"],"cefrLevel":blueprint["cefrLevel"],"mode":.string(mode),"success":.bool(success),"support":.string(support),"observation":.string(observation),"domain":.string(domain)])
+        learner.applyGoal(GoalChange(action:.attempt,target:learner.target,payload:payload)); persist()
+    }
+    func checkGoal(_ blueprint: JSONValue, mode: String, response: String, context: String) async throws -> GoalVerdict {
+        guard subscription.hasAccess, goalIsCurrent(blueprint) else { throw AppError.message("This daily task has changed. Open today's goal again.") }
+        if (readyGoal?["modeProgress"][mode].number ?? 0) >= Double(GoalPractice.targets[mode] ?? 1) {
+            return GoalVerdict(success:true,support:"prompted",feedback:"This part of today’s bundle is already complete. Continue with the next task.",observation:"Previously recorded goal evidence")
+        }
+        let account = identity.npub, target = learner.target, state = learner
+        let verdict = try await ai.goalVerdict(blueprint:blueprint,response:response,context:context,support:state.support)
+        guard identity.npub == account, learner.target == target, goalIsCurrent(blueprint), !verdict.observation.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else { throw AppError.message("This check is no longer current. Open today's goal again.") }
+        learner.assess(correct:verdict.success,independent:["independent","transferred"].contains(verdict.support),questionLevel:blueprint["cefrLevel"].string)
+        recordGoalAttempt(blueprint,mode:mode,success:verdict.success,support:verdict.support,observation:verdict.observation,domain:"production")
+        return verdict
+    }
     var lessonLevels: [String] { learner.unlockedLevels(mode:"skillTree",index:curriculumIndex[learner.target] ?? [:]) }
     var cardLevels: [String] { learner.unlockedLevels(mode:"flashcards",index:flashcardIndex) }
     func setLessonLevel(_ level: String) {
@@ -158,7 +288,14 @@ import SwiftUI
     }
     func place(_ placement: Placement) { learner.place(placement); persist(); Task { await reloadContent() } }
     func canComplete(_ lesson: Lesson) -> Bool { Self.modes(for: lesson).allSatisfy { learner.practicedModes.contains(learner.modeKey(lesson.id, $0.rawValue)) } }
-    func complete(_ lesson: Lesson) { guard canComplete(lesson) else { return }; _ = learner.complete(lesson); persist() }
+    func complete(_ lesson: Lesson) {
+        guard canComplete(lesson) else { return }
+        if lesson.id.hasPrefix("goal-") {
+            guard let daily = readyGoal, lesson.id == GoalPractice.lesson(daily["blueprint"]).id else { return }
+            learner.completed.insert(learner.completionKey(lesson.id))
+            recordGoalAttempt(daily["blueprint"],mode:"lesson",success:true,support:"prompted",observation:"Completed all five goal-specific lesson skills for: " + daily["blueprint"]["objective"].string + ". This demonstrates supported practice, not independent real-world mastery.")
+        } else { _ = learner.complete(lesson); persist() }
+    }
     static func modes(for lesson: Lesson) -> [PracticeMode] {
         let map: [String: PracticeMode] = ["vocabulary":.vocabulary,"flashcards":.vocabulary,"grammar":.grammar,"reading":.reading,"listening":.listening,"repeat":.listening,"speaking":.speaking,"speak":.speaking,"stories":.stories,"story":.stories,"conversation":.conversation,"conversations":.conversation,"tutor":.conversation,"realtime":.conversation,"game":.game,"translate":.vocabulary]
         let mapped = lesson.modes.compactMap { map[$0.lowercased()] }

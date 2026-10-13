@@ -85,13 +85,14 @@ struct AccountView: View {
     @State private var backup: String?
     @State private var importKey = ""
     @State private var importConfirmation = false
+    @FocusState private var goalFocused: Bool
     var body: some View {
         Form {
             Section("Learning preferences") {
                 TextField("Name", text: $app.learner.name)
-                LanguagePicker(title: "Practice language", selection: $app.learner.target, codes: LearningLanguages.practice)
+                LanguagePicker(title: "Practice language", selection: $app.learner.target, codes: LearningLanguages.practice).accessibilityIdentifier("practiceLanguagePicker")
                 LanguagePicker(title: "Support language", selection: $app.learner.support, codes: LearningLanguages.support)
-                TextField("Learning goal", text: $app.learner.goal, axis: .vertical)
+                TextField("Learning goal", text: $app.learner.goal, axis: .vertical).accessibilityIdentifier("learningGoalField").focused($goalFocused)
                 Stepper("Daily goal: \(app.learner.dailyGoal) XP", value: $app.learner.dailyGoal, in: 10...300, step: 10)
                 TextField("Companion name", text: $app.learner.companionName)
                 Picker("Companion", selection: $app.learner.companionType) { ForEach(CompanionTypes.available(level: app.learner.companionLevel), id: \.self) { Text($0.capitalized).tag($0) } }
@@ -117,7 +118,13 @@ struct AccountView: View {
                 Button("Sync progress") { Task { await app.sync() } }
             }
         }.navigationTitle("Account")
+            .toolbar {
+                ToolbarItem(placement:.topBarTrailing) {
+                    Button("Save") { goalFocused = false; app.persist(); Task { await app.reloadContent() } }.accessibilityIdentifier("saveLearningPreferences")
+                }
+            }
             .onChange(of: app.learner.target) { _, target in
+                app.learner.goal = app.learner.goalIntelligence?[target]?["activeGoal"]["text"].string ?? "Hold everyday conversations"
                 app.learner.level = app.learner.lessonLevels?[target] ?? app.learner.placements?[target]?.level ?? "Pre-A1"
                 app.persist(); Task { await app.reloadContent(); await app.sync() }
             }

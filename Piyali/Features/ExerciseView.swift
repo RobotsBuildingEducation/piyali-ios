@@ -54,7 +54,13 @@ struct ExerciseView: View {
         guard app.subscription.hasAccess else { return }
         busy = true; error = nil; grade = nil; answer = ""; speech.stopAll(); showPassage = false
         defer { busy = false }
-        do { exercise = try await app.ai.exercise(mode: mode, lesson: lesson, learner: app.learner, concept: concept) }
+        let account = app.identity.npub, state = app.learner
+        exercise = nil
+        do {
+            let generated = try await app.ai.exercise(mode:mode,lesson:lesson,learner:state,concept:concept)
+            guard app.identity.npub == account, app.learner.target == state.target, app.learner.support == state.support, !Task.isCancelled else { return }
+            exercise = generated
+        }
         catch { self.error = error.localizedDescription }
     }
     func submit(_ exercise: Exercise) {
@@ -64,7 +70,9 @@ struct ExerciseView: View {
         Task {
             defer { busy = false }
             do {
-                let grade = try await app.ai.grade(exercise: exercise, answer: answer, learner: app.learner)
+                var state = app.learner
+                if lesson?.id.hasPrefix("goal-") == true, let level = lesson?.agenda["cefrLevel"].string, LearningLanguages.levels.contains(level) { state.level = level }
+                let grade = try await app.ai.grade(exercise: exercise, answer: answer, learner:state)
                 guard app.identity.npub == account, app.learner.target == target, !Task.isCancelled else { return }
                 self.grade = grade
                 app.record(exercise: exercise, answer: answer, grade: grade, mode: mode, lesson: lesson, flashcardID: flashcardID)

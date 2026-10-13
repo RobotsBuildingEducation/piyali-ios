@@ -13,6 +13,10 @@ test('production rules isolate Nostr-authenticated learners and protect subscrip
     await assertSucceeds(setDoc(doc(db,'users',npub),{local_npub:npub,displayName:'Learner'}));
     await assertSucceeds(setDoc(doc(db,'users',npub,'companion','es'),{notes:[]}));
     await assertSucceeds(getDoc(doc(db,'users',npub)));
+    await assertSucceeds(setDoc(doc(db,'users',npub,'questDays','es_2026-10-13'),{practice_flashcards_goal:{cards:[],outcomes:{}}}));
+    await assertSucceeds(getDoc(doc(db,'users',npub,'questDays','es_2026-10-13')));
+    await assertFails(getDoc(doc(guest,'users',npub,'questDays','es_2026-10-13')));
+    await assertFails(setDoc(doc(db,'users',other,'questDays','es_2026-10-13'),{cards:[]}));
     await assertFails(getDoc(doc(guest,'users',npub)));
     await assertFails(getDoc(doc(anonymous,'users',npub)));
     await assertFails(getDoc(doc(db,'users',other)));

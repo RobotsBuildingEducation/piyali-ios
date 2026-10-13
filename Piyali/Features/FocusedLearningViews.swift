@@ -3,53 +3,63 @@ import CryptoKit
 
 struct FocusedGoalView: View {
     @EnvironmentObject var app: AppModel
+    @State private var draft = ""
     @State private var busy = false
     @State private var error: String?
-    var plan: FocusedPlan? { app.learner.focusPlans?[app.learner.target] }
-    var lesson: Lesson? {
-        guard let plan else { return nil }
-        let hash = SHA256.hash(data: Data((app.learner.target + app.learner.goal + app.learner.dailyKey).utf8)).prefix(8).map { String(format:"%02x",$0) }.joined()
-        let brief = JSONValue.object(["objective":.string(plan.objective),"words":.array(plan.words.map(JSONValue.string)),"grammar":.array(plan.grammar.map(JSONValue.string)),"scenarios":.array(plan.scenarios.map(JSONValue.string)),"successCriteria":.array(plan.successCriteria.map(JSONValue.string))])
-        return Lesson(id:"goal-\(hash)", title:.string(plan.title), description:.string(plan.objective), xpReward:30, modes:["vocabulary","reading","speaking"], agenda:brief, content:brief)
-    }
     var body: some View {
-        SubscriptionRequiredView(service: app.subscription) {
+        SubscriptionRequiredView(service:app.subscription) {
             Form {
                 Section("Your goal") {
-                    TextField("What would you like to do?", text:$app.learner.goal, axis:.vertical)
-                    Button(plan == nil ? "Build a focused plan" : "Rebuild plan") { generate() }.disabled(busy || app.learner.goal.isEmpty)
-                }
-                if let plan, let lesson {
-                    Section(plan.title) {
-                        Text(plan.objective)
-                        ForEach(plan.successCriteria,id:\.self) { Text($0) }
-                        Text("Words: " + plan.words.joined(separator:", "))
-                        Text("Grammar: " + plan.grammar.joined(separator:", "))
-                    }
-                    Section("Today's practice") {
-                        ForEach(AppModel.modes(for:lesson)) { mode in NavigationLink(mode.rawValue) { ExerciseView(mode:mode,lesson:lesson) } }
-                        Button("Complete today's goal (+30 XP)") { app.complete(lesson) }
-                            .disabled(!app.canComplete(lesson) || app.learner.completed.contains(app.learner.completionKey(lesson.id)))
+                    TextField("What would you like to do?",text:$draft,axis:.vertical)
+                    Button("Save goal") { app.learner.editGoal(draft); app.persist(); prepare() }.disabled(busy || draft.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty)
+                    if !app.learner.goalBucket["activeGoal"]["id"].string.isEmpty {
+                        let status = app.learner.goalBucket["activeGoal"]["status"].string
+                        Text("Status: " + status)
+                        Button(status == "active" ? "Pause goal" : "Resume goal") { app.setGoalStatus(status == "active" ? "paused" : "active"); if status != "active" { prepare() } }
+                        Button("Mark personal goal achieved") { app.setGoalStatus("achieved") }
+                        Button("Remove goal",role:.destructive) { app.learner.editGoal(""); draft = ""; app.persist() }
                     }
                 }
-                if busy { ProgressView("Building your plan…") }
+                if let daily = app.readyGoal {
+                    let blueprint = daily["blueprint"]
+                    Section("Today's focus") {
+                        Text(blueprint["objective"].string).font(.headline)
+                        Text(blueprint["scenario"].string)
+                        ForEach(GoalPractice.list(blueprint["successCriteria"]),id:\.self) { Text($0) }
+                        Text(blueprint["rationale"].string).font(.footnote)
+                    }
+                    Section(daily["completed"].boolean ? "Today's bundle completed" : "Practice bundle") {
+                        ForEach(GoalPractice.list(blueprint["modes"],max:4),id:\.self) { mode in
+                            NavigationLink {
+                                if mode == "lesson" { LessonView(lesson:GoalPractice.lesson(blueprint)) }
+                                else if mode == "tutor" { TutorView(goalBlueprint:blueprint) }
+                                else { GoalPreparationView(mode:mode,blueprint:blueprint) }
+                            } label: {
+                                HStack {
+                                    Text(mode.capitalized); Spacer()
+                                    if daily["modeProgress"][mode].number >= Double(GoalPractice.targets[mode] ?? 1) { Image(systemName:"checkmark.circle.fill") }
+                                    else if GoalPractice.nextMode(daily) == mode { Text("Next").foregroundStyle(.secondary) }
+                                }
+                            }
+                        }
+                        Text("Recall and modeled pronunciation are preparation. Task checks use what you demonstrate against today's criteria.").font(.footnote)
+                    }
+                    if !app.learner.goalBucket["goalProgress"]["prose"].string.isEmpty {
+                        Section("Progress evidence") { Text(app.learner.goalBucket["goalProgress"]["prose"].string) }
+                    }
+                } else if app.learner.goalBucket["activeGoal"]["status"].string == "active" {
+                    Button("Prepare today's practice") { prepare() }.disabled(busy)
+                }
+                if busy { ProgressView("Preparing today's goal…") }
                 if let error { Text(error).foregroundStyle(.red) }
             }
         }.navigationTitle("Focused goal")
+            .onAppear { draft = app.learner.goal }
+            .task(id:app.goalPreparationKey) { guard !busy else { return }; busy = true; defer { busy = false }; do { try await app.prepareGoal() } catch { self.error = error.localizedDescription } }
     }
-    func generate() {
-        guard app.subscription.hasAccess else { return }
-        let account = app.identity.npub, target = app.learner.target, goal = app.learner.goal
-        busy = true; error = nil; app.persist()
-        Task {
-            defer { busy = false }
-            do {
-                let plan = try await app.ai.structured(FocusedPlan.self,prompt:"Build a realistic focused language-learning plan for a \(app.learner.level) learner of \(LearningLanguages.names[app.learner.target] ?? app.learner.target). Goal data: \(JSONValue.string(app.learner.goal).json). Explain in \(LearningLanguages.names[app.learner.support] ?? app.learner.support). Be specific, achievable and aligned to the learner's level. Include 5 target-language words, 2 grammar concepts, 3 concrete scenarios and 3 observable success criteria. Return JSON {\"title\":\"short name\",\"objective\":\"goal\",\"words\":[\"word\"],\"grammar\":[\"concept\"],\"scenarios\":[\"situation\"],\"successCriteria\":[\"evidence\"]}.")
-                guard app.identity.npub == account, app.learner.target == target, app.learner.goal == goal else { return }
-                if app.learner.focusPlans == nil { app.learner.focusPlans = [:] }
-                app.learner.focusPlans?[app.learner.target] = plan; app.persist()
-            } catch { self.error = error.localizedDescription }
-        }
+    func prepare() {
+        busy = true; error = nil
+        Task { defer { busy = false }; do { try await app.prepareGoal() } catch { self.error = error.localizedDescription } }
     }
 }
 struct RepairPracticeView: View {

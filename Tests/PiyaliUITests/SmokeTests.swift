@@ -1,5 +1,27 @@
 import XCTest
 final class SmokeTests: XCTestCase {
+    func testLanguageSwitchKeepsGoalsSeparateAfterRelaunch() {
+        let app = XCUIApplication(); app.launchEnvironment["PIYALI_OFFLINE_TESTS"] = "1"; app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"] = UUID().uuidString; app.launch()
+        XCTAssertTrue(app.buttons["createAccount"].waitForExistence(timeout:5)); app.buttons["createAccount"].tap()
+        XCTAssertTrue(app.buttons["startLearning"].waitForExistence(timeout:10)); app.buttons["startLearning"].tap()
+        XCTAssertTrue(app.tabBars.buttons["Account"].waitForExistence(timeout:10)); app.tabBars.buttons["Account"].tap()
+        let goal = app.descendants(matching:.any)["learningGoalField"]
+        XCTAssertTrue(goal.waitForExistence(timeout:5)); goal.tap(); goal.typeText(" restaurant mission")
+        let save = app.buttons["saveLearningPreferences"]
+        XCTAssertTrue(save.waitForExistence(timeout:5)); save.tap()
+        let language = app.buttons["practiceLanguagePicker"]
+        XCTAssertTrue(language.waitForExistence(timeout:5)); language.tap()
+        XCTAssertTrue(app.buttons["French"].waitForExistence(timeout:5)); app.buttons["French"].tap()
+        XCTAssertFalse((goal.value as? String ?? "").contains("restaurant mission"))
+        app.terminate(); app.launch()
+        XCTAssertTrue(app.tabBars.buttons["Account"].waitForExistence(timeout:10)); app.tabBars.buttons["Account"].tap()
+        XCTAssertTrue(app.buttons["practiceLanguagePicker"].waitForExistence(timeout:5))
+        XCTAssertTrue(app.buttons["practiceLanguagePicker"].label.contains("French"))
+        XCTAssertFalse((app.descendants(matching:.any)["learningGoalField"].value as? String ?? "").contains("restaurant mission"))
+        app.buttons["practiceLanguagePicker"].tap()
+        XCTAssertTrue(app.buttons["Spanish"].waitForExistence(timeout:5)); app.buttons["Spanish"].tap()
+        XCTAssertTrue((app.descendants(matching:.any)["learningGoalField"].value as? String ?? "").contains("restaurant mission"))
+    }
     func testStartingLevelPersistsWithoutXPOrCompletionCredit() {
         let app = XCUIApplication(); app.launchEnvironment["PIYALI_OFFLINE_TESTS"] = "1"; app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"] = UUID().uuidString; app.launch()
         XCTAssertTrue(app.buttons["createAccount"].waitForExistence(timeout:5)); app.buttons["createAccount"].tap()

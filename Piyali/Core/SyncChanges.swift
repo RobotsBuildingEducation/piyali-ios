@@ -1,7 +1,7 @@
 import Foundation
 
 public enum PracticeSource: String, Codable, Sendable {
-    case practice, assessment, lesson, review, phonics, goal, repair, immersion
+    case practice, assessment, lesson, review, phonics, goal, goalMode, repair, immersion
     public var activityField: String? {
         switch self { case .lesson:"lessonDailyActivity"; case .review:"flashcardDailyActivity"; case .phonics:"phonicsDailyActivity"; case .goal:"goalDailyActivity"; case .repair:"repairDailyActivity"; default:nil }
     }
@@ -73,6 +73,23 @@ public extension LearnerState {
             let notes = MemoryContract.applying(change,to:merged.companionMemory?[change.target] ?? [],today:CalendarDay.key(Date()))
             merged.companionMemory?[change.target] = notes
         }
+        let sentGoalIDs = Set((sent.pendingGoalChanges ?? []).map(\.id))
+        let newGoals = (current.pendingGoalChanges ?? []).filter { !sentGoalIDs.contains($0.id) && !(acknowledged.acknowledgedEventIDs ?? []).contains($0.id) }
+        merged.pendingGoalChanges = newGoals; merged.goalIntelligence = acknowledged.goalIntelligence; merged.goalArtifacts = acknowledged.goalArtifacts
+        var newGoalRewards: [(GoalChange,Int)] = []
+        for change in newGoals.sorted(by:{ $0.date < $1.date }) {
+            let result = GoalPractice.applying(change,to:merged.goalIntelligence?[change.target] ?? .object([:]))
+            if merged.goalIntelligence == nil { merged.goalIntelligence = [:] }; merged.goalIntelligence?[change.target] = result.bucket
+            var reward = result.reward
+            if [.artifact,.outcome].contains(change.action) {
+                let key = GoalPractice.artifactKey(target:change.target,day:change.payload["dayKey"].string,mode:change.payload["mode"].string,goalID:change.payload["goalId"].string)
+                let artifact = GoalPractice.applyingArtifact(change,to:merged.goalArtifacts?[key] ?? .object([:]))
+                if merged.goalArtifacts == nil { merged.goalArtifacts = [:] }; merged.goalArtifacts?[key] = artifact.artifact
+                reward += artifact.reward
+            }
+            newGoalRewards.append((change,reward))
+        }
+        if current.goal == sent.goal && newGoals.isEmpty { merged.goal = acknowledged.goal }
         if current.preferencesModifiedAt == sent.preferencesModifiedAt {
             merged.preferencesModifiedAt = nil
             if current.name == sent.name { merged.name = acknowledged.name }
@@ -97,10 +114,12 @@ public extension LearnerState {
         merged.flashcardMastery.formUnion(acknowledged.flashcardMastery)
         var xp = acknowledged.xpByLanguage
         for change in newer { xp[change.target,default:0] += change.amount }
+        for (change,reward) in newGoalRewards { xp[change.target,default:0] += reward }
         merged.xpByLanguage = xp
         if acknowledged.dailyKey >= current.dailyKey {
             merged.dailyKey = acknowledged.dailyKey
             merged.dailyXP = acknowledged.dailyXP + newer.filter { $0.dayKey == acknowledged.dailyKey }.reduce(0) { $0 + $1.amount }
+            merged.dailyXP += newGoalRewards.filter { CalendarDay.key($0.0.date) == acknowledged.dailyKey }.reduce(0) { $0 + $1.1 }
             merged.streak = max(acknowledged.streak,current.dailyKey == acknowledged.dailyKey ? current.streak : 0)
         }
         for (key, review) in acknowledged.cardReviews ?? [:] {

@@ -7,12 +7,12 @@ struct RootView: View {
         else if !app.learner.onboardingComplete { OnboardingView() }
         else {
             TabView {
-                NavigationStack { HomeView() }.tabItem { Label("Learn", systemImage: "book") }
-                NavigationStack { PracticeLibraryView() }.tabItem { Label("Practice", systemImage: "rectangle.stack") }
-                NavigationStack { TutorView() }.tabItem { Label("Tutor", systemImage: "bubble.left.and.bubble.right") }
+                NavigationStack { HomeView() }.id("learn:" + app.learner.target).tabItem { Label("Learn", systemImage: "book") }
+                NavigationStack { PracticeLibraryView() }.id("practice:" + app.learner.target).tabItem { Label("Practice", systemImage: "rectangle.stack") }
+                NavigationStack { TutorView() }.id("tutor:" + app.learner.target).tabItem { Label("Tutor", systemImage: "bubble.left.and.bubble.right") }
                 NavigationStack { NotebookView() }.tabItem { Label("Notes", systemImage: "note.text") }
                 NavigationStack { AccountView() }.tabItem { Label("Account", systemImage: "person") }
-            }
+            }.id(app.identity.npub)
         }
     }
 }

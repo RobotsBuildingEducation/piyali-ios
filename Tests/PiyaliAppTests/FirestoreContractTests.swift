@@ -73,6 +73,92 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
         XCTAssertEqual(state.courseCompletion?["fr"]?["skillTree"]?["Pre-A1"],86)
         XCTAssertTrue(state.completed.isEmpty); XCTAssertTrue(state.flashcardMastery.isEmpty)
     }
+    func testFirstGoalUploadInitializesCanonicalProfile() async throws {
+        let (service,db,npub) = try context()
+        var state = LearnerState(); state.name = "First goal learner"; state.target = "fr"; state.support = "es"; state.onboardingComplete = true
+        state.editGoal("Order a meal")
+        XCTAssertNil(state.preferencesModifiedAt)
+        _ = try await service.save(state,npub:npub)
+        let fields = try await db.collection("users").document(npub).getDocument().data() ?? [:]
+        XCTAssertEqual(fields["displayName"] as? String,"First goal learner")
+        XCTAssertEqual((fields["progress"] as? [String:Any])?["targetLang"] as? String,"fr")
+        XCTAssertEqual((fields["onboarding"] as? [String:Any])?["completed"] as? Bool,true)
+    }
+    func testNewGoalDayReplacesWholeProgressAndBlueprintMaps() async throws {
+        let (service,db,npub) = try context(); try await seed(db,npub)
+        var state = try requireState(try await service.load(npub:npub)); state.editGoal("Order a meal")
+        let day = CalendarDay.key(Date())
+        let first = GoalPractice.blueprint(raw:.object([:]),goal:state.goalBucket["activeGoal"],target:"fr",day:day,level:state.level,rating:state.rating,progress:.object([:]))
+        state.applyGoal(GoalChange(action:.blueprint,target:"fr",payload:first))
+        state.applyGoal(GoalChange(action:.attempt,target:"fr",payload:first.setting("mode",.string("tutor")).setting("success",.bool(true)).setting("observation",.string("Ordered soup politely"))))
+        state = try requireState(try await service.save(state,npub:npub))
+        let next = first.setting("dayKey",.string(CalendarDay.shift(day,by:1))).setting("modes",.array([.string("phonics"),.string("flashcards")])).setting("modeTargets",.object(["phonics":.number(2),"flashcards":.number(3)]))
+        state.applyGoal(GoalChange(action:.blueprint,target:"fr",payload:next))
+        state = try requireState(try await service.save(state,npub:npub))
+        let daily = state.goalBucket["dailyGoal"]
+        XCTAssertEqual(Set(daily["modeProgress"].object.keys),["phonics","flashcards"])
+        XCTAssertEqual(Set(daily["blueprint"]["modeTargets"].object.keys),["phonics","flashcards"])
+        XCTAssertTrue(daily["modeProgress"].object.values.allSatisfy { $0.number == 0 })
+        XCTAssertFalse(daily["completed"].boolean)
+    }
+    func testDailyGoalBlueprintAndEvidenceConvergeAcrossDevices() async throws {
+        let (service,db,npub) = try context(); try await seed(db,npub)
+        var first = try requireState(try await service.load(npub:npub))
+        first.editGoal("Order a meal"); first = try requireState(try await service.save(first,npub:npub))
+        let goal = first.goalBucket["activeGoal"], day = CalendarDay.key(Date())
+        let blueprint = GoalPractice.blueprint(raw:.object([:]),goal:goal,target:first.target,day:day,level:first.level,rating:first.rating,progress:first.goalBucket["goalProgress"])
+        var second = first
+        first.applyGoal(GoalChange(action:.blueprint,target:first.target,payload:blueprint))
+        second.applyGoal(GoalChange(action:.blueprint,target:second.target,payload:blueprint.setting("objective",.string("Competing proposal"))))
+        let firstRequest = first, secondRequest = second
+        async let one = service.save(firstRequest,npub:npub)
+        async let two = service.save(secondRequest,npub:npub)
+        let initial = try await (one,two)
+        first = try requireState(initial.0); second = try requireState(initial.1)
+        XCTAssertEqual(first.dailyGoalTask?["blueprint"],second.dailyGoalTask?["blueprint"])
+        let stored = try XCTUnwrap(first.dailyGoalTask?["blueprint"])
+        let modes = GoalPractice.list(stored["modes"],max:4), firstMode = try XCTUnwrap(modes.first)
+        let payload = stored.setting("mode",.string(firstMode)).setting("success",.bool(true)).setting("support",.string("prompted")).setting("observation",.string("Ordered a meal using a hint"))
+        first.applyGoal(GoalChange(action:.attempt,target:first.target,payload:payload))
+        second.applyGoal(GoalChange(action:.attempt,target:second.target,payload:payload))
+        let firstAttempt = first, secondAttempt = second
+        async let attemptOne = service.save(firstAttempt,npub:npub)
+        async let attemptTwo = service.save(secondAttempt,npub:npub)
+        _ = try await (attemptOne,attemptTwo)
+        _ = try await service.save(firstAttempt,npub:npub)
+        var restored = try requireState(try await service.load(npub:npub))
+        XCTAssertEqual(restored.xp,100)
+        XCTAssertTrue((restored.pendingGoalChanges ?? []).isEmpty)
+        for mode in modes.dropFirst() {
+            restored.applyGoal(GoalChange(action:.attempt,target:restored.target,payload:payload.setting("mode",.string(mode))))
+            restored = try requireState(try await service.save(restored,npub:npub))
+        }
+        XCTAssertTrue(restored.dailyGoalTask?["completed"].boolean == true)
+        let fields = try await db.collection("users").document(npub).getDocument().data() ?? [:]
+        let activity = (fields["progress"] as? [String:Any])?["goalDailyActivity"] as? [String:[String:Int]]
+        XCTAssertEqual(activity?["fr"]?[day],1)
+        XCTAssertEqual(fields["patreonVerified"] as? Bool,true)
+    }
+    func testGoalPreparationDeckAndOutcomesUseSharedQuestArtifact() async throws {
+        let (service,db,npub) = try context(); try await seed(db,npub)
+        var state = try requireState(try await service.load(npub:npub)); state.editGoal("Order a meal")
+        let day = CalendarDay.key(Date())
+        let blueprint = GoalPractice.blueprint(raw:.object(["mode":.string("flashcards"),"targetLanguage":.array([.string("soupe")])]),goal:state.goalBucket["activeGoal"],target:state.target,day:day,level:state.level,rating:state.rating,progress:.object([:]))
+        state.applyGoal(GoalChange(action:.blueprint,target:state.target,payload:blueprint))
+        let card: JSONValue = .object(["id":.string("goal-card"),"concept":.object(["fr":.string("soupe"),"es":.string("sopa")])])
+        state.applyGoal(GoalChange(action:.artifact,target:state.target,payload:blueprint.setting("mode",.string("flashcards")).setting("cards",.array([card]))))
+        state = try requireState(try await service.save(state,npub:npub))
+        let payload = blueprint.setting("mode",.string("flashcards")).setting("cardID",card["id"]).setting("success",.bool(true)).setting("support",.string("prompted")).setting("item",.string("soupe"))
+        state.applyGoal(GoalChange(action:.outcome,target:state.target,payload:payload))
+        let sent = state
+        state = try requireState(try await service.save(state,npub:npub)); _ = try await service.save(sent,npub:npub)
+        XCTAssertEqual(state.xp,102)
+        let key = GoalPractice.artifactKey(target:"fr",day:day,mode:"flashcards",goalID:blueprint["goalId"].string)
+        XCTAssertTrue(state.goalArtifacts?[key]?["outcomes"]["goal-card"]["success"].boolean == true)
+        XCTAssertFalse(state.dailyGoalTask?["completed"].boolean == true)
+        let artifact = try await db.collection("users").document(npub).collection("questDays").document("fr_" + day).getDocument().data() ?? [:]
+        XCTAssertEqual((artifact["practice_flashcards_goal"] as? [String:Any])?["ownerKey"] as? String,key)
+    }
     func testMemoryCapturesMergeWithWebNotesAndRetryOnce() async throws {
         let (service,db,npub) = try context(); try await seed(db,npub)
         let bucket = db.collection("users").document(npub).collection("companion").document("fr")

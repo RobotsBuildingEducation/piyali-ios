@@ -37,6 +37,7 @@ struct HomeView: View {
             }
             Section { NavigationLink("Subscription") { SubscriptionView(service: app.subscription) } }
         }.navigationTitle("Piyali")
+            .task(id:app.goalPreparationKey) { try? await app.prepareGoal() }
             .onChange(of: app.learner.level) { _, _ in app.persist(); Task { await app.reloadContent() } }
     }
 }
@@ -45,6 +46,8 @@ struct DailyPlateView: View {
     var body: some View {
         List {
             Text("Work on today's lesson across each skill. Correct answers earn XP and feed your companion.")
+            NavigationLink("Goal practice") { FocusedGoalView() }
+            NavigationLink("Repair mistakes") { RepairPracticeView() }
             ForEach([PracticeMode.vocabulary,.grammar,.reading,.listening,.speaking,.stories]) { mode in
                 NavigationLink(mode.rawValue) { ExerciseView(mode: mode, lesson: app.selectedLesson) }
             }
@@ -73,7 +76,7 @@ struct LessonView: View {
                         }
                     }
                 }
-                Button("Complete lesson (+\(lesson.xpReward) XP)") { app.complete(lesson) }
+                Button(lesson.id.hasPrefix("goal-") ? "Complete today’s goal lesson" : "Complete lesson (+\(lesson.xpReward) XP)") { app.complete(lesson) }
                     .disabled(!app.canComplete(lesson) || app.learner.completed.contains(app.learner.completionKey(lesson.id)))
                 Text("Complete a correct exercise in every listed skill to finish this lesson.").font(.footnote)
             }

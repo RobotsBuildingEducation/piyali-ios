@@ -15,7 +15,7 @@ service cloud.firestore {
       allow create: if owns(userId) && matchingKey(userId) && !request.resource.data.keys().hasAny(protectedFields());
       allow update: if owns(userId) && matchingKey(userId) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(protectedFields());
       match /{collection}/{document} {
-        allow read, write: if owns(userId) && collection in ['languageLessons','languageFlashcards','courseProgress','xpHistory','companion','iosPracticeReceipts'];
+        allow read, write: if owns(userId) && collection in ['languageLessons','languageFlashcards','courseProgress','xpHistory','companion','iosPracticeReceipts','questDays'];
       }
     }
   }

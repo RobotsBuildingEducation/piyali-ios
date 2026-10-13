@@ -75,6 +75,8 @@ public enum WebProgressContract {
         let lastGoal = fields["lastGoalDayKey"] as? String ?? ""
         state.streak = [today,CalendarDay.shift(today,by:-1)].contains(lastGoal) ? integer(fields["goalStreakCount"]) : 0
         for (language, bucket) in fields["learningIntelligence"] as? [String:[String:Any]] ?? [:] {
+            if state.goalIntelligence == nil { state.goalIntelligence = [:] }
+            state.goalIntelligence?[language] = JSONValue.foundation(bucket.filter { ["version","activeGoal","dailyGoal","goalProgress"].contains($0.key) })
             let elo = bucket["elo"] as? [String:Any] ?? [:]
             if state.gradedByLanguage == nil { state.gradedByLanguage = [:] }
             state.gradedByLanguage?[language] = max(0,integer(elo["totalGraded"]))
@@ -83,6 +85,12 @@ public enum WebProgressContract {
                 state.ratingByLanguage?[language] = max(800,min(2200,number(elo["rating"])))
             }
         }
+        for change in state.pendingGoalChanges ?? [] where !(state.acknowledgedEventIDs ?? []).contains(change.id) {
+            if state.goalIntelligence == nil { state.goalIntelligence = [:] }
+            let result = GoalPractice.applying(change,to:state.goalIntelligence?[change.target] ?? .object([:]))
+            state.goalIntelligence?[change.target] = result.bucket
+        }
+        if !state.goalBucket["activeGoal"]["text"].string.isEmpty { state.goal = state.goalBucket["activeGoal"]["text"].string }
         return state
     }
     public static func placementPatch(fields: [String:Any], language: String, placement: Placement) -> [String:Any] {

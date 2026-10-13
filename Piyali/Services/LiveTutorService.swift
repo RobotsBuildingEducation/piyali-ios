@@ -6,6 +6,7 @@ import FirebaseAILogic
     @Published var connected = false
     @Published var connecting = false
     @Published var transcript = ""
+    @Published var learnerTranscript = ""
     @Published var error: String?
     private var session: LiveSession?
     private var receiver: Task<Void, Never>?
@@ -17,24 +18,24 @@ import FirebaseAILogic
     private var generation = UUID()
     private let outputFormat = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 24000, channels: 1, interleaved: false)!
     static let openingPrompt = "Speak aloud now. Greet me briefly in my target language and start practicing my goal."
-    static func model(for learner: LearnerState, configuration config: AppConfiguration = AppConfiguration()) -> LiveGenerativeModel {
-        let instruction = "You are Piyali, a patient language tutor. Teach \(LearningLanguages.names[learner.target] ?? learner.target) at \(learner.level). Use \(LearningLanguages.names[learner.support] ?? learner.support) for brief explanations. Goal: \(learner.goal). Speak in short turns, correct mistakes kindly, and invite the learner to respond."
+    static func model(for learner: LearnerState, configuration config: AppConfiguration = AppConfiguration(), goalBlueprint: JSONValue? = nil) -> LiveGenerativeModel {
+        let instruction = goalBlueprint.map { GoalPractice.instructions($0,support:learner.support) + " Current ability context: internal Elo \(learner.rating), Score \(learner.score), estimated level \(PerformanceScore.level(score:learner.score)). Adapt challenge and support to observed responses while retaining the goal." } ?? "You are Piyali, a patient language tutor. Teach \(LearningLanguages.names[learner.target] ?? learner.target) at \(learner.level). Use \(LearningLanguages.names[learner.support] ?? learner.support) for brief explanations. Goal: \(learner.goal). Speak in short turns, correct mistakes kindly, and invite the learner to respond."
         return FirebaseAI.firebaseAI(backend:config.geminiBackend(live:true)).liveModel(
             modelName:config.string("GeminiLiveModel",default:"gemini-2.5-flash-native-audio-preview-12-2025"),
             generationConfig:LiveGenerationConfig(responseModalities:[.audio],inputAudioTranscription:AudioTranscriptionConfig(),outputAudioTranscription:AudioTranscriptionConfig()),
             systemInstruction:ModelContent(role:"system",parts:[TextPart(instruction)])
         )
     }
-    func start(learner: LearnerState) async {
+    func start(learner: LearnerState, goalBlueprint: JSONValue? = nil) async {
         guard !connected && !connecting else { return }
         guard FirebaseService.shared.configured else { error = "Add the iOS Firebase configuration and App Check registration to use live audio."; return }
-        connecting = true; error = nil; transcript = ""
+        connecting = true; error = nil; transcript = ""; learnerTranscript = ""
         let currentGeneration = UUID(); generation = currentGeneration
         defer { connecting = false }
         guard await AVAudioApplication.requestRecordPermission() else { error = "Enable the microphone in Settings to use live audio."; return }
         guard generation == currentGeneration else { return }
         do {
-            let model = Self.model(for:learner)
+            let model = Self.model(for:learner,goalBlueprint:goalBlueprint)
             let newSession = try await model.connect()
             guard generation == currentGeneration else { await newSession.close(); return }
             session = newSession
@@ -46,7 +47,7 @@ import FirebaseAILogic
                         guard let self, self.generation == currentGeneration, !Task.isCancelled else { break }
                         if case .content(let content) = message.payload {
                             if content.wasInterrupted { self.player.stop(); self.player.play() }
-                            if let input = content.inputAudioTranscription { self.transcript += "You: " + (input.text ?? "") + "\n" }
+                            if let input = content.inputAudioTranscription { self.transcript += "You: " + (input.text ?? "") + "\n"; self.learnerTranscript += (input.text ?? "") + "\n"; self.learnerTranscript = String(self.learnerTranscript.suffix(12000)) }
                             if let output = content.outputAudioTranscription { self.transcript += output.text ?? "" }
                             if self.transcript.count > 16000 { self.transcript = String(self.transcript.suffix(16000)) }
                             for part in content.modelTurn?.parts ?? [] {

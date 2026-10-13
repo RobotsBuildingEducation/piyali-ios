@@ -1,0 +1,587 @@
+{
+  "modes": [
+    {
+      "goalId": "goal-one",
+      "dayKey": "2026-10-13",
+      "preferredMode": "tutor",
+      "allowFocusedCards": true,
+      "expected": [
+        "tutor",
+        "lesson",
+        "phonics"
+      ]
+    },
+    {
+      "goalId": "goal-one",
+      "dayKey": "2026-10-13",
+      "preferredMode": "tutor",
+      "allowFocusedCards": false,
+      "expected": [
+        "tutor",
+        "lesson"
+      ]
+    },
+    {
+      "goalId": "goal-one",
+      "dayKey": "2026-10-13",
+      "preferredMode": "phonics",
+      "allowFocusedCards": true,
+      "expected": [
+        "phonics",
+        "lesson",
+        "tutor"
+      ]
+    },
+    {
+      "goalId": "goal-one",
+      "dayKey": "2026-10-13",
+      "preferredMode": "phonics",
+      "allowFocusedCards": false,
+      "expected": [
+        "tutor",
+        "lesson"
+      ]
+    },
+    {
+      "goalId": "goal-one",
+      "dayKey": "2026-10-13",
+      "preferredMode": "flashcards",
+      "allowFocusedCards": true,
+      "expected": [
+        "flashcards",
+        "tutor"
+      ]
+    },
+    {
+      "goalId": "goal-one",
+      "dayKey": "2026-10-13",
+      "preferredMode": "flashcards",
+      "allowFocusedCards": false,
+      "expected": [
+        "tutor",
+        "lesson"
+      ]
+    },
+    {
+      "goalId": "goal-one",
+      "dayKey": "2026-10-13",
+      "preferredMode": "lesson",
+      "allowFocusedCards": true,
+      "expected": [
+        "lesson",
+        "flashcards",
+        "phonics"
+      ]
+    },
+    {
+      "goalId": "goal-one",
+      "dayKey": "2026-10-13",
+      "preferredMode": "lesson",
+      "allowFocusedCards": false,
+      "expected": [
+        "lesson",
+        "tutor"
+      ]
+    },
+    {
+      "goalId": "goal-one",
+      "dayKey": "2026-10-13",
+      "preferredMode": "",
+      "allowFocusedCards": true,
+      "expected": [
+        "tutor",
+        "phonics",
+        "lesson",
+        "flashcards"
+      ]
+    },
+    {
+      "goalId": "goal-one",
+      "dayKey": "2026-10-13",
+      "preferredMode": "",
+      "allowFocusedCards": false,
+      "expected": [
+        "tutor",
+        "lesson"
+      ]
+    },
+    {
+      "goalId": "goal-two",
+      "dayKey": "2026-10-13",
+      "preferredMode": "tutor",
+      "allowFocusedCards": true,
+      "expected": [
+        "tutor",
+        "flashcards"
+      ]
+    },
+    {
+      "goalId": "goal-two",
+      "dayKey": "2026-10-13",
+      "preferredMode": "tutor",
+      "allowFocusedCards": false,
+      "expected": [
+        "tutor",
+        "lesson"
+      ]
+    },
+    {
+      "goalId": "goal-two",
+      "dayKey": "2026-10-13",
+      "preferredMode": "phonics",
+      "allowFocusedCards": true,
+      "expected": [
+        "phonics",
+        "lesson"
+      ]
+    },
+    {
+      "goalId": "goal-two",
+      "dayKey": "2026-10-13",
+      "preferredMode": "phonics",
+      "allowFocusedCards": false,
+      "expected": [
+        "lesson",
+        "tutor"
+      ]
+    },
+    {
+      "goalId": "goal-two",
+      "dayKey": "2026-10-13",
+      "preferredMode": "flashcards",
+      "allowFocusedCards": true,
+      "expected": [
+        "flashcards",
+        "tutor"
+      ]
+    },
+    {
+      "goalId": "goal-two",
+      "dayKey": "2026-10-13",
+      "preferredMode": "flashcards",
+      "allowFocusedCards": false,
+      "expected": [
+        "lesson",
+        "tutor"
+      ]
+    },
+    {
+      "goalId": "goal-two",
+      "dayKey": "2026-10-13",
+      "preferredMode": "lesson",
+      "allowFocusedCards": true,
+      "expected": [
+        "lesson",
+        "tutor"
+      ]
+    },
+    {
+      "goalId": "goal-two",
+      "dayKey": "2026-10-13",
+      "preferredMode": "lesson",
+      "allowFocusedCards": false,
+      "expected": [
+        "lesson",
+        "tutor"
+      ]
+    },
+    {
+      "goalId": "goal-two",
+      "dayKey": "2026-10-13",
+      "preferredMode": "",
+      "allowFocusedCards": true,
+      "expected": [
+        "phonics",
+        "lesson",
+        "tutor",
+        "flashcards"
+      ]
+    },
+    {
+      "goalId": "goal-two",
+      "dayKey": "2026-10-13",
+      "preferredMode": "",
+      "allowFocusedCards": false,
+      "expected": [
+        "tutor",
+        "lesson"
+      ]
+    },
+    {
+      "goalId": "language-ñ",
+      "dayKey": "2026-10-13",
+      "preferredMode": "tutor",
+      "allowFocusedCards": true,
+      "expected": [
+        "tutor",
+        "phonics",
+        "flashcards",
+        "lesson"
+      ]
+    },
+    {
+      "goalId": "language-ñ",
+      "dayKey": "2026-10-13",
+      "preferredMode": "tutor",
+      "allowFocusedCards": false,
+      "expected": [
+        "tutor",
+        "lesson"
+      ]
+    },
+    {
+      "goalId": "language-ñ",
+      "dayKey": "2026-10-13",
+      "preferredMode": "phonics",
+      "allowFocusedCards": true,
+      "expected": [
+        "phonics",
+        "tutor",
+        "flashcards"
+      ]
+    },
+    {
+      "goalId": "language-ñ",
+      "dayKey": "2026-10-13",
+      "preferredMode": "phonics",
+      "allowFocusedCards": false,
+      "expected": [
+        "lesson",
+        "tutor"
+      ]
+    },
+    {
+      "goalId": "language-ñ",
+      "dayKey": "2026-10-13",
+      "preferredMode": "flashcards",
+      "allowFocusedCards": true,
+      "expected": [
+        "flashcards",
+        "lesson",
+        "phonics"
+      ]
+    },
+    {
+      "goalId": "language-ñ",
+      "dayKey": "2026-10-13",
+      "preferredMode": "flashcards",
+      "allowFocusedCards": false,
+      "expected": [
+        "lesson",
+        "tutor"
+      ]
+    },
+    {
+      "goalId": "language-ñ",
+      "dayKey": "2026-10-13",
+      "preferredMode": "lesson",
+      "allowFocusedCards": true,
+      "expected": [
+        "lesson",
+        "flashcards",
+        "phonics",
+        "tutor"
+      ]
+    },
+    {
+      "goalId": "language-ñ",
+      "dayKey": "2026-10-13",
+      "preferredMode": "lesson",
+      "allowFocusedCards": false,
+      "expected": [
+        "lesson",
+        "tutor"
+      ]
+    },
+    {
+      "goalId": "language-ñ",
+      "dayKey": "2026-10-13",
+      "preferredMode": "",
+      "allowFocusedCards": true,
+      "expected": [
+        "flashcards",
+        "phonics",
+        "lesson",
+        "tutor"
+      ]
+    },
+    {
+      "goalId": "language-ñ",
+      "dayKey": "2026-10-13",
+      "preferredMode": "",
+      "allowFocusedCards": false,
+      "expected": [
+        "lesson",
+        "tutor"
+      ]
+    },
+    {
+      "goalId": "learner-🐈",
+      "dayKey": "2026-10-13",
+      "preferredMode": "tutor",
+      "allowFocusedCards": true,
+      "expected": [
+        "tutor",
+        "lesson",
+        "flashcards",
+        "phonics"
+      ]
+    },
+    {
+      "goalId": "learner-🐈",
+      "dayKey": "2026-10-13",
+      "preferredMode": "tutor",
+      "allowFocusedCards": false,
+      "expected": [
+        "tutor",
+        "lesson"
+      ]
+    },
+    {
+      "goalId": "learner-🐈",
+      "dayKey": "2026-10-13",
+      "preferredMode": "phonics",
+      "allowFocusedCards": true,
+      "expected": [
+        "phonics",
+        "tutor",
+        "lesson"
+      ]
+    },
+    {
+      "goalId": "learner-🐈",
+      "dayKey": "2026-10-13",
+      "preferredMode": "phonics",
+      "allowFocusedCards": false,
+      "expected": [
+        "tutor",
+        "lesson"
+      ]
+    },
+    {
+      "goalId": "learner-🐈",
+      "dayKey": "2026-10-13",
+      "preferredMode": "flashcards",
+      "allowFocusedCards": true,
+      "expected": [
+        "flashcards",
+        "phonics"
+      ]
+    },
+    {
+      "goalId": "learner-🐈",
+      "dayKey": "2026-10-13",
+      "preferredMode": "flashcards",
+      "allowFocusedCards": false,
+      "expected": [
+        "tutor",
+        "lesson"
+      ]
+    },
+    {
+      "goalId": "learner-🐈",
+      "dayKey": "2026-10-13",
+      "preferredMode": "lesson",
+      "allowFocusedCards": true,
+      "expected": [
+        "lesson",
+        "phonics"
+      ]
+    },
+    {
+      "goalId": "learner-🐈",
+      "dayKey": "2026-10-13",
+      "preferredMode": "lesson",
+      "allowFocusedCards": false,
+      "expected": [
+        "lesson",
+        "tutor"
+      ]
+    },
+    {
+      "goalId": "learner-🐈",
+      "dayKey": "2026-10-13",
+      "preferredMode": "",
+      "allowFocusedCards": true,
+      "expected": [
+        "flashcards",
+        "lesson",
+        "tutor"
+      ]
+    },
+    {
+      "goalId": "learner-🐈",
+      "dayKey": "2026-10-13",
+      "preferredMode": "",
+      "allowFocusedCards": false,
+      "expected": [
+        "lesson",
+        "tutor"
+      ]
+    }
+  ],
+  "evidence": {
+    "event": {
+      "id": "evidence-one",
+      "target": "Order a meal",
+      "mode": "flashcards",
+      "domain": "recall",
+      "support": "prompted",
+      "success": true,
+      "observation": "Correct recall of a food phrase",
+      "expectedAnswer": "Quisiera una sopa."
+    },
+    "now": "2026-10-13T12:00:00.000Z",
+    "expected": {
+      "version": 1,
+      "demonstrated": [
+        {
+          "target": "Order a meal",
+          "example": "Correct recall of a food phrase",
+          "stage": "prompted",
+          "demonstratedStage": "recognition",
+          "mode": "flashcards",
+          "domain": "recall",
+          "recurrence": 1,
+          "severity": 1,
+          "lastSeen": "2026-10-13T12:00:00.000Z"
+        }
+      ],
+      "openCapabilities": [],
+      "usefulLanguage": [
+        "Quisiera una sopa."
+      ],
+      "modeEvidence": [
+        "flashcards: prompted — Order a meal"
+      ],
+      "nextGoalGuidance": {
+        "target": "Transfer Order a meal to a fresh situation",
+        "support": "Reduce support gradually",
+        "avoid": "Do not repeat the demonstrated exercise"
+      },
+      "eventIds": [
+        "evidence-one"
+      ],
+      "updatedAt": "2026-10-13T12:00:00.000Z",
+      "prose": "Order a meal: Correct recall of a food phrase (prompted, flashcards, recall; occurrences 1; 2026-10-13T12:00:00.000Z); Quisiera una sopa.; flashcards: prompted — Order a meal; Transfer Order a meal to a fresh situation; Reduce support gradually; Do not repeat the demonstrated exercise",
+      "wordCount": 41
+    }
+  },
+  "modeCompletion": {
+    "bucket": {
+      "version": 1,
+      "activeGoal": {
+        "id": "goal-one",
+        "text": "Order a meal",
+        "status": "active"
+      },
+      "goalProgress": {},
+      "dailyGoal": {
+        "blueprint": {
+          "goalId": "goal-one",
+          "goalText": "Order a meal",
+          "dayKey": "2026-10-13",
+          "lang": "es",
+          "mode": "tutor",
+          "modes": [
+            "lesson",
+            "tutor"
+          ],
+          "objective": "Ask for soup"
+        },
+        "completed": false,
+        "modeProgress": {
+          "lesson": 20,
+          "tutor": 0
+        },
+        "modeEventIds": [],
+        "evidence": []
+      }
+    },
+    "event": {
+      "id": "00000000-0000-0000-0000-000000000001",
+      "success": true,
+      "support": "prompted",
+      "domain": "production",
+      "observation": "Asked for soup politely after a hint"
+    },
+    "now": "2026-10-13T12:00:00.000Z",
+    "completed": true,
+    "expected": {
+      "version": 1,
+      "activeGoal": {
+        "id": "goal-one",
+        "text": "Order a meal",
+        "status": "active"
+      },
+      "goalProgress": {
+        "version": 1,
+        "demonstrated": [
+          {
+            "target": "Ask for soup",
+            "example": "Asked for soup politely after a hint",
+            "stage": "prompted",
+            "demonstratedStage": "production with help",
+            "mode": "tutor",
+            "domain": "production",
+            "recurrence": 1,
+            "severity": 1,
+            "lastSeen": "2026-10-13T12:00:00.000Z"
+          }
+        ],
+        "openCapabilities": [],
+        "usefulLanguage": [],
+        "modeEvidence": [
+          "tutor: prompted — Ask for soup"
+        ],
+        "nextGoalGuidance": {
+          "target": "Transfer Ask for soup to a fresh situation",
+          "support": "Reduce support gradually",
+          "avoid": "Do not repeat the demonstrated exercise"
+        },
+        "eventIds": [
+          "00000000-0000-0000-0000-000000000001"
+        ],
+        "updatedAt": "2026-10-13T12:00:00.000Z",
+        "prose": "Ask for soup: Asked for soup politely after a hint (prompted, tutor, production; occurrences 1; 2026-10-13T12:00:00.000Z); tutor: prompted — Ask for soup; Transfer Ask for soup to a fresh situation; Reduce support gradually; Do not repeat the demonstrated exercise",
+        "wordCount": 39
+      },
+      "dailyGoal": {
+        "blueprint": {
+          "goalId": "goal-one",
+          "goalText": "Order a meal",
+          "dayKey": "2026-10-13",
+          "lang": "es",
+          "mode": "tutor",
+          "modes": [
+            "lesson",
+            "tutor"
+          ],
+          "objective": "Ask for soup"
+        },
+        "completed": true,
+        "modeProgress": {
+          "lesson": 20,
+          "tutor": 25
+        },
+        "modeEventIds": [
+          "00000000-0000-0000-0000-000000000001"
+        ],
+        "evidence": [
+          {
+            "id": "00000000-0000-0000-0000-000000000001",
+            "success": true,
+            "support": "prompted",
+            "domain": "production",
+            "observation": "Asked for soup politely after a hint",
+            "goalId": "goal-one",
+            "mode": "tutor",
+            "target": "Ask for soup"
+          }
+        ]
+      }
+    },
+    "xpBefore": 17,
+    "xpAfter": 17
+  }
+}

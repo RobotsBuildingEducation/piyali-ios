@@ -40,3 +40,5 @@ The native Cloudflare worker now provides an authenticated Responses endpoint, u
 Remaining integration work: production App Attest registration, audio-cache and alternate voice transport. The old web worker validates the old Firebase project and cannot accept this project's App Check tokens.
 
 The main app's web subscription link still points to `piyali.app/subscribe`. The existing web subscription API is independent of native learner storage. Live tests verified the signed restore challenge, unlinked-key denial and replay rejection, and Swift validates the exact restore action and expiry before signing. No paid membership was created; active-member restoration remains a sandbox/manual verification gate. StoreKit products and Apple signing setup remain separate requirements.
+
+Daily goal preparation uses owner-only `questDays` documents. The deployed native rules include this collection, with emulator coverage for owner access and other-user/unauthenticated denial.

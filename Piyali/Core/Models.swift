@@ -133,6 +133,9 @@ public struct LearnerState: Codable, Sendable {
     public var pendingMemoryChanges: [MemoryChange]?
     public var acknowledgedEventIDs: Set<UUID>?
     public var ratingByLanguage: [String: Double]?
+    public var goalArtifacts: [String: JSONValue]?
+    public var goalIntelligence: [String: JSONValue]?
+    public var pendingGoalChanges: [GoalChange]?
     public var focusPlans: [String: FocusedPlan]?
     public var masteredPhonics: Set<String>?
     public var immersionDays: Set<String>?
