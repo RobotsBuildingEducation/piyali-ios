@@ -34,4 +34,4 @@ jobs:
       - run: npm install --global firebase-tools@13.25.0
       - run: scripts/test-firestore.sh
       - run: npm ci --prefix Backend
-      - run: firebase --config firebase.json --project demo-piyali-ios-auth emulators:exec --only firestore "PIYALI_RULES_EMULATOR=1 node --test Backend/test/*.test.js"
+      - run: scripts/test-rules.sh

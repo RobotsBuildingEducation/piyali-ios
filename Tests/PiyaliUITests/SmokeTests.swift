@@ -1,5 +1,20 @@
 import XCTest
 final class SmokeTests: XCTestCase {
+    func testDailyPlateIntroAndReviewCountPersistWithoutRevealXP() {
+        let app = XCUIApplication(); app.launchEnvironment["PIYALI_OFFLINE_TESTS"] = "1"; app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"] = UUID().uuidString; app.launch()
+        XCTAssertTrue(app.buttons["createAccount"].waitForExistence(timeout:5)); app.buttons["createAccount"].tap()
+        XCTAssertTrue(app.buttons["startLearning"].waitForExistence(timeout:10)); app.buttons["startLearning"].tap()
+        XCTAssertTrue(app.buttons["Daily practice plate"].waitForExistence(timeout:10)); app.buttons["Daily practice plate"].tap()
+        XCTAssertTrue(app.buttons["quest-speak"].waitForExistence(timeout:5)); XCTAssertTrue(app.buttons["quest-learn"].exists)
+        XCTAssertTrue(app.buttons["quest-review"].label.contains("0 / 5")); app.buttons["quest-review"].tap()
+        XCTAssertTrue(app.buttons["Reveal answer"].waitForExistence(timeout:5)); app.buttons["Reveal answer"].tap()
+        app.terminate(); app.launch()
+        XCTAssertTrue(app.buttons["Daily practice plate"].waitForExistence(timeout:10)); app.buttons["Daily practice plate"].tap()
+        XCTAssertTrue(app.buttons["quest-review"].waitForExistence(timeout:5)); XCTAssertTrue(app.buttons["quest-review"].label.contains("1 / 5"))
+        XCTAssertFalse(app.staticTexts["questCompleted"].exists)
+        app.navigationBars.buttons.element(boundBy:0).tap(); app.tabBars.buttons["Account"].tap(); app.swipeUp()
+        XCTAssertTrue(app.staticTexts["0 total XP · 0 lessons completed"].waitForExistence(timeout:5))
+    }
     func testLanguageSwitchKeepsGoalsSeparateAfterRelaunch() {
         let app = XCUIApplication(); app.launchEnvironment["PIYALI_OFFLINE_TESTS"] = "1"; app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"] = UUID().uuidString; app.launch()
         XCTAssertTrue(app.buttons["createAccount"].waitForExistence(timeout:5)); app.buttons["createAccount"].tap()

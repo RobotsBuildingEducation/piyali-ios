@@ -36,6 +36,7 @@ public enum PlacementAssessment {
     }
 }
 public extension LearnerState {
+    var tutorLevel: String { tutorLevels?[target] ?? placements?[target]?.level ?? "Pre-A1" }
     var flashcardLevel: String { flashcardLevels?[target] ?? level }
     mutating func place(_ placement: Placement) {
         guard LearningLanguages.levels.contains(placement.level) else { return }
@@ -46,6 +47,7 @@ public extension LearnerState {
         level = placement.level
         if lessonLevels == nil { lessonLevels = [:] }; lessonLevels?[target] = level
         if flashcardLevels == nil { flashcardLevels = [:] }; flashcardLevels?[target] = level
+        if tutorLevels == nil { tutorLevels = [:] }; tutorLevels?[target] = level
         if (gradedByLanguage?[target] ?? 0) == 0 {
             if ratingByLanguage == nil { ratingByLanguage = [:] }
             ratingByLanguage?[target] = PerformanceScore.rating(score:Double(placement.score))
@@ -56,7 +58,7 @@ public extension LearnerState {
         var highest = 0
         for i in 0..<(LearningLanguages.levels.count - 1) {
             let level = LearningLanguages.levels[i], ids = index[level] ?? []
-            let localCount = ids.filter { (mode == "flashcards" ? flashcardMastery : completed).contains(completionKey($0)) }.count
+            let localCount = ids.filter { (mode == "flashcards" ? flashcardMastery : completed).contains(mode == "tutor" ? tutorKey($0) : completionKey($0)) }.count
             let summaryCount = courseCompletion?[target]?[mode]?[level] ?? 0
             if i < placementIndex || (!ids.isEmpty && max(localCount,summaryCount) >= ids.count) { highest = i + 1 }
             else { break }

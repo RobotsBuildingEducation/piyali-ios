@@ -136,6 +136,11 @@ public struct LearnerState: Codable, Sendable {
     public var goalArtifacts: [String: JSONValue]?
     public var goalIntelligence: [String: JSONValue]?
     public var pendingGoalChanges: [GoalChange]?
+    public var tutorLevels: [String:String]?
+    public var tutorLessons: [String:TutorLessonProgress]?
+    public var questProgress: JSONValue?
+    public var questPlans: [String:DailyQuestPlan]?
+    public var journeyQuestCounts: [String:Int]?
     public var focusPlans: [String: FocusedPlan]?
     public var masteredPhonics: Set<String>?
     public var immersionDays: Set<String>?
@@ -177,7 +182,7 @@ public struct LearnerState: Codable, Sendable {
         let earned = max(0, min(amount, 100))
         guard earned > 0 else { return }
         addXP(earned,now:now,calendar:calendar)
-        enqueue(PracticeChange(date:now,dayKey:dailyKey,target:target,level:level,amount:earned,source:source,contentID:contentID))
+        enqueue(PracticeChange(date:now,dayKey:dailyKey,target:target,level:source == .speak ? tutorLevel : level,amount:earned,source:source,contentID:contentID))
     }
     mutating func addXP(_ amount: Int, now: Date, calendar: Calendar) {
         rollDay(now:now,calendar:calendar)

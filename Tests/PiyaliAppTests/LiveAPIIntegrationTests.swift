@@ -2,6 +2,7 @@ import XCTest
 import FirebaseCore
 import FirebaseAppCheck
 import FirebaseAuth
+import FirebaseFirestore
 import FirebaseAILogic
 @testable import Piyali
 
@@ -43,6 +44,14 @@ import FirebaseAILogic
             let verdict = try await AIService().goalVerdict(blueprint:rubric,response:"Quisiera una sopa, por favor.",context:"The learner independently answered the restaurant waiter.",support:"en")
             XCTAssertTrue(verdict.success); XCTAssertFalse(verdict.observation.isEmpty)
             print("LIVE NATIVE: Goal blueprint and action-based check returned")
+            let lesson = Lesson(id:"lesson-pre-a1-1-1",title:.string("Family"),description:.string("Name a family member"),xpReward:80,modes:["realtime"],agenda:.object(["items":.array([.object(["id":.string("mama"),"goal":.string("Use mamá in a short sentence"),"evidence":.object(["criteria":.string("Produces a meaningful sentence with mamá")])])])]),content:.object([:]))
+            let turn = try await AIService().tutorVerdict(lesson:lesson,item:TutorCourse.agenda(lesson)[0],learner:goalLearner,response:"Mi mamá se llama Ana.",context:"Tutor: Use mamá in a short sentence. Learner: Mi mamá se llama Ana.")
+            XCTAssertTrue(turn.successful); XCTAssertTrue(turn.objectiveAdvanced); XCTAssertGreaterThanOrEqual(turn.confidence,0.55)
+            print("LIVE NATIVE: Authored tutor turn evidence returned")
+            let nativeUser = Firestore.firestore().collection("users").document(identity.npub)
+            _ = try await nativeUser.collection("tutorLanguageLessons").whereField("targetLang",isEqualTo:"es").whereField("cefrLevel",isEqualTo:"Pre-A1").getDocuments(source:.server)
+            _ = try await nativeUser.collection("voiceJourney").document("es").getDocument(source:.server)
+            print("LIVE NATIVE: Authenticated tutor and journey reads returned")
             let model = LiveTutorService.model(for:goalLearner,configuration:config,goalBlueprint:goalBlueprint)
             let session = try await model.connect()
             print("LIVE NATIVE: Voice session connected")

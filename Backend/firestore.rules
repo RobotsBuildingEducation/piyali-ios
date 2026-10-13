@@ -14,8 +14,11 @@ service cloud.firestore {
       allow list: if false;
       allow create: if owns(userId) && matchingKey(userId) && !request.resource.data.keys().hasAny(protectedFields());
       allow update: if owns(userId) && matchingKey(userId) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(protectedFields());
+      match /voiceJourney/{language}/completions/{day} {
+        allow read, write: if owns(userId);
+      }
       match /{collection}/{document} {
-        allow read, write: if owns(userId) && collection in ['languageLessons','languageFlashcards','courseProgress','xpHistory','companion','iosPracticeReceipts','questDays'];
+        allow read, write: if owns(userId) && collection in ['languageLessons','tutorLanguageLessons','languageFlashcards','courseProgress','xpHistory','companion','iosPracticeReceipts','questDays','voiceJourney'];
       }
     }
   }

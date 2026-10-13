@@ -38,9 +38,64 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
             "local_npub":npub,"displayName":"Web learner","language":"es","dailyGoalXp":50,
             "onboarding":["completed":true],"xp":150,"dailyXp":5,"dailyXpRecent":[today:5],
             "dailyStartedAt":WebProgressContract.iso(Date()),"dailyResetAt":WebProgressContract.iso(Date().addingTimeInterval(3600)),
-            "progress":["targetLang":"fr","supportLang":"es","cefrLevel":"A1","languageXp":["fr":100,"es":50],"totalXp":150],
+            "progress":["targetLang":"fr","supportLang":"es","cefrLevel":"A1","activeTutorLevels":["fr":"A1"],"languageXp":["fr":100,"es":50],"totalXp":150],
             "patreonVerified":true,"unrelatedWebSetting":"preserve"
         ])
+    }
+    func testDailyQuestPlanIsStableAndBonusAndJourneyAreClaimedOnceAcrossDevices() async throws {
+        let (service,db,npub) = try context(); try await seed(db,npub)
+        let now = Date(), day = CalendarDay.key(now), user = db.collection("users").document(npub)
+        try await user.setData(["progress":["dailyQuestFirstSeen":true,"dailyQuestFirstDayKey":day,"flashcardDailyActivity":["fr":[day:5]],"lessonDailyActivity":["fr":[day:1]],"speakDailyActivity":["fr":[day:1]]]],merge:true)
+        var first = try requireState(try await service.load(npub:npub)); first.preparePlate(user:npub,available:DailyPlate.introductory)
+        first = try requireState(try await service.save(first,npub:npub))
+        XCTAssertEqual(first.questPlans?["fr"]?.kinds,DailyPlate.introductory)
+        var second = try requireState(try await service.load(npub:npub))
+        XCTAssertTrue(first.claimPlate(user:npub)); XCTAssertTrue(second.claimPlate(user:npub))
+        async let savedOne = service.save(first,npub:npub)
+        async let savedTwo = service.save(second,npub:npub)
+        _ = try await (savedOne,savedTwo)
+        let final = try requireState(try await service.load(npub:npub))
+        XCTAssertEqual(final.xp,125); XCTAssertEqual(final.journeyQuestCounts?["fr"],1)
+        XCTAssertFalse(final.plateProgress["plateBonusDailyActivity"]["fr"][day].string.isEmpty)
+        _ = try await service.save(first,npub:npub)
+        let journey = try await user.collection("voiceJourney").document("fr").getDocument().data() ?? [:]
+        XCTAssertEqual(journey["completedQuests"] as? Int,1)
+        XCTAssertNotNil((journey["unlockedAt"] as? [String:Any])?["1"])
+    }
+    func testStaleQuestScreenCannotAwardBonusOrJourney() async throws {
+        let (service,db,npub) = try context(); try await seed(db,npub)
+        let day = CalendarDay.key(Date()), user = db.collection("users").document(npub)
+        try await user.setData(["progress":["dailyQuestFirstSeen":true,"dailyQuestFirstDayKey":day]],merge:true)
+        var state = try requireState(try await service.load(npub:npub))
+        // The UI snapshot is stale; the committed Firestore activity is still empty.
+        state.questProgress = .object(["dailyQuestFirstSeen":.bool(true),"dailyQuestFirstDayKey":.string(day),"flashcardDailyActivity":.object(["fr":.object([day:.number(5)])]),"lessonDailyActivity":.object(["fr":.object([day:.number(1)])]),"speakDailyActivity":.object(["fr":.object([day:.number(1)])])])
+        XCTAssertTrue(state.claimPlate(user:npub))
+        let cloud = try requireState(try await service.save(state,npub:npub))
+        XCTAssertEqual(cloud.xp,100); XCTAssertEqual(cloud.journeyQuestCounts?["fr"],0)
+        XCTAssertTrue(cloud.plateProgress["plateBonusDailyActivity"]["fr"][day].string.isEmpty)
+    }
+    func testTutorAgendaMergesAndLessonCompletionDoesNotFillSkillTree() async throws {
+        let (service,db,npub) = try context(); try await seed(db,npub)
+        var first = try requireState(try await service.load(npub:npub)), second = first
+        let day = CalendarDay.key(Date()), lesson = "lesson-a1-1-1"
+        var a = PracticeChange(dayKey:day,target:"fr",level:"A1",amount:5,source:.tutorTurn,contentID:lesson); a.tutorAgendaItemID = "one"
+        var b = PracticeChange(dayKey:day,target:"fr",level:"A1",amount:7,source:.tutorTurn,contentID:lesson); b.tutorAgendaItemID = "two"
+        first.enqueue(a); second.enqueue(b)
+        async let savedOne = service.save(first,npub:npub)
+        async let savedTwo = service.save(second,npub:npub)
+        _ = try await (savedOne,savedTwo)
+        _ = try await service.save(first,npub:npub)
+        var cloud = try requireState(try await service.load(npub:npub))
+        XCTAssertEqual(cloud.tutorProgress(lesson).earnedXP,12); XCTAssertEqual(cloud.tutorProgress(lesson).items,["one","two"])
+        XCTAssertEqual(cloud.xp,112)
+        cloud.award(60,source:.speak,contentID:lesson)
+        let completed = try requireState(try await service.save(cloud,npub:npub))
+        _ = try await service.save(cloud,npub:npub)
+        XCTAssertTrue(completed.completed.contains(completed.tutorKey(lesson)))
+        XCTAssertFalse(completed.completed.contains(completed.completionKey(lesson)))
+        XCTAssertEqual(completed.plateProgress["speakDailyActivity"]["fr"][day].number,1)
+        XCTAssertEqual(completed.plateProgress["lessonDailyActivity"]["fr"][day].number,0)
+        XCTAssertEqual(completed.courseCompletion?["fr"]?["tutor"]?["A1"],1)
     }
     func testPlacementSeedsBeforeOfflinePracticeAndPreservesEarnedScoreOnRetake() async throws {
         let (service,db,npub) = try context()

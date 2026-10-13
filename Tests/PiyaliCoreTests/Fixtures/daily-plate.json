@@ -1,0 +1,3000 @@
+{
+  "elections": [
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "npub1abc:es:2026-10-13",
+        "score": null,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        }
+      },
+      "expected": [
+        "speak",
+        "learn",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "npub1abc:es:2026-10-13",
+        "score": null,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 2
+      },
+      "expected": [
+        "speak",
+        "conversation"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "npub1abc:es:2026-10-13",
+        "score": null,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 4
+      },
+      "expected": [
+        "speak",
+        "learn",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "npub1abc:es:2026-10-13",
+        "score": 0,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        }
+      },
+      "expected": [
+        "speak",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "npub1abc:es:2026-10-13",
+        "score": 0,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 2
+      },
+      "expected": [
+        "speak",
+        "conversation"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "npub1abc:es:2026-10-13",
+        "score": 0,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 4
+      },
+      "expected": [
+        "speak",
+        "learn",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "npub1abc:es:2026-10-13",
+        "score": 31,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        }
+      },
+      "expected": [
+        "speak",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "npub1abc:es:2026-10-13",
+        "score": 31,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 2
+      },
+      "expected": [
+        "speak",
+        "conversation"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "npub1abc:es:2026-10-13",
+        "score": 31,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 4
+      },
+      "expected": [
+        "speak",
+        "learn",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "npub1abc:es:2026-10-13",
+        "score": 32,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        }
+      },
+      "expected": [
+        "speak",
+        "learn",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "npub1abc:es:2026-10-13",
+        "score": 32,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 2
+      },
+      "expected": [
+        "speak",
+        "conversation"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "npub1abc:es:2026-10-13",
+        "score": 32,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 4
+      },
+      "expected": [
+        "speak",
+        "learn",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "npub1abc:es:2026-10-13",
+        "score": 60,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        }
+      },
+      "expected": [
+        "speak",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "npub1abc:es:2026-10-13",
+        "score": 60,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 2
+      },
+      "expected": [
+        "speak",
+        "conversation"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "npub1abc:es:2026-10-13",
+        "score": 60,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 4
+      },
+      "expected": [
+        "speak",
+        "learn",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "npub1abc:es:2026-10-13",
+        "score": 100,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        }
+      },
+      "expected": [
+        "speak",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "npub1abc:es:2026-10-13",
+        "score": 100,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 2
+      },
+      "expected": [
+        "speak",
+        "conversation"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "npub1abc:es:2026-10-13",
+        "score": 100,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 4
+      },
+      "expected": [
+        "speak",
+        "learn",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "learner:fr:2026-10-14",
+        "score": null,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        }
+      },
+      "expected": [
+        "speak",
+        "learn",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "learner:fr:2026-10-14",
+        "score": null,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 2
+      },
+      "expected": [
+        "speak",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "learner:fr:2026-10-14",
+        "score": null,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 4
+      },
+      "expected": [
+        "speak",
+        "review",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "learner:fr:2026-10-14",
+        "score": 0,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        }
+      },
+      "expected": [
+        "speak",
+        "review",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "learner:fr:2026-10-14",
+        "score": 0,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 2
+      },
+      "expected": [
+        "speak",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "learner:fr:2026-10-14",
+        "score": 0,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 4
+      },
+      "expected": [
+        "speak",
+        "review",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "learner:fr:2026-10-14",
+        "score": 31,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        }
+      },
+      "expected": [
+        "speak",
+        "review",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "learner:fr:2026-10-14",
+        "score": 31,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 2
+      },
+      "expected": [
+        "speak",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "learner:fr:2026-10-14",
+        "score": 31,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 4
+      },
+      "expected": [
+        "speak",
+        "review",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "learner:fr:2026-10-14",
+        "score": 32,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        }
+      },
+      "expected": [
+        "speak",
+        "learn",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "learner:fr:2026-10-14",
+        "score": 32,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 2
+      },
+      "expected": [
+        "speak",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "learner:fr:2026-10-14",
+        "score": 32,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 4
+      },
+      "expected": [
+        "speak",
+        "review",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "learner:fr:2026-10-14",
+        "score": 60,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        }
+      },
+      "expected": [
+        "speak",
+        "learn",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "learner:fr:2026-10-14",
+        "score": 60,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 2
+      },
+      "expected": [
+        "speak",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "learner:fr:2026-10-14",
+        "score": 60,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 4
+      },
+      "expected": [
+        "speak",
+        "learn",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "learner:fr:2026-10-14",
+        "score": 100,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        }
+      },
+      "expected": [
+        "speak",
+        "learn",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "learner:fr:2026-10-14",
+        "score": 100,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 2
+      },
+      "expected": [
+        "speak",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "learner:fr:2026-10-14",
+        "score": 100,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 4
+      },
+      "expected": [
+        "speak",
+        "learn",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "learner-🐈:ja:2026-10-15",
+        "score": null,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        }
+      },
+      "expected": [
+        "speak",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "learner-🐈:ja:2026-10-15",
+        "score": null,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 2
+      },
+      "expected": [
+        "learn",
+        "conversation"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "learner-🐈:ja:2026-10-15",
+        "score": null,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 4
+      },
+      "expected": [
+        "speak",
+        "learn",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "learner-🐈:ja:2026-10-15",
+        "score": 0,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        }
+      },
+      "expected": [
+        "speak",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "learner-🐈:ja:2026-10-15",
+        "score": 0,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 2
+      },
+      "expected": [
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "learner-🐈:ja:2026-10-15",
+        "score": 0,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 4
+      },
+      "expected": [
+        "speak",
+        "review",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "learner-🐈:ja:2026-10-15",
+        "score": 31,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        }
+      },
+      "expected": [
+        "speak",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "learner-🐈:ja:2026-10-15",
+        "score": 31,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 2
+      },
+      "expected": [
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "learner-🐈:ja:2026-10-15",
+        "score": 31,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 4
+      },
+      "expected": [
+        "speak",
+        "review",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "learner-🐈:ja:2026-10-15",
+        "score": 32,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        }
+      },
+      "expected": [
+        "speak",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "learner-🐈:ja:2026-10-15",
+        "score": 32,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 2
+      },
+      "expected": [
+        "learn",
+        "conversation"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "learner-🐈:ja:2026-10-15",
+        "score": 32,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 4
+      },
+      "expected": [
+        "speak",
+        "learn",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "learner-🐈:ja:2026-10-15",
+        "score": 60,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        }
+      },
+      "expected": [
+        "speak",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "learner-🐈:ja:2026-10-15",
+        "score": 60,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 2
+      },
+      "expected": [
+        "speak",
+        "conversation"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "learner-🐈:ja:2026-10-15",
+        "score": 60,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 4
+      },
+      "expected": [
+        "speak",
+        "learn",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "learner-🐈:ja:2026-10-15",
+        "score": 100,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        }
+      },
+      "expected": [
+        "speak",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "learner-🐈:ja:2026-10-15",
+        "score": 100,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 2
+      },
+      "expected": [
+        "speak",
+        "conversation"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "learner-🐈:ja:2026-10-15",
+        "score": 100,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 4
+      },
+      "expected": [
+        "speak",
+        "learn",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "áéí:es:2026-10-16",
+        "score": null,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        }
+      },
+      "expected": [
+        "speak",
+        "learn",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "áéí:es:2026-10-16",
+        "score": null,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 2
+      },
+      "expected": [
+        "speak",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "áéí:es:2026-10-16",
+        "score": null,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 4
+      },
+      "expected": [
+        "speak",
+        "review",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "áéí:es:2026-10-16",
+        "score": 0,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        }
+      },
+      "expected": [
+        "speak",
+        "learn",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "áéí:es:2026-10-16",
+        "score": 0,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 2
+      },
+      "expected": [
+        "speak",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "áéí:es:2026-10-16",
+        "score": 0,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 4
+      },
+      "expected": [
+        "speak",
+        "review",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "áéí:es:2026-10-16",
+        "score": 31,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        }
+      },
+      "expected": [
+        "speak",
+        "learn",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "áéí:es:2026-10-16",
+        "score": 31,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 2
+      },
+      "expected": [
+        "speak",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "áéí:es:2026-10-16",
+        "score": 31,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 4
+      },
+      "expected": [
+        "speak",
+        "review",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "áéí:es:2026-10-16",
+        "score": 32,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        }
+      },
+      "expected": [
+        "speak",
+        "learn",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "áéí:es:2026-10-16",
+        "score": 32,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 2
+      },
+      "expected": [
+        "speak",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "áéí:es:2026-10-16",
+        "score": 32,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 4
+      },
+      "expected": [
+        "speak",
+        "review",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "áéí:es:2026-10-16",
+        "score": 60,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        }
+      },
+      "expected": [
+        "speak",
+        "learn",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "áéí:es:2026-10-16",
+        "score": 60,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 2
+      },
+      "expected": [
+        "speak",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "áéí:es:2026-10-16",
+        "score": 60,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 4
+      },
+      "expected": [
+        "speak",
+        "review",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "áéí:es:2026-10-16",
+        "score": 100,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        }
+      },
+      "expected": [
+        "speak",
+        "learn",
+        "conversation",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "áéí:es:2026-10-16",
+        "score": 100,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 2
+      },
+      "expected": [
+        "speak",
+        "phonics"
+      ]
+    },
+    {
+      "input": {
+        "available": [
+          "speak",
+          "review",
+          "conversation",
+          "learn",
+          "phonics"
+        ],
+        "avoid": [
+          "review",
+          "learn"
+        ],
+        "seed": "áéí:es:2026-10-16",
+        "score": 100,
+        "weights": {
+          "speak": 8,
+          "review": 1,
+          "conversation": 6,
+          "learn": 2,
+          "phonics": 7
+        },
+        "count": 4
+      },
+      "expected": [
+        "speak",
+        "review",
+        "conversation",
+        "phonics"
+      ]
+    }
+  ],
+  "snapshots": [
+    {
+      "user": {
+        "local_npub": "learner-one",
+        "progress": {
+          "dailyQuestFirstSeen": true,
+          "dailyQuestFirstDayKey": "2026-10-13",
+          "flashcardDailyActivity": {
+            "es": {
+              "2026-10-13": 4,
+              "2026-10-12": 2
+            }
+          },
+          "lessonDailyActivity": {
+            "es": {
+              "2026-10-13": 1
+            }
+          },
+          "speakDailyActivity": {
+            "es": {
+              "2026-10-13": 1
+            }
+          },
+          "conversationDailyActivity": {
+            "es": {
+              "2026-10-13": 3,
+              "2026-10-11": 2
+            }
+          },
+          "phonicsDailyActivity": {
+            "es": {
+              "2026-10-13": 2
+            }
+          },
+          "plateBonusDailyActivity": {
+            "es": {
+              "2026-10-13": "2026-10-13T12:01:00Z"
+            }
+          }
+        },
+        "xp": 20
+      },
+      "day": "2026-10-13",
+      "lang": "es",
+      "kinds": [
+        "speak",
+        "learn",
+        "review",
+        "conversation",
+        "phonics"
+      ],
+      "expected": {
+        "dayKey": "2026-10-13",
+        "langKey": "es",
+        "courses": [
+          {
+            "kind": "speak",
+            "count": 1,
+            "target": 1,
+            "done": true,
+            "percent": 100
+          },
+          {
+            "kind": "learn",
+            "count": 1,
+            "target": 1,
+            "done": true,
+            "percent": 100
+          },
+          {
+            "kind": "review",
+            "count": 4,
+            "target": 5,
+            "done": false,
+            "percent": 80
+          },
+          {
+            "kind": "conversation",
+            "count": 3,
+            "target": 6,
+            "done": false,
+            "percent": 50
+          },
+          {
+            "kind": "phonics",
+            "count": 2,
+            "target": 3,
+            "done": false,
+            "percent": 67
+          }
+        ],
+        "byKind": {
+          "speak": {
+            "kind": "speak",
+            "count": 1,
+            "target": 1,
+            "done": true,
+            "percent": 100
+          },
+          "learn": {
+            "kind": "learn",
+            "count": 1,
+            "target": 1,
+            "done": true,
+            "percent": 100
+          },
+          "review": {
+            "kind": "review",
+            "count": 4,
+            "target": 5,
+            "done": false,
+            "percent": 80
+          },
+          "conversation": {
+            "kind": "conversation",
+            "count": 3,
+            "target": 6,
+            "done": false,
+            "percent": 50
+          },
+          "phonics": {
+            "kind": "phonics",
+            "count": 2,
+            "target": 3,
+            "done": false,
+            "percent": 67
+          }
+        },
+        "doneCount": 2,
+        "isCleared": false,
+        "bonusAwarded": true
+      }
+    },
+    {
+      "user": {
+        "local_npub": "learner-one",
+        "progress": {
+          "dailyQuestFirstSeen": true,
+          "dailyQuestFirstDayKey": "2026-10-01",
+          "flashcardDailyActivity": {
+            "es": {
+              "2026-10-13": 4,
+              "2026-10-12": 2
+            }
+          },
+          "lessonDailyActivity": {
+            "es": {
+              "2026-10-13": 1
+            }
+          },
+          "speakDailyActivity": {
+            "es": {
+              "2026-10-13": 1
+            }
+          },
+          "conversationDailyActivity": {
+            "es": {
+              "2026-10-13": 3,
+              "2026-10-11": 2
+            }
+          },
+          "phonicsDailyActivity": {
+            "es": {
+              "2026-10-13": 2
+            }
+          },
+          "plateBonusDailyActivity": {
+            "es": {
+              "2026-10-13": "2026-10-13T12:01:00Z"
+            }
+          }
+        },
+        "xp": 20
+      },
+      "day": "2026-10-13",
+      "lang": "es",
+      "kinds": [
+        "speak",
+        "learn",
+        "review",
+        "conversation",
+        "phonics"
+      ],
+      "expected": {
+        "dayKey": "2026-10-13",
+        "langKey": "es",
+        "courses": [
+          {
+            "kind": "speak",
+            "count": 1,
+            "target": 1,
+            "done": true,
+            "percent": 100
+          },
+          {
+            "kind": "learn",
+            "count": 1,
+            "target": 1,
+            "done": true,
+            "percent": 100
+          },
+          {
+            "kind": "review",
+            "count": 4,
+            "target": 5,
+            "done": false,
+            "percent": 80
+          },
+          {
+            "kind": "conversation",
+            "count": 3,
+            "target": 6,
+            "done": false,
+            "percent": 50
+          },
+          {
+            "kind": "phonics",
+            "count": 2,
+            "target": 3,
+            "done": false,
+            "percent": 67
+          }
+        ],
+        "byKind": {
+          "speak": {
+            "kind": "speak",
+            "count": 1,
+            "target": 1,
+            "done": true,
+            "percent": 100
+          },
+          "learn": {
+            "kind": "learn",
+            "count": 1,
+            "target": 1,
+            "done": true,
+            "percent": 100
+          },
+          "review": {
+            "kind": "review",
+            "count": 4,
+            "target": 5,
+            "done": false,
+            "percent": 80
+          },
+          "conversation": {
+            "kind": "conversation",
+            "count": 3,
+            "target": 6,
+            "done": false,
+            "percent": 50
+          },
+          "phonics": {
+            "kind": "phonics",
+            "count": 2,
+            "target": 3,
+            "done": false,
+            "percent": 67
+          }
+        },
+        "doneCount": 2,
+        "isCleared": false,
+        "bonusAwarded": true
+      }
+    },
+    {
+      "user": {
+        "local_npub": "learner-two",
+        "progress": {
+          "dailyQuestFirstSeen": true,
+          "dailyQuestFirstDayKey": "2026-10-13",
+          "flashcardDailyActivity": {
+            "es": {
+              "2026-10-13": 4,
+              "2026-10-12": 2
+            }
+          },
+          "lessonDailyActivity": {
+            "es": {
+              "2026-10-13": 1
+            }
+          },
+          "speakDailyActivity": {
+            "es": {
+              "2026-10-13": 1
+            }
+          },
+          "conversationDailyActivity": {
+            "es": {
+              "2026-10-13": 3,
+              "2026-10-11": 2
+            }
+          },
+          "phonicsDailyActivity": {
+            "es": {
+              "2026-10-13": 2
+            }
+          },
+          "plateBonusDailyActivity": {
+            "es": {
+              "2026-10-13": "2026-10-13T12:01:00Z"
+            }
+          }
+        },
+        "xp": 20
+      },
+      "day": "2026-10-13",
+      "lang": "es",
+      "kinds": [
+        "speak",
+        "learn",
+        "review",
+        "conversation",
+        "phonics"
+      ],
+      "expected": {
+        "dayKey": "2026-10-13",
+        "langKey": "es",
+        "courses": [
+          {
+            "kind": "speak",
+            "count": 1,
+            "target": 1,
+            "done": true,
+            "percent": 100
+          },
+          {
+            "kind": "learn",
+            "count": 1,
+            "target": 1,
+            "done": true,
+            "percent": 100
+          },
+          {
+            "kind": "review",
+            "count": 4,
+            "target": 5,
+            "done": false,
+            "percent": 80
+          },
+          {
+            "kind": "conversation",
+            "count": 3,
+            "target": 6,
+            "done": false,
+            "percent": 50
+          },
+          {
+            "kind": "phonics",
+            "count": 2,
+            "target": 3,
+            "done": false,
+            "percent": 67
+          }
+        ],
+        "byKind": {
+          "speak": {
+            "kind": "speak",
+            "count": 1,
+            "target": 1,
+            "done": true,
+            "percent": 100
+          },
+          "learn": {
+            "kind": "learn",
+            "count": 1,
+            "target": 1,
+            "done": true,
+            "percent": 100
+          },
+          "review": {
+            "kind": "review",
+            "count": 4,
+            "target": 5,
+            "done": false,
+            "percent": 80
+          },
+          "conversation": {
+            "kind": "conversation",
+            "count": 3,
+            "target": 6,
+            "done": false,
+            "percent": 50
+          },
+          "phonics": {
+            "kind": "phonics",
+            "count": 2,
+            "target": 3,
+            "done": false,
+            "percent": 67
+          }
+        },
+        "doneCount": 2,
+        "isCleared": false,
+        "bonusAwarded": true
+      }
+    },
+    {
+      "user": {
+        "local_npub": "learner-two",
+        "progress": {
+          "dailyQuestFirstSeen": true,
+          "dailyQuestFirstDayKey": "2026-10-01",
+          "flashcardDailyActivity": {
+            "es": {
+              "2026-10-13": 4,
+              "2026-10-12": 2
+            }
+          },
+          "lessonDailyActivity": {
+            "es": {
+              "2026-10-13": 1
+            }
+          },
+          "speakDailyActivity": {
+            "es": {
+              "2026-10-13": 1
+            }
+          },
+          "conversationDailyActivity": {
+            "es": {
+              "2026-10-13": 3,
+              "2026-10-11": 2
+            }
+          },
+          "phonicsDailyActivity": {
+            "es": {
+              "2026-10-13": 2
+            }
+          },
+          "plateBonusDailyActivity": {
+            "es": {
+              "2026-10-13": "2026-10-13T12:01:00Z"
+            }
+          }
+        },
+        "xp": 20
+      },
+      "day": "2026-10-13",
+      "lang": "es",
+      "kinds": [
+        "speak",
+        "learn",
+        "review",
+        "conversation",
+        "phonics"
+      ],
+      "expected": {
+        "dayKey": "2026-10-13",
+        "langKey": "es",
+        "courses": [
+          {
+            "kind": "speak",
+            "count": 1,
+            "target": 1,
+            "done": true,
+            "percent": 100
+          },
+          {
+            "kind": "learn",
+            "count": 1,
+            "target": 1,
+            "done": true,
+            "percent": 100
+          },
+          {
+            "kind": "review",
+            "count": 4,
+            "target": 4,
+            "done": true,
+            "percent": 100
+          },
+          {
+            "kind": "conversation",
+            "count": 3,
+            "target": 6,
+            "done": false,
+            "percent": 50
+          },
+          {
+            "kind": "phonics",
+            "count": 2,
+            "target": 3,
+            "done": false,
+            "percent": 67
+          }
+        ],
+        "byKind": {
+          "speak": {
+            "kind": "speak",
+            "count": 1,
+            "target": 1,
+            "done": true,
+            "percent": 100
+          },
+          "learn": {
+            "kind": "learn",
+            "count": 1,
+            "target": 1,
+            "done": true,
+            "percent": 100
+          },
+          "review": {
+            "kind": "review",
+            "count": 4,
+            "target": 4,
+            "done": true,
+            "percent": 100
+          },
+          "conversation": {
+            "kind": "conversation",
+            "count": 3,
+            "target": 6,
+            "done": false,
+            "percent": 50
+          },
+          "phonics": {
+            "kind": "phonics",
+            "count": 2,
+            "target": 3,
+            "done": false,
+            "percent": 67
+          }
+        },
+        "doneCount": 3,
+        "isCleared": false,
+        "bonusAwarded": true
+      }
+    },
+    {
+      "user": {
+        "local_npub": "learner-🐈",
+        "progress": {
+          "dailyQuestFirstSeen": true,
+          "dailyQuestFirstDayKey": "2026-10-13",
+          "flashcardDailyActivity": {
+            "es": {
+              "2026-10-13": 4,
+              "2026-10-12": 2
+            }
+          },
+          "lessonDailyActivity": {
+            "es": {
+              "2026-10-13": 1
+            }
+          },
+          "speakDailyActivity": {
+            "es": {
+              "2026-10-13": 1
+            }
+          },
+          "conversationDailyActivity": {
+            "es": {
+              "2026-10-13": 3,
+              "2026-10-11": 2
+            }
+          },
+          "phonicsDailyActivity": {
+            "es": {
+              "2026-10-13": 2
+            }
+          },
+          "plateBonusDailyActivity": {
+            "es": {
+              "2026-10-13": "2026-10-13T12:01:00Z"
+            }
+          }
+        },
+        "xp": 20
+      },
+      "day": "2026-10-13",
+      "lang": "es",
+      "kinds": [
+        "speak",
+        "learn",
+        "review",
+        "conversation",
+        "phonics"
+      ],
+      "expected": {
+        "dayKey": "2026-10-13",
+        "langKey": "es",
+        "courses": [
+          {
+            "kind": "speak",
+            "count": 1,
+            "target": 1,
+            "done": true,
+            "percent": 100
+          },
+          {
+            "kind": "learn",
+            "count": 1,
+            "target": 1,
+            "done": true,
+            "percent": 100
+          },
+          {
+            "kind": "review",
+            "count": 4,
+            "target": 5,
+            "done": false,
+            "percent": 80
+          },
+          {
+            "kind": "conversation",
+            "count": 3,
+            "target": 6,
+            "done": false,
+            "percent": 50
+          },
+          {
+            "kind": "phonics",
+            "count": 2,
+            "target": 3,
+            "done": false,
+            "percent": 67
+          }
+        ],
+        "byKind": {
+          "speak": {
+            "kind": "speak",
+            "count": 1,
+            "target": 1,
+            "done": true,
+            "percent": 100
+          },
+          "learn": {
+            "kind": "learn",
+            "count": 1,
+            "target": 1,
+            "done": true,
+            "percent": 100
+          },
+          "review": {
+            "kind": "review",
+            "count": 4,
+            "target": 5,
+            "done": false,
+            "percent": 80
+          },
+          "conversation": {
+            "kind": "conversation",
+            "count": 3,
+            "target": 6,
+            "done": false,
+            "percent": 50
+          },
+          "phonics": {
+            "kind": "phonics",
+            "count": 2,
+            "target": 3,
+            "done": false,
+            "percent": 67
+          }
+        },
+        "doneCount": 2,
+        "isCleared": false,
+        "bonusAwarded": true
+      }
+    },
+    {
+      "user": {
+        "local_npub": "learner-🐈",
+        "progress": {
+          "dailyQuestFirstSeen": true,
+          "dailyQuestFirstDayKey": "2026-10-01",
+          "flashcardDailyActivity": {
+            "es": {
+              "2026-10-13": 4,
+              "2026-10-12": 2
+            }
+          },
+          "lessonDailyActivity": {
+            "es": {
+              "2026-10-13": 1
+            }
+          },
+          "speakDailyActivity": {
+            "es": {
+              "2026-10-13": 1
+            }
+          },
+          "conversationDailyActivity": {
+            "es": {
+              "2026-10-13": 3,
+              "2026-10-11": 2
+            }
+          },
+          "phonicsDailyActivity": {
+            "es": {
+              "2026-10-13": 2
+            }
+          },
+          "plateBonusDailyActivity": {
+            "es": {
+              "2026-10-13": "2026-10-13T12:01:00Z"
+            }
+          }
+        },
+        "xp": 20
+      },
+      "day": "2026-10-13",
+      "lang": "es",
+      "kinds": [
+        "speak",
+        "learn",
+        "review",
+        "conversation",
+        "phonics"
+      ],
+      "expected": {
+        "dayKey": "2026-10-13",
+        "langKey": "es",
+        "courses": [
+          {
+            "kind": "speak",
+            "count": 1,
+            "target": 1,
+            "done": true,
+            "percent": 100
+          },
+          {
+            "kind": "learn",
+            "count": 1,
+            "target": 1,
+            "done": true,
+            "percent": 100
+          },
+          {
+            "kind": "review",
+            "count": 4,
+            "target": 6,
+            "done": false,
+            "percent": 67
+          },
+          {
+            "kind": "conversation",
+            "count": 3,
+            "target": 6,
+            "done": false,
+            "percent": 50
+          },
+          {
+            "kind": "phonics",
+            "count": 2,
+            "target": 3,
+            "done": false,
+            "percent": 67
+          }
+        ],
+        "byKind": {
+          "speak": {
+            "kind": "speak",
+            "count": 1,
+            "target": 1,
+            "done": true,
+            "percent": 100
+          },
+          "learn": {
+            "kind": "learn",
+            "count": 1,
+            "target": 1,
+            "done": true,
+            "percent": 100
+          },
+          "review": {
+            "kind": "review",
+            "count": 4,
+            "target": 6,
+            "done": false,
+            "percent": 67
+          },
+          "conversation": {
+            "kind": "conversation",
+            "count": 3,
+            "target": 6,
+            "done": false,
+            "percent": 50
+          },
+          "phonics": {
+            "kind": "phonics",
+            "count": 2,
+            "target": 3,
+            "done": false,
+            "percent": 67
+          }
+        },
+        "doneCount": 2,
+        "isCleared": false,
+        "bonusAwarded": true
+      }
+    }
+  ],
+  "weights": {
+    "progress": {
+      "dailyQuestFirstSeen": true,
+      "dailyQuestFirstDayKey": "2026-10-01",
+      "flashcardDailyActivity": {
+        "es": {
+          "2026-10-13": 4,
+          "2026-10-12": 2
+        }
+      },
+      "lessonDailyActivity": {
+        "es": {
+          "2026-10-13": 1
+        }
+      },
+      "speakDailyActivity": {
+        "es": {
+          "2026-10-13": 1
+        }
+      },
+      "conversationDailyActivity": {
+        "es": {
+          "2026-10-13": 3,
+          "2026-10-11": 2
+        }
+      },
+      "phonicsDailyActivity": {
+        "es": {
+          "2026-10-13": 2
+        }
+      },
+      "plateBonusDailyActivity": {
+        "es": {
+          "2026-10-13": "2026-10-13T12:01:00Z"
+        }
+      }
+    },
+    "day": "2026-10-13",
+    "lang": "es",
+    "kinds": [
+      "speak",
+      "review",
+      "conversation",
+      "learn",
+      "phonics"
+    ],
+    "expected": {
+      "speak": 8,
+      "review": 7,
+      "conversation": 7,
+      "learn": 8,
+      "phonics": 8
+    }
+  }
+}

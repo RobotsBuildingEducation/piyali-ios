@@ -1,9 +1,9 @@
 import Foundation
 
 public enum PracticeSource: String, Codable, Sendable {
-    case practice, assessment, lesson, review, phonics, goal, goalMode, repair, immersion
+    case practice, assessment, lesson, review, phonics, goal, goalMode, repair, immersion, speak, tutorTurn, conversation, questStart, plateBonus
     public var activityField: String? {
-        switch self { case .lesson:"lessonDailyActivity"; case .review:"flashcardDailyActivity"; case .phonics:"phonicsDailyActivity"; case .goal:"goalDailyActivity"; case .repair:"repairDailyActivity"; default:nil }
+        switch self { case .lesson:"lessonDailyActivity"; case .review:"flashcardDailyActivity"; case .phonics:"phonicsDailyActivity"; case .goal:"goalDailyActivity"; case .repair:"repairDailyActivity"; case .speak:"speakDailyActivity"; case .conversation:"conversationDailyActivity"; default:nil }
     }
 }
 public struct PracticeChange: Codable, Identifiable, Sendable {
@@ -15,6 +15,10 @@ public struct PracticeChange: Codable, Identifiable, Sendable {
     public var amount: Int
     public var source: PracticeSource
     public var contentID: String?
+    public var tutorAgendaItemID: String?
+    public var questCarry: [String]?
+    public var questIntro: Bool?
+    public var questKinds: [String]?
     public var reviewRating: ReviewRating?
     public var correct: Bool?
     public var independent: Bool?
@@ -39,7 +43,7 @@ public enum CalendarDay {
     }
 }
 public extension LearnerState {
-    mutating func enqueue(_ change: PracticeChange) { if pendingChanges == nil { pendingChanges = [] }; pendingChanges?.append(change) }
+    mutating func enqueue(_ change: PracticeChange) { questProgress = DailyPlate.recorded(change,progress:plateProgress); if pendingChanges == nil { pendingChanges = [] }; pendingChanges?.append(change) }
     mutating func review(cardID: String, rating: ReviewRating, now: Date = Date(), calendar: Calendar = .current) {
         rollDay(now:now,calendar:calendar)
         let key = completionKey(cardID)
@@ -61,6 +65,21 @@ public extension LearnerState {
         let sentIDs = Set((sent.pendingChanges ?? []).map(\.id))
         let newer = (current.pendingChanges ?? []).filter { !sentIDs.contains($0.id) && !(acknowledged.acknowledgedEventIDs ?? []).contains($0.id) }
         merged.pendingChanges = newer
+        merged.questProgress = acknowledged.questProgress
+        for change in newer { merged.questProgress = DailyPlate.recorded(change,progress:merged.plateProgress) }
+        for (target,plan) in acknowledged.questPlans ?? [:] {
+            if !(newer.contains { $0.source == .questStart && $0.target == target }) {
+                if merged.questPlans == nil { merged.questPlans = [:] }; merged.questPlans?[target] = plan
+            }
+        }
+        merged.journeyQuestCounts = acknowledged.journeyQuestCounts
+        merged.tutorLessons = acknowledged.tutorLessons
+        for change in newer where change.source == .tutorTurn {
+            let key = "\(change.target):tutor:\(change.contentID ?? "")"
+            if merged.tutorLessons == nil { merged.tutorLessons = [:] }
+            let progress = TutorCourse.applying(change,to:merged.tutorLessons?[key] ?? TutorLessonProgress())
+            merged.tutorLessons?[key] = progress
+        }
         let sentMemoryIDs = Set((sent.pendingMemoryChanges ?? []).map(\.id))
         let newMemory = (current.pendingMemoryChanges ?? []).filter { !sentMemoryIDs.contains($0.id) && !(acknowledged.acknowledgedEventIDs ?? []).contains($0.id) }
         merged.pendingMemoryChanges = newMemory
@@ -109,6 +128,7 @@ public extension LearnerState {
         }
         merged.courseCompletion = acknowledged.courseCompletion
         if current.flashcardLevels == sent.flashcardLevels { merged.flashcardLevels = acknowledged.flashcardLevels }
+        if current.tutorLevels == sent.tutorLevels { merged.tutorLevels = acknowledged.tutorLevels }
         if current.lessonLevels == sent.lessonLevels { merged.lessonLevels = acknowledged.lessonLevels }
         merged.completed.formUnion(acknowledged.completed)
         merged.flashcardMastery.formUnion(acknowledged.flashcardMastery)

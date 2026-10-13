@@ -37,22 +37,46 @@ struct HomeView: View {
             }
             Section { NavigationLink("Subscription") { SubscriptionView(service: app.subscription) } }
         }.navigationTitle("Piyali")
-            .task(id:app.goalPreparationKey) { try? await app.prepareGoal() }
+            .task(id:app.goalPreparationKey) { app.prepareDailyPlate(); try? await app.prepareGoal() }
             .onChange(of: app.learner.level) { _, _ in app.persist(); Task { await app.reloadContent() } }
     }
 }
 struct DailyPlateView: View {
     @EnvironmentObject var app: AppModel
+    static let labels = ["repair":"Repair mistakes","goal":"Focused learning goal","speak":"Tutor lesson","learn":"Lesson","review":"Flashcard review","conversation":"Conversation","phonics":"Phonics"]
     var body: some View {
         List {
-            Text("Work on today's lesson across each skill. Correct answers earn XP and feed your companion.")
-            NavigationLink("Goal practice") { FocusedGoalView() }
-            NavigationLink("Repair mistakes") { RepairPracticeView() }
-            ForEach([PracticeMode.vocabulary,.grammar,.reading,.listening,.speaking,.stories]) { mode in
-                NavigationLink(mode.rawValue) { ExerciseView(mode: mode, lesson: app.selectedLesson) }
+            Text("Complete today's courses. Saved quest completion earns a single +25 XP bonus and one voice journey session.")
+            ForEach(app.plateCourses) { course in
+                NavigationLink {
+                    switch course.kind {
+                    case "goal": FocusedGoalView()
+                    case "repair": RepairPracticeView()
+                    case "speak":
+                        if let lesson = app.selectedTutorLesson { TutorView(tutorLesson:lesson) }
+                        else { Text("This tutor course is complete. Choose another lesson level in Learn.") }
+                    case "learn":
+                        if let lesson = app.selectedLesson { LessonView(lesson:lesson) }
+                        else { Text("Choose a lesson level to continue.") }
+                    case "review": FlashcardsView()
+                    case "phonics": PhonicsView()
+                    default: TutorView(plateKind:"conversation")
+                    }
+                } label: {
+                    VStack(alignment:.leading) {
+                        HStack {
+                            Text(Self.labels[course.kind] ?? course.kind.capitalized)
+                            Spacer()
+                            if course.done { Image(systemName:"checkmark.circle.fill") }
+                            else if app.plateCourses.first(where:{ !$0.done })?.kind == course.kind { Text("Next").foregroundStyle(.secondary) }
+                        }
+                        Text("\(course.count) / \(course.target)").font(.caption)
+                    }
+                }.accessibilityIdentifier("quest-" + course.kind)
             }
-            NavigationLink("Phonics") { PhonicsView() }
+            if DailyPlate.bonusAwarded(progress:app.learner.plateProgress,target:app.learner.target,day:CalendarDay.key(Date())) { Text("Quest completed · +25 XP").accessibilityIdentifier("questCompleted") }
         }.navigationTitle("Daily plate")
+            .task(id:app.identity.npub + app.learner.target + CalendarDay.key(Date())) { app.prepareDailyPlate() }
     }
 }
 struct LessonView: View {
@@ -196,7 +220,8 @@ struct PhonicsView: View {
                         Button("Check pronunciation words") {
                             if AnswerMatcher.matches(speech.transcript, card.practiceWord) {
                                 if app.learner.masteredPhonics == nil { app.learner.masteredPhonics = [] }
-                                if app.learner.masteredPhonics?.insert(card.id).inserted == true { app.learner.award(5,source:.phonics,contentID:card.id); app.persist() }
+                                let key = app.learner.target + ":" + CalendarDay.key(Date()) + ":" + card.id
+                                if app.learner.masteredPhonics?.insert(key).inserted == true { app.learner.award(5,source:.phonics,contentID:card.id); app.persist() }
                             } else { speech.error = "Try again: " + card.practiceWord }
                         }
                     }

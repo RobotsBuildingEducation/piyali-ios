@@ -40,6 +40,9 @@ public enum WebProgressContract {
         var state = native ?? LearnerState()
         state.acknowledgedEventIDs = Set((fields["iosRecentEventIDs"] as? [String] ?? []).compactMap(UUID.init(uuidString:)))
         let progress = fields["progress"] as? [String:Any] ?? [:]
+        let questKeys = Set(DailyPlate.fields.values).union(["dailyQuestFirstSeen","dailyQuestFirstDayKey","plateBonusDailyActivity"])
+        state.questProgress = JSONValue.foundation(progress.filter { questKeys.contains($0.key) })
+        for change in state.pendingChanges ?? [] where !(state.acknowledgedEventIDs ?? []).contains(change.id) { state.questProgress = DailyPlate.recorded(change,progress:state.plateProgress) }
         let placementLevels = fields["proficiencyPlacements"] as? [String:String] ?? [:]
         let details = fields["iosPlacementDetails"] as? [String:[String:Any]] ?? [:]
         for (language, level) in placementLevels where LearningLanguages.levels.contains(level) {
@@ -61,6 +64,7 @@ public enum WebProgressContract {
             state.companionName = fields["dailyGoalPetName"] as? String ?? state.companionName
             state.companionType = fields["dailyGoalPetType"] as? String ?? state.companionType
             state.onboardingComplete = (fields["onboarding"] as? [String:Any])?["completed"] as? Bool ?? state.onboardingComplete
+            state.tutorLevels = progress["activeTutorLevels"] as? [String:String] ?? state.tutorLevels
             state.lessonLevels = progress["activeLessonLevels"] as? [String:String] ?? state.lessonLevels
             state.flashcardLevels = progress["activeFlashcardLevels"] as? [String:String] ?? state.flashcardLevels
             if let active = state.lessonLevels?[state.target], LearningLanguages.levels.contains(active) { state.level = active }
@@ -131,6 +135,15 @@ public enum WebProgressContract {
             byDay[change.dayKey] = integer(byDay[change.dayKey]) + 1
             byLanguage[change.target] = byDay.filter { $0.key >= cutoff && $0.key <= today }
             progress[field] = byLanguage
+        }
+        if change.source == .questStart {
+            progress["dailyQuestFirstSeen"] = true
+            if change.questIntro == true && (progress["dailyQuestFirstDayKey"] as? String ?? "").isEmpty { progress["dailyQuestFirstDayKey"] = change.dayKey }
+        }
+        if change.source == .plateBonus {
+            var markers = progress["plateBonusDailyActivity"] as? [String:[String:Any]] ?? [:]
+            var days = markers[change.target] ?? [:]; days[change.dayKey] = iso(change.date); markers[change.target] = days
+            progress["plateBonusDailyActivity"] = markers
         }
         var root: [String:Any] = ["xp":integer(fields["xp"]) + amount,"progress":progress,"dailyXpRecent":recent,"updatedAt":iso(now)]
         let goal = integer(fields["dailyGoalXp"],default:integer(progress["dailyGoalXp"]))
