@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 import SwiftUI
 
 @MainActor final class AppModel: ObservableObject {
@@ -22,6 +23,7 @@ import SwiftUI
     private var lastPersisted = LearnerState()
     private var saveTask: Task<Void, Never>?
     private var goalTasks: [String:Task<Void,Error>] = [:]
+    private var achievementUpdates: AnyCancellable?
     private var contentTask: Task<Void, Never>?
     var selectedLesson: Lesson? { units.flatMap(\.lessons).first { !learner.completed.contains(learner.completionKey($0.id)) } ?? units.last?.lessons.last }
     var selectedTutorLesson: Lesson? { tutorUnits.flatMap(\.lessons).first { !learner.completed.contains(learner.tutorKey($0.id)) } }
@@ -65,6 +67,11 @@ import SwiftUI
         curriculumIndex = (try? ContentLibrary.load([String:[String:[String]]].self, name: "curriculum-index")) ?? [:]
         flashcardIndex = (try? ContentLibrary.load([String:[String]].self, name: "flashcard-index")) ?? [:]
         achievements = (try? ContentLibrary.load([AchievementDefinition].self, name: "achievements")) ?? []
+        achievementUpdates=AchievementSyncService.shared.updates.sink { [weak self] npub,records in
+            guard let self,self.signedIn,self.identity.npub == npub else { return }
+            self.learner.achievementRecords=records
+            try? self.writeLocal()
+        }
         signedIn = !identity.npub.isEmpty
         if signedIn { loadLocal(); subscription.bind(identity) }
     }

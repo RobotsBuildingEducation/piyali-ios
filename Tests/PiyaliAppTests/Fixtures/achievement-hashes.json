@@ -1,0 +1,17 @@
+[
+  {
+    "metric": "goals:b1",
+    "id": "es:day:goal",
+    "expected": "02026ca1349a1a080645df8cad844e4a811b1af84b2a5335b639cab5f3a2b313"
+  },
+  {
+    "metric": "phonics_decks",
+    "id": "ja:deck/猫",
+    "expected": "66efde70b7d8f1b71dac18c99483f7b5f97689f252fd39f311b2a53e01a29d06"
+  },
+  {
+    "metric": "conversation_goals",
+    "id": "es:a\"b\n",
+    "expected": "857fa130861595a77c2614461b97b6f1b9f9d33dc688856076199cd3d1baa7e0"
+  }
+]

@@ -10,7 +10,7 @@ const entry = `
 import { LEARNING_PATHS } from '${reference}/src/data/skillTreeData.js';
 import { FLASHCARDS_PRE_A1 } from '${reference}/src/data/flashcards/pre-a1.js';
 import { FLASHCARD_DATA as STANDARD_FLASHCARDS } from '${reference}/src/data/flashcardData.js';
-import { ACHIEVEMENTS } from '${reference}/src/achievements/catalog.js';
+import { ACHIEVEMENTS, CATALOG_VERSION } from '${reference}/src/achievements/catalog.js';
 import { localizeAchievement } from '${reference}/src/achievements/copy.js';
 import { PHONICS_TARGETS, PHONICS_SUPPORTS, PHONICS_LEVELS, getAuthoredPhonicsDeck } from '${reference}/src/data/phonics/index.js';
 import fs from 'node:fs';
@@ -30,7 +30,7 @@ write('curriculum-index',Object.fromEntries(Object.entries(lessons).map(([lang,l
 write('flashcard-index',Object.fromEntries(PHONICS_LEVELS.map(level=>[level,FLASHCARD_DATA.filter(c=>c.cefrLevel===level).map(c=>c.id)])));
 
 const locales = ['en','es','pt','fr','it','de','ja','hi','ar','zh'];
-write('achievements',Object.values(ACHIEVEMENTS).filter(a=>a.source==='nosabos').map(a=>({id:a.id,tier:a.tier,requirement:a.requirement,
+write('achievements',Object.values(ACHIEVEMENTS).filter(a=>a.source==='nosabos').map(a=>({id:a.id,tier:a.tier,requirement:a.requirement,progression:!!a.progression,catalogVersion:CATALOG_VERSION,orb:a.orb,number:a.number,
  title:Object.fromEntries(locales.map(l=>[l,localizeAchievement(a,l).title])),description:Object.fromEntries(locales.map(l=>[l,localizeAchievement(a,l).desc]))})));
 
 const phonics = {};

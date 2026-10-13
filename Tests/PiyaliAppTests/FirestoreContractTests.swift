@@ -42,6 +42,83 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
             "patreonVerified":true,"unrelatedWebSetting":"preserve"
         ])
     }
+    func testAchievementBackfillUsesCompletionAndPreservesRealAwards() async throws {
+        let (service,db,npub)=try context();try await seed(db,npub)
+        let user=db.collection("users").document(npub)
+        try await user.setData(["proficiencyPlacements":["fr":"C2"]],merge:true)
+        try await user.collection("courseProgress").document("fr").setData(["migration":["complete":true],"tutor":["levels":["b2":["total":84,"completed":84]]],"updatedAt":Timestamp(date:Date())])
+        try await user.collection("achievements").document("tutor_reach_a2").setData(["unlockedAt":1,"source":"nosabos","catalogVersion":8,"test":false])
+        try await user.collection("achievements").document("tutor_reach_b1").setData(["unlockedAt":2,"source":"nosabos","catalogVersion":8,"test":true])
+        let local=try requireState(try await service.load(npub:npub)),saved=try requireState(try await service.save(local,npub:npub))
+        XCTAssertEqual(saved.achievementRecords?["tutor_reach_a2"]?["unlockedAt"].number,1)
+        XCTAssertEqual(saved.achievementRecords?["tutor_reach_b1"]?["test"],.bool(false))
+        XCTAssertGreaterThan(saved.achievementRecords?["piyali_tutor_complete_b2"]?["unlockedAt"].number ?? 0,0)
+        XCTAssertGreaterThan(saved.achievementRecords?["piyali_tutor_complete_pre_a1"]?["unlockedAt"].number ?? 0,0)
+        XCTAssertNil(saved.achievementRecords?["piyali_skillTree_complete_b2"]);XCTAssertNil(saved.achievementRecords?["piyali_tutor_complete_c2"])
+        let first=try await user.collection("achievements").getDocuments(source:.server)
+        _=try await service.save(local,npub:npub)
+        let second=try await user.collection("achievements").getDocuments(source:.server)
+        XCTAssertEqual(first.documents.count,second.documents.count)
+        let marker=try await user.collection("achievementMigrations").document("nosabos_v1").getDocument().data()!
+        XCTAssertEqual(marker["complete"] as? Bool,true)
+        let root=try await user.getDocument().data()!;XCTAssertEqual(root["patreonVerified"] as? Bool,true)
+    }
+    func testSuccessfulUngradatedCardsEarnCountAwardAndIncrementalEventsDeduplicate() async throws {
+        let (service,db,npub)=try context();try await seed(db,npub)
+        let user=db.collection("users").document(npub)
+        for i in 1...5 { try await user.collection("languageFlashcards").document("fr_a1-achievement-\(i)").setData(["targetLang":"fr","cefrLevel":"A1","cardId":"a1-achievement-\(i)","completed":false,"successfulReviews":1,"lastReviewOutcome":"good","consecutiveCorrect":1]) }
+        var local=try requireState(try await service.load(npub:npub))
+        let saved=try requireState(try await service.save(local,npub:npub))
+        XCTAssertGreaterThan(saved.achievementRecords?["nosabos_flashcards_completed_5"]?["unlockedAt"].number ?? 0,0)
+        XCTAssertNil(saved.achievementRecords?["nosabos_flashcards_completed_10"]);XCTAssertTrue(saved.flashcardMastery.isEmpty)
+        local=saved
+        for i in 6...10 { local.review(cardID:"a1-achievement-\(i)",rating:.good) }
+        async let first=service.save(local,npub:npub)
+        async let second=service.save(local,npub:npub)
+        _=try await (first,second)
+        let result=try requireState(try await service.load(npub:npub))
+        XCTAssertGreaterThan(result.achievementRecords?["nosabos_flashcards_completed_10"]?["unlockedAt"].number ?? 0,0)
+        let events=try await user.collection("achievementProgress").document("nosabos").collection("events").getDocuments(source:.server)
+        XCTAssertEqual(events.documents.count,10);XCTAssertTrue(result.flashcardMastery.isEmpty)
+    }
+    func testConfirmedGoalRepairAndImmersionEventsSharePermanentCollection() async throws {
+        let (service,db,npub)=try context();try await seed(db,npub)
+        let user=db.collection("users").document(npub),day=CalendarDay.key(Date()),stamp=WebProgressContract.iso(Date())
+        try await user.setData(["learningIntelligence":["fr":["dailyGoal":["completed":true,"blueprint":["modes":["lesson","tutor"],"cefrLevel":"B1","dayKey":day,"goalId":"goal-1"],"modeProgress":["lesson":20,"tutor":25]]]],"progress":["repairDailyActivity":["fr":[day:2]]],"realWorldTasks":["targetLang":"fr","dayKey":day,"generatedAt":stamp,"tasks":["a","b","c","d","e"],"completed":["0":true,"1":true,"2":true,"3":true,"4":true],"rewarded":true]],merge:true)
+        try await user.collection("questDays").document("fr_"+day).setData(["dayKey":day,"lang":"fr","repair":["items":[["cefrLevel":"B1"],["cefrLevel":"B2"]],"target":2,"createdAt":stamp]])
+        let local=try requireState(try await service.load(npub:npub)),saved=try requireState(try await service.save(local,npub:npub))
+        for id in ["piyali_goals_complete_b1","piyali_repairs_complete_b2","nosabos_immersion_tasks_5","nosabos_immersion_checklists_1"] { XCTAssertGreaterThan(saved.achievementRecords?[id]?["unlockedAt"].number ?? 0,0,id) }
+        XCTAssertNil(saved.achievementRecords?["piyali_goals_complete_b2"])
+        _=try await service.save(local,npub:npub)
+        let events=try await user.collection("achievementProgress").document("nosabos").collection("events").getDocuments(source:.server)
+        XCTAssertEqual(events.documents.count,9)
+    }
+    func testNativePhonicsCompletionWritesSharedEvidenceAndDeckAwardOnce() async throws {
+        let (service,db,npub)=try context();try await seed(db,npub)
+        var state=try requireState(try await service.load(npub:npub));state.level="Pre-A1"
+        let decks=try ContentLibrary.load([String:[JSONValue]].self,name:"phonics")
+        let cards=try XCTUnwrap(decks["fr:es:Pre-A1"])
+        XCTAssertFalse(cards.isEmpty)
+        for card in cards { state.award(5,source:.phonics,contentID:card["id"].string) }
+        let saved=try requireState(try await service.save(state,npub:npub))
+        XCTAssertGreaterThan(saved.achievementRecords?["nosabos_phonics_decks_1"]?["unlockedAt"].number ?? 0,0)
+        XCTAssertGreaterThan(saved.achievementRecords?["nosabos_phonics_cards_all"]?["unlockedAt"].number ?? 0,0)
+        _=try await service.save(state,npub:npub)
+        let docs=try await db.collection("users").document(npub).collection("alphabetPractice").getDocuments(source:.server)
+        XCTAssertEqual(docs.documents.count,cards.count)
+        for doc in docs.documents { XCTAssertEqual(WebProgressContract.integer(doc.data()["correctCount"]),1) }
+        let ledger=saved.achievementLedger ?? .null
+        XCTAssertEqual(ledger["phonics_decks"].object.count,1)
+    }
+    func testLegacyTutorAgendaMarkerCannotBecomeRegularLessonAchievementEvidence() async throws {
+        let (service,db,npub)=try context();try await seed(db,npub)
+        let user=db.collection("users").document(npub)
+        try await user.collection("languageLessons").document("fr_lesson-b2-legacy").setData(["targetLang":"fr","cefrLevel":"B2","lessonId":"lesson-b2-legacy","status":"completed","tutorAgendaProgress":[:]])
+        let local=try requireState(try await service.load(npub:npub)),saved=try requireState(try await service.save(local,npub:npub))
+        XCTAssertEqual(saved.courseCompletion?["fr"]?["tutor"]?["B2"],1)
+        XCTAssertEqual(saved.courseCompletion?["fr"]?["skillTree"]?["B2"],0)
+        XCTAssertNil(saved.achievementRecords?["piyali_skillTree_complete_b2"])
+    }
     func testCompanionDecayReconcilesOnceWithoutResettingActiveXPWindow() async throws {
         let (service,db,npub) = try context(); try await seed(db,npub)
         let now = Date(), today = CalendarDay.key(now), reset = WebProgressContract.iso(now.addingTimeInterval(3600))

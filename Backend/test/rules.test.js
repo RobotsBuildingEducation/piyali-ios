@@ -22,6 +22,14 @@ test('production rules isolate Nostr-authenticated learners and protect subscrip
     await assertSucceeds(setDoc(doc(db,'users',npub,'voiceJourney','es','completions','2026-10-13'),{session:1}));
     await assertFails(getDoc(doc(guest,'users',npub,'voiceJourney','es','completions','2026-10-13')));
     await assertFails(setDoc(doc(db,'users',other,'voiceJourney','es','completions','2026-10-13'),{session:1}));
+    await assertSucceeds(setDoc(doc(db,'users',npub,'achievements','nosabos_flashcards_completed_5'),{source:'nosabos',unlockedAt:1,test:false}));
+    await assertSucceeds(setDoc(doc(db,'users',npub,'achievementProgress','nosabos','events','one'),{source:'nosabos',metric:'goals:b1',completionId:'es:day:goal',version:1}));
+    await assertSucceeds(getDocs(collection(db,'users',npub,'achievementProgress','nosabos','events')));
+    await assertSucceeds(setDoc(doc(db,'users',npub,'achievementMigrations','nosabos_v1'),{complete:true,version:1}));
+    await assertSucceeds(setDoc(doc(db,'users',npub,'alphabetPractice','es_card'),{correctCount:1}));
+    await assertFails(getDoc(doc(guest,'users',npub,'achievements','nosabos_flashcards_completed_5')));
+    await assertFails(setDoc(doc(db,'users',other,'achievementProgress','nosabos','events','one'),{source:'nosabos'}));
+    await assertFails(setDoc(doc(db,'users',npub,'achievementProgress','robotsbuildingeducation','events','one'),{source:'robotsbuildingeducation'}));
     await assertFails(getDoc(doc(guest,'users',npub)));
     await assertFails(getDoc(doc(anonymous,'users',npub)));
     await assertFails(getDoc(doc(db,'users',other)));

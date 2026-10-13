@@ -95,7 +95,7 @@ struct AchievementsView: View {
     @EnvironmentObject var app: AppModel
     var body: some View {
         List {
-            Text("Achievement progress is earned through completed practice. The catalog uses the main web app's permanent achievement IDs and authored descriptions.").font(.footnote)
+            Text("Achievements are confirmed after progress syncs. Earned awards stay in your collection when you change languages or devices. Placement and XP alone do not prove course completion.").font(.footnote)
             ForEach(app.achievements) { achievement in
                 let count = progress(achievement)
                 VStack(alignment:.leading) {
@@ -111,27 +111,19 @@ struct AchievementsView: View {
         }.navigationTitle("Achievements")
     }
     func progress(_ achievement: AchievementDefinition) -> (value:Int,target:Int?,complete:Bool) {
-        let metric = achievement.requirement["metric"].string
-        let type = achievement.requirement["type"].string
-        var target: Int?
-        if case .number(let n) = achievement.requirement["target"] { target = Int(n) }
-        let prefix = app.learner.target + ":"
-        let lessons = app.learner.completed.filter { $0.hasPrefix(prefix + "lesson-") }.count
-        let cards = app.learner.flashcardMastery.filter { $0.hasPrefix(prefix) }.count
-        let value = metric == "skill_tree_lessons" ? lessons : metric == "flashcards_completed" ? cards : 0
-        if type == "counter", ["skill_tree_lessons","flashcards_completed"].contains(metric) { return (value,target,value >= (target ?? Int.max)) }
-        if type == "level_set", ["skillTree","flashcards"].contains(metric) {
-            let level = achievement.requirement["level"].string
-            guard let index = LearningLanguages.levels.firstIndex(of:level) else { return (0,nil,false) }
-            let levels = Array(LearningLanguages.levels.prefix(index+1))
-            let ids = levels.flatMap { level in
-                metric == "skillTree" ? (app.curriculumIndex[app.learner.target]?[level] ?? []).map { prefix + $0 } : (app.flashcardIndex[level] ?? []).map { prefix + $0 }
-            }
-            let completed = metric == "skillTree" ? app.learner.completed : app.learner.flashcardMastery
-            return (ids.filter { completed.contains($0) }.count,ids.count,!ids.isEmpty && ids.allSatisfy { completed.contains($0) })
-        }
-        return (0,nil,false)
+        let record=app.learner.achievementRecords?[achievement.id] ?? .null
+        let earned=record["unlockedAt"].number > 0 && !record["test"].boolean
+        let summary=app.learner.achievementEvidence?[app.learner.target] ?? .object([:])
+        let counts=AchievementProgress.counters(summary)
+        var evidence=JSONValue.object(["language":.string(app.learner.target),"counters":counts])
+        evidence=AchievementProgress.snapshot(ledger:app.learner.achievementLedger ?? .object([:]),evidence:evidence)
+        let metric=achievement.requirement["metric"].string
+        let cardCount=(app.learner.achievementLedger?["flashcards_completed:"+app.learner.target].object.count ?? 0)
+        let value=metric == "flashcards_completed" ? max(Int(counts[metric].number),cardCount) : Int(evidence["counters"][metric].number)
+        let target=achievement.requirement["target"] == .null ? nil : Int(achievement.requirement["target"].number)
+        return (value,target,earned)
     }
+
 }
 struct SubscriptionTermsView: View {
     var body: some View {

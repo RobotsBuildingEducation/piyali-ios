@@ -15,12 +15,14 @@
 		1971914F4DA0A1C8DC020B19 /* StoreKitSubscriptionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7453BBE3FEF38033092DD0CC /* StoreKitSubscriptionTests.swift */; };
 		202E3EF5E687BCE075DF9636 /* flashcards.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 26503B7732937779B13146B7 /* flashcards.json.gz */; };
 		21547AD9D1E8F6C48C82CFB1 /* FirestoreContractTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8947C3D4C258C6F2B162D45D /* FirestoreContractTests.swift */; };
+		2499A9650DA557B456772DB7 /* AchievementProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6444929F41BE8BDD4B3A3123 /* AchievementProgress.swift */; };
 		25B412D8E7AE1938ED2AF18A /* FlashcardReview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 387D1A3BB971A0E8A4AC3034 /* FlashcardReview.swift */; };
 		28B56083FAB9E6F248C812E7 /* SmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C1539DEC5F6DCC632774299 /* SmokeTests.swift */; };
 		29C2346AFFCBA2FD85C0E698 /* TutorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04B5C6F15922AB6F7AE045B8 /* TutorView.swift */; };
 		31355BFD2ED4F4B15F2A4753 /* curriculum-yua.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = FD2145F5F4EC6EFDE91813F6 /* curriculum-yua.json.gz */; };
 		31F9D04AD0E82F0B26A8A2EA /* ContentLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 007295F8EDB35E196711A524 /* ContentLibrary.swift */; };
 		339125B39B50F30972AFE801 /* curriculum-pt.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 1BD977B46CD3C9E3235F38A2 /* curriculum-pt.json.gz */; };
+		34605247E145CFDFFA13F90A /* achievement-hashes.json in Resources */ = {isa = PBXBuildFile; fileRef = 0C7EEAE49FCD41BFAD7D47CA /* achievement-hashes.json */; };
 		3766FDCBD5C747DC922B2538 /* CompanionMemoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7754A7E9B5E0B517E9C9293A /* CompanionMemoryView.swift */; };
 		3F6D12BA1756F07FC181B14B /* CompanionMemory.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC8C1AFE520430E24776DD16 /* CompanionMemory.swift */; };
 		4050AA0CEDC58D40B1E91393 /* curriculum-pl.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = E14BD18E0DD3B4E10CE07EC6 /* curriculum-pl.json.gz */; };
@@ -28,6 +30,7 @@
 		413348566E611075ABDE6695 /* WebNostrFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 309E62CCB8904FD210887D7E /* WebNostrFixtures.swift */; };
 		424CF398D34426D30121B88C /* ExerciseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2200F1724A37FD9A39E2C277 /* ExerciseView.swift */; };
 		43C9091AF7E4A949BC7B5DD8 /* FirebaseAppCheck in Frameworks */ = {isa = PBXBuildFile; productRef = 6BBDF8EABB29A3266F02F9FC /* FirebaseAppCheck */; };
+		498224C466F47E92C30CAB74 /* AchievementSyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB3AD1F05EBC9FD9E7660BF4 /* AchievementSyncService.swift */; };
 		4AD13F5B5979EBA703B650AC /* TutorCourse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9674D8B5CAC1CE39C171E452 /* TutorCourse.swift */; };
 		4C89332D63FE744BE38512EA /* FirebaseIdentityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6B8311CBE80AD6E10E96469 /* FirebaseIdentityTests.swift */; };
 		4D76B17180CFD23CD6E3597C /* PatreonRestoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 944FFD69FFAD8CB17111F599 /* PatreonRestoreTests.swift */; };
@@ -66,6 +69,7 @@
 		C38DB7F1792D0F0E01F0D158 /* PlacementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E31D323F4011C09E791F81F8 /* PlacementView.swift */; };
 		C6A235B63FFC37981D76CB3A /* SubscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7942D25D599B3AC9917C728C /* SubscriptionService.swift */; };
 		C87F23146E7814EDBD3669FB /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B5750953096CF907269EFEA /* Models.swift */; };
+		C935082112170F401A021178 /* AchievementContractTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6F1D32BCE3E5FE13C7A17A0 /* AchievementContractTests.swift */; };
 		CBCF09D65755D114A96D6366 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 6B127B17B8A5D92960B33ED4 /* FirebaseFirestore */; };
 		CE5013790C9D1196AFAC0BEB /* AIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F89245EBCF6A1E38A3CF7FC8 /* AIService.swift */; };
 		D0949BA7E9F95F8C9432E78A /* WebProgressContract.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FFD762011E7104BE63A9CD4 /* WebProgressContract.swift */; };
@@ -104,6 +108,7 @@
 		04B5C6F15922AB6F7AE045B8 /* TutorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorView.swift; sourceTree = "<group>"; };
 		0AA1700E5D87C167E920D5B5 /* flashcard-index.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "flashcard-index.json.gz"; sourceTree = "<group>"; };
 		0C1539DEC5F6DCC632774299 /* SmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeTests.swift; sourceTree = "<group>"; };
+		0C7EEAE49FCD41BFAD7D47CA /* achievement-hashes.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "achievement-hashes.json"; sourceTree = "<group>"; };
 		0CB4B84CC1F280F400282026 /* curriculum-it.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "curriculum-it.json.gz"; sourceTree = "<group>"; };
 		0D2B4377365D26F6B633ABCA /* curriculum-de.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "curriculum-de.json.gz"; sourceTree = "<group>"; };
 		1BD977B46CD3C9E3235F38A2 /* curriculum-pt.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "curriculum-pt.json.gz"; sourceTree = "<group>"; };
@@ -118,6 +123,7 @@
 		4A919107C8A686BE6D656685 /* LearningProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearningProgress.swift; sourceTree = "<group>"; };
 		58B5DF2715F289D91F1BC127 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		58E4AE8F330D5B949C217EC6 /* AppConfiguration.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = AppConfiguration.plist; sourceTree = "<group>"; };
+		6444929F41BE8BDD4B3A3123 /* AchievementProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementProgress.swift; sourceTree = "<group>"; };
 		66577C96C4071AB6D6B95BB8 /* AppConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfiguration.swift; sourceTree = "<group>"; };
 		6B5750953096CF907269EFEA /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		6CCAF4F9FC63CEE953975909 /* curriculum-fr.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "curriculum-fr.json.gz"; sourceTree = "<group>"; };
@@ -165,7 +171,9 @@
 		F52185DFD4E574E23072128C /* curriculum-ru.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "curriculum-ru.json.gz"; sourceTree = "<group>"; };
 		F69EF3D394A21D0D07C9B191 /* curriculum-nl.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "curriculum-nl.json.gz"; sourceTree = "<group>"; };
 		F6B8311CBE80AD6E10E96469 /* FirebaseIdentityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseIdentityTests.swift; sourceTree = "<group>"; };
+		F6F1D32BCE3E5FE13C7A17A0 /* AchievementContractTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementContractTests.swift; sourceTree = "<group>"; };
 		F89245EBCF6A1E38A3CF7FC8 /* AIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIService.swift; sourceTree = "<group>"; };
+		FB3AD1F05EBC9FD9E7660BF4 /* AchievementSyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementSyncService.swift; sourceTree = "<group>"; };
 		FC8C1AFE520430E24776DD16 /* CompanionMemory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionMemory.swift; sourceTree = "<group>"; };
 		FD2145F5F4EC6EFDE91813F6 /* curriculum-yua.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "curriculum-yua.json.gz"; sourceTree = "<group>"; };
 		FDDA585F43A2605655108EDD /* SpeechService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechService.swift; sourceTree = "<group>"; };
@@ -192,6 +200,7 @@
 		178A2A26FBCAEF55AB86864C /* PiyaliAppTests */ = {
 			isa = PBXGroup;
 			children = (
+				F6F1D32BCE3E5FE13C7A17A0 /* AchievementContractTests.swift */,
 				F6B8311CBE80AD6E10E96469 /* FirebaseIdentityTests.swift */,
 				8947C3D4C258C6F2B162D45D /* FirestoreContractTests.swift */,
 				C93EFBC5CACA2291D2D0436C /* IdentityTests.swift */,
@@ -291,6 +300,7 @@
 		63EB69AF36D60108CDEF283B /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				6444929F41BE8BDD4B3A3123 /* AchievementProgress.swift */,
 				9DEE7EF45636A31B7BD66C57 /* CompanionHealth.swift */,
 				FC8C1AFE520430E24776DD16 /* CompanionMemory.swift */,
 				007295F8EDB35E196711A524 /* ContentLibrary.swift */,
@@ -310,6 +320,7 @@
 		656824C2DB9819C2C78BE018 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				FB3AD1F05EBC9FD9E7660BF4 /* AchievementSyncService.swift */,
 				F89245EBCF6A1E38A3CF7FC8 /* AIService.swift */,
 				66577C96C4071AB6D6B95BB8 /* AppConfiguration.swift */,
 				23553314634188457E6891D0 /* FirebaseIdentityService.swift */,
@@ -350,6 +361,7 @@
 		D1ADAD7F93F042D36919DAB7 /* Fixtures */ = {
 			isa = PBXGroup;
 			children = (
+				0C7EEAE49FCD41BFAD7D47CA /* achievement-hashes.json */,
 				93F9EA3918C75E4A8605DF8B /* PiyaliSubscriptions.storekit */,
 			);
 			path = Fixtures;
@@ -466,6 +478,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				69086B28BF45F4B045E65544 /* PiyaliSubscriptions.storekit in Resources */,
+				34605247E145CFDFFA13F90A /* achievement-hashes.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -533,6 +546,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C935082112170F401A021178 /* AchievementContractTests.swift in Sources */,
 				4C89332D63FE744BE38512EA /* FirebaseIdentityTests.swift in Sources */,
 				21547AD9D1E8F6C48C82CFB1 /* FirestoreContractTests.swift in Sources */,
 				A796C5C8744AB39111F12DE7 /* IdentityTests.swift in Sources */,
@@ -549,6 +563,8 @@
 			files = (
 				CE5013790C9D1196AFAC0BEB /* AIService.swift in Sources */,
 				0A7C378B116F58FF44451C07 /* AccountViews.swift in Sources */,
+				2499A9650DA557B456772DB7 /* AchievementProgress.swift in Sources */,
+				498224C466F47E92C30CAB74 /* AchievementSyncService.swift in Sources */,
 				882DF197F6E0043796DBFC66 /* AppConfiguration.swift in Sources */,
 				A877E84CD10C1FB5B0B82B67 /* AppModel.swift in Sources */,
 				AE14F521E7D24FEAB61EEA97 /* CompanionHealth.swift in Sources */,

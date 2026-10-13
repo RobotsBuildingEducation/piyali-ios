@@ -46,6 +46,15 @@ try {
   assert.equal((await fetch(other,{headers:authHeaders})).status,403,'Other learner read denied');
   const protectedWrite=await fetch(own+'?updateMask.fieldPaths=patreonVerified',{method:'PATCH',headers:authHeaders,body:JSON.stringify({fields:{patreonVerified:{booleanValue:true}}})});
   assert.equal(protectedWrite.status,403,'Client entitlement forgery denied');
+  for(const collectionId of ['achievements','achievementMigrations','alphabetPractice']) {
+    const result=await json(own+':runQuery',{structuredQuery:{from:[{collectionId}]}},authHeaders);
+    assert.equal(result.response.status,200,'Owner reads '+collectionId);
+  }
+  const progressQuery={structuredQuery:{from:[{collectionId:'events'}]}};
+  assert.equal((await json(own+'/achievementProgress/nosabos:runQuery',progressQuery,authHeaders)).response.status,200,'Owner reads native completion ledger');
+  assert.equal((await json(other+':runQuery',{structuredQuery:{from:[{collectionId:'achievements'}]}},authHeaders)).response.status,403,'Other learner awards denied');
+  assert.equal((await json(own+'/achievementProgress/robotsbuildingeducation:runQuery',progressQuery,authHeaders)).response.status,403,'Foreign achievement source denied');
+  console.log('LIVE ACHIEVEMENT RULES PASS: private awards, migration, phonics and completion-ledger reads; other-account and foreign-source queries denied.');
   if(process.env.PIYALI_LIVE_AI==='1') {
     const missing=await json(base+'/proxyResponses',{model:'gpt-6-luna',input:'Hello'},headers);
     assert.equal(missing.response.status,401,'Tutor rejects missing Firebase identity');

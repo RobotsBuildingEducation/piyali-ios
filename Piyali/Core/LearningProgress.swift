@@ -38,4 +38,8 @@ public struct AchievementDefinition: Codable, Identifiable, Sendable {
     public let title: JSONValue
     public let description: JSONValue
     public let requirement: JSONValue
+    public let progression: Bool?
+    public let catalogVersion: Int?
+    public let orb: JSONValue?
+    public let number: Int?
 }

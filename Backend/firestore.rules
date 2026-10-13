@@ -14,11 +14,14 @@ service cloud.firestore {
       allow list: if false;
       allow create: if owns(userId) && matchingKey(userId) && !request.resource.data.keys().hasAny(protectedFields());
       allow update: if owns(userId) && matchingKey(userId) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(protectedFields());
+      match /achievementProgress/{source}/events/{event} {
+        allow read, write: if owns(userId) && source == 'nosabos';
+      }
       match /voiceJourney/{language}/completions/{day} {
         allow read, write: if owns(userId);
       }
       match /{collection}/{document} {
-        allow read, write: if owns(userId) && collection in ['languageLessons','tutorLanguageLessons','languageFlashcards','courseProgress','xpHistory','companion','iosPracticeReceipts','questDays','voiceJourney'];
+        allow read, write: if owns(userId) && collection in ['languageLessons','tutorLanguageLessons','languageFlashcards','courseProgress','xpHistory','companion','iosPracticeReceipts','questDays','voiceJourney','achievements','achievementMigrations','alphabetPractice'];
       }
     }
   }
