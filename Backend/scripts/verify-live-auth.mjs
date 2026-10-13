@@ -46,6 +46,22 @@ try {
   assert.equal((await fetch(other,{headers:authHeaders})).status,403,'Other learner read denied');
   const protectedWrite=await fetch(own+'?updateMask.fieldPaths=patreonVerified',{method:'PATCH',headers:authHeaders,body:JSON.stringify({fields:{patreonVerified:{booleanValue:true}}})});
   assert.equal(protectedWrite.status,403,'Client entitlement forgery denied');
+  if(process.env.PIYALI_LIVE_AI==='1') {
+    const missing=await json(base+'/proxyResponses',{model:'gpt-6-luna',input:'Hello'},headers);
+    assert.equal(missing.response.status,401,'Tutor rejects missing Firebase identity');
+    const parts=token.split('.'),forgedClaims=JSON.parse(Buffer.from(parts[1],'base64url')); forgedClaims.sub=nip19.npubEncode(getPublicKey(generateSecretKey()));
+    const forged=[parts[0],Buffer.from(JSON.stringify(forgedClaims)).toString('base64url'),parts[2]].join('.');
+    const denied=await json(base+'/proxyResponses',{model:'gpt-6-luna',input:'Hello'},{...headers,Authorization:'Bearer '+forged});
+    assert.equal(denied.response.status,401,'Tutor rejects forged Firebase owner claims');
+    const tutor=await json(base+'/proxyResponses' ,{model:'gpt-6-luna',input:'Return JSON with passage, question, choices, answer, explanation for one Pre-A1 Spanish greeting exercise with English instructions. Keep it short.',text:{format:{type:'json_object'}},max_output_tokens:512},{...headers,Authorization:'Bearer '+token});
+    if(!tutor.response.ok) console.error('Tutor status:',tutor.response.status,tutor.value.error);
+    assert.equal(tutor.response.status,200,'Live tutor response');
+    const output=tutor.value.output?.flatMap(item=>item.content ?? []).filter(item=>item.type==='output_text').map(item=>item.text).join('');
+    const exercise=JSON.parse(output);
+    for(const key of ['passage','question','answer','explanation']) assert.equal(typeof exercise[key],'string');
+    assert.ok(Array.isArray(exercise.choices));
+    console.log('LIVE AI PASS: authenticated tutor generated a valid Spanish exercise JSON.');
+  }
   console.log('LIVE PASS: App Check, Nostr signature, replay defense, Firebase custom sign-in, own progress and cross-account/subscription isolation.');
 } finally {
   // These fixtures belong exclusively to this ephemeral check, never a learner account.

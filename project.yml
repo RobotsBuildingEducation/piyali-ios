@@ -49,7 +49,7 @@ targets:
       - package: Firebase
         product: FirebaseFirestore
       - package: Firebase
-        product: FirebaseAI
+        product: FirebaseAILogic
       - package: NostrSDK
         product: NostrSDK
       - sdk: libz.tbd

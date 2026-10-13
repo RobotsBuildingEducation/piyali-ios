@@ -39,7 +39,7 @@ import StoreKit
     }
     func refresh() async {
         guard let identity, !identity.npub.isEmpty else { return }
-        busy = true; defer { busy = false }
+        busy = true; error = nil; defer { busy = false }
         do { products = try await Product.products(for: config.list("SubscriptionProductIDs")) } catch { self.error = error.localizedDescription }
         let storefront = await Storefront.current
         externalPaymentAllowed = config.list("ExternalPaymentStorefronts").contains(storefront?.countryCode ?? "")
@@ -57,20 +57,23 @@ import StoreKit
         authorized = webAuthorized || appleAuthorized
     }
     func refreshApple() async {
+        guard let identity, !identity.npub.isEmpty else { appleAuthorized = false; appleExpiry = nil; recomputeAccess(); return }
+        let checkingAccount = identity.npub, checkingToken = identity.accountToken
         var valid = false, expiry: Date?
         for await result in Transaction.currentEntitlements {
             guard case .verified(let transaction) = result,
                 config.list("SubscriptionProductIDs").contains(transaction.productID),
                 transaction.revocationDate == nil,
                 let end = transaction.expirationDate, end > Date(),
-                let identity, transaction.appAccountToken == identity.accountToken else { continue }
+                transaction.appAccountToken == checkingToken else { continue }
             valid = true; expiry = max(expiry ?? end, end)
         }
+        guard accountID == checkingAccount, self.identity?.npub == checkingAccount else { return }
         appleAuthorized = valid; appleExpiry = expiry; recomputeAccess()
     }
     func buy(_ product: Product) async {
         guard let identity else { return }
-        busy = true; defer { busy = false }
+        busy = true; error = nil; defer { busy = false }
         do {
             switch try await product.purchase(options: [.appAccountToken(identity.accountToken)]) {
             case .success(let result):
@@ -95,16 +98,17 @@ import StoreKit
         guard let response = response as? HTTPURLResponse, (200..<300).contains(response.statusCode) else { throw AppError.message(value["error"] as? String ?? "Subscription service unavailable.") }
         return value
     }
-    private func restoreWeb() async throws {
+    func restoreWeb() async throws {
         guard let identity else { return }
         let checkingAccount = identity.npub
         let challenge = try await post("link-challenge", body: ["npub": checkingAccount, "action": "restore"])
-        guard let id = challenge["challengeId"] as? String, let event = challenge["eventTemplate"] as? [String: Any],
-              let kind = event["kind"] as? Int, let content = event["content"] as? String,
-              let createdAt = event["created_at"] as? Int64, let tags = event["tags"] as? [[String]] else { throw AppError.message("Invalid subscription challenge.") }
-        let signed = try identity.sign(kind: kind, tags: tags, content: content, createdAt: createdAt)
+        let proof = try JSONDecoder().decode(PatreonRestoreChallenge.self,from:JSONSerialization.data(withJSONObject:challenge))
+        try proof.validate()
+        guard identity.npub == checkingAccount, accountID == checkingAccount else { return }
+        let event = proof.eventTemplate
+        let signed = try identity.sign(kind:event.kind,tags:event.tags,content:event.content,createdAt:event.created_at)
         let signedObject = try JSONSerialization.jsonObject(with: JSONEncoder().encode(signed))
-        let status = try await post("key-status", body: ["challengeId":id, "signedEvent": signedObject])
+        let status = try await post("key-status", body: ["challengeId":proof.challengeId, "signedEvent": signedObject])
         guard identity.npub == checkingAccount, accountID == checkingAccount else { return }
         webAuthorized = status["authorized"] as? Bool == true
         // Revalidate web access on foreground; keep in-memory authorization short lived.

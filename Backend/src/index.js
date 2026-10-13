@@ -1,10 +1,24 @@
+import { verifyFirebaseAuth } from './firebase-auth.js';
+import { proxyResponses } from './responses.js';
 import { verifyAppCheck } from './app-check.js';
 import { HTTPError, publicIdentity, challengeFor, verifyChallenge, customToken } from './auth.js';
 const json = (value,status=200) => new Response(JSON.stringify(value),{status,headers:{'Content-Type':'application/json','Cache-Control':'no-store'}});
-async function body(request) {
+async function body(request,limit=8192) {
   if (!request.headers.get('Content-Type')?.startsWith('application/json')) throw new HTTPError(415,'Send JSON.');
-  const text = await request.text();
-  if (new TextEncoder().encode(text).length > 8192) throw new HTTPError(413,'Request is too large.');
+  const reader=request.body?.getReader();
+  if(!reader) throw new HTTPError(400,'Send a request body.');
+  const chunks=[]; let size=0;
+  try {
+    while(true) {
+      const {done,value}=await reader.read(); if(done) break;
+      size+=value.byteLength;
+      if(size>limit) { await reader.cancel(); throw new HTTPError(413,'Request is too large.'); }
+      chunks.push(value);
+    }
+  } finally { reader.releaseLock(); }
+  const bytes=new Uint8Array(size);let offset=0;
+  for(const chunk of chunks) { bytes.set(chunk,offset);offset+=chunk.byteLength; }
+  const text=new TextDecoder().decode(bytes);
   try {
     const value = JSON.parse(text);
     if (!value || typeof value !== 'object' || Array.isArray(value)) throw Error();
@@ -34,16 +48,23 @@ export class SignInChallenge {
   }
   async alarm() { await this.ctx.storage.deleteAll(); }
 }
-export function handler(check = verifyAppCheck) {
+export function handler(check = verifyAppCheck, authenticate = verifyFirebaseAuth, fetchUpstream = fetch) {
   return {
     async fetch(request,env) {
       try {
         const url = new URL(request.url);
         if (url.pathname === '/health' && request.method === 'GET') return json({ok:true,project:env.FIREBASE_PROJECT_ID});
-        if (!['/auth/challenge','/auth/sign-in'].includes(url.pathname)) throw new HTTPError(404,'Not found.');
+        if (!['/auth/challenge','/auth/sign-in','/proxyResponses'].includes(url.pathname)) throw new HTTPError(404,'Not found.');
         if (request.method !== 'POST') throw new HTTPError(405,'Use POST.');
         try { await check(request.headers.get('X-Firebase-AppCheck') ?? '',env); }
         catch { throw new HTTPError(401,'A valid Piyali App Check token is required.'); }
+        if(url.pathname==='/proxyResponses') {
+          const npub=await authenticate(request,env);
+          if(!env.AI_RATE_LIMITER) throw new HTTPError(503,'The tutor is not configured.');
+          const {success}=await env.AI_RATE_LIMITER.limit({key:npub});
+          if(!success) throw new HTTPError(429,'Too many tutor requests. Try again shortly.');
+          return proxyResponses(await body(request,131072),env,fetchUpstream);
+        }
         if (!env.AUTH_RATE_LIMITER || !env.SIGN_IN_CHALLENGES) throw new HTTPError(503,'Sign-in is not configured.');
         const {success} = await env.AUTH_RATE_LIMITER.limit({key:request.headers.get('CF-Connecting-IP') ?? 'unknown'});
         if (!success) throw new HTTPError(429,'Too many sign-in attempts. Try again shortly.');

@@ -6,6 +6,7 @@ workers_dev = true
 preview_urls = false
 
 [vars]
+ALLOWED_RESPONSE_MODELS = "gpt-6-luna,gpt-5-nano"
 FIREBASE_PROJECT_ID = "piyali-ios"
 FIREBASE_PROJECT_NUMBER = "861709486546"
 FIREBASE_APP_ID = "1:861709486546:ios:edbba9ce75380765bc200b"
@@ -22,3 +23,8 @@ new_sqlite_classes = ["SignInChallenge"]
 name = "AUTH_RATE_LIMITER"
 namespace_id = "861709486"
 simple = { limit = 20, period = 60 }
+
+[[ratelimits]]
+name = "AI_RATE_LIMITER"
+namespace_id = "861709487"
+simple = { limit = 60, period = 60 }

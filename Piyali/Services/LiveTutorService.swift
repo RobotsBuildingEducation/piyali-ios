@@ -1,6 +1,6 @@
 import Foundation
 import AVFoundation
-import FirebaseAI
+import FirebaseAILogic
 
 @MainActor final class LiveTutorService: ObservableObject {
     @Published var connected = false
@@ -16,6 +16,15 @@ import FirebaseAI
     private var tapped = false
     private var generation = UUID()
     private let outputFormat = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 24000, channels: 1, interleaved: false)!
+    static let openingPrompt = "Speak aloud now. Greet me briefly in my target language and start practicing my goal."
+    static func model(for learner: LearnerState, configuration config: AppConfiguration = AppConfiguration()) -> LiveGenerativeModel {
+        let instruction = "You are Piyali, a patient language tutor. Teach \(LearningLanguages.names[learner.target] ?? learner.target) at \(learner.level). Use \(LearningLanguages.names[learner.support] ?? learner.support) for brief explanations. Goal: \(learner.goal). Speak in short turns, correct mistakes kindly, and invite the learner to respond."
+        return FirebaseAI.firebaseAI(backend:config.geminiBackend(live:true)).liveModel(
+            modelName:config.string("GeminiLiveModel",default:"gemini-2.5-flash-native-audio-preview-12-2025"),
+            generationConfig:LiveGenerationConfig(responseModalities:[.audio],inputAudioTranscription:AudioTranscriptionConfig(),outputAudioTranscription:AudioTranscriptionConfig()),
+            systemInstruction:ModelContent(role:"system",parts:[TextPart(instruction)])
+        )
+    }
     func start(learner: LearnerState) async {
         guard !connected && !connecting else { return }
         guard FirebaseService.shared.configured else { error = "Add the iOS Firebase configuration and App Check registration to use live audio."; return }
@@ -25,13 +34,7 @@ import FirebaseAI
         guard await AVAudioApplication.requestRecordPermission() else { error = "Enable the microphone in Settings to use live audio."; return }
         guard generation == currentGeneration else { return }
         do {
-            let config = AppConfiguration()
-            let instruction = "You are Piyali, a patient language tutor. Teach \(LearningLanguages.names[learner.target] ?? learner.target) at \(learner.level). Use \(LearningLanguages.names[learner.support] ?? learner.support) for brief explanations. Goal: \(learner.goal). Speak in short turns, correct mistakes kindly, and invite the learner to respond."
-            let model = FirebaseAI.firebaseAI(backend: .agentPlatform(location: config.string("GeminiLiveLocation", default: "us-central1"))).liveModel(
-                modelName: config.string("GeminiLiveModel", default: "gemini-live-2.5-flash-native-audio"),
-                generationConfig: LiveGenerationConfig(responseModalities: [.audio], inputAudioTranscription: AudioTranscriptionConfig(), outputAudioTranscription: AudioTranscriptionConfig()),
-                systemInstruction: ModelContent(role: "system", parts: [TextPart(instruction)])
-            )
+            let model = Self.model(for:learner)
             let newSession = try await model.connect()
             guard generation == currentGeneration else { await newSession.close(); return }
             session = newSession
@@ -55,7 +58,7 @@ import FirebaseAI
                 } catch { if !Task.isCancelled { self?.error = error.localizedDescription } }
                 if self?.generation == currentGeneration { await self?.stop() }
             }
-            await newSession.sendContent("Greet me briefly and start practicing my goal.", turnComplete: true)
+            await newSession.sendTextRealtime(Self.openingPrompt)
         } catch { self.error = error.localizedDescription; await stop() }
     }
     private func setupAudio(session: LiveSession) throws {

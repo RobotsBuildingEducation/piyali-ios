@@ -1,12 +1,14 @@
 import Foundation
-import FirebaseAI
+import FirebaseAILogic
+import FirebaseAuth
 
 @MainActor final class AIService {
-    let configuration = AppConfiguration()
-    func text(_ prompt: String) async throws -> String {
+    let configuration: AppConfiguration
+    init(configuration: AppConfiguration = AppConfiguration()) { self.configuration = configuration }
+    func text(_ prompt: String, json: Bool = false) async throws -> String {
         if configuration.string("AIProvider") == "gemini", FirebaseService.shared.configured {
             do {
-                let model = FirebaseAI.firebaseAI(backend: .agentPlatform(location: "global")).generativeModel(modelName: configuration.string("GeminiModel"))
+                let model = FirebaseAI.firebaseAI(backend: configuration.geminiBackend()).generativeModel(modelName: configuration.string("GeminiModel"), generationConfig:GenerationConfig(maxOutputTokens:4096,responseMIMEType:json ? "application/json" : nil))
                 let result = try await model.generateContent(prompt)
                 if let text = result.text, !text.isEmpty { return text }
             } catch { /* The reference app also falls back to Responses. */ }
@@ -15,10 +17,15 @@ import FirebaseAI
         request.httpMethod = "POST"; request.timeoutInterval = 45
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         for (key, value) in try await FirebaseService.shared.appCheckHeaders() { request.setValue(value, forHTTPHeaderField: key) }
-        request.httpBody = try JSONSerialization.data(withJSONObject: ["model":configuration.string("ResponsesModel"),"input":prompt,"text":["format":["type":"text"]]])
+        guard let user = Auth.auth().currentUser else { throw AppError.message("Sync your account before using the tutor.") }
+        request.setValue("Bearer " + (try await user.getIDToken()), forHTTPHeaderField: "Authorization")
+        request.httpBody = try JSONSerialization.data(withJSONObject: ["model":configuration.string("ResponsesModel"),"input":prompt,"text":["format":["type":json ? "json_object" : "text"]]])
         let (data, response) = try await URLSession.shared.data(for: request)
-        guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
-            throw AppError.message("The AI service rejected the request. Check App Check registration and worker configuration.")
+        guard let http = response as? HTTPURLResponse else { throw AppError.message("The tutor is unavailable. Try again shortly.") }
+        guard (200..<300).contains(http.statusCode) else {
+            if http.statusCode == 429 { throw AppError.message("The tutor is busy. Try again shortly.") }
+            if [401,403].contains(http.statusCode) { throw AppError.message("Your online session expired. Sync your account, then try again.") }
+            throw AppError.message("The tutor could not complete this request. Try again shortly.")
         }
         let body = try JSONDecoder().decode(JSONValue.self, from: data)
         let direct = body["output_text"].string
@@ -27,7 +34,7 @@ import FirebaseAI
         return text
     }
     func structured<T: Decodable>(_ type: T.Type, prompt: String) async throws -> T {
-        let response = try await text(prompt + "\nReturn only valid JSON without Markdown fences.")
+        let response = try await text(prompt + "\nReturn only valid JSON without Markdown fences.", json:true)
         let cleaned = response.trimmingCharacters(in: .whitespacesAndNewlines)
             .replacingOccurrences(of: "```json", with: "").replacingOccurrences(of: "```", with: "")
             .trimmingCharacters(in: .whitespacesAndNewlines)

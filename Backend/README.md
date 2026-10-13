@@ -1,6 +1,6 @@
 # Piyali iPhone backend
 
-Dedicated Cloudflare worker for the independent `piyali-ios` Firebase project. The existing web worker and web Firebase project are not modified.
+Dedicated Cloudflare authentication and tutor worker for the independent `piyali-ios` Firebase project. The existing web worker and web Firebase project are not modified.
 
 `POST /auth/challenge` accepts a canonical `npub` and a valid Piyali iOS App Check token. It returns a 120-second, HTTP-bound Nostr event. `POST /auth/sign-in` verifies the exact Schnorr-signed event, consumes its challenge atomically in a SQLite Durable Object, and signs a Firebase custom token with that npub as the UID. Private Nostr keys stay on the device. Firebase signing credentials exist only in ignored local secrets and Cloudflare secrets. Requests are rate limited; Firebase rules prevent client subscription grants and cross-account data access.
 
@@ -19,4 +19,8 @@ The worker needs `FIREBASE_CLIENT_EMAIL` and `FIREBASE_PRIVATE_KEY`, delivered w
 
 The opt-in `node Backend/scripts/verify-live-auth.mjs` runs against Piyali only, requires the local iOS Firebase plist and `.secrets/app-check-debug.json`, creates an ephemeral Nostr identity, verifies App Check, sign-in, replay defense and Firestore isolation, and removes its own auth fixture. Firestore retains the harmless temporary root fixture because production root deletion is intentionally denied. This script never prints tokens or private keys.
 
-This worker currently implements authentication. AI, speech/cache and subscription verification routes remain integration work.
+`POST /proxyResponses` requires both a native Piyali App Check token and a Firebase custom-auth ID token. The worker verifies Google's signature, project issuer/audience, canonical npub and Nostr public-key claim. It permits only the reference's `gpt-6-luna` and `gpt-5-nano` models, bounded text input/output, and text/JSON output. It strips caller-selected tools, forces `store: false`, limits each learner to 60 requests per minute and aborts upstream calls after 40 seconds. `OPENAI_API_KEY` is a worker secret; it is never bundled in Swift. The contract follows the [official OpenAI Responses reference](https://developers.openai.com/api/reference/resources/responses/methods/create).
+
+Set `PIYALI_LIVE_AI=1` when running `verify-live-auth.mjs` to additionally generate and validate a small exercise through the live tutor. `verify-web-subscription.mjs` verifies the existing external Patreon restore endpoint, unlinked-account denial and replay rejection without creating a payment or membership. Native `scripts/test-live-api.py` verifies the Swift authentication, Gemini text, Cloudflare JSON exercise, signed Patreon restore and live audio response using an isolated test key and the registered debug token.
+
+Gemini text/live voice use the Gemini Developer API through Firebase AI Logic on Piyali's Spark plan. The dedicated Cloudflare worker provides the Responses fallback. Audio-cache playback and the alternate OpenAI WebRTC voice transport remain integration work.
