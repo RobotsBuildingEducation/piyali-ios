@@ -47,6 +47,40 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
         state.place(Placement(level:"A1",score:18,source:"test",selectedIDs:[],updatedAt:Date()))
         return state
     }
+    private func conversationLearner() -> LearnerState {
+        var state=immersionLearner(),draft=ConversationDraft()
+        draft.goal=ConversationGoal(text:.object(["en":.string("Say hello and your name")]),questionLevel:"A1",worth:ConversationPractice.worth(rating:state.rating,level:"A1",difficulty:21))
+        state.saveConversation(draft);return state
+    }
+    func testConversationConcurrentGoalClaimsGiveOneBonusScoreAndProofButTwoTurns() async throws {
+        let (service,db,npub)=try context();try await seed(db,npub)
+        let state=conversationLearner();var first=state,second=state
+        _=first.conversationTurn(id:UUID(),answer:"Bonjour, je suis Ana.",verdict:.init(completed:true,reason:"Good"),turnXP:2,goalXP:3)
+        _=second.conversationTurn(id:UUID(),answer:"Je m'appelle Ana.",verdict:.init(completed:true,reason:"Good"),turnXP:2,goalXP:3)
+        async let a=service.save(first,npub:npub),b=service.save(second,npub:npub);_=try await (a,b)
+        _=try await service.save(first,npub:npub);_=try await service.save(second,npub:npub)
+        let root=try await db.collection("users").document(npub).getDocument().data()!,json=AchievementSyncService.jsonFields(root)
+        XCTAssertEqual(WebProgressContract.integer(root["xp"]),157);XCTAssertEqual(root["patreonVerified"] as? Bool,true)
+        XCTAssertEqual(json["learningIntelligence"]["fr"]["elo"]["totalGraded"].number,1)
+        XCTAssertEqual(json["progress"]["conversationDailyActivity"]["fr"][CalendarDay.key(Date())].number,2)
+        let events=try await db.collection("users").document(npub).collection("achievementProgress").document("nosabos").collection("events").getDocuments()
+        XCTAssertEqual(events.documents.filter { $0.data()["metric"] as? String == "conversation_goals" }.count,1)
+        let saved=try requireState(try await service.load(npub:npub))
+        XCTAssertEqual(saved.completedConversationGoals?.count,1);XCTAssertEqual(saved.conversation.goal?.id,state.conversation.goal?.id)
+    }
+    func testConversationMissesAndDriftCountPracticeWithoutXPAndDriftDoesNotLowerScore() async throws {
+        let (service,db,npub)=try context();try await seed(db,npub)
+        var state=conversationLearner()
+        _=state.conversationTurn(id:UUID(),answer:"wrong topic",verdict:.init(completed:false,reason:"Try your name"),turnXP:3,goalXP:4)
+        _=state.conversationTurn(id:UUID(),answer:"I don't watch TV",verdict:.init(completed:false,reason:"New direction",goalStillFits:false),turnXP:3,goalXP:4)
+        _=try await service.save(state,npub:npub);_=try await service.save(state,npub:npub)
+        let user=db.collection("users").document(npub),root=AchievementSyncService.jsonFields(try await user.getDocument().data())
+        XCTAssertEqual(root["xp"].number,150);XCTAssertEqual(root["progress"]["conversationDailyActivity"]["fr"][CalendarDay.key(Date())].number,2)
+        XCTAssertEqual(root["learningIntelligence"]["fr"]["elo"]["totalGraded"].number,1)
+        XCTAssertEqual(root["learningIntelligence"]["fr"]["performanceSummary"]["weakConcepts"].array.count,1)
+        let events=try await user.collection("achievementProgress").document("nosabos").collection("events").getDocuments()
+        XCTAssertTrue(events.documents.filter { $0.data()["metric"] as? String == "conversation_goals" }.isEmpty)
+    }
     private func immersionProposal(_ state: inout LearnerState, suffix: String = "") {
         let tasks=JSONValue.array((0..<3).map { .object(["title":.string("Private mission \($0)\(suffix)"),"description":.string("Practice with familiar things at home \($0)\(suffix).")]) })
         state.applyImmersion(.init(target:state.target,action:.batch,payload:state.immersionScope().setting("tasks",tasks)))

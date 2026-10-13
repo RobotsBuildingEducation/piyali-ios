@@ -151,6 +151,8 @@ public struct LearnerState: Codable, Sendable {
     public var focusPlans: [String: FocusedPlan]?
     public var masteredPhonics: Set<String>?
     public var immersionDays: Set<String>?
+    public var conversationDrafts: [String:ConversationDraft]?
+    public var completedConversationGoals: Set<String>?
     public var immersionBatch: JSONValue?
     public var immersionHistory: [String:JSONValue]?
     public var immersionRewardReceipts: JSONValue?

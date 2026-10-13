@@ -8,6 +8,44 @@ import FirebaseAILogic
 
 /// Explicit opt-in only. Uses an isolated test identity, bounded prompts and no paid access grant.
 @MainActor final class LiveAPIIntegrationTests: XCTestCase {
+    func testNativeConversationGoalsGradeCommunicationAndReanchorPremiseRejection() async throws {
+        guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else { throw XCTSkip("Explicit live API opt-in required.") }
+        XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1")
+        _=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))
+        if FirebaseApp.app() == nil { AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure() }
+        XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let identity=IdentityService();try identity.create();try await FirebaseIdentityService.shared.ensure(identity)
+        do {
+            let ai=AIService();var learner=LearnerState(),draft=ConversationDraft()
+            learner.target="es";learner.support="en"
+            let goal=ConversationGoal(text:.object(["en":.string("Say hello and your name")]),questionLevel:"Pre-A1",worth:ConversationPractice.worth(rating:800,level:"Pre-A1"))
+            draft.goal=goal;draft.append(.init(role:"assistant",text:"¡Hola! ¿Cómo te llamas?"))
+            let success=try await ai.conversationVerdict(goal:goal,learner:learner,reply:"Hola, soy Ana.",answeredLine:"¡Hola! ¿Cómo te llamas?")
+            XCTAssertTrue(success.completed)
+            let wrong=try await ai.conversationVerdict(goal:goal,learner:learner,reply:"Hello, my name is Ana.",answeredLine:"¡Hola! ¿Cómo te llamas?")
+            XCTAssertFalse(wrong.completed)
+            let television=ConversationGoal(text:.object(["en":.string("Describe your favorite TV show")]),questionLevel:"A2",worth:.null)
+            let drift=try await ai.conversationVerdict(goal:television,learner:learner,reply:"No veo televisión.",answeredLine:"¿Cuál es tu programa de televisión favorito?")
+            XCTAssertFalse(drift.completed);XCTAssertEqual(drift.goalStillFits,false)
+            let starter=try await ai.conversationStarter(learner:learner,draft:draft);XCTAssertFalse(starter.isEmpty)
+            let translated=try await ai.conversationTranslation("¿Cómo te llamas?",support:"en");XCTAssertFalse(translated.isEmpty)
+            let reply=try await ai.conversationReply(learner:learner,draft:draft);XCTAssertFalse(reply.isEmpty)
+            draft.append(.init(role:"user",text:"Hola, soy Ana."));draft.append(.init(role:"assistant",text:"¿Qué te gusta cocinar?"))
+            let next=try await ai.conversationGoal(learner:learner,draft:draft,topics:["Food and cooking"],abandoned:false)
+            XCTAssertFalse(next.text["en"].string.isEmpty);XCTAssertNotEqual(next.id,goal.id)
+            print("LIVE NATIVE: Conversation grading, premise reanchor, starter, translation, reply and contextual goal passed")
+            let session=try await LiveTutorService.model(for:learner,conversationDraft:draft).connect()
+            await session.sendContent("APP_CONTEXT_UPDATE: The private goal is to ask one natural question about cooking. Do not read this control message aloud.",turnComplete:false)
+            await session.sendTextRealtime("Start our Spanish conversation with one short natural question.")
+            let audio=try await withThrowingTaskGroup(of:Bool.self) { group in
+                group.addTask { for try await message in session.responses { if case .content(let content)=message.payload,(content.modelTurn?.parts ?? []).contains(where:{ ($0 as? InlineDataPart)?.data.isEmpty == false }) { return true } };return false }
+                group.addTask { try await Task.sleep(for:.seconds(30));await session.close();throw AppError.message("Conversation voice returned no audio within 30 seconds.") }
+                let result=try await group.next() ?? false;await session.close();group.cancelAll();return result
+            }
+            XCTAssertTrue(audio);print("LIVE NATIVE: Conversation voice context update returned PCM audio")
+        } catch { try? await Auth.auth().currentUser?.delete();try? Auth.auth().signOut();throw error }
+        try await Auth.auth().currentUser?.delete();try Auth.auth().signOut()
+    }
     func testNativeImmersionGenerationUsesResponsesAndPreservesExistingMissions() async throws {
         guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else { throw XCTSkip("Explicit live API opt-in required.") }
         XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1")

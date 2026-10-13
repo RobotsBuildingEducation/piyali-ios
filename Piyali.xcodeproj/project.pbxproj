@@ -25,12 +25,14 @@
 		339125B39B50F30972AFE801 /* curriculum-pt.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 1BD977B46CD3C9E3235F38A2 /* curriculum-pt.json.gz */; };
 		34605247E145CFDFFA13F90A /* achievement-hashes.json in Resources */ = {isa = PBXBuildFile; fileRef = 0C7EEAE49FCD41BFAD7D47CA /* achievement-hashes.json */; };
 		3766FDCBD5C747DC922B2538 /* CompanionMemoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7754A7E9B5E0B517E9C9293A /* CompanionMemoryView.swift */; };
+		3D0B927AE1AB927BEE852E0E /* ConversationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 684E13734BF72CB70ADD60C1 /* ConversationService.swift */; };
 		3F6D12BA1756F07FC181B14B /* CompanionMemory.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC8C1AFE520430E24776DD16 /* CompanionMemory.swift */; };
 		4050AA0CEDC58D40B1E91393 /* curriculum-pl.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = E14BD18E0DD3B4E10CE07EC6 /* curriculum-pl.json.gz */; };
 		40C1E9F17F79696E7079F0A6 /* PatreonRestoreChallenge.swift in Sources */ = {isa = PBXBuildFile; fileRef = B11DF50FDD56A25B5169AC88 /* PatreonRestoreChallenge.swift */; };
 		413348566E611075ABDE6695 /* WebNostrFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 309E62CCB8904FD210887D7E /* WebNostrFixtures.swift */; };
 		424CF398D34426D30121B88C /* ExerciseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2200F1724A37FD9A39E2C277 /* ExerciseView.swift */; };
 		43C9091AF7E4A949BC7B5DD8 /* FirebaseAppCheck in Frameworks */ = {isa = PBXBuildFile; productRef = 6BBDF8EABB29A3266F02F9FC /* FirebaseAppCheck */; };
+		4461A5366D400097094A1092 /* ConversationPractice.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF6D4062E19EC30541CDC8A8 /* ConversationPractice.swift */; };
 		498224C466F47E92C30CAB74 /* AchievementSyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB3AD1F05EBC9FD9E7660BF4 /* AchievementSyncService.swift */; };
 		4AD13F5B5979EBA703B650AC /* TutorCourse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9674D8B5CAC1CE39C171E452 /* TutorCourse.swift */; };
 		4C4A5B96A2649EE00217DAA6 /* NostrAchievementsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0EEF0AF6541DCD050F8D722 /* NostrAchievementsService.swift */; };
@@ -41,6 +43,7 @@
 		57B6326E37F6755CDF619C02 /* LearningViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = D579ADCD762E0765430D326A /* LearningViews.swift */; };
 		586E4DD7B222FBE89CE9D93B /* curriculum-ru.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = F52185DFD4E574E23072128C /* curriculum-ru.json.gz */; };
 		5CDE4798258806DE8734CEE1 /* GoalPractice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E9FEB2A3C61C4FB1A872D28 /* GoalPractice.swift */; };
+		5D28414C2F07FE12F7CF382E /* conversation-topics.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = D903D3C7CA281D9C04A8D702 /* conversation-topics.json.gz */; };
 		5EF3A34589AC8C78A904021B /* NostrRelayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A73A3BD58CB1624626C46856 /* NostrRelayTests.swift */; };
 		63628243AF3A7E473CD80EFB /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58B5DF2715F289D91F1BC127 /* RootView.swift */; };
 		642967F33AED3D7C77F685A9 /* DailyPlate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F42527C788190E694332A9D4 /* DailyPlate.swift */; };
@@ -57,6 +60,7 @@
 		97CD86E7CAFD7CE4585A68DE /* FocusedLearningViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85F27477992C4AC12CDC7D07 /* FocusedLearningViews.swift */; };
 		97E17F524602F93B02F87C42 /* NostrAchievementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9126021BAFA3586E5009884E /* NostrAchievementTests.swift */; };
 		98AE8E80C268B1633043DF92 /* LiveTutorService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 296353A8A59BF96643FBAFDD /* LiveTutorService.swift */; };
+		9DB0D6C6CA010FEF1945938C /* ConversationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E40731046FF69894B5F1FF4 /* ConversationView.swift */; };
 		9FCE373B59C4F781791505CE /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 692CA897213292DE677C7BBB /* FirebaseAuth */; };
 		A4289A164520D5BFCCD2A182 /* FirebaseAILogic in Frameworks */ = {isa = PBXBuildFile; productRef = 2A5991AA1CBD73DBC54B0A6C /* FirebaseAILogic */; };
 		A796C5C8744AB39111F12DE7 /* IdentityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C93EFBC5CACA2291D2D0436C /* IdentityTests.swift */; };
@@ -138,6 +142,7 @@
 		58E4AE8F330D5B949C217EC6 /* AppConfiguration.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = AppConfiguration.plist; sourceTree = "<group>"; };
 		6444929F41BE8BDD4B3A3123 /* AchievementProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementProgress.swift; sourceTree = "<group>"; };
 		66577C96C4071AB6D6B95BB8 /* AppConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfiguration.swift; sourceTree = "<group>"; };
+		684E13734BF72CB70ADD60C1 /* ConversationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationService.swift; sourceTree = "<group>"; };
 		69895E04FD79ECC670F31216 /* score-milestones.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "score-milestones.json.gz"; sourceTree = "<group>"; };
 		6B5750953096CF907269EFEA /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		6CCAF4F9FC63CEE953975909 /* curriculum-fr.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "curriculum-fr.json.gz"; sourceTree = "<group>"; };
@@ -145,6 +150,7 @@
 		7453BBE3FEF38033092DD0CC /* StoreKitSubscriptionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreKitSubscriptionTests.swift; sourceTree = "<group>"; };
 		7754A7E9B5E0B517E9C9293A /* CompanionMemoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionMemoryView.swift; sourceTree = "<group>"; };
 		7942D25D599B3AC9917C728C /* SubscriptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionService.swift; sourceTree = "<group>"; };
+		7E40731046FF69894B5F1FF4 /* ConversationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationView.swift; sourceTree = "<group>"; };
 		803FAE41E8CABB152707F38B /* VoiceJourneyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceJourneyView.swift; sourceTree = "<group>"; };
 		807123B77A97FA5EA2F0A829 /* JourneyRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JourneyRecorder.swift; sourceTree = "<group>"; };
 		8265A5DC64B78FB2778E4B34 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -178,6 +184,7 @@
 		CED7E36E4938C995A77B9926 /* immersion-coaching.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "immersion-coaching.json.gz"; sourceTree = "<group>"; };
 		D52D0469B4F81A6B04F8CFAC /* achievements.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = achievements.json.gz; sourceTree = "<group>"; };
 		D579ADCD762E0765430D326A /* LearningViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearningViews.swift; sourceTree = "<group>"; };
+		D903D3C7CA281D9C04A8D702 /* conversation-topics.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "conversation-topics.json.gz"; sourceTree = "<group>"; };
 		E0EEF0AF6541DCD050F8D722 /* NostrAchievementsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NostrAchievementsService.swift; sourceTree = "<group>"; };
 		E14BD18E0DD3B4E10CE07EC6 /* curriculum-pl.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "curriculum-pl.json.gz"; sourceTree = "<group>"; };
 		E25BCE6BED55E74389F1F771 /* phonics.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = phonics.json.gz; sourceTree = "<group>"; };
@@ -186,6 +193,7 @@
 		E707D6EB11B623F173CB0C31 /* curriculum-index.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "curriculum-index.json.gz"; sourceTree = "<group>"; };
 		EB2602DA316EDF948B13F026 /* curriculum-nah.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "curriculum-nah.json.gz"; sourceTree = "<group>"; };
 		EDFAF109A4065A97CA9A4F17 /* DailyImmersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyImmersion.swift; sourceTree = "<group>"; };
+		EF6D4062E19EC30541CDC8A8 /* ConversationPractice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationPractice.swift; sourceTree = "<group>"; };
 		F42527C788190E694332A9D4 /* DailyPlate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyPlate.swift; sourceTree = "<group>"; };
 		F46C889B6EEDEEB00C4491D5 /* curriculum-el.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "curriculum-el.json.gz"; sourceTree = "<group>"; };
 		F52185DFD4E574E23072128C /* curriculum-ru.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "curriculum-ru.json.gz"; sourceTree = "<group>"; };
@@ -243,6 +251,7 @@
 				52DF567A696B510E282505EF /* achievement-protocol.json.gz */,
 				D52D0469B4F81A6B04F8CFAC /* achievements.json.gz */,
 				58E4AE8F330D5B949C217EC6 /* AppConfiguration.plist */,
+				D903D3C7CA281D9C04A8D702 /* conversation-topics.json.gz */,
 				0D2B4377365D26F6B633ABCA /* curriculum-de.json.gz */,
 				F46C889B6EEDEEB00C4491D5 /* curriculum-el.json.gz */,
 				BE22780758139B90DD773C16 /* curriculum-en.json.gz */,
@@ -273,6 +282,7 @@
 			children = (
 				CB0A1A1568C633E90A96BB1A /* AccountViews.swift */,
 				7754A7E9B5E0B517E9C9293A /* CompanionMemoryView.swift */,
+				7E40731046FF69894B5F1FF4 /* ConversationView.swift */,
 				2200F1724A37FD9A39E2C277 /* ExerciseView.swift */,
 				85F27477992C4AC12CDC7D07 /* FocusedLearningViews.swift */,
 				82DE9E947F9BAD6E1426FAEF /* GoalPreparationView.swift */,
@@ -330,6 +340,7 @@
 				9DEE7EF45636A31B7BD66C57 /* CompanionHealth.swift */,
 				FC8C1AFE520430E24776DD16 /* CompanionMemory.swift */,
 				007295F8EDB35E196711A524 /* ContentLibrary.swift */,
+				EF6D4062E19EC30541CDC8A8 /* ConversationPractice.swift */,
 				EDFAF109A4065A97CA9A4F17 /* DailyImmersion.swift */,
 				F42527C788190E694332A9D4 /* DailyPlate.swift */,
 				387D1A3BB971A0E8A4AC3034 /* FlashcardReview.swift */,
@@ -351,6 +362,7 @@
 				FB3AD1F05EBC9FD9E7660BF4 /* AchievementSyncService.swift */,
 				F89245EBCF6A1E38A3CF7FC8 /* AIService.swift */,
 				66577C96C4071AB6D6B95BB8 /* AppConfiguration.swift */,
+				684E13734BF72CB70ADD60C1 /* ConversationService.swift */,
 				23553314634188457E6891D0 /* FirebaseIdentityService.swift */,
 				988C5B69C6BEE00FBA34C5C0 /* FirebaseService.swift */,
 				AABBD4AEE1A0DCEFEC828765 /* IdentityService.swift */,
@@ -519,6 +531,7 @@
 				03B57688C5019F9FF70434FF /* AppConfiguration.plist in Resources */,
 				6CC2D0CDEDE8170FD02E1689 /* achievement-protocol.json.gz in Resources */,
 				D412910177B65445823FF060 /* achievements.json.gz in Resources */,
+				5D28414C2F07FE12F7CF382E /* conversation-topics.json.gz in Resources */,
 				53415E992CBAE3CEAD46FFA7 /* curriculum-de.json.gz in Resources */,
 				6F0548E7C5917527735A99E4 /* curriculum-el.json.gz in Resources */,
 				F73D8811F03B3C56E1182FDA /* curriculum-en.json.gz in Resources */,
@@ -607,6 +620,9 @@
 				3F6D12BA1756F07FC181B14B /* CompanionMemory.swift in Sources */,
 				3766FDCBD5C747DC922B2538 /* CompanionMemoryView.swift in Sources */,
 				31F9D04AD0E82F0B26A8A2EA /* ContentLibrary.swift in Sources */,
+				4461A5366D400097094A1092 /* ConversationPractice.swift in Sources */,
+				3D0B927AE1AB927BEE852E0E /* ConversationService.swift in Sources */,
+				9DB0D6C6CA010FEF1945938C /* ConversationView.swift in Sources */,
 				C05300F549111D5EFBDC3FFE /* DailyImmersion.swift in Sources */,
 				642967F33AED3D7C77F685A9 /* DailyPlate.swift in Sources */,
 				424CF398D34426D30121B88C /* ExerciseView.swift in Sources */,

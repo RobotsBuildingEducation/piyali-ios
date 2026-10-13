@@ -22,6 +22,11 @@ public struct PracticeChange: Codable, Identifiable, Sendable {
     public var reviewRating: ReviewRating?
     public var correct: Bool?
     public var independent: Bool?
+    public var conversationGoalID: String?
+    public var conversationBonus: Int?
+    public var conversationWorth: JSONValue?
+    public var conversationGoalText: JSONValue?
+    public var earnedAmount: Int { amount + (source == .conversation && correct == true ? max(0,min(4,conversationBonus ?? 0)) : 0) }
     public init(date: Date = Date(), dayKey: String, target: String, level: String, amount: Int, source: PracticeSource, contentID: String? = nil, reviewRating: ReviewRating? = nil, correct: Bool? = nil, independent: Bool? = nil) {
         self.id = UUID(); self.date = date; self.dayKey = dayKey; self.target = target; self.level = level
         self.amount = amount; self.source = source; self.contentID = contentID; self.reviewRating = reviewRating; self.correct = correct; self.independent = independent
@@ -137,13 +142,15 @@ public extension LearnerState {
         merged.completed.formUnion(acknowledged.completed)
         merged.flashcardMastery.formUnion(acknowledged.flashcardMastery)
         var xp = acknowledged.xpByLanguage
-        for change in newer { xp[change.target,default:0] += change.amount }
+        merged.completedConversationGoals=(current.completedConversationGoals ?? []).union(acknowledged.completedConversationGoals ?? [])
+        func reward(_ change: PracticeChange) -> Int { change.amount + (change.conversationGoalID.map { (acknowledged.completedConversationGoals ?? []).contains($0) } == true ? 0 : change.earnedAmount-change.amount) }
+        for change in newer { xp[change.target,default:0] += reward(change) }
         for (change,reward) in newGoalRewards { xp[change.target,default:0] += reward }
         for (change,reward) in newImmersionRewards { xp[change.target,default:0] += reward }
         merged.xpByLanguage = xp
         if acknowledged.dailyKey >= current.dailyKey {
             merged.dailyKey = acknowledged.dailyKey
-            merged.dailyXP = acknowledged.dailyXP + newer.filter { $0.dayKey == acknowledged.dailyKey }.reduce(0) { $0 + $1.amount }
+            merged.dailyXP = acknowledged.dailyXP + newer.filter { $0.dayKey == acknowledged.dailyKey }.reduce(0) { $0 + reward($1) }
             merged.dailyXP += newGoalRewards.filter { CalendarDay.key($0.0.date) == acknowledged.dailyKey }.reduce(0) { $0 + $1.1 }
             merged.dailyXP += newImmersionRewards.filter { CalendarDay.key($0.0.date) == acknowledged.dailyKey }.reduce(0) { $0 + $1.1 }
             merged.streak = max(acknowledged.streak,current.dailyKey == acknowledged.dailyKey ? current.streak : 0)
@@ -155,12 +162,12 @@ public extension LearnerState {
         }
         merged.achievementRecords = NostrAchievementCollection.merging([.object(current.achievementRecords ?? [:]),.object(acknowledged.achievementRecords ?? [:]),current.nostrAchievementRecords ?? .object([:])]).object; merged.achievementEvidence = acknowledged.achievementEvidence; merged.achievementLedger = acknowledged.achievementLedger
         merged.companionProgress = acknowledged.companionProgress
-        for change in newer.sorted(by:{ $0.date < $1.date }) where change.amount > 0 { merged.rewardCompanion(change.amount,now:change.date) }
+        for change in newer.sorted(by:{ $0.date < $1.date }) where reward(change) > 0 { merged.rewardCompanion(reward(change),now:change.date) }
         for (change,reward) in newGoalRewards where reward > 0 { merged.rewardCompanion(reward,now:change.date) }
         for (change,reward) in newImmersionRewards where reward > 0 { merged.rewardCompanion(reward,now:change.date) }
         merged.reconcileCompanion()
         // A newer local assessment already includes all previous local evidence.
-        if !newer.contains(where: { $0.source == .assessment }) && (merged.pendingPlacements ?? [:]).isEmpty { merged.ratingByLanguage = acknowledged.ratingByLanguage; merged.gradedByLanguage = acknowledged.gradedByLanguage }
+        if !newer.contains(where: { $0.source == .assessment || $0.source == .conversation && $0.correct != nil }) && (merged.pendingPlacements ?? [:]).isEmpty { merged.ratingByLanguage = acknowledged.ratingByLanguage; merged.gradedByLanguage = acknowledged.gradedByLanguage }
         return merged
     }
 }

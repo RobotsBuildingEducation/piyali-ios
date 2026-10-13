@@ -128,8 +128,7 @@ struct TutorLibraryView: View {
                     }
                 }
                 Section("Conversation") {
-                    NavigationLink("Free conversation") { TutorView(plateKind:"conversation") }
-                    NavigationLink("Live voice conversation") { LiveTutorView(plateKind:"conversation") }
+                    NavigationLink("Conversation goals · text or live voice") { ConversationView() }
                 }
             }
         }.navigationTitle("Tutor")

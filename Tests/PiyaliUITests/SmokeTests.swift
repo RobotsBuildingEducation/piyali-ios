@@ -1,5 +1,37 @@
 import XCTest
 final class SmokeTests: XCTestCase {
+    private func openConversation(_ app: XCUIApplication) {
+        app.tabBars.buttons["Practice"].tap()
+        let link=app.buttons["conversationLink"]
+        for _ in 0..<3 where !link.isHittable { app.swipeUp(velocity:.slow) }
+        XCTAssertTrue(link.waitForExistence(timeout:5));link.tap()
+        XCTAssertTrue(app.staticTexts["conversationGoal"].waitForExistence(timeout:10))
+    }
+    private func sendConversation(_ text: String, app: XCUIApplication) {
+        let field=app.descendants(matching:.any)["conversationReply"]
+        for _ in 0..<5 where !field.isHittable { app.swipeUp(velocity:.slow) }
+        XCTAssertTrue(field.waitForExistence(timeout:5));field.tap();field.typeText(text)
+        if app.buttons["Done"].exists { app.buttons["Done"].tap() }
+        let send=app.buttons["conversationSend"]
+        for _ in 0..<3 where !send.isHittable { app.swipeUp(velocity:.slow) }
+        XCTAssertTrue(send.isEnabled);send.tap()
+    }
+    func testConversationGoalsMissesAndSavedDraftDoNotRepeatRewards() {
+        let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString;app.launchEnvironment["PIYALI_CONVERSATION_FIXTURE"]="1";app.launch()
+        XCTAssertTrue(app.buttons["createAccount"].waitForExistence(timeout:5));app.buttons["createAccount"].tap()
+        XCTAssertTrue(app.buttons["startLearning"].waitForExistence(timeout:10));app.buttons["startLearning"].tap();openConversation(app)
+        app.buttons["Need a phrase?"].tap();XCTAssertTrue(app.staticTexts["Hola, me llamo Ana."].waitForExistence(timeout:5))
+        sendConversation("wrong topic",app:app)
+        app.swipeDown(velocity:.slow);XCTAssertTrue(app.staticTexts["conversationStats"].waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts["conversationStats"].label.contains("1 turns · 0 goals · 0 XP"))
+        sendConversation("Hola, me llamo Ana.",app:app)
+        for _ in 0..<4 where !app.staticTexts["conversationStats"].isHittable { app.swipeDown(velocity:.slow) }
+        XCTAssertTrue(app.staticTexts["conversationStats"].label.contains("2 turns · 1 goals · 5 XP"))
+        XCTAssertEqual(app.staticTexts["conversationGoal"].label,"Say one thing you like")
+        app.terminate();app.launch();openConversation(app)
+        XCTAssertTrue(app.staticTexts["conversationStats"].label.contains("2 turns · 1 goals · 5 XP"))
+        app.navigationBars.buttons.element(boundBy:0).tap();app.tabBars.buttons["Account"].tap();app.swipeUp()
+        XCTAssertTrue(app.staticTexts["5 total XP · 0 lessons completed"].waitForExistence(timeout:5))
+    }
     private func openImmersion(_ app: XCUIApplication) {
         let link=app.buttons["immersionLink"]
         XCTAssertTrue(link.waitForExistence(timeout:10))

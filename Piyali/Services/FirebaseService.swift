@@ -165,7 +165,7 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                 return true
             } catch { errorPointer?.pointee = error as NSError; return nil }
         }
-        if !(state.pendingImmersionChanges ?? []).isEmpty { try await AchievementSyncService.shared.refreshLedger(user:user) }
+        if !(state.pendingImmersionChanges ?? []).isEmpty || (state.pendingChanges ?? []).contains(where:{ $0.conversationGoalID != nil }) { try await AchievementSyncService.shared.refreshLedger(user:user) }
         try await AchievementSyncService.shared.sync(user:user,changes:state.pendingChanges ?? [])
         return try await load(npub:npub,local:uploaded)
     }
@@ -235,6 +235,9 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
         let quest = [.questStart,.plateBonus].contains(change.source) ? user.collection("questDays").document("\(change.target)_\(change.dayKey)") : nil
         let journey = change.source == .plateBonus ? user.collection("voiceJourney").document(change.target) : nil
         let journeyReceipt = journey?.collection("completions").document(change.dayKey)
+        let goalID=change.source == .conversation && change.correct == true && !(change.conversationGoalText?["en"].string.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty ?? true) ? change.conversationGoalID : nil
+        let goalClaim=goalID.map { user.collection("iosPracticeReceipts").document("conversation-goal-"+SHA256.hash(data:Data($0.utf8)).map { String(format:"%02x",$0) }.joined()) }
+        let goalEvent=try goalID.map { user.collection("achievementProgress").document("nosabos").collection("events").document(try AchievementSyncService.documentID(metric:"conversation_goals",id:$0)) }
         _ = try await database.runTransaction { transaction, errorPointer -> Any? in
             do {
                 // Complete all reads before any writes, including the first-ever user document.
@@ -251,6 +254,8 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                 let questFields = try quest.map { Self.normalized(try transaction.getDocument($0).data() ?? [:]) } ?? [:]
                 let journeyFields = try journey.map { Self.normalized(try transaction.getDocument($0).data() ?? [:]) } ?? [:]
                 let journeyCounted = try journeyReceipt.map { try transaction.getDocument($0).exists } ?? false
+                let goalClaimed=try goalClaim.map { try transaction.getDocument($0).exists } ?? false
+                let goalRecorded=try goalEvent.map { try transaction.getDocument($0).exists } ?? false
                 let progress = JSONValue.foundation(fields["progress"] as? [String:Any] ?? [:])
                 let first = DailyPlate.firstSession(progress:progress,day:change.dayKey,priorLearning:WebProgressContract.integer(fields["xp"]) > 0 || DailyPlate.hasActivity(progress))
                 let savedKinds = (questFields["iosPlate"] as? [String:Any])?["kinds"] as? [String]
@@ -262,9 +267,17 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                     guard !courses.isEmpty, courses.allSatisfy(\.done), !DailyPlate.bonusAwarded(progress:progress,target:change.target,day:change.dayKey) else { return false }
                 }
                 if !userSnapshot.exists { fields["dailyGoalXp"] = state.dailyGoal; fields["onboarding"] = ["completed":state.onboardingComplete] }
-                let patch = WebProgressContract.rootPatch(fields:fields,month:Self.normalized(monthSnapshot.data() ?? [:]),change:change)
+                var accepted=change
+                if change.source == .conversation {
+                    accepted.amount=min(3,max(0,change.amount))+(goalID != nil && !goalClaimed ? min(4,max(2,change.conversationBonus ?? 2)) : 0)
+                    if goalClaimed || accepted.correct == true && goalID == nil { accepted.correct=nil }
+                }
+                let patch = WebProgressContract.rootPatch(fields:fields,month:Self.normalized(monthSnapshot.data() ?? [:]),change:accepted)
                 var root = patch.root; root["local_npub"] = user.documentID
                 root["iosRecentEventIDs"] = Self.recentIDs(fields,adding:change.id)
+                if let goalID {
+                    root["iosCompletedConversationGoalIDs"]=Array(((fields["iosCompletedConversationGoalIDs"] as? [String] ?? []).filter { $0 != goalID }+[goalID]).suffix(400))
+                }
                 if !userSnapshot.exists { root["createdAt"] = WebProgressContract.iso(change.date); root["dailyGoalXp"] = state.dailyGoal }
                 transaction.setData(root,forDocument:user,merge:true)
                 transaction.setData(patch.month,forDocument:month,merge:true)
@@ -311,7 +324,9 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                         transaction.setData(["schemaVersion":1,"targetLang":change.target,mode:["levels":[levelKey:["completed":FieldValue.increment(Int64(1)),"total":totals[change.level,default:0]]]],"updatedAt":FieldValue.serverTimestamp()],forDocument:summary,merge:true)
                     }
                 }
-                transaction.setData(["eventID":change.id.uuidString,"source":change.source.rawValue,"targetLang":change.target,"amount":change.amount,"practicedAt":WebProgressContract.iso(change.date),"syncedAt":FieldValue.serverTimestamp()],forDocument:receipt)
+                if let goalClaim,let goalID,!goalClaimed { transaction.setData(["source":"conversation-goal","completionId":goalID,"amount":accepted.amount-min(3,max(0,change.amount)),"syncedAt":FieldValue.serverTimestamp()],forDocument:goalClaim) }
+                if let goalEvent,let goalID,!goalRecorded { transaction.setData(["source":"nosabos","metric":"conversation_goals","completionId":goalID,"version":1],forDocument:goalEvent) }
+                transaction.setData(["eventID":change.id.uuidString,"source":change.source.rawValue,"targetLang":change.target,"amount":accepted.amount,"practicedAt":WebProgressContract.iso(change.date),"syncedAt":FieldValue.serverTimestamp()],forDocument:receipt)
                 return true
             } catch { errorPointer?.pointee = error as NSError; return nil }
         }

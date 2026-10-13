@@ -63,7 +63,7 @@ struct DailyPlateView: View {
                         else { Text("Choose a lesson level to continue.") }
                     case "review": FlashcardsView()
                     case "phonics": PhonicsView()
-                    default: TutorView(plateKind:"conversation")
+                    default: ConversationView()
                     }
                 } label: {
                     VStack(alignment:.leading) {
@@ -121,7 +121,10 @@ struct PracticeLibraryView: View {
                 NavigationLink("Phonics (\(app.phonics.count))") { PhonicsView() }
             }
             Section("Practice modes") {
-                ForEach(PracticeMode.allCases) { mode in NavigationLink(mode.rawValue) { ExerciseView(mode: mode, lesson: app.selectedLesson) } }
+                ForEach(PracticeMode.allCases) { mode in
+                    if mode == .conversation { NavigationLink(mode.rawValue) { ConversationView() }.accessibilityIdentifier("conversationLink") }
+                    else { NavigationLink(mode.rawValue) { ExerciseView(mode: mode, lesson: app.selectedLesson) } }
+                }
                 NavigationLink("Grammar reference") { GrammarReferenceView() }
                 NavigationLink("Immersion & Score") { RealWorldTaskView() }
             }

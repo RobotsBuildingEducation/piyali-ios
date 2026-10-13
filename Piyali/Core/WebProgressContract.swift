@@ -39,6 +39,7 @@ public enum WebProgressContract {
     public static func imported(_ fields: [String:Any], native: LearnerState? = nil, now: Date = Date()) -> LearnerState {
         var state = native ?? LearnerState()
         state.acknowledgedEventIDs = Set((fields["iosRecentEventIDs"] as? [String] ?? []).compactMap(UUID.init(uuidString:)))
+        state.completedConversationGoals=(state.completedConversationGoals ?? []).union(fields["iosCompletedConversationGoalIDs"] as? [String] ?? [])
         state.companionProgress = JSONValue.foundation(fields.filter { CompanionHealth.keys.contains($0.key) }.merging(CompanionHealth.reconcileFields(fields,now:now)) { _,new in new })
         let progress = fields["progress"] as? [String:Any] ?? [:]
         let questKeys = Set(DailyPlate.fields.values).union(["dailyQuestFirstSeen","dailyQuestFirstDayKey","plateBonusDailyActivity"])
@@ -170,12 +171,12 @@ public enum WebProgressContract {
             root.merge(CompanionHealth.awardFields(fields,amount:amount,now:now)) { _,new in new }
         }
 
-        if change.source == .assessment, let correct = change.correct {
+        if change.source == .assessment || change.source == .conversation, let correct = change.correct {
             var intelligence = fields["learningIntelligence"] as? [String:[String:Any]] ?? [:]
             var bucket = intelligence[change.target] ?? [:]
             var elo = bucket["elo"] as? [String:Any] ?? [:]
             let baseline = integer(elo["scaleVersion"]) == 4 ? number(elo["rating"],default:800) : 800
-            elo["rating"] = PerformanceScore.update(rating:baseline,questionLevel:change.level,correct:correct,independent:change.independent ?? false)
+            elo["rating"] = change.source == .conversation ? ConversationPractice.rating(baseline,level:change.level,success:correct,worth:change.conversationWorth ?? .null) : PerformanceScore.update(rating:baseline,questionLevel:change.level,correct:correct,independent:change.independent ?? false)
             elo["scaleVersion"] = 4; elo["updatedAt"] = iso(change.date)
             elo["totalGraded"] = integer(elo["totalGraded"]) + 1
             var summary = bucket["performanceSummary"] as? [String:Any] ?? [:]
@@ -183,7 +184,9 @@ public enum WebProgressContract {
             var counts = levels[change.level] ?? [:]
             counts[correct ? "correct" : "missed"] = integer(counts[correct ? "correct" : "missed"]) + 1
             levels[change.level] = counts; summary["byLevel"] = levels
-            bucket["elo"] = elo; bucket["performanceSummary"] = summary; intelligence[change.target] = bucket
+            bucket["elo"] = elo; bucket["performanceSummary"] = summary
+            if change.source == .conversation { bucket=ConversationPractice.gradedBucket((fields["learningIntelligence"] as? [String:[String:Any]])?[change.target] ?? [:],change:change) }
+            intelligence[change.target] = bucket
             root["learningIntelligence"] = intelligence
         }
         return (root,["monthKey":String(change.dayKey.prefix(7)),"days":days,"goalDays":goalDays,"updatedAt":iso(now)])
