@@ -123,13 +123,13 @@ import StoreKit
     }
     func restoreWeb() async throws {
         guard let identity else { return }
-        let checkingAccount = identity.npub
+        let checkingAccount = identity.npub,checkingAuthor=identity.hex
         let challenge = try await post("link-challenge", body: ["npub": checkingAccount, "action": "restore"])
         let proof = try JSONDecoder().decode(PatreonRestoreChallenge.self,from:JSONSerialization.data(withJSONObject:challenge))
         try proof.validate()
         guard identity.npub == checkingAccount, accountID == checkingAccount else { return }
         let event = proof.eventTemplate
-        let signed = try identity.sign(kind:event.kind,tags:event.tags,content:event.content,createdAt:event.created_at)
+        let signed = try await identity.signEvent(kind:event.kind,tags:event.tags,content:event.content,createdAt:event.created_at,expectedAuthor:checkingAuthor)
         let signedObject = try JSONSerialization.jsonObject(with: JSONEncoder().encode(signed))
         let status = try await post("key-status", body: ["challengeId":proof.challengeId, "signedEvent": signedObject])
         guard identity.npub == checkingAccount, accountID == checkingAccount else { return }

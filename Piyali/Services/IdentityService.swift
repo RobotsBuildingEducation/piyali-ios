@@ -2,6 +2,7 @@ import Foundation
 import Security
 import CryptoKit
 import NostrSDK
+import Combine
 
 struct NostrEventPayload: Codable, Identifiable, Sendable {
     let id: String
@@ -14,11 +15,19 @@ struct NostrEventPayload: Codable, Identifiable, Sendable {
     func tag(_ key: String) -> String { tags.first(where: { $0.first == key })?.dropFirst().first ?? "" }
 }
 struct NostrCrypto: ContentSigning, EventVerifying {}
-@MainActor final class IdentityService {
+struct SignerAuthorization:Identifiable { let id:UUID;let url:URL }
+@MainActor final class IdentityService:ObservableObject {
     private let service: String
     private(set) var keypair: Keypair?
-    var npub: String { keypair?.publicKey.npub ?? "" }
-    var hex: String { keypair?.publicKey.hex ?? "" }
+    private(set) var remoteRecord:RemoteSignerRecord?
+    private var remote:RemoteSignerService?
+    private var generation=UUID()
+    private var connecting:Task<RemoteSignerRecord,Error>?
+    private var signing:[UUID:Task<NostrEventPayload,Error>]=[:]
+    @Published var authorization:SignerAuthorization?
+    var isRemote:Bool { remoteRecord != nil }
+    var npub: String { remoteRecord.flatMap { PublicKey(hex:$0.user)?.npub } ?? keypair?.publicKey.npub ?? "" }
+    var hex: String { remoteRecord?.user ?? keypair?.publicKey.hex ?? "" }
     init() {
         #if DEBUG
         if ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"] == "1",
@@ -33,7 +42,10 @@ struct NostrCrypto: ContentSigning, EventVerifying {}
         query[kSecMatchLimit as String] = kSecMatchLimitOne
         var result: CFTypeRef?
         let status = SecItemCopyMatching(query as CFDictionary, &result)
-        if status == errSecSuccess, let data = result as? Data, let nsec = String(data: data, encoding: .utf8) { keypair = Keypair(nsec: nsec) }
+        if status == errSecSuccess,let data=result as? Data {
+            if let record=try? JSONDecoder().decode(RemoteSignerRecord.self,from:data),BunkerConnection.validKey(record.user),let restored=try? RemoteSignerService(signer:record.signer,relays:record.relays,clientNsec:record.clientNsec,allowLoopback:Self.allowLoopback) { remoteRecord=record;remote=restored }
+            else if let nsec=String(data:data,encoding:.utf8) { keypair=Keypair(nsec:nsec) }
+        }
     }
     private var baseQuery: [String: Any] { [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service, kSecAttrAccount as String: "identity"] }
     func create() throws { guard let keys = Keypair() else { throw AppError.message("Unable to create a Nostr key.") }; try store(keys) }
@@ -43,7 +55,9 @@ struct NostrCrypto: ContentSigning, EventVerifying {}
         try store(keys)
     }
     private func store(_ keys: Keypair) throws {
-        let data = Data(keys.privateKey.nsec.utf8)
+        try storeData(Data(keys.privateKey.nsec.utf8));cancelSigning();remoteRecord=nil;remote=nil;keypair=keys
+    }
+    private func storeData(_ data:Data) throws {
         let status = SecItemUpdate(baseQuery as CFDictionary, [kSecValueData as String: data] as CFDictionary)
         if status == errSecItemNotFound {
             var query = baseQuery
@@ -52,15 +66,53 @@ struct NostrCrypto: ContentSigning, EventVerifying {}
             let added = SecItemAdd(query as CFDictionary, nil)
             guard added == errSecSuccess else { throw AppError.message("Keychain could not save the key (\(added)).") }
         } else if status != errSecSuccess { throw AppError.message("Keychain could not save the key (\(status)).") }
-        keypair = keys
     }
+    private static var allowLoopback:Bool {
+        #if DEBUG
+        return ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"] == "1" && UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil
+        #else
+        return false
+        #endif
+    }
+    func cancelSigning() { generation=UUID();authorization=nil;connecting?.cancel();for task in signing.values { task.cancel() };let active=remote;Task { await active?.cancel() } }
+    private func authorizer(_ token:UUID,request:UUID) -> @Sendable (URL) async -> Void {
+        { [weak self] url in await MainActor.run { guard let self,self.generation == token else { return };if self.authorization?.url != url || self.authorization?.id != request { self.authorization=SignerAuthorization(id:request,url:url) } } }
+    }
+    func connect(_ bunker:String) async throws {
+        let connection=try BunkerConnection(bunker,allowLoopback:Self.allowLoopback)
+        guard let keys=Keypair() else { throw AppError.message("Unable to create a signer session.") }
+        cancelSigning();let token=generation
+        let candidate=try RemoteSignerService(signer:connection.signer,relays:connection.relays,clientNsec:keys.privateKey.nsec,allowLoopback:Self.allowLoopback)
+        let authorize=authorizer(token,request:token)
+        let task=Task { try await candidate.connected(connection,onAuthorization:authorize) };connecting=task
+        defer { if generation == token { authorization=nil;connecting=nil } }
+        do {
+            let record=try await withTaskCancellationHandler { try await task.value } onCancel:{ task.cancel() }
+            try Task.checkCancellation();guard generation == token else { throw CancellationError() }
+            try storeData(JSONEncoder().encode(record));keypair=nil;remoteRecord=record;remote=candidate
+        } catch { await candidate.cancel();throw error }
+    }
+    func disconnect() throws { let status=SecItemDelete(baseQuery as CFDictionary);guard status == errSecSuccess || status == errSecItemNotFound else { throw AppError.message("Keychain could not remove this session.") };cancelSigning();remote=nil;remoteRecord=nil;keypair=nil }
     func exportKey() -> String { keypair?.privateKey.nsec ?? "" }
     func sign(kind: Int, tags: [[String]], content: String, createdAt: Int64 = Int64(Date().timeIntervalSince1970)) throws -> NostrEventPayload {
         guard let keys = keypair else { throw AppError.message("Sign in first.") }
-        let serialized = try JSONSerialization.data(withJSONObject: [0, hex, createdAt, kind, tags, content], options: [.withoutEscapingSlashes, .fragmentsAllowed])
+        return try Self.localEvent(keys:keys,kind:kind,tags:tags,content:content,createdAt:createdAt)
+    }
+    func signEvent(kind:Int,tags:[[String]],content:String,createdAt:Int64 = Int64(Date().timeIntervalSince1970),expectedAuthor:String? = nil) async throws -> NostrEventPayload {
+        try Task.checkCancellation();guard expectedAuthor == nil || expectedAuthor == hex else { throw CancellationError() }
+        guard let remote,let record=remoteRecord else { return try sign(kind:kind,tags:tags,content:content,createdAt:createdAt) }
+        let token=generation,id=UUID()
+        let authorize=authorizer(token,request:id)
+        let task=Task { try await remote.sign(kind:kind,tags:tags,content:content,createdAt:createdAt,user:record.user,onAuthorization:authorize) };signing[id]=task
+        defer { signing.removeValue(forKey:id);if generation == token,authorization?.id == id { authorization=nil } }
+        let result=try await withTaskCancellationHandler { try await task.value } onCancel:{ task.cancel() }
+        try Task.checkCancellation();guard generation == token,self.remote === remote else { throw CancellationError() };return result
+    }
+    nonisolated static func localEvent(keys:Keypair,kind:Int,tags:[[String]],content:String,createdAt:Int64 = Int64(Date().timeIntervalSince1970)) throws -> NostrEventPayload {
+        let serialized = try JSONSerialization.data(withJSONObject: [0, keys.publicKey.hex, createdAt, kind, tags, content], options: [.withoutEscapingSlashes, .fragmentsAllowed])
         let id = SHA256.hash(data: serialized).map { String(format: "%02x", $0) }.joined()
         let sig = try NostrCrypto().signatureForContent(id, privateKey: keys.privateKey.hex)
-        return NostrEventPayload(id: id, pubkey: hex, created_at: createdAt, kind: kind, tags: tags, content: content, sig: sig)
+        return NostrEventPayload(id: id, pubkey: keys.publicKey.hex, created_at: createdAt, kind: kind, tags: tags, content: content, sig: sig)
     }
     nonisolated static func verify(_ payload: NostrEventPayload) -> Bool {
         guard payload.pubkey.count == 64, payload.sig.count == 128, payload.id.count == 64,

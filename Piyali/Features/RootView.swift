@@ -3,6 +3,7 @@ import SwiftUI
 struct RootView: View {
     @EnvironmentObject var app: AppModel
     var body: some View {
+        Group {
         if !app.signedIn { SignInView() }
         else if !app.learner.onboardingComplete { OnboardingView() }
         else {
@@ -14,6 +15,7 @@ struct RootView: View {
                 NavigationStack { AccountView() }.tabItem { Label("Account", systemImage: "person") }
             }.id(app.identity.npub)
         }
+        }.background(SignerAuthorizationPresenter(identity:app.identity))
     }
 }
 struct SignInView: View {
@@ -29,6 +31,7 @@ struct SignInView: View {
                     Button("Create an account") { signIn(nil) }.disabled(busy).accessibilityIdentifier("createAccount")
                 }
                 Section("Use your existing Piyali or Nostr account") {
+                    NavigationLink("Connect a remote signer") { RemoteSignerView() }.accessibilityIdentifier("remoteSignerLink")
                     SecureField("nsec private key", text: $nsec).textInputAutocapitalization(.never).autocorrectionDisabled()
                     Button("Sign in with key") { signIn(nsec) }.disabled(nsec.isEmpty || busy)
                     Text("Your private key stays in this iPhone's Keychain. Back it up from Account after signing in.").font(.footnote)

@@ -49,7 +49,7 @@ External payment links appear in debug builds for testing. Release builds show t
 
 ## Nostr
 
-Identity uses NostrSDK secp256k1 Schnorr signing and NIP-19 nsec/npub encoding. Private keys are saved in a device-only, unlocked Keychain item. Backup requires device authentication. Import supports local nsec signers; NIP-07 browser extensions and NIP-46 remote signing are not part of this first native build.
+Identity uses NostrSDK secp256k1 Schnorr signing and NIP-19 nsec/npub encoding. Private keys are saved in a device-only, unlocked Keychain item. Backup requires device authentication. Import supports local nsec signers and signer-provided NIP-46 bunker connections. Remote sessions retain a separate client connection key, never the learner’s private key, and authenticate as the learner rather than the signer transport key. See [REMOTE_SIGNER.md](REMOTE_SIGNER.md).
 
 Teams use signed kind 30078 events on `relay.primal.net`, `relay.ditto.pub` and `nos.lol`, with the reference app's `d`, `t`, `name`, `p`, `deleted` and team-leave conventions. Incoming events are verified before display. Publication waits for a positive relay acknowledgment. Progress sharing is explicit and public; the native app publishes the fields it actually measures and uses the ported score-scale v4 CEFR fallback rules and does not fabricate model-assessed difficulty. Legacy Firestore-only teams are not migrated.
 

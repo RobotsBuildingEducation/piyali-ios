@@ -95,19 +95,33 @@ import SwiftUI
         teams.cancel(clear:true)
         do {
             if let nsec { try identity.importKey(nsec) } else { try identity.create() }
-            saveTask?.cancel(); contentTask?.cancel()
-            let account = identity.npub
-            loadLocal(); signedIn = true; subscription.bind(identity)
-            do {
-                try await FirebaseIdentityService.shared.ensure(identity)
-                if FileManager.default.fileExists(atPath:localURL.path) { await sync() }
-                else if let cloud = try await FirebaseService.shared.load(npub:account) {
-                    guard identity.npub == account else { return }
-                    learner = cloud; lastPersisted = learner; try writeLocal()
-                }
-            } catch { syncStatus = "Saved on iPhone; cloud sync pending" }
-            await reloadContent(); await subscription.refresh(); scheduleNostrAchievements()
+            await activateIdentity()
         } catch { self.error = error.localizedDescription }
+    }
+    private func activateIdentity() async {
+        saveTask?.cancel(); contentTask?.cancel()
+        let account = identity.npub
+        loadLocal(); signedIn = true; subscription.bind(identity)
+        do {
+            try await FirebaseIdentityService.shared.ensure(identity)
+            if FileManager.default.fileExists(atPath:localURL.path) { await sync() }
+            else if let cloud = try await FirebaseService.shared.load(npub:account) {
+                guard identity.npub == account else { return }
+                learner = cloud; lastPersisted = learner; try writeLocal()
+            }
+        } catch { syncStatus = "Saved on iPhone; cloud sync pending" }
+        await reloadContent(); await subscription.refresh(); scheduleNostrAchievements()
+    }
+    func signInRemote(_ token:String,onConnected:@MainActor ()->Void = {}) async -> Bool {
+        nostrSyncTask?.cancel();nostrAchievements.cancel();teams.cancel(clear:true)
+        do { try await identity.connect(token);try Task.checkCancellation();onConnected();await activateIdentity();return true }
+        catch { if !(error is CancellationError) { self.error=error.localizedDescription };return false }
+    }
+    func disconnectRemote() {
+        do {
+            try writeLocal();saveTask?.cancel();contentTask?.cancel();nostrSyncTask?.cancel();nostrAchievements.cancel();teams.cancel(clear:true)
+            try identity.disconnect();FirebaseIdentityService.shared.clearSession();signedIn=false;subscription.bind(identity);learner=LearnerState()
+        } catch { self.error=error.localizedDescription }
     }
     func boot() async { guard signedIn else { return }; await reloadContent(); await sync(); await subscription.refresh(); scheduleNostrAchievements() }
     func finishOnboarding() {

@@ -16,10 +16,10 @@ import Foundation
         return NostrAchievementCollection.merging([data["unlocked"]])
     }
     private func authenticator(identity: IdentityService, author: String) -> NostrRelayClient.Authenticate {
-        { relay,challenge in try await MainActor.run {
-            guard identity.hex == author else { throw AppError.message("The Piyali account changed during relay authentication.") }
-            return try identity.sign(kind:22242,tags:[["relay",relay],["challenge",challenge]],content:"")
-        }}
+        { relay,challenge in
+            guard await identity.hex == author else { throw AppError.message("The Piyali account changed during relay authentication.") }
+            return try await identity.signEvent(kind:22242,tags:[["relay",relay],["challenge",challenge]],content:"",expectedAuthor:author)
+        }
     }
     func read(identity: IdentityService) async throws -> (records:JSONValue,events:[NostrEventPayload]) {
         let author=identity.hex
@@ -58,7 +58,8 @@ import Foundation
                     let time=max(Int64(Date().timeIntervalSince1970),latest+1)
                     let content=NostrAchievementCollection.body(records,createdAt:time).json
                     guard content.utf8.count <= 1_048_576 else { throw AppError.message("The achievement collection is too large to publish.") }
-                    let signed=try identity.sign(kind:30078,tags:[["d","learning-achievements:nosabos"],["t","learning-achievements"]],content:content,createdAt:time)
+                    let signed=try await identity.signEvent(kind:30078,tags:[["d","learning-achievements:nosabos"],["t","learning-achievements"]],content:content,createdAt:time,expectedAuthor:author)
+                    try Task.checkCancellation();guard self.generation == version,identity.hex == author else { throw CancellationError() }
                     try await self.client.publish(signed,authenticate:self.authenticator(identity:identity,author:author))
                     try Task.checkCancellation();guard self.generation == version,identity.hex == author else { throw CancellationError() }
                 }

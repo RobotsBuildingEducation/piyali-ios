@@ -28,6 +28,7 @@ struct FirebaseSignInChallenge: Decodable {
 @MainActor final class FirebaseIdentityService {
     static let shared = FirebaseIdentityService()
     private var pending: (id: UUID, task: Task<Void, Error>)?
+    func clearSession() { pending?.task.cancel();if FirebaseService.shared.configured { try? Auth.auth().signOut() } }
     func ensure(_ identity: IdentityService) async throws {
         guard FirebaseService.shared.configured else { return }
         // Serialize SDK sign-ins, including an account switch while an HTTP request is pending.
@@ -44,7 +45,7 @@ struct FirebaseSignInChallenge: Decodable {
             let challenge: FirebaseSignInChallenge = try await Self.post(base.appendingPathComponent("auth/challenge"), body: ["npub": npub], headers: headers)
             guard identity.npub == npub else { throw CancellationError() }
             try challenge.validate(npubHex: identity.hex, endpoint: endpoint)
-            let signed = try identity.sign(kind: challenge.event.kind, tags: challenge.event.tags, content: challenge.event.content, createdAt: challenge.event.created_at)
+            let signed = try await identity.signEvent(kind: challenge.event.kind, tags: challenge.event.tags, content: challenge.event.content, createdAt: challenge.event.created_at,expectedAuthor:challenge.event.pubkey)
             struct Result: Decodable { let npub: String; let token: String }
             let result: Result = try await Self.post(endpoint, body: ["challengeId": challenge.challengeId, "event": try JSONSerialization.jsonObject(with: JSONEncoder().encode(signed))], headers: headers)
             guard identity.npub == npub, result.npub == npub else { throw CancellationError() }

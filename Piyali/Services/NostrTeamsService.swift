@@ -54,7 +54,7 @@ struct LearningTeam: Identifiable, Sendable {
     }
     private func valid(identity: IdentityService, author: String, version: Int) throws { try Task.checkCancellation();guard identity.hex == author,generation == version else { throw CancellationError() } }
     private func authenticate(identity: IdentityService, author: String) -> NostrRelayClient.Authenticate {
-        { relay,challenge in try await MainActor.run { guard identity.hex == author else { throw CancellationError() };return try identity.sign(kind:22242,tags:[["relay",relay],["challenge",challenge]],content:"") } }
+        { relay,challenge in guard await identity.hex == author else { throw CancellationError() };return try await identity.signEvent(kind:22242,tags:[["relay",relay],["challenge",challenge]],content:"",expectedAuthor:author) }
     }
     private func run(identity: IdentityService, action: @escaping @MainActor (String,Int) async throws -> Void) async throws {
         let author=identity.hex;guard !author.isEmpty else { throw AppError.message("Sign in first.") }
@@ -114,10 +114,11 @@ struct LearningTeam: Identifiable, Sendable {
         return try npubs.map { npub in guard let key=PublicKey(npub:npub),key.dataRepresentation.count == 32 else { throw AppError.message("Invalid teammate npub.") };return key.hex }
     }
     private func checkedName(_ input: String) throws -> String { let name=input.trimmingCharacters(in:.whitespacesAndNewlines);guard !name.isEmpty,name.count <= 80 else { throw AppError.message("Enter a team name of 1–80 characters.") };return name }
-    private func sign(_ template: JSONValue, identity: IdentityService) throws -> NostrEventPayload { try identity.sign(kind:LearningTeams.kind,tags:template["tags"].array.map { $0.array.map(\.string) },content:template["content"].string,createdAt:Int64(template["created_at"].number)) }
+    private func sign(_ template: JSONValue, identity: IdentityService, author:String) async throws -> NostrEventPayload { try await identity.signEvent(kind:LearningTeams.kind,tags:template["tags"].array.map { $0.array.map(\.string) },content:template["content"].string,createdAt:Int64(template["created_at"].number),expectedAuthor:author) }
     private func publish(_ template: JSONValue, identity: IdentityService, author: String, version: Int) async throws {
         try valid(identity:identity,author:author,version:version)
-        let event=try sign(template,identity:identity)
+        let event=try await sign(template,identity:identity,author:author)
+        try valid(identity:identity,author:author,version:version)
         try await client.publish(event,authenticate:authenticate(identity:identity,author:author))
         try valid(identity:identity,author:author,version:version)
         remember(event)

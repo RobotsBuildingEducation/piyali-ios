@@ -4,10 +4,26 @@ import FirebaseAppCheck
 import FirebaseAuth
 import FirebaseFirestore
 import FirebaseAILogic
+import NostrSDK
 @testable import Piyali
 
 /// Explicit opt-in only. Uses an isolated test identity, bounded prompts and no paid access grant.
 @MainActor final class LiveAPIIntegrationTests: XCTestCase {
+    func testNativeRemoteSignerAuthenticatesWithActualUserAndWebRestoreDeniesUnlinkedAccount() async throws {
+        guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else { throw XCTSkip("Explicit live API opt-in required.") }
+        XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))
+        if FirebaseApp.app() == nil { AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure() };XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let fixture=LocalRemoteSigner(peer:try XCTUnwrap(Keypair()),user:try XCTUnwrap(Keypair()));try await fixture.start();defer { fixture.stop() }
+        let identity=IdentityService();try await identity.connect(fixture.token)
+        do {
+            try await FirebaseIdentityService.shared.ensure(identity)
+            XCTAssertEqual(Auth.auth().currentUser?.uid,fixture.user.publicKey.npub);XCTAssertNotEqual(identity.npub,fixture.peer.publicKey.npub);XCTAssertNil(identity.keypair)
+            let subscription=SubscriptionService();subscription.bind(identity);try await subscription.restoreWeb()
+            XCTAssertFalse(subscription.hasAccess);XCTAssertGreaterThanOrEqual(fixture.methods().filter { $0 == "sign_event" }.count,2)
+            print("LIVE NATIVE: NIP-46 user-bound Firebase authentication and signed unlinked web restore passed")
+        } catch { try? await Auth.auth().currentUser?.delete();try? Auth.auth().signOut();try? identity.disconnect();throw error }
+        try await Auth.auth().currentUser?.delete();try Auth.auth().signOut();try identity.disconnect()
+    }
     func testNativeRPGStoryAndRoleplayUseTheAuthoredChapter() async throws {
         guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else { throw XCTSkip("Explicit live API opt-in required.") }
         XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))

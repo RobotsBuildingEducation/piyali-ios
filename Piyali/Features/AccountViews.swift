@@ -100,8 +100,11 @@ struct AccountView: View {
             }
             Section("Your Nostr identity") {
                 Text(app.identity.npub).font(.caption).textSelection(.enabled)
-                Button("Back up private key") { authenticateBackup() }
-                Text("Keep a private copy of your key to recover this account on another device.").font(.footnote)
+                if app.identity.isRemote {
+                    Text("Connected through your remote signer. Your main private key stays with that signer.").font(.footnote)
+                    Button("Disconnect remote signer") { app.disconnectRemote() }.accessibilityIdentifier("remoteSignerDisconnect")
+                } else { Button("Back up private key") { authenticateBackup() };Text("Keep a private copy of your key to recover this account on another device.").font(.footnote) }
+                NavigationLink("Connect a remote signer") { RemoteSignerView() }
                 SecureField("Import another nsec", text: $importKey).textInputAutocapitalization(.never).autocorrectionDisabled()
                 Button("Switch account") { importConfirmation = true }.disabled(importKey.isEmpty)
             }
