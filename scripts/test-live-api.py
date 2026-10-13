@@ -4,11 +4,12 @@ import argparse, json, os, subprocess, uuid
 from pathlib import Path
 root = Path(__file__).resolve().parent.parent
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument('--only', choices=['services', 'immersion', 'conversation'])
+parser.add_argument('--only', choices=['services', 'immersion', 'conversation', 'rpg'])
 selection = parser.parse_args().only
 methods = {'services': 'testNativeAuthenticationGeminiResponsesAndVoice',
            'immersion': 'testNativeImmersionGenerationUsesResponsesAndPreservesExistingMissions',
-           'conversation': 'testNativeConversationGoalsGradeCommunicationAndReanchorPremiseRejection'}
+           'conversation': 'testNativeConversationGoalsGradeCommunicationAndReanchorPremiseRejection',
+           'rpg': 'testNativeRPGStoryAndRoleplayUseTheAuthoredChapter'}
 with (root / '.secrets/app-check-debug.json').open() as f:
     token = json.load(f)['token']
 env = os.environ.copy()

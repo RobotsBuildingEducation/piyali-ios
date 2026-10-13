@@ -47,6 +47,23 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
         state.place(Placement(level:"A1",score:18,source:"test",selectedIDs:[],updatedAt:Date()))
         return state
     }
+    func testGameRecapCompletesSharedLessonAndPreservesFirstResultAcrossConcurrentClaims() async throws {
+        let (service,db,npub)=try context();try await seed(db,npub)
+        let library=try ContentLibrary.load(RPGLibrary.self,name:"rpg-fr"),review=try XCTUnwrap(library.reviews.sorted(by:{ $0.key < $1.key }).first),scenario=try XCTUnwrap(review.value.bySupport["es"]),world=try XCTUnwrap(library.worlds[scenario.worldKey])
+        func finished(score:Int) -> LearnerState {
+            var state=immersionLearner(),run=RPGRun(target:"fr",support:"es",lessonID:review.key,xpReward:30,scenario:scenario,world:world)
+            run.stepIndex=7;run.score=score;state.saveRPG(run);_=state.completeRPG(run);return state
+        }
+        let first=finished(score:800),second=finished(score:400)
+        async let a=service.save(first,npub:npub);async let b=service.save(second,npub:npub);_=try await(a,b)
+        let user=db.collection("users").document(npub),fields=try await user.getDocument(source:.server).data()!,document=try await user.collection("languageLessons").document("fr_"+review.key).getDocument(source:.server).data()!
+        let result=try XCTUnwrap(document["gameResult"] as? [String:Any]),reward=WebProgressContract.integer(result["xp"])
+        XCTAssertTrue([15,30].contains(reward));XCTAssertEqual(WebProgressContract.integer(fields["xp"]),150+reward);XCTAssertEqual(WebProgressContract.integer(document["xpEarned"]),reward);XCTAssertEqual(document["status"] as? String,"completed");XCTAssertEqual(fields["patreonVerified"] as? Bool,true)
+        _=try await service.save(first,npub:npub);_=try await service.save(second,npub:npub)
+        let retried=try await user.getDocument(source:.server).data()!,content=try await user.collection("languageLessons").document("fr_"+review.key).getDocument(source:.server).data()!
+        XCTAssertEqual(WebProgressContract.integer(retried["xp"]),150+reward);XCTAssertEqual(WebProgressContract.integer(content["xpEarned"]),reward);XCTAssertEqual(WebProgressContract.integer(content["earnedXp"]),reward);XCTAssertEqual(JSONValue.foundation(content["gameResult"]!),JSONValue.foundation(result))
+        let restored=try requireState(try await service.load(npub:npub));XCTAssertTrue(restored.completed.contains("fr:"+review.key));XCTAssertNotNil(restored.rpgRuns?["fr"])
+    }
     private func conversationLearner() -> LearnerState {
         var state=immersionLearner(),draft=ConversationDraft()
         draft.goal=ConversationGoal(text:.object(["en":.string("Say hello and your name")]),questionLevel:"A1",worth:ConversationPractice.worth(rating:state.rating,level:"A1",difficulty:21))

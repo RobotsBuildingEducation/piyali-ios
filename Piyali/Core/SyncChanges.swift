@@ -26,6 +26,7 @@ public struct PracticeChange: Codable, Identifiable, Sendable {
     public var conversationBonus: Int?
     public var conversationWorth: JSONValue?
     public var conversationGoalText: JSONValue?
+    public var gameResult: JSONValue?
     public var earnedAmount: Int { amount + (source == .conversation && correct == true ? max(0,min(4,conversationBonus ?? 0)) : 0) }
     public init(date: Date = Date(), dayKey: String, target: String, level: String, amount: Int, source: PracticeSource, contentID: String? = nil, reviewRating: ReviewRating? = nil, correct: Bool? = nil, independent: Bool? = nil) {
         self.id = UUID(); self.date = date; self.dayKey = dayKey; self.target = target; self.level = level

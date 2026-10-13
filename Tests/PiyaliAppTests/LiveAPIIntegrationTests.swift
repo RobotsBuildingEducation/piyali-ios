@@ -8,6 +8,25 @@ import FirebaseAILogic
 
 /// Explicit opt-in only. Uses an isolated test identity, bounded prompts and no paid access grant.
 @MainActor final class LiveAPIIntegrationTests: XCTestCase {
+    func testNativeRPGStoryAndRoleplayUseTheAuthoredChapter() async throws {
+        guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else { throw XCTSkip("Explicit live API opt-in required.") }
+        XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))
+        if FirebaseApp.app() == nil { AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure() };XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let identity=IdentityService();try identity.create();try await FirebaseIdentityService.shared.ensure(identity)
+        do {
+            let library=try ContentLibrary.load(RPGLibrary.self,name:"rpg-es"),review=try XCTUnwrap(library.reviews["unit-pre-a1-people-game"]),base=try XCTUnwrap(review.bySupport["en"]),ai=AIService()
+            let raw=try await ai.rpgStory(scenario:base,context:review.context,target:"es",support:"en"),story=try XCTUnwrap(RPGStory.preparing(base,raw:raw,target:"es",support:"en"))
+            XCTAssertEqual(story.quest.steps.count,7);XCTAssertTrue((2...3).contains(story.quest.steps.filter { $0.nodes[0].responseMode == "speech" }.count));XCTAssertFalse(story.storyIntro?["target"].string.isEmpty ?? true)
+            var run=RPGRun(target:"es",support:"en",lessonID:"unit-pre-a1-people-game",xpReward:30,scenario:story,world:try XCTUnwrap(library.worlds[base.worldKey]))
+            run.stepIndex=try XCTUnwrap(story.quest.steps.firstIndex { $0.nodes[0].responseMode == "speech" })
+            let example=try XCTUnwrap(run.node?.speechExample),success=try await ai.rpgSpeech(run:run,answer:example)
+            XCTAssertEqual(success.grade,"full");XCTAssertFalse(success.reply.isEmpty)
+            let wrong=try await ai.rpgSpeech(run:run,answer:"I only speak English and refuse to answer this unrelated question.")
+            XCTAssertEqual(wrong.grade,"miss");XCTAssertFalse(wrong.reply.isEmpty);XCTAssertFalse(wrong.tip.isEmpty)
+            print("LIVE NATIVE: Authored RPG chapter story, full speech and wrong-language NPC roleplay passed")
+        } catch { try? await Auth.auth().currentUser?.delete();try? Auth.auth().signOut();throw error }
+        try await Auth.auth().currentUser?.delete();try Auth.auth().signOut()
+    }
     func testNativeConversationGoalsGradeCommunicationAndReanchorPremiseRejection() async throws {
         guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else { throw XCTSkip("Explicit live API opt-in required.") }
         XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1")

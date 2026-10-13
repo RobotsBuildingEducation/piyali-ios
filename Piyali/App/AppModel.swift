@@ -430,7 +430,7 @@ import SwiftUI
         persist(); Task { await reloadContent() }
     }
     func place(_ placement: Placement) { learner.place(placement); persist(); Task { await reloadContent() } }
-    func canComplete(_ lesson: Lesson) -> Bool { Self.modes(for: lesson).allSatisfy { learner.practicedModes.contains(learner.modeKey(lesson.id, $0.rawValue)) } }
+    func canComplete(_ lesson: Lesson) -> Bool { !lesson.modes.contains("game") && Self.modes(for: lesson).allSatisfy { learner.practicedModes.contains(learner.modeKey(lesson.id, $0.rawValue)) } }
     func complete(_ lesson: Lesson) {
         guard canComplete(lesson) else { return }
         if lesson.id.hasPrefix("goal-") {

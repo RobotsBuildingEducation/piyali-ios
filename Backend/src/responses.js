@@ -1,14 +1,20 @@
 import {HTTPError} from './auth.js';
+import {rpgOutputFormat} from './rpg-output.js';
 export function responsesBody(data,env) {
   const allowed=(env.ALLOWED_RESPONSE_MODELS ?? 'gpt-6-luna,gpt-5-nano').split(',');
   if(typeof data.model!=='string' || !allowed.includes(data.model)) throw new HTTPError(400,'Choose a supported tutor model.');
   if(typeof data.input!=='string' || !data.input.trim() || data.input.length>110000) throw new HTTPError(400,'Provide a tutor prompt within the size limit.');
   const format=data.text?.format?.type ?? 'text';
   if(!['text','json_object'].includes(format)) throw new HTTPError(400,'Unsupported tutor output format.');
+  const output=data.outputProfile===undefined ? {type:format} : rpgOutputFormat(data.outputProfile);
+  if(!output) throw new HTTPError(400,'Unsupported tutor output profile.');
+  const effort=data.reasoning?.effort ?? (data.model.includes('luna')?'none':'minimal');
+  const efforts=data.model.includes('luna') ? ['none','low','medium'] : ['minimal','low','medium'];
+  if(!efforts.includes(effort)) throw new HTTPError(400,'Unsupported tutor reasoning effort.');
   const limit=data.max_output_tokens ?? 4096;
   if(!Number.isInteger(limit) || limit<16 || limit>8192) throw new HTTPError(400,'Invalid tutor output limit.');
   return {model:data.model,input:data.input,store:false,stream:false,max_output_tokens:limit,
-    reasoning:{effort:data.model.includes('luna')?'none':'minimal'},text:{format:{type:format},verbosity:'low'}};
+    reasoning:{effort},text:{format:output,verbosity:'low'}};
 }
 export async function proxyResponses(data,env,fetchUpstream=fetch) {
   const payload=responsesBody(data,env);

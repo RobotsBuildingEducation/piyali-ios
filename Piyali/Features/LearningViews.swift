@@ -97,16 +97,17 @@ struct LessonView: View {
             }
             Section("Practice each skill") {
                 ForEach(AppModel.modes(for: lesson)) { mode in
-                    NavigationLink { ExerciseView(mode: mode, lesson: lesson) } label: {
+                    NavigationLink { if mode == .game { RPGView(lesson:lesson,episode:nil) } else { ExerciseView(mode: mode, lesson: lesson) } } label: {
                         HStack {
                             Text(mode.rawValue); Spacer()
                             if app.learner.practicedModes.contains(app.learner.modeKey(lesson.id, mode.rawValue)) { Image(systemName: "checkmark") }
                         }
                     }
                 }
-                Button(lesson.id.hasPrefix("goal-") ? "Complete today’s goal lesson" : "Complete lesson (+\(lesson.xpReward) XP)") { app.complete(lesson) }
+                if !lesson.modes.contains("game") { Button(lesson.id.hasPrefix("goal-") ? "Complete today’s goal lesson" : "Complete lesson (+\(lesson.xpReward) XP)") { app.complete(lesson) }
                     .disabled(!app.canComplete(lesson) || app.learner.completed.contains(app.learner.completionKey(lesson.id)))
-                Text("Complete a correct exercise in every listed skill to finish this lesson.").font(.footnote)
+                Text("Complete a correct exercise in every listed skill to finish this lesson.").font(.footnote) }
+                else { Text("Finish the adventure and confirm its recap to complete this unit review. Stars determine the lesson XP reward.").font(.footnote) }
             }
         }.navigationTitle(lesson.title.localized(app.learner.support))
     }
@@ -123,6 +124,7 @@ struct PracticeLibraryView: View {
             Section("Practice modes") {
                 ForEach(PracticeMode.allCases) { mode in
                     if mode == .conversation { NavigationLink(mode.rawValue) { ConversationView() }.accessibilityIdentifier("conversationLink") }
+                    else if mode == .game { NavigationLink(mode.rawValue) { RPGLibraryView() }.accessibilityIdentifier("adventureLink") }
                     else { NavigationLink(mode.rawValue) { ExerciseView(mode: mode, lesson: app.selectedLesson) } }
                 }
                 NavigationLink("Grammar reference") { GrammarReferenceView() }

@@ -1,0 +1,40 @@
+{
+  "lessonID": "unit-pre-a1-people-game",
+  "steps": [
+    {
+      "mode": "choice",
+      "correct": 1,
+      "example": ""
+    },
+    {
+      "mode": "choice",
+      "correct": 2,
+      "example": ""
+    },
+    {
+      "mode": "speech",
+      "correct": -1,
+      "example": "Necesito Hermana."
+    },
+    {
+      "mode": "choice",
+      "correct": 1,
+      "example": ""
+    },
+    {
+      "mode": "choice",
+      "correct": 2,
+      "example": ""
+    },
+    {
+      "mode": "speech",
+      "correct": -1,
+      "example": "Necesito Hermana."
+    },
+    {
+      "mode": "choice",
+      "correct": 1,
+      "example": ""
+    }
+  ]
+}

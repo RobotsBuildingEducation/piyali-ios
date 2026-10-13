@@ -15,7 +15,7 @@ import FirebaseAuth
         }
         return try await responsesText(prompt,json:json)
     }
-    func responsesText(_ prompt: String, json: Bool = false, reasoning: String? = nil) async throws -> String {
+    func responsesText(_ prompt: String, json: Bool = false, reasoning: String? = nil, outputProfile:String? = nil) async throws -> String {
         var request = URLRequest(url: configuration.worker.appendingPathComponent("proxyResponses"))
         request.httpMethod = "POST"; request.timeoutInterval = 45
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -24,6 +24,7 @@ import FirebaseAuth
         request.setValue("Bearer " + (try await user.getIDToken()), forHTTPHeaderField: "Authorization")
         var requestBody:[String:Any] = ["model":configuration.string("ResponsesModel"),"input":prompt,"text":["format":["type":json ? "json_object" : "text"]]]
         if let reasoning { requestBody["reasoning"]=["effort":reasoning] }
+        if let outputProfile { requestBody["outputProfile"]=outputProfile }
         request.httpBody = try JSONSerialization.data(withJSONObject:requestBody)
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse else { throw AppError.message("The tutor is unavailable. Try again shortly.") }
@@ -33,10 +34,7 @@ import FirebaseAuth
             throw AppError.message("The tutor could not complete this request. Try again shortly.")
         }
         let body = try JSONDecoder().decode(JSONValue.self, from: data)
-        let direct = body["output_text"].string
-        let text = direct.isEmpty ? body["output"].array.flatMap { $0["content"].array }.map { $0["text"].string }.joined() : direct
-        guard !text.isEmpty else { throw AppError.message("The AI service returned no text.") }
-        return text
+        return try ResponsesOutput.text(body,structured:json)
     }
     func structured<T: Decodable>(_ type: T.Type, prompt: String) async throws -> T {
         let response = try await text(prompt + "\nReturn only valid JSON without Markdown fences.", json:true)

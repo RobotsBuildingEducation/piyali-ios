@@ -313,8 +313,9 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                     } else {
                         data["lessonId"] = change.contentID; data["status"] = "completed"
                         data["completedAt"] = existing["completedAt"] ?? WebProgressContract.iso(change.date)
-                        data["earnedXp"] = max(change.amount,WebProgressContract.integer(existing["earnedXp"]))
-                        data["xpEarned"] = change.amount
+                        data["earnedXp"] = change.gameResult == nil ? max(change.amount,WebProgressContract.integer(existing["earnedXp"])) : existing["earnedXp"] ?? change.amount
+                        data["xpEarned"] = existing["xpEarned"] ?? change.amount
+                        if let game=change.gameResult,existing["gameResult"] == nil { data["gameResult"]=game.foundation }
                         completed = true; wasCompleted = existing["status"] as? String == "completed"; mode = change.source == .speak ? "tutor" : "skillTree"
                     }
                     transaction.setData(data,forDocument:content,merge:true)

@@ -9,6 +9,16 @@ test('tutor strips arbitrary tools/storage overrides and enforces model/prompt/o
  const body=responsesBody(input,env);assert.equal(body.store,false);assert.equal(body.tools,undefined);assert.equal(body.reasoning.effort,'none');
  for(const bad of [{...input,model:'unknown'},{...input,input:''},{...input,input:'x'.repeat(110001)},{...input,max_output_tokens:100000}]) assert.throws(()=>responsesBody(bad,env));
 });
+test('native RPG profiles use fixed strict schemas and bounded requested reasoning',()=>{
+ const story=responsesBody({...input,outputProfile:'rpg_story',reasoning:{effort:'low'},text:{format:{type:'json_object',schema:{malicious:true}}}},env);
+ assert.equal(story.reasoning.effort,'low');assert.equal(story.text.format.type,'json_schema');assert.equal(story.text.format.strict,true);
+ assert.equal(story.text.format.schema.properties.beats.minItems,7);assert.equal(story.text.format.schema.properties.beats.maxItems,7);
+ assert.equal(story.text.format.schema.additionalProperties,false);assert.equal(story.text.format.schema.malicious,undefined);
+ const speech=responsesBody({...input,outputProfile:'rpg_speech'},env);
+ assert.deepEqual(speech.text.format.schema.properties.grade.enum,['full','partial','miss']);
+ for(const bad of [{outputProfile:'unknown'},{reasoning:{effort:'high'}},{reasoning:{effort:42}}]) assert.throws(()=>responsesBody({...input,...bad},env));
+ assert.equal(responsesBody({...input,reasoning:{effort:'medium'}},env).reasoning.effort,'medium');
+});
 test('tutor requires App Check and native Firebase ownership before upstream calls',async()=>{
  let calls=0;const fetcher=async()=>{calls++;return Response.json({output:[]});};
  const checkDenied=handler(async()=>{throw Error();},async()=> 'npub',fetcher);
