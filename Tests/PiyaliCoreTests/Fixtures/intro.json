@@ -1,0 +1,370 @@
+{
+  "visibility": [
+    {
+      "level": "Pre-A1",
+      "hasFirstQuestHistory": false,
+      "lessons": {},
+      "expected": false
+    },
+    {
+      "level": "Pre-A1",
+      "hasFirstQuestHistory": false,
+      "lessons": {
+        "lesson-tutorial-1": {
+          "status": "in_progress"
+        }
+      },
+      "expected": false
+    },
+    {
+      "level": "Pre-A1",
+      "hasFirstQuestHistory": false,
+      "lessons": {
+        "lesson-tutorial-1": {
+          "status": "completed"
+        }
+      },
+      "expected": false
+    },
+    {
+      "level": "Pre-A1",
+      "hasFirstQuestHistory": true,
+      "lessons": {},
+      "expected": false
+    },
+    {
+      "level": "Pre-A1",
+      "hasFirstQuestHistory": true,
+      "lessons": {
+        "lesson-tutorial-1": {
+          "status": "in_progress"
+        }
+      },
+      "expected": false
+    },
+    {
+      "level": "Pre-A1",
+      "hasFirstQuestHistory": true,
+      "lessons": {
+        "lesson-tutorial-1": {
+          "status": "completed"
+        }
+      },
+      "expected": false
+    },
+    {
+      "level": "A1",
+      "hasFirstQuestHistory": false,
+      "lessons": {},
+      "expected": false
+    },
+    {
+      "level": "A1",
+      "hasFirstQuestHistory": false,
+      "lessons": {
+        "lesson-tutorial-1": {
+          "status": "in_progress"
+        }
+      },
+      "expected": false
+    },
+    {
+      "level": "A1",
+      "hasFirstQuestHistory": false,
+      "lessons": {
+        "lesson-tutorial-1": {
+          "status": "completed"
+        }
+      },
+      "expected": false
+    },
+    {
+      "level": "A1",
+      "hasFirstQuestHistory": true,
+      "lessons": {},
+      "expected": true
+    },
+    {
+      "level": "A1",
+      "hasFirstQuestHistory": true,
+      "lessons": {
+        "lesson-tutorial-1": {
+          "status": "in_progress"
+        }
+      },
+      "expected": true
+    },
+    {
+      "level": "A1",
+      "hasFirstQuestHistory": true,
+      "lessons": {
+        "lesson-tutorial-1": {
+          "status": "completed"
+        }
+      },
+      "expected": false
+    },
+    {
+      "level": "A2",
+      "hasFirstQuestHistory": false,
+      "lessons": {},
+      "expected": false
+    },
+    {
+      "level": "A2",
+      "hasFirstQuestHistory": false,
+      "lessons": {
+        "lesson-tutorial-1": {
+          "status": "in_progress"
+        }
+      },
+      "expected": false
+    },
+    {
+      "level": "A2",
+      "hasFirstQuestHistory": false,
+      "lessons": {
+        "lesson-tutorial-1": {
+          "status": "completed"
+        }
+      },
+      "expected": false
+    },
+    {
+      "level": "A2",
+      "hasFirstQuestHistory": true,
+      "lessons": {},
+      "expected": true
+    },
+    {
+      "level": "A2",
+      "hasFirstQuestHistory": true,
+      "lessons": {
+        "lesson-tutorial-1": {
+          "status": "in_progress"
+        }
+      },
+      "expected": true
+    },
+    {
+      "level": "A2",
+      "hasFirstQuestHistory": true,
+      "lessons": {
+        "lesson-tutorial-1": {
+          "status": "completed"
+        }
+      },
+      "expected": false
+    },
+    {
+      "level": "B1",
+      "hasFirstQuestHistory": false,
+      "lessons": {},
+      "expected": false
+    },
+    {
+      "level": "B1",
+      "hasFirstQuestHistory": false,
+      "lessons": {
+        "lesson-tutorial-1": {
+          "status": "in_progress"
+        }
+      },
+      "expected": false
+    },
+    {
+      "level": "B1",
+      "hasFirstQuestHistory": false,
+      "lessons": {
+        "lesson-tutorial-1": {
+          "status": "completed"
+        }
+      },
+      "expected": false
+    },
+    {
+      "level": "B1",
+      "hasFirstQuestHistory": true,
+      "lessons": {},
+      "expected": true
+    },
+    {
+      "level": "B1",
+      "hasFirstQuestHistory": true,
+      "lessons": {
+        "lesson-tutorial-1": {
+          "status": "in_progress"
+        }
+      },
+      "expected": true
+    },
+    {
+      "level": "B1",
+      "hasFirstQuestHistory": true,
+      "lessons": {
+        "lesson-tutorial-1": {
+          "status": "completed"
+        }
+      },
+      "expected": false
+    },
+    {
+      "level": "B2",
+      "hasFirstQuestHistory": false,
+      "lessons": {},
+      "expected": false
+    },
+    {
+      "level": "B2",
+      "hasFirstQuestHistory": false,
+      "lessons": {
+        "lesson-tutorial-1": {
+          "status": "in_progress"
+        }
+      },
+      "expected": false
+    },
+    {
+      "level": "B2",
+      "hasFirstQuestHistory": false,
+      "lessons": {
+        "lesson-tutorial-1": {
+          "status": "completed"
+        }
+      },
+      "expected": false
+    },
+    {
+      "level": "B2",
+      "hasFirstQuestHistory": true,
+      "lessons": {},
+      "expected": true
+    },
+    {
+      "level": "B2",
+      "hasFirstQuestHistory": true,
+      "lessons": {
+        "lesson-tutorial-1": {
+          "status": "in_progress"
+        }
+      },
+      "expected": true
+    },
+    {
+      "level": "B2",
+      "hasFirstQuestHistory": true,
+      "lessons": {
+        "lesson-tutorial-1": {
+          "status": "completed"
+        }
+      },
+      "expected": false
+    },
+    {
+      "level": "C1",
+      "hasFirstQuestHistory": false,
+      "lessons": {},
+      "expected": false
+    },
+    {
+      "level": "C1",
+      "hasFirstQuestHistory": false,
+      "lessons": {
+        "lesson-tutorial-1": {
+          "status": "in_progress"
+        }
+      },
+      "expected": false
+    },
+    {
+      "level": "C1",
+      "hasFirstQuestHistory": false,
+      "lessons": {
+        "lesson-tutorial-1": {
+          "status": "completed"
+        }
+      },
+      "expected": false
+    },
+    {
+      "level": "C1",
+      "hasFirstQuestHistory": true,
+      "lessons": {},
+      "expected": true
+    },
+    {
+      "level": "C1",
+      "hasFirstQuestHistory": true,
+      "lessons": {
+        "lesson-tutorial-1": {
+          "status": "in_progress"
+        }
+      },
+      "expected": true
+    },
+    {
+      "level": "C1",
+      "hasFirstQuestHistory": true,
+      "lessons": {
+        "lesson-tutorial-1": {
+          "status": "completed"
+        }
+      },
+      "expected": false
+    },
+    {
+      "level": "C2",
+      "hasFirstQuestHistory": false,
+      "lessons": {},
+      "expected": false
+    },
+    {
+      "level": "C2",
+      "hasFirstQuestHistory": false,
+      "lessons": {
+        "lesson-tutorial-1": {
+          "status": "in_progress"
+        }
+      },
+      "expected": false
+    },
+    {
+      "level": "C2",
+      "hasFirstQuestHistory": false,
+      "lessons": {
+        "lesson-tutorial-1": {
+          "status": "completed"
+        }
+      },
+      "expected": false
+    },
+    {
+      "level": "C2",
+      "hasFirstQuestHistory": true,
+      "lessons": {},
+      "expected": true
+    },
+    {
+      "level": "C2",
+      "hasFirstQuestHistory": true,
+      "lessons": {
+        "lesson-tutorial-1": {
+          "status": "in_progress"
+        }
+      },
+      "expected": true
+    },
+    {
+      "level": "C2",
+      "hasFirstQuestHistory": true,
+      "lessons": {
+        "lesson-tutorial-1": {
+          "status": "completed"
+        }
+      },
+      "expected": false
+    }
+  ],
+  "variants": 980,
+  "repaired": 0
+}

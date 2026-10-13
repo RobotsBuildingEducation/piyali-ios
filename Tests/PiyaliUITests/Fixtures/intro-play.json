@@ -1,0 +1,39 @@
+{
+  "steps": [
+    {
+      "mode": "choice",
+      "correct": 1,
+      "example": ""
+    },
+    {
+      "mode": "choice",
+      "correct": 1,
+      "example": ""
+    },
+    {
+      "mode": "speech",
+      "correct": -1,
+      "example": "Necesito Gracias."
+    },
+    {
+      "mode": "choice",
+      "correct": 2,
+      "example": ""
+    },
+    {
+      "mode": "choice",
+      "correct": 0,
+      "example": ""
+    },
+    {
+      "mode": "choice",
+      "correct": 0,
+      "example": ""
+    },
+    {
+      "mode": "choice",
+      "correct": 0,
+      "example": ""
+    }
+  ]
+}

@@ -47,6 +47,21 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
         state.place(Placement(level:"A1",score:18,source:"test",selectedIDs:[],updatedAt:Date()))
         return state
     }
+    func testIntroCompletionClaimsOneRewardAndRestoresPrivateGuideProgress() async throws {
+        let (service,db,npub)=try context();try await seed(db,npub)
+        let content=try ContentLibrary.load(IntroLibrary.self,name:"intro-fr"),lesson=try XCTUnwrap(content.units["Pre-A1"]?.lessons.first)
+        func finished() -> LearnerState {
+            var state=immersionLearner();state.level="Pre-A1"
+            for mode in IntroTutorial.modes { _=state.visitIntro(mode,expectedLevel:"Pre-A1") }
+            _=state.completeIntro(lesson);return state
+        }
+        let first=finished(),second=finished();async let a=service.save(first,npub:npub),b=service.save(second,npub:npub);_=try await(a,b)
+        _=try await service.save(first,npub:npub);_=try await service.save(second,npub:npub)
+        let user=db.collection("users").document(npub),root=try await user.getDocument(source:.server).data()!,document=try await user.collection("languageLessons").document("fr_"+lesson.id).getDocument(source:.server).data()!
+        XCTAssertEqual(WebProgressContract.integer(root["xp"]),200);XCTAssertEqual(root["patreonVerified"] as? Bool,true);XCTAssertEqual(document["status"] as? String,"completed");XCTAssertEqual(WebProgressContract.integer(document["xpEarned"]),50)
+        XCTAssertNil(document["gameResult"]);let restored=try requireState(try await service.load(npub:npub))
+        XCTAssertTrue(restored.completed.contains("fr:"+lesson.id));XCTAssertEqual(restored.introSessions?["fr"]?.visited,IntroTutorial.modes)
+    }
     func testGameRecapCompletesSharedLessonAndPreservesFirstResultAcrossConcurrentClaims() async throws {
         let (service,db,npub)=try context();try await seed(db,npub)
         let library=try ContentLibrary.load(RPGLibrary.self,name:"rpg-fr"),review=try XCTUnwrap(library.reviews.sorted(by:{ $0.key < $1.key }).first),scenario=try XCTUnwrap(review.value.bySupport["es"]),world=try XCTUnwrap(library.worlds[scenario.worldKey])

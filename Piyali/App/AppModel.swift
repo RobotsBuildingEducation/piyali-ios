@@ -9,6 +9,7 @@ import SwiftUI
     @Published var signedIn = false
     @Published var tutorUnits: [LearningUnit] = []
     @Published var units: [LearningUnit] = []
+    @Published var introLibrary:IntroLibrary?
     @Published var cards: [Flashcard] = []
     @Published var phonics: [PhonicsCard] = []
     var curriculumIndex: [String:[String:[String]]] = [:]
@@ -27,7 +28,8 @@ import SwiftUI
     private var goalTasks: [String:Task<Void,Error>] = [:]
     private var achievementUpdates: AnyCancellable?
     private var contentTask: Task<Void, Never>?
-    var selectedLesson: Lesson? { units.flatMap(\.lessons).first { !learner.completed.contains(learner.completionKey($0.id)) } ?? units.last?.lessons.last }
+    var introLesson:Lesson? { guard introLibrary?.target == learner.target else { return nil };return introLibrary?.units[learner.level]?.lessons.first }
+    var selectedLesson: Lesson? { if learner.needsIntro,!learner.completed.contains(learner.completionKey(IntroTutorial.lessonID)) { return introLesson };return units.flatMap(\.lessons).first { !learner.completed.contains(learner.completionKey($0.id)) } ?? units.last?.lessons.last }
     var selectedTutorLesson: Lesson? { tutorUnits.flatMap(\.lessons).first { !learner.completed.contains(learner.tutorKey($0.id)) } }
     var plateCourses: [PlateCourse] { learner.plateCourses(user:identity.npub) }
     func prepareDailyPlate() {
@@ -39,7 +41,7 @@ import SwiftUI
     }
     private var availablePlateKinds: [String] {
         var kinds = ["speak","review","conversation"]
-        if units.isEmpty || units.flatMap(\.lessons).contains(where:{ !learner.completed.contains(learner.completionKey($0.id)) }) { kinds.append("learn") }
+        if units.isEmpty || selectedLesson.map({ !learner.completed.contains(learner.completionKey($0.id)) }) == true { kinds.append("learn") }
         if curriculumIndex[learner.target] != nil { kinds.append("phonics") }
         return kinds
     }
@@ -201,14 +203,14 @@ import SwiftUI
         loadingContent = true
         let task = Task { [weak self] in
             do {
-                let data = try await Task.detached(priority: .userInitiated) { () -> ([LearningUnit], [Flashcard], [PhonicsCard], [String:[PhonicsCard]], [LearningUnit]) in
+                let data = try await Task.detached(priority: .userInitiated) { () -> ([LearningUnit], [Flashcard], [PhonicsCard], [String:[PhonicsCard]], [LearningUnit], IntroLibrary) in
                     let curriculum = try ContentLibrary.load([String:[LearningUnit]].self, name: "curriculum-" + target)
                     let cards = try ContentLibrary.load([Flashcard].self, name: "flashcards").filter { $0.cefrLevel == cardLevel }
                     let allPhonics = try ContentLibrary.load([String:[PhonicsCard]].self, name: "phonics")
-                    return (curriculum[level] ?? [], cards, allPhonics["\(target):\(support):\(level)"] ?? [], allPhonics, curriculum[tutorLevel] ?? [])
+                    return (curriculum[level] ?? [], cards, allPhonics["\(target):\(support):\(level)"] ?? [], allPhonics, curriculum[tutorLevel] ?? [],try ContentLibrary.load(IntroLibrary.self,name:"intro-"+target))
                 }.value
                 guard !Task.isCancelled else { return }
-                self?.units = data.0; self?.cards = data.1; self?.phonics = data.2; self?.phonicsLibrary = data.3; self?.tutorUnits = data.4
+                self?.units = data.0; self?.cards = data.1; self?.phonics = data.2; self?.phonicsLibrary = data.3; self?.tutorUnits = data.4;self?.introLibrary=data.5
             } catch { if !Task.isCancelled { self?.error = error.localizedDescription } }
             if !Task.isCancelled { self?.loadingContent = false }
         }
@@ -418,7 +420,7 @@ import SwiftUI
         if learner.tutorLevels == nil { learner.tutorLevels = [:] }; learner.tutorLevels?[learner.target] = level
         persist(); Task { await reloadContent() }
     }
-    var lessonLevels: [String] { learner.unlockedLevels(mode:"skillTree",index:curriculumIndex[learner.target] ?? [:]) }
+    var lessonLevels: [String] { learner.unlockedLevels(mode:"skillTree",index:IntroTutorial.lessonCourseIndex(curriculumIndex[learner.target] ?? [:])) }
     var cardLevels: [String] { learner.unlockedLevels(mode:"flashcards",index:flashcardIndex) }
     func setLessonLevel(_ level: String) {
         guard lessonLevels.contains(level) else { return }; learner.level = level

@@ -17,8 +17,9 @@ import Foundation
         let token=generation,account=app.identity.npub,target=app.learner.target,support=app.learner.support
         await load(target:target);guard valid(app,account:account,target:target,support:support,token:token),let library,!busy else { return }
         if !fresh,let saved=app.learner.rpgRuns?[target],saved.support == support,saved.lessonID == lesson?.id,(episode == nil || saved.scenario.authoredEpisode.id == episode),saved.scenario.authoredEpisode.level == (lesson?.content["game"]["cefrLevel"].string.isEmpty == false ? lesson!.content["game"]["cefrLevel"].string : app.learner.level) { return }
-        let review=lesson.flatMap { library.reviews[$0.id] }
-        guard let original=review?.bySupport[support] ?? library.scenarios(level:app.learner.level,support:support).first(where:{ $0.authoredEpisode.id == episode }),let world=library.worlds[original.worldKey] else { error="This episode is not available for the selected language and level.";return }
+        let tutorial=lesson?.id == IntroTutorial.lessonID
+        let review=tutorial ? app.introLibrary.flatMap { $0.target == target ? $0.games[app.learner.level] : nil } : lesson.flatMap { library.reviews[$0.id] }
+        guard let original=review?.bySupport[support] ?? library.scenarios(level:app.learner.level,support:support).first(where:{ $0.authoredEpisode.id == episode }),let world=(tutorial ? app.introLibrary?.worlds[original.worldKey] : library.worlds[original.worldKey]) else { error="This episode is not available for the selected language and level.";return }
         busy=true;error=nil;defer { if generation == token { busy=false } }
         var scenario=original
         if app.subscription.hasAccess {
@@ -28,7 +29,7 @@ import Foundation
             } catch { if valid(app,account:account,target:target,support:support,token:token) { self.error="Story generation is unavailable. Using the authored local review." } }
         }
         guard valid(app,account:account,target:target,support:support,token:token) else { return }
-        app.learner.saveRPG(RPGRun(target:target,support:support,lessonID:lesson?.id,xpReward:lesson?.xpReward ?? 30,scenario:scenario,world:world));app.persist()
+        app.learner.saveRPG(RPGRun(target:target,support:support,lessonID:lesson?.id,xpReward:lesson?.xpReward ?? 30,scenario:scenario,world:world,tutorial:tutorial));app.persist()
     }
     func speak(_ answer:String,app:AppModel) async {
         guard !busy,let run=app.learner.rpgRuns?[app.learner.target],!run.resolved,let node=run.node,node.responseMode == "speech",!answer.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else { return }

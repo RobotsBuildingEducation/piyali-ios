@@ -1,0 +1,15 @@
+# Getting Started
+
+The main Learn screen now includes the reference introduction. Its six activities run in the actual source order: vocabulary, grammar, reading, stories, realtime conversation and game. The guide shows authored descriptions/objectives, opens native practice and lets learners advance or skip an activity as the web tutorial does. These visits explain the app; they do not fabricate graded practice or performance Score.
+
+The exporter executes `LEARNING_PATHS`, `adaptIntroTutorialUnit`, `needsIntroTutorial`, the chapter context builder and authored RPG dealer in memory. It writes only this repository. All 14 target languages have seven CEFR versions: 98 lesson templates and 980 localized introductory adventures across ten support languages. Pre-A1 retains the source beginner material; higher levels use the source contexts and six adaptive agenda items. Higher-level automatic continuation follows the first-quest/completed-introduction rule. The guide is also available as an explicit Learn entry.
+
+The original lesson definition says 1 XP, but the executed reference's `applyLessonXPSchedule` gives starter lesson IDs **50 XP**. Native completion uses that final exported reward. The ordinary language lesson receipt claims it once per learner/language, including across levels and concurrent devices. A tutorial adventure reports no unit-review XP and cannot independently complete the guide. Finishing its recap returns to the introduction; the explicit skip path also advances the guide. The separate guide completion then saves the source lesson reward.
+
+Pre-A1 lesson progression includes the introduction alongside 85 regular lessons, matching the 86-lesson course requirement. The existing tutor index remains separate. Actual optional practice still uses its normal grading, memory and subscription behavior; the guide creates no subscription grant.
+
+Visits resume after app termination. Language drafts are separate, and changing the practice level starts the appropriate guide version. Private visit state uses `iosStateJSON` snapshot synchronization; simultaneous edits are last writer wins. The completed lesson and reward synchronize through transaction-protected receipts. Account/target/level fences prevent an old adventure callback from advancing another guide.
+
+Core tests compare 42 source visibility cases and validate all templates/adventures, seven tasks, weighted finales, correct answers, speech examples and reachable characters. They also cover sequential visits, stale levels, language isolation, persistence, zero practice credit, once-only rewards and the separate game/guide completion paths. Simulator and Firestore SDK checks exercise actual native navigation, relaunch and concurrent completion.
+
+Refresh with `node scripts/export-intro-content.mjs /absolute/path/to/reference/nosabos`. This also exports the simulator play fixture from the actual Spanish introduction. Run `swift test`, `scripts/test-ios.sh -only-testing:PiyaliUITests/IntroTutorialPlayTests` or `scripts/test-firestore.sh`.

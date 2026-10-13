@@ -110,6 +110,7 @@ public struct Note: Codable, Identifiable, Sendable {
     public var body: String
 }
 public struct LearnerState: Codable, Sendable {
+    public var introSessions:[String:IntroSession]?
     public var rpgRuns: [String:RPGRun]?
     public var name = ""
     public var target = "es"

@@ -28,8 +28,10 @@ struct RPGLibraryView: View {
 struct RPGView: View {
     @EnvironmentObject var app:AppModel
     @Environment(\.scenePhase) private var phase
+    @Environment(\.dismiss) private var dismiss
     let lesson:Lesson?
     let episode:String?
+    var onTutorialComplete:(()->Void)? = nil
     @StateObject private var service=RPGService()
     @StateObject private var speech=SpeechService()
     @State private var answer=""
@@ -71,7 +73,8 @@ struct RPGView: View {
         Section("Episode complete · "+String(repeating:"★",count:run.stars)) {
             Text("\(run.score * 100 / 800)% · \(run.stars) stars")
             if let epilogue=run.scenario.storyEpilogue { Text(epilogue["target"].string);if showSupport { Text(epilogue["support"].string).font(.footnote) } }
-            if let lessonID=run.lessonID {
+            if run.tutorial == true { Button("Continue introduction") { onTutorialComplete?();dismiss() }.disabled(onTutorialComplete == nil) }
+            else if let lessonID=run.lessonID {
                 let saved=run.claimed || app.learner.completed.contains(app.learner.completionKey(lessonID))
                 Button(saved ? "Review completion saved" : "Finish unit review (+\(run.reward) XP)") { _=app.learner.completeRPG(run);app.persist() }.accessibilityIdentifier("rpgComplete").disabled(saved)
             } else { Text("Free adventure completed. No lesson XP is awarded.") }

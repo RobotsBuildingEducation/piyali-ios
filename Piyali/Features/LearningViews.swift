@@ -16,7 +16,8 @@ struct HomeView: View {
                 Text("Reach your daily XP goal to recover 15% health. Each missed calendar day costs 10%.").font(.footnote)
                 NavigationLink("Daily practice plate") { DailyPlateView() }
                 NavigationLink("Immersion & Score") { RealWorldTaskView() }.accessibilityIdentifier("immersionLink")
-                if let lesson = app.selectedLesson { NavigationLink("Continue: " + lesson.title.localized(app.learner.support)) { LessonView(lesson: lesson) } }
+                if let lesson = app.selectedLesson { NavigationLink("Continue: " + lesson.title.localized(app.learner.support)) { if lesson.id == IntroTutorial.lessonID { IntroTutorialView(lesson:lesson) } else { LessonView(lesson: lesson) } } }
+                if let intro=app.introLesson { NavigationLink("Getting Started") { IntroTutorialView(lesson:intro) }.accessibilityIdentifier("introLink") }
             }
             Section("Learning path") {
                 NavigationLink("Choose your starting level") { PlacementView() }
@@ -59,7 +60,7 @@ struct DailyPlateView: View {
                         if let lesson = app.selectedTutorLesson { TutorView(tutorLesson:lesson) }
                         else { Text("This tutor course is complete. Choose another lesson level in Learn.") }
                     case "learn":
-                        if let lesson = app.selectedLesson { LessonView(lesson:lesson) }
+                        if let lesson = app.selectedLesson { if lesson.id == IntroTutorial.lessonID { IntroTutorialView(lesson:lesson) } else { LessonView(lesson:lesson) } }
                         else { Text("Choose a lesson level to continue.") }
                     case "review": FlashcardsView()
                     case "phonics": PhonicsView()

@@ -39,14 +39,15 @@ public struct RPGMiss: Codable, Equatable, Sendable { public let beatID:String;p
 public struct RPGSpeechTurn: Codable, Sendable { public let grade:String;public let reply:String;public let tip:String }
 public struct RPGRun: Codable, Equatable, Identifiable, Sendable {
     public var id=UUID();public let target:String;public let support:String;public let lessonID:String?;public let xpReward:Int;public var scenario:RPGScenario;public let world:RPGWorld
+    public var tutorial:Bool?
     public var position:RPGPoint;public var stepIndex=0;public var attempts=0;public var score=0;public var resolved=false;public var feedback="";public var tip="";public var misses:[RPGMiss]=[];public var dialogue:[String]=[];public var updatedAt=Date();public var claimed=false
-    public init(target:String,support:String,lessonID:String?,xpReward:Int,scenario:RPGScenario,world:RPGWorld) { self.target=target;self.support=support;self.lessonID=lessonID;self.xpReward=xpReward;self.scenario=scenario;self.world=world;self.position=world.start }
+    public init(target:String,support:String,lessonID:String?,xpReward:Int,scenario:RPGScenario,world:RPGWorld,tutorial:Bool = false) { self.tutorial=tutorial;self.target=target;self.support=support;self.lessonID=lessonID;self.xpReward=xpReward;self.scenario=scenario;self.world=world;self.position=world.start }
     public var completed:Bool { stepIndex >= scenario.quest.steps.count && scenario.quest.steps.count == 7 }
     public var step:RPGStep? { completed || !scenario.quest.steps.indices.contains(stepIndex) ? nil : scenario.quest.steps[stepIndex] }
     public var node:RPGNode? { step?.nodes.first }
     public var npc:RPGNPC? { guard let step,scenario.npcs.indices.contains(step.npcIdx) else { return nil };return scenario.npcs[step.npcIdx] }
     public var stars:Int { RPGScoring.stars(score) }
-    public var reward:Int { completed && lessonID != nil ? RPGScoring.xp(reward:xpReward,score:score) : 0 }
+    public var reward:Int { completed && lessonID != nil && tutorial != true ? RPGScoring.xp(reward:xpReward,score:score) : 0 }
     public mutating func move(dx:Int,dy:Int) -> Bool { let next=RPGPoint(x:position.x+dx,y:position.y+dy);guard abs(dx)+abs(dy)==1,world.walkable(next) else { return false };position=next;updatedAt=Date();return true }
     public mutating func approachNPC() -> Bool { guard let npc,let path=world.path(from:position,to:RPGPoint(x:npc.tx,y:npc.ty)),let last=path.last else { return false };position=last;updatedAt=Date();return true }
     private mutating func miss(_ answer:String) { guard let step,let node else { return };misses.removeAll { $0.beatID == step.id };let expected=node.responseMode == "speech" ? [node.speechExample ?? "",node.speechTarget ?? "",node.expectedAnswer].first { !$0.isEmpty } ?? "" : node.expectedAnswer;misses.append(RPGMiss(beatID:step.id,concept:node.conceptLabel,expected:expected,answer:String(answer.prefix(1000)))) }
@@ -93,7 +94,7 @@ public enum RPGScoring {
 public extension LearnerState {
     mutating func saveRPG(_ run:RPGRun) { if rpgRuns == nil { rpgRuns=[:] };rpgRuns?[run.target]=run;for key in (rpgRuns ?? [:]).sorted(by:{ $0.value.updatedAt > $1.value.updatedAt }).dropFirst(3).map(\.key) { rpgRuns?.removeValue(forKey:key) } }
     @discardableResult mutating func completeRPG(_ run:RPGRun,now:Date = Date()) -> Int {
-        guard run.completed,!run.claimed,run.target == target,rpgRuns?[target]?.id == run.id,let lessonID=run.lessonID else { return 0 }
+        guard run.completed,run.tutorial != true,!run.claimed,run.target == target,rpgRuns?[target]?.id == run.id,let lessonID=run.lessonID else { return 0 }
         var saved=run;saved.claimed=true;saveRPG(saved)
         let key=completionKey(lessonID);guard !completed.contains(key) else { return 0 };completed.insert(key)
         addXP(run.reward,now:now,calendar:.current)
