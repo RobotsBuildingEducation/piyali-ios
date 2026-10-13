@@ -74,13 +74,13 @@ targets:
   PiyaliTests:
     type: bundle.unit-test
     platform: iOS
-    sources: [Tests/PiyaliAppTests]
+    sources: [Tests/PiyaliAppTests, Tests/Shared]
     dependencies:
       - target: Piyali
   PiyaliUITests:
     type: bundle.ui-testing
     platform: iOS
-    sources: [Tests/PiyaliUITests]
+    sources: [Tests/PiyaliUITests, Tests/Shared]
     dependencies:
       - target: Piyali
 schemes:

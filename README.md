@@ -19,7 +19,7 @@ Open **Piyali.xcodeproj** in Xcode 26 or newer. Minimum iOS version is 17. Choos
 - Daily immersion uses three missions plus a goal mission, retained partial progress, language-specific history, the original Score landmarks and once-only 15 XP checklist rewards. See [docs/IMMERSION.md](docs/IMMERSION.md).
 - Conversation goals support text, dictation and live voice, contextual goal changes, starter phrases, translation, personal topics and tutor personality. Each real turn counts once; completed goals receive one bonus, quoted Score result and achievement proof across device retries. Private drafts resume per language. See [docs/CONVERSATIONS.md](docs/CONVERSATIONS.md).
 - Signed Nostr achievement restoration and opt-in automatic public collection sync, preserving legacy and other-host records. See [docs/NOSTR_ACHIEVEMENTS.md](docs/NOSTR_ACHIEVEMENTS.md).
-- Public Nostr learning teams with verified events, relay acknowledgments, creation, leave/delete and opt-in progress publication.
+- Public Nostr learning teams with verified events, relay authentication/acknowledgments, creation, creator rename/roster additions, member departure/deletion and opt-in progress publication. Team details show profile names, daily goals, Score, XP, streaks and companion status; acknowledged own teams survive relay indexing delays and restart. See [docs/TEAMS.md](docs/TEAMS.md).
 - Subscription paywall with signed Nostr Patreon restore, StoreKit purchase/restore with verified Nostr-bound entitlements, independent provider restoration and storefront-controlled web payment link to the actual `/subscribe` route.
 - Per-language starting-level self-assessment and independent lesson/flashcard course unlocks, with Firebase placement and Score persistence. Placement grants access without granting completion or XP.
 
@@ -73,6 +73,7 @@ node scripts/export-review-fixtures.mjs /absolute/path/to/reference/nosabos
 node scripts/export-goal-fixtures.mjs /absolute/path/to/reference/nosabos
 node scripts/export-plate-fixtures.mjs /absolute/path/to/reference/nosabos
 node scripts/export-conversation-fixtures.mjs /absolute/path/to/reference/nosabos
+node scripts/export-team-fixtures.mjs /absolute/path/to/reference/nosabos
 ```
 
 The exporter uses the reference's existing `esbuild` install. Only this repo's bundled gzip JSON files are written. Run the content tests after re-exporting.

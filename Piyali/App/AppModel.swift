@@ -90,6 +90,7 @@ import SwiftUI
     }
     func signIn(nsec: String?) async {
         nostrSyncTask?.cancel();nostrAchievements.cancel()
+        teams.cancel(clear:true)
         do {
             if let nsec { try identity.importKey(nsec) } else { try identity.create() }
             saveTask?.cancel(); contentTask?.cancel()

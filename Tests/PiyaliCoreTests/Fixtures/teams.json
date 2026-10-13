@@ -1,0 +1,2204 @@
+{
+  "rows": [
+    {
+      "data": {
+        "schemaVersion": 1,
+        "score": null,
+        "scoreScale": "0-100",
+        "companion": null,
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": null,
+        "scoreLevel": "",
+        "companion": {
+          "name": "",
+          "type": "ghost",
+          "level": 1,
+          "health": 100
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 1,
+        "score": null,
+        "scoreScale": "0-100",
+        "companion": {
+          "name": "  Coco  ",
+          "type": "dog",
+          "level": 2,
+          "health": 110
+        },
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": null,
+        "scoreLevel": "",
+        "companion": {
+          "name": "",
+          "type": "ghost",
+          "level": 1,
+          "health": 100
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 1,
+        "score": null,
+        "scoreScale": "0-100",
+        "companion": {
+          "name": "日本語",
+          "type": "DOG",
+          "level": 40.8,
+          "health": -2
+        },
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": null,
+        "scoreLevel": "",
+        "companion": {
+          "name": "",
+          "type": "ghost",
+          "level": 1,
+          "health": 100
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 1,
+        "score": "",
+        "scoreScale": "0-100",
+        "companion": null,
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": null,
+        "scoreLevel": "",
+        "companion": {
+          "name": "",
+          "type": "ghost",
+          "level": 1,
+          "health": 100
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 1,
+        "score": "",
+        "scoreScale": "0-100",
+        "companion": {
+          "name": "  Coco  ",
+          "type": "dog",
+          "level": 2,
+          "health": 110
+        },
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": null,
+        "scoreLevel": "",
+        "companion": {
+          "name": "",
+          "type": "ghost",
+          "level": 1,
+          "health": 100
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 1,
+        "score": "",
+        "scoreScale": "0-100",
+        "companion": {
+          "name": "日本語",
+          "type": "DOG",
+          "level": 40.8,
+          "health": -2
+        },
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": null,
+        "scoreLevel": "",
+        "companion": {
+          "name": "",
+          "type": "ghost",
+          "level": 1,
+          "health": 100
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 1,
+        "score": 0,
+        "scoreScale": "0-100",
+        "companion": null,
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": null,
+        "scoreLevel": "",
+        "companion": {
+          "name": "",
+          "type": "ghost",
+          "level": 1,
+          "health": 100
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 1,
+        "score": 0,
+        "scoreScale": "0-100",
+        "companion": {
+          "name": "  Coco  ",
+          "type": "dog",
+          "level": 2,
+          "health": 110
+        },
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": null,
+        "scoreLevel": "",
+        "companion": {
+          "name": "",
+          "type": "ghost",
+          "level": 1,
+          "health": 100
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 1,
+        "score": 0,
+        "scoreScale": "0-100",
+        "companion": {
+          "name": "日本語",
+          "type": "DOG",
+          "level": 40.8,
+          "health": -2
+        },
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": null,
+        "scoreLevel": "",
+        "companion": {
+          "name": "",
+          "type": "ghost",
+          "level": 1,
+          "health": 100
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 1,
+        "score": 14.9,
+        "scoreScale": "0-100",
+        "companion": null,
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": null,
+        "scoreLevel": "",
+        "companion": {
+          "name": "",
+          "type": "ghost",
+          "level": 1,
+          "health": 100
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 1,
+        "score": 14.9,
+        "scoreScale": "0-100",
+        "companion": {
+          "name": "  Coco  ",
+          "type": "dog",
+          "level": 2,
+          "health": 110
+        },
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": null,
+        "scoreLevel": "",
+        "companion": {
+          "name": "",
+          "type": "ghost",
+          "level": 1,
+          "health": 100
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 1,
+        "score": 14.9,
+        "scoreScale": "0-100",
+        "companion": {
+          "name": "日本語",
+          "type": "DOG",
+          "level": 40.8,
+          "health": -2
+        },
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": null,
+        "scoreLevel": "",
+        "companion": {
+          "name": "",
+          "type": "ghost",
+          "level": 1,
+          "health": 100
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 1,
+        "score": 42,
+        "scoreScale": "0-100",
+        "companion": null,
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": null,
+        "scoreLevel": "",
+        "companion": {
+          "name": "",
+          "type": "ghost",
+          "level": 1,
+          "health": 100
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 1,
+        "score": 42,
+        "scoreScale": "0-100",
+        "companion": {
+          "name": "  Coco  ",
+          "type": "dog",
+          "level": 2,
+          "health": 110
+        },
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": null,
+        "scoreLevel": "",
+        "companion": {
+          "name": "",
+          "type": "ghost",
+          "level": 1,
+          "health": 100
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 1,
+        "score": 42,
+        "scoreScale": "0-100",
+        "companion": {
+          "name": "日本語",
+          "type": "DOG",
+          "level": 40.8,
+          "health": -2
+        },
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": null,
+        "scoreLevel": "",
+        "companion": {
+          "name": "",
+          "type": "ghost",
+          "level": 1,
+          "health": 100
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 1,
+        "score": 101,
+        "scoreScale": "0-100",
+        "companion": null,
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": null,
+        "scoreLevel": "",
+        "companion": {
+          "name": "",
+          "type": "ghost",
+          "level": 1,
+          "health": 100
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 1,
+        "score": 101,
+        "scoreScale": "0-100",
+        "companion": {
+          "name": "  Coco  ",
+          "type": "dog",
+          "level": 2,
+          "health": 110
+        },
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": null,
+        "scoreLevel": "",
+        "companion": {
+          "name": "",
+          "type": "ghost",
+          "level": 1,
+          "health": 100
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 1,
+        "score": 101,
+        "scoreScale": "0-100",
+        "companion": {
+          "name": "日本語",
+          "type": "DOG",
+          "level": 40.8,
+          "health": -2
+        },
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": null,
+        "scoreLevel": "",
+        "companion": {
+          "name": "",
+          "type": "ghost",
+          "level": 1,
+          "health": 100
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 1,
+        "score": "27",
+        "scoreScale": "0-100",
+        "companion": null,
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": null,
+        "scoreLevel": "",
+        "companion": {
+          "name": "",
+          "type": "ghost",
+          "level": 1,
+          "health": 100
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 1,
+        "score": "27",
+        "scoreScale": "0-100",
+        "companion": {
+          "name": "  Coco  ",
+          "type": "dog",
+          "level": 2,
+          "health": 110
+        },
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": null,
+        "scoreLevel": "",
+        "companion": {
+          "name": "",
+          "type": "ghost",
+          "level": 1,
+          "health": 100
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 1,
+        "score": "27",
+        "scoreScale": "0-100",
+        "companion": {
+          "name": "日本語",
+          "type": "DOG",
+          "level": 40.8,
+          "health": -2
+        },
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": null,
+        "scoreLevel": "",
+        "companion": {
+          "name": "",
+          "type": "ghost",
+          "level": 1,
+          "health": 100
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 1,
+        "score": "bad",
+        "scoreScale": "0-100",
+        "companion": null,
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": null,
+        "scoreLevel": "",
+        "companion": {
+          "name": "",
+          "type": "ghost",
+          "level": 1,
+          "health": 100
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 1,
+        "score": "bad",
+        "scoreScale": "0-100",
+        "companion": {
+          "name": "  Coco  ",
+          "type": "dog",
+          "level": 2,
+          "health": 110
+        },
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": null,
+        "scoreLevel": "",
+        "companion": {
+          "name": "",
+          "type": "ghost",
+          "level": 1,
+          "health": 100
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 1,
+        "score": "bad",
+        "scoreScale": "0-100",
+        "companion": {
+          "name": "日本語",
+          "type": "DOG",
+          "level": 40.8,
+          "health": -2
+        },
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": null,
+        "scoreLevel": "",
+        "companion": {
+          "name": "",
+          "type": "ghost",
+          "level": 1,
+          "health": 100
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 2,
+        "score": null,
+        "scoreScale": "0-100",
+        "companion": null,
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": null,
+        "scoreLevel": "",
+        "companion": {
+          "name": "",
+          "type": "ghost",
+          "level": 1,
+          "health": 100
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 2,
+        "score": null,
+        "scoreScale": "0-100",
+        "companion": {
+          "name": "  Coco  ",
+          "type": "dog",
+          "level": 2,
+          "health": 110
+        },
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": null,
+        "scoreLevel": "",
+        "companion": {
+          "name": "  Coco  ",
+          "type": "ghost",
+          "level": 2,
+          "health": 100
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 2,
+        "score": null,
+        "scoreScale": "0-100",
+        "companion": {
+          "name": "日本語",
+          "type": "DOG",
+          "level": 40.8,
+          "health": -2
+        },
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": null,
+        "scoreLevel": "",
+        "companion": {
+          "name": "日本語",
+          "type": "dog",
+          "level": 40,
+          "health": 0
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 2,
+        "score": "",
+        "scoreScale": "0-100",
+        "companion": null,
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": null,
+        "scoreLevel": "",
+        "companion": {
+          "name": "",
+          "type": "ghost",
+          "level": 1,
+          "health": 100
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 2,
+        "score": "",
+        "scoreScale": "0-100",
+        "companion": {
+          "name": "  Coco  ",
+          "type": "dog",
+          "level": 2,
+          "health": 110
+        },
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": null,
+        "scoreLevel": "",
+        "companion": {
+          "name": "  Coco  ",
+          "type": "ghost",
+          "level": 2,
+          "health": 100
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 2,
+        "score": "",
+        "scoreScale": "0-100",
+        "companion": {
+          "name": "日本語",
+          "type": "DOG",
+          "level": 40.8,
+          "health": -2
+        },
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": null,
+        "scoreLevel": "",
+        "companion": {
+          "name": "日本語",
+          "type": "dog",
+          "level": 40,
+          "health": 0
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 2,
+        "score": 0,
+        "scoreScale": "0-100",
+        "companion": null,
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": 0,
+        "scoreLevel": "Pre-A1",
+        "companion": {
+          "name": "",
+          "type": "ghost",
+          "level": 1,
+          "health": 100
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 2,
+        "score": 0,
+        "scoreScale": "0-100",
+        "companion": {
+          "name": "  Coco  ",
+          "type": "dog",
+          "level": 2,
+          "health": 110
+        },
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": 0,
+        "scoreLevel": "Pre-A1",
+        "companion": {
+          "name": "  Coco  ",
+          "type": "ghost",
+          "level": 2,
+          "health": 100
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 2,
+        "score": 0,
+        "scoreScale": "0-100",
+        "companion": {
+          "name": "日本語",
+          "type": "DOG",
+          "level": 40.8,
+          "health": -2
+        },
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": 0,
+        "scoreLevel": "Pre-A1",
+        "companion": {
+          "name": "日本語",
+          "type": "dog",
+          "level": 40,
+          "health": 0
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 2,
+        "score": 14.9,
+        "scoreScale": "0-100",
+        "companion": null,
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": 14.9,
+        "scoreLevel": "A1",
+        "companion": {
+          "name": "",
+          "type": "ghost",
+          "level": 1,
+          "health": 100
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 2,
+        "score": 14.9,
+        "scoreScale": "0-100",
+        "companion": {
+          "name": "  Coco  ",
+          "type": "dog",
+          "level": 2,
+          "health": 110
+        },
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": 14.9,
+        "scoreLevel": "A1",
+        "companion": {
+          "name": "  Coco  ",
+          "type": "ghost",
+          "level": 2,
+          "health": 100
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 2,
+        "score": 14.9,
+        "scoreScale": "0-100",
+        "companion": {
+          "name": "日本語",
+          "type": "DOG",
+          "level": 40.8,
+          "health": -2
+        },
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": 14.9,
+        "scoreLevel": "A1",
+        "companion": {
+          "name": "日本語",
+          "type": "dog",
+          "level": 40,
+          "health": 0
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 2,
+        "score": 42,
+        "scoreScale": "0-100",
+        "companion": null,
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": 42,
+        "scoreLevel": "A2",
+        "companion": {
+          "name": "",
+          "type": "ghost",
+          "level": 1,
+          "health": 100
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 2,
+        "score": 42,
+        "scoreScale": "0-100",
+        "companion": {
+          "name": "  Coco  ",
+          "type": "dog",
+          "level": 2,
+          "health": 110
+        },
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": 42,
+        "scoreLevel": "A2",
+        "companion": {
+          "name": "  Coco  ",
+          "type": "ghost",
+          "level": 2,
+          "health": 100
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 2,
+        "score": 42,
+        "scoreScale": "0-100",
+        "companion": {
+          "name": "日本語",
+          "type": "DOG",
+          "level": 40.8,
+          "health": -2
+        },
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": 42,
+        "scoreLevel": "A2",
+        "companion": {
+          "name": "日本語",
+          "type": "dog",
+          "level": 40,
+          "health": 0
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 2,
+        "score": 101,
+        "scoreScale": "0-100",
+        "companion": null,
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": 100,
+        "scoreLevel": "C2",
+        "companion": {
+          "name": "",
+          "type": "ghost",
+          "level": 1,
+          "health": 100
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 2,
+        "score": 101,
+        "scoreScale": "0-100",
+        "companion": {
+          "name": "  Coco  ",
+          "type": "dog",
+          "level": 2,
+          "health": 110
+        },
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": 100,
+        "scoreLevel": "C2",
+        "companion": {
+          "name": "  Coco  ",
+          "type": "ghost",
+          "level": 2,
+          "health": 100
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 2,
+        "score": 101,
+        "scoreScale": "0-100",
+        "companion": {
+          "name": "日本語",
+          "type": "DOG",
+          "level": 40.8,
+          "health": -2
+        },
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": 100,
+        "scoreLevel": "C2",
+        "companion": {
+          "name": "日本語",
+          "type": "dog",
+          "level": 40,
+          "health": 0
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 2,
+        "score": "27",
+        "scoreScale": "0-100",
+        "companion": null,
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": 27,
+        "scoreLevel": "A1",
+        "companion": {
+          "name": "",
+          "type": "ghost",
+          "level": 1,
+          "health": 100
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 2,
+        "score": "27",
+        "scoreScale": "0-100",
+        "companion": {
+          "name": "  Coco  ",
+          "type": "dog",
+          "level": 2,
+          "health": 110
+        },
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": 27,
+        "scoreLevel": "A1",
+        "companion": {
+          "name": "  Coco  ",
+          "type": "ghost",
+          "level": 2,
+          "health": 100
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 2,
+        "score": "27",
+        "scoreScale": "0-100",
+        "companion": {
+          "name": "日本語",
+          "type": "DOG",
+          "level": 40.8,
+          "health": -2
+        },
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": 27,
+        "scoreLevel": "A1",
+        "companion": {
+          "name": "日本語",
+          "type": "dog",
+          "level": 40,
+          "health": 0
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 2,
+        "score": "bad",
+        "scoreScale": "0-100",
+        "companion": null,
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": null,
+        "scoreLevel": "",
+        "companion": {
+          "name": "",
+          "type": "ghost",
+          "level": 1,
+          "health": 100
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 2,
+        "score": "bad",
+        "scoreScale": "0-100",
+        "companion": {
+          "name": "  Coco  ",
+          "type": "dog",
+          "level": 2,
+          "health": 110
+        },
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": null,
+        "scoreLevel": "",
+        "companion": {
+          "name": "  Coco  ",
+          "type": "ghost",
+          "level": 2,
+          "health": 100
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    },
+    {
+      "data": {
+        "schemaVersion": 2,
+        "score": "bad",
+        "scoreScale": "0-100",
+        "companion": {
+          "name": "日本語",
+          "type": "DOG",
+          "level": 40.8,
+          "health": -2
+        },
+        "name": "  Ada  ",
+        "targetLang": "es",
+        "level": "B1",
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "progressPercent": 67,
+        "xp": 1200,
+        "goal": 30,
+        "dailyXp": 20
+      },
+      "expected": {
+        "npub": "npub1fixture",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": null,
+        "scoreLevel": "",
+        "companion": {
+          "name": "日本語",
+          "type": "dog",
+          "level": 40,
+          "health": 0
+        },
+        "streak": 3,
+        "answeredStepsCount": 8,
+        "dailyProgress": 67,
+        "progressPercent": 67,
+        "totalXp": 1200,
+        "dailyGoalXp": 30,
+        "dailyXp": 20,
+        "isCreator": true
+      }
+    }
+  ],
+  "events": [
+    {
+      "args": {
+        "id": "local-team",
+        "name": "Equipo 日本語",
+        "memberHexes": [
+          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        ],
+        "createdAt": 1700000000,
+        "deleted": false
+      },
+      "expected": {
+        "kind": 30078,
+        "content": {
+          "name": "Equipo 日本語",
+          "createdAt": 1700000000
+        },
+        "created_at": 1700000000,
+        "tags": [
+          [
+            "d",
+            "learning-team:local-team"
+          ],
+          [
+            "t",
+            "learning-team"
+          ],
+          [
+            "name",
+            "Equipo 日本語"
+          ],
+          [
+            "p",
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          ],
+          [
+            "p",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          ]
+        ]
+      }
+    },
+    {
+      "args": {
+        "id": "local-team",
+        "name": "Equipo 日本語",
+        "memberHexes": [
+          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        ],
+        "createdAt": 1700000000,
+        "deleted": true
+      },
+      "expected": {
+        "kind": 30078,
+        "content": {
+          "name": "Equipo 日本語",
+          "createdAt": 1700000000
+        },
+        "created_at": 1700000000,
+        "tags": [
+          [
+            "d",
+            "learning-team:local-team"
+          ],
+          [
+            "t",
+            "learning-team"
+          ],
+          [
+            "name",
+            "Equipo 日本語"
+          ],
+          [
+            "deleted"
+          ],
+          [
+            "p",
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          ],
+          [
+            "p",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          ]
+        ]
+      }
+    }
+  ],
+  "departures": [
+    {
+      "created": 100,
+      "left": null,
+      "expected": false
+    },
+    {
+      "created": 100,
+      "left": 99,
+      "expected": false
+    },
+    {
+      "created": 100,
+      "left": 100,
+      "expected": true
+    },
+    {
+      "created": 100,
+      "left": 101,
+      "expected": true
+    },
+    {
+      "created": 100,
+      "left": 201,
+      "expected": true
+    },
+    {
+      "created": 101,
+      "left": null,
+      "expected": false
+    },
+    {
+      "created": 101,
+      "left": 99,
+      "expected": false
+    },
+    {
+      "created": 101,
+      "left": 100,
+      "expected": false
+    },
+    {
+      "created": 101,
+      "left": 101,
+      "expected": true
+    },
+    {
+      "created": 101,
+      "left": 201,
+      "expected": true
+    },
+    {
+      "created": 200,
+      "left": null,
+      "expected": false
+    },
+    {
+      "created": 200,
+      "left": 99,
+      "expected": false
+    },
+    {
+      "created": 200,
+      "left": 100,
+      "expected": false
+    },
+    {
+      "created": 200,
+      "left": 101,
+      "expected": false
+    },
+    {
+      "created": 200,
+      "left": 201,
+      "expected": true
+    }
+  ]
+}
