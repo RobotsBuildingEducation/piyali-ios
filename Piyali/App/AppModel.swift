@@ -112,6 +112,45 @@ import SwiftUI
         learner.place(Placement(level:level,score:Int(PerformanceScore.defaults[level] ?? 1),source:"onboarding",selectedIDs:[],updatedAt:Date()))
         learner.onboardingComplete=true;persist();Task { await reloadContent() }
     }
+    var immersionPreparationKey: String {
+        let scope=learner.immersionScope()
+        return ([identity.npub]+["dayKey","targetLang","appLanguage","placementAt","cefrLevel","goalId","goalText"].map { scope[$0].string }+[learner.immersionState()["status"].string]).joined(separator:"\u{1f}")
+    }
+    func prepareImmersion() async throws {
+        guard learner.placements?[learner.target] != nil else { return }
+        let state=learner,scope=state.immersionScope(),account=identity.npub,status=state.immersionState()["status"].string
+        if status == "ready" {
+            let checklist=state.immersionState()
+            if !checklist["rewarded"].boolean,!checklist["completed"].array.isEmpty,checklist["completed"].array.allSatisfy(\.boolean) {
+                learner.applyImmersion(.init(target:state.target,action:.claim,payload:scope.setting("generatedAt",state.immersionBatch?["generatedAt"] ?? .null)));persist()
+            }
+            return
+        }
+        var payload=scope.setting("baseBatch",state.immersionBatch ?? .null)
+        if status != "goal_removed" {
+            let skillLessons=units.flatMap(\.lessons),tutorLessons=tutorUnits.flatMap(\.lessons)
+            let skillProgress=JSONValue.object(Dictionary(uniqueKeysWithValues:skillLessons.filter { state.completed.contains(state.completionKey($0.id)) }.map { ($0.id,.object(["status":.string("completed")])) }))
+            let tutorProgress=JSONValue.object(Dictionary(uniqueKeysWithValues:tutorLessons.compactMap { lesson -> (String,JSONValue)? in
+                let completed=state.completed.contains(state.tutorKey(lesson.id)),started=(state.tutorLessons?[state.tutorKey(lesson.id)]?.earnedXP ?? 0) > 0
+                return completed || started ? (lesson.id,.object(["status":.string(completed ? "completed" : "in_progress")])) : nil
+            }))
+            let skill=DailyImmersion.candidate(lessons:skillLessons,progress:skillProgress,completedCount:state.courseCompletion?[state.target]?["skillTree"]?[state.level] ?? 0,level:state.level,mode:"Lessons")
+            let tutor=DailyImmersion.candidate(lessons:tutorLessons,progress:tutorProgress,completedCount:state.courseCompletion?[state.target]?["tutor"]?[state.tutorLevel] ?? 0,level:state.tutorLevel,mode:"Tutor")
+            let context=DailyImmersion.context(DailyImmersion.leading(skill,tutor),support:state.support)
+            var generated:[JSONValue]
+            #if DEBUG
+            if ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"] == "1",ProcessInfo.processInfo.environment["PIYALI_IMMERSION_FIXTURE"] == "1" {
+                let titles=["Notice a familiar word","Listen for a useful detail","Describe something nearby","Advance your personal goal"]
+                generated=(status == "goal_update" ? [titles[3]] : Array(titles.prefix(state.immersionGoal == .null ? 3 : 4))).map { .object(["title":.string($0),"description":.string("Practice privately at home, then mark this mission complete.")]) }
+            } else { generated=try await ai.immersionTasks(learner:state,context:context,onlyGoal:status == "goal_update") }
+            #else
+            generated=try await ai.immersionTasks(learner:state,context:context,onlyGoal:status == "goal_update")
+            #endif
+            payload=payload.setting("tasks",.array(generated))
+        }
+        try Task.checkCancellation();guard identity.npub == account,learner.immersionScope() == scope else { throw CancellationError() }
+        learner.applyImmersion(.init(target:state.target,action:.batch,payload:payload));persist()
+    }
     func setNostrAchievementSharing(_ enabled: Bool) {
         learner.shareNostrAchievements=enabled
         try? writeLocal()
@@ -198,7 +237,7 @@ import SwiftUI
         }
     }
     private var synchronizedStatus: String {
-        (learner.pendingChanges ?? []).isEmpty && (learner.pendingMemoryChanges ?? []).isEmpty && (learner.pendingPlacements ?? [:]).isEmpty && (learner.pendingGoalChanges ?? []).isEmpty ? "Synced with Firebase" : "Saved on iPhone; cloud sync pending"
+        (learner.pendingChanges ?? []).isEmpty && (learner.pendingImmersionChanges ?? []).isEmpty && (learner.pendingMemoryChanges ?? []).isEmpty && (learner.pendingPlacements ?? [:]).isEmpty && (learner.pendingGoalChanges ?? []).isEmpty ? "Synced with Firebase" : "Saved on iPhone; cloud sync pending"
     }
     private func applyAcknowledgment(_ cloud: LearnerState, sent: LearnerState) throws {
         let target = learner.target, support = learner.support, level = learner.level, cardLevel = learner.flashcardLevel, tutorLevel = learner.tutorLevel

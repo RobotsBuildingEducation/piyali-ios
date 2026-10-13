@@ -15,6 +15,7 @@ struct HomeView: View {
                 Text("Companion health: \(app.learner.companionHealth)% · \(app.learner.companionStatus)").accessibilityIdentifier("companionHealth")
                 Text("Reach your daily XP goal to recover 15% health. Each missed calendar day costs 10%.").font(.footnote)
                 NavigationLink("Daily practice plate") { DailyPlateView() }
+                NavigationLink("Immersion & Score") { RealWorldTaskView() }.accessibilityIdentifier("immersionLink")
                 if let lesson = app.selectedLesson { NavigationLink("Continue: " + lesson.title.localized(app.learner.support)) { LessonView(lesson: lesson) } }
             }
             Section("Learning path") {
@@ -77,6 +78,7 @@ struct DailyPlateView: View {
                 }.accessibilityIdentifier("quest-" + course.kind)
             }
             if DailyPlate.bonusAwarded(progress:app.learner.plateProgress,target:app.learner.target,day:CalendarDay.key(Date())) { Text("Quest completed · +25 XP").accessibilityIdentifier("questCompleted") }
+            Section("Outside the app") { NavigationLink("Immersion & Score") { RealWorldTaskView() } }
         }.navigationTitle("Daily plate")
             .task(id:app.identity.npub + app.learner.target + CalendarDay.key(Date())) { app.prepareDailyPlate() }
     }
@@ -121,7 +123,7 @@ struct PracticeLibraryView: View {
             Section("Practice modes") {
                 ForEach(PracticeMode.allCases) { mode in NavigationLink(mode.rawValue) { ExerciseView(mode: mode, lesson: app.selectedLesson) } }
                 NavigationLink("Grammar reference") { GrammarReferenceView() }
-                NavigationLink("Real-world task") { RealWorldTaskView() }
+                NavigationLink("Immersion & Score") { RealWorldTaskView() }
             }
         }.navigationTitle("Practice")
     }

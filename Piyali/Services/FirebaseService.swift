@@ -127,10 +127,13 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
         for change in (state.pendingChanges ?? []).sorted(by:{ $0.date < $1.date }) {
             try await apply(change, state:state, user:user, database:database)
         }
+        for change in (state.pendingImmersionChanges ?? []).sorted(by:{ $0.date < $1.date }) {
+            try await applyImmersion(change,state:state,user:user,database:database)
+        }
         for change in (state.pendingMemoryChanges ?? []).sorted(by:{ $0.date < $1.date }) {
             try await applyMemory(change,user:user,database:database)
         }
-        var snapshotState = state; snapshotState.pendingChanges = []; snapshotState.pendingMemoryChanges = []; snapshotState.pendingGoalChanges = []; snapshotState.preferencesModifiedAt = nil
+        var snapshotState = state; snapshotState.pendingImmersionChanges = []; snapshotState.pendingChanges = []; snapshotState.pendingMemoryChanges = []; snapshotState.pendingGoalChanges = []; snapshotState.preferencesModifiedAt = nil
         let uploaded = snapshotState
         // Keep other-device completion evidence. Preference writes occur only after an explicit local change.
         _ = try await database.runTransaction { transaction, errorPointer -> Any? in
@@ -144,6 +147,7 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                     merged.practicedModes.formUnion(remote.practicedModes)
                 }
                 merged = WebProgressContract.imported(Self.normalized(fields),native:merged)
+                merged.immersionBatch=nil;merged.immersionHistory=nil;merged.immersionRewardReceipts=nil;merged.immersionPlacementAt=nil;merged.pendingImmersionChanges=[]
                 // Companion memory has its own shared web document, not a second snapshot authority.
                 merged.shareNostrAchievements = nil; merged.achievementRecords = nil; merged.achievementEvidence = nil; merged.achievementLedger = nil; merged.companionProgress = nil; merged.companionMemory = nil; merged.pendingMemoryChanges = []; merged.goalIntelligence = nil; merged.goalArtifacts = nil; merged.pendingGoalChanges = []; merged.questProgress = nil; merged.journeyQuestCounts = nil; merged.tutorLessons = nil; merged.acknowledgedEventIDs = nil
                 var patch: [String:Any] = ["local_npub":npub,"iosStateJSON":String(decoding:try JSONEncoder().encode(merged),as:UTF8.self),"iosStateVersion":2,"iosUpdatedAt":FieldValue.serverTimestamp()]
@@ -161,6 +165,7 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                 return true
             } catch { errorPointer?.pointee = error as NSError; return nil }
         }
+        if !(state.pendingImmersionChanges ?? []).isEmpty { try await AchievementSyncService.shared.refreshLedger(user:user) }
         try await AchievementSyncService.shared.sync(user:user,changes:state.pendingChanges ?? [])
         return try await load(npub:npub,local:uploaded)
     }
@@ -310,6 +315,53 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                 return true
             } catch { errorPointer?.pointee = error as NSError; return nil }
         }
+    }
+    private func applyImmersion(_ change: ImmersionChange, state: LearnerState, user: DocumentReference, database: Firestore) async throws {
+        let operation=user.collection("iosPracticeReceipts").document("immersion-"+change.id.uuidString)
+        let day=change.payload["dayKey"].string,key=DailyImmersion.receipt(target:change.target,day:day)
+        let claimID=SHA256.hash(data:Data(key.utf8)).map { String(format:"%02x",$0) }.joined()
+        let claim=user.collection("iosPracticeReceipts").document(claimID)
+        let month=user.collection("xpHistory").document(String(day.prefix(7)))
+        _=try await database.runTransaction { tx,error -> Any? in do {
+            let already=try tx.getDocument(operation).exists
+            let snapshot=try tx.getDocument(user),fields=Self.normalized(snapshot.data() ?? [:])
+            if already { Self.acknowledge(change.id,user:user,fields:fields,transaction:tx);return false }
+            let monthFields=Self.normalized(try tx.getDocument(month).data() ?? [:]),claimed=try tx.getDocument(claim).exists
+            let profile=AchievementSyncService.jsonFields(fields),goal=GoalPractice.active(profile["learningIntelligence"][change.target]) ?? .null
+            let result=DailyImmersion.applying(change,batch:profile["realWorldTasks"],history:profile["realWorldTaskHistoryByLanguage"],receipts:profile["xpAwardReceipts"],goal:goal,placementAt:profile["proficiencyPlacementAt"].string)
+            let reward=claimed ? 0 : result.reward
+            var proof=AchievementProgress.completionProof(profile:profile.setting("realWorldTasks",result.batch),summary:.object([:]),quest:.object([:]),language:change.target,day:day).events
+            let base=change.payload["baseBatch"]
+            if change.action == .batch,result.batch["rewarded"].boolean,base["rewarded"].boolean,result.batch["generatedAt"] == base["generatedAt"],result.batch["targetLang"].string == change.target,result.batch["dayKey"].string == day {
+                proof += AchievementProgress.completionProof(profile:profile.setting("realWorldTasks",base),summary:.object([:]),quest:.object([:]),language:change.target,day:day).events
+            }
+            var seen:Set<String>=[];proof=proof.filter { seen.insert($0["metric"].string+"\u{1f}"+$0["id"].string).inserted }
+            let events=try proof.map { event -> (DocumentReference,Bool,JSONValue) in
+                let ref=user.collection("achievementProgress").document("nosabos").collection("events").document(try AchievementSyncService.documentID(metric:event["metric"].string,id:event["id"].string))
+                return (ref,try tx.getDocument(ref).exists,event)
+            }
+            var root:[String:Any]=["local_npub":user.documentID,"iosRecentEventIDs":Self.recentIDs(fields,adding:change.id),"updatedAt":WebProgressContract.iso(change.date)]
+            if fields["xp"] == nil && profile["progress"]["languageXp"].object.isEmpty && profile["progress"]["totalXp"] == .null {
+                root["xp"]=0;root["progress"]=profile["progress"].setting("languageXp",.object([change.target:.number(0)])).setting("totalXp",.number(0)).foundation
+            }
+            if !snapshot.exists { root["createdAt"]=WebProgressContract.iso(change.date);root["dailyGoalXp"]=state.dailyGoal }
+            if result.batch != profile["realWorldTasks"] { root["realWorldTasks"]=result.batch.foundation }
+            if result.history != profile["realWorldTaskHistoryByLanguage"] { root["realWorldTaskHistoryByLanguage"]=result.history.foundation }
+            if change.action == .opened && result.batch["iosOpenedAt"].string == WebProgressContract.iso(change.date) { root["realWorldTasksLastOpenedAt"]=WebProgressContract.iso(change.date) }
+            if result.receipts != profile["xpAwardReceipts"] { root["xpAwardReceipts"]=result.receipts.foundation }
+            if reward > 0 {
+                let practice=PracticeChange(date:change.date,dayKey:day,target:change.target,level:change.payload["cefrLevel"].string,amount:reward,source:.immersion)
+                let patch=WebProgressContract.rootPatch(fields:fields,month:monthFields,change:practice)
+                root.merge(patch.root) { _,new in new };tx.setData(patch.month,forDocument:month,merge:true)
+            }
+            tx.setData(root,forDocument:user,merge:true)
+            if result.batch["rewarded"].boolean,result.batch["targetLang"].string == change.target,result.batch["dayKey"].string == day,!claimed {
+                tx.setData(["source":"immersion","targetLang":change.target,"dayKey":day,"amount":reward,"syncedAt":FieldValue.serverTimestamp()],forDocument:claim)
+            }
+            for (ref,exists,event) in events where !exists { tx.setData(["source":"nosabos","metric":event["metric"].string,"completionId":event["id"].string,"version":1],forDocument:ref) }
+            tx.setData(["eventID":change.id.uuidString,"source":"immersion-"+change.action.rawValue,"targetLang":change.target,"amount":reward,"syncedAt":FieldValue.serverTimestamp()],forDocument:operation)
+            return true
+        } catch let failure { error?.pointee=failure as NSError;return nil } }
     }
     private func applyMemory(_ change: MemoryChange, user: DocumentReference, database: Firestore) async throws {
         let receipt = user.collection("iosPracticeReceipts").document("memory-" + change.id.uuidString)

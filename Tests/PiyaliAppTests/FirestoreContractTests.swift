@@ -42,6 +42,104 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
             "patreonVerified":true,"unrelatedWebSetting":"preserve"
         ])
     }
+    private func immersionLearner() -> LearnerState {
+        var state=LearnerState();state.target="fr";state.support="es";state.onboardingComplete=true
+        state.place(Placement(level:"A1",score:18,source:"test",selectedIDs:[],updatedAt:Date()))
+        return state
+    }
+    private func immersionProposal(_ state: inout LearnerState, suffix: String = "") {
+        let tasks=JSONValue.array((0..<3).map { .object(["title":.string("Private mission \($0)\(suffix)"),"description":.string("Practice with familiar things at home \($0)\(suffix).")]) })
+        state.applyImmersion(.init(target:state.target,action:.batch,payload:state.immersionScope().setting("tasks",tasks)))
+    }
+    func testImmersionConcurrentCompletionAndRetriesGrantOneSharedReward() async throws {
+        let (service,db,npub)=try context();try await seed(db,npub)
+        var state=immersionLearner();immersionProposal(&state)
+        state=try requireState(try await service.save(state,npub:npub));state.pendingImmersionChanges=[]
+        XCTAssertEqual(state.immersionState()["status"].string,"ready","Loaded scope: \(state.immersionScope().json); batch: \((state.immersionBatch ?? .null).json)")
+        var first=state,second=state;first.toggleImmersion(index:0);second.toggleImmersion(index:1)
+        async let savedFirst=service.save(first,npub:npub)
+        async let savedSecond=service.save(second,npub:npub)
+        _=try await (savedFirst,savedSecond)
+        state=try requireState(try await service.load(npub:npub));XCTAssertTrue(DailyImmersion.completed(state.immersionBatch!,index:0));XCTAssertTrue(DailyImmersion.completed(state.immersionBatch!,index:1))
+        state.toggleImmersion(index:2);let pending=state
+        let saved=try requireState(try await service.save(pending,npub:npub))
+        XCTAssertTrue(saved.immersionBatch?["rewarded"].boolean == true)
+        _=try await service.save(pending,npub:npub)
+        var duplicate=saved;duplicate.pendingImmersionChanges=[];duplicate.toggleImmersion(index:2);duplicate.toggleImmersion(index:2)
+        _=try await service.save(duplicate,npub:npub)
+        let fields=try await db.collection("users").document(npub).getDocument().data()!
+        XCTAssertEqual(WebProgressContract.integer(fields["xp"]),165);XCTAssertEqual(fields["patreonVerified"] as? Bool,true)
+        let key=DailyImmersion.receipt(target:"fr",day:CalendarDay.key(Date()))
+        XCTAssertNotNil((fields["xpAwardReceipts"] as? [String:Any])?[key])
+        let events=try await db.collection("users").document(npub).collection("achievementProgress").document("nosabos").collection("events").getDocuments()
+        XCTAssertEqual(events.documents.filter { $0.data()["metric"] as? String == "immersion_tasks" }.count,3)
+        XCTAssertEqual(events.documents.filter { $0.data()["metric"] as? String == "immersion_checklists" }.count,1)
+        XCTAssertEqual(saved.gradedByLanguage?["fr"] ?? 0,0)
+    }
+    func testImmersionFirstBatchWinsAndStaleDeviceCannotCompleteDifferentTasks() async throws {
+        let (service,db,npub)=try context();try await seed(db,npub)
+        var winner=immersionLearner();immersionProposal(&winner)
+        winner=try requireState(try await service.save(winner,npub:npub))
+        var loser=winner;loser.immersionBatch=nil;loser.pendingImmersionChanges=[]
+        immersionProposal(&loser,suffix:" alternate")
+        for i in 0..<3 { loser.toggleImmersion(index:i) }
+        XCTAssertEqual(loser.totalXP,winner.totalXP+15)
+        let acknowledged=try requireState(try await service.save(loser,npub:npub))
+        XCTAssertEqual(acknowledged.immersionBatch?["tasks"],winner.immersionBatch?["tasks"])
+        XCTAssertFalse(DailyImmersion.completed(acknowledged.immersionBatch!,index:0))
+        let root=try await db.collection("users").document(npub).getDocument().data()!
+        XCTAssertEqual(WebProgressContract.integer(root["xp"]),150);XCTAssertEqual(acknowledged.totalXP,winner.totalXP)
+    }
+    func testOfflineImmersionBaseSurvivesGoalEditBeforeItsFirstUpload() async throws {
+        let (service,db,npub)=try context()
+        var state=immersionLearner();immersionProposal(&state)
+        state.toggleImmersion(index:0);state.editGoal("Read a French recipe privately at home")
+        let original=try XCTUnwrap(state.immersionBatch)
+        let task:JSONValue = .object(["title":.string("Find a familiar recipe word"),"description":.string("Privately read a short recipe and identify one known word.")])
+        state.applyImmersion(.init(target:state.target,action:.batch,payload:state.immersionScope().setting("tasks",.array([task])).setting("baseBatch",original)))
+        let saved=try requireState(try await service.save(state,npub:npub))
+        XCTAssertEqual(saved.immersionBatch?["tasks"].array.count,4);XCTAssertTrue(DailyImmersion.completed(saved.immersionBatch!,index:0));XCTAssertEqual(saved.totalXP,0)
+        let root=try await db.collection("users").document(npub).getDocument().data()!
+        XCTAssertEqual(WebProgressContract.integer(root["xp"]),0)
+    }
+    func testImmersionProposalPreservesLegacyLanguageXPWithoutRootXPCounter() async throws {
+        let (service,db,npub)=try context()
+        try await db.collection("users").document(npub).setData(["local_npub":npub,"progress":["targetLang":"fr","supportLang":"es","cefrLevel":"A1","totalXp":42]])
+        var state=immersionLearner();immersionProposal(&state)
+        let saved=try requireState(try await service.save(state,npub:npub))
+        XCTAssertEqual(saved.totalXP,42)
+        let root=try await db.collection("users").document(npub).getDocument().data()!
+        XCTAssertEqual(WebProgressContract.integer((root["progress"] as? [String:Any])?["totalXp"]),42)
+    }
+    func testImmersionExistingWebRewardReceiptAndLanguageHistoryArePreserved() async throws {
+        let (service,db,npub)=try context();try await seed(db,npub)
+        let user=db.collection("users").document(npub),key=DailyImmersion.receipt(target:"fr",day:CalendarDay.key(Date()))
+        try await user.setData(["xpAwardReceipts":[key:WebProgressContract.iso(Date())],"realWorldTaskHistoryByLanguage":["de":[["title":"Old German mission","description":"Preserve history"]]]],merge:true)
+        var state=immersionLearner();immersionProposal(&state);state=try requireState(try await service.save(state,npub:npub));state.pendingImmersionChanges=[]
+        for i in 0..<3 { state.toggleImmersion(index:i) }
+        let saved=try requireState(try await service.save(state,npub:npub))
+        XCTAssertTrue(saved.immersionBatch?["rewarded"].boolean == true);XCTAssertEqual(saved.totalXP,150)
+        XCTAssertEqual(saved.immersionHistory?["de"]?.array.first?["title"].string,"Old German mission")
+        let root=try await user.getDocument().data()!
+        XCTAssertEqual(WebProgressContract.integer(root["xp"]),150);XCTAssertEqual(root["patreonVerified"] as? Bool,true)
+    }
+    func testOfflineCompletedBaseKeepsItsRewardAfterGoalChangeBeforeFirstUpload() async throws {
+        let (service,db,npub)=try context()
+        var state=immersionLearner();immersionProposal(&state)
+        for index in 0..<3 { state.toggleImmersion(index:index) }
+        XCTAssertEqual(state.totalXP,15)
+        state.editGoal("Read a French recipe privately at home")
+        let base=try XCTUnwrap(state.immersionBatch),task:JSONValue = .object(["title":.string("Read a recipe heading"),"description":.string("Privately find a familiar word in a short recipe heading.")])
+        state.applyImmersion(.init(target:state.target,action:.batch,payload:state.immersionScope().setting("tasks",.array([task])).setting("baseBatch",base)))
+        var saved=try requireState(try await service.save(state,npub:npub))
+        XCTAssertEqual(saved.totalXP,15);XCTAssertTrue(saved.immersionBatch?["rewarded"].boolean == true)
+        let ledger=try await db.collection("users").document(npub).collection("achievementProgress").document("nosabos").collection("events").getDocuments()
+        XCTAssertEqual(ledger.documents.filter { $0.data()["metric"] as? String == "immersion_checklists" }.count,1)
+        saved.pendingImmersionChanges=[];saved.toggleImmersion(index:3)
+        _=try await service.save(saved,npub:npub);_=try await service.save(state,npub:npub)
+        let root=try await db.collection("users").document(npub).getDocument().data()!
+        XCTAssertEqual(WebProgressContract.integer(root["xp"]),15)
+    }
     func testSignedCollectionImportPreservesRealAwardsAndOtherHostRecordsWithoutXP() async throws {
         let (service,db,npub)=try context();try await seed(db,npub)
         let user=db.collection("users").document(npub)

@@ -96,6 +96,15 @@ public enum WebProgressContract {
             state.goalIntelligence?[change.target] = result.bucket
         }
         if !state.goalBucket["activeGoal"]["text"].string.isEmpty { state.goal = state.goalBucket["activeGoal"]["text"].string }
+        state.immersionBatch=JSONValue.foundation(fields["realWorldTasks"] as? [String:Any] ?? [:])
+        state.immersionHistory=JSONValue.foundation(fields["realWorldTaskHistoryByLanguage"] as? [String:Any] ?? [:]).object
+        state.immersionRewardReceipts=JSONValue.foundation(fields["xpAwardReceipts"] as? [String:Any] ?? [:])
+        state.immersionPlacementAt=fields["proficiencyPlacementAt"] as? String
+        for change in (state.pendingImmersionChanges ?? []).sorted(by:{ $0.date < $1.date }) where !(state.acknowledgedEventIDs ?? []).contains(change.id) {
+            let reward=state.applyImmersion(change,enqueue:false,award:false)
+            state.xpByLanguage[change.target,default:0] += reward
+            if CalendarDay.key(change.date) == today { state.dailyXP += reward;state.rewardCompanion(reward,now:change.date) }
+        }
         return state
     }
     public static func placementPatch(fields: [String:Any], language: String, placement: Placement) -> [String:Any] {

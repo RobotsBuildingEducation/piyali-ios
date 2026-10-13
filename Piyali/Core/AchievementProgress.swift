@@ -75,8 +75,8 @@ public enum AchievementProgress {
         }
         let immersion=profile["realWorldTasks"],tasks=immersion["tasks"].array
         if immersion["targetLang"].string == language && !immersion["generatedAt"].string.isEmpty && !tasks.isEmpty {
-            for i in tasks.indices where immersion["completed"][String(i)].boolean { events.append(.object(["metric":.string("immersion_tasks"),"id":.string("\(language):\(immersion["dayKey"].string):\(immersion["generatedAt"].string):\(i)")])) }
-            if immersion["rewarded"].boolean && tasks.indices.allSatisfy({ immersion["completed"][String($0)].boolean }) { events.append(.object(["metric":.string("immersion_checklists"),"id":.string("\(language):\(immersion["dayKey"].string)")])) }
+            for i in tasks.indices where DailyImmersion.completed(immersion,index:i) { events.append(.object(["metric":.string("immersion_tasks"),"id":.string("\(language):\(immersion["dayKey"].string):\(immersion["generatedAt"].string):\(i)")])) }
+            if immersion["rewarded"].boolean && tasks.indices.allSatisfy({ DailyImmersion.completed(immersion,index:$0) }) { events.append(.object(["metric":.string("immersion_checklists"),"id":.string("\(language):\(immersion["dayKey"].string)")])) }
         }
         let complete=summary["migration"]["complete"].boolean
         let levels=complete ? JSONValue.object(Dictionary(uniqueKeysWithValues:["tutor","skillTree","flashcards"].map { ($0,summary[$0]["levels"]) })) : .object([:])

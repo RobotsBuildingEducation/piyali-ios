@@ -8,12 +8,33 @@ import FirebaseAILogic
 
 /// Explicit opt-in only. Uses an isolated test identity, bounded prompts and no paid access grant.
 @MainActor final class LiveAPIIntegrationTests: XCTestCase {
+    func testNativeImmersionGenerationUsesResponsesAndPreservesExistingMissions() async throws {
+        guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else { throw XCTSkip("Explicit live API opt-in required.") }
+        XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1")
+        _=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))
+        if FirebaseApp.app() == nil { AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure() }
+        XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let identity=IdentityService();try identity.create();try await FirebaseIdentityService.shared.ensure(identity)
+        do {
+            var learner=LearnerState();learner.target="es";learner.support="en"
+            learner.place(Placement(level:"A1",score:18,source:"test",selectedIDs:[],updatedAt:Date()))
+            let ai=AIService(),first=try await ai.immersionTasks(learner:learner,context:.null,onlyGoal:false)
+            XCTAssertEqual(first.count,3);XCTAssertNotNil(DailyImmersion.normalize(.array(first),count:3))
+            learner.applyImmersion(.init(target:learner.target,action:.batch,payload:learner.immersionScope().setting("tasks",.array(first))))
+            learner.toggleImmersion(index:0);learner.editGoal("Read a short Spanish recipe privately at home")
+            let fourth=try await ai.immersionTasks(learner:learner,context:.null,onlyGoal:true)
+            XCTAssertEqual(fourth.count,1)
+            learner.applyImmersion(.init(target:learner.target,action:.batch,payload:learner.immersionScope().setting("tasks",.array(fourth))))
+            XCTAssertEqual(Array(learner.immersionBatch!["tasks"].array.prefix(3)),first);XCTAssertTrue(DailyImmersion.completed(learner.immersionBatch!,index:0));XCTAssertEqual(learner.totalXP,0)
+            print("LIVE NATIVE: Immersion three-mission generation and goal-only update passed")
+        } catch { try? await Auth.auth().currentUser?.delete();try? Auth.auth().signOut();throw error }
+        try await Auth.auth().currentUser?.delete();try Auth.auth().signOut()
+    }
     func testNativeAuthenticationGeminiResponsesAndVoice() async throws {
         guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else { throw XCTSkip("Run scripts/test-live-api.py to verify configured native services.") }
         XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1")
         _ = try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))
-        XCTAssertNil(FirebaseApp.app())
-        AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory()); FirebaseApp.configure()
+        if FirebaseApp.app() == nil { AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory()); FirebaseApp.configure() }
         XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
         let identity = IdentityService(); try identity.create()
         try await FirebaseIdentityService.shared.ensure(identity)

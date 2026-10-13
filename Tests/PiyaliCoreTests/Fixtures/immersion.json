@@ -1,0 +1,1847 @@
+{
+  "states": [
+    {
+      "batch": {
+        "targetLang": "de",
+        "appLanguage": "en",
+        "dayKey": "2026-09-24",
+        "generationVersion": 3,
+        "generatedAt": "2026-09-24T09:00:00.000Z",
+        "tasks": [
+          {
+            "title": "Task 1",
+            "description": "Practice privately at home 1."
+          },
+          {
+            "title": "Task 2",
+            "description": "Practice privately at home 2."
+          },
+          {
+            "title": "Task 3",
+            "description": "Practice privately at home 3."
+          }
+        ],
+        "completed": [
+          false,
+          false,
+          false
+        ],
+        "rewarded": false,
+        "placementAt": "placement"
+      },
+      "context": {
+        "dayKey": "2026-09-24",
+        "targetLang": "de",
+        "appLanguage": "en",
+        "placementAt": "placement",
+        "goal": null
+      },
+      "expected": {
+        "status": "new",
+        "tasks": [],
+        "completed": [],
+        "rewarded": false,
+        "dayKey": "2026-09-24"
+      }
+    },
+    {
+      "batch": {
+        "targetLang": "de",
+        "appLanguage": "en",
+        "dayKey": "2026-09-24",
+        "generationVersion": 3,
+        "generatedAt": "2026-09-24T09:00:00.000Z",
+        "tasks": [
+          {
+            "title": "Task 1",
+            "description": "Practice privately at home 1."
+          },
+          {
+            "title": "Task 2",
+            "description": "Practice privately at home 2."
+          },
+          {
+            "title": "Task 3",
+            "description": "Practice privately at home 3."
+          }
+        ],
+        "completed": [
+          false,
+          false,
+          false
+        ],
+        "rewarded": false,
+        "placementAt": "placement"
+      },
+      "context": {
+        "dayKey": "2026-09-24",
+        "targetLang": "de",
+        "appLanguage": "en",
+        "placementAt": "placement",
+        "goal": {
+          "id": "goal",
+          "text": "Read a recipe"
+        }
+      },
+      "expected": {
+        "status": "new",
+        "tasks": [],
+        "completed": [],
+        "rewarded": false,
+        "dayKey": "2026-09-24"
+      }
+    },
+    {
+      "batch": {
+        "targetLang": "de",
+        "appLanguage": "en",
+        "dayKey": "2026-09-24",
+        "generationVersion": 3,
+        "generatedAt": "2026-09-24T09:00:00.000Z",
+        "tasks": [
+          {
+            "title": "Task 1",
+            "description": "Practice privately at home 1."
+          },
+          {
+            "title": "Task 2",
+            "description": "Practice privately at home 2."
+          },
+          {
+            "title": "Task 3",
+            "description": "Practice privately at home 3."
+          }
+        ],
+        "completed": [
+          false,
+          false,
+          false
+        ],
+        "rewarded": false,
+        "placementAt": "placement"
+      },
+      "context": {
+        "dayKey": "2026-09-24",
+        "targetLang": "de",
+        "appLanguage": "en",
+        "placementAt": "new-placement",
+        "goal": null
+      },
+      "expected": {
+        "status": "new",
+        "tasks": [],
+        "completed": [],
+        "rewarded": false,
+        "dayKey": "2026-09-24"
+      }
+    },
+    {
+      "batch": {
+        "targetLang": "de",
+        "appLanguage": "en",
+        "dayKey": "2026-09-24",
+        "generationVersion": 3,
+        "generatedAt": "2026-09-24T09:00:00.000Z",
+        "tasks": [
+          {
+            "title": "Task 1",
+            "description": "Practice privately at home 1."
+          },
+          {
+            "title": "Task 2",
+            "description": "Practice privately at home 2."
+          },
+          {
+            "title": "Task 3",
+            "description": "Practice privately at home 3."
+          }
+        ],
+        "completed": [
+          false,
+          false,
+          false
+        ],
+        "rewarded": false,
+        "placementAt": "placement"
+      },
+      "context": {
+        "dayKey": "2026-09-24",
+        "targetLang": "de",
+        "appLanguage": "en",
+        "placementAt": "new-placement",
+        "goal": {
+          "id": "goal",
+          "text": "Read a recipe"
+        }
+      },
+      "expected": {
+        "status": "new",
+        "tasks": [],
+        "completed": [],
+        "rewarded": false,
+        "dayKey": "2026-09-24"
+      }
+    },
+    {
+      "batch": {
+        "targetLang": "de",
+        "appLanguage": "en",
+        "dayKey": "2026-09-24",
+        "generationVersion": 4,
+        "generatedAt": "2026-09-24T09:00:00.000Z",
+        "tasks": [
+          {
+            "title": "Task 1",
+            "description": "Practice privately at home 1."
+          },
+          {
+            "title": "Task 2",
+            "description": "Practice privately at home 2."
+          },
+          {
+            "title": "Task 3",
+            "description": "Practice privately at home 3."
+          }
+        ],
+        "completed": [
+          false,
+          false,
+          false
+        ],
+        "rewarded": false,
+        "placementAt": "placement"
+      },
+      "context": {
+        "dayKey": "2026-09-24",
+        "targetLang": "de",
+        "appLanguage": "en",
+        "placementAt": "placement",
+        "goal": null
+      },
+      "expected": {
+        "status": "ready",
+        "tasks": [
+          {
+            "title": "Task 1",
+            "description": "Practice privately at home 1."
+          },
+          {
+            "title": "Task 2",
+            "description": "Practice privately at home 2."
+          },
+          {
+            "title": "Task 3",
+            "description": "Practice privately at home 3."
+          }
+        ],
+        "completed": [
+          false,
+          false,
+          false
+        ],
+        "rewarded": false,
+        "dayKey": "2026-09-24"
+      }
+    },
+    {
+      "batch": {
+        "targetLang": "de",
+        "appLanguage": "en",
+        "dayKey": "2026-09-24",
+        "generationVersion": 4,
+        "generatedAt": "2026-09-24T09:00:00.000Z",
+        "tasks": [
+          {
+            "title": "Task 1",
+            "description": "Practice privately at home 1."
+          },
+          {
+            "title": "Task 2",
+            "description": "Practice privately at home 2."
+          },
+          {
+            "title": "Task 3",
+            "description": "Practice privately at home 3."
+          }
+        ],
+        "completed": [
+          false,
+          false,
+          false
+        ],
+        "rewarded": false,
+        "placementAt": "placement"
+      },
+      "context": {
+        "dayKey": "2026-09-24",
+        "targetLang": "de",
+        "appLanguage": "en",
+        "placementAt": "placement",
+        "goal": {
+          "id": "goal",
+          "text": "Read a recipe"
+        }
+      },
+      "expected": {
+        "status": "goal_update",
+        "tasks": [
+          {
+            "title": "Task 1",
+            "description": "Practice privately at home 1."
+          },
+          {
+            "title": "Task 2",
+            "description": "Practice privately at home 2."
+          },
+          {
+            "title": "Task 3",
+            "description": "Practice privately at home 3."
+          }
+        ],
+        "completed": [
+          false,
+          false,
+          false
+        ],
+        "rewarded": false,
+        "dayKey": "2026-09-24"
+      }
+    },
+    {
+      "batch": {
+        "targetLang": "de",
+        "appLanguage": "en",
+        "dayKey": "2026-09-24",
+        "generationVersion": 4,
+        "generatedAt": "2026-09-24T09:00:00.000Z",
+        "tasks": [
+          {
+            "title": "Task 1",
+            "description": "Practice privately at home 1."
+          },
+          {
+            "title": "Task 2",
+            "description": "Practice privately at home 2."
+          },
+          {
+            "title": "Task 3",
+            "description": "Practice privately at home 3."
+          }
+        ],
+        "completed": [
+          false,
+          false,
+          false
+        ],
+        "rewarded": false,
+        "placementAt": "placement"
+      },
+      "context": {
+        "dayKey": "2026-09-24",
+        "targetLang": "de",
+        "appLanguage": "en",
+        "placementAt": "new-placement",
+        "goal": null
+      },
+      "expected": {
+        "status": "new",
+        "tasks": [],
+        "completed": [],
+        "rewarded": false,
+        "dayKey": "2026-09-24"
+      }
+    },
+    {
+      "batch": {
+        "targetLang": "de",
+        "appLanguage": "en",
+        "dayKey": "2026-09-24",
+        "generationVersion": 4,
+        "generatedAt": "2026-09-24T09:00:00.000Z",
+        "tasks": [
+          {
+            "title": "Task 1",
+            "description": "Practice privately at home 1."
+          },
+          {
+            "title": "Task 2",
+            "description": "Practice privately at home 2."
+          },
+          {
+            "title": "Task 3",
+            "description": "Practice privately at home 3."
+          }
+        ],
+        "completed": [
+          false,
+          false,
+          false
+        ],
+        "rewarded": false,
+        "placementAt": "placement"
+      },
+      "context": {
+        "dayKey": "2026-09-24",
+        "targetLang": "de",
+        "appLanguage": "en",
+        "placementAt": "new-placement",
+        "goal": {
+          "id": "goal",
+          "text": "Read a recipe"
+        }
+      },
+      "expected": {
+        "status": "new",
+        "tasks": [],
+        "completed": [],
+        "rewarded": false,
+        "dayKey": "2026-09-24"
+      }
+    },
+    {
+      "batch": {
+        "targetLang": "de",
+        "appLanguage": "en",
+        "dayKey": "2026-09-24",
+        "generationVersion": 3,
+        "generatedAt": "2026-09-24T09:00:00.000Z",
+        "tasks": [
+          {
+            "title": "Task 1",
+            "description": "Practice privately at home 1."
+          },
+          {
+            "title": "Task 2",
+            "description": "Practice privately at home 2."
+          },
+          {
+            "title": "Task 3",
+            "description": "Practice privately at home 3."
+          }
+        ],
+        "completed": [
+          true,
+          false,
+          false
+        ],
+        "rewarded": false,
+        "placementAt": "placement"
+      },
+      "context": {
+        "dayKey": "2026-09-24",
+        "targetLang": "de",
+        "appLanguage": "en",
+        "placementAt": "placement",
+        "goal": null
+      },
+      "expected": {
+        "status": "ready",
+        "tasks": [
+          {
+            "title": "Task 1",
+            "description": "Practice privately at home 1."
+          },
+          {
+            "title": "Task 2",
+            "description": "Practice privately at home 2."
+          },
+          {
+            "title": "Task 3",
+            "description": "Practice privately at home 3."
+          }
+        ],
+        "completed": [
+          true,
+          false,
+          false
+        ],
+        "rewarded": false,
+        "dayKey": "2026-09-24"
+      }
+    },
+    {
+      "batch": {
+        "targetLang": "de",
+        "appLanguage": "en",
+        "dayKey": "2026-09-24",
+        "generationVersion": 3,
+        "generatedAt": "2026-09-24T09:00:00.000Z",
+        "tasks": [
+          {
+            "title": "Task 1",
+            "description": "Practice privately at home 1."
+          },
+          {
+            "title": "Task 2",
+            "description": "Practice privately at home 2."
+          },
+          {
+            "title": "Task 3",
+            "description": "Practice privately at home 3."
+          }
+        ],
+        "completed": [
+          true,
+          false,
+          false
+        ],
+        "rewarded": false,
+        "placementAt": "placement"
+      },
+      "context": {
+        "dayKey": "2026-09-24",
+        "targetLang": "de",
+        "appLanguage": "en",
+        "placementAt": "placement",
+        "goal": {
+          "id": "goal",
+          "text": "Read a recipe"
+        }
+      },
+      "expected": {
+        "status": "goal_update",
+        "tasks": [
+          {
+            "title": "Task 1",
+            "description": "Practice privately at home 1."
+          },
+          {
+            "title": "Task 2",
+            "description": "Practice privately at home 2."
+          },
+          {
+            "title": "Task 3",
+            "description": "Practice privately at home 3."
+          }
+        ],
+        "completed": [
+          true,
+          false,
+          false
+        ],
+        "rewarded": false,
+        "dayKey": "2026-09-24"
+      }
+    },
+    {
+      "batch": {
+        "targetLang": "de",
+        "appLanguage": "en",
+        "dayKey": "2026-09-24",
+        "generationVersion": 3,
+        "generatedAt": "2026-09-24T09:00:00.000Z",
+        "tasks": [
+          {
+            "title": "Task 1",
+            "description": "Practice privately at home 1."
+          },
+          {
+            "title": "Task 2",
+            "description": "Practice privately at home 2."
+          },
+          {
+            "title": "Task 3",
+            "description": "Practice privately at home 3."
+          }
+        ],
+        "completed": [
+          true,
+          false,
+          false
+        ],
+        "rewarded": false,
+        "placementAt": "placement"
+      },
+      "context": {
+        "dayKey": "2026-09-24",
+        "targetLang": "de",
+        "appLanguage": "en",
+        "placementAt": "new-placement",
+        "goal": null
+      },
+      "expected": {
+        "status": "ready",
+        "tasks": [
+          {
+            "title": "Task 1",
+            "description": "Practice privately at home 1."
+          },
+          {
+            "title": "Task 2",
+            "description": "Practice privately at home 2."
+          },
+          {
+            "title": "Task 3",
+            "description": "Practice privately at home 3."
+          }
+        ],
+        "completed": [
+          true,
+          false,
+          false
+        ],
+        "rewarded": false,
+        "dayKey": "2026-09-24"
+      }
+    },
+    {
+      "batch": {
+        "targetLang": "de",
+        "appLanguage": "en",
+        "dayKey": "2026-09-24",
+        "generationVersion": 3,
+        "generatedAt": "2026-09-24T09:00:00.000Z",
+        "tasks": [
+          {
+            "title": "Task 1",
+            "description": "Practice privately at home 1."
+          },
+          {
+            "title": "Task 2",
+            "description": "Practice privately at home 2."
+          },
+          {
+            "title": "Task 3",
+            "description": "Practice privately at home 3."
+          }
+        ],
+        "completed": [
+          true,
+          false,
+          false
+        ],
+        "rewarded": false,
+        "placementAt": "placement"
+      },
+      "context": {
+        "dayKey": "2026-09-24",
+        "targetLang": "de",
+        "appLanguage": "en",
+        "placementAt": "new-placement",
+        "goal": {
+          "id": "goal",
+          "text": "Read a recipe"
+        }
+      },
+      "expected": {
+        "status": "goal_update",
+        "tasks": [
+          {
+            "title": "Task 1",
+            "description": "Practice privately at home 1."
+          },
+          {
+            "title": "Task 2",
+            "description": "Practice privately at home 2."
+          },
+          {
+            "title": "Task 3",
+            "description": "Practice privately at home 3."
+          }
+        ],
+        "completed": [
+          true,
+          false,
+          false
+        ],
+        "rewarded": false,
+        "dayKey": "2026-09-24"
+      }
+    },
+    {
+      "batch": {
+        "targetLang": "de",
+        "appLanguage": "en",
+        "dayKey": "2026-09-24",
+        "generationVersion": 4,
+        "generatedAt": "2026-09-24T09:00:00.000Z",
+        "tasks": [
+          {
+            "title": "Task 1",
+            "description": "Practice privately at home 1."
+          },
+          {
+            "title": "Task 2",
+            "description": "Practice privately at home 2."
+          },
+          {
+            "title": "Task 3",
+            "description": "Practice privately at home 3."
+          }
+        ],
+        "completed": [
+          true,
+          false,
+          false
+        ],
+        "rewarded": false,
+        "placementAt": "placement"
+      },
+      "context": {
+        "dayKey": "2026-09-24",
+        "targetLang": "de",
+        "appLanguage": "en",
+        "placementAt": "placement",
+        "goal": null
+      },
+      "expected": {
+        "status": "ready",
+        "tasks": [
+          {
+            "title": "Task 1",
+            "description": "Practice privately at home 1."
+          },
+          {
+            "title": "Task 2",
+            "description": "Practice privately at home 2."
+          },
+          {
+            "title": "Task 3",
+            "description": "Practice privately at home 3."
+          }
+        ],
+        "completed": [
+          true,
+          false,
+          false
+        ],
+        "rewarded": false,
+        "dayKey": "2026-09-24"
+      }
+    },
+    {
+      "batch": {
+        "targetLang": "de",
+        "appLanguage": "en",
+        "dayKey": "2026-09-24",
+        "generationVersion": 4,
+        "generatedAt": "2026-09-24T09:00:00.000Z",
+        "tasks": [
+          {
+            "title": "Task 1",
+            "description": "Practice privately at home 1."
+          },
+          {
+            "title": "Task 2",
+            "description": "Practice privately at home 2."
+          },
+          {
+            "title": "Task 3",
+            "description": "Practice privately at home 3."
+          }
+        ],
+        "completed": [
+          true,
+          false,
+          false
+        ],
+        "rewarded": false,
+        "placementAt": "placement"
+      },
+      "context": {
+        "dayKey": "2026-09-24",
+        "targetLang": "de",
+        "appLanguage": "en",
+        "placementAt": "placement",
+        "goal": {
+          "id": "goal",
+          "text": "Read a recipe"
+        }
+      },
+      "expected": {
+        "status": "goal_update",
+        "tasks": [
+          {
+            "title": "Task 1",
+            "description": "Practice privately at home 1."
+          },
+          {
+            "title": "Task 2",
+            "description": "Practice privately at home 2."
+          },
+          {
+            "title": "Task 3",
+            "description": "Practice privately at home 3."
+          }
+        ],
+        "completed": [
+          true,
+          false,
+          false
+        ],
+        "rewarded": false,
+        "dayKey": "2026-09-24"
+      }
+    },
+    {
+      "batch": {
+        "targetLang": "de",
+        "appLanguage": "en",
+        "dayKey": "2026-09-24",
+        "generationVersion": 4,
+        "generatedAt": "2026-09-24T09:00:00.000Z",
+        "tasks": [
+          {
+            "title": "Task 1",
+            "description": "Practice privately at home 1."
+          },
+          {
+            "title": "Task 2",
+            "description": "Practice privately at home 2."
+          },
+          {
+            "title": "Task 3",
+            "description": "Practice privately at home 3."
+          }
+        ],
+        "completed": [
+          true,
+          false,
+          false
+        ],
+        "rewarded": false,
+        "placementAt": "placement"
+      },
+      "context": {
+        "dayKey": "2026-09-24",
+        "targetLang": "de",
+        "appLanguage": "en",
+        "placementAt": "new-placement",
+        "goal": null
+      },
+      "expected": {
+        "status": "ready",
+        "tasks": [
+          {
+            "title": "Task 1",
+            "description": "Practice privately at home 1."
+          },
+          {
+            "title": "Task 2",
+            "description": "Practice privately at home 2."
+          },
+          {
+            "title": "Task 3",
+            "description": "Practice privately at home 3."
+          }
+        ],
+        "completed": [
+          true,
+          false,
+          false
+        ],
+        "rewarded": false,
+        "dayKey": "2026-09-24"
+      }
+    },
+    {
+      "batch": {
+        "targetLang": "de",
+        "appLanguage": "en",
+        "dayKey": "2026-09-24",
+        "generationVersion": 4,
+        "generatedAt": "2026-09-24T09:00:00.000Z",
+        "tasks": [
+          {
+            "title": "Task 1",
+            "description": "Practice privately at home 1."
+          },
+          {
+            "title": "Task 2",
+            "description": "Practice privately at home 2."
+          },
+          {
+            "title": "Task 3",
+            "description": "Practice privately at home 3."
+          }
+        ],
+        "completed": [
+          true,
+          false,
+          false
+        ],
+        "rewarded": false,
+        "placementAt": "placement"
+      },
+      "context": {
+        "dayKey": "2026-09-24",
+        "targetLang": "de",
+        "appLanguage": "en",
+        "placementAt": "new-placement",
+        "goal": {
+          "id": "goal",
+          "text": "Read a recipe"
+        }
+      },
+      "expected": {
+        "status": "goal_update",
+        "tasks": [
+          {
+            "title": "Task 1",
+            "description": "Practice privately at home 1."
+          },
+          {
+            "title": "Task 2",
+            "description": "Practice privately at home 2."
+          },
+          {
+            "title": "Task 3",
+            "description": "Practice privately at home 3."
+          }
+        ],
+        "completed": [
+          true,
+          false,
+          false
+        ],
+        "rewarded": false,
+        "dayKey": "2026-09-24"
+      }
+    },
+    {
+      "batch": {
+        "targetLang": "de",
+        "appLanguage": "en",
+        "dayKey": "2026-09-24",
+        "generationVersion": 4,
+        "generatedAt": "2026-09-24T09:00:00.000Z",
+        "tasks": [
+          {
+            "title": "Task 1",
+            "description": "Practice privately at home 1."
+          },
+          {
+            "title": "Task 2",
+            "description": "Practice privately at home 2."
+          },
+          {
+            "title": "Task 3",
+            "description": "Practice privately at home 3."
+          },
+          {
+            "title": "Read a recipe",
+            "description": "Find an ingredient."
+          }
+        ],
+        "completed": [
+          true,
+          false,
+          false,
+          true
+        ],
+        "rewarded": false,
+        "placementAt": "placement",
+        "goalId": "goal",
+        "goalText": "Read a recipe"
+      },
+      "context": {
+        "dayKey": "2026-09-24",
+        "targetLang": "de",
+        "appLanguage": "en",
+        "placementAt": "placement",
+        "goal": {
+          "id": "goal",
+          "text": "Read a recipe"
+        }
+      },
+      "expected": {
+        "status": "ready",
+        "tasks": [
+          {
+            "title": "Task 1",
+            "description": "Practice privately at home 1."
+          },
+          {
+            "title": "Task 2",
+            "description": "Practice privately at home 2."
+          },
+          {
+            "title": "Task 3",
+            "description": "Practice privately at home 3."
+          },
+          {
+            "title": "Read a recipe",
+            "description": "Find an ingredient."
+          }
+        ],
+        "completed": [
+          true,
+          false,
+          false,
+          true
+        ],
+        "rewarded": false,
+        "dayKey": "2026-09-24"
+      }
+    },
+    {
+      "batch": {
+        "targetLang": "de",
+        "appLanguage": "en",
+        "dayKey": "2026-09-24",
+        "generationVersion": 4,
+        "generatedAt": "2026-09-24T09:00:00.000Z",
+        "tasks": [
+          {
+            "title": "Task 1",
+            "description": "Practice privately at home 1."
+          },
+          {
+            "title": "Task 2",
+            "description": "Practice privately at home 2."
+          },
+          {
+            "title": "Task 3",
+            "description": "Practice privately at home 3."
+          }
+        ],
+        "completed": [
+          true,
+          false,
+          false
+        ],
+        "rewarded": false,
+        "placementAt": "placement"
+      },
+      "context": {
+        "dayKey": "2026-09-25",
+        "targetLang": "de"
+      },
+      "expected": {
+        "status": "new",
+        "tasks": [],
+        "completed": [],
+        "rewarded": false,
+        "dayKey": "2026-09-25"
+      }
+    },
+    {
+      "batch": {
+        "targetLang": "de",
+        "appLanguage": "en",
+        "dayKey": "2026-09-24",
+        "generationVersion": 4,
+        "generatedAt": "2026-09-24T09:00:00.000Z",
+        "tasks": [
+          {
+            "title": "Task 1",
+            "description": "Practice privately at home 1."
+          },
+          {
+            "title": "Task 2",
+            "description": "Practice privately at home 2."
+          },
+          {
+            "title": "Task 3",
+            "description": "Practice privately at home 3."
+          }
+        ],
+        "completed": [
+          false,
+          false,
+          false
+        ],
+        "rewarded": false,
+        "placementAt": "placement"
+      },
+      "context": {
+        "dayKey": "2026-09-24",
+        "targetLang": "fr"
+      },
+      "expected": {
+        "status": "new",
+        "tasks": [],
+        "completed": [],
+        "rewarded": false,
+        "dayKey": "2026-09-24"
+      }
+    },
+    {
+      "batch": {
+        "targetLang": "de",
+        "appLanguage": "en",
+        "dayKey": "2026-09-24",
+        "generationVersion": 4,
+        "generatedAt": "2026-09-24T09:00:00.000Z",
+        "tasks": [
+          {
+            "title": "Task 1",
+            "description": "Practice privately at home 1."
+          },
+          {
+            "title": "Task 2",
+            "description": "Practice privately at home 2."
+          },
+          {
+            "title": "Task 3",
+            "description": "Practice privately at home 3."
+          }
+        ],
+        "completed": [
+          false,
+          false,
+          false
+        ],
+        "rewarded": false,
+        "placementAt": "placement"
+      },
+      "context": {
+        "dayKey": "2026-09-24",
+        "targetLang": "de",
+        "appLanguage": "es"
+      },
+      "expected": {
+        "status": "new",
+        "tasks": [],
+        "completed": [],
+        "rewarded": false,
+        "dayKey": "2026-09-24"
+      }
+    },
+    {
+      "batch": {
+        "targetLang": "de",
+        "appLanguage": "en",
+        "dayKey": "2026-09-24",
+        "generationVersion": 0,
+        "generatedAt": "2026-09-24T09:00:00.000Z",
+        "tasks": [
+          {
+            "title": "Task 1",
+            "description": "Practice privately at home 1."
+          },
+          {
+            "title": "Task 2",
+            "description": "Practice privately at home 2."
+          },
+          {
+            "title": "Task 3",
+            "description": "Practice privately at home 3."
+          }
+        ],
+        "completed": [
+          false,
+          false,
+          false
+        ],
+        "rewarded": true,
+        "placementAt": "placement"
+      },
+      "context": {
+        "dayKey": "2026-09-24",
+        "targetLang": "de"
+      },
+      "expected": {
+        "status": "ready",
+        "tasks": [
+          {
+            "title": "Task 1",
+            "description": "Practice privately at home 1."
+          },
+          {
+            "title": "Task 2",
+            "description": "Practice privately at home 2."
+          },
+          {
+            "title": "Task 3",
+            "description": "Practice privately at home 3."
+          }
+        ],
+        "completed": [
+          false,
+          false,
+          false
+        ],
+        "rewarded": true,
+        "dayKey": "2026-09-24"
+      }
+    }
+  ],
+  "normalize": [
+    {
+      "raw": {
+        "tasks": [
+          {
+            "title": "Task 1",
+            "description": "Practice privately at home 1."
+          },
+          {
+            "title": "Task 2",
+            "description": "Practice privately at home 2."
+          },
+          {
+            "title": "Task 3",
+            "description": "Practice privately at home 3."
+          }
+        ]
+      },
+      "count": 3,
+      "recent": [],
+      "expected": [
+        {
+          "title": "Task 1",
+          "description": "Practice privately at home 1."
+        },
+        {
+          "title": "Task 2",
+          "description": "Practice privately at home 2."
+        },
+        {
+          "title": "Task 3",
+          "description": "Practice privately at home 3."
+        }
+      ]
+    },
+    {
+      "raw": "{\"tasks\":[{\"title\":\"Task 1\",\"description\":\"Practice privately at home 1.\"},{\"title\":\"Task 2\",\"description\":\"Practice privately at home 2.\"},{\"title\":\"Task 3\",\"description\":\"Practice privately at home 3.\"}]}",
+      "count": 3,
+      "recent": [],
+      "expected": [
+        {
+          "title": "Task 1",
+          "description": "Practice privately at home 1."
+        },
+        {
+          "title": "Task 2",
+          "description": "Practice privately at home 2."
+        },
+        {
+          "title": "Task 3",
+          "description": "Practice privately at home 3."
+        }
+      ]
+    },
+    {
+      "raw": "```json\n{\"tasks\":[{\"title\":\"Task 1\",\"description\":\"Practice privately at home 1.\"},{\"title\":\"Task 2\",\"description\":\"Practice privately at home 2.\"},{\"title\":\"Task 3\",\"description\":\"Practice privately at home 3.\"}]}\n```",
+      "count": 3,
+      "recent": [],
+      "expected": [
+        {
+          "title": "Task 1",
+          "description": "Practice privately at home 1."
+        },
+        {
+          "title": "Task 2",
+          "description": "Practice privately at home 2."
+        },
+        {
+          "title": "Task 3",
+          "description": "Practice privately at home 3."
+        }
+      ]
+    },
+    {
+      "raw": {
+        "tasks": [
+          {
+            "title": "Task 1",
+            "description": "Practice privately at home 1."
+          },
+          {
+            "title": "Task 2",
+            "description": "Practice privately at home 2."
+          },
+          {
+            "title": "Task 1",
+            "description": "different"
+          }
+        ]
+      },
+      "count": 3,
+      "recent": [],
+      "expected": null
+    },
+    {
+      "raw": {
+        "tasks": [
+          {
+            "title": "Visit a store",
+            "description": "Ask a cashier a question"
+          },
+          {
+            "title": "Task 2",
+            "description": "Practice privately at home 2."
+          },
+          {
+            "title": "Task 3",
+            "description": "Practice privately at home 3."
+          }
+        ]
+      },
+      "count": 3,
+      "recent": [],
+      "expected": null
+    },
+    {
+      "raw": {
+        "tasks": [
+          {
+            "title": "Create an account",
+            "description": "Post publicly"
+          },
+          {
+            "title": "Task 2",
+            "description": "Practice privately at home 2."
+          },
+          {
+            "title": "Task 3",
+            "description": "Practice privately at home 3."
+          }
+        ]
+      },
+      "count": 3,
+      "recent": [],
+      "expected": null
+    },
+    {
+      "raw": {
+        "tasks": [
+          {
+            "title": "  A   private recording ",
+            "description": "   Speak   into a phone. "
+          },
+          {
+            "title": "Task 2",
+            "description": "Practice privately at home 2."
+          },
+          {
+            "title": "Task 3",
+            "description": "Practice privately at home 3."
+          }
+        ]
+      },
+      "count": 3,
+      "recent": [],
+      "expected": [
+        {
+          "title": "A private recording",
+          "description": "Speak into a phone."
+        },
+        {
+          "title": "Task 2",
+          "description": "Practice privately at home 2."
+        },
+        {
+          "title": "Task 3",
+          "description": "Practice privately at home 3."
+        }
+      ]
+    },
+    {
+      "raw": {
+        "tasks": [
+          {
+            "title": "Ｔａｓｋ ２",
+            "description": "Different"
+          },
+          {
+            "title": "Task 2",
+            "description": "Practice privately at home 2."
+          },
+          {
+            "title": "Task 3",
+            "description": "Practice privately at home 3."
+          }
+        ]
+      },
+      "count": 3,
+      "recent": [],
+      "expected": null
+    },
+    {
+      "raw": {
+        "tasks": [
+          {
+            "title": "Task 1",
+            "description": "Practice privately at home 1."
+          },
+          {
+            "title": "Task 2",
+            "description": "Practice privately at home 2."
+          },
+          {
+            "title": "Task 3",
+            "description": "Practice privately at home 3."
+          }
+        ]
+      },
+      "count": 3,
+      "recent": [
+        {
+          "title": "Task 1",
+          "description": "Practice privately at home 1."
+        }
+      ],
+      "expected": null
+    }
+  ],
+  "history": [
+    {
+      "old": [],
+      "adding": [
+        {
+          "title": "Task 1",
+          "description": "Practice privately at home 1."
+        },
+        {
+          "title": "Task 2",
+          "description": "Practice privately at home 2."
+        },
+        {
+          "title": "Task 3",
+          "description": "Practice privately at home 3."
+        }
+      ],
+      "expected": [
+        {
+          "title": "Task 1",
+          "description": "Practice privately at home 1."
+        },
+        {
+          "title": "Task 2",
+          "description": "Practice privately at home 2."
+        },
+        {
+          "title": "Task 3",
+          "description": "Practice privately at home 3."
+        }
+      ]
+    },
+    {
+      "old": [
+        {
+          "title": "Task 1",
+          "description": "Practice privately at home 1."
+        },
+        {
+          "title": "Task 2",
+          "description": "Practice privately at home 2."
+        },
+        {
+          "title": "Task 3",
+          "description": "Practice privately at home 3."
+        }
+      ],
+      "adding": [
+        {
+          "title": "Task 1",
+          "description": "Practice privately at home 1."
+        }
+      ],
+      "expected": [
+        {
+          "title": "Task 2",
+          "description": "Practice privately at home 2."
+        },
+        {
+          "title": "Task 3",
+          "description": "Practice privately at home 3."
+        },
+        {
+          "title": "Task 1",
+          "description": "Practice privately at home 1."
+        }
+      ]
+    },
+    {
+      "old": [
+        {
+          "title": "Past 0",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 1",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 2",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 3",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 4",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 5",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 6",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 7",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 8",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 9",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 10",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 11",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 12",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 13",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 14",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 15",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 16",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 17",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 18",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 19",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 20",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 21",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 22",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 23",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 24",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 25",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 26",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 27",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 28",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 29",
+          "description": "Past description"
+        }
+      ],
+      "adding": [
+        {
+          "title": "Task 1",
+          "description": "Practice privately at home 1."
+        },
+        {
+          "title": "Task 2",
+          "description": "Practice privately at home 2."
+        },
+        {
+          "title": "Task 3",
+          "description": "Practice privately at home 3."
+        }
+      ],
+      "expected": [
+        {
+          "title": "Past 9",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 10",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 11",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 12",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 13",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 14",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 15",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 16",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 17",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 18",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 19",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 20",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 21",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 22",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 23",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 24",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 25",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 26",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 27",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 28",
+          "description": "Past description"
+        },
+        {
+          "title": "Past 29",
+          "description": "Past description"
+        },
+        {
+          "title": "Task 1",
+          "description": "Practice privately at home 1."
+        },
+        {
+          "title": "Task 2",
+          "description": "Practice privately at home 2."
+        },
+        {
+          "title": "Task 3",
+          "description": "Practice privately at home 3."
+        }
+      ]
+    },
+    {
+      "old": [],
+      "adding": [
+        {
+          "title": "  Read  ",
+          "description": " text "
+        },
+        {
+          "title": "read",
+          "description": "text"
+        },
+        {
+          "title": "",
+          "description": "ignore"
+        }
+      ],
+      "expected": [
+        {
+          "title": "read",
+          "description": "text"
+        }
+      ]
+    }
+  ],
+  "candidates": [
+    {
+      "skillCount": 1,
+      "tutorCount": 3,
+      "skillLevel": "A2",
+      "tutorLevel": "A2",
+      "progress": {},
+      "priority": null,
+      "expected": {
+        "id": "four",
+        "index": 3,
+        "mode": "Tutor",
+        "level": "A2"
+      }
+    },
+    {
+      "skillCount": 0,
+      "tutorCount": 2,
+      "skillLevel": "B1",
+      "tutorLevel": "A2",
+      "progress": {},
+      "priority": null,
+      "expected": {
+        "id": "one",
+        "index": 0,
+        "mode": "Lessons",
+        "level": "B1"
+      }
+    },
+    {
+      "skillCount": 0,
+      "tutorCount": 0,
+      "skillLevel": "B1",
+      "tutorLevel": "B1",
+      "progress": {
+        "one": {
+          "status": "completed"
+        },
+        "two": {
+          "status": "in_progress"
+        }
+      },
+      "priority": null,
+      "expected": {
+        "id": "two",
+        "index": 1,
+        "mode": "Tutor",
+        "level": "B1"
+      }
+    },
+    {
+      "skillCount": 2,
+      "tutorCount": 0,
+      "skillLevel": "A2",
+      "tutorLevel": "A2",
+      "progress": {},
+      "priority": "one",
+      "expected": {
+        "id": "one",
+        "index": 0,
+        "mode": "Tutor",
+        "level": "A2"
+      }
+    },
+    {
+      "skillCount": 0,
+      "tutorCount": 0,
+      "skillLevel": "A1",
+      "tutorLevel": "B1",
+      "progress": {},
+      "priority": null,
+      "expected": {
+        "id": "one",
+        "index": 0,
+        "mode": "Tutor",
+        "level": "B1"
+      }
+    },
+    {
+      "skillCount": 8,
+      "tutorCount": 9,
+      "skillLevel": "A1",
+      "tutorLevel": "A1",
+      "progress": {},
+      "priority": null,
+      "expected": {
+        "id": "four",
+        "index": 3,
+        "mode": "Tutor",
+        "level": "A1"
+      }
+    }
+  ],
+  "context": {
+    "lesson": {
+      "id": "context",
+      "title": {
+        "en": "Describe past events",
+        "es": "Describir el pasado"
+      },
+      "description": {
+        "en": "Tell a brief personal story"
+      },
+      "cefrLevel": "B1",
+      "objectives": {
+        "communicativeObjectives": [
+          "Can narrate events in sequence."
+        ]
+      },
+      "content": {
+        "grammar": {
+          "focusPoints": [
+            "past tense",
+            "sequence markers"
+          ]
+        },
+        "vocabulary": {
+          "focusPoints": [
+            "journeys",
+            "past tense"
+          ]
+        },
+        "stories": {
+          "prompt": "Do not send the whole lesson"
+        }
+      }
+    },
+    "support": "es",
+    "expected": {
+      "title": "Describir el pasado",
+      "description": "Tell a brief personal story",
+      "level": "B1",
+      "objective": "Can narrate events in sequence.",
+      "focusPoints": [
+        "past tense",
+        "sequence markers",
+        "journeys"
+      ],
+      "source": "Tutor"
+    }
+  }
+}

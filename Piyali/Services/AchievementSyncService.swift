@@ -71,6 +71,11 @@ import FirebaseFirestore
         state.achievementEvidence=Dictionary(uniqueKeysWithValues:summaries.documents.map { ($0.documentID,value($0.data())) })
         state.achievementRecords=cache.records;state.achievementLedger=cache.ledger
     }
+    func refreshLedger(user: DocumentReference) async throws {
+        let cache=try await cache(user)
+        let snapshot=try await user.collection("achievementProgress").document("nosabos").collection("events").getDocuments(source:.server)
+        cache.ledger=AchievementProgress.mergedLedger([cache.ledger,ledger(snapshot)],allowed:allowed)
+    }
     func importRecords(_ records: JSONValue, user: DocumentReference) async throws -> [String:JSONValue] {
         let catalog=(try? ContentLibrary.load([JSONValue].self,name:"achievement-protocol")) ?? []
         let definitions=Dictionary(uniqueKeysWithValues:catalog.map { ($0["id"].string,$0) }),cache=try await cache(user)

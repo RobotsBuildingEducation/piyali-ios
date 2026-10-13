@@ -18,3 +18,5 @@ The independent Firebase project is `piyali-ios`. Matching the web's record form
 The current native reflection flow does not yet produce the web's full `realWorldTasks` checklist. Historical checklist proofs are reconciled. Explicit native conversation-goal completion also remains to be ported; conversation milestones retain existing distinct completed-goal events.
 
 Verification covers 576 rule comparisons against the actual reference source, 63 card cases, goal/repair/immersion and phonics proofs, ledger union, Unicode/slash document hashes, timestamp preservation, preview replacement, earlier-level awards, native phonics, concurrent card writes and idempotent catch-up. Production rules restrict these private records to the authenticated Nostr owner and reject other achievement-progress source namespaces.
+
+Native daily immersion writes its accepted task/checklist events in the same transaction as checklist progress and reward receipts. The ledger is refreshed before evaluating awards, so day/language/goal changes do not discard earlier completion evidence. Both array and legacy object completion flags are supported. See [IMMERSION.md](IMMERSION.md).

@@ -111,36 +111,58 @@ struct GrammarReferenceView: View {
 }
 struct RealWorldTaskView: View {
     @EnvironmentObject var app: AppModel
-    @State private var taskText = ""
+    private let milestones=(try? ContentLibrary.load([JSONValue].self,name:"score-milestones")) ?? []
     @State private var reflection = ""
     @State private var error: String?
     @State private var busy = false
     var body: some View {
-        SubscriptionRequiredView(service: app.subscription) {
+        TimelineView(.periodic(from:.now,by:60)) { context in
+            let state=app.learner.immersionState(now:context.date)
             Form {
-                Text(taskText.isEmpty ? "Get a practical task to use your language outside the app." : taskText)
-                Button("Generate a task") {
-                    busy = true
-                    Task {
-                        defer { busy = false }
-                        do { taskText = try await app.ai.text("Give one safe everyday real-world task for a \(app.learner.level) learner of \(LearningLanguages.names[app.learner.target] ?? app.learner.target). Goal: \(app.learner.goal). Instructions in \(LearningLanguages.names[app.learner.support] ?? app.learner.support). Include a useful target-language phrase and a reflection prompt.") }
-                        catch { self.error = error.localizedDescription }
+                if app.learner.placements?[app.learner.target] == nil {
+                    Text("Choose your starting level to create today's immersion missions.")
+                    NavigationLink("Choose your starting level") { PlacementView() }
+                } else {
+                    Section("Today's immersion") {
+                        Text("Three short missions outside the app, plus one for your active personal goal. Complete the whole checklist to earn 15 XP once per language per day.").font(.footnote)
+                        ForEach(Array(state["tasks"].array.enumerated()),id:\.offset) { index,task in
+                            Button { app.learner.toggleImmersion(index:index);app.persist() } label: {
+                                HStack {
+                                    VStack(alignment:.leading) { Text(task["title"].string);Text(task["description"].string).font(.footnote) }
+                                    Spacer();Image(systemName:state["completed"].array[index].boolean ? "checkmark.circle.fill" : "circle")
+                                }.contentShape(Rectangle())
+                            }.buttonStyle(.plain).accessibilityIdentifier("immersion-task-"+String(index)).accessibilityValue(state["completed"].array[index].boolean ? "Completed" : "Not completed").disabled(busy || state["status"].string != "ready")
+                        }
+                        if state["rewarded"].boolean { Text("Checklist reward saved · +15 XP").accessibilityIdentifier("immersionReward") }
+                        if busy { ProgressView("Creating today's missions…") }
+                        if let error { Text(error).foregroundStyle(.red) }
+                        if state["status"].string != "ready" { Button("Retry today's missions") { Task { await generate() } }.disabled(busy) }
+                        Text("Missions reset at your local midnight. Completed missions and their reward sync with your account.").font(.footnote)
                     }
-                }.disabled(busy)
-                if !taskText.isEmpty {
-                    TextField("What happened?", text: $reflection, axis: .vertical)
-                    Button("Complete task and save reflection") {
-                        app.learner.notes.insert(Note(title: "Real-world practice", body: taskText + "\n" + reflection), at: 0)
-                        app.learner.rollDay()
-                        let key = app.learner.target + ":" + app.learner.dailyKey
-                        if app.learner.immersionDays == nil { app.learner.immersionDays = [] }
-                        if app.learner.immersionDays?.insert(key).inserted == true { app.learner.award(10,source:.immersion) }
-                        app.persist(); reflection = ""
-                    }.disabled(reflection.isEmpty)
+                    if !state["tasks"].array.isEmpty {
+                        Section("Private reflection") {
+                            TextField("What happened?",text:$reflection,axis:.vertical)
+                            Button("Save reflection") {
+                                let summary=state["tasks"].array.map { $0["title"].string+": "+$0["description"].string }.joined(separator:"\n")
+                                app.learner.notes.insert(Note(title:"Immersion reflection",body:summary+"\n"+reflection),at:0);app.persist();reflection=""
+                            }.disabled(reflection.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty)
+                        }
+                    }
                 }
-                if busy { ProgressView() }
-                if let error { Text(error) }
-            }
-        }.navigationTitle("Real-world task")
+                Section("Score") {
+                    Text("\(LearningLanguages.names[app.learner.target] ?? app.learner.target): \(app.learner.score) / 100 · \(PerformanceScore.level(score:app.learner.score))")
+                    DisclosureGroup("Capability landmarks") {
+                        ForEach(Array(milestones.enumerated()),id:\.offset) { _,item in
+                            HStack { Text("\(Int(item["score"].number)): \(item.localized(app.learner.support))");Spacer();if item["score"].number <= Double(app.learner.score) { Image(systemName:"checkmark.circle") } }
+                        }
+                    }
+                }
+            }.task(id:app.immersionPreparationKey) { await generate() }
+        }.navigationTitle("Immersion & Score")
+    }
+    private func generate() async {
+        guard !busy else { return };busy=true;error=nil
+        defer { busy=false }
+        do { try await app.prepareImmersion() } catch is CancellationError { } catch { self.error=error.localizedDescription }
     }
 }

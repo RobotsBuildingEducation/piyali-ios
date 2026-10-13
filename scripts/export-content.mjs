@@ -21,7 +21,7 @@ const FLASHCARD_DATA = [...FLASHCARDS_PRE_A1, ...STANDARD_FLASHCARDS];
 const lessons = Object.fromEntries(Object.entries(LEARNING_PATHS).map(([language, levels]) => [language,
 Object.fromEntries(Object.entries(levels).map(([level, units]) => [level, units.filter(u => !u.isTutorial).map(u => ({
  id:u.id, title:u.title, description:u.description, lessons:u.lessons.map(l=>({
- id:l.id,title:l.title,description:l.description,xpReward:l.xpReward||20,modes:l.modes||[],agenda:l.agenda||{},content:l.content||{}
+ id:l.id,title:l.title,description:l.description,xpReward:l.xpReward||20,modes:l.modes||[],agenda:l.agenda||{},content:l.content||{},objectives:l.objectives||{}
  }))
 }))]))]));
 for (const [language, levels] of Object.entries(lessons)) write('curriculum-'+language,levels);

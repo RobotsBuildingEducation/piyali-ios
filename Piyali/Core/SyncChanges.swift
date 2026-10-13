@@ -127,6 +127,10 @@ public extension LearnerState {
             }
         }
         merged.courseCompletion = acknowledged.courseCompletion
+        let sentImmersionIDs=Set((sent.pendingImmersionChanges ?? []).map(\.id))
+        let newImmersion=(current.pendingImmersionChanges ?? []).filter { !sentImmersionIDs.contains($0.id) && !(acknowledged.acknowledgedEventIDs ?? []).contains($0.id) }
+        merged.pendingImmersionChanges=newImmersion;merged.immersionBatch=acknowledged.immersionBatch;merged.immersionHistory=acknowledged.immersionHistory;merged.immersionRewardReceipts=acknowledged.immersionRewardReceipts;merged.immersionPlacementAt=acknowledged.immersionPlacementAt
+        let newImmersionRewards=newImmersion.sorted(by:{ $0.date < $1.date }).map { ($0,merged.applyImmersion($0,enqueue:false,award:false)) }
         if current.flashcardLevels == sent.flashcardLevels { merged.flashcardLevels = acknowledged.flashcardLevels }
         if current.tutorLevels == sent.tutorLevels { merged.tutorLevels = acknowledged.tutorLevels }
         if current.lessonLevels == sent.lessonLevels { merged.lessonLevels = acknowledged.lessonLevels }
@@ -135,11 +139,13 @@ public extension LearnerState {
         var xp = acknowledged.xpByLanguage
         for change in newer { xp[change.target,default:0] += change.amount }
         for (change,reward) in newGoalRewards { xp[change.target,default:0] += reward }
+        for (change,reward) in newImmersionRewards { xp[change.target,default:0] += reward }
         merged.xpByLanguage = xp
         if acknowledged.dailyKey >= current.dailyKey {
             merged.dailyKey = acknowledged.dailyKey
             merged.dailyXP = acknowledged.dailyXP + newer.filter { $0.dayKey == acknowledged.dailyKey }.reduce(0) { $0 + $1.amount }
             merged.dailyXP += newGoalRewards.filter { CalendarDay.key($0.0.date) == acknowledged.dailyKey }.reduce(0) { $0 + $1.1 }
+            merged.dailyXP += newImmersionRewards.filter { CalendarDay.key($0.0.date) == acknowledged.dailyKey }.reduce(0) { $0 + $1.1 }
             merged.streak = max(acknowledged.streak,current.dailyKey == acknowledged.dailyKey ? current.streak : 0)
         }
         for (key, review) in acknowledged.cardReviews ?? [:] {
@@ -151,6 +157,7 @@ public extension LearnerState {
         merged.companionProgress = acknowledged.companionProgress
         for change in newer.sorted(by:{ $0.date < $1.date }) where change.amount > 0 { merged.rewardCompanion(change.amount,now:change.date) }
         for (change,reward) in newGoalRewards where reward > 0 { merged.rewardCompanion(reward,now:change.date) }
+        for (change,reward) in newImmersionRewards where reward > 0 { merged.rewardCompanion(reward,now:change.date) }
         merged.reconcileCompanion()
         // A newer local assessment already includes all previous local evidence.
         if !newer.contains(where: { $0.source == .assessment }) && (merged.pendingPlacements ?? [:]).isEmpty { merged.ratingByLanguage = acknowledged.ratingByLanguage; merged.gradedByLanguage = acknowledged.gradedByLanguage }

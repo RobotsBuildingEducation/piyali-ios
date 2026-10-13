@@ -46,6 +46,7 @@ public struct Lesson: Codable, Identifiable, Sendable {
     public let modes: [String]
     public let agenda: JSONValue
     public let content: JSONValue
+    public var objectives: JSONValue? = nil
 }
 public struct Flashcard: Codable, Identifiable, Sendable {
     public let id: String
@@ -150,6 +151,11 @@ public struct LearnerState: Codable, Sendable {
     public var focusPlans: [String: FocusedPlan]?
     public var masteredPhonics: Set<String>?
     public var immersionDays: Set<String>?
+    public var immersionBatch: JSONValue?
+    public var immersionHistory: [String:JSONValue]?
+    public var immersionRewardReceipts: JSONValue?
+    public var immersionPlacementAt: String?
+    public var pendingImmersionChanges: [ImmersionChange]?
     public var journeyDays: Set<String>?
     public var journeyRecordings: [String: String]?
     public var placements: [String: Placement]?
