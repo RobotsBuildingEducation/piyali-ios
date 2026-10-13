@@ -59,8 +59,20 @@ public extension LearnerState {
     static func rebased(current: LearnerState, sent: LearnerState, acknowledged: LearnerState) -> LearnerState {
         var merged = current
         let sentIDs = Set((sent.pendingChanges ?? []).map(\.id))
-        let newer = (current.pendingChanges ?? []).filter { !sentIDs.contains($0.id) }
+        let newer = (current.pendingChanges ?? []).filter { !sentIDs.contains($0.id) && !(acknowledged.acknowledgedEventIDs ?? []).contains($0.id) }
         merged.pendingChanges = newer
+        let sentMemoryIDs = Set((sent.pendingMemoryChanges ?? []).map(\.id))
+        let newMemory = (current.pendingMemoryChanges ?? []).filter { !sentMemoryIDs.contains($0.id) && !(acknowledged.acknowledgedEventIDs ?? []).contains($0.id) }
+        merged.pendingMemoryChanges = newMemory
+        for (target,notes) in acknowledged.companionMemory ?? [:] {
+            if merged.companionMemory == nil { merged.companionMemory = [:] }
+            merged.companionMemory?[target] = notes
+        }
+        for change in newMemory.sorted(by:{ $0.date < $1.date }) {
+            if merged.companionMemory == nil { merged.companionMemory = [:] }
+            let notes = MemoryContract.applying(change,to:merged.companionMemory?[change.target] ?? [],today:CalendarDay.key(Date()))
+            merged.companionMemory?[change.target] = notes
+        }
         if current.preferencesModifiedAt == sent.preferencesModifiedAt {
             merged.preferencesModifiedAt = nil
             if current.name == sent.name { merged.name = acknowledged.name }

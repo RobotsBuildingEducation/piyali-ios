@@ -86,11 +86,14 @@ import SwiftUI
                 guard !Task.isCancelled else { return }
                 let acknowledged = try await FirebaseService.shared.save(state,npub:npub)
                 guard identity.npub == npub, !Task.isCancelled else { return }
-                if let acknowledged { try applyAcknowledgment(acknowledged,sent:state); syncStatus = "Synced with Firebase" }
+                if let acknowledged { try applyAcknowledgment(acknowledged,sent:state); syncStatus = synchronizedStatus }
                 else { syncStatus = "Saved on this iPhone" }
             } catch is CancellationError { }
             catch { if identity.npub == npub { syncStatus = "Saved on iPhone; cloud sync pending" } }
         }
+    }
+    private var synchronizedStatus: String {
+        (learner.pendingChanges ?? []).isEmpty && (learner.pendingMemoryChanges ?? []).isEmpty ? "Synced with Firebase" : "Saved on iPhone; cloud sync pending"
     }
     private func applyAcknowledgment(_ cloud: LearnerState, sent: LearnerState) throws {
         let target = learner.target, support = learner.support, level = learner.level
@@ -103,20 +106,25 @@ import SwiftUI
         do {
             if let cloud = try await FirebaseService.shared.save(state,npub:npub) {
                 guard identity.npub == npub else { return }
-                try applyAcknowledgment(cloud,sent:state); syncStatus = "Synced with Firebase"
+                try applyAcknowledgment(cloud,sent:state); syncStatus = synchronizedStatus
             } else { syncStatus = "Saved on this iPhone" }
         } catch { if identity.npub == npub { syncStatus = "Saved on iPhone; cloud sync pending" } }
     }
-    func reviewFlashcard(_ card: Flashcard, rating: ReviewRating, correct: Bool?, now: Date = Date()) {
+    func reviewFlashcard(_ card: Flashcard, rating: ReviewRating, correct: Bool?, answer: String = "", now: Date = Date()) {
         if let correct { learner.assess(correct:correct,independent:true,now:now) }
+        if correct == false { learner.captureMemory(mode:"flashcard",concept:card.text(learner.target),answer:answer,expected:card.text(learner.target),feedback:"",context:card.id,now:now) }
         learner.review(cardID:card.id,rating:rating,now:now)
-        learner.history.insert(HistoryEntry(date:now,target:learner.target,mode:"Flashcard review",question:card.text(learner.support),answer:card.text(learner.target),feedback:"Review: \(rating.rawValue)",correct:correct ?? false),at:0)
+        learner.history.insert(HistoryEntry(date:now,target:learner.target,mode:"Flashcard review",question:card.text(learner.support),answer:card.text(learner.target),feedback:"Review: \(rating.rawValue)",correct:correct ?? false,repairInMemory:correct == false),at:0)
         learner.history = Array(learner.history.prefix(500)); persist()
     }
     func record(exercise: Exercise, answer: String, grade: Grade, mode: PracticeMode, lesson: Lesson?, flashcardID: String? = nil) {
-        learner.history.insert(HistoryEntry(date: Date(), target: learner.target, mode: mode.rawValue, question: exercise.question, answer: answer, feedback: grade.feedback, correct: grade.correct), at: 0)
+        learner.history.insert(HistoryEntry(date: Date(), target: learner.target, mode: mode.rawValue, question: exercise.question, answer: answer, feedback: grade.feedback, correct: grade.correct,repairInMemory:!grade.correct), at: 0)
         learner.history = Array(learner.history.prefix(500))
         learner.assess(correct: grade.correct, independent: exercise.choices.isEmpty)
+        if !grade.correct {
+            let source = flashcardID != nil ? "flashcard" : mode == .speaking || mode == .stories ? "story" : mode.rawValue.lowercased()
+            learner.captureMemory(mode:source,concept:exercise.question,answer:answer,expected:grade.correctedAnswer,feedback:grade.feedback,context:lesson?.id ?? "")
+        }
         if let flashcardID { learner.review(cardID:flashcardID,rating:grade.correct ? .good : .again) }
         if grade.correct {
             if flashcardID == nil { learner.award(10) }

@@ -101,6 +101,7 @@ public struct HistoryEntry: Codable, Identifiable, Sendable {
     public let answer: String
     public let feedback: String
     public let correct: Bool
+    public var repairInMemory: Bool?
 }
 public struct Note: Codable, Identifiable, Sendable {
     public var id = UUID()
@@ -128,6 +129,9 @@ public struct LearnerState: Codable, Sendable {
     public var preferencesModifiedAt: Date?
     public var pendingChanges: [PracticeChange]?
     public var cardReviews: [String: FlashcardReview]?
+    public var companionMemory: [String:[MemoryNote]]?
+    public var pendingMemoryChanges: [MemoryChange]?
+    public var acknowledgedEventIDs: Set<UUID>?
     public var ratingByLanguage: [String: Double]?
     public var focusPlans: [String: FocusedPlan]?
     public var masteredPhonics: Set<String>?
@@ -175,7 +179,9 @@ public struct LearnerState: Codable, Sendable {
         let key = completionKey(lesson.id)
         guard !completed.contains(key) else { return false }
         let source: PracticeSource = lesson.id.hasPrefix("goal-") ? .goal : lesson.id.hasPrefix("repair-") ? .repair : .lesson
-        completed.insert(key); award(lesson.xpReward,source:source,contentID:lesson.id); return true
+        completed.insert(key); award(lesson.xpReward,source:source,contentID:lesson.id)
+        if lesson.id.hasPrefix("repair-memory-") { reinforceMemory(id:String(lesson.id.dropFirst("repair-memory-".count))) }
+        return true
     }
 }
 public enum LearningLanguages {

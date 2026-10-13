@@ -129,7 +129,7 @@ struct FlashcardsView: View {
                         Button("Check answer") {
                             correct = AnswerMatcher.matches(answer,target); checked = true
                             feedback = correct ? "Correct! Choose how easily you remembered it." : "Answer: \(target). Review again soon."
-                            if !correct { app.reviewFlashcard(card,rating:.again,correct:false); rated = true }
+                            if !correct { app.reviewFlashcard(card,rating:.again,correct:false,answer:answer); rated = true }
                         }.disabled(answer.trimmingCharacters(in:.whitespaces).isEmpty || checked || revealed)
                         Button("Reveal answer") { revealed = true; feedback = target; app.reviewFlashcard(card,rating:.again,correct:nil); rated = true }.disabled(checked || revealed)
                         Button("Listen") { speech.speak(target,language:app.learner.target) }

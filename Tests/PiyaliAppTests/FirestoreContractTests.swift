@@ -42,6 +42,55 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
             "patreonVerified":true,"unrelatedWebSetting":"preserve"
         ])
     }
+    func testMemoryCapturesMergeWithWebNotesAndRetryOnce() async throws {
+        let (service,db,npub) = try context(); try await seed(db,npub)
+        let bucket = db.collection("users").document(npub).collection("companion").document("fr")
+        let day = CalendarDay.key(Date())
+        try await bucket.setData(["lang":"fr","webBucketField":"preserve","notes":[[
+            "id":"mem-web","createdDayKey":day,"createdAt":Date().timeIntervalSince1970*1000,
+            "targetLang":"fr","supportLang":"es","sourceMode":"grammar","concept":"Word order",
+            "userAnswer":"before","expectedAnswer":"after","correction":"after","cefrLevel":"A1",
+            "severity":1,"recommendedRepairMode":"lesson","status":"captured",
+            "expiresAfterDayKey":CalendarDay.shift(day,by:1),"mistake":"Web diagnosis","tip":"Web tip","enriched":true,"webNoteField":"preserve"
+        ]]])
+        var state = try requireState(try await service.load(npub:npub))
+        XCTAssertEqual(state.companionMemory?["fr"]?.first?.id,"mem-web")
+        state.captureMemory(mode:"grammar",concept:"word order",answer:"new answer",expected:"after",feedback:"")
+        _ = try await service.save(state,npub:npub); _ = try await service.save(state,npub:npub)
+        let fields = try await bucket.getDocument(source:.server).data()!
+        let notes = try XCTUnwrap(fields["notes"] as? [[String:Any]])
+        XCTAssertEqual(notes.count,1); XCTAssertEqual(notes[0]["id"] as? String,"mem-web")
+        XCTAssertEqual(WebProgressContract.integer(notes[0]["severity"]),2)
+        XCTAssertEqual(notes[0]["tip"] as? String,"Web tip"); XCTAssertEqual(notes[0]["userAnswer"] as? String,"new answer")
+        XCTAssertEqual(notes[0]["webNoteField"] as? String,"preserve"); XCTAssertEqual(fields["webBucketField"] as? String,"preserve")
+    }
+    func testTwoDevicesCaptureOneConceptWithoutLosingSeverity() async throws {
+        let (service,db,npub) = try context(); try await seed(db,npub)
+        var first = try requireState(try await service.load(npub:npub)), second = first
+        first.captureMemory(mode:"flashcard",concept:"bonjour",answer:"wrong one",expected:"bonjour",feedback:"")
+        second.captureMemory(mode:"flashcard",concept:"Bonjour",answer:"wrong two",expected:"bonjour",feedback:"")
+        let a = first, b = second
+        async let one = service.save(a,npub:npub)
+        async let two = service.save(b,npub:npub)
+        _ = try await (one,two)
+        let snapshot = try await db.collection("users").document(npub).collection("companion").document("fr").getDocument(source:.server)
+        let notes = try XCTUnwrap(snapshot.data()?["notes"] as? [[String:Any]])
+        XCTAssertEqual(notes.count,1); XCTAssertEqual(WebProgressContract.integer(notes[0]["severity"]),2)
+    }
+    func testRepairReinforcementIsSharedAndDoesNotReviveOnRetry() async throws {
+        let (service,db,npub) = try context(); try await seed(db,npub)
+        var state = try requireState(try await service.load(npub:npub))
+        state.captureMemory(mode:"grammar",concept:"agreement",answer:"wrong",expected:"correct",feedback:"Explanation")
+        state = try requireState(try await service.save(state,npub:npub))
+        let id = try XCTUnwrap(state.companionMemory?["fr"]?.first?.id)
+        let oldSnapshot = state
+        state.reinforceMemory(id:id)
+        _ = try await service.save(state,npub:npub)
+        _ = try await service.save(oldSnapshot,npub:npub)
+        let restored = try requireState(try await service.load(npub:npub))
+        XCTAssertEqual(restored.companionMemory?["fr"]?.first?.text("status"),"reinforced")
+        XCTAssertTrue(restored.activeMemories.isEmpty)
+    }
     func testFirstUploadCreatesSharedProfileAndFlushesOfflineWork() async throws {
         let (service,db,npub) = try context()
         var state = LearnerState(); state.name = "New learner"; state.onboardingComplete = true
@@ -74,9 +123,11 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
         state.award(10)
         let acknowledged = try requireState(try await service.save(state,npub:npub))
         XCTAssertEqual(acknowledged.xp,110); XCTAssertEqual(acknowledged.pendingChanges?.count,0)
+        XCTAssertTrue(acknowledged.acknowledgedEventIDs?.contains(state.pendingChanges![0].id) == true)
         _ = try await service.save(state,npub:npub)
         let fields = try await db.collection("users").document(npub).getDocument(source:.server).data()!
         XCTAssertEqual(WebProgressContract.integer(fields["xp"]),160)
+        XCTAssertEqual((fields["iosRecentEventIDs"] as? [String])?.count,1)
         XCTAssertEqual((fields["progress"] as? [String:Any])?["languageXp"] as? [String:Int],["fr":110,"es":50])
         XCTAssertEqual(fields["patreonVerified"] as? Bool,true); XCTAssertEqual(fields["unrelatedWebSetting"] as? String,"preserve")
         let receipts = try await db.collection("users").document(npub).collection("iosPracticeReceipts").getDocuments(source:.server)

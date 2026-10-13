@@ -54,10 +54,21 @@ struct FocusedGoalView: View {
 }
 struct RepairPracticeView: View {
     @EnvironmentObject var app: AppModel
-    var mistakes: [HistoryEntry] { Array(app.learner.history.filter { !$0.correct && $0.target == app.learner.target }.prefix(30)) }
+    var mistakes: [HistoryEntry] { Array(app.learner.history.filter { !$0.correct && $0.repairInMemory == nil && $0.target == app.learner.target }.prefix(30)) }
     var body: some View {
         List {
-            if mistakes.isEmpty { Text("Your missed answers will appear here with focused practice.") }
+            if mistakes.isEmpty && app.learner.activeMemories.isEmpty { Text("Useful mistakes will appear here with focused practice. Answer reveals do not count as mistakes.") }
+            ForEach(app.learner.activeMemories) { note in
+                let mode = MemoryContract.practiceMode(note)
+                let brief = JSONValue.object(note.fields)
+                let lesson = Lesson(id:"repair-memory-" + note.id,title:.string(note.text("concept")),description:.string(note.text("mistake")),xpReward:20,modes:[mode == .speaking ? "speaking" : mode == .conversation ? "conversation" : mode.rawValue.lowercased()],agenda:brief,content:brief)
+                Section(note.text("concept")) {
+                    MemoryNoteDetails(note:note)
+                    NavigationLink("Practice this concept") { ExerciseView(mode:mode,lesson:lesson,concept:note.text("concept")) }
+                    Button("Complete repair (+20 XP)") { app.complete(lesson) }
+                        .disabled(!app.canComplete(lesson) || app.learner.completed.contains(app.learner.completionKey(lesson.id)))
+                }
+            }
             ForEach(mistakes) { entry in
                 let lesson = Lesson(id:"repair-\(entry.id.uuidString)",title:.string("Repair practice"),description:.string(entry.feedback),xpReward:20,modes:["grammar"],agenda:.object(["originalQuestion":.string(entry.question),"studentAnswer":.string(entry.answer),"feedback":.string(entry.feedback)]),content:.object(["grammar":.string("Practice the specific concept behind this error with a fresh example.")]))
                 Section(entry.mode) {

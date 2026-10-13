@@ -6,6 +6,7 @@ options:
 settings:
   base:
     SWIFT_VERSION: '5.10'
+    ENABLE_USER_SCRIPT_SANDBOXING: NO
     "CODE_SIGN_IDENTITY[sdk=iphonesimulator*]": '-'
     TARGETED_DEVICE_FAMILY: '1'
     GENERATE_INFOPLIST_FILE: YES
@@ -24,6 +25,20 @@ targets:
     platform: iOS
     sources:
       - path: Piyali
+        excludes: ["Resources/GoogleService-Info.plist", "Resources/AppConfiguration.local.plist"]
+    postBuildScripts:
+      - name: Copy local service configuration if present
+        basedOnDependencyAnalysis: false
+        script: |
+          for config in GoogleService-Info.plist AppConfiguration.local.plist; do
+            source="$SRCROOT/Piyali/Resources/$config"
+            destination="$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/$config"
+            if [ -f "$source" ]; then
+              cp "$source" "$destination"
+            else
+              rm -f "$destination"
+            fi
+          done
     dependencies:
       - package: Firebase
         product: FirebaseCore

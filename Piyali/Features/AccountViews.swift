@@ -41,6 +41,10 @@ struct NotebookView: View {
     @State private var bodyText = ""
     var body: some View {
         List {
+            Section("Companion memory") {
+                NavigationLink("Companion memory (\(app.learner.activeMemories.count))") { CompanionMemoryView() }
+                NavigationLink("Repair mistakes") { RepairPracticeView() }
+            }
             Section("New note") {
                 TextField("Title", text: $title)
                 TextField("What do you want to remember?", text: $bodyText, axis: .vertical)

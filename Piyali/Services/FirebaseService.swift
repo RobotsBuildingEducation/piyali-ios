@@ -20,6 +20,9 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
     var configured: Bool { injectedDatabase != nil || (Bundle.main.url(forResource:"GoogleService-Info",withExtension:"plist") != nil && FirebaseApp.app() != nil) }
     private var database: Firestore? { injectedDatabase ?? (configured ? Firestore.firestore() : nil) }
     static func configure() {
+        #if DEBUG
+        if ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"] == "1" || ProcessInfo.processInfo.environment["PIYALI_FIRESTORE_EMULATOR_TESTS"] == "1" { return }
+        #endif
         guard Bundle.main.url(forResource:"GoogleService-Info",withExtension:"plist") != nil, FirebaseApp.app() == nil else { return }
         AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory()); FirebaseApp.configure()
     }
@@ -50,6 +53,9 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
             if (review.updatedAt ?? .distantPast) >= (state.cardReviews?[key]?.updatedAt ?? .distantPast) { state.cardReviews?[key] = review }
             if review.completed { state.flashcardMastery.insert(key) }
         }
+        let memory = try await user.collection("companion").document(state.target).getDocument(source:.server)
+        if state.companionMemory == nil { state.companionMemory = [:] }
+        state.companionMemory?[state.target] = try Self.memoryNotes(memory.data()?["notes"])
         return state
     }
     /// Awards are flushed before the snapshot. A failed/partial flush leaves the local outbox intact; retry receipts prevent repeated credit.
@@ -59,7 +65,10 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
         for change in (state.pendingChanges ?? []).sorted(by:{ $0.date < $1.date }) {
             try await apply(change, state:state, user:user, database:database)
         }
-        var snapshotState = state; snapshotState.pendingChanges = []; snapshotState.preferencesModifiedAt = nil
+        for change in (state.pendingMemoryChanges ?? []).sorted(by:{ $0.date < $1.date }) {
+            try await applyMemory(change,user:user,database:database)
+        }
+        var snapshotState = state; snapshotState.pendingChanges = []; snapshotState.pendingMemoryChanges = []; snapshotState.preferencesModifiedAt = nil
         let uploaded = snapshotState
         // Keep other-device completion evidence. Preference writes occur only after an explicit local change.
         _ = try await database.runTransaction { transaction, errorPointer -> Any? in
@@ -72,6 +81,8 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                     merged.practicedModes.formUnion(remote.practicedModes)
                 }
                 merged = WebProgressContract.imported(Self.normalized(fields),native:merged)
+                // Companion memory has its own shared web document, not a second snapshot authority.
+                merged.companionMemory = nil; merged.pendingMemoryChanges = []; merged.acknowledgedEventIDs = nil
                 var patch: [String:Any] = ["local_npub":npub,"iosStateJSON":String(decoding:try JSONEncoder().encode(merged),as:UTF8.self),"iosStateVersion":2,"iosUpdatedAt":FieldValue.serverTimestamp()]
                 if state.preferencesModifiedAt.map({ $0 > (WebProgressContract.date(Self.normalized(fields)["iosPreferencesModifiedAt"]) ?? .distantPast) }) == true || !snapshot.exists {
                     patch["iosPreferencesModifiedAt"] = WebProgressContract.iso(state.preferencesModifiedAt ?? Date())
@@ -98,7 +109,11 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
             do {
                 // Complete all reads before any writes, including the first-ever user document.
                 let receiptSnapshot = try transaction.getDocument(receipt)
-                if receiptSnapshot.exists { return false }
+                if receiptSnapshot.exists {
+                    let fields = try transaction.getDocument(user).data() ?? [:]
+                    Self.acknowledge(change.id,user:user,fields:fields,transaction:transaction)
+                    return false
+                }
                 let userSnapshot = try transaction.getDocument(user)
                 let monthSnapshot = try transaction.getDocument(month)
                 let contentSnapshot = try content.map { try transaction.getDocument($0) }
@@ -106,6 +121,7 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                 if !userSnapshot.exists { fields["dailyGoalXp"] = state.dailyGoal; fields["onboarding"] = ["completed":state.onboardingComplete] }
                 let patch = WebProgressContract.rootPatch(fields:fields,month:Self.normalized(monthSnapshot.data() ?? [:]),change:change)
                 var root = patch.root; root["local_npub"] = user.documentID
+                root["iosRecentEventIDs"] = Self.recentIDs(fields,adding:change.id)
                 if !userSnapshot.exists { root["createdAt"] = WebProgressContract.iso(change.date); root["dailyGoalXp"] = state.dailyGoal }
                 transaction.setData(root,forDocument:user,merge:true)
                 transaction.setData(patch.month,forDocument:month,merge:true)
@@ -136,6 +152,54 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                 return true
             } catch { errorPointer?.pointee = error as NSError; return nil }
         }
+    }
+    private func applyMemory(_ change: MemoryChange, user: DocumentReference, database: Firestore) async throws {
+        let receipt = user.collection("iosPracticeReceipts").document("memory-" + change.id.uuidString)
+        let bucket = user.collection("companion").document(change.target)
+        _ = try await database.runTransaction { transaction,errorPointer -> Any? in
+            do {
+                if try transaction.getDocument(receipt).exists {
+                    let fields = try transaction.getDocument(user).data() ?? [:]
+                    Self.acknowledge(change.id,user:user,fields:fields,transaction:transaction)
+                    return false
+                }
+                let userSnapshot = try transaction.getDocument(user)
+                let memory = try transaction.getDocument(bucket)
+                let original = try Self.memoryNotes(memory.data()?["notes"])
+                let today = CalendarDay.key(Date())
+                let notes = MemoryContract.applying(change,to:original,today:today)
+                let json = try JSONEncoder().encode(notes.map(\.fields))
+                let payload = try JSONSerialization.jsonObject(with:json)
+                transaction.setData(["local_npub":user.documentID,"iosRecentEventIDs":Self.recentIDs(userSnapshot.data() ?? [:],adding:change.id)],forDocument:user,merge:true)
+                var patch: [String:Any] = ["lang":change.target,"notes":payload]
+                if original.contains(where:{ !$0.text("expiresAfterDayKey").isEmpty && $0.text("expiresAfterDayKey") < today }) { patch["lastPrunedDayKey"] = today }
+                transaction.setData(patch,forDocument:bucket,merge:true)
+                transaction.setData(["eventID":change.id.uuidString,"source":"memory-" + change.action.rawValue,"targetLang":change.target,"practicedAt":WebProgressContract.iso(change.date),"syncedAt":FieldValue.serverTimestamp()],forDocument:receipt)
+                return true
+            } catch { errorPointer?.pointee = error as NSError; return nil }
+        }
+    }
+    // A bounded acknowledgment journal also covers changes committed by overlapping sync requests.
+    nonisolated private static func recentIDs(_ fields: [String:Any], adding id: UUID) -> [String] {
+        let value = id.uuidString
+        return Array(((fields["iosRecentEventIDs"] as? [String] ?? []).filter { $0 != value } + [value]).suffix(512))
+    }
+    nonisolated private static func acknowledge(_ id: UUID, user: DocumentReference, fields: [String:Any], transaction: Transaction) {
+        if !(fields["iosRecentEventIDs"] as? [String] ?? []).contains(id.uuidString) {
+            transaction.setData(["local_npub":user.documentID,"iosRecentEventIDs":recentIDs(fields,adding:id)],forDocument:user,merge:true)
+        }
+    }
+    nonisolated private static func memoryNotes(_ raw: Any?) throws -> [MemoryNote] {
+        guard let raw else { return [] }
+        func compatible(_ value: Any) -> Any {
+            if let date = value as? Timestamp { return WebProgressContract.iso(date.dateValue()) }
+            if let date = value as? Date { return WebProgressContract.iso(date) }
+            if let map = value as? [String:Any] { return map.mapValues(compatible) }
+            if let array = value as? [Any] { return array.map(compatible) }
+            return value
+        }
+        let data = try JSONSerialization.data(withJSONObject:compatible(raw))
+        return try JSONDecoder().decode([[String:JSONValue]].self,from:data).map(MemoryNote.init(fields:))
     }
     nonisolated private static func normalized(_ fields: [String:Any]) -> [String:Any] {
         func value(_ input: Any) -> Any {

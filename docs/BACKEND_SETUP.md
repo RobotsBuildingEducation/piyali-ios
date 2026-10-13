@@ -1,32 +1,33 @@
 # Connect the iPhone app to the existing backend
 
-The native app intentionally contains no server API keys, Patreon secrets, passcode unlocks, or copied web environment files. No service in the reference repo has been modified or deployed.
+The native app intentionally contains no server API keys, Patreon secrets, passcode unlocks, or copied web environment files. The reference services have not been modified or deployed. A separate Firebase project has been provisioned; its current state is documented in [FIREBASE_PROJECT.md](FIREBASE_PROJECT.md).
 
 ## Firebase
 
-1. Choose the Firebase backend you will manage. The reference web app is configured for project `nosabo-30dcb`; use it only if you have access and want shared learner accounts. Otherwise create a Firebase project for Piyali and provision its Firestore, AI Logic and App Check services. Register an **iOS** app with bundle ID `app.piyali.ios` in that project. The user has not yet created this native Firebase setup.
-2. Download that app's `GoogleService-Info.plist` into `Piyali/Resources/GoogleService-Info.plist`. Do not reuse the web Firebase App ID. This file is gitignored.
-3. Run `xcodegen generate` after adding the plist so it is included as a resource. Set your signing team in Xcode.
-4. Register the iOS app in Firebase App Check using App Attest (DeviceCheck is the fallback). The debug build uses Firebase's debug provider; register its generated debug token in the Firebase console for simulator development.
-5. Enable Firebase AI Logic with the Vertex AI backend and billing. Its default model and provider are in `AppConfiguration.plist`.
+1. The selected backend is the independent `piyali-ios` Firebase project. Its iOS app uses bundle ID `app.piyali.ios`; its `(default)` Firestore database is in `us-central1`. Do not register another duplicate app or point native development at `nosabo-30dcb`.
+2. The real iOS `GoogleService-Info.plist` has been downloaded locally into `Piyali/Resources/GoogleService-Info.plist`. It is gitignored and conditionally copied by the build phase. Other developers can download it using the command in `FIREBASE_PROJECT.md`. Set your Apple signing team in Xcode.
+3. Production online setup is pending: Nostr-bound Firebase authentication, Firestore rules/indexes and App Check registration. The new database currently rejects unauthenticated reads. The copied web rules are an emulator fixture, not this project's deployed production policy.
+4. Register the iOS app in Firebase App Check using App Attest (DeviceCheck is the fallback). Debug builds use Firebase's debug provider; register its generated debug token for simulator development. Offline UI tests and the named emulator test app skip production Firebase initialization even when a real local plist is present.
+5. Configure Firebase AI Logic for this separate project. The current client uses the reference's Agent Platform/Vertex backend, which requires billing. A Gemini Developer API configuration can support a Spark-plan starting point, but it must be selected and verified before changing the provider. The provisioned database does not make AI calls available automatically.
 
 The Firestore contract is `users/{npub}` with a matching `local_npub` field. The native client uses the existing shared fields:
 
 - XP: `xp`, `progress.languageXp`, `progress.totalXp`, `dailyXpRecent` and `xpHistory/{YYYY-MM}`. Offline awards retain their original calendar day; syncing yesterday’s work does not add it to today’s 24-hour XP window.
 - Lessons: `languageLessons/{targetLang}_{lessonId}`, plus first-completion increments in `courseProgress/{targetLang}`. The app preserves unknown fields and existing migration markers.
 - Flashcards: `languageFlashcards/{targetLang}_{cardId}`, using the web scheduler fields and completion convention. Current target/level records hydrate on sync; scheduler completion is earned by graduating the learning steps.
+- Companion memory: `companion/{targetLang}.notes` uses the web capture/status fields, daily concept/source deduplication, priority cap, 40-note cap and expiry window. Captures and reinforcement changes use transactional receipts, preserving existing enrichment and unrelated bucket fields. Native memory is hydrated from this document, not copied into the root snapshot.
 - Practice activity and score: existing per-language daily activity maps and score-scale v4 `learningIntelligence` fields.
 - Profile: web preferences are imported; explicit native preference edits update the shared fields. Native timestamps prevent an older native request from replacing a newer native preference edit.
 
-A protected local outbox stores each practice change until server acknowledgment. Firestore transactions write `iosPracticeReceipts/{hash}` along with shared progress. Retries cannot repeat XP; lesson/goal/repair receipts use stable completion identifiers across native devices. New practice during a sync remains queued. This is client-side synchronization using the existing web rules, not a new authentication or server validation system.
+A protected local outbox stores each practice change until server acknowledgment. Firestore transactions write `iosPracticeReceipts/{id}` along with shared progress or companion memory. Retries cannot repeat XP; lesson/goal/repair receipts use stable completion identifiers across native devices. New practice or memory captures during a sync remain queued. A bounded `iosRecentEventIDs` journal prevents already-committed changes from being applied locally again when sync requests overlap. This is client-side synchronization using the existing web rules, not a new authentication or server validation system.
 
-`iosStateJSON` version 2 retains native-only state. Completion sets merge across native devices. Notes, history, native goal/repair details and recordings still use snapshot state with last writer wins; audio files remain local. Existing v1 snapshots decode without the new optional fields. Aggregate v1 XP is not automatically backfilled into shared web XP, avoiding duplicate credit when its origin cannot be established. Full cross-platform reconciliation, pet decay and achievement sync remain follow-up work.
+`iosStateJSON` version 2 retains native-only state. Completion sets merge across native devices. Manual notes, history, native goal plans and recordings still use snapshot state with last writer wins; audio files remain local. Existing v1 snapshots decode without the new optional fields. Aggregate v1 XP is not automatically backfilled into shared web XP, avoiding duplicate credit when its origin cannot be established. Full cross-platform reconciliation, pet decay and achievement sync remain follow-up work.
 
 The copied rules in `BackendReference/firestore.emulator.rules` are used only for local tests. Neither rules nor indexes are deployed by this repo. The two-field lesson/card queries match the web queries and need the same deployed indexes.
 
 ## Cloudflare
 
-The existing worker uses a strict **single web App ID** check in `cloudflare-tts-proxy/src/app-check.js`. Adding an iOS Firebase app does not automatically authorize its tokens. An operator of that separate backend must change its `payload.sub` check to a configured allowlist that contains both the existing web ID and the new iOS ID. Keep JWT issuer, audience, signature, expiration and algorithm checks in place.
+The existing worker uses a strict **single web App ID** check in `cloudflare-tts-proxy/src/app-check.js`. Adding an iOS Firebase app does not automatically authorize its tokens. For the selected separate Firebase project, provision a separate worker with this project’s number and native App ID. The reference web worker cannot validate the new project’s tokens using its old issuer/audience configuration. Keep JWT issuer, audience, signature, expiration and algorithm checks in place.
 
 A ready-to-integrate replacement validator is supplied in `BackendReference/app-check.js` in this repo, with tests. It is not deployed. Set `FIREBASE_APP_IDS` to the comma-separated web and native IDs from the same Firebase project, retain the matching `FIREBASE_PROJECT_NUMBER`, and deploy from the backend owner's workflow. A separate Firebase project requires a separately configured worker or backend support for that project’s issuer/audience as well; adding a cross-project App ID to the existing single-project validator is insufficient. Do not solve this by disabling App Check or giving iOS the web ID.
 

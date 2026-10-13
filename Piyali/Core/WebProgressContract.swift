@@ -38,6 +38,7 @@ public enum WebProgressContract {
     }
     public static func imported(_ fields: [String:Any], native: LearnerState? = nil, now: Date = Date()) -> LearnerState {
         var state = native ?? LearnerState()
+        state.acknowledgedEventIDs = Set((fields["iosRecentEventIDs"] as? [String] ?? []).compactMap(UUID.init(uuidString:)))
         let progress = fields["progress"] as? [String:Any] ?? [:]
         if native == nil || native?.preferencesModifiedAt == nil {
             state.name = fields["displayName"] as? String ?? fields["name"] as? String ?? state.name
