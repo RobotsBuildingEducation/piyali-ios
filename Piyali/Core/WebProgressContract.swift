@@ -40,6 +40,17 @@ public enum WebProgressContract {
         var state = native ?? LearnerState()
         state.acknowledgedEventIDs = Set((fields["iosRecentEventIDs"] as? [String] ?? []).compactMap(UUID.init(uuidString:)))
         let progress = fields["progress"] as? [String:Any] ?? [:]
+        let placementLevels = fields["proficiencyPlacements"] as? [String:String] ?? [:]
+        let details = fields["iosPlacementDetails"] as? [String:[String:Any]] ?? [:]
+        for (language, level) in placementLevels where LearningLanguages.levels.contains(level) {
+            let savedDetail = details[language] ?? [:]
+            let detail = savedDetail["level"] as? String == level ? savedDetail : [:]
+            let updated = date(detail["updatedAt"]) ?? date(fields["proficiencyPlacementAt"]) ?? .distantPast
+            if let pending = state.pendingPlacements?[language], iso(pending.updatedAt) > iso(updated) { continue }
+            if state.placements == nil { state.placements = [:] }
+            state.placements?[language] = Placement(level:level,score:integer(detail["score"],default:Int(PerformanceScore.defaults[level] ?? 0)),source:detail["source"] as? String ?? "web",selectedIDs:detail["selectedIDs"] as? [String] ?? [],updatedAt:updated)
+            state.pendingPlacements?.removeValue(forKey:language)
+        }
         if native == nil || native?.preferencesModifiedAt == nil {
             state.name = fields["displayName"] as? String ?? fields["name"] as? String ?? state.name
             state.target = progress["targetLang"] as? String ?? state.target
@@ -50,6 +61,9 @@ public enum WebProgressContract {
             state.companionName = fields["dailyGoalPetName"] as? String ?? state.companionName
             state.companionType = fields["dailyGoalPetType"] as? String ?? state.companionType
             state.onboardingComplete = (fields["onboarding"] as? [String:Any])?["completed"] as? Bool ?? state.onboardingComplete
+            state.lessonLevels = progress["activeLessonLevels"] as? [String:String] ?? state.lessonLevels
+            state.flashcardLevels = progress["activeFlashcardLevels"] as? [String:String] ?? state.flashcardLevels
+            if let active = state.lessonLevels?[state.target], LearningLanguages.levels.contains(active) { state.level = active }
         }
         if let languageXP = progress["languageXp"] as? [String:Any] {
             state.xpByLanguage = languageXP.mapValues { max(0,integer($0)) }
@@ -62,12 +76,31 @@ public enum WebProgressContract {
         state.streak = [today,CalendarDay.shift(today,by:-1)].contains(lastGoal) ? integer(fields["goalStreakCount"]) : 0
         for (language, bucket) in fields["learningIntelligence"] as? [String:[String:Any]] ?? [:] {
             let elo = bucket["elo"] as? [String:Any] ?? [:]
+            if state.gradedByLanguage == nil { state.gradedByLanguage = [:] }
+            state.gradedByLanguage?[language] = max(0,integer(elo["totalGraded"]))
             if integer(elo["scaleVersion"]) == PerformanceScore.version, elo["rating"] != nil {
                 if state.ratingByLanguage == nil { state.ratingByLanguage = [:] }
                 state.ratingByLanguage?[language] = max(800,min(2200,number(elo["rating"])))
             }
         }
         return state
+    }
+    public static func placementPatch(fields: [String:Any], language: String, placement: Placement) -> [String:Any] {
+        let existingLevel = (fields["proficiencyPlacements"] as? [String:String])?[language]
+        let savedDetail = (fields["iosPlacementDetails"] as? [String:[String:Any]])?[language] ?? [:]
+        let detail = savedDetail["level"] as? String == existingLevel ? savedDetail : [:]
+        guard iso(placement.updatedAt) > iso(date(detail["updatedAt"]) ?? (existingLevel == nil ? nil : date(fields["proficiencyPlacementAt"])) ?? .distantPast) else { return [:] }
+        var patch: [String:Any] = ["proficiencyPlacements":[language:placement.level],"proficiencyPlacementAt":iso(placement.updatedAt),"iosPlacementDetails":[language:["level":placement.level,"score":placement.score,"source":placement.source,"selectedIDs":placement.selectedIDs,"updatedAt":iso(placement.updatedAt)]]]
+        var bucket = (fields["learningIntelligence"] as? [String:[String:Any]])?[language] ?? [:]
+        var elo = bucket["elo"] as? [String:Any] ?? [:]
+        if placement.source == "self_report" { bucket["selfAssessment"] = ["selectedIds":placement.selectedIDs,"estimatedLevel":placement.level,"estimatedRating":placement.score,"updatedAt":iso(placement.updatedAt)] }
+        if integer(elo["totalGraded"]) == 0 && (placement.gradedAtPlacement ?? 0) == 0 {
+            elo["rating"] = PerformanceScore.rating(score:Double(placement.score)); elo["scaleVersion"] = 4
+            elo["totalGraded"] = 0; elo["initializedFrom"] = placement.source; elo["updatedAt"] = iso(placement.updatedAt)
+            bucket["elo"] = elo
+        }
+        patch["learningIntelligence"] = [language:bucket]
+        return patch
     }
     public static func rootPatch(fields: [String:Any], month: [String:Any], change: PracticeChange, now: Date = Date()) -> (root:[String:Any], month:[String:Any]) {
         var progress = fields["progress"] as? [String:Any] ?? [:]
@@ -123,6 +156,7 @@ public enum WebProgressContract {
             let baseline = integer(elo["scaleVersion"]) == 4 ? number(elo["rating"],default:800) : 800
             elo["rating"] = PerformanceScore.update(rating:baseline,questionLevel:change.level,correct:correct,independent:change.independent ?? false)
             elo["scaleVersion"] = 4; elo["updatedAt"] = iso(change.date)
+            elo["totalGraded"] = integer(elo["totalGraded"]) + 1
             var summary = bucket["performanceSummary"] as? [String:Any] ?? [:]
             var levels = summary["byLevel"] as? [String:[String:Any]] ?? [:]
             var counts = levels[change.level] ?? [:]

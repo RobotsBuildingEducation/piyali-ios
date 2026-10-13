@@ -138,17 +138,24 @@ public struct LearnerState: Codable, Sendable {
     public var immersionDays: Set<String>?
     public var journeyDays: Set<String>?
     public var journeyRecordings: [String: String]?
+    public var placements: [String: Placement]?
+    public var pendingPlacements: [String: Placement]?
+    public var gradedByLanguage: [String: Int]?
+    public var lessonLevels: [String: String]?
+    public var flashcardLevels: [String: String]?
+    public var courseCompletion: [String: [String: [String: Int]]]?
     public var onboardingComplete = false
     public init() {}
     public var xp: Int { xpByLanguage[target, default: 0] }
     public var rating: Double { ratingByLanguage?[target] ?? 800 }
     public var score: Int { PerformanceScore.score(rating: rating) }
     public var effectiveCompanionType: String { CompanionTypes.effective(companionType, level: companionLevel) }
-    public mutating func assess(correct: Bool, independent: Bool, now: Date = Date()) {
+    public mutating func assess(correct: Bool, independent: Bool, now: Date = Date(), questionLevel: String? = nil) {
         if ratingByLanguage == nil { ratingByLanguage = [:] }
-        let updated = PerformanceScore.update(rating: rating, questionLevel: level, correct: correct, independent: independent)
+        if gradedByLanguage == nil { gradedByLanguage = [:] }; gradedByLanguage?[target, default: 0] += 1
+        let updated = PerformanceScore.update(rating: rating, questionLevel: questionLevel ?? level, correct: correct, independent: independent)
         ratingByLanguage?[target] = updated
-        enqueue(PracticeChange(date:now,dayKey:CalendarDay.key(now),target:target,level:level,amount:0,source:.assessment,correct:correct,independent:independent))
+        enqueue(PracticeChange(date:now,dayKey:CalendarDay.key(now),target:target,level:questionLevel ?? level,amount:0,source:.assessment,correct:correct,independent:independent))
     }
     public var totalXP: Int { xpByLanguage.values.reduce(0, +) }
     public var companionLevel: Int { max(1, xp / 100 + 1) }

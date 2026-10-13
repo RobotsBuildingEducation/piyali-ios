@@ -53,7 +53,7 @@ public extension LearnerState {
         if next.completed { flashcardMastery.insert(key) }
         let amount = rating == .again ? 0 : rating == .hard ? 4 : rating == .easy ? 7 : 5
         addXP(amount,now:now,calendar:calendar)
-        enqueue(PracticeChange(date:now,dayKey:dailyKey,target:target,level:level,amount:amount,source:.review,contentID:cardID,reviewRating:rating))
+        enqueue(PracticeChange(date:now,dayKey:dailyKey,target:target,level:flashcardLevel,amount:amount,source:.review,contentID:cardID,reviewRating:rating))
     }
     // Merge a completed sync without losing practice performed while the network request was in flight.
     static func rebased(current: LearnerState, sent: LearnerState, acknowledged: LearnerState) -> LearnerState {
@@ -84,6 +84,15 @@ public extension LearnerState {
             if current.companionName == sent.companionName { merged.companionName = acknowledged.companionName }
             if current.companionType == sent.companionType { merged.companionType = acknowledged.companionType }
         }
+        for (language, placement) in acknowledged.placements ?? [:] {
+            if current.pendingPlacements?[language] == sent.pendingPlacements?[language] {
+                if merged.placements == nil { merged.placements = [:] }; merged.placements?[language] = placement
+                merged.pendingPlacements?.removeValue(forKey: language)
+            }
+        }
+        merged.courseCompletion = acknowledged.courseCompletion
+        if current.flashcardLevels == sent.flashcardLevels { merged.flashcardLevels = acknowledged.flashcardLevels }
+        if current.lessonLevels == sent.lessonLevels { merged.lessonLevels = acknowledged.lessonLevels }
         merged.completed.formUnion(acknowledged.completed)
         merged.flashcardMastery.formUnion(acknowledged.flashcardMastery)
         var xp = acknowledged.xpByLanguage
@@ -100,7 +109,7 @@ public extension LearnerState {
             }
         }
         // A newer local assessment already includes all previous local evidence.
-        if !newer.contains(where: { $0.source == .assessment }) { merged.ratingByLanguage = acknowledged.ratingByLanguage }
+        if !newer.contains(where: { $0.source == .assessment }) && (merged.pendingPlacements ?? [:]).isEmpty { merged.ratingByLanguage = acknowledged.ratingByLanguage; merged.gradedByLanguage = acknowledged.gradedByLanguage }
         return merged
     }
 }

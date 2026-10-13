@@ -57,13 +57,17 @@ import SwiftUI
     func boot() async { guard signedIn else { return }; await reloadContent(); await sync(); await subscription.refresh() }
     func reloadContent() async {
         contentTask?.cancel()
-        let target = learner.target, support = learner.support, level = learner.level
+        if !lessonLevels.contains(learner.level) { learner.level = lessonLevels.last ?? "Pre-A1" }
+        if !cardLevels.contains(learner.flashcardLevel) {
+            if learner.flashcardLevels == nil { learner.flashcardLevels = [:] }; learner.flashcardLevels?[learner.target] = cardLevels.last ?? "Pre-A1"
+        }
+        let target = learner.target, support = learner.support, level = learner.level, cardLevel = learner.flashcardLevel
         loadingContent = true
         let task = Task { [weak self] in
             do {
                 let data = try await Task.detached(priority: .userInitiated) { () -> ([LearningUnit], [Flashcard], [PhonicsCard]) in
                     let curriculum = try ContentLibrary.load([String:[LearningUnit]].self, name: "curriculum-" + target)
-                    let cards = try ContentLibrary.load([Flashcard].self, name: "flashcards").filter { $0.cefrLevel == level }
+                    let cards = try ContentLibrary.load([Flashcard].self, name: "flashcards").filter { $0.cefrLevel == cardLevel }
                     let allPhonics = try ContentLibrary.load([String:[PhonicsCard]].self, name: "phonics")
                     return (curriculum[level] ?? [], cards, allPhonics["\(target):\(support):\(level)"] ?? [])
                 }.value
@@ -76,7 +80,7 @@ import SwiftUI
     }
     private func writeLocal() throws { try JSONEncoder().encode(learner).write(to:localURL,options:[.atomic,.completeFileProtection]) }
     func persist() {
-        if learner.name != lastPersisted.name || learner.target != lastPersisted.target || learner.support != lastPersisted.support || learner.level != lastPersisted.level || learner.dailyGoal != lastPersisted.dailyGoal || learner.companionName != lastPersisted.companionName || learner.companionType != lastPersisted.companionType || learner.onboardingComplete != lastPersisted.onboardingComplete { learner.preferencesModifiedAt = Date() }
+        if learner.name != lastPersisted.name || learner.target != lastPersisted.target || learner.support != lastPersisted.support || learner.level != lastPersisted.level || learner.dailyGoal != lastPersisted.dailyGoal || learner.companionName != lastPersisted.companionName || learner.companionType != lastPersisted.companionType || learner.onboardingComplete != lastPersisted.onboardingComplete || learner.flashcardLevels != lastPersisted.flashcardLevels || learner.lessonLevels != lastPersisted.lessonLevels { learner.preferencesModifiedAt = Date() }
         do { try writeLocal(); lastPersisted = learner }
         catch { self.error = "Could not save progress: \(error.localizedDescription)"; return }
         saveTask?.cancel()
@@ -96,13 +100,13 @@ import SwiftUI
         }
     }
     private var synchronizedStatus: String {
-        (learner.pendingChanges ?? []).isEmpty && (learner.pendingMemoryChanges ?? []).isEmpty ? "Synced with Firebase" : "Saved on iPhone; cloud sync pending"
+        (learner.pendingChanges ?? []).isEmpty && (learner.pendingMemoryChanges ?? []).isEmpty && (learner.pendingPlacements ?? [:]).isEmpty ? "Synced with Firebase" : "Saved on iPhone; cloud sync pending"
     }
     private func applyAcknowledgment(_ cloud: LearnerState, sent: LearnerState) throws {
-        let target = learner.target, support = learner.support, level = learner.level
+        let target = learner.target, support = learner.support, level = learner.level, cardLevel = learner.flashcardLevel
         learner = LearnerState.rebased(current:learner,sent:sent,acknowledged:cloud)
         lastPersisted = learner; try writeLocal()
-        if target != learner.target || support != learner.support || level != learner.level { Task { await reloadContent() } }
+        if target != learner.target || support != learner.support || level != learner.level || cardLevel != learner.flashcardLevel { Task { await reloadContent() } }
     }
     func sync() async {
         let state = learner, npub = identity.npub
@@ -116,7 +120,7 @@ import SwiftUI
         } catch { if identity.npub == npub { syncStatus = "Saved on iPhone; cloud sync pending" } }
     }
     func reviewFlashcard(_ card: Flashcard, rating: ReviewRating, correct: Bool?, answer: String = "", now: Date = Date()) {
-        if let correct { learner.assess(correct:correct,independent:true,now:now) }
+        if let correct { learner.assess(correct:correct,independent:true,now:now,questionLevel:card.cefrLevel) }
         if correct == false { learner.captureMemory(mode:"flashcard",concept:card.text(learner.target),answer:answer,expected:card.text(learner.target),feedback:"",context:card.id,now:now) }
         learner.review(cardID:card.id,rating:rating,now:now)
         learner.history.insert(HistoryEntry(date:now,target:learner.target,mode:"Flashcard review",question:card.text(learner.support),answer:card.text(learner.target),feedback:"Review: \(rating.rawValue)",correct:correct ?? false,repairInMemory:correct == false),at:0)
@@ -141,6 +145,18 @@ import SwiftUI
         }
         persist()
     }
+    var lessonLevels: [String] { learner.unlockedLevels(mode:"skillTree",index:curriculumIndex[learner.target] ?? [:]) }
+    var cardLevels: [String] { learner.unlockedLevels(mode:"flashcards",index:flashcardIndex) }
+    func setLessonLevel(_ level: String) {
+        guard lessonLevels.contains(level) else { return }; learner.level = level
+        if learner.lessonLevels == nil { learner.lessonLevels = [:] }; learner.lessonLevels?[learner.target] = level; persist()
+    }
+    func setCardLevel(_ level: String) {
+        guard cardLevels.contains(level) else { return }
+        if learner.flashcardLevels == nil { learner.flashcardLevels = [:] }; learner.flashcardLevels?[learner.target] = level
+        persist(); Task { await reloadContent() }
+    }
+    func place(_ placement: Placement) { learner.place(placement); persist(); Task { await reloadContent() } }
     func canComplete(_ lesson: Lesson) -> Bool { Self.modes(for: lesson).allSatisfy { learner.practicedModes.contains(learner.modeKey(lesson.id, $0.rawValue)) } }
     func complete(_ lesson: Lesson) { guard canComplete(lesson) else { return }; _ = learner.complete(lesson); persist() }
     static func modes(for lesson: Lesson) -> [PracticeMode] {

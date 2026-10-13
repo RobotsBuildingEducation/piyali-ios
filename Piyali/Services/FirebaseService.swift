@@ -50,7 +50,7 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
             let data = document.data()
             if data["status"] as? String == "completed", let id = data["lessonId"] as? String, data["tutorAgendaProgress"] == nil { state.completed.insert(state.completionKey(id)) }
         }
-        let cards = try await user.collection("languageFlashcards").whereField("targetLang",isEqualTo:state.target).whereField("cefrLevel",isEqualTo:state.level).getDocuments(source:.server)
+        let cards = try await user.collection("languageFlashcards").whereField("targetLang",isEqualTo:state.target).whereField("cefrLevel",isEqualTo:state.flashcardLevel).getDocuments(source:.server)
         for document in cards.documents {
             let data = Self.normalized(document.data())
             guard let id = data["cardId"] as? String else { continue }
@@ -58,6 +58,17 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
             if state.cardReviews == nil { state.cardReviews = [:] }
             if (review.updatedAt ?? .distantPast) >= (state.cardReviews?[key]?.updatedAt ?? .distantPast) { state.cardReviews?[key] = review }
             if review.completed { state.flashcardMastery.insert(key) }
+        }
+        let summary = try await user.collection("courseProgress").document(state.target).getDocument(source:.server)
+        if let data = summary.data() {
+            if state.courseCompletion == nil { state.courseCompletion = [:] }
+            for mode in ["skillTree", "flashcards"] {
+                let levels = (data[mode] as? [String:Any])?["levels"] as? [String:[String:Any]] ?? [:]
+                var counts: [String:Int] = [:]
+                for level in LearningLanguages.levels { counts[level] = WebProgressContract.integer(levels[level.lowercased().replacingOccurrences(of:"-",with:"_")]?["completed"]) }
+                if state.courseCompletion?[state.target] == nil { state.courseCompletion?[state.target] = [:] }
+                state.courseCompletion?[state.target]?[mode] = counts
+            }
         }
         let memory = try await user.collection("companion").document(state.target).getDocument(source:.server)
         if state.companionMemory == nil { state.companionMemory = [:] }
@@ -69,6 +80,18 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
         guard let database else { return nil }
         try requireOwner(npub)
         let user = database.collection("users").document(npub)
+        if !(state.pendingPlacements ?? [:]).isEmpty {
+            _ = try await database.runTransaction { transaction,errorPointer -> Any? in
+                do {
+                    let fields = Self.normalized(try transaction.getDocument(user).data() ?? [:])
+                    for (language,placement) in state.pendingPlacements ?? [:] {
+                        let patch = WebProgressContract.placementPatch(fields:fields,language:language,placement:placement)
+                        if !patch.isEmpty { transaction.setData(patch.merging(["local_npub":npub]) { _,new in new },forDocument:user,merge:true) }
+                    }
+                    return true
+                } catch { errorPointer?.pointee = error as NSError; return nil }
+            }
+        }
         for change in (state.pendingChanges ?? []).sorted(by:{ $0.date < $1.date }) {
             try await apply(change, state:state, user:user, database:database)
         }
@@ -96,7 +119,7 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                     patch["displayName"] = state.name; patch["language"] = state.support
                     patch["dailyGoalXp"] = state.dailyGoal; patch["dailyGoalPetName"] = state.companionName; patch["dailyGoalPetType"] = state.effectiveCompanionType
                     patch["onboarding"] = ["completed":state.onboardingComplete]
-                    patch["progress"] = ["targetLang":state.target,"supportLang":state.support,"cefrLevel":state.level]
+                    patch["progress"] = ["targetLang":state.target,"supportLang":state.support,"cefrLevel":state.level,"activeLessonLevels":state.lessonLevels ?? [state.target:state.level],"activeFlashcardLevels":state.flashcardLevels ?? [state.target:state.flashcardLevel]]
                 }
                 transaction.setData(patch,forDocument:user,merge:true)
                 return true

@@ -117,7 +117,10 @@ struct AccountView: View {
                 Button("Sync progress") { Task { await app.sync() } }
             }
         }.navigationTitle("Account")
-            .onChange(of: app.learner.target) { _, _ in app.persist(); Task { await app.reloadContent() } }
+            .onChange(of: app.learner.target) { _, target in
+                app.learner.level = app.learner.lessonLevels?[target] ?? app.learner.placements?[target]?.level ?? "Pre-A1"
+                app.persist(); Task { await app.reloadContent(); await app.sync() }
+            }
             .onChange(of: app.learner.support) { _, _ in app.persist(); Task { await app.reloadContent() } }
             .sheet(isPresented: Binding(get: { backup != nil }, set: { if !$0 { backup = nil } })) {
                 NavigationStack {

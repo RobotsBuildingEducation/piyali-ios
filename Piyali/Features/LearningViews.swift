@@ -16,7 +16,9 @@ struct HomeView: View {
                 if let lesson = app.selectedLesson { NavigationLink("Continue: " + lesson.title.localized(app.learner.support)) { LessonView(lesson: lesson) } }
             }
             Section("Learning path") {
-                Picker("CEFR level", selection: $app.learner.level) { ForEach(LearningLanguages.levels, id: \.self) { Text($0).tag($0) } }
+                NavigationLink("Choose your starting level") { PlacementView() }
+                Picker("Lesson level", selection: Binding(get: { app.learner.level }, set: { app.setLessonLevel($0) })) { ForEach(app.lessonLevels, id: \.self) { Text($0).tag($0) } }
+                if app.lessonLevels.count < LearningLanguages.levels.count { Text("Complete this lesson course to unlock the next level, or set your starting level above.").font(.footnote) }
                 if app.loadingContent { ProgressView("Loading curriculum…") }
                 ForEach(app.units) { unit in
                     DisclosureGroup(unit.title.localized(app.learner.support)) {
@@ -83,6 +85,7 @@ struct PracticeLibraryView: View {
     var body: some View {
         List {
             Section("Authored content") {
+                Picker("Flashcard level", selection: Binding(get: { app.learner.flashcardLevel }, set: { app.setCardLevel($0) })) { ForEach(app.cardLevels, id: \.self) { Text($0).tag($0) } }
                 NavigationLink("Flashcards (\(app.cards.count))") { FlashcardsView() }
                 NavigationLink("Phonics (\(app.phonics.count))") { PhonicsView() }
             }

@@ -1,5 +1,23 @@
 import XCTest
 final class SmokeTests: XCTestCase {
+    func testStartingLevelPersistsWithoutXPOrCompletionCredit() {
+        let app = XCUIApplication(); app.launchEnvironment["PIYALI_OFFLINE_TESTS"] = "1"; app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"] = UUID().uuidString; app.launch()
+        XCTAssertTrue(app.buttons["createAccount"].waitForExistence(timeout:5)); app.buttons["createAccount"].tap()
+        XCTAssertTrue(app.buttons["startLearning"].waitForExistence(timeout:10)); app.buttons["startLearning"].tap()
+        let placement = app.buttons["Choose your starting level"]
+        XCTAssertTrue(placement.waitForExistence(timeout:10)); placement.tap()
+        let option = app.switches["I mostly speak this language at home"]
+        XCTAssertTrue(option.waitForExistence(timeout:5)); option.switches.firstMatch.tap()
+        XCTAssertEqual(option.value as? String,"1")
+        for _ in 0..<4 where !app.buttons["Start at A1"].isHittable { app.swipeUp() }
+        XCTAssertTrue(app.buttons["Start at A1"].waitForExistence(timeout:5)); app.buttons["Start at A1"].tap()
+        app.terminate(); app.launch()
+        XCTAssertTrue(app.buttons["Choose your starting level"].waitForExistence(timeout:10)); app.buttons["Choose your starting level"].tap()
+        XCTAssertTrue(app.staticTexts["Current starting level: A1"].waitForExistence(timeout:5))
+        app.navigationBars.buttons.element(boundBy:0).tap(); app.tabBars.buttons["Account"].tap()
+        app.swipeUp()
+        XCTAssertTrue(app.staticTexts["0 total XP · 0 lessons completed"].waitForExistence(timeout:5))
+    }
     func testCreateAccountAndOfflinePractice() {
         let app = XCUIApplication(); app.launchEnvironment["PIYALI_OFFLINE_TESTS"] = "1"; app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"] = UUID().uuidString; app.launch()
         if app.buttons["createAccount"].waitForExistence(timeout: 5) { app.buttons["createAccount"].tap() }

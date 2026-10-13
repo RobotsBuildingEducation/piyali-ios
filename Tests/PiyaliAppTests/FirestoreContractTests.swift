@@ -42,6 +42,37 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
             "patreonVerified":true,"unrelatedWebSetting":"preserve"
         ])
     }
+    func testPlacementSeedsBeforeOfflinePracticeAndPreservesEarnedScoreOnRetake() async throws {
+        let (service,db,npub) = try context()
+        var state = LearnerState(); state.onboardingComplete = true; state.preferencesModifiedAt = Date()
+        state.place(PlacementAssessment.estimate(["read_write"])!)
+        state.assess(correct:true,independent:true)
+        let expected = state.rating
+        let cloud = try requireState(try await service.save(state,npub:npub))
+        XCTAssertEqual(cloud.placements?["es"]?.level,"B1")
+        XCTAssertEqual(cloud.rating,expected,accuracy:0.0001)
+        XCTAssertEqual(cloud.gradedByLanguage?["es"],1)
+        XCTAssertTrue((cloud.pendingPlacements ?? [:]).isEmpty)
+        _ = try await service.save(state,npub:npub)
+        var next = cloud; next.place(PlacementAssessment.estimate(["nuance_precision"])!)
+        let retaken = try requireState(try await service.save(next,npub:npub))
+        XCTAssertEqual(retaken.placements?["es"]?.level,"C1")
+        XCTAssertEqual(retaken.rating,expected,accuracy:0.0001)
+        let fields = try await db.collection("users").document(npub).getDocument().data() ?? [:]
+        XCTAssertEqual((fields["proficiencyPlacements"] as? [String:String])?["es"],"C1")
+        XCTAssertEqual((fields["progress"] as? [String:Any])?["languageXp"] as? [String:Int], ["es":0])
+    }
+    func testPlacementAndCourseSummaryRestoreWithoutGrantingCompletion() async throws {
+        let (service,db,npub) = try context(); try await seed(db,npub)
+        let user = db.collection("users").document(npub)
+        try await user.setData(["proficiencyPlacements":["fr":"B1"],"progress":["activeLessonLevels":["fr":"A2"],"activeFlashcardLevels":["fr":"B1"]]],merge:true)
+        try await user.collection("courseProgress").document("fr").setData(["skillTree":["levels":["pre_a1":["completed":86]]]])
+        let state = try requireState(try await service.load(npub:npub))
+        XCTAssertEqual(state.level,"A2"); XCTAssertEqual(state.flashcardLevel,"B1")
+        XCTAssertEqual(state.placements?["fr"]?.level,"B1"); XCTAssertNil(state.placements?["es"])
+        XCTAssertEqual(state.courseCompletion?["fr"]?["skillTree"]?["Pre-A1"],86)
+        XCTAssertTrue(state.completed.isEmpty); XCTAssertTrue(state.flashcardMastery.isEmpty)
+    }
     func testMemoryCapturesMergeWithWebNotesAndRetryOnce() async throws {
         let (service,db,npub) = try context(); try await seed(db,npub)
         let bucket = db.collection("users").document(npub).collection("companion").document("fr")
