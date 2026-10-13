@@ -17,6 +17,7 @@ import SwiftUI
     let ai = AIService()
     let subscription = SubscriptionService()
     let teams = NostrTeamsService()
+    private var lastPersisted = LearnerState()
     private var saveTask: Task<Void, Never>?
     private var contentTask: Task<Void, Never>?
     var selectedLesson: Lesson? { units.flatMap(\.lessons).first { !learner.completed.contains(learner.completionKey($0.id)) } ?? units.last?.lessons.last }
@@ -34,7 +35,7 @@ import SwiftUI
     }
     func loadLocal() {
         if let data = try? Data(contentsOf: localURL), let state = try? JSONDecoder().decode(LearnerState.self, from: data) { learner = state } else { learner = LearnerState() }
-        learner.rollDay()
+        learner.rollDay(); lastPersisted = learner
     }
     func signIn(nsec: String?) async {
         do {
@@ -42,15 +43,17 @@ import SwiftUI
             saveTask?.cancel(); contentTask?.cancel()
             let account = identity.npub
             loadLocal(); signedIn = true; subscription.bind(identity)
-            if let cloud = try await FirebaseService.shared.load(npub: identity.npub) {
-                // A pending local offline save is authoritative until uploaded.
-                guard identity.npub == account else { return }
-                if !FileManager.default.fileExists(atPath: localURL.path) { learner = cloud; persist() }
-            }
+            do {
+                if FileManager.default.fileExists(atPath:localURL.path) { await sync() }
+                else if let cloud = try await FirebaseService.shared.load(npub:account) {
+                    guard identity.npub == account else { return }
+                    learner = cloud; lastPersisted = learner; try writeLocal()
+                }
+            } catch { syncStatus = "Saved on iPhone; cloud sync pending" }
             await reloadContent(); await subscription.refresh()
         } catch { self.error = error.localizedDescription }
     }
-    func boot() async { guard signedIn else { return }; await reloadContent(); await subscription.refresh() }
+    func boot() async { guard signedIn else { return }; await reloadContent(); await sync(); await subscription.refresh() }
     func reloadContent() async {
         contentTask?.cancel()
         let target = learner.target, support = learner.support, level = learner.level
@@ -70,31 +73,53 @@ import SwiftUI
         }
         contentTask = task; await task.value
     }
+    private func writeLocal() throws { try JSONEncoder().encode(learner).write(to:localURL,options:[.atomic,.completeFileProtection]) }
     func persist() {
-        do { try JSONEncoder().encode(learner).write(to: localURL, options: [.atomic, .completeFileProtection]) }
+        if learner.name != lastPersisted.name || learner.target != lastPersisted.target || learner.support != lastPersisted.support || learner.level != lastPersisted.level || learner.dailyGoal != lastPersisted.dailyGoal || learner.companionName != lastPersisted.companionName || learner.companionType != lastPersisted.companionType || learner.onboardingComplete != lastPersisted.onboardingComplete { learner.preferencesModifiedAt = Date() }
+        do { try writeLocal(); lastPersisted = learner }
         catch { self.error = "Could not save progress: \(error.localizedDescription)"; return }
         saveTask?.cancel()
         let state = learner, npub = identity.npub
         saveTask = Task {
             do {
-                try await Task.sleep(for: .milliseconds(500))
+                try await Task.sleep(for:.milliseconds(500))
                 guard !Task.isCancelled else { return }
-                try await FirebaseService.shared.save(state, npub: npub)
-                syncStatus = FirebaseService.shared.configured ? "Synced with Firebase" : "Saved on this iPhone"
-            } catch is CancellationError { } catch { syncStatus = "Saved on iPhone; cloud sync pending"; self.error = error.localizedDescription }
+                let acknowledged = try await FirebaseService.shared.save(state,npub:npub)
+                guard identity.npub == npub, !Task.isCancelled else { return }
+                if let acknowledged { try applyAcknowledgment(acknowledged,sent:state); syncStatus = "Synced with Firebase" }
+                else { syncStatus = "Saved on this iPhone" }
+            } catch is CancellationError { }
+            catch { if identity.npub == npub { syncStatus = "Saved on iPhone; cloud sync pending" } }
         }
     }
+    private func applyAcknowledgment(_ cloud: LearnerState, sent: LearnerState) throws {
+        let target = learner.target, support = learner.support, level = learner.level
+        learner = LearnerState.rebased(current:learner,sent:sent,acknowledged:cloud)
+        lastPersisted = learner; try writeLocal()
+        if target != learner.target || support != learner.support || level != learner.level { Task { await reloadContent() } }
+    }
     func sync() async {
-        do { try await FirebaseService.shared.save(learner, npub: identity.npub); syncStatus = FirebaseService.shared.configured ? "Synced with Firebase" : "Saved on this iPhone" }
-        catch { self.error = error.localizedDescription }
+        let state = learner, npub = identity.npub
+        do {
+            if let cloud = try await FirebaseService.shared.save(state,npub:npub) {
+                guard identity.npub == npub else { return }
+                try applyAcknowledgment(cloud,sent:state); syncStatus = "Synced with Firebase"
+            } else { syncStatus = "Saved on this iPhone" }
+        } catch { if identity.npub == npub { syncStatus = "Saved on iPhone; cloud sync pending" } }
+    }
+    func reviewFlashcard(_ card: Flashcard, rating: ReviewRating, correct: Bool?, now: Date = Date()) {
+        if let correct { learner.assess(correct:correct,independent:true,now:now) }
+        learner.review(cardID:card.id,rating:rating,now:now)
+        learner.history.insert(HistoryEntry(date:now,target:learner.target,mode:"Flashcard review",question:card.text(learner.support),answer:card.text(learner.target),feedback:"Review: \(rating.rawValue)",correct:correct ?? false),at:0)
+        learner.history = Array(learner.history.prefix(500)); persist()
     }
     func record(exercise: Exercise, answer: String, grade: Grade, mode: PracticeMode, lesson: Lesson?, flashcardID: String? = nil) {
         learner.history.insert(HistoryEntry(date: Date(), target: learner.target, mode: mode.rawValue, question: exercise.question, answer: answer, feedback: grade.feedback, correct: grade.correct), at: 0)
         learner.history = Array(learner.history.prefix(500))
         learner.assess(correct: grade.correct, independent: exercise.choices.isEmpty)
+        if let flashcardID { learner.review(cardID:flashcardID,rating:grade.correct ? .good : .again) }
         if grade.correct {
-            if let flashcardID { learner.flashcardMastery.insert(learner.target + ":" + flashcardID) }
-            learner.award(10)
+            if flashcardID == nil { learner.award(10) }
             if mode == .speaking || mode == .conversation {
                 if learner.journeyDays == nil { learner.journeyDays = [] }
                 learner.journeyDays?.insert(learner.target + ":" + learner.dailyKey)

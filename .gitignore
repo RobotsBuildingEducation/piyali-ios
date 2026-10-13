@@ -11,3 +11,8 @@ Piyali/Resources/AppConfiguration.local.plist
 .env*
 
 BackendReference/node_modules/
+
+BackendReference/*debug.log
+
+firebase-debug.log
+firestore-debug.log

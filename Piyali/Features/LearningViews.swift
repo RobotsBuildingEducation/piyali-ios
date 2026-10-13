@@ -96,39 +96,78 @@ struct PracticeLibraryView: View {
 }
 struct FlashcardsView: View {
     @EnvironmentObject var app: AppModel
-    @State private var index = 0
+    @State private var currentID: String?
+    @State private var dueOnly = false
     @State private var answer = ""
     @State private var feedback: String?
     @State private var revealed = false
-    @State private var graded = false
+    @State private var checked = false
+    @State private var rated = false
+    @State private var correct = false
     @StateObject private var speech = SpeechService()
-    var card: Flashcard? { app.cards.isEmpty ? nil : app.cards[index % app.cards.count] }
+    var card: Flashcard? { app.cards.first { $0.id == currentID } }
+    var available: [Flashcard] {
+        app.cards.filter { card in
+            let review = app.learner.cardReviews?[app.learner.completionKey(card.id)]
+            return !dueOnly || review == nil || review?.schedulerState == .new || review?.isDue() == true
+        }.sorted { left,right in
+            let a = app.learner.cardReviews?[app.learner.completionKey(left.id)]
+            let b = app.learner.cardReviews?[app.learner.completionKey(right.id)]
+            if a?.isDue() != b?.isDue() { return a?.isDue() == true }
+            return (a?.nextReviewAt ?? .distantFuture) < (b?.nextReviewAt ?? .distantFuture)
+        }
+    }
     var body: some View {
         Form {
+            Toggle("Due and new cards only",isOn:$dueOnly)
             if let card {
                 Section("\(card.cefrLevel) · \(card.category)") {
-                    Text(card.text(app.learner.support)).font(.title2)
+                    Text(card.text(app.learner.support)).font(.title2).accessibilityIdentifier("flashcardPrompt")
                     Text("Translate into \(LearningLanguages.names[app.learner.target] ?? app.learner.target).")
-                    TextField("Your translation", text: $answer).autocorrectionDisabled()
+                    TextField("Your translation",text:$answer).autocorrectionDisabled().disabled(checked || revealed)
                     if let target = card.concept[app.learner.target] {
                         Button("Check answer") {
-                            let correct = AnswerMatcher.matches(answer, target)
-                            app.learner.assess(correct: correct, independent: true)
-                            feedback = correct ? "Correct! +10 XP" : "Answer: \(target)"
-                            if !graded && correct && !revealed && !app.learner.flashcardMastery.contains(app.learner.target + ":" + card.id) { app.learner.award(10); app.learner.flashcardMastery.insert(app.learner.target + ":" + card.id); app.persist() }
-                            graded = true; app.persist()
-                        }.disabled(answer.trimmingCharacters(in: .whitespaces).isEmpty || graded)
-                        Button("Reveal answer") { revealed = true; feedback = target }
-                        Button("Listen") { speech.speak(target, language: app.learner.target) }
+                            correct = AnswerMatcher.matches(answer,target); checked = true
+                            feedback = correct ? "Correct! Choose how easily you remembered it." : "Answer: \(target). Review again soon."
+                            if !correct { app.reviewFlashcard(card,rating:.again,correct:false); rated = true }
+                        }.disabled(answer.trimmingCharacters(in:.whitespaces).isEmpty || checked || revealed)
+                        Button("Reveal answer") { revealed = true; feedback = target; app.reviewFlashcard(card,rating:.again,correct:nil); rated = true }.disabled(checked || revealed)
+                        Button("Listen") { speech.speak(target,language:app.learner.target) }
+                        if checked && correct && !rated {
+                            ForEach([ReviewRating.hard,.good,.easy],id:\.self) { rating in
+                                Button("\(rating.rawValue.capitalized) · next \(reviewDelay(card,rating:rating))") {
+                                    app.reviewFlashcard(card,rating:rating,correct:true); rated = true
+                                    feedback = "Saved review · +\(rating == .hard ? 4 : rating == .easy ? 7 : 5) XP"
+                                }
+                            }
+                        }
                     } else {
-                        NavigationLink("Practice with the tutor") { ExerciseView(mode: .vocabulary, lesson: app.selectedLesson, concept: card.text(app.learner.support), flashcardID: card.id) }
+                        NavigationLink("Practice with the tutor") { ExerciseView(mode:.vocabulary,lesson:app.selectedLesson,concept:card.text(app.learner.support),flashcardID:card.id) }
                     }
                     if let feedback { Text(feedback).accessibilityIdentifier("flashcardFeedback") }
-                    Button("Next card") { index += 1; answer = ""; feedback = nil; revealed = false; graded = false }.accessibilityIdentifier("nextFlashcard")
+                    if let next = app.learner.cardReviews?[app.learner.completionKey(card.id)]?.nextReviewAt { Text("Next review: " + next.formatted(date:.abbreviated,time:.shortened)).font(.footnote).accessibilityIdentifier("nextReview") }
+                    Button("Next card") { selectNext(after:card.id) }.accessibilityIdentifier("nextFlashcard").disabled(checked && correct && !rated)
                 }
-                Text("Card \(index % max(1, app.cards.count) + 1) of \(app.cards.count)")
-            } else { Text("No flashcards at this level. Choose another CEFR level in Learn.") }
-        }.navigationTitle("Flashcards").onDisappear { speech.stopAll() }
+                Text("\(available.count) cards available · \(app.cards.count) in this level")
+            } else {
+                Text(dueOnly ? "No reviews are due at this level. Come back when the next review is scheduled, or browse all cards." : "No flashcards at this level. Choose another CEFR level in Learn.")
+            }
+        }.navigationTitle("Flashcards")
+            .onAppear { if currentID == nil { selectNext(after:nil) } }
+            .onChange(of:dueOnly) { _,_ in selectNext(after:nil) }
+            .onChange(of:app.cards.count) { _,_ in selectNext(after:nil) }
+            .onDisappear { speech.stopAll() }
+    }
+    func selectNext(after id: String?) {
+        let queue = available
+        if let id, let index = queue.firstIndex(where:{ $0.id == id }), !queue.isEmpty { currentID = queue[(index + 1) % queue.count].id }
+        else { currentID = queue.first?.id }
+        answer = ""; feedback = nil; revealed = false; checked = false; rated = false; correct = false
+    }
+    func reviewDelay(_ card: Flashcard, rating: ReviewRating) -> String {
+        let now = Date(), review = app.learner.cardReviews?[app.learner.completionKey(card.id)] ?? FlashcardReview()
+        let seconds = (review.applying(rating,now:now).nextReviewAt ?? now).timeIntervalSince(now)
+        return seconds < 3600 ? "\(Int((seconds/60).rounded()))m" : seconds < 86400 ? "\(Int((seconds/3600).rounded()))h" : "\(Int((seconds/86400).rounded()))d"
     }
 }
 struct PhonicsView: View {
@@ -151,7 +190,7 @@ struct PhonicsView: View {
                         Button("Check pronunciation words") {
                             if AnswerMatcher.matches(speech.transcript, card.practiceWord) {
                                 if app.learner.masteredPhonics == nil { app.learner.masteredPhonics = [] }
-                                if app.learner.masteredPhonics?.insert(card.id).inserted == true { app.learner.award(5); app.persist() }
+                                if app.learner.masteredPhonics?.insert(card.id).inserted == true { app.learner.award(5,source:.phonics,contentID:card.id); app.persist() }
                             } else { speech.error = "Try again: " + card.practiceWord }
                         }
                     }

@@ -125,6 +125,9 @@ public struct LearnerState: Codable, Sendable {
     public var notes: [Note] = []
     public var companionName = "Piyali"
     public var companionType = "ghost"
+    public var preferencesModifiedAt: Date?
+    public var pendingChanges: [PracticeChange]?
+    public var cardReviews: [String: FlashcardReview]?
     public var ratingByLanguage: [String: Double]?
     public var focusPlans: [String: FocusedPlan]?
     public var masteredPhonics: Set<String>?
@@ -137,36 +140,42 @@ public struct LearnerState: Codable, Sendable {
     public var rating: Double { ratingByLanguage?[target] ?? 800 }
     public var score: Int { PerformanceScore.score(rating: rating) }
     public var effectiveCompanionType: String { CompanionTypes.effective(companionType, level: companionLevel) }
-    public mutating func assess(correct: Bool, independent: Bool) {
+    public mutating func assess(correct: Bool, independent: Bool, now: Date = Date()) {
         if ratingByLanguage == nil { ratingByLanguage = [:] }
         let updated = PerformanceScore.update(rating: rating, questionLevel: level, correct: correct, independent: independent)
         ratingByLanguage?[target] = updated
+        enqueue(PracticeChange(date:now,dayKey:CalendarDay.key(now),target:target,level:level,amount:0,source:.assessment,correct:correct,independent:independent))
     }
     public var totalXP: Int { xpByLanguage.values.reduce(0, +) }
     public var companionLevel: Int { max(1, xp / 100 + 1) }
     public func completionKey(_ lesson: String) -> String { "\(target):\(lesson)" }
     public func modeKey(_ lesson: String, _ mode: String) -> String { "\(target):\(lesson):\(mode)" }
     public mutating func rollDay(now: Date = Date(), calendar: Calendar = .current) {
-        let parts = calendar.dateComponents([.year, .month, .day], from: now)
-        let key = "\(parts.year!)-\(parts.month!)-\(parts.day!)"
+        dailyKey = CalendarDay.normalize(dailyKey)
+        let key = CalendarDay.key(now,calendar:calendar)
         if dailyKey != key {
             let yesterday = calendar.date(byAdding: .day, value: -1, to: now)!
-            let p = calendar.dateComponents([.year, .month, .day], from: yesterday)
-            if dailyKey != "\(p.year!)-\(p.month!)-\(p.day!)" || dailyXP < dailyGoal { streak = 0 }
+            if dailyKey != CalendarDay.key(yesterday,calendar:calendar) || dailyXP < dailyGoal { streak = 0 }
             dailyKey = key; dailyXP = 0
         }
     }
-    public mutating func award(_ amount: Int, now: Date = Date(), calendar: Calendar = .current) {
-        rollDay(now: now, calendar: calendar)
+    public mutating func award(_ amount: Int, source: PracticeSource = .practice, contentID: String? = nil, now: Date = Date(), calendar: Calendar = .current) {
         let earned = max(0, min(amount, 100))
+        guard earned > 0 else { return }
+        addXP(earned,now:now,calendar:calendar)
+        enqueue(PracticeChange(date:now,dayKey:dailyKey,target:target,level:level,amount:earned,source:source,contentID:contentID))
+    }
+    mutating func addXP(_ amount: Int, now: Date, calendar: Calendar) {
+        rollDay(now:now,calendar:calendar)
         let reachedBefore = dailyXP >= dailyGoal
-        dailyXP += earned; xpByLanguage[target, default: 0] += earned
+        dailyXP += max(0,amount); xpByLanguage[target,default:0] += max(0,amount)
         if !reachedBefore && dailyXP >= dailyGoal { streak += 1 }
     }
     public mutating func complete(_ lesson: Lesson) -> Bool {
         let key = completionKey(lesson.id)
         guard !completed.contains(key) else { return false }
-        completed.insert(key); award(lesson.xpReward); return true
+        let source: PracticeSource = lesson.id.hasPrefix("goal-") ? .goal : lesson.id.hasPrefix("repair-") ? .repair : .lesson
+        completed.insert(key); award(lesson.xpReward,source:source,contentID:lesson.id); return true
     }
 }
 public enum LearningLanguages {

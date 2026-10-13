@@ -8,7 +8,20 @@ final class SmokeTests: XCTestCase {
         app.tabBars.buttons["Practice"].tap()
         let flashcards = app.buttons.matching(NSPredicate(format:"label BEGINSWITH 'Flashcards ('")).firstMatch
         XCTAssertTrue(flashcards.waitForExistence(timeout: 10)); flashcards.tap()
-        XCTAssertTrue(app.buttons["nextFlashcard"].waitForExistence(timeout: 5)); app.buttons["nextFlashcard"].tap()
+        XCTAssertTrue(app.buttons["Reveal answer"].waitForExistence(timeout: 5))
+        let prompt = app.staticTexts["flashcardPrompt"].label
+        app.buttons["Reveal answer"].tap()
+        XCTAssertTrue(app.staticTexts["nextReview"].waitForExistence(timeout:5))
+        let scheduled = app.staticTexts["nextReview"].label
+        app.terminate(); app.launch()
+        XCTAssertTrue(app.tabBars.buttons["Practice"].waitForExistence(timeout:10)); app.tabBars.buttons["Practice"].tap()
+        let restoredCards = app.buttons.matching(NSPredicate(format:"label BEGINSWITH 'Flashcards ('")).firstMatch
+        XCTAssertTrue(restoredCards.waitForExistence(timeout:10)); restoredCards.tap()
+        // The reviewed card is first in the queue; its schedule survives a process restart.
+        XCTAssertTrue(app.staticTexts["nextReview"].waitForExistence(timeout:5))
+        XCTAssertEqual(app.staticTexts["flashcardPrompt"].label,prompt)
+        XCTAssertEqual(app.staticTexts["nextReview"].label,scheduled)
+        app.buttons["nextFlashcard"].tap()
         app.navigationBars.buttons.element(boundBy:0).tap()
         app.tabBars.buttons["Notes"].tap()
         XCTAssertTrue(app.textFields["Title"].waitForExistence(timeout:5))

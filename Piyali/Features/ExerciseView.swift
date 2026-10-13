@@ -126,7 +126,7 @@ struct RealWorldTaskView: View {
                         app.learner.rollDay()
                         let key = app.learner.target + ":" + app.learner.dailyKey
                         if app.learner.immersionDays == nil { app.learner.immersionDays = [] }
-                        if app.learner.immersionDays?.insert(key).inserted == true { app.learner.award(10) }
+                        if app.learner.immersionDays?.insert(key).inserted == true { app.learner.award(10,source:.immersion) }
                         app.persist(); reflection = ""
                     }.disabled(reflection.isEmpty)
                 }
