@@ -126,6 +126,7 @@ public struct LearnerState: Codable, Sendable {
     public var notes: [Note] = []
     public var companionName = "Piyali"
     public var companionType = "ghost"
+    public var companionProgress: JSONValue?
     public var preferencesModifiedAt: Date?
     public var pendingChanges: [PracticeChange]?
     public var cardReviews: [String: FlashcardReview]?
@@ -170,6 +171,7 @@ public struct LearnerState: Codable, Sendable {
     public func completionKey(_ lesson: String) -> String { "\(target):\(lesson)" }
     public func modeKey(_ lesson: String, _ mode: String) -> String { "\(target):\(lesson):\(mode)" }
     public mutating func rollDay(now: Date = Date(), calendar: Calendar = .current) {
+        reconcileCompanion(now:now,calendar:calendar)
         dailyKey = CalendarDay.normalize(dailyKey)
         let key = CalendarDay.key(now,calendar:calendar)
         if dailyKey != key {
@@ -186,6 +188,7 @@ public struct LearnerState: Codable, Sendable {
     }
     mutating func addXP(_ amount: Int, now: Date, calendar: Calendar) {
         rollDay(now:now,calendar:calendar)
+        rewardCompanion(amount,now:now,calendar:calendar)
         let reachedBefore = dailyXP >= dailyGoal
         dailyXP += max(0,amount); xpByLanguage[target,default:0] += max(0,amount)
         if !reachedBefore && dailyXP >= dailyGoal { streak += 1 }

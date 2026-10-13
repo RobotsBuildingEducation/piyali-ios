@@ -42,6 +42,43 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
             "patreonVerified":true,"unrelatedWebSetting":"preserve"
         ])
     }
+    func testCompanionDecayReconcilesOnceWithoutResettingActiveXPWindow() async throws {
+        let (service,db,npub) = try context(); try await seed(db,npub)
+        let now = Date(), today = CalendarDay.key(now), reset = WebProgressContract.iso(now.addingTimeInterval(3600))
+        let user = db.collection("users").document(npub)
+        try await user.setData(["dailyGoalPetHealth":100,"dailyGoalPetLastAccountedDay":CalendarDay.shift(today,by:-4),"dailyResetAt":reset,"dailyXp":20],merge:true)
+        let a = try requireState(try await service.load(npub:npub)), b = a
+        XCTAssertEqual(a.companionHealth,70)
+        async let first = service.save(a,npub:npub)
+        async let second = service.save(b,npub:npub)
+        _ = try await (first,second)
+        let fields = try await user.getDocument(source:.server).data()!
+        XCTAssertEqual(WebProgressContract.integer(fields["dailyGoalPetHealth"]),70)
+        XCTAssertEqual(WebProgressContract.integer(fields["dailyXp"]),20); XCTAssertEqual(fields["dailyResetAt"] as? String,reset)
+        XCTAssertEqual(fields["dailyGoalPetLastAccountedDay"] as? String,CalendarDay.shift(today,by:-1))
+        XCTAssertEqual(fields["patreonVerified"] as? Bool,true); XCTAssertEqual(fields["unrelatedWebSetting"] as? String,"preserve")
+        _ = try await service.save(a,npub:npub)
+        let retry = try await service.load(npub:npub)
+        XCTAssertEqual(retry?.companionHealth,70)
+    }
+    func testConcurrentGoalHitsRecoverCompanionOnlyOnceAndRetainHealthyEvidence() async throws {
+        let (service,db,npub) = try context(); try await seed(db,npub)
+        let now = Date(), today = CalendarDay.key(now), user = db.collection("users").document(npub)
+        try await user.setData(["dailyGoalPetHealth":60,"dailyGoalPetLastAccountedDay":CalendarDay.shift(today,by:-1),"dailyResetAt":WebProgressContract.iso(now.addingTimeInterval(3600)),"dailyXp":20,"dailyHasCelebrated":false,"dailyGoalPetHealthyDates":["2026-09-01"]],merge:true)
+        var a = try requireState(try await service.load(npub:npub)), b = a
+        a.award(30,now:now); b.award(30,now:now)
+        async let first = service.save(a,npub:npub)
+        async let second = service.save(b,npub:npub)
+        _ = try await (first,second)
+        let fields = try await user.getDocument(source:.server).data()!
+        XCTAssertEqual(WebProgressContract.integer(fields["dailyGoalPetHealth"]),75)
+        XCTAssertEqual(WebProgressContract.integer(fields["dailyXp"]),80)
+        XCTAssertEqual(fields["dailyGoalPetReachedDates"] as? [String],[today])
+        XCTAssertEqual(fields["dailyGoalPetHealthyDates"] as? [String],["2026-09-01"])
+        _ = try await service.save(a,npub:npub)
+        let retry = try await service.load(npub:npub)
+        XCTAssertEqual(retry?.companionHealth,75)
+    }
     func testDailyQuestPlanIsStableAndBonusAndJourneyAreClaimedOnceAcrossDevices() async throws {
         let (service,db,npub) = try context(); try await seed(db,npub)
         let now = Date(), day = CalendarDay.key(now), user = db.collection("users").document(npub)

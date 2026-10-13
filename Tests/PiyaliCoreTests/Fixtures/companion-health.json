@@ -1,0 +1,3932 @@
+[
+  {
+    "name": "UTC-0-true",
+    "timezone": "UTC",
+    "data": {},
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": true,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T12:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T12:00:00.000Z",
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "UTC-0-false",
+    "timezone": "UTC",
+    "data": {},
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": false,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "UTC-1-true",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": true,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T12:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T12:00:00.000Z",
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T12:00:00.000Z"
+    }
+  },
+  {
+    "name": "UTC-1-false",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T12:00:00.000Z"
+    }
+  },
+  {
+    "name": "UTC-2-true",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 0,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": true,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T12:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T12:00:00.000Z",
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "UTC-2-false",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 0,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": false,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "UTC-3-true",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "progress": {
+        "dailyGoalXp": 50
+      }
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": true,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T12:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T12:00:00.000Z",
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T12:00:00.000Z"
+    }
+  },
+  {
+    "name": "UTC-3-false",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "progress": {
+        "dailyGoalXp": 50
+      }
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T12:00:00.000Z"
+    }
+  },
+  {
+    "name": "UTC-4-true",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "stats": {
+        "dailyGoalXp": "50"
+      }
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": true,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T12:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T12:00:00.000Z",
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T12:00:00.000Z"
+    }
+  },
+  {
+    "name": "UTC-4-false",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "stats": {
+        "dailyGoalXp": "50"
+      }
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T12:00:00.000Z"
+    }
+  },
+  {
+    "name": "UTC-5-true",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 0,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": true,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T12:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T12:00:00.000Z",
+      "dailyGoalPetHealth": 0,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "UTC-5-false",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 0,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 0,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "UTC-6-true",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 5,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": true,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T12:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T12:00:00.000Z",
+      "dailyGoalPetHealth": 0,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -5,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T12:00:00.000Z"
+    }
+  },
+  {
+    "name": "UTC-6-false",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 5,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 0,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -5,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T12:00:00.000Z"
+    }
+  },
+  {
+    "name": "UTC-7-true",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 55.5,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": true,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T12:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T12:00:00.000Z",
+      "dailyGoalPetHealth": 36,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T12:00:00.000Z"
+    }
+  },
+  {
+    "name": "UTC-7-false",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 55.5,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 36,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T12:00:00.000Z"
+    }
+  },
+  {
+    "name": "UTC-8-true",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": "90.4",
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": true,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T12:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T12:00:00.000Z",
+      "dailyGoalPetHealth": 70,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T12:00:00.000Z"
+    }
+  },
+  {
+    "name": "UTC-8-false",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": "90.4",
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 70,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T12:00:00.000Z"
+    }
+  },
+  {
+    "name": "UTC-9-true",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": "bad",
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": true,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T12:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T12:00:00.000Z",
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T12:00:00.000Z"
+    }
+  },
+  {
+    "name": "UTC-9-false",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": "bad",
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T12:00:00.000Z"
+    }
+  },
+  {
+    "name": "UTC-10-true",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": null,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": true,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T12:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T12:00:00.000Z",
+      "dailyGoalPetHealth": 0,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "UTC-10-false",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": null,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 0,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "UTC-11-true",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": true,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T12:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T12:00:00.000Z",
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "UTC-11-false",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": false,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "UTC-12-true",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "createdAt": "2026-10-01T23:00:00.000Z"
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": true,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T12:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T12:00:00.000Z",
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T12:00:00.000Z"
+    }
+  },
+  {
+    "name": "UTC-12-false",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "createdAt": "2026-10-01T23:00:00.000Z"
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T12:00:00.000Z"
+    }
+  },
+  {
+    "name": "UTC-13-true",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "bad",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "createdAt": 1790895600000
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": true,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T12:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T12:00:00.000Z",
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T12:00:00.000Z"
+    }
+  },
+  {
+    "name": "UTC-13-false",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "bad",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "createdAt": 1790895600000
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T12:00:00.000Z"
+    }
+  },
+  {
+    "name": "UTC-14-true",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2020-01-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": true,
+    "missed": 400,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T12:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T12:00:00.000Z",
+      "dailyGoalPetHealth": 0,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -100,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T12:00:00.000Z"
+    }
+  },
+  {
+    "name": "UTC-14-false",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2020-01-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": false,
+    "missed": 400,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 0,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -100,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T12:00:00.000Z"
+    }
+  },
+  {
+    "name": "UTC-15-true",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2027-01-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": true,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T12:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T12:00:00.000Z",
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "UTC-15-false",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2027-01-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": false,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "UTC-16-true",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "completedGoalDates": [
+        "2026-10-02",
+        "2026-10-03"
+      ]
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": true,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T12:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T12:00:00.000Z",
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "UTC-16-false",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "completedGoalDates": [
+        "2026-10-02",
+        "2026-10-03"
+      ]
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": false,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "UTC-17-true",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "dailyGoalPetReachedDates": [
+        "2026-10-02"
+      ],
+      "lastGoalDayKey": "2026-10-03"
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": true,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T12:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T12:00:00.000Z",
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "UTC-17-false",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "dailyGoalPetReachedDates": [
+        "2026-10-02"
+      ],
+      "lastGoalDayKey": "2026-10-03"
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": false,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "UTC-18-true",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "dailyGoalPetTrackedDay": "2026-10-02",
+      "dailyGoalPetStartedFull": true,
+      "completedGoalDates": [
+        "2026-10-02",
+        "2026-10-03"
+      ]
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": true,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [
+        "2026-10-02",
+        "2026-10-03"
+      ],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T12:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T12:00:00.000Z",
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "UTC-18-false",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "dailyGoalPetTrackedDay": "2026-10-02",
+      "dailyGoalPetStartedFull": true,
+      "completedGoalDates": [
+        "2026-10-02",
+        "2026-10-03"
+      ]
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": false,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [
+        "2026-10-02",
+        "2026-10-03"
+      ],
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "UTC-19-true",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "dailyGoalPetTrackedDay": "2026-10-02",
+      "dailyGoalPetStartedFull": false,
+      "completedGoalDates": [
+        "2026-10-02",
+        "2026-10-03"
+      ]
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": true,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T12:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T12:00:00.000Z",
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "UTC-19-false",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "dailyGoalPetTrackedDay": "2026-10-02",
+      "dailyGoalPetStartedFull": false,
+      "completedGoalDates": [
+        "2026-10-02",
+        "2026-10-03"
+      ]
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": false,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "UTC-20-true",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": true,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T12:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T12:00:00.000Z",
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T12:00:00.000Z"
+    }
+  },
+  {
+    "name": "UTC-20-false",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T12:00:00.000Z"
+    }
+  },
+  {
+    "name": "UTC-21-true",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 90,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": true,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T12:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T12:00:00.000Z",
+      "dailyGoalPetHealth": 70,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T12:00:00.000Z"
+    }
+  },
+  {
+    "name": "UTC-21-false",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 90,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 70,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T12:00:00.000Z"
+    }
+  },
+  {
+    "name": "UTC-22-true",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "dailyGoalPetTrackedDay": "2026-10-01",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [
+        "2026-09-28"
+      ],
+      "completedGoalDates": [
+        "2026-10-01",
+        "2026-10-03"
+      ]
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": true,
+    "missed": 1,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [
+        "2026-09-28",
+        "2026-10-01"
+      ],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T12:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T12:00:00.000Z",
+      "dailyGoalPetHealth": 90,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -10,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T12:00:00.000Z"
+    }
+  },
+  {
+    "name": "UTC-22-false",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "dailyGoalPetTrackedDay": "2026-10-01",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [
+        "2026-09-28"
+      ],
+      "completedGoalDates": [
+        "2026-10-01",
+        "2026-10-03"
+      ]
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": false,
+    "missed": 1,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [
+        "2026-09-28",
+        "2026-10-01"
+      ],
+      "dailyGoalPetHealth": 90,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -10,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T12:00:00.000Z"
+    }
+  },
+  {
+    "name": "UTC-23-true",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-02-30",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": true,
+    "missed": 215,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T12:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T12:00:00.000Z",
+      "dailyGoalPetHealth": 0,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -100,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T12:00:00.000Z"
+    }
+  },
+  {
+    "name": "UTC-23-false",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-02-30",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T12:00:00.000Z",
+    "resetWindow": false,
+    "missed": 215,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 0,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -100,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T12:00:00.000Z"
+    }
+  },
+  {
+    "name": "UTC-dst-2026-03-07",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-03-07",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-03-10T12:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-03-10",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-03-09",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-03-10T12:00:00.000Z"
+    }
+  },
+  {
+    "name": "UTC-dst-2026-10-31",
+    "timezone": "UTC",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-31",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-11-03T12:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-11-03",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-11-02",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-11-03T12:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-0-true",
+    "timezone": "America/Los_Angeles",
+    "data": {},
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": true,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T19:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T19:00:00.000Z",
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-0-false",
+    "timezone": "America/Los_Angeles",
+    "data": {},
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": false,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-1-true",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": true,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T19:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T19:00:00.000Z",
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T19:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-1-false",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T19:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-2-true",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 0,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": true,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T19:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T19:00:00.000Z",
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-2-false",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 0,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": false,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-3-true",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "progress": {
+        "dailyGoalXp": 50
+      }
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": true,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T19:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T19:00:00.000Z",
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T19:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-3-false",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "progress": {
+        "dailyGoalXp": 50
+      }
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T19:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-4-true",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "stats": {
+        "dailyGoalXp": "50"
+      }
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": true,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T19:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T19:00:00.000Z",
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T19:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-4-false",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "stats": {
+        "dailyGoalXp": "50"
+      }
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T19:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-5-true",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 0,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": true,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T19:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T19:00:00.000Z",
+      "dailyGoalPetHealth": 0,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-5-false",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 0,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 0,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-6-true",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 5,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": true,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T19:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T19:00:00.000Z",
+      "dailyGoalPetHealth": 0,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -5,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T19:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-6-false",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 5,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 0,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -5,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T19:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-7-true",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 55.5,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": true,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T19:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T19:00:00.000Z",
+      "dailyGoalPetHealth": 36,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T19:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-7-false",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 55.5,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 36,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T19:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-8-true",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": "90.4",
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": true,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T19:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T19:00:00.000Z",
+      "dailyGoalPetHealth": 70,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T19:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-8-false",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": "90.4",
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 70,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T19:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-9-true",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": "bad",
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": true,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T19:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T19:00:00.000Z",
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T19:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-9-false",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": "bad",
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T19:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-10-true",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": null,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": true,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T19:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T19:00:00.000Z",
+      "dailyGoalPetHealth": 0,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-10-false",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": null,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 0,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-11-true",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": true,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T19:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T19:00:00.000Z",
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-11-false",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": false,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-12-true",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "createdAt": "2026-10-01T23:00:00.000Z"
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": true,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T19:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T19:00:00.000Z",
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T19:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-12-false",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "createdAt": "2026-10-01T23:00:00.000Z"
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T19:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-13-true",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "bad",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "createdAt": 1790895600000
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": true,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T19:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T19:00:00.000Z",
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T19:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-13-false",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "bad",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "createdAt": 1790895600000
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T19:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-14-true",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2020-01-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": true,
+    "missed": 400,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T19:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T19:00:00.000Z",
+      "dailyGoalPetHealth": 0,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -100,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T19:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-14-false",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2020-01-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": false,
+    "missed": 400,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 0,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -100,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T19:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-15-true",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2027-01-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": true,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T19:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T19:00:00.000Z",
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-15-false",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2027-01-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": false,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-16-true",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "completedGoalDates": [
+        "2026-10-02",
+        "2026-10-03"
+      ]
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": true,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T19:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T19:00:00.000Z",
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-16-false",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "completedGoalDates": [
+        "2026-10-02",
+        "2026-10-03"
+      ]
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": false,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-17-true",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "dailyGoalPetReachedDates": [
+        "2026-10-02"
+      ],
+      "lastGoalDayKey": "2026-10-03"
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": true,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T19:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T19:00:00.000Z",
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-17-false",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "dailyGoalPetReachedDates": [
+        "2026-10-02"
+      ],
+      "lastGoalDayKey": "2026-10-03"
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": false,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-18-true",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "dailyGoalPetTrackedDay": "2026-10-02",
+      "dailyGoalPetStartedFull": true,
+      "completedGoalDates": [
+        "2026-10-02",
+        "2026-10-03"
+      ]
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": true,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [
+        "2026-10-02",
+        "2026-10-03"
+      ],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T19:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T19:00:00.000Z",
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-18-false",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "dailyGoalPetTrackedDay": "2026-10-02",
+      "dailyGoalPetStartedFull": true,
+      "completedGoalDates": [
+        "2026-10-02",
+        "2026-10-03"
+      ]
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": false,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [
+        "2026-10-02",
+        "2026-10-03"
+      ],
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-19-true",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "dailyGoalPetTrackedDay": "2026-10-02",
+      "dailyGoalPetStartedFull": false,
+      "completedGoalDates": [
+        "2026-10-02",
+        "2026-10-03"
+      ]
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": true,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T19:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T19:00:00.000Z",
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-19-false",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "dailyGoalPetTrackedDay": "2026-10-02",
+      "dailyGoalPetStartedFull": false,
+      "completedGoalDates": [
+        "2026-10-02",
+        "2026-10-03"
+      ]
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": false,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-20-true",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": true,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T19:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T19:00:00.000Z",
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T19:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-20-false",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T19:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-21-true",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 90,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": true,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T19:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T19:00:00.000Z",
+      "dailyGoalPetHealth": 70,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T19:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-21-false",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 90,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 70,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T19:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-22-true",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "dailyGoalPetTrackedDay": "2026-10-01",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [
+        "2026-09-28"
+      ],
+      "completedGoalDates": [
+        "2026-10-01",
+        "2026-10-03"
+      ]
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": true,
+    "missed": 1,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [
+        "2026-09-28",
+        "2026-10-01"
+      ],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T19:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T19:00:00.000Z",
+      "dailyGoalPetHealth": 90,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -10,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T19:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-22-false",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "dailyGoalPetTrackedDay": "2026-10-01",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [
+        "2026-09-28"
+      ],
+      "completedGoalDates": [
+        "2026-10-01",
+        "2026-10-03"
+      ]
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": false,
+    "missed": 1,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [
+        "2026-09-28",
+        "2026-10-01"
+      ],
+      "dailyGoalPetHealth": 90,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -10,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T19:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-23-true",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-02-30",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": true,
+    "missed": 215,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T19:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T19:00:00.000Z",
+      "dailyGoalPetHealth": 0,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -100,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T19:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-23-false",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-02-30",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T19:00:00.000Z",
+    "resetWindow": false,
+    "missed": 215,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 0,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -100,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T19:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-dst-2026-03-07",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-03-07",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-03-10T19:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-03-10",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-03-09",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-03-10T19:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Los_Angeles-dst-2026-10-31",
+    "timezone": "America/Los_Angeles",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-31",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-11-03T20:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-11-03",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-11-02",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-11-03T20:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Mexico_City-0-true",
+    "timezone": "America/Mexico_City",
+    "data": {},
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": true,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T18:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T18:00:00.000Z",
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "America/Mexico_City-0-false",
+    "timezone": "America/Mexico_City",
+    "data": {},
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": false,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "America/Mexico_City-1-true",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": true,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T18:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T18:00:00.000Z",
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T18:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Mexico_City-1-false",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T18:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Mexico_City-2-true",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 0,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": true,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T18:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T18:00:00.000Z",
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "America/Mexico_City-2-false",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 0,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": false,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "America/Mexico_City-3-true",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "progress": {
+        "dailyGoalXp": 50
+      }
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": true,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T18:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T18:00:00.000Z",
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T18:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Mexico_City-3-false",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "progress": {
+        "dailyGoalXp": 50
+      }
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T18:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Mexico_City-4-true",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "stats": {
+        "dailyGoalXp": "50"
+      }
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": true,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T18:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T18:00:00.000Z",
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T18:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Mexico_City-4-false",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "stats": {
+        "dailyGoalXp": "50"
+      }
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T18:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Mexico_City-5-true",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 0,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": true,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T18:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T18:00:00.000Z",
+      "dailyGoalPetHealth": 0,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "America/Mexico_City-5-false",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 0,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 0,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "America/Mexico_City-6-true",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 5,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": true,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T18:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T18:00:00.000Z",
+      "dailyGoalPetHealth": 0,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -5,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T18:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Mexico_City-6-false",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 5,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 0,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -5,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T18:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Mexico_City-7-true",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 55.5,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": true,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T18:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T18:00:00.000Z",
+      "dailyGoalPetHealth": 36,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T18:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Mexico_City-7-false",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 55.5,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 36,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T18:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Mexico_City-8-true",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": "90.4",
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": true,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T18:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T18:00:00.000Z",
+      "dailyGoalPetHealth": 70,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T18:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Mexico_City-8-false",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": "90.4",
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 70,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T18:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Mexico_City-9-true",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": "bad",
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": true,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T18:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T18:00:00.000Z",
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T18:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Mexico_City-9-false",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": "bad",
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T18:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Mexico_City-10-true",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": null,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": true,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T18:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T18:00:00.000Z",
+      "dailyGoalPetHealth": 0,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "America/Mexico_City-10-false",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": null,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 0,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "America/Mexico_City-11-true",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": true,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T18:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T18:00:00.000Z",
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "America/Mexico_City-11-false",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": false,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "America/Mexico_City-12-true",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "createdAt": "2026-10-01T23:00:00.000Z"
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": true,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T18:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T18:00:00.000Z",
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T18:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Mexico_City-12-false",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "createdAt": "2026-10-01T23:00:00.000Z"
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T18:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Mexico_City-13-true",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "bad",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "createdAt": 1790895600000
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": true,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T18:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T18:00:00.000Z",
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T18:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Mexico_City-13-false",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "bad",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "createdAt": 1790895600000
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T18:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Mexico_City-14-true",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2020-01-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": true,
+    "missed": 400,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T18:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T18:00:00.000Z",
+      "dailyGoalPetHealth": 0,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -100,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T18:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Mexico_City-14-false",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2020-01-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": false,
+    "missed": 400,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 0,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -100,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T18:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Mexico_City-15-true",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2027-01-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": true,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T18:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T18:00:00.000Z",
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "America/Mexico_City-15-false",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2027-01-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": false,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "America/Mexico_City-16-true",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "completedGoalDates": [
+        "2026-10-02",
+        "2026-10-03"
+      ]
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": true,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T18:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T18:00:00.000Z",
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "America/Mexico_City-16-false",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "completedGoalDates": [
+        "2026-10-02",
+        "2026-10-03"
+      ]
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": false,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "America/Mexico_City-17-true",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "dailyGoalPetReachedDates": [
+        "2026-10-02"
+      ],
+      "lastGoalDayKey": "2026-10-03"
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": true,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T18:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T18:00:00.000Z",
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "America/Mexico_City-17-false",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "dailyGoalPetReachedDates": [
+        "2026-10-02"
+      ],
+      "lastGoalDayKey": "2026-10-03"
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": false,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "America/Mexico_City-18-true",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "dailyGoalPetTrackedDay": "2026-10-02",
+      "dailyGoalPetStartedFull": true,
+      "completedGoalDates": [
+        "2026-10-02",
+        "2026-10-03"
+      ]
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": true,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [
+        "2026-10-02",
+        "2026-10-03"
+      ],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T18:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T18:00:00.000Z",
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "America/Mexico_City-18-false",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "dailyGoalPetTrackedDay": "2026-10-02",
+      "dailyGoalPetStartedFull": true,
+      "completedGoalDates": [
+        "2026-10-02",
+        "2026-10-03"
+      ]
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": false,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [
+        "2026-10-02",
+        "2026-10-03"
+      ],
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "America/Mexico_City-19-true",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "dailyGoalPetTrackedDay": "2026-10-02",
+      "dailyGoalPetStartedFull": false,
+      "completedGoalDates": [
+        "2026-10-02",
+        "2026-10-03"
+      ]
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": true,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T18:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T18:00:00.000Z",
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "America/Mexico_City-19-false",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "dailyGoalPetTrackedDay": "2026-10-02",
+      "dailyGoalPetStartedFull": false,
+      "completedGoalDates": [
+        "2026-10-02",
+        "2026-10-03"
+      ]
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": false,
+    "missed": 0,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-03"
+    }
+  },
+  {
+    "name": "America/Mexico_City-20-true",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": true,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T18:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T18:00:00.000Z",
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T18:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Mexico_City-20-false",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T18:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Mexico_City-21-true",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 90,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": true,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T18:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T18:00:00.000Z",
+      "dailyGoalPetHealth": 70,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T18:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Mexico_City-21-false",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 90,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": true
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 70,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T18:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Mexico_City-22-true",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "dailyGoalPetTrackedDay": "2026-10-01",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [
+        "2026-09-28"
+      ],
+      "completedGoalDates": [
+        "2026-10-01",
+        "2026-10-03"
+      ]
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": true,
+    "missed": 1,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [
+        "2026-09-28",
+        "2026-10-01"
+      ],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T18:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T18:00:00.000Z",
+      "dailyGoalPetHealth": 90,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -10,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T18:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Mexico_City-22-false",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-01",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12,
+      "dailyGoalPetTrackedDay": "2026-10-01",
+      "dailyGoalPetStartedFull": true,
+      "dailyGoalPetHealthyDates": [
+        "2026-09-28"
+      ],
+      "completedGoalDates": [
+        "2026-10-01",
+        "2026-10-03"
+      ]
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": false,
+    "missed": 1,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [
+        "2026-09-28",
+        "2026-10-01"
+      ],
+      "dailyGoalPetHealth": 90,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -10,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T18:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Mexico_City-23-true",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-02-30",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": true,
+    "missed": 215,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyXp": 0,
+      "dailyHasCelebrated": false,
+      "dailyResetAt": "2026-10-05T18:00:00.000Z",
+      "dailyStartedAt": "2026-10-04T18:00:00.000Z",
+      "dailyGoalPetHealth": 0,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -100,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T18:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Mexico_City-23-false",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-02-30",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-10-04T18:00:00.000Z",
+    "resetWindow": false,
+    "missed": 215,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-10-04",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 0,
+      "dailyGoalPetLastAccountedDay": "2026-10-03",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -100,
+      "dailyGoalPetLastUpdatedAt": "2026-10-04T18:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Mexico_City-dst-2026-03-07",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-03-07",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-03-10T18:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-03-10",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-03-09",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-03-10T18:00:00.000Z"
+    }
+  },
+  {
+    "name": "America/Mexico_City-dst-2026-10-31",
+    "timezone": "America/Mexico_City",
+    "data": {
+      "dailyGoalXp": 50,
+      "dailyGoalPetHealth": 100,
+      "dailyGoalPetLastAccountedDay": "2026-10-31",
+      "dailyResetAt": "2026-10-04T20:00:00.000Z",
+      "dailyXp": 12
+    },
+    "now": "2026-11-03T18:00:00.000Z",
+    "resetWindow": false,
+    "missed": 2,
+    "expected": {
+      "dailyGoalPetTrackedDay": "2026-11-03",
+      "dailyGoalPetStartedFull": false,
+      "dailyGoalPetHealthyDates": [],
+      "dailyGoalPetHealth": 80,
+      "dailyGoalPetLastAccountedDay": "2026-11-02",
+      "dailyGoalPetLastOutcome": "missed",
+      "dailyGoalPetLastDelta": -20,
+      "dailyGoalPetLastUpdatedAt": "2026-11-03T18:00:00.000Z"
+    }
+  }
+]

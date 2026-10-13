@@ -52,6 +52,7 @@
 		A4289A164520D5BFCCD2A182 /* FirebaseAILogic in Frameworks */ = {isa = PBXBuildFile; productRef = 2A5991AA1CBD73DBC54B0A6C /* FirebaseAILogic */; };
 		A796C5C8744AB39111F12DE7 /* IdentityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C93EFBC5CACA2291D2D0436C /* IdentityTests.swift */; };
 		A877E84CD10C1FB5B0B82B67 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9304277563CFDA73534542C /* AppModel.swift */; };
+		AE14F521E7D24FEAB61EEA97 /* CompanionHealth.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DEE7EF45636A31B7BD66C57 /* CompanionHealth.swift */; };
 		AE4BDED9FE7C0F6F9A09D722 /* curriculum-index.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = E707D6EB11B623F173CB0C31 /* curriculum-index.json.gz */; };
 		AF26B447C5881DD47BF3F72A /* LiveAPIIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEC72430BBF570FFE8C5C686 /* LiveAPIIntegrationTests.swift */; };
 		B0DDFD286606B7954031B002 /* JourneyRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 807123B77A97FA5EA2F0A829 /* JourneyRecorder.swift */; };
@@ -137,6 +138,7 @@
 		9674D8B5CAC1CE39C171E452 /* TutorCourse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorCourse.swift; sourceTree = "<group>"; };
 		988C5B69C6BEE00FBA34C5C0 /* FirebaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseService.swift; sourceTree = "<group>"; };
 		99DEF1A910425D2A53579A33 /* PiyaliTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PiyaliTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		9DEE7EF45636A31B7BD66C57 /* CompanionHealth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionHealth.swift; sourceTree = "<group>"; };
 		9E4BCA4795241CEF35A35E73 /* curriculum-es.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "curriculum-es.json.gz"; sourceTree = "<group>"; };
 		9F901362A9B9702FEC15CA88 /* curriculum-ja.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "curriculum-ja.json.gz"; sourceTree = "<group>"; };
 		A85015A5797FFF1D629E519B /* LiveTutorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveTutorView.swift; sourceTree = "<group>"; };
@@ -289,6 +291,7 @@
 		63EB69AF36D60108CDEF283B /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				9DEE7EF45636A31B7BD66C57 /* CompanionHealth.swift */,
 				FC8C1AFE520430E24776DD16 /* CompanionMemory.swift */,
 				007295F8EDB35E196711A524 /* ContentLibrary.swift */,
 				F42527C788190E694332A9D4 /* DailyPlate.swift */,
@@ -548,6 +551,7 @@
 				0A7C378B116F58FF44451C07 /* AccountViews.swift in Sources */,
 				882DF197F6E0043796DBFC66 /* AppConfiguration.swift in Sources */,
 				A877E84CD10C1FB5B0B82B67 /* AppModel.swift in Sources */,
+				AE14F521E7D24FEAB61EEA97 /* CompanionHealth.swift in Sources */,
 				3F6D12BA1756F07FC181B14B /* CompanionMemory.swift in Sources */,
 				3766FDCBD5C747DC922B2538 /* CompanionMemoryView.swift in Sources */,
 				31F9D04AD0E82F0B26A8A2EA /* ContentLibrary.swift in Sources */,

@@ -147,6 +147,10 @@ public extension LearnerState {
                 if merged.cardReviews == nil { merged.cardReviews = [:] }; merged.cardReviews?[key] = review
             }
         }
+        merged.companionProgress = acknowledged.companionProgress
+        for change in newer.sorted(by:{ $0.date < $1.date }) where change.amount > 0 { merged.rewardCompanion(change.amount,now:change.date) }
+        for (change,reward) in newGoalRewards where reward > 0 { merged.rewardCompanion(reward,now:change.date) }
+        merged.reconcileCompanion()
         // A newer local assessment already includes all previous local evidence.
         if !newer.contains(where: { $0.source == .assessment }) && (merged.pendingPlacements ?? [:]).isEmpty { merged.ratingByLanguage = acknowledged.ratingByLanguage; merged.gradedByLanguage = acknowledged.gradedByLanguage }
         return merged

@@ -12,6 +12,8 @@ struct HomeView: View {
                 NavigationLink("Focused learning goal") { FocusedGoalView() }
                 NavigationLink("Repair mistakes") { RepairPracticeView() }
                 Text("\(app.learner.companionName) · Level \(app.learner.companionLevel) · \(app.learner.xp) language XP")
+                Text("Companion health: \(app.learner.companionHealth)% · \(app.learner.companionStatus)").accessibilityIdentifier("companionHealth")
+                Text("Reach your daily XP goal to recover 15% health. Each missed calendar day costs 10%.").font(.footnote)
                 NavigationLink("Daily practice plate") { DailyPlateView() }
                 if let lesson = app.selectedLesson { NavigationLink("Continue: " + lesson.title.localized(app.learner.support)) { LessonView(lesson: lesson) } }
             }

@@ -118,7 +118,7 @@ actor NostrRelayClient {
         let data: [String: Any] = ["schemaVersion":2,"targetLang":state.target,"name":state.name,"xp":state.totalXP,"level":state.level,"score":state.score,"scoreScale":"0-100","scoreLevel":PerformanceScore.level(score:state.score),
             "goal":state.dailyGoal,"dailyGoalXp":state.dailyGoal,"dailyXp":state.dailyXP,"streak":state.streak,
             "progressPercent":min(100,state.dailyXP*100/max(1,state.dailyGoal)),
-            "companion":["name":state.companionName,"type":state.effectiveCompanionType,"level":state.companionLevel,"health":min(100,state.dailyXP*100/max(1,state.dailyGoal))],"updatedAt":Int(Date().timeIntervalSince1970)]
+            "companion":["name":state.companionName,"type":state.effectiveCompanionType,"level":state.companionLevel,"health":state.companionHealth],"updatedAt":Int(Date().timeIntervalSince1970)]
         let content = String(decoding: try JSONSerialization.data(withJSONObject: data), as: UTF8.self)
         try await client.publish(identity.sign(kind: 30078, tags: [["d","learning-progress"],["t","learning-progress"]], content: content))
     }

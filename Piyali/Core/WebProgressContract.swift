@@ -39,6 +39,7 @@ public enum WebProgressContract {
     public static func imported(_ fields: [String:Any], native: LearnerState? = nil, now: Date = Date()) -> LearnerState {
         var state = native ?? LearnerState()
         state.acknowledgedEventIDs = Set((fields["iosRecentEventIDs"] as? [String] ?? []).compactMap(UUID.init(uuidString:)))
+        state.companionProgress = JSONValue.foundation(fields.filter { CompanionHealth.keys.contains($0.key) }.merging(CompanionHealth.reconcileFields(fields,now:now)) { _,new in new })
         let progress = fields["progress"] as? [String:Any] ?? [:]
         let questKeys = Set(DailyPlate.fields.values).union(["dailyQuestFirstSeen","dailyQuestFirstDayKey","plateBonusDailyActivity"])
         state.questProgress = JSONValue.foundation(progress.filter { questKeys.contains($0.key) })
@@ -146,7 +147,7 @@ public enum WebProgressContract {
             progress["plateBonusDailyActivity"] = markers
         }
         var root: [String:Any] = ["xp":integer(fields["xp"]) + amount,"progress":progress,"dailyXpRecent":recent,"updatedAt":iso(now)]
-        let goal = integer(fields["dailyGoalXp"],default:integer(progress["dailyGoalXp"]))
+        let goal = CompanionHealth.goal(fields)
         var goalDays = month["goalDays"] as? [String] ?? []
         if amount > 0 && goal > 0 && next >= goal {
             goalDays = Array(Set(goalDays + [change.dayKey])).sorted()
@@ -157,19 +158,9 @@ public enum WebProgressContract {
             }
         }
         if change.dayKey == today, amount > 0 {
-            // Keep the web's 24-hour XP window, while calendar-day receipts retain the actual offline practice date.
-            let expired = (date(fields["dailyResetAt"]) ?? .distantPast) <= now
-            let daily = (expired ? 0 : integer(fields["dailyXp"])) + amount
-            root["dailyXp"] = daily
-            if expired { root["dailyHasCelebrated"] = false; root["dailyResetAt"] = iso(now.addingTimeInterval(86400)); root["dailyStartedAt"] = iso(now) }
-            if goal > 0 && daily >= goal && (expired || fields["dailyHasCelebrated"] as? Bool != true) {
-                root["dailyHasCelebrated"] = true
-                root["dailyGoalPetHealth"] = min(100,integer(fields["dailyGoalPetHealth"],default:100) + 15)
-                let reached = fields["dailyGoalPetReachedDates"] as? [String] ?? []
-                root["dailyGoalPetReachedDates"] = Array(Set(reached + [today])).sorted().suffix(400).map { $0 }
-                root["dailyGoalPetLastOutcome"] = "achieved"; root["dailyGoalPetLastDelta"] = 15; root["dailyGoalPetLastUpdatedAt"] = iso(now)
-            }
+            root.merge(CompanionHealth.awardFields(fields,amount:amount,now:now)) { _,new in new }
         }
+
         if change.source == .assessment, let correct = change.correct {
             var intelligence = fields["learningIntelligence"] as? [String:[String:Any]] ?? [:]
             var bucket = intelligence[change.target] ?? [:]

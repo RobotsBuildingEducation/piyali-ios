@@ -132,6 +132,7 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
             do {
                 let snapshot = try transaction.getDocument(user)
                 let fields = snapshot.data() ?? [:]
+                let petPatch = CompanionHealth.reconcileFields(Self.normalized(fields))
                 var merged = uploaded
                 if let text = fields["iosStateJSON"] as? String, let remote = try? JSONDecoder().decode(LearnerState.self,from:Data(text.utf8)) {
                     merged.completed.formUnion(remote.completed); merged.flashcardMastery.formUnion(remote.flashcardMastery)
@@ -139,8 +140,10 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                 }
                 merged = WebProgressContract.imported(Self.normalized(fields),native:merged)
                 // Companion memory has its own shared web document, not a second snapshot authority.
-                merged.companionMemory = nil; merged.pendingMemoryChanges = []; merged.goalIntelligence = nil; merged.goalArtifacts = nil; merged.pendingGoalChanges = []; merged.questProgress = nil; merged.journeyQuestCounts = nil; merged.tutorLessons = nil; merged.acknowledgedEventIDs = nil
+                merged.companionProgress = nil; merged.companionMemory = nil; merged.pendingMemoryChanges = []; merged.goalIntelligence = nil; merged.goalArtifacts = nil; merged.pendingGoalChanges = []; merged.questProgress = nil; merged.journeyQuestCounts = nil; merged.tutorLessons = nil; merged.acknowledgedEventIDs = nil
                 var patch: [String:Any] = ["local_npub":npub,"iosStateJSON":String(decoding:try JSONEncoder().encode(merged),as:UTF8.self),"iosStateVersion":2,"iosUpdatedAt":FieldValue.serverTimestamp()]
+                patch.merge(petPatch) { _,new in new }
+                if fields["createdAt"] == nil { patch["createdAt"] = WebProgressContract.iso(Date()) }
                 if state.preferencesModifiedAt.map({ $0 > (WebProgressContract.date(Self.normalized(fields)["iosPreferencesModifiedAt"]) ?? .distantPast) }) == true || fields["iosStateJSON"] == nil || !snapshot.exists {
                     patch["iosPreferencesModifiedAt"] = WebProgressContract.iso(state.preferencesModifiedAt ?? Date())
                     let profile = state.preferencesModifiedAt == nil ? merged : state
