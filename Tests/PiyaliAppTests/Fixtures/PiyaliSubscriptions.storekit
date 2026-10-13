@@ -1,0 +1,71 @@
+{
+  "identifier": "E0702201-A197-4D44-A9A4-6AFC3385943F",
+  "nonRenewingSubscriptions": [],
+  "products": [],
+  "settings": {
+    "_askToBuyEnabled": false,
+    "_billingGracePeriodEnabled": false,
+    "_billingIssuesEnabled": false,
+    "_disableDialogs": false,
+    "_failTransactionsEnabled": false,
+    "_locale": "en_US",
+    "_renewalBillingIssuesEnabled": false,
+    "_storefront": "USA",
+    "_storeKitErrors": []
+  },
+  "subscriptionGroups": [
+    {
+      "id": "4110211500",
+      "localizations": [],
+      "name": "Piyali Local Testing",
+      "subscriptions": [
+        {
+          "adHocOffers": [],
+          "codeOffers": [],
+          "displayPrice": "0.99",
+          "familyShareable": false,
+          "groupNumber": 1,
+          "internalID": "4110211501",
+          "introductoryOffer": null,
+          "localizations": [
+            {
+              "description": "Local StoreKit testing only. No real charge.",
+              "displayName": "Monthly \u2014 Local Test",
+              "locale": "en_US"
+            }
+          ],
+          "productID": "app.piyali.ios.monthly",
+          "recurringSubscriptionPeriod": "P1M",
+          "referenceName": "Monthly \u2014 Local Test",
+          "subscriptionGroupID": "4110211500",
+          "type": "RecurringSubscription"
+        },
+        {
+          "adHocOffers": [],
+          "codeOffers": [],
+          "displayPrice": "9.99",
+          "familyShareable": false,
+          "groupNumber": 1,
+          "internalID": "4110211502",
+          "introductoryOffer": null,
+          "localizations": [
+            {
+              "description": "Local StoreKit testing only. No real charge.",
+              "displayName": "Annual \u2014 Local Test",
+              "locale": "en_US"
+            }
+          ],
+          "productID": "app.piyali.ios.annual",
+          "recurringSubscriptionPeriod": "P1Y",
+          "referenceName": "Annual \u2014 Local Test",
+          "subscriptionGroupID": "4110211500",
+          "type": "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version": {
+    "major": 3,
+    "minor": 0
+  }
+}

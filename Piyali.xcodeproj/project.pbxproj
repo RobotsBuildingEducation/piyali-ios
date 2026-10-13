@@ -12,6 +12,7 @@
 		0C78BA0870882BFABAEFDE1D /* SyncChanges.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0250508D362907F7F0C8E060 /* SyncChanges.swift */; };
 		11FD0F936B340EFC98867373 /* LiveTutorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A85015A5797FFF1D629E519B /* LiveTutorView.swift */; };
 		13A015EA825B34E30A92262C /* curriculum-ga.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = E632BE26C7121F505C93A15C /* curriculum-ga.json.gz */; };
+		1971914F4DA0A1C8DC020B19 /* StoreKitSubscriptionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7453BBE3FEF38033092DD0CC /* StoreKitSubscriptionTests.swift */; };
 		202E3EF5E687BCE075DF9636 /* flashcards.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 26503B7732937779B13146B7 /* flashcards.json.gz */; };
 		21547AD9D1E8F6C48C82CFB1 /* FirestoreContractTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8947C3D4C258C6F2B162D45D /* FirestoreContractTests.swift */; };
 		25B412D8E7AE1938ED2AF18A /* FlashcardReview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 387D1A3BB971A0E8A4AC3034 /* FlashcardReview.swift */; };
@@ -37,6 +38,7 @@
 		5CDE4798258806DE8734CEE1 /* GoalPractice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E9FEB2A3C61C4FB1A872D28 /* GoalPractice.swift */; };
 		63628243AF3A7E473CD80EFB /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58B5DF2715F289D91F1BC127 /* RootView.swift */; };
 		642967F33AED3D7C77F685A9 /* DailyPlate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F42527C788190E694332A9D4 /* DailyPlate.swift */; };
+		69086B28BF45F4B045E65544 /* PiyaliSubscriptions.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 93F9EA3918C75E4A8605DF8B /* PiyaliSubscriptions.storekit */; };
 		6F0548E7C5917527735A99E4 /* curriculum-el.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = F46C889B6EEDEEB00C4491D5 /* curriculum-el.json.gz */; };
 		73C8A3FBBF0937A4C9C6BF4D /* FirebaseIdentityService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23553314634188457E6891D0 /* FirebaseIdentityService.swift */; };
 		882DF197F6E0043796DBFC66 /* AppConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66577C96C4071AB6D6B95BB8 /* AppConfiguration.swift */; };
@@ -119,6 +121,7 @@
 		6B5750953096CF907269EFEA /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		6CCAF4F9FC63CEE953975909 /* curriculum-fr.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "curriculum-fr.json.gz"; sourceTree = "<group>"; };
 		739170FEAFFE01E5C4D5D4EA /* NostrTeamsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NostrTeamsService.swift; sourceTree = "<group>"; };
+		7453BBE3FEF38033092DD0CC /* StoreKitSubscriptionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreKitSubscriptionTests.swift; sourceTree = "<group>"; };
 		7754A7E9B5E0B517E9C9293A /* CompanionMemoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionMemoryView.swift; sourceTree = "<group>"; };
 		7942D25D599B3AC9917C728C /* SubscriptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionService.swift; sourceTree = "<group>"; };
 		803FAE41E8CABB152707F38B /* VoiceJourneyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceJourneyView.swift; sourceTree = "<group>"; };
@@ -129,6 +132,7 @@
 		8947C3D4C258C6F2B162D45D /* FirestoreContractTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirestoreContractTests.swift; sourceTree = "<group>"; };
 		8E738A4A023DB4E7E4CF5C0E /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 		8FFD762011E7104BE63A9CD4 /* WebProgressContract.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebProgressContract.swift; sourceTree = "<group>"; };
+		93F9EA3918C75E4A8605DF8B /* PiyaliSubscriptions.storekit */ = {isa = PBXFileReference; path = PiyaliSubscriptions.storekit; sourceTree = "<group>"; };
 		944FFD69FFAD8CB17111F599 /* PatreonRestoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatreonRestoreTests.swift; sourceTree = "<group>"; };
 		9674D8B5CAC1CE39C171E452 /* TutorCourse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorCourse.swift; sourceTree = "<group>"; };
 		988C5B69C6BEE00FBA34C5C0 /* FirebaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseService.swift; sourceTree = "<group>"; };
@@ -191,7 +195,9 @@
 				C93EFBC5CACA2291D2D0436C /* IdentityTests.swift */,
 				AEC72430BBF570FFE8C5C686 /* LiveAPIIntegrationTests.swift */,
 				944FFD69FFAD8CB17111F599 /* PatreonRestoreTests.swift */,
+				7453BBE3FEF38033092DD0CC /* StoreKitSubscriptionTests.swift */,
 				309E62CCB8904FD210887D7E /* WebNostrFixtures.swift */,
+				D1ADAD7F93F042D36919DAB7 /* Fixtures */,
 			);
 			name = PiyaliAppTests;
 			path = Tests/PiyaliAppTests;
@@ -338,6 +344,14 @@
 			path = Piyali;
 			sourceTree = "<group>";
 		};
+		D1ADAD7F93F042D36919DAB7 /* Fixtures */ = {
+			isa = PBXGroup;
+			children = (
+				93F9EA3918C75E4A8605DF8B /* PiyaliSubscriptions.storekit */,
+			);
+			path = Fixtures;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -390,6 +404,7 @@
 			buildConfigurationList = 3933151FCDEBCC9E37134D7D /* Build configuration list for PBXNativeTarget "PiyaliTests" */;
 			buildPhases = (
 				49CB922A7A9FC8C372283943 /* Sources */,
+				6A02C642B78BAD69FAD03500 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -443,6 +458,14 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		6A02C642B78BAD69FAD03500 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				69086B28BF45F4B045E65544 /* PiyaliSubscriptions.storekit in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		FDF84FDFAE821642FA0BF1F0 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -512,6 +535,7 @@
 				A796C5C8744AB39111F12DE7 /* IdentityTests.swift in Sources */,
 				AF26B447C5881DD47BF3F72A /* LiveAPIIntegrationTests.swift in Sources */,
 				4D76B17180CFD23CD6E3597C /* PatreonRestoreTests.swift in Sources */,
+				1971914F4DA0A1C8DC020B19 /* StoreKitSubscriptionTests.swift in Sources */,
 				413348566E611075ABDE6695 /* WebNostrFixtures.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

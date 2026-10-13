@@ -9,7 +9,8 @@ import StoreKit
     @Published var error: String?
     @Published var busy = false
     @Published private(set) var externalPaymentAllowed = false
-    private let config = AppConfiguration()
+    private let config: AppConfiguration
+    private let webSession: URLSession
     private var updates: Task<Void, Never>?
     private var expiryMonitor: Task<Void, Never>?
     var hasAccess: Bool { (webAuthorized && (webExpiry ?? .distantPast) > Date()) || (appleAuthorized && (appleExpiry ?? .distantPast) > Date()) }
@@ -17,7 +18,10 @@ import StoreKit
     private var accountID: String?
     private var webExpiry: Date?
     private var appleExpiry: Date?
-    init() {
+    private var pendingAppleProduct: String?
+    private var entitlementCheck = 0
+    init(configuration: AppConfiguration = AppConfiguration(), webSession: URLSession = .shared) {
+        self.config = configuration; self.webSession = webSession
         expiryMonitor = Task { [weak self] in
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(30))
@@ -34,13 +38,13 @@ import StoreKit
         }
     }
     func bind(_ identity: IdentityService) {
-        if accountID != identity.npub { webAuthorized = false; appleAuthorized = false; authorized = false; webExpiry = nil; appleExpiry = nil }
+        if accountID != identity.npub { webAuthorized = false; appleAuthorized = false; authorized = false; webExpiry = nil; appleExpiry = nil; pendingAppleProduct = nil; entitlementCheck += 1 }
         self.identity = identity; accountID = identity.npub
     }
     func refresh() async {
         guard let identity, !identity.npub.isEmpty else { return }
         busy = true; error = nil; defer { busy = false }
-        do { products = try await Product.products(for: config.list("SubscriptionProductIDs")) } catch { self.error = error.localizedDescription }
+        do { try await loadAppleProducts() } catch { self.error = error.localizedDescription }
         let storefront = await Storefront.current
         externalPaymentAllowed = config.list("ExternalPaymentStorefronts").contains(storefront?.countryCode ?? "")
         #if DEBUG
@@ -57,43 +61,62 @@ import StoreKit
         authorized = webAuthorized || appleAuthorized
     }
     func refreshApple() async {
+        entitlementCheck += 1; let check = entitlementCheck
         guard let identity, !identity.npub.isEmpty else { appleAuthorized = false; appleExpiry = nil; recomputeAccess(); return }
         let checkingAccount = identity.npub, checkingToken = identity.accountToken
-        var valid = false, expiry: Date?
+        var valid = false, expiry: Date?; var activeProducts: Set<String> = []
         for await result in Transaction.currentEntitlements {
             guard case .verified(let transaction) = result,
                 config.list("SubscriptionProductIDs").contains(transaction.productID),
-                transaction.revocationDate == nil,
+                transaction.revocationDate == nil, !transaction.isUpgraded,
                 let end = transaction.expirationDate, end > Date(),
                 transaction.appAccountToken == checkingToken else { continue }
+            activeProducts.insert(transaction.productID)
             valid = true; expiry = max(expiry ?? end, end)
         }
-        guard accountID == checkingAccount, self.identity?.npub == checkingAccount else { return }
+        guard entitlementCheck == check, accountID == checkingAccount, self.identity?.npub == checkingAccount else { return }
+        if let pendingAppleProduct, activeProducts.contains(pendingAppleProduct) { self.pendingAppleProduct = nil; error = nil }
         appleAuthorized = valid; appleExpiry = expiry; recomputeAccess()
     }
     func buy(_ product: Product) async {
-        guard let identity else { return }
+        guard !busy, let identity, !identity.npub.isEmpty, accountID == identity.npub else { return }
+        guard config.list("SubscriptionProductIDs").contains(product.id) else { error = "This subscription plan is unavailable."; return }
         busy = true; error = nil; defer { busy = false }
         do {
             switch try await product.purchase(options: [.appAccountToken(identity.accountToken)]) {
             case .success(let result):
                 guard case .verified(let transaction) = result else { throw AppError.message("Apple could not verify this purchase.") }
                 await refreshApple(); await transaction.finish()
-            case .pending: error = "Purchase pending approval."
+            case .pending: pendingAppleProduct = product.id; error = "Purchase pending approval."
             case .userCancelled: break
             @unknown default: break
             }
         } catch { self.error = error.localizedDescription }
     }
-    func restore() async {
-        do { try await AppStore.sync(); await refresh() } catch { self.error = error.localizedDescription }
+    func loadAppleProducts() async throws {
+        products = try await Product.products(for:config.list("SubscriptionProductIDs")).sorted { $0.price < $1.price }
     }
+    func restoreApple() async throws {
+        guard let identity, !identity.npub.isEmpty else { throw AppError.message("Sign in before restoring purchases.") }
+        try await AppStore.sync(); await refreshApple()
+    }
+    func restore() async {
+        guard !busy, let identity, !identity.npub.isEmpty else { return }
+        busy = true; error = nil; defer { busy = false }
+        var failures: [String] = []
+        do { try await AppStore.sync() } catch { failures.append("Apple: " + error.localizedDescription) }
+        await refreshApple()
+        do { try await restoreWeb() } catch { failures.append("Web: " + error.localizedDescription) }
+        recomputeAccess()
+        if !authorized { error = failures.isEmpty ? "No active subscription is linked to this Piyali key." : failures.joined(separator:"\n") }
+    }
+    deinit { updates?.cancel(); expiryMonitor?.cancel() }
     private func post(_ path: String, body: [String: Any]) async throws -> [String: Any] {
         var request = URLRequest(url: config.web.appendingPathComponent("api/patreon/\(path)"))
         request.httpMethod = "POST"; request.timeoutInterval = 25
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await webSession.data(for: request)
         let value = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
         guard let response = response as? HTTPURLResponse, (200..<300).contains(response.statusCode) else { throw AppError.message(value["error"] as? String ?? "Subscription service unavailable.") }
         return value
@@ -113,5 +136,6 @@ import StoreKit
         webAuthorized = status["authorized"] as? Bool == true
         // Revalidate web access on foreground; keep in-memory authorization short lived.
         webExpiry = webAuthorized ? Date().addingTimeInterval(15 * 60) : nil
+        recomputeAccess()
     }
 }

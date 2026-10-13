@@ -90,3 +90,12 @@ schemes:
         Piyali: all
     test:
       targets: [PiyaliTests, PiyaliUITests]
+
+  PiyaliStoreKit:
+    build:
+      targets:
+        Piyali: all
+    run:
+      storeKitConfiguration: Tests/PiyaliAppTests/Fixtures/PiyaliSubscriptions.storekit
+    test:
+      targets: [PiyaliTests]

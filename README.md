@@ -17,7 +17,7 @@ Open **Piyali.xcodeproj** in Xcode 26 or newer. Minimum iOS version is 17. Choos
 - Notes creation/editing/deletion, saved explanations, conversation notes, learning history, grammar guides and real-world practice reflections. Companion memory captures graded mistakes, deduplicates daily slips, retains web enrichment, expires after the following day and feeds focused repair practice; repair completion retires its memory.
 - Firebase AI Logic (Gemini Developer API), dedicated Cloudflare Responses fallback and Firebase App Check. Firestore imports and writes shared web XP, calendar activity, lesson completion and flashcard review records, with an offline outbox and transaction receipts to prevent repeated rewards.
 - Public Nostr learning teams with verified events, relay acknowledgments, creation, leave/delete and opt-in progress publication.
-- Subscription paywall with signed Nostr Patreon restore, StoreKit purchase/restore and storefront-controlled web payment link to the actual `/subscribe` route.
+- Subscription paywall with signed Nostr Patreon restore, StoreKit purchase/restore with verified Nostr-bound entitlements, independent provider restoration and storefront-controlled web payment link to the actual `/subscribe` route.
 - Per-language starting-level self-assessment and independent lesson/flashcard course unlocks, with Firebase placement and Score persistence. Placement grants access without granting completion or XP.
 
 ## Connect services
@@ -31,6 +31,8 @@ The existing web backend deployment and reference checkout have not been changed
 Launch the locally configured simulator with `scripts/run-simulator.sh`; it reads the registered debug token from ignored local secrets and passes it only in the launch environment.
 
 The opt-in `scripts/test-live-api.py` verifies native sign-in, Gemini text and JSON, Cloudflare exercises, signed Patreon restore and live PCM output using an isolated test identity. It needs the ignored Firebase configuration and debug token.
+
+Local Apple subscription checks use `scripts/test-storekit.sh`; see [docs/STOREKIT_TESTING.md](docs/STOREKIT_TESTING.md). These use real StoreKit test transactions and never charge a payment method.
 
 ## Build and verify
 
@@ -71,7 +73,7 @@ The exporter uses the reference's existing `esbuild` install. Only this repo's b
 
 ## First-build boundaries
 
-This is a functional native foundation, not a claim that every web feature has already reached parity. The independent Firebase project and its native app/Firestore are provisioned. Live Nostr-to-Firebase authentication, App Check debug exchange and protected Firestore access are verified. Production App Attest awaits an enrolled Apple Developer account; Native Gemini text/audio and authenticated Cloudflare exercises are verified. Signed web restoration correctly denies unlinked accounts; active membership and App Store products remain verification gates. Simulator tests cannot validate real paid transactions or physical-device audio quality.
+This is a functional native foundation, not a claim that every web feature has already reached parity. The independent Firebase project and its native app/Firestore are provisioned. Live Nostr-to-Firebase authentication, App Check debug exchange and protected Firestore access are verified. Production App Attest awaits an enrolled Apple Developer account; Native Gemini text/audio and authenticated Cloudflare exercises are verified. Signed web restoration correctly denies unlinked accounts; local StoreKit purchases/restoration, expiration, refunds and approval updates are verified. Active web membership, App Store Connect products and paid-device checks remain verification gates. Simulator tests cannot validate real paid transactions or physical-device audio quality.
 
 Shared XP, daily goal plans/evidence/preparation outcomes, per-language self-assessment placement, separate course levels, regular/tutor lesson completion, daily quest counts and bonuses, voice journey session counts, flashcard schedules, companion memory, calendar activity and performance scores use the existing web Firestore fields. Native-only state also uses `iosStateJSON` version 2. Offline practice retries are idempotent, completion sets merge, and explicit profile edits use timestamps. Notes and history still use snapshot sync with last writer wins; every web map is not reconciled. Voice milestone recordings are stored locally and their filenames appear in cloud state; audio files do not sync automatically. NIP-46 remote signing, NIP-07 browser signers, legacy Firestore-only teams, Cashu/Lightning wallets and nutzaps, the graphical RPG world, the standalone web placement test and cross-platform achievement sync are not yet ported. The RPG learning mode is a native text adventure, and companion functionality is represented by state and controls. OpenAI WebRTC and Cloudflare audio-cache playback remain separate follow-up transports; Gemini Live is the implemented continuous voice path.
 
