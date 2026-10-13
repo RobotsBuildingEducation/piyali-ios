@@ -3,7 +3,7 @@ import Security
 import CryptoKit
 import NostrSDK
 
-struct NostrEventPayload: Codable, Identifiable {
+struct NostrEventPayload: Codable, Identifiable, Sendable {
     let id: String
     let pubkey: String
     let created_at: Int64

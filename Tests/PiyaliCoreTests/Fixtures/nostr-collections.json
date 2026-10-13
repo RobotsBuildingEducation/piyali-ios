@@ -1,0 +1,751 @@
+{
+  "merging": [
+    {
+      "maps": [
+        {
+          "legacy-slot": {
+            "unlockedAt": 30,
+            "test": false,
+            "extra": "preserve"
+          },
+          "invalid": {
+            "unlockedAt": 0
+          }
+        },
+        {
+          "legacy-slot": {
+            "unlockedAt": 40
+          },
+          "old_other": {
+            "unlockedAt": 10,
+            "source": "robotsbuildingeducation"
+          }
+        }
+      ],
+      "expected": {
+        "legacy-slot": {
+          "unlockedAt": 30,
+          "test": false,
+          "extra": "preserve"
+        },
+        "old_other": {
+          "unlockedAt": 10,
+          "source": "robotsbuildingeducation"
+        }
+      }
+    },
+    {
+      "maps": [
+        {
+          "legacy-slot": {
+            "unlockedAt": 30,
+            "test": true,
+            "extra": "preserve"
+          },
+          "invalid": {
+            "unlockedAt": 0
+          }
+        },
+        {
+          "legacy-slot": {
+            "unlockedAt": 40
+          },
+          "old_other": {
+            "unlockedAt": 10,
+            "source": "robotsbuildingeducation"
+          }
+        }
+      ],
+      "expected": {
+        "legacy-slot": {
+          "unlockedAt": 40
+        },
+        "old_other": {
+          "unlockedAt": 10,
+          "source": "robotsbuildingeducation"
+        }
+      }
+    },
+    {
+      "maps": [
+        {
+          "legacy-slot": {
+            "unlockedAt": 30,
+            "test": 0,
+            "extra": "preserve"
+          },
+          "invalid": {
+            "unlockedAt": 0
+          }
+        },
+        {
+          "legacy-slot": {
+            "unlockedAt": 40
+          },
+          "old_other": {
+            "unlockedAt": 10,
+            "source": "robotsbuildingeducation"
+          }
+        }
+      ],
+      "expected": {
+        "legacy-slot": {
+          "unlockedAt": 30,
+          "test": 0,
+          "extra": "preserve"
+        },
+        "old_other": {
+          "unlockedAt": 10,
+          "source": "robotsbuildingeducation"
+        }
+      }
+    },
+    {
+      "maps": [
+        {
+          "legacy-slot": {
+            "unlockedAt": 30,
+            "test": 1,
+            "extra": "preserve"
+          },
+          "invalid": {
+            "unlockedAt": 0
+          }
+        },
+        {
+          "legacy-slot": {
+            "unlockedAt": 40
+          },
+          "old_other": {
+            "unlockedAt": 10,
+            "source": "robotsbuildingeducation"
+          }
+        }
+      ],
+      "expected": {
+        "legacy-slot": {
+          "unlockedAt": 40
+        },
+        "old_other": {
+          "unlockedAt": 10,
+          "source": "robotsbuildingeducation"
+        }
+      }
+    },
+    {
+      "maps": [
+        {
+          "legacy-slot": {
+            "unlockedAt": 30,
+            "test": "",
+            "extra": "preserve"
+          },
+          "invalid": {
+            "unlockedAt": 0
+          }
+        },
+        {
+          "legacy-slot": {
+            "unlockedAt": 40
+          },
+          "old_other": {
+            "unlockedAt": 10,
+            "source": "robotsbuildingeducation"
+          }
+        }
+      ],
+      "expected": {
+        "legacy-slot": {
+          "unlockedAt": 30,
+          "test": "",
+          "extra": "preserve"
+        },
+        "old_other": {
+          "unlockedAt": 10,
+          "source": "robotsbuildingeducation"
+        }
+      }
+    },
+    {
+      "maps": [
+        {
+          "legacy-slot": {
+            "unlockedAt": 30,
+            "test": "false",
+            "extra": "preserve"
+          },
+          "invalid": {
+            "unlockedAt": 0
+          }
+        },
+        {
+          "legacy-slot": {
+            "unlockedAt": 40
+          },
+          "old_other": {
+            "unlockedAt": 10,
+            "source": "robotsbuildingeducation"
+          }
+        }
+      ],
+      "expected": {
+        "legacy-slot": {
+          "unlockedAt": 40
+        },
+        "old_other": {
+          "unlockedAt": 10,
+          "source": "robotsbuildingeducation"
+        }
+      }
+    },
+    {
+      "maps": [
+        {
+          "legacy-slot": {
+            "unlockedAt": 30,
+            "test": [],
+            "extra": "preserve"
+          },
+          "invalid": {
+            "unlockedAt": 0
+          }
+        },
+        {
+          "legacy-slot": {
+            "unlockedAt": 40
+          },
+          "old_other": {
+            "unlockedAt": 10,
+            "source": "robotsbuildingeducation"
+          }
+        }
+      ],
+      "expected": {
+        "legacy-slot": {
+          "unlockedAt": 40
+        },
+        "old_other": {
+          "unlockedAt": 10,
+          "source": "robotsbuildingeducation"
+        }
+      }
+    },
+    {
+      "maps": [
+        {
+          "legacy-slot": {
+            "unlockedAt": 30,
+            "test": {},
+            "extra": "preserve"
+          },
+          "invalid": {
+            "unlockedAt": 0
+          }
+        },
+        {
+          "legacy-slot": {
+            "unlockedAt": 40
+          },
+          "old_other": {
+            "unlockedAt": 10,
+            "source": "robotsbuildingeducation"
+          }
+        }
+      ],
+      "expected": {
+        "legacy-slot": {
+          "unlockedAt": 40
+        },
+        "old_other": {
+          "unlockedAt": 10,
+          "source": "robotsbuildingeducation"
+        }
+      }
+    }
+  ],
+  "completion": [
+    {
+      "map": {},
+      "expected": {}
+    },
+    {
+      "map": {
+        "piyali_tutor_complete_b2": {
+          "unlockedAt": 10,
+          "source": "nosabos"
+        }
+      },
+      "expected": {
+        "piyali_tutor_complete_b2": {
+          "unlockedAt": 10,
+          "source": "nosabos"
+        },
+        "tutor_reach_a2": {
+          "unlockedAt": 10,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "tutor_reach_b1": {
+          "unlockedAt": 10,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "tutor_reach_b2": {
+          "unlockedAt": 10,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_tutor_complete_pre_a1": {
+          "unlockedAt": 10,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_tutor_complete_a1": {
+          "unlockedAt": 10,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_tutor_complete_a2": {
+          "unlockedAt": 10,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_tutor_complete_b1": {
+          "unlockedAt": 10,
+          "source": "nosabos",
+          "catalogVersion": 8
+        }
+      }
+    },
+    {
+      "map": {
+        "piyali_goals_complete_c1": {
+          "unlockedAt": 11,
+          "source": "nosabos"
+        }
+      },
+      "expected": {
+        "piyali_goals_complete_c1": {
+          "unlockedAt": 11,
+          "source": "nosabos"
+        },
+        "piyali_goals_complete_pre_a1": {
+          "unlockedAt": 11,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_goals_complete_a1": {
+          "unlockedAt": 11,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_goals_complete_a2": {
+          "unlockedAt": 11,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_goals_complete_b1": {
+          "unlockedAt": 11,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_goals_complete_b2": {
+          "unlockedAt": 11,
+          "source": "nosabos",
+          "catalogVersion": 8
+        }
+      }
+    },
+    {
+      "map": {
+        "piyali_full_curriculum_v4": {
+          "unlockedAt": 20,
+          "source": "nosabos"
+        },
+        "robots_full_curriculum_v4": {
+          "unlockedAt": 25,
+          "source": "robotsbuildingeducation"
+        }
+      },
+      "expected": {
+        "piyali_full_curriculum_v4": {
+          "unlockedAt": 20,
+          "source": "nosabos"
+        },
+        "robots_full_curriculum_v4": {
+          "unlockedAt": 25,
+          "source": "robotsbuildingeducation"
+        },
+        "tutor_reach_a2": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "tutor_reach_b1": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "tutor_reach_b2": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_tutor_complete_pre_a1": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_tutor_complete_a1": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_tutor_complete_a2": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_tutor_complete_b1": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_tutor_complete_b2": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_tutor_complete_c1": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_tutor_complete_c2": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_skillTree_complete_pre_a1": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_skillTree_complete_a1": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_skillTree_complete_a2": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_skillTree_complete_b1": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_skillTree_complete_b2": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_skillTree_complete_c1": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_skillTree_complete_c2": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_flashcards_complete_pre_a1": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_flashcards_complete_a1": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_flashcards_complete_a2": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_flashcards_complete_b1": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_flashcards_complete_b2": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_flashcards_complete_c1": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_flashcards_complete_c2": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "two_worlds_complete_v4": {
+          "unlockedAt": 25,
+          "source": "shared",
+          "catalogVersion": 8
+        }
+      }
+    },
+    {
+      "map": {
+        "piyali_full_curriculum_v4": {
+          "unlockedAt": 20,
+          "source": "nosabos"
+        },
+        "robots_full_curriculum_v4": {
+          "unlockedAt": 25,
+          "source": "robotsbuildingeducation",
+          "test": true
+        }
+      },
+      "expected": {
+        "piyali_full_curriculum_v4": {
+          "unlockedAt": 20,
+          "source": "nosabos"
+        },
+        "robots_full_curriculum_v4": {
+          "unlockedAt": 25,
+          "source": "robotsbuildingeducation",
+          "test": true
+        },
+        "tutor_reach_a2": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "tutor_reach_b1": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "tutor_reach_b2": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_tutor_complete_pre_a1": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_tutor_complete_a1": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_tutor_complete_a2": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_tutor_complete_b1": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_tutor_complete_b2": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_tutor_complete_c1": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_tutor_complete_c2": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_skillTree_complete_pre_a1": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_skillTree_complete_a1": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_skillTree_complete_a2": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_skillTree_complete_b1": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_skillTree_complete_b2": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_skillTree_complete_c1": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_skillTree_complete_c2": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_flashcards_complete_pre_a1": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_flashcards_complete_a1": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_flashcards_complete_a2": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_flashcards_complete_b1": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_flashcards_complete_b2": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_flashcards_complete_c1": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        },
+        "piyali_flashcards_complete_c2": {
+          "unlockedAt": 20,
+          "source": "nosabos",
+          "catalogVersion": 8
+        }
+      }
+    },
+    {
+      "map": {
+        "unknown-v1": {
+          "unlockedAt": 8
+        }
+      },
+      "expected": {
+        "unknown-v1": {
+          "unlockedAt": 8
+        }
+      }
+    },
+    {
+      "map": {
+        "piyali_tutor_complete_c2": {
+          "unlockedAt": 9,
+          "test": true
+        }
+      },
+      "expected": {
+        "piyali_tutor_complete_c2": {
+          "unlockedAt": 9,
+          "test": true
+        }
+      }
+    }
+  ],
+  "events": [
+    {
+      "records": {
+        "legacy-slot": {
+          "unlockedAt": 123,
+          "extra": "日本語 / español"
+        }
+      },
+      "source": null,
+      "expected": {
+        "kind": 30078,
+        "content": "{\"schemaVersion\":1,\"catalogVersion\":8,\"unlocked\":{\"legacy-slot\":{\"unlockedAt\":123,\"extra\":\"日本語 / español\"}},\"updatedAt\":1700000000}",
+        "created_at": 1700000000,
+        "tags": [
+          [
+            "d",
+            "learning-achievements"
+          ],
+          [
+            "t",
+            "learning-achievements"
+          ]
+        ]
+      }
+    },
+    {
+      "records": {
+        "legacy-slot": {
+          "unlockedAt": 123,
+          "extra": "日本語 / español"
+        }
+      },
+      "source": "nosabos",
+      "expected": {
+        "kind": 30078,
+        "content": "{\"schemaVersion\":1,\"catalogVersion\":8,\"unlocked\":{\"legacy-slot\":{\"unlockedAt\":123,\"extra\":\"日本語 / español\"}},\"updatedAt\":1700000000}",
+        "created_at": 1700000000,
+        "tags": [
+          [
+            "d",
+            "learning-achievements:nosabos"
+          ],
+          [
+            "t",
+            "learning-achievements"
+          ]
+        ]
+      }
+    },
+    {
+      "records": {
+        "legacy-slot": {
+          "unlockedAt": 123,
+          "extra": "日本語 / español"
+        }
+      },
+      "source": "robotsbuildingeducation",
+      "expected": {
+        "kind": 30078,
+        "content": "{\"schemaVersion\":1,\"catalogVersion\":8,\"unlocked\":{\"legacy-slot\":{\"unlockedAt\":123,\"extra\":\"日本語 / español\"}},\"updatedAt\":1700000000}",
+        "created_at": 1700000000,
+        "tags": [
+          [
+            "d",
+            "learning-achievements:robotsbuildingeducation"
+          ],
+          [
+            "t",
+            "learning-achievements"
+          ]
+        ]
+      }
+    }
+  ]
+}

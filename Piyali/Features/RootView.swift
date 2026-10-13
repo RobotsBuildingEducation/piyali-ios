@@ -48,12 +48,12 @@ struct OnboardingView: View {
                     TextField("Your name", text: $app.learner.name)
                     LanguagePicker(title: "I want to learn", selection: $app.learner.target, codes: LearningLanguages.practice)
                     LanguagePicker(title: "Explain in", selection: $app.learner.support, codes: LearningLanguages.support)
-                    Picker("Starting level", selection: $app.learner.level) { ForEach(LearningLanguages.levels, id: \.self) { Text($0).tag($0) } }
+                    Picker("Starting level", selection: $app.learner.level) { ForEach(LearningLanguages.levels, id: \.self) { Text($0).tag($0) } }.accessibilityIdentifier("onboardingLevelPicker")
                     TextField("What do you want to achieve?", text: $app.learner.goal, axis: .vertical)
                     Stepper("Daily goal: \(app.learner.dailyGoal) XP", value: $app.learner.dailyGoal, in: 10...300, step: 10)
                 }
                 Button("Start learning") {
-                    app.learner.onboardingComplete = true; app.persist(); Task { await app.reloadContent() }
+                    app.finishOnboarding()
                 }.accessibilityIdentifier("startLearning")
             }.navigationTitle("Set up Piyali")
         }

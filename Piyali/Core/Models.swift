@@ -130,6 +130,8 @@ public struct LearnerState: Codable, Sendable {
     public var achievementRecords: [String:JSONValue]?
     public var achievementEvidence: [String:JSONValue]?
     public var achievementLedger: JSONValue?
+    public var nostrAchievementRecords: JSONValue?
+    public var shareNostrAchievements: Bool?
     public var preferencesModifiedAt: Date?
     public var pendingChanges: [PracticeChange]?
     public var cardReviews: [String: FlashcardReview]?

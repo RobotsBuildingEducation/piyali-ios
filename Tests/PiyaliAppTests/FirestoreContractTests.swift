@@ -42,6 +42,24 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
             "patreonVerified":true,"unrelatedWebSetting":"preserve"
         ])
     }
+    func testSignedCollectionImportPreservesRealAwardsAndOtherHostRecordsWithoutXP() async throws {
+        let (service,db,npub)=try context();try await seed(db,npub)
+        let user=db.collection("users").document(npub)
+        try await user.collection("achievements").document("tutor_reach_a2").setData(["unlockedAt":1,"source":"nosabos","catalogVersion":8,"test":false])
+        try await user.collection("achievements").document("tutor_reach_b1").setData(["unlockedAt":2,"source":"nosabos","catalogVersion":8,"test":true])
+        let records=JSONValue.foundation(["tutor_reach_a2":["unlockedAt":10],"tutor_reach_b1":["unlockedAt":10,"source":"nosabos"],"robots_full_curriculum_v4":["unlockedAt":20,"source":"robotsbuildingeducation"],"prototype/old":["unlockedAt":5]])
+        let result=try await service.importAchievements(records,npub:npub)
+        let imported=try XCTUnwrap(result)
+        XCTAssertEqual(imported["tutor_reach_a2"]?["unlockedAt"].number,1)
+        XCTAssertEqual(imported["tutor_reach_b1"]?["unlockedAt"].number,10)
+        XCTAssertGreaterThan(imported["robots_full_curriculum_v4"]?["unlockedAt"].number ?? 0,0)
+        XCTAssertNil(imported["prototype/old"])
+        _=try await service.importAchievements(records,npub:npub)
+        let root=try await user.getDocument().data()!
+        XCTAssertEqual(WebProgressContract.integer(root["xp"]),150);XCTAssertEqual(root["patreonVerified"] as? Bool,true)
+        let stored=try await user.collection("achievements").document("robots_full_curriculum_v4").getDocument().data()!
+        XCTAssertEqual(stored["source"] as? String,"robotsbuildingeducation");XCTAssertEqual(stored["catalogVersion"] as? Int,8)
+    }
     func testAchievementBackfillUsesCompletionAndPreservesRealAwards() async throws {
         let (service,db,npub)=try context();try await seed(db,npub)
         let user=db.collection("users").document(npub)

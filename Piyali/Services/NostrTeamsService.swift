@@ -8,57 +8,6 @@ struct LearningTeam: Identifiable {
     let members: [String]
     let event: NostrEventPayload
 }
-actor NostrRelayClient {
-    let relays = ["wss://relay.primal.net", "wss://relay.ditto.pub", "wss://nos.lol"]
-    func exchange(url: String, message: [Any], subscription: String? = nil) async throws -> [NostrEventPayload] {
-        let socket = URLSession.shared.webSocketTask(with: URL(string: url)!)
-        socket.resume()
-        let timeout = Task { try? await Task.sleep(for: .seconds(9)); if !Task.isCancelled { socket.cancel(with: .goingAway, reason: nil) } }
-        defer { timeout.cancel(); socket.cancel(with: .normalClosure, reason: nil) }
-        let bytes = try JSONSerialization.data(withJSONObject: message)
-        try await socket.send(.string(String(decoding: bytes, as: UTF8.self)))
-        var events: [NostrEventPayload] = []
-        while true {
-            let received = try await socket.receive()
-            let data: Data
-            switch received { case .string(let text): data = Data(text.utf8); case .data(let bytes): data = bytes; @unknown default: continue }
-            guard let parts = try JSONSerialization.jsonObject(with: data) as? [Any], let type = parts.first as? String else { continue }
-            if type == "OK", parts.count >= 3 {
-                guard parts[2] as? Bool == true else { throw AppError.message(parts.last as? String ?? "Relay rejected update.") }; return []
-            }
-            if type == "EOSE", parts.count > 1, parts[1] as? String == subscription { return events }
-            if type == "CLOSED" { throw AppError.message(parts.last as? String ?? "Relay closed subscription.") }
-            if type == "EVENT", parts.count >= 3, parts[1] as? String == subscription {
-                let encoded = try JSONSerialization.data(withJSONObject: parts[2])
-                if let event = try? JSONDecoder().decode(NostrEventPayload.self, from: encoded), IdentityService.verify(event) { events.append(event) }
-            }
-        }
-    }
-    func query(filter: [String: Any]) async throws -> [NostrEventPayload] {
-        let id = UUID().uuidString
-        var events: [NostrEventPayload] = [], successes = 0
-        await withTaskGroup(of: [NostrEventPayload]?.self) { group in
-            for relay in relays { group.addTask { try? await self.exchange(url: relay, message: ["REQ",id,filter], subscription: id) } }
-            for await result in group { if let result { successes += 1; events += result } }
-        }
-        guard successes > 0 else { throw AppError.message("No Nostr relay responded. Please try again.") }
-        var addresses: [String: NostrEventPayload] = [:]
-        for event in events {
-            let address = "\(event.kind):\(event.pubkey):\(event.tag("d"))"
-            if addresses[address].map({ $0.created_at < event.created_at || ($0.created_at == event.created_at && event.id < $0.id) }) ?? true { addresses[address] = event }
-        }
-        return Array(addresses.values)
-    }
-    func publish(_ event: NostrEventPayload) async throws {
-        let object = try JSONSerialization.jsonObject(with: JSONEncoder().encode(event))
-        var successes = 0
-        await withTaskGroup(of: Bool.self) { group in
-            for relay in relays { group.addTask { (try? await self.exchange(url: relay, message: ["EVENT",object])) != nil } }
-            for await accepted in group { if accepted { successes += 1 } }
-        }
-        guard successes > 0 else { throw AppError.message("No relay accepted the update.") }
-    }
-}
 @MainActor final class NostrTeamsService: ObservableObject {
     @Published var teams: [LearningTeam] = []
     @Published var progress: [String: JSONValue] = [:]

@@ -53,7 +53,8 @@ import FirebaseFirestore
             guard let snapshot,!snapshot.metadata.hasPendingWrites,!snapshot.metadata.isFromCache else { return }
             Task { @MainActor in guard let self,let result else { return };for doc in snapshot.documents {
                 let incoming=self.value(doc.data()),current=result.records[doc.documentID] ?? .null
-                if incoming["unlockedAt"].number > 0 && (current["unlockedAt"].number <= 0 || current["test"].boolean && !incoming["test"].boolean || current["test"].boolean == incoming["test"].boolean && incoming["unlockedAt"].number < current["unlockedAt"].number) { result.records[doc.documentID]=incoming }
+                let chosen=NostrAchievementCollection.merging([.object([doc.documentID:current]),.object([doc.documentID:incoming])])[doc.documentID]
+                if chosen != .null { result.records[doc.documentID]=chosen }
             }
                 self.updates.send((user.documentID,result.records))
             }
@@ -69,6 +70,24 @@ import FirebaseFirestore
         let summaries=try await user.collection("courseProgress").getDocuments(source:.server)
         state.achievementEvidence=Dictionary(uniqueKeysWithValues:summaries.documents.map { ($0.documentID,value($0.data())) })
         state.achievementRecords=cache.records;state.achievementLedger=cache.ledger
+    }
+    func importRecords(_ records: JSONValue, user: DocumentReference) async throws -> [String:JSONValue] {
+        let catalog=(try? ContentLibrary.load([JSONValue].self,name:"achievement-protocol")) ?? []
+        let definitions=Dictionary(uniqueKeysWithValues:catalog.map { ($0["id"].string,$0) }),cache=try await cache(user)
+        for (id,incoming) in NostrAchievementCollection.merging([records]).object {
+            guard let definition=definitions[id] else { continue }
+            let ref=user.collection("achievements").document(id)
+            let saved=try await user.firestore.runTransaction { tx,error -> Any? in do {
+                let old=Self.jsonFields(try tx.getDocument(ref).data()),chosen=NostrAchievementCollection.merging([.object([id:old]),.object([id:incoming])])[id]
+                if chosen != incoming || chosen == old { return old.foundation }
+                var fields=chosen.foundation
+                fields["achievementId"]=id;fields["source"]=definition["source"].string;fields["catalogVersion"]=definition["catalogVersion"].number
+                fields["title"]=definition["title"].string;fields["description"]=definition["description"].string;fields["orb"]=definition["orb"].foundation;fields["number"]=definition["number"].number
+                tx.setData(fields,forDocument:ref);return fields
+            } catch let failure { error?.pointee=failure as NSError;return nil } }
+            if let fields=saved as? [String:Any] { cache.records[id]=value(fields) }
+        }
+        updates.send((user.documentID,cache.records));return cache.records
     }
     private func tutorRecord(_ data: JSONValue) -> Bool {
         guard let value=data.object["tutorAgendaProgress"] else { return false }
@@ -198,11 +217,11 @@ import FirebaseFirestore
         let timestamp=Int(Date().timeIntervalSince1970)
         for a in catalog where earned.contains(a.id) {
             let known=cache.records[a.id] ?? .null
-            if known["unlockedAt"].number > 0 && !known["test"].boolean { continue }
+            if known["unlockedAt"].number > 0 && !NostrAchievementCollection.truthy(known["test"]) { continue }
             let ref=user.collection("achievements").document(a.id)
             let saved = try await user.firestore.runTransaction { tx,error -> Any? in do {
                 let current=try tx.getDocument(ref).data() ?? [:]
-                if WebProgressContract.number(current["unlockedAt"]) > 0 && current["test"] as? Bool != true { return current }
+                if WebProgressContract.number(current["unlockedAt"]) > 0 && !NostrAchievementCollection.truthy(Self.jsonFields(current)["test"]) { return current }
                 let record:[String:Any]=["unlockedAt":timestamp,"catalogVersion":a.catalogVersion ?? 8,"achievementId":a.id,"source":"nosabos","title":a.title.localized("en"),"description":a.description.localized("en"),"orb":a.orb?.foundation ?? [:],"number":a.number ?? 0,"test":false]
                 tx.setData(record,forDocument:ref);return record
             } catch let failure { error?.pointee=failure as NSError;return nil } }

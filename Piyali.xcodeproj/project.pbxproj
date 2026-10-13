@@ -32,6 +32,7 @@
 		43C9091AF7E4A949BC7B5DD8 /* FirebaseAppCheck in Frameworks */ = {isa = PBXBuildFile; productRef = 6BBDF8EABB29A3266F02F9FC /* FirebaseAppCheck */; };
 		498224C466F47E92C30CAB74 /* AchievementSyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB3AD1F05EBC9FD9E7660BF4 /* AchievementSyncService.swift */; };
 		4AD13F5B5979EBA703B650AC /* TutorCourse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9674D8B5CAC1CE39C171E452 /* TutorCourse.swift */; };
+		4C4A5B96A2649EE00217DAA6 /* NostrAchievementsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0EEF0AF6541DCD050F8D722 /* NostrAchievementsService.swift */; };
 		4C89332D63FE744BE38512EA /* FirebaseIdentityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6B8311CBE80AD6E10E96469 /* FirebaseIdentityTests.swift */; };
 		4D76B17180CFD23CD6E3597C /* PatreonRestoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 944FFD69FFAD8CB17111F599 /* PatreonRestoreTests.swift */; };
 		53415E992CBAE3CEAD46FFA7 /* curriculum-de.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 0D2B4377365D26F6B633ABCA /* curriculum-de.json.gz */; };
@@ -39,17 +40,21 @@
 		57B6326E37F6755CDF619C02 /* LearningViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = D579ADCD762E0765430D326A /* LearningViews.swift */; };
 		586E4DD7B222FBE89CE9D93B /* curriculum-ru.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = F52185DFD4E574E23072128C /* curriculum-ru.json.gz */; };
 		5CDE4798258806DE8734CEE1 /* GoalPractice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E9FEB2A3C61C4FB1A872D28 /* GoalPractice.swift */; };
+		5EF3A34589AC8C78A904021B /* NostrRelayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A73A3BD58CB1624626C46856 /* NostrRelayTests.swift */; };
 		63628243AF3A7E473CD80EFB /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58B5DF2715F289D91F1BC127 /* RootView.swift */; };
 		642967F33AED3D7C77F685A9 /* DailyPlate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F42527C788190E694332A9D4 /* DailyPlate.swift */; };
 		69086B28BF45F4B045E65544 /* PiyaliSubscriptions.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 93F9EA3918C75E4A8605DF8B /* PiyaliSubscriptions.storekit */; };
+		6CC2D0CDEDE8170FD02E1689 /* achievement-protocol.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 52DF567A696B510E282505EF /* achievement-protocol.json.gz */; };
 		6F0548E7C5917527735A99E4 /* curriculum-el.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = F46C889B6EEDEEB00C4491D5 /* curriculum-el.json.gz */; };
 		73C8A3FBBF0937A4C9C6BF4D /* FirebaseIdentityService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23553314634188457E6891D0 /* FirebaseIdentityService.swift */; };
+		765CBAE062803583BB5D6319 /* LocalNostrRelay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39E3EF03BFAA9C5F6A21C18D /* LocalNostrRelay.swift */; };
 		882DF197F6E0043796DBFC66 /* AppConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66577C96C4071AB6D6B95BB8 /* AppConfiguration.swift */; };
 		88DE43F2DA84173A75B75A4B /* PiyaliApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B035DFC1736E1F69047CEB9B /* PiyaliApp.swift */; };
 		8B746BB116E18895CBAD40AA /* curriculum-nl.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = F69EF3D394A21D0D07C9B191 /* curriculum-nl.json.gz */; };
 		8CF7D8A00419A9CC9B6805BA /* phonics.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = E25BCE6BED55E74389F1F771 /* phonics.json.gz */; };
 		8DD1E88B018C39C5B0AA817E /* curriculum-nah.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = EB2602DA316EDF948B13F026 /* curriculum-nah.json.gz */; };
 		97CD86E7CAFD7CE4585A68DE /* FocusedLearningViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85F27477992C4AC12CDC7D07 /* FocusedLearningViews.swift */; };
+		97E17F524602F93B02F87C42 /* NostrAchievementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9126021BAFA3586E5009884E /* NostrAchievementTests.swift */; };
 		98AE8E80C268B1633043DF92 /* LiveTutorService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 296353A8A59BF96643FBAFDD /* LiveTutorService.swift */; };
 		9FCE373B59C4F781791505CE /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 692CA897213292DE677C7BBB /* FirebaseAuth */; };
 		A4289A164520D5BFCCD2A182 /* FirebaseAILogic in Frameworks */ = {isa = PBXBuildFile; productRef = 2A5991AA1CBD73DBC54B0A6C /* FirebaseAILogic */; };
@@ -66,6 +71,7 @@
 		B8F02162A7DF3842BB0C081E /* curriculum-es.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 9E4BCA4795241CEF35A35E73 /* curriculum-es.json.gz */; };
 		BD6516909B4562024A08F2C2 /* NostrTeamsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 739170FEAFFE01E5C4D5D4EA /* NostrTeamsService.swift */; };
 		C10A9CFE8B5035934B3BD19F /* NostrSDK in Frameworks */ = {isa = PBXBuildFile; productRef = 3A72341A324A6D03B5A2B106 /* NostrSDK */; };
+		C2749B36526776D3600B736A /* NostrRelayClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1AA21C100EDF01DFFCDCC8A /* NostrRelayClient.swift */; };
 		C38DB7F1792D0F0E01F0D158 /* PlacementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E31D323F4011C09E791F81F8 /* PlacementView.swift */; };
 		C6A235B63FFC37981D76CB3A /* SubscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7942D25D599B3AC9917C728C /* SubscriptionService.swift */; };
 		C87F23146E7814EDBD3669FB /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B5750953096CF907269EFEA /* Models.swift */; };
@@ -74,6 +80,7 @@
 		CE5013790C9D1196AFAC0BEB /* AIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F89245EBCF6A1E38A3CF7FC8 /* AIService.swift */; };
 		D0949BA7E9F95F8C9432E78A /* WebProgressContract.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FFD762011E7104BE63A9CD4 /* WebProgressContract.swift */; };
 		D412910177B65445823FF060 /* achievements.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = D52D0469B4F81A6B04F8CFAC /* achievements.json.gz */; };
+		D6FF9035A10C8656108E60BD /* NostrAchievementCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563BB6553A8CD2222612191A /* NostrAchievementCollection.swift */; };
 		E3BAFA4E1BBFC86E61B57F87 /* FirebaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 988C5B69C6BEE00FBA34C5C0 /* FirebaseService.swift */; };
 		E7BF14B7C0519972EE30DF42 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = BB448BAF674D32F0259B5803 /* FirebaseCore */; };
 		E7F9764A37FE914523015C9A /* flashcard-index.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 0AA1700E5D87C167E920D5B5 /* flashcard-index.json.gz */; };
@@ -119,8 +126,11 @@
 		2F73B535FFF169B26A4B3B1A /* PiyaliUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PiyaliUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		309E62CCB8904FD210887D7E /* WebNostrFixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebNostrFixtures.swift; sourceTree = "<group>"; };
 		387D1A3BB971A0E8A4AC3034 /* FlashcardReview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlashcardReview.swift; sourceTree = "<group>"; };
+		39E3EF03BFAA9C5F6A21C18D /* LocalNostrRelay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalNostrRelay.swift; sourceTree = "<group>"; };
 		3E9FEB2A3C61C4FB1A872D28 /* GoalPractice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalPractice.swift; sourceTree = "<group>"; };
 		4A919107C8A686BE6D656685 /* LearningProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearningProgress.swift; sourceTree = "<group>"; };
+		52DF567A696B510E282505EF /* achievement-protocol.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "achievement-protocol.json.gz"; sourceTree = "<group>"; };
+		563BB6553A8CD2222612191A /* NostrAchievementCollection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NostrAchievementCollection.swift; sourceTree = "<group>"; };
 		58B5DF2715F289D91F1BC127 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		58E4AE8F330D5B949C217EC6 /* AppConfiguration.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = AppConfiguration.plist; sourceTree = "<group>"; };
 		6444929F41BE8BDD4B3A3123 /* AchievementProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementProgress.swift; sourceTree = "<group>"; };
@@ -139,6 +149,7 @@
 		8947C3D4C258C6F2B162D45D /* FirestoreContractTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirestoreContractTests.swift; sourceTree = "<group>"; };
 		8E738A4A023DB4E7E4CF5C0E /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 		8FFD762011E7104BE63A9CD4 /* WebProgressContract.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebProgressContract.swift; sourceTree = "<group>"; };
+		9126021BAFA3586E5009884E /* NostrAchievementTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NostrAchievementTests.swift; sourceTree = "<group>"; };
 		93F9EA3918C75E4A8605DF8B /* PiyaliSubscriptions.storekit */ = {isa = PBXFileReference; path = PiyaliSubscriptions.storekit; sourceTree = "<group>"; };
 		944FFD69FFAD8CB17111F599 /* PatreonRestoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatreonRestoreTests.swift; sourceTree = "<group>"; };
 		9674D8B5CAC1CE39C171E452 /* TutorCourse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorCourse.swift; sourceTree = "<group>"; };
@@ -147,12 +158,14 @@
 		9DEE7EF45636A31B7BD66C57 /* CompanionHealth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionHealth.swift; sourceTree = "<group>"; };
 		9E4BCA4795241CEF35A35E73 /* curriculum-es.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "curriculum-es.json.gz"; sourceTree = "<group>"; };
 		9F901362A9B9702FEC15CA88 /* curriculum-ja.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "curriculum-ja.json.gz"; sourceTree = "<group>"; };
+		A73A3BD58CB1624626C46856 /* NostrRelayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NostrRelayTests.swift; sourceTree = "<group>"; };
 		A85015A5797FFF1D629E519B /* LiveTutorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveTutorView.swift; sourceTree = "<group>"; };
 		AABBD4AEE1A0DCEFEC828765 /* IdentityService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdentityService.swift; sourceTree = "<group>"; };
 		AEC72430BBF570FFE8C5C686 /* LiveAPIIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveAPIIntegrationTests.swift; sourceTree = "<group>"; };
 		B035DFC1736E1F69047CEB9B /* PiyaliApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiyaliApp.swift; sourceTree = "<group>"; };
 		B0F1CC9D0193A046DA5016EB /* Piyali.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Piyali.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B11DF50FDD56A25B5169AC88 /* PatreonRestoreChallenge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatreonRestoreChallenge.swift; sourceTree = "<group>"; };
+		B1AA21C100EDF01DFFCDCC8A /* NostrRelayClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NostrRelayClient.swift; sourceTree = "<group>"; };
 		BE22780758139B90DD773C16 /* curriculum-en.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "curriculum-en.json.gz"; sourceTree = "<group>"; };
 		C28947719F341B14628621FC /* Placement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Placement.swift; sourceTree = "<group>"; };
 		C9304277563CFDA73534542C /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
@@ -160,6 +173,7 @@
 		CB0A1A1568C633E90A96BB1A /* AccountViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountViews.swift; sourceTree = "<group>"; };
 		D52D0469B4F81A6B04F8CFAC /* achievements.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = achievements.json.gz; sourceTree = "<group>"; };
 		D579ADCD762E0765430D326A /* LearningViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearningViews.swift; sourceTree = "<group>"; };
+		E0EEF0AF6541DCD050F8D722 /* NostrAchievementsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NostrAchievementsService.swift; sourceTree = "<group>"; };
 		E14BD18E0DD3B4E10CE07EC6 /* curriculum-pl.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "curriculum-pl.json.gz"; sourceTree = "<group>"; };
 		E25BCE6BED55E74389F1F771 /* phonics.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = phonics.json.gz; sourceTree = "<group>"; };
 		E31D323F4011C09E791F81F8 /* PlacementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlacementView.swift; sourceTree = "<group>"; };
@@ -205,6 +219,9 @@
 				8947C3D4C258C6F2B162D45D /* FirestoreContractTests.swift */,
 				C93EFBC5CACA2291D2D0436C /* IdentityTests.swift */,
 				AEC72430BBF570FFE8C5C686 /* LiveAPIIntegrationTests.swift */,
+				39E3EF03BFAA9C5F6A21C18D /* LocalNostrRelay.swift */,
+				9126021BAFA3586E5009884E /* NostrAchievementTests.swift */,
+				A73A3BD58CB1624626C46856 /* NostrRelayTests.swift */,
 				944FFD69FFAD8CB17111F599 /* PatreonRestoreTests.swift */,
 				7453BBE3FEF38033092DD0CC /* StoreKitSubscriptionTests.swift */,
 				309E62CCB8904FD210887D7E /* WebNostrFixtures.swift */,
@@ -217,6 +234,7 @@
 		18FB18FFDEAC1777A33C3129 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				52DF567A696B510E282505EF /* achievement-protocol.json.gz */,
 				D52D0469B4F81A6B04F8CFAC /* achievements.json.gz */,
 				58E4AE8F330D5B949C217EC6 /* AppConfiguration.plist */,
 				0D2B4377365D26F6B633ABCA /* curriculum-de.json.gz */,
@@ -309,6 +327,7 @@
 				3E9FEB2A3C61C4FB1A872D28 /* GoalPractice.swift */,
 				4A919107C8A686BE6D656685 /* LearningProgress.swift */,
 				6B5750953096CF907269EFEA /* Models.swift */,
+				563BB6553A8CD2222612191A /* NostrAchievementCollection.swift */,
 				C28947719F341B14628621FC /* Placement.swift */,
 				0250508D362907F7F0C8E060 /* SyncChanges.swift */,
 				9674D8B5CAC1CE39C171E452 /* TutorCourse.swift */,
@@ -328,6 +347,8 @@
 				AABBD4AEE1A0DCEFEC828765 /* IdentityService.swift */,
 				807123B77A97FA5EA2F0A829 /* JourneyRecorder.swift */,
 				296353A8A59BF96643FBAFDD /* LiveTutorService.swift */,
+				E0EEF0AF6541DCD050F8D722 /* NostrAchievementsService.swift */,
+				B1AA21C100EDF01DFFCDCC8A /* NostrRelayClient.swift */,
 				739170FEAFFE01E5C4D5D4EA /* NostrTeamsService.swift */,
 				B11DF50FDD56A25B5169AC88 /* PatreonRestoreChallenge.swift */,
 				FDDA585F43A2605655108EDD /* SpeechService.swift */,
@@ -487,6 +508,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				03B57688C5019F9FF70434FF /* AppConfiguration.plist in Resources */,
+				6CC2D0CDEDE8170FD02E1689 /* achievement-protocol.json.gz in Resources */,
 				D412910177B65445823FF060 /* achievements.json.gz in Resources */,
 				53415E992CBAE3CEAD46FFA7 /* curriculum-de.json.gz in Resources */,
 				6F0548E7C5917527735A99E4 /* curriculum-el.json.gz in Resources */,
@@ -551,6 +573,9 @@
 				21547AD9D1E8F6C48C82CFB1 /* FirestoreContractTests.swift in Sources */,
 				A796C5C8744AB39111F12DE7 /* IdentityTests.swift in Sources */,
 				AF26B447C5881DD47BF3F72A /* LiveAPIIntegrationTests.swift in Sources */,
+				765CBAE062803583BB5D6319 /* LocalNostrRelay.swift in Sources */,
+				97E17F524602F93B02F87C42 /* NostrAchievementTests.swift in Sources */,
+				5EF3A34589AC8C78A904021B /* NostrRelayTests.swift in Sources */,
 				4D76B17180CFD23CD6E3597C /* PatreonRestoreTests.swift in Sources */,
 				1971914F4DA0A1C8DC020B19 /* StoreKitSubscriptionTests.swift in Sources */,
 				413348566E611075ABDE6695 /* WebNostrFixtures.swift in Sources */,
@@ -586,6 +611,9 @@
 				98AE8E80C268B1633043DF92 /* LiveTutorService.swift in Sources */,
 				11FD0F936B340EFC98867373 /* LiveTutorView.swift in Sources */,
 				C87F23146E7814EDBD3669FB /* Models.swift in Sources */,
+				D6FF9035A10C8656108E60BD /* NostrAchievementCollection.swift in Sources */,
+				4C4A5B96A2649EE00217DAA6 /* NostrAchievementsService.swift in Sources */,
+				C2749B36526776D3600B736A /* NostrRelayClient.swift in Sources */,
 				BD6516909B4562024A08F2C2 /* NostrTeamsService.swift in Sources */,
 				40C1E9F17F79696E7079F0A6 /* PatreonRestoreChallenge.swift in Sources */,
 				88DE43F2DA84173A75B75A4B /* PiyaliApp.swift in Sources */,

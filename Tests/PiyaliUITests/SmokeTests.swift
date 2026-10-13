@@ -55,6 +55,20 @@ final class SmokeTests: XCTestCase {
         app.swipeUp()
         XCTAssertTrue(app.staticTexts["0 total XP · 0 lessons completed"].waitForExistence(timeout:5))
     }
+    func testOnboardingStartingLevelUnlocksChosenCourseAfterRelaunch() {
+        let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString;app.launch()
+        XCTAssertTrue(app.buttons["createAccount"].waitForExistence(timeout:5));app.buttons["createAccount"].tap()
+        let picker=app.buttons["onboardingLevelPicker"]
+        XCTAssertTrue(picker.waitForExistence(timeout:10));picker.tap()
+        XCTAssertTrue(app.buttons["B1"].waitForExistence(timeout:5));app.buttons["B1"].tap();app.buttons["startLearning"].tap()
+        XCTAssertTrue(app.buttons["Choose your starting level"].waitForExistence(timeout:10));app.buttons["Choose your starting level"].tap()
+        XCTAssertTrue(app.staticTexts["Current starting level: B1"].waitForExistence(timeout:5))
+        app.terminate();app.launch()
+        XCTAssertTrue(app.buttons["Choose your starting level"].waitForExistence(timeout:10));app.buttons["Choose your starting level"].tap()
+        XCTAssertTrue(app.staticTexts["Current starting level: B1"].waitForExistence(timeout:5))
+        app.navigationBars.buttons.element(boundBy:0).tap();app.tabBars.buttons["Account"].tap();app.swipeUp()
+        XCTAssertTrue(app.staticTexts["0 total XP · 0 lessons completed"].waitForExistence(timeout:5))
+    }
     func testCreateAccountAndOfflinePractice() {
         let app = XCUIApplication(); app.launchEnvironment["PIYALI_OFFLINE_TESTS"] = "1"; app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"] = UUID().uuidString; app.launch()
         if app.buttons["createAccount"].waitForExistence(timeout: 5) { app.buttons["createAccount"].tap() }

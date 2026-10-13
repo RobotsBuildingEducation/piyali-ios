@@ -13,7 +13,7 @@ Private Firebase records use the web schema:
 
 The first catch-up reads saved course/card/phonics/quest documents and legacy profile maps. Compact summaries retain concurrent counts through a transaction. Normal sync reads compact summaries and changed card/phonics records; it does not repeat the full historical scan. Confirmed award/ledger listeners retain received records, and incoming awards update the native collection. Source cache entries are scoped by Firebase app and npub. Achievements never grant subscription access or additional XP.
 
-The independent Firebase project is `piyali-ios`. Matching the web's record format does not connect it to the original web Firebase project. These records restore across native devices using the same key/project. Nostr achievement-relay import/publication is still a required integration.
+The independent Firebase project is `piyali-ios`. Matching the web's record format does not connect it to the original web Firebase project. These records restore across native devices using the same key/project. Signed Nostr collection restoration/publication connects to the same relay format used by both hosts; see [NOSTR_ACHIEVEMENTS.md](NOSTR_ACHIEVEMENTS.md).
 
 The current native reflection flow does not yet produce the web's full `realWorldTasks` checklist. Historical checklist proofs are reconciled. Explicit native conversation-goal completion also remains to be ported; conversation milestones retain existing distinct completed-goal events.
 

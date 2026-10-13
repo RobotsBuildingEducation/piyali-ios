@@ -33,6 +33,8 @@ const locales = ['en','es','pt','fr','it','de','ja','hi','ar','zh'];
 write('achievements',Object.values(ACHIEVEMENTS).filter(a=>a.source==='nosabos').map(a=>({id:a.id,tier:a.tier,requirement:a.requirement,progression:!!a.progression,catalogVersion:CATALOG_VERSION,orb:a.orb,number:a.number,
  title:Object.fromEntries(locales.map(l=>[l,localizeAchievement(a,l).title])),description:Object.fromEntries(locales.map(l=>[l,localizeAchievement(a,l).desc]))})));
 
+write('achievement-protocol',Object.values(ACHIEVEMENTS).map(a=>({id:a.id,source:a.source,requirement:a.requirement,catalogVersion:CATALOG_VERSION,number:a.number,orb:a.orb,title:localizeAchievement(a,'en').title,description:localizeAchievement(a,'en').desc})));
+
 const phonics = {};
 for (const target of PHONICS_TARGETS) for (const support of PHONICS_SUPPORTS) for (const level of PHONICS_LEVELS)
 phonics[target+':'+support+':'+level] = getAuthoredPhonicsDeck(target,support,level);

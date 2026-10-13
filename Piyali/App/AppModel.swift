@@ -4,6 +4,8 @@ import SwiftUI
 
 @MainActor final class AppModel: ObservableObject {
     @Published var learner = LearnerState()
+    let nostrAchievements=NostrAchievementsService()
+    private var nostrSyncTask: Task<Void,Never>?
     @Published var signedIn = false
     @Published var tutorUnits: [LearningUnit] = []
     @Published var units: [LearningUnit] = []
@@ -69,7 +71,9 @@ import SwiftUI
         achievements = (try? ContentLibrary.load([AchievementDefinition].self, name: "achievements")) ?? []
         achievementUpdates=AchievementSyncService.shared.updates.sink { [weak self] npub,records in
             guard let self,self.signedIn,self.identity.npub == npub else { return }
-            self.learner.achievementRecords=records
+            let previous=self.learner.achievementRecords
+            self.learner.achievementRecords=NostrAchievementCollection.merging([.object(records),self.learner.nostrAchievementRecords ?? .object([:])]).object
+            if previous != self.learner.achievementRecords,self.learner.shareNostrAchievements == true { self.scheduleNostrAchievements() }
             try? self.writeLocal()
         }
         signedIn = !identity.npub.isEmpty
@@ -85,6 +89,7 @@ import SwiftUI
         learner.rollDay(); lastPersisted = learner
     }
     func signIn(nsec: String?) async {
+        nostrSyncTask?.cancel();nostrAchievements.cancel()
         do {
             if let nsec { try identity.importKey(nsec) } else { try identity.create() }
             saveTask?.cancel(); contentTask?.cancel()
@@ -98,10 +103,51 @@ import SwiftUI
                     learner = cloud; lastPersisted = learner; try writeLocal()
                 }
             } catch { syncStatus = "Saved on iPhone; cloud sync pending" }
-            await reloadContent(); await subscription.refresh()
+            await reloadContent(); await subscription.refresh(); scheduleNostrAchievements()
         } catch { self.error = error.localizedDescription }
     }
-    func boot() async { guard signedIn else { return }; await reloadContent(); await sync(); await subscription.refresh() }
+    func boot() async { guard signedIn else { return }; await reloadContent(); await sync(); await subscription.refresh(); scheduleNostrAchievements() }
+    func finishOnboarding() {
+        let level=learner.level
+        learner.place(Placement(level:level,score:Int(PerformanceScore.defaults[level] ?? 1),source:"onboarding",selectedIDs:[],updatedAt:Date()))
+        learner.onboardingComplete=true;persist();Task { await reloadContent() }
+    }
+    func setNostrAchievementSharing(_ enabled: Bool) {
+        learner.shareNostrAchievements=enabled
+        try? writeLocal()
+        if enabled { scheduleNostrAchievements() } else { nostrSyncTask?.cancel();nostrAchievements.cancel() }
+    }
+    private func scheduleNostrAchievements() {
+        #if DEBUG
+        if ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"] == "1" || ProcessInfo.processInfo.environment["PIYALI_FIRESTORE_EMULATOR_TESTS"] == "1" { return }
+        #endif
+        guard signedIn else { return }
+        nostrSyncTask?.cancel()
+        let account=identity.npub
+        nostrSyncTask=Task { @MainActor [weak self] in
+            do { try await Task.sleep(for:.milliseconds(500));guard let self,self.identity.npub == account else { return };try await self.syncNostrAchievements(publish:self.learner.shareNostrAchievements == true) } catch { }
+        }
+    }
+    func syncNostrAchievements(publish: Bool) async throws {
+        let account=identity.npub
+        _ = try await nostrAchievements.synchronize(identity:identity,publish:publish,current:{ [weak self] in
+            guard let self,self.identity.npub == account else { return .object([:]) }
+            return NostrAchievementCollection.merging([self.learner.nostrAchievementRecords ?? .object([:]),.object(self.learner.achievementRecords ?? [:])])
+        },persist:{ [weak self] records in
+            guard let self,self.identity.npub == account else { throw CancellationError() }
+            self.learner.nostrAchievementRecords=records
+            self.learner.achievementRecords=NostrAchievementCollection.merging([.object(self.learner.achievementRecords ?? [:]),records]).object
+            try self.writeLocal()
+            if FirebaseService.shared.configured {
+                try await FirebaseIdentityService.shared.ensure(self.identity)
+                guard self.identity.npub == account else { throw CancellationError() }
+                if let saved=try await FirebaseService.shared.importAchievements(records,npub:account) {
+                    guard self.identity.npub == account else { throw CancellationError() }
+                    self.learner.achievementRecords=NostrAchievementCollection.merging([.object(saved),records]).object;try self.writeLocal()
+                }
+            }
+        })
+    }
     func reloadContent() async {
         contentTask?.cancel()
         if !lessonLevels.contains(learner.level) { learner.level = lessonLevels.last ?? "Pre-A1" }

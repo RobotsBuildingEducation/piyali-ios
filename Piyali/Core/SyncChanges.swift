@@ -147,7 +147,7 @@ public extension LearnerState {
                 if merged.cardReviews == nil { merged.cardReviews = [:] }; merged.cardReviews?[key] = review
             }
         }
-        merged.achievementRecords = acknowledged.achievementRecords; merged.achievementEvidence = acknowledged.achievementEvidence; merged.achievementLedger = acknowledged.achievementLedger
+        merged.achievementRecords = NostrAchievementCollection.merging([.object(current.achievementRecords ?? [:]),.object(acknowledged.achievementRecords ?? [:]),current.nostrAchievementRecords ?? .object([:])]).object; merged.achievementEvidence = acknowledged.achievementEvidence; merged.achievementLedger = acknowledged.achievementLedger
         merged.companionProgress = acknowledged.companionProgress
         for change in newer.sorted(by:{ $0.date < $1.date }) where change.amount > 0 { merged.rewardCompanion(change.amount,now:change.date) }
         for (change,reward) in newGoalRewards where reward > 0 { merged.rewardCompanion(reward,now:change.date) }

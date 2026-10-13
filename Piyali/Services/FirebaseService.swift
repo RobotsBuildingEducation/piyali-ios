@@ -100,6 +100,10 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
         try await AchievementSyncService.shared.load(user:user,state:&state)
         return state
     }
+    func importAchievements(_ records: JSONValue, npub: String) async throws -> [String:JSONValue]? {
+        guard let database else { return nil };try requireOwner(npub)
+        return try await AchievementSyncService.shared.importRecords(records,user:database.collection("users").document(npub))
+    }
     /// Awards are flushed before the snapshot. A failed/partial flush leaves the local outbox intact; retry receipts prevent repeated credit.
     func save(_ state: LearnerState, npub: String) async throws -> LearnerState? {
         guard let database else { return nil }
@@ -141,7 +145,7 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                 }
                 merged = WebProgressContract.imported(Self.normalized(fields),native:merged)
                 // Companion memory has its own shared web document, not a second snapshot authority.
-                merged.achievementRecords = nil; merged.achievementEvidence = nil; merged.achievementLedger = nil; merged.companionProgress = nil; merged.companionMemory = nil; merged.pendingMemoryChanges = []; merged.goalIntelligence = nil; merged.goalArtifacts = nil; merged.pendingGoalChanges = []; merged.questProgress = nil; merged.journeyQuestCounts = nil; merged.tutorLessons = nil; merged.acknowledgedEventIDs = nil
+                merged.shareNostrAchievements = nil; merged.achievementRecords = nil; merged.achievementEvidence = nil; merged.achievementLedger = nil; merged.companionProgress = nil; merged.companionMemory = nil; merged.pendingMemoryChanges = []; merged.goalIntelligence = nil; merged.goalArtifacts = nil; merged.pendingGoalChanges = []; merged.questProgress = nil; merged.journeyQuestCounts = nil; merged.tutorLessons = nil; merged.acknowledgedEventIDs = nil
                 var patch: [String:Any] = ["local_npub":npub,"iosStateJSON":String(decoding:try JSONEncoder().encode(merged),as:UTF8.self),"iosStateVersion":2,"iosUpdatedAt":FieldValue.serverTimestamp()]
                 patch.merge(petPatch) { _,new in new }
                 if fields["createdAt"] == nil { patch["createdAt"] = WebProgressContract.iso(Date()) }
