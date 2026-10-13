@@ -1,0 +1,22 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function owns(userId) {
+      return request.auth != null && request.auth.uid == userId &&
+        userId.matches('^npub1[023456789acdefghjklmnpqrstuvwxyz]{58}$') &&
+        request.auth.token.firebase.sign_in_provider == 'custom' &&
+        request.auth.token.nostr_pubkey.matches('^[0-9a-f]{64}$');
+    }
+    function matchingKey(userId) { return request.resource.data.local_npub == userId; }
+    function protectedFields() { return ['patreonVerified','subscription','entitlements','subscriptionStatus']; }
+    match /users/{userId} {
+      allow get: if owns(userId);
+      allow list: if false;
+      allow create: if owns(userId) && matchingKey(userId) && !request.resource.data.keys().hasAny(protectedFields());
+      allow update: if owns(userId) && matchingKey(userId) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(protectedFields());
+      match /{collection}/{document} {
+        allow read, write: if owns(userId) && collection in ['languageLessons','languageFlashcards','courseProgress','xpHistory','companion','iosPracticeReceipts'];
+      }
+    }
+  }
+}

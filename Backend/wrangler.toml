@@ -1,0 +1,24 @@
+name = "piyali-ios-api"
+main = "src/index.js"
+compatibility_date = "2026-10-12"
+account_id = "cfe53a18a4894aa8e5c2fe91af905d8a"
+workers_dev = true
+preview_urls = false
+
+[vars]
+FIREBASE_PROJECT_ID = "piyali-ios"
+FIREBASE_PROJECT_NUMBER = "861709486546"
+FIREBASE_APP_ID = "1:861709486546:ios:edbba9ce75380765bc200b"
+
+[[durable_objects.bindings]]
+name = "SIGN_IN_CHALLENGES"
+class_name = "SignInChallenge"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["SignInChallenge"]
+
+[[ratelimits]]
+name = "AUTH_RATE_LIMITER"
+namespace_id = "861709486"
+simple = { limit = 20, period = 60 }

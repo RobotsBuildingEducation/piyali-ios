@@ -1,13 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0"><dict>
-<key>WorkerBaseURL</key><string>https://piyali.app/api/tts-proxy</string>
-<key>WebBaseURL</key><string>https://piyali.app</string>
-<key>ResponsesModel</key><string>gpt-6-luna</string>
-<key>GeminiModel</key><string>gemini-3.5-flash-lite</string>
-<key>GeminiLiveModel</key><string>gemini-live-2.5-flash-native-audio</string>
-<key>GeminiLiveLocation</key><string>us-central1</string>
-<key>AIProvider</key><string>gemini</string>
-<key>SubscriptionProductIDs</key><array><string>app.piyali.ios.monthly</string><string>app.piyali.ios.annual</string></array>
-<key>ExternalPaymentStorefronts</key><array><string>USA</string></array>
-</dict></plist>
+<plist version="1.0">
+<dict>
+	<key>WorkerBaseURL</key>
+	<string>https://piyali.app/api/tts-proxy</string>
+	<key>WebBaseURL</key>
+	<string>https://piyali.app</string>
+	<key>ResponsesModel</key>
+	<string>gpt-6-luna</string>
+	<key>GeminiModel</key>
+	<string>gemini-3.5-flash-lite</string>
+	<key>GeminiLiveModel</key>
+	<string>gemini-live-2.5-flash-native-audio</string>
+	<key>GeminiLiveLocation</key>
+	<string>us-central1</string>
+	<key>AIProvider</key>
+	<string>gemini</string>
+	<key>SubscriptionProductIDs</key>
+	<array>
+		<string>app.piyali.ios.monthly</string>
+		<string>app.piyali.ios.annual</string>
+	</array>
+	<key>ExternalPaymentStorefronts</key>
+	<array>
+		<string>USA</string>
+	</array>
+	<key>AuthBaseURL</key>
+	<string>https://piyali-ios-api.robotsbuildingeducation.workers.dev</string>
+</dict>
+</plist>

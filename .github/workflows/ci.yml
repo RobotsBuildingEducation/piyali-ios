@@ -13,6 +13,8 @@ jobs:
           cache-dependency-path: BackendReference/package-lock.json
       - run: npm ci --prefix BackendReference
       - run: npm test --prefix BackendReference
+      - run: npm ci --prefix Backend
+      - run: npm test --prefix Backend
   iphone:
     runs-on: macos-26
     steps:
@@ -31,3 +33,5 @@ jobs:
           java-version: '21'
       - run: npm install --global firebase-tools@13.25.0
       - run: scripts/test-firestore.sh
+      - run: npm ci --prefix Backend
+      - run: firebase --config firebase.json --project demo-piyali-ios-auth emulators:exec --only firestore "PIYALI_RULES_EMULATOR=1 node --test Backend/test/*.test.js"

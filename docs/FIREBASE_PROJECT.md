@@ -23,8 +23,16 @@ firebase apps:sdkconfig IOS '1:861709486546:ios:edbba9ce75380765bc200b' \
   --project piyali-ios --out Piyali/Resources/GoogleService-Info.plist
 ```
 
-Verified with Firebase CLI: the project and registered app are active, and Firestore exists in the listed location. An unauthenticated Firestore REST read returns HTTP 403. No client data was copied from the web project, and its resources and repository were not changed. No billing account, paid API, production rule release or Cloudflare deployment was added in this provisioning step.
+Verified: project, registered iOS app and Firestore database are active. Firebase Authentication is initialized with subtype `FIREBASE_AUTH` on the no-cost Spark plan. No billing account has been attached and no web-project data was copied.
 
-Remaining integration work: Firebase authentication bound to the learner's Nostr key, production Firestore rules/indexes, App Check registration, AI Logic provider setup and a Cloudflare worker configured for this project's issuer/audience. The old web worker validates the old Firebase project, so it cannot serve as this project's configured native backend without additional work. Current emulator tests exercise the shared document schemas independently of this production setup.
+The dedicated worker [piyali-ios-api](https://piyali-ios-api.robotsbuildingeducation.workers.dev/health) is deployed with issuer/audience and app ID bound to this project. It requires App Check and a single-use Nostr challenge before returning a Firebase custom token whose UID is the learner's npub. The native app uses FirebaseAuth before loading or saving progress. `Backend/firestore.rules` and indexes have been deployed only to `piyali-ios`.
+
+A normal native simulator launch also completed FirebaseAuth sign-in and displayed “Synced with Firebase” after saving through the deployed rules.
+
+A live ephemeral-identity check passed App Check exchange, wrong-key rejection, successful Firebase custom sign-in, replay rejection, own progress read/write, cross-account HTTP 403 and subscription-forgery HTTP 403. The test auth account was removed; the temporary root fixture was removed using the project administrator after the check, because production clients cannot delete root accounts. Emulator tests additionally cover anonymous access, enumeration and protected subcollections.
+
+Development App Check token and Firebase service-account signing key are stored in `.secrets/` with owner-only permissions and excluded from Git. Cloudflare holds the signing key as encrypted worker secrets. To run the native simulator with the registered debug token, set `FIRAAppCheckDebugToken` in the app's launch environment using the token in `.secrets/app-check-debug.json`; do not commit a shared Xcode scheme containing it. App Attest for production awaits enrollment in the Apple Developer Program; the signed-in account currently shows the enrollment prompt and no membership Team ID.
+
+Remaining integration work: production App Attest registration, AI Logic provider setup and dedicated AI/speech/subscription routes. The old web worker validates the old Firebase project and cannot accept this project's App Check tokens.
 
 The main app's web subscription link still points to `piyali.app/subscribe`. Subscription API integration and any dedicated web payment page must be verified for the new backend before claiming live access. StoreKit products and Apple signing setup remain separate requirements.

@@ -16,3 +16,7 @@ BackendReference/*debug.log
 
 firebase-debug.log
 firestore-debug.log
+Backend/node_modules/
+Backend/.wrangler/
+.secrets/
+.firebase/

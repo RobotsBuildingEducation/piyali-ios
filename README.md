@@ -21,11 +21,13 @@ Open **Piyali.xcodeproj** in Xcode 26 or newer. Minimum iOS version is 17. Choos
 
 ## Connect services
 
-**The separate Firebase project, iPhone registration and Firestore database are created. Online integration and App Store setup are still required.** See [docs/FIREBASE_PROJECT.md](docs/FIREBASE_PROJECT.md) for the provisioned resources. Start with [docs/BACKEND_SETUP.md](docs/BACKEND_SETUP.md). It explains native Firebase registration, App Check, Cloudflare's required native App ID allowlist, the existing API contracts, StoreKit product IDs, web subscription linking and deployment boundaries.
+**The separate Firebase project, native Nostr authentication bridge, App Check development setup and protected Firestore database are deployed and verified. AI/subscription integration and App Store setup are still required.** See [docs/FIREBASE_PROJECT.md](docs/FIREBASE_PROJECT.md) for the provisioned resources. Start with [docs/BACKEND_SETUP.md](docs/BACKEND_SETUP.md). It explains native Firebase registration, App Check, Cloudflare's required native App ID allowlist, the existing API contracts, StoreKit product IDs, web subscription linking and deployment boundaries.
 
 Place a real **iOS** `GoogleService-Info.plist` in `Piyali/Resources/`; local builds copy it conditionally. This file is gitignored. Optional `AppConfiguration.local.plist` overrides the public configuration without committing local settings. Server secrets never belong in the app.
 
-Existing backend deployment and the reference checkout have not been changed. `BackendReference/` contains a tested App Check allowlist validator for the separately managed Cloudflare worker; it is an integration reference and has not been deployed.
+The existing web backend deployment and reference checkout have not been changed. The dedicated native authentication worker is documented in [Backend/README.md](Backend/README.md). `BackendReference/` contains a tested App Check allowlist validator for the separately managed Cloudflare worker; it is an integration reference and has not been deployed.
+
+Launch the locally configured simulator with `scripts/run-simulator.sh`; it reads the registered debug token from ignored local secrets and passes it only in the launch environment.
 
 ## Build and verify
 
@@ -35,6 +37,8 @@ xcodegen generate
 swift test
 npm ci --prefix BackendReference
 npm test --prefix BackendReference
+npm ci --prefix Backend
+npm test --prefix Backend
 xcodebuild -project Piyali.xcodeproj -scheme Piyali \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
   -derivedDataPath DerivedData CODE_SIGN_IDENTITY=- test
@@ -61,7 +65,7 @@ The exporter uses the reference's existing `esbuild` install. Only this repo's b
 
 ## First-build boundaries
 
-This is a functional native foundation, not a claim that every web feature has already reached parity. The independent Firebase project and its native app/Firestore are provisioned. Production authentication, App Check, AI, Cloudflare wiring and App Store products are not yet verified. Simulator tests cannot validate real paid transactions or physical-device audio quality.
+This is a functional native foundation, not a claim that every web feature has already reached parity. The independent Firebase project and its native app/Firestore are provisioned. Live Nostr-to-Firebase authentication, App Check debug exchange and protected Firestore access are verified. Production App Attest awaits an enrolled Apple Developer account; AI/subscription wiring and App Store products remain unverified. Simulator tests cannot validate real paid transactions or physical-device audio quality.
 
 Shared XP, lesson completion, flashcard schedules, companion memory, calendar activity and performance scores use the existing web Firestore fields. Native-only state also uses `iosStateJSON` version 2. Offline practice retries are idempotent, completion sets merge, and explicit profile edits use timestamps. Notes, native goal plans and history still use snapshot sync with last writer wins; every web map is not reconciled. Voice milestone recordings are stored locally and their filenames appear in cloud state; audio files do not sync automatically. NIP-46 remote signing, NIP-07 browser signers, legacy Firestore-only teams, Cashu/Lightning wallets and nutzaps, the graphical RPG world, the standalone web placement test, automatic goal-blueprint scheduling and cross-platform achievement sync are not yet ported. The RPG learning mode is a native text adventure, and companion functionality is represented by state and controls. OpenAI WebRTC and Cloudflare audio-cache playback remain separate follow-up transports; Gemini Live is the implemented continuous voice path.
 

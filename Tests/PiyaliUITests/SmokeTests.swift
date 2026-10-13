@@ -1,7 +1,7 @@
 import XCTest
 final class SmokeTests: XCTestCase {
     func testCreateAccountAndOfflinePractice() {
-        let app = XCUIApplication(); app.launchEnvironment["PIYALI_OFFLINE_TESTS"] = "1"; app.launch()
+        let app = XCUIApplication(); app.launchEnvironment["PIYALI_OFFLINE_TESTS"] = "1"; app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"] = UUID().uuidString; app.launch()
         if app.buttons["createAccount"].waitForExistence(timeout: 5) { app.buttons["createAccount"].tap() }
         if app.buttons["startLearning"].waitForExistence(timeout: 10) { app.buttons["startLearning"].tap() }
         XCTAssertTrue(app.tabBars.buttons["Practice"].waitForExistence(timeout: 10))

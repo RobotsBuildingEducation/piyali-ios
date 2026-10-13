@@ -15,11 +15,19 @@ struct NostrEventPayload: Codable, Identifiable {
 }
 struct NostrCrypto: ContentSigning, EventVerifying {}
 @MainActor final class IdentityService {
-    private let service = "app.piyali.ios.nostr"
+    private let service: String
     private(set) var keypair: Keypair?
     var npub: String { keypair?.publicKey.npub ?? "" }
     var hex: String { keypair?.publicKey.hex ?? "" }
     init() {
+        #if DEBUG
+        if ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"] == "1",
+           let scope = ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"], UUID(uuidString:scope) != nil {
+            service = "app.piyali.ios.nostr.ui-test." + scope
+        } else { service = "app.piyali.ios.nostr" }
+        #else
+        service = "app.piyali.ios.nostr"
+        #endif
         var query = baseQuery
         query[kSecReturnData as String] = true
         query[kSecMatchLimit as String] = kSecMatchLimitOne

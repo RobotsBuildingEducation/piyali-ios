@@ -1,5 +1,6 @@
 import Foundation
 import CryptoKit
+import FirebaseAuth
 import FirebaseCore
 import FirebaseAppCheck
 import FirebaseFirestore
@@ -31,8 +32,13 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
         let token = try await AppCheck.appCheck().token(forcingRefresh:false)
         return ["X-Firebase-AppCheck":token.token]
     }
+    private func requireOwner(_ npub: String) throws {
+        guard injectedDatabase == nil else { return } // Named emulator databases belong to isolated test fixtures.
+        guard Auth.auth().currentUser?.uid == npub else { throw AppError.message("Authenticate your Nostr account before syncing progress.") }
+    }
     func load(npub: String, local: LearnerState? = nil) async throws -> LearnerState? {
         guard let database else { return nil }
+        try requireOwner(npub)
         let user = database.collection("users").document(npub)
         let snapshot = try await user.getDocument(source:.server)
         guard let fields = snapshot.data() else { return nil }
@@ -61,6 +67,7 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
     /// Awards are flushed before the snapshot. A failed/partial flush leaves the local outbox intact; retry receipts prevent repeated credit.
     func save(_ state: LearnerState, npub: String) async throws -> LearnerState? {
         guard let database else { return nil }
+        try requireOwner(npub)
         let user = database.collection("users").document(npub)
         for change in (state.pendingChanges ?? []).sorted(by:{ $0.date < $1.date }) {
             try await apply(change, state:state, user:user, database:database)

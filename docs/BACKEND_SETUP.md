@@ -1,4 +1,4 @@
-# Connect the iPhone app to the existing backend
+# Connect the iPhone app to Piyali services
 
 The native app intentionally contains no server API keys, Patreon secrets, passcode unlocks, or copied web environment files. The reference services have not been modified or deployed. A separate Firebase project has been provisioned; its current state is documented in [FIREBASE_PROJECT.md](FIREBASE_PROJECT.md).
 
@@ -6,8 +6,8 @@ The native app intentionally contains no server API keys, Patreon secrets, passc
 
 1. The selected backend is the independent `piyali-ios` Firebase project. Its iOS app uses bundle ID `app.piyali.ios`; its `(default)` Firestore database is in `us-central1`. Do not register another duplicate app or point native development at `nosabo-30dcb`.
 2. The real iOS `GoogleService-Info.plist` has been downloaded locally into `Piyali/Resources/GoogleService-Info.plist`. It is gitignored and conditionally copied by the build phase. Other developers can download it using the command in `FIREBASE_PROJECT.md`. Set your Apple signing team in Xcode.
-3. Production online setup is pending: Nostr-bound Firebase authentication, Firestore rules/indexes and App Check registration. The new database currently rejects unauthenticated reads. The copied web rules are an emulator fixture, not this project's deployed production policy.
-4. Register the iOS app in Firebase App Check using App Attest (DeviceCheck is the fallback). Debug builds use Firebase's debug provider; register its generated debug token for simulator development. Offline UI tests and the named emulator test app skip production Firebase initialization even when a real local plist is present.
+3. Nostr-bound Firebase custom authentication, owner-only Firestore rules/indexes and the dedicated Cloudflare authentication worker are deployed. Live App Check debug exchange, sign-in, own progress and cross-account isolation passed. The copied web rules remain emulator fixtures; deployed production policy is `Backend/firestore.rules`.
+4. Register the iOS app in Firebase App Check using App Attest once an enrolled Apple Developer Team ID is available (DeviceCheck is the fallback). The signed-in Apple account currently offers program enrollment, so production registration is pending. Debug builds use Firebase's debug provider; a simulator debug token is registered and stored in ignored `.secrets/app-check-debug.json`. Set it as `FIRAAppCheckDebugToken` in the app launch environment. Offline UI tests and the named emulator test app skip production Firebase initialization even when a real local plist is present.
 5. Configure Firebase AI Logic for this separate project. The current client uses the reference's Agent Platform/Vertex backend, which requires billing. A Gemini Developer API configuration can support a Spark-plan starting point, but it must be selected and verified before changing the provider. The provisioned database does not make AI calls available automatically.
 
 The Firestore contract is `users/{npub}` with a matching `local_npub` field. The native client uses the existing shared fields:
@@ -19,13 +19,15 @@ The Firestore contract is `users/{npub}` with a matching `local_npub` field. The
 - Practice activity and score: existing per-language daily activity maps and score-scale v4 `learningIntelligence` fields.
 - Profile: web preferences are imported; explicit native preference edits update the shared fields. Native timestamps prevent an older native request from replacing a newer native preference edit.
 
-A protected local outbox stores each practice change until server acknowledgment. Firestore transactions write `iosPracticeReceipts/{id}` along with shared progress or companion memory. Retries cannot repeat XP; lesson/goal/repair receipts use stable completion identifiers across native devices. New practice or memory captures during a sync remain queued. A bounded `iosRecentEventIDs` journal prevents already-committed changes from being applied locally again when sync requests overlap. This is client-side synchronization using the existing web rules, not a new authentication or server validation system.
+A protected local outbox stores each practice change until server acknowledgment. Firestore transactions write `iosPracticeReceipts/{id}` along with shared progress or companion memory. Retries cannot repeat XP; lesson/goal/repair receipts use stable completion identifiers across native devices. New practice or memory captures during a sync remain queued. A bounded `iosRecentEventIDs` journal prevents already-committed changes from being applied locally again when sync requests overlap. Progress synchronization runs under authenticated ownership rules. Subscription fields remain server-protected; client practice totals are not server-graded.
 
 `iosStateJSON` version 2 retains native-only state. Completion sets merge across native devices. Manual notes, history, native goal plans and recordings still use snapshot state with last writer wins; audio files remain local. Existing v1 snapshots decode without the new optional fields. Aggregate v1 XP is not automatically backfilled into shared web XP, avoiding duplicate credit when its origin cannot be established. Full cross-platform reconciliation, pet decay and achievement sync remain follow-up work.
 
 The copied rules in `BackendReference/firestore.emulator.rules` are used only for local tests. Neither rules nor indexes are deployed by this repo. The two-field lesson/card queries match the web queries and need the same deployed indexes.
 
 ## Cloudflare
+
+Native authentication uses `AuthBaseURL`, defaulting to the dedicated `piyali-ios-api` worker. It is independent of the existing AI worker configured with `WorkerBaseURL`. See [../Backend/README.md](../Backend/README.md) for deployment and tests.
 
 The existing worker uses a strict **single web App ID** check in `cloudflare-tts-proxy/src/app-check.js`. Adding an iOS Firebase app does not automatically authorize its tokens. For the selected separate Firebase project, provision a separate worker with this project’s number and native App ID. The reference web worker cannot validate the new project’s tokens using its old issuer/audience configuration. Keep JWT issuer, audience, signature, expiration and algorithm checks in place.
 

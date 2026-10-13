@@ -25,12 +25,14 @@
 		4050AA0CEDC58D40B1E91393 /* curriculum-pl.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = E14BD18E0DD3B4E10CE07EC6 /* curriculum-pl.json.gz */; };
 		413348566E611075ABDE6695 /* WebNostrFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 309E62CCB8904FD210887D7E /* WebNostrFixtures.swift */; };
 		424CF398D34426D30121B88C /* ExerciseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2200F1724A37FD9A39E2C277 /* ExerciseView.swift */; };
-		43C9091AF7E4A949BC7B5DD8 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 6B127B17B8A5D92960B33ED4 /* FirebaseFirestore */; };
+		43C9091AF7E4A949BC7B5DD8 /* FirebaseAppCheck in Frameworks */ = {isa = PBXBuildFile; productRef = 6BBDF8EABB29A3266F02F9FC /* FirebaseAppCheck */; };
+		4C89332D63FE744BE38512EA /* FirebaseIdentityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6B8311CBE80AD6E10E96469 /* FirebaseIdentityTests.swift */; };
 		53415E992CBAE3CEAD46FFA7 /* curriculum-de.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 0D2B4377365D26F6B633ABCA /* curriculum-de.json.gz */; };
 		57B6326E37F6755CDF619C02 /* LearningViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = D579ADCD762E0765430D326A /* LearningViews.swift */; };
 		586E4DD7B222FBE89CE9D93B /* curriculum-ru.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = F52185DFD4E574E23072128C /* curriculum-ru.json.gz */; };
 		63628243AF3A7E473CD80EFB /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58B5DF2715F289D91F1BC127 /* RootView.swift */; };
 		6F0548E7C5917527735A99E4 /* curriculum-el.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = F46C889B6EEDEEB00C4491D5 /* curriculum-el.json.gz */; };
+		73C8A3FBBF0937A4C9C6BF4D /* FirebaseIdentityService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23553314634188457E6891D0 /* FirebaseIdentityService.swift */; };
 		882DF197F6E0043796DBFC66 /* AppConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66577C96C4071AB6D6B95BB8 /* AppConfiguration.swift */; };
 		88DE43F2DA84173A75B75A4B /* PiyaliApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B035DFC1736E1F69047CEB9B /* PiyaliApp.swift */; };
 		8B746BB116E18895CBAD40AA /* curriculum-nl.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = F69EF3D394A21D0D07C9B191 /* curriculum-nl.json.gz */; };
@@ -38,8 +40,8 @@
 		8DD1E88B018C39C5B0AA817E /* curriculum-nah.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = EB2602DA316EDF948B13F026 /* curriculum-nah.json.gz */; };
 		97CD86E7CAFD7CE4585A68DE /* FocusedLearningViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85F27477992C4AC12CDC7D07 /* FocusedLearningViews.swift */; };
 		98AE8E80C268B1633043DF92 /* LiveTutorService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 296353A8A59BF96643FBAFDD /* LiveTutorService.swift */; };
-		9FCE373B59C4F781791505CE /* FirebaseAppCheck in Frameworks */ = {isa = PBXBuildFile; productRef = 6BBDF8EABB29A3266F02F9FC /* FirebaseAppCheck */; };
-		A4289A164520D5BFCCD2A182 /* NostrSDK in Frameworks */ = {isa = PBXBuildFile; productRef = 3A72341A324A6D03B5A2B106 /* NostrSDK */; };
+		9FCE373B59C4F781791505CE /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 692CA897213292DE677C7BBB /* FirebaseAuth */; };
+		A4289A164520D5BFCCD2A182 /* FirebaseAI in Frameworks */ = {isa = PBXBuildFile; productRef = B9BB9957493FFC3025A001D4 /* FirebaseAI */; };
 		A796C5C8744AB39111F12DE7 /* IdentityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C93EFBC5CACA2291D2D0436C /* IdentityTests.swift */; };
 		A877E84CD10C1FB5B0B82B67 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9304277563CFDA73534542C /* AppModel.swift */; };
 		AE4BDED9FE7C0F6F9A09D722 /* curriculum-index.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = E707D6EB11B623F173CB0C31 /* curriculum-index.json.gz */; };
@@ -50,9 +52,10 @@
 		B70AED57B1666BE863E9F462 /* LearningProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A919107C8A686BE6D656685 /* LearningProgress.swift */; };
 		B8F02162A7DF3842BB0C081E /* curriculum-es.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 9E4BCA4795241CEF35A35E73 /* curriculum-es.json.gz */; };
 		BD6516909B4562024A08F2C2 /* NostrTeamsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 739170FEAFFE01E5C4D5D4EA /* NostrTeamsService.swift */; };
+		C10A9CFE8B5035934B3BD19F /* NostrSDK in Frameworks */ = {isa = PBXBuildFile; productRef = 3A72341A324A6D03B5A2B106 /* NostrSDK */; };
 		C6A235B63FFC37981D76CB3A /* SubscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7942D25D599B3AC9917C728C /* SubscriptionService.swift */; };
 		C87F23146E7814EDBD3669FB /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B5750953096CF907269EFEA /* Models.swift */; };
-		CBCF09D65755D114A96D6366 /* FirebaseAI in Frameworks */ = {isa = PBXBuildFile; productRef = B9BB9957493FFC3025A001D4 /* FirebaseAI */; };
+		CBCF09D65755D114A96D6366 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 6B127B17B8A5D92960B33ED4 /* FirebaseFirestore */; };
 		CE5013790C9D1196AFAC0BEB /* AIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F89245EBCF6A1E38A3CF7FC8 /* AIService.swift */; };
 		D0949BA7E9F95F8C9432E78A /* WebProgressContract.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FFD762011E7104BE63A9CD4 /* WebProgressContract.swift */; };
 		D412910177B65445823FF060 /* achievements.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = D52D0469B4F81A6B04F8CFAC /* achievements.json.gz */; };
@@ -93,6 +96,7 @@
 		0D2B4377365D26F6B633ABCA /* curriculum-de.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "curriculum-de.json.gz"; sourceTree = "<group>"; };
 		1BD977B46CD3C9E3235F38A2 /* curriculum-pt.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "curriculum-pt.json.gz"; sourceTree = "<group>"; };
 		2200F1724A37FD9A39E2C277 /* ExerciseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseView.swift; sourceTree = "<group>"; };
+		23553314634188457E6891D0 /* FirebaseIdentityService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseIdentityService.swift; sourceTree = "<group>"; };
 		26503B7732937779B13146B7 /* flashcards.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = flashcards.json.gz; sourceTree = "<group>"; };
 		296353A8A59BF96643FBAFDD /* LiveTutorService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveTutorService.swift; sourceTree = "<group>"; };
 		2F73B535FFF169B26A4B3B1A /* PiyaliUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PiyaliUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -136,6 +140,7 @@
 		F46C889B6EEDEEB00C4491D5 /* curriculum-el.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "curriculum-el.json.gz"; sourceTree = "<group>"; };
 		F52185DFD4E574E23072128C /* curriculum-ru.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "curriculum-ru.json.gz"; sourceTree = "<group>"; };
 		F69EF3D394A21D0D07C9B191 /* curriculum-nl.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "curriculum-nl.json.gz"; sourceTree = "<group>"; };
+		F6B8311CBE80AD6E10E96469 /* FirebaseIdentityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseIdentityTests.swift; sourceTree = "<group>"; };
 		F89245EBCF6A1E38A3CF7FC8 /* AIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIService.swift; sourceTree = "<group>"; };
 		FC8C1AFE520430E24776DD16 /* CompanionMemory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionMemory.swift; sourceTree = "<group>"; };
 		FD2145F5F4EC6EFDE91813F6 /* curriculum-yua.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "curriculum-yua.json.gz"; sourceTree = "<group>"; };
@@ -148,10 +153,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				E7BF14B7C0519972EE30DF42 /* FirebaseCore in Frameworks */,
-				9FCE373B59C4F781791505CE /* FirebaseAppCheck in Frameworks */,
-				43C9091AF7E4A949BC7B5DD8 /* FirebaseFirestore in Frameworks */,
-				CBCF09D65755D114A96D6366 /* FirebaseAI in Frameworks */,
-				A4289A164520D5BFCCD2A182 /* NostrSDK in Frameworks */,
+				9FCE373B59C4F781791505CE /* FirebaseAuth in Frameworks */,
+				43C9091AF7E4A949BC7B5DD8 /* FirebaseAppCheck in Frameworks */,
+				CBCF09D65755D114A96D6366 /* FirebaseFirestore in Frameworks */,
+				A4289A164520D5BFCCD2A182 /* FirebaseAI in Frameworks */,
+				C10A9CFE8B5035934B3BD19F /* NostrSDK in Frameworks */,
 				EBBA4FA31F81EFE61ACBB809 /* libz.tbd in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -162,6 +168,7 @@
 		178A2A26FBCAEF55AB86864C /* PiyaliAppTests */ = {
 			isa = PBXGroup;
 			children = (
+				F6B8311CBE80AD6E10E96469 /* FirebaseIdentityTests.swift */,
 				8947C3D4C258C6F2B162D45D /* FirestoreContractTests.swift */,
 				C93EFBC5CACA2291D2D0436C /* IdentityTests.swift */,
 				309E62CCB8904FD210887D7E /* WebNostrFixtures.swift */,
@@ -270,6 +277,7 @@
 			children = (
 				F89245EBCF6A1E38A3CF7FC8 /* AIService.swift */,
 				66577C96C4071AB6D6B95BB8 /* AppConfiguration.swift */,
+				23553314634188457E6891D0 /* FirebaseIdentityService.swift */,
 				988C5B69C6BEE00FBA34C5C0 /* FirebaseService.swift */,
 				AABBD4AEE1A0DCEFEC828765 /* IdentityService.swift */,
 				807123B77A97FA5EA2F0A829 /* JourneyRecorder.swift */,
@@ -340,6 +348,7 @@
 			name = Piyali;
 			packageProductDependencies = (
 				BB448BAF674D32F0259B5803 /* FirebaseCore */,
+				692CA897213292DE677C7BBB /* FirebaseAuth */,
 				6BBDF8EABB29A3266F02F9FC /* FirebaseAppCheck */,
 				6B127B17B8A5D92960B33ED4 /* FirebaseFirestore */,
 				B9BB9957493FFC3025A001D4 /* FirebaseAI */,
@@ -471,6 +480,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4C89332D63FE744BE38512EA /* FirebaseIdentityTests.swift in Sources */,
 				21547AD9D1E8F6C48C82CFB1 /* FirestoreContractTests.swift in Sources */,
 				A796C5C8744AB39111F12DE7 /* IdentityTests.swift in Sources */,
 				413348566E611075ABDE6695 /* WebNostrFixtures.swift in Sources */,
@@ -489,6 +499,7 @@
 				3766FDCBD5C747DC922B2538 /* CompanionMemoryView.swift in Sources */,
 				31F9D04AD0E82F0B26A8A2EA /* ContentLibrary.swift in Sources */,
 				424CF398D34426D30121B88C /* ExerciseView.swift in Sources */,
+				73C8A3FBBF0937A4C9C6BF4D /* FirebaseIdentityService.swift in Sources */,
 				E3BAFA4E1BBFC86E61B57F87 /* FirebaseService.swift in Sources */,
 				25B412D8E7AE1938ED2AF18A /* FlashcardReview.swift in Sources */,
 				97CD86E7CAFD7CE4585A68DE /* FocusedLearningViews.swift in Sources */,
@@ -833,6 +844,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = EA1FB9DE50E18E7E289C3CFD /* XCRemoteSwiftPackageReference "nostr-sdk-ios" */;
 			productName = NostrSDK;
+		};
+		692CA897213292DE677C7BBB /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4858657C74B78B84D4C5B030 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
 		};
 		6B127B17B8A5D92960B33ED4 /* FirebaseFirestore */ = {
 			isa = XCSwiftPackageProductDependency;

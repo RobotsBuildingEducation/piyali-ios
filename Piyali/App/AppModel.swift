@@ -44,6 +44,7 @@ import SwiftUI
             let account = identity.npub
             loadLocal(); signedIn = true; subscription.bind(identity)
             do {
+                try await FirebaseIdentityService.shared.ensure(identity)
                 if FileManager.default.fileExists(atPath:localURL.path) { await sync() }
                 else if let cloud = try await FirebaseService.shared.load(npub:account) {
                     guard identity.npub == account else { return }
@@ -84,6 +85,8 @@ import SwiftUI
             do {
                 try await Task.sleep(for:.milliseconds(500))
                 guard !Task.isCancelled else { return }
+                try await FirebaseIdentityService.shared.ensure(identity)
+                guard identity.npub == npub, !Task.isCancelled else { return }
                 let acknowledged = try await FirebaseService.shared.save(state,npub:npub)
                 guard identity.npub == npub, !Task.isCancelled else { return }
                 if let acknowledged { try applyAcknowledgment(acknowledged,sent:state); syncStatus = synchronizedStatus }
@@ -104,6 +107,8 @@ import SwiftUI
     func sync() async {
         let state = learner, npub = identity.npub
         do {
+            try await FirebaseIdentityService.shared.ensure(identity)
+            guard identity.npub == npub else { return }
             if let cloud = try await FirebaseService.shared.save(state,npub:npub) {
                 guard identity.npub == npub else { return }
                 try applyAcknowledgment(cloud,sent:state); syncStatus = synchronizedStatus
