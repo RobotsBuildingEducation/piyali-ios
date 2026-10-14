@@ -92,7 +92,7 @@ public enum ConversationPractice {
         let concept=String((change.conversationGoalText?["en"].string ?? "").trimmingCharacters(in:.whitespacesAndNewlines).prefix(100)),old=summary["weakConcepts"] as? [[String:Any]] ?? []
         var weak=old.filter { $0["concept"] as? String != concept && (WebProgressContract.date($0["lastSeen"]) ?? .distantPast) >= change.date.addingTimeInterval(-45*86400) }
         if !concept.isEmpty,!success { let prior=old.first { $0["concept"] as? String == concept };weak.insert(["concept":concept,"questionLevel":level,"misses":min(99,WebProgressContract.integer(prior?["misses"])+1),"lastSeen":time],at:0) }
-        summary=["byLevel":levels,"weakConcepts":Array(weak.prefix(5)),"recentResults":Array(([success ? 1 : 0]+(summary["recentResults"] as? [Int] ?? [])).prefix(10)),"lastQuestionLevel":level,"lastMode":"conversation","lastSupport":success ? "independent" : "missed","updatedAt":time]
+        summary=["byLevel":levels,"weakConcepts":Array(weak.prefix(5)),"recentResults":Array(([success ? 1 : 0]+(summary["recentResults"] as? [Int] ?? [])).prefix(10)),"lastQuestionLevel":level,"lastMode":change.source == .storyTurn ? "story" : "conversation","lastSupport":success ? "independent" : "missed","updatedAt":time]
         result["version"]=1;result["elo"]=elo;result["performanceSummary"]=summary;return result
     }
 }

@@ -21,7 +21,7 @@ service cloud.firestore {
         allow read, write: if owns(userId);
       }
       match /{collection}/{document} {
-        allow read, write: if owns(userId) && collection in ['languageLessons','tutorLanguageLessons','languageFlashcards','courseProgress','xpHistory','companion','iosPracticeReceipts','questDays','voiceJourney','achievements','achievementMigrations','alphabetPractice'];
+        allow read, write: if owns(userId) && collection in ['languageLessons','tutorLanguageLessons','languageFlashcards','courseProgress','xpHistory','companion','iosPracticeReceipts','questDays','voiceJourney','achievements','achievementMigrations','alphabetPractice','storyTurns'];
       }
     }
   }

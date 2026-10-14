@@ -1,12 +1,13 @@
 import {HTTPError} from './auth.js';
 import {rpgOutputFormat} from './rpg-output.js';
+import {storyOutputFormat} from './story-output.js';
 export function responsesBody(data,env) {
   const allowed=(env.ALLOWED_RESPONSE_MODELS ?? 'gpt-6-luna,gpt-5-nano').split(',');
   if(typeof data.model!=='string' || !allowed.includes(data.model)) throw new HTTPError(400,'Choose a supported tutor model.');
   if(typeof data.input!=='string' || !data.input.trim() || data.input.length>110000) throw new HTTPError(400,'Provide a tutor prompt within the size limit.');
   const format=data.text?.format?.type ?? 'text';
   if(!['text','json_object'].includes(format)) throw new HTTPError(400,'Unsupported tutor output format.');
-  const output=data.outputProfile===undefined ? {type:format} : rpgOutputFormat(data.outputProfile);
+  const output=data.outputProfile===undefined ? {type:format} : rpgOutputFormat(data.outputProfile) ?? storyOutputFormat(data.outputProfile);
   if(!output) throw new HTTPError(400,'Unsupported tutor output profile.');
   const effort=data.reasoning?.effort ?? (data.model.includes('luna')?'none':'minimal');
   const efforts=data.model.includes('luna') ? ['none','low','medium'] : ['minimal','low','medium'];

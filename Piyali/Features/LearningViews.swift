@@ -98,7 +98,7 @@ struct LessonView: View {
             }
             Section("Practice each skill") {
                 ForEach(AppModel.modes(for: lesson)) { mode in
-                    NavigationLink { if mode == .game { RPGView(lesson:lesson,episode:nil) } else { ExerciseView(mode: mode, lesson: lesson) } } label: {
+                    NavigationLink { if mode == .game { RPGView(lesson:lesson,episode:nil) } else if mode == .stories { StoryView(lesson:lesson) } else { ExerciseView(mode: mode, lesson: lesson) } } label: {
                         HStack {
                             Text(mode.rawValue); Spacer()
                             if app.learner.practicedModes.contains(app.learner.modeKey(lesson.id, mode.rawValue)) { Image(systemName: "checkmark") }
@@ -126,6 +126,7 @@ struct PracticeLibraryView: View {
                 ForEach(PracticeMode.allCases) { mode in
                     if mode == .conversation { NavigationLink(mode.rawValue) { ConversationView() }.accessibilityIdentifier("conversationLink") }
                     else if mode == .game { NavigationLink(mode.rawValue) { RPGLibraryView() }.accessibilityIdentifier("adventureLink") }
+                    else if mode == .stories { NavigationLink(mode.rawValue) { StoryView(lesson:app.selectedLesson) }.accessibilityIdentifier("storiesLink") }
                     else { NavigationLink(mode.rawValue) { ExerciseView(mode: mode, lesson: app.selectedLesson) } }
                 }
                 NavigationLink("Grammar reference") { GrammarReferenceView() }

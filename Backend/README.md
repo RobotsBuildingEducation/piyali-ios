@@ -26,3 +26,5 @@ Set `PIYALI_LIVE_AI=1` when running `verify-live-auth.mjs` to additionally gener
 Gemini text/live voice use the Gemini Developer API through Firebase AI Logic on Piyali's Spark plan. The dedicated Cloudflare worker provides the Responses fallback. Audio-cache playback and the alternate OpenAI WebRTC voice transport remain integration work.
 
 Native RPG calls use fixed `outputProfile` values `rpg_story` and `rpg_speech`, resolved to strict provider JSON schemas by the worker. Unknown profiles and unsupported reasoning efforts are rejected. GPT-6 Luna requests may specify `none`, `low` or `medium`; its existing default remains `none`. Output tokens remain capped at 8,192 and the upstream deadline is 40 seconds. These bounds are tested in `test/responses.test.js`. See [RPG.md](../docs/RPG.md) for the native content and completion flow.
+
+Native stories use fixed `story_episode` and `story_speaking` profiles, with complete dialogue/checkpoint and sentence schemas. Private analytics live in the owner-only `storyTurns` collection. The updated native worker and rules are deployed; web services are unchanged. See [STORIES.md](../docs/STORIES.md).

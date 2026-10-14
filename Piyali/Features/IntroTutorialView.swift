@@ -22,7 +22,7 @@ struct IntroTutorialView:View {
                     if mode == "game" {
                         NavigationLink("Play introductory adventure") { RPGView(lesson:lesson,episode:nil,onTutorialComplete:{ advance(mode,scope:capturedScope) }) }
                     } else if let practice=AppModel.modes(for:lesson).first(where:{ $0.rawValue == names[mode] }) {
-                        NavigationLink("Try "+(names[mode] ?? mode)) { ExerciseView(mode:practice,lesson:lesson) }
+                        NavigationLink("Try "+(names[mode] ?? mode)) { if practice == .stories { StoryView(lesson:lesson,onComplete:{ advance(mode,scope:capturedScope) }) } else { ExerciseView(mode:practice,lesson:lesson) } }
                     }
                     Button(mode == "game" ? "Skip adventure and finish introduction" : "Next activity") { advance(mode,scope:capturedScope) }.accessibilityIdentifier("introNext")
                 }

@@ -1,0 +1,6956 @@
+{
+  "cases": [
+    {
+      "raw": {
+        "title": "A surprise",
+        "segments": [
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "Tengo flores rojas.",
+                "support": "I have red flowers."
+              },
+              {
+                "speaker": "Luis",
+                "target": "Son para mi madre.",
+                "support": "They are for my mother."
+              }
+            ],
+            "question": {
+              "type": "select_words",
+              "prompt": "Select two words you hear.",
+              "options": [
+                "azules",
+                "flores",
+                "rojas",
+                "nunca"
+              ],
+              "answer": [
+                1,
+                2
+              ],
+              "audioTurn": 0,
+              "explanation": "Ana has red flowers."
+            }
+          },
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "¿Es su cumpleaños?",
+                "support": "Is it her birthday?"
+              },
+              {
+                "speaker": "Luis",
+                "target": "Sí, es hoy.",
+                "support": "Yes, it is today."
+              }
+            ],
+            "question": {
+              "type": "order_words",
+              "prompt": "Build what you hear.",
+              "options": [
+                "hoy",
+                "Sí",
+                "es"
+              ],
+              "answer": [
+                1,
+                2,
+                0
+              ],
+              "audioTurn": 1,
+              "explanation": "Her birthday is today."
+            }
+          }
+        ]
+      },
+      "target": "es",
+      "prepare": false,
+      "valid": true
+    },
+    {
+      "raw": "```json\n{\"title\":\"A surprise\",\"segments\":[{\"turns\":[{\"speaker\":\"Ana\",\"target\":\"Tengo flores rojas.\",\"support\":\"I have red flowers.\"},{\"speaker\":\"Luis\",\"target\":\"Son para mi madre.\",\"support\":\"They are for my mother.\"}],\"question\":{\"type\":\"select_words\",\"prompt\":\"Select two words you hear.\",\"options\":[\"azules\",\"flores\",\"rojas\",\"nunca\"],\"answer\":[1,2],\"audioTurn\":0,\"explanation\":\"Ana has red flowers.\"}},{\"turns\":[{\"speaker\":\"Ana\",\"target\":\"¿Es su cumpleaños?\",\"support\":\"Is it her birthday?\"},{\"speaker\":\"Luis\",\"target\":\"Sí, es hoy.\",\"support\":\"Yes, it is today.\"}],\"question\":{\"type\":\"order_words\",\"prompt\":\"Build what you hear.\",\"options\":[\"hoy\",\"Sí\",\"es\"],\"answer\":[1,2,0],\"audioTurn\":1,\"explanation\":\"Her birthday is today.\"}}]}\n```",
+      "target": "es",
+      "prepare": false,
+      "valid": true
+    },
+    {
+      "raw": {
+        "title": "",
+        "segments": [
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "Tengo flores rojas.",
+                "support": "I have red flowers."
+              },
+              {
+                "speaker": "Luis",
+                "target": "Son para mi madre.",
+                "support": "They are for my mother."
+              }
+            ],
+            "question": {
+              "type": "select_words",
+              "prompt": "Select two words you hear.",
+              "options": [
+                "azules",
+                "flores",
+                "rojas",
+                "nunca"
+              ],
+              "answer": [
+                1,
+                2
+              ],
+              "audioTurn": 0,
+              "explanation": "Ana has red flowers."
+            }
+          },
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "¿Es su cumpleaños?",
+                "support": "Is it her birthday?"
+              },
+              {
+                "speaker": "Luis",
+                "target": "Sí, es hoy.",
+                "support": "Yes, it is today."
+              }
+            ],
+            "question": {
+              "type": "order_words",
+              "prompt": "Build what you hear.",
+              "options": [
+                "hoy",
+                "Sí",
+                "es"
+              ],
+              "answer": [
+                1,
+                2,
+                0
+              ],
+              "audioTurn": 1,
+              "explanation": "Her birthday is today."
+            }
+          }
+        ]
+      },
+      "target": "es",
+      "prepare": false,
+      "valid": false
+    },
+    {
+      "raw": {
+        "title": "A surprise",
+        "segments": []
+      },
+      "target": "es",
+      "prepare": false,
+      "valid": false
+    },
+    {
+      "raw": {
+        "title": "A surprise",
+        "segments": [
+          {
+            "turns": [],
+            "question": {
+              "type": "select_words",
+              "prompt": "Select two words you hear.",
+              "options": [
+                "azules",
+                "flores",
+                "rojas",
+                "nunca"
+              ],
+              "answer": [
+                1,
+                2
+              ],
+              "audioTurn": 0,
+              "explanation": "Ana has red flowers."
+            }
+          },
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "¿Es su cumpleaños?",
+                "support": "Is it her birthday?"
+              },
+              {
+                "speaker": "Luis",
+                "target": "Sí, es hoy.",
+                "support": "Yes, it is today."
+              }
+            ],
+            "question": {
+              "type": "order_words",
+              "prompt": "Build what you hear.",
+              "options": [
+                "hoy",
+                "Sí",
+                "es"
+              ],
+              "answer": [
+                1,
+                2,
+                0
+              ],
+              "audioTurn": 1,
+              "explanation": "Her birthday is today."
+            }
+          }
+        ]
+      },
+      "target": "es",
+      "prepare": false,
+      "valid": false
+    },
+    {
+      "raw": {
+        "title": "A surprise",
+        "segments": [
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "Tengo flores rojas.",
+                "support": "I have red flowers."
+              },
+              {
+                "speaker": "Luis",
+                "target": "Son para mi madre.",
+                "support": "They are for my mother."
+              }
+            ],
+            "question": {
+              "type": "select_words",
+              "prompt": "Select two words you hear.",
+              "options": [
+                "azules",
+                "flores",
+                "rojas",
+                "nunca"
+              ],
+              "answer": [
+                8
+              ],
+              "audioTurn": 0,
+              "explanation": "Ana has red flowers."
+            }
+          },
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "¿Es su cumpleaños?",
+                "support": "Is it her birthday?"
+              },
+              {
+                "speaker": "Luis",
+                "target": "Sí, es hoy.",
+                "support": "Yes, it is today."
+              }
+            ],
+            "question": {
+              "type": "order_words",
+              "prompt": "Build what you hear.",
+              "options": [
+                "hoy",
+                "Sí",
+                "es"
+              ],
+              "answer": [
+                1,
+                2,
+                0
+              ],
+              "audioTurn": 1,
+              "explanation": "Her birthday is today."
+            }
+          }
+        ]
+      },
+      "target": "es",
+      "prepare": false,
+      "valid": false
+    },
+    {
+      "raw": {
+        "title": "A surprise",
+        "segments": [
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "Tengo flores rojas.",
+                "support": "I have red flowers."
+              },
+              {
+                "speaker": "Luis",
+                "target": "Son para mi madre.",
+                "support": "They are for my mother."
+              }
+            ],
+            "question": {
+              "type": "select_words",
+              "prompt": "Select two words you hear.",
+              "options": [
+                "azules",
+                "flores",
+                "rojas",
+                "nunca"
+              ],
+              "answer": [
+                1,
+                1
+              ],
+              "audioTurn": 0,
+              "explanation": "Ana has red flowers."
+            }
+          },
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "¿Es su cumpleaños?",
+                "support": "Is it her birthday?"
+              },
+              {
+                "speaker": "Luis",
+                "target": "Sí, es hoy.",
+                "support": "Yes, it is today."
+              }
+            ],
+            "question": {
+              "type": "order_words",
+              "prompt": "Build what you hear.",
+              "options": [
+                "hoy",
+                "Sí",
+                "es"
+              ],
+              "answer": [
+                1,
+                2,
+                0
+              ],
+              "audioTurn": 1,
+              "explanation": "Her birthday is today."
+            }
+          }
+        ]
+      },
+      "target": "es",
+      "prepare": false,
+      "valid": false
+    },
+    {
+      "raw": {
+        "title": "A surprise",
+        "segments": [
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "Tengo flores rojas.",
+                "support": "I have red flowers."
+              },
+              {
+                "speaker": "Luis",
+                "target": "Son para mi madre.",
+                "support": "They are for my mother."
+              }
+            ],
+            "question": {
+              "type": "select_words",
+              "prompt": "Select two words you hear.",
+              "options": [
+                "azules",
+                "flores",
+                "rojas",
+                "nunca"
+              ],
+              "answer": [
+                1,
+                2
+              ],
+              "audioTurn": 8,
+              "explanation": "Ana has red flowers."
+            }
+          },
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "¿Es su cumpleaños?",
+                "support": "Is it her birthday?"
+              },
+              {
+                "speaker": "Luis",
+                "target": "Sí, es hoy.",
+                "support": "Yes, it is today."
+              }
+            ],
+            "question": {
+              "type": "order_words",
+              "prompt": "Build what you hear.",
+              "options": [
+                "hoy",
+                "Sí",
+                "es"
+              ],
+              "answer": [
+                1,
+                2,
+                0
+              ],
+              "audioTurn": 1,
+              "explanation": "Her birthday is today."
+            }
+          }
+        ]
+      },
+      "target": "es",
+      "prepare": false,
+      "valid": false
+    },
+    {
+      "raw": {
+        "title": "A surprise",
+        "segments": [
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "Tengo flores rojas.",
+                "support": "I have red flowers."
+              },
+              {
+                "speaker": "Luis",
+                "target": "Son para mi madre.",
+                "support": "They are for my mother."
+              }
+            ],
+            "question": {
+              "type": "select_words",
+              "prompt": "Select two words you hear.",
+              "options": [
+                "Tengo",
+                "flores",
+                "rojas",
+                "nunca"
+              ],
+              "answer": [
+                1,
+                2
+              ],
+              "audioTurn": 0,
+              "explanation": "Ana has red flowers."
+            }
+          },
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "¿Es su cumpleaños?",
+                "support": "Is it her birthday?"
+              },
+              {
+                "speaker": "Luis",
+                "target": "Sí, es hoy.",
+                "support": "Yes, it is today."
+              }
+            ],
+            "question": {
+              "type": "order_words",
+              "prompt": "Build what you hear.",
+              "options": [
+                "hoy",
+                "Sí",
+                "es"
+              ],
+              "answer": [
+                1,
+                2,
+                0
+              ],
+              "audioTurn": 1,
+              "explanation": "Her birthday is today."
+            }
+          }
+        ]
+      },
+      "target": "es",
+      "prepare": false,
+      "valid": false
+    },
+    {
+      "raw": {
+        "title": "A surprise",
+        "segments": [
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "Tengo flores rojas.",
+                "support": "I have red flowers."
+              },
+              {
+                "speaker": "Luis",
+                "target": "Son para mi madre.",
+                "support": "They are for my mother."
+              }
+            ],
+            "question": {
+              "type": "select_words",
+              "prompt": "Select two words you hear.",
+              "options": [
+                "azules",
+                "flores",
+                "rojas",
+                "nunca"
+              ],
+              "answer": [
+                1,
+                2
+              ],
+              "audioTurn": 0,
+              "explanation": "Ana has red flowers."
+            }
+          },
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "¿Es su cumpleaños?",
+                "support": "Is it her birthday?"
+              },
+              {
+                "speaker": "Luis",
+                "target": "Sí, es hoy.",
+                "support": "Yes, it is today."
+              }
+            ],
+            "question": {
+              "type": "order_words",
+              "prompt": "Build what you hear.",
+              "options": [
+                "hoy",
+                "Sí",
+                "es"
+              ],
+              "answer": [
+                0,
+                1,
+                2
+              ],
+              "audioTurn": 1,
+              "explanation": "Her birthday is today."
+            }
+          }
+        ]
+      },
+      "target": "es",
+      "prepare": false,
+      "valid": false
+    },
+    {
+      "raw": {
+        "title": "A surprise",
+        "segments": [
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "Tengo flores rojas.",
+                "support": "I have red flowers."
+              },
+              {
+                "speaker": "Luis",
+                "target": "Son para mi madre.",
+                "support": "They are for my mother."
+              }
+            ],
+            "question": {
+              "type": "select_words",
+              "prompt": "Select two words you hear.",
+              "options": [
+                "azules",
+                "flores",
+                "rojas",
+                "nunca"
+              ],
+              "answer": [
+                1,
+                2
+              ],
+              "audioTurn": 0,
+              "explanation": "Ana has red flowers."
+            }
+          },
+          {
+            "turns": [
+              {
+                "speaker": "Other",
+                "target": "¿Es su cumpleaños?",
+                "support": "Is it her birthday?"
+              },
+              {
+                "speaker": "Luis",
+                "target": "Sí, es hoy.",
+                "support": "Yes, it is today."
+              }
+            ],
+            "question": {
+              "type": "order_words",
+              "prompt": "Build what you hear.",
+              "options": [
+                "hoy",
+                "Sí",
+                "es"
+              ],
+              "answer": [
+                1,
+                2,
+                0
+              ],
+              "audioTurn": 1,
+              "explanation": "Her birthday is today."
+            }
+          }
+        ]
+      },
+      "target": "es",
+      "prepare": false,
+      "valid": false
+    },
+    {
+      "raw": {
+        "title": "A surprise",
+        "segments": [
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "Tengo flores rojas.",
+                "support": "I have red flowers."
+              },
+              {
+                "speaker": "Luis",
+                "target": "Son para mi madre.",
+                "support": "They are for my mother."
+              }
+            ],
+            "question": {
+              "type": "select_words",
+              "prompt": "Select two words you hear.",
+              "options": [
+                "azules",
+                "flores",
+                "rojas",
+                "nunca"
+              ],
+              "answer": [
+                1,
+                2
+              ],
+              "audioTurn": 0,
+              "explanation": "Ana has red flowers."
+            }
+          },
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "¿Es su cumpleaños?",
+                "support": "Is it her birthday?"
+              },
+              {
+                "speaker": "Luis",
+                "target": "Sí, es hoy.",
+                "support": "Yes, it is today."
+              }
+            ],
+            "question": {
+              "type": "unknown",
+              "prompt": "Build what you hear.",
+              "options": [
+                "hoy",
+                "Sí",
+                "es"
+              ],
+              "answer": [
+                1,
+                2,
+                0
+              ],
+              "audioTurn": 1,
+              "explanation": "Her birthday is today."
+            }
+          }
+        ]
+      },
+      "target": "es",
+      "prepare": false,
+      "valid": false
+    },
+    {
+      "raw": {
+        "title": "A surprise",
+        "segments": [
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "Tengo flores rojas.",
+                "support": "I have red flowers."
+              },
+              {
+                "speaker": "Luis",
+                "target": "Son para mi madre.",
+                "support": "They are for my mother."
+              }
+            ],
+            "question": {
+              "type": "select_words",
+              "prompt": "Select two words you hear.",
+              "options": [
+                "flores",
+                "flores",
+                "rojas",
+                "nunca"
+              ],
+              "answer": [
+                1,
+                2
+              ],
+              "audioTurn": 0,
+              "explanation": "Ana has red flowers."
+            }
+          },
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "¿Es su cumpleaños?",
+                "support": "Is it her birthday?"
+              },
+              {
+                "speaker": "Luis",
+                "target": "Sí, es hoy.",
+                "support": "Yes, it is today."
+              }
+            ],
+            "question": {
+              "type": "order_words",
+              "prompt": "Build what you hear.",
+              "options": [
+                "hoy",
+                "Sí",
+                "es"
+              ],
+              "answer": [
+                1,
+                2,
+                0
+              ],
+              "audioTurn": 1,
+              "explanation": "Her birthday is today."
+            }
+          }
+        ]
+      },
+      "target": "es",
+      "prepare": false,
+      "valid": false
+    },
+    {
+      "raw": {
+        "title": "A surprise",
+        "segments": [
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "Tengo flores rojas.",
+                "support": "I have red flowers."
+              },
+              {
+                "speaker": "Luis",
+                "target": "Son para mi madre.",
+                "support": "They are for my mother."
+              }
+            ],
+            "question": {
+              "type": "select_words",
+              "prompt": "Select two words you hear.",
+              "options": [
+                "azules",
+                "flores",
+                "rojas",
+                "nunca"
+              ],
+              "answer": [
+                1,
+                2
+              ],
+              "audioTurn": 0,
+              "explanation": ""
+            }
+          },
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "¿Es su cumpleaños?",
+                "support": "Is it her birthday?"
+              },
+              {
+                "speaker": "Luis",
+                "target": "Sí, es hoy.",
+                "support": "Yes, it is today."
+              }
+            ],
+            "question": {
+              "type": "order_words",
+              "prompt": "Build what you hear.",
+              "options": [
+                "hoy",
+                "Sí",
+                "es"
+              ],
+              "answer": [
+                1,
+                2,
+                0
+              ],
+              "audioTurn": 1,
+              "explanation": "Her birthday is today."
+            }
+          }
+        ]
+      },
+      "target": "es",
+      "prepare": false,
+      "valid": false
+    },
+    {
+      "raw": {
+        "title": "A surprise",
+        "segments": [
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "赤い花があります。",
+                "support": "I have red flowers."
+              },
+              {
+                "speaker": "Luis",
+                "target": "赤い花があります。",
+                "support": "They are for my mother."
+              }
+            ],
+            "question": {
+              "type": "select_words",
+              "prompt": "Select two words you hear.",
+              "options": [
+                "青い",
+                "赤い",
+                "花",
+                "明日"
+              ],
+              "answer": [
+                1,
+                2
+              ],
+              "audioTurn": 0,
+              "explanation": "Ana has red flowers."
+            }
+          },
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "赤い花があります。",
+                "support": "Is it her birthday?"
+              },
+              {
+                "speaker": "Luis",
+                "target": "赤い花があります。",
+                "support": "Yes, it is today."
+              }
+            ],
+            "question": {
+              "type": "choice",
+              "prompt": "Build what you hear.",
+              "options": [
+                "Yes",
+                "No"
+              ],
+              "answer": [
+                0
+              ],
+              "audioTurn": 1,
+              "explanation": "Her birthday is today."
+            }
+          }
+        ]
+      },
+      "target": "ja",
+      "prepare": false,
+      "valid": true
+    },
+    {
+      "raw": {
+        "title": "A surprise",
+        "segments": [
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "Tengo flores rojas.",
+                "support": "I have red flowers."
+              },
+              {
+                "speaker": "Luis",
+                "target": "Son para mi madre.",
+                "support": "They are for my mother."
+              }
+            ],
+            "question": {
+              "type": "select_words",
+              "prompt": "Select two words you hear.",
+              "options": [
+                "azules",
+                "flores",
+                "rojas",
+                "nunca"
+              ],
+              "answer": [
+                1,
+                2
+              ],
+              "audioTurn": 0,
+              "explanation": "Ana has red flowers."
+            }
+          },
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "¿Es su cumpleaños?",
+                "support": "Is it her birthday?"
+              },
+              {
+                "speaker": "Luis",
+                "target": "Sí, es hoy.",
+                "support": "Yes, it is today."
+              }
+            ],
+            "question": {
+              "type": "order_words",
+              "prompt": "Build what you hear.",
+              "options": [
+                "hoy",
+                "Sí",
+                "es"
+              ],
+              "answer": [
+                1,
+                2,
+                0
+              ],
+              "audioTurn": 1,
+              "explanation": "Her birthday is today."
+            }
+          }
+        ]
+      },
+      "target": "ja",
+      "prepare": false,
+      "valid": false
+    },
+    {
+      "raw": {
+        "title": "A surprise",
+        "segments": [
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "今天是她的生日。",
+                "support": "I have red flowers."
+              },
+              {
+                "speaker": "Luis",
+                "target": "今天是她的生日。",
+                "support": "They are for my mother."
+              }
+            ],
+            "question": {
+              "type": "select_words",
+              "prompt": "Select two words you hear.",
+              "options": [
+                "昨天",
+                "今天",
+                "生日",
+                "我"
+              ],
+              "answer": [
+                1,
+                2
+              ],
+              "audioTurn": 0,
+              "explanation": "Ana has red flowers."
+            }
+          },
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "今天是她的生日。",
+                "support": "Is it her birthday?"
+              },
+              {
+                "speaker": "Luis",
+                "target": "今天是她的生日。",
+                "support": "Yes, it is today."
+              }
+            ],
+            "question": {
+              "type": "choice",
+              "prompt": "Build what you hear.",
+              "options": [
+                "Yes",
+                "No"
+              ],
+              "answer": [
+                0
+              ],
+              "audioTurn": 1,
+              "explanation": "Her birthday is today."
+            }
+          }
+        ]
+      },
+      "target": "zh",
+      "prepare": false,
+      "valid": true
+    },
+    {
+      "raw": {
+        "title": "A surprise",
+        "segments": [
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "Tengo flores rojas.",
+                "support": "I have red flowers."
+              },
+              {
+                "speaker": "Luis",
+                "target": "Son para mi madre.",
+                "support": "They are for my mother."
+              }
+            ],
+            "question": {
+              "type": "select_words",
+              "prompt": "Select two words you hear.",
+              "options": [
+                "azules",
+                "flores",
+                "rojas",
+                "nunca"
+              ],
+              "answer": [
+                1,
+                2
+              ],
+              "audioTurn": 0,
+              "explanation": "Ana has red flowers."
+            }
+          },
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "¿Es su cumpleaños?",
+                "support": "Is it her birthday?"
+              },
+              {
+                "speaker": "Luis",
+                "target": "Sí, es hoy.",
+                "support": "Yes, it is today."
+              }
+            ],
+            "question": {
+              "type": "order_words",
+              "prompt": "Build what you hear.",
+              "options": [
+                "hoy",
+                "Sí",
+                "es"
+              ],
+              "answer": [
+                1,
+                2,
+                0
+              ],
+              "audioTurn": 1,
+              "explanation": "Her birthday is today."
+            }
+          }
+        ]
+      },
+      "target": "zh",
+      "prepare": false,
+      "valid": false
+    },
+    {
+      "raw": {
+        "title": "A surprise",
+        "segments": [
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "هذا البيت جميل جدا",
+                "support": "I have red flowers."
+              },
+              {
+                "speaker": "Luis",
+                "target": "هذا البيت جميل جدا",
+                "support": "They are for my mother."
+              }
+            ],
+            "question": {
+              "type": "select_words",
+              "prompt": "Select two words you hear.",
+              "options": [
+                "قديم",
+                "البيت",
+                "جميل",
+                "غدا"
+              ],
+              "answer": [
+                1,
+                2
+              ],
+              "audioTurn": 0,
+              "explanation": "Ana has red flowers."
+            }
+          },
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "هذا البيت جميل جدا",
+                "support": "Is it her birthday?"
+              },
+              {
+                "speaker": "Luis",
+                "target": "هذا البيت جميل جدا",
+                "support": "Yes, it is today."
+              }
+            ],
+            "question": {
+              "type": "choice",
+              "prompt": "Build what you hear.",
+              "options": [
+                "Yes",
+                "No"
+              ],
+              "answer": [
+                0
+              ],
+              "audioTurn": 1,
+              "explanation": "Her birthday is today."
+            }
+          }
+        ]
+      },
+      "target": "ar",
+      "prepare": false,
+      "valid": true
+    },
+    {
+      "raw": {
+        "title": "A surprise",
+        "segments": [
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "Tengo flores rojas.",
+                "support": "I have red flowers."
+              },
+              {
+                "speaker": "Luis",
+                "target": "Son para mi madre.",
+                "support": "They are for my mother."
+              }
+            ],
+            "question": {
+              "type": "select_words",
+              "prompt": "Select two words you hear.",
+              "options": [
+                "azules",
+                "flores",
+                "rojas",
+                "nunca"
+              ],
+              "answer": [
+                1,
+                2
+              ],
+              "audioTurn": 0,
+              "explanation": "Ana has red flowers."
+            }
+          },
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "¿Es su cumpleaños?",
+                "support": "Is it her birthday?"
+              },
+              {
+                "speaker": "Luis",
+                "target": "Sí, es hoy.",
+                "support": "Yes, it is today."
+              }
+            ],
+            "question": {
+              "type": "order_words",
+              "prompt": "Build what you hear.",
+              "options": [
+                "hoy",
+                "Sí",
+                "es"
+              ],
+              "answer": [
+                1,
+                2,
+                0
+              ],
+              "audioTurn": 1,
+              "explanation": "Her birthday is today."
+            }
+          }
+        ]
+      },
+      "target": "ar",
+      "prepare": false,
+      "valid": false
+    },
+    {
+      "raw": {
+        "title": "A surprise",
+        "segments": [
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "Tengo flores rojas.",
+                "support": "I have red flowers."
+              },
+              {
+                "speaker": "Luis",
+                "target": "Son para mi madre.",
+                "support": "They are for my mother."
+              }
+            ],
+            "question": {
+              "type": "choice",
+              "prompt": "What happens?",
+              "options": [
+                "Flores",
+                "Azules",
+                "Madre"
+              ],
+              "answer": [
+                0
+              ],
+              "explanation": "Listen to the dialogue."
+            }
+          },
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "¿Es su cumpleaños?",
+                "support": "Is it her birthday?"
+              },
+              {
+                "speaker": "Luis",
+                "target": "Sí, es hoy.",
+                "support": "Yes, it is today."
+              }
+            ],
+            "question": {
+              "type": "order_words",
+              "prompt": "Build what you hear.",
+              "options": [
+                "hoy",
+                "Sí",
+                "es"
+              ],
+              "answer": [
+                1,
+                2,
+                0
+              ],
+              "audioTurn": 1,
+              "explanation": "Her birthday is today."
+            }
+          }
+        ]
+      },
+      "target": "es",
+      "prepare": false,
+      "valid": true
+    },
+    {
+      "raw": {
+        "title": "A surprise",
+        "segments": [
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "Tengo flores rojas.",
+                "support": "I have red flowers."
+              },
+              {
+                "speaker": "Luis",
+                "target": "Son para mi madre.",
+                "support": "They are for my mother."
+              }
+            ],
+            "question": {
+              "type": "choice",
+              "prompt": "What happens?",
+              "options": [
+                "Flores",
+                "Azules",
+                "Madre"
+              ],
+              "answer": [
+                0,
+                1
+              ],
+              "explanation": "Listen to the dialogue."
+            }
+          },
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "¿Es su cumpleaños?",
+                "support": "Is it her birthday?"
+              },
+              {
+                "speaker": "Luis",
+                "target": "Sí, es hoy.",
+                "support": "Yes, it is today."
+              }
+            ],
+            "question": {
+              "type": "order_words",
+              "prompt": "Build what you hear.",
+              "options": [
+                "hoy",
+                "Sí",
+                "es"
+              ],
+              "answer": [
+                1,
+                2,
+                0
+              ],
+              "audioTurn": 1,
+              "explanation": "Her birthday is today."
+            }
+          }
+        ]
+      },
+      "target": "es",
+      "prepare": false,
+      "valid": false
+    },
+    {
+      "raw": {
+        "title": "A surprise",
+        "segments": [
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "Tengo flores rojas.",
+                "support": "I have red flowers."
+              },
+              {
+                "speaker": "Luis",
+                "target": "Son para mi madre.",
+                "support": "They are for my mother."
+              }
+            ],
+            "question": {
+              "type": "true_false",
+              "prompt": "What happens?",
+              "options": [
+                "True",
+                "False"
+              ],
+              "answer": [
+                0
+              ],
+              "explanation": "Listen to the dialogue."
+            }
+          },
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "¿Es su cumpleaños?",
+                "support": "Is it her birthday?"
+              },
+              {
+                "speaker": "Luis",
+                "target": "Sí, es hoy.",
+                "support": "Yes, it is today."
+              }
+            ],
+            "question": {
+              "type": "order_words",
+              "prompt": "Build what you hear.",
+              "options": [
+                "hoy",
+                "Sí",
+                "es"
+              ],
+              "answer": [
+                1,
+                2,
+                0
+              ],
+              "audioTurn": 1,
+              "explanation": "Her birthday is today."
+            }
+          }
+        ]
+      },
+      "target": "es",
+      "prepare": false,
+      "valid": true
+    },
+    {
+      "raw": {
+        "title": "A surprise",
+        "segments": [
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "Tengo flores rojas.",
+                "support": "I have red flowers."
+              },
+              {
+                "speaker": "Luis",
+                "target": "Son para mi madre.",
+                "support": "They are for my mother."
+              }
+            ],
+            "question": {
+              "type": "true_false",
+              "prompt": "What happens?",
+              "options": [
+                "True",
+                "False"
+              ],
+              "answer": [
+                0,
+                1
+              ],
+              "explanation": "Listen to the dialogue."
+            }
+          },
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "¿Es su cumpleaños?",
+                "support": "Is it her birthday?"
+              },
+              {
+                "speaker": "Luis",
+                "target": "Sí, es hoy.",
+                "support": "Yes, it is today."
+              }
+            ],
+            "question": {
+              "type": "order_words",
+              "prompt": "Build what you hear.",
+              "options": [
+                "hoy",
+                "Sí",
+                "es"
+              ],
+              "answer": [
+                1,
+                2,
+                0
+              ],
+              "audioTurn": 1,
+              "explanation": "Her birthday is today."
+            }
+          }
+        ]
+      },
+      "target": "es",
+      "prepare": false,
+      "valid": false
+    },
+    {
+      "raw": {
+        "title": "A surprise",
+        "segments": [
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "Tengo flores rojas.",
+                "support": "I have red flowers."
+              },
+              {
+                "speaker": "Luis",
+                "target": "Son para mi madre.",
+                "support": "They are for my mother."
+              }
+            ],
+            "question": {
+              "type": "reply",
+              "prompt": "What happens?",
+              "options": [
+                "Flores",
+                "Azules",
+                "Madre"
+              ],
+              "answer": [
+                0
+              ],
+              "explanation": "Listen to the dialogue."
+            }
+          },
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "¿Es su cumpleaños?",
+                "support": "Is it her birthday?"
+              },
+              {
+                "speaker": "Luis",
+                "target": "Sí, es hoy.",
+                "support": "Yes, it is today."
+              }
+            ],
+            "question": {
+              "type": "order_words",
+              "prompt": "Build what you hear.",
+              "options": [
+                "hoy",
+                "Sí",
+                "es"
+              ],
+              "answer": [
+                1,
+                2,
+                0
+              ],
+              "audioTurn": 1,
+              "explanation": "Her birthday is today."
+            }
+          }
+        ]
+      },
+      "target": "es",
+      "prepare": false,
+      "valid": true
+    },
+    {
+      "raw": {
+        "title": "A surprise",
+        "segments": [
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "Tengo flores rojas.",
+                "support": "I have red flowers."
+              },
+              {
+                "speaker": "Luis",
+                "target": "Son para mi madre.",
+                "support": "They are for my mother."
+              }
+            ],
+            "question": {
+              "type": "reply",
+              "prompt": "What happens?",
+              "options": [
+                "Flores",
+                "Azules",
+                "Madre"
+              ],
+              "answer": [
+                0,
+                1
+              ],
+              "explanation": "Listen to the dialogue."
+            }
+          },
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "¿Es su cumpleaños?",
+                "support": "Is it her birthday?"
+              },
+              {
+                "speaker": "Luis",
+                "target": "Sí, es hoy.",
+                "support": "Yes, it is today."
+              }
+            ],
+            "question": {
+              "type": "order_words",
+              "prompt": "Build what you hear.",
+              "options": [
+                "hoy",
+                "Sí",
+                "es"
+              ],
+              "answer": [
+                1,
+                2,
+                0
+              ],
+              "audioTurn": 1,
+              "explanation": "Her birthday is today."
+            }
+          }
+        ]
+      },
+      "target": "es",
+      "prepare": false,
+      "valid": false
+    },
+    {
+      "raw": {
+        "title": "A surprise",
+        "segments": [
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "Tengo flores rojas.",
+                "support": "I have red flowers."
+              },
+              {
+                "speaker": "Luis",
+                "target": "Son para mi madre.",
+                "support": "They are for my mother."
+              }
+            ],
+            "question": {
+              "type": "select_words",
+              "prompt": "Select two words you hear.",
+              "options": [
+                "azules",
+                "flores",
+                "rojas",
+                "nunca"
+              ],
+              "answer": [
+                1,
+                2
+              ],
+              "audioTurn": 0,
+              "explanation": "Ana has red flowers."
+            }
+          },
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "¿Es su cumpleaños?",
+                "support": "Is it her birthday?"
+              },
+              {
+                "speaker": "Luis",
+                "target": "La fiesta empieza a las ocho de la noche.",
+                "support": "Yes, it is today."
+              }
+            ],
+            "question": {
+              "type": "order_words",
+              "prompt": "Build what you hear.",
+              "options": [
+                "las",
+                "a",
+                "empieza",
+                "la",
+                "noche",
+                "fiesta",
+                "de",
+                "a.m.chochte"
+              ],
+              "answer": [
+                5,
+                2,
+                1,
+                0,
+                6,
+                4
+              ],
+              "audioTurn": 1,
+              "explanation": "Her birthday is today."
+            }
+          }
+        ]
+      },
+      "target": "es",
+      "prepare": false,
+      "valid": false
+    },
+    {
+      "raw": {
+        "title": "A surprise",
+        "segments": [
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "Tengo flores rojas.",
+                "support": "I have red flowers."
+              },
+              {
+                "speaker": "Luis",
+                "target": "Son para mi madre.",
+                "support": "They are for my mother."
+              }
+            ],
+            "question": {
+              "type": "select_words",
+              "prompt": "Select two words you hear.",
+              "options": [
+                "azules",
+                "flores",
+                "rojas",
+                "nunca"
+              ],
+              "answer": [
+                1,
+                2
+              ],
+              "audioTurn": 0,
+              "explanation": "Ana has red flowers."
+            }
+          },
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "¿Es su cumpleaños?",
+                "support": "Is it her birthday?"
+              },
+              {
+                "speaker": "Luis",
+                "target": "La fiesta empieza a las ocho de la noche.",
+                "support": "Yes, it is today."
+              }
+            ],
+            "question": {
+              "type": "order_words",
+              "prompt": "Build what you hear.",
+              "options": [
+                "las",
+                "a",
+                "empieza",
+                "la",
+                "noche",
+                "fiesta",
+                "de",
+                "a.m.chochte"
+              ],
+              "answer": [
+                5,
+                2,
+                1,
+                0,
+                6,
+                4
+              ],
+              "audioTurn": 1,
+              "explanation": "Her birthday is today."
+            }
+          }
+        ]
+      },
+      "target": "es",
+      "prepare": true,
+      "valid": true
+    }
+  ],
+  "answers": [
+    {
+      "question": {
+        "type": "select_words",
+        "prompt": "Select two words you hear.",
+        "options": [
+          "azules",
+          "flores",
+          "rojas",
+          "nunca"
+        ],
+        "answer": [
+          1,
+          2
+        ],
+        "audioTurn": 0,
+        "explanation": "Ana has red flowers."
+      },
+      "selected": [],
+      "correct": false
+    },
+    {
+      "question": {
+        "type": "select_words",
+        "prompt": "Select two words you hear.",
+        "options": [
+          "azules",
+          "flores",
+          "rojas",
+          "nunca"
+        ],
+        "answer": [
+          1,
+          2
+        ],
+        "audioTurn": 0,
+        "explanation": "Ana has red flowers."
+      },
+      "selected": [
+        0
+      ],
+      "correct": false
+    },
+    {
+      "question": {
+        "type": "select_words",
+        "prompt": "Select two words you hear.",
+        "options": [
+          "azules",
+          "flores",
+          "rojas",
+          "nunca"
+        ],
+        "answer": [
+          1,
+          2
+        ],
+        "audioTurn": 0,
+        "explanation": "Ana has red flowers."
+      },
+      "selected": [
+        1
+      ],
+      "correct": false
+    },
+    {
+      "question": {
+        "type": "select_words",
+        "prompt": "Select two words you hear.",
+        "options": [
+          "azules",
+          "flores",
+          "rojas",
+          "nunca"
+        ],
+        "answer": [
+          1,
+          2
+        ],
+        "audioTurn": 0,
+        "explanation": "Ana has red flowers."
+      },
+      "selected": [
+        1,
+        2
+      ],
+      "correct": true
+    },
+    {
+      "question": {
+        "type": "select_words",
+        "prompt": "Select two words you hear.",
+        "options": [
+          "azules",
+          "flores",
+          "rojas",
+          "nunca"
+        ],
+        "answer": [
+          1,
+          2
+        ],
+        "audioTurn": 0,
+        "explanation": "Ana has red flowers."
+      },
+      "selected": [
+        2,
+        1
+      ],
+      "correct": true
+    },
+    {
+      "question": {
+        "type": "select_words",
+        "prompt": "Select two words you hear.",
+        "options": [
+          "azules",
+          "flores",
+          "rojas",
+          "nunca"
+        ],
+        "answer": [
+          1,
+          2
+        ],
+        "audioTurn": 0,
+        "explanation": "Ana has red flowers."
+      },
+      "selected": [
+        1,
+        1
+      ],
+      "correct": false
+    },
+    {
+      "question": {
+        "type": "select_words",
+        "prompt": "Select two words you hear.",
+        "options": [
+          "azules",
+          "flores",
+          "rojas",
+          "nunca"
+        ],
+        "answer": [
+          1,
+          2
+        ],
+        "audioTurn": 0,
+        "explanation": "Ana has red flowers."
+      },
+      "selected": [
+        1,
+        2,
+        0
+      ],
+      "correct": false
+    },
+    {
+      "question": {
+        "type": "select_words",
+        "prompt": "Select two words you hear.",
+        "options": [
+          "azules",
+          "flores",
+          "rojas",
+          "nunca"
+        ],
+        "answer": [
+          1,
+          2
+        ],
+        "audioTurn": 0,
+        "explanation": "Ana has red flowers."
+      },
+      "selected": [
+        0,
+        1,
+        2
+      ],
+      "correct": false
+    },
+    {
+      "question": {
+        "type": "order_words",
+        "prompt": "Build what you hear.",
+        "options": [
+          "hoy",
+          "Sí",
+          "es"
+        ],
+        "answer": [
+          1,
+          2,
+          0
+        ],
+        "audioTurn": 1,
+        "explanation": "Her birthday is today."
+      },
+      "selected": [],
+      "correct": false
+    },
+    {
+      "question": {
+        "type": "order_words",
+        "prompt": "Build what you hear.",
+        "options": [
+          "hoy",
+          "Sí",
+          "es"
+        ],
+        "answer": [
+          1,
+          2,
+          0
+        ],
+        "audioTurn": 1,
+        "explanation": "Her birthday is today."
+      },
+      "selected": [
+        0
+      ],
+      "correct": false
+    },
+    {
+      "question": {
+        "type": "order_words",
+        "prompt": "Build what you hear.",
+        "options": [
+          "hoy",
+          "Sí",
+          "es"
+        ],
+        "answer": [
+          1,
+          2,
+          0
+        ],
+        "audioTurn": 1,
+        "explanation": "Her birthday is today."
+      },
+      "selected": [
+        1
+      ],
+      "correct": false
+    },
+    {
+      "question": {
+        "type": "order_words",
+        "prompt": "Build what you hear.",
+        "options": [
+          "hoy",
+          "Sí",
+          "es"
+        ],
+        "answer": [
+          1,
+          2,
+          0
+        ],
+        "audioTurn": 1,
+        "explanation": "Her birthday is today."
+      },
+      "selected": [
+        1,
+        2
+      ],
+      "correct": false
+    },
+    {
+      "question": {
+        "type": "order_words",
+        "prompt": "Build what you hear.",
+        "options": [
+          "hoy",
+          "Sí",
+          "es"
+        ],
+        "answer": [
+          1,
+          2,
+          0
+        ],
+        "audioTurn": 1,
+        "explanation": "Her birthday is today."
+      },
+      "selected": [
+        2,
+        1
+      ],
+      "correct": false
+    },
+    {
+      "question": {
+        "type": "order_words",
+        "prompt": "Build what you hear.",
+        "options": [
+          "hoy",
+          "Sí",
+          "es"
+        ],
+        "answer": [
+          1,
+          2,
+          0
+        ],
+        "audioTurn": 1,
+        "explanation": "Her birthday is today."
+      },
+      "selected": [
+        1,
+        1
+      ],
+      "correct": false
+    },
+    {
+      "question": {
+        "type": "order_words",
+        "prompt": "Build what you hear.",
+        "options": [
+          "hoy",
+          "Sí",
+          "es"
+        ],
+        "answer": [
+          1,
+          2,
+          0
+        ],
+        "audioTurn": 1,
+        "explanation": "Her birthday is today."
+      },
+      "selected": [
+        1,
+        2,
+        0
+      ],
+      "correct": true
+    },
+    {
+      "question": {
+        "type": "order_words",
+        "prompt": "Build what you hear.",
+        "options": [
+          "hoy",
+          "Sí",
+          "es"
+        ],
+        "answer": [
+          1,
+          2,
+          0
+        ],
+        "audioTurn": 1,
+        "explanation": "Her birthday is today."
+      },
+      "selected": [
+        0,
+        1,
+        2
+      ],
+      "correct": false
+    }
+  ],
+  "tiles": [
+    {
+      "text": "Sí, es hoy.",
+      "canonical": "Sí es hoy"
+    },
+    {
+      "text": "Muy, muy, muy bien.",
+      "canonical": "Muy muy muy bien"
+    },
+    {
+      "text": "La casa es bonita y la casa es grande.",
+      "canonical": "La casa es bonita y la casa es grande"
+    },
+    {
+      "text": "今日は母の誕生日です。",
+      "canonical": "今日 は 母 の 誕生 日 です"
+    },
+    {
+      "text": "今天是她的生日。",
+      "canonical": "今天是 她的 生日"
+    },
+    {
+      "text": "هذا البيت جميل جدا",
+      "canonical": "هذا البيت جميل جدا"
+    }
+  ],
+  "modes": [
+    {
+      "content": null,
+      "random": 0,
+      "selected": "speaking",
+      "rotated": "radio"
+    },
+    {
+      "content": null,
+      "random": 0.4,
+      "selected": "radio",
+      "rotated": "radio"
+    },
+    {
+      "content": null,
+      "random": 0.9,
+      "selected": "conversation",
+      "rotated": "conversation"
+    },
+    {
+      "content": {
+        "topic": "tutorial",
+        "storyMode": "radio"
+      },
+      "random": 0,
+      "selected": "speaking",
+      "rotated": "speaking"
+    },
+    {
+      "content": {
+        "topic": "tutorial",
+        "storyMode": "radio"
+      },
+      "random": 0.4,
+      "selected": "speaking",
+      "rotated": "speaking"
+    },
+    {
+      "content": {
+        "topic": "tutorial",
+        "storyMode": "radio"
+      },
+      "random": 0.9,
+      "selected": "speaking",
+      "rotated": "speaking"
+    },
+    {
+      "content": {
+        "storyMode": "radio"
+      },
+      "random": 0,
+      "selected": "radio",
+      "rotated": "radio"
+    },
+    {
+      "content": {
+        "storyMode": "radio"
+      },
+      "random": 0.4,
+      "selected": "radio",
+      "rotated": "radio"
+    },
+    {
+      "content": {
+        "storyMode": "radio"
+      },
+      "random": 0.9,
+      "selected": "radio",
+      "rotated": "radio"
+    }
+  ],
+  "speech": [
+    {
+      "input": {
+        "lang": "es",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "Hola, tengo flores rojas.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "es",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "Hola, tengo flores rojas.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "es",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "Hola, tengo flores rojas.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "es",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "HOLA, TENGO FLORES ROJAS.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "es",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "HOLA, TENGO FLORES ROJAS.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "es",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "HOLA, TENGO FLORES ROJAS.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "es",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": false,
+        "score": 40,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.2608695652173913,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "es",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 40,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1",
+          "low-confidence"
+        ],
+        "charSim": 0.2608695652173913,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "es",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": false,
+        "score": 45,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.2608695652173913,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "es",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "The flowers are for my mother.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "es",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "The flowers are for my mother.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "es",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "The flowers are for my mother.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "es",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "THE FLOWERS ARE FOR MY MOTHER.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "es",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "THE FLOWERS ARE FOR MY MOTHER.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "es",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "THE FLOWERS ARE FOR MY MOTHER.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "es",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": false,
+        "score": 44,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.20689655172413793,
+        "f1": 0.2,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "es",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 44,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1",
+          "low-confidence"
+        ],
+        "charSim": 0.20689655172413793,
+        "f1": 0.2,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "es",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": false,
+        "score": 49,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.20689655172413793,
+        "f1": 0.2,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "es",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "Café, café, muy bonito.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8500000000000001,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "es",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "Café, café, muy bonito.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8500000000000001,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "es",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "Café, café, muy bonito.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8500000000000001,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "es",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "CAFÉ, CAFÉ, MUY BONITO.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8500000000000001,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "es",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "CAFÉ, CAFÉ, MUY BONITO.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8500000000000001,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "es",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "CAFÉ, CAFÉ, MUY BONITO.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8500000000000001,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "es",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": false,
+        "score": 30,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.1,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "es",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 30,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1",
+          "low-confidence"
+        ],
+        "charSim": 0.1,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "es",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": false,
+        "score": 36,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.1,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "es",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "Sí, es hoy.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "es",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "Sí, es hoy.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "es",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "Sí, es hoy.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "es",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "SÍ, ES HOY.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "es",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "SÍ, ES HOY.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "es",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "SÍ, ES HOY.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "es",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": false,
+        "score": 36,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.2,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "es",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 36,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1",
+          "low-confidence"
+        ],
+        "charSim": 0.2,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "es",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": false,
+        "score": 42,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.2,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "en",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "Hola, tengo flores rojas.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "en",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "Hola, tengo flores rojas.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "en",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "Hola, tengo flores rojas.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "en",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "HOLA, TENGO FLORES ROJAS.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "en",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "HOLA, TENGO FLORES ROJAS.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "en",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "HOLA, TENGO FLORES ROJAS.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "en",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": false,
+        "score": 41,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.2608695652173913,
+        "f1": 0,
+        "langLike": 0.8500000000000001,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "en",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 41,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1",
+          "low-confidence"
+        ],
+        "charSim": 0.2608695652173913,
+        "f1": 0,
+        "langLike": 0.8500000000000001,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "en",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": false,
+        "score": 46,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.2608695652173913,
+        "f1": 0,
+        "langLike": 0.8500000000000001,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "en",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "The flowers are for my mother.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.9333333333333333,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "en",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "The flowers are for my mother.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.9333333333333333,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "en",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "The flowers are for my mother.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.9333333333333333,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "en",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "THE FLOWERS ARE FOR MY MOTHER.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.9333333333333333,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "en",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "THE FLOWERS ARE FOR MY MOTHER.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.9333333333333333,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "en",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "THE FLOWERS ARE FOR MY MOTHER.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.9333333333333333,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "en",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": false,
+        "score": 38,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.20689655172413793,
+        "f1": 0,
+        "langLike": 0.8500000000000001,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "en",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 38,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1",
+          "low-confidence"
+        ],
+        "charSim": 0.20689655172413793,
+        "f1": 0,
+        "langLike": 0.8500000000000001,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "en",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": false,
+        "score": 43,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.20689655172413793,
+        "f1": 0,
+        "langLike": 0.8500000000000001,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "en",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "Café, café, muy bonito.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "en",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "Café, café, muy bonito.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "en",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "Café, café, muy bonito.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "en",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "CAFÉ, CAFÉ, MUY BONITO.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "en",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "CAFÉ, CAFÉ, MUY BONITO.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "en",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "CAFÉ, CAFÉ, MUY BONITO.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "en",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": false,
+        "score": 31,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.1,
+        "f1": 0,
+        "langLike": 0.8500000000000001,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "en",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 31,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1",
+          "low-confidence"
+        ],
+        "charSim": 0.1,
+        "f1": 0,
+        "langLike": 0.8500000000000001,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "en",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": false,
+        "score": 37,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.1,
+        "f1": 0,
+        "langLike": 0.8500000000000001,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "en",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "Sí, es hoy.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "en",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "Sí, es hoy.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "en",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "Sí, es hoy.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "en",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "SÍ, ES HOY.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "en",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "SÍ, ES HOY.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "en",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "SÍ, ES HOY.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "en",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": false,
+        "score": 37,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.2,
+        "f1": 0,
+        "langLike": 0.8500000000000001,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "en",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 37,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1",
+          "low-confidence"
+        ],
+        "charSim": 0.2,
+        "f1": 0,
+        "langLike": 0.8500000000000001,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "en",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": false,
+        "score": 43,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.2,
+        "f1": 0,
+        "langLike": 0.8500000000000001,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "pt",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "Hola, tengo flores rojas.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "pt",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "Hola, tengo flores rojas.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "pt",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "Hola, tengo flores rojas.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "pt",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "HOLA, TENGO FLORES ROJAS.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "pt",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "HOLA, TENGO FLORES ROJAS.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "pt",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "HOLA, TENGO FLORES ROJAS.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "pt",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": false,
+        "score": 40,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.2608695652173913,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "pt",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 40,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1",
+          "low-confidence"
+        ],
+        "charSim": 0.2608695652173913,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "pt",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": false,
+        "score": 45,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.2608695652173913,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "pt",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "The flowers are for my mother.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "pt",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "The flowers are for my mother.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "pt",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "The flowers are for my mother.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "pt",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "THE FLOWERS ARE FOR MY MOTHER.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "pt",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "THE FLOWERS ARE FOR MY MOTHER.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "pt",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "THE FLOWERS ARE FOR MY MOTHER.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "pt",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": false,
+        "score": 44,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.20689655172413793,
+        "f1": 0.2,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "pt",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 44,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1",
+          "low-confidence"
+        ],
+        "charSim": 0.20689655172413793,
+        "f1": 0.2,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "pt",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": false,
+        "score": 49,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.20689655172413793,
+        "f1": 0.2,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "pt",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "Café, café, muy bonito.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "pt",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "Café, café, muy bonito.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "pt",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "Café, café, muy bonito.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "pt",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "CAFÉ, CAFÉ, MUY BONITO.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "pt",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "CAFÉ, CAFÉ, MUY BONITO.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "pt",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "CAFÉ, CAFÉ, MUY BONITO.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "pt",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": false,
+        "score": 30,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.1,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "pt",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 30,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1",
+          "low-confidence"
+        ],
+        "charSim": 0.1,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "pt",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": false,
+        "score": 36,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.1,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "pt",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "Sí, es hoy.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "pt",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "Sí, es hoy.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "pt",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "Sí, es hoy.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "pt",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "SÍ, ES HOY.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "pt",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "SÍ, ES HOY.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "pt",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "SÍ, ES HOY.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "pt",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": false,
+        "score": 36,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.2,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "pt",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 36,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1",
+          "low-confidence"
+        ],
+        "charSim": 0.2,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "pt",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": false,
+        "score": 42,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.2,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "fr",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "Hola, tengo flores rojas.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "fr",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "Hola, tengo flores rojas.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "fr",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "Hola, tengo flores rojas.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "fr",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "HOLA, TENGO FLORES ROJAS.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "fr",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "HOLA, TENGO FLORES ROJAS.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "fr",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "HOLA, TENGO FLORES ROJAS.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "fr",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": false,
+        "score": 40,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.2608695652173913,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "fr",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 40,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1",
+          "low-confidence"
+        ],
+        "charSim": 0.2608695652173913,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "fr",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": false,
+        "score": 45,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.2608695652173913,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "fr",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "The flowers are for my mother.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "fr",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "The flowers are for my mother.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "fr",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "The flowers are for my mother.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "fr",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "THE FLOWERS ARE FOR MY MOTHER.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "fr",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "THE FLOWERS ARE FOR MY MOTHER.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "fr",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "THE FLOWERS ARE FOR MY MOTHER.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "fr",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": false,
+        "score": 44,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.20689655172413793,
+        "f1": 0.2,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "fr",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 44,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1",
+          "low-confidence"
+        ],
+        "charSim": 0.20689655172413793,
+        "f1": 0.2,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "fr",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": false,
+        "score": 49,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.20689655172413793,
+        "f1": 0.2,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "fr",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "Café, café, muy bonito.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "fr",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "Café, café, muy bonito.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "fr",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "Café, café, muy bonito.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "fr",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "CAFÉ, CAFÉ, MUY BONITO.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "fr",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "CAFÉ, CAFÉ, MUY BONITO.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "fr",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "CAFÉ, CAFÉ, MUY BONITO.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "fr",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": false,
+        "score": 30,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.1,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "fr",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 30,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1",
+          "low-confidence"
+        ],
+        "charSim": 0.1,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "fr",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": false,
+        "score": 36,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.1,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "fr",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "Sí, es hoy.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8666666666666667,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "fr",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "Sí, es hoy.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8666666666666667,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "fr",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "Sí, es hoy.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8666666666666667,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "fr",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "SÍ, ES HOY.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8666666666666667,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "fr",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "SÍ, ES HOY.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8666666666666667,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "fr",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "SÍ, ES HOY.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8666666666666667,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "fr",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": false,
+        "score": 36,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.2,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "fr",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 36,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1",
+          "low-confidence"
+        ],
+        "charSim": 0.2,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "fr",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": false,
+        "score": 42,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.2,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "it",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "Hola, tengo flores rojas.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "it",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "Hola, tengo flores rojas.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "it",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "Hola, tengo flores rojas.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "it",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "HOLA, TENGO FLORES ROJAS.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "it",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "HOLA, TENGO FLORES ROJAS.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "it",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "HOLA, TENGO FLORES ROJAS.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "it",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": false,
+        "score": 40,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.2608695652173913,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "it",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 40,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1",
+          "low-confidence"
+        ],
+        "charSim": 0.2608695652173913,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "it",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": false,
+        "score": 45,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.2608695652173913,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "it",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "The flowers are for my mother.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "it",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "The flowers are for my mother.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "it",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "The flowers are for my mother.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "it",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "THE FLOWERS ARE FOR MY MOTHER.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "it",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "THE FLOWERS ARE FOR MY MOTHER.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "it",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "THE FLOWERS ARE FOR MY MOTHER.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "it",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": false,
+        "score": 44,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.20689655172413793,
+        "f1": 0.2,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "it",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 44,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1",
+          "low-confidence"
+        ],
+        "charSim": 0.20689655172413793,
+        "f1": 0.2,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "it",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": false,
+        "score": 49,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.20689655172413793,
+        "f1": 0.2,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "it",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "Café, café, muy bonito.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "it",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "Café, café, muy bonito.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "it",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "Café, café, muy bonito.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "it",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "CAFÉ, CAFÉ, MUY BONITO.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "it",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "CAFÉ, CAFÉ, MUY BONITO.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "it",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "CAFÉ, CAFÉ, MUY BONITO.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "it",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": false,
+        "score": 30,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.1,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "it",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 30,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1",
+          "low-confidence"
+        ],
+        "charSim": 0.1,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "it",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": false,
+        "score": 36,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.1,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "it",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "Sí, es hoy.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8666666666666667,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "it",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "Sí, es hoy.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8666666666666667,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "it",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "Sí, es hoy.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8666666666666667,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "it",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "SÍ, ES HOY.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8666666666666667,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "it",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "SÍ, ES HOY.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8666666666666667,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "it",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "SÍ, ES HOY.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8666666666666667,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "it",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": false,
+        "score": 36,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.2,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "it",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 36,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1",
+          "low-confidence"
+        ],
+        "charSim": 0.2,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "it",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": false,
+        "score": 42,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.2,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "nl",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "Hola, tengo flores rojas.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "nl",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "Hola, tengo flores rojas.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "nl",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "Hola, tengo flores rojas.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "nl",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "HOLA, TENGO FLORES ROJAS.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "nl",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "HOLA, TENGO FLORES ROJAS.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "nl",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "HOLA, TENGO FLORES ROJAS.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "nl",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": false,
+        "score": 40,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.2608695652173913,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "nl",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 40,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1",
+          "low-confidence"
+        ],
+        "charSim": 0.2608695652173913,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "nl",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": false,
+        "score": 45,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.2608695652173913,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "nl",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "The flowers are for my mother.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "nl",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "The flowers are for my mother.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "nl",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "The flowers are for my mother.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "nl",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "THE FLOWERS ARE FOR MY MOTHER.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "nl",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "THE FLOWERS ARE FOR MY MOTHER.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "nl",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "THE FLOWERS ARE FOR MY MOTHER.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "nl",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": false,
+        "score": 44,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.20689655172413793,
+        "f1": 0.2,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "nl",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 44,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1",
+          "low-confidence"
+        ],
+        "charSim": 0.20689655172413793,
+        "f1": 0.2,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "nl",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": false,
+        "score": 49,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.20689655172413793,
+        "f1": 0.2,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "nl",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "Café, café, muy bonito.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "nl",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "Café, café, muy bonito.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "nl",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "Café, café, muy bonito.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "nl",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "CAFÉ, CAFÉ, MUY BONITO.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "nl",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "CAFÉ, CAFÉ, MUY BONITO.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "nl",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "CAFÉ, CAFÉ, MUY BONITO.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "nl",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": false,
+        "score": 30,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.1,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "nl",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 30,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1",
+          "low-confidence"
+        ],
+        "charSim": 0.1,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "nl",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": false,
+        "score": 36,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.1,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "nl",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "Sí, es hoy.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "nl",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "Sí, es hoy.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "nl",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "Sí, es hoy.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "nl",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "SÍ, ES HOY.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "nl",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "SÍ, ES HOY.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "nl",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "SÍ, ES HOY.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "nl",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": false,
+        "score": 36,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.2,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "nl",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 36,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1",
+          "low-confidence"
+        ],
+        "charSim": 0.2,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "nl",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": false,
+        "score": 42,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.2,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "nah",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "Hola, tengo flores rojas.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "nah",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "Hola, tengo flores rojas.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "nah",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "Hola, tengo flores rojas.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "nah",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "HOLA, TENGO FLORES ROJAS.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "nah",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "HOLA, TENGO FLORES ROJAS.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "nah",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "HOLA, TENGO FLORES ROJAS.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "nah",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": false,
+        "score": 40,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.2608695652173913,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "nah",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 40,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1",
+          "low-confidence"
+        ],
+        "charSim": 0.2608695652173913,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "nah",
+        "targetSentence": "Hola, tengo flores rojas.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": false,
+        "score": 45,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.2608695652173913,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "nah",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "The flowers are for my mother.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "nah",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "The flowers are for my mother.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "nah",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "The flowers are for my mother.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "nah",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "THE FLOWERS ARE FOR MY MOTHER.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "nah",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "THE FLOWERS ARE FOR MY MOTHER.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "nah",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "THE FLOWERS ARE FOR MY MOTHER.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "nah",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": false,
+        "score": 44,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.20689655172413793,
+        "f1": 0.2,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "nah",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 44,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1",
+          "low-confidence"
+        ],
+        "charSim": 0.20689655172413793,
+        "f1": 0.2,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "nah",
+        "targetSentence": "The flowers are for my mother.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": false,
+        "score": 49,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.20689655172413793,
+        "f1": 0.2,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "nah",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "Café, café, muy bonito.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "nah",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "Café, café, muy bonito.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "nah",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "Café, café, muy bonito.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "nah",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "CAFÉ, CAFÉ, MUY BONITO.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "nah",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "CAFÉ, CAFÉ, MUY BONITO.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "nah",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "CAFÉ, CAFÉ, MUY BONITO.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "nah",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": false,
+        "score": 30,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.1,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "nah",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 30,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1",
+          "low-confidence"
+        ],
+        "charSim": 0.1,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "nah",
+        "targetSentence": "Café, café, muy bonito.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": false,
+        "score": 36,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.1,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "nah",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "Sí, es hoy.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "nah",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "Sí, es hoy.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "nah",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "Sí, es hoy.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "nah",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "SÍ, ES HOY.",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "nah",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "SÍ, ES HOY.",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 100,
+        "reasons": [
+          "low-confidence"
+        ],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "nah",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "SÍ, ES HOY.",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": true,
+        "score": 100,
+        "reasons": [],
+        "charSim": 1,
+        "f1": 1,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    },
+    {
+      "input": {
+        "lang": "nah",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0
+      },
+      "expected": {
+        "pass": false,
+        "score": 36,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.2,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0
+      }
+    },
+    {
+      "input": {
+        "lang": "nah",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.2
+      },
+      "expected": {
+        "pass": false,
+        "score": 36,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1",
+          "low-confidence"
+        ],
+        "charSim": 0.2,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0.2
+      }
+    },
+    {
+      "input": {
+        "lang": "nah",
+        "targetSentence": "Sí, es hoy.",
+        "recognizedText": "not the right phrase",
+        "confidence": 0.9
+      },
+      "expected": {
+        "pass": false,
+        "score": 42,
+        "reasons": [
+          "low-char-sim",
+          "low-word-f1"
+        ],
+        "charSim": 0.2,
+        "f1": 0,
+        "langLike": 0.8,
+        "confidence": 0.9
+      }
+    }
+  ]
+}

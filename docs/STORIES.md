@@ -1,0 +1,21 @@
+# Native story activities
+
+Stories now use the main web app's three activity modes: sentence practice, a radio call and a character conversation. The lesson can pin a mode; the introduction pins sentence practice. Otherwise a new story rotates away from the previous mode. Writing prompts are exported from the reference without modifying it, retaining the cast, connected encounter, CEFR accessibility and target/support-language assignments.
+
+Radio and conversation episodes contain two consistent speakers and two to four parts. They support choice, true/false, reply, select-heard-words and word-order checkpoints. The native validator checks the whole episode before display, including answer indices, distinct options, listening excerpts, full word-tile reconstruction and the target script. Word tiles come from the actual dialogue rather than model-supplied tile order. Dialogue playback pauses for the learner's `You` turns; learners can practice those words or skip speaking. Reading the dialogue is available when audio cannot be used. Translation, excerpt replay and saving the story to notes are available without extra rewards.
+
+Finishing a comprehension episode awards **6 XP once**, including episodes with missed checkpoints, and does not assess the global Score. Sentence practice awards **2 XP once per successfully practiced line**. A successful line uses a CEFR fallback worth captured when its story was generated; finalization adds no further XP. A missed sentence captures companion memory and grants neither XP nor a Score penalty, matching the source. Typed practice checks wording. Spoken practice additionally checks recognition confidence and recording quality; neither is presented as a phonetic pronunciation rating.
+
+Native speech evaluation uses the exported web thresholds and stopwords. The source helper's Latin-only language likelihood rejects correctly matched non-Latin sentences; the native implementation checks Arabic, Greek, Devanagari, Japanese, Cyrillic and Chinese scripts when the expected line uses that script. This correction is covered explicitly rather than described as exact parity with that browser defect.
+
+Drafts retain part/line, selected options, answers, spoken-role visits, line claims and completion across relaunches. They are scoped to language, support language, lesson, level and mode. Draft storage retains up to three languages within a byte budget; recent story context is bounded separately. Draft edits use the existing private snapshot synchronization and last writer wins. Stable transaction receipts protect XP and successful-line Score claims across simultaneous devices, independently of snapshot edits. Private analytics use `users/{npub}/storyTurns`; production rules permit only that learner to read or write them.
+
+Generation uses Firebase Gemini JSON schemas and the authenticated Cloudflare fallback. The worker accepts only the fixed `story_episode` and `story_speaking` profiles. Invalid episodes are regenerated once before an error is shown; exact recent dialogue repeats are rejected. Truncated Gemini results are rejected. The existing provider limits, App Check, Firebase identity and rate limits remain in effect.
+
+## Verification
+
+- Core comparisons cover 28 executed source episode validations, 16 answers, six full tile sentences, nine mode cases and 252 speech evaluations. Additional tests cover non-Latin scripts, recording quality, language isolation, persisted drafts, in-flight changes, six-XP completion and once-only line rewards.
+- Both simulator UI tests passed: listening selection and word ordering with a missed checkpoint and relaunches, followed by a single six-XP reward; and a missed sentence, retry, successful typed practice, relaunch, skipped line and a single two-XP reward.
+- Backend tests cover the fixed output schemas and private story-record ownership, including guest/other-account denial.
+
+The full Firestore SDK concurrency suite passed. The opt-in live check passed all three modes and the fixed-schema Responses fallback; one invalid listening checkpoint was rejected and regenerated successfully. Physical-device microphone quality, native voice availability and real paid membership remain device/account verification boundaries. The scoped offline UI fixture supplies only test content and never grants a production subscription.

@@ -19,6 +19,18 @@ test('native RPG profiles use fixed strict schemas and bounded requested reasoni
  for(const bad of [{outputProfile:'unknown'},{reasoning:{effort:'high'}},{reasoning:{effort:42}}]) assert.throws(()=>responsesBody({...input,...bad},env));
  assert.equal(responsesBody({...input,reasoning:{effort:'medium'}},env).reasoning.effort,'medium');
 });
+test('native story profiles constrain complete dialogues, listening checkpoints and speaking lines',()=>{
+ for(const profile of ['story_episode','story_speaking']) {
+  const body=responsesBody({...input,outputProfile:profile,text:{format:{type:'json_object',schema:{arbitrary:true}}}},env);
+  assert.equal(body.text.format.strict,true);assert.equal(body.text.format.schema.additionalProperties,false);assert.equal(body.text.format.schema.arbitrary,undefined);
+ }
+ const episode=responsesBody({...input,outputProfile:'story_episode'},env).text.format.schema;
+ assert.equal(episode.properties.segments.minItems,2);assert.equal(episode.properties.segments.maxItems,4);
+ const question=episode.properties.segments.items.properties.question;
+ assert.deepEqual(question.properties.type.enum,['choice','true_false','select_words','order_words','reply']);assert.equal(question.properties.audioTurn.maximum,5);
+ const speaking=responsesBody({...input,outputProfile:'story_speaking'},env).text.format.schema;
+ assert.equal(speaking.properties.sentences.maxItems,10);
+});
 test('tutor requires App Check and native Firebase ownership before upstream calls',async()=>{
  let calls=0;const fetcher=async()=>{calls++;return Response.json({output:[]});};
  const checkDenied=handler(async()=>{throw Error();},async()=> 'npub',fetcher);

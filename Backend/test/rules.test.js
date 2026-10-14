@@ -27,6 +27,10 @@ test('production rules isolate Nostr-authenticated learners and protect subscrip
     await assertSucceeds(getDocs(collection(db,'users',npub,'achievementProgress','nosabos','events')));
     await assertSucceeds(setDoc(doc(db,'users',npub,'achievementMigrations','nosabos_v1'),{complete:true,version:1}));
     await assertSucceeds(setDoc(doc(db,'users',npub,'alphabetPractice','es_card'),{correctCount:1}));
+    await assertSucceeds(setDoc(doc(db,'users',npub,'storyTurns','line'),{source:'nosabos',origin:'story',xpAwarded:2}));
+    await assertSucceeds(getDoc(doc(db,'users',npub,'storyTurns','line')));
+    await assertFails(getDoc(doc(guest,'users',npub,'storyTurns','line')));
+    await assertFails(setDoc(doc(db,'users',other,'storyTurns','line'),{xpAwarded:2}));
     await assertFails(getDoc(doc(guest,'users',npub,'achievements','nosabos_flashcards_completed_5')));
     await assertFails(setDoc(doc(db,'users',other,'achievementProgress','nosabos','events','one'),{source:'nosabos'}));
     await assertFails(setDoc(doc(db,'users',npub,'achievementProgress','robotsbuildingeducation','events','one'),{source:'robotsbuildingeducation'}));

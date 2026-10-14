@@ -9,6 +9,34 @@ import NostrSDK
 
 /// Explicit opt-in only. Uses an isolated test identity, bounded prompts and no paid access grant.
 @MainActor final class LiveAPIIntegrationTests: XCTestCase {
+    func testNativeStoryModesAndStrictResponsesFallback() async throws {
+        guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else { throw XCTSkip("Explicit live API opt-in required.") }
+        XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))
+        if FirebaseApp.app() == nil { AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure() };XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let identity=IdentityService();try identity.create();try await FirebaseIdentityService.shared.ensure(identity)
+        do {
+            var state=LearnerState();state.target="es";state.support="en";state.level="A1";state.goal="Resolve a small family misunderstanding"
+            let ai=AIService()
+            for mode in StoryMode.allCases {
+                var verified:StoryRun?,failure:Error=StoryFailure.invalid
+                for attempt in 0..<2 {
+                    do {
+                        let payload=try await ai.storyPayload(mode:mode,lesson:nil,state:state,level:"A1",tutorial:false,recent:[],repair:attempt == 1)
+                        print("LIVE STORY CANDIDATE: mode=\(mode.rawValue), attempt=\(attempt+1), segments=\(payload["segments"].array.count), lines=\(payload["sentences"].array.count)")
+                        verified=try StoryRun(payload:payload,mode:mode,target:"es",support:"en",level:"A1",lessonID:nil,worth:.null);break
+                    } catch { failure=error;print("LIVE STORY REGENERATION: mode=\(mode.rawValue), attempt=\(attempt+1), validation=\(error.localizedDescription)") }
+                }
+                guard let run=verified else { throw failure }
+                XCTAssertFalse(run.text.isEmpty);XCTAssertTrue(run.count >= 2)
+            }
+            let values=AppConfiguration().values.merging(["AIProvider":"responses"]) { _,new in new }
+            let fallback=AIService(configuration:AppConfiguration(values:values))
+            let payload=try await fallback.storyPayload(mode:.radio,lesson:nil,state:state,level:"A1",tutorial:false,recent:[],repair:false)
+            XCTAssertNoThrow(try StoryRun(payload:payload,mode:.radio,target:"es",support:"en",level:"A1",lessonID:nil,worth:.null))
+            print("LIVE NATIVE: three story modes and fixed-schema Responses fallback passed")
+        } catch { try? await Auth.auth().currentUser?.delete();try? Auth.auth().signOut();try? identity.disconnect();throw error }
+        try await Auth.auth().currentUser?.delete();try Auth.auth().signOut();try identity.disconnect()
+    }
     func testNativeRemoteSignerAuthenticatesWithActualUserAndWebRestoreDeniesUnlinkedAccount() async throws {
         guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else { throw XCTSkip("Explicit live API opt-in required.") }
         XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))

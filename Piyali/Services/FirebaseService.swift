@@ -225,7 +225,7 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
         }
     }
     private func apply(_ change: PracticeChange, state: LearnerState, user: DocumentReference, database: Firestore) async throws {
-        let stable = [.lesson,.goal,.repair,.plateBonus,.speak,.phonics].contains(change.source) ? "\(change.source.rawValue):\(change.target):\(change.source == .plateBonus ? change.dayKey : change.source == .phonics ? change.dayKey + ":" + (change.contentID ?? change.id.uuidString) : change.contentID ?? change.id.uuidString)" : change.id.uuidString
+        let stable = [.lesson,.goal,.repair,.plateBonus,.speak,.phonics,.storyTurn,.storyCompletion].contains(change.source) ? "\(change.source.rawValue):\(change.target):\(change.source == .plateBonus ? change.dayKey : change.source == .phonics ? change.dayKey + ":" + (change.contentID ?? change.id.uuidString) : change.contentID ?? change.id.uuidString)" : change.id.uuidString
         let receiptID = SHA256.hash(data:Data(stable.utf8)).map { String(format:"%02x",$0) }.joined()
         let receipt = user.collection("iosPracticeReceipts").document(receiptID)
         let month = user.collection("xpHistory").document(String(change.dayKey.prefix(7)))
@@ -327,6 +327,7 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                 }
                 if let goalClaim,let goalID,!goalClaimed { transaction.setData(["source":"conversation-goal","completionId":goalID,"amount":accepted.amount-min(3,max(0,change.amount)),"syncedAt":FieldValue.serverTimestamp()],forDocument:goalClaim) }
                 if let goalEvent,let goalID,!goalRecorded { transaction.setData(["source":"nosabos","metric":"conversation_goals","completionId":goalID,"version":1],forDocument:goalEvent) }
+                if let proof=change.storyProof { var record=proof.foundation as? [String:Any] ?? [:];record["source"]="nosabos";record["createdAt"]=FieldValue.serverTimestamp();record["createdAtClient"]=Int(change.date.timeIntervalSince1970*1000);transaction.setData(record,forDocument:user.collection("storyTurns").document(receiptID)) }
                 transaction.setData(["eventID":change.id.uuidString,"source":change.source.rawValue,"targetLang":change.target,"amount":accepted.amount,"practicedAt":WebProgressContract.iso(change.date),"syncedAt":FieldValue.serverTimestamp()],forDocument:receipt)
                 return true
             } catch { errorPointer?.pointee = error as NSError; return nil }

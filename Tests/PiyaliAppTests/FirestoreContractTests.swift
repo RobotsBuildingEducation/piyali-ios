@@ -664,4 +664,26 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
         XCTAssertEqual(restored.cardReviews?["fr:a1-greet-1"]?.reviewCount,5)
         XCTAssertFalse(restored.cardReviews?["fr:a1-greet-1"]?.isDue() ?? true)
     }
+    func testStoryLineAndEpisodeRewardsAreClaimedOnceAcrossDevicesWithPrivateProofs() async throws {
+        let (service,db,npub)=try context();try await seed(db,npub)
+        var base=try requireState(try await service.load(npub:npub));base.target="es";base.support="en";base.level="A1";base.preferencesModifiedAt=Date()
+        let payload=try ContentLibrary.load(JSONValue.self,name:"story-test-episode"),lines=payload["segments"].array.flatMap { $0["turns"].array }
+        let spoken=try StoryRun(payload:.object(["title":payload["title"],"sentences":.array(lines+lines)]),mode:.speaking,target:"es",support:"en",level:"A1",lessonID:nil,worth:ConversationPractice.worth(rating:base.rating,level:"A1"))
+        base.saveStory(spoken);var first=base,second=base
+        XCTAssertEqual(first.practiceStoryLine(words:spoken.sentences[0].target,typed:true),2);XCTAssertEqual(second.practiceStoryLine(words:spoken.sentences[0].target,typed:true),2)
+        async let one=service.save(first,npub:npub);async let two=service.save(second,npub:npub);_=try await (one,two)
+        var restored=try requireState(try await service.load(npub:npub));XCTAssertEqual(restored.totalXP,152);XCTAssertEqual(restored.gradedByLanguage?["es"],1)
+        let spokenProofs=try await db.collection("users").document(npub).collection("storyTurns").getDocuments(source:.server);XCTAssertEqual(spokenProofs.count,1)
+        let fresh=try StoryRun(payload:payload,mode:.radio,target:"es",support:"en",level:"A1",lessonID:nil,worth:.null)
+        var a=fresh;a.index=a.count;a.results=["0":true,"1":true];var b=a;b.results=["0":false,"1":false]
+        first=restored;second=restored;first.saveStory(a);second.saveStory(b);XCTAssertEqual(first.finishStory(),6);XCTAssertEqual(second.finishStory(),6)
+        let pendingFirst=first,pendingSecond=second
+        async let three=service.save(pendingFirst,npub:npub);async let four=service.save(pendingSecond,npub:npub);_=try await (three,four)
+        _=try await service.save(pendingFirst,npub:npub);_=try await service.save(pendingSecond,npub:npub)
+        restored=try requireState(try await service.load(npub:npub));XCTAssertEqual(restored.totalXP,158);XCTAssertEqual(restored.gradedByLanguage?["es"],1)
+        let records=try await db.collection("users").document(npub).collection("storyTurns").getDocuments(source:.server)
+        XCTAssertEqual(records.count,2);XCTAssertTrue(records.documents.contains { $0.data()["mode"] as? String == "story-radio-complete" })
+        let root=try await db.collection("users").document(npub).getDocument(source:.server);XCTAssertEqual(root.data()?["patreonVerified"] as? Bool,true)
+    }
+
 }
