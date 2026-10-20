@@ -9,11 +9,82 @@ service cloud.firestore {
     }
     function matchingKey(userId) { return request.resource.data.local_npub == userId; }
     function protectedFields() { return ['patreonVerified','subscription','entitlements','subscriptionStatus']; }
+    function signedLearner() { return request.auth != null && owns(request.auth.uid); }
+    function invited(creator, teamId, acceptedOnly) {
+      let invitation = /databases/$(database)/documents/users/$(request.auth.uid)/teamInvites/$('team_' + teamId);
+      return signedLearner() && exists(invitation) && get(invitation).data.creatorNpub == creator &&
+        get(invitation).data.teamId == teamId &&
+        (get(invitation).data.status == 'accepted' || !acceptedOnly && get(invitation).data.status == 'pending');
+    }
+    function privateTeam(data, creator) {
+      return data.get('nostr', null) == null && data.get('createdBy', creator) == creator &&
+        data.teamName is string && data.teamName.size() > 0 && data.teamName.size() <= 80 &&
+        data.members is list && data.members.size() <= 256;
+    }
     match /users/{userId} {
       allow get: if owns(userId);
       allow list: if false;
       allow create: if owns(userId) && matchingKey(userId) && !request.resource.data.keys().hasAny(protectedFields());
       allow update: if owns(userId) && matchingKey(userId) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(protectedFields());
+      match /teams/{teamId} {
+        function memberEdit() {
+          let before = request.resource.data._memberChange.before;
+          let after = request.resource.data._memberChange.after;
+          let invitation = /databases/$(database)/documents/users/$(request.auth.uid)/teamInvites/$('team_' + teamId);
+          let rest = resource.data.members.removeAll([before]);
+          return invited(userId, teamId, false) && before in resource.data.members &&
+            before.npub == request.auth.uid && before.status in ['pending', 'accepted'] &&
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members', '_memberChange']) &&
+            ((after == null && request.resource.data.members == rest &&
+                (!existsAfter(invitation) || getAfter(invitation).data.status == 'rejected')) ||
+              (after is map && after.status == 'accepted' &&
+                after.diff(before).affectedKeys().hasOnly(['status']) &&
+                request.resource.data.members == rest.concat([after]) &&
+                getAfter(invitation).data.status == 'accepted'));
+        }
+        allow get: if owns(userId) || invited(userId, teamId, false);
+        allow list: if owns(userId);
+        allow create: if owns(userId) && privateTeam(request.resource.data, userId);
+        allow update: if privateTeam(request.resource.data, userId) && (owns(userId) || memberEdit());
+        allow delete: if owns(userId);
+        match /progress/{member} {
+          function access() {
+            return exists(/databases/$(database)/documents/users/$(userId)/teams/$(teamId)) &&
+              (owns(userId) || invited(userId, teamId, true));
+          }
+          allow read: if access();
+          allow create, update: if owns(member) && access() && request.resource.data.keys().hasOnly([
+            'schemaVersion','targetLang','name','xp','level','score','scoreScale','scoreLevel','goal',
+            'dailyGoalXp','dailyXp','streak','progressPercent','companion','updatedAt']);
+          allow delete: if owns(member) || owns(userId);
+        }
+      }
+      match /teamInvites/{inviteId} {
+        function creator() { return signedLearner() && owns(resource.data.creatorNpub); }
+        function invitationWrite() {
+          let data = request.resource.data;
+          let team = getAfter(/databases/$(database)/documents/users/$(data.creatorNpub)/teams/$(data.teamId)).data;
+          return owns(data.creatorNpub) && data.invitedBy == data.creatorNpub &&
+            inviteId == 'team_' + data.teamId && privateTeam(team, data.creatorNpub) &&
+            data.teamName == team.teamName && data.status == 'pending' &&
+            data.member.npub == userId && data.member.status == 'pending' && data.member in team.members;
+        }
+        allow get: if owns(userId) || creator() || signedLearner() && !exists(/databases/$(database)/documents/users/$(userId)/teamInvites/$(inviteId));
+        allow list: if owns(userId) || creator();
+        allow create: if invitationWrite();
+        function acceptedRoster() {
+          let team = getAfter(/databases/$(database)/documents/users/$(resource.data.creatorNpub)/teams/$(resource.data.teamId)).data;
+          return team._memberChange.after.npub == userId && team._memberChange.after.status == 'accepted' &&
+            team._memberChange.after in team.members;
+        }
+        allow update: if
+          (owns(userId) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']) &&
+            resource.data.status in ['pending','accepted'] && request.resource.data.status in ['accepted','rejected'] &&
+            (request.resource.data.status == 'rejected' || acceptedRoster())) ||
+          (creator() && invitationWrite()) ||
+          (creator() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['teamName','invitedByName']));
+        allow delete: if owns(userId) || creator();
+      }
       match /achievementProgress/{source}/events/{event} {
         allow read, write: if owns(userId) && source == 'nosabos';
       }

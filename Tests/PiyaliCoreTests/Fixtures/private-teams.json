@@ -1,0 +1,204 @@
+[
+  {
+    "creator": "npub1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+    "member": "npub1pppppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
+    "accept": true,
+    "team": {
+      "teamName": "Weekend",
+      "createdBy": "npub1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+      "creatorName": "Ada",
+      "createdAt": "2026-10-20T12:00:00.000Z",
+      "legacyMarker": {
+        "keep": true
+      },
+      "members": [
+        {
+          "npub": "npub1zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+          "status": "accepted",
+          "name": "Jo",
+          "addedAt": "original"
+        },
+        {
+          "npub": "npub1pppppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
+          "status": "pending",
+          "name": "Sam",
+          "addedAt": "original",
+          "legacy": "keep"
+        }
+      ]
+    },
+    "expected": {
+      "teamName": "Weekend",
+      "createdBy": "npub1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+      "creatorName": "Ada",
+      "createdAt": "2026-10-20T12:00:00.000Z",
+      "legacyMarker": {
+        "keep": true
+      },
+      "members": [
+        {
+          "npub": "npub1zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+          "status": "accepted",
+          "name": "Jo",
+          "addedAt": "original"
+        },
+        {
+          "npub": "npub1pppppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
+          "status": "accepted",
+          "name": "Sam",
+          "addedAt": "original",
+          "legacy": "keep"
+        }
+      ]
+    },
+    "inviteStatus": "accepted"
+  },
+  {
+    "creator": "npub1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+    "member": "npub1pppppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
+    "accept": false,
+    "team": {
+      "teamName": "Weekend",
+      "createdBy": "npub1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+      "creatorName": "Ada",
+      "createdAt": "2026-10-20T12:00:00.000Z",
+      "legacyMarker": {
+        "keep": true
+      },
+      "members": [
+        {
+          "npub": "npub1zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+          "status": "accepted",
+          "name": "Jo",
+          "addedAt": "original"
+        },
+        {
+          "npub": "npub1pppppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
+          "status": "pending",
+          "name": "Sam",
+          "addedAt": "original",
+          "legacy": "keep"
+        }
+      ]
+    },
+    "expected": {
+      "teamName": "Weekend",
+      "createdBy": "npub1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+      "creatorName": "Ada",
+      "createdAt": "2026-10-20T12:00:00.000Z",
+      "legacyMarker": {
+        "keep": true
+      },
+      "members": [
+        {
+          "npub": "npub1zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+          "status": "accepted",
+          "name": "Jo",
+          "addedAt": "original"
+        }
+      ]
+    },
+    "inviteStatus": "rejected"
+  },
+  {
+    "creator": "npub1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+    "member": "npub1pppppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
+    "accept": true,
+    "team": {
+      "teamName": "Weekend",
+      "createdBy": "npub1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+      "creatorName": "Ada",
+      "createdAt": "2026-10-20T12:00:00.000Z",
+      "legacyMarker": {
+        "keep": true
+      },
+      "members": [
+        {
+          "npub": "npub1zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+          "status": "accepted",
+          "name": "Jo",
+          "addedAt": "original"
+        },
+        {
+          "npub": "npub1pppppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
+          "status": "accepted",
+          "name": "Sam",
+          "addedAt": "original",
+          "legacy": "keep"
+        }
+      ]
+    },
+    "expected": {
+      "teamName": "Weekend",
+      "createdBy": "npub1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+      "creatorName": "Ada",
+      "createdAt": "2026-10-20T12:00:00.000Z",
+      "legacyMarker": {
+        "keep": true
+      },
+      "members": [
+        {
+          "npub": "npub1zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+          "status": "accepted",
+          "name": "Jo",
+          "addedAt": "original"
+        },
+        {
+          "npub": "npub1pppppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
+          "status": "accepted",
+          "name": "Sam",
+          "addedAt": "original",
+          "legacy": "keep"
+        }
+      ]
+    },
+    "inviteStatus": "accepted"
+  },
+  {
+    "creator": "npub1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+    "member": "npub1pppppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
+    "accept": false,
+    "team": {
+      "teamName": "Weekend",
+      "createdBy": "npub1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+      "creatorName": "Ada",
+      "createdAt": "2026-10-20T12:00:00.000Z",
+      "legacyMarker": {
+        "keep": true
+      },
+      "members": [
+        {
+          "npub": "npub1zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+          "status": "accepted",
+          "name": "Jo",
+          "addedAt": "original"
+        },
+        {
+          "npub": "npub1pppppppppppppppppppppppppppppppppppppppppppppppppppppppppp",
+          "status": "accepted",
+          "name": "Sam",
+          "addedAt": "original",
+          "legacy": "keep"
+        }
+      ]
+    },
+    "expected": {
+      "teamName": "Weekend",
+      "createdBy": "npub1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+      "creatorName": "Ada",
+      "createdAt": "2026-10-20T12:00:00.000Z",
+      "legacyMarker": {
+        "keep": true
+      },
+      "members": [
+        {
+          "npub": "npub1zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+          "status": "accepted",
+          "name": "Jo",
+          "addedAt": "original"
+        }
+      ]
+    },
+    "inviteStatus": "rejected"
+  }
+]

@@ -1,6 +1,6 @@
 # Main-product learning teams
 
-The native account screen supports the main web app's public Nostr learning-team contract: creating teams, reading joined/owned teams, creator renaming and roster additions, member departure, creator deletion, profiles and learning progress. Firestore-only legacy teams and their pending invitation flow still require a separate port. The existing web backend and reference checkout are unchanged.
+The native account screen supports the main web app's public Nostr learning-team contract: creating teams, reading joined/owned teams, creator renaming and roster additions, member departure, creator deletion, profiles and learning progress. Firestore-only private teams and pending invitations are available through Private teams and invitations. The existing web backend and reference checkout are unchanged.
 
 ## Public teams
 
@@ -27,3 +27,21 @@ Simulator UI checks use a loopback relay for the actual native create/edit/add/d
 Run `scripts/test-nostr.sh` for isolated native relay tests; `TEST_RUNNER_PIYALI_LIVE_NOSTR=1 scripts/test-nostr.sh` additionally enables the read-only public checks. Refresh pure source fixtures with `node scripts/export-team-fixtures.mjs /absolute/path/to/reference/nosabos`.
 
 Address replacement and same-timestamp ordering follow [NIP-01](https://github.com/nostr-protocol/nips/blob/master/01.md). Team event fields and departure semantics follow the reference product's own contract.
+
+## Private Firestore teams
+
+Account → Learning teams → Private teams and invitations reads and writes the browser's `users/{creator}/teams/{teamId}` and `users/{member}/teamInvites/team_{teamId}` records. Public Nostr mirror records are excluded from this list. The independent Piyali Firebase project does not automatically copy private records from the separate web Firebase project; compatible records already in the selected backend can be loaded.
+
+Native private teams support creation, pending invitations, acceptance/refusal, creator rename and additional invitations, member departure and creator deletion. Accept/refuse/leave preserve every other roster entry and its unknown legacy fields. A small `_memberChange` before/after record lets rules prove the exact caller-only edit. Acceptance and the invitation status commit in one transaction. Missing or stale rosters cannot turn a pending invitation into an accepted team. Creator edits reload the latest roster, and concurrent additions use Firestore transaction retries. Rename updates existing invitation names, and deletion removes active invitation documents atomically.
+
+Private progress is a deliberately limited per-team snapshot at `teams/{teamId}/progress/{npub}`. It uses the same proven language, XP, daily goal, Score, streak and companion fields as the public progress contract. The native Share my progress button writes to Firebase for that team, without publishing a Nostr event. An invitation allows reading its team's roster, but only an accepted invitation allows reading progress. A member can write only their own snapshot. Leaving deletes that member's invitation and snapshot, which revokes access; a deleted parent team makes any remaining snapshots inaccessible. Learner root documents, notes, conversations, recordings, wallet data and subscription grants remain owner-only. Sharing in a private team never grants access to a learner's complete Firestore document.
+
+Four fixtures execute the actual browser acceptance/refusal helpers against an in-memory adapter and compare native mutations. Core checks also cover duplicate/self/invalid invitations and exclusion of populated private notes and recordings from shared progress. Two real Swift Firestore SDK tests cover invitation restoration, acceptance/refusal, preserved legacy data, private progress, rename propagation, concurrent additions, departure, deletion and stale or missing rosters. A separate suite loads the exact production rules in an authenticated emulator and verifies successful operations and denied forgeries, premature progress reads and cross-user learner access. These tests use demo projects and disposable identities.
+
+Run `scripts/test-private-teams.sh` for SDK contracts, `scripts/test-private-teams.sh --ui` for the simulator flows, and `scripts/test-rules.sh` for authenticated production-rule checks. The UI test database override requires a debug build, explicit offline mode, a valid isolated identity UUID and an explicit emulator flag. Its project is fixed to `demo-piyali-ios` and its endpoint to `127.0.0.1:8180`; release builds contain no override. Refresh source fixtures with `node scripts/export-private-team-fixtures.mjs /absolute/path/to/reference/nosabos`.
+
+The exact allowed roster mutation uses Firestore's documented list equality, `removeAll` and `concat` operations: [Firebase Rules list reference](https://firebase.google.com/docs/reference/rules/rules.List).
+
+Both private-team simulator UI flows passed: creator management/shared progress/relaunch/delete and account switching/invitation acceptance/departure. The loopback relay observed no public event publication.
+
+The private-team rules were deployed to `piyali-ios` on 2026-10-20. `PIYALI_LIVE_PRIVATE_TEAMS=1 node Backend/scripts/verify-private-teams.mjs` passed against that deployed backend using native Nostr/Firebase authentication and App Check. It proved atomic acceptance, pending/outside access denial, caller-only snapshots, learner-document isolation and revocation after departure. The unique team, progress snapshot, invitation and all three disposable auth identities were removed afterward; no learner root document or public relay event was written. The opt-in verifier requires the ignored local Firebase configuration and registered App Check debug token.

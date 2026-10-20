@@ -158,6 +158,10 @@ struct TeamsView: View {
     @FocusState private var focusedField: String?
     var body: some View {
         List {
+            Section("Private teams") {
+                NavigationLink("Private teams and invitations") { PrivateTeamsView() }.accessibilityIdentifier("privateTeamsLink")
+                Text("Private teams use Firebase. Membership and shared progress are visible to invited teammates, without publishing a Nostr roster.").font(.footnote)
+            }
             Section("Nostr teams") {
                 Text("Team names and membership are public on Nostr. Sharing learning progress publishes your name, language, XP, daily goal, streak and companion status publicly.").font(.footnote)
                 Text("Your ID: "+app.identity.npub).font(.caption).textSelection(.enabled)

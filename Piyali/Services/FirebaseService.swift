@@ -429,7 +429,7 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
         let data = try JSONSerialization.data(withJSONObject:compatible(raw))
         return try JSONDecoder().decode([[String:JSONValue]].self,from:data).map(MemoryNote.init(fields:))
     }
-    nonisolated private static func normalized(_ fields: [String:Any]) -> [String:Any] {
+    nonisolated static func normalized(_ fields: [String:Any]) -> [String:Any] {
         func value(_ input: Any) -> Any {
             if let timestamp = input as? Timestamp { return timestamp.dateValue() }
             if let map = input as? [String:Any] { return map.mapValues(value) }
