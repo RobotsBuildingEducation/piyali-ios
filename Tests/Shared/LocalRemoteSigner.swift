@@ -55,6 +55,10 @@ final class LocalRemoteSigner:@unchecked Sendable {
                 case "connect":guard params.count == 4,params[0] == self.peer.publicKey.hex,params[1] == "fixture-secret" else { throw NSError(domain:"fixture-connect",code:1) };result="ack"
                 case "get_public_key":result=self.user.publicKey.hex
                 case "switch_relays":result=NSNull()
+                case "nip44_encrypt", "nip44_decrypt":
+                    guard params.count == 2,params[0] == self.user.publicKey.hex else { throw NSError(domain:"fixture-wallet-key",code:1) }
+                    if self.denySigning { try self.reply(id:requestID,result:"",error:"permission denied",client:client,sub:sub,connection:connection);return }
+                    result = method == "nip44_encrypt" ? try RemoteFixtureCrypto().encrypt(plaintext:params[1],privateKeyA:self.user.privateKey,publicKeyB:self.user.publicKey) : try RemoteFixtureCrypto().decrypt(payload:params[1],privateKeyA:self.user.privateKey,publicKeyB:self.user.publicKey)
                 case "sign_event":
                     if self.denySigning { try self.reply(id:requestID,result:"",error:"permission denied",client:client,sub:sub,connection:connection);return }
                     var unsigned=try JSONSerialization.jsonObject(with:Data(params[0].utf8)) as! [String:Any]
@@ -66,7 +70,7 @@ final class LocalRemoteSigner:@unchecked Sendable {
                 default:result="pong"
                 }
                 let deliver:()->Void = { [weak self] in _ = try? self?.reply(id:requestID,result:result,client:client,sub:sub,connection:connection) }
-                if method == "sign_event",self.delaySigning { self.lock.lock();self.held.append(deliver);self.lock.unlock() }
+                if ["sign_event","nip44_encrypt","nip44_decrypt"].contains(method),self.delaySigning { self.lock.lock();self.held.append(deliver);self.lock.unlock() }
                 else { deliver() }
             } catch { self.relay.send(["NOTICE","local signer fixture rejected input"],to:connection) }
         }

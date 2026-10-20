@@ -24,6 +24,7 @@ struct SignerAuthorization:Identifiable { let id:UUID;let url:URL }
     private var generation=UUID()
     private var connecting:Task<RemoteSignerRecord,Error>?
     private var signing:[UUID:Task<NostrEventPayload,Error>]=[:]
+    private var crypting:[UUID:Task<String,Error>]=[:]
     @Published var authorization:SignerAuthorization?
     var isRemote:Bool { remoteRecord != nil }
     var npub: String { remoteRecord.flatMap { PublicKey(hex:$0.user)?.npub } ?? keypair?.publicKey.npub ?? "" }
@@ -74,7 +75,7 @@ struct SignerAuthorization:Identifiable { let id:UUID;let url:URL }
         return false
         #endif
     }
-    func cancelSigning() { generation=UUID();authorization=nil;connecting?.cancel();for task in signing.values { task.cancel() };let active=remote;Task { await active?.cancel() } }
+    func cancelSigning() { generation=UUID();authorization=nil;connecting?.cancel();for task in signing.values { task.cancel() };for task in crypting.values { task.cancel() };let active=remote;Task { await active?.cancel() } }
     private func authorizer(_ token:UUID,request:UUID) -> @Sendable (URL) async -> Void {
         { [weak self] url in await MainActor.run { guard let self,self.generation == token else { return };if self.authorization?.url != url || self.authorization?.id != request { self.authorization=SignerAuthorization(id:request,url:url) } } }
     }
@@ -107,6 +108,23 @@ struct SignerAuthorization:Identifiable { let id:UUID;let url:URL }
         defer { signing.removeValue(forKey:id);if generation == token,authorization?.id == id { authorization=nil } }
         let result=try await withTaskCancellationHandler { try await task.value } onCancel:{ task.cancel() }
         try Task.checkCancellation();guard generation == token,self.remote === remote else { throw CancellationError() };return result
+    }
+    func encryptWallet(_ plaintext:String,expectedAuthor:String) async throws -> String { try await walletCryptography(plaintext,decrypt:false,expectedAuthor:expectedAuthor) }
+    func decryptWallet(_ ciphertext:String,expectedAuthor:String) async throws -> String { try await walletCryptography(ciphertext,decrypt:true,expectedAuthor:expectedAuthor) }
+    private func walletCryptography(_ value:String,decrypt:Bool,expectedAuthor:String) async throws -> String {
+        try Task.checkCancellation();guard expectedAuthor == hex,!value.isEmpty,value.utf8.count <= (decrypt ? 100_000 : 60_000) else { throw CancellationError() }
+        if decrypt { guard let raw=Data(base64Encoded:value),raw.count >= 99,raw.first == 2 else { throw BunkerConnection.Failure.invalidResponse } }
+        guard let remote,let record=remoteRecord else {
+            guard let keys=keypair else { throw AppError.message("Sign in before opening the wallet.") }
+            return try decrypt ? NostrSessionCrypto().decrypt(payload:value,privateKeyA:keys.privateKey,publicKeyB:keys.publicKey) : NostrSessionCrypto().encrypt(plaintext:value,privateKeyA:keys.privateKey,publicKeyB:keys.publicKey)
+        }
+        let token=generation,id=UUID();let authorize=authorizer(generation,request:id)
+        let task=Task { let result=try await remote.request(decrypt ? "nip44_decrypt" : "nip44_encrypt",params:[record.user,value],onAuthorization:authorize);guard case .string(let string)=result,!string.isEmpty,string.utf8.count <= (decrypt ? 60_000 : 100_000) else { throw BunkerConnection.Failure.invalidResponse };return string };crypting[id]=task
+        defer { crypting.removeValue(forKey:id);if generation == token,authorization?.id == id { authorization=nil } }
+        let result=try await withTaskCancellationHandler { try await task.value } onCancel:{ task.cancel() }
+        try Task.checkCancellation();guard generation == token,self.remote === remote,self.hex == expectedAuthor else { throw CancellationError() }
+        if !decrypt { guard let raw=Data(base64Encoded:result),raw.count >= 99,raw.first == 2 else { throw BunkerConnection.Failure.invalidResponse } }
+        return result
     }
     nonisolated static func localEvent(keys:Keypair,kind:Int,tags:[[String]],content:String,createdAt:Int64 = Int64(Date().timeIntervalSince1970)) throws -> NostrEventPayload {
         let serialized = try JSONSerialization.data(withJSONObject: [0, keys.publicKey.hex, createdAt, kind, tags, content], options: [.withoutEscapingSlashes, .fragmentsAllowed])

@@ -17,8 +17,10 @@ packages:
     url: https://github.com/firebase/firebase-ios-sdk.git
     from: 12.19.2
   NostrSDK:
-    url: https://github.com/nostr-sdk/nostr-sdk-ios.git
-    revision: e5855cbd3bdabf44075fd2abdf76f63bac4cbd5f
+    path: Vendor/NostrSDK
+  CashuSwift:
+    url: https://github.com/zeugmaster/CashuSwift.git
+    revision: cd95afd419429539e97886a77f8ecb9cc5238d9a
 targets:
   Piyali:
     type: application
@@ -52,6 +54,8 @@ targets:
         product: FirebaseAILogic
       - package: NostrSDK
         product: NostrSDK
+      - package: CashuSwift
+        product: CashuSwift
       - sdk: libz.tbd
     settings:
       base:

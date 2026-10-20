@@ -73,4 +73,22 @@ import NostrSDK
         let signer=try await fixture();defer { signer.stop() };signer.challenge=true;signer.authorizationURL="http://signer.example/approve";let (service,record)=try await connected(signer)
         do { _=try await service.sign(kind:30078,tags:[],content:"test",createdAt:1700000000,user:record.user,onAuthorization:{ _ in XCTFail("An insecure authorization URL was offered") });XCTFail("Insecure authorization was accepted") } catch { }
     }
+    func testWalletNIP44UsesActualUserRatherThanSignerPeerAndRetainsNoMainPrivateKey() async throws {
+        let signer=try await fixture();defer { signer.stop() };let identity=try identity();try await identity.connect(signer.token);defer { try? identity.disconnect() }
+        let payload="[[\"privkey\",\"test-wallet-key\"],[\"mint\",\"https://mint.example\"]]"
+        let cipher=try await identity.encryptWallet(payload,expectedAuthor:signer.user.publicKey.hex)
+        XCTAssertEqual(try NostrSessionCrypto().decrypt(payload:cipher,privateKeyA:signer.user.privateKey,publicKeyB:signer.user.publicKey),payload)
+        let clear=try await identity.decryptWallet(cipher,expectedAuthor:signer.user.publicKey.hex);XCTAssertEqual(clear,payload);XCTAssertNil(identity.keypair)
+        do { _=try await identity.encryptWallet(payload,expectedAuthor:signer.peer.publicKey.hex);XCTFail("Signer-peer wallet encryption was accepted") } catch { }
+        signer.denySigning=true;do { _=try await identity.encryptWallet(payload,expectedAuthor:signer.user.publicKey.hex);XCTFail("Denied wallet encryption succeeded") } catch { }
+    }
+    func testAccountReplacementCancelsPendingWalletEncryption() async throws {
+        let signer=try await fixture();defer { signer.stop() };let identity=try identity();try await identity.connect(signer.token);signer.delaySigning=true
+        let pending=Task { try await identity.encryptWallet("private recovery data",expectedAuthor:signer.user.publicKey.hex) }
+        for _ in 0..<100 where !signer.methods().contains("nip44_encrypt") { try await Task.sleep(for:.milliseconds(10)) }
+        XCTAssertTrue(signer.methods().contains("nip44_encrypt"));try identity.create();signer.release()
+        do { _=try await pending.value;XCTFail("Encryption for a replaced account escaped cancellation") } catch { }
+        try identity.disconnect()
+    }
+
 }

@@ -1,5 +1,5 @@
 {
-  "originHash" : "f12a124bb09874a852b94ca0a4174ec51124e11d7fbae084b1a11076a3cee266",
+  "originHash" : "6a09cb02cadf150bcd1d96d0e1cd2579d515896b972ef323ad2ef54c48451135",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -20,12 +20,92 @@
       }
     },
     {
+      "identity" : "base58",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/anquii/Base58.git",
+      "state" : {
+        "revision" : "7e4a1e4e6813c750ed2f9e80a0494c608eebb2ca",
+        "version" : "1.0.1"
+      }
+    },
+    {
+      "identity" : "base58check",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/anquii/Base58Check.git",
+      "state" : {
+        "revision" : "f35a770ff7f3fd553cc44057f492c0107cc7b481",
+        "version" : "1.0.1"
+      }
+    },
+    {
+      "identity" : "bech32swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/zeugmaster/Bech32Swift.git",
+      "state" : {
+        "revision" : "09ec6c35a4fbeaac80e709e1808e8af7b8ef038b",
+        "version" : "1.0.1"
+      }
+    },
+    {
+      "identity" : "bigint",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/attaswift/BigInt.git",
+      "state" : {
+        "revision" : "0ed110f7555c34ff468e72e1686e59721f2b0da6",
+        "version" : "5.3.0"
+      }
+    },
+    {
+      "identity" : "bip32",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/zeugmaster/BIP32.git",
+      "state" : {
+        "revision" : "9147451d2fecc9678ef0ab4a880c8dd105ff5c8e",
+        "version" : "1.2.1"
+      }
+    },
+    {
+      "identity" : "bip39",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pengpengliu/BIP39.git",
+      "state" : {
+        "revision" : "e79bd90275e50643cf8f97208ffa536d0def3ec7",
+        "version" : "1.0.1"
+      }
+    },
+    {
+      "identity" : "bolt11",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/zeugmaster/Bolt11.git",
+      "state" : {
+        "revision" : "f93a4edfde69e70d5d58b0199bb4a373aff19b57",
+        "version" : "0.1.3"
+      }
+    },
+    {
+      "identity" : "bolt12",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/zeugmaster/Bolt12.git",
+      "state" : {
+        "revision" : "0542a679d189b6fb4bb9488e145fe383c1445ddc",
+        "version" : "0.1.0"
+      }
+    },
+    {
+      "identity" : "cashuswift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/zeugmaster/CashuSwift.git",
+      "state" : {
+        "revision" : "cd95afd419429539e97886a77f8ecb9cc5238d9a"
+      }
+    },
+    {
       "identity" : "cryptoswift",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/krzyzanowskim/CryptoSwift.git",
       "state" : {
-        "revision" : "f2a627b84c1ff96f21ac2fcb623ab36142dd5512",
-        "version" : "1.10.0"
+        "revision" : "e45a26384239e028ec87fbcc788f513b67e10d8f",
+        "version" : "1.9.0"
       }
     },
     {
@@ -119,15 +199,6 @@
       }
     },
     {
-      "identity" : "nostr-sdk-ios",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/nostr-sdk/nostr-sdk-ios.git",
-      "state" : {
-        "branch" : "main",
-        "revision" : "e5855cbd3bdabf44075fd2abdf76f63bac4cbd5f"
-      }
-    },
-    {
       "identity" : "promises",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/google/promises.git",
@@ -137,12 +208,21 @@
       }
     },
     {
-      "identity" : "secp256k1.swift",
+      "identity" : "ripemd160",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/GigaBitcoin/secp256k1.swift",
+      "location" : "https://github.com/anquii/RIPEMD160.git",
       "state" : {
-        "revision" : "1a14e189def5eaa92f839afdd2faad8e43b61a6e",
-        "version" : "0.12.2"
+        "revision" : "15679c6fe1f3ae32ec1bad63bcc45aa422954f01",
+        "version" : "1.0.0"
+      }
+    },
+    {
+      "identity" : "swift-bigint",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mkrd/Swift-BigInt.git",
+      "state" : {
+        "revision" : "7e2117797cd1b608303cc2da1a3a2263cc4e7727",
+        "version" : "2.4.0"
       }
     },
     {
@@ -152,6 +232,42 @@
       "state" : {
         "revision" : "35a1edcb8ebd2bfe251d587f0b69e62af28f508c",
         "version" : "1.7.3"
+      }
+    },
+    {
+      "identity" : "swift-docc-plugin",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-docc-plugin.git",
+      "state" : {
+        "revision" : "647c708be89f834fa6a6d4945442793a77ddf5b6",
+        "version" : "1.5.0"
+      }
+    },
+    {
+      "identity" : "swift-docc-symbolkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/swiftlang/swift-docc-symbolkit",
+      "state" : {
+        "revision" : "b45d1f2ed151d057b54504d653e0da5552844e34",
+        "version" : "1.0.0"
+      }
+    },
+    {
+      "identity" : "swift-secp256k1",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/21-DOT-DEV/swift-secp256k1",
+      "state" : {
+        "revision" : "e2f4de7caec61e971081d44e73ea6ef20359743b",
+        "version" : "0.19.0"
+      }
+    },
+    {
+      "identity" : "swiftcbor",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/myfreeweb/SwiftCBOR.git",
+      "state" : {
+        "revision" : "fd929a6d8f7651ce0f63fc99397fd5762358cc29",
+        "version" : "0.6.0"
       }
     }
   ],
