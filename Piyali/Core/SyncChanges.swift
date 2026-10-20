@@ -1,7 +1,7 @@
 import Foundation
 
 public enum PracticeSource: String, Codable, Sendable {
-    case practice, assessment, lesson, review, phonics, goal, goalMode, repair, immersion, speak, tutorTurn, conversation, storyTurn, storyCompletion, questStart, plateBonus
+    case practice, assessment, lesson, review, phonics, goal, goalMode, repair, immersion, speak, tutorTurn, conversation, readingTurn, readingSpeech, storyTurn, storyCompletion, questStart, plateBonus
     public var activityField: String? {
         switch self { case .lesson:"lessonDailyActivity"; case .review:"flashcardDailyActivity"; case .phonics:"phonicsDailyActivity"; case .goal:"goalDailyActivity"; case .repair:"repairDailyActivity"; case .speak:"speakDailyActivity"; case .conversation:"conversationDailyActivity"; default:nil }
     }
@@ -27,6 +27,7 @@ public struct PracticeChange: Codable, Identifiable, Sendable {
     public var conversationWorth: JSONValue?
     public var conversationGoalText: JSONValue?
     public var gameResult: JSONValue?
+    public var readingProof: JSONValue?
     public var storyProof: JSONValue?
     public var earnedAmount: Int { amount + (source == .conversation && correct == true ? max(0,min(4,conversationBonus ?? 0)) : 0) }
     public init(date: Date = Date(), dayKey: String, target: String, level: String, amount: Int, source: PracticeSource, contentID: String? = nil, reviewRating: ReviewRating? = nil, correct: Bool? = nil, independent: Bool? = nil) {

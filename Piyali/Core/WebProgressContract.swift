@@ -171,12 +171,12 @@ public enum WebProgressContract {
             root.merge(CompanionHealth.awardFields(fields,amount:amount,now:now)) { _,new in new }
         }
 
-        if change.source == .assessment || change.source == .conversation || change.source == .storyTurn, let correct = change.correct {
+        if change.source == .assessment || change.source == .conversation || change.source == .storyTurn || change.source == .readingTurn, let correct = change.correct {
             var intelligence = fields["learningIntelligence"] as? [String:[String:Any]] ?? [:]
             var bucket = intelligence[change.target] ?? [:]
             var elo = bucket["elo"] as? [String:Any] ?? [:]
             let baseline = integer(elo["scaleVersion"]) == 4 ? number(elo["rating"],default:800) : 800
-            elo["rating"] = [.conversation,.storyTurn].contains(change.source) ? ConversationPractice.rating(baseline,level:change.level,success:correct,worth:change.conversationWorth ?? .null) : PerformanceScore.update(rating:baseline,questionLevel:change.level,correct:correct,independent:change.independent ?? false)
+            elo["rating"] = [.conversation,.storyTurn,.readingTurn].contains(change.source) ? ConversationPractice.rating(baseline,level:change.level,success:correct,worth:change.conversationWorth ?? .null) : PerformanceScore.update(rating:baseline,questionLevel:change.level,correct:correct,independent:change.independent ?? false)
             elo["scaleVersion"] = 4; elo["updatedAt"] = iso(change.date)
             elo["totalGraded"] = integer(elo["totalGraded"]) + 1
             var summary = bucket["performanceSummary"] as? [String:Any] ?? [:]
@@ -185,7 +185,7 @@ public enum WebProgressContract {
             counts[correct ? "correct" : "missed"] = integer(counts[correct ? "correct" : "missed"]) + 1
             levels[change.level] = counts; summary["byLevel"] = levels
             bucket["elo"] = elo; bucket["performanceSummary"] = summary
-            if [.conversation,.storyTurn].contains(change.source) { bucket=ConversationPractice.gradedBucket((fields["learningIntelligence"] as? [String:[String:Any]])?[change.target] ?? [:],change:change) }
+            if [.conversation,.storyTurn,.readingTurn].contains(change.source) { bucket=ConversationPractice.gradedBucket((fields["learningIntelligence"] as? [String:[String:Any]])?[change.target] ?? [:],change:change) }
             intelligence[change.target] = bucket
             root["learningIntelligence"] = intelligence
         }

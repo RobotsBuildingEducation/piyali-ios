@@ -9,6 +9,29 @@ import NostrSDK
 
 /// Explicit opt-in only. Uses an isolated test identity, bounded prompts and no paid access grant.
 @MainActor final class LiveAPIIntegrationTests: XCTestCase {
+    func testNativeReadingGenerationAndResponsesFallback() async throws {
+        guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else { throw XCTSkip("Explicit live API opt-in required.") }
+        XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))
+        if FirebaseApp.app() == nil { AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure() };XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let identity=IdentityService();try identity.create();try await FirebaseIdentityService.shared.ensure(identity)
+        do {
+            var state=LearnerState();state.target="es";state.support="en";state.level="A1"
+            let fallback=AIService(configuration:AppConfiguration(values:AppConfiguration().values.merging(["AIProvider":"responses"]) { _,new in new }))
+            for (ai,tutorial) in [(AIService(),false),(AIService(),true),(fallback,false)] {
+                let selection=Reading.select(content:.null,level:"A1",recent:[],lesson:"free",roll:0)
+                var verified:ReadingRun?,failure:Error=ReadingFailure.invalid
+                for attempt in 0..<3 {
+                    do { let payload=try await ai.readingPayload(state:state,lesson:nil,level:"A1",selection:selection,recent:[],tutorial:tutorial,repair:attempt > 0)
+                        verified=try ReadingRun(payload:payload,target:"es",support:"en",level:"A1",lessonID:nil,selection:selection,worth:.null,roll:0,tutorial:tutorial);break
+                    } catch { failure=error }
+                }
+                guard let reading=verified else { throw failure };XCTAssertFalse(reading.text.isEmpty);XCTAssertEqual(reading.takeaways.count,3)
+                if tutorial { XCTAssertEqual(Reading.sentences(reading.text).count,4) }
+            }
+            print("LIVE NATIVE: reading, four-sentence tutorial and Responses fallback passed")
+        } catch { try? await Auth.auth().currentUser?.delete();try? Auth.auth().signOut();try? identity.disconnect();throw error }
+        try await Auth.auth().currentUser?.delete();try Auth.auth().signOut();try identity.disconnect()
+    }
     func testNativeStoryModesAndStrictResponsesFallback() async throws {
         guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else { throw XCTSkip("Explicit live API opt-in required.") }
         XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))

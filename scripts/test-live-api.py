@@ -4,9 +4,10 @@ import argparse, json, os, subprocess, uuid
 from pathlib import Path
 root = Path(__file__).resolve().parent.parent
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument('--only', choices=['services', 'immersion', 'conversation', 'rpg', 'signer', 'stories'])
+parser.add_argument('--only', choices=['services', 'immersion', 'conversation', 'rpg', 'signer', 'stories', 'reading'])
 selection = parser.parse_args().only
-methods = {'stories': 'testNativeStoryModesAndStrictResponsesFallback',
+methods = {'reading': 'testNativeReadingGenerationAndResponsesFallback',
+           'stories': 'testNativeStoryModesAndStrictResponsesFallback',
            'services': 'testNativeAuthenticationGeminiResponsesAndVoice',
            'immersion': 'testNativeImmersionGenerationUsesResponsesAndPreservesExistingMissions',
            'conversation': 'testNativeConversationGoalsGradeCommunicationAndReanchorPremiseRejection',

@@ -1,0 +1,32 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import zlib from 'node:zlib';
+const reference=path.resolve(process.argv[2] || '../nosabos/nosabos');
+const esbuild=await import(path.join(reference,'node_modules/esbuild/lib/main.js'));
+const history=path.join(reference,'src/utils/readingHistoryStore.js');
+const bundle=await esbuild.build({stdin:{contents:(await fs.readFile(history,'utf8'))+`\nexport { META_PREAMBLE_PATTERNS };export {getReadingQualityIssues,READING_WRITER_INSTRUCTION} from './readingGeneration.js';export {getRandomHistoryXp} from './historyXp.js';`,resolveDir:path.dirname(history)},bundle:true,platform:'node',format:'esm',write:false});
+const web=await import('data:text/javascript;base64,'+Buffer.from(bundle.outputFiles[0].text).toString('base64'));
+const rules={formats:web.STRUCTURAL_FORMATS,angles:web.READING_ANGLES,structures:web.READING_STRUCTURES,levels:Object.fromEntries(['Pre-A1','A1','A2','B1','B2','C1','C2'].map(level=>[level,web.getReadingLevelSpecs(level)])),preambles:web.META_PREAMBLE_PATTERNS.map(p=>p.source),writer:web.READING_WRITER_INSTRUCTION};
+await fs.writeFile(new URL('../Piyali/Core/ReadingRules.swift',import.meta.url),'// Generated from the read-only reference readingHistoryStore.js.\nimport Foundation\nenum ReadingRules { static let data=try! JSONDecoder().decode(JSONValue.self,from:Data(#"'+JSON.stringify(rules)+'"#.utf8)) }\n');
+const valid={title:'The green notebook',target:'My green notebook has no lines. I draw plants on the left page and write their names on the right. Today I found a tiny flower near our door.'};
+const samples=[valid,{title:'Script',target:'A: I want coffee.\nB: It costs two dollars.'},{title:'Script',target:'Lucas: I live near the market.\nMaria: That is nice.'},{title:'Fake narrator',target:'Here is a short conversation between two people. My bag is on the chair.'},{title:'Welcome',target:'Hello. My name is Piyali.'},{title:'Repeats',target:'My green notebook is on the left page. My green notebook is on the left page.'},{title:'Reaction',target:'Oh, what a busy morning in the kitchen! Look at the fresh coffee and warm toast. Really? How nice to start the day well!'},{title:'Report',target:'The organizer said that the bridge would open on Friday. The engineer replied that one inspection remained. The opening date is therefore uncertain.'},{title:'Quoted script',target:'She says, "I live near the sea." He replies, "Oh, how nice!"'}, {title:'Menu',target:'Hot drinks: Coffee costs two dollars.\nCold drinks: Juice costs three dollars.\nSnacks: Bread costs one dollar.'},{title:'Fresh',target:'Outside the station, a taxi waits. Under the bridge, there are boats. Behind the fence, a yellow kite hangs.'}];
+const quality=[];for(const candidate of samples) for(const isTutorial of [false,true]) for(const format of ['personal_note','practical_notice','document:Cafe menu']) {
+ const options={targetLang:'en',isTutorial,formatSelection:{format:{id:format}},recentEntries:[{title:'Earlier',targetText:'Outside the kitchen, a bicycle waits. Under the stairs, there are boots. Behind the door, a green coat hangs.'}]};
+ quality.push({candidate,options,expected:web.getReadingQualityIssues(candidate,options).map(issue=>issue.split(':')[0])});
+}
+quality.push({candidate:valid,options:{recentEntries:[{title:valid.title,targetText:valid.target}]},expected:web.getReadingQualityIssues(valid,{recentEntries:[{title:valid.title,targetText:valid.target}]}).map(issue=>issue.split(':')[0])});
+const selections=[];for(const level of ['Pre-A1','A1','A2','B1','B2','C1','C2']) for(const promptText of ['', 'polite thanks','greetings and reactions','read a menu']) for(const roll of [0,0.45,0.9]) {
+ web.clearReadingHistory('fixture');const options={targetLang:'fixture',lessonId:'lesson',cefrLevel:level,promptText,readingSubjects:[{id:'a',name:'Family'},{id:'b',name:'Neighbors'}]};
+ const before=Math.random;Math.random=()=>roll;let expected;try { expected=web.selectNextReadingFormat(options); } finally {Math.random=before};selections.push({options,roll,expected});
+}
+const xp=[-1,0,0.24,0.25,0.49,0.5,0.74,0.75,0.99,1,2].map(roll=>({roll,expected:web.getRandomHistoryXp(()=>roll)}));
+const component=await fs.readFile(path.join(reference,'src/components/History.jsx'),'utf8');
+const normalizeSource=component.slice(component.indexOf('function normalizeReviewQuestion('),component.indexOf('function streamingReviewQuestionProtocol('));
+const questionWeb=new Function('normalizeForCompare','REVIEW_QUESTION_TYPES',normalizeSource+';return normalizeReviewQuestion;')(value=>(value||'').replace(/\s+/g,' ').trim().toLowerCase(),['text','fill','mc']);
+const questions=[];for(const type of ['text','fill','mc','unknown']) for(const question of ['What color is the notebook?','The notebook is ___.','']) for(const options of [['Green','Blue','Red','White'],['Green',' green ','Blue','Red'],['Green','Blue'],[]]) {
+ const input={type,question,options,answer:'green'};questions.push({input,expected:questionWeb(input)});
+}
+await fs.writeFile(new URL('../Tests/PiyaliCoreTests/Fixtures/reading.json',import.meta.url),JSON.stringify({quality,selections,xp,questions},null,2)+'\n');
+const example={title:'La libreta verde',target:'Mi libreta verde está cerca de la ventana. Es una libreta pequeña y no tiene líneas. En la página izquierda dibujo una planta. En la página derecha escribo su nombre. Hoy encuentro una flor junto a la puerta. La flor es roja. La dibujo con cuidado y escribo la fecha. Mi hermana mira la página y me pregunta dónde está la flor. Le muestro la puerta. Ella quiere dibujar otra planta mañana. Dejo la libreta sobre la mesa para recordar nuestro plan. No necesito una planta grande ni una foto bonita. Una flor pequeña es suficiente para empezar una página nueva.',takeaways:['The notebook holds drawings and plant names.','A red flower inspires a new page.','The narrator plans to draw with their sister.'],reviewQuestion:{type:'mc',question:'Why does the narrator leave the notebook on the table?',options:['To remember the plan with their sister','To throw the notebook away','To keep the flower alive','To take a photo'],answer:'To remember the plan with their sister'}};
+await fs.writeFile(new URL('../Piyali/Resources/reading-test-passage.json.gz',import.meta.url),zlib.gzipSync(JSON.stringify(example),{level:9}));
+console.log(`Exported ${quality.length} quality cases, ${selections.length} format choices, ${questions.length} questions and ${xp.length} XP cases.`);

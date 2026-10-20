@@ -27,6 +27,10 @@ test('production rules isolate Nostr-authenticated learners and protect subscrip
     await assertSucceeds(getDocs(collection(db,'users',npub,'achievementProgress','nosabos','events')));
     await assertSucceeds(setDoc(doc(db,'users',npub,'achievementMigrations','nosabos_v1'),{complete:true,version:1}));
     await assertSucceeds(setDoc(doc(db,'users',npub,'alphabetPractice','es_card'),{correctCount:1}));
+    await assertSucceeds(setDoc(doc(db,'users',npub,'readingTurns','review'),{source:'nosabos',xpAwarded:7}));
+    await assertSucceeds(getDoc(doc(db,'users',npub,'readingTurns','review')));
+    await assertFails(getDoc(doc(guest,'users',npub,'readingTurns','review')));
+    await assertFails(setDoc(doc(db,'users',other,'readingTurns','review'),{xpAwarded:7}));
     await assertSucceeds(setDoc(doc(db,'users',npub,'storyTurns','line'),{source:'nosabos',origin:'story',xpAwarded:2}));
     await assertSucceeds(getDoc(doc(db,'users',npub,'storyTurns','line')));
     await assertFails(getDoc(doc(guest,'users',npub,'storyTurns','line')));

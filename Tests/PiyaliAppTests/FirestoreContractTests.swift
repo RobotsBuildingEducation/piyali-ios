@@ -686,4 +686,22 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
         let root=try await db.collection("users").document(npub).getDocument(source:.server);XCTAssertEqual(root.data()?["patreonVerified"] as? Bool,true)
     }
 
+    func testReadingQuestionAndSpeechShareOneReceiptAcrossDevices() async throws {
+        let (service,db,npub)=try context();try await seed(db,npub)
+        var base=try requireState(try await service.load(npub:npub));base.target="es";base.support="en";base.level="A1";base.preferencesModifiedAt=Date()
+        let payload=try ContentLibrary.load(JSONValue.self,name:"reading-test-passage")
+        let reading=try ReadingRun(payload:payload,target:"es",support:"en",level:"A1",lessonID:nil,selection:.null,worth:ConversationPractice.worth(rating:base.rating,level:"A1"),roll:0.7)
+        base.saveReading(reading);var question=base,speech=base
+        XCTAssertEqual(question.reviewReading(answer:reading.question.answer,correct:true,feedback:"Correct"),7)
+        XCTAssertEqual(speech.reviewReading(answer:"short recognized fragment",correct:false,feedback:"Compare wording",speech:true),7)
+        async let one=service.save(question,npub:npub);async let two=service.save(speech,npub:npub);_=try await (one,two)
+        _=try await service.save(question,npub:npub);_=try await service.save(speech,npub:npub)
+        let restored=try requireState(try await service.load(npub:npub));XCTAssertEqual(restored.totalXP,157)
+        let records=try await db.collection("users").document(npub).collection("readingTurns").getDocuments(source:.server);XCTAssertEqual(records.count,1)
+        let method=records.documents.first?.data()["method"] as? String
+        XCTAssertEqual(restored.gradedByLanguage?["es"] ?? 0,method == "question" ? 1 : 0)
+        XCTAssertTrue(restored.reading!.awarded)
+        let root=try await db.collection("users").document(npub).getDocument(source:.server);XCTAssertEqual(root.data()?["patreonVerified"] as? Bool,true)
+    }
+
 }
