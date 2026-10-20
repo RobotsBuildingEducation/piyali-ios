@@ -45,5 +45,11 @@ final class WalletContractTests:XCTestCase {
         XCTAssertTrue(try proof(secret:secret.json).locked(to:"02"+wallet));XCTAssertFalse(try proof(secret:secret.json).locked(to:"02"+owner))
         var values=secret.array;values[1]=values[1].setting("tags",.array([.array([.string("refund"),.string("02"+owner)])]));XCTAssertFalse(try proof(secret:JSONValue.array(values).json).locked(to:"02"+wallet))
         values[1]=values[1].setting("tags",.object([:]));XCTAssertFalse(try proof(secret:JSONValue.array(values).json).locked(to:"02"+wallet))
+        values[1]=values[1].setting("tags",.array([.array([.string("sigflag"),.string("SIG_INPUTS")])]));XCTAssertTrue(try proof(secret:JSONValue.array(values).json).locked(to:"02"+wallet))
     }
+    func testCompactionRemovesDestroyedProofPayloadsButPreservesTombstones() throws {
+        let original=try record("a",proofs:[proof()]);var ledger=WalletLedger();try ledger.ingest(original);ledger.remove([original.id]);ledger.compact()
+        XCTAssertTrue(ledger.records.isEmpty);XCTAssertTrue(ledger.deleted.contains(original.id));try ledger.ingest(original);XCTAssertEqual(try ledger.balance(mint:mint),0)
+    }
+
 }

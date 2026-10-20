@@ -21,7 +21,7 @@ import secp256k1
     }
     func loadMint(_ value:String) async throws -> CashuSwift.Mint {
         let list=try await request(mint:value,path:"v1/keysets");let entries=list["keysets"].array
-        guard !entries.isEmpty,entries.count <= 128 else { throw WalletContract.Failure.invalidProof };var keysets:[CashuSwift.Keyset]=[]
+        guard !entries.isEmpty,entries.count <= 128,Set(entries.map { $0["id"].string }).count == entries.count else { throw WalletContract.Failure.invalidProof };var keysets:[CashuSwift.Keyset]=[]
         for entry in entries where entry["unit"].string == "sat" {
             let id=entry["id"].string
             guard id.range(of:"^(?:[0-9a-f]{16}|[0-9a-f]{66}|[A-Za-z0-9+/]{12})$",options:.regularExpression) != nil else { throw WalletContract.Failure.invalidProof }
@@ -35,8 +35,12 @@ import secp256k1
         return CashuSwift.Mint(url:URL(string:value)!,keysets:keysets)
     }
     func states(_ proofs:[CashuSwift.Proof],mint:CashuSwift.Mint) async throws -> [CashuSwift.Proof.ProofState] {
-        guard proofs.count <= 512 else { throw WalletContract.Failure.invalidProof }
-        if proofs.isEmpty { return [] };let states=try await CashuSwift.check(proofs,mint:mint);guard states.count == proofs.count else { throw WalletContract.Failure.invalidProof };return states
+        var result:[CashuSwift.Proof.ProofState]=[]
+        for start in stride(from:0,to:proofs.count,by:512) {
+            try Task.checkCancellation();let batch=Array(proofs[start..<min(proofs.count,start+512)]),states=try await CashuSwift.check(batch,mint:mint)
+            guard states.count == batch.count else { throw WalletContract.Failure.invalidProof };result += states
+        }
+        return result
     }
     static func validateQuote(_ quote:JSONValue,amount:Int,now:Date) throws -> JSONValue {
         let id=quote["quote"].string,request=quote["request"].string

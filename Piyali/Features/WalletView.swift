@@ -5,7 +5,9 @@ struct WalletView:View {
     @EnvironmentObject var app:AppModel
     @StateObject private var service=WalletService()
     @State private var amount="10"
+    @State private var recipient=""
     @FocusState private var editingAmount:Bool
+    @FocusState private var editingRecipient:Bool
     var body:some View {
         Form {
             Section("Wallet") {
@@ -30,13 +32,22 @@ struct WalletView:View {
                     if service.invoiceExpired,!service.pending { Button("Archive unpaid expired invoice") { perform { try await service.archiveInvoice(identity:app.identity) } }.disabled(service.busy) }
                     if service.archivedCount > 0 { Button("Check archived invoices (\(service.archivedCount))") { perform { try await service.checkArchived(identity:app.identity) } }.disabled(service.busy) }
                     if service.pending { Text("A wallet operation is saved on this device. Recover it before starting another payment.") }
-                    if !service.invoice.isEmpty || service.pending { Button(service.pending ? "Recover saved deposit" : "Check payment status") { perform { try await service.checkDeposit(identity:app.identity) } }.disabled(service.busy).accessibilityIdentifier("walletCheckDeposit") }
+                    if !service.invoice.isEmpty || service.pending { Button(service.pending ? "Recover saved wallet operation" : "Check payment status") { perform { try await service.checkDeposit(identity:app.identity) } }.disabled(service.busy).accessibilityIdentifier("walletCheckDeposit") }
+                }
+                Section("Nutzaps") {
+                    Button("Receive nutzaps") { perform { try await service.receiveNutzaps(identity:app.identity) } }.disabled(service.busy || service.pending).accessibilityIdentifier("walletReceive")
+                    TextField("Recipient npub",text:$recipient,axis:.vertical).textInputAutocapitalization(.never).autocorrectionDisabled().focused($editingRecipient).accessibilityIdentifier("walletRecipient")
+                    Button("Use Piyali recipient") { recipient=WalletContract.defaultRecipient }.disabled(service.busy)
+                    Button("Check recipient and fee") { perform { try await service.previewTip(to:recipient,identity:app.identity) } }.disabled(service.busy || service.pending || recipient.isEmpty).accessibilityIdentifier("walletPreviewTip")
+                    if let preview=service.tipPreview,preview.recipient == recipient {
+                        Button(preview.label) { perform { try await service.sendOneSat(to:recipient,maximumFee:preview.fee,identity:app.identity) } }.disabled(service.busy || service.pending).accessibilityIdentifier("walletSendTip")
+                    }
                 }
                 Section("Recovery") { Text("Wallet proofs and pending payment data are kept in this iPhone's Keychain. Encrypted wallet records are synchronized through Nostr. Keep this device's data until any pending operation has finished.") }
             }
             if let error=service.error { Text(error).foregroundStyle(.red).accessibilityIdentifier("walletError") }
         }.navigationTitle("Wallet")
-            .toolbar { ToolbarItemGroup(placement:.keyboard) { Spacer();Button("Done") { editingAmount=false } } }
+            .toolbar { ToolbarItemGroup(placement:.keyboard) { Spacer();Button("Done") { editingAmount=false;editingRecipient=false } } }
             .task(id:app.identity.hex) { service.cancel(clear:true);try? await service.refresh(identity:app.identity) }
             .task(id:service.invoice) {
                 guard !service.invoice.isEmpty else { return };var failures=0

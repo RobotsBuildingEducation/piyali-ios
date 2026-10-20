@@ -18,6 +18,9 @@ struct WalletPendingOperation:Codable,Sendable {
     let keepCount:Int
     let quote:JSONValue?
     var phase:Phase = .prepared
+    var rollover:[WalletProof]?
+    var mintFee:Int?
+    var incoming:[NostrEventPayload]?
     var signatures:[CashuSwift.Promise]?
     var received:[WalletProof]?
     var outbox:[NostrEventPayload]=[]
@@ -42,6 +45,7 @@ struct WalletPrivateState:Codable,Sendable {
     var pending:WalletPendingOperation?
     var configurationOutbox:[NostrEventPayload]=[]
     var redeemed=Set<String>()
+    var sentReceipts:[NostrEventPayload]?
     var archivedInvoices:[JSONValue]?
     var invoice:JSONValue?
     var configurationPublished=false

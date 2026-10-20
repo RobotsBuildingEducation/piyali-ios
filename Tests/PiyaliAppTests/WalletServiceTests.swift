@@ -10,17 +10,19 @@ import Bolt11
     let invoice="lnbc2500u1pvjluezsp5zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zygspp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdq5xysxxatsyp3k7enxv4jsxqzpu9qrsgquk0rl77nj30yxdy8j9vdx85fkpmdla2087ne0xh8nhedh8w27kyke0lp53ut353s06fv3qfegext0eh0ymjpf39tuven09sam30g4vgpfna3rh"
     var date:Date { Date(timeIntervalSince1970:Double(try! Bolt11Decoder.decode(invoice).timestamp)+1) }
     var paid=false,issued=false,loseResponse=false,delayQuote=false,v2=false
-    var mintCalls=0,quoteCalls=0,restoreCalls=0
+    var mintCalls=0,quoteCalls=0,restoreCalls=0,swapCalls=0
+    var inputFeePPK=0,loseSwapResponse=false,supportsLock=true
+    private var spent=Set<String>()
     private let key=try! secp256k1.Signing.PrivateKey(dataRepresentation:Data(repeating:1,count:32))
     private var issuedOutputs:[String:(CashuSwift.Output,CashuSwift.Promise)]=[:]
     func loadMint(_ value:String) async throws -> CashuSwift.Mint {
         let amounts=(0..<20).map { 1 << $0 },publicKey=CashuMintBatch.hex(key.publicKey.dataRepresentation),keys=Dictionary(uniqueKeysWithValues:amounts.map { (String($0),publicKey) })
         let raw=try amounts.reduce(into:Data()) { bytes,amount in bytes.append(try CashuMintBatch.bytes(keys[String(amount)]!)) }
-        let id=v2 ? "01"+CashuMintBatch.hex(Data(SHA256.hash(data:Data((amounts.map { "\($0):\(publicKey)" }.joined(separator:",")+"|unit:sat").utf8)))) : "00"+CashuMintBatch.hex(Data(SHA256.hash(data:raw))).prefix(14)
-        let keyset=try JSONDecoder().decode(CashuSwift.Keyset.self,from:JSONSerialization.data(withJSONObject:["id":id,"unit":"sat","active":true,"keys":keys]))
+        let id=v2 ? "01"+CashuMintBatch.hex(Data(SHA256.hash(data:Data((amounts.map { "\($0):\(publicKey)" }.joined(separator:",")+"|unit:sat"+(inputFeePPK == 0 ? "" : "|input_fee_ppk:\(inputFeePPK)")).utf8)))) : "00"+CashuMintBatch.hex(Data(SHA256.hash(data:raw))).prefix(14)
+        let keyset=try JSONDecoder().decode(CashuSwift.Keyset.self,from:JSONSerialization.data(withJSONObject:["id":id,"unit":"sat","active":true,"keys":keys,"input_fee_ppk":inputFeePPK]))
         return CashuSwift.Mint(url:URL(string:value)!,keysets:[keyset])
     }
-    func states(_ proofs:[CashuSwift.Proof],mint:CashuSwift.Mint) async throws -> [CashuSwift.Proof.ProofState] { proofs.map { _ in .unspent } }
+    func states(_ proofs:[CashuSwift.Proof],mint:CashuSwift.Mint) async throws -> [CashuSwift.Proof.ProofState] { proofs.map { spent.contains($0.secret) ? .spent : .unspent } }
     private func issue(_ output:CashuSwift.Output) throws -> CashuSwift.Promise {
         let B=try secp256k1.Signing.PublicKey(dataRepresentation:CashuMintBatch.bytes(output.B_),format:.compressed),C=try B.multiply(Array(key.dataRepresentation)),nonce=try secp256k1.Signing.PrivateKey()
         let points=[nonce.publicKey,try B.multiply(Array(nonce.dataRepresentation)),key.publicKey,C]
@@ -28,7 +30,33 @@ import Bolt11
         return try JSONDecoder().decode(CashuSwift.Promise.self,from:JSONSerialization.data(withJSONObject:["id":output.id,"amount":output.amount,"C_":CashuMintBatch.hex(C.dataRepresentation),"dleq":["e":CashuMintBatch.hex(e),"s":CashuMintBatch.hex(s.dataRepresentation)]]))
     }
     private func json<T:Encodable>(_ value:T) throws -> JSONValue { try JSONDecoder().decode(JSONValue.self,from:JSONEncoder().encode(value)) }
+    private func hashToCurve(_ secret:String) throws -> secp256k1.Signing.PublicKey {
+        let message=Data(SHA256.hash(data:Data("Secp256k1_HashToCurve_Cashu_".utf8)+Data(secret.utf8)))
+        for counter in UInt32(0)..<65536 {
+            var little=counter.littleEndian;let bytes=withUnsafeBytes(of:&little) { Data($0) },hash=Data(SHA256.hash(data:message+bytes))
+            if let point=try? secp256k1.Signing.PublicKey(dataRepresentation:Data([2])+hash,format:.compressed) { return point }
+        };throw URLError(.cannotDecodeContentData)
+    }
     func request(mint:String,path:String,body:JSONValue?) async throws -> JSONValue {
+        if path == "v1/info" { return .object(["nuts":.object(["11":.object(["supported":.bool(supportsLock)]),"12":.object(["supported":.bool(true)]),"9":.object(["supported":.bool(true)])])]) }
+        if path == "v1/swap",let body {
+            swapCalls += 1
+            let inputs=try JSONDecoder().decode([CashuSwift.Proof].self,from:JSONEncoder().encode(body["inputs"])),outputs=try JSONDecoder().decode([CashuSwift.Output].self,from:JSONEncoder().encode(body["outputs"]))
+            guard !inputs.isEmpty,Set(inputs.map(\.secret)).count == inputs.count,inputs.allSatisfy({ !spent.contains($0.secret) }),outputs.reduce(0,{ $0+$1.amount }) == inputs.reduce(0,{ $0+$1.amount })-(inputs.count*inputFeePPK+999)/1000 else { throw URLError(.badServerResponse) }
+            for proof in inputs {
+                let expected=try hashToCurve(proof.secret).multiply(Array(key.dataRepresentation));guard CashuMintBatch.hex(expected.dataRepresentation) == proof.C else { throw URLError(.cannotDecodeContentData) }
+                if let parsed=try? JSONDecoder().decode(JSONValue.self,from:Data(proof.secret.utf8)),parsed.array.first?.string == "P2PK" {
+                    let publicKey=try secp256k1.Schnorr.PublicKey(dataRepresentation:CashuMintBatch.bytes(parsed.array[1]["data"].string),format:.compressed),witness=try JSONDecoder().decode(JSONValue.self,from:Data((proof.witness ?? "").utf8))
+                    guard witness["signatures"].array.count == 1 else { throw URLError(.userAuthenticationRequired) }
+                    let signature=try secp256k1.Schnorr.SchnorrSignature(dataRepresentation:CashuMintBatch.bytes(witness["signatures"].array[0].string))
+                    guard publicKey.xonly.isValidSignature(signature,for:Data(proof.secret.utf8)) else { throw URLError(.userAuthenticationRequired) }
+                }
+            }
+            let signatures=try outputs.map(issue)
+            for (output,signature) in zip(outputs,signatures) { issuedOutputs[output.B_]=(output,signature) };spent.formUnion(inputs.map(\.secret))
+            if loseSwapResponse { loseSwapResponse=false;throw URLError(.networkConnectionLost) }
+            return .object(["signatures":try json(signatures)])
+        }
         if path == "v1/mint/quote/bolt11",body != nil { quoteCalls += 1;if delayQuote { try await Task.sleep(for:.milliseconds(150)) };return .object(["quote":.string("local-quote"),"request":.string(invoice),"unit":.string("sat"),"amount":.number(250000),"state":.string("UNPAID"),"expiry":.number(date.timeIntervalSince1970+30)]) }
         if path == "v1/mint/quote/bolt11/local-quote" { return .object(["quote":.string("local-quote"),"state":.string(issued ? "ISSUED" : paid ? "PAID" : "UNPAID")]) }
         if path == "v1/mint/bolt11",let body {
@@ -124,6 +152,105 @@ import Bolt11
         do { try await second.deposit(amount:250000,identity:identity);XCTFail("Concurrent wallet operation was allowed") } catch { }
         try await request.value;try await second.deposit(amount:250000,identity:identity)
         XCTAssertEqual(mint.quoteCalls,1);XCTAssertEqual(second.invoice,mint.invoice)
+    }
+    private func funded(_ mint:WalletFixtureMint,client:NostrRelayClient) async throws -> (IdentityService,WalletService) {
+        let identity=try identity(),service=WalletService(client:client,mint:mint,now:{ mint.date })
+        try await service.refresh(identity:identity);try await service.create(identity:identity);try await service.deposit(amount:250000,identity:identity);mint.paid=true;try await service.checkDeposit(identity:identity);return(identity,service)
+    }
+    func testOneSatNutzapUsesSeparateReceiverKeyAndRedeemsOnceAcrossDevices() async throws {
+        let mint=WalletFixtureMint();mint.v2=true
+        let relay=try await relay(),client=NostrRelayClient(relays:[relay.url],timeout:.seconds(2));defer { relay.stop() }
+        let (sender,wallet)=try await funded(mint,client:client),receiver=try identity(),destination=WalletService(client:client,mint:mint,now:{ mint.date }),a=sender.hex
+        let signer=LocalRemoteSigner();try await signer.start();defer { signer.stop() };try await receiver.connect(signer.token);let b=receiver.hex
+        XCTAssertNil(receiver.keypair)
+        defer { try? WalletVault().removeTestState(owner:a);try? WalletVault().removeTestState(owner:b);try? sender.disconnect();try? receiver.disconnect() }
+        try await destination.refresh(identity:receiver);try await destination.create(identity:receiver)
+        try await wallet.previewTip(to:receiver.npub,identity:sender);XCTAssertEqual(wallet.tipPreview?.fee,0)
+        try await wallet.sendOneSat(to:receiver.npub,maximumFee:0,identity:sender);XCTAssertEqual(wallet.balance,249999)
+        let sent=try XCTUnwrap(WalletVault().load(owner:a)?.sentReceipts?.last),receiverKey=try XCTUnwrap(WalletVault().load(owner:b)?.walletPrivateKey)
+        XCTAssertEqual(sent.kind,9321);XCTAssertEqual(sent.tag("p"),b);XCTAssertEqual(sent.tag("u"),WalletContract.defaultMint)
+        let proof=try WalletProof(JSONDecoder().decode(JSONValue.self,from:Data(sent.tag("proof").utf8)));XCTAssertTrue(proof.locked(to:"02"+Keypair(hex:receiverKey)!.publicKey.hex));XCTAssertFalse(proof.locked(to:"02"+b))
+        let forged=proof.wire.setting("C",.string("02"+String(repeating:"1",count:64)))
+        try await client.publish(sender.sign(kind:9321,tags:[["proof",forged.json],["p",b],["u",WalletContract.defaultMint],["unit","sat"]],content:"invalid proof fixture"))
+        try await destination.receiveNutzaps(identity:receiver);XCTAssertEqual(destination.balance,1);XCTAssertEqual(mint.swapCalls,2)
+        try await destination.receiveNutzaps(identity:receiver);XCTAssertEqual(mint.swapCalls,2)
+        try WalletVault().removeTestState(owner:b)
+        let restored=WalletService(client:client,mint:mint,now:{ mint.date });try await restored.refresh(identity:receiver);XCTAssertEqual(restored.balance,1);try await restored.receiveNutzaps(identity:receiver);XCTAssertEqual(mint.swapCalls,2)
+    }
+    func testLostSwapResponseRecoversLockedProofsAndDoesNotSendTwice() async throws {
+        let mint=WalletFixtureMint(),relay=try await relay(),client=NostrRelayClient(relays:[relay.url],timeout:.seconds(2));defer { relay.stop() }
+        let (sender,wallet)=try await funded(mint,client:client),receiver=try identity(),destination=WalletService(client:client,mint:mint,now:{ mint.date }),a=sender.hex,b=receiver.hex
+        defer { try? WalletVault().removeTestState(owner:a);try? WalletVault().removeTestState(owner:b);try? sender.disconnect();try? receiver.disconnect() }
+        try await destination.refresh(identity:receiver);try await destination.create(identity:receiver);mint.loseSwapResponse=true
+        do { try await wallet.sendOneSat(to:receiver.npub,maximumFee:0,identity:sender);XCTFail("Lost swap response should leave a saved operation") } catch { }
+        XCTAssertEqual(mint.swapCalls,1);XCTAssertEqual(try WalletVault().load(owner:a)?.pending?.phase,.submitted)
+        let restored=WalletService(client:client,mint:mint,now:{ mint.date });try await restored.refresh(identity:sender);try await restored.checkDeposit(identity:sender)
+        XCTAssertEqual(restored.balance,249999);XCTAssertEqual(mint.swapCalls,1)
+        let receipts=relay.frames().filter { $0.first as? String == "EVENT" }.compactMap { $0[1] as? [String:Any] }.filter { $0["kind"] as? Int == 9321 };XCTAssertEqual(receipts.count,1)
+        try await restored.checkDeposit(identity:sender);XCTAssertEqual(mint.swapCalls,1)
+    }
+    func testMintFeeIsQuotedCappedAndTinyReceivedTipsAccumulateForRedemption() async throws {
+        let mint=WalletFixtureMint();mint.inputFeePPK=100
+        let relay=try await relay(),client=NostrRelayClient(relays:[relay.url],timeout:.seconds(2));defer { relay.stop() }
+        let (sender,wallet)=try await funded(mint,client:client),receiver=try identity(),destination=WalletService(client:client,mint:mint,now:{ mint.date }),a=sender.hex,b=receiver.hex
+        defer { try? WalletVault().removeTestState(owner:a);try? WalletVault().removeTestState(owner:b);try? sender.disconnect();try? receiver.disconnect() }
+        try await destination.refresh(identity:receiver);try await destination.create(identity:receiver)
+        try await wallet.previewTip(to:receiver.npub,identity:sender);XCTAssertEqual(wallet.tipPreview?.fee,1)
+        do { try await wallet.sendOneSat(to:receiver.npub,maximumFee:0,identity:sender);XCTFail("Unapproved fee should be rejected") } catch { };XCTAssertEqual(mint.swapCalls,0)
+        try await wallet.sendOneSat(to:receiver.npub,maximumFee:1,identity:sender);XCTAssertEqual(wallet.balance,249998)
+        try await destination.receiveNutzaps(identity:receiver);XCTAssertEqual(destination.balance,0);XCTAssertEqual(mint.swapCalls,1)
+        try await wallet.sendOneSat(to:receiver.npub,maximumFee:1,identity:sender);try await destination.receiveNutzaps(identity:receiver);XCTAssertEqual(destination.balance,1);XCTAssertEqual(mint.swapCalls,3)
+    }
+    func testTipRelayFailureRetriesTheSameReceiptAndIncomingLostResponseRecoversOnce() async throws {
+        var rejectTip=true
+        let mint=WalletFixtureMint(),relay=try await relay(reject:{ $0 == 9321 && rejectTip }),client=NostrRelayClient(relays:[relay.url],timeout:.seconds(2));defer { relay.stop() }
+        let (sender,wallet)=try await funded(mint,client:client),receiver=try identity(),destination=WalletService(client:client,mint:mint,now:{ mint.date }),a=sender.hex,b=receiver.hex
+        defer { try? WalletVault().removeTestState(owner:a);try? WalletVault().removeTestState(owner:b);try? sender.disconnect();try? receiver.disconnect() }
+        try await destination.refresh(identity:receiver);try await destination.create(identity:receiver)
+        do { try await wallet.sendOneSat(to:receiver.npub,maximumFee:0,identity:sender);XCTFail("Unacknowledged tip must retain its outbox") } catch { }
+        XCTAssertEqual(mint.swapCalls,1);let saved=try XCTUnwrap(WalletVault().load(owner:a)?.pending);XCTAssertEqual(saved.phase,.publishing);XCTAssertNotNil(saved.outbox.first { $0.kind == 9321 })
+        rejectTip=false;try await wallet.checkDeposit(identity:sender);XCTAssertEqual(mint.swapCalls,1)
+        let events=relay.frames().filter { $0.first as? String == "EVENT" }.compactMap { $0[1] as? [String:Any] }.filter { $0["kind"] as? Int == 9321 };XCTAssertEqual(events.count,2);XCTAssertEqual(Set(events.compactMap { $0["id"] as? String }).count,1)
+        mint.loseSwapResponse=true
+        do { try await destination.receiveNutzaps(identity:receiver);XCTFail("Lost redemption response should retain its outputs") } catch { }
+        XCTAssertEqual(mint.swapCalls,2);let restored=WalletService(client:client,mint:mint,now:{ mint.date });try await restored.refresh(identity:receiver);try await restored.checkDeposit(identity:receiver)
+        XCTAssertEqual(restored.balance,1);XCTAssertEqual(mint.swapCalls,2);try await restored.receiveNutzaps(identity:receiver);XCTAssertEqual(mint.swapCalls,2)
+    }
+    func testMissingAdvertisementMainKeyAndUnsupportedMintNeverSpendFunds() async throws {
+        let mint=WalletFixtureMint(),relay=try await relay(),client=NostrRelayClient(relays:[relay.url],timeout:.seconds(2));defer { relay.stop() }
+        let (sender,wallet)=try await funded(mint,client:client),receiver=try identity(),a=sender.hex,b=receiver.hex
+        defer { try? WalletVault().removeTestState(owner:a);try? sender.disconnect();try? receiver.disconnect() }
+        do { try await wallet.sendOneSat(to:receiver.npub,maximumFee:0,identity:sender);XCTFail("Missing recipient advertisement accepted") } catch { }
+        for (index,tags) in [[["pubkey",b],["mint",WalletContract.defaultMint]],[["pubkey",String(repeating:"f",count:64)],["mint","https://not-supported.invalid"]]].enumerated() {
+            try await client.publish(identityEvent(receiver,kind:10019,tags:tags,createdAt:Int64(Date().timeIntervalSince1970)+Int64(index)))
+            do { try await wallet.sendOneSat(to:receiver.npub,maximumFee:0,identity:sender);XCTFail("Invalid recipient advertisement accepted") } catch { }
+        }
+        let separate=try XCTUnwrap(Keypair())
+        try await client.publish(identityEvent(receiver,kind:10019,tags:[["pubkey",separate.publicKey.hex],["mint",WalletContract.defaultMint]],createdAt:Int64(Date().timeIntervalSince1970)+2))
+        mint.supportsLock=false;do { try await wallet.sendOneSat(to:receiver.npub,maximumFee:0,identity:sender);XCTFail("Mint without P2PK support accepted") } catch { }
+        XCTAssertEqual(mint.swapCalls,0);XCTAssertEqual(wallet.balance,250000)
+    }
+    private func identityEvent(_ identity:IdentityService,kind:Int,tags:[[String]],createdAt:Int64) throws -> NostrEventPayload { try identity.sign(kind:kind,tags:tags,content:"",createdAt:createdAt) }
+    func testPartiallySpentNutzapStillRedeemsItsRemainingValidProof() async throws {
+        let mint=WalletFixtureMint(),relay=try await relay(),client=NostrRelayClient(relays:[relay.url],timeout:.seconds(2));defer { relay.stop() }
+        let (sender,wallet)=try await funded(mint,client:client),receiver=try identity(),destination=WalletService(client:client,mint:mint,now:{ mint.date }),a=sender.hex,b=receiver.hex
+        defer { try? WalletVault().removeTestState(owner:a);try? WalletVault().removeTestState(owner:b);try? sender.disconnect();try? receiver.disconnect() }
+        try await destination.refresh(identity:receiver);try await destination.create(identity:receiver)
+        try await wallet.sendOneSat(to:receiver.npub,maximumFee:0,identity:sender);let first=try XCTUnwrap(WalletVault().load(owner:a)?.sentReceipts?.last);try await destination.receiveNutzaps(identity:receiver);XCTAssertEqual(destination.balance,1)
+        mint.loseSwapResponse=true;do { try await wallet.sendOneSat(to:receiver.npub,maximumFee:0,identity:sender);XCTFail("Fixture must retain a lost response") } catch { }
+        let pending=try XCTUnwrap(WalletVault().load(owner:a)?.pending),outputs=try JSONDecoder().decode(JSONValue.self,from:JSONEncoder().encode(pending.batch.outputs))
+        let restored=try await mint.request(mint:pending.mint,path:"v1/restore",body:.object(["outputs":outputs])),known=try JSONDecoder().decode([CashuSwift.Output].self,from:JSONEncoder().encode(restored["outputs"])),signatures=try JSONDecoder().decode([CashuSwift.Promise].self,from:JSONEncoder().encode(restored["signatures"]))
+        let loaded=try await mint.loadMint(pending.mint),proofs=try pending.batch.recover(outputs:known,signatures:signatures,mint:loaded),new=try XCTUnwrap(proofs.last),wire=try JSONDecoder().decode(JSONValue.self,from:JSONEncoder().encode(new))
+        try await client.publish(sender.sign(kind:9321,tags:[["proof",first.tag("proof")],["proof",wire.json],["p",b],["u",WalletContract.defaultMint],["unit","sat"]],content:"partial fixture"))
+        try await destination.receiveNutzaps(identity:receiver);XCTAssertEqual(destination.balance,2);XCTAssertEqual(mint.swapCalls,4)
+        try await wallet.checkDeposit(identity:sender);try await destination.receiveNutzaps(identity:receiver);XCTAssertEqual(mint.swapCalls,4)
+    }
+    func testDefaultSupportRecipientAdvertisementReadOnly() async throws {
+        guard ProcessInfo.processInfo.environment["PIYALI_LIVE_NOSTR_TESTS"] == "1" else { throw XCTSkip("Read-only support-recipient lookup requires explicit opt-in.") }
+        let key=try XCTUnwrap(PublicKey(npub:WalletContract.defaultRecipient)),events=try await NostrRelayClient().querySnapshots(filter:["kinds":[10019],"authors":[key.hex]])
+        guard let latest=events.max(by:{ $0.created_at < $1.created_at }) else { print("LIVE WALLET SUPPORT: no signed NIP-61 advertisement retrieved; no wallet data was changed");return }
+        do { let recipient=try NutzapRecipient(author:key.hex,tags:latest.tags);_=try recipient.compatibleMint(holding:[WalletContract.defaultMint]);print("LIVE WALLET SUPPORT: default recipient advertises a separate receiving key and supported mint; no payment or publication made") }
+        catch { print("LIVE WALLET SUPPORT: default recipient advertisement requires receiving-key/mint migration; no wallet data was changed") }
     }
     func testInvoiceAmountSignatureAndExpiryAreValidated() throws {
         let mint=WalletFixtureMint(),quote:JSONValue = .object(["quote":.string("local-quote"),"request":.string(mint.invoice)])

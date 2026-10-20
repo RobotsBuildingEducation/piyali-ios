@@ -2,6 +2,7 @@ import Foundation
 
 /// Wire-only wallet values. Secrets belong in Keychain or NIP-44 ciphertext, never LearnerState.
 public enum WalletContract {
+    public static let defaultRecipient="npub1auhch9697q3jxjjtj7jq3glqtl2eyf7quu357ppja2fr5fvvhlxsqla9n5"
     public static let defaultMint="https://mint.minibits.cash/Bitcoin"
     public static func mint(_ value:String) throws -> String {
         guard value.utf8.count <= 2048,let url=URLComponents(string:value),url.scheme == "https",let host=url.host,!host.isEmpty,url.user == nil,url.password == nil,url.query == nil,url.fragment == nil else { throw Failure.invalidMint }
@@ -44,7 +45,7 @@ public struct WalletProof:Codable,Equatable,Sendable {
         self.wire=wire
     }
     public func locked(to walletKey:String) -> Bool {
-        guard let data=secret.data(using:.utf8),let value=try? JSONDecoder().decode(JSONValue.self,from:data),value.array.count == 2,value.array[0].string == "P2PK",value.array[1]["data"].string == walletKey,WalletContract.key(value.array[1]["nonce"].string),(value.array[1]["tags"] == .null || value.array[1]["tags"] == .array([])) else { return false };return true
+        guard let data=secret.data(using:.utf8),let value=try? JSONDecoder().decode(JSONValue.self,from:data),value.array.count == 2,value.array[0].string == "P2PK",value.array[1]["data"].string == walletKey,WalletContract.key(value.array[1]["nonce"].string),(value.array[1]["tags"] == .null || value.array[1]["tags"] == .array([]) || value.array[1]["tags"] == .array([.array([.string("sigflag"),.string("SIG_INPUTS")])])) else { return false };return true
     }
 }
 public struct WalletTokenRecord:Codable,Equatable,Sendable {
@@ -79,5 +80,6 @@ public struct WalletLedger:Codable,Equatable,Sendable {
         }
         return result.values.sorted { $0.id < $1.id }
     }
+    public mutating func compact() { records=records.filter { !deleted.contains($0.key) } }
     public func balance(mint:String) throws -> Int { try proofs(mint:mint).reduce(0) { total,proof in let next=total.addingReportingOverflow(proof.amount);guard !next.overflow else { throw WalletContract.Failure.invalidProof };return next.partialValue } }
 }

@@ -1,6 +1,7 @@
 import Foundation
 import NostrSDK
 import CashuSwift
+import secp256k1
 
 @MainActor final class WalletService:ObservableObject {
     @Published private(set) var busy=false
@@ -8,6 +9,7 @@ import CashuSwift
     @Published private(set) var canCreate=false
     @Published private(set) var balance=0
     @Published private(set) var invoice=""
+    @Published private(set) var tipPreview:WalletTipPreview?
     @Published private(set) var archivedCount=0
     @Published private(set) var invoiceExpired=false
     @Published private(set) var pending=false
@@ -30,9 +32,9 @@ import CashuSwift
         #endif
         bootstrap=selected ?? NostrRelayClient();fixedRelays=selected != nil;mintAPI=mint ?? CashuHTTPClient();self.now=now
     }
-    func cancel(clear:Bool = false) { generation=UUID();task?.cancel();task=nil;busy=false;if clear { state=nil;owner="";ready=false;canCreate=false;balance=0;invoice="";archivedCount=0;invoiceExpired=false;pending=false;status="";error=nil } }
+    func cancel(clear:Bool = false) { generation=UUID();task?.cancel();task=nil;busy=false;if clear { state=nil;owner="";ready=false;canCreate=false;balance=0;invoice="";tipPreview=nil;archivedCount=0;invoiceExpired=false;pending=false;status="";error=nil } }
     private func check(_ identity:IdentityService,_ version:UUID) throws { try Task.checkCancellation();guard version == generation,identity.hex == owner,!owner.isEmpty else { throw CancellationError() } }
-    private func save() throws { guard let state,state.owner == owner else { throw CancellationError() };try vault.save(state);ready=state.configurationPublished;invoice=state.invoice?["quote"]["request"].string ?? "";pending=state.pending != nil;archivedCount=state.archivedInvoices?.count ?? 0;invoiceExpired=state.invoice.map { $0["quote"]["expiry"].number <= now().timeIntervalSince1970 } ?? false }
+    private func save() throws { state?.ledger.compact();guard let state,state.owner == owner else { throw CancellationError() };try vault.save(state);ready=state.configurationPublished;invoice=state.invoice?["quote"]["request"].string ?? "";pending=state.pending != nil;archivedCount=state.archivedInvoices?.count ?? 0;invoiceExpired=state.invoice.map { $0["quote"]["expiry"].number <= now().timeIntervalSince1970 } ?? false }
     private func authenticate(_ identity:IdentityService) -> NostrRelayClient.Authenticate { let author=owner;return { relay,challenge in try await identity.signEvent(kind:22242,tags:[["relay",relay],["challenge",challenge]],content:"",expectedAuthor:author) } }
     private var client:NostrRelayClient { fixedRelays ? bootstrap : NostrRelayClient(relays:state?.relays.isEmpty == false ? state!.relays : ["wss://relay.ditto.pub","wss://relay.primal.net","wss://nos.lol"]) }
     private func run(_ identity:IdentityService,_ action:@escaping @MainActor (UUID) async throws -> Void) async throws {
@@ -70,9 +72,9 @@ import CashuSwift
                 let fallback=discovery.filter { $0.kind == 10002 }.max { $0.created_at < $1.created_at }?.tags.filter { $0.first == "r" && $0.count >= 2 && ($0.count == 2 || $0[2] == "read") }.compactMap { try? BunkerConnection.relay($0[1]) } ?? []
                 let urls=Array(Set(advertised.isEmpty ? fallback : advertised).prefix(16))
                 discoveredRelays=urls
-                if !urls.isEmpty { discovery += try await NostrRelayClient(relays:urls).querySnapshots(filter:["kinds":[17375,7375,5,37513,7374],"authors":[self.owner]],authenticate:self.authenticate(identity));try self.check(identity,version) }
+                if !urls.isEmpty { discovery += try await NostrRelayClient(relays:urls).querySnapshots(filter:["kinds":[17375,7375,7376,5,37513,7374],"authors":[self.owner]],authenticate:self.authenticate(identity));try self.check(identity,version) }
             }
-            let events=try await self.client.querySnapshots(filter:["kinds":[17375,7375,5,37513,7374],"authors":[self.owner]],authenticate:self.authenticate(identity));try self.check(identity,version)
+            let events=try await self.client.querySnapshots(filter:["kinds":[17375,7375,7376,5,37513,7374],"authors":[self.owner]],authenticate:self.authenticate(identity));try self.check(identity,version)
             let all=Dictionary((discovery+events).filter { $0.pubkey == self.owner }.map { ($0.id,$0) },uniquingKeysWith:{ first,_ in first }).values
             guard all.count < 2048 else { throw AppError.message("This wallet needs a complete relay history before it can be opened. Its funds have not been changed.") }
             if let configuration=all.filter({ $0.kind == 17375 }).sorted(by:{ $0.created_at == $1.created_at ? $0.id < $1.id : $0.created_at > $1.created_at }).first {
@@ -86,7 +88,7 @@ import CashuSwift
                 self.state?.configurationPublished=true
             }
             if self.state == nil {
-                self.canCreate = !all.contains { [17375,7375,37513,7374,10019].contains($0.kind) || $0.kind == 5 && $0.tags.contains(["k","7375"]) }
+                self.canCreate = !all.contains { [17375,7375,7376,37513,7374,10019].contains($0.kind) || $0.kind == 5 && $0.tags.contains(["k","7375"]) }
                 self.status=self.canCreate ? "No wallet found. Create one to receive deposits and nutzaps." : "An existing wallet or deposit was found. Its records are preserved; restore its receiving key before creating another wallet."
                 return
             }
@@ -96,6 +98,7 @@ import CashuSwift
                 if payload["unit"] != .null && payload["unit"].string != "sat" { continue }
                 let token=try WalletTokenRecord(id:event.id,payload:payload);try self.state?.ledger.ingest(token)
             }
+            for event in all where event.kind == 7376 { self.state?.redeemed.formUnion(event.tags.filter { $0.count >= 4 && $0[0] == "e" && $0[3] == "redeemed" && WalletContract.key($0[1]) }.map { $0[1] }) }
             for event in all where event.kind == 5 && event.tags.contains(["k","7375"]) { self.state?.ledger.remove(event.tags.filter { $0.first == "e" && $0.count >= 2 }.map { $0[1] }) }
             try self.save();try await self.publishConfiguration(identity,version:version);try await self.updateBalance(identity,version:version);self.status="Wallet synchronized."
         }
@@ -103,7 +106,7 @@ import CashuSwift
     func create(identity:IdentityService) async throws {
         try await run(identity) { version in
             guard self.state == nil,self.canCreate,let keys=Keypair() else { throw AppError.message("Refresh the wallet before creating one.") }
-            let existing=try await self.bootstrap.querySnapshots(filter:["kinds":[17375,37513,7375,7374,10019],"authors":[self.owner]],authenticate:self.authenticate(identity));try self.check(identity,version)
+            let existing=try await self.bootstrap.querySnapshots(filter:["kinds":[17375,37513,7375,7376,7374,10019],"authors":[self.owner]],authenticate:self.authenticate(identity));try self.check(identity,version)
             guard existing.isEmpty else { self.canCreate=false;throw AppError.message("A wallet was found. Refresh and restore it before creating another wallet.") }
             self.state=WalletPrivateState(owner:self.owner,walletPrivateKey:keys.privateKey.hex,mints:[WalletContract.defaultMint],relays:["wss://relay.ditto.pub","wss://relay.primal.net","wss://nos.lol"]);try self.save()
             let config:JSONValue = .array([.array([.string("privkey"),.string(keys.privateKey.hex)]),.array([.string("mint"),.string(WalletContract.defaultMint)])])
@@ -189,7 +192,8 @@ import CashuSwift
         state?.pending?.signatures=signatures;state?.pending?.phase = .minted;try save();try await finishDeposit(identity,mint:mint,version:version)
     }
     private func recover(_ identity:IdentityService,version:UUID) async throws {
-        guard let operation=state?.pending,operation.purpose == .deposit else { throw WalletContract.Failure.pending }
+        guard let operation=state?.pending else { throw WalletContract.Failure.pending }
+        if operation.purpose != .deposit { try await recoverSwap(identity,version:version);return }
         let mint=try await mintAPI.loadMint(operation.mint);try check(identity,version)
         if operation.signatures != nil || operation.received != nil { try await finishDeposit(identity,mint:mint,version:version);return }
         if operation.phase == .prepared { try await submitDeposit(identity,mint:mint,version:version);return }
@@ -224,8 +228,9 @@ import CashuSwift
         try state?.ledger.ingest(WalletTokenRecord(id:token.id,payload:payload));state?.invoice=nil;state?.pending=nil;try save();try await updateBalance(identity,version:version);status="Deposit received and wallet records saved."
     }
     private func updateBalance(_ identity:IdentityService,version:UUID) async throws {
-        guard let wallet=state else { balance=0;return };var total=0
+        guard let wallet=state else { balance=0;return };var total=0;var checked=Set<String>()
         for value in wallet.mints {
+            guard checked.insert(try WalletContract.canonicalMint(value)).inserted else { continue }
             let proofs=try wallet.ledger.proofs(mint:value);if proofs.isEmpty { continue }
             let mint=try await mintAPI.loadMint(value);try check(identity,version)
             let typed=try proofs.map { try JSONDecoder().decode(CashuSwift.Proof.self,from:JSONEncoder().encode($0.wire)) }
@@ -234,4 +239,168 @@ import CashuSwift
         }
         balance=total
     }
+}
+
+struct WalletTipPreview:Equatable {
+    let recipient:String
+    let fee:Int
+    var label:String { fee == 0 ? "Send 1 sat" : "Send 1 sat + \(fee) sat mint fee" }
+}
+private struct WalletTipPlan {
+    let destination:NutzapDestination
+    let mint:CashuSwift.Mint
+    let selected:[WalletProof]
+    let rollover:[WalletProof]
+    let destroyed:[String]
+    let fee:Int
+}
+extension WalletService {
+    private func typed(_ values:[WalletProof]) throws -> [CashuSwift.Proof] { try values.map { try JSONDecoder().decode(CashuSwift.Proof.self,from:JSONEncoder().encode($0.wire)) } }
+    private func wire(_ values:[CashuSwift.Proof]) throws -> [WalletProof] { try values.map { try WalletProof(JSONDecoder().decode(JSONValue.self,from:JSONEncoder().encode($0))) } }
+    private func tipPlan(_ recipient:String,identity:IdentityService,version:UUID) async throws -> WalletTipPlan {
+        guard let wallet=state,wallet.configurationPublished,wallet.pending == nil else { throw WalletContract.Failure.pending }
+        let cleaned=recipient.trimmingCharacters(in:.whitespacesAndNewlines)
+        guard let key=cleaned.hasPrefix("npub1") ? PublicKey(npub:cleaned) : PublicKey(hex:cleaned),key.hex != owner else { throw WalletContract.Failure.invalidRecipient }
+        let records=try await bootstrap.querySnapshots(filter:["kinds":[10019,10002],"authors":[key.hex]],authenticate:authenticate(identity));try check(identity,version)
+        guard let info=records.filter({ $0.kind == 10019 }).sorted(by:{ $0.created_at == $1.created_at ? $0.id < $1.id : $0.created_at > $1.created_at }).first else { throw WalletContract.Failure.invalidRecipient }
+        let metadata=try NutzapRecipient(author:key.hex,tags:info.tags),value=try metadata.compatibleMint(holding:wallet.mints)
+        let mint=try await mintAPI.loadMint(value);try check(identity,version)
+        let capabilities=try await mintAPI.request(mint:value,path:"v1/info",body:nil);try check(identity,version)
+        guard capabilities["nuts"]["11"]["supported"].boolean,capabilities["nuts"]["12"]["supported"].boolean else { throw WalletContract.Failure.invalidMint }
+        let all=try wallet.ledger.proofs(mint:value),normalized=try typed(all).withFullKeysetID(of:mint),states=try await mintAPI.states(normalized,mint:mint);try check(identity,version)
+        guard states.count == all.count else { throw WalletContract.Failure.invalidProof }
+        var available:[WalletProof]=[],unspent:[WalletProof]=[]
+        for index in all.indices where states[index] == .unspent {
+            unspent.append(all[index])
+            if let secret=try? JSONDecoder().decode(JSONValue.self,from:Data(all[index].secret.utf8)),["P2PK","HTLC"].contains(secret.array.first?.string ?? "") { continue }
+            available.append(try wire([normalized[index]])[0])
+        }
+        available.sort { $0.amount == $1.amount ? $0.id < $1.id : $0.amount < $1.amount }
+        var selected:[WalletProof]=[],total=0,fee=0
+        for proof in available { selected.append(proof);total += proof.amount;fee=try CashuSwift.calculateFee(for:typed(selected),of:mint);if total >= 1+fee { break } }
+        guard !selected.isEmpty,total >= 1+fee else { throw AppError.message("The wallet does not have enough spendable sats for 1 sat and the mint fee.") }
+        let ids=Set(selected.map(\.id)),canonical=try WalletContract.canonicalMint(value)
+        let affected=wallet.ledger.records.values.filter { !wallet.ledger.deleted.contains($0.id) && (try? WalletContract.canonicalMint($0.mint)) == canonical && $0.proofs.contains(where:{ ids.contains($0.id) }) }
+        let retained=Set(affected.flatMap(\.proofs).map(\.id)).subtracting(ids),rollover=unspent.filter { retained.contains($0.id) }
+        let fallback=records.filter { $0.kind == 10002 }.max { $0.created_at < $1.created_at }?.tags.filter { $0.first == "r" && $0.count >= 2 && ($0.count == 2 || $0[2] == "read") }.compactMap { try? BunkerConnection.relay($0[1]) } ?? []
+        let relays=Array(Set(metadata.relays.isEmpty ? fallback : metadata.relays).prefix(16))
+        return WalletTipPlan(destination:NutzapDestination(author:key.hex,walletKey:metadata.walletKey,mint:value,relays:relays),mint:mint,selected:selected,rollover:rollover,destroyed:affected.map(\.id).sorted(),fee:fee)
+    }
+    func previewTip(to recipient:String,identity:IdentityService) async throws {
+        tipPreview=nil
+        try await run(identity) { version in let plan=try await self.tipPlan(recipient,identity:identity,version:version);self.tipPreview=WalletTipPreview(recipient:recipient,fee:plan.fee) }
+    }
+    func sendOneSat(to recipient:String,maximumFee:Int,identity:IdentityService) async throws {
+        try await run(identity) { version in
+            let plan=try await self.tipPlan(recipient,identity:identity,version:version)
+            guard maximumFee >= 0,plan.fee <= maximumFee else { throw AppError.message("The mint fee changed. Check the recipient and fee again before sending.") }
+            let change=plan.selected.reduce(0) { $0+$1.amount }-1-plan.fee
+            let keep=change > 0 ? try CashuMintBatch.prepare(amount:change,mint:plan.mint) : CashuMintBatch(outputs:[],secrets:[],blindingFactors:[])
+            let send=try CashuMintBatch.prepare(amount:1,mint:plan.mint,lock:plan.destination.walletKey)
+            let batch=CashuMintBatch(outputs:keep.outputs+send.outputs,secrets:keep.secrets+send.secrets,blindingFactors:keep.blindingFactors+send.blindingFactors)
+            var operation=WalletPendingOperation(purpose:.tip,mint:plan.destination.mint,amount:1,batch:batch,inputs:plan.selected,destroyedTokenIDs:plan.destroyed,recipient:plan.destination,keepCount:keep.outputs.count)
+            operation.rollover=plan.rollover;operation.mintFee=plan.fee;self.state?.pending=operation;try self.save();self.tipPreview=nil
+            try await self.submitSwap(identity,mint:plan.mint,version:version)
+        }
+    }
+    func receiveNutzaps(identity:IdentityService) async throws {
+        try await run(identity) { version in
+            guard let wallet=self.state,wallet.configurationPublished,wallet.pending == nil,let walletKey=Keypair(hex:wallet.walletPrivateKey) else { throw WalletContract.Failure.pending }
+            let lock="02"+walletKey.publicKey.hex
+            let events=try await self.client.querySnapshots(filter:["kinds":[9321],"#p":[self.owner],"#u":wallet.mints],authenticate:self.authenticate(identity));try self.check(identity,version)
+            var accepted:[String:[NostrEventPayload]]=[:]
+            for event in Dictionary(events.map { ($0.id,$0) },uniquingKeysWith:{ first,_ in first }).values where !wallet.redeemed.contains(event.id) {
+                guard event.tags.filter({ $0.first == "p" }).count == 1,event.tag("p") == self.owner,event.tags.filter({ $0.first == "u" }).count == 1,wallet.mints.contains(event.tag("u")),event.tags.filter({ $0.first == "unit" }).count <= 1,(event.tag("unit").isEmpty || event.tag("unit") == "sat") else { continue }
+                let raw=event.tags.filter { $0.first == "proof" && $0.count == 2 };guard !raw.isEmpty,raw.count <= 128 else { continue }
+                guard let proofs=try? raw.map({ try WalletProof(JSONDecoder().decode(JSONValue.self,from:Data($0[1].utf8))) }),proofs.allSatisfy({ $0.locked(to:lock) }),Set(proofs.map(\.id)).count == proofs.count else { continue }
+                accepted[event.tag("u"),default:[]].append(event)
+            }
+            for (value,group) in accepted.sorted(by:{ $0.key < $1.key }) {
+                let mint=try await self.mintAPI.loadMint(value);try self.check(identity,version)
+                let info=try await self.mintAPI.request(mint:value,path:"v1/info",body:nil);try self.check(identity,version);guard info["nuts"]["11"]["supported"].boolean,info["nuts"]["12"]["supported"].boolean else { throw WalletContract.Failure.invalidMint }
+                var unique:[String:WalletProof]=[:],verifiedEvents:[(event:NostrEventPayload,ids:Set<String>)]=[]
+                for event in group {
+                    guard let decoded=try? event.tags.filter({ $0.first == "proof" && $0.count == 2 }).map({ try JSONDecoder().decode(CashuSwift.Proof.self,from:Data($0[1].utf8)) }).withFullKeysetID(of:mint),case .valid? = try? CashuSwift.Crypto.checkDLEQ(for:decoded,with:mint) else { continue }
+                    let canonical=try self.wire(decoded)
+                    guard Set(canonical.map(\.secret)).count == canonical.count else { continue }
+                    var conflict=false
+                    for proof in canonical { if let previous=unique[proof.id],previous.amount != proof.amount || previous.secret != proof.secret || previous.wire["id"] != proof.wire["id"] { conflict=true } }
+                    let ids=Set(canonical.map(\.id));guard !conflict,unique.count+ids.subtracting(Set(unique.keys)).count <= 512 else { continue };for proof in canonical where unique[proof.id] == nil { unique[proof.id]=proof };verifiedEvents.append((event,ids))
+                }
+                guard !unique.isEmpty else { continue }
+                let proofs=unique.values.sorted { $0.id < $1.id },normalized=try self.typed(proofs)
+                let states=try await self.mintAPI.states(normalized,mint:mint);try self.check(identity,version);guard states.count == proofs.count else { throw WalletContract.Failure.invalidProof }
+                let spent=Set(proofs.indices.filter { states[$0] == .spent }.map { proofs[$0].id })
+                for record in verifiedEvents where record.ids.isSubset(of:spent) { self.state?.redeemed.insert(record.event.id) }
+                try self.save()
+                let spendable=Set(proofs.indices.filter { states[$0] == .unspent }.map { proofs[$0].id }),settled=spent.union(spendable)
+                let rows=Array(verifiedEvents.filter { $0.ids.isSubset(of:settled) && !$0.ids.isDisjoint(with:spendable) }.prefix(128))
+                let incoming=rows.map(\.event);guard !incoming.isEmpty else { continue }
+                let wanted=Set(rows.flatMap { Array($0.ids) }).intersection(spendable)
+                let inputs=try normalized.filter { wanted.contains($0.C) }.map { proof -> WalletProof in
+                    let signature=try secp256k1.Schnorr.PrivateKey(dataRepresentation:CashuMintBatch.bytes(wallet.walletPrivateKey)).signature(for:Data(proof.secret.utf8))
+                    let witness=JSONValue.object(["signatures":.array([.string(CashuMintBatch.hex(signature.dataRepresentation))])]).json
+                    return try self.wire([proof])[0].replacingWitness(witness)
+                }
+                let fee=try CashuSwift.calculateFee(for:self.typed(inputs),of:mint),amount=inputs.reduce(0) { $0+$1.amount }-fee
+                guard amount > 0 else { continue }
+                let batch=try CashuMintBatch.prepare(amount:amount,mint:mint)
+                var operation=WalletPendingOperation(purpose:.receive,mint:value,amount:amount,batch:batch,inputs:inputs,keepCount:batch.outputs.count);operation.incoming=incoming;operation.mintFee=fee
+                self.state?.pending=operation;try self.save();try await self.submitSwap(identity,mint:mint,version:version);return
+            }
+            self.status="No new redeemable nutzaps found. Tiny payments may need to accumulate to cover the mint fee."
+        }
+    }
+    private func submitSwap(_ identity:IdentityService,mint:CashuSwift.Mint,version:UUID) async throws {
+        guard let operation=state?.pending,operation.purpose != .deposit else { throw WalletContract.Failure.pending }
+        state?.pending?.phase = .submitted;try save()
+        let outputs=try JSONDecoder().decode(JSONValue.self,from:JSONEncoder().encode(operation.batch.outputs))
+        let response=try await mintAPI.request(mint:operation.mint,path:"v1/swap",body:.object(["inputs":.array(operation.inputs.map(\.wire)),"outputs":outputs]));try check(identity,version)
+        state?.pending?.signatures=try JSONDecoder().decode([CashuSwift.Promise].self,from:JSONEncoder().encode(response["signatures"]));state?.pending?.phase = .minted;try save();try await finishSwap(identity,mint:mint,version:version)
+    }
+    private func recoverSwap(_ identity:IdentityService,version:UUID) async throws {
+        guard let operation=state?.pending,operation.purpose != .deposit else { throw WalletContract.Failure.pending }
+        let mint=try await mintAPI.loadMint(operation.mint);try check(identity,version)
+        if operation.received != nil || operation.signatures != nil { try await finishSwap(identity,mint:mint,version:version);return }
+        if operation.phase == .prepared { try await submitSwap(identity,mint:mint,version:version);return }
+        let outputs=try JSONDecoder().decode(JSONValue.self,from:JSONEncoder().encode(operation.batch.outputs))
+        let response=try await mintAPI.request(mint:operation.mint,path:"v1/restore",body:.object(["outputs":outputs]));try check(identity,version)
+        let restored=try JSONDecoder().decode([CashuSwift.Output].self,from:JSONEncoder().encode(response["outputs"])),signatures=try JSONDecoder().decode([CashuSwift.Promise].self,from:JSONEncoder().encode(response["signatures"]))
+        if !restored.isEmpty { state?.pending?.received=try wire(operation.batch.recover(outputs:restored,signatures:signatures,mint:mint));state?.pending?.phase = .minted;try save();try await finishSwap(identity,mint:mint,version:version);return }
+        let states=try await mintAPI.states(typed(operation.inputs),mint:mint);try check(identity,version)
+        guard states.count == operation.inputs.count,states.allSatisfy({ $0 == .unspent }) else { throw AppError.message("The mint has not returned this saved transfer. Its recovery data is retained; try again when the mint has reconciled the spent or pending inputs.") }
+        try await submitSwap(identity,mint:mint,version:version)
+    }
+    private func finishSwap(_ identity:IdentityService,mint:CashuSwift.Mint,version:UUID) async throws {
+        guard var operation=state?.pending,operation.purpose != .deposit else { throw WalletContract.Failure.pending }
+        if operation.received == nil { operation.received=try wire(operation.batch.unblind(operation.signatures ?? [],mint:mint));state?.pending=operation;try save() }
+        let proofs=operation.received!;guard operation.keepCount <= proofs.count,operation.keepCount >= 0 else { throw WalletContract.Failure.invalidProof }
+        let keep=Array(proofs.prefix(operation.keepCount))+(operation.rollover ?? [])
+        if operation.outbox.isEmpty {
+            let payload:JSONValue = .object(["mint":.string(operation.mint),"unit":.string("sat"),"proofs":.array(keep.map(\.wire)),"del":.array(operation.destroyedTokenIDs.map(JSONValue.string))])
+            let token=try await signed(kind:7375,payload:payload,identity:identity,version:version);var outbox=[token]
+            if !operation.destroyedTokenIDs.isEmpty { outbox.append(try await identity.signEvent(kind:5,tags:[["k","7375"]]+operation.destroyedTokenIDs.map { ["e",$0] },content:"",expectedAuthor:owner));try check(identity,version) }
+            let history=[["direction",operation.purpose == .tip ? "out" : "in"],["amount",String(operation.amount)],["unit","sat"],["e",token.id,"","created"]]+operation.destroyedTokenIDs.map { ["e",$0,"","destroyed"] }
+            let receiptTags=(operation.incoming ?? []).flatMap { [["e",$0.id,"","redeemed"],["p",$0.pubkey]] }
+            outbox.append(try await signed(kind:7376,payload:.array(history.map { .array($0.map(JSONValue.string)) }),tags:receiptTags,identity:identity,version:version))
+            if operation.purpose == .tip {
+                guard let destination=operation.recipient else { throw WalletContract.Failure.invalidRecipient }
+                let send=Array(proofs.dropFirst(operation.keepCount));guard send.reduce(0,{ $0+$1.amount }) == 1,send.allSatisfy({ $0.locked(to:destination.walletKey) }) else { throw WalletContract.Failure.invalidProof }
+                outbox.append(try await identity.signEvent(kind:9321,tags:send.map { ["proof",$0.wire.json] }+[["amount","1"],["unit","sat"],["u",destination.mint],["p",destination.author]],content:"Piyali",expectedAuthor:owner));try check(identity,version)
+            }
+            state?.pending?.outbox=outbox;state?.pending?.phase = .publishing;try save()
+        }
+        for event in state!.pending!.outbox where !(state?.pending?.acknowledged.contains(event.id) ?? true) {
+            let destination=operation.recipient?.relays ?? [],target=event.kind == 9321 && !fixedRelays && !destination.isEmpty ? NostrRelayClient(relays:destination) : client
+            try await target.publish(event,authenticate:authenticate(identity));try check(identity,version);state?.pending?.acknowledged.insert(event.id);try save()
+        }
+        guard let token=state?.pending?.outbox.first(where:{ $0.kind == 7375 }) else { throw WalletContract.Failure.invalidToken }
+        try state?.ledger.ingest(WalletTokenRecord(id:token.id,payload:.object(["mint":.string(operation.mint),"unit":.string("sat"),"proofs":.array(keep.map(\.wire)),"del":.array(operation.destroyedTokenIDs.map(JSONValue.string))])))
+        if let receipt=state?.pending?.outbox.first(where:{ $0.kind == 9321 }) { let receipts=Array(((state?.sentReceipts ?? [])+[receipt]).suffix(128));state?.sentReceipts=receipts }
+        state?.redeemed.formUnion((operation.incoming ?? []).map(\.id));state?.pending=nil;try save();try await updateBalance(identity,version:version)
+        status=operation.purpose == .tip ? "Sent 1 sat. Mint fee: \(operation.mintFee ?? 0) sat." : "Received \(operation.amount) sat. Mint fee: \(operation.mintFee ?? 0) sat."
+    }
+}
+private extension WalletProof {
+    func replacingWitness(_ witness:String) throws -> WalletProof { try WalletProof(wire.setting("witness",.string(witness))) }
 }

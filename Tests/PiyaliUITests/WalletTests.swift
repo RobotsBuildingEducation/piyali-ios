@@ -17,6 +17,9 @@ import XCTest
         let create=app.buttons["walletCreate"];reveal(create,in:app);create.tap();XCTAssertTrue(app.buttons["walletDeposit"].waitForExistence(timeout:15));XCTAssertEqual(app.staticTexts["walletBalance"].label,"0 sats available")
         let amount=app.textFields["walletDepositAmount"];reveal(amount,in:app);amount.tap();amount.typeText(String(repeating:XCUIKeyboardKey.delete.rawValue,count:2)+"0");app.buttons["Done"].tap();XCTAssertFalse(app.buttons["walletDeposit"].isEnabled)
         amount.tap();amount.typeText(XCUIKeyboardKey.delete.rawValue+"10");app.buttons["Done"].tap();XCTAssertTrue(app.buttons["walletDeposit"].isEnabled)
+        let receive=app.buttons["walletReceive"];reveal(receive,in:app);receive.tap()
+        let recipient=app.textFields["walletRecipient"];reveal(recipient,in:app);recipient.tap();recipient.typeText("invalid recipient");app.buttons["Done"].tap()
+        let preview=app.buttons["walletPreviewTip"];reveal(preview,in:app);preview.tap();let error=app.staticTexts["walletError"];reveal(error,in:app);XCTAssertTrue(error.label.contains("recipient"));XCTAssertFalse(app.buttons["walletSendTip"].exists)
         app.terminate();app.launch();open(app);XCTAssertTrue(app.buttons["walletDeposit"].waitForExistence(timeout:15));XCTAssertFalse(app.buttons["walletCreate"].exists);XCTAssertFalse(app.staticTexts["walletInvoice"].exists)
         let published=relay.frames().filter { $0.first as? String == "EVENT" }.compactMap { $0[1] as? [String:Any] }
         XCTAssertEqual(published.filter { $0["kind"] as? Int == 17375 }.count,1);XCTAssertEqual(published.filter { $0["kind"] as? Int == 10019 }.count,1)
