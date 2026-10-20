@@ -1,6 +1,6 @@
 # Native wallet implementation
 
-Native wallet creation/restoration, NIP-60 synchronization and Lightning deposits are connected through Account → Wallet. Manual one-sat nutzap sending/receiving is implemented. Optional automatic XP tips are implemented. Legacy wallet migration remains in progress. No real funds have been moved during implementation or verification.
+Native wallet creation/restoration, NIP-60 synchronization and Lightning deposits are connected through Account → Wallet. Manual one-sat nutzap sending/receiving is implemented. Optional automatic XP tips are implemented. Browser wallet configuration, key backups, proof-only records and saved deposit quotes can be restored. No real funds have been moved during implementation or verification.
 
 ## Dependencies
 
@@ -32,9 +32,19 @@ Incoming payments are checked for the advertised mint, receiving-key lock and va
 
 Swap requests save their exact inputs, witnesses and blinded outputs before submission. Lost responses use NUT-09 recovery; publication retries reuse the same signed outbox. Redemption history restores across devices. Destroyed proof payloads are compacted while their tombstones remain, and mint state checks are batched for larger wallets.
 
-## Next integration
+## Browser restoration
 
-Port legacy wallet records without overwriting existing receiving keys or funds. Notification of redemption to additional sender relays and more complex P2PK conditions remain interoperability follow-ups.
+The importer follows the installed reference library, `@nostr-dev-kit/ndk-wallet` 0.7.0. Its current wallet is kind 17375, its encrypted receiving-key backups are kind 375, its proof records are kind 7375, and its saved mint quotes are kind 7374. The web hook also searches for kind 37513, but that number alone does not define a supported serialization. Kinds 37375/37513 are accepted only when their decrypted payload matches the known key/mint tag-array contract. Unrecognized records block accidental replacement and remain unchanged.
+
+All valid receiving keys and mints survive restoration. Modern configuration can recover additional keys from older backups, allowing tips sent to an older receiving key to redeem. Restoring a backup is an explicit user action; discovery does not publish replacement wallet metadata. If an older wallet used the main identity as its receiving key, a local-key migration preserves that old key and advertises a new separate key for future payments. A remote signer must retain control of its main identity; that key is never copied into the wallet vault.
+
+Proof-only browser records can restore unlocked funds even when no key backup exists. Their mint tag supplies the mint when the JSON omits it. Restoration preserves the original proof secrets and signatures and checks spendability with the issuer. It generates a new receiving key for future payments and explicitly explains that the missing old receiving key is not recovered. Incoming public nutzaps still require valid DLEQ; importing a browser's private unlocked records does not weaken that check.
+
+Browser quotes contain a quote ID and amount without invoice text. They enter the recoverable archive, retain their mint, and can be checked for a later payment. A paid quote enters the existing saved-batch mint flow, with the same once-only issuance and recovery journal. An already issued quote without its original blinded-output batch cannot reconstruct unknown proof secrets; restoration instead looks for synchronized proof records. No invoice or payment is requested merely by reading an old quote.
+
+A modern browser configuration lacking matching NIP-61 receiving information has an explicit Publish receiving information action. It preserves the existing key and proofs. Six core fixtures execute the actual browser payload helper; five additional native SDK cases cover multiple-key backups, quote-only and token-only restoration, old receiving-key redemption and main-key migration.
+
+Notification of redemption to additional sender relays and more complex P2PK conditions remain interoperability follow-ups.
 
 The reference's main wallet supports creating/loading the wallet, a resumable BOLT11 deposit, mint-checked balances and one-sat tips. Its fallback to an unadvertised recipient key is intentionally not reproduced because current NIP-61 requires the advertised separate wallet key and supported mint. Existing browser wallet records include older event kinds; any compatibility importer must preserve encrypted funds and verify proof states instead of treating a missing modern wallet event as permission to overwrite them.
 

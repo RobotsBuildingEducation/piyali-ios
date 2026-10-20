@@ -47,6 +47,7 @@
 		3D0B927AE1AB927BEE852E0E /* ConversationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 684E13734BF72CB70ADD60C1 /* ConversationService.swift */; };
 		3F6D12BA1756F07FC181B14B /* CompanionMemory.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC8C1AFE520430E24776DD16 /* CompanionMemory.swift */; };
 		4050AA0CEDC58D40B1E91393 /* curriculum-pl.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = E14BD18E0DD3B4E10CE07EC6 /* curriculum-pl.json.gz */; };
+		40AFEA685653C089AA2A6229 /* WalletImport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 255944DC706492A20A879FA9 /* WalletImport.swift */; };
 		40C1E9F17F79696E7079F0A6 /* PatreonRestoreChallenge.swift in Sources */ = {isa = PBXBuildFile; fileRef = B11DF50FDD56A25B5169AC88 /* PatreonRestoreChallenge.swift */; };
 		413348566E611075ABDE6695 /* WebNostrFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 309E62CCB8904FD210887D7E /* WebNostrFixtures.swift */; };
 		424CF398D34426D30121B88C /* ExerciseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2200F1724A37FD9A39E2C277 /* ExerciseView.swift */; };
@@ -226,6 +227,7 @@
 		1FAEEF555D382DA290350DB9 /* LocalRemoteSigner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalRemoteSigner.swift; sourceTree = "<group>"; };
 		2200F1724A37FD9A39E2C277 /* ExerciseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseView.swift; sourceTree = "<group>"; };
 		23553314634188457E6891D0 /* FirebaseIdentityService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseIdentityService.swift; sourceTree = "<group>"; };
+		255944DC706492A20A879FA9 /* WalletImport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletImport.swift; sourceTree = "<group>"; };
 		26503B7732937779B13146B7 /* flashcards.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = flashcards.json.gz; sourceTree = "<group>"; };
 		27CAD1101AEDB8C68C8796F4 /* StoryPractice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryPractice.swift; sourceTree = "<group>"; };
 		282ACF7B59DB381A752E5DFA /* WalletContract.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletContract.swift; sourceTree = "<group>"; };
@@ -611,6 +613,7 @@
 				0250508D362907F7F0C8E060 /* SyncChanges.swift */,
 				9674D8B5CAC1CE39C171E452 /* TutorCourse.swift */,
 				282ACF7B59DB381A752E5DFA /* WalletContract.swift */,
+				255944DC706492A20A879FA9 /* WalletImport.swift */,
 				8FFD762011E7104BE63A9CD4 /* WebProgressContract.swift */,
 			);
 			path = Core;
@@ -1021,6 +1024,7 @@
 				29C2346AFFCBA2FD85C0E698 /* TutorView.swift in Sources */,
 				B6AECAAA4185CE80694E6A5D /* VoiceJourneyView.swift in Sources */,
 				14E948F435846C6D30B73A05 /* WalletContract.swift in Sources */,
+				40AFEA685653C089AA2A6229 /* WalletImport.swift in Sources */,
 				7BC5FD6FEF2F1872D4062011 /* WalletService.swift in Sources */,
 				5551BA3EBDBD4924906B5991 /* WalletVault.swift in Sources */,
 				C202BD8F96AF205FA2D4FD67 /* WalletView.swift in Sources */,

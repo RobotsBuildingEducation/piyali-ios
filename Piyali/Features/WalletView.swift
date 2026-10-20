@@ -15,11 +15,15 @@ struct WalletView:View {
                 Text(service.status).accessibilityIdentifier("walletStatus")
                 if service.busy { ProgressView("Checking wallet…") }
                 Button("Refresh wallet") { perform { try await service.refresh(identity:app.identity) } }.disabled(service.busy)
+                if service.canRestore {
+                    Text("Browser wallet records were found. Restore them to keep existing proofs and receiving keys. If no key backup exists, restoration creates a new receiving key for future payments.")
+                    Button("Restore browser wallet") { perform { try await service.restoreBrowserWallet(identity:app.identity) } }.disabled(service.busy).accessibilityIdentifier("walletRestoreBrowser")
+                }
                 if service.canCreate { Text("This wallet holds ecash issued by Minibits. Paying a deposit invoice adds sats to that mint balance.");Link("About Minibits",destination:URL(string:"https://minibits.cash/")!);Button("Create wallet") { perform { try await service.create(identity:app.identity) } }.disabled(service.busy).accessibilityIdentifier("walletCreate") }
             }
             if service.ready {
                 Section("Add sats with Lightning") {
-                    if service.invoice.isEmpty,!service.pending {
+                    if service.depositID.isEmpty,!service.pending {
                         TextField("Deposit amount in sats",text:$amount).keyboardType(.numberPad).focused($editingAmount).accessibilityIdentifier("walletDepositAmount")
                         Button("Create deposit invoice") { perform { try await service.deposit(amount:Int(amount) ?? 0,identity:app.identity) } }.disabled(service.busy || !(Int(amount).map { (1...1_000_000).contains($0) } ?? false)).accessibilityIdentifier("walletDeposit")
                     }
@@ -31,10 +35,15 @@ struct WalletView:View {
                     }
                     if service.invoiceExpired,!service.pending { Button("Archive unpaid expired invoice") { perform { try await service.archiveInvoice(identity:app.identity) } }.disabled(service.busy) }
                     if service.archivedCount > 0 { Button("Check archived invoices (\(service.archivedCount))") { perform { try await service.checkArchived(identity:app.identity) } }.disabled(service.busy) }
+                    if !service.depositID.isEmpty,service.invoice.isEmpty { Text("A saved deposit quote was found. Check payment status to recover paid tokens.") }
                     if service.pending { Text("A wallet operation is saved on this device. Recover it before starting another payment.") }
-                    if !service.invoice.isEmpty || service.pending { Button(service.pending ? "Recover saved wallet operation" : "Check payment status") { perform { try await service.checkDeposit(identity:app.identity) } }.disabled(service.busy).accessibilityIdentifier("walletCheckDeposit") }
+                    if !service.depositID.isEmpty || service.pending { Button(service.pending ? "Recover saved wallet operation" : "Check payment status") { perform { try await service.checkDeposit(identity:app.identity) } }.disabled(service.busy).accessibilityIdentifier("walletCheckDeposit") }
                 }
                 Section("Nutzaps") {
+                    if service.needsReceivingInfo {
+                        Text("Publish this wallet's receiving information so other apps can send nutzaps to its existing key.")
+                        Button("Publish receiving information") { perform { try await service.publishReceivingInformation(identity:app.identity) } }.disabled(service.busy || service.pending).accessibilityIdentifier("walletPublishReceiving")
+                    }
                     Button("Receive nutzaps") { perform { try await service.receiveNutzaps(identity:app.identity) } }.disabled(service.busy || service.pending).accessibilityIdentifier("walletReceive")
                     TextField("Recipient npub",text:$recipient,axis:.vertical).textInputAutocapitalization(.never).autocorrectionDisabled().focused($editingRecipient).accessibilityIdentifier("walletRecipient")
                     Button("Use Piyali recipient") { recipient=WalletContract.defaultRecipient }.disabled(service.busy)
@@ -64,9 +73,9 @@ struct WalletView:View {
         }.navigationTitle("Wallet")
             .toolbar { ToolbarItemGroup(placement:.keyboard) { Spacer();Button("Done") { editingAmount=false;editingRecipient=false } } }
             .task(id:app.identity.hex) { service.cancel(clear:true);try? await service.refresh(identity:app.identity) }
-            .task(id:service.invoice) {
-                guard !service.invoice.isEmpty else { return };var failures=0
-                while !Task.isCancelled,!service.invoice.isEmpty,!service.invoiceExpired,failures < 5 {
+            .task(id:service.depositID) {
+                guard !service.depositID.isEmpty else { return };var failures=0
+                while !Task.isCancelled,!service.depositID.isEmpty,!service.invoiceExpired,failures < 5 {
                     do { try await Task.sleep(for:.seconds(3));if !service.busy { try await service.checkDeposit(identity:app.identity);failures=0 } }
                     catch is CancellationError { return } catch { failures += 1 }
                 }

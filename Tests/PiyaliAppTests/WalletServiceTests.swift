@@ -88,6 +88,78 @@ import Bolt11
             else if frame.first as? String == "EVENT",let event=frame[1] as? [String:Any],let id=event["id"] as? String { if !events.contains(where:{ $0["id"] as? String == id }) { events.append(event) };relay.send(["OK",id,!reject(event["kind"] as? Int ?? 0),"local fixture"],to:connection) }
         };return relay
     }
+    private func browserEvent(_ identity:IdentityService,kind:Int,keys:[String],client:NostrRelayClient) async throws {
+        let tags=keys.map { ["privkey",$0] }+[["mint",WalletContract.defaultMint]]
+        let payload=JSONValue.array(tags.map { .array($0.map(JSONValue.string)) })
+        let content=try await identity.encryptWallet(payload.json,expectedAuthor:identity.hex)
+        try await client.publish(identity.sign(kind:kind,tags:[],content:content))
+    }
+    func testBrowserBackupRetainsAllKeysAndOnlyPublishesAfterExplicitRestore() async throws {
+        let identity=try identity(),owner=identity.hex,mint=WalletFixtureMint(),relay=try await relay();defer { relay.stop();try? WalletVault().removeTestState(owner:owner);try? identity.disconnect() }
+        let client=NostrRelayClient(relays:[relay.url],timeout:.seconds(2)),keys=(0..<3).map { _ in Keypair()!.privateKey.hex }
+        try await browserEvent(identity,kind:375,keys:keys,client:client)
+        let service=WalletService(client:client,mint:mint,now:{ mint.date });try await service.refresh(identity:identity)
+        XCTAssertTrue(service.canRestore);XCTAssertFalse(service.canCreate);XCTAssertFalse(service.ready)
+        let before=try XCTUnwrap(WalletVault().load(owner:owner));XCTAssertEqual(Set([before.walletPrivateKey]+(before.additionalReceivingKeys ?? [])),Set(keys))
+        XCTAssertEqual(relay.frames().filter { $0.first as? String == "EVENT" }.count,1)
+        try await service.restoreBrowserWallet(identity:identity);XCTAssertTrue(service.ready);XCTAssertFalse(service.canRestore);XCTAssertFalse(service.needsReceivingInfo)
+        let saved=try XCTUnwrap(WalletVault().load(owner:owner));XCTAssertEqual(saved.walletPrivateKey,before.walletPrivateKey)
+        let config=try XCTUnwrap(relay.frames().filter { $0.first as? String == "EVENT" }.compactMap { $0[1] as? [String:Any] }.first { $0["kind"] as? Int == 17375 })
+        let clear=try await identity.decryptWallet(try XCTUnwrap(config["content"] as? String),expectedAuthor:owner)
+        XCTAssertEqual(Set(try ImportedWalletConfiguration(JSONDecoder().decode(JSONValue.self,from:Data(clear.utf8))).privateKeys),Set(keys))
+        try WalletVault().removeTestState(owner:owner)
+        let restarted=WalletService(client:client,mint:mint,now:{ mint.date });try await restarted.refresh(identity:identity);XCTAssertTrue(restarted.ready)
+        XCTAssertEqual(Set(try XCTUnwrap(WalletVault().load(owner:owner)).additionalReceivingKeys ?? []),Set(keys.filter { $0 != saved.walletPrivateKey }))
+    }
+    func testBrowserQuoteWithoutInvoiceCanRecoverPaidDepositExactlyOnce() async throws {
+        let identity=try identity(),owner=identity.hex,mint=WalletFixtureMint(),relay=try await relay();defer { relay.stop();try? WalletVault().removeTestState(owner:owner);try? identity.disconnect() }
+        let client=NostrRelayClient(relays:[relay.url],timeout:.seconds(2)),payload:JSONValue = .object(["quoteId":.string("local-quote"),"mint":.string(WalletContract.defaultMint),"amount":.number(250000),"unit":.string("sat")])
+        let clear=try await identity.encryptWallet(payload.json,expectedAuthor:owner);try await client.publish(identity.sign(kind:7374,tags:[],content:clear))
+        let service=WalletService(client:client,mint:mint,now:{ mint.date });try await service.refresh(identity:identity)
+        XCTAssertTrue(service.canRestore);XCTAssertEqual(service.archivedCount,1);XCTAssertEqual(mint.quoteCalls,0);XCTAssertEqual(mint.mintCalls,0)
+        try await service.restoreBrowserWallet(identity:identity);try await service.checkArchived(identity:identity);XCTAssertTrue(service.depositID.isEmpty)
+        mint.paid=true;try await service.checkArchived(identity:identity);XCTAssertEqual(service.depositID,"local-quote");XCTAssertTrue(service.invoice.isEmpty)
+        try await service.checkDeposit(identity:identity);XCTAssertEqual(service.balance,250000);XCTAssertEqual(mint.mintCalls,1);XCTAssertTrue(service.depositID.isEmpty)
+        let restarted=WalletService(client:client,mint:mint,now:{ mint.date });try await restarted.refresh(identity:identity)
+        XCTAssertEqual(restarted.archivedCount,0);XCTAssertEqual(restarted.balance,250000);try await restarted.checkDeposit(identity:identity);XCTAssertEqual(mint.mintCalls,1)
+    }
+    func testBrowserTokensWithoutConfigurationPreserveSpendableProofs() async throws {
+        let mint=WalletFixtureMint(),oldRelay=try await relay(),newRelay=try await relay();defer { oldRelay.stop();newRelay.stop() }
+        let (identity,_)=try await funded(mint,client:NostrRelayClient(relays:[oldRelay.url],timeout:.seconds(2))),owner=identity.hex
+        defer { try? WalletVault().removeTestState(owner:owner);try? identity.disconnect() }
+        let original=try XCTUnwrap(WalletVault().load(owner:owner)),proofs=original.ledger.records.values.flatMap(\.proofs)
+        let clean=proofs.map { $0.wire.setting("dleq",.null).setting("witness",.null) },payload:JSONValue = .object(["proofs":.array(clean),"del":.array([])])
+        let content=try await identity.encryptWallet(payload.json,expectedAuthor:owner),client=NostrRelayClient(relays:[newRelay.url],timeout:.seconds(2))
+        try await client.publish(identity.sign(kind:7375,tags:[["mint",WalletContract.defaultMint]],content:content));try WalletVault().removeTestState(owner:owner)
+        let service=WalletService(client:client,mint:mint,now:{ mint.date });try await service.refresh(identity:identity)
+        XCTAssertEqual(service.balance,250000);XCTAssertTrue(service.canRestore);XCTAssertFalse(service.ready);XCTAssertEqual(newRelay.frames().filter { $0.first as? String == "EVENT" }.count,1)
+        try await service.restoreBrowserWallet(identity:identity);let restored=try XCTUnwrap(WalletVault().load(owner:owner))
+        XCTAssertNotEqual(restored.walletPrivateKey,original.walletPrivateKey);XCTAssertEqual(Set(restored.ledger.records.values.flatMap(\.proofs).map(\.secret)),Set(proofs.map(\.secret)));XCTAssertEqual(service.balance,250000)
+        let receiver=try self.identity(),b=receiver.hex,destination=WalletService(client:client,mint:mint,now:{ mint.date });defer { try? WalletVault().removeTestState(owner:b);try? receiver.disconnect() }
+        try await destination.refresh(identity:receiver);try await destination.create(identity:receiver);try await service.sendOneSat(to:receiver.npub,maximumFee:0,identity:identity);try await destination.receiveNutzaps(identity:receiver)
+        XCTAssertEqual(service.balance,249999);XCTAssertEqual(destination.balance,1);XCTAssertEqual(mint.mintCalls,1)
+    }
+    func testModernBrowserWalletMergesBackupKeysAndRedeemsToAnOlderReceivingKey() async throws {
+        let mint=WalletFixtureMint(),relay=try await relay(),client=NostrRelayClient(relays:[relay.url],timeout:.seconds(2));defer { relay.stop() }
+        let (sender,wallet)=try await funded(mint,client:client),receiver=try identity(),a=sender.hex,b=receiver.hex,old=Keypair()!,current=Keypair()!
+        defer { try? WalletVault().removeTestState(owner:a);try? WalletVault().removeTestState(owner:b);try? sender.disconnect();try? receiver.disconnect() }
+        try await browserEvent(receiver,kind:17375,keys:[current.privateKey.hex],client:client);try await browserEvent(receiver,kind:375,keys:[old.privateKey.hex],client:client)
+        try await client.publish(receiver.sign(kind:10019,tags:[["pubkey",old.publicKey.hex],["mint",WalletContract.defaultMint]],content:""))
+        let destination=WalletService(client:client,mint:mint,now:{ mint.date });try await destination.refresh(identity:receiver)
+        let restored=try XCTUnwrap(WalletVault().load(owner:b));XCTAssertTrue(restored.additionalReceivingKeys?.contains(old.privateKey.hex) ?? false);XCTAssertEqual(restored.walletPrivateKey,current.privateKey.hex)
+        try await wallet.sendOneSat(to:receiver.npub,maximumFee:0,identity:sender);try await destination.receiveNutzaps(identity:receiver)
+        XCTAssertEqual(destination.balance,1);XCTAssertEqual(mint.swapCalls,2)
+        try await destination.publishReceivingInformation(identity:receiver);XCTAssertFalse(destination.needsReceivingInfo)
+        XCTAssertEqual(try WalletVault().load(owner:b)?.walletPrivateKey,current.privateKey.hex)
+    }
+    func testLegacyMainIdentityReceivingKeyMigratesWithoutDiscardingItsKey() async throws {
+        let identity=try identity(),owner=identity.hex,mint=WalletFixtureMint(),relay=try await relay();defer { relay.stop();try? WalletVault().removeTestState(owner:owner);try? identity.disconnect() }
+        let client=NostrRelayClient(relays:[relay.url],timeout:.seconds(2)),key=try XCTUnwrap(identity.keypair?.privateKey.hex)
+        try await browserEvent(identity,kind:375,keys:[key],client:client)
+        let service=WalletService(client:client,mint:mint,now:{ mint.date });try await service.refresh(identity:identity);try await service.restoreBrowserWallet(identity:identity)
+        let saved=try XCTUnwrap(WalletVault().load(owner:owner));XCTAssertNotEqual(saved.walletPrivateKey,key);XCTAssertTrue(saved.additionalReceivingKeys?.contains(key) ?? false);XCTAssertTrue(service.ready)
+        try await service.refresh(identity:identity);XCTAssertEqual(try WalletVault().load(owner:owner)?.walletPrivateKey,saved.walletPrivateKey)
+    }
     func testCreateEncryptsSeparateWalletKeyAndDepositResumesAcrossServiceRestart() async throws {
         let identity=try identity(),owner=identity.hex,mint=WalletFixtureMint(),relay=try await relay();defer { relay.stop();try? WalletVault().removeTestState(owner:owner);try? identity.disconnect() }
         let client=NostrRelayClient(relays:[relay.url],timeout:.seconds(2)),service=WalletService(client:client,mint:mint,now:{ mint.date })

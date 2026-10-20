@@ -39,9 +39,13 @@ struct NutzapDestination:Codable,Equatable,Sendable {
 }
 struct WalletPrivateState:Codable,Sendable {
     let owner:String
-    let walletPrivateKey:String
+    var walletPrivateKey:String
     var mints:[String]
     var relays:[String]
+    var additionalReceivingKeys:[String]?
+    var legacySource:String?
+    var receivingInfo:NostrEventPayload?
+    var importedQuotes:Set<String>?
     var ledger=WalletLedger()
     var pending:WalletPendingOperation?
     var configurationOutbox:[NostrEventPayload]=[]

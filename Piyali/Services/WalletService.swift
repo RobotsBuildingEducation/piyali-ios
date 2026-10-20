@@ -7,6 +7,9 @@ import secp256k1
     @Published private(set) var busy=false
     @Published private(set) var ready=false
     @Published private(set) var canCreate=false
+    @Published private(set) var canRestore=false
+    @Published private(set) var depositID=""
+    @Published private(set) var needsReceivingInfo=false
     @Published private(set) var balance=0
     @Published private(set) var invoice=""
     @Published private(set) var automatic=AutomaticTipJournal()
@@ -33,9 +36,9 @@ import secp256k1
         #endif
         bootstrap=selected ?? NostrRelayClient();fixedRelays=selected != nil;mintAPI=mint ?? CashuHTTPClient();self.now=now
     }
-    func cancel(clear:Bool = false) { generation=UUID();task?.cancel();task=nil;busy=false;if clear { state=nil;owner="";ready=false;canCreate=false;balance=0;invoice="";automatic=AutomaticTipJournal();tipPreview=nil;archivedCount=0;invoiceExpired=false;pending=false;status="";error=nil } }
+    func cancel(clear:Bool = false) { generation=UUID();task?.cancel();task=nil;busy=false;if clear { state=nil;owner="";ready=false;canCreate=false;canRestore=false;depositID="";needsReceivingInfo=false;balance=0;invoice="";automatic=AutomaticTipJournal();tipPreview=nil;archivedCount=0;invoiceExpired=false;pending=false;status="";error=nil } }
     private func check(_ identity:IdentityService,_ version:UUID) throws { try Task.checkCancellation();guard version == generation,identity.hex == owner,!owner.isEmpty else { throw CancellationError() } }
-    private func save() throws { state?.ledger.compact();guard let state,state.owner == owner else { throw CancellationError() };try vault.save(state);automatic=try vault.automaticTips(owner:owner);ready=state.configurationPublished;invoice=state.invoice?["quote"]["request"].string ?? "";pending=state.pending != nil;archivedCount=state.archivedInvoices?.count ?? 0;invoiceExpired=state.invoice.map { $0["quote"]["expiry"].number <= now().timeIntervalSince1970 } ?? false }
+    private func save() throws { state?.ledger.compact();guard let state,state.owner == owner else { throw CancellationError() };try vault.save(state);automatic=try vault.automaticTips(owner:owner);ready=state.configurationPublished;canRestore=state.legacySource != nil && !state.configurationPublished;needsReceivingInfo=state.configurationPublished && state.receivingInfo == nil;depositID=state.invoice?["quote"]["quote"].string ?? "";invoice=state.invoice?["quote"]["request"].string ?? "";pending=state.pending != nil;archivedCount=state.archivedInvoices?.count ?? 0;invoiceExpired=state.invoice.map { $0["quote"]["expiry"].number <= now().timeIntervalSince1970 } ?? false }
     private func authenticate(_ identity:IdentityService) -> NostrRelayClient.Authenticate { let author=owner;return { relay,challenge in try await identity.signEvent(kind:22242,tags:[["relay",relay],["challenge",challenge]],content:"",expectedAuthor:author) } }
     private var client:NostrRelayClient { fixedRelays ? bootstrap : NostrRelayClient(relays:state?.relays.isEmpty == false ? state!.relays : ["wss://relay.ditto.pub","wss://relay.primal.net","wss://nos.lol"]) }
     private func run(_ identity:IdentityService,_ action:@escaping @MainActor (UUID) async throws -> Void) async throws {
@@ -73,41 +76,89 @@ import secp256k1
                 let fallback=discovery.filter { $0.kind == 10002 }.max { $0.created_at < $1.created_at }?.tags.filter { $0.first == "r" && $0.count >= 2 && ($0.count == 2 || $0[2] == "read") }.compactMap { try? BunkerConnection.relay($0[1]) } ?? []
                 let urls=Array(Set(advertised.isEmpty ? fallback : advertised).prefix(16))
                 discoveredRelays=urls
-                if !urls.isEmpty { discovery += try await NostrRelayClient(relays:urls).querySnapshots(filter:["kinds":[17375,7375,7376,5,37513,7374],"authors":[self.owner]],authenticate:self.authenticate(identity));try self.check(identity,version) }
+                if !urls.isEmpty { discovery += try await NostrRelayClient(relays:urls).querySnapshots(filter:["kinds":[17375,375,37375,7375,7376,5,37513,7374],"authors":[self.owner]],authenticate:self.authenticate(identity));try self.check(identity,version) }
             }
-            let events=try await self.client.querySnapshots(filter:["kinds":[17375,7375,7376,5,37513,7374],"authors":[self.owner]],authenticate:self.authenticate(identity));try self.check(identity,version)
+            let events=try await self.client.querySnapshots(filter:["kinds":[17375,375,37375,7375,7376,5,37513,7374],"authors":[self.owner]],authenticate:self.authenticate(identity));try self.check(identity,version)
             let all=Dictionary((discovery+events).filter { $0.pubkey == self.owner }.map { ($0.id,$0) },uniquingKeysWith:{ first,_ in first }).values
             guard all.count < 2048 else { throw AppError.message("This wallet needs a complete relay history before it can be opened. Its funds have not been changed.") }
-            if let configuration=all.filter({ $0.kind == 17375 }).sorted(by:{ $0.created_at == $1.created_at ? $0.id < $1.id : $0.created_at > $1.created_at }).first {
-                let clear=try await identity.decryptWallet(configuration.content,expectedAuthor:self.owner);try self.check(identity,version)
-                let data=try JSONDecoder().decode(JSONValue.self,from:Data(clear.utf8)),tags=data.array.map { $0.array.map(\.string) },keys=tags.filter { $0.first == "privkey" && $0.count == 2 }
-                let mints=try tags.filter { $0.first == "mint" && $0.count >= 2 }.map { try WalletContract.mint($0[1]) }
-                guard keys.count == 1,Keypair(hex:keys[0][1]) != nil,!mints.isEmpty,mints.count <= 16 else { throw WalletContract.Failure.invalidToken }
-                if let local=self.state,local.walletPrivateKey != keys[0][1] { throw AppError.message("The relay wallet uses a different receiving key. Existing recovery data is preserved; reconcile the wallet keys before continuing.") }
-                if self.state == nil { self.state=WalletPrivateState(owner:self.owner,walletPrivateKey:keys[0][1],mints:Array(Set(mints)),relays:discoveredRelays) }
-                let mergedMints=Array(Set((self.state?.mints ?? [])+mints)).sorted();guard mergedMints.count <= 16 else { throw WalletContract.Failure.invalidMint };self.state?.mints=mergedMints
-                self.state?.configurationPublished=true
+            let modern=all.filter { $0.kind == 17375 }.sorted { $0.created_at == $1.created_at ? $0.id < $1.id : $0.created_at > $1.created_at }
+            let backups=all.filter { [375,37375,37513].contains($0.kind) }.sorted { $0.created_at == $1.created_at ? $0.id < $1.id : $0.created_at > $1.created_at }
+            var importedConfiguration:(NostrEventPayload,ImportedWalletConfiguration)?
+            for candidate in modern.first.map({ [$0] }) ?? backups {
+                do {
+                    let clear=try await identity.decryptWallet(candidate.content,expectedAuthor:self.owner);try self.check(identity,version)
+                    let imported=try ImportedWalletConfiguration(JSONDecoder().decode(JSONValue.self,from:Data(clear.utf8)))
+                    importedConfiguration=(candidate,imported);break
+                } catch is CancellationError { throw CancellationError() }
+                catch { if candidate.kind == 17375 { throw error } }
+            }
+            if let (configuration,imported)=importedConfiguration {
+                let importedKeys=try imported.privateKeys.map { value -> Keypair in guard let key=Keypair(hex:value) else { throw WalletContract.Failure.invalidToken };return key }
+                let safeKeys=identity.isRemote ? importedKeys.filter { $0.publicKey.hex != self.owner } : importedKeys
+                guard !safeKeys.isEmpty else { throw AppError.message("This older wallet backs up its main identity key. Restore it using a local key before migrating its receiving setup; the encrypted records have not been changed.") }
+                let advertised=discovery.filter { $0.kind == 10019 }.max { $0.created_at < $1.created_at }?.tag("pubkey") ?? ""
+                let selected=safeKeys.first { $0.publicKey.hex == advertised || "02"+$0.publicKey.hex == advertised } ?? safeKeys.first { $0.privateKey.hex == self.state?.walletPrivateKey } ?? safeKeys.first { $0.publicKey.hex != self.owner } ?? safeKeys[0]
+                if self.state == nil { self.state=WalletPrivateState(owner:self.owner,walletPrivateKey:selected.privateKey.hex,mints:imported.mints,relays:discoveredRelays) }
+                let priorKeys=[self.state!.walletPrivateKey]+(self.state?.additionalReceivingKeys ?? [])
+                let keys=Array(Set(priorKeys+safeKeys.map { $0.privateKey.hex })).sorted();self.state?.walletPrivateKey=selected.privateKey.hex;self.state?.additionalReceivingKeys=keys.filter { $0 != selected.privateKey.hex }
+                let mints=Array(Set((self.state?.mints ?? [])+imported.mints)).sorted();guard mints.count <= 16 else { throw WalletContract.Failure.invalidMint };self.state?.mints=mints
+                if configuration.kind == 17375 { self.state?.configurationPublished=true } else if self.state?.configurationPublished != true { self.state?.legacySource=String(configuration.kind) }
+            }
+            if self.state == nil,all.contains(where:{ [7375,7374].contains($0.kind) }) {
+                var mints=Set<String>()
+                for event in all where [7375,7374].contains(event.kind) {
+                    let clear=try await identity.decryptWallet(event.content,expectedAuthor:self.owner);try self.check(identity,version)
+                    let payload=try JSONDecoder().decode(JSONValue.self,from:Data(clear.utf8))
+                    if event.kind == 7375 { let token=try WalletTokenRecord(id:event.id,payload:WalletImport.token(payload,mintTag:event.tag("mint")));mints.insert(token.mint) }
+                    else if let quote=try? WalletImport.quote(payload,eventID:event.id) { mints.insert(quote["mint"].string) }
+                }
+                if !mints.isEmpty,mints.count <= 16,let key=Keypair() {
+                    self.state=WalletPrivateState(owner:self.owner,walletPrivateKey:key.privateKey.hex,mints:mints.sorted(),relays:discoveredRelays);self.state?.legacySource="tokens-only"
+                }
+            }
+            if self.state != nil {
+                var keys=Set([self.state!.walletPrivateKey]+(self.state?.additionalReceivingKeys ?? []))
+                for backup in backups where backup.kind == 375 {
+                    do {
+                        let clear=try await identity.decryptWallet(backup.content,expectedAuthor:self.owner);try self.check(identity,version)
+                        let config=try ImportedWalletConfiguration(JSONDecoder().decode(JSONValue.self,from:Data(clear.utf8)))
+                        for value in config.privateKeys { if let key=Keypair(hex:value),!identity.isRemote || key.publicKey.hex != self.owner { keys.insert(value) } }
+                        let mints=Array(Set((self.state?.mints ?? [])+config.mints)).sorted();guard mints.count <= 16 else { throw WalletContract.Failure.invalidMint };self.state?.mints=mints
+                    } catch is CancellationError { throw CancellationError() } catch { /* A malformed old backup cannot replace the current configuration. */ }
+                }
+                let current=self.state!.walletPrivateKey;self.state?.additionalReceivingKeys=keys.filter { $0 != current }.sorted()
+                let advertised=discovery.filter { $0.kind == 10019 }.sorted { $0.created_at == $1.created_at ? $0.id < $1.id : $0.created_at > $1.created_at }.first
+                if let info=advertised,let key=Keypair(hex:current),info.tag("pubkey") == key.publicKey.hex || info.tag("pubkey") == "02"+key.publicKey.hex { self.state?.receivingInfo=info }
             }
             if self.state == nil {
-                self.canCreate = !all.contains { [17375,7375,7376,37513,7374,10019].contains($0.kind) || $0.kind == 5 && $0.tags.contains(["k","7375"]) }
+                self.canCreate = !all.contains { [17375,375,37375,7375,7376,37513,7374,10019].contains($0.kind) || $0.kind == 5 && $0.tags.contains(["k","7375"]) }
                 self.status=self.canCreate ? "No wallet found. Create one to receive deposits and nutzaps." : "An existing wallet or deposit was found. Its records are preserved; restore its receiving key before creating another wallet."
                 return
             }
             self.canCreate=false
             for event in all where event.kind == 7375 {
-                let clear=try await identity.decryptWallet(event.content,expectedAuthor:self.owner);try self.check(identity,version);let payload=try JSONDecoder().decode(JSONValue.self,from:Data(clear.utf8))
+                let clear=try await identity.decryptWallet(event.content,expectedAuthor:self.owner);try self.check(identity,version);let decoded=try JSONDecoder().decode(JSONValue.self,from:Data(clear.utf8)),payload=try WalletImport.token(decoded,mintTag:event.tag("mint"))
                 if payload["unit"] != .null && payload["unit"].string != "sat" { continue }
                 let token=try WalletTokenRecord(id:event.id,payload:payload);try self.state?.ledger.ingest(token)
             }
+            for event in all where event.kind == 7374 && !(self.state?.importedQuotes?.contains(event.id) ?? false) {
+                let clear=try await identity.decryptWallet(event.content,expectedAuthor:self.owner);try self.check(identity,version)
+                let payload=try JSONDecoder().decode(JSONValue.self,from:Data(clear.utf8))
+                if let quote=try? WalletImport.quote(payload,eventID:event.id),self.state!.mints.contains(quote["mint"].string) {
+                    let prior=(self.state?.archivedInvoices ?? [])+[self.state?.invoice ?? .null]
+                    if !prior.contains(where:{ $0["mint"] == quote["mint"] && $0["quote"]["quote"] == quote["quote"]["quote"] }) { if self.state?.archivedInvoices == nil { self.state?.archivedInvoices=[] };self.state?.archivedInvoices?.append(quote) }
+                    if self.state?.importedQuotes == nil { self.state?.importedQuotes=[] };self.state?.importedQuotes?.insert(event.id)
+                }
+            }
             for event in all where event.kind == 7376 { self.state?.redeemed.formUnion(event.tags.filter { $0.count >= 4 && $0[0] == "e" && $0[3] == "redeemed" && WalletContract.key($0[1]) }.map { $0[1] }) }
             for event in all where event.kind == 5 && event.tags.contains(["k","7375"]) { self.state?.ledger.remove(event.tags.filter { $0.first == "e" && $0.count >= 2 }.map { $0[1] }) }
-            try self.save();try await self.publishConfiguration(identity,version:version);try await self.updateBalance(identity,version:version);self.status="Wallet synchronized."
+            try self.save();if self.state?.legacySource == nil || self.state?.configurationPublished == true { try await self.publishConfiguration(identity,version:version) };try await self.updateBalance(identity,version:version);self.status="Wallet synchronized."
         }
     }
     func create(identity:IdentityService) async throws {
         try await run(identity) { version in
             guard self.state == nil,self.canCreate,let keys=Keypair() else { throw AppError.message("Refresh the wallet before creating one.") }
-            let existing=try await self.bootstrap.querySnapshots(filter:["kinds":[17375,37513,7375,7376,7374,10019],"authors":[self.owner]],authenticate:self.authenticate(identity));try self.check(identity,version)
+            let existing=try await self.bootstrap.querySnapshots(filter:["kinds":[17375,375,37375,37513,7375,7376,7374,10019],"authors":[self.owner]],authenticate:self.authenticate(identity));try self.check(identity,version)
             guard existing.isEmpty else { self.canCreate=false;throw AppError.message("A wallet was found. Refresh and restore it before creating another wallet.") }
             self.state=WalletPrivateState(owner:self.owner,walletPrivateKey:keys.privateKey.hex,mints:[WalletContract.defaultMint],relays:["wss://relay.ditto.pub","wss://relay.primal.net","wss://nos.lol"]);try self.save()
             let config:JSONValue = .array([.array([.string("privkey"),.string(keys.privateKey.hex)]),.array([.string("mint"),.string(WalletContract.defaultMint)])])
@@ -120,14 +171,15 @@ import secp256k1
     private func publishConfiguration(_ identity:IdentityService,version:UUID) async throws {
         if let wallet=state,!wallet.configurationPublished,wallet.configurationOutbox.isEmpty {
             guard let keys=Keypair(hex:wallet.walletPrivateKey),keys.publicKey.hex != owner else { throw WalletContract.Failure.invalidToken }
-            let tags=[["privkey",wallet.walletPrivateKey]]+wallet.mints.map { ["mint",$0] }
+            let keyTags=([wallet.walletPrivateKey]+(wallet.additionalReceivingKeys ?? [])).map { value -> [String] in [Keypair(hex:value)?.publicKey.hex == owner ? "legacy_privkey" : "privkey",value] }
+            let tags=keyTags+wallet.mints.map { ["mint",$0] }
             let config:JSONValue = .array(tags.map { .array($0.map(JSONValue.string)) })
             let event=try await signed(kind:17375,payload:config,identity:identity,version:version)
             let info=try await identity.signEvent(kind:10019,tags:[["pubkey",keys.publicKey.hex]]+wallet.mints.map { ["mint",$0,"sat"] }+wallet.relays.map { ["relay",$0] },content:"",expectedAuthor:owner);try check(identity,version)
             state?.configurationOutbox=[event,info];try save()
         }
         while let event=state?.configurationOutbox.first {
-            try await client.publish(event,authenticate:authenticate(identity));try check(identity,version);state?.configurationOutbox.removeFirst();try save()
+            try await client.publish(event,authenticate:authenticate(identity));try check(identity,version);if event.kind == 10019 { state?.receivingInfo=event };state?.configurationOutbox.removeFirst();try save()
         }
         if state != nil { state?.configurationPublished=true;try save() }
     }
@@ -312,13 +364,15 @@ extension WalletService {
     func receiveNutzaps(identity:IdentityService) async throws {
         try await run(identity) { version in
             guard let wallet=self.state,wallet.configurationPublished,wallet.pending == nil,let walletKey=Keypair(hex:wallet.walletPrivateKey) else { throw WalletContract.Failure.pending }
-            let lock="02"+walletKey.publicKey.hex
+            var receiving:[String:String]=[:]
+            for key in [wallet.walletPrivateKey]+(wallet.additionalReceivingKeys ?? []) { if let pair=Keypair(hex:key) { receiving["02"+pair.publicKey.hex]=key } }
+            _=walletKey
             let events=try await self.client.querySnapshots(filter:["kinds":[9321],"#p":[self.owner],"#u":wallet.mints],authenticate:self.authenticate(identity));try self.check(identity,version)
             var accepted:[String:[NostrEventPayload]]=[:]
             for event in Dictionary(events.map { ($0.id,$0) },uniquingKeysWith:{ first,_ in first }).values where !wallet.redeemed.contains(event.id) {
                 guard event.tags.filter({ $0.first == "p" }).count == 1,event.tag("p") == self.owner,event.tags.filter({ $0.first == "u" }).count == 1,wallet.mints.contains(event.tag("u")),event.tags.filter({ $0.first == "unit" }).count <= 1,(event.tag("unit").isEmpty || event.tag("unit") == "sat") else { continue }
                 let raw=event.tags.filter { $0.first == "proof" && $0.count == 2 };guard !raw.isEmpty,raw.count <= 128 else { continue }
-                guard let proofs=try? raw.map({ try WalletProof(JSONDecoder().decode(JSONValue.self,from:Data($0[1].utf8))) }),proofs.allSatisfy({ $0.locked(to:lock) }),Set(proofs.map(\.id)).count == proofs.count else { continue }
+                guard let proofs=try? raw.map({ try WalletProof(JSONDecoder().decode(JSONValue.self,from:Data($0[1].utf8))) }),proofs.allSatisfy({ proof in receiving.keys.contains { proof.locked(to:$0) } }),Set(proofs.map(\.id)).count == proofs.count else { continue }
                 accepted[event.tag("u"),default:[]].append(event)
             }
             for (value,group) in accepted.sorted(by:{ $0.key < $1.key }) {
@@ -344,7 +398,8 @@ extension WalletService {
                 let incoming=rows.map(\.event);guard !incoming.isEmpty else { continue }
                 let wanted=Set(rows.flatMap { Array($0.ids) }).intersection(spendable)
                 let inputs=try normalized.filter { wanted.contains($0.C) }.map { proof -> WalletProof in
-                    let signature=try secp256k1.Schnorr.PrivateKey(dataRepresentation:CashuMintBatch.bytes(wallet.walletPrivateKey)).signature(for:Data(proof.secret.utf8))
+                    let secret=try JSONDecoder().decode(JSONValue.self,from:Data(proof.secret.utf8));guard let privateKey=receiving[secret.array[1]["data"].string] else { throw WalletContract.Failure.invalidProof }
+                    let signature=try secp256k1.Schnorr.PrivateKey(dataRepresentation:CashuMintBatch.bytes(privateKey)).signature(for:Data(proof.secret.utf8))
                     let witness=JSONValue.object(["signatures":.array([.string(CashuMintBatch.hex(signature.dataRepresentation))])]).json
                     return try self.wire([proof])[0].replacingWitness(witness)
                 }
@@ -462,5 +517,29 @@ extension WalletService {
     func hasAutomaticWork(identity:IdentityService) -> Bool {
         guard !identity.hex.isEmpty,let journal=try? vault.automaticTips(owner:identity.hex),journal.enabled,let first=journal.queue.first,let wallet=try? vault.load(owner:identity.hex) else { return false }
         return wallet.pending == nil || wallet.pending?.automaticTrigger == first.id
+    }
+}
+
+extension WalletService {
+    func restoreBrowserWallet(identity:IdentityService) async throws {
+        try await run(identity) { version in
+            guard var wallet=self.state,wallet.legacySource != nil,!wallet.configurationPublished,wallet.pending == nil,let current=Keypair(hex:wallet.walletPrivateKey) else { throw WalletContract.Failure.pending }
+            if current.publicKey.hex == self.owner {
+                guard let fresh=Keypair() else { throw WalletContract.Failure.invalidProof }
+                wallet.additionalReceivingKeys=Array(Set((wallet.additionalReceivingKeys ?? [])+[wallet.walletPrivateKey]));wallet.walletPrivateKey=fresh.privateKey.hex
+            }
+            self.state=wallet;try self.save();try await self.publishConfiguration(identity,version:version);self.status="Browser wallet restored. Existing keys and proofs were preserved."
+        }
+    }
+}
+
+extension WalletService {
+    func publishReceivingInformation(identity:IdentityService) async throws {
+        try await run(identity) { version in
+            guard let wallet=self.state,wallet.configurationPublished,let key=Keypair(hex:wallet.walletPrivateKey),key.publicKey.hex != self.owner else { throw AppError.message("Restore a separate wallet receiving key before publishing payment information.") }
+            let tags=[["pubkey",key.publicKey.hex]]+wallet.mints.map { ["mint",$0,"sat"] }+wallet.relays.map { ["relay",$0] }
+            let event=try await identity.signEvent(kind:10019,tags:tags,content:"",expectedAuthor:self.owner);try self.check(identity,version)
+            self.state?.configurationOutbox.append(event);try self.save();try await self.publishConfiguration(identity,version:version);self.status="Receiving information published. Existing wallet keys and proofs were preserved."
+        }
     }
 }
