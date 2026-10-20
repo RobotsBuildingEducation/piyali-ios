@@ -111,6 +111,7 @@ struct AccountView: View {
             Section("Community & subscription") {
                 NavigationLink("Achievements") { AchievementsView() }
                 NavigationLink("Voice journey") { VoiceJourneyView() }
+                NavigationLink("Wallet") { WalletView() }.accessibilityIdentifier("walletLink")
                 NavigationLink("Learning teams") { TeamsView(service: app.teams) }
                 NavigationLink("Subscription") { SubscriptionView(service: app.subscription) }
             }

@@ -42,6 +42,7 @@ struct WalletPrivateState:Codable,Sendable {
     var pending:WalletPendingOperation?
     var configurationOutbox:[NostrEventPayload]=[]
     var redeemed=Set<String>()
+    var archivedInvoices:[JSONValue]?
     var invoice:JSONValue?
     var configurationPublished=false
 }
