@@ -23,6 +23,9 @@ import SwiftUI
     let ai = AIService()
     let subscription = SubscriptionService()
     let teams = NostrTeamsService()
+    private let automaticWallet:WalletService
+    private var automaticTipTask:(id:UUID,task:Task<Void,Never>)?
+    private var automaticTipUpdates:AnyCancellable?
     private var lastPersisted = LearnerState()
     private var saveTask: Task<Void, Never>?
     private var goalTasks: [String:Task<Void,Error>] = [:]
@@ -67,7 +70,8 @@ import SwiftUI
         }
         _ = learner.completeTutor(lesson); persist(); return earned
     }
-    init() {
+    init(automaticWallet:WalletService? = nil) {
+        self.automaticWallet=automaticWallet ?? WalletService()
         curriculumIndex = (try? ContentLibrary.load([String:[String:[String]]].self, name: "curriculum-index")) ?? [:]
         flashcardIndex = (try? ContentLibrary.load([String:[String]].self, name: "flashcard-index")) ?? [:]
         achievements = (try? ContentLibrary.load([AchievementDefinition].self, name: "achievements")) ?? []
@@ -80,6 +84,9 @@ import SwiftUI
         }
         signedIn = !identity.npub.isEmpty
         if signedIn { loadLocal(); subscription.bind(identity) }
+        automaticTipUpdates=NotificationCenter.default.publisher(for:.walletAutomaticTipsChanged).sink { [weak self] notification in
+            Task { @MainActor in guard let self,self.identity.hex == notification.object as? String else { return };self.scheduleAutomaticTips() }
+        }
     }
     private var localURL: URL {
         let root = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("Piyali", isDirectory: true)
@@ -99,6 +106,7 @@ import SwiftUI
         } catch { self.error = error.localizedDescription }
     }
     private func activateIdentity() async {
+        automaticTipTask?.task.cancel();automaticTipTask=nil;automaticWallet.cancel(clear:true)
         saveTask?.cancel(); contentTask?.cancel()
         let account = identity.npub
         loadLocal(); signedIn = true; subscription.bind(identity)
@@ -119,11 +127,11 @@ import SwiftUI
     }
     func disconnectRemote() {
         do {
-            try writeLocal();saveTask?.cancel();contentTask?.cancel();nostrSyncTask?.cancel();nostrAchievements.cancel();teams.cancel(clear:true)
+            try writeLocal();automaticTipTask?.task.cancel();automaticTipTask=nil;automaticWallet.cancel(clear:true);saveTask?.cancel();contentTask?.cancel();nostrSyncTask?.cancel();nostrAchievements.cancel();teams.cancel(clear:true)
             try identity.disconnect();FirebaseIdentityService.shared.clearSession();signedIn=false;subscription.bind(identity);learner=LearnerState()
         } catch { self.error=error.localizedDescription }
     }
-    func boot() async { guard signedIn else { return }; await reloadContent(); await sync(); await subscription.refresh(); scheduleNostrAchievements() }
+    func boot() async { guard signedIn else { return };scheduleAutomaticTips(recovering:true); await reloadContent(); await sync(); await subscription.refresh(); scheduleNostrAchievements();scheduleAutomaticTips() }
     func finishOnboarding() {
         let level=learner.level
         learner.place(Placement(level:level,score:Int(PerformanceScore.defaults[level] ?? 1),source:"onboarding",selectedIDs:[],updatedAt:Date()))
@@ -235,8 +243,10 @@ import SwiftUI
         if learner.onboardingComplete && !learner.goal.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty && (learner.goalBucket["activeGoal"]["id"].string.isEmpty || learner.goal != learner.goalBucket["activeGoal"]["text"].string) { learner.editGoal(learner.goal) }
         if learner.onboardingComplete { learner.preparePlate(user:identity.npub,available:availablePlateKinds); _ = learner.claimPlate(user:identity.npub) }
         if learner.name != lastPersisted.name || learner.target != lastPersisted.target || learner.support != lastPersisted.support || learner.level != lastPersisted.level || learner.dailyGoal != lastPersisted.dailyGoal || learner.companionName != lastPersisted.companionName || learner.companionType != lastPersisted.companionType || learner.onboardingComplete != lastPersisted.onboardingComplete || learner.flashcardLevels != lastPersisted.flashcardLevels || learner.lessonLevels != lastPersisted.lessonLevels || learner.tutorLevels != lastPersisted.tutorLevels { learner.preferencesModifiedAt = Date() }
+        let prior=Set((lastPersisted.pendingChanges ?? []).map(\.id)),newPractice=(learner.pendingChanges ?? []).filter { !prior.contains($0.id) }
         do { try writeLocal(); lastPersisted = learner }
         catch { self.error = "Could not save progress: \(error.localizedDescription)"; return }
+        scheduleAutomaticTips(changes:newPractice)
         saveTask?.cancel()
         let state = learner, npub = identity.npub
         saveTask = Task {
@@ -459,5 +469,29 @@ import SwiftUI
         let map: [String: PracticeMode] = ["vocabulary":.vocabulary,"flashcards":.vocabulary,"grammar":.grammar,"reading":.reading,"listening":.listening,"repeat":.listening,"speaking":.speaking,"speak":.speaking,"stories":.stories,"story":.stories,"conversation":.conversation,"conversations":.conversation,"tutor":.conversation,"realtime":.conversation,"game":.game,"translate":.vocabulary]
         let mapped = lesson.modes.compactMap { map[$0.lowercased()] }
         return mapped.isEmpty ? [.vocabulary,.grammar,.reading] : Array(Set(mapped)).sorted { $0.rawValue < $1.rawValue }
+    }
+}
+
+extension AppModel {
+    func scheduleAutomaticTips(changes:[PracticeChange] = [],recovering:Bool = false) {
+        guard signedIn,!identity.hex.isEmpty else { return }
+        do { try automaticWallet.enqueueAutomaticTips(recovering ? learner.pendingChanges ?? [] : changes,identity:identity,resuming:recovering) } catch { return }
+        guard automaticTipTask == nil,automaticWallet.hasAutomaticWork(identity:identity) else { return }
+        let id=UUID(),account=identity.hex
+        let task=Task { [weak self] in
+            guard let self else { return };var normal=false
+            defer {
+                if self.automaticTipTask?.id == id { self.automaticTipTask=nil
+                    if normal,self.signedIn,self.identity.hex == account,self.automaticWallet.hasAutomaticWork(identity:self.identity) { self.scheduleAutomaticTips() }
+                }
+            }
+            do {
+                while !Task.isCancelled,self.signedIn,self.identity.hex == account {
+                    guard try await self.automaticWallet.processAutomaticTip(identity:self.identity) else { normal=true;return }
+                    try await Task.sleep(for:.milliseconds(100))
+                }
+            } catch { /* Durable intent and monetary recovery data remain available for the next resume. */ }
+        }
+        automaticTipTask=(id,task)
     }
 }

@@ -43,6 +43,21 @@ struct WalletView:View {
                         Button(preview.label) { perform { try await service.sendOneSat(to:recipient,maximumFee:preview.fee,identity:app.identity) } }.disabled(service.busy || service.pending).accessibilityIdentifier("walletSendTip")
                     }
                 }
+                Section("Automatic tips") {
+                    if service.automatic.enabled {
+                        Text("1 sat for each new XP-earning activity while the wallet is funded. Approved mint fee: up to \(service.automatic.maximumFee) sat per tip.")
+                        Text(service.automatic.recipient).font(.caption)
+                        Text("\(service.automatic.queue.count) queued activities")
+                        Button("Stop automatic tips") { perform { try service.configureAutomaticTips(enabled:false,recipient:service.automatic.recipient,maximumFee:service.automatic.maximumFee,identity:app.identity) } }.accessibilityIdentifier("walletStopAutomatic")
+                    } else {
+                        Text("Automatic tips are off. Check a recipient and fee above to enable them.").accessibilityIdentifier("walletAutomaticOff")
+                        if let reason=service.automatic.pauseReason { Text(reason) }
+                        if let preview=service.tipPreview,preview.recipient == recipient {
+                            Button("Enable 1 sat tips when earning XP") { perform { try service.configureAutomaticTips(enabled:true,recipient:recipient,maximumFee:preview.fee,identity:app.identity) } }.disabled(service.busy || service.pending).accessibilityIdentifier("walletEnableAutomatic")
+                        }
+                    }
+                    Text("Stopping cancels queued tips. A transfer already submitted to the mint keeps its recovery data.").font(.footnote)
+                }
                 Section("Recovery") { Text("Wallet proofs and pending payment data are kept in this iPhone's Keychain. Encrypted wallet records are synchronized through Nostr. Keep this device's data until any pending operation has finished.") }
             }
             if let error=service.error { Text(error).foregroundStyle(.red).accessibilityIdentifier("walletError") }
@@ -56,11 +71,14 @@ struct WalletView:View {
                     catch is CancellationError { return } catch { failures += 1 }
                 }
             }
+            .onReceive(NotificationCenter.default.publisher(for:.walletAutomaticTipsChanged)) { change in
+                if change.object as? String == app.identity.hex { try? service.refreshAutomaticPreferences(identity:app.identity) }
+            }
             .onDisappear { service.cancel() }
     }
     private func invoiceQR(_ value:String) -> UIImage? {
         let filter=CIFilter.qrCodeGenerator();filter.message=Data(("lightning:"+value).utf8);filter.correctionLevel="M"
         guard let output=filter.outputImage?.transformed(by:CGAffineTransform(scaleX:6,y:6)),let image=CIContext().createCGImage(output,from:output.extent) else { return nil };return UIImage(cgImage:image)
     }
-    private func perform(_ action:@escaping @MainActor () async throws -> Void) { Task { try? await action() } }
+    private func perform(_ action:@escaping @MainActor () async throws -> Void) { Task { try? await action();app.scheduleAutomaticTips() } }
 }

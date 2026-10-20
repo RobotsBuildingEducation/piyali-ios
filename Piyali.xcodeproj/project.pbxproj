@@ -80,6 +80,7 @@
 		69086B28BF45F4B045E65544 /* PiyaliSubscriptions.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 93F9EA3918C75E4A8605DF8B /* PiyaliSubscriptions.storekit */; };
 		6977063B6E1998CCF5F56F56 /* intro-it.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 4F7F8D3F0508DA4007F2A5C9 /* intro-it.json.gz */; };
 		6CC2D0CDEDE8170FD02E1689 /* achievement-protocol.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 52DF567A696B510E282505EF /* achievement-protocol.json.gz */; };
+		6DBD994EC7A05EA406383B73 /* AutomaticTips.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81A385EEB5BE5387DBB7B2B9 /* AutomaticTips.swift */; };
 		6F0548E7C5917527735A99E4 /* curriculum-el.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = F46C889B6EEDEEB00C4491D5 /* curriculum-el.json.gz */; };
 		73C8A3FBBF0937A4C9C6BF4D /* FirebaseIdentityService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23553314634188457E6891D0 /* FirebaseIdentityService.swift */; };
 		7502622962E3F62325C73656 /* RemoteSignerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14A0722BA40D89741D5238E2 /* RemoteSignerService.swift */; };
@@ -274,6 +275,7 @@
 		7EFDAE4ECA9598F1A1D220BB /* intro-pt.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "intro-pt.json.gz"; sourceTree = "<group>"; };
 		803FAE41E8CABB152707F38B /* VoiceJourneyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceJourneyView.swift; sourceTree = "<group>"; };
 		807123B77A97FA5EA2F0A829 /* JourneyRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JourneyRecorder.swift; sourceTree = "<group>"; };
+		81A385EEB5BE5387DBB7B2B9 /* AutomaticTips.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticTips.swift; sourceTree = "<group>"; };
 		8265A5DC64B78FB2778E4B34 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		82DE9E947F9BAD6E1426FAEF /* GoalPreparationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalPreparationView.swift; sourceTree = "<group>"; };
 		83802F6071E4373F5023E7F7 /* ReadingRules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingRules.swift; sourceTree = "<group>"; };
@@ -580,6 +582,7 @@
 			isa = PBXGroup;
 			children = (
 				6444929F41BE8BDD4B3A3123 /* AchievementProgress.swift */,
+				81A385EEB5BE5387DBB7B2B9 /* AutomaticTips.swift */,
 				BA31D468CC9982F8CC105599 /* BunkerConnection.swift */,
 				9DEE7EF45636A31B7BD66C57 /* CompanionHealth.swift */,
 				FC8C1AFE520430E24776DD16 /* CompanionMemory.swift */,
@@ -954,6 +957,7 @@
 				498224C466F47E92C30CAB74 /* AchievementSyncService.swift in Sources */,
 				882DF197F6E0043796DBFC66 /* AppConfiguration.swift in Sources */,
 				A877E84CD10C1FB5B0B82B67 /* AppModel.swift in Sources */,
+				6DBD994EC7A05EA406383B73 /* AutomaticTips.swift in Sources */,
 				CB9D82FBF26F2B92C92D9A94 /* BunkerConnection.swift in Sources */,
 				D122DC4B747F96D126F8D6C4 /* CashuHTTPClient.swift in Sources */,
 				FE5058B72FAF50002B5C1120 /* CashuMintBatch.swift in Sources */,

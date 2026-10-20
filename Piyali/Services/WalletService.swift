@@ -9,6 +9,7 @@ import secp256k1
     @Published private(set) var canCreate=false
     @Published private(set) var balance=0
     @Published private(set) var invoice=""
+    @Published private(set) var automatic=AutomaticTipJournal()
     @Published private(set) var tipPreview:WalletTipPreview?
     @Published private(set) var archivedCount=0
     @Published private(set) var invoiceExpired=false
@@ -32,15 +33,15 @@ import secp256k1
         #endif
         bootstrap=selected ?? NostrRelayClient();fixedRelays=selected != nil;mintAPI=mint ?? CashuHTTPClient();self.now=now
     }
-    func cancel(clear:Bool = false) { generation=UUID();task?.cancel();task=nil;busy=false;if clear { state=nil;owner="";ready=false;canCreate=false;balance=0;invoice="";tipPreview=nil;archivedCount=0;invoiceExpired=false;pending=false;status="";error=nil } }
+    func cancel(clear:Bool = false) { generation=UUID();task?.cancel();task=nil;busy=false;if clear { state=nil;owner="";ready=false;canCreate=false;balance=0;invoice="";automatic=AutomaticTipJournal();tipPreview=nil;archivedCount=0;invoiceExpired=false;pending=false;status="";error=nil } }
     private func check(_ identity:IdentityService,_ version:UUID) throws { try Task.checkCancellation();guard version == generation,identity.hex == owner,!owner.isEmpty else { throw CancellationError() } }
-    private func save() throws { state?.ledger.compact();guard let state,state.owner == owner else { throw CancellationError() };try vault.save(state);ready=state.configurationPublished;invoice=state.invoice?["quote"]["request"].string ?? "";pending=state.pending != nil;archivedCount=state.archivedInvoices?.count ?? 0;invoiceExpired=state.invoice.map { $0["quote"]["expiry"].number <= now().timeIntervalSince1970 } ?? false }
+    private func save() throws { state?.ledger.compact();guard let state,state.owner == owner else { throw CancellationError() };try vault.save(state);automatic=try vault.automaticTips(owner:owner);ready=state.configurationPublished;invoice=state.invoice?["quote"]["request"].string ?? "";pending=state.pending != nil;archivedCount=state.archivedInvoices?.count ?? 0;invoiceExpired=state.invoice.map { $0["quote"]["expiry"].number <= now().timeIntervalSince1970 } ?? false }
     private func authenticate(_ identity:IdentityService) -> NostrRelayClient.Authenticate { let author=owner;return { relay,challenge in try await identity.signEvent(kind:22242,tags:[["relay",relay],["challenge",challenge]],content:"",expectedAuthor:author) } }
     private var client:NostrRelayClient { fixedRelays ? bootstrap : NostrRelayClient(relays:state?.relays.isEmpty == false ? state!.relays : ["wss://relay.ditto.pub","wss://relay.primal.net","wss://nos.lol"]) }
     private func run(_ identity:IdentityService,_ action:@escaping @MainActor (UUID) async throws -> Void) async throws {
         guard !busy,!identity.hex.isEmpty else { throw WalletContract.Failure.pending }
         let account=identity.hex
-        guard Self.leases[account] == nil else { throw WalletContract.Failure.pending }
+        guard Self.leases[account] == nil else { error=WalletContract.Failure.pending.localizedDescription;throw WalletContract.Failure.pending }
         let lease=UUID();Self.leases[account]=lease
         defer { if Self.leases[account] == lease { Self.leases.removeValue(forKey:account) } }
         if owner != account { cancel(clear:true);owner=account }
@@ -278,7 +279,7 @@ extension WalletService {
         available.sort { $0.amount == $1.amount ? $0.id < $1.id : $0.amount < $1.amount }
         var selected:[WalletProof]=[],total=0,fee=0
         for proof in available { selected.append(proof);total += proof.amount;fee=try CashuSwift.calculateFee(for:typed(selected),of:mint);if total >= 1+fee { break } }
-        guard !selected.isEmpty,total >= 1+fee else { throw AppError.message("The wallet does not have enough spendable sats for 1 sat and the mint fee.") }
+        guard !selected.isEmpty,total >= 1+fee else { throw WalletContract.Failure.insufficientBalance }
         let ids=Set(selected.map(\.id)),canonical=try WalletContract.canonicalMint(value)
         let affected=wallet.ledger.records.values.filter { !wallet.ledger.deleted.contains($0.id) && (try? WalletContract.canonicalMint($0.mint)) == canonical && $0.proofs.contains(where:{ ids.contains($0.id) }) }
         let retained=Set(affected.flatMap(\.proofs).map(\.id)).subtracting(ids),rollover=unspent.filter { retained.contains($0.id) }
@@ -291,17 +292,22 @@ extension WalletService {
         try await run(identity) { version in let plan=try await self.tipPlan(recipient,identity:identity,version:version);self.tipPreview=WalletTipPreview(recipient:recipient,fee:plan.fee) }
     }
     func sendOneSat(to recipient:String,maximumFee:Int,identity:IdentityService) async throws {
-        try await run(identity) { version in
-            let plan=try await self.tipPlan(recipient,identity:identity,version:version)
-            guard maximumFee >= 0,plan.fee <= maximumFee else { throw AppError.message("The mint fee changed. Check the recipient and fee again before sending.") }
+        try await run(identity) { version in try await self.prepareTip(recipient,maximumFee:maximumFee,trigger:nil,identity:identity,version:version) }
+    }
+    private func prepareTip(_ recipient:String,maximumFee:Int,trigger:String?,identity:IdentityService,version:UUID) async throws {
+            let plan=try await tipPlan(recipient,identity:identity,version:version)
+            guard maximumFee >= 0,plan.fee <= maximumFee else { throw WalletContract.Failure.feeChanged }
+            if let trigger {
+                let current=try vault.automaticTips(owner:owner)
+                guard current.enabled,current.queue.contains(where:{ $0.id == trigger }) else { throw CancellationError() }
+            }
             let change=plan.selected.reduce(0) { $0+$1.amount }-1-plan.fee
             let keep=change > 0 ? try CashuMintBatch.prepare(amount:change,mint:plan.mint) : CashuMintBatch(outputs:[],secrets:[],blindingFactors:[])
             let send=try CashuMintBatch.prepare(amount:1,mint:plan.mint,lock:plan.destination.walletKey)
             let batch=CashuMintBatch(outputs:keep.outputs+send.outputs,secrets:keep.secrets+send.secrets,blindingFactors:keep.blindingFactors+send.blindingFactors)
             var operation=WalletPendingOperation(purpose:.tip,mint:plan.destination.mint,amount:1,batch:batch,inputs:plan.selected,destroyedTokenIDs:plan.destroyed,recipient:plan.destination,keepCount:keep.outputs.count)
-            operation.rollover=plan.rollover;operation.mintFee=plan.fee;self.state?.pending=operation;try self.save();self.tipPreview=nil
-            try await self.submitSwap(identity,mint:plan.mint,version:version)
-        }
+            operation.automaticTrigger=trigger;operation.rollover=plan.rollover;operation.mintFee=plan.fee;state?.pending=operation;try save();tipPreview=nil
+            try await submitSwap(identity,mint:plan.mint,version:version)
     }
     func receiveNutzaps(identity:IdentityService) async throws {
         try await run(identity) { version in
@@ -396,11 +402,65 @@ extension WalletService {
         }
         guard let token=state?.pending?.outbox.first(where:{ $0.kind == 7375 }) else { throw WalletContract.Failure.invalidToken }
         try state?.ledger.ingest(WalletTokenRecord(id:token.id,payload:.object(["mint":.string(operation.mint),"unit":.string("sat"),"proofs":.array(keep.map(\.wire)),"del":.array(operation.destroyedTokenIDs.map(JSONValue.string))])))
-        if let receipt=state?.pending?.outbox.first(where:{ $0.kind == 9321 }) { let receipts=Array(((state?.sentReceipts ?? [])+[receipt]).suffix(128));state?.sentReceipts=receipts }
+        if let receipt=state?.pending?.outbox.first(where:{ $0.kind == 9321 }) {
+            let receipts=Array(((state?.sentReceipts ?? [])+[receipt]).suffix(128));state?.sentReceipts=receipts
+            if let trigger=operation.automaticTrigger { if state?.automaticReceipts == nil { state?.automaticReceipts=[:] };state?.automaticReceipts?[trigger]=receipt.id }
+        }
         state?.redeemed.formUnion((operation.incoming ?? []).map(\.id));state?.pending=nil;try save();try await updateBalance(identity,version:version)
         status=operation.purpose == .tip ? "Sent 1 sat. Mint fee: \(operation.mintFee ?? 0) sat." : "Received \(operation.amount) sat. Mint fee: \(operation.mintFee ?? 0) sat."
     }
 }
 private extension WalletProof {
     func replacingWitness(_ witness:String) throws -> WalletProof { try WalletProof(wire.setting("witness",.string(witness))) }
+}
+
+extension WalletService {
+    func configureAutomaticTips(enabled:Bool,recipient:String,maximumFee:Int,identity:IdentityService) throws {
+        let account=identity.hex
+        guard !account.isEmpty,(0...1_000_000).contains(maximumFee),!enabled || (recipient.hasPrefix("npub1") ? PublicKey(npub:recipient) : PublicKey(hex:recipient)) != nil else { throw WalletContract.Failure.invalidRecipient }
+        var journal=try vault.automaticTips(owner:account);journal.configure(enabled:enabled,recipient:recipient,maximumFee:maximumFee);try vault.saveAutomaticTips(journal,owner:account);automatic=journal
+    }
+    func enqueueAutomaticTips(_ changes:[PracticeChange],identity:IdentityService,resuming:Bool = false) throws {
+        guard !changes.isEmpty,!identity.hex.isEmpty,let wallet=try vault.load(owner:identity.hex) else { return }
+        var journal=try vault.automaticTips(owner:identity.hex);guard journal.enabled else { automatic=journal;return }
+        var available=0,seen=Set<String>()
+        for mint in wallet.mints where seen.insert(try WalletContract.canonicalMint(mint)).inserted { available += try wallet.ledger.balance(mint:mint) }
+        let eligible=resuming ? changes.filter { change in journal.enabledAt.map { change.date >= $0 } ?? false } : changes
+        journal.enqueue(eligible,available:available);try vault.saveAutomaticTips(journal,owner:identity.hex);automatic=journal
+    }
+    @discardableResult func processAutomaticTip(identity:IdentityService) async throws -> Bool {
+        var progressed=false
+        try await run(identity) { version in
+            var journal=try self.vault.automaticTips(owner:self.owner);self.automatic=journal
+            guard journal.enabled,let intent=journal.queue.first else { return }
+            if self.state?.automaticReceipts?[intent.id] != nil { journal.complete(intent.id);try self.vault.saveAutomaticTips(journal,owner:self.owner);self.automatic=journal;progressed=true;return }
+            if let pending=self.state?.pending {
+                guard pending.automaticTrigger == intent.id else { return }
+                try await self.recoverSwap(identity,version:version)
+            } else {
+                do { try await self.prepareTip(intent.recipient,maximumFee:intent.maximumFee,trigger:intent.id,identity:identity,version:version) }
+                catch WalletContract.Failure.insufficientBalance {
+                    journal=try self.vault.automaticTips(owner:self.owner);journal.clearQueue();try self.vault.saveAutomaticTips(journal,owner:self.owner);self.automatic=journal;progressed=true;return
+                }
+                catch WalletContract.Failure.feeChanged {
+                    journal=try self.vault.automaticTips(owner:self.owner);journal.pause("Automatic tips paused: the mint fee exceeds your approved limit.");try self.vault.saveAutomaticTips(journal,owner:self.owner);self.automatic=journal;return
+                }
+                catch WalletContract.Failure.invalidRecipient {
+                    journal=try self.vault.automaticTips(owner:self.owner);journal.pause("Automatic tips paused: the recipient's receiving setup could not be verified.");try self.vault.saveAutomaticTips(journal,owner:self.owner);self.automatic=journal;return
+                }
+            }
+            try self.check(identity,version)
+            guard self.state?.automaticReceipts?[intent.id] != nil else { return }
+            journal=try self.vault.automaticTips(owner:self.owner);journal.complete(intent.id);try self.vault.saveAutomaticTips(journal,owner:self.owner);self.automatic=journal;progressed=true
+        }
+        return progressed
+    }
+}
+
+extension WalletService {
+    func refreshAutomaticPreferences(identity:IdentityService) throws { guard !identity.hex.isEmpty else { return };automatic=try vault.automaticTips(owner:identity.hex) }
+    func hasAutomaticWork(identity:IdentityService) -> Bool {
+        guard !identity.hex.isEmpty,let journal=try? vault.automaticTips(owner:identity.hex),journal.enabled,let first=journal.queue.first,let wallet=try? vault.load(owner:identity.hex) else { return false }
+        return wallet.pending == nil || wallet.pending?.automaticTrigger == first.id
+    }
 }

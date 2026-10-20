@@ -1,6 +1,6 @@
 # Native wallet implementation
 
-Native wallet creation/restoration, NIP-60 synchronization and Lightning deposits are connected through Account → Wallet. Manual one-sat nutzap sending/receiving is implemented. Automatic XP tips, spend-achievement sync and legacy wallet migration remain in progress. No real funds have been moved during implementation or verification.
+Native wallet creation/restoration, NIP-60 synchronization and Lightning deposits are connected through Account → Wallet. Manual one-sat nutzap sending/receiving is implemented. Optional automatic XP tips are implemented. Legacy wallet migration remains in progress. No real funds have been moved during implementation or verification.
 
 ## Dependencies
 
@@ -34,7 +34,7 @@ Swap requests save their exact inputs, witnesses and blinded outputs before subm
 
 ## Next integration
 
-Connect optional automatic XP tips and spend-achievement evidence to confirmed outgoing receipts. Port legacy wallet records without overwriting existing receiving keys or funds. Notification of redemption to additional sender relays and more complex P2PK conditions remain interoperability follow-ups.
+Port legacy wallet records without overwriting existing receiving keys or funds. Notification of redemption to additional sender relays and more complex P2PK conditions remain interoperability follow-ups.
 
 The reference's main wallet supports creating/loading the wallet, a resumable BOLT11 deposit, mint-checked balances and one-sat tips. Its fallback to an unadvertised recipient key is intentionally not reproduced because current NIP-61 requires the advertised separate wallet key and supported mint. Existing browser wallet records include older event kinds; any compatibility importer must preserve encrypted funds and verify proof states instead of treating a missing modern wallet event as permission to overwrite them.
 
@@ -59,3 +59,15 @@ Deposit verification covers creation/restoration, an unpaid quote through servic
 Nutzap contracts cover separate recipient keys, local/remote main identities, fee limits, tiny-payment aggregation, duplicate redemption, lost send/redemption responses, stable receipt retries, malformed advertisements/proofs and partial-spend recovery. The UI checks receiving and invalid recipient handling without requesting a real invoice or payment.
 
 A read-only lookup of the reference's default Piyali support npub retrieved no signed NIP-61 advertisement from the bootstrap relays on 2026-10-20. This does not establish absence on every relay. Its receiving setup must be verified before default support tips can succeed; the native client reports unavailable metadata and does not substitute the main Nostr key. No support-account data was changed.
+
+## Automatic XP tips
+
+Automatic tips are off by default. After checking a recipient and its fee, the user can enable one sat for each new XP-earning activity while funded. The approved fee and recipient are captured with each intent. Stopping tips cancels queued intents immediately, independently of an in-flight financial operation. A transfer already submitted keeps its existing recovery data.
+
+The intent journal and preferences use a separate account-scoped Keychain item from the monetary journal, so an XP event during a transfer cannot overwrite its inputs or recovery outputs. Positive native `PracticeChange` IDs are deduplicated through relaunches. Queue capacity is bounded by the available wallet amount, approved fee and a 256-intent working batch; activities skipped without funds do not become debt when the wallet is later funded. An opt-in timestamp excludes older progress from recovery. Startup and foreground resume reconcile still-pending learner events before cloud acknowledgment can remove them.
+
+The confirmed financial receipt is durably associated with the triggering XP ID before the intent is removed. If that second update is interrupted or rolled back, resuming recognizes the existing receipt instead of minting another tip. Fee increases pause automatic tips, and missing recipient payment information pauses them without spending. Transient failures retain the intent and the saved operation for a later resume. Account changes cancel the current processor.
+
+The web reference explicitly retires `spent_sats` achievements (`src/utils/achievements.test.js`, retired-record test). The native catalogs already exclude that metric. Automatic and manual tips keep financial receipts without reintroducing retired awards.
+
+Verification includes the actual AppModel XP-save hook, repeated persistence, intent-journal rollback after financial confirmation, lost swap responses, stopping during recipient planning, stopping after submission, an XP event during another wallet operation, fee changes and pre-opt-in progress filtering. All mint/payment and Nostr writes in these tests are local simulations.

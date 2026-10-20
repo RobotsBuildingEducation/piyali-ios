@@ -11,6 +11,7 @@ import SwiftUI
                 .onChange(of: scenePhase) { _, phase in
                     if phase == .active, model.signedIn {
                         model.learner.rollDay(); model.subscription.checkExpiry()
+                        model.scheduleAutomaticTips(recovering:true)
                         Task { await model.subscription.refresh(); await model.sync() }
                     }
                 }

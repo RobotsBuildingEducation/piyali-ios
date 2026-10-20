@@ -18,6 +18,7 @@ struct WalletPendingOperation:Codable,Sendable {
     let keepCount:Int
     let quote:JSONValue?
     var phase:Phase = .prepared
+    var automaticTrigger:String?
     var rollover:[WalletProof]?
     var mintFee:Int?
     var incoming:[NostrEventPayload]?
@@ -46,6 +47,7 @@ struct WalletPrivateState:Codable,Sendable {
     var configurationOutbox:[NostrEventPayload]=[]
     var redeemed=Set<String>()
     var sentReceipts:[NostrEventPayload]?
+    var automaticReceipts:[String:String]?
     var archivedInvoices:[JSONValue]?
     var invoice:JSONValue?
     var configurationPublished=false
@@ -84,7 +86,30 @@ struct WalletVault {
     #if DEBUG
     func removeTestState(owner:String) throws {
         guard service.contains(".test."),ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"] == "1" else { throw AppError.message("Wallet data removal is available only to isolated tests.") }
+        _ = SecItemDelete(try automaticQuery(owner) as CFDictionary)
         let status=SecItemDelete(try query(owner) as CFDictionary);guard status == errSecSuccess || status == errSecItemNotFound else { throw AppError.message("Test wallet cleanup failed.") }
     }
     #endif
 }
+
+extension WalletVault {
+    private func automaticQuery(_ owner:String) throws -> [String:Any] { var result=try query(owner);result[kSecAttrAccount as String]=owner+":automatic-tips";return result }
+    func automaticTips(owner:String) throws -> AutomaticTipJournal {
+        var request=try automaticQuery(owner);request[kSecReturnData as String]=true;request[kSecMatchLimit as String]=kSecMatchLimitOne
+        var item:CFTypeRef?;let status=SecItemCopyMatching(request as CFDictionary,&item)
+        if status == errSecItemNotFound { return AutomaticTipJournal() }
+        guard status == errSecSuccess,let data=item as? Data else { throw AppError.message("Automatic tip preferences could not be read.") }
+        return try JSONDecoder().decode(AutomaticTipJournal.self,from:data)
+    }
+    func saveAutomaticTips(_ journal:AutomaticTipJournal,owner:String) throws {
+        let query=try automaticQuery(owner),data=try JSONEncoder().encode(journal)
+        let status=SecItemUpdate(query as CFDictionary,[kSecValueData as String:data] as CFDictionary)
+        if status == errSecItemNotFound {
+            var item=query;item[kSecValueData as String]=data;item[kSecAttrAccessible as String]=kSecAttrAccessibleWhenUnlockedThisDeviceOnly
+            guard SecItemAdd(item as CFDictionary,nil) == errSecSuccess else { throw AppError.message("Automatic tip preferences could not be saved.") }
+        } else if status != errSecSuccess { throw AppError.message("Automatic tip preferences could not be saved.") }
+        NotificationCenter.default.post(name:.walletAutomaticTipsChanged,object:owner)
+    }
+}
+
+extension Notification.Name { static let walletAutomaticTipsChanged=Notification.Name("piyali.wallet.automatic-tips.changed") }

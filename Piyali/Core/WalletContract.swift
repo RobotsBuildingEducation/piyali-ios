@@ -12,8 +12,8 @@ public enum WalletContract {
         _=try mint(value);var parts=URLComponents(string:value)!;parts.host=parts.host?.lowercased();if parts.port == 443 { parts.port=nil };while parts.path.hasSuffix("/") { parts.path.removeLast() };return parts.string!
     }
     public static func key(_ value:String) -> Bool { value.range(of:"^[0-9a-f]{64}$",options:.regularExpression) != nil }
-    public enum Failure:LocalizedError { case invalidMint,invalidRecipient,invalidProof,invalidToken,conflictingProof,pending
-        public var errorDescription:String? { switch self { case .invalidMint:"Use a secure Cashu mint URL without credentials, query or fragment.";case .invalidRecipient:"The recipient has not published valid nutzap payment information for a supported mint.";case .invalidProof:"The mint returned an invalid ecash proof.";case .invalidToken:"The wallet token could not be read.";case .conflictingProof:"Conflicting ecash proofs require a balance refresh.";case .pending:"Finish or recover the pending wallet operation first." } }
+    public enum Failure:LocalizedError { case invalidMint,invalidRecipient,invalidProof,invalidToken,conflictingProof,pending,insufficientBalance,feeChanged
+        public var errorDescription:String? { switch self { case .invalidMint:"Use a secure Cashu mint URL without credentials, query or fragment.";case .invalidRecipient:"The recipient has not published valid nutzap payment information for a supported mint.";case .invalidProof:"The mint returned an invalid ecash proof.";case .invalidToken:"The wallet token could not be read.";case .conflictingProof:"Conflicting ecash proofs require a balance refresh.";case .feeChanged:"The mint fee changed. Check the recipient and fee again before sending.";case .insufficientBalance:"The wallet does not have enough spendable sats for 1 sat and the mint fee.";case .pending:"Finish or recover the pending wallet operation first." } }
     }
 }
 public struct NutzapRecipient:Equatable,Sendable {
