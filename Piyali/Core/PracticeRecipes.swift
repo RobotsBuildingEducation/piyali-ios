@@ -36,6 +36,9 @@ public enum PracticeRecipeFailure:LocalizedError {
         if let randomSeed { parameters=parameters.setting("randomSeed",.number(Double(randomSeed))) }
         return try JSONDecoder().decode(JSONValue.self,from:Data(call("select",arguments:[module.rawValue,try encoded(parameters)]).utf8))
     }
+    public func realtime(_ operation:String,parameters:JSONValue) throws ->String {
+        try call("realtime",arguments:[operation,try encoded(parameters)])
+    }
     public func resetOptions() throws { _=try call("resetOptions",arguments:[]) }
     private func encoded(_ parameters:JSONValue) throws -> String {
         let encoder=JSONEncoder();encoder.outputFormatting=[.sortedKeys,.withoutEscapingSlashes]

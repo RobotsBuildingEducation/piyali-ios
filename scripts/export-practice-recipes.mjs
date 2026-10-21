@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import vm from 'node:vm';
+import {realtimePolicyFragments} from './realtime-policy-fragments.mjs';
 import {gzipSync,gunzipSync} from 'node:zlib';
 
 // Lift only the original pure prompt builders and their lexical dependencies.
@@ -89,6 +90,10 @@ await requireSymbol(flashcard,'buildLessonFlashcardPrompt');await requireSymbol(
 for(const symbol of ['DELIGHT_VARIANTS','DELIGHT_VARIANT_IDS','buildDelightQuestionPrompt','buildDelightResponseJudgePrompt','normalizeDelightQuestion','isDelightQuestionLanguageConsistent','getInitialDelightResponse','gradeDelightResponse','isDelightResponseReady','calculateDelightQuestionXp','getDelightFallbackQuestion','buildSentenceDetectivePrompt','validateMorphologyForgeQuestion']) await requireSymbol(delight,symbol);
 await requireSymbol(options,'createQuestionOptionSelector');
 await requireSymbol(storeFile,'provide');
+const realtimeFile=path.join(reference,'src/components/RealTimeTest.jsx');
+const realtimeSource=await fs.readFile(realtimeFile,'utf8');
+const realtime=realtimePolicyFragments({source:realtimeSource,parser,traverse});
+for(const symbol of [...realtime.imports,'buildLessonPreparationRecipe','buildRealtimeResumeContext']) await requireSymbol(realtimeFile,symbol);
 for(let i=0;i<pending.length;i++) await lift(pending[i]);
 const virtual=new Map();
 for(const record of modules.values()) {
@@ -97,7 +102,7 @@ for(const record of modules.values()) {
  const declarations=Array.from(record.declarations).sort(([a],[b])=>a-b).map(([,p])=>record.source.slice(p.node.start,p.node.end));
  virtual.set(record.file,imports.join('\n')+'\n'+declarations.join('\n')+`\nexport {${Array.from(record.exports.keys()).join(',')}};`);
 }
-const entry=`import * as grammar from ${JSON.stringify(grammar)};import * as vocabulary from ${JSON.stringify(vocabulary)};import * as flashcard from ${JSON.stringify(flashcard)};import * as delight from ${JSON.stringify(delight)};import {createQuestionOptionSelector} from ${JSON.stringify(options)};import {provide} from ${JSON.stringify(storeFile)};
+const entry=`import * as realtimeOriginal from ${JSON.stringify(realtimeFile)};import {${realtime.imports.join(',')}} from ${JSON.stringify(realtimeFile)};import * as grammar from ${JSON.stringify(grammar)};import * as vocabulary from ${JSON.stringify(vocabulary)};import * as flashcard from ${JSON.stringify(flashcard)};import * as delight from ${JSON.stringify(delight)};import {createQuestionOptionSelector} from ${JSON.stringify(options)};import {provide} from ${JSON.stringify(storeFile)};
 const recipes={grammar:${JSON.stringify(recipes.grammar)},vocabulary:${JSON.stringify(recipes.vocabulary)}};
 function withParameters(parametersJSON,operation) {
  const parameters=JSON.parse(parametersJSON);provide(parameters.user);
@@ -112,6 +117,11 @@ export function build(module,kind,parametersJSON) { return withParameters(parame
  if(kind==='judgeDelight') return delight.buildDelightResponseJudgePrompt({...parameters,moduleType:module});
  if(kind==='flashcard') return flashcard.buildLessonFlashcardPrompt({...parameters,moduleType:module,collectedConcepts:parameters.collectedConcepts || []});if(kind==='judgeFlashcard') return flashcard.buildFlashcardJudgePrompt(parameters);const name=recipes[module]?.[kind];if(!name) throw Error('Unsupported exercise recipe');return (module==='grammar'?grammar:vocabulary)[name](parameters);
 }); }
+export function realtime(operation,parametersJSON) { return withParameters(parametersJSON,p=>{
+ if(operation==='resume') return realtimeOriginal.buildRealtimeResumeContext(p.messages||[]);
+ if(operation==='goal') return realtimeOriginal.buildLessonPreparationRecipe(p,p.options||{cefrLevel:p.cefrLevel,curriculumCefrLevel:p.curriculumCefrLevel}).prompt;
+ ${realtime.code}
+}); }
 const selector=createQuestionOptionSelector();
 export function select(mode,parametersJSON) { return withParameters(parametersJSON,p=>JSON.stringify(selector(mode,p.context))); }
 export function resetOptions() { selector.reset();return '{}'; }
@@ -124,6 +134,7 @@ const result=await esbuild.build({stdin:{contents:entry,resolveDir:reference},bu
 const code=result.outputFiles[0].text.replaceAll('// pure-source:'+reference+'/','// Reference: ');
 await fs.writeFile(new URL('../Piyali/Resources/practice-recipes.js',import.meta.url),code);
 const manifest=Array.from(modules.values()).map(m=>({file:path.relative(reference,m.file),sha256:crypto.createHash('sha256').update(m.source).digest('hex'),bindings:Array.from(m.required).sort(),...(m.adapter ? {nativeAdapter:m.file===storeFile ? 'Read-only user supplied as a Swift recipe argument; no web store or effects.' : m.file===flagsFile ? 'Flag renderers omitted from text-only language metadata.' : 'Original language-name strings only; no JSX UI.'} : {})}));
+manifest.push({file:'src/components/RealTimeTest.jsx',sha256:crypto.createHash('sha256').update(realtimeSource).digest('hex'),bindings:realtime.bindings,nativeAdapter:'Pure lexical functions receive explicit JSON refs. Audio, network, React effects and account credentials omitted.'});
 await fs.writeFile(new URL('../Piyali/Resources/practice-recipes.manifest.json',import.meta.url),JSON.stringify(manifest,null,2)+'\n');
 const context={};vm.runInNewContext(code,context,{timeout:1000});
 const canonical=value=>Array.isArray(value) ? value.map(canonical) : value && typeof value==='object' ? Object.fromEntries(Object.keys(value).sort().map(key=>[key,canonical(value[key])])) : value;

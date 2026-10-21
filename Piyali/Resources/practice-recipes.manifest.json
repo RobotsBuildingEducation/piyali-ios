@@ -138,41 +138,25 @@
     "nativeAdapter": "Read-only user supplied as a Swift recipe argument; no web store or effects."
   },
   {
+    "file": "src/components/RealTimeTest.jsx",
+    "sha256": "9c45b94d47afed3c84f776f7ca23b49dfc2da721cda52365bbf8402405a432a6",
+    "bindings": [
+      "buildCurriculumPromptContext",
+      "buildLessonPreparationRecipe",
+      "buildRealtimeResumeContext",
+      "focusedLessonPrompt",
+      "generationPerformanceContextFor",
+      "getAdultBeginnerToneRule",
+      "getCEFRPromptHint",
+      "getLanguagePromptName",
+      "useUserStore"
+    ]
+  },
+  {
     "file": "src/utils/learningIntelligenceModel.js",
     "sha256": "5e6efcd7fea2758af10af1d3617945daa8583f68f0072cc26d5822549ef0a95c",
     "bindings": [
       "focusedLessonPrompt"
-    ]
-  },
-  {
-    "file": "src/utils/lessonCurriculum.js",
-    "sha256": "87f94db6ecfb9fddf198f3b51fca83017e48586230c0c02eff7f49a5d49a8ad9",
-    "bindings": [
-      "AGENDA_TARGET_ROLES",
-      "EXACT_FORM_MODES",
-      "INSTRUCTIONAL_OBJECTIVE_PATTERN",
-      "MODE_KIND",
-      "buildCurriculumPromptContext",
-      "cleanText",
-      "extractItemText",
-      "getAgendaGoal",
-      "getAgendaTargetForms",
-      "getAgendaTargetRole",
-      "getDisplayText",
-      "isInstructionalLessonObjective",
-      "normalizeObjectiveKey",
-      "normalizeTextList",
-      "uniqueText"
-    ]
-  },
-  {
-    "file": "src/utils/vocabularyMatchGeneration.js",
-    "sha256": "f2891a4fa5f0885362c89e9fac377c9e7fcf20e8b2a801076836fd066d179be3",
-    "bindings": [
-      "buildCurriculumPromptContext",
-      "buildVocabularyMatchPrompt",
-      "getTutorStarterVocabularyPairs",
-      "isTutorialVocabularyLesson"
     ]
   },
   {
@@ -187,11 +171,12 @@
     ]
   },
   {
-    "file": "src/features/stories/storySession.js",
-    "sha256": "f05815923df5191d4be7c63fffe95b897d5bcc056c3c6634ba31dc5ed891e22d",
+    "file": "src/utils/adultBeginnerTone.js",
+    "sha256": "c86551509f0ce4b911787dbe9f4e897af56816eaf8af26e2224ff0deaa4b6e90",
     "bindings": [
-      "STORY_MODES",
-      "chooseStoryMode"
+      "EARLY_BEGINNER_LEVELS",
+      "getAdultBeginnerToneRule",
+      "isEarlyBeginnerLevel"
     ]
   },
   {
@@ -233,7 +218,9 @@
     "bindings": [
       "CANONICAL_SUPPORT_LANGUAGE_CODES",
       "DEFAULT_SUPPORT_LANGUAGE",
+      "LANGUAGE_FALLBACK_LABELS",
       "LANGUAGE_META",
+      "LANGUAGE_PROMPT_LABELS",
       "SUPPORTED_LANGUAGE_CODES_SET",
       "SUPPORT_LANGUAGE_CODES_BASE",
       "SUPPORT_LANGUAGE_CODES_SET",
@@ -242,6 +229,7 @@
       "egyptianFlag",
       "frenchFlag",
       "germanFlag",
+      "getLanguagePromptName",
       "greekFlag",
       "indianFlag",
       "irishFlag",
@@ -255,6 +243,52 @@
       "polishFlag",
       "russianFlag",
       "usaFlag"
+    ]
+  },
+  {
+    "file": "src/utils/realtimeSessionControls.js",
+    "sha256": "355b82624878e4efdb951308d2ef9b87389001a35b3bb641c6fcd9fdae87b006",
+    "bindings": [
+      "buildRealtimeResumeContext"
+    ]
+  },
+  {
+    "file": "src/utils/lessonCurriculum.js",
+    "sha256": "87f94db6ecfb9fddf198f3b51fca83017e48586230c0c02eff7f49a5d49a8ad9",
+    "bindings": [
+      "AGENDA_TARGET_ROLES",
+      "EXACT_FORM_MODES",
+      "INSTRUCTIONAL_OBJECTIVE_PATTERN",
+      "MODE_KIND",
+      "buildCurriculumPromptContext",
+      "cleanText",
+      "extractItemText",
+      "getAgendaGoal",
+      "getAgendaTargetForms",
+      "getAgendaTargetRole",
+      "getDisplayText",
+      "isInstructionalLessonObjective",
+      "normalizeObjectiveKey",
+      "normalizeTextList",
+      "uniqueText"
+    ]
+  },
+  {
+    "file": "src/utils/vocabularyMatchGeneration.js",
+    "sha256": "f2891a4fa5f0885362c89e9fac377c9e7fcf20e8b2a801076836fd066d179be3",
+    "bindings": [
+      "buildCurriculumPromptContext",
+      "buildVocabularyMatchPrompt",
+      "getTutorStarterVocabularyPairs",
+      "isTutorialVocabularyLesson"
+    ]
+  },
+  {
+    "file": "src/features/stories/storySession.js",
+    "sha256": "f05815923df5191d4be7c63fffe95b897d5bcc056c3c6634ba31dc5ed891e22d",
+    "bindings": [
+      "STORY_MODES",
+      "chooseStoryMode"
     ]
   },
   {
@@ -275,13 +309,6 @@
       "getBaseLanguageCode",
       "getTutorStarterTargetExamples",
       "getTutorStarterVocabularyPairs"
-    ]
-  },
-  {
-    "file": "src/constants/supportLanguages.js",
-    "sha256": "d8e8dc17f353a5106bdc984f2cce9696669bc7216be10e006738cb0a04b40b5a",
-    "bindings": [
-      "SUPPORT_LANGUAGE_CODES"
     ]
   },
   {
@@ -318,10 +345,30 @@
     "nativeAdapter": "Flag renderers omitted from text-only language metadata."
   },
   {
+    "file": "src/constants/supportLanguages.js",
+    "sha256": "d8e8dc17f353a5106bdc984f2cce9696669bc7216be10e006738cb0a04b40b5a",
+    "bindings": [
+      "SUPPORT_LANGUAGE_CODES"
+    ]
+  },
+  {
     "file": "src/data/flashcards/common.js",
     "sha256": "e4110d661b925ecb53e3cf33c02227ea51ac0b67db9cb02a91ee71e14724a2c4",
     "bindings": [
       "CEFR_LEVEL_COUNTS"
     ]
+  },
+  {
+    "file": "src/components/RealTimeTest.jsx",
+    "sha256": "9c45b94d47afed3c84f776f7ca23b49dfc2da721cda52365bbf8402405a432a6",
+    "bindings": [
+      "computeXpDelta",
+      "goalTitleForTarget",
+      "goalRubricForTarget",
+      "buildLanguageInstructionsBase",
+      "buildTutorialGoal",
+      "evaluateAndMaybeAdvanceGoal:judgePrompt"
+    ],
+    "nativeAdapter": "Pure lexical functions receive explicit JSON refs. Audio, network, React effects and account credentials omitted."
   }
 ]

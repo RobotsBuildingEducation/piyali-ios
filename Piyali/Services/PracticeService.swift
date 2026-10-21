@@ -124,7 +124,7 @@ import Foundation
         } catch is CancellationError { } catch { if token == generation { self.error=error.localizedDescription } }
     }
 }
-private extension LearnerState {
+extension LearnerState {
     var recipeUser:JSONValue {
         let elo:JSONValue = .object(["rating":.number(rating),"scaleVersion":.number(Double(PerformanceScore.version)),"totalGraded":.number(Double(gradedByLanguage?[target] ?? 0))])
         return .object(["learningIntelligence":.object([target:goalBucket.setting("elo",elo)]),"progress":.object(["targetLang":.string(target),"supportLang":.string(support),"cefrLevel":.string(level),"showTranslations":.bool(true)])])

@@ -136,6 +136,7 @@ public struct LearnerState: Codable, Sendable {
     public var completed: Set<String> = []
     public var practicedModes: Set<String> = []
     public var lessonWork:[String:CurriculumLessonProgress]?
+    public var realtimeLessonRuns:[String:RealtimeLessonRun]?
     public var practiceRuns:[String:PracticeRun]?
     public var practiceDecks:[String:[PracticeCollectedCard]]?
     public var flashcardMastery: Set<String> = []

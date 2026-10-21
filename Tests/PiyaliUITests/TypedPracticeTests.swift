@@ -9,7 +9,7 @@ import XCTest
     }
     private func openPractice(_ app:XCUIApplication) {
         XCTAssertTrue(app.buttons["productMenu"].waitForExistence(timeout:15));app.buttons["productMenu"].tap();app.buttons["productModeMenu"].tap();app.buttons["productMode-path"].tap()
-        XCTAssertTrue(app.buttons["introLink"].waitForExistence(timeout:15));app.buttons["introLink"].tap();XCTAssertTrue(app.buttons["startLessonFromPreview"].waitForExistence(timeout:5));app.buttons["startLessonFromPreview"].tap();app.buttons["Try Vocabulary"].tap()
+        XCTAssertTrue(app.buttons["introLink"].waitForExistence(timeout:15));app.buttons["introLink"].tap();XCTAssertTrue(app.buttons["startLessonFromPreview"].waitForExistence(timeout:5));app.buttons["startLessonFromPreview"].tap()
         XCTAssertTrue(app.buttons.matching(NSPredicate(format:"identifier IN %@",["checkTypedAnswer","nextTypedQuestion"])).firstMatch.waitForExistence(timeout:10))
     }
     private func reveal(_ element:XCUIElement,_ app:XCUIApplication) { for _ in 0..<7 where !element.isHittable { app.swipeUp(velocity:.slow) };XCTAssertTrue(element.isHittable) }
@@ -20,15 +20,15 @@ import XCTest
         let objectives=app.buttons["lessonPreviewObjectives"];XCTAssertTrue(objectives.label.contains("7"));objectives.tap()
         let shot=XCTAttachment(screenshot:app.screenshot());shot.name="Native original lesson preview dark";shot.lifetime = .keepAlways;add(shot)
         let greeting=app.staticTexts["hello · hola"];if !greeting.waitForExistence(timeout:5) { print("PREVIEW HIERARCHY: "+app.debugDescription) };XCTAssertTrue(greeting.exists)
-        app.buttons["closeLessonPreview"].tap();XCTAssertTrue(app.buttons["introLink"].waitForExistence(timeout:5));XCTAssertFalse(app.staticTexts["introProgress"].exists)
-        app.buttons["introLink"].tap();app.buttons["startLessonFromPreview"].tap();XCTAssertTrue(app.staticTexts["introProgress"].waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts["introProgress"].label.contains("0 / 6"))
+        app.buttons["closeLessonPreview"].tap();XCTAssertTrue(app.buttons["introLink"].waitForExistence(timeout:5));XCTAssertFalse(app.buttons["introStep-vocabulary"].exists)
+        app.buttons["introLink"].tap();app.buttons["startLessonFromPreview"].tap();XCTAssertTrue(app.buttons["introStep-vocabulary"].waitForExistence(timeout:5));XCTAssertEqual(app.buttons["introStep-vocabulary"].value as? String,"Current")
     }
     func testCurriculumLessonRequiresItsOwnEightyXPThenShowsOneBonusAndUnlocksTheNextNode() {
         continueAfterFailure=false;let app=launch(kind:"delight:natural_or_weird",enterPractice:false)
         func openPath() { XCTAssertTrue(app.buttons["productMenu"].waitForExistence(timeout:15));app.buttons["productMenu"].tap();app.buttons["productModeMenu"].tap();app.buttons["productMode-path"].tap() }
         openPath();XCTAssertTrue(app.buttons["introLink"].waitForExistence(timeout:15));app.buttons["introLink"].tap();app.buttons["startLessonFromPreview"].tap()
-        for _ in 0..<6 { let next=app.buttons["introNext"];reveal(next,app);next.tap() }
-        let finish=app.buttons["introFinish"];reveal(finish,app);finish.tap();XCTAssertFalse(finish.isEnabled);app.buttons["BackButton"].tap()
+        for _ in 0..<6 { let next=app.buttons.matching(NSPredicate(format:"identifier IN %@",["skipLessonActivity","skipIntroActivity","realtimeSkip"])).firstMatch;XCTAssertTrue(next.waitForExistence(timeout:10));reveal(next,app);next.tap() }
+        XCTAssertTrue(app.staticTexts["lessonCompletionBonus"].waitForExistence(timeout:10));XCTAssertEqual(app.staticTexts["lessonCompletionBonus"].label,"+50");app.buttons["continueLessonCompletion"].tap()
         let first=app.buttons["lessonNode-lesson-pre-a1-1-1"],second=app.buttons["lessonNode-lesson-pre-a1-1-2"]
         XCTAssertTrue(first.waitForExistence(timeout:5));XCTAssertTrue(first.isEnabled);XCTAssertFalse(second.isEnabled)
         first.tap();XCTAssertTrue(app.staticTexts["+80 XP"].waitForExistence(timeout:5));app.buttons["startLessonFromPreview"].tap()

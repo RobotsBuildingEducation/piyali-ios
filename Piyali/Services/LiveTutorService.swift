@@ -5,8 +5,13 @@ import FirebaseAILogic
 @MainActor final class LiveTutorService: ObservableObject {
     @Published var connected = false
     @Published var connecting = false
+    @Published var muted = false
+    @Published var autoStopped=false
+    private var idleMonitor:Task<Void,Never>?
+    private var lastActivity=Date()
     @Published var transcript = ""
     @Published var learnerTranscript = ""
+    @Published var assistantTurnText = ""
     @Published var completedLearnerTurn = ""
     @Published var learnerTurnNumber = 0
     private var learnerTurns = VoiceTurnCapture()
@@ -15,14 +20,14 @@ import FirebaseAILogic
     private var receiver: Task<Void, Never>?
     private var sender: Task<Void, Never>?
     private var audioContinuation: AsyncStream<Data>.Continuation?
-    private let engine = AVAudioEngine()
+    private var engine:AVAudioEngine?
     private let player = AVAudioPlayerNode()
     private var tapped = false
     private var generation = UUID()
     private var lastConversationInstructions: String?
     private let outputFormat = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 24000, channels: 1, interleaved: false)!
     static let openingPrompt = "Speak aloud now. Greet me briefly in my target language and start practicing my goal."
-    static func model(for learner: LearnerState, configuration config: AppConfiguration = AppConfiguration(), goalBlueprint: JSONValue? = nil, tutorLesson: Lesson? = nil, conversationDraft: ConversationDraft? = nil) -> LiveGenerativeModel {
+    static func model(for learner: LearnerState, configuration config: AppConfiguration = AppConfiguration(), goalBlueprint: JSONValue? = nil, tutorLesson: Lesson? = nil, conversationDraft: ConversationDraft? = nil, instructions:String? = nil) -> LiveGenerativeModel {
         let practiceLevel = tutorLesson == nil ? learner.level : learner.tutorLevel
         var instruction = goalBlueprint.map { GoalPractice.instructions($0,support:learner.support) + " Current ability context: internal Elo \(learner.rating), Score \(learner.score), estimated level \(PerformanceScore.level(score:learner.score)). Adapt challenge and support to observed responses while retaining the goal." } ?? "You are Piyali, a patient language tutor. Teach \(LearningLanguages.names[learner.target] ?? learner.target) at \(practiceLevel). Use \(LearningLanguages.names[learner.support] ?? learner.support) for brief explanations. Goal: \(learner.goal). Speak in short turns, correct mistakes kindly, and invite the learner to respond."
         if let tutorLesson {
@@ -33,24 +38,33 @@ import FirebaseAILogic
         return FirebaseAI.firebaseAI(backend:config.geminiBackend(live:true)).liveModel(
             modelName:config.string("GeminiLiveModel",default:"gemini-2.5-flash-native-audio-preview-12-2025"),
             generationConfig:LiveGenerationConfig(responseModalities:[.audio],inputAudioTranscription:AudioTranscriptionConfig(),outputAudioTranscription:AudioTranscriptionConfig()),
-            systemInstruction:ModelContent(role:"system",parts:[TextPart(instruction)])
+            systemInstruction:ModelContent(role:"system",parts:[TextPart(instructions ?? instruction)])
         )
     }
-    func start(learner: LearnerState, goalBlueprint: JSONValue? = nil, tutorLesson: Lesson? = nil, onLearnerTurn: ((String) -> Void)? = nil, conversationDraft: ConversationDraft? = nil, onConversationTurn: ((String,String,String) -> Void)? = nil) async {
+    func start(learner: LearnerState, goalBlueprint: JSONValue? = nil, tutorLesson: Lesson? = nil, onLearnerTurn: ((String) -> Void)? = nil, conversationDraft: ConversationDraft? = nil, onConversationTurn: ((String,String,String) -> Void)? = nil,instructions:String? = nil,openingPrompt:String? = LiveTutorService.openingPrompt,inactivityTimeout:TimeInterval? = nil) async {
         guard !connected && !connecting else { return }
         guard FirebaseService.shared.configured else { error = "Add the iOS Firebase configuration and App Check registration to use live audio."; return }
-        connecting = true; error = nil; transcript = ""; learnerTranscript = ""; completedLearnerTurn = ""; learnerTurns.reset()
+        connecting = true; error = nil;autoStopped=false; transcript = ""; learnerTranscript = "";assistantTurnText=""; completedLearnerTurn = ""; learnerTurns.reset()
         let currentGeneration = UUID(); generation = currentGeneration
-        defer { connecting = false }
+        defer { if generation == currentGeneration { connecting = false } }
         guard await AVAudioApplication.requestRecordPermission() else { error = "Enable the microphone in Settings to use live audio."; return }
         guard generation == currentGeneration else { return }
         do {
-            let model = Self.model(for:learner,goalBlueprint:goalBlueprint,tutorLesson:tutorLesson,conversationDraft:conversationDraft)
+            let model = Self.model(for:learner,goalBlueprint:goalBlueprint,tutorLesson:tutorLesson,conversationDraft:conversationDraft,instructions:instructions)
             let newSession = try await model.connect()
             guard generation == currentGeneration else { await newSession.close(); return }
             session = newSession
             try setupAudio(session: newSession)
-            connected = true
+            connected = true;lastActivity=Date()
+            if let inactivityTimeout,inactivityTimeout > 0 {
+                idleMonitor=Task { [weak self] in
+                    while !Task.isCancelled {
+                        do { try await Task.sleep(for:.seconds(1)) } catch { return }
+                        guard let self,self.generation == currentGeneration,self.connected else { return }
+                        if Date().timeIntervalSince(self.lastActivity) >= inactivityTimeout { await self.stop();self.autoStopped=true;return }
+                    }
+                }
+            }
             lastConversationInstructions=conversationDraft.map { AIService.conversationInstructions(learner:learner,draft:$0) }
             receiver = Task { [weak self] in
                 var context=ConversationVoiceContext()
@@ -59,12 +73,12 @@ import FirebaseAILogic
                     for try await message in newSession.responses {
                         guard let self, self.generation == currentGeneration, !Task.isCancelled else { break }
                         if case .content(let content) = message.payload {
-                            if content.wasInterrupted { context.interrupted();interrupted=true;self.player.stop(); self.player.play() }
-                            if let input = content.inputAudioTranscription { if self.learnerTurns.pending.isEmpty { context.inputStarted() };self.learnerTurns.append(input.text ?? ""); self.transcript += "You: " + (input.text ?? "") + "\n"; self.learnerTranscript += (input.text ?? "") + "\n"; self.learnerTranscript = String(self.learnerTranscript.suffix(12000)) }
-                            if let text = content.outputAudioTranscription?.text { self.transcript += text;context.appendAssistant(text) }
+                            if content.wasInterrupted { context.interrupted();interrupted=true;self.assistantTurnText="";self.player.stop(); self.player.play() }
+                            if let input = content.inputAudioTranscription { self.lastActivity=Date(); if self.learnerTurns.pending.isEmpty { context.inputStarted();self.assistantTurnText="" };self.learnerTurns.append(input.text ?? ""); self.transcript += "You: " + (input.text ?? "") + "\n"; self.learnerTranscript += (input.text ?? "") + "\n"; self.learnerTranscript = String(self.learnerTranscript.suffix(12000)) }
+                            if let text = content.outputAudioTranscription?.text { self.lastActivity=Date(); self.transcript += text;self.assistantTurnText=String((self.assistantTurnText+text).suffix(4000));context.appendAssistant(text) }
                             if self.transcript.count > 16000 { self.transcript = String(self.transcript.suffix(16000)) }
                             for part in content.modelTurn?.parts ?? [] {
-                                if let audio = part as? InlineDataPart, audio.mimeType.hasPrefix("audio/pcm") { self.play(audio.data) }
+                                if let audio = part as? InlineDataPart, audio.mimeType.hasPrefix("audio/pcm") { self.lastActivity=Date();self.play(audio.data) }
                             }
                             if content.isTurnComplete {
                                 self.transcript += "\n"
@@ -78,7 +92,7 @@ import FirebaseAILogic
                 } catch { if !Task.isCancelled { self?.error = error.localizedDescription } }
                 if self?.generation == currentGeneration { await self?.stop() }
             }
-            await newSession.sendTextRealtime(Self.openingPrompt)
+            if let openingPrompt { await newSession.sendTextRealtime(openingPrompt) }
         } catch { self.error = error.localizedDescription; await stop() }
     }
     func updateConversation(_ draft: ConversationDraft, learner: LearnerState) async {
@@ -87,7 +101,9 @@ import FirebaseAILogic
         lastConversationInstructions=instructions
         await session?.sendContent("APP_CONTEXT_UPDATE: "+instructions,turnComplete:false)
     }
+    func setMuted(_ value:Bool) { muted=value }
     private func setupAudio(session: LiveSession) throws {
+        let engine=self.engine ?? AVAudioEngine();self.engine=engine
         try AVAudioSession.sharedInstance().setCategory(.playAndRecord, mode: .voiceChat, options: [.defaultToSpeaker, .allowBluetoothHFP])
         try AVAudioSession.sharedInstance().setActive(true)
         if player.engine == nil { engine.attach(player) }
@@ -114,7 +130,7 @@ import FirebaseAILogic
         }
         tapped = true
         sender = Task {
-            for await bytes in stream { guard !Task.isCancelled else { break }; await session.sendAudioRealtime(bytes) }
+            for await bytes in stream { guard !Task.isCancelled else { break };if !self.muted { await session.sendAudioRealtime(bytes) } }
         }
         engine.prepare(); try engine.start(); player.play()
     }
@@ -131,9 +147,9 @@ import FirebaseAILogic
         player.scheduleBuffer(buffer)
     }
     func stop() async {
-        generation = UUID(); connected = false; lastConversationInstructions = nil
-        engine.stop(); player.stop()
-        if tapped { engine.inputNode.removeTap(onBus: 0); tapped = false }
+        generation = UUID(); connected = false;connecting=false;muted=false; lastConversationInstructions = nil
+        idleMonitor?.cancel();idleMonitor=nil;engine?.stop(); player.stop()
+        if tapped { engine?.inputNode.removeTap(onBus: 0); tapped = false }
         audioContinuation?.finish(); audioContinuation = nil
         sender?.cancel(); sender = nil; receiver?.cancel(); receiver = nil
         let oldSession = session; session = nil

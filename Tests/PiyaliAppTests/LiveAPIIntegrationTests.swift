@@ -9,6 +9,34 @@ import NostrSDK
 
 /// Explicit opt-in only. Uses an isolated test identity, bounded prompts and no paid access grant.
 @MainActor final class LiveAPIIntegrationTests: XCTestCase {
+    func testOriginalRealtimeGoalAndJudgingUseNativeProviders() async throws {
+        guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else { throw XCTSkip("Explicit live API opt-in required.") }
+        XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))
+        if FirebaseApp.app() == nil { AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure() };XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let identity=IdentityService();try identity.create();try await FirebaseIdentityService.shared.ensure(identity)
+        do {
+            let recipes=try PracticeRecipes(),ai=AIService()
+            let data:Piyali.JSONValue = .object(["id":.string("lesson-a1-cafe"),"title":.object(["en":.string("At the café")]),"description":.object(["en":.string("Order a drink politely")]),"content":.object(["vocabulary":.object(["topic":.string("ordering a coffee")])])])
+            let base:Piyali.JSONValue = .object(["lesson":data,"lessonContent":.object(["topic":.string("ordering a coffee"),"focusPoints":.array([.string("order a coffee politely")])]),"targetLang":.string("es"),"supportLang":.string("en"),"cefrLevel":.string("A1"),"curriculumCefrLevel":.string("A1"),"options":.object(["cefrLevel":.string("A1"),"curriculumCefrLevel":.string("A1")])])
+            let goal=try await ai.text(recipes.realtime("goal",parameters:base)).trimmingCharacters(in:.whitespacesAndNewlines);XCTAssertFalse(goal.isEmpty);XCTAssertLessThan(goal.count,600)
+            let p=base.setting("goal",.object(["title_en":.string("Order a coffee politely"),"rubric_en":.string("Ask for one coffee using a polite expression"),"successCriteria":.string("Ask for one coffee using a polite expression"),"roleplayPrompt":.string("You are a barista in a café.")]))
+            for (utterance,met) in [("Buenos días.",false),("Un café, por favor.",true)] {
+                let output=try await ai.responsesText(recipes.realtime("judge",parameters:p.setting("utterance",.string(utterance))),json:true)
+                let object=try XCTUnwrap(GenerationObjects.parse(output).first),verdict=try JSONDecoder().decode(RealtimeLessonVerdict.self,from:Data(object.json.utf8));XCTAssertEqual(verdict.met,met);XCTAssertFalse(verdict.feedback.isEmpty)
+            }
+            let instructions=try recipes.realtime("instructions",parameters:p)
+            let model=LiveTutorService.model(for:LearnerState(),instructions:instructions)
+            let session=try await model.connect()
+            await session.sendContent("Un café, por favor.",turnComplete:true)
+            let received=try await withThrowingTaskGroup(of:Bool.self) { group in
+                group.addTask { for try await message in session.responses { if case .content(let content)=message.payload,(content.modelTurn?.parts ?? []).contains(where:{ ($0 as? InlineDataPart)?.data.isEmpty == false }) { return true } };return false }
+                group.addTask { try await Task.sleep(for:.seconds(30));await session.close();throw AppError.message("Lesson voice returned no audio within 30 seconds.") }
+                let value=try await group.next() ?? false;await session.close();group.cancelAll();return value
+            };XCTAssertTrue(received)
+            print("LIVE REALTIME: original goal generated, greeting rejected, polite coffee request accepted, native provider returned PCM audio")
+        } catch { try? await Auth.auth().currentUser?.delete();try? Auth.auth().signOut();try? identity.disconnect();throw error }
+        try await Auth.auth().currentUser?.delete();try Auth.auth().signOut();try identity.disconnect()
+    }
     func testEveryOriginalPracticeFormatProducesAUsableNativeQuestion() async throws {
         guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else { throw XCTSkip("Explicit live API opt-in required.") }
         XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))

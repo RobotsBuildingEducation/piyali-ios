@@ -40,7 +40,8 @@ struct CurriculumSessionView:View {
         case "reading":ReadingView(lesson:lesson,onComplete:advance,embedded:true,startsFresh:fresh)
         case "stories":StoryView(lesson:lesson,onComplete:advance,embedded:true,startsFresh:fresh)
         case "game":RPGView(lesson:lesson,episode:nil)
-        default:ExerciseView(mode:.conversation,lesson:lesson)
+        case "realtime":RealtimeLessonView(lesson:lesson,onNext:advance,startsFresh:fresh)
+        default:EmptyView()
         } }
     }
     private func advance() {
