@@ -158,6 +158,9 @@ struct TeamsView: View {
     @FocusState private var focusedField: String?
     var body: some View {
         List {
+            Section("Community") {
+                NavigationLink("Community feed") { CommunityFeedView() }.accessibilityIdentifier("communityFeedLink")
+            }
             Section("Private teams") {
                 NavigationLink("Private teams and invitations") { PrivateTeamsView() }.accessibilityIdentifier("privateTeamsLink")
                 Text("Private teams use Firebase. Membership and shared progress are visible to invited teammates, without publishing a Nostr roster.").font(.footnote)

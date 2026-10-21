@@ -69,7 +69,7 @@ actor RemoteSignerService {
     }
     func connected(_ connection:BunkerConnection,onAuthorization:@escaping @Sendable (URL) async -> Void) async throws -> RemoteSignerRecord {
         let metadata:JSONValue = .object(["name":.string("Piyali for iPhone"),"url":.string("https://piyali.app")])
-        let connected=try await request("connect",params:[peer.hex,connection.secret ?? "","sign_event:27235,sign_event:22242,sign_event:30078",metadata.json],onAuthorization:onAuthorization)
+        let connected=try await request("connect",params:[peer.hex,connection.secret ?? "","sign_event:27235,sign_event:22242,sign_event:30078,sign_event:1",metadata.json],onAuthorization:onAuthorization)
         guard connected.string == "ack" || connection.secret != nil && connected.string == connection.secret else { throw BunkerConnection.Failure.invalidResponse }
         let user=try await request("get_public_key",params:[],onAuthorization:onAuthorization)
         guard BunkerConnection.validKey(user.string),PublicKey(hex:user.string) != nil else { throw BunkerConnection.Failure.invalidResponse }
