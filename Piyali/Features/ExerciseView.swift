@@ -1,6 +1,16 @@
 import SwiftUI
 
 struct ExerciseView: View {
+    let mode:PracticeMode
+    let lesson:Lesson?
+    var concept:String?=nil
+    var flashcardID:String?=nil
+    var body:some View {
+        if flashcardID == nil,[.grammar,.vocabulary].contains(mode) { LessonPracticeView(module:mode == .grammar ? .grammar : .vocabulary,lesson:lesson) }
+        else { LegacyExerciseView(mode:mode,lesson:lesson,concept:concept,flashcardID:flashcardID) }
+    }
+}
+private struct LegacyExerciseView: View {
     @EnvironmentObject var app: AppModel
     @StateObject private var speech = SpeechService()
     let mode: PracticeMode

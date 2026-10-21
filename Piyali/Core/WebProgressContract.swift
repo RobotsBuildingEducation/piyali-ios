@@ -98,7 +98,7 @@ public enum WebProgressContract {
         state.streak = [today,CalendarDay.shift(today,by:-1)].contains(lastGoal) ? integer(fields["goalStreakCount"]) : 0
         for (language, bucket) in fields["learningIntelligence"] as? [String:[String:Any]] ?? [:] {
             if state.goalIntelligence == nil { state.goalIntelligence = [:] }
-            state.goalIntelligence?[language] = JSONValue.foundation(bucket.filter { ["version","activeGoal","dailyGoal","goalProgress"].contains($0.key) })
+            state.goalIntelligence?[language] = JSONValue.foundation(bucket.filter { ["version","activeGoal","dailyGoal","goalProgress","performanceSummary"].contains($0.key) })
             let elo = bucket["elo"] as? [String:Any] ?? [:]
             if state.gradedByLanguage == nil { state.gradedByLanguage = [:] }
             state.gradedByLanguage?[language] = max(0,integer(elo["totalGraded"]))

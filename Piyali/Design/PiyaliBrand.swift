@@ -9,7 +9,21 @@ struct PiyaliBrand {
     var muted:Color { Color(piyaliHex:dark ? 0xa3b4c9 : 0x8d7a67) }
     var border:Color { Color(piyaliHex:dark ? 0x94a3b8 : 0x604d38).opacity(dark ? 0.2 : 0.16) }
     static let teal=Color(piyaliHex:0x14b8a6)
+    var questionChoice:Color { Color(piyaliHex:dark ? 0xa78bfa : 0x7c3aed) }
+    var questionChoiceBackground:Color { questionChoice.opacity(dark ? 0.18 : 0.10) }
+    var questionChip:Color { Color(piyaliHex:dark ? 0xc4b5fd : 0x7c3aed) }
+    var questionChipBackground:Color { Color(piyaliHex:dark ? 0xa78bfa : 0x7c3aed).opacity(dark ? 0.16 : 0.10) }
+    var questionTool:Color { Color(piyaliHex:dark ? 0x7dd3fc : 0x1d4ed8) }
+    var questionSuccess:Color { Color(piyaliHex:dark ? 0x4ade80 : 0x16a34a) }
+    var questionError:Color { Color(piyaliHex:dark ? 0xf87171 : 0xdc2626) }
     static func font(_ size:CGFloat,_ weight:Int=400) -> Font { .custom(weight == 700 ? "DMSans-Bold" : weight == 600 ? "DMSans-SemiBold" : weight == 500 ? "DMSans-Medium" : "DMSans-Regular",size:size) }
+    static func productFont(_ size:CGFloat,_ weight:Int=400)->Font { .system(size:size,weight:weight >= 800 ? .heavy : weight >= 700 ? .bold : weight >= 600 ? .semibold : weight >= 500 ? .medium : .regular) }
+}
+struct QuestionPrimaryButtonStyle:ButtonStyle {
+    @Environment(\.isEnabled) private var enabled
+    func makeBody(configuration:Configuration)->some View {
+        configuration.label.font(PiyaliBrand.productFont(16,600)).frame(maxWidth:.infinity,minHeight:52).foregroundStyle(.white).background(Color(piyaliHex:0x805ad5),in:RoundedRectangle(cornerRadius:16)).opacity(enabled ? (configuration.isPressed ? 0.8 : 1) : 0.45)
+    }
 }
 private extension Color {
     init(piyaliHex:UInt32) { self.init(.sRGB,red:Double((piyaliHex>>16)&255)/255,green:Double((piyaliHex>>8)&255)/255,blue:Double(piyaliHex&255)/255,opacity:1) }

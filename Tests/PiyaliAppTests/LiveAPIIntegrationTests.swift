@@ -9,6 +9,72 @@ import NostrSDK
 
 /// Explicit opt-in only. Uses an isolated test identity, bounded prompts and no paid access grant.
 @MainActor final class LiveAPIIntegrationTests: XCTestCase {
+    func testEveryOriginalPracticeFormatProducesAUsableNativeQuestion() async throws {
+        guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else { throw XCTSkip("Explicit live API opt-in required.") }
+        XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))
+        if FirebaseApp.app() == nil { AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure() };XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let identity=IdentityService();try identity.create();try await FirebaseIdentityService.shared.ensure(identity)
+        do {
+            let recipes=try PracticeRecipes(),ai=AIService()
+            let kinds=["fill","mc","ma","speak","match","translate","repeat","flashcard"]+(try recipes.inspect("variants",parameters:.object([:])).array.map { "delight:"+$0["id"].string })
+            XCTAssertEqual(kinds.count,17)
+            for kind in kinds {
+                let options:Piyali.JSONValue = .object(["cefrLevel":.string("A1"),"direction":.string("support-to-target"),"isListening":.bool(kind == "repeat")])
+                let parameters=options.setting("targetLang",.string("es")).setting("supportLang",.string("en")).setting("appUILang",.string("en")).setting("showTranslations",.bool(true)).setting("recentGood",.array([])).setting("recentQuestions",.array([])).setting("lessonContent",.object(["topic":.string("greetings and introductions"),"focusPoints":.array([.string("greet someone and say your name")]),"cefrLevel":.string("A1")]))
+                let prompt=try recipes.build(module:.grammar,kind:kind,parameters:parameters)
+                var question:PracticeQuestion?,lastError:Error=PracticeQuestionFailure.malformed
+                for attempt in 0..<2 {
+                    do {
+                        let output=try await (attempt == 0 ? ai.text(prompt,json:kind.hasPrefix("delight:")) : ai.responsesText(prompt,json:kind.hasPrefix("delight:")))
+                        if kind.hasPrefix("delight:") {
+                            let raw=try XCTUnwrap(GenerationObjects.parse(output).first)
+                            let normalized=try recipes.inspect("normalize",parameters:parameters.setting("variant",.string(String(kind.dropFirst(8)))).setting("raw",raw))
+                            guard normalized != .null,try recipes.inspect("languageConsistent",parameters:parameters.setting("question",normalized)).boolean else { throw PracticeQuestionFailure.malformed }
+                            if kind == "delight:morphology_forge" {
+                                let preflight=try recipes.build(module:.grammar,kind:"preflightMorphology",parameters:parameters.setting("question",normalized))
+                                guard try await ai.responsesText(preflight).trimmingCharacters(in:.whitespacesAndNewlines).uppercased().hasPrefix("YES") else { throw PracticeQuestionFailure.malformed }
+                            }
+                            question=try .init(module:.grammar,kind:kind,payload:normalized,options:options,target:"es",support:"en")
+                        } else { question=try .parse(output,module:.grammar,kind:kind,options:options,target:"es",support:"en") }
+                        break
+                    } catch { lastError=error }
+                }
+                guard let question else { XCTFail("Original format failed after two attempts: \(kind): \(lastError.localizedDescription)");continue }
+                XCTAssertFalse(question.questionText.isEmpty,"\(kind) needs a useful private history/note description")
+                if question.isDelight { XCTAssertFalse(PracticeCopy.text(variant:question.variant,language:"en",key:"title").isEmpty,"Question instructions and titles come from the source UI copy, not generated JSON.") }
+                print("LIVE FORMAT: \(kind) native question validated")
+            }
+        } catch { try? await Auth.auth().currentUser?.delete();try? Auth.auth().signOut();try? identity.disconnect();throw error }
+        try await Auth.auth().currentUser?.delete();try Auth.auth().signOut();try identity.disconnect()
+    }
+    func testOriginalPracticeRecipesGenerateAndJudgeNativeQuestionContracts() async throws {
+        guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else { throw XCTSkip("Explicit live API opt-in required.") }
+        XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))
+        if FirebaseApp.app() == nil { AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure() };XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let identity=IdentityService();try identity.create();try await FirebaseIdentityService.shared.ensure(identity)
+        do {
+            let recipes=try PracticeRecipes(),ai=AIService(),service=PracticeService()
+            for (module,kind,target) in [(PracticeRecipeModule.grammar,"fill","es"),(.vocabulary,"match","ja"),(.grammar,"delight:sentence_shapeshifter","es")] {
+                let options:Piyali.JSONValue = .object(["cefrLevel":.string("A1"),"direction":.string("target-to-support")])
+                let parameters=options.setting("targetLang",.string(target)).setting("supportLang",.string("en")).setting("appUILang",.string("en")).setting("showTranslations",.bool(true)).setting("recentGood",.array([])).setting("recentQuestions",.array([])).setting("lessonContent",.object(["topic":.string("greetings and introductions"),"focusPoints":.array([.string("greet someone and say your name")]),"cefrLevel":.string("A1")]))
+                let prompt=try recipes.build(module:module,kind:kind,parameters:parameters)
+                let output=try await ai.text(prompt,json:kind.hasPrefix("delight:"))
+                let question:PracticeQuestion
+                if kind.hasPrefix("delight:") {
+                    let normalized=try recipes.inspect("normalize",parameters:parameters.setting("variant",.string(String(kind.dropFirst(8)))).setting("raw",try XCTUnwrap(GenerationObjects.parse(output).first)))
+                    XCTAssertTrue(try recipes.inspect("languageConsistent",parameters:parameters.setting("question",normalized)).boolean)
+                    question=try .init(module:module,kind:kind,payload:normalized,options:options,target:target,support:"en")
+                } else { question=try .parse(output,module:module,kind:kind,options:options,target:target,support:"en") }
+                if kind == "match" || question.isDelight {
+                    let response:Piyali.JSONValue = kind == "match" ? .object(["pairs":.object(Dictionary(uniqueKeysWithValues:question.strings("left").indices.map { (String($0),.number(Double($0))) }))]) : .object(["text":question.payload["answer"]])
+                    let run=PracticeRun(question:question,lessonID:nil,lessonLevel:nil,response:response)
+                    let result=try await service.verdict(run:run,recipes:recipes,judge:{ try await ai.responsesText($0) });XCTAssertTrue(result.correct)
+                }
+                print("LIVE PRACTICE: \(module.rawValue) \(kind) \(target) native contract validated")
+            }
+        } catch { try? await Auth.auth().currentUser?.delete();try? Auth.auth().signOut();try? identity.disconnect();throw error }
+        try await Auth.auth().currentUser?.delete();try Auth.auth().signOut();try identity.disconnect()
+    }
     func testPublicLandingDemoReturnsLiveAudioWithoutAccount() async throws {
         guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else { throw XCTSkip("Explicit live API opt-in required.") }
         XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1")

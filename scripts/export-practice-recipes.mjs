@@ -86,7 +86,7 @@ const recipes={
 };
 for(const [kind,file] of [['grammar',grammar],['vocabulary',vocabulary]]) for(const symbol of Object.values(recipes[kind])) await requireSymbol(file,symbol);
 await requireSymbol(flashcard,'buildLessonFlashcardPrompt');await requireSymbol(flashcard,'buildFlashcardJudgePrompt');
-for(const symbol of ['DELIGHT_VARIANTS','DELIGHT_VARIANT_IDS','buildDelightQuestionPrompt','buildDelightResponseJudgePrompt','normalizeDelightQuestion','isDelightQuestionLanguageConsistent','getInitialDelightResponse','gradeDelightResponse','isDelightResponseReady','calculateDelightQuestionXp','getDelightFallbackQuestion']) await requireSymbol(delight,symbol);
+for(const symbol of ['DELIGHT_VARIANTS','DELIGHT_VARIANT_IDS','buildDelightQuestionPrompt','buildDelightResponseJudgePrompt','normalizeDelightQuestion','isDelightQuestionLanguageConsistent','getInitialDelightResponse','gradeDelightResponse','isDelightResponseReady','calculateDelightQuestionXp','getDelightFallbackQuestion','buildSentenceDetectivePrompt','validateMorphologyForgeQuestion']) await requireSymbol(delight,symbol);
 await requireSymbol(options,'createQuestionOptionSelector');
 await requireSymbol(storeFile,'provide');
 for(let i=0;i<pending.length;i++) await lift(pending[i]);
@@ -107,7 +107,8 @@ function withParameters(parametersJSON,operation) {
  finally { Math.random=previousRandom; }
 }
 export function build(module,kind,parametersJSON) { return withParameters(parametersJSON,parameters=>{
- if(kind.startsWith('delight:')) { const variant=kind.slice(8);if(!delight.DELIGHT_VARIANT_IDS.includes(variant)) throw Error('Unsupported delight recipe');return delight.buildDelightQuestionPrompt({...parameters,variant,moduleType:module}); }
+ if(kind.startsWith('delight:')) { const variant=kind.slice(8);if(!delight.DELIGHT_VARIANT_IDS.includes(variant)) throw Error('Unsupported delight recipe');return (variant==='sentence_detective' ? delight.buildSentenceDetectivePrompt : delight.buildDelightQuestionPrompt)({...parameters,variant,moduleType:module}); }
+ if(kind==='preflightMorphology') { let prompt='';void delight.validateMorphologyForgeQuestion(parameters.question,{...parameters,judge:input=>{prompt=input;return 'YES';}});if(!prompt) throw Error('Invalid morphology reference');return prompt;}
  if(kind==='judgeDelight') return delight.buildDelightResponseJudgePrompt({...parameters,moduleType:module});
  if(kind==='flashcard') return flashcard.buildLessonFlashcardPrompt({...parameters,moduleType:module,collectedConcepts:parameters.collectedConcepts || []});if(kind==='judgeFlashcard') return flashcard.buildFlashcardJudgePrompt(parameters);const name=recipes[module]?.[kind];if(!name) throw Error('Unsupported exercise recipe');return (module==='grammar'?grammar:vocabulary)[name](parameters);
 }); }

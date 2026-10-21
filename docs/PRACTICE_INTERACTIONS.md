@@ -1,0 +1,16 @@
+# Native question interaction checkpoint
+
+Grammar and vocabulary now open native typed questions rather than the former generic `Exercise` form. The eight standard formats and nine Delight variants use the original prompt policies and JSON contracts. Generated answer keys remain separate from the displayed prompt. Ordered word banks retain duplicate token positions; matching uses complete one-to-one assignments; listening and translation keep their source/answer languages distinct. Speaking and lesson flashcards accept native speech input. Lesson flashcards can flip, play their answer, collect and review a deck without receiving XP merely for revealing or collecting.
+
+Wrong answers leave the question available for another attempt. Correct answers grant the format's own reward once, using lesson metadata for the lesson-owned counter. Normal choices remain independent practice; a delivered assistant hint marks supported practice. The native state preserves the current question, bank positions, response, clue count, result and collected cards across relaunch. Account/language changes and view dismissal invalidate pending provider results and stop audio.
+
+Semantic judges accept contextual alternatives through the original judge instructions. Natural or Weird remains deterministic; grammar matching uses its answer map. Flashcard judging retains the 4–7 XP scale. Sentence Detective uses its dedicated source generator. Morphology Forge runs the source's reference-word/morpheme preflight before presentation. Invalid primary drafts switch to an independent Responses attempt. The source's question-specific translations, labels and placeholders are exported, alongside its question colors and system product typography.
+
+Validation includes:
+
+- Core checks for phased JSON, malformed drafts, word positions/directions, incomplete maps, saved questions, retry/reward deduplication, assistance and lesson scope, collection without XP, and source policy output across 136 fixtures.
+- iOS judge-boundary checks for vocabulary fill's actual `sentence` contract, alternate translations, binary judgments and flashcard rewards.
+- Real iOS provider runs producing usable contracts for all 17 grammar formats in Spanish, including Morphology Forge preflight and Responses fallback. A separate check covers Japanese vocabulary matching and semantic judging. This does not prove every language or every provider draft succeeds.
+- Isolated simulator journeys for wrong-answer retry/relaunch, duplicate word-bank selection/removal/resume, and lesson-card collection/review. UI-test question providers are compiled only in Debug and require explicit offline and isolated-identity flags.
+
+Remaining work includes the source lesson preview/session layout, mode handoffs, background preparation and streaming, final-quiz integration, complete curriculum grounding and question-worth assessment, richer assistance/note creation, original drag/drop layouts, virtual keyboards, and physical-device audio checks. Other legacy exercise routes and feature panels still need their own parity work. These checks are a correction checkpoint, not a claim of complete product parity.

@@ -2808,6 +2808,51 @@ Where <xp_amount> is 4-7 based on:
       ).values()
     );
   }
+  function buildSentenceDetectivePrompt({
+    moduleType,
+    targetLang,
+    cefrLevel = "A1",
+    lessonContent = null,
+    recentQuestions = []
+  }) {
+    const target = getDelightLanguageName(targetLang);
+    const isGrammar = moduleType === "grammar";
+    const lessonScope = getLessonScope(lessonContent, {
+      targetLang,
+      moduleType
+    });
+    const curriculumScope = buildCurriculumPromptContext(
+      lessonContent?.curriculumContext,
+      { mode: isGrammar ? "grammar" : "vocabulary" }
+    );
+    const isTutorial = lessonContent?.topic === "tutorial" || lessonContent?.isTutorial === true;
+    const targetInventory = getLessonTargetInventory(
+      lessonScope,
+      moduleType,
+      { includeLessonWords: !isGrammar }
+    );
+    const targetInventoryRule = targetInventory.length ? isGrammar ? `SENTENCE DETECTIVE TARGET FORMS (REQUIRED): The corrected sentence and one-token repair must directly demonstrate at least one exact supplied form from ${JSON.stringify(targetInventory)}. Do not replace it with a definition or an adjacent grammar objective.` : `SENTENCE DETECTIVE TARGET WORDS (REQUIRED): The answer must contain at least one exact supplied lesson item from ${JSON.stringify(targetInventory)}. A grammatically required article or inflection may remain attached inside the same replaceable token. Do not replace the lesson item with a definition, description, or related word.` : "";
+    return [
+      `Create one short Sentence Detective exercise for a ${cefrLevel} learner of ${target}.`,
+      `Focus: ${isGrammar ? "grammar" : "vocabulary"}.`,
+      "Build a natural corrected sentence first, then replace exactly one token with a clearly wrong token.",
+      isGrammar ? "The one-token repair must test the active grammar objective. Every distractor must remain wrong in the same sentence." : "The sentence must contain an explicit local meaning cue, and the answer must test the active lesson word. Do not rely on stereotypes or unstated context.",
+      isTutorial ? "TUTORIAL MODE: use only the supplied absolute-beginner greetings. Use an explicit situation such as bedtime versus morning so the wrong greeting is genuinely wrong." : "",
+      curriculumScope,
+      targetInventoryRule,
+      recentQuestions.length ? `VARIETY: Do not repeat or closely paraphrase these recent Sentence Detective questions: ${JSON.stringify(recentQuestions.slice(-5))}. Use a different supplied word, focus point, sentence, or situation.` : "",
+      `Write every token, replacement, and answer in ${target}.`,
+      `Curriculum directives may be written in English as meta-context. Never copy them into tokens, replacements, or answer; those fields must contain only natural ${target} exercise content.`,
+      "tokens is the complete broken sentence in reading order, with punctuation attached naturally.",
+      "incorrectIndex is zero-based and identifies the one broken token.",
+      "Return four unique replacements including answer. The wrong token may be one distractor.",
+      "Exactly one replacement\u2014the answer\u2014may produce a correct, natural sentence in the supplied context.",
+      "Do not return sentence, correctedSentence, wrongToken, joiner, evidence, category, skill, or source fields; the application derives those locally.",
+      `Lesson scope: ${JSON.stringify(lessonScope)}`,
+      "Do not use markdown or commentary. Return one JSON object only.",
+      `Required schema: ${SCHEMAS.sentence_detective}`
+    ].filter(Boolean).join("\n");
+  }
   function getInitialDelightResponse(question) {
     switch (question?.variant) {
       case "sentence_detective":
@@ -2838,6 +2883,12 @@ Where <xp_amount> is 4-7 based on:
     if (question.variant === "natural_or_weird" && typeof question.isNatural === "boolean" && typeof response.choice === "boolean") {
       return response.choice === question.isNatural;
     }
+    return null;
+  }
+  function parseDelightJudgeVerdict(raw = "") {
+    const verdict = String(raw || "").trim().toUpperCase();
+    if (/^YES\b/.test(verdict)) return true;
+    if (/^NO\b/.test(verdict)) return false;
     return null;
   }
   function isDelightResponseReady(question, response) {
@@ -3071,6 +3122,19 @@ Where <xp_amount> is 4-7 based on:
       "Say NO when the pieces do not form a legitimate word or the resulting sentence is ungrammatical, unnatural, or incoherent.",
       `Use ${getDelightLanguageName(supportLang)} only internally; output one word only: YES or NO.`
     ].join("\n");
+  }
+  async function validateMorphologyForgeQuestion(question, { judge, targetLang, supportLang, cefrLevel }) {
+    const remaining = [...question.pieces];
+    const pieceIndices = question.answerPieces.map((piece) => {
+      const index = remaining.indexOf(piece);
+      if (index >= 0) remaining[index] = null;
+      return index;
+    });
+    if (pieceIndices.some((index) => index < 0)) return false;
+    const prompt = buildMorphologyForgeJudgePrompt({ question, response: { pieceIndices }, targetLang, supportLang, cefrLevel });
+    const verdict = await judge(`${prompt}
+PREFLIGHT CHECK: This is a generated exercise, not a learner answer. Also require the offered reference pieces to be genuine morphemes of the target language and the reference word to fit naturally in this exact blank. Reject arbitrary word fragments, mixed-language affixes, markup, or a sentence that needs a different missing word. Output YES only if the exercise is solvable as displayed; otherwise NO.`);
+    return parseDelightJudgeVerdict(verdict) === true;
   }
   function buildListenDifferenceJudgePrompt({
     question,
@@ -3720,7 +3784,16 @@ Where <xp_amount> is 4-7 based on:
       if (kind.startsWith("delight:")) {
         const variant = kind.slice(8);
         if (!DELIGHT_VARIANT_IDS.includes(variant)) throw Error("Unsupported delight recipe");
-        return buildDelightQuestionPrompt({ ...parameters, variant, moduleType: module });
+        return (variant === "sentence_detective" ? buildSentenceDetectivePrompt : buildDelightQuestionPrompt)({ ...parameters, variant, moduleType: module });
+      }
+      if (kind === "preflightMorphology") {
+        let prompt = "";
+        void validateMorphologyForgeQuestion(parameters.question, { ...parameters, judge: (input) => {
+          prompt = input;
+          return "YES";
+        } });
+        if (!prompt) throw Error("Invalid morphology reference");
+        return prompt;
       }
       if (kind === "judgeDelight") return buildDelightResponseJudgePrompt({ ...parameters, moduleType: module });
       if (kind === "flashcard") return buildLessonFlashcardPrompt({ ...parameters, moduleType: module, collectedConcepts: parameters.collectedConcepts || [] });

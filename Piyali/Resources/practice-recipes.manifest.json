@@ -88,6 +88,7 @@
       "buildMorphologyForgeJudgePrompt",
       "buildNaturalOrWeirdJudgePrompt",
       "buildSentenceDetectiveJudgePrompt",
+      "buildSentenceDetectivePrompt",
       "buildSentenceShapeshifterJudgePrompt",
       "buildThreeClueMysteryJudgePrompt",
       "buildThreeWordJudgePrompt",
@@ -108,9 +109,11 @@
       "isTargetScriptValueCompatible",
       "normalizeDelightQuestion",
       "normalizeDelightText",
+      "parseDelightJudgeVerdict",
       "parseDelightQuestion",
       "stringList",
-      "uniqueStringList"
+      "uniqueStringList",
+      "validateMorphologyForgeQuestion"
     ]
   },
   {

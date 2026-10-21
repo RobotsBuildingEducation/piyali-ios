@@ -42,4 +42,11 @@ final class PracticeRecipesTests:XCTestCase {
         XCTAssertThrowsError(try engine.build(module:.grammar,kind:"not-a-format",parameters:basic))
         XCTAssertFalse(fresh.isEmpty)
     }
+    @MainActor func testMorphologyGenerationUsesTheOriginalReferencePreflightBeforeLearnerGrading() throws {
+        let engine=try PracticeRecipes(source:root.appendingPathComponent("Piyali/Resources/practice-recipes.js"))
+        let question=try engine.inspect("fallback",parameters:.object(["variant":.string("morphology_forge"),"moduleType":.string("grammar"),"targetLang":.string("es"),"supportLang":.string("en")]))
+        let prompt=try engine.build(module:.grammar,kind:"preflightMorphology",parameters:.object(["question":question,"targetLang":.string("es"),"supportLang":.string("en"),"cefrLevel":.string("A1")]))
+        XCTAssertTrue(prompt.contains("PREFLIGHT CHECK"));XCTAssertTrue(prompt.contains("genuine morphemes"));XCTAssertTrue(prompt.contains("solvable as displayed"))
+        XCTAssertThrowsError(try engine.build(module:.grammar,kind:"preflightMorphology",parameters:.object(["question":question.setting("pieces",.array([])),"targetLang":.string("es"),"supportLang":.string("en"),"cefrLevel":.string("A1")])))
+    }
 }
