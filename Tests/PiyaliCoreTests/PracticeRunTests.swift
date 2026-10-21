@@ -40,7 +40,7 @@ final class PracticeRunTests:XCTestCase {
     }
     func testQuizQuestionContractCannotAwardPracticeXPEvenWhenARewardWasRequested() throws {
         let q=try PracticeQuestion(module:.grammar,kind:"fill",payload:.object(["question":.string("___, Ana")]),options:options.setting("isFinalQuiz",.bool(true)),target:"es",support:"en")
-        var state=LearnerState();let run=PracticeRun(question:q,lessonID:lesson.id,lessonLevel:"A1",response:.object(["text":.string("Hola")]))
+        var state=LearnerState();let quiz=FinalQuizRun(lesson:lesson,learner:state);state.saveQuiz(quiz);var run=PracticeRun(question:q,lessonID:lesson.id,lessonLevel:"A1",response:.object(["text":.string("Hola")]));run.quizRunID=quiz.id;XCTAssertTrue(state.prepareTypedQuizQuestion(q,lessonID:lesson.id,runID:quiz.id))
         state.savePractice(run);XCTAssertTrue(state.answerPractice(key:run.key,questionID:q.id,correct:true,reward:6));XCTAssertEqual(state.totalXP,0);XCTAssertEqual(state.practiceRuns?[run.key]?.earnedXP,0)
     }
 }

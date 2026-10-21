@@ -4,6 +4,7 @@ public struct PracticeRun:Codable,Sendable {
     public var question:PracticeQuestion
     public let lessonID:String?
     public let lessonLevel:String?
+    public var quizRunID:UUID?
     public let bank:[String]
     public var rightOrder:[Int]?
     public var response:JSONValue = .object([:])
@@ -71,11 +72,14 @@ public extension LearnerState {
     }
     @discardableResult mutating func answerPractice(key:String,questionID:UUID,correct:Bool,reward:Int,now:Date = Date())->Bool {
         guard var run=practiceRuns?[key],run.question.id == questionID,run.question.target == target,run.question.support == support,run.correct != true else { return false }
+        if run.question.options["isFinalQuiz"].boolean {
+            guard let lessonID=run.lessonID,let quizRunID=run.quizRunID,answerTypedQuizQuestion(lessonID:lessonID,runID:quizRunID,questionID:questionID,correct:correct,now:now) else { return false }
+        }
         if !correct,run.lastMissedAnswer == run.answerText { return false }
         run.lastMissedAnswer=correct ? nil : run.answerText
         run.correct=correct;run.earnedXP=correct && !run.question.options["isFinalQuiz"].boolean ? max(0,min(10,reward)) : 0;run.updatedAt=now
         let q=run.question
-        assess(correct:correct,independent:!run.assisted,now:now,questionLevel:q.level,worth:q.worth,concept:correct && !q.options["isFinalQuiz"].boolean ? nil : q.questionText,mode:q.module.rawValue)
+        assess(correct:correct,independent:q.options["isFinalQuiz"].boolean || !run.assisted,now:now,questionLevel:q.level,worth:q.worth,concept:correct && !q.options["isFinalQuiz"].boolean ? nil : q.questionText,mode:q.module.rawValue)
         if correct,run.earnedXP > 0 {
             addXP(run.earnedXP,now:now,calendar:.current)
             var change=PracticeChange(date:now,dayKey:dailyKey,target:target,level:q.level,amount:run.earnedXP,source:.practice,contentID:q.id.uuidString)

@@ -4,13 +4,17 @@ struct LessonPracticeView:View {
     @EnvironmentObject var app:AppModel
     @Environment(\.colorScheme) private var scheme
     @Environment(\.scenePhase) private var scenePhase
-    @StateObject private var service=PracticeService()
+    @StateObject private var service:PracticeService
     @StateObject private var speech=SpeechService()
     let module:PracticeRecipeModule
     let lesson:Lesson?
     var onNext:(()->Void)?=nil
     var startsFresh=false
     var embedded=false
+    init(module:PracticeRecipeModule,lesson:Lesson?,onNext:(()->Void)?=nil,startsFresh:Bool=false,embedded:Bool=false,service:PracticeService?=nil) {
+        self.module=module;self.lesson=lesson;self.onNext=onNext;self.startsFresh=startsFresh;self.embedded=embedded;_service=StateObject(wrappedValue:service ?? PracticeService())
+    }
+    private var quiz:Bool { lesson?.isFinalQuiz == true }
     @State private var showTranscript=false
     @State private var noteSaved=false
     @State private var showDeck=false
@@ -33,23 +37,23 @@ struct LessonPracticeView:View {
                 VStack(alignment:.leading,spacing:22) {
                     if let run {
                         question(run)
-                        controls(run).disabled(service.busy || run.correct == true)
+                        controls(run).disabled(service.busy || run.correct == true || quiz && run.correct != nil)
                         tools(run)
                         if let correct=run.correct {
-                            Text(copy(module == .grammar ? (correct ? "grammar_result_correct" : "grammar_result_try_again") : (correct ? "vocab_result_correct" : "vocab_result_try_again")).replacingOccurrences(of:"{xp}",with:String(run.earnedXP))).font(PiyaliBrand.productFont(17,600)).foregroundStyle(correct ? brand.questionSuccess : brand.questionError).accessibilityIdentifier("practiceVerdict")
+                            Text(quiz ? copy(correct ? "correct" : "try_again") : copy(module == .grammar ? (correct ? "grammar_result_correct" : "grammar_result_try_again") : (correct ? "vocab_result_correct" : "vocab_result_try_again")).replacingOccurrences(of:"{xp}",with:String(run.earnedXP))).font(PiyaliBrand.productFont(17,600)).foregroundStyle(correct ? brand.questionSuccess : brand.questionError).accessibilityIdentifier("practiceVerdict")
                             if !run.explanation.isEmpty { Text(run.explanation).font(PiyaliBrand.productFont(15)).textSelection(.enabled) }
-                            if correct {
+                            if correct || quiz {
                                 Button(questionCopy(run,"nextQuestion",fallback:copy("grammar_next"))) { speech.stopAll();showTranscript=false;noteSaved=false;if let onNext { onNext() } else { Task { await service.prepare(app,module:module,lesson:lesson,fresh:true) } } }.buttonStyle(QuestionPrimaryButtonStyle()).disabled(service.busy).accessibilityIdentifier("nextTypedQuestion")
                             }
                         }
-                        if run.correct != true {
+                        if run.correct == nil || !quiz && run.correct != true {
                             Button(questionCopy(run,"submit",fallback:copy(module == .grammar ? "grammar_submit" : "vocab_submit"))) { answering=false;speech.stop();Task { await service.check(app,run:run,confidence:speech.confidence,audio:speech.audioMetrics) } }.buttonStyle(QuestionPrimaryButtonStyle()).disabled(service.busy || !service.ready(run)).accessibilityIdentifier("checkTypedAnswer")
                         }
                     } else if !service.busy { Button("Start practice") { Task { await service.prepare(app,module:module,lesson:lesson) } }.buttonStyle(BrandButtonStyle()) }
                     if service.busy { ProgressView().frame(maxWidth:.infinity).accessibilityIdentifier("typedPracticeBusy") }
                     if let error=service.error { Text(error).foregroundStyle(.red);Button("Try again") { Task { if run == nil { await service.prepare(app,module:module,lesson:lesson,fresh:true) } else if let run { await service.check(app,run:run) } } }.disabled(service.busy) }
                     if let error=speech.error { Text(error).font(PiyaliBrand.productFont(13)).foregroundStyle(.red) }
-                    if let onNext { Button(PracticeCopy.text(variant:"flashcard",language:app.learner.support,key:"skip")) { speech.stopAll();onNext() }.font(PiyaliBrand.productFont(14,600)).foregroundStyle(brand.secondary).accessibilityIdentifier("skipLessonActivity") }
+                    if let onNext,!quiz { Button(PracticeCopy.text(variant:"flashcard",language:app.learner.support,key:"skip")) { speech.stopAll();onNext() }.font(PiyaliBrand.productFont(14,600)).foregroundStyle(brand.secondary).accessibilityIdentifier("skipLessonActivity") }
                 }.padding(24).frame(maxWidth:640).frame(maxWidth:.infinity,alignment:.center)
             }.background(brand.background).foregroundStyle(brand.text)
         }.navigationTitle(embedded ? lesson?.title.localized(app.learner.support) ?? "" : module == .grammar ? "Grammar" : "Vocabulary")
@@ -201,16 +205,16 @@ struct LessonPracticeView:View {
         VStack(alignment:.leading,spacing:14) {
             HStack(spacing:20) {
                 if !run.question.audioText.isEmpty { Button { speech.speak(run.question.audioText,language:run.question.audioLanguage) } label:{ Image(systemName:"speaker.wave.2") }.accessibilityLabel(copy("vocab_listen_question")) }
-                Button { Task { await service.explain(app,run:run) } } label:{ Label(questionCopy(run,"askForHelp",fallback:copy("vocab_ask_assistant")),systemImage:"sparkles") }.disabled(service.busy)
+                if !quiz { Button { Task { await service.explain(app,run:run) } } label:{ Label(questionCopy(run,"askForHelp",fallback:copy("vocab_ask_assistant")),systemImage:"sparkles") }.disabled(service.busy) }
                 Spacer()
-                Button { app.learner.notes.insert(Note(title:run.question.questionText,body:[run.answerText,run.expected,run.explanation].filter { !$0.isEmpty }.joined(separator:"\n\n")),at:0);app.persist();noteSaved=true } label:{ Image(systemName:noteSaved ? "checkmark" : "note.text.badge.plus") }.disabled(noteSaved).accessibilityLabel(copy(noteSaved ? "vocab_note_saved" : "vocab_create_note"))
+                if !quiz || run.correct != nil { Button { app.learner.notes.insert(Note(title:run.question.questionText,body:[run.answerText,run.expected,run.explanation].filter { !$0.isEmpty }.joined(separator:"\n\n")),at:0);app.persist();noteSaved=true } label:{ Image(systemName:noteSaved ? "checkmark" : "note.text.badge.plus") }.disabled(noteSaved).accessibilityLabel(copy(noteSaved ? "vocab_note_saved" : "vocab_create_note")) }
             }.font(PiyaliBrand.productFont(14,500)).foregroundStyle(brand.questionTool)
             if run.question.kind == "repeat",run.question.options["isListening"].boolean { Button(showTranscript ? "Hide transcript" : "Show transcript") { showTranscript.toggle() }.font(PiyaliBrand.productFont(13)).foregroundStyle(brand.secondary) }
             if run.correct == nil,!run.explanation.isEmpty { Text(run.explanation).font(PiyaliBrand.productFont(15)) }
         }
     }
     private func updateResponse(_ field:String,_ value:JSONValue) { guard let run else { return };updateResponse(run.response.setting(field,value)) }
-    private func updateResponse(_ response:JSONValue) { guard var run,run.correct != true,!service.busy else { return };run.response=response;run.correct=nil;app.learner.savePractice(run);app.persist() }
+    private func updateResponse(_ response:JSONValue) { guard var run,run.correct != true,(!quiz || run.correct == nil),!service.busy else { return };run.response=response;run.correct=nil;app.learner.savePractice(run);app.persist() }
 }
 
 struct PracticeFlowLayout:Layout {

@@ -89,6 +89,7 @@
 		50DC0C459286E70C75FD72C4 /* GeneratedQuestionWorth.swift in Sources */ = {isa = PBXBuildFile; fileRef = 527B10414BCA8F8C3F103693 /* GeneratedQuestionWorth.swift */; };
 		50E580F5B9B3C5C10CE41EEB /* privacy-policy.md in Resources */ = {isa = PBXBuildFile; fileRef = D41A9273C557579BD22C1405 /* privacy-policy.md */; };
 		51F9958968DEEA0FD989BE4C /* 28.webp in Resources */ = {isa = PBXBuildFile; fileRef = 092DC1DE9C023E91A09971A5 /* 28.webp */; };
+		52B60BE4B40752EB919725DA /* placement-copy.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 3764D7C0BB0F262218B7D433 /* placement-copy.json.gz */; };
 		53415E992CBAE3CEAD46FFA7 /* curriculum-de.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 0D2B4377365D26F6B633ABCA /* curriculum-de.json.gz */; };
 		5385A9226388A581243ECD21 /* GoalPreparationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82DE9E947F9BAD6E1426FAEF /* GoalPreparationView.swift */; };
 		5523EF07D33789058AEFF62B /* rpg-nah.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = AF75DE90693093AA5E447055 /* rpg-nah.json.gz */; };
@@ -108,6 +109,7 @@
 		65706D1E5785711CDFFF805E /* WalletTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 103ED4F605666E6D7CCFA283 /* WalletTests.swift */; };
 		6674D258F7F94408E01F7D05 /* NostrTestEvents.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8122E31DCBBA679DCF2C661 /* NostrTestEvents.swift */; };
 		67F79B9CD810FBE9D2A1C41E /* PracticeCopy.swift in Sources */ = {isa = PBXBuildFile; fileRef = C36BF9E6EC94494B5603397F /* PracticeCopy.swift */; };
+		68270A30F56997281CF87311 /* placement-dog.webp in Resources */ = {isa = PBXBuildFile; fileRef = D588FE34EAC93191B3A60DE8 /* placement-dog.webp */; };
 		69086B28BF45F4B045E65544 /* PiyaliSubscriptions.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 93F9EA3918C75E4A8605DF8B /* PiyaliSubscriptions.storekit */; };
 		691DAAE7F72AC18991C7175B /* PracticeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0AA3A92982AA88B944C9C3C /* PracticeService.swift */; };
 		6977063B6E1998CCF5F56F56 /* intro-it.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 4F7F8D3F0508DA4007F2A5C9 /* intro-it.json.gz */; };
@@ -129,6 +131,7 @@
 		787C9B715A3E08DC6E634CAE /* ReadingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3B68431555373F1C291780A /* ReadingService.swift */; };
 		78C1069D660D2AA8FA0C98B7 /* rpg-pl.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = BFFE0FDA53239B65316A0705 /* rpg-pl.json.gz */; };
 		7AB971B8AF9E1B137A3F1156 /* intro-es.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = A9824C7DD1714F95BB30FD24 /* intro-es.json.gz */; };
+		7AF2ED07057FEEDEBE6B0D93 /* placement-copy.manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = AFD41E29A7A9BD79EF4DEC23 /* placement-copy.manifest.json */; };
 		7B02CD5EAEFC68F1EB560E73 /* LocalNostrRelay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 919997E17F97AEA109C894B0 /* LocalNostrRelay.swift */; };
 		7BC5FD6FEF2F1872D4062011 /* WalletService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17196505DA266C8D498881D0 /* WalletService.swift */; };
 		7C6DB63900D50D03D0049B71 /* ReadingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A05A21CA99D4E7A8E3809651 /* ReadingTests.swift */; };
@@ -343,6 +346,7 @@
 		32A61F7B1899F616B12230EC /* assistant-instructions.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "assistant-instructions.json.gz"; sourceTree = "<group>"; };
 		33319DC3287D9AE1604BAB7A /* intro-ru.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "intro-ru.json.gz"; sourceTree = "<group>"; };
 		3410C8E8F3B885C506DE99E1 /* CashuHTTPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CashuHTTPClient.swift; sourceTree = "<group>"; };
+		3764D7C0BB0F262218B7D433 /* placement-copy.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "placement-copy.json.gz"; sourceTree = "<group>"; };
 		387D1A3BB971A0E8A4AC3034 /* FlashcardReview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlashcardReview.swift; sourceTree = "<group>"; };
 		39326411EDB1BD07F7E73298 /* practice-copy.manifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "practice-copy.manifest.json"; sourceTree = "<group>"; };
 		39C7258FD66B24C728599FBA /* TeamsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamsTests.swift; sourceTree = "<group>"; };
@@ -453,6 +457,7 @@
 		AEC72430BBF570FFE8C5C686 /* LiveAPIIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveAPIIntegrationTests.swift; sourceTree = "<group>"; };
 		AF75DE90693093AA5E447055 /* rpg-nah.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "rpg-nah.json.gz"; sourceTree = "<group>"; };
 		AFA5DC38745046003438922A /* PracticeDeckView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PracticeDeckView.swift; sourceTree = "<group>"; };
+		AFD41E29A7A9BD79EF4DEC23 /* placement-copy.manifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "placement-copy.manifest.json"; sourceTree = "<group>"; };
 		AFFC95D7BF28D6C60802DDBF /* intro-ga.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "intro-ga.json.gz"; sourceTree = "<group>"; };
 		B035DFC1736E1F69047CEB9B /* PiyaliApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiyaliApp.swift; sourceTree = "<group>"; };
 		B0A4ECB4A4F2554486D40A97 /* landing-proficiency.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "landing-proficiency.json.gz"; sourceTree = "<group>"; };
@@ -500,6 +505,7 @@
 		D4F662E4A1F454CF1DA1B2E1 /* CommunityFeedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityFeedView.swift; sourceTree = "<group>"; };
 		D52D0469B4F81A6B04F8CFAC /* achievements.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = achievements.json.gz; sourceTree = "<group>"; };
 		D579ADCD762E0765430D326A /* LearningViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearningViews.swift; sourceTree = "<group>"; };
+		D588FE34EAC93191B3A60DE8 /* placement-dog.webp */ = {isa = PBXFileReference; path = "placement-dog.webp"; sourceTree = "<group>"; };
 		D903D3C7CA281D9C04A8D702 /* conversation-topics.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "conversation-topics.json.gz"; sourceTree = "<group>"; };
 		DA064E8A2AB61A635E8960FB /* CommunityFeedService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityFeedService.swift; sourceTree = "<group>"; };
 		DB042777CCF916D49B23EE5B /* rpg-play.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "rpg-play.json"; sourceTree = "<group>"; };
@@ -687,6 +693,8 @@
 				8D8FE73AB157397B56A8E477 /* lesson-appearance.json.gz */,
 				EC6654A123234052FC50AC78 /* lesson-session-copy.json.gz */,
 				E25BCE6BED55E74389F1F771 /* phonics.json.gz */,
+				3764D7C0BB0F262218B7D433 /* placement-copy.json.gz */,
+				AFD41E29A7A9BD79EF4DEC23 /* placement-copy.manifest.json */,
 				8A40A19602FF5A18A111F073 /* practice-copy.json.gz */,
 				39326411EDB1BD07F7E73298 /* practice-copy.manifest.json */,
 				F74B1AABF9F5C6510E0EE56D /* practice-recipes.js */,
@@ -975,6 +983,7 @@
 				F5153C3007241ED76870C5E5 /* DMSans-LICENSE.txt */,
 				7A7A81BC9CDBA3374F75F3AF /* onboarding-character.webp */,
 				D1DAE22D15DE94917B20977D /* piyali-orb.png */,
+				D588FE34EAC93191B3A60DE8 /* placement-dog.webp */,
 			);
 			path = Brand;
 			sourceTree = "<group>";
@@ -1170,6 +1179,9 @@
 				F7BCBB285235EC65D301AD52 /* onboarding-character.webp in Resources */,
 				8CF7D8A00419A9CC9B6805BA /* phonics.json.gz in Resources */,
 				276515C6BE780F29AD271E0C /* piyali-orb.png in Resources */,
+				52B60BE4B40752EB919725DA /* placement-copy.json.gz in Resources */,
+				7AF2ED07057FEEDEBE6B0D93 /* placement-copy.manifest.json in Resources */,
+				68270A30F56997281CF87311 /* placement-dog.webp in Resources */,
 				DD46E1989194822E60337001 /* practice-copy.json.gz in Resources */,
 				C95D65D166106E98E2A35EBE /* practice-copy.manifest.json in Resources */,
 				9E40132BF179E0EE9CC724AE /* practice-recipes.js in Resources */,

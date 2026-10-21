@@ -8,18 +8,35 @@ import Foundation
     private var engine:PracticeRecipes?
     private func recipes() throws ->PracticeRecipes { if let engine { return engine };let value=try PracticeRecipes();engine=value;return value }
     func cancel() { generation=UUID();busy=false }
+    func ensureQuiz(_ app:AppModel,lesson:Lesson,restart:Bool=false) throws ->FinalQuizRun {
+        var run=app.learner.quizRuns?[app.learner.quizKey(lesson.id)] ?? FinalQuizRun(lesson:lesson,learner:app.learner)
+        if restart || !run.matches(lesson,app.learner) { run=FinalQuizRun(lesson:lesson,learner:app.learner) }
+        if run.typedOptions?.count != run.rules.questionsRequired {
+            let recipes=try recipes();try recipes.resetOptions()
+            let context:JSONValue = .object(["lesson":PracticeCurriculum.lessonData(lesson),"targetLang":.string(app.learner.target),"user":app.learner.recipeUser])
+            run.typedOptions=try (0..<run.rules.questionsRequired).map { _ in try recipes.select(module:.grammar,context:context).setting("isFinalQuiz",.bool(true)) }
+            run.question=nil
+        }
+        app.learner.saveQuiz(run);app.persist();return run
+    }
     func prepare(_ app:AppModel,module:PracticeRecipeModule,lesson:Lesson?,fresh:Bool=false) async {
         let state=app.learner,account=app.identity.npub,key=PracticeRun.key(target:state.target,lesson:lesson?.id,module:module)
-        if !fresh,let run=state.practiceRuns?[key],run.question.support == state.support { return }
+        let quiz:FinalQuizRun?
+        do { quiz=lesson?.isFinalQuiz == true ? try ensureQuiz(app,lesson:lesson!) : nil } catch { self.error=error.localizedDescription;return }
+        if quiz?.outcome.completed == true { return }
+        if !fresh,let run=state.practiceRuns?[key],run.question.support == state.support,(quiz == nil || run.quizRunID == quiz?.id && run.question.id == quiz?.typedQuestionID) { return }
         guard app.subscription.hasAccess else { return }
         let token=UUID();generation=token;busy=true;error=nil;help="";defer { if token == generation { busy=false } }
         do {
             let recipes=try recipes(),user=state.recipeUser
             #if DEBUG
             if state.target == "es",state.support == "en",var question=PracticeTestFixtures.question(module:module,recipes:recipes) {
+                if quiz != nil { question=try PracticeQuestion(module:module,kind:question.kind,payload:question.payload,options:question.options.setting("isFinalQuiz",.bool(true)).setting("cefrLevel",.string(quiz!.level)),target:state.target,support:state.support) }
                 question.worth=try GeneratedQuestionWorth.fallback(level:question.level,learner:state,recipes:recipes)
                 let response=question.isDelight ? try recipes.inspect("initialResponse",parameters:.object(["question":question.payload])) : .object([:])
-                app.learner.savePractice(.init(question:question,lessonID:lesson?.id,lessonLevel:lesson?.cefrLevel ?? state.level,response:response));app.persist();return
+                var run=PracticeRun(question:question,lessonID:lesson?.id,lessonLevel:lesson?.cefrLevel ?? state.level,response:response);run.quizRunID=quiz?.id
+                if let quiz,!app.learner.prepareTypedQuizQuestion(question,lessonID:quiz.lessonID,runID:quiz.id) { return }
+                app.learner.savePractice(run);app.persist();return
             }
             #endif
             var lessonData=try lesson.map { try JSONDecoder().decode(JSONValue.self,from:JSONEncoder().encode($0)) } ?? .object(["id":.string("free"),"cefrLevel":.string(state.level),"content":.object([:])])
@@ -30,7 +47,10 @@ import Foundation
             let unit=app.units.first { $0.lessons.contains(where:{$0.id == lesson?.id}) } ?? (lesson?.id == IntroTutorial.lessonID ? app.introLibrary?.units[state.level] : nil)
             let curriculum=try PracticeCurriculum.context(lesson:lesson,unit:unit,target:state.target,recipes:recipes)
             let context:JSONValue = .object(["lesson":lessonData,"targetLang":.string(state.target),"user":user])
-            let options=try recipes.select(module:module,context:context).setting("isFinalQuiz",.bool(lesson?.isFinalQuiz == true)),kind=options["exerciseType"].string
+            let options:JSONValue
+            if let quiz,let planned=quiz.typedOptions,planned.indices.contains(quiz.answers.count) { options=planned[quiz.answers.count] }
+            else { options=try recipes.select(module:module,context:context).setting("isFinalQuiz",.bool(false)) }
+            let kind=options["exerciseType"].string
             let recent=Array(state.history.filter { $0.target == state.target && $0.mode.lowercased() == module.rawValue && $0.correct }.prefix(5)).map { JSONValue.string($0.question) }
             let parameters=options.setting("targetLang",.string(state.target)).setting("supportLang",.string(state.support)).setting("appUILang",.string(state.support)).setting("showTranslations",.bool(true)).setting("lessonContent",PracticeCurriculum.content(lesson,mode:module.rawValue,context:curriculum)).setting("user",user).setting("recentGood",.array(recent)).setting("recentQuestions",.array(recent))
             let prompt=try recipes.build(module:module,kind:kind,parameters:parameters)
@@ -59,6 +79,8 @@ import Foundation
             var run=PracticeRun(question:question,lessonID:lesson?.id,lessonLevel:lesson?.cefrLevel ?? state.level,response:response)
             run.question.worth=try await GeneratedQuestionWorth.assess(question:run.assessmentItem,level:question.level,mode:run.difficultyMode,learner:state,recipes:recipes,ai:app.ai)
             try Task.checkCancellation();guard generation == token,app.identity.npub == account,app.learner.target == state.target,app.learner.support == state.support else { return }
+            run.quizRunID=quiz?.id
+            if let quiz,!app.learner.prepareTypedQuizQuestion(run.question,lessonID:quiz.lessonID,runID:quiz.id) { return }
             app.learner.savePractice(run);app.persist()
         } catch is CancellationError { } catch { if token == generation { self.error=error.localizedDescription } }
     }

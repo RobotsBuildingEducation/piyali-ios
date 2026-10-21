@@ -1,0 +1,10 @@
+[
+  {
+    "file": "src/utils/proficiencyModalTranslations.js",
+    "sha256": "9e85f754905fa228e67935f44021b2b6a126a50e80051b04ddbbe8d0f64a7448"
+  },
+  {
+    "file": "src/utils/cefrLevelInfo.js",
+    "sha256": "50ad5e9e5733d6ba42e40ad9bcd1027f9ea4f741b450afe71bcb6848b749d0c3"
+  }
+]

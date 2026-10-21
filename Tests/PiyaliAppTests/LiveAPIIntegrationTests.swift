@@ -168,15 +168,27 @@ import NostrSDK
         let identity=IdentityService();try identity.create();try await FirebaseIdentityService.shared.ensure(identity)
         do {
             let fallback=AIService(configuration:AppConfiguration(values:AppConfiguration().values.merging(["AIProvider":"responses"]) { _,new in new }))
-            for (target,mode,ai) in [("es",PracticeMode.grammar,AIService()),("ja",PracticeMode.vocabulary,fallback)] {
-                let levels=try ContentLibrary.load([String:[LearningUnit]].self,name:"curriculum-"+target),lesson=try XCTUnwrap(levels["A1"]?.flatMap(\.lessons).first { $0.isFinalQuiz == true })
+            for (target,ai) in [("es",AIService()),("ja",fallback)] {
+                let levels=try ContentLibrary.load([String:[LearningUnit]].self,name:"curriculum-"+target),unit=try XCTUnwrap(levels["A1"]?.first { $0.lessons.contains { $0.isFinalQuiz == true } }),lesson=try XCTUnwrap(unit.lessons.first { $0.isFinalQuiz == true }),recipes=try PracticeRecipes(),service=PracticeService()
                 var state=LearnerState();state.target=target;state.support="en";state.level="A1"
-                var run=FinalQuizRun(lesson:lesson,learner:state)
-                let exercise=try await ai.exercise(mode:mode,lesson:lesson,learner:state,concept:FinalQuizService.concept(run,mode:mode))
-                XCTAssertTrue(run.prepare(exercise,mode:mode));state.saveQuiz(run)
-                let grade=try await ai.grade(exercise:exercise,answer:exercise.answer,learner:state);XCTAssertTrue(grade.correct)
-                XCTAssertTrue(state.answerQuiz(lesson:lesson,runID:run.id,questionID:try XCTUnwrap(run.question?.id),answer:exercise.answer,grade:grade));XCTAssertEqual(state.totalXP,0);XCTAssertEqual(state.quizRuns?[state.quizKey(lesson.id)]?.answers.count,1)
-                print("LIVE QUIZ PASS: target=\(target), mode=\(mode.rawValue), authored question validated, one zero-XP assessment")
+                var quiz=FinalQuizRun(lesson:lesson,learner:state)
+                let selector: Piyali.JSONValue = .object(["lesson":PracticeCurriculum.lessonData(lesson),"targetLang":.string(target),"user":state.recipeUser])
+                let deck=try (0..<16).map { _ in try recipes.select(module:.grammar,context:selector).setting("isFinalQuiz",.bool(true)) }
+                XCTAssertEqual(Set(deck.map { $0["exerciseType"].string }).count,16);XCTAssertFalse(deck.contains { $0["exerciseType"].string == "flashcard" })
+                let options=try XCTUnwrap(deck.first { $0["exerciseType"].string == "match" }),context=try PracticeCurriculum.context(lesson:lesson,unit:unit,target:target,recipes:recipes)
+                let p=options.setting("targetLang",.string(target)).setting("supportLang",.string("en")).setting("appUILang",.string("en")).setting("showTranslations",.bool(true)).setting("lessonContent",PracticeCurriculum.content(lesson,mode:"grammar",context:context)).setting("user",state.recipeUser)
+                let prompt=try recipes.build(module:.grammar,kind:"match",parameters:p)
+                let question=try PracticeQuestion.parse(try await ai.text(prompt),module:.grammar,kind:"match",options:options,target:target,support:"en")
+                XCTAssertTrue(try PracticeCurriculum.accepts(question,context:context,recipes:recipes))
+                quiz.typedOptions=[options]+Array(deck.filter { $0["exerciseType"].string != "match" }.prefix(quiz.rules.questionsRequired-1));state.saveQuiz(quiz)
+                let pairs=Dictionary(uniqueKeysWithValues:question.strings("left").indices.map { (String($0),question.payload["map"].array[$0]) })
+                var run=PracticeRun(question:question,lessonID:lesson.id,lessonLevel:lesson.cefrLevel,response:.object(["pairs":.object(pairs)]));run.quizRunID=quiz.id
+                run.question.worth=try await GeneratedQuestionWorth.assess(question:run.assessmentItem,level:question.level,mode:run.difficultyMode,learner:state,recipes:recipes,ai:ai)
+                XCTAssertTrue(state.prepareTypedQuizQuestion(run.question,lessonID:lesson.id,runID:quiz.id));state.savePractice(run)
+                let verdict=try await service.verdict(run:run,recipes:recipes,judge:{ try await ai.responsesText($0) });XCTAssertTrue(verdict.correct)
+                XCTAssertTrue(state.answerPractice(key:run.key,questionID:question.id,correct:verdict.correct,reward:6));XCTAssertFalse(state.answerPractice(key:run.key,questionID:question.id,correct:true,reward:6))
+                XCTAssertEqual(state.totalXP,0);XCTAssertEqual(state.quizRuns?[state.quizKey(lesson.id)]?.answers,[true]);XCTAssertEqual(state.pendingChanges?.filter { $0.source == .assessment }.count,1)
+                print("LIVE QUIZ PASS: target=\(target), source typed matching question/context, sixteen-format deck, one zero-XP assessment")
             }
         } catch { try? await Auth.auth().currentUser?.delete();try? Auth.auth().signOut();try? identity.disconnect();throw error }
         try await Auth.auth().currentUser?.delete();try Auth.auth().signOut();try identity.disconnect()
