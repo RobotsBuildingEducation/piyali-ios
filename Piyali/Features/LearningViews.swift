@@ -85,6 +85,13 @@ struct DailyPlateView: View {
     }
 }
 struct LessonView: View {
+    let lesson:Lesson
+    var body:some View {
+        if CurriculumLessonProgress.isCurriculumID(lesson.id),lesson.id != IntroTutorial.lessonID,!lesson.modes.contains("game") { CurriculumSessionView(lesson:lesson) }
+        else { LegacyLessonOverviewView(lesson:lesson) }
+    }
+}
+private struct LegacyLessonOverviewView: View {
     @EnvironmentObject var app: AppModel
     let lesson: Lesson
     private var curriculum:Bool { CurriculumLessonProgress.isCurriculumID(lesson.id) }

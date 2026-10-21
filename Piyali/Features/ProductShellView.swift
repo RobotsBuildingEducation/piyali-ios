@@ -30,6 +30,8 @@ struct ProductShellView:View {
     @State private var guided:GuidedPracticeSession?
     @State private var celebration=false
     @State private var waitingCelebration=false
+    @State private var lessonCompletion:LessonCompletionPresentation?
+    @State private var presentedLessonCompletionID:UUID?
     private var language:String { app.learner.support }
     private var brand:PiyaliBrand { PiyaliBrand(dark:scheme == .dark) }
     private var sessionKey:String { "piyali.guidedSession."+app.identity.npub }
@@ -41,14 +43,23 @@ struct ProductShellView:View {
                 surface.navigationBarTitleDisplayMode(.inline)
                     .toolbar {
                         ToolbarItem(placement:.topBarLeading) { if mode == .focus { BrandArtwork(name:"piyali-orb.png").frame(width:32,height:32) } }
-                        ToolbarItem(placement:.topBarTrailing) { Button { panel = .goal } label:{ HStack(spacing:7) { Image(systemName:"flame");Text("\(app.learner.dailyXP) / \(app.learner.dailyGoal) XP").font(PiyaliBrand.font(12,600)) } }.accessibilityLabel("Open daily goal") }
+                        ToolbarItem(placement:.topBarTrailing) { Button { panel = .goal } label:{ HStack(spacing:7) { Image(systemName:"flame");Text("\(app.learner.dailyXP) / \(app.learner.dailyGoal) XP").font(PiyaliBrand.productFont(12,600)) } }.accessibilityLabel("Open daily goal") }
                     }
             }.id(revision).tint(PiyaliBrand.teal).blur(radius:menuOpen ? 6 : 0).allowsHitTesting(!menuOpen)
                 .safeAreaInset(edge:.bottom) {
                     Button { modesOpen=false;menuOpen.toggle() } label:{ Image(systemName:"square.grid.3x3.fill").font(.system(size:20)).foregroundStyle(brand.text).frame(width:58,height:58).background(brand.surface.opacity(0.92),in:RoundedRectangle(cornerRadius:20)).overlay { RoundedRectangle(cornerRadius:20).stroke(brand.border) } }.accessibilityLabel(mode.title(language)).accessibilityIdentifier("productMenu").padding(.bottom,10)
                 }
             if menuOpen { menu }
-        }.font(PiyaliBrand.font(16)).foregroundStyle(brand.text)
+        }.font(PiyaliBrand.productFont(16)).foregroundStyle(brand.text)
+            .accessibilityHidden(lessonCompletion != nil)
+            .overlay {
+                if let data=lessonCompletion {
+                    ZStack {
+                        (scheme == .dark ? Color(red:2/255,green:6/255,blue:23/255).opacity(0.92) : Color(red:28/255,green:20/255,blue:12/255).opacity(0.82)).ignoresSafeArea().onTapGesture { closeLessonCompletion() }
+                        LessonCompletionView(completion:data,onContinue:closeLessonCompletion).fixedSize(horizontal:false,vertical:true).onTapGesture { }.padding(12)
+                    }.accessibilityElement(children:.contain).accessibilityIdentifier("lessonCompletionDialog")
+                }
+            }
             .preferredColorScheme(theme == "dark" ? .dark : .light)
             .environment(\.layoutDirection,language == "ar" ? .rightToLeft : .leftToRight)
             .sheet(item:$panel) { selected in NavigationStack { panelContent(selected).toolbar { ToolbarItem(placement:.confirmationAction) { Button(EntryCopy.text(language,"back_button")) { panel=nil }.accessibilityIdentifier("productPanelClose") } } }.tint(PiyaliBrand.teal) }
@@ -58,10 +69,14 @@ struct ProductShellView:View {
                 app.prepareDailyPlate()
                 if let guided,!guided.matches(account:app.identity.npub,target:app.learner.target,day:CalendarDay.key(now)) { celebration=false;waitingCelebration=false;specialCourse=nil }
                 restoreSession()
+                presentPendingLessonCompletion()
             }
             .onChange(of:app.learner.target) { _,_ in revision=UUID() }
             .onChange(of:app.localPracticeRevision) { _,_ in checkCompletion() }
-            .onChange(of:panel) { _,value in if value == nil,waitingCelebration { waitingCelebration=false;celebration=true } }
+            .onChange(of:panel) { _,value in if value == nil { presentPendingLessonCompletion();checkCompletion() } }
+            .onChange(of:menuOpen) { _,open in if !open { presentPendingLessonCompletion();checkCompletion() } }
+            .onChange(of:app.pendingLessonCompletion?.id) { _,_ in presentPendingLessonCompletion() }
+            .onChange(of:app.lessonActivityActive) { _,active in if !active { presentPendingLessonCompletion();checkCompletion() } }
     }
     @ViewBuilder private var surface:some View {
         if specialCourse == "goal" { FocusedGoalView() }
@@ -85,13 +100,13 @@ struct ProductShellView:View {
                         if modesOpen { ForEach(ProductMode.allCases,id:\.self) { item in menuTile(item.title(language),symbol:item.symbol,selected:item == mode) { switchMode(item) }.accessibilityIdentifier("productMode-"+item.rawValue) } }
                         else { ForEach([ProductPanel.settings,.teams,.assistant,.memory]) { item in menuTile(ProductCopy.data(language)["menu"][item.rawValue].string,symbol:[.settings:"gearshape",.teams:"hands.sparkles",.assistant:"person.crop.circle",.memory:"bookmark"][item] ?? "gearshape") { menuOpen=false;panel=item }.accessibilityIdentifier("productPanel-"+item.rawValue) } }
                     }
-                    Button { modesOpen.toggle() } label:{ HStack { Image(systemName:modesOpen ? "arrow.left" : mode.symbol);Text(modesOpen ? ProductCopy.data(language)["menu"]["back"].string : mode.title(language));Spacer();if !modesOpen { Image(systemName:"chevron.right") } }.font(PiyaliBrand.font(13,600)).padding(18).frame(maxWidth:.infinity,minHeight:64).background(brand.text.opacity(0.04),in:RoundedRectangle(cornerRadius:18)).overlay { RoundedRectangle(cornerRadius:18).stroke(brand.border) } }.accessibilityIdentifier("productModeMenu")
+                    Button { modesOpen.toggle() } label:{ HStack { Image(systemName:modesOpen ? "arrow.left" : mode.symbol);Text(modesOpen ? ProductCopy.data(language)["menu"]["back"].string : mode.title(language));Spacer();if !modesOpen { Image(systemName:"chevron.right") } }.font(PiyaliBrand.productFont(13,600)).padding(18).frame(maxWidth:.infinity,minHeight:64).background(brand.text.opacity(0.04),in:RoundedRectangle(cornerRadius:18)).overlay { RoundedRectangle(cornerRadius:18).stroke(brand.border) } }.accessibilityIdentifier("productModeMenu")
                 }.padding(11).background(brand.surface,in:RoundedRectangle(cornerRadius:24)).overlay { RoundedRectangle(cornerRadius:24).stroke(brand.border) }.frame(width:min(geometry.size.width-24,560)).padding(.bottom,82)
             }
         }.transition(.opacity)
     }
     private func menuTile(_ text:String,symbol:String,selected:Bool=false,action:@escaping()->Void)->some View {
-        Button(action:action) { VStack(alignment:.leading,spacing:10) { Image(systemName:symbol).font(.system(size:19)).frame(width:30,height:30).background(brand.surface,in:RoundedRectangle(cornerRadius:8));Text(text).font(PiyaliBrand.font(13,600)) }.frame(maxWidth:.infinity,minHeight:84,alignment:.leading).padding(12).background(brand.text.opacity(0.04),in:RoundedRectangle(cornerRadius:18)).overlay { RoundedRectangle(cornerRadius:18).stroke(selected ? PiyaliBrand.teal : brand.border,lineWidth:selected ? 2 : 1) } }.buttonStyle(.plain)
+        Button(action:action) { VStack(alignment:.leading,spacing:10) { Image(systemName:symbol).font(.system(size:19)).frame(width:30,height:30).background(brand.surface,in:RoundedRectangle(cornerRadius:8));Text(text).font(PiyaliBrand.productFont(13,600)) }.frame(maxWidth:.infinity,minHeight:84,alignment:.leading).padding(12).background(brand.text.opacity(0.04),in:RoundedRectangle(cornerRadius:18)).overlay { RoundedRectangle(cornerRadius:18).stroke(selected ? PiyaliBrand.teal : brand.border,lineWidth:selected ? 2 : 1) } }.buttonStyle(.plain)
     }
     @ViewBuilder private func panelContent(_ panel:ProductPanel)->some View {
         switch panel {
@@ -104,7 +119,7 @@ struct ProductShellView:View {
         case .goal: DailyGoalSettingsView()
         }
     }
-    private func switchMode(_ value:ProductMode) { guided=nil;saveSession();specialCourse=nil;mode=value;menuOpen=false;revision=UUID() }
+    private func switchMode(_ value:ProductMode) { guided=nil;waitingCelebration=false;celebration=false;saveSession();specialCourse=nil;mode=value;menuOpen=false;revision=UUID() }
     private func startPractice() {
         app.prepareDailyPlate()
         guided=GuidedPracticeSession(account:app.identity.npub,target:app.learner.target,day:CalendarDay.key(Date()),courses:app.plateCourses)
@@ -130,15 +145,30 @@ struct ProductShellView:View {
     }
     private func checkCompletion() {
         guard let guided,guided.matches(account:app.identity.npub,target:app.learner.target,day:CalendarDay.key(Date())),guided.taskCompleted(app.plateCourses) else { return }
-        if panel == nil { celebration=true } else { waitingCelebration=true }
+        if panel == nil,!menuOpen,!app.lessonActivityActive,app.pendingLessonCompletion == nil,lessonCompletion == nil { waitingCelebration=false;celebration=true } else { waitingCelebration=true }
     }
+    private func presentPendingLessonCompletion() {
+        guard let pending=app.pendingLessonCompletion else { return }
+        guard pending.account == app.identity.npub,pending.target == app.learner.target else { app.pendingLessonCompletion=nil;return }
+        guard !app.lessonActivityActive,panel == nil,!menuOpen,lessonCompletion == nil else { return }
+        Task { @MainActor in
+            try? await Task.sleep(for:.milliseconds(150))
+            guard app.pendingLessonCompletion?.id == pending.id,pending.account == app.identity.npub,pending.target == app.learner.target,!app.lessonActivityActive,panel == nil,!menuOpen,lessonCompletion == nil else { return }
+            presentedLessonCompletionID=pending.id;lessonCompletion=pending
+        }
+    }
+    private func finishLessonCompletion() {
+        if app.pendingLessonCompletion?.id == presentedLessonCompletionID { app.pendingLessonCompletion=nil }
+        presentedLessonCompletionID=nil;presentPendingLessonCompletion();checkCompletion()
+    }
+    private func closeLessonCompletion() { lessonCompletion=nil;finishLessonCompletion() }
     private func saveSession() { if let guided,let data=try? JSONEncoder().encode(guided) { UserDefaults.standard.set(data,forKey:sessionKey) } else { UserDefaults.standard.removeObject(forKey:sessionKey) } }
     private var completion:some View {
         let cleared=app.plateCourses.allSatisfy(\.done)
         return VStack(spacing:24) {
             CompanionArtwork(type:app.learner.effectiveCompanionType).frame(width:96,height:96)
-            Text(ProductCopy.text(language,cleared ? "PLATE_CLEARED_COPY" : "PLATE_EXERCISE_COMPLETE_COPY")).font(PiyaliBrand.font(28,700)).multilineTextAlignment(.center)
-            if cleared { Text("+\(DailyPlate.bonus) XP").font(PiyaliBrand.font(40,700)) }
+            Text(ProductCopy.text(language,cleared ? "PLATE_CLEARED_COPY" : "PLATE_EXERCISE_COMPLETE_COPY")).font(PiyaliBrand.productFont(28,700)).multilineTextAlignment(.center)
+            if cleared { Text("+\(DailyPlate.bonus) XP").font(PiyaliBrand.productFont(40,700)) }
             else if let next=app.plateCourses.first(where:{ !$0.done }) { Text(ProductCopy.text(language,"PLATE_NEXT_COPY")+": "+ProductCopy.course(language,next.kind)) }
             Button(ProductCopy.text(language,"PLATE_CONTINUE_COPY")) {
                 celebration=false

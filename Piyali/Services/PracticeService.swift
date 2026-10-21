@@ -27,7 +27,7 @@ import Foundation
                 if let level=lesson.cefrLevel ?? (LearningLanguages.levels.contains(lesson.agenda["cefrLevel"].string) ? lesson.agenda["cefrLevel"].string : nil) { lessonData=lessonData.setting("cefrLevel",.string(level)) }
             }
             let context:JSONValue = .object(["lesson":lessonData,"targetLang":.string(state.target),"user":user])
-            let options=try recipes.select(module:module,context:context),kind=options["exerciseType"].string
+            let options=try recipes.select(module:module,context:context).setting("isFinalQuiz",.bool(lesson?.isFinalQuiz == true)),kind=options["exerciseType"].string
             let recent=Array(state.history.filter { $0.target == state.target && $0.mode.lowercased() == module.rawValue && $0.correct }.prefix(5)).map { JSONValue.string($0.question) }
             let parameters=options.setting("targetLang",.string(state.target)).setting("supportLang",.string(state.support)).setting("appUILang",.string(state.support)).setting("showTranslations",.bool(true)).setting("lessonContent",lesson?.content[module.rawValue] ?? .null).setting("user",user).setting("recentGood",.array(recent)).setting("recentQuestions",.array(recent))
             let prompt=try recipes.build(module:module,kind:kind,parameters:parameters)
@@ -107,8 +107,11 @@ import Foundation
         let prompt=try recipes.build(module:q.module,kind:kind,parameters:parameters)
         let output=try await judge(prompt).trimmingCharacters(in:.whitespacesAndNewlines).uppercased()
         guard output.hasPrefix("YES") || output.hasPrefix("NO") else { throw PracticeQuestionFailure.malformed }
-        let amount=output.split(separator:"|").dropFirst().first.flatMap { Int($0.trimmingCharacters(in:.whitespacesAndNewlines)) }
-        return(output.hasPrefix("YES"),q.kind == "flashcard" ? amount.map { max(4,min(7,$0)) } ?? 5 : nil)
+        let amount=output.split(separator:"|").dropFirst().first.flatMap { part -> Int? in
+            let text=part.trimmingCharacters(in:.whitespacesAndNewlines)
+            guard let range=text.range(of:"^[+-]?[0-9]+",options:.regularExpression) else { return nil };return Int(text[range])
+        }
+        return(output.hasPrefix("YES"),q.kind == "flashcard" ? amount.flatMap { (4...7).contains($0) ? $0 : nil } ?? 5 : nil)
     }
     private func normalized(_ text:String)->String { text.folding(options:[.diacriticInsensitive,.caseInsensitive],locale:Locale(identifier:"en_US_POSIX")).components(separatedBy:CharacterSet.alphanumerics.union(.whitespaces).union(CharacterSet(charactersIn:"'")).inverted).joined().split(whereSeparator:{$0.isWhitespace}).joined(separator:" ") }
     func explain(_ app:AppModel,run:PracticeRun) async {

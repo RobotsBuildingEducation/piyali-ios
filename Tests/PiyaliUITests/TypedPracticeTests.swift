@@ -23,6 +23,30 @@ import XCTest
         app.buttons["closeLessonPreview"].tap();XCTAssertTrue(app.buttons["introLink"].waitForExistence(timeout:5));XCTAssertFalse(app.staticTexts["introProgress"].exists)
         app.buttons["introLink"].tap();app.buttons["startLessonFromPreview"].tap();XCTAssertTrue(app.staticTexts["introProgress"].waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts["introProgress"].label.contains("0 / 6"))
     }
+    func testCurriculumLessonRequiresItsOwnEightyXPThenShowsOneBonusAndUnlocksTheNextNode() {
+        continueAfterFailure=false;let app=launch(kind:"delight:natural_or_weird",enterPractice:false)
+        func openPath() { XCTAssertTrue(app.buttons["productMenu"].waitForExistence(timeout:15));app.buttons["productMenu"].tap();app.buttons["productModeMenu"].tap();app.buttons["productMode-path"].tap() }
+        openPath();XCTAssertTrue(app.buttons["introLink"].waitForExistence(timeout:15));app.buttons["introLink"].tap();app.buttons["startLessonFromPreview"].tap()
+        for _ in 0..<6 { let next=app.buttons["introNext"];reveal(next,app);next.tap() }
+        let finish=app.buttons["introFinish"];reveal(finish,app);finish.tap();XCTAssertFalse(finish.isEnabled);app.buttons["BackButton"].tap()
+        let first=app.buttons["lessonNode-lesson-pre-a1-1-1"],second=app.buttons["lessonNode-lesson-pre-a1-1-2"]
+        XCTAssertTrue(first.waitForExistence(timeout:5));XCTAssertTrue(first.isEnabled);XCTAssertFalse(second.isEnabled)
+        first.tap();XCTAssertTrue(app.staticTexts["+80 XP"].waitForExistence(timeout:5));app.buttons["startLessonFromPreview"].tap()
+        XCTAssertTrue(app.staticTexts["activeLessonXP"].waitForExistence(timeout:5));XCTAssertEqual(app.staticTexts["activeLessonXP"].label,"0 / 80 XP")
+        for turn in 1...14 {
+            let correct=app.buttons["typedChoice-0"];XCTAssertTrue(correct.waitForExistence(timeout:5));reveal(correct,app);correct.tap()
+            let check=app.buttons["checkTypedAnswer"];reveal(check,app);check.tap()
+            if turn < 14 {
+                let next=app.buttons["nextTypedQuestion"];XCTAssertTrue(next.waitForExistence(timeout:5));XCTAssertEqual(app.staticTexts["activeLessonXP"].label,"\(turn*6) / 80 XP")
+                if turn == 2 { XCTAssertFalse(app.staticTexts["lessonCompletionBonus"].exists,"One correct answer in each module cannot complete an 80-XP lesson") }
+                reveal(next,app);next.tap()
+            }
+        }
+        let bonus=app.staticTexts["lessonCompletionBonus"];XCTAssertTrue(bonus.waitForExistence(timeout:10));XCTAssertEqual(bonus.label,"+80");XCTAssertTrue(app.staticTexts["Lesson Complete!"].exists)
+        let shot=XCTAttachment(screenshot:app.screenshot());shot.name="Native completed 80 XP curriculum lesson";shot.lifetime = .keepAlways;add(shot)
+        app.buttons["continueLessonCompletion"].tap();XCTAssertTrue(first.waitForExistence(timeout:5));XCTAssertEqual(first.value as? String,"completed");XCTAssertTrue(second.isEnabled)
+        app.terminate();app.launch();openPath();XCTAssertTrue(first.waitForExistence(timeout:10));XCTAssertEqual(first.value as? String,"completed");XCTAssertTrue(second.isEnabled);XCTAssertFalse(app.staticTexts["lessonCompletionBonus"].exists)
+    }
     func testBinaryQuestionRetriesInPlaceAndCorrectRewardSurvivesRelaunch() {
         continueAfterFailure=false;let app=launch(kind:"delight:natural_or_weird")
         app.buttons["typedChoice-1"].tap();let check=app.buttons["checkTypedAnswer"];reveal(check,app);check.tap()

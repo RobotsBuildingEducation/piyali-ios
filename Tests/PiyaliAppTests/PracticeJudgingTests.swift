@@ -28,6 +28,8 @@ import XCTest
         }
         let card=try PracticeQuestion(module:.vocabulary,kind:"flashcard",payload:.object(["concept":.string("hello"),"answer":.string("hola")]),options:options,target:"es",support:"en")
         let run=PracticeRun(question:card,lessonID:nil,lessonLevel:nil,response:.object(["text":.string("hola")]))
-        let result=try await service.verdict(run:run,recipes:engine,judge:{ prompt in XCTAssertTrue(prompt.contains("hello"));return "YES | 7" });XCTAssertTrue(result.correct);XCTAssertEqual(result.reward,7)
+        for (output,reward) in [("YES | 7",7),("YES | 7 XP",7),("YES | 99",5),("YES",5)] {
+            let result=try await service.verdict(run:run,recipes:engine,judge:{ prompt in XCTAssertTrue(prompt.contains("hello"));return output });XCTAssertTrue(result.correct);XCTAssertEqual(result.reward,reward)
+        }
     }
 }

@@ -53,7 +53,7 @@ public extension LearnerState {
     }
     @discardableResult mutating func answerPractice(key:String,questionID:UUID,correct:Bool,reward:Int,now:Date = Date())->Bool {
         guard var run=practiceRuns?[key],run.question.id == questionID,run.question.target == target,run.question.support == support,run.correct != true else { return false }
-        run.correct=correct;run.earnedXP=correct ? max(0,min(10,reward)) : 0;run.updatedAt=now
+        run.correct=correct;run.earnedXP=correct && !run.question.options["isFinalQuiz"].boolean ? max(0,min(10,reward)) : 0;run.updatedAt=now
         let q=run.question
         assess(correct:correct,independent:!run.assisted,now:now,questionLevel:q.level)
         if correct,run.earnedXP > 0 {

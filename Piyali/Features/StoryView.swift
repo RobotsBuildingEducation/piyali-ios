@@ -7,6 +7,9 @@ struct StoryView:View {
     @StateObject private var speech=SpeechService()
     let lesson:Lesson?
     var onComplete:(()->Void)? = nil
+    var embedded=false
+    var startsFresh=false
+    @State private var appeared=false
     @State private var chosen=StoryMode.allCases.randomElement()!
     @State private var refresh=0
     @State private var typed=""
@@ -22,8 +25,8 @@ struct StoryView:View {
         Group {
             if StoryService.fixtureMode != nil { activity }
             else { SubscriptionRequiredView(service:app.subscription) { activity } }
-        }.navigationTitle("Stories")
-            .task(id:scope) { speech.stopAll();playingScene=nil;typed="";transcript=false;await service.prepare(app,lesson:lesson,mode:mode,fresh:refresh > 0) }
+        }.navigationTitle(embedded ? lesson?.title.localized(app.learner.support) ?? "Stories" : "Stories")
+            .task(id:scope) { speech.stopAll();playingScene=nil;typed="";transcript=false;let fresh=refresh > 0 || startsFresh && !appeared;appeared=true;await service.prepare(app,lesson:lesson,mode:mode,fresh:fresh) }
             .onDisappear { service.cancel();speech.stopAll();playingScene=nil }
             .sheet(item:$role) { request in StoryRolePracticeView(request:request,onFinish:{
                 guard var current=app.learner.story,current.id == request.runID,current.index == request.part else { return }
@@ -57,7 +60,7 @@ struct StoryView:View {
             if run.mode == .speaking { Text("\(run.passedLines.count) / \(run.sentences.count) lines practiced successfully. Each line earns 2 XP once.") }
             else { Text("\(run.correctQuestions) / \(run.count) checkpoints correct. Finishing the episode earns 6 XP once.") }
             if !run.completed { Button("Finish story") {
-                _=app.learner.finishStory();app.persist();if let onComplete { onComplete();dismiss() }
+                _=app.learner.finishStory();app.persist();if let onComplete { onComplete();if !embedded { dismiss() } }
             }.accessibilityIdentifier("storyFinish") }
             Button("Save story to notes") { app.learner.notes.insert(Note(title:run.title,body:run.text),at:0);app.persist() }
         }

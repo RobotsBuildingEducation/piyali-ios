@@ -20,6 +20,8 @@ import SwiftUI
     @Published var syncStatus = "Saved on this iPhone"
     @Published var loadingContent = false
     @Published private(set) var localPracticeRevision=UUID()
+    @Published var lessonActivityActive=false
+    @Published var pendingLessonCompletion:LessonCompletionPresentation?
     let identity = IdentityService()
     let ai = AIService()
     let subscription = SubscriptionService()
@@ -110,6 +112,7 @@ import SwiftUI
         automaticTipTask?.task.cancel();automaticTipTask=nil;automaticWallet.cancel(clear:true)
         saveTask?.cancel(); contentTask?.cancel()
         let account = identity.npub
+        lessonActivityActive=false;pendingLessonCompletion=nil
         loadLocal()
         if let profile=newProfile {
             learner.name=profile.name;learner.support=LearningLanguages.support.contains(profile.support) ? profile.support : "en"
@@ -134,7 +137,7 @@ import SwiftUI
     func disconnectRemote() {
         do {
             try writeLocal();automaticTipTask?.task.cancel();automaticTipTask=nil;automaticWallet.cancel(clear:true);saveTask?.cancel();contentTask?.cancel();nostrSyncTask?.cancel();nostrAchievements.cancel();teams.cancel(clear:true)
-            try identity.disconnect();FirebaseIdentityService.shared.clearSession();signedIn=false;subscription.bind(identity);learner=LearnerState()
+            try identity.disconnect();FirebaseIdentityService.shared.clearSession();signedIn=false;lessonActivityActive=false;pendingLessonCompletion=nil;subscription.bind(identity);learner=LearnerState()
         } catch { self.error=error.localizedDescription }
     }
     func boot() async { guard signedIn else { return };scheduleAutomaticTips(recovering:true); await reloadContent(); await sync(); await subscription.refresh(); scheduleNostrAchievements();scheduleAutomaticTips() }

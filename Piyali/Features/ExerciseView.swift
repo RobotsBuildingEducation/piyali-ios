@@ -6,7 +6,8 @@ struct ExerciseView: View {
     var concept:String?=nil
     var flashcardID:String?=nil
     var body:some View {
-        if flashcardID == nil,[.grammar,.vocabulary].contains(mode) { LessonPracticeView(module:mode == .grammar ? .grammar : .vocabulary,lesson:lesson) }
+        if flashcardID == nil,let lesson,lesson.isFinalQuiz == true { FinalQuizView(lesson:lesson) }
+        else if flashcardID == nil,[.grammar,.vocabulary].contains(mode) { LessonPracticeView(module:mode == .grammar ? .grammar : .vocabulary,lesson:lesson) }
         else { LegacyExerciseView(mode:mode,lesson:lesson,concept:concept,flashcardID:flashcardID) }
     }
 }

@@ -7,6 +7,9 @@ struct ReadingView:View {
     @StateObject private var speech=SpeechService()
     let lesson:Lesson?
     var onComplete:(()->Void)? = nil
+    var embedded=false
+    var startsFresh=false
+    @State private var appeared=false
     @State private var refresh=0
     @State private var answer=""
     @State private var showTranslation=false
@@ -14,8 +17,8 @@ struct ReadingView:View {
     private var run:ReadingRun? { guard let run=app.learner.reading,run.support == app.learner.support,run.lessonID == lesson?.id else { return nil };return run }
     var body:some View {
         Group { if ReadingService.fixture { activity } else { SubscriptionRequiredView(service:app.subscription) { activity } } }
-            .navigationTitle("Reading")
-            .task(id:scope) { speech.stopAll();answer="";showTranslation=false;await service.prepare(app,lesson:lesson,fresh:refresh > 0);answer=run?.answer ?? "" }
+            .navigationTitle(embedded ? lesson?.title.localized(app.learner.support) ?? "Reading" : "Reading")
+            .task(id:scope) { speech.stopAll();answer="";showTranslation=false;let fresh=refresh > 0 || startsFresh && !appeared;appeared=true;await service.prepare(app,lesson:lesson,fresh:fresh);answer=run?.answer ?? "" }
             .onDisappear { service.cancel();speech.stopAll() }
     }
     private var activity:some View {
@@ -29,7 +32,7 @@ struct ReadingView:View {
                     Section("Review complete") {
                         Text("+\(run.reward) XP saved").accessibilityIdentifier("readingCompleted")
                         Text(run.feedback)
-                        if let onComplete { Button("Continue guide") { onComplete();dismiss() } }
+                        if let onComplete { Button(embedded ? EntryCopy.ui(app.learner.support,"grammar_next") : "Continue guide") { onComplete();if !embedded { dismiss() } } }
                     }
                 } else { review(run) }
             }

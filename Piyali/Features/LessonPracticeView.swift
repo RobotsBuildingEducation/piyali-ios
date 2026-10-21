@@ -8,10 +8,14 @@ struct LessonPracticeView:View {
     @StateObject private var speech=SpeechService()
     let module:PracticeRecipeModule
     let lesson:Lesson?
+    var onNext:(()->Void)?=nil
+    var startsFresh=false
+    var embedded=false
     @State private var showTranscript=false
     @State private var noteSaved=false
     @State private var showDeck=false
     @State private var active=false
+    @State private var appeared=false
     @FocusState private var answering:Bool
     private var brand:PiyaliBrand { .init(dark:scheme == .dark) }
     private var key:String { PracticeRun.key(target:app.learner.target,lesson:lesson?.id,module:module) }
@@ -35,7 +39,7 @@ struct LessonPracticeView:View {
                             Text(copy(module == .grammar ? (correct ? "grammar_result_correct" : "grammar_result_try_again") : (correct ? "vocab_result_correct" : "vocab_result_try_again")).replacingOccurrences(of:"{xp}",with:String(run.earnedXP))).font(PiyaliBrand.productFont(17,600)).foregroundStyle(correct ? brand.questionSuccess : brand.questionError).accessibilityIdentifier("practiceVerdict")
                             if !run.explanation.isEmpty { Text(run.explanation).font(PiyaliBrand.productFont(15)).textSelection(.enabled) }
                             if correct {
-                                Button(questionCopy(run,"nextQuestion",fallback:copy("grammar_next"))) { speech.stopAll();showTranscript=false;noteSaved=false;Task { await service.prepare(app,module:module,lesson:lesson,fresh:true) } }.buttonStyle(QuestionPrimaryButtonStyle()).disabled(service.busy).accessibilityIdentifier("nextTypedQuestion")
+                                Button(questionCopy(run,"nextQuestion",fallback:copy("grammar_next"))) { speech.stopAll();showTranscript=false;noteSaved=false;if let onNext { onNext() } else { Task { await service.prepare(app,module:module,lesson:lesson,fresh:true) } } }.buttonStyle(QuestionPrimaryButtonStyle()).disabled(service.busy).accessibilityIdentifier("nextTypedQuestion")
                             }
                         }
                         if run.correct != true {
@@ -45,12 +49,13 @@ struct LessonPracticeView:View {
                     if service.busy { ProgressView().frame(maxWidth:.infinity).accessibilityIdentifier("typedPracticeBusy") }
                     if let error=service.error { Text(error).foregroundStyle(.red);Button("Try again") { Task { if run == nil { await service.prepare(app,module:module,lesson:lesson,fresh:true) } else if let run { await service.check(app,run:run) } } }.disabled(service.busy) }
                     if let error=speech.error { Text(error).font(PiyaliBrand.productFont(13)).foregroundStyle(.red) }
+                    if let onNext { Button(PracticeCopy.text(variant:"flashcard",language:app.learner.support,key:"skip")) { speech.stopAll();onNext() }.font(PiyaliBrand.productFont(14,600)).foregroundStyle(brand.secondary).accessibilityIdentifier("skipLessonActivity") }
                 }.padding(24).frame(maxWidth:640).frame(maxWidth:.infinity,alignment:.center)
             }.background(brand.background).foregroundStyle(brand.text)
-        }.navigationTitle(module == .grammar ? "Grammar" : "Vocabulary")
+        }.navigationTitle(embedded ? lesson?.title.localized(app.learner.support) ?? "" : module == .grammar ? "Grammar" : "Vocabulary")
             .toolbar { ToolbarItemGroup(placement:.keyboard) { Spacer();Button("Done") { answering=false }.accessibilityIdentifier("practiceKeyboardDone") } }
             .sheet(isPresented:$showDeck) { PracticeDeckView(cards:app.learner.practiceDecks?[app.learner.practiceDeckKey(module)] ?? [],support:app.learner.support) }
-            .task(id:scope) { speech.stopAll();showDeck=false;await service.prepare(app,module:module,lesson:lesson) }
+            .task(id:scope) { speech.stopAll();showDeck=false;let fresh=startsFresh && !appeared;appeared=true;await service.prepare(app,module:module,lesson:lesson,fresh:fresh) }
             .onAppear { active=true }
             .onChange(of:speech.transcript) { _,text in if active { updateResponse("text",.string(text)) } }
             .onChange(of:speech.recording) { wasRecording,recording in

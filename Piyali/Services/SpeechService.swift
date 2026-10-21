@@ -19,7 +19,7 @@ private final class SpeechSamples:@unchecked Sendable {
     @Published var confidence=0.0
     @Published var audioMetrics:SpeechAudioMetrics?
     private let synthesizer = AVSpeechSynthesizer()
-    private let engine = AVAudioEngine()
+    private var audioEngine:AVAudioEngine?
     private var task: SFSpeechRecognitionTask?
     private var request: SFSpeechAudioBufferRecognitionRequest?
     private var tapInstalled = false
@@ -56,6 +56,7 @@ private final class SpeechSamples:@unchecked Sendable {
         guard status == .authorized, mic else { error = "Enable microphone and speech recognition in Settings to practice aloud."; return }
         guard let recognizer = SFSpeechRecognizer(locale: Locale(identifier: LearningLanguages.locales[language] ?? "en-US")), recognizer.isAvailable else { error = "Speech recognition is unavailable for this language. You can type your answer."; return }
         do {
+            let engine=audioEngine ?? AVAudioEngine();audioEngine=engine
             try AVAudioSession.sharedInstance().setCategory(.playAndRecord, mode: .measurement, options: [.defaultToSpeaker, .allowBluetoothHFP])
             try AVAudioSession.sharedInstance().setActive(true)
             let request = SFSpeechAudioBufferRecognitionRequest(); request.shouldReportPartialResults = true
@@ -76,8 +77,8 @@ private final class SpeechSamples:@unchecked Sendable {
     }
     func stop() {
         generation=UUID()
-        engine.stop()
-        if tapInstalled { engine.inputNode.removeTap(onBus: 0); tapInstalled = false }
+        audioEngine?.stop()
+        if tapInstalled { audioEngine?.inputNode.removeTap(onBus: 0); tapInstalled = false }
         request?.endAudio(); task?.cancel(); task = nil; request = nil; recording = false
         audioMetrics=samples.metrics()
     }

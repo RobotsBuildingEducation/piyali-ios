@@ -38,4 +38,9 @@ final class PracticeRunTests:XCTestCase {
         let saved=try JSONDecoder().decode(LearnerState.self,from:JSONEncoder().encode(state))
         XCTAssertEqual(saved.practiceRuns?[run.key]?.showAnswer,true);XCTAssertEqual(saved.practiceDecks?["es:vocabulary"]?.first?.answer,"Hola")
     }
+    func testQuizQuestionContractCannotAwardPracticeXPEvenWhenARewardWasRequested() throws {
+        let q=try PracticeQuestion(module:.grammar,kind:"fill",payload:.object(["question":.string("___, Ana")]),options:options.setting("isFinalQuiz",.bool(true)),target:"es",support:"en")
+        var state=LearnerState();let run=PracticeRun(question:q,lessonID:lesson.id,lessonLevel:"A1",response:.object(["text":.string("Hola")]))
+        state.savePractice(run);XCTAssertTrue(state.answerPractice(key:run.key,questionID:q.id,correct:true,reward:6));XCTAssertEqual(state.totalXP,0);XCTAssertEqual(state.practiceRuns?[run.key]?.earnedXP,0)
+    }
 }
