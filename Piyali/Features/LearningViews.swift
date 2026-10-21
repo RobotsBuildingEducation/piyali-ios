@@ -96,7 +96,13 @@ struct LessonView: View {
                     if !goal.isEmpty { Text(goal) }
                 }
             }
-            Section("Practice each skill") {
+            if lesson.isFinalQuiz == true {
+                Section("Final quiz") {
+                    let rules=QuizRules(lesson.quizConfig ?? .object([:]))
+                    Text("Pass by answering \(rules.passingScore) of up to \(rules.questionsRequired) questions correctly.")
+                    NavigationLink("Take final quiz") { FinalQuizView(lesson:lesson) }.accessibilityIdentifier("finalQuizLink")
+                }
+            } else { Section("Practice each skill") {
                 ForEach(AppModel.modes(for: lesson)) { mode in
                     NavigationLink { if mode == .game { RPGView(lesson:lesson,episode:nil) } else if mode == .reading { ReadingView(lesson:lesson) } else if mode == .stories { StoryView(lesson:lesson) } else { ExerciseView(mode: mode, lesson: lesson) } } label: {
                         HStack {
@@ -109,7 +115,7 @@ struct LessonView: View {
                     .disabled(!app.canComplete(lesson) || app.learner.completed.contains(app.learner.completionKey(lesson.id)))
                 Text("Complete a correct exercise in every listed skill to finish this lesson.").font(.footnote) }
                 else { Text("Finish the adventure and confirm its recap to complete this unit review. Stars determine the lesson XP reward.").font(.footnote) }
-            }
+            } }
         }.navigationTitle(lesson.title.localized(app.learner.support))
     }
 }
@@ -123,6 +129,7 @@ struct PracticeLibraryView: View {
                 NavigationLink("Phonics (\(app.phonics.count))") { PhonicsView() }
             }
             Section("Practice modes") {
+                NavigationLink("Surprise practice") { ShufflePracticeView() }
                 ForEach(PracticeMode.allCases) { mode in
                     if mode == .conversation { NavigationLink(mode.rawValue) { ConversationView() }.accessibilityIdentifier("conversationLink") }
                     else if mode == .game { NavigationLink(mode.rawValue) { RPGLibraryView() }.accessibilityIdentifier("adventureLink") }

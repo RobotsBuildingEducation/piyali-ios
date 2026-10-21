@@ -15,6 +15,28 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
     func createProvider(with app: FirebaseApp) -> AppCheckProvider? { EmulatorAppCheckProvider() }
 }
 @MainActor final class FirestoreContractTests: XCTestCase {
+    func testFinalQuizRestoresQuestionAndCountsAssessmentsAndLessonRewardOnce() async throws {
+        let (service,db,npub)=try context();try await seed(db,npub)
+        let levels=try ContentLibrary.load([String:[LearningUnit]].self,name:"curriculum-fr"),lesson=try XCTUnwrap(levels["Pre-A1"]?.flatMap(\.lessons).first { $0.isFinalQuiz == true })
+        var state=try requireState(await service.load(npub:npub)),run=FinalQuizRun(lesson:lesson,learner:try requireState(await service.load(npub:npub)))
+        let startXP=state.totalXP
+        for index in 0..<8 {
+            XCTAssertTrue(run.prepare(Exercise(passage:"",question:"Choose a greeting",choices:["bonjour","au revoir"],answer:"bonjour",explanation:"Bonjour means hello."),mode:index%2==0 ? .grammar : .vocabulary));state.saveQuiz(run)
+            if index == 4 {
+                _=try await service.save(state,npub:npub);let restored=try requireState(await service.load(npub:npub)),draft=try XCTUnwrap(restored.quizRuns?[restored.quizKey(lesson.id)])
+                XCTAssertEqual(draft.question?.id,run.question?.id);XCTAssertEqual(draft.answers.count,4);XCTAssertNil(draft.question?.grade);XCTAssertEqual(restored.totalXP,startXP);state=restored;run=draft
+            }
+            XCTAssertTrue(state.answerQuiz(lesson:lesson,runID:run.id,questionID:try XCTUnwrap(run.question?.id),answer:"bonjour",grade:Grade(correct:true,feedback:"Correct",correctedAnswer:"bonjour")))
+            run=try XCTUnwrap(state.quizRuns?[state.quizKey(lesson.id)])
+        }
+        XCTAssertTrue(state.quizPassed(lesson));XCTAssertTrue(state.complete(lesson));let sent=state
+        _=try await service.save(sent,npub:npub);_=try await service.save(sent,npub:npub)
+        let restored=try requireState(await service.load(npub:npub))
+        XCTAssertTrue(restored.quizPassed(lesson));XCTAssertTrue(restored.completed.contains(restored.completionKey(lesson.id)));XCTAssertEqual(restored.totalXP,startXP+lesson.xpReward);XCTAssertEqual(restored.gradedByLanguage?["fr"],8)
+        let root=try await db.collection("users").document(npub).getDocument(source:.server);XCTAssertEqual(root.data()?["patreonVerified"] as? Bool,true)
+        var newer=sent,edited=run;edited.updatedAt=Date().addingTimeInterval(2);newer.saveQuiz(edited)
+        XCTAssertEqual(LearnerState.rebased(current:newer,sent:sent,acknowledged:restored).quizRuns?[newer.quizKey(lesson.id)]?.updatedAt,edited.updatedAt)
+    }
     func testExplorationInventoryAndQuestDraftRestoreWithoutChangingXPOrEntitlements() async throws {
         let (service,db,npub)=try context();try await seed(db,npub)
         let user=db.collection("users").document(npub)

@@ -9,6 +9,26 @@ import NostrSDK
 
 /// Explicit opt-in only. Uses an isolated test identity, bounded prompts and no paid access grant.
 @MainActor final class LiveAPIIntegrationTests: XCTestCase {
+    func testNativeFinalQuizQuestionsUseAuthoredContentAndProviderFallback() async throws {
+        guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else { throw XCTSkip("Explicit live API opt-in required.") }
+        XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))
+        if FirebaseApp.app() == nil { AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure() };XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let identity=IdentityService();try identity.create();try await FirebaseIdentityService.shared.ensure(identity)
+        do {
+            let fallback=AIService(configuration:AppConfiguration(values:AppConfiguration().values.merging(["AIProvider":"responses"]) { _,new in new }))
+            for (target,mode,ai) in [("es",PracticeMode.grammar,AIService()),("ja",PracticeMode.vocabulary,fallback)] {
+                let levels=try ContentLibrary.load([String:[LearningUnit]].self,name:"curriculum-"+target),lesson=try XCTUnwrap(levels["A1"]?.flatMap(\.lessons).first { $0.isFinalQuiz == true })
+                var state=LearnerState();state.target=target;state.support="en";state.level="A1"
+                var run=FinalQuizRun(lesson:lesson,learner:state)
+                let exercise=try await ai.exercise(mode:mode,lesson:lesson,learner:state,concept:FinalQuizService.concept(run,mode:mode))
+                XCTAssertTrue(run.prepare(exercise,mode:mode));state.saveQuiz(run)
+                let grade=try await ai.grade(exercise:exercise,answer:exercise.answer,learner:state);XCTAssertTrue(grade.correct)
+                XCTAssertTrue(state.answerQuiz(lesson:lesson,runID:run.id,questionID:try XCTUnwrap(run.question?.id),answer:exercise.answer,grade:grade));XCTAssertEqual(state.totalXP,0);XCTAssertEqual(state.quizRuns?[state.quizKey(lesson.id)]?.answers.count,1)
+                print("LIVE QUIZ PASS: target=\(target), mode=\(mode.rawValue), authored question validated, one zero-XP assessment")
+            }
+        } catch { try? await Auth.auth().currentUser?.delete();try? Auth.auth().signOut();try? identity.disconnect();throw error }
+        try await Auth.auth().currentUser?.delete();try Auth.auth().signOut();try identity.disconnect()
+    }
     func testNativeExplorationQuestReauthoringAndNPCSpeechPreservePlayablePaths() async throws {
         guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else { throw XCTSkip("Explicit live API opt-in required.") }
         XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))

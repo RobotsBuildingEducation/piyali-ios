@@ -5,7 +5,7 @@ import XCTest
     func testSignedPostsKeepMultipleNotesPerAuthorFilterMetadataAndCache() async throws {
         let relay=LocalNostrRelay();defer { relay.stop() }
         let posts=try [testNostrEvent(kind:1,tags:[["t","LearnWithNostr"]],content:"Finished question 30",createdAt:100),testNostrEvent(kind:1,tags:[["t","learnwithnostr"],["purpose","nosaboProgress"],["total_xp","123"],["daily_goal_percent","125"]],content:"I just reached 123 XP",createdAt:102),testNostrEvent(kind:1,tags:[["t","unrelated"]],content:"question 90",createdAt:103)]
-        let old=try testNostrEvent(kind:0,tags:[],content:"{\"name\":\"test\"}",createdAt:1),profile=try testNostrEvent(kind:0,tags:[],content:"{\"name\":\"Ada\"}",createdAt:2)
+        let old=try testNostrEvent(kind:0,tags:[["d","metadata-ignores-this"]],content:"{\"name\":\"test\"}",createdAt:1),profile=try testNostrEvent(kind:0,tags:[],content:"{\"name\":\"Ada\"}",createdAt:2)
         try await relay.start { frame,connection in
             guard frame.first as? String == "REQ",let sub=frame[1] as? String else { return }
             for event in posts+[old,profile,posts[0]] { relay.send(["EVENT",sub,wireEvent(event)],to:connection) }

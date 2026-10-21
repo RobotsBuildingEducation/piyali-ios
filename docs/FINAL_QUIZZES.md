@@ -1,0 +1,15 @@
+# Final quizzes
+
+The curriculum includes 1,246 final quizzes across fourteen practice-language datasets. Exported lessons now retain `isFinalQuiz`, `quizConfig` and their authored CEFR level. Standard/default quizzes require eight correct within ten questions; advanced quizzes require ten within twelve. Both use the browser's early passing and early failure rules.
+
+Learn → expand a unit → its quiz lesson → Take final quiz opens the native quiz. Grammar and vocabulary share one saved round for that lesson, matching the browser's lesson-scoped counters. The next-question picker chooses the activity. Questions come from the existing authenticated Gemini/Cloudflare exercise providers using the authored agenda and content at the quiz's CEFR level. Typed answers, choices, speech recognition, listening and saved feedback use native controls. Incomplete questions, choices missing a correct answer and replacement of an unanswered question are rejected.
+
+The active question, grade, answer history and counts survive relaunch through private learner state. One answer per question is accepted. A failed round offers a new attempt; late answers from a previous attempt, another language/support setting or another identity cannot update the current run. Leaving cancels generation/grading and speech. A finished quiz remains readable after the support language changes. Recent run details are bounded to thirty; compact pass records retain the lesson/configuration proof after older details are evicted.
+
+Quiz questions earn zero XP. Each graded question produces one assessment receipt, with the question UUID used as the receipt ID, and mistakes can enter companion repair memory. Passing unlocks the existing once-only lesson-completion reward. Ordinary skill checkmarks cannot bypass the quiz gate, including through the core lesson-completion method. Existing earned/completed lessons are preserved.
+
+Private quiz drafts/pass records use the native `iosStateJSON` snapshot, so simultaneous edits on different devices follow the documented last-writer-wins draft behavior. Question assessment receipts and lesson reward claims use the existing transaction protections. This does not import browser localStorage quiz drafts into the separate native backend.
+
+`scripts/export-quiz-content.mjs` reads the reference without changing it, enriches the existing native curriculum files without replacing their content, and executes `getDelightQuizOutcome` for standard, custom and advanced configurations. Its 9,216 reachable-prefix comparisons cover early passing and early failure, including the twelve-question configuration. The original content exporter now includes the metadata for subsequent full exports.
+
+A strict debug-only fixture requires all of offline mode, a UUID identity scope and the explicit quiz fixture flag. It supplies one local choice question for simulator tests, never an entitlement or production API bypass. Release builds always use the real subscription gate and providers.

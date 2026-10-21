@@ -47,6 +47,9 @@ public struct Lesson: Codable, Identifiable, Sendable {
     public let agenda: JSONValue
     public let content: JSONValue
     public var objectives: JSONValue? = nil
+    public var isFinalQuiz:Bool? = nil
+    public var quizConfig:JSONValue? = nil
+    public var cefrLevel:String? = nil
 }
 public struct Flashcard: Codable, Identifiable, Sendable {
     public let id: String
@@ -110,6 +113,8 @@ public struct Note: Codable, Identifiable, Sendable {
     public var body: String
 }
 public struct LearnerState: Codable, Sendable {
+    public var quizRuns:[String:FinalQuizRun]?
+    public var quizPasses:[String:QuizRules]?
     public var explorationRuns:[String:ExplorationRun]?
     public var readingRuns:[String:ReadingRun]?
     public var readingHistory:[String:[JSONValue]]?
@@ -215,7 +220,7 @@ public struct LearnerState: Codable, Sendable {
     }
     public mutating func complete(_ lesson: Lesson) -> Bool {
         let key = completionKey(lesson.id)
-        guard !completed.contains(key) else { return false }
+        guard !completed.contains(key),lesson.isFinalQuiz != true || quizPassed(lesson) else { return false }
         let source: PracticeSource = lesson.id.hasPrefix("goal-") ? .goal : lesson.id.hasPrefix("repair-") ? .repair : .lesson
         completed.insert(key); award(lesson.xpReward,source:source,contentID:lesson.id)
         if lesson.id.hasPrefix("repair-memory-") { reinforceMemory(id:String(lesson.id.dropFirst("repair-memory-".count))) }

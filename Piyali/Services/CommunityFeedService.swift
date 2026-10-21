@@ -42,7 +42,7 @@ struct CommunityPost:Identifiable {
                 let metadata=authors.isEmpty ? [] : (try? await self.client.query(filter:["kinds":[0],"authors":authors,"limit":authors.count])) ?? []
                 try Task.checkCancellation();guard version == self.generation,self.account == account else { return }
                 var names:[String:String]=[:]
-                for event in metadata { if let json=try? JSONDecoder().decode(JSONValue.self,from:Data(event.content.utf8)),!json["name"].string.isEmpty { names[event.pubkey]=String(json["name"].string.prefix(80)) } }
+                for event in metadata.sorted(by:{ $0.created_at == $1.created_at ? $0.id > $1.id : $0.created_at < $1.created_at }) { if let json=try? JSONDecoder().decode(JSONValue.self,from:Data(event.content.utf8)) { names[event.pubkey]=json["name"].string.isEmpty ? "New Private User" : String(json["name"].string.prefix(80)) } }
                 self.posts=sorted.compactMap { event in
                     let name=names[event.pubkey] ?? "New Private User"
                     guard let milestone=CommunityMilestone.parse(content:event.content,tags:event.tags,name:name),let npub=PublicKey(hex:event.pubkey)?.npub else { return nil }
