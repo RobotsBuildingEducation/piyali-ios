@@ -19,7 +19,7 @@ struct ConversationView: View {
             .onChange(of:app.learner.target) { _,_ in stop() }
             .onChange(of:app.identity.npub) { _,_ in stop() }
             .onChange(of:scenePhase) { _,phase in if phase != .active { stop() } }
-            .onChange(of:app.subscription.authorized) { _,allowed in if !allowed { stop() } }
+            .onChange(of:app.subscription.hasAccess) { _,allowed in if !allowed { stop() } }
             .onDisappear { stop() }
             .toolbar { ToolbarItemGroup(placement:.keyboard) { Spacer();Button("Done") { replyFocused=false } } }
     }

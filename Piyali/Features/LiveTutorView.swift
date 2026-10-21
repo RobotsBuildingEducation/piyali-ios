@@ -69,7 +69,7 @@ struct LiveTutorView: View {
             .onChange(of:goalBlueprint.map { app.goalIsCurrent($0) } ?? true) { _,valid in if !valid { Task { await live.stop() } } }
             .onChange(of:app.learner.target) { _,_ in Task { await live.stop() } }
             .onChange(of:app.identity.npub) { _,_ in Task { await live.stop() } }
-            .onChange(of: app.subscription.authorized) { _, allowed in if !allowed { Task { await live.stop() } } }
+            .onChange(of: app.subscription.hasAccess) { _, allowed in if !allowed { Task { await live.stop() } } }
     }
     func checkTutor(_ lesson: Lesson) {
         guard app.subscription.hasAccess, !checking else { return }

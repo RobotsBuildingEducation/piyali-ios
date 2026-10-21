@@ -120,9 +120,10 @@ struct TutorLibraryView: View {
                     ForEach(app.tutorUnits) { unit in
                         DisclosureGroup(unit.title.localized(app.learner.support)) {
                             ForEach(unit.lessons) { lesson in
+                                let access=app.learner.lessonAccess(lesson,units:app.tutorUnits,tutor:true)
                                 NavigationLink { TutorView(tutorLesson:lesson) } label: {
-                                    HStack { Text(lesson.title.localized(app.learner.support)); Spacer(); if app.learner.completed.contains(app.learner.tutorKey(lesson.id)) { Image(systemName:"checkmark.circle.fill") } }
-                                }
+                                    HStack { Text(lesson.title.localized(app.learner.support)); Spacer(); if access == .locked { Image(systemName:"lock.fill") } else if app.learner.completed.contains(app.learner.tutorKey(lesson.id)) { Image(systemName:"checkmark.circle.fill") } }
+                                }.disabled(!access.canOpen).accessibilityIdentifier("tutorNode-"+lesson.id).accessibilityValue(access.rawValue)
                             }
                         }
                     }

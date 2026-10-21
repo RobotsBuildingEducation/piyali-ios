@@ -126,9 +126,10 @@ public struct LearnerState: Codable, Sendable {
     public var target = "es"
     public var support = "en"
     public var level = "Pre-A1"
-    public var goal = "Hold everyday conversations"
+    public var goal = ""
     public var dailyGoal = 50
     public var xpByLanguage: [String: Int] = [:]
+    public var subscriptionXPAdjustment:Int?
     public var dailyXP = 0
     public var dailyKey = ""
     public var streak = 0
@@ -192,6 +193,7 @@ public struct LearnerState: Codable, Sendable {
         enqueue(PracticeChange(date:now,dayKey:CalendarDay.key(now),target:target,level:questionLevel ?? level,amount:0,source:.assessment,correct:correct,independent:independent))
     }
     public var totalXP: Int { xpByLanguage.values.reduce(0, +) }
+    public var subscriptionXP:Int { max(0,totalXP+(subscriptionXPAdjustment ?? 0)) }
     public var companionLevel: Int { max(1, xp / 100 + 1) }
     public func completionKey(_ lesson: String) -> String { "\(target):\(lesson)" }
     public func modeKey(_ lesson: String, _ mode: String) -> String { "\(target):\(lesson):\(mode)" }

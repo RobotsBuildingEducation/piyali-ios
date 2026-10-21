@@ -168,6 +168,7 @@ struct FlashcardsView: View {
     }
     var body: some View {
         Form {
+            Picker("Flashcard level",selection:Binding(get:{ app.learner.flashcardLevel },set:{ app.setCardLevel($0) })) { ForEach(app.cardLevels,id:\.self) { Text($0).tag($0) } }
             Toggle("Due and new cards only",isOn:$dueOnly)
             if let card {
                 Section("\(card.cefrLevel) · \(card.category)") {

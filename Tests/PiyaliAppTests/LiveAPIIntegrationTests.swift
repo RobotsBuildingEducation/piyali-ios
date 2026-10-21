@@ -9,6 +9,34 @@ import NostrSDK
 
 /// Explicit opt-in only. Uses an isolated test identity, bounded prompts and no paid access grant.
 @MainActor final class LiveAPIIntegrationTests: XCTestCase {
+    func testPublicLandingDemoReturnsLiveAudioWithoutAccount() async throws {
+        guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else { throw XCTSkip("Explicit live API opt-in required.") }
+        XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1")
+        _=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))
+        if FirebaseApp.app() == nil { AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure() }
+        XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        try Auth.auth().signOut();XCTAssertNil(Auth.auth().currentUser)
+        let demoApp=try await LandingDemoIdentity.connect()
+        defer { LandingDemoIdentity.disconnect() }
+        XCTAssertEqual(Auth.auth(app:demoApp).currentUser?.uid,"piyali-landing-demo")
+        do {
+            _=try await Firestore.firestore(app:demoApp).collection("users").document("piyali-landing-demo").getDocument(source:.server)
+            XCTFail("The public demo must not read learner documents, including its own service UID.")
+        } catch { XCTAssertEqual((error as NSError).code,FirestoreErrorCode.permissionDenied.rawValue) }
+        var denied=URLRequest(url:AppConfiguration().worker.appendingPathComponent("proxyResponses"));denied.httpMethod="POST";denied.setValue("application/json",forHTTPHeaderField:"Content-Type")
+        for (key,value) in try await FirebaseService.shared.appCheckHeaders() { denied.setValue(value,forHTTPHeaderField:key) }
+        denied.setValue("Bearer "+(try await Auth.auth(app:demoApp).currentUser!.getIDToken()),forHTTPHeaderField:"Authorization");denied.httpBody=Data("{}".utf8)
+        let (_,denial)=try await URLSession.shared.data(for:denied);XCTAssertEqual((denial as? HTTPURLResponse)?.statusCode,401)
+        let session=try await LandingDemoService.model(target:"es",support:"en",app:demoApp).connect()
+        await session.sendContent(LandingDemoService.course["turns"]["es"].array[0].string,turnComplete:true)
+        let received=try await withThrowingTaskGroup(of:Bool.self) { group in
+            group.addTask { for try await message in session.responses { if case .content(let content)=message.payload,(content.modelTurn?.parts ?? []).contains(where:{ ($0 as? InlineDataPart)?.data.isEmpty == false }) { return true } };return false }
+            group.addTask { try await Task.sleep(for:.seconds(30));await session.close();throw AppError.message("Public voice demo returned no audio within 30 seconds.") }
+            let value=try await group.next() ?? false;await session.close();group.cancelAll();return value
+        }
+        XCTAssertTrue(received);XCTAssertNil(Auth.auth().currentUser)
+        print("LIVE LANDING: real PCM audio with no learner sign-in; public demo denied Firestore and Responses access")
+    }
     func testNativeFinalQuizQuestionsUseAuthoredContentAndProviderFallback() async throws {
         guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else { throw XCTSkip("Explicit live API opt-in required.") }
         XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))

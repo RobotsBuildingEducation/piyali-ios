@@ -1,10 +1,12 @@
 # Piyali for iPhone
 
-A functional native SwiftUI iPhone client for the main Piyali language-learning product. This repository is independent of the reference React web app. It contains no citizenship, links directory, landing-page experiments or other external route implementations.
+An in-progress native SwiftUI iPhone port for the main Piyali language-learning product. This repository is independent of the reference React web app. It contains no citizenship, links directory, landing-page experiments or other external route implementations.
 
 Initial reference snapshot: `RobotsBuildingEducation/nosabos` commit `87d6fdc7954b89e021f336064fd6bf20a81d39f5`. Incremental exploration, community and quiz contract exports were checked against `d6c1184e056aa8a0f51a78d9a687213e1d2051db`. Content export reads the reference checkout without changing it.
 
 Open **Piyali.xcodeproj** in Xcode 26 or newer. Minimum iOS version is 17. Choose an iPhone simulator and run the **Piyali** scheme. Firebase configuration is optional for opening the app and practicing bundled content. All interfaces use ordinary SwiftUI controls; visual design is intentionally deferred.
+
+> **Parity correction:** The existing build does not yet match the web product. Prior component, transport and content tests do not establish functional or visual parity. Landing/login/onboarding, product navigation, guided sessions and exercise interactions are being reworked against the actual web screens. See [the corrected audit](docs/PARITY_AUDIT.md).
 
 ## Included
 

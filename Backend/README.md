@@ -4,6 +4,8 @@ Dedicated Cloudflare authentication and tutor worker for the independent `piyali
 
 `POST /auth/challenge` accepts a canonical `npub` and a valid Piyali iOS App Check token. It returns a 120-second, HTTP-bound Nostr event. `POST /auth/sign-in` verifies the exact Schnorr-signed event, consumes its challenge atomically in a SQLite Durable Object, and signs a Firebase custom token with that npub as the UID. Private Nostr keys stay on the device. Firebase signing credentials exist only in ignored local secrets and Cloudflare secrets. Requests are rate limited; Firebase rules prevent client subscription grants and cross-account data access.
 
+`POST /auth/landing-demo` requires App Check and an empty JSON object, with a separate five-requests-per-minute IP limit. It issues a five-minute custom-token exchange for the fixed `piyali-landing-demo` Firebase service identity with only a `piyali_public_demo` claim. The native app exchanges it in a separately named Firebase instance for public Gemini practice; the learner's Firebase session is untouched. The identity has no Nostr claim and cannot read or write learner documents or use `/proxyResponses`. The UI limits the unsaved demonstration to the reference's short lesson sequence; the custom-token exchange window is not a server-enforced five-turn quota.
+
 ## Development
 
 Use Node 22 or newer. `npm ci` and `npm test` run the backend unit checks. From the repository root, with Java 21 and Firebase CLI installed:

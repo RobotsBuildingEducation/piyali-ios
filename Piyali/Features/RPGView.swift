@@ -61,7 +61,7 @@ struct RPGView: View {
             .toolbar { ToolbarItemGroup(placement:.keyboard) { Spacer();Button("Done") { focused=false } } }
             .task(id:scope) { stop();talking=false;await service.prepare(app,lesson:lesson,episode:episode) }
             .onChange(of:speech.transcript) { _,text in answer=text }
-            .onChange(of:app.subscription.authorized) { _,allowed in if !allowed { stop() } }
+            .onChange(of:app.subscription.hasAccess) { _,allowed in if !allowed { stop() } }
             .onChange(of:phase) { _,p in if p != .active { stop() } }
             .onDisappear { stop() }
     }

@@ -1,0 +1,143 @@
+import SwiftUI
+
+enum ProductMode:String,CaseIterable {
+    case focus,path,cards,phonics,conversation,tutor
+    var symbol:String { switch self { case .focus:return "seal";case .path:return "point.topleft.down.to.point.bottomright.curvepath";case .cards:return "rectangle.stack";case .phonics:return "character.book.closed";case .conversation:return "bubble.left";case .tutor:return "book.closed" } }
+    func title(_ language:String)->String {
+        if self == .focus { return ProductCopy.text(language,"PLATE_TITLE_COPY") }
+        return EntryCopy.ui(language,"app_mode_"+([.path:"path",.cards:"cards",.phonics:"phonics",.conversation:"conversation",.tutor:"tutor"][self] ?? "path"))
+    }
+}
+enum ProductPanel:String,Identifiable { case settings,teams,assistant,memory,achievements,placement,goal;var id:String { rawValue } }
+struct ProductCopy {
+    static let entries=(try? ContentLibrary.load([String:JSONValue].self,name:"product-copy")) ?? [:]
+    static func data(_ language:String)->JSONValue { entries[language] ?? entries["en"] ?? .object([:]) }
+    static func text(_ language:String,_ key:String)->String { data(language)[key].string }
+    static func course(_ language:String,_ kind:String)->String { data(language)["courses"][kind].string }
+}
+
+struct ProductShellView:View {
+    @EnvironmentObject var app:AppModel
+    @Environment(\.colorScheme) private var scheme
+    @AppStorage("piyali.theme") private var theme="light"
+    @State private var mode:ProductMode = .focus
+    @State private var specialCourse:String?
+    @State private var menuOpen=false
+    @State private var modesOpen=false
+    @State private var panel:ProductPanel?
+    @State private var revision=UUID()
+    @State private var guided:GuidedPracticeSession?
+    @State private var celebration=false
+    @State private var waitingCelebration=false
+    private var language:String { app.learner.support }
+    private var brand:PiyaliBrand { PiyaliBrand(dark:scheme == .dark) }
+    private var sessionKey:String { "piyali.guidedSession."+app.identity.npub }
+    private var contextKey:String { app.identity.npub+":"+app.learner.target+":"+CalendarDay.key(Date()) }
+    var body:some View {
+        ZStack(alignment:.bottom) {
+            BrandBackground()
+            NavigationStack {
+                surface.navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement:.topBarLeading) { if mode == .focus { BrandArtwork(name:"piyali-orb.png").frame(width:32,height:32) } }
+                        ToolbarItem(placement:.topBarTrailing) { Button { panel = .goal } label:{ HStack(spacing:7) { Image(systemName:"flame");Text("\(app.learner.dailyXP) / \(app.learner.dailyGoal) XP").font(PiyaliBrand.font(12,600)) } }.accessibilityLabel("Open daily goal") }
+                    }
+            }.id(revision).tint(PiyaliBrand.teal).blur(radius:menuOpen ? 6 : 0).allowsHitTesting(!menuOpen)
+                .safeAreaInset(edge:.bottom) {
+                    Button { modesOpen=false;menuOpen.toggle() } label:{ Image(systemName:"square.grid.3x3.fill").font(.system(size:20)).foregroundStyle(brand.text).frame(width:58,height:58).background(brand.surface.opacity(0.92),in:RoundedRectangle(cornerRadius:20)).overlay { RoundedRectangle(cornerRadius:20).stroke(brand.border) } }.accessibilityLabel(mode.title(language)).accessibilityIdentifier("productMenu").padding(.bottom,10)
+                }
+            if menuOpen { menu }
+        }.font(PiyaliBrand.font(16)).foregroundStyle(brand.text)
+            .preferredColorScheme(theme == "dark" ? .dark : .light)
+            .environment(\.layoutDirection,language == "ar" ? .rightToLeft : .leftToRight)
+            .sheet(item:$panel) { selected in NavigationStack { panelContent(selected).toolbar { ToolbarItem(placement:.confirmationAction) { Button(EntryCopy.text(language,"back_button")) { panel=nil }.accessibilityIdentifier("productPanelClose") } } }.tint(PiyaliBrand.teal) }
+            .sheet(isPresented:$celebration) { completion }
+            .task(id:contextKey) { app.prepareDailyPlate();restoreSession();revision=UUID() }
+            .onChange(of:app.localPracticeRevision) { _,_ in checkCompletion() }
+            .onChange(of:panel) { _,value in if value == nil,waitingCelebration { waitingCelebration=false;celebration=true } }
+    }
+    @ViewBuilder private var surface:some View {
+        if specialCourse == "goal" { FocusedGoalView() }
+        else if specialCourse == "repair" { RepairPracticeView() }
+        else { switch mode {
+        case .focus: TodayFocusHomeView(sessionActive:guided != nil,onStart:startPractice,onPanel:{ panel=$0 })
+        case .path: LessonPathView()
+        case .cards: FlashcardsView()
+        case .phonics: PhonicsView()
+        case .conversation: ConversationView()
+        case .tutor: TutorLibraryView()
+        } }
+    }
+    private var menu:some View {
+        GeometryReader { geometry in
+            ZStack(alignment:.bottom) {
+                Color.black.opacity(0.3).ignoresSafeArea().onTapGesture { menuOpen=false }
+                VStack(spacing:10) {
+                    HStack { Spacer();Capsule().fill(brand.muted.opacity(0.6)).frame(width:48,height:5);Spacer();Button { menuOpen=false } label:{ Image(systemName:"xmark").frame(width:36,height:36) }.accessibilityLabel(ProductCopy.data(language)["menu"]["closeMenu"].string) }.padding(.bottom,12)
+                    LazyVGrid(columns:[GridItem(.flexible()),GridItem(.flexible())],spacing:9) {
+                        if modesOpen { ForEach(ProductMode.allCases,id:\.self) { item in menuTile(item.title(language),symbol:item.symbol,selected:item == mode) { switchMode(item) }.accessibilityIdentifier("productMode-"+item.rawValue) } }
+                        else { ForEach([ProductPanel.settings,.teams,.assistant,.memory]) { item in menuTile(ProductCopy.data(language)["menu"][item.rawValue].string,symbol:[.settings:"gearshape",.teams:"hands.sparkles",.assistant:"person.crop.circle",.memory:"bookmark"][item] ?? "gearshape") { menuOpen=false;panel=item }.accessibilityIdentifier("productPanel-"+item.rawValue) } }
+                    }
+                    Button { modesOpen.toggle() } label:{ HStack { Image(systemName:modesOpen ? "arrow.left" : mode.symbol);Text(modesOpen ? ProductCopy.data(language)["menu"]["back"].string : mode.title(language));Spacer();if !modesOpen { Image(systemName:"chevron.right") } }.font(PiyaliBrand.font(13,600)).padding(18).frame(maxWidth:.infinity,minHeight:64).background(brand.text.opacity(0.04),in:RoundedRectangle(cornerRadius:18)).overlay { RoundedRectangle(cornerRadius:18).stroke(brand.border) } }.accessibilityIdentifier("productModeMenu")
+                }.padding(11).background(brand.surface,in:RoundedRectangle(cornerRadius:24)).overlay { RoundedRectangle(cornerRadius:24).stroke(brand.border) }.frame(width:min(geometry.size.width-24,560)).padding(.bottom,82)
+            }
+        }.transition(.opacity)
+    }
+    private func menuTile(_ text:String,symbol:String,selected:Bool=false,action:@escaping()->Void)->some View {
+        Button(action:action) { VStack(alignment:.leading,spacing:10) { Image(systemName:symbol).font(.system(size:19)).frame(width:30,height:30).background(brand.surface,in:RoundedRectangle(cornerRadius:8));Text(text).font(PiyaliBrand.font(13,600)) }.frame(maxWidth:.infinity,minHeight:84,alignment:.leading).padding(12).background(brand.text.opacity(0.04),in:RoundedRectangle(cornerRadius:18)).overlay { RoundedRectangle(cornerRadius:18).stroke(selected ? PiyaliBrand.teal : brand.border,lineWidth:selected ? 2 : 1) } }.buttonStyle(.plain)
+    }
+    @ViewBuilder private func panelContent(_ panel:ProductPanel)->some View {
+        switch panel {
+        case .settings: AccountView()
+        case .teams: TeamsView(service:app.teams)
+        case .assistant: AssistantStudyView()
+        case .memory: NotebookView()
+        case .achievements: AchievementsView()
+        case .placement: PlacementView()
+        case .goal: DailyGoalSettingsView()
+        }
+    }
+    private func switchMode(_ value:ProductMode) { guided=nil;saveSession();specialCourse=nil;mode=value;menuOpen=false;revision=UUID() }
+    private func startPractice() {
+        app.prepareDailyPlate()
+        guided=GuidedPracticeSession(account:app.identity.npub,target:app.learner.target,day:CalendarDay.key(Date()),courses:app.plateCourses)
+        saveSession();openGuidedSurface()
+    }
+    private func openGuidedSurface() {
+        specialCourse=nil
+        switch guided?.current {
+        case "goal","repair": specialCourse=guided?.current
+        case "learn": mode = .path
+        case "review": mode = .cards
+        case "phonics": mode = .phonics
+        case "conversation": mode = .conversation
+        default: mode = .tutor
+        }
+        revision=UUID()
+    }
+    private func restoreSession() {
+        guard let data=UserDefaults.standard.data(forKey:sessionKey),var saved=try? JSONDecoder().decode(GuidedPracticeSession.self,from:data),saved.matches(account:app.identity.npub,target:app.learner.target,day:CalendarDay.key(Date())) else { guided=nil;saveSession();return }
+        if saved.taskCompleted(app.plateCourses),!saved.advance(app.plateCourses) { guided=nil;saveSession();return }
+        guided=saved
+        saveSession()
+    }
+    private func checkCompletion() {
+        guard let guided,guided.matches(account:app.identity.npub,target:app.learner.target,day:CalendarDay.key(Date())),guided.taskCompleted(app.plateCourses) else { return }
+        if panel == nil { celebration=true } else { waitingCelebration=true }
+    }
+    private func saveSession() { if let guided,let data=try? JSONEncoder().encode(guided) { UserDefaults.standard.set(data,forKey:sessionKey) } else { UserDefaults.standard.removeObject(forKey:sessionKey) } }
+    private var completion:some View {
+        let cleared=app.plateCourses.allSatisfy(\.done)
+        return VStack(spacing:24) {
+            CompanionArtwork(type:app.learner.effectiveCompanionType).frame(width:96,height:96)
+            Text(ProductCopy.text(language,cleared ? "PLATE_CLEARED_COPY" : "PLATE_EXERCISE_COMPLETE_COPY")).font(PiyaliBrand.font(28,700)).multilineTextAlignment(.center)
+            if cleared { Text("+\(DailyPlate.bonus) XP").font(PiyaliBrand.font(40,700)) }
+            else if let next=app.plateCourses.first(where:{ !$0.done }) { Text(ProductCopy.text(language,"PLATE_NEXT_COPY")+": "+ProductCopy.course(language,next.kind)) }
+            Button(ProductCopy.text(language,"PLATE_CONTINUE_COPY")) {
+                celebration=false
+                if var next=guided,next.advance(app.plateCourses) { guided=next;saveSession();openGuidedSurface() }
+                else { guided=nil;saveSession();specialCourse=nil;mode = .focus;revision=UUID() }
+            }.buttonStyle(BrandButtonStyle()).accessibilityIdentifier("guidedContinue")
+        }.padding(32).presentationDetents([.medium]).interactiveDismissDisabled()
+    }
+}

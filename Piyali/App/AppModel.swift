@@ -3,7 +3,7 @@ import Combine
 import SwiftUI
 
 @MainActor final class AppModel: ObservableObject {
-    @Published var learner = LearnerState()
+    @Published var learner = LearnerState() { didSet { subscription.updatePracticeXP(learner.subscriptionXP) } }
     let nostrAchievements=NostrAchievementsService()
     private var nostrSyncTask: Task<Void,Never>?
     @Published var signedIn = false
@@ -19,6 +19,7 @@ import SwiftUI
     @Published var error: String?
     @Published var syncStatus = "Saved on this iPhone"
     @Published var loadingContent = false
+    @Published private(set) var localPracticeRevision=UUID()
     let identity = IdentityService()
     let ai = AIService()
     let subscription = SubscriptionService()
@@ -32,8 +33,8 @@ import SwiftUI
     private var achievementUpdates: AnyCancellable?
     private var contentTask: Task<Void, Never>?
     var introLesson:Lesson? { guard introLibrary?.target == learner.target else { return nil };return introLibrary?.units[learner.level]?.lessons.first }
-    var selectedLesson: Lesson? { if learner.needsIntro,!learner.completed.contains(learner.completionKey(IntroTutorial.lessonID)) { return introLesson };return units.flatMap(\.lessons).first { !learner.completed.contains(learner.completionKey($0.id)) } ?? units.last?.lessons.last }
-    var selectedTutorLesson: Lesson? { tutorUnits.flatMap(\.lessons).first { !learner.completed.contains(learner.tutorKey($0.id)) } }
+    var selectedLesson: Lesson? { if learner.needsIntro,!learner.completed.contains(learner.completionKey(IntroTutorial.lessonID)),!LessonAccess.throughPlacement(learner.placements?[learner.target]?.level,level:learner.level) { return introLesson };return units.flatMap(\.lessons).first { !learner.completed.contains(learner.completionKey($0.id)) && learner.lessonAccess($0,units:units).canOpen } }
+    var selectedTutorLesson: Lesson? { tutorUnits.flatMap(\.lessons).first { !learner.completed.contains(learner.tutorKey($0.id)) && learner.lessonAccess($0,units:tutorUnits,tutor:true).canOpen } }
     var plateCourses: [PlateCourse] { learner.plateCourses(user:identity.npub) }
     func prepareDailyPlate() {
         guard signedIn, learner.onboardingComplete else { return }
@@ -51,7 +52,7 @@ import SwiftUI
     func setPracticeLanguage(_ target: String) {
         guard learner.target != target else { return }
         learner.target = target
-        learner.goal = learner.goalIntelligence?[target]?["activeGoal"]["text"].string ?? "Hold everyday conversations"
+        learner.goal = learner.goalIntelligence?[target]?["activeGoal"]["text"].string ?? ""
         learner.level = learner.lessonLevels?[target] ?? learner.placements?[target]?.level ?? "Pre-A1"
         persist(); Task { await reloadContent(); await sync() }
     }
@@ -83,7 +84,7 @@ import SwiftUI
             try? self.writeLocal()
         }
         signedIn = !identity.npub.isEmpty
-        if signedIn { loadLocal(); subscription.bind(identity) }
+        if signedIn { loadLocal(); subscription.bind(identity);subscription.updatePracticeXP(learner.subscriptionXP) }
         automaticTipUpdates=NotificationCenter.default.publisher(for:.walletAutomaticTipsChanged).sink { [weak self] notification in
             Task { @MainActor in guard let self,self.identity.hex == notification.object as? String else { return };self.scheduleAutomaticTips() }
         }
@@ -97,19 +98,24 @@ import SwiftUI
         if let data = try? Data(contentsOf: localURL), let state = try? JSONDecoder().decode(LearnerState.self, from: data) { learner = state } else { learner = LearnerState() }
         learner.rollDay(); lastPersisted = learner
     }
-    func signIn(nsec: String?) async {
+    func signIn(nsec: String?,name:String? = nil,support:String? = nil) async {
         nostrSyncTask?.cancel();nostrAchievements.cancel()
         teams.cancel(clear:true)
         do {
             if let nsec { try identity.importKey(nsec) } else { try identity.create() }
-            await activateIdentity()
+            await activateIdentity(newProfile:nsec == nil && name != nil ? (name!,support ?? "en") : nil)
         } catch { self.error = error.localizedDescription }
     }
-    private func activateIdentity() async {
+    private func activateIdentity(newProfile:(name:String,support:String)? = nil) async {
         automaticTipTask?.task.cancel();automaticTipTask=nil;automaticWallet.cancel(clear:true)
         saveTask?.cancel(); contentTask?.cancel()
         let account = identity.npub
-        loadLocal(); signedIn = true; subscription.bind(identity)
+        loadLocal()
+        if let profile=newProfile {
+            learner.name=profile.name;learner.support=LearningLanguages.support.contains(profile.support) ? profile.support : "en"
+            learner.target=learner.support == "es" ? "en" : "es";learner.goal=""
+        }
+        signedIn = true; subscription.bind(identity);subscription.updatePracticeXP(learner.subscriptionXP)
         do {
             try await FirebaseIdentityService.shared.ensure(identity)
             if FileManager.default.fileExists(atPath:localURL.path) { await sync() }
@@ -133,9 +139,7 @@ import SwiftUI
     }
     func boot() async { guard signedIn else { return };scheduleAutomaticTips(recovering:true); await reloadContent(); await sync(); await subscription.refresh(); scheduleNostrAchievements();scheduleAutomaticTips() }
     func finishOnboarding() {
-        let level=learner.level
-        learner.place(Placement(level:level,score:Int(PerformanceScore.defaults[level] ?? 1),source:"onboarding",selectedIDs:[],updatedAt:Date()))
-        learner.onboardingComplete=true;persist();Task { await reloadContent() }
+        learner.onboardingComplete=true;learner.preferencesModifiedAt=Date();persist();Task { await reloadContent() }
     }
     var immersionPreparationKey: String {
         let scope=learner.immersionScope()
@@ -246,6 +250,7 @@ import SwiftUI
         let prior=Set((lastPersisted.pendingChanges ?? []).map(\.id)),newPractice=(learner.pendingChanges ?? []).filter { !prior.contains($0.id) }
         do { try writeLocal(); lastPersisted = learner }
         catch { self.error = "Could not save progress: \(error.localizedDescription)"; return }
+        if newPractice.contains(where:{ $0.amount > 0 }) { localPracticeRevision=UUID() }
         scheduleAutomaticTips(changes:newPractice)
         saveTask?.cancel()
         let state = learner, npub = identity.npub

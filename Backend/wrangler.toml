@@ -25,6 +25,11 @@ namespace_id = "861709486"
 simple = { limit = 20, period = 60 }
 
 [[ratelimits]]
+name = "DEMO_RATE_LIMITER"
+namespace_id = "861709488"
+simple = { limit = 5, period = 60 }
+
+[[ratelimits]]
 name = "AI_RATE_LIMITER"
 namespace_id = "861709487"
 simple = { limit = 60, period = 60 }

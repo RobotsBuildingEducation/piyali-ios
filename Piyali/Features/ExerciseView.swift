@@ -83,7 +83,7 @@ struct ExerciseView: View {
 struct SubscriptionRequiredView<Content: View>: View {
     @ObservedObject var service: SubscriptionService
     @ViewBuilder var content: () -> Content
-    var body: some View { if service.authorized { content() } else { SubscriptionView(service: service) } }
+    var body: some View { if service.hasAccess { content() } else { SubscriptionView(service: service) } }
 }
 struct GrammarReferenceView: View {
     @EnvironmentObject var app: AppModel

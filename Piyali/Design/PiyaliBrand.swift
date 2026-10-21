@@ -1,0 +1,79 @@
+import SwiftUI
+
+struct PiyaliBrand {
+    let dark:Bool
+    var background:Color { Color(piyaliHex:dark ? 0x0b1220 : 0xf7f1e7) }
+    var surface:Color { Color(piyaliHex:dark ? 0x111827 : 0xfffdf9) }
+    var text:Color { Color(piyaliHex:dark ? 0xe5e7eb : 0x2f261d) }
+    var secondary:Color { Color(piyaliHex:dark ? 0xcbd5e1 : 0x5b4b3a) }
+    var muted:Color { Color(piyaliHex:dark ? 0xa3b4c9 : 0x8d7a67) }
+    var border:Color { Color(piyaliHex:dark ? 0x94a3b8 : 0x604d38).opacity(dark ? 0.2 : 0.16) }
+    static let teal=Color(piyaliHex:0x14b8a6)
+    static func font(_ size:CGFloat,_ weight:Int=400) -> Font { .custom(weight == 700 ? "DMSans-Bold" : weight == 600 ? "DMSans-SemiBold" : weight == 500 ? "DMSans-Medium" : "DMSans-Regular",size:size) }
+}
+private extension Color {
+    init(piyaliHex:UInt32) { self.init(.sRGB,red:Double((piyaliHex>>16)&255)/255,green:Double((piyaliHex>>8)&255)/255,blue:Double(piyaliHex&255)/255,opacity:1) }
+}
+struct BrandBackground:View {
+    @Environment(\.colorScheme) private var scheme
+    var body:some View {
+        let brand=PiyaliBrand(dark:scheme == .dark)
+        GeometryReader { geometry in
+            ZStack {
+                brand.background
+                RadialGradient(colors:[Color.orange.opacity(scheme == .dark ? 0.03 : 0.045),.clear],center:.topTrailing,startRadius:0,endRadius:420)
+                RadialGradient(colors:[PiyaliBrand.teal.opacity(0.04),.clear],center:.bottomLeading,startRadius:0,endRadius:500)
+                Path { path in
+                    for x in stride(from:CGFloat(0),through:geometry.size.width,by:60) { path.move(to:CGPoint(x:x,y:0));path.addLine(to:CGPoint(x:x,y:geometry.size.height)) }
+                    for y in stride(from:CGFloat(0),through:geometry.size.height,by:60) { path.move(to:CGPoint(x:0,y:y));path.addLine(to:CGPoint(x:geometry.size.width,y:y)) }
+                }.stroke(brand.border.opacity(0.18),lineWidth:0.5)
+            }
+        }.ignoresSafeArea()
+    }
+}
+struct BrandButtonStyle:ButtonStyle {
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.isEnabled) private var enabled
+    var primary=true
+    var large=false
+    func makeBody(configuration:Configuration) -> some View {
+        let brand=PiyaliBrand(dark:scheme == .dark)
+        configuration.label.font(PiyaliBrand.font(large ? 18 : 16,600)).frame(maxWidth:.infinity,minHeight:large ? 64 : 52)
+            .foregroundStyle(primary ? Color.white : brand.text)
+            .background { if primary { RoundedRectangle(cornerRadius:20,style:.continuous).fill(LinearGradient(colors:[PiyaliBrand.teal,Color(red:0.051,green:0.58,blue:0.533)],startPoint:.topLeading,endPoint:.bottomTrailing)) } }
+            .overlay { if !primary { RoundedRectangle(cornerRadius:20,style:.continuous).stroke(PiyaliBrand.teal.opacity(0.3)) } }
+            .shadow(color:primary ? PiyaliBrand.teal.opacity(enabled ? 0.2 : 0.1) : .clear,radius:12,y:4)
+            .opacity(enabled ? (configuration.isPressed ? 0.8 : 1) : 0.5)
+    }
+}
+struct BrandInput:View {
+    @Environment(\.colorScheme) private var scheme
+    let placeholder:String
+    @Binding var text:String
+    var secure=false
+    var body:some View {
+        let brand=PiyaliBrand(dark:scheme == .dark)
+        Group { if secure { SecureField(placeholder,text:$text,prompt:Text(placeholder).foregroundStyle(brand.muted)) } else { TextField(placeholder,text:$text,prompt:Text(placeholder).foregroundStyle(brand.muted)) } }
+            .font(PiyaliBrand.font(16)).padding(.horizontal,20).frame(height:58).background(brand.surface.opacity(0.5),in:RoundedRectangle(cornerRadius:20,style:.continuous)).overlay { RoundedRectangle(cornerRadius:20,style:.continuous).stroke(brand.border) }
+            .textInputAutocapitalization(.never).autocorrectionDisabled()
+    }
+}
+struct EntryCopy {
+    static let entries=(try? ContentLibrary.load([String:JSONValue].self,name:"entry-copy")) ?? [:]
+    static let interface=(try? ContentLibrary.load([String:JSONValue].self,name:"app-copy")) ?? [:]
+    static let timezones=(try? ContentLibrary.load([String:JSONValue].self,name:"language-timezones")) ?? [:]
+    static let names=["en":"English","es":"Español","pt":"Português","fr":"Français","it":"Italiano","de":"Deutsch","ja":"日本語","hi":"हिन्दी","ar":"العربية","zh":"中文"]
+    static let flags=["en":"🇺🇸","es":"🇲🇽","pt":"🇧🇷","fr":"🇫🇷","it":"🇮🇹","de":"🇩🇪","ja":"🇯🇵","hi":"🇮🇳","ar":"🇪🇬","zh":"🇨🇳","nl":"🇳🇱","el":"🇬🇷","ga":"🇮🇪","pl":"🇵🇱","ru":"🇷🇺"]
+    static var initialLanguage:String { let code=Locale.current.language.languageCode?.identifier ?? "en";return LearningLanguages.support.contains(code) ? code : "en" }
+    static func landingTarget(_ language:String)->String { language == "es" || Locale.preferredLanguages.first?.hasPrefix("es") == true || timezones["es"]?.array.contains(.string(TimeZone.current.identifier)) == true ? "en" : "es" }
+    static func data(_ language:String) -> JSONValue { entries[language] ?? entries["en"] ?? .object([:]) }
+    static func text(_ language:String,_ key:String,section:String="copy") -> String { let value=data(language)[section][key].string;return value.isEmpty ? data("en")[section][key].string : value }
+    static func ui(_ language:String,_ key:String) -> String { let value=interface[language]?[key].string ?? "";return value.isEmpty ? interface["en"]?[key].string ?? key : value }
+}
+
+struct BrandArtwork:View {
+    let name:String
+    var body:some View {
+        if let url=Bundle.main.url(forResource:name,withExtension:nil),let image=UIImage(contentsOfFile:url.path) { Image(uiImage:image).renderingMode(.original).resizable().scaledToFit() }
+    }
+}

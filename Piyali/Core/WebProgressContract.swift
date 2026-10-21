@@ -74,6 +74,17 @@ public enum WebProgressContract {
         if let languageXP = progress["languageXp"] as? [String:Any] {
             state.xpByLanguage = languageXP.mapValues { max(0,integer($0)) }
         } else if progress["totalXp"] != nil { state.xpByLanguage[state.target] = max(0,integer(progress["totalXp"])) }
+        // App.jsx uses the first valid account XP value for its 300-XP gate.
+        // Preserve legacy root XP that differs from the per-language ledger.
+        let candidates:[Any?]=[fields["xp"],progress["totalXp"],(progress["languageXp"] as? [String:Any])?[state.target]]
+        let accountXP=candidates.compactMap { value -> Double? in
+            guard let value else { return nil }
+            if value is NSNull { return 0 }
+            let text=String(describing:value).trimmingCharacters(in:.whitespacesAndNewlines)
+            let number=text.isEmpty ? 0 : Double(text)
+            guard let number,number.isFinite,number >= 0 else { return nil };return number
+        }.first
+        state.subscriptionXPAdjustment=accountXP.map { Int(min($0,Double(Int32.max)))-state.totalXP } ?? 0
         let today = CalendarDay.key(now)
         let recent = fields["dailyXpRecent"] as? [String:Any] ?? fields["dailyXpHistory"] as? [String:Any] ?? [:]
         state.dailyKey = today

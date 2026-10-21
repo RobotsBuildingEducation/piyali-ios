@@ -9,11 +9,14 @@ import StoreKit
     @Published var error: String?
     @Published var busy = false
     @Published private(set) var externalPaymentAllowed = false
+    @Published private(set) var practiceXP:Int?
     private let config: AppConfiguration
     private let webSession: URLSession
     private var updates: Task<Void, Never>?
     private var expiryMonitor: Task<Void, Never>?
-    var hasAccess: Bool { (webAuthorized && (webExpiry ?? .distantPast) > Date()) || (appleAuthorized && (appleExpiry ?? .distantPast) > Date()) }
+    // The web paywall begins at 300 account XP, not at the first AI activity.
+    var hasAccess: Bool { (accountID?.isEmpty == false && practiceXP.map { $0 < 300 } == true) || (webAuthorized && (webExpiry ?? .distantPast) > Date()) || (appleAuthorized && (appleExpiry ?? .distantPast) > Date()) }
+    func updatePracticeXP(_ value:Int) { let value=max(0,value);if practiceXP != value { practiceXP=value } }
     private var identity: IdentityService?
     private var accountID: String?
     private var webExpiry: Date?
@@ -38,7 +41,7 @@ import StoreKit
         }
     }
     func bind(_ identity: IdentityService) {
-        if accountID != identity.npub { webAuthorized = false; appleAuthorized = false; authorized = false; webExpiry = nil; appleExpiry = nil; pendingAppleProduct = nil; entitlementCheck += 1 }
+        if accountID != identity.npub { practiceXP=nil;webAuthorized = false; appleAuthorized = false; authorized = false; webExpiry = nil; appleExpiry = nil; pendingAppleProduct = nil; entitlementCheck += 1 }
         self.identity = identity; accountID = identity.npub
     }
     func refresh() async {

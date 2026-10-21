@@ -10,6 +10,7 @@ test('production rules isolate Nostr-authenticated learners and protect subscrip
     const db=env.authenticatedContext(npub,{nostr_pubkey:hex,firebase:{sign_in_provider:'custom'}}).firestore();
     const guest=env.unauthenticatedContext().firestore();
     const anonymous=env.authenticatedContext(npub,{firebase:{sign_in_provider:'anonymous'}}).firestore();
+    const demo=env.authenticatedContext('piyali-landing-demo',{piyali_public_demo:true,firebase:{sign_in_provider:'custom'}}).firestore();
     await assertSucceeds(setDoc(doc(db,'users',npub),{local_npub:npub,displayName:'Learner'}));
     await assertSucceeds(setDoc(doc(db,'users',npub,'companion','es'),{notes:[]}));
     await assertSucceeds(getDoc(doc(db,'users',npub)));
@@ -40,6 +41,9 @@ test('production rules isolate Nostr-authenticated learners and protect subscrip
     await assertFails(setDoc(doc(db,'users',npub,'achievementProgress','robotsbuildingeducation','events','one'),{source:'robotsbuildingeducation'}));
     await assertFails(getDoc(doc(guest,'users',npub)));
     await assertFails(getDoc(doc(anonymous,'users',npub)));
+    await assertFails(getDoc(doc(demo,'users',npub)));
+    await assertFails(getDoc(doc(demo,'users','piyali-landing-demo')));
+    await assertFails(setDoc(doc(demo,'users','piyali-landing-demo'),{local_npub:'piyali-landing-demo'}));
     await assertFails(getDoc(doc(db,'users',other)));
     await assertFails(setDoc(doc(db,'users',other,'companion','es'),{notes:[]}));
     await assertFails(setDoc(doc(db,'users',npub),{local_npub:other}));

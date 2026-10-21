@@ -36,6 +36,14 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
         guard injectedDatabase == nil else { return } // Named emulator databases belong to isolated test fixtures.
         guard Auth.auth().currentUser?.uid == npub else { throw AppError.message("Authenticate your Nostr account before syncing progress.") }
     }
+    func activityHistory(npub:String,year:Int) async throws -> JSONValue {
+        guard (1900...2200).contains(year),let database else { return .object([:]) }
+        try requireOwner(npub)
+        let months=try await database.collection("users").document(npub).collection("xpHistory").whereField(FieldPath.documentID(),isGreaterThanOrEqualTo:"\(year)-01").whereField(FieldPath.documentID(),isLessThanOrEqualTo:"\(year)-12").getDocuments()
+        var days:[String:Any]=[:],goals:Set<String>=[]
+        for month in months.documents { let values=Self.normalized(month.data());days.merge(values["days"] as? [String:Any] ?? [:]) { _,new in new };goals.formUnion(values["goalDays"] as? [String] ?? []) }
+        return JSONValue.foundation(["days":days,"goalDays":goals.sorted()])
+    }
     func load(npub: String, local: LearnerState? = nil) async throws -> LearnerState? {
         guard let database else { return nil }
         try requireOwner(npub)
