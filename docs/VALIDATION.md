@@ -62,3 +62,7 @@ The reference repository retained its pre-existing change to `nosabos/src/compon
 - After the typed-quiz state changes, the full core suite passed **187 tests with zero failures** (212.1s).
 
 - Ordinary typed-practice regressions passed after the quiz renderer changes: binary miss/retry/relaunch (38.1s) and the actual 80-XP curriculum lesson through bonus, next-node unlock and relaunch (102.4s).
+
+- Reading correction: 20 focused source-policy/curriculum/reading checks pass, including 16 executed prompt fixtures, multilingual display-sentence boundaries, saved aligned translations and incomplete/invalid NDJSON rejection. The additional authored lesson-level/adaptive question-level scope assertion passes in all 12 reading core checks. The live iOS run passed original reading generation with actual family context, welcome, Responses, worth, semantic checking, explanation and translation (48.3s). The dedicated Firestore question/speech receipt race passed (6.9s). The current menu/intro simulator journey passed translation, miss/explanation, relaunch, correct retry, retained one reward, final source action states and stories handoff (86.5s). Source incremental streaming, speech score-card presentation, physical audio and common sticky action-bar geometry remain unfinished.
+
+The final live reading recheck also passed after restoring the source writer instruction alongside its prompt (17.8s); native comprehension and explanation use the configured Gemini/Responses fallback path.

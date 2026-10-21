@@ -3,6 +3,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import vm from 'node:vm';
 import {realtimePolicyFragments} from './realtime-policy-fragments.mjs';
+import {readingPolicyFragments} from './reading-policy-fragments.mjs';
 import {gzipSync,gunzipSync} from 'node:zlib';
 
 // Lift only the original pure prompt builders and their lexical dependencies.
@@ -98,6 +99,9 @@ const realtimeFile=path.join(reference,'src/components/RealTimeTest.jsx');
 const realtimeSource=await fs.readFile(realtimeFile,'utf8');
 const realtime=realtimePolicyFragments({source:realtimeSource,parser,traverse});
 for(const symbol of [...realtime.imports,'buildLessonPreparationRecipe','buildRealtimeResumeContext']) await requireSymbol(realtimeFile,symbol);
+const readingFile=path.join(reference,'src/components/History.jsx'),readingSource=await fs.readFile(readingFile,'utf8');
+const reading=readingPolicyFragments({source:readingSource,parser,traverse});
+for(const symbol of ['LANG_NAME','buildStreamingPrompt']) await requireSymbol(readingFile,symbol);
 for(let i=0;i<pending.length;i++) await lift(pending[i]);
 const virtual=new Map();
 for(const record of modules.values()) {
@@ -106,7 +110,7 @@ for(const record of modules.values()) {
  const declarations=Array.from(record.declarations).sort(([a],[b])=>a-b).map(([,p])=>record.source.slice(p.node.start,p.node.end));
  virtual.set(record.file,imports.join('\n')+'\n'+declarations.join('\n')+`\nexport {${Array.from(record.exports.keys()).join(',')}};`);
 }
-const entry=`import {buildQuestionDifficultyPrompt,parseQuestionDifficulty} from ${JSON.stringify(difficultyFile)};import {questionWorthForUser,applyGradedOutcome} from ${JSON.stringify(eloFile)};import {isCurriculumPayloadGrounded} from ${JSON.stringify(curriculumFile)};import {buildGameReviewContext} from ${JSON.stringify(reviewFile)};import * as realtimeOriginal from ${JSON.stringify(realtimeFile)};import {${realtime.imports.join(',')}} from ${JSON.stringify(realtimeFile)};import * as grammar from ${JSON.stringify(grammar)};import * as vocabulary from ${JSON.stringify(vocabulary)};import * as flashcard from ${JSON.stringify(flashcard)};import * as delight from ${JSON.stringify(delight)};import {createQuestionOptionSelector} from ${JSON.stringify(options)};import {provide} from ${JSON.stringify(storeFile)};
+const entry=`import * as readingOriginal from ${JSON.stringify(readingFile)};import {LANG_NAME} from ${JSON.stringify(readingFile)};import {buildQuestionDifficultyPrompt,parseQuestionDifficulty} from ${JSON.stringify(difficultyFile)};import {questionWorthForUser,applyGradedOutcome} from ${JSON.stringify(eloFile)};import {isCurriculumPayloadGrounded} from ${JSON.stringify(curriculumFile)};import {buildGameReviewContext} from ${JSON.stringify(reviewFile)};import * as realtimeOriginal from ${JSON.stringify(realtimeFile)};import {${realtime.imports.join(',')}} from ${JSON.stringify(realtimeFile)};import * as grammar from ${JSON.stringify(grammar)};import * as vocabulary from ${JSON.stringify(vocabulary)};import * as flashcard from ${JSON.stringify(flashcard)};import * as delight from ${JSON.stringify(delight)};import {createQuestionOptionSelector} from ${JSON.stringify(options)};import {provide} from ${JSON.stringify(storeFile)};
 const recipes={grammar:${JSON.stringify(recipes.grammar)},vocabulary:${JSON.stringify(recipes.vocabulary)}};
 function withParameters(parametersJSON,operation) {
  const parameters=JSON.parse(parametersJSON);provide(parameters.user);
@@ -126,6 +130,10 @@ export function realtime(operation,parametersJSON) { return withParameters(param
  if(operation==='goal') return realtimeOriginal.buildLessonPreparationRecipe(p,p.options||{cefrLevel:p.cefrLevel,curriculumCefrLevel:p.curriculumCefrLevel}).prompt;
  ${realtime.code}
 }); }
+export function reading(operation,parametersJSON) { return withParameters(parametersJSON,p=>{
+ if(operation==='passage') return readingOriginal.buildStreamingPrompt(p);
+ ${reading.code}
+}); }
 const selector=createQuestionOptionSelector();
 export function select(mode,parametersJSON) { return withParameters(parametersJSON,p=>JSON.stringify(selector(mode,p.context))); }
 export function resetOptions() { selector.reset();return '{}'; }
@@ -139,6 +147,7 @@ const code=result.outputFiles[0].text.replaceAll('// pure-source:'+reference+'/'
 await fs.writeFile(new URL('../Piyali/Resources/practice-recipes.js',import.meta.url),code);
 const manifest=Array.from(modules.values()).map(m=>({file:path.relative(reference,m.file),sha256:crypto.createHash('sha256').update(m.source).digest('hex'),bindings:Array.from(m.required).sort(),...(m.adapter ? {nativeAdapter:m.file===storeFile ? 'Read-only user supplied as a Swift recipe argument; no web store or effects.' : m.file===flagsFile ? 'Flag renderers omitted from text-only language metadata.' : 'Original language-name strings only; no JSX UI.'} : {})}));
 manifest.push({file:'src/components/RealTimeTest.jsx',sha256:crypto.createHash('sha256').update(realtimeSource).digest('hex'),bindings:realtime.bindings,nativeAdapter:'Pure lexical functions receive explicit JSON refs. Audio, network, React effects and account credentials omitted.'});
+manifest.push({file:'src/components/History.jsx',sha256:crypto.createHash('sha256').update(readingSource).digest('hex'),bindings:reading.bindings,nativeAdapter:'Only original prompt expressions receive explicit JSON reading data. Native UI, audio and network remain outside the interpreter.'});
 await fs.writeFile(new URL('../Piyali/Resources/practice-recipes.manifest.json',import.meta.url),JSON.stringify(manifest,null,2)+'\n');
 const context={};vm.runInNewContext(code,context,{timeout:1000});
 const canonical=value=>Array.isArray(value) ? value.map(canonical) : value && typeof value==='object' ? Object.fromEntries(Object.keys(value).sort().map(key=>[key,canonical(value[key])])) : value;
@@ -153,4 +162,15 @@ for(const module of ['grammar','vocabulary']) for(const {id} of variants) for(co
  fixtures.push({module,kind:'delight:'+id,parameters,expected:context.PiyaliPracticeRecipes.build(module,'delight:'+id,JSON.stringify(parameters))});
 }
 await fs.writeFile(new URL('../Tests/PiyaliCoreTests/Fixtures/practice-prompts.json.gz',import.meta.url),gzipSync(JSON.stringify(fixtures),{level:9}));
+const readingFixtures=[];
+for(const parameters of [
+ {targetLang:'es',supportLang:'en',cefrLevel:'Pre-A1',lessonContent:{topic:'tutorial'}},
+ {targetLang:'ja',supportLang:'es',cefrLevel:'A2',lessonContent:{topic:'family',tutorialPracticeLevel:'A2'}},
+ {targetLang:'fr',supportLang:'de',cefrLevel:'B2',lessonContent:{topic:'an everyday choice',cefrLevel:'B2'}},
+ {targetLang:'ar',supportLang:'en',cefrLevel:'A1',lessonContent:{topic:'a bus timetable',cefrLevel:'A1'}}
+]) for(const operation of ['passage','judge','explain','translate']) {
+ const p=canonical({...parameters,isFirst:false,previousTitles:['A previous day'],reviewQuestionType:'mc',passage:'A plant grows near the window.',reviewQuestion:{question:'Where is the plant?',answer:'near the window'},answer:'by a window',sentences:['A plant grows.','It is near the window.'],user:{}});
+ readingFixtures.push({operation,parameters:p,expected:context.PiyaliPracticeRecipes.reading(operation,JSON.stringify(p))});
+}
+await fs.writeFile(new URL('../Tests/PiyaliCoreTests/Fixtures/reading-prompts.json.gz',import.meta.url),gzipSync(JSON.stringify(readingFixtures),{level:9}));
 console.log(`Exported ${modules.size} pure source modules (${code.length} characters) and ${fixtures.length} prompt fixtures.`);

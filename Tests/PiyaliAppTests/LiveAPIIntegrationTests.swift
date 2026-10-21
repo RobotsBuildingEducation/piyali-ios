@@ -229,19 +229,31 @@ import NostrSDK
         let identity=IdentityService();try identity.create();try await FirebaseIdentityService.shared.ensure(identity)
         do {
             var state=LearnerState();state.target="es";state.support="en";state.level="A1"
+            let recipes=try PracticeRecipes(),library=try ContentLibrary.load([String:[LearningUnit]].self,name:"curriculum-es"),unit=try XCTUnwrap(library["Pre-A1"]?.first),lesson=try XCTUnwrap(unit.lessons.first)
+            let curriculum=try PracticeCurriculum.context(lesson:lesson,unit:unit,target:"es",recipes:recipes)
             let fallback=AIService(configuration:AppConfiguration(values:AppConfiguration().values.merging(["AIProvider":"responses"]) { _,new in new }))
-            for (ai,tutorial) in [(AIService(),false),(AIService(),true),(fallback,false)] {
-                let selection=Reading.select(content:.null,level:"A1",recent:[],lesson:"free",roll:0)
+            for (index,entry) in [(AIService(),false),(AIService(),true),(fallback,false)].enumerated() {
+                let (ai,tutorial)=entry,authored=index == 0 ? lesson : nil,level=index == 0 ? "Pre-A1" : "A1"
+                let selection=Reading.select(content:authored?.content["reading"] ?? .null,level:level,recent:[],lesson:authored?.id ?? "free",roll:0)
                 var verified:ReadingRun?,failure:Error=ReadingFailure.invalid
                 for attempt in 0..<3 {
-                    do { let payload=try await ai.readingPayload(state:state,lesson:nil,level:"A1",selection:selection,recent:[],tutorial:tutorial,repair:attempt > 0)
-                        verified=try ReadingRun(payload:payload,target:"es",support:"en",level:"A1",lessonID:nil,selection:selection,worth:.null,roll:0,tutorial:tutorial);break
+                    do { let payload=try await ai.readingPayload(state:state,lesson:authored,level:level,selection:selection,recent:[],tutorial:tutorial,repair:attempt > 0,curriculum:index == 0 ? curriculum : .null)
+                        var candidate=try ReadingRun(payload:payload,target:"es",support:"en",level:level,lessonID:authored?.id,selection:selection,worth:.null,roll:0,tutorial:tutorial)
+                        candidate.worth=try await GeneratedQuestionWorth.assess(question:.object(["passage":payload["target"],"reviewQuestion":payload["rawReviewQuestion"],"task":.string("Answer the review question about the passage")]),level:level,mode:"reading",learner:state,recipes:recipes,ai:ai)
+                        verified=candidate;break
                     } catch { failure=error }
                 }
-                guard let reading=verified else { throw failure };XCTAssertFalse(reading.text.isEmpty);XCTAssertEqual(reading.takeaways.count,3)
+                guard let reading=verified else { throw failure };XCTAssertFalse(reading.text.isEmpty);XCTAssertEqual(reading.takeaways.count,3);XCTAssertNotNil(QuestionWorth.delta(level:level,correct:true,independent:true,worth:reading.worth))
                 if tutorial { XCTAssertEqual(Reading.sentences(reading.text).count,4) }
+                if index == 0 {
+                    let parameters:Piyali.JSONValue = .object(["passage":.string(reading.text),"reviewQuestion":.object(["question":.string(reading.question.question),"answer":.string(reading.question.answer)]),"answer":.string(reading.question.answer),"targetLang":.string("es"),"supportLang":.string("en")])
+                    let verdict=try GenerationObjects.parse(try await ai.responsesText(recipes.reading("judge",parameters:parameters),json:true)).first;XCTAssertEqual(verdict?["correct"],.bool(true))
+                    let explanation=try await ai.responsesText(recipes.reading("explain",parameters:parameters));XCTAssertFalse(explanation.isEmpty)
+                    let sentences=Array(Reading.displaySentences(reading.text).prefix(2)),translation=try await ai.text(recipes.reading("translate",parameters:parameters.setting("sentences",.array(sentences.map(Piyali.JSONValue.string)))))
+                    XCTAssertEqual(translation.components(separatedBy:.newlines).filter { !$0.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty }.count,sentences.count)
+                }
             }
-            print("LIVE NATIVE: reading, four-sentence tutorial and Responses fallback passed")
+            print("LIVE READING: original source protocol, actual family context, four-sentence welcome, Responses path, saved worth, semantic grading, explanation and aligned translation")
         } catch { try? await Auth.auth().currentUser?.delete();try? Auth.auth().signOut();try? identity.disconnect();throw error }
         try await Auth.auth().currentUser?.delete();try Auth.auth().signOut();try identity.disconnect()
     }

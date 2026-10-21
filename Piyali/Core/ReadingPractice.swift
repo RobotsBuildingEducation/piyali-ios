@@ -6,19 +6,22 @@ public struct ReadingRun:Codable,Equatable,Sendable {
     public let support:String
     public let level:String
     public let lessonID:String?
+    public var lessonLevel:String?
     public let title:String
     public let text:String
     public let takeaways:[String]
     public let question:ReadingQuestion
     public let selection:JSONValue
-    public let worth:JSONValue
+    public var worth:JSONValue
     public let reward:Int
     public var awarded=false
     public var method:String
     public var answer=""
     public var correct:Bool?
     public var feedback=""
+    public var explanation:String?
     public var translation:String?
+    public var lineTranslations:[String]?
     public var updatedAt=Date()
     public init(payload:JSONValue,target:String,support:String,level:String,lessonID:String?,selection:JSONValue,worth:JSONValue,roll:Double,method:String = "question",tutorial:Bool = false,recent:[JSONValue] = []) throws {
         guard payload.json.utf8.count <= 40_000,Reading.issues(candidate:payload,recent:recent,selection:selection,tutorial:tutorial).isEmpty,let question=ReadingQuestion(payload["reviewQuestion"]),payload["takeaways"].array.count == 3,payload["takeaways"].array.allSatisfy({ !$0.string.isEmpty }),StoryEpisode.compatible([payload["target"].string],target:target) else { throw ReadingFailure.invalid }
@@ -40,7 +43,7 @@ public extension LearnerState {
         run.answer=String(answer.prefix(4000));run.correct=correct;run.feedback=String(feedback.prefix(2000))
         let success=speech || correct,amount=success ? run.reward : 0
         var change=PracticeChange(date:now,dayKey:CalendarDay.key(now),target:target,level:run.level,amount:amount,source:success ? (speech ? .readingSpeech : .readingTurn) : .practice,contentID:success ? run.contentID : run.contentID+":miss:"+UUID().uuidString)
-        change.attachCurriculumLesson(id:run.lessonID,level:run.level)
+        change.attachCurriculumLesson(id:run.lessonID,level:run.lessonLevel ?? run.level)
         if success {
             run.awarded=true;addXP(amount,now:now,calendar:.current)
             if !speech {

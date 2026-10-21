@@ -6389,5 +6389,72 @@
       },
       "expected": null
     }
+  ],
+  "displaySentences": [
+    {
+      "text": "",
+      "expected": []
+    },
+    {
+      "text": "   ",
+      "expected": []
+    },
+    {
+      "text": "No punctuation",
+      "expected": [
+        "No punctuation"
+      ]
+    },
+    {
+      "text": "First. Second!? Last fragment",
+      "expected": [
+        "First.",
+        "Second!?",
+        "Last fragment"
+      ]
+    },
+    {
+      "text": "見ます。こんにちは！末尾",
+      "expected": [
+        "見ます。",
+        "こんにちは！",
+        "末尾"
+      ]
+    },
+    {
+      "text": "¿Hola? ¡Sí! Después",
+      "expected": [
+        "¿Hola?",
+        "¡Sí!",
+        "Después"
+      ]
+    },
+    {
+      "text": "Heading\nA notice.\nLast line",
+      "expected": [
+        "Heading\nA notice.",
+        "Last line"
+      ]
+    },
+    {
+      "text": "مرحبا! كيف حالك؟",
+      "expected": [
+        "مرحبا!",
+        "كيف حالك؟"
+      ]
+    },
+    {
+      "text": "A tiny 🌱. Another flower.",
+      "expected": [
+        "A tiny 🌱.",
+        "Another flower."
+      ]
+    },
+    {
+      "text": "Line one\nline two without punctuation",
+      "expected": [
+        "Line one\nline two without punctuation"
+      ]
+    }
   ]
 }

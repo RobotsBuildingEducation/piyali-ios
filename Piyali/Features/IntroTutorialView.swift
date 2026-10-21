@@ -52,7 +52,7 @@ struct IntroTutorialView:View {
     @ViewBuilder private func engine(scope:String)->some View {
         switch mode {
         case "vocabulary","grammar":LessonPracticeView(module:mode == "vocabulary" ? .vocabulary : .grammar,lesson:lesson,onNext:{ advance(mode,scope:scope) },startsFresh:reviewing,embedded:true)
-        case "reading":ReadingView(lesson:lesson,onComplete:{ advance("reading",scope:scope) },embedded:true).safeAreaInset(edge:.bottom) { skip("reading",scope:scope) }
+        case "reading":ReadingView(lesson:lesson,onComplete:{ advance("reading",scope:scope) },embedded:true)
         case "stories":StoryView(lesson:lesson,onComplete:{ advance("stories",scope:scope) },embedded:true).safeAreaInset(edge:.bottom) { skip("stories",scope:scope) }
         case "realtime":RealtimeLessonView(lesson:lesson,onNext:{ advance("realtime",scope:scope) },startsFresh:reviewing)
         case "game":RPGView(lesson:lesson,episode:nil,onTutorialComplete:{ advance("game",scope:scope) },embedded:true).safeAreaInset(edge:.bottom) { skip("game",scope:scope) }

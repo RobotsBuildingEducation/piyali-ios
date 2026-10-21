@@ -3,6 +3,20 @@ import XCTest
 
 final class ReadingTests:XCTestCase {
     private func fixture() throws -> JSONValue { try JSONDecoder().decode(JSONValue.self,from:Data(contentsOf:URL(fileURLWithPath:#filePath).deletingLastPathComponent().appendingPathComponent("Fixtures/reading.json"))) }
+    @MainActor func testOriginalReadingPoliciesExecuteInNativeWithoutWebEffects() throws {
+        let root=URL(fileURLWithPath:#filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        struct Fixture:Decodable { let operation:String;let parameters:JSONValue;let expected:String }
+        let engine=try PracticeRecipes(source:root.appendingPathComponent("Piyali/Resources/practice-recipes.js")),fixtures=try ContentLibrary.decode([Fixture].self,url:root.appendingPathComponent("Tests/PiyaliCoreTests/Fixtures/reading-prompts.json.gz"))
+        XCTAssertEqual(fixtures.count,16)
+        for sample in fixtures { XCTAssertEqual(try engine.reading(sample.operation,parameters:sample.parameters),sample.expected,sample.operation) }
+    }
+    func testSourceReadingProtocolKeepsQuestionAndRejectsPartialOrInvalidOutput() throws {
+        let lines:[JSONValue]=[.object(["type":.string("title"),"text":.string("A small garden")]),.object(["type":.string("target"),"text":.string("A plant grows near the window.")]),.object(["type":.string("takeaway"),"text":.string("A plant")]),.object(["type":.string("takeaway"),"text":.string("A window")]),.object(["type":.string("takeaway"),"text":.string("A garden")]),.object(["type":.string("review_question"),"questionType":.string("fill"),"question":.string("The plant is near the ___."),"answer":.string("window")]),.object(["type":.string("done")])]
+        let output=lines.map(\.json).joined(separator:"\n"),payload=try Reading.protocolPayload(output,questionType:"mc")
+        XCTAssertEqual(payload["target"].string,"A plant grows near the window.");XCTAssertEqual(ReadingQuestion(payload["reviewQuestion"])?.type,"fill");XCTAssertEqual(payload["rawReviewQuestion"],lines[5])
+        XCTAssertThrowsError(try Reading.protocolPayload(lines.dropLast().map(\.json).joined(separator:"\n"),questionType:"mc"))
+        XCTAssertThrowsError(try Reading.protocolPayload(output.replacingOccurrences(of:"___",with:"here"),questionType:"mc"))
+    }
     func testReferenceQualityChecksPreserveDocumentsAndRejectScriptsAndRepeats() throws {
         let samples=try fixture()["quality"].array;XCTAssertEqual(samples.count,67)
         for sample in samples { let options=sample["options"];XCTAssertEqual(Reading.issues(candidate:sample["candidate"],recent:options["recentEntries"].array,selection:options["formatSelection"],tutorial:options["isTutorial"].boolean),sample["expected"].array.map(\.string),sample.json) }
@@ -17,6 +31,13 @@ final class ReadingTests:XCTestCase {
             if expected == .null { XCTAssertNil(q,sample.json) }
             else { let q=try XCTUnwrap(q);XCTAssertEqual(q.type,expected["type"].string);XCTAssertEqual(q.question,expected["question"].string);XCTAssertEqual(q.answer,expected["answer"].string);XCTAssertEqual(q.options,expected["options"].array.map(\.string)) }
         }
+    }
+    func testDisplaySentenceBoundariesMatchExecutedSourceAndTranslationsResume() throws {
+        for sample in try fixture()["displaySentences"].array { XCTAssertEqual(Reading.displaySentences(sample["text"].string),sample["expected"].array.map(\.string),sample["text"].string) }
+        var run=try readingRun();run.lessonLevel="B1";run.lineTranslations=["My notebook is on the table.","I draw a red flower and write its name.","Tomorrow my sister wants to draw with me."]
+        var state=LearnerState();state.saveReading(run)
+        let restored=try JSONDecoder().decode(LearnerState.self,from:JSONEncoder().encode(state));XCTAssertEqual(restored.reading?.lineTranslations,run.lineTranslations);XCTAssertEqual(restored.xp,0)
+        XCTAssertEqual(state.reviewReading(answer:"red",correct:true,feedback:"Correct"),7);let event=try XCTUnwrap(state.pendingChanges?.first { $0.source == .readingTurn });XCTAssertEqual(event.level,"A1");XCTAssertEqual(event.skillTreeLessonLevel,"B1")
     }
     func testReferenceFiveToEightXPIsLatchedWithinRange() throws {
         for sample in try fixture()["xp"].array { XCTAssertEqual(Reading.award(roll:sample["roll"].number),Int(sample["expected"].number)) }

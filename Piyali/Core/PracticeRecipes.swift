@@ -39,6 +39,9 @@ public enum PracticeRecipeFailure:LocalizedError {
     public func realtime(_ operation:String,parameters:JSONValue) throws ->String {
         try call("realtime",arguments:[operation,try encoded(parameters)])
     }
+    public func reading(_ operation:String,parameters:JSONValue) throws ->String {
+        try call("reading",arguments:[operation,try encoded(parameters)])
+    }
     public func resetOptions() throws { _=try call("resetOptions",arguments:[]) }
     private func encoded(_ parameters:JSONValue) throws -> String {
         let encoder=JSONEncoder();encoder.outputFormatting=[.sortedKeys,.withoutEscapingSlashes]

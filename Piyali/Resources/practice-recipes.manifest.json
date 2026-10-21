@@ -280,6 +280,23 @@
     ]
   },
   {
+    "file": "src/components/History.jsx",
+    "sha256": "ceca67f29b27ebc41c300c29e6ea92240bda1020fb23c3e505a06b65842832a9",
+    "bindings": [
+      "LANG_NAME",
+      "buildCurriculumPromptContext",
+      "buildStreamingPrompt",
+      "difficultyHint",
+      "focusedLessonPrompt",
+      "generationPerformanceContextFor",
+      "getCEFRPromptHint",
+      "getReadingLevelSpecs",
+      "streamingReviewQuestionProtocol",
+      "tutorialReadingDirective",
+      "useUserStore"
+    ]
+  },
+  {
     "file": "src/utils/learningIntelligenceModel.js",
     "sha256": "5e6efcd7fea2758af10af1d3617945daa8583f68f0072cc26d5822549ef0a95c",
     "bindings": [
@@ -362,6 +379,13 @@
     "bindings": [
       "STORY_MODES",
       "chooseStoryMode"
+    ]
+  },
+  {
+    "file": "src/utils/readingHistoryStore.js",
+    "sha256": "bf3c1ca2844f5a49f9ff2adfbafbfdaccfd69bfa67fc88d6592cd3f6bc4f5c39",
+    "bindings": [
+      "getReadingLevelSpecs"
     ]
   },
   {
@@ -502,5 +526,15 @@
       "evaluateAndMaybeAdvanceGoal:judgePrompt"
     ],
     "nativeAdapter": "Pure lexical functions receive explicit JSON refs. Audio, network, React effects and account credentials omitted."
+  },
+  {
+    "file": "src/components/History.jsx",
+    "sha256": "ceca67f29b27ebc41c300c29e6ea92240bda1020fb23c3e505a06b65842832a9",
+    "bindings": [
+      "checkReviewAnswer:prompt",
+      "explainReviewAnswer:prompt",
+      "translateLectureLines:prompt"
+    ],
+    "nativeAdapter": "Only original prompt expressions receive explicit JSON reading data. Native UI, audio and network remain outside the interpreter."
   }
 ]
