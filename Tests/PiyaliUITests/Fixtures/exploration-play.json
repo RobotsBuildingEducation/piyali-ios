@@ -1,0 +1,190 @@
+{
+  "level": "A2",
+  "maps": [
+    {
+      "id": "review-hub",
+      "portals": [
+        "review-room-1-kitchen",
+        "review-room-2-study",
+        "review-room-3-garden-patio"
+      ]
+    },
+    {
+      "id": "review-room-1-kitchen",
+      "portals": [
+        "review-hub"
+      ]
+    },
+    {
+      "id": "review-room-2-study",
+      "portals": [
+        "review-hub"
+      ]
+    },
+    {
+      "id": "review-room-3-garden-patio",
+      "portals": [
+        "review-hub"
+      ]
+    }
+  ],
+  "steps": [
+    {
+      "mapID": "review-hub",
+      "nodes": [
+        {
+          "id": "step-0-npc-0-node-1",
+          "mode": "speech",
+          "line": "¡Qué bueno que llegaste! Justo te quería comentar algo. Hay algo aquí que quiero entender bien, y creo que tú me puedes ayudar.",
+          "item": ""
+        },
+        {
+          "id": "step-0-npc-0-node-2",
+          "mode": "none",
+          "line": "Ve con Bruno. Creo que te puede mostrar algo más.",
+          "item": ""
+        }
+      ]
+    },
+    {
+      "mapID": "review-room-1-kitchen",
+      "nodes": [
+        {
+          "id": "step-1-npc-1-node-1",
+          "mode": "speech",
+          "line": "Ah, vienes de parte de Ada. Entonces hablemos.",
+          "item": ""
+        },
+        {
+          "id": "step-1-npc-1-node-2",
+          "mode": "choice",
+          "line": "Interesante... ¿y tú cómo lo dirías?",
+          "item": ""
+        },
+        {
+          "id": "step-1-npc-1-node-3",
+          "mode": "gather",
+          "line": "Ayúdame a encontrar el libro antiguo por aquí. Ojo, que hay varias cosas que no son. Una pista: Mira junto al estante.",
+          "item": "el libro antiguo"
+        },
+        {
+          "id": "step-1-npc-1-node-4",
+          "mode": "none",
+          "line": "¡Eso es! Tienes el libro antiguo. Justo lo que necesitaba. Ve con Ada. Creo que te puede mostrar algo más.",
+          "item": ""
+        }
+      ]
+    },
+    {
+      "mapID": "review-hub",
+      "nodes": [
+        {
+          "id": "step-2-npc-0-node-1",
+          "mode": "choice",
+          "line": "Ah, vienes de parte de Bruno. Entonces hablemos.",
+          "item": ""
+        },
+        {
+          "id": "step-2-npc-0-node-2",
+          "mode": "none",
+          "line": "Ve con Dana. Creo que te puede mostrar algo más.",
+          "item": ""
+        }
+      ]
+    },
+    {
+      "mapID": "review-room-2-study",
+      "nodes": [
+        {
+          "id": "step-3-npc-3-node-1",
+          "mode": "speech",
+          "line": "Ah, vienes de parte de Ada. Entonces hablemos.",
+          "item": ""
+        },
+        {
+          "id": "step-3-npc-3-node-2",
+          "mode": "choice",
+          "line": "Quiero escuchar tu versión. ¿Qué dirías?",
+          "item": ""
+        },
+        {
+          "id": "step-3-npc-3-node-3",
+          "mode": "choice",
+          "line": "Mmm, cuéntame más. ¿Qué piensas tú?",
+          "item": ""
+        },
+        {
+          "id": "step-3-npc-3-node-4",
+          "mode": "none",
+          "line": "Ve con Cleo. Creo que te puede mostrar algo más.",
+          "item": ""
+        }
+      ]
+    },
+    {
+      "mapID": "review-room-3-garden-patio",
+      "nodes": [
+        {
+          "id": "step-4-npc-2-node-1",
+          "mode": "speech",
+          "line": "Te estaba esperando. Dana ya me puso al tanto.",
+          "item": ""
+        },
+        {
+          "id": "step-4-npc-2-node-2",
+          "mode": "none",
+          "line": "¡Lo lograste! Repasaste todo muy bien.",
+          "item": ""
+        }
+      ]
+    }
+  ],
+  "placements": [
+    {
+      "mapID": "review-room-3-garden-patio",
+      "name": "el cojin viejo"
+    },
+    {
+      "mapID": "review-room-1-kitchen",
+      "name": "la moneda antigua"
+    },
+    {
+      "mapID": "review-room-1-kitchen",
+      "name": "el libro antiguo"
+    },
+    {
+      "mapID": "review-room-2-study",
+      "name": "la vela derretida"
+    },
+    {
+      "mapID": "review-hub",
+      "name": "el reloj parado"
+    },
+    {
+      "mapID": "review-room-1-kitchen",
+      "name": "las tijeras oxidadas"
+    },
+    {
+      "mapID": "review-room-3-garden-patio",
+      "name": "la llave dorada"
+    },
+    {
+      "mapID": "review-room-2-study",
+      "name": "la cuchara vieja"
+    },
+    {
+      "mapID": "review-hub",
+      "name": "el boton suelto"
+    },
+    {
+      "mapID": "review-room-1-kitchen",
+      "name": "el jarron roto"
+    }
+  ],
+  "search": {
+    "stepIndex": 1,
+    "key": "review-room-2-study:11,9:lamp",
+    "mapID": "review-room-2-study",
+    "index": 2
+  }
+}

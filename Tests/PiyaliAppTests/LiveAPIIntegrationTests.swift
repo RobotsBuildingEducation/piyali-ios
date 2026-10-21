@@ -9,6 +9,35 @@ import NostrSDK
 
 /// Explicit opt-in only. Uses an isolated test identity, bounded prompts and no paid access grant.
 @MainActor final class LiveAPIIntegrationTests: XCTestCase {
+    func testNativeExplorationQuestReauthoringAndNPCSpeechPreservePlayablePaths() async throws {
+        guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else { throw XCTSkip("Explicit live API opt-in required.") }
+        XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))
+        if FirebaseApp.app() == nil { AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure() };XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let identity=IdentityService();try identity.create();try await FirebaseIdentityService.shared.ensure(identity)
+        do {
+            let library=try ContentLibrary.load(ExplorationLibrary.self,name:"exploration"),ai=AIService()
+            for target in ["es","ja"] {
+                let base=try XCTUnwrap(library.templates.first { $0.baseLanguage == (target == "es" ? "es" : "en") && $0.theme == "home" && $0.level == "A1" && $0.quest["steps"].array.contains { $0["nodes"].array.contains { $0["responseMode"].string == "gather" } } })
+                let context:Piyali.JSONValue = .object(["topic":.string("introduce yourself, ask for help, describe a familiar item, and politely thank someone")])
+                let selected=try base.searchingObjects(),setting=try await ai.explorationSetting(selected,target:target,support:"en",context:context)
+                func diagnostic(_ value:Piyali.JSONValue,_ name:String) throws {
+                    if let path=ProcessInfo.processInfo.environment["PIYALI_EXPLORATION_DIAGNOSTICS_DIR"] {
+                        let url=URL(fileURLWithPath:path,isDirectory:true);try FileManager.default.createDirectory(at:url,withIntermediateDirectories:true,attributes:[.posixPermissions:0o700]);try Data(value.json.utf8).write(to:url.appendingPathComponent(target+"-"+name+".json"),options:.atomic)
+                    }
+                }
+                try diagnostic(setting,"setting");print("LIVE EXPLORATION STAGE: target=\(target), setting received")
+                let named=try ExplorationText.setting(setting,on:selected,target:target,support:"en");try diagnostic(ExplorationText.protectedQuest(named),"base")
+                let raw=try await ai.explorationQuest(named,target:target,support:"en",context:context);try diagnostic(raw,"candidate");print("LIVE EXPLORATION STAGE: target=\(target), quest received")
+                let localized=try ExplorationText.applying(raw,to:named,target:target);_=try localized.validated()
+                var run=try ExplorationRun(target:target,support:"en",scenario:localized)
+                let step=try XCTUnwrap(localized.quest["steps"].array.firstIndex { $0["nodes"].array.contains { $0["responseMode"].string == "speech" } });run.stepIndex=step;run.nodeID=run.step["nodes"].array.first { $0["responseMode"].string == "speech" }?["id"].string
+                let turn=try await ai.explorationSpeech(run,answer:target == "es" ? "Hola, me llamo Alex. Puedo ayudar." : "こんにちは。アレックスです。手伝います。")
+                XCTAssertFalse(turn.reply.isEmpty);XCTAssertTrue(RPGStory.languageScript(target,text:turn.reply))
+                print("LIVE EXPLORATION PASS: target=\(target), fixed quest graph, consistent item names, connected rooms and NPC reply")
+            }
+        } catch { try? await Auth.auth().currentUser?.delete();try? Auth.auth().signOut();try? identity.disconnect();throw error }
+        try await Auth.auth().currentUser?.delete();try Auth.auth().signOut();try identity.disconnect()
+    }
     func testNativeReadingGenerationAndResponsesFallback() async throws {
         guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else { throw XCTSkip("Explicit live API opt-in required.") }
         XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))

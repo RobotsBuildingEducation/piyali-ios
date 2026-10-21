@@ -1,0 +1,122 @@
+[
+  {
+    "lang": "en",
+    "type": "counter",
+    "expected": {
+      "name": "counter",
+      "supportName": "counter",
+      "text": "You notice counter.",
+      "supportText": "You notice counter."
+    }
+  },
+  {
+    "lang": "en",
+    "type": "suitcaseStack",
+    "expected": {
+      "name": "suitcase stack",
+      "supportName": "stack of suitcases",
+      "text": "You notice suitcase stack.",
+      "supportText": "You notice stack of suitcases."
+    }
+  },
+  {
+    "lang": "en",
+    "type": "bookshelf",
+    "expected": {
+      "name": "bookshelf",
+      "supportName": "bookshelf",
+      "text": "You notice bookshelf.",
+      "supportText": "You notice bookshelf."
+    }
+  },
+  {
+    "lang": "es",
+    "type": "counter",
+    "expected": {
+      "name": "counter",
+      "supportName": "mostrador",
+      "text": "You notice counter.",
+      "supportText": "Notas mostrador."
+    }
+  },
+  {
+    "lang": "es",
+    "type": "suitcaseStack",
+    "expected": {
+      "name": "suitcase stack",
+      "supportName": "monton de maletas",
+      "text": "You notice suitcase stack.",
+      "supportText": "Notas monton de maletas."
+    }
+  },
+  {
+    "lang": "es",
+    "type": "bookshelf",
+    "expected": {
+      "name": "bookshelf",
+      "supportName": "estanteria",
+      "text": "You notice bookshelf.",
+      "supportText": "Notas estanteria."
+    }
+  },
+  {
+    "lang": "ja",
+    "type": "counter",
+    "expected": {
+      "name": "counter",
+      "supportName": "カウンター",
+      "text": "You notice counter.",
+      "supportText": "カウンターに気づきます。"
+    }
+  },
+  {
+    "lang": "ja",
+    "type": "suitcaseStack",
+    "expected": {
+      "name": "suitcase stack",
+      "supportName": "スーツケースの山",
+      "text": "You notice suitcase stack.",
+      "supportText": "スーツケースの山に気づきます。"
+    }
+  },
+  {
+    "lang": "ja",
+    "type": "bookshelf",
+    "expected": {
+      "name": "bookshelf",
+      "supportName": "本棚",
+      "text": "You notice bookshelf.",
+      "supportText": "本棚に気づきます。"
+    }
+  },
+  {
+    "lang": "fr",
+    "type": "counter",
+    "expected": {
+      "name": "counter",
+      "supportName": "comptoir",
+      "text": "You notice counter.",
+      "supportText": "Tu remarques comptoir."
+    }
+  },
+  {
+    "lang": "fr",
+    "type": "suitcaseStack",
+    "expected": {
+      "name": "suitcase stack",
+      "supportName": "pile de valises",
+      "text": "You notice suitcase stack.",
+      "supportText": "Tu remarques pile de valises."
+    }
+  },
+  {
+    "lang": "fr",
+    "type": "bookshelf",
+    "expected": {
+      "name": "bookshelf",
+      "supportName": "bibliotheque",
+      "text": "You notice bookshelf.",
+      "supportText": "Tu remarques bibliotheque."
+    }
+  }
+]

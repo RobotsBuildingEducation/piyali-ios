@@ -1,0 +1,112 @@
+{
+  "stepIndex": 1,
+  "assignments": {
+    "review-hub:16,3:plant": {
+      "name": "las tijeras oxidadas",
+      "sprite": "scissors",
+      "isCorrect": false,
+      "objectKey": "review-hub:16,3:plant",
+      "mapId": "review-hub"
+    },
+    "review-hub:11,7:sofa": {
+      "name": "la cuchara vieja",
+      "sprite": "spoon",
+      "isCorrect": false,
+      "objectKey": "review-hub:11,7:sofa",
+      "mapId": "review-hub"
+    },
+    "review-hub:11,8:table": {
+      "name": "el boton suelto",
+      "sprite": "button",
+      "isCorrect": false,
+      "objectKey": "review-hub:11,8:table",
+      "mapId": "review-hub"
+    },
+    "review-hub:21,15:lamp": {
+      "name": "el jarron roto",
+      "sprite": "vase",
+      "isCorrect": false,
+      "objectKey": "review-hub:21,15:lamp",
+      "mapId": "review-hub"
+    },
+    "review-hub:11,16:bookshelf": {
+      "name": "el cojin viejo",
+      "sprite": "cushion",
+      "isCorrect": false,
+      "objectKey": "review-hub:11,16:bookshelf",
+      "mapId": "review-hub"
+    },
+    "review-hub:13,16:tv": {
+      "name": "la moneda antigua",
+      "sprite": "coin",
+      "isCorrect": false,
+      "objectKey": "review-hub:13,16:tv",
+      "mapId": "review-hub"
+    },
+    "review-room-1-kitchen:14,1:counter": {
+      "name": "el libro antiguo",
+      "hint": "Mira junto al estante.",
+      "sprite": "book",
+      "isCorrect": false,
+      "objectKey": "review-room-1-kitchen:14,1:counter",
+      "mapId": "review-room-1-kitchen"
+    },
+    "review-room-1-kitchen:14,7:stove": {
+      "name": "la vela derretida",
+      "sprite": "candle",
+      "isCorrect": false,
+      "objectKey": "review-room-1-kitchen:14,7:stove",
+      "mapId": "review-room-1-kitchen"
+    },
+    "review-room-1-kitchen:9,11:shelf": {
+      "name": "el reloj parado",
+      "sprite": "clock",
+      "isCorrect": false,
+      "objectKey": "review-room-1-kitchen:9,11:shelf",
+      "mapId": "review-room-1-kitchen"
+    },
+    "review-room-2-study:4,2:desk": {
+      "name": "las tijeras oxidadas",
+      "sprite": "scissors",
+      "isCorrect": false,
+      "objectKey": "review-room-2-study:4,2:desk",
+      "mapId": "review-room-2-study"
+    },
+    "review-room-2-study:1,8:bookshelf": {
+      "name": "la cuchara vieja",
+      "sprite": "spoon",
+      "isCorrect": false,
+      "objectKey": "review-room-2-study:1,8:bookshelf",
+      "mapId": "review-room-2-study"
+    },
+    "review-room-2-study:11,9:lamp": {
+      "name": "la llave dorada",
+      "hint": "Busca cerca de los muebles.",
+      "sprite": "key",
+      "isCorrect": true,
+      "objectKey": "review-room-2-study:11,9:lamp",
+      "mapId": "review-room-2-study"
+    },
+    "review-room-3-garden-patio:7,6:table": {
+      "name": "el boton suelto",
+      "sprite": "button",
+      "isCorrect": false,
+      "objectKey": "review-room-3-garden-patio:7,6:table",
+      "mapId": "review-room-3-garden-patio"
+    },
+    "review-room-3-garden-patio:6,8:plant": {
+      "name": "el jarron roto",
+      "sprite": "vase",
+      "isCorrect": false,
+      "objectKey": "review-room-3-garden-patio:6,8:plant",
+      "mapId": "review-room-3-garden-patio"
+    },
+    "review-room-3-garden-patio:11,10:bench": {
+      "name": "el cojin viejo",
+      "sprite": "cushion",
+      "isCorrect": false,
+      "objectKey": "review-room-3-garden-patio:11,10:bench",
+      "mapId": "review-room-3-garden-patio"
+    }
+  }
+}

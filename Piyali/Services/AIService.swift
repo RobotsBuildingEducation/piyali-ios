@@ -15,7 +15,7 @@ import FirebaseAuth
         }
         return try await responsesText(prompt,json:json)
     }
-    func responsesText(_ prompt: String, json: Bool = false, reasoning: String? = nil, outputProfile:String? = nil) async throws -> String {
+    func responsesText(_ prompt: String, json: Bool = false, reasoning: String? = nil, outputProfile:String? = nil, maxOutputTokens:Int? = nil) async throws -> String {
         var request = URLRequest(url: configuration.worker.appendingPathComponent("proxyResponses"))
         request.httpMethod = "POST"; request.timeoutInterval = 45
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -25,6 +25,7 @@ import FirebaseAuth
         var requestBody:[String:Any] = ["model":configuration.string("ResponsesModel"),"input":prompt,"text":["format":["type":json ? "json_object" : "text"]]]
         if let reasoning { requestBody["reasoning"]=["effort":reasoning] }
         if let outputProfile { requestBody["outputProfile"]=outputProfile }
+        if let maxOutputTokens { requestBody["max_output_tokens"]=maxOutputTokens }
         request.httpBody = try JSONSerialization.data(withJSONObject:requestBody)
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse else { throw AppError.message("The tutor is unavailable. Try again shortly.") }

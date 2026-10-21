@@ -110,6 +110,7 @@ public struct Note: Codable, Identifiable, Sendable {
     public var body: String
 }
 public struct LearnerState: Codable, Sendable {
+    public var explorationRuns:[String:ExplorationRun]?
     public var readingRuns:[String:ReadingRun]?
     public var readingHistory:[String:[JSONValue]]?
     public var storyRuns:[String:StoryRun]?

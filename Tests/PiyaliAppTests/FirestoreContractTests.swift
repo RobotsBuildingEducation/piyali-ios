@@ -15,6 +15,23 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
     func createProvider(with app: FirebaseApp) -> AppCheckProvider? { EmulatorAppCheckProvider() }
 }
 @MainActor final class FirestoreContractTests: XCTestCase {
+    func testExplorationInventoryAndQuestDraftRestoreWithoutChangingXPOrEntitlements() async throws {
+        let (service,db,npub)=try context();try await seed(db,npub)
+        let user=db.collection("users").document(npub)
+        try await user.setData(["patreonVerified":true,"subscription":["active":true]],merge:true)
+        let library=try ContentLibrary.load(ExplorationLibrary.self,name:"exploration"),template=try XCTUnwrap(library.templates.first { $0.baseLanguage == "es" && $0.level == "A2" && $0.theme == "home" && $0.quest["steps"].array.contains { $0["nodes"].array.contains { $0["responseMode"].string == "gather" } } })
+        var run=try ExplorationRun(target:"es",support:"en",scenario:template)
+        run.stepIndex=try XCTUnwrap(template.quest["steps"].array.firstIndex { $0["nodes"].array.contains { $0["responseMode"].string == "gather" } });run.nodeID=run.step["nodes"].array.first { $0["responseMode"].string == "gather" }?["id"].string
+        let index=try XCTUnwrap(template.gatherPlacements.firstIndex { $0["name"] == run.node["gatherItem"]["name"] }),item=template.gatherPlacements[index]
+        run.mapID=item["mapId"].string;run.position=try XCTUnwrap(run.area).world.start;XCTAssertTrue(run.approach(ExplorationTemplate.position(item)));XCTAssertTrue(run.pickUp(index))
+        var state=try requireState(await service.load(npub:npub));let xp=state.totalXP;state.saveExploration(run)
+        _=try await service.save(state,npub:npub)
+        let restored=try requireState(await service.load(npub:npub)),draft=try XCTUnwrap(restored.explorationRuns?["es"])
+        XCTAssertEqual(draft,run);XCTAssertEqual(restored.totalXP,xp);XCTAssertEqual(draft.inventory.first?.item["name"],item["name"])
+        let raw=try await user.getDocument(source:.server);XCTAssertEqual(raw.data()?["patreonVerified"] as? Bool,true);XCTAssertEqual((raw.data()?["subscription"] as? [String:Any])?["active"] as? Bool,true)
+        var newer=state;var edited=run;XCTAssertTrue(edited.drop(0));newer.saveExploration(edited)
+        XCTAssertTrue(LearnerState.rebased(current:newer,sent:state,acknowledged:restored).explorationRuns?["es"]?.inventory.isEmpty ?? false)
+    }
     private func context() throws -> (FirebaseService,Firestore,String) {
         guard ProcessInfo.processInfo.environment["PIYALI_FIRESTORE_EMULATOR_TESTS"] == "1" else { throw XCTSkip("Run with the local Firestore emulator and TEST_RUNNER_PIYALI_FIRESTORE_EMULATOR_TESTS=1.") }
         let name = "PiyaliContractEmulator"

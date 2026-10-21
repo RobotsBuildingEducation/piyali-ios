@@ -5,6 +5,10 @@ struct RPGLibraryView: View {
     @StateObject private var service=RPGService()
     var body: some View {
         List {
+            Section("Exploration worlds") {
+                NavigationLink("Explore connected rooms") { ExplorationView() }.accessibilityIdentifier("explorationLink")
+                Text("Travel through rooms, search objects, collect items and help the characters with their quest.").font(.footnote)
+            }
             Text("Explore an authored episode, talk to its characters and finish six tasks plus a finale. Unit Game Reviews award lesson XP; free adventures are practice.")
             if let library=service.library {
                 Section("Episodes · "+app.learner.level) {

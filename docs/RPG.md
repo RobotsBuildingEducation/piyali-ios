@@ -28,7 +28,7 @@ The simulator play test passed with the actual bundled first Spanish unit review
 
 Run `swift test`, `scripts/test-firestore.sh`, `scripts/test-ios.sh -only-testing:PiyaliUITests/RPGPlayTests`, or `python3 scripts/test-live-api.py --only rpg`. Refresh resources and fixtures with `node scripts/export-rpg-content.mjs /absolute/path/to/reference/nosabos`; `--fixtures-only` refreshes source comparisons and the UI play fixture from existing exported content.
 
-This ports the authored episode route used by curriculum Game Reviews. The separate legacy scenario engine's inventory, object-search and portal gameplay remains outstanding, as do graphics, physical-device speech quality checks and paid-member verification.
+This ports the authored episode route used by curriculum Game Reviews. The separate legacy scenario engine's room travel, inventory, object-search and portal gameplay is now connected through Explore connected rooms; see [EXPLORATION.md](EXPLORATION.md). Graphics, physical-device speech quality checks and paid-member verification remain outside the verified simulator boundaries.
 
 Provider format and reasoning support follow [Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs), [GPT-6 Luna](https://developers.openai.com/api/docs/models/gpt-6-luna) and the [completed-answer phase documentation](https://developers.openai.com/api/docs/guides/reasoning#phase-parameter). The worker retains its model/prompt/output allowlists, 40-second deadline, authentication and rate limits.
 
