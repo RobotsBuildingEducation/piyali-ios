@@ -90,6 +90,8 @@ await requireSymbol(flashcard,'buildLessonFlashcardPrompt');await requireSymbol(
 for(const symbol of ['DELIGHT_VARIANTS','DELIGHT_VARIANT_IDS','buildDelightQuestionPrompt','buildDelightResponseJudgePrompt','normalizeDelightQuestion','isDelightQuestionLanguageConsistent','getInitialDelightResponse','gradeDelightResponse','isDelightResponseReady','calculateDelightQuestionXp','getDelightFallbackQuestion','buildSentenceDetectivePrompt','validateMorphologyForgeQuestion']) await requireSymbol(delight,symbol);
 await requireSymbol(options,'createQuestionOptionSelector');
 await requireSymbol(storeFile,'provide');
+const curriculumFile=path.join(reference,'src/utils/lessonCurriculum.js'),reviewFile=path.join(reference,'src/utils/gameReviewContext.js');
+await requireSymbol(curriculumFile,'isCurriculumPayloadGrounded');await requireSymbol(reviewFile,'buildGameReviewContext');
 const realtimeFile=path.join(reference,'src/components/RealTimeTest.jsx');
 const realtimeSource=await fs.readFile(realtimeFile,'utf8');
 const realtime=realtimePolicyFragments({source:realtimeSource,parser,traverse});
@@ -102,7 +104,7 @@ for(const record of modules.values()) {
  const declarations=Array.from(record.declarations).sort(([a],[b])=>a-b).map(([,p])=>record.source.slice(p.node.start,p.node.end));
  virtual.set(record.file,imports.join('\n')+'\n'+declarations.join('\n')+`\nexport {${Array.from(record.exports.keys()).join(',')}};`);
 }
-const entry=`import * as realtimeOriginal from ${JSON.stringify(realtimeFile)};import {${realtime.imports.join(',')}} from ${JSON.stringify(realtimeFile)};import * as grammar from ${JSON.stringify(grammar)};import * as vocabulary from ${JSON.stringify(vocabulary)};import * as flashcard from ${JSON.stringify(flashcard)};import * as delight from ${JSON.stringify(delight)};import {createQuestionOptionSelector} from ${JSON.stringify(options)};import {provide} from ${JSON.stringify(storeFile)};
+const entry=`import {isCurriculumPayloadGrounded} from ${JSON.stringify(curriculumFile)};import {buildGameReviewContext} from ${JSON.stringify(reviewFile)};import * as realtimeOriginal from ${JSON.stringify(realtimeFile)};import {${realtime.imports.join(',')}} from ${JSON.stringify(realtimeFile)};import * as grammar from ${JSON.stringify(grammar)};import * as vocabulary from ${JSON.stringify(vocabulary)};import * as flashcard from ${JSON.stringify(flashcard)};import * as delight from ${JSON.stringify(delight)};import {createQuestionOptionSelector} from ${JSON.stringify(options)};import {provide} from ${JSON.stringify(storeFile)};
 const recipes={grammar:${JSON.stringify(recipes.grammar)},vocabulary:${JSON.stringify(recipes.vocabulary)}};
 function withParameters(parametersJSON,operation) {
  const parameters=JSON.parse(parametersJSON);provide(parameters.user);
@@ -127,7 +129,7 @@ export function select(mode,parametersJSON) { return withParameters(parametersJS
 export function resetOptions() { selector.reset();return '{}'; }
 export function inspect(operation,parametersJSON) { return withParameters(parametersJSON,p=>{
  const q=p.question,r=p.response;
- const operations={variants:()=>delight.DELIGHT_VARIANTS,normalize:()=>delight.normalizeDelightQuestion(p.variant,p.raw,{targetLang:p.targetLang}),languageConsistent:()=>delight.isDelightQuestionLanguageConsistent(q,p),initialResponse:()=>delight.getInitialDelightResponse(q),grade:()=>delight.gradeDelightResponse(q,r),ready:()=>delight.isDelightResponseReady(q,r),xp:()=>delight.calculateDelightQuestionXp(q,r,p.options),fallback:()=>delight.getDelightFallbackQuestion(p.variant,p.moduleType || 'grammar',p.targetLang,p.supportLang)};
+ const operations={curriculum:()=>buildGameReviewContext(p),grounded:()=>isCurriculumPayloadGrounded(p.payload,p.curriculumContext,{mode:p.mode}),variants:()=>delight.DELIGHT_VARIANTS,normalize:()=>delight.normalizeDelightQuestion(p.variant,p.raw,{targetLang:p.targetLang}),languageConsistent:()=>delight.isDelightQuestionLanguageConsistent(q,p),initialResponse:()=>delight.getInitialDelightResponse(q),grade:()=>delight.gradeDelightResponse(q,r),ready:()=>delight.isDelightResponseReady(q,r),xp:()=>delight.calculateDelightQuestionXp(q,r,p.options),fallback:()=>delight.getDelightFallbackQuestion(p.variant,p.moduleType || 'grammar',p.targetLang,p.supportLang)};
  if(!operations[operation]) throw Error('Unsupported exercise operation');return JSON.stringify(operations[operation]());
 }); }`;
 const result=await esbuild.build({stdin:{contents:entry,resolveDir:reference},bundle:true,format:'iife',globalName:'PiyaliPracticeRecipes',platform:'neutral',target:'es2020',write:false,plugins:[{name:'pure-source-only',setup(build){build.onResolve({filter:/.*/},async args=>({path:await resolve(args.path,args.importer || path.join(reference,'entry.js')),namespace:'pure-source'}));build.onLoad({filter:/.*/,namespace:'pure-source'},args=>{const contents=virtual.get(args.path);if(!contents) throw Error('Unreviewed module '+args.path);return {contents,loader:'js'};});}}]});

@@ -99,7 +99,6 @@ private struct RealtimeActionButtonStyle:ButtonStyle {
     var success=false
     func makeBody(configuration:Configuration)->some View {
         configuration.label.font(PiyaliBrand.productFont(16,600)).frame(maxWidth:.infinity,minHeight:48).foregroundStyle(.white)
-            .background(success ? Color(red:49/255,green:151/255,blue:149/255) : Color(red:0,green:181/255,blue:216/255),in:Capsule())
-            .shadow(color:success ? Color(red:35/255,green:78/255,blue:82/255) : Color(red:8/255,green:111/255,blue:131/255),radius:0,y:configuration.isPressed ? 2 : 4).opacity(enabled ? 1 : 0.45)
+            .background { Capsule().fill(success ? Color(red:49/255,green:151/255,blue:149/255) : Color(red:0,green:181/255,blue:216/255)).shadow(color:success ? Color(red:35/255,green:78/255,blue:82/255) : Color(red:8/255,green:111/255,blue:131/255),radius:0,y:configuration.isPressed ? 2 : 4) }.opacity(enabled ? 1 : 0.45)
     }
 }

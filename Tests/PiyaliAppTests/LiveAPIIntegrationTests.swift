@@ -9,6 +9,30 @@ import NostrSDK
 
 /// Explicit opt-in only. Uses an isolated test identity, bounded prompts and no paid access grant.
 @MainActor final class LiveAPIIntegrationTests: XCTestCase {
+    func testActualCurriculumContextProducesFamilyVocabularyAndMatching() async throws {
+        guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else { throw XCTSkip("Explicit live API opt-in required.") }
+        XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))
+        if FirebaseApp.app() == nil { AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure() };XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let identity=IdentityService();try identity.create();try await FirebaseIdentityService.shared.ensure(identity)
+        do {
+            let library=try ContentLibrary.load([String:[LearningUnit]].self,name:"curriculum-es"),unit=try XCTUnwrap(library["Pre-A1"]?.first),lesson=try XCTUnwrap(unit.lessons.first),recipes=try PracticeRecipes(),ai=AIService()
+            let context=try PracticeCurriculum.context(lesson:lesson,unit:unit,target:"es",recipes:recipes);XCTAssertEqual(context["agendaItems"].array.first?["targetForms"].array.first?.string,"mamá")
+            for (module,kind) in [(PracticeRecipeModule.vocabulary,"mc"),(.grammar,"match")] {
+                let options:Piyali.JSONValue = .object(["cefrLevel":.string("Pre-A1")])
+                let p=options.setting("targetLang",.string("es")).setting("supportLang",.string("en")).setting("appUILang",.string("en")).setting("showTranslations",.bool(true)).setting("lessonContent",PracticeCurriculum.content(lesson,mode:module.rawValue,context:context))
+                let prompt=try recipes.build(module:module,kind:kind,parameters:p);XCTAssertTrue(prompt.contains("mamá"));var accepted:PracticeQuestion?,failure:Error=PracticeQuestionFailure.malformed
+                for attempt in 0..<2 {
+                    do {
+                        let output=try await (attempt == 0 ? ai.text(prompt) : ai.responsesText(prompt)),q=try PracticeQuestion.parse(output,module:module,kind:kind,options:options,target:"es",support:"en")
+                        guard try PracticeCurriculum.accepts(q,context:context,recipes:recipes) else { throw AppError.message("Off-lesson matching pairs") };accepted=q;break
+                    } catch { failure=error }
+                }
+                guard let accepted else { throw failure };XCTAssertFalse(accepted.questionText.isEmpty)
+            }
+            print("LIVE CURRICULUM: actual My Family agenda supplied; native vocabulary and grammar matching accepted")
+        } catch { try? await Auth.auth().currentUser?.delete();try? Auth.auth().signOut();try? identity.disconnect();throw error }
+        try await Auth.auth().currentUser?.delete();try Auth.auth().signOut();try identity.disconnect()
+    }
     func testOriginalRealtimeGoalAndJudgingUseNativeProviders() async throws {
         guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else { throw XCTSkip("Explicit live API opt-in required.") }
         XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))

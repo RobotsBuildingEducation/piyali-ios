@@ -138,6 +138,84 @@
     "nativeAdapter": "Read-only user supplied as a Swift recipe argument; no web store or effects."
   },
   {
+    "file": "src/utils/lessonCurriculum.js",
+    "sha256": "87f94db6ecfb9fddf198f3b51fca83017e48586230c0c02eff7f49a5d49a8ad9",
+    "bindings": [
+      "AGENDA_TARGET_ROLES",
+      "CONCRETE_LABEL_MODES",
+      "CURRICULUM_GROUNDING_STOP_WORDS",
+      "ENGLISH_CURRICULUM_CONNECTORS",
+      "ENGLISH_CURRICULUM_SCAFFOLDING",
+      "EVIDENCE_BY_MODE",
+      "EXACT_FORM_MODES",
+      "INSTRUCTIONAL_OBJECTIVE_PATTERN",
+      "INVALID_OBJECTIVE_LABELS",
+      "MODE_KIND",
+      "MODE_LABELS",
+      "REVIEW_LESSON_ID_PARTS",
+      "SPANISH_TARGET_SIGNAL",
+      "SUPPORT_GRAMMAR_TERMS",
+      "UNLOCALIZED_CONTEXT_PATTERN",
+      "buildCurriculumPromptContext",
+      "buildLessonAgenda",
+      "buildObjectiveLabel",
+      "buildUnitCurriculumSnapshot",
+      "buildUnitQuizBlueprint",
+      "cleanText",
+      "collectTextValues",
+      "createAgendaItem",
+      "extractItemText",
+      "extractTargetLanguageDetail",
+      "getAgendaGoal",
+      "getAgendaTargetForms",
+      "getAgendaTargetRole",
+      "getConcreteModeObjectives",
+      "getDisplayText",
+      "getGroundingTerms",
+      "getLessonAgenda",
+      "getManualA1AgendaItems",
+      "getManualB1B2AgendaItems",
+      "getManualB1B2FoundationFormItems",
+      "getManualC1C2AgendaItems",
+      "getManualC1C2FoundationFormItems",
+      "getManualPreA1AgendaItems",
+      "getManualSpanishAgendaItems",
+      "getManualSpanishFoundationFormItems",
+      "getStructuralGroundingTerms",
+      "hasEnglishCurriculumScaffolding",
+      "hasUsableLocalizedContext",
+      "isCurriculumPayloadGrounded",
+      "isInstructionalLessonObjective",
+      "isInvalidLessonObjective",
+      "isReviewLesson",
+      "localizeEmbeddedGrammarTerms",
+      "normalizeAgendaItemSemantics",
+      "normalizeObjectiveKey",
+      "normalizeTextList",
+      "slugify",
+      "uniqueText"
+    ]
+  },
+  {
+    "file": "src/utils/gameReviewContext.js",
+    "sha256": "2dd6d2516790e17e51c533b97f89e6d9c8678f108517fe0ed7adfba1f08135df",
+    "bindings": [
+      "buildGameReviewContext",
+      "buildReviewLesson",
+      "buildUnitCurriculumSnapshot",
+      "buildUnitQuizBlueprint",
+      "cleanString",
+      "collectModeObjectives",
+      "collectModeTerms",
+      "collectRelevantLessons",
+      "getLessonAgenda",
+      "getLocalizedText",
+      "inferCefrLevelFromLessonId",
+      "isReviewLesson",
+      "uniqueStrings"
+    ]
+  },
+  {
     "file": "src/components/RealTimeTest.jsx",
     "sha256": "9c45b94d47afed3c84f776f7ca23b49dfc2da721cda52365bbf8402405a432a6",
     "bindings": [
@@ -253,27 +331,6 @@
     ]
   },
   {
-    "file": "src/utils/lessonCurriculum.js",
-    "sha256": "87f94db6ecfb9fddf198f3b51fca83017e48586230c0c02eff7f49a5d49a8ad9",
-    "bindings": [
-      "AGENDA_TARGET_ROLES",
-      "EXACT_FORM_MODES",
-      "INSTRUCTIONAL_OBJECTIVE_PATTERN",
-      "MODE_KIND",
-      "buildCurriculumPromptContext",
-      "cleanText",
-      "extractItemText",
-      "getAgendaGoal",
-      "getAgendaTargetForms",
-      "getAgendaTargetRole",
-      "getDisplayText",
-      "isInstructionalLessonObjective",
-      "normalizeObjectiveKey",
-      "normalizeTextList",
-      "uniqueText"
-    ]
-  },
-  {
     "file": "src/utils/vocabularyMatchGeneration.js",
     "sha256": "f2891a4fa5f0885362c89e9fac377c9e7fcf20e8b2a801076836fd066d179be3",
     "bindings": [
@@ -309,6 +366,65 @@
       "getBaseLanguageCode",
       "getTutorStarterTargetExamples",
       "getTutorStarterVocabularyPairs"
+    ]
+  },
+  {
+    "file": "src/data/manualPreA1Agendas.js",
+    "sha256": "d3a963315ddc4cb876713ec1150aebb8a19ceaf90fba0ea46a28a3ab5e920ddf",
+    "bindings": [
+      "FORM_LABEL_PREFIXES",
+      "MANUAL_APPLICATION_LABELS",
+      "MANUAL_PRE_A1_AGENDAS",
+      "agenda",
+      "buildAgenda",
+      "capabilityItem",
+      "formItem",
+      "getManualPreA1AgendaItems"
+    ]
+  },
+  {
+    "file": "src/data/manualA1Agendas.js",
+    "sha256": "c83487a99119180cc20e5f690e4e5a07f3b80209c34f7d72de158fcb908abfcc",
+    "bindings": [
+      "FORM_LABEL_PREFIXES",
+      "MANUAL_A1_AGENDAS",
+      "agenda",
+      "applicationItem",
+      "buildAgenda",
+      "formItem",
+      "getManualA1AgendaItems"
+    ]
+  },
+  {
+    "file": "src/data/manualB1B2Agendas.js",
+    "sha256": "5803258e0d154f309b98076f558dfa2066b9d89385e3a738997a9f953d610b1a",
+    "bindings": [
+      "APPLICATION_LABEL_PREFIXES",
+      "B1_B2_FOUNDATION_FORMS",
+      "FORM_LABEL_PREFIXES",
+      "MANUAL_B1_B2_AGENDAS",
+      "agenda",
+      "applicationItem",
+      "buildAgenda",
+      "formItem",
+      "getManualB1B2AgendaItems",
+      "getManualB1B2FoundationFormItems"
+    ]
+  },
+  {
+    "file": "src/data/manualC1C2Agendas.js",
+    "sha256": "296264b175d3d5425e0a3b2899b8dba27db12acea8e362778f1a17b72b915300",
+    "bindings": [
+      "APPLICATION_LABEL_PREFIXES",
+      "C1_C2_FOUNDATION_FORMS",
+      "FORM_LABEL_PREFIXES",
+      "MANUAL_C1_C2_AGENDAS",
+      "agenda",
+      "applicationItem",
+      "buildAgenda",
+      "formItem",
+      "getManualC1C2AgendaItems",
+      "getManualC1C2FoundationFormItems"
     ]
   },
   {

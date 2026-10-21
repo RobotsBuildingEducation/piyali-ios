@@ -12,6 +12,8 @@ struct IntroTutorialView:View {
     private var mode:String { app.learner.introSession.next ?? "game" }
     private var brand:PiyaliBrand { .init(dark:scheme == .dark) }
     @State private var finishing=false
+    @State private var reviewing=false
+    @State private var appeared=false
     @State private var descriptionMode:IntroDescription?
     var body:some View {
         let capturedScope=scope
@@ -20,7 +22,13 @@ struct IntroTutorialView:View {
             engine(scope:capturedScope).id(capturedScope+":"+mode)
         }.background(brand.background).navigationTitle(lesson.title.localized(app.learner.support)).navigationBarTitleDisplayMode(.inline)
             .disabled(app.loadingContent || app.introLibrary?.target != app.learner.target || finishing)
-            .onAppear { app.lessonActivityActive=true;if app.learner.introSession.ready { finish(scope:capturedScope) } }
+            .onAppear {
+                app.lessonActivityActive=true
+                guard !appeared else { return };appeared=true
+                reviewing=app.learner.completed.contains(app.learner.completionKey(IntroTutorial.lessonID))
+                if reviewing,app.learner.introSession.ready { app.learner.restartIntroReview();app.persist() }
+                else if app.learner.introSession.ready { finish(scope:capturedScope) }
+            }
             .onDisappear { app.lessonActivityActive=false }
             .popover(item:$descriptionMode) { selected in let item=selected.id;VStack(alignment:.leading,spacing:12) { Text(LessonSessionCopy.module(item,language:app.learner.support)).font(.headline);Text(item == mode ? lesson.content[item]["tutorialDescription"].localized(app.learner.support) : LessonSessionCopy.module(item,language:app.learner.support,key:"description")) }.padding(24).presentationCompactAdaptation(.popover) }
     }
@@ -30,7 +38,7 @@ struct IntroTutorialView:View {
                 if index > 0 { Rectangle().fill(app.learner.introSession.visited.contains(IntroTutorial.modes[index-1]) ? color(item) : brand.border).frame(maxWidth:30,maxHeight:3).padding(.top,18) }
                 VStack(spacing:7) {
                     let done=app.learner.introSession.visited.contains(item),current=mode == item
-                    Button { descriptionMode=IntroDescription(id:item) } label:{ Image(systemName:done ? "checkmark" : LessonPreviewView.icon(item)).font(.system(size:16,weight:.semibold)).foregroundStyle(done ? .white : current ? color(item) : brand.muted).frame(width:36,height:36).background(done ? color(item) : brand.surface,in:Circle()).overlay { Circle().stroke(color(item)) }.shadow(color:current ? color(item) : brand.border,radius:0,y:4).scaleEffect(current ? 1.1 : 1) }.buttonStyle(.plain).accessibilityLabel("Tutorial step: "+LessonSessionCopy.module(item,language:app.learner.support)).accessibilityIdentifier("introStep-"+item).accessibilityValue(done ? "Completed" : current ? "Current" : "Upcoming")
+                    Button { descriptionMode=IntroDescription(id:item) } label:{ Image(systemName:done ? "checkmark" : LessonPreviewView.icon(item)).font(.system(size:16,weight:.semibold)).foregroundStyle(done ? .white : current ? color(item) : brand.muted).frame(width:36,height:36).background { Circle().fill(done ? color(item) : brand.surface).shadow(color:current ? color(item) : brand.border,radius:0,y:4) }.overlay { Circle().stroke(color(item)) }.scaleEffect(current ? 1.1 : 1) }.buttonStyle(.plain).accessibilityLabel("Tutorial step: "+LessonSessionCopy.module(item,language:app.learner.support)).accessibilityIdentifier("introStep-"+item).accessibilityValue(done ? "Completed" : current ? "Current" : "Upcoming")
                     Text(LessonSessionCopy.module(item,language:app.learner.support,key:"shortLabel")).font(PiyaliBrand.productFont(10,current ? 700 : 500)).foregroundStyle(done || current ? brand.text : brand.muted).lineLimit(1).minimumScaleFactor(0.6)
                 }
             }
@@ -43,10 +51,10 @@ struct IntroTutorialView:View {
     }
     @ViewBuilder private func engine(scope:String)->some View {
         switch mode {
-        case "vocabulary","grammar":LessonPracticeView(module:mode == "vocabulary" ? .vocabulary : .grammar,lesson:lesson,onNext:{ advance(mode,scope:scope) },embedded:true)
+        case "vocabulary","grammar":LessonPracticeView(module:mode == "vocabulary" ? .vocabulary : .grammar,lesson:lesson,onNext:{ advance(mode,scope:scope) },startsFresh:reviewing,embedded:true)
         case "reading":ReadingView(lesson:lesson,onComplete:{ advance("reading",scope:scope) },embedded:true).safeAreaInset(edge:.bottom) { skip("reading",scope:scope) }
         case "stories":StoryView(lesson:lesson,onComplete:{ advance("stories",scope:scope) },embedded:true).safeAreaInset(edge:.bottom) { skip("stories",scope:scope) }
-        case "realtime":RealtimeLessonView(lesson:lesson,onNext:{ advance("realtime",scope:scope) })
+        case "realtime":RealtimeLessonView(lesson:lesson,onNext:{ advance("realtime",scope:scope) },startsFresh:reviewing)
         case "game":RPGView(lesson:lesson,episode:nil,onTutorialComplete:{ advance("game",scope:scope) },embedded:true).safeAreaInset(edge:.bottom) { skip("game",scope:scope) }
         default:EmptyView()
         }

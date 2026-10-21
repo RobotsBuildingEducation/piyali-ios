@@ -26,10 +26,12 @@ import Foundation
                 lessonData=lessonData.setting("isTutorial",.bool(lesson.id == IntroTutorial.lessonID)).setting("isGoal",.bool(lesson.id.hasPrefix("goal-"))).setting("isRepair",.bool(lesson.id.hasPrefix("repair-")))
                 if let level=lesson.cefrLevel ?? (LearningLanguages.levels.contains(lesson.agenda["cefrLevel"].string) ? lesson.agenda["cefrLevel"].string : nil) { lessonData=lessonData.setting("cefrLevel",.string(level)) }
             }
+            let unit=app.units.first { $0.lessons.contains(where:{$0.id == lesson?.id}) } ?? (lesson?.id == IntroTutorial.lessonID ? app.introLibrary?.units[state.level] : nil)
+            let curriculum=try PracticeCurriculum.context(lesson:lesson,unit:unit,target:state.target,recipes:recipes)
             let context:JSONValue = .object(["lesson":lessonData,"targetLang":.string(state.target),"user":user])
             let options=try recipes.select(module:module,context:context).setting("isFinalQuiz",.bool(lesson?.isFinalQuiz == true)),kind=options["exerciseType"].string
             let recent=Array(state.history.filter { $0.target == state.target && $0.mode.lowercased() == module.rawValue && $0.correct }.prefix(5)).map { JSONValue.string($0.question) }
-            let parameters=options.setting("targetLang",.string(state.target)).setting("supportLang",.string(state.support)).setting("appUILang",.string(state.support)).setting("showTranslations",.bool(true)).setting("lessonContent",lesson?.content[module.rawValue] ?? .null).setting("user",user).setting("recentGood",.array(recent)).setting("recentQuestions",.array(recent))
+            let parameters=options.setting("targetLang",.string(state.target)).setting("supportLang",.string(state.support)).setting("appUILang",.string(state.support)).setting("showTranslations",.bool(true)).setting("lessonContent",PracticeCurriculum.content(lesson,mode:module.rawValue,context:curriculum)).setting("user",user).setting("recentGood",.array(recent)).setting("recentQuestions",.array(recent))
             let prompt=try recipes.build(module:module,kind:kind,parameters:parameters)
             var question:PracticeQuestion?
             var lastError:Error=PracticeQuestionFailure.malformed
@@ -47,6 +49,7 @@ import Foundation
                         }
                         question=try .init(module:module,kind:kind,payload:normalized,options:options,target:state.target,support:state.support)
                     } else { question=try .parse(output,module:module,kind:kind,options:options,target:state.target,support:state.support) }
+                    guard let candidate=question,try PracticeCurriculum.accepts(candidate,context:curriculum,recipes:recipes) else { question=nil;throw AppError.message("The generated exercise did not use this lesson’s material. Please try again.") }
                     break
                 } catch { try Task.checkCancellation();lastError=error }
             }

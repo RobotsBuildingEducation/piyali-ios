@@ -23,6 +23,8 @@ import XCTest
         let bonus=app.staticTexts["lessonCompletionBonus"];XCTAssertTrue(bonus.waitForExistence(timeout:10));XCTAssertEqual(bonus.label,"+50");app.buttons["continueLessonCompletion"].tap()
         XCTAssertTrue(app.buttons["lessonNode-lesson-pre-a1-1-1"].waitForExistence(timeout:5));XCTAssertTrue(app.buttons["lessonNode-lesson-pre-a1-1-1"].isEnabled)
         app.terminate();app.launch();path(app);XCTAssertTrue(app.buttons["lessonNode-lesson-pre-a1-1-1"].waitForExistence(timeout:10));XCTAssertTrue(app.buttons["lessonNode-lesson-pre-a1-1-1"].isEnabled);XCTAssertFalse(bonus.exists)
+        app.buttons["introLink"].tap();app.buttons["startLessonFromPreview"].tap();XCTAssertTrue(app.buttons["introStep-vocabulary"].waitForExistence(timeout:5));XCTAssertEqual(app.buttons["introStep-vocabulary"].value as? String,"Current")
+        for _ in 0..<6 { skip(app) };XCTAssertTrue(app.buttons["lessonNode-lesson-pre-a1-1-1"].waitForExistence(timeout:5));XCTAssertFalse(bonus.exists,"Review retains the completed introduction receipt")
     }
     func testAuthoredIntroAdventureFinishesTheInlineSequenceWithoutClaimingUnitXP() throws {
         continueAfterFailure=false;let fixture=try JSONDecoder().decode(PlayFixture.self,from:Data(contentsOf:try XCTUnwrap(Bundle(for:Self.self).url(forResource:"intro-play",withExtension:"json"))))
