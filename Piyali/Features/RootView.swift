@@ -14,7 +14,7 @@ struct RootView: View {
 }
 private struct ProductAccessView:View {
     @ObservedObject var service:SubscriptionService
-    var body:some View { if service.hasAccess { ProductShellView() } else { NavigationStack { SubscriptionView(service:service) } } }
+    var body:some View { if service.hasAccess { TimelineView(.periodic(from:.now,by:60)) { clock in ProductShellView(now:clock.date) } } else { NavigationStack { SubscriptionView(service:service) } } }
 }
 struct LanguagePicker: View {
     let title: String

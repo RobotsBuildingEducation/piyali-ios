@@ -17,6 +17,7 @@ struct ProductCopy {
 }
 
 struct ProductShellView:View {
+    var now=Date()
     @EnvironmentObject var app:AppModel
     @Environment(\.colorScheme) private var scheme
     @AppStorage("piyali.theme") private var theme="light"
@@ -32,7 +33,7 @@ struct ProductShellView:View {
     private var language:String { app.learner.support }
     private var brand:PiyaliBrand { PiyaliBrand(dark:scheme == .dark) }
     private var sessionKey:String { "piyali.guidedSession."+app.identity.npub }
-    private var contextKey:String { app.identity.npub+":"+app.learner.target+":"+CalendarDay.key(Date()) }
+    private var contextKey:String { app.identity.npub+":"+app.learner.target+":"+CalendarDay.key(now) }
     var body:some View {
         ZStack(alignment:.bottom) {
             BrandBackground()
@@ -52,7 +53,13 @@ struct ProductShellView:View {
             .environment(\.layoutDirection,language == "ar" ? .rightToLeft : .leftToRight)
             .sheet(item:$panel) { selected in NavigationStack { panelContent(selected).toolbar { ToolbarItem(placement:.confirmationAction) { Button(EntryCopy.text(language,"back_button")) { panel=nil }.accessibilityIdentifier("productPanelClose") } } }.tint(PiyaliBrand.teal) }
             .sheet(isPresented:$celebration) { completion }
-            .task(id:contextKey) { app.prepareDailyPlate();restoreSession();revision=UUID() }
+            .task(id:contextKey) {
+                if app.learner.dailyKey != CalendarDay.key(now) { app.learner.rollDay(now:now);app.persist() }
+                app.prepareDailyPlate()
+                if let guided,!guided.matches(account:app.identity.npub,target:app.learner.target,day:CalendarDay.key(now)) { celebration=false;waitingCelebration=false;specialCourse=nil }
+                restoreSession()
+            }
+            .onChange(of:app.learner.target) { _,_ in revision=UUID() }
             .onChange(of:app.localPracticeRevision) { _,_ in checkCompletion() }
             .onChange(of:panel) { _,value in if value == nil,waitingCelebration { waitingCelebration=false;celebration=true } }
     }
@@ -60,7 +67,7 @@ struct ProductShellView:View {
         if specialCourse == "goal" { FocusedGoalView() }
         else if specialCourse == "repair" { RepairPracticeView() }
         else { switch mode {
-        case .focus: TodayFocusHomeView(sessionActive:guided != nil,onStart:startPractice,onPanel:{ panel=$0 })
+        case .focus: TodayFocusHomeView(now:now,sessionActive:guided != nil,onStart:startPractice,onPanel:{ panel=$0 })
         case .path: LessonPathView()
         case .cards: FlashcardsView()
         case .phonics: PhonicsView()
@@ -116,7 +123,7 @@ struct ProductShellView:View {
         revision=UUID()
     }
     private func restoreSession() {
-        guard let data=UserDefaults.standard.data(forKey:sessionKey),var saved=try? JSONDecoder().decode(GuidedPracticeSession.self,from:data),saved.matches(account:app.identity.npub,target:app.learner.target,day:CalendarDay.key(Date())) else { guided=nil;saveSession();return }
+        guard let data=UserDefaults.standard.data(forKey:sessionKey),var saved=try? JSONDecoder().decode(GuidedPracticeSession.self,from:data),saved.matches(account:app.identity.npub,target:app.learner.target,day:CalendarDay.key(now)) else { guided=nil;saveSession();return }
         if saved.taskCompleted(app.plateCourses),!saved.advance(app.plateCourses) { guided=nil;saveSession();return }
         guided=saved
         saveSession()

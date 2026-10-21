@@ -1,7 +1,7 @@
 import Foundation
 
 public enum PracticeSource: String, Codable, Sendable {
-    case practice, assessment, lesson, review, phonics, goal, goalMode, repair, immersion, speak, tutorTurn, conversation, readingTurn, readingSpeech, storyTurn, storyCompletion, questStart, plateBonus
+    case practice, assessment, lessonStart, lesson, review, phonics, goal, goalMode, repair, immersion, speak, tutorTurn, conversation, readingTurn, readingSpeech, storyTurn, storyCompletion, questStart, plateBonus
     public var activityField: String? {
         switch self { case .lesson:"lessonDailyActivity"; case .review:"flashcardDailyActivity"; case .phonics:"phonicsDailyActivity"; case .goal:"goalDailyActivity"; case .repair:"repairDailyActivity"; case .speak:"speakDailyActivity"; case .conversation:"conversationDailyActivity"; default:nil }
     }
@@ -15,6 +15,8 @@ public struct PracticeChange: Codable, Identifiable, Sendable {
     public var amount: Int
     public var source: PracticeSource
     public var contentID: String?
+    public var skillTreeLessonID:String?
+    public var skillTreeLessonLevel:String?
     public var tutorAgendaItemID: String?
     public var questCarry: [String]?
     public var questIntro: Bool?
@@ -51,7 +53,7 @@ public enum CalendarDay {
     }
 }
 public extension LearnerState {
-    mutating func enqueue(_ change: PracticeChange) { questProgress = DailyPlate.recorded(change,progress:plateProgress); if pendingChanges == nil { pendingChanges = [] }; pendingChanges?.append(change) }
+    mutating func enqueue(_ change: PracticeChange) { applyLessonWork(change);questProgress = DailyPlate.recorded(change,progress:plateProgress); if pendingChanges == nil { pendingChanges = [] }; pendingChanges?.append(change) }
     mutating func review(cardID: String, rating: ReviewRating, now: Date = Date(), calendar: Calendar = .current) {
         rollDay(now:now,calendar:calendar)
         let key = completionKey(cardID)
@@ -82,6 +84,8 @@ public extension LearnerState {
         }
         merged.journeyQuestCounts = acknowledged.journeyQuestCounts
         merged.tutorLessons = acknowledged.tutorLessons
+        merged.lessonWork=acknowledged.lessonWork
+        for change in newer { merged.applyLessonWork(change) }
         for change in newer where change.source == .tutorTurn {
             let key = "\(change.target):tutor:\(change.contentID ?? "")"
             if merged.tutorLessons == nil { merged.tutorLessons = [:] }

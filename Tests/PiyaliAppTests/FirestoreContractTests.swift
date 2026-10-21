@@ -15,6 +15,37 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
     func createProvider(with app: FirebaseApp) -> AppCheckProvider? { EmulatorAppCheckProvider() }
 }
 @MainActor final class FirestoreContractTests: XCTestCase {
+    func testCurriculumOwnXPResumesAndConcurrentPracticeRetriesDoNotDuplicateWork() async throws {
+        let (service,db,npub)=try context();try await seed(db,npub)
+        let lesson=Lesson(id:"lesson-a1-counter",title:.string("Greetings"),description:.string("Use greetings"),xpReward:50,modes:["grammar","vocabulary"],agenda:.object([:]),content:.object([:]),cefrLevel:"A1")
+        var state=try requireState(await service.load(npub:npub));XCTAssertTrue(state.beginLessonWork(lesson))
+        state=try requireState(await service.save(state,npub:npub));state.pendingChanges=[]
+        let key=state.completionKey(lesson.id)
+        XCTAssertEqual(state.lessonWork?[key]?.status,.inProgress);XCTAssertEqual(state.lessonWork?[key]?.earnedXP,0)
+        var a=state,b=state;a.award(6,lesson:lesson);b.award(5,lesson:lesson)
+        async let first=service.save(a,npub:npub),second=service.save(b,npub:npub);_=try await(first,second)
+        _=try await service.save(a,npub:npub);_=try await service.save(b,npub:npub)
+        state=try requireState(await service.load(npub:npub));state.pendingChanges=[]
+        XCTAssertEqual(state.lessonWork?[key]?.earnedXP,11);XCTAssertEqual(state.totalXP,161)
+        state.award(20,source:.tutorTurn);state=try requireState(await service.save(state,npub:npub));state.pendingChanges=[]
+        XCTAssertEqual(state.lessonWork?[key]?.earnedXP,11)
+        state.award(44,lesson:lesson);state=try requireState(await service.save(state,npub:npub));state.pendingChanges=[]
+        XCTAssertTrue(try XCTUnwrap(state.lessonWork?[key]).ready(goal:50));XCTAssertTrue(state.complete(lesson))
+        _=try await service.save(state,npub:npub);_=try await service.save(state,npub:npub)
+        let restored=try requireState(await service.load(npub:npub))
+        XCTAssertEqual(restored.lessonWork?[key]?.status,.completed);XCTAssertEqual(restored.lessonWork?[key]?.earnedXP,50);XCTAssertEqual(restored.totalXP,275)
+        let document=try await db.collection("users").document(npub).collection("languageLessons").document("fr_"+lesson.id).getDocument().data()
+        XCTAssertEqual(WebProgressContract.integer(document?["xpEarned"]),50)
+    }
+    func testWebCompletedLessonDoesNotClaimAnotherNativeCompletionBonus() async throws {
+        let (service,db,npub)=try context();try await seed(db,npub)
+        let lesson=Lesson(id:"lesson-web-completed",title:.string("Greetings"),description:.string(""),xpReward:50,modes:["grammar"],agenda:.object([:]),content:.object([:]),cefrLevel:"A1")
+        var offline=LearnerState();offline.target="fr";offline.level="A1";XCTAssertTrue(offline.complete(lesson))
+        try await db.collection("users").document(npub).collection("languageLessons").document("fr_"+lesson.id).setData(["lessonId":lesson.id,"targetLang":"fr","cefrLevel":"A1","status":"completed","earnedXp":50,"xpEarned":50])
+        _=try await service.save(offline,npub:npub)
+        let restored=try requireState(await service.load(npub:npub))
+        XCTAssertEqual(restored.totalXP,150);XCTAssertEqual(restored.lessonWork?["fr:"+lesson.id]?.status,.completed)
+    }
     func testFinalQuizRestoresQuestionAndCountsAssessmentsAndLessonRewardOnce() async throws {
         let (service,db,npub)=try context();try await seed(db,npub)
         let levels=try ContentLibrary.load([String:[LearningUnit]].self,name:"curriculum-fr"),lesson=try XCTUnwrap(levels["Pre-A1"]?.flatMap(\.lessons).first { $0.isFinalQuiz == true })

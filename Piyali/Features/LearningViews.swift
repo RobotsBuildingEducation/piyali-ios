@@ -87,6 +87,9 @@ struct DailyPlateView: View {
 struct LessonView: View {
     @EnvironmentObject var app: AppModel
     let lesson: Lesson
+    private var curriculum:Bool { CurriculumLessonProgress.isCurriculumID(lesson.id) }
+    private var work:CurriculumLessonProgress? { app.learner.lessonWork?[app.learner.completionKey(lesson.id)] }
+    private var started:Bool { !curriculum || work != nil || app.learner.completed.contains(app.learner.completionKey(lesson.id)) }
     var body: some View {
         List {
             Section("Lesson") {
@@ -95,14 +98,19 @@ struct LessonView: View {
                     let goal = item["goal"].localized(app.learner.support)
                     if !goal.isEmpty { Text(goal) }
                 }
+                if curriculum {
+                    ProgressView(value:work?.fraction(goal:lesson.xpReward) ?? 0)
+                    Text("\(work?.earnedXP ?? 0) / \(lesson.xpReward) XP").font(.footnote).accessibilityIdentifier("lessonOwnedXP")
+                    if !started { Button("Start lesson") { app.beginLesson(lesson) }.accessibilityIdentifier("startCurriculumLesson") }
+                }
             }
-            if lesson.isFinalQuiz == true {
+            if started,lesson.isFinalQuiz == true {
                 Section("Final quiz") {
                     let rules=QuizRules(lesson.quizConfig ?? .object([:]))
                     Text("Pass by answering \(rules.passingScore) of up to \(rules.questionsRequired) questions correctly.")
                     NavigationLink("Take final quiz") { FinalQuizView(lesson:lesson) }.accessibilityIdentifier("finalQuizLink")
                 }
-            } else { Section("Practice each skill") {
+            } else if started { Section("Practice") {
                 ForEach(AppModel.modes(for: lesson)) { mode in
                     NavigationLink { if mode == .game { RPGView(lesson:lesson,episode:nil) } else if mode == .reading { ReadingView(lesson:lesson) } else if mode == .stories { StoryView(lesson:lesson) } else { ExerciseView(mode: mode, lesson: lesson) } } label: {
                         HStack {
@@ -111,12 +119,19 @@ struct LessonView: View {
                         }
                     }
                 }
-                if !lesson.modes.contains("game") { Button(lesson.id.hasPrefix("goal-") ? "Complete today’s goal lesson" : "Complete lesson (+\(lesson.xpReward) XP)") { app.complete(lesson) }
+                if !lesson.modes.contains("game") {
+                    if !curriculum { Button(lesson.id.hasPrefix("goal-") ? "Complete today’s goal lesson" : "Complete lesson (+\(lesson.xpReward) XP)") { app.complete(lesson) }
                     .disabled(!app.canComplete(lesson) || app.learner.completed.contains(app.learner.completionKey(lesson.id)))
-                Text("Complete a correct exercise in every listed skill to finish this lesson.").font(.footnote) }
+                    }
+                    Text(curriculum ? "Practice to reach this lesson’s XP goal. Your progress is saved when you leave." : "Complete a correct exercise in every listed skill to finish this lesson.").font(.footnote)
+                    if app.learner.completed.contains(app.learner.completionKey(lesson.id)) { Label("Lesson completed",systemImage:"checkmark.circle.fill").accessibilityIdentifier("curriculumLessonCompleted") }
+                }
                 else { Text("Finish the adventure and confirm its recap to complete this unit review. Stars determine the lesson XP reward.").font(.footnote) }
             } }
         }.navigationTitle(lesson.title.localized(app.learner.support))
+            .onChange(of:work?.earnedXP,initial:true) { _,_ in
+                if curriculum,lesson.isFinalQuiz != true,!lesson.modes.contains("game"),app.canComplete(lesson) { app.complete(lesson) }
+            }
     }
 }
 struct PracticeLibraryView: View {

@@ -307,7 +307,7 @@ import SwiftUI
         }
         if let flashcardID { learner.review(cardID:flashcardID,rating:grade.correct ? .good : .again) }
         if grade.correct {
-            if flashcardID == nil { learner.award(10) }
+            if flashcardID == nil { learner.award(10,lesson:lesson) }
             if mode == .speaking || mode == .conversation {
                 if learner.journeyDays == nil { learner.journeyDays = [] }
                 learner.journeyDays?.insert(learner.target + ":" + learner.dailyKey)
@@ -462,8 +462,12 @@ import SwiftUI
     }
     func place(_ placement: Placement) { learner.place(placement); persist(); Task { await reloadContent() } }
     func canComplete(_ lesson: Lesson) -> Bool {
-        if lesson.isFinalQuiz == true { return learner.quizPassed(lesson) };return !lesson.modes.contains("game") && Self.modes(for: lesson).allSatisfy { learner.practicedModes.contains(learner.modeKey(lesson.id, $0.rawValue)) }
+        if lesson.isFinalQuiz == true { return learner.quizPassed(lesson) }
+        guard !lesson.modes.contains("game") else { return false }
+        if CurriculumLessonProgress.isCurriculumID(lesson.id) { return learner.lessonWork?[learner.completionKey(lesson.id)]?.ready(goal:lesson.xpReward) == true }
+        return Self.modes(for: lesson).allSatisfy { learner.practicedModes.contains(learner.modeKey(lesson.id, $0.rawValue)) }
     }
+    func beginLesson(_ lesson:Lesson) { if learner.beginLessonWork(lesson) { persist() } }
     func complete(_ lesson: Lesson) {
         guard canComplete(lesson) else { return }
         if lesson.id.hasPrefix("goal-") {

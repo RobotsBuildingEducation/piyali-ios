@@ -67,6 +67,7 @@ public extension LearnerState {
         let verdict=StorySpeech.evaluate(recognized:words,target:line.target,lang:run.target,confidence:confidence,audio:audio)
         run.speechResult=verdict;run.lastWords=String(words.prefix(2000));let amount=verdict.pass ? 2 : 0
         var change=PracticeChange(date:now,dayKey:CalendarDay.key(now),target:run.target,level:run.level,amount:amount,source:verdict.pass ? .storyTurn : .practice,contentID:run.contentID(verdict.pass ? "line-"+String(run.index) : "miss-"+UUID().uuidString))
+        change.attachCurriculumLesson(id:run.lessonID,level:run.level)
         if verdict.pass {
             run.passedLines.insert(run.index);run.earnedXP += 2
             change.correct=true;change.independent=true;change.conversationWorth=run.worth;change.conversationGoalText = .object(["en":.string(line.target)])
@@ -82,6 +83,7 @@ public extension LearnerState {
         guard var run=story,run.support == support,run.atEnd,!run.completed,run.mode == .speaking || run.results.count == run.count else { return 0 }
         let amount=run.mode == .speaking ? 0 : 6;run.completed=true;run.earnedXP += amount
         var change=PracticeChange(date:now,dayKey:CalendarDay.key(now),target:run.target,level:run.level,amount:amount,source:.storyCompletion,contentID:run.contentID("complete"))
+        change.attachCurriculumLesson(id:run.lessonID,level:run.level)
         change.storyProof = .object(["origin":.string("story"),"mode":.string(run.mode == .speaking ? "story-session-complete" : "story-"+run.mode.rawValue+"-complete"),"lang":.string(run.target),"supportLang":.string(run.support),"totalQuestions":.number(Double(run.count)),"correctQuestions":.number(Double(run.correctQuestions)),"totalSentences":.number(Double(run.sentences.count)),"passedSentences":.number(Double(run.passedLines.count)),"xpAwarded":.number(Double(amount)),"sessionXp":.number(Double(run.earnedXP))])
         if amount > 0 { addXP(amount,now:now,calendar:.current) };enqueue(change)
         if let lesson=run.lessonID { practicedModes.insert(modeKey(lesson,PracticeMode.stories.rawValue)) }

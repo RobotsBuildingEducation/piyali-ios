@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct TodayFocusHomeView:View {
+    var now=Date()
     @EnvironmentObject var app:AppModel
     @Environment(\.colorScheme) private var scheme
     let sessionActive:Bool
@@ -14,14 +15,14 @@ struct TodayFocusHomeView:View {
     private var brand:PiyaliBrand { PiyaliBrand(dark:scheme == .dark) }
     private var courses:[PlateCourse] { app.plateCourses }
     private var cleared:Bool { !courses.isEmpty && courses.allSatisfy(\.done) }
-    private var bubbleKey:String { "piyali.companionBubbleDismissed:"+app.identity.npub+":"+app.learner.target+":"+CalendarDay.key(Date()) }
+    private var bubbleKey:String { "piyali.companionBubbleDismissed:"+app.identity.npub+":"+app.learner.target+":"+CalendarDay.key(now) }
     private var showBubble:Bool { !cleared && !bubbleDismissed }
     var body:some View {
         ScrollView {
             VStack(spacing:12) {
                 VStack(spacing:3) {
                     Text(ProductCopy.text(language,"PLATE_TITLE_COPY")).font(PiyaliBrand.font(24,700)).accessibilityIdentifier("todayFocusTitle")
-                    Text(Date.now,format:Date.FormatStyle().weekday(.wide).month(.wide).day().locale(Locale(identifier:language))).font(PiyaliBrand.font(14)).foregroundStyle(brand.muted)
+                    Text(now,format:Date.FormatStyle().weekday(.wide).month(.wide).day().locale(Locale(identifier:language))).font(PiyaliBrand.font(14)).foregroundStyle(brand.muted)
                 }.frame(maxWidth:.infinity).padding(.top,16)
                 if cleared { Text(ProductCopy.text(language,"PLATE_CLEARED_COPY")).font(PiyaliBrand.font(20,700)).frame(maxWidth:.infinity).padding(20).background(Color.orange.opacity(0.14),in:RoundedRectangle(cornerRadius:20)) }
                 else { Text(ProductCopy.text(language,"subtitle")).font(PiyaliBrand.font(14)).foregroundStyle(brand.secondary).multilineTextAlignment(.center).padding(.vertical,12) }

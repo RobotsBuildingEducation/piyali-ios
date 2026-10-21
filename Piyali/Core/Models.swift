@@ -135,6 +135,7 @@ public struct LearnerState: Codable, Sendable {
     public var streak = 0
     public var completed: Set<String> = []
     public var practicedModes: Set<String> = []
+    public var lessonWork:[String:CurriculumLessonProgress]?
     public var flashcardMastery: Set<String> = []
     public var history: [HistoryEntry] = []
     public var notes: [Note] = []
@@ -207,11 +208,13 @@ public struct LearnerState: Codable, Sendable {
             dailyKey = key; dailyXP = 0
         }
     }
-    public mutating func award(_ amount: Int, source: PracticeSource = .practice, contentID: String? = nil, now: Date = Date(), calendar: Calendar = .current) {
+    public mutating func award(_ amount: Int, source: PracticeSource = .practice, contentID: String? = nil, lesson:Lesson? = nil, now: Date = Date(), calendar: Calendar = .current) {
         let earned = max(0, min(amount, 100))
         guard earned > 0 else { return }
         addXP(earned,now:now,calendar:calendar)
-        enqueue(PracticeChange(date:now,dayKey:dailyKey,target:target,level:source == .speak ? tutorLevel : level,amount:earned,source:source,contentID:contentID))
+        var change=PracticeChange(date:now,dayKey:dailyKey,target:target,level:source == .speak ? tutorLevel : lesson?.cefrLevel ?? level,amount:earned,source:source,contentID:contentID)
+        change.attachCurriculumLesson(id:lesson?.id,level:lesson?.cefrLevel ?? level)
+        enqueue(change)
     }
     mutating func addXP(_ amount: Int, now: Date, calendar: Calendar) {
         rollDay(now:now,calendar:calendar)
@@ -222,9 +225,9 @@ public struct LearnerState: Codable, Sendable {
     }
     public mutating func complete(_ lesson: Lesson) -> Bool {
         let key = completionKey(lesson.id)
-        guard !completed.contains(key),lesson.isFinalQuiz != true || quizPassed(lesson) else { return false }
+        guard !completed.contains(key),lessonWork?[key]?.status != .completed,lesson.isFinalQuiz != true || quizPassed(lesson) else { return false }
         let source: PracticeSource = lesson.id.hasPrefix("goal-") ? .goal : lesson.id.hasPrefix("repair-") ? .repair : .lesson
-        completed.insert(key); award(lesson.xpReward,source:source,contentID:lesson.id)
+        completed.insert(key); award(lesson.xpReward,source:source,contentID:lesson.id,lesson:lesson)
         if lesson.id.hasPrefix("repair-memory-") { reinforceMemory(id:String(lesson.id.dropFirst("repair-memory-".count))) }
         return true
     }

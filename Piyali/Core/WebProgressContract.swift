@@ -71,6 +71,11 @@ public enum WebProgressContract {
             state.flashcardLevels = progress["activeFlashcardLevels"] as? [String:String] ?? state.flashcardLevels
             if let active = state.lessonLevels?[state.target], LearningLanguages.levels.contains(active) { state.level = active }
         }
+        if let languages=progress["languageLessons"] as? [String:[String:[String:Any]]] {
+            for (target,lessons) in languages { for (id,fields) in lessons { state.importLessonWork(fields,id:id,target:target) } }
+        } else if let lessons=progress["lessons"] as? [String:[String:Any]] {
+            for (id,fields) in lessons { state.importLessonWork(fields,id:id,target:state.target) }
+        }
         if let languageXP = progress["languageXp"] as? [String:Any] {
             state.xpByLanguage = languageXP.mapValues { max(0,integer($0)) }
         } else if progress["totalXp"] != nil { state.xpByLanguage[state.target] = max(0,integer(progress["totalXp"])) }

@@ -30,6 +30,7 @@ public extension LearnerState {
         var progress:[String:LessonAccessStatus]=[:]
         for node in units.flatMap(\.lessons) {
             let key=tutor ? tutorKey(node.id) : completionKey(node.id)
+            if !tutor,let saved=lessonWork?[key] { progress[node.id]=saved.status }
             if completed.contains(key) { progress[node.id] = .completed }
             else if tutor ? !tutorProgress(node.id).items.isEmpty || tutorProgress(node.id).earnedXP > 0 : practicedModes.contains(where:{ $0.hasPrefix(key+":") }) { progress[node.id] = .inProgress }
         }

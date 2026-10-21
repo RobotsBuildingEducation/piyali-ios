@@ -55,8 +55,8 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
         var state = WebProgressContract.imported(Self.normalized(fields),native:native)
         let lessons = try await user.collection("languageLessons").whereField("targetLang",isEqualTo:state.target).whereField("cefrLevel",isEqualTo:state.level).getDocuments(source:.server)
         for document in lessons.documents {
-            let data = document.data()
-            if data["status"] as? String == "completed", let id = data["lessonId"] as? String, data["tutorAgendaProgress"] == nil { state.completed.insert(state.completionKey(id)) }
+            let data = Self.normalized(document.data())
+            if let id=data["lessonId"] as? String { state.importLessonWork(data,id:id,target:state.target) }
         }
         let tutors = try await user.collection("tutorLanguageLessons").whereField("targetLang",isEqualTo:state.target).whereField("cefrLevel",isEqualTo:state.tutorLevel).getDocuments(source:.server)
         for document in tutors.documents {
@@ -237,8 +237,9 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
         let receiptID = SHA256.hash(data:Data(stable.utf8)).map { String(format:"%02x",$0) }.joined()
         let receipt = user.collection("iosPracticeReceipts").document(receiptID)
         let month = user.collection("xpHistory").document(String(change.dayKey.prefix(7)))
-        let collection = change.source == .phonics ? "alphabetPractice" : change.source == .review ? "languageFlashcards" : change.source == .lesson ? "languageLessons" : [.tutorTurn,.speak].contains(change.source) ? "tutorLanguageLessons" : nil
+        let collection = change.source == .phonics ? "alphabetPractice" : change.source == .review ? "languageFlashcards" : [.lessonStart,.lesson].contains(change.source) ? "languageLessons" : [.tutorTurn,.speak].contains(change.source) ? "tutorLanguageLessons" : nil
         let content = collection.flatMap { collection in change.contentID.map { user.collection(collection).document("\(change.target)_\($0)") } }
+        let activeLesson = change.skillTreeLessonID.flatMap { CurriculumLessonProgress.isCurriculumID($0) && change.amount > 0 && change.source != .lesson ? user.collection("languageLessons").document("\(change.target)_\($0)") : nil }
         let summary = user.collection("courseProgress").document(change.target)
         let quest = [.questStart,.plateBonus].contains(change.source) ? user.collection("questDays").document("\(change.target)_\(change.dayKey)") : nil
         let journey = change.source == .plateBonus ? user.collection("voiceJourney").document(change.target) : nil
@@ -258,7 +259,13 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                 let userSnapshot = try transaction.getDocument(user)
                 let monthSnapshot = try transaction.getDocument(month)
                 let contentSnapshot = try content.map { try transaction.getDocument($0) }
+                let activeLessonSnapshot = try activeLesson.map { try transaction.getDocument($0) }
                 var fields = Self.normalized(userSnapshot.data() ?? [:])
+                if change.source == .lesson,contentSnapshot?.data()?["status"] as? String == "completed" {
+                    Self.acknowledge(change.id,user:user,fields:fields,transaction:transaction)
+                    transaction.setData(["eventID":change.id.uuidString,"source":change.source.rawValue,"amount":0,"syncedAt":FieldValue.serverTimestamp()],forDocument:receipt)
+                    return false
+                }
                 let questFields = try quest.map { Self.normalized(try transaction.getDocument($0).data() ?? [:]) } ?? [:]
                 let journeyFields = try journey.map { Self.normalized(try transaction.getDocument($0).data() ?? [:]) } ?? [:]
                 let journeyCounted = try journeyReceipt.map { try transaction.getDocument($0).exists } ?? false
@@ -289,6 +296,9 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                 if !userSnapshot.exists { root["createdAt"] = WebProgressContract.iso(change.date); root["dailyGoalXp"] = state.dailyGoal }
                 transaction.setData(root,forDocument:user,merge:true)
                 transaction.setData(patch.month,forDocument:month,merge:true)
+                if let activeLesson,let saved=activeLessonSnapshot?.data(),saved["status"] as? String == "in_progress" {
+                    transaction.setData(["earnedXp":max(0,WebProgressContract.integer(saved["earnedXp"]))+change.amount,"updatedAt":WebProgressContract.iso(change.date)],forDocument:activeLesson,merge:true)
+                }
                 if let quest, change.source == .questStart, savedKinds == nil {
                     transaction.setData(["iosPlate":["dayKey":change.dayKey,"kinds":base,"carry":change.questCarry ?? [],"createdAt":WebProgressContract.iso(change.date)]],forDocument:quest,merge:true)
                 }
@@ -306,7 +316,13 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                     let existing = Self.normalized(contentSnapshot?.data() ?? [:])
                     var data: [String:Any] = ["targetLang":change.target,"cefrLevel":change.level,"updatedAt":WebProgressContract.iso(change.date)]
                     let completed: Bool, wasCompleted: Bool, mode: String
-                    if change.source == .review {
+                    if change.source == .lessonStart {
+                        data["lessonId"]=change.contentID
+                        data["status"]=existing["status"] as? String == "completed" ? "completed" : "in_progress"
+                        data["earnedXp"]=max(0,WebProgressContract.integer(existing["earnedXp"]))
+                        data["startedAt"]=existing["startedAt"] ?? WebProgressContract.iso(change.date)
+                        completed=false;wasCompleted=existing["status"] as? String == "completed";mode="skillTree"
+                    } else if change.source == .review {
                         var review = WebProgressContract.review(existing)
                         if (review.updatedAt ?? .distantPast) <= change.date, let rating = change.reviewRating { review = review.applying(rating,now:change.date) }
                         data.merge(WebProgressContract.reviewFields(review)) { _,new in new }; data["cardId"] = change.contentID
@@ -321,7 +337,7 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                     } else {
                         data["lessonId"] = change.contentID; data["status"] = "completed"
                         data["completedAt"] = existing["completedAt"] ?? WebProgressContract.iso(change.date)
-                        data["earnedXp"] = change.gameResult == nil ? max(change.amount,WebProgressContract.integer(existing["earnedXp"])) : existing["earnedXp"] ?? change.amount
+                        data["earnedXp"] = change.gameResult == nil ? change.amount : existing["earnedXp"] ?? change.amount
                         data["xpEarned"] = existing["xpEarned"] ?? change.amount
                         if let game=change.gameResult,existing["gameResult"] == nil { data["gameResult"]=game.foundation }
                         completed = true; wasCompleted = existing["status"] as? String == "completed"; mode = change.source == .speak ? "tutor" : "skillTree"

@@ -40,6 +40,7 @@ public extension LearnerState {
         run.answer=String(answer.prefix(4000));run.correct=correct;run.feedback=String(feedback.prefix(2000))
         let success=speech || correct,amount=success ? run.reward : 0
         var change=PracticeChange(date:now,dayKey:CalendarDay.key(now),target:target,level:run.level,amount:amount,source:success ? (speech ? .readingSpeech : .readingTurn) : .practice,contentID:success ? run.contentID : run.contentID+":miss:"+UUID().uuidString)
+        change.attachCurriculumLesson(id:run.lessonID,level:run.level)
         if success {
             run.awarded=true;addXP(amount,now:now,calendar:.current)
             if !speech {

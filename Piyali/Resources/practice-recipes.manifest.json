@@ -1,0 +1,324 @@
+[
+  {
+    "file": "src/components/GrammarBook.jsx",
+    "sha256": "0d0407a8a19c14e1cc111958b162c5ca8762f785627c33baea2dd18cdf058b82",
+    "bindings": [
+      "DEFAULT_SUPPORT_LANGUAGE",
+      "LANG_NAME",
+      "buildCurriculumPromptContext",
+      "buildFillJudgePrompt",
+      "buildFillStreamPrompt",
+      "buildMAJudgePrompt",
+      "buildMAStreamPrompt",
+      "buildMCJudgePrompt",
+      "buildMCStreamPrompt",
+      "buildMatchStreamPrompt",
+      "buildSpeakGrammarStreamPrompt",
+      "buildTranslateJudgePrompt",
+      "buildTranslateStreamPrompt",
+      "difficultyHint",
+      "focusedLessonPrompt",
+      "generationPerformanceContextFor",
+      "getCEFRPromptHint",
+      "normalizeSupportLanguage",
+      "resolveSupportLang",
+      "useUserStore"
+    ]
+  },
+  {
+    "file": "src/components/Vocabulary.jsx",
+    "sha256": "9aa9d5f74d62ac8fd7b3adb1026bbf0bef3bd48a826053b4c94f6045b1a3431c",
+    "bindings": [
+      "DEFAULT_SUPPORT_LANGUAGE",
+      "LANG_NAME",
+      "buildCurriculumPromptContext",
+      "buildFillVocabJudgePrompt",
+      "buildFillVocabStreamPrompt",
+      "buildMAVocabJudgePrompt",
+      "buildMAVocabStreamPrompt",
+      "buildMCVocabJudgePrompt",
+      "buildMCVocabStreamPrompt",
+      "buildMatchVocabJudgePrompt",
+      "buildMatchVocabStreamPrompt",
+      "buildSpeakVocabStreamPrompt",
+      "buildVarietyLines",
+      "buildVocabTranslateJudgePrompt",
+      "buildVocabTranslateStreamPrompt",
+      "buildVocabularyMatchPrompt",
+      "focusedLessonPrompt",
+      "generationPerformanceContextFor",
+      "getCEFRPromptHint",
+      "normalizeSupportLanguage",
+      "resolveSupportLang",
+      "useUserStore",
+      "vocabDifficulty"
+    ]
+  },
+  {
+    "file": "src/components/LessonFlashcard.jsx",
+    "sha256": "c8e4fc88a560a74121c4adb8c9d3aefa17be46f759fd526829f8924d5cac01a6",
+    "bindings": [
+      "LANG_NAME",
+      "buildCurriculumPromptContext",
+      "buildFlashcardJudgePrompt",
+      "buildLessonFlashcardPrompt",
+      "translations"
+    ]
+  },
+  {
+    "file": "src/utils/delightQuestionVariants.js",
+    "sha256": "d262885a2b875cb6781bc07c211ede9a16b498096a2ff12c1bba6f1954c5759f",
+    "bindings": [
+      "COPIED_META_INSTRUCTION_PATTERN",
+      "DELIGHT_VARIANTS",
+      "DELIGHT_VARIANT_IDS",
+      "FALLBACK_SUPPORT_COPY",
+      "LANGUAGE_NAMES",
+      "OBVIOUS_ENGLISH_INSTRUCTION_PATTERN",
+      "SCHEMAS",
+      "TARGET_FALLBACK_DATA",
+      "TARGET_SCRIPT_RULES",
+      "TUTOR_STARTER_AGENDA_IDS",
+      "VARIANT_RULES",
+      "buildCurriculumPromptContext",
+      "buildDelightQuestionPrompt",
+      "buildDelightResponseJudgePrompt",
+      "buildDialogueForkJudgePrompt",
+      "buildListenDifferenceJudgePrompt",
+      "buildMorphologyForgeJudgePrompt",
+      "buildNaturalOrWeirdJudgePrompt",
+      "buildSentenceDetectiveJudgePrompt",
+      "buildSentenceShapeshifterJudgePrompt",
+      "buildThreeClueMysteryJudgePrompt",
+      "buildThreeWordJudgePrompt",
+      "buildWordNeighborhoodsJudgePrompt",
+      "calculateDelightQuestionXp",
+      "cleanTargetScriptValue",
+      "getDelightFallbackQuestion",
+      "getDelightLanguageName",
+      "getInitialDelightResponse",
+      "getLessonScope",
+      "getLessonTargetInventory",
+      "getQuestionLanguageFields",
+      "getTutorStarterTargetExamples",
+      "gradeDelightResponse",
+      "isDelightQuestionLanguageConsistent",
+      "isDelightResponseReady",
+      "isSingleDelightCueWord",
+      "isTargetScriptValueCompatible",
+      "normalizeDelightQuestion",
+      "normalizeDelightText",
+      "parseDelightQuestion",
+      "stringList",
+      "uniqueStringList"
+    ]
+  },
+  {
+    "file": "src/features/lessonPreparation/options.js",
+    "sha256": "ffec9f3fb27fffbe864fb4da73f6e89b9e8e4a188e2dbdb20709190d6173b3a5",
+    "bindings": [
+      "DELIGHT_VARIANT_IDS",
+      "chooseStoryMode",
+      "createQuestionOptionSelector",
+      "eloForUser",
+      "extractCEFRLevel",
+      "practiceLevelForElo"
+    ]
+  },
+  {
+    "file": "src/hooks/useUserStore.js",
+    "sha256": "e273dbd9f906701a3d9fb65d19282a10f467e8108522e1009974c73d57f818c7",
+    "bindings": [
+      "default",
+      "provide"
+    ],
+    "nativeAdapter": "Read-only user supplied as a Swift recipe argument; no web store or effects."
+  },
+  {
+    "file": "src/utils/learningIntelligenceModel.js",
+    "sha256": "5e6efcd7fea2758af10af1d3617945daa8583f68f0072cc26d5822549ef0a95c",
+    "bindings": [
+      "focusedLessonPrompt"
+    ]
+  },
+  {
+    "file": "src/utils/lessonCurriculum.js",
+    "sha256": "87f94db6ecfb9fddf198f3b51fca83017e48586230c0c02eff7f49a5d49a8ad9",
+    "bindings": [
+      "AGENDA_TARGET_ROLES",
+      "EXACT_FORM_MODES",
+      "INSTRUCTIONAL_OBJECTIVE_PATTERN",
+      "MODE_KIND",
+      "buildCurriculumPromptContext",
+      "cleanText",
+      "extractItemText",
+      "getAgendaGoal",
+      "getAgendaTargetForms",
+      "getAgendaTargetRole",
+      "getDisplayText",
+      "isInstructionalLessonObjective",
+      "normalizeObjectiveKey",
+      "normalizeTextList",
+      "uniqueText"
+    ]
+  },
+  {
+    "file": "src/utils/vocabularyMatchGeneration.js",
+    "sha256": "f2891a4fa5f0885362c89e9fac377c9e7fcf20e8b2a801076836fd066d179be3",
+    "bindings": [
+      "buildCurriculumPromptContext",
+      "buildVocabularyMatchPrompt",
+      "getTutorStarterVocabularyPairs",
+      "isTutorialVocabularyLesson"
+    ]
+  },
+  {
+    "file": "src/utils/cefrUtils.js",
+    "sha256": "1728261507ff4b90e05e0ccfa0717f4e1b758fc1f908fffb9c5ea3d101ab91b7",
+    "bindings": [
+      "CEFR_DESCRIPTIONS",
+      "extractCEFRLevel",
+      "getCEFRDescription",
+      "getCEFRPromptHint",
+      "normalizeCEFRLevel"
+    ]
+  },
+  {
+    "file": "src/features/stories/storySession.js",
+    "sha256": "f05815923df5191d4be7c63fffe95b897d5bcc056c3c6634ba31dc5ed891e22d",
+    "bindings": [
+      "STORY_MODES",
+      "chooseStoryMode"
+    ]
+  },
+  {
+    "file": "src/utils/performanceEloModel.js",
+    "sha256": "1c6caa8c52f76576e8fe507d2698c4a65736d5492e49a19d937db8f16e1894a1",
+    "bindings": [
+      "ELO_LEVELS",
+      "ELO_PER_SCORE",
+      "LEGACY_SCORE_POINTS",
+      "MAX_RATING",
+      "MAX_SCORE",
+      "MIN_RATING",
+      "MIN_SCORE",
+      "SCORE_LEVEL_BANDS",
+      "SCORE_LEVEL_DEFAULTS",
+      "SCORE_SCALE_VERSION",
+      "calculateFlashcardCompletion",
+      "calculateLessonCompletion",
+      "curriculumLevelsForUser",
+      "eloForUser",
+      "eloToScore",
+      "generationPerformanceContextFor",
+      "higherLevel",
+      "initialEloLevelForUser",
+      "initialEloRating",
+      "internalEloForUser",
+      "migrateLegacyEloRating",
+      "migrateScoreV2",
+      "normalizeEloLevel",
+      "performanceContextFor",
+      "practiceLevelForElo",
+      "scoreToElo",
+      "storedRating"
+    ]
+  },
+  {
+    "file": "src/constants/languages.js",
+    "sha256": "02cb1507cb2ee1b5822ac4dd98cd7faf3e67a5101a13dd6c93826f553201ab32",
+    "bindings": [
+      "CANONICAL_SUPPORT_LANGUAGE_CODES",
+      "DEFAULT_SUPPORT_LANGUAGE",
+      "LANGUAGE_META",
+      "SUPPORTED_LANGUAGE_CODES_SET",
+      "SUPPORT_LANGUAGE_CODES_BASE",
+      "SUPPORT_LANGUAGE_CODES_SET",
+      "brazilianFlag",
+      "chineseFlag",
+      "egyptianFlag",
+      "frenchFlag",
+      "germanFlag",
+      "greekFlag",
+      "indianFlag",
+      "irishFlag",
+      "italianFlag",
+      "japaneseFlag",
+      "mexicanFlag",
+      "netherlandsFlag",
+      "normalizeCode",
+      "normalizeSupportLanguage",
+      "normalizeSupportedCode",
+      "polishFlag",
+      "russianFlag",
+      "usaFlag"
+    ]
+  },
+  {
+    "file": "src/utils/translation.jsx",
+    "sha256": "10c6705379ed869d84ece0ec7a829193bb3c9522d742683701de56cb194666b9",
+    "bindings": [
+      "translations"
+    ],
+    "nativeAdapter": "Original language-name strings only; no JSX UI."
+  },
+  {
+    "file": "src/utils/tutorStarterAgenda.js",
+    "sha256": "2ddcfa8b7e91698986ba80c726286f0fae6c4d8e85ea47837f24fe45bfd052c3",
+    "bindings": [
+      "SUPPORT_LABELS",
+      "TARGET_EXAMPLES",
+      "TUTOR_STARTER_AGENDA_IDS",
+      "getBaseLanguageCode",
+      "getTutorStarterTargetExamples",
+      "getTutorStarterVocabularyPairs"
+    ]
+  },
+  {
+    "file": "src/constants/supportLanguages.js",
+    "sha256": "d8e8dc17f353a5106bdc984f2cce9696669bc7216be10e006738cb0a04b40b5a",
+    "bindings": [
+      "SUPPORT_LANGUAGE_CODES"
+    ]
+  },
+  {
+    "file": "src/utils/cefrProgress.js",
+    "sha256": "6681ba74b8d2d4c2e142f6c310274ecbe075c7ed5fb61a2817605c1583e41c85",
+    "bindings": [
+      "CEFR_LEVEL_COUNTS",
+      "LESSON_COUNTS",
+      "calculateFlashcardCompletion",
+      "calculateLessonCompletion",
+      "getLessonLevelFromId"
+    ]
+  },
+  {
+    "file": "src/components/flagsIcons/flags.jsx",
+    "sha256": "2f1101d10f316c803cd6a97b795152472ca1cad561b059aebc2bbd68309fb1f0",
+    "bindings": [
+      "brazilianFlag",
+      "chineseFlag",
+      "egyptianFlag",
+      "frenchFlag",
+      "germanFlag",
+      "greekFlag",
+      "indianFlag",
+      "irishFlag",
+      "italianFlag",
+      "japaneseFlag",
+      "mexicanFlag",
+      "netherlandsFlag",
+      "polishFlag",
+      "russianFlag",
+      "usaFlag"
+    ],
+    "nativeAdapter": "Flag renderers omitted from text-only language metadata."
+  },
+  {
+    "file": "src/data/flashcards/common.js",
+    "sha256": "e4110d661b925ecb53e3cf33c02227ea51ac0b67db9cb02a91ee71e14724a2c4",
+    "bindings": [
+      "CEFR_LEVEL_COUNTS"
+    ]
+  }
+]

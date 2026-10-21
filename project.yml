@@ -57,6 +57,7 @@ targets:
       - package: CashuSwift
         product: CashuSwift
       - sdk: libz.tbd
+      - sdk: JavaScriptCore.framework
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.piyali.ios
