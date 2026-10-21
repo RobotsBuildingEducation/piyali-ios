@@ -1,13 +1,14 @@
 import Foundation
 
 public struct PracticeRun:Codable,Sendable {
-    public let question:PracticeQuestion
+    public var question:PracticeQuestion
     public let lessonID:String?
     public let lessonLevel:String?
     public let bank:[String]
     public var rightOrder:[Int]?
     public var response:JSONValue = .object([:])
     public var correct:Bool?
+    public var lastMissedAnswer:String?
     public var earnedXP=0
     public var assisted=false
     public var showAnswer:Bool?
@@ -18,6 +19,23 @@ public struct PracticeRun:Codable,Sendable {
         self.question=question;self.lessonID=lessonID;self.lessonLevel=lessonLevel;self.response=response
         self.bank=bank ?? (["translate","repeat"].contains(question.kind) ? (question.strings("correctWords")+question.strings("distractors")).shuffled() : question.strings("choices"))
         if question.kind == "match" { rightOrder=Array(question.strings("right").indices).shuffled() }
+    }
+    public var difficultyMode:String { question.isDelight ? "lesson:"+question.variant : question.module.rawValue+":"+question.kind }
+    /// The same evidence object the web assessor receives, including actual bank order.
+    public var assessmentItem:JSONValue {
+        let q=question,p=q.payload
+        if q.isDelight { return p }
+        var item:JSONValue = .object(["prompt":.string(q.questionText),"hint":.string(p["hint"].string)])
+        switch q.kind {
+        case "mc":item=item.setting("choices",p["choices"]).setting("answer",p["answer"])
+        case "ma":item=item.setting("choices",p["choices"]).setting("answers",p["answers"])
+        case "speak":item=item.setting("prompt",p["prompt"]).setting("target",p["target"])
+        case "match":item=item.setting("left",p["left"]).setting("right",p["right"])
+        case "translate","repeat":item=item.setting("prompt",p["sentence"]).setting("wordBank",.array(bank.map(JSONValue.string))).setting("answer",p["correctWords"])
+        case "flashcard":return .object(["concept":p["concept"],"answer":p["answer"],"task":.string("Recall the flashcard answer")])
+        default:break
+        }
+        return item
     }
     public var key:String { Self.key(target:question.target,lesson:lessonID,module:question.module) }
     public static func key(target:String,lesson:String?,module:PracticeRecipeModule)->String { target+":"+(lesson ?? "free")+":"+module.rawValue }
@@ -53,9 +71,11 @@ public extension LearnerState {
     }
     @discardableResult mutating func answerPractice(key:String,questionID:UUID,correct:Bool,reward:Int,now:Date = Date())->Bool {
         guard var run=practiceRuns?[key],run.question.id == questionID,run.question.target == target,run.question.support == support,run.correct != true else { return false }
+        if !correct,run.lastMissedAnswer == run.answerText { return false }
+        run.lastMissedAnswer=correct ? nil : run.answerText
         run.correct=correct;run.earnedXP=correct && !run.question.options["isFinalQuiz"].boolean ? max(0,min(10,reward)) : 0;run.updatedAt=now
         let q=run.question
-        assess(correct:correct,independent:!run.assisted,now:now,questionLevel:q.level)
+        assess(correct:correct,independent:!run.assisted,now:now,questionLevel:q.level,worth:q.worth,concept:correct && !q.options["isFinalQuiz"].boolean ? nil : q.questionText,mode:q.module.rawValue)
         if correct,run.earnedXP > 0 {
             addXP(run.earnedXP,now:now,calendar:.current)
             var change=PracticeChange(date:now,dayKey:dailyKey,target:target,level:q.level,amount:run.earnedXP,source:.practice,contentID:q.id.uuidString)

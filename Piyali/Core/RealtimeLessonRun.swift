@@ -62,7 +62,7 @@ public extension LearnerState {
         let amount=verdict.met ? RealtimeLessonRun.reward(attempts:run.attempts,pronunciation:run.pronunciation) : 0
         if verdict.met {
             run.completed=true;run.earnedXP=amount
-            assess(correct:true,independent:run.attempts <= 1,now:now,questionLevel:run.questionLevel)
+            assess(correct:true,independent:run.attempts <= 1,now:now,questionLevel:run.questionLevel,worth:run.goal["worth"] == .null ? nil : run.goal["worth"],concept:run.title,mode:"realtime")
             addXP(amount,now:now,calendar:.current)
             var change=PracticeChange(date:now,dayKey:dailyKey,target:target,level:run.questionLevel,amount:amount,source:.practice,contentID:run.id.uuidString)
             change.attachCurriculumLesson(id:run.lessonID,level:run.lessonLevel);enqueue(change)

@@ -15,11 +15,12 @@ public struct PracticeQuestion:Codable,Equatable,Identifiable,Sendable {
     public let options:JSONValue
     public let target:String
     public let support:String
-    private enum CodingKeys:String,CodingKey { case id,module,kind,payload,options,target,support }
+    public var worth:JSONValue?
+    private enum CodingKeys:String,CodingKey { case id,module,kind,payload,options,target,support,worth }
     public init(from decoder:Decoder) throws {
         let c=try decoder.container(keyedBy:CodingKeys.self)
         try self.init(module:c.decode(PracticeRecipeModule.self,forKey:.module),kind:c.decode(String.self,forKey:.kind),payload:c.decode(JSONValue.self,forKey:.payload),options:c.decode(JSONValue.self,forKey:.options),target:c.decode(String.self,forKey:.target),support:c.decode(String.self,forKey:.support))
-        id=try c.decode(UUID.self,forKey:.id)
+        id=try c.decode(UUID.self,forKey:.id);worth=try c.decodeIfPresent(JSONValue.self,forKey:.worth)
     }
     public var isDelight:Bool { kind.hasPrefix("delight:") }
     public var variant:String { String(kind.dropFirst(8)) }

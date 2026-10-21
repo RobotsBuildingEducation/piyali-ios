@@ -22,7 +22,7 @@ import Foundation
         if !fresh,let previous,previous.support == state.support { return }
         let token=UUID();generation=token;busy=true;error=nil;defer { if generation == token { busy=false } }
         do {
-            let recipes=try engine(),p=parameters(app,lesson:lesson,run:previous);let goal:JSONValue
+            let recipes=try engine(),p=parameters(app,lesson:lesson,run:previous);var goal:JSONValue
             if lesson.content["realtime"]["topic"].string == "tutorial" {
                 goal=try JSONDecoder().decode(JSONValue.self,from:Data(recipes.realtime("tutorialGoal",parameters:p).utf8))
             } else {
@@ -31,6 +31,10 @@ import Foundation
                 guard !title.isEmpty,title.count <= 600 else { throw AppError.message("A conversation goal could not be prepared. Please try again.") }
                 goal = .object(["title_"+state.support:.string(title),"rubric_"+state.support:.string(title),"scenario":.string(title),"lessonScenario":.string(title),"successCriteria":.string(title),"roleplayPrompt":.string("Help the learner to: \(title). Create a realistic scenario and guide them.")])
             }
+            let worth:JSONValue
+            if lesson.content["realtime"]["topic"].string == "tutorial" { worth=try GeneratedQuestionWorth.fallback(level:p["cefrLevel"].string,learner:state,recipes:recipes) }
+            else { worth=try await GeneratedQuestionWorth.assess(question:.object(["goal":goal["lessonScenario"],"task":.string("Complete a live conversation goal")]),level:p["cefrLevel"].string,mode:"realtime",learner:state,recipes:recipes,ai:app.ai) }
+            goal=goal.setting("worth",worth)
             try Task.checkCancellation();guard token == generation,app.identity.npub == account,app.learner.target == state.target,app.learner.support == state.support else { return }
             app.learner.saveRealtimeLesson(.init(target:state.target,support:state.support,lessonID:lesson.id,lessonLevel:lesson.cefrLevel ?? state.level,questionLevel:p["cefrLevel"].string,goal:goal));app.persist()
         } catch is CancellationError { } catch { if generation == token { self.error=error.localizedDescription } }

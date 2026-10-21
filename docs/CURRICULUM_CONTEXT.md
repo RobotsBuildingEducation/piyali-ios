@@ -8,4 +8,6 @@ Introductory exports now retain the selected level as `cefrLevel`, including B2 
 
 Validation includes 19 affected core checks, bundled instruction/judge checks in the iPhone runtime, and a simulator journey through introduction/resume/completion/replay with no duplicate bonus. An opt-in provider test prepared vocabulary and matching from the actual My Family agenda. These checks cover the new context path, not complete content or visual parity. Run `python3 scripts/test-live-api.py --only lesson-content` for that provider check.
 
-Reading, stories, games and final quizzes still need a full audit of context preparation and source-specific interactions. Generated question-worth assessment, the prepared-question pipeline and the original voice transport remain separate outstanding work.
+Reading, stories, games and final quizzes still need a full audit of context preparation and source-specific interactions. Assessment for remaining engines and the prepared-question pipeline and the original voice transport remain separate outstanding work.
+
+Grammar/vocabulary and curriculum realtime now save source difficulty quotes and apply them to progress; see [the assessment checkpoint](QUESTION_WORTH.md).

@@ -216,6 +216,55 @@
     ]
   },
   {
+    "file": "src/utils/questionDifficultyAssessment.js",
+    "sha256": "8d0c4393281a30bb3ee6c3ca7926a73fa993e3d6e1251732a9a301614a1cefc5",
+    "bindings": [
+      "buildQuestionDifficultyPrompt",
+      "parseQuestionDifficulty"
+    ]
+  },
+  {
+    "file": "src/utils/performanceEloModel.js",
+    "sha256": "1c6caa8c52f76576e8fe507d2698c4a65736d5492e49a19d937db8f16e1894a1",
+    "bindings": [
+      "ELO_LEVELS",
+      "ELO_PER_SCORE",
+      "ELO_SUPPORT_WEIGHTS",
+      "K_FACTOR",
+      "LEGACY_SCORE_POINTS",
+      "MAX_RATING",
+      "MAX_SCORE",
+      "MIN_RATING",
+      "MIN_SCORE",
+      "QUESTION_DIFFICULTY",
+      "SCORE_LEVEL_BANDS",
+      "SCORE_LEVEL_DEFAULTS",
+      "SCORE_SCALE_VERSION",
+      "applyGradedOutcome",
+      "calculateFlashcardCompletion",
+      "calculateLessonCompletion",
+      "clean",
+      "curriculumLevelsForUser",
+      "eloDelta",
+      "eloForUser",
+      "eloToScore",
+      "generationPerformanceContextFor",
+      "higherLevel",
+      "initialEloLevelForUser",
+      "initialEloRating",
+      "internalEloForUser",
+      "migrateLegacyEloRating",
+      "migrateScoreV2",
+      "normalizeEloLevel",
+      "performanceContextFor",
+      "practiceLevelForElo",
+      "questionWorthForUser",
+      "quotedEloDelta",
+      "scoreToElo",
+      "storedRating"
+    ]
+  },
+  {
     "file": "src/components/RealTimeTest.jsx",
     "sha256": "9c45b94d47afed3c84f776f7ca23b49dfc2da721cda52365bbf8402405a432a6",
     "bindings": [
@@ -255,39 +304,6 @@
       "EARLY_BEGINNER_LEVELS",
       "getAdultBeginnerToneRule",
       "isEarlyBeginnerLevel"
-    ]
-  },
-  {
-    "file": "src/utils/performanceEloModel.js",
-    "sha256": "1c6caa8c52f76576e8fe507d2698c4a65736d5492e49a19d937db8f16e1894a1",
-    "bindings": [
-      "ELO_LEVELS",
-      "ELO_PER_SCORE",
-      "LEGACY_SCORE_POINTS",
-      "MAX_RATING",
-      "MAX_SCORE",
-      "MIN_RATING",
-      "MIN_SCORE",
-      "SCORE_LEVEL_BANDS",
-      "SCORE_LEVEL_DEFAULTS",
-      "SCORE_SCALE_VERSION",
-      "calculateFlashcardCompletion",
-      "calculateLessonCompletion",
-      "curriculumLevelsForUser",
-      "eloForUser",
-      "eloToScore",
-      "generationPerformanceContextFor",
-      "higherLevel",
-      "initialEloLevelForUser",
-      "initialEloRating",
-      "internalEloForUser",
-      "migrateLegacyEloRating",
-      "migrateScoreV2",
-      "normalizeEloLevel",
-      "performanceContextFor",
-      "practiceLevelForElo",
-      "scoreToElo",
-      "storedRating"
     ]
   },
   {

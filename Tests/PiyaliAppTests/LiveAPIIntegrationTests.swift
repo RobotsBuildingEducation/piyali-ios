@@ -28,8 +28,14 @@ import NostrSDK
                     } catch { failure=error }
                 }
                 guard let accepted else { throw failure };XCTAssertFalse(accepted.questionText.isEmpty)
+                var learner=LearnerState();learner.ratingByLanguage=["es":1100]
+                let run=PracticeRun(question:accepted,lessonID:lesson.id,lessonLevel:lesson.cefrLevel)
+                let quote=try await GeneratedQuestionWorth.assess(question:run.assessmentItem,level:accepted.level,mode:run.difficultyMode,learner:learner,recipes:recipes,ai:ai)
+                XCTAssertEqual(quote["difficultySource"].string,"model_assessment");XCTAssertNotNil(QuestionWorth.delta(level:accepted.level,correct:true,independent:true,worth:quote))
+                learner.assess(correct:true,independent:false,questionLevel:accepted.level,worth:quote,concept:nil,mode:module.rawValue);XCTAssertGreaterThan(learner.rating,1100);XCTAssertEqual(learner.xp,0)
+
             }
-            print("LIVE CURRICULUM: actual My Family agenda supplied; native vocabulary and grammar matching accepted")
+            print("LIVE CURRICULUM: actual My Family agenda supplied; native vocabulary/matching accepted and actual generated-question difficulty quoted")
         } catch { try? await Auth.auth().currentUser?.delete();try? Auth.auth().signOut();try? identity.disconnect();throw error }
         try await Auth.auth().currentUser?.delete();try Auth.auth().signOut();try identity.disconnect()
     }

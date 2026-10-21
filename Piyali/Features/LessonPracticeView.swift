@@ -192,7 +192,7 @@ struct LessonPracticeView:View {
             }
         case "natural_or_weird":choices([questionCopy(run,"soundsWeird"),questionCopy(run,"soundsNatural")],selected:r["choice"] == .null ? [] : [r["choice"].boolean ? 1 : 0]) { updateResponse("choice",.bool($0 == 1)) }
         case "three_clue_mystery":
-            if run.revealedClues < q.strings("clues").count { Button(questionCopy(run,"revealNext")) { guard var current=self.run else { return };current.revealedClues += 1;app.learner.savePractice(current);app.persist() }.buttonStyle(.bordered).tint(brand.questionChoice) }
+            if run.revealedClues < q.strings("clues").count { Button(questionCopy(run,"revealNext")) { guard var current=self.run else { return };current.revealedClues += 1;current.assisted=true;app.learner.savePractice(current);app.persist() }.buttonStyle(.bordered).tint(brand.questionChoice) }
             answerField(run)
         default:answerField(run)
         }

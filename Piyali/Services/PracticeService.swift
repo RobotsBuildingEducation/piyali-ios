@@ -16,7 +16,8 @@ import Foundation
         do {
             let recipes=try recipes(),user=state.recipeUser
             #if DEBUG
-            if state.target == "es",state.support == "en",let question=PracticeTestFixtures.question(module:module,recipes:recipes) {
+            if state.target == "es",state.support == "en",var question=PracticeTestFixtures.question(module:module,recipes:recipes) {
+                question.worth=try GeneratedQuestionWorth.fallback(level:question.level,learner:state,recipes:recipes)
                 let response=question.isDelight ? try recipes.inspect("initialResponse",parameters:.object(["question":question.payload])) : .object([:])
                 app.learner.savePractice(.init(question:question,lessonID:lesson?.id,lessonLevel:lesson?.cefrLevel ?? state.level,response:response));app.persist();return
             }
@@ -54,9 +55,11 @@ import Foundation
                 } catch { try Task.checkCancellation();lastError=error }
             }
             guard let question else { throw lastError }
-            guard generation == token,app.identity.npub == account,app.learner.target == state.target,app.learner.support == state.support else { return }
             let response=question.isDelight ? try recipes.inspect("initialResponse",parameters:.object(["question":question.payload])) : .object([:])
-            app.learner.savePractice(.init(question:question,lessonID:lesson?.id,lessonLevel:lesson?.cefrLevel ?? state.level,response:response));app.persist()
+            var run=PracticeRun(question:question,lessonID:lesson?.id,lessonLevel:lesson?.cefrLevel ?? state.level,response:response)
+            run.question.worth=try await GeneratedQuestionWorth.assess(question:run.assessmentItem,level:question.level,mode:run.difficultyMode,learner:state,recipes:recipes,ai:app.ai)
+            try Task.checkCancellation();guard generation == token,app.identity.npub == account,app.learner.target == state.target,app.learner.support == state.support else { return }
+            app.learner.savePractice(run);app.persist()
         } catch is CancellationError { } catch { if token == generation { self.error=error.localizedDescription } }
     }
     func ready(_ run:PracticeRun)->Bool {

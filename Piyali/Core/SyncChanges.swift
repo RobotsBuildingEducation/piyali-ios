@@ -26,6 +26,9 @@ public struct PracticeChange: Codable, Identifiable, Sendable {
     public var independent: Bool?
     public var conversationGoalID: String?
     public var conversationBonus: Int?
+    public var gradedWorth:JSONValue?
+    public var gradedConcept:String?
+    public var gradedMode:String?
     public var conversationWorth: JSONValue?
     public var conversationGoalText: JSONValue?
     public var gameResult: JSONValue?

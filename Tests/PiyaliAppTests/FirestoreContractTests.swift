@@ -15,6 +15,22 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
     func createProvider(with app: FirebaseApp) -> AppCheckProvider? { EmulatorAppCheckProvider() }
 }
 @MainActor final class FirestoreContractTests: XCTestCase {
+    func testQuotedAssessmentsUseTheSavedPriceAcrossConcurrentSyncAndRetriesWithoutXP() async throws {
+        let (service,db,npub)=try context();try await seed(db,npub)
+        try await db.collection("users").document(npub).setData(["learningIntelligence":["fr":["elo":["rating":1100,"scaleVersion":4,"totalGraded":3]]]],merge:true)
+        var state=try requireState(await service.load(npub:npub));state.pendingChanges=[]
+        let recipes=try PracticeRecipes(),quote=try recipes.inspect("worth",parameters:.object(["user":state.recipeUser,"targetLang":.string("fr"),"questionLevel":.string("B2"),"assessment":.object(["difficultyScore":.number(10)])]))
+        var first=state,second=state
+        first.assess(correct:true,independent:true,questionLevel:"B2",worth:quote,concept:nil,mode:"vocabulary")
+        second.assess(correct:false,independent:false,questionLevel:"B2",worth:quote,concept:"famille",mode:"grammar")
+        async let a=service.save(first,npub:npub),b=service.save(second,npub:npub);_=try await(a,b)
+        _=try await service.save(first,npub:npub);_=try await service.save(second,npub:npub)
+        let fields=try await db.collection("users").document(npub).getDocument().data() ?? [:],bucket=((fields["learningIntelligence"] as? [String:[String:Any]])?["fr"] ?? [:]),elo=bucket["elo"] as? [String:Any] ?? [:]
+        let expected=1100+quote["gainBySupport"]["independent"].number-quote["loss"].number
+        XCTAssertEqual(WebProgressContract.number(elo["rating"]),expected,accuracy:1e-8);XCTAssertEqual(WebProgressContract.integer(elo["totalGraded"]),5);XCTAssertEqual(WebProgressContract.integer(fields["xp"]),150)
+        let counts=(((bucket["performanceSummary"] as? [String:Any])?["byLevel"] as? [String:[String:Any]])?["Pre-A1"] ?? [:]);XCTAssertEqual(WebProgressContract.integer(counts["correct"]),1);XCTAssertEqual(WebProgressContract.integer(counts["missed"]),1)
+        let restored=try requireState(await service.load(npub:npub));XCTAssertEqual(restored.rating,expected,accuracy:1e-8)
+    }
     func testCurriculumOwnXPResumesAndConcurrentPracticeRetriesDoNotDuplicateWork() async throws {
         let (service,db,npub)=try context();try await seed(db,npub)
         let lesson=Lesson(id:"lesson-a1-counter",title:.string("Greetings"),description:.string("Use greetings"),xpReward:50,modes:["grammar","vocabulary"],agenda:.object([:]),content:.object([:]),cefrLevel:"A1")

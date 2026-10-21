@@ -189,12 +189,18 @@ public struct LearnerState: Codable, Sendable {
     public var rating: Double { ratingByLanguage?[target] ?? 800 }
     public var score: Int { PerformanceScore.score(rating: rating) }
     public var effectiveCompanionType: String { CompanionTypes.effective(companionType, level: companionLevel) }
-    public mutating func assess(correct: Bool, independent: Bool, now: Date = Date(), questionLevel: String? = nil) {
+    public mutating func assess(correct: Bool, independent: Bool, now: Date = Date(), questionLevel: String? = nil,worth:JSONValue? = nil,concept:String? = nil,mode:String? = nil) {
         if ratingByLanguage == nil { ratingByLanguage = [:] }
         if gradedByLanguage == nil { gradedByLanguage = [:] }; gradedByLanguage?[target, default: 0] += 1
-        let updated = PerformanceScore.update(rating: rating, questionLevel: questionLevel ?? level, correct: correct, independent: independent)
+        let baseline=rating
+        let updated = QuestionWorth.rating(rating,level:questionLevel ?? level,correct:correct,independent:independent,worth:worth)
         ratingByLanguage?[target] = updated
-        enqueue(PracticeChange(date:now,dayKey:CalendarDay.key(now),target:target,level:questionLevel ?? level,amount:0,source:.assessment,correct:correct,independent:independent))
+        var change=PracticeChange(date:now,dayKey:CalendarDay.key(now),target:target,level:questionLevel ?? level,amount:0,source:.assessment,correct:correct,independent:independent);change.gradedWorth=worth;change.gradedConcept=concept;change.gradedMode=mode
+        if worth != nil {
+            let bucket=goalBucket.setting("elo",goalBucket["elo"].setting("rating",.number(baseline)).setting("scaleVersion",.number(4)).setting("totalGraded",.number(Double((gradedByLanguage?[target] ?? 1)-1))))
+            if goalIntelligence == nil { goalIntelligence=[:] };goalIntelligence?[target]=JSONValue.foundation(QuestionWorth.gradedBucket(bucket.foundation,change:change))
+        }
+        enqueue(change)
     }
     public var totalXP: Int { xpByLanguage.values.reduce(0, +) }
     public var subscriptionXP:Int { max(0,totalXP+(subscriptionXPAdjustment ?? 0)) }
