@@ -9,6 +9,7 @@ struct PiyaliBrand {
     var muted:Color { Color(piyaliHex:dark ? 0xa3b4c9 : 0x8d7a67) }
     var border:Color { Color(piyaliHex:dark ? 0x94a3b8 : 0x604d38).opacity(dark ? 0.2 : 0.16) }
     static let teal=Color(piyaliHex:0x14b8a6)
+    static func unitColor(_ hex:String)->Color { let value=hex.trimmingCharacters(in:CharacterSet(charactersIn:"#"));guard value.count == 6,let code=UInt32(value,radix:16) else { return Color(piyaliHex:0x6366f1) };return Color(piyaliHex:code) }
     var questionChoice:Color { Color(piyaliHex:dark ? 0xa78bfa : 0x7c3aed) }
     var questionChoiceBackground:Color { questionChoice.opacity(dark ? 0.18 : 0.10) }
     var questionChip:Color { Color(piyaliHex:dark ? 0xc4b5fd : 0x7c3aed) }

@@ -13,6 +13,7 @@
 		03B57688C5019F9FF70434FF /* AppConfiguration.plist in Resources */ = {isa = PBXBuildFile; fileRef = 58E4AE8F330D5B949C217EC6 /* AppConfiguration.plist */; };
 		09F07231D741CC5A68F047D1 /* assistant-instructions.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 32A61F7B1899F616B12230EC /* assistant-instructions.json.gz */; };
 		0A7C378B116F58FF44451C07 /* AccountViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0A1A1568C633E90A96BB1A /* AccountViews.swift */; };
+		0C4BAE09672B298C84FCE681 /* lesson-appearance.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 8D8FE73AB157397B56A8E477 /* lesson-appearance.json.gz */; };
 		0C78BA0870882BFABAEFDE1D /* SyncChanges.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0250508D362907F7F0C8E060 /* SyncChanges.swift */; };
 		0DDEA061D4CC507790C2516B /* exploration.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = C88B39F9F1BA66189788CE92 /* exploration.json.gz */; };
 		0F76A915ECC4BC84D0019E89 /* intro-nah.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = E3301E706F58913A3029CAAE /* intro-nah.json.gz */; };
@@ -190,6 +191,7 @@
 		B8F02162A7DF3842BB0C081E /* curriculum-es.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 9E4BCA4795241CEF35A35E73 /* curriculum-es.json.gz */; };
 		BD6516909B4562024A08F2C2 /* NostrTeamsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 739170FEAFFE01E5C4D5D4EA /* NostrTeamsService.swift */; };
 		BE42D908847E27069E13F066 /* ResponsesOutput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E89C484BDEA99B90F65C050 /* ResponsesOutput.swift */; };
+		BF2719D5874204312B0CAA41 /* LessonPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5E64C926D37924B8A0A0B52 /* LessonPreviewView.swift */; };
 		C05300F549111D5EFBDC3FFE /* DailyImmersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDFAF109A4065A97CA9A4F17 /* DailyImmersion.swift */; };
 		C10A9CFE8B5035934B3BD19F /* NostrSDK in Frameworks */ = {isa = PBXBuildFile; productRef = 3A72341A324A6D03B5A2B106 /* NostrSDK */; };
 		C202BD8F96AF205FA2D4FD67 /* WalletView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A4691BA91D1F0914670AABE /* WalletView.swift */; };
@@ -396,6 +398,7 @@
 		8A40A19602FF5A18A111F073 /* practice-copy.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "practice-copy.json.gz"; sourceTree = "<group>"; };
 		8A8986E1AE6B61658DD03360 /* CashuHTTPClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CashuHTTPClientTests.swift; sourceTree = "<group>"; };
 		8B6938C3E4F3910896B8E975 /* ExplorationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExplorationTests.swift; sourceTree = "<group>"; };
+		8D8FE73AB157397B56A8E477 /* lesson-appearance.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "lesson-appearance.json.gz"; sourceTree = "<group>"; };
 		8DA8B2FFF9C95208FB067491 /* intro-pl.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "intro-pl.json.gz"; sourceTree = "<group>"; };
 		8E2927E452B81CED9C6A3C27 /* IntroTutorial.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntroTutorial.swift; sourceTree = "<group>"; };
 		8E738A4A023DB4E7E4CF5C0E /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
@@ -454,6 +457,7 @@
 		C28947719F341B14628621FC /* Placement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Placement.swift; sourceTree = "<group>"; };
 		C34F507B12BF0E54D7347349 /* StoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryTests.swift; sourceTree = "<group>"; };
 		C36BF9E6EC94494B5603397F /* PracticeCopy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PracticeCopy.swift; sourceTree = "<group>"; };
+		C5E64C926D37924B8A0A0B52 /* LessonPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LessonPreviewView.swift; sourceTree = "<group>"; };
 		C61DB93D0D7C972CA2D0AB00 /* CommunityFeedTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityFeedTests.swift; sourceTree = "<group>"; };
 		C88B39F9F1BA66189788CE92 /* exploration.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = exploration.json.gz; sourceTree = "<group>"; };
 		C8DD7D335EDB6A8A131C923A /* RemoteSignerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteSignerView.swift; sourceTree = "<group>"; };
@@ -658,6 +662,7 @@
 				A1B18DF7D2278F1F0AE5365B /* landing-postcards.json.gz */,
 				B0A4ECB4A4F2554486D40A97 /* landing-proficiency.json.gz */,
 				1DCC93B75E03F141B1B7CCAD /* language-timezones.json.gz */,
+				8D8FE73AB157397B56A8E477 /* lesson-appearance.json.gz */,
 				E25BCE6BED55E74389F1F771 /* phonics.json.gz */,
 				8A40A19602FF5A18A111F073 /* practice-copy.json.gz */,
 				39326411EDB1BD07F7E73298 /* practice-copy.manifest.json */,
@@ -713,6 +718,7 @@
 				D579ADCD762E0765430D326A /* LearningViews.swift */,
 				891D98E5164559371D320FE6 /* LessonPathView.swift */,
 				CBC5601AB56656AEB440741F /* LessonPracticeView.swift */,
+				C5E64C926D37924B8A0A0B52 /* LessonPreviewView.swift */,
 				A85015A5797FFF1D629E519B /* LiveTutorView.swift */,
 				E31D323F4011C09E791F81F8 /* PlacementView.swift */,
 				AFA5DC38745046003438922A /* PracticeDeckView.swift */,
@@ -1125,6 +1131,7 @@
 				1F941D519A35BF55573D3A85 /* landing-postcards.json.gz in Resources */,
 				C8D9DD391EC595C44788862B /* landing-proficiency.json.gz in Resources */,
 				9E497284CCDAF9A56D4506B4 /* language-timezones.json.gz in Resources */,
+				0C4BAE09672B298C84FCE681 /* lesson-appearance.json.gz in Resources */,
 				F7BCBB285235EC65D301AD52 /* onboarding-character.webp in Resources */,
 				8CF7D8A00419A9CC9B6805BA /* phonics.json.gz in Resources */,
 				276515C6BE780F29AD271E0C /* piyali-orb.png in Resources */,
@@ -1300,6 +1307,7 @@
 				8BACE94A017F9B37DB4E433A /* LessonAccess.swift in Sources */,
 				A0161D0ED54C0199CE479ECC /* LessonPathView.swift in Sources */,
 				9BF44497D6E97B8D2D8123CD /* LessonPracticeView.swift in Sources */,
+				BF2719D5874204312B0CAA41 /* LessonPreviewView.swift in Sources */,
 				98AE8E80C268B1633043DF92 /* LiveTutorService.swift in Sources */,
 				11FD0F936B340EFC98867373 /* LiveTutorView.swift in Sources */,
 				C87F23146E7814EDBD3669FB /* Models.swift in Sources */,

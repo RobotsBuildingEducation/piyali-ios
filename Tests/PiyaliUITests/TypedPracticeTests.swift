@@ -1,18 +1,28 @@
 import XCTest
 
 @MainActor final class TypedPracticeTests:XCTestCase {
-    private func launch(kind:String)->XCUIApplication {
+    private func launch(kind:String,enterPractice:Bool=true,theme:String="light")->XCUIApplication {
         let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString;app.launchEnvironment["PIYALI_PRACTICE_FIXTURE"]=kind
-        app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"];app.launch()
+        app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme",theme];app.launch()
         let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Practice Learner");if app.buttons["entryKeyboardDone"].exists { app.buttons["entryKeyboardDone"].tap() }
-        app.buttons["createAccount"].tap();XCTAssertTrue(app.buttons["startLearning"].waitForExistence(timeout:20));app.buttons["startLearning"].tap();openPractice(app);return app
+        app.buttons["createAccount"].tap();XCTAssertTrue(app.buttons["startLearning"].waitForExistence(timeout:20));app.buttons["startLearning"].tap();if enterPractice { openPractice(app) };return app
     }
     private func openPractice(_ app:XCUIApplication) {
         XCTAssertTrue(app.buttons["productMenu"].waitForExistence(timeout:15));app.buttons["productMenu"].tap();app.buttons["productModeMenu"].tap();app.buttons["productMode-path"].tap()
-        XCTAssertTrue(app.buttons["introLink"].waitForExistence(timeout:15));app.buttons["introLink"].tap();app.buttons["Try Vocabulary"].tap()
+        XCTAssertTrue(app.buttons["introLink"].waitForExistence(timeout:15));app.buttons["introLink"].tap();XCTAssertTrue(app.buttons["startLessonFromPreview"].waitForExistence(timeout:5));app.buttons["startLessonFromPreview"].tap();app.buttons["Try Vocabulary"].tap()
         XCTAssertTrue(app.buttons.matching(NSPredicate(format:"identifier IN %@",["checkTypedAnswer","nextTypedQuestion"])).firstMatch.waitForExistence(timeout:10))
     }
     private func reveal(_ element:XCUIElement,_ app:XCUIApplication) { for _ in 0..<7 where !element.isHittable { app.swipeUp(velocity:.slow) };XCTAssertTrue(element.isHittable) }
+    func testOriginalLessonPreviewCanExpandObjectivesAndCloseBeforeStarting() {
+        continueAfterFailure=false;let app=launch(kind:"delight:natural_or_weird",enterPractice:false,theme:"dark")
+        XCTAssertTrue(app.buttons["productMenu"].waitForExistence(timeout:15));app.buttons["productMenu"].tap();app.buttons["productModeMenu"].tap();app.buttons["productMode-path"].tap()
+        XCTAssertTrue(app.buttons["introLink"].waitForExistence(timeout:15));app.buttons["introLink"].tap();XCTAssertTrue(app.buttons["startLessonFromPreview"].waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts["Complete the 6 learning activities"].exists)
+        let objectives=app.buttons["lessonPreviewObjectives"];XCTAssertTrue(objectives.label.contains("7"));objectives.tap()
+        let shot=XCTAttachment(screenshot:app.screenshot());shot.name="Native original lesson preview dark";shot.lifetime = .keepAlways;add(shot)
+        let greeting=app.staticTexts["hello · hola"];if !greeting.waitForExistence(timeout:5) { print("PREVIEW HIERARCHY: "+app.debugDescription) };XCTAssertTrue(greeting.exists)
+        app.buttons["closeLessonPreview"].tap();XCTAssertTrue(app.buttons["introLink"].waitForExistence(timeout:5));XCTAssertFalse(app.staticTexts["introProgress"].exists)
+        app.buttons["introLink"].tap();app.buttons["startLessonFromPreview"].tap();XCTAssertTrue(app.staticTexts["introProgress"].waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts["introProgress"].label.contains("0 / 6"))
+    }
     func testBinaryQuestionRetriesInPlaceAndCorrectRewardSurvivesRelaunch() {
         continueAfterFailure=false;let app=launch(kind:"delight:natural_or_weird")
         app.buttons["typedChoice-1"].tap();let check=app.buttons["checkTypedAnswer"];reveal(check,app);check.tap()
