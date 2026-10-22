@@ -50,6 +50,24 @@ final class StoryTests:XCTestCase {
         let noisy=StorySpeech.evaluate(recognized:"Tengo flores rojas",target:"Tengo flores rojas",lang:"es",confidence:0.9,audio:.init(duration:0.1,rms:0,zeroCrossings:0))
         XCTAssertFalse(noisy.pass);XCTAssertTrue(noisy.reasons.contains("speech-quality"))
     }
+    func testNativeCharacterIdentityAndPortraitPoolsMatchExecutedSource() throws {
+        let root=URL(fileURLWithPath:#filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent(),appearance=StoryAppearance(try ContentLibrary.decode(JSONValue.self,url:root.appendingPathComponent("Piyali/Resources/story-ui.json.gz")))
+        let cases=try ContentLibrary.decode([JSONValue].self,url:root.appendingPathComponent("Tests/PiyaliCoreTests/Fixtures/story-appearance.json.gz"))
+        for sample in cases { XCTAssertEqual(StoryAppearance.isUser(sample["name"].string,learnerName:"Alicia"),sample["isUser"].boolean,sample["name"].string);XCTAssertEqual(appearance.portraitPool(sample["name"].string,learnerName:"Alicia"),sample["pool"].array.map(\.string),sample["name"].string) }
+        XCTAssertEqual(appearance.portraitFile("33"),"story-portrait-33.webp");XCTAssertEqual(appearance.portraitFile("invalid"),appearance.portraitFile("35"))
+    }
+    func testCheckpointNeedsTheCompleteBoundedSelectionBeforeOneGrade() throws {
+        var run=try episodeRun();run.heard.insert(0);run.select(1);XCTAssertFalse(run.readyToCheck);run.check();XCTAssertNil(run.result)
+        run.select(2);XCTAssertTrue(run.readyToCheck);run.select(3);XCTAssertEqual(run.answers["0"],[1,2]);run.check();XCTAssertEqual(run.result,true)
+        run.select(0);run.check();XCTAssertEqual(run.answers["0"],[1,2]);XCTAssertEqual(run.result,true)
+    }
+    func testStoryContextIsStableAcrossDictionaryOrderAndSnapshotRoundTrips() throws {
+        let first:JSONValue = .object(["topic":.string("family"),"focus":.object(["a":.string("mamá"),"b":.string("papá")])]),second:JSONValue = .object(["focus":.object(["b":.string("papá"),"a":.string("mamá")]),"topic":.string("family")])
+        let data=try StoryRun.contextData(content:first,agenda:.object(["x":.number(1),"y":.number(2)]),level:"A1")
+        XCTAssertEqual(data,try StoryRun.contextData(content:second,agenda:.object(["y":.number(2),"x":.number(1)]),level:"A1"))
+        let restored=try JSONDecoder().decode(JSONValue.self,from:JSONEncoder().encode(second));XCTAssertEqual(data,try StoryRun.contextData(content:restored,agenda:.object(["x":.number(1),"y":.number(2)]),level:"A1"))
+        XCTAssertNotEqual(data,try StoryRun.contextData(content:second.setting("topic",.string("a new topic")),agenda:.object(["x":.number(1),"y":.number(2)]),level:"A1"))
+    }
     private func episodeRun() throws -> StoryRun {
         try StoryRun(payload:try fixtures()["cases"].array[0]["raw"],mode:.radio,target:"es",support:"en",level:"A1",lessonID:"unit-story",worth:.null)
     }
@@ -58,7 +76,7 @@ final class StoryTests:XCTestCase {
         XCTAssertEqual(state.finishStory(),0)
         while var run=state.story,!run.atEnd {
             XCTAssertNil(run.result);run.select(0);run.check();XCTAssertNil(run.result,"Listening or reading comes before grading")
-            run.heard.insert(run.index);run.check();XCTAssertNotNil(run.result);run.advance();state.saveStory(run)
+            run.heard.insert(run.index);if let q=run.currentSegment?.question,q.answer.count > 1 { for i in 1..<q.answer.count { run.select(i) } };run.check();XCTAssertNotNil(run.result);run.advance();state.saveStory(run)
         }
         XCTAssertEqual(state.finishStory(),6);XCTAssertEqual(state.finishStory(),0);XCTAssertEqual(state.totalXP,6)
         XCTAssertNil(state.gradedByLanguage?["es"]);XCTAssertTrue(state.practicedModes.contains(state.modeKey("unit-story","Stories")))

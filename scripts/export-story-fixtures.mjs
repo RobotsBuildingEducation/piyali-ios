@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import zlib from 'node:zlib';
+import {storyReferenceFixture} from './story-reference-fixture.mjs';
 const reference=path.resolve(process.argv[2] || '../nosabos/nosabos');
 const esbuild=await import(path.join(reference,'node_modules/esbuild/lib/main.js'));
 const source=path.join(reference,'src/features/stories');
@@ -36,5 +37,5 @@ const speechRules=JSON.stringify({thresholds:speechWeb.STRICT,stopwords:Object.f
 await fs.writeFile(new URL('../Piyali/Core/StorySpeechRules.swift',import.meta.url),'// Generated from the read-only reference speechEvaluation.js. Re-export with scripts/export-story-fixtures.mjs.\nimport Foundation\nenum StorySpeechRules { static let configuration=try! JSONDecoder().decode(JSONValue.self,from:Data(#\"'+speechRules+'\"#.utf8)) }\n');
 await fs.writeFile(new URL('../Tests/PiyaliCoreTests/Fixtures/stories.json',import.meta.url),JSON.stringify({cases,answers,tiles,modes,speech},null,2)+'\n');
 await fs.writeFile(new URL('../Piyali/Resources/story-prompts.json.gz',import.meta.url),zlib.gzipSync(JSON.stringify(prompts),{level:9}));
-await fs.writeFile(new URL('../Piyali/Resources/story-test-episode.json.gz',import.meta.url),zlib.gzipSync(JSON.stringify(episode),{level:9}));
+await fs.writeFile(new URL('../Piyali/Resources/story-test-episode.json.gz',import.meta.url),zlib.gzipSync(JSON.stringify(storyReferenceFixture(await fs.readFile(path.join(reference,'tests/browser/stories.jsx'),'utf8'),await import(path.join(reference,'node_modules/@babel/parser/lib/index.js')))),{level:9}));
 console.log(`Exported ${cases.length} episode validations, ${answers.length} answers, ${tiles.length} tile sentences, ${modes.length} mode cases and source writing prompts.`);

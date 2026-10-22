@@ -754,14 +754,16 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
         let (service,db,npub)=try context();try await seed(db,npub)
         var base=try requireState(try await service.load(npub:npub));base.target="es";base.support="en";base.level="A1";base.preferencesModifiedAt=Date()
         let payload=try ContentLibrary.load(JSONValue.self,name:"story-test-episode"),lines=payload["segments"].array.flatMap { $0["turns"].array }
-        let spoken=try StoryRun(payload:.object(["title":payload["title"],"sentences":.array(lines+lines)]),mode:.speaking,target:"es",support:"en",level:"A1",lessonID:nil,worth:ConversationPractice.worth(rating:base.rating,level:"A1"))
+        var spoken=try StoryRun(payload:.object(["title":payload["title"],"sentences":.array(Array((lines+lines).prefix(10)))]),mode:.speaking,target:"es",support:"en",level:"A1",lessonID:nil,worth:ConversationPractice.worth(rating:base.rating,level:"A1"))
+        spoken.lessonLevel="A1";spoken.sourceContext="canonical-lesson-context";spoken.portraitIDs=["Ana":"25","Luis":"6"]
         base.saveStory(spoken);var first=base,second=base
         XCTAssertEqual(first.practiceStoryLine(words:spoken.sentences[0].target,typed:true),2);XCTAssertEqual(second.practiceStoryLine(words:spoken.sentences[0].target,typed:true),2)
         async let one=service.save(first,npub:npub);async let two=service.save(second,npub:npub);_=try await (one,two)
         var restored=try requireState(try await service.load(npub:npub));XCTAssertEqual(restored.totalXP,152);XCTAssertEqual(restored.gradedByLanguage?["es"],1)
+        XCTAssertEqual(restored.story?.sourceContext,spoken.sourceContext);XCTAssertEqual(restored.story?.portraitIDs,spoken.portraitIDs);XCTAssertEqual(restored.story?.lessonLevel,"A1")
         let spokenProofs=try await db.collection("users").document(npub).collection("storyTurns").getDocuments(source:.server);XCTAssertEqual(spokenProofs.count,1)
         let fresh=try StoryRun(payload:payload,mode:.radio,target:"es",support:"en",level:"A1",lessonID:nil,worth:.null)
-        var a=fresh;a.index=a.count;a.results=["0":true,"1":true];var b=a;b.results=["0":false,"1":false]
+        var a=fresh;a.index=a.count;a.results=Dictionary(uniqueKeysWithValues:(0..<a.count).map { (String($0),true) });var b=a;b.results=Dictionary(uniqueKeysWithValues:(0..<b.count).map { (String($0),false) })
         first=restored;second=restored;first.saveStory(a);second.saveStory(b);XCTAssertEqual(first.finishStory(),6);XCTAssertEqual(second.finishStory(),6)
         let pendingFirst=first,pendingSecond=second
         async let three=service.save(pendingFirst,npub:npub);async let four=service.save(pendingSecond,npub:npub);_=try await (three,four)

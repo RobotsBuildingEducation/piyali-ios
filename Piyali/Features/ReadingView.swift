@@ -12,6 +12,7 @@ struct ReadingView:View {
     var onComplete:(()->Void)? = nil
     var embedded=false
     var startsFresh=false
+    @State private var footerOwner=UUID()
     @State private var appeared=false
     @State private var refresh=0
     @State private var answer=""
@@ -25,6 +26,7 @@ struct ReadingView:View {
     private func t(_ key:String)->String { EntryCopy.ui(app.learner.support,key) }
     var body:some View {
         Group { if ReadingService.fixture { activity } else { SubscriptionRequiredView(service:app.subscription) { activity } } }
+            .activityFooter(owner:footerOwner,revision:footerRevision,access:app.subscription,fixtureAllowed:ReadingService.fixture,correct:run?.correct) { footer }
             .navigationTitle(embedded ? lesson?.title.localized(app.learner.support) ?? t("reading_title") : t("reading_title"))
             .task(id:scope) { stop();answer="";showTranslation=false;let fresh=refresh > 0 || startsFresh && !appeared;appeared=true;await service.prepare(app,lesson:lesson,fresh:fresh);answer=run?.answer ?? "" }
             .toolbar { ToolbarItemGroup(placement:.keyboard) { Spacer();Button(t("proficiency_modal_done")) { answering=false }.accessibilityIdentifier("readingKeyboardDone") } }
@@ -32,30 +34,32 @@ struct ReadingView:View {
             .onDisappear { service.cancel();stop() }
     }
     private var activity:some View {
-        ScrollView {
-            VStack(alignment:.leading,spacing:18) {
-                Label(t("reading_title"),systemImage:"book").font(PiyaliBrand.productFont(16,600))
-                if let run {
-                    VStack(alignment:.leading,spacing:18) {
-                        Text(run.title).font(PiyaliBrand.productFont(19,700)).frame(maxWidth:.infinity,alignment:.leading)
-                        HStack(spacing:30) {
-                            audioTool(t("history_read_all"),symbol:"bolt.fill",id:"readingListen") { stop();readingAll=true;speech.speakSeries([run.text],language:run.target) { readingAll=false } }
-                            audioTool(t("history_stop"),symbol:"stop.fill",id:"readingStop") { stop() }.disabled(!readingAll && activeSentence == nil)
-                        }.frame(maxWidth:.infinity)
-                        passage(run)
-                        Divider().opacity(0.3)
-                        if run.method == "question" { question(run) }
-                        else { recording(run) }
-                        VStack(alignment:.leading,spacing:7) {
-                            Text(t("reading_takeaways_heading")).font(PiyaliBrand.productFont(14,600))
-                            ForEach(Array(run.takeaways.enumerated()),id:\.offset) { _,value in Text("• "+value).font(PiyaliBrand.productFont(14)).frame(maxWidth:.infinity,alignment:.leading) }
-                        }.padding(.top,24)
-                    }.padding(16).frame(maxWidth:.infinity,alignment:.leading).background(brand.surface.opacity(0.68),in:RoundedRectangle(cornerRadius:16)).overlay { RoundedRectangle(cornerRadius:16).stroke(brand.border) }
-                    actions(run)
-                } else if service.busy { ProgressView(t("reading_generating")).frame(maxWidth:.infinity,minHeight:280) }
-                if let error=service.error { Text(error).foregroundStyle(brand.questionError);Button(t("try_again")) { refresh += 1 }.disabled(service.busy) }
-                if let error=speech.error { Text(error).font(PiyaliBrand.productFont(13)).foregroundStyle(brand.questionError) }
-            }.padding(.horizontal,12).padding(.top,8).padding(.bottom,30).frame(maxWidth:640).frame(maxWidth:.infinity)
+        VStack(spacing:0) {
+            ScrollView {
+                VStack(alignment:.leading,spacing:18) {
+                    Label(t("reading_title"),systemImage:"book").font(PiyaliBrand.productFont(16,600))
+                    if let run {
+                        VStack(alignment:.leading,spacing:18) {
+                            Text(run.title).font(PiyaliBrand.productFont(19,700)).frame(maxWidth:.infinity,alignment:.leading)
+                            HStack(spacing:30) {
+                                audioTool(t("history_read_all"),symbol:"bolt.fill",id:"readingListen") { stop();readingAll=true;speech.speakSeries([run.text],language:run.target) { readingAll=false } }
+                                audioTool(t("history_stop"),symbol:"stop.fill",id:"readingStop") { stop() }.disabled(!readingAll && activeSentence == nil)
+                            }.frame(maxWidth:.infinity)
+                            passage(run)
+                            Divider().opacity(0.3)
+                            if run.method == "question" { question(run) }
+                            else { recording(run) }
+                            VStack(alignment:.leading,spacing:7) {
+                                Text(t("reading_takeaways_heading")).font(PiyaliBrand.productFont(14,600))
+                                ForEach(Array(run.takeaways.enumerated()),id:\.offset) { _,value in Text("• "+value).font(PiyaliBrand.productFont(14)).frame(maxWidth:.infinity,alignment:.leading) }
+                            }.padding(.top,24)
+                        }.padding(16).frame(maxWidth:.infinity,alignment:.leading).background(brand.surface.opacity(0.68),in:RoundedRectangle(cornerRadius:16)).overlay { RoundedRectangle(cornerRadius:16).stroke(brand.border) }
+                    } else if service.busy { ProgressView(t("reading_generating")).frame(maxWidth:.infinity,minHeight:280) }
+                    if let error=service.error { Text(error).foregroundStyle(brand.questionError);Button(t("try_again")) { refresh += 1 }.disabled(service.busy) }
+                    if let error=speech.error { Text(error).font(PiyaliBrand.productFont(13)).foregroundStyle(brand.questionError) }
+                }.padding(.horizontal,12).padding(.top,8).padding(.bottom,30).frame(maxWidth:640).frame(maxWidth:.infinity)
+            }
+            Color.clear.frame(height:app.activityFooterHeight)
         }.font(PiyaliBrand.productFont(16)).foregroundStyle(brand.text).background(brand.background)
     }
     private func audioTool(_ label:String,symbol:String,id:String,action:@escaping()->Void)->some View {
@@ -99,27 +103,38 @@ struct ReadingView:View {
         if speech.recording { Image(systemName:"waveform.circle.fill").font(.system(size:64)).foregroundStyle(PiyaliBrand.teal).frame(maxWidth:.infinity);Text(t("history_speech_listening")).font(PiyaliBrand.productFont(12,600)).frame(maxWidth:.infinity) }
         if !speech.transcript.isEmpty { Text(speech.transcript).font(PiyaliBrand.productFont(13)).italic() }
     }
-    private func actions(_ run:ReadingRun)->some View {
-        VStack(spacing:16) {
-            if !run.feedback.isEmpty { Text(run.feedback).font(PiyaliBrand.productFont(15)).foregroundStyle(run.awarded ? brand.questionSuccess : brand.questionError).frame(maxWidth:.infinity,alignment:.leading).accessibilityIdentifier("readingFeedback") }
-            if run.method == "question",run.correct != nil {
-                if let explanation=run.explanation { Text(explanation).font(PiyaliBrand.productFont(14)).foregroundStyle(brand.secondary).frame(maxWidth:.infinity,alignment:.leading).accessibilityIdentifier("readingExplanation") }
-                else { Button(t("history_explain_answer")) { Task { await service.explain(app,run:run) } }.disabled(service.busy).accessibilityIdentifier("readingExplain") }
+    private var footerRevision:String { [scope,run?.id.uuidString ?? "",String(run?.awarded ?? false),String(describing:run?.correct),run?.feedback ?? "",run?.explanation ?? "",answer,String(service.busy),service.error ?? "",String(speech.recording),speech.transcript].joined(separator:"|") }
+    private var footer:some View {
+        ActivityFooterSurface(hasFeedback:run?.feedback.isEmpty == false || run?.awarded == true,feedback:{
+            if let run {
+                VStack(alignment:.leading,spacing:12) {
+                    if !run.feedback.isEmpty { Text(run.feedback).font(PiyaliBrand.productFont(15,600)).foregroundStyle(run.awarded ? brand.questionSuccess : brand.questionError).accessibilityIdentifier("readingFeedback") }
+                    if run.method == "question",run.correct != nil {
+                        if let explanation=run.explanation { Text(explanation).font(PiyaliBrand.productFont(14)).foregroundStyle(brand.secondary).accessibilityIdentifier("readingExplanation") }
+                        else { Button(t("history_explain_answer")) { Task { await service.explain(app,run:run) } }.font(PiyaliBrand.productFont(14,600)).disabled(service.busy).accessibilityIdentifier("readingExplain") }
+                    }
+                    if run.awarded { Text(t("reading_xp_awarded_line").replacingOccurrences(of:"{xp}",with:String(run.reward)).replacingOccurrences(of:"{reason}",with:"")).font(PiyaliBrand.productFont(14,600)).foregroundStyle(brand.questionSuccess).accessibilityIdentifier("readingCompleted") }
+                }.padding(.vertical,6)
             }
-            if run.awarded {
-                Text(t("reading_xp_awarded_line").replacingOccurrences(of:"{xp}",with:String(run.reward)).replacingOccurrences(of:"{reason}",with:"")).font(PiyaliBrand.productFont(14,600)).foregroundStyle(brand.questionSuccess).accessibilityIdentifier("readingCompleted")
-                Button(t("reading_btn_finish")) { stop();if let onComplete { onComplete();if !embedded { dismiss() } } else { refresh += 1 } }.buttonStyle(ReadingActionButtonStyle(tone:"success")).accessibilityIdentifier("readingContinue")
-            } else if run.method == "question" {
-                Button { answering=false;stop();Task { await service.check(app,run:run,answer:answer.isEmpty ? run.answer : answer,speech:false) } } label:{ if service.busy { ProgressView().tint(.white) } else { Text(t("quiz_submit")) } }.buttonStyle(ReadingActionButtonStyle()).disabled(service.busy || (answer.isEmpty && run.answer.isEmpty)).accessibilityIdentifier("readingCheck")
-            } else {
-                Button {
-                    if speech.recording { speech.stop() }
-                    else if !speech.transcript.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty { let words=speech.transcript;Task { await service.check(app,run:run,answer:words,speech:true) } }
-                    else { Task { await speech.start(language:run.target) } }
-                } label:{ if service.busy { ProgressView().tint(.white) } else { Label(t(speech.recording ? "history_speech_stop_mic" : speech.transcript.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty ? "history_speech_start_mic" : "history_speech_submit"),systemImage:speech.recording ? "stop.fill" : "mic.fill") } }.buttonStyle(ReadingActionButtonStyle(tone:speech.recording ? "stop" : speech.transcript.isEmpty ? "speak" : "primary")).disabled(service.busy).accessibilityIdentifier("readingMicrophone")
-                if !speech.transcript.isEmpty,!speech.recording { Button(t("history_speech_start_over")) { stop();speech.transcript="" }.disabled(service.busy) }
-            }
+        },actions:{
             if let onComplete { Button(t("reading_skip")) { stop();onComplete();if !embedded { dismiss() } }.font(PiyaliBrand.productFont(14,600)).foregroundStyle(brand.secondary).accessibilityIdentifier("skipLessonActivity") }
+            if let run { primary(run) }
+            else if service.error != nil { Button(t("try_again")) { refresh += 1 }.buttonStyle(ActivityPrimaryButtonStyle()).disabled(service.busy) }
+            else { ProgressView().frame(maxWidth:.infinity,minHeight:40) }
+        })
+    }
+    @ViewBuilder private func primary(_ run:ReadingRun)->some View {
+        if run.awarded {
+            Button(t("reading_btn_finish")) { stop();if let onComplete { onComplete();if !embedded { dismiss() } } else { refresh += 1 } }.buttonStyle(ActivityPrimaryButtonStyle(tone:"success")).accessibilityIdentifier("readingContinue")
+        } else if run.method == "question" {
+            Button { answering=false;stop();Task { await service.check(app,run:run,answer:answer.isEmpty ? run.answer : answer,speech:false) } } label:{ if service.busy { ProgressView().tint(.white) } else { Text(t("quiz_submit")) } }.buttonStyle(ActivityPrimaryButtonStyle()).disabled(service.busy || (answer.isEmpty && run.answer.isEmpty)).accessibilityIdentifier("readingCheck")
+        } else {
+            if !speech.transcript.isEmpty,!speech.recording { Button(t("history_speech_start_over")) { stop();speech.transcript="" }.font(PiyaliBrand.productFont(14,600)).disabled(service.busy) }
+            Button {
+                if speech.recording { speech.stop() }
+                else if !speech.transcript.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty { let words=speech.transcript;Task { await service.check(app,run:run,answer:words,speech:true) } }
+                else { Task { await speech.start(language:run.target) } }
+            } label:{ if service.busy { ProgressView().tint(.white) } else { Label(t(speech.recording ? "history_speech_stop_mic" : speech.transcript.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty ? "history_speech_start_mic" : "history_speech_submit"),systemImage:speech.recording ? "stop.fill" : "mic.fill") } }.buttonStyle(ActivityPrimaryButtonStyle(tone:speech.recording ? "stop" : speech.transcript.isEmpty ? "speak" : "primary")).disabled(service.busy).accessibilityIdentifier("readingMicrophone")
         }
     }
     private func stop() { speech.stopAll();readingAll=false;activeSentence=nil }
@@ -152,21 +167,5 @@ private struct ReadingSentenceText:UIViewRepresentable {
         var onSelect:(Int)->Void
         init(onSelect:@escaping(Int)->Void) { self.onSelect=onSelect }
         func textView(_ textView:UITextView,shouldInteractWith url:URL,in characterRange:NSRange,interaction:UITextItemInteraction)->Bool { if url.scheme == "piyali-reading",let index=Int(url.lastPathComponent) { onSelect(index) };return false }
-    }
-}
-
-private struct ReadingActionButtonStyle:ButtonStyle {
-    @Environment(\.isEnabled) private var enabled
-    var tone="primary"
-    private var colors:[Color] {
-        switch tone {
-        case "success":return [.init(red:49/255,green:151/255,blue:149/255),.init(red:35/255,green:78/255,blue:82/255)]
-        case "speak":return [.init(red:0,green:181/255,blue:216/255),.init(red:8/255,green:111/255,blue:131/255)]
-        case "stop":return [.init(red:255/255,green:69/255,blue:0),.init(red:114/255,green:0,blue:59/255)]
-        default:return [.init(red:128/255,green:90/255,blue:213/255),.init(red:68/255,green:51/255,blue:122/255)]
-        }
-    }
-    func makeBody(configuration:Configuration)->some View {
-        configuration.label.font(PiyaliBrand.productFont(14,700)).multilineTextAlignment(.center).foregroundStyle(.white).padding(.horizontal,12).frame(maxWidth:.infinity,minHeight:40,maxHeight:40).background { RoundedRectangle(cornerRadius:18).fill(colors[0]).shadow(color:enabled ? colors[1] : .clear,radius:0,y:configuration.isPressed ? 0 : 4) }.offset(y:configuration.isPressed ? 4 : 0).opacity(enabled ? 1 : 0.55)
     }
 }

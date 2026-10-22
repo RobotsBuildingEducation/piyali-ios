@@ -7,5 +7,26 @@ const vite=await import(path.join(reference,'node_modules/vite/dist/node/index.j
 const loaded=await vite.loadConfigFromFile({command:'serve',mode:'dev-direct'},path.join(reference,'vite.config.js'),reference,'warn',undefined,'runner');
 if(!loaded) throw new Error('Reference configuration not found');
 const flatten=(plugins)=>plugins.flat(Infinity).filter(Boolean);
-const server=await vite.createServer({...loaded.config,configFile:false,root:reference,envDir:reference,cacheDir:path.join(root,'.reference-preview/cache'),plugins:flatten(loaded.config.plugins).filter(p=>!String(p.name).includes('pwa') && !String(p.name).includes('visualizer')),server:{...loaded.config.server,host:'127.0.0.1',port:5181,strictPort:true}});
+// The reference stories harness supplies batch services but its newer component
+// otherwise starts the real default stream. Keep this test entry on its own
+// explicit fixture over the new protocol without changing the component or main app.
+const storyFixtureCompatibility={name:'piyali-source-story-fixture',enforce:'pre',transform(source,id){
+ if(id.split('?')[0]!==path.join(reference,'tests/browser/stories.jsx')) return null;
+ const needle='const services = {';
+ if(!source.includes(needle)) throw Error('Source stories fixture moved; review adapter.');
+ let fixture=source.replace(needle,needle+`
+  generateStream: async () => {
+    const sample=JSON.parse(await services.generate()),records=[{type:"title",title:sample.title}];
+    sample.segments.forEach((segment,index)=>{
+      segment.turns.forEach(turn=>records.push({type:"turn",segment:index,...turn}));
+      records.push({type:"question",segment:index,question:segment.question});
+    });
+    records.push({type:"done"});
+    return {stream:(async function*(){yield {text:()=>records.map(item=>JSON.stringify(item)).join(String.fromCharCode(10))};})()};
+  },`);
+ fixture=fixture.replace('const [mode, setMode] = useState(() => Math.random() < 0.5 ? "radio" : "conversation");','const [mode, setMode] = useState(() => new URLSearchParams(window.location.search).get("mode") === "radio" ? "radio" : "conversation");');
+ fixture=fixture.replace('applyThemeMode("dark");','applyThemeMode(new URLSearchParams(window.location.search).get("theme") === "light" ? "light" : "dark");');
+ return fixture;
+}};
+const server=await vite.createServer({...loaded.config,configFile:false,root:reference,envDir:reference,cacheDir:path.join(root,'.reference-preview/cache'),plugins:[storyFixtureCompatibility,...flatten(loaded.config.plugins).filter(p=>!String(p.name).includes('pwa') && !String(p.name).includes('visualizer'))],server:{...loaded.config.server,host:'127.0.0.1',port:5181,strictPort:true}});
 await server.listen();console.log('Read-only reference preview: http://127.0.0.1:5181');

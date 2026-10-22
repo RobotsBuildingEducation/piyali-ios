@@ -46,8 +46,17 @@ struct ProductShellView:View {
                         ToolbarItem(placement:.topBarTrailing) { Button { panel = .goal } label:{ HStack(spacing:7) { Image(systemName:"flame");Text("\(app.learner.dailyXP) / \(app.learner.dailyGoal) XP").font(PiyaliBrand.productFont(12,600)) } }.accessibilityLabel("Open daily goal") }
                     }
             }.id(revision).tint(PiyaliBrand.teal).blur(radius:menuOpen ? 6 : 0).allowsHitTesting(!menuOpen)
-                .safeAreaInset(edge:.bottom) {
-                    Button { modesOpen=false;menuOpen.toggle() } label:{ Image(systemName:"square.grid.3x3.fill").font(.system(size:20)).foregroundStyle(brand.text).frame(width:58,height:58).background(brand.surface.opacity(0.92),in:RoundedRectangle(cornerRadius:20)).overlay { RoundedRectangle(cornerRadius:20).stroke(brand.border) } }.accessibilityLabel(mode.title(language)).accessibilityIdentifier("productMenu").padding(.bottom,10)
+                .safeAreaInset(edge:.bottom) { if app.activityFooter == nil { menuButton(compact:false).padding(.bottom,10) } }
+                .overlay(alignment:.bottom) {
+                    if let footer=app.activityFooter {
+                        ZStack(alignment:.bottomLeading) {
+                            footer.content.id(footer.owner).padding(12).background {
+                                RoundedRectangle(cornerRadius:24).fill(.ultraThinMaterial)
+                                if let correct=footer.correct { RoundedRectangle(cornerRadius:24).fill((correct ? brand.questionSuccess : brand.questionError).opacity(scheme == .dark ? 0.14 : 0.10)) }
+                            }.overlay { RoundedRectangle(cornerRadius:24).stroke(footer.correct.map { $0 ? brand.questionSuccess : brand.questionError } ?? brand.border) }.padding(.horizontal,8).padding(.bottom,6)
+                            menuButton(compact:true).padding(.leading,20).padding(.bottom,18)
+                        }.onGeometryChange(for:CGFloat.self,of:{ $0.size.height }) { app.activityFooterHeight=$0 }
+                    }
                 }
             if menuOpen { menu }
         }.font(PiyaliBrand.productFont(16)).foregroundStyle(brand.text)
@@ -71,12 +80,16 @@ struct ProductShellView:View {
                 restoreSession()
                 presentPendingLessonCompletion()
             }
+            .onChange(of:app.activityFooter == nil) { _,absent in if absent { app.activityFooterHeight=0 } }
             .onChange(of:app.learner.target) { _,_ in revision=UUID() }
             .onChange(of:app.localPracticeRevision) { _,_ in checkCompletion() }
             .onChange(of:panel) { _,value in if value == nil { presentPendingLessonCompletion();checkCompletion() } }
             .onChange(of:menuOpen) { _,open in if !open { presentPendingLessonCompletion();checkCompletion() } }
             .onChange(of:app.pendingLessonCompletion?.id) { _,_ in presentPendingLessonCompletion() }
             .onChange(of:app.lessonActivityActive) { _,active in if !active { presentPendingLessonCompletion();checkCompletion() } }
+    }
+    private func menuButton(compact:Bool)->some View {
+        Button { modesOpen=false;menuOpen.toggle() } label:{ Image(systemName:"square.grid.3x3.fill").font(.system(size:compact ? 18 : 20)).foregroundStyle(brand.text).frame(width:compact ? 40 : 58,height:compact ? 40 : 58).background(brand.surface.opacity(0.92),in:RoundedRectangle(cornerRadius:compact ? 14 : 20)).overlay { RoundedRectangle(cornerRadius:compact ? 14 : 20).stroke(brand.border) } }.accessibilityLabel(mode.title(language)).accessibilityIdentifier("productMenu")
     }
     @ViewBuilder private var surface:some View {
         if specialCourse == "goal" { FocusedGoalView() }
@@ -95,7 +108,7 @@ struct ProductShellView:View {
             ZStack(alignment:.bottom) {
                 Color.black.opacity(0.3).ignoresSafeArea().onTapGesture { menuOpen=false }
                 VStack(spacing:10) {
-                    HStack { Spacer();Capsule().fill(brand.muted.opacity(0.6)).frame(width:48,height:5);Spacer();Button { menuOpen=false } label:{ Image(systemName:"xmark").frame(width:36,height:36) }.accessibilityLabel(ProductCopy.data(language)["menu"]["closeMenu"].string) }.padding(.bottom,12)
+                    HStack { Spacer();Capsule().fill(brand.muted.opacity(0.6)).frame(width:48,height:5);Spacer();Button { menuOpen=false } label:{ Image(systemName:"xmark").frame(width:36,height:36) }.accessibilityLabel(ProductCopy.data(language)["menu"]["closeMenu"].string).accessibilityIdentifier("productMenuClose") }.padding(.bottom,12)
                     LazyVGrid(columns:[GridItem(.flexible()),GridItem(.flexible())],spacing:9) {
                         if modesOpen { ForEach(ProductMode.allCases,id:\.self) { item in menuTile(item.title(language),symbol:item.symbol,selected:item == mode) { switchMode(item) }.accessibilityIdentifier("productMode-"+item.rawValue) } }
                         else { ForEach([ProductPanel.settings,.teams,.assistant,.memory]) { item in menuTile(ProductCopy.data(language)["menu"][item.rawValue].string,symbol:[.settings:"gearshape",.teams:"hands.sparkles",.assistant:"person.crop.circle",.memory:"bookmark"][item] ?? "gearshape") { menuOpen=false;panel=item }.accessibilityIdentifier("productPanel-"+item.rawValue) } }

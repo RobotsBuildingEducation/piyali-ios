@@ -17,8 +17,14 @@ import FirebaseAILogic
     func cancel() { generation=UUID();busy=false }
     private static func digest(_ text:String) -> String { SHA256.hash(data:Data(StoryEpisode.normalize(text).utf8)).map { String(format:"%02x",$0) }.joined() }
     func prepare(_ app:AppModel,lesson:Lesson?,mode:StoryMode,fresh:Bool) async {
-        let account=app.identity.npub,target=app.learner.target,support=app.learner.support,level=lesson?.agenda["cefrLevel"].string.isEmpty == false ? lesson!.agenda["cefrLevel"].string : app.learner.level
-        if !fresh,let run=app.learner.story,run.target == target,run.support == support,run.level == level,run.lessonID == lesson?.id,run.mode == mode,run.index >= 0,run.index <= run.count {
+        let account=app.identity.npub,target=app.learner.target,support=app.learner.support
+        let authoredLevel=lesson?.cefrLevel ?? (lesson?.agenda["cefrLevel"].string.isEmpty == false ? lesson!.agenda["cefrLevel"].string : app.learner.level)
+        let fixed=lesson?.id == IntroTutorial.lessonID || lesson?.isFinalQuiz == true || lesson?.id.hasPrefix("goal-") == true || lesson?.id.hasPrefix("repair-") == true
+        let level=mode != .speaking || fixed ? authoredLevel : PerformanceScore.level(score:app.learner.score)
+        let sourceContext:String
+        do { sourceContext=SHA256.hash(data:try StoryRun.contextData(content:lesson?.content["stories"] ?? .null,agenda:lesson?.agenda ?? .null,level:authoredLevel)).map { String(format:"%02x",$0) }.joined() }
+        catch { self.error=error.localizedDescription;return }
+        if !fresh,let run=app.learner.story,run.target == target,run.support == support,run.lessonID == lesson?.id,run.mode == mode,run.sourceContext == nil || run.sourceContext == sourceContext,run.index >= 0,run.index <= run.count {
             if run.mode == .speaking || (try? run.episode?.validate(target:target)) != nil { return }
         }
         guard app.subscription.hasAccess || Self.fixtureMode != nil else { return }
@@ -29,9 +35,14 @@ import FirebaseAILogic
             var payload:JSONValue
             if Self.fixtureMode != nil {
                 payload=try ContentLibrary.load(JSONValue.self,name:"story-test-episode")
+                #if DEBUG
+                if ProcessInfo.processInfo.environment["PIYALI_STORY_LEARNER_CAST"] == "1" { var segments=payload["segments"].array.map { segment in segment.setting("turns",.array(segment["turns"].array.map { $0["speaker"].string == "Luis" ? $0.setting("speaker",.string("You")) : $0 })) }
+                    if !segments.isEmpty { segments[0]=segments[0].setting("turns",.array(segments[0]["turns"].array+[.object(["speaker":.string("Ana"),"target":.string("Vamos a visitarla."),"support":.string("Let's visit her.")])])) }
+                    payload=payload.setting("segments",.array(segments)) }
+                #endif
                 if mode == .speaking {
                     let lines=payload["segments"].array.flatMap { $0["turns"].array }
-                    payload = .object(["title":payload["title"],"sentences":.array(tutorial ? Array(lines.prefix(2)) : lines+lines)])
+                    payload = .object(["title":payload["title"],"sentences":.array(tutorial ? Array(lines.prefix(2)) : Array((lines+lines).prefix(10)))])
                 }
             } else {
                 let recent=(state.storyHistory?[target] ?? []).filter { $0["support"].string == support }
@@ -48,7 +59,10 @@ import FirebaseAILogic
                 guard payload != .null else { throw failure }
             }
             try Task.checkCancellation();guard generation == token,app.identity.npub == account,app.learner.target == target,app.learner.support == support else { return }
-            let run=try StoryRun(payload:payload,mode:mode,target:target,support:support,level:level,lessonID:lesson?.id,worth:ConversationPractice.worth(rating:state.rating,level:level),tutorial:tutorial)
+            var run=try StoryRun(payload:payload,mode:mode,target:target,support:support,level:level,lessonID:lesson?.id,worth:ConversationPractice.worth(rating:state.rating,level:level),tutorial:tutorial)
+            run.lessonLevel=authoredLevel;run.sourceContext=sourceContext
+            let names=Set(run.episode?.segments.flatMap { $0.turns.map(\.speaker) } ?? run.sentences.map(\.speaker))
+            run.portraitIDs=Dictionary(uniqueKeysWithValues:names.map { ($0,StoryCharacterAvatar.appearance.portraitPool($0,learnerName:state.name).randomElement() ?? "35") })
             app.learner.saveStory(run)
             if app.learner.storyHistory == nil { app.learner.storyHistory=[:] }
             var history=app.learner.storyHistory?[target] ?? []
