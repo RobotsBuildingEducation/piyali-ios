@@ -297,6 +297,76 @@
     ]
   },
   {
+    "file": "src/features/stories/storyDiversity.js",
+    "sha256": "90deafa440f87d87720a43dc232670e9f88008a6ce6cdb8867423a574cb7f070",
+    "bindings": [
+      "buildCurriculumPromptContext",
+      "buildStoryDiversityPrompt",
+      "createStoryPlan",
+      "directions",
+      "getReadingQualityIssues",
+      "getStoryHistory",
+      "getStoryNoveltyIssues",
+      "pick",
+      "readHistory"
+    ],
+    "nativeHistoryAdapter": "History supplied explicitly from native private state; original pure selection, prompts and quality policies retained."
+  },
+  {
+    "file": "src/features/stories/storyPrompts.js",
+    "sha256": "5287a94fcf66512e3681fbb829ba4435d4f713535191db3772866bef33b7d1c1",
+    "bindings": [
+      "buildSpeakingStoryPrompt",
+      "buildStoryWritingBrief",
+      "getStoryDifficulty",
+      "normalizeCEFRLevel"
+    ]
+  },
+  {
+    "file": "src/features/stories/storySession.js",
+    "sha256": "f05815923df5191d4be7c63fffe95b897d5bcc056c3c6634ba31dc5ed891e22d",
+    "bindings": [
+      "STORY_MODES",
+      "TARGET_SCRIPT_PATTERNS",
+      "applyStoryStreamLine",
+      "buildStorySessionPrompt",
+      "buildStorySessionStreamPrompt",
+      "buildStoryWordTiles",
+      "buildStoryWritingBrief",
+      "chooseStoryMode",
+      "getStoryTargetScriptCoverage",
+      "isStoryTargetCollectionCompatible",
+      "isStoryTargetTextCompatible",
+      "normalize",
+      "usesUnspacedWords"
+    ]
+  },
+  {
+    "file": "src/features/stories/practiceStoryGeneration.js",
+    "sha256": "e1ab1b6ab589a3bfc704ea8ea4b356101be80628da564239219bea50f429f078",
+    "bindings": [
+      "isStoryTargetCollectionCompatible",
+      "parsePracticeStory",
+      "roster"
+    ]
+  },
+  {
+    "file": "src/utils/activityQualityReview.js",
+    "sha256": "0c9b0cbc3eea77f09364850bc8da32203f035e0c04e1c4b57b084a2f7f7ab9d9",
+    "bindings": [
+      "buildActivityReviewRequest",
+      "parseReview"
+    ]
+  },
+  {
+    "file": "src/utils/activityGeneration.js",
+    "sha256": "32e20d154618b3ae09e87077a75a70e0947cd5be5d96d9524441a38f7b18f8ec",
+    "bindings": [
+      "isExactActivityRepeat",
+      "normalize"
+    ]
+  },
+  {
     "file": "src/utils/learningIntelligenceModel.js",
     "sha256": "5e6efcd7fea2758af10af1d3617945daa8583f68f0072cc26d5822549ef0a95c",
     "bindings": [
@@ -374,18 +444,27 @@
     ]
   },
   {
-    "file": "src/features/stories/storySession.js",
-    "sha256": "f05815923df5191d4be7c63fffe95b897d5bcc056c3c6634ba31dc5ed891e22d",
-    "bindings": [
-      "STORY_MODES",
-      "chooseStoryMode"
-    ]
-  },
-  {
     "file": "src/utils/readingHistoryStore.js",
     "sha256": "bf3c1ca2844f5a49f9ff2adfbafbfdaccfd69bfa67fc88d6592cd3f6bc4f5c39",
     "bindings": [
-      "getReadingLevelSpecs"
+      "META_PREAMBLE_PATTERNS",
+      "getReadingLevelSpecs",
+      "stripMetaNarratorPreamble"
+    ]
+  },
+  {
+    "file": "src/utils/readingGeneration.js",
+    "sha256": "755b36927bdfcc3ee29c63489c4d54349b6de6341afcbfcc183b2e8c1070d1d9",
+    "bindings": [
+      "getReadingQualityIssues",
+      "isReactionLedSentence",
+      "normalize",
+      "reactionStructure",
+      "sameSentenceSkeleton",
+      "sentences",
+      "shingles",
+      "stripMetaNarratorPreamble",
+      "words"
     ]
   },
   {
@@ -406,6 +485,17 @@
       "getBaseLanguageCode",
       "getTutorStarterTargetExamples",
       "getTutorStarterVocabularyPairs"
+    ]
+  },
+  {
+    "file": "src/utils/cefrProgress.js",
+    "sha256": "6681ba74b8d2d4c2e142f6c310274ecbe075c7ed5fb61a2817605c1583e41c85",
+    "bindings": [
+      "CEFR_LEVEL_COUNTS",
+      "LESSON_COUNTS",
+      "calculateFlashcardCompletion",
+      "calculateLessonCompletion",
+      "getLessonLevelFromId"
     ]
   },
   {
@@ -468,17 +558,6 @@
     ]
   },
   {
-    "file": "src/utils/cefrProgress.js",
-    "sha256": "6681ba74b8d2d4c2e142f6c310274ecbe075c7ed5fb61a2817605c1583e41c85",
-    "bindings": [
-      "CEFR_LEVEL_COUNTS",
-      "LESSON_COUNTS",
-      "calculateFlashcardCompletion",
-      "calculateLessonCompletion",
-      "getLessonLevelFromId"
-    ]
-  },
-  {
     "file": "src/components/flagsIcons/flags.jsx",
     "sha256": "2f1101d10f316c803cd6a97b795152472ca1cad561b059aebc2bbd68309fb1f0",
     "bindings": [
@@ -501,17 +580,17 @@
     "nativeAdapter": "Flag renderers omitted from text-only language metadata."
   },
   {
-    "file": "src/constants/supportLanguages.js",
-    "sha256": "d8e8dc17f353a5106bdc984f2cce9696669bc7216be10e006738cb0a04b40b5a",
-    "bindings": [
-      "SUPPORT_LANGUAGE_CODES"
-    ]
-  },
-  {
     "file": "src/data/flashcards/common.js",
     "sha256": "e4110d661b925ecb53e3cf33c02227ea51ac0b67db9cb02a91ee71e14724a2c4",
     "bindings": [
       "CEFR_LEVEL_COUNTS"
+    ]
+  },
+  {
+    "file": "src/constants/supportLanguages.js",
+    "sha256": "d8e8dc17f353a5106bdc984f2cce9696669bc7216be10e006738cb0a04b40b5a",
+    "bindings": [
+      "SUPPORT_LANGUAGE_CODES"
     ]
   },
   {
@@ -526,6 +605,44 @@
       "evaluateAndMaybeAdvanceGoal:judgePrompt"
     ],
     "nativeAdapter": "Pure lexical functions receive explicit JSON refs. Audio, network, React effects and account credentials omitted."
+  },
+  {
+    "file": "src/features/stories/practiceStoryGeneration.js",
+    "sha256": "e1ab1b6ab589a3bfc704ea8ea4b356101be80628da564239219bea50f429f078",
+    "bindings": [
+      "buildRevisionPrompt"
+    ],
+    "nativeAdapter": "Original validation/style revision expressions; generation coordinator and deadlines remain native."
+  },
+  {
+    "file": "src/features/stories/storyGeneration.js",
+    "sha256": "67dcd7dd288a4976b69c50f1d5f8da2ebb1599f260622bb8088f136c2e6ba616",
+    "bindings": [
+      "buildRevisionPrompt"
+    ],
+    "nativeAdapter": "Original validation/style revision expressions; generation coordinator and deadlines remain native."
+  },
+  {
+    "file": "src/utils/questionDifficultyAssessment.js",
+    "sha256": "8d0c4393281a30bb3ee6c3ca7926a73fa993e3d6e1251732a9a301614a1cefc5",
+    "bindings": [
+      "assessGeneratedQuestionWorths:prompt",
+      "assessGeneratedQuestionWorths:validation"
+    ],
+    "nativeAdapter": "Original batch prompt and score-array validation; provider request stays native."
+  },
+  {
+    "file": "src/components/Stories.jsx",
+    "sha256": "98a951b5e2de6f075b89da93dc99c4c8bfeee5fecd4cb365df2906be4302238c",
+    "bindings": [
+      "buildStoryDiversityPrompt",
+      "createStoryPlan",
+      "buildSpeakingStoryPrompt",
+      "getStoryDifficulty",
+      "focusedLessonPrompt",
+      "generationPerformanceContextFor"
+    ],
+    "nativeAdapter": "Original speaking preparation branch; history explicitly supplied, dynamic React import omitted."
   },
   {
     "file": "src/components/History.jsx",

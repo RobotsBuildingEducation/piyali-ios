@@ -755,12 +755,16 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
         var base=try requireState(try await service.load(npub:npub));base.target="es";base.support="en";base.level="A1";base.preferencesModifiedAt=Date()
         let payload=try ContentLibrary.load(JSONValue.self,name:"story-test-episode"),lines=payload["segments"].array.flatMap { $0["turns"].array }
         var spoken=try StoryRun(payload:.object(["title":payload["title"],"sentences":.array(Array((lines+lines).prefix(10)))]),mode:.speaking,target:"es",support:"en",level:"A1",lessonID:nil,worth:ConversationPractice.worth(rating:base.rating,level:"A1"))
+        let questions=spoken.sentences.map { JSONValue.object(["sentence":.string($0.target),"task":.string("Understand and pronounce this sentence")]) }
+        let scores=(0..<questions.count).map { JSONValue.number($0 == 0 ? 0 : 100) }
+        spoken.sentenceWorths=try PracticeRecipes().story("batchWorth",parameters:.object(["questions":.array(questions),"user":base.recipeUser,"targetLang":.string("es"),"questionLevel":.string("A1"),"raw":.object(["difficultyScores":.array(scores)])])).array
         spoken.lessonLevel="A1";spoken.sourceContext="canonical-lesson-context";spoken.portraitIDs=["Ana":"25","Luis":"6"]
         base.saveStory(spoken);var first=base,second=base
         XCTAssertEqual(first.practiceStoryLine(words:spoken.sentences[0].target,typed:true),2);XCTAssertEqual(second.practiceStoryLine(words:spoken.sentences[0].target,typed:true),2)
         async let one=service.save(first,npub:npub);async let two=service.save(second,npub:npub);_=try await (one,two)
         var restored=try requireState(try await service.load(npub:npub));XCTAssertEqual(restored.totalXP,152);XCTAssertEqual(restored.gradedByLanguage?["es"],1)
-        XCTAssertEqual(restored.story?.sourceContext,spoken.sourceContext);XCTAssertEqual(restored.story?.portraitIDs,spoken.portraitIDs);XCTAssertEqual(restored.story?.lessonLevel,"A1")
+        XCTAssertEqual(restored.story?.sourceContext,spoken.sourceContext);XCTAssertEqual(restored.story?.portraitIDs,spoken.portraitIDs);XCTAssertEqual(restored.story?.lessonLevel,"A1");XCTAssertEqual(restored.story?.sentenceWorths,spoken.sentenceWorths)
+        XCTAssertEqual(restored.rating,ConversationPractice.rating(base.rating,level:"A1",success:true,worth:spoken.sentenceWorths![0]),accuracy:1e-8)
         let spokenProofs=try await db.collection("users").document(npub).collection("storyTurns").getDocuments(source:.server);XCTAssertEqual(spokenProofs.count,1)
         let fresh=try StoryRun(payload:payload,mode:.radio,target:"es",support:"en",level:"A1",lessonID:nil,worth:.null)
         var a=fresh;a.index=a.count;a.results=Dictionary(uniqueKeysWithValues:(0..<a.count).map { (String($0),true) });var b=a;b.results=Dictionary(uniqueKeysWithValues:(0..<b.count).map { (String($0),false) })

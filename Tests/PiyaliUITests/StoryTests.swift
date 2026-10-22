@@ -12,13 +12,14 @@ import XCTest
         XCTAssertTrue(element.waitForExistence(timeout:10));XCTAssertTrue(element.isHittable)
     }
     private func tap(_ id:String,_ app:XCUIApplication) { let button=app.buttons[id];reveal(button,app);button.tap() }
-    private func start(_ mode:String,role:Bool=false,failure:Bool=false,theme:String="light")->XCUIApplication {
+    private func start(_ mode:String,role:Bool=false,failure:Bool=false,theme:String="light",delay:Bool=false)->XCUIApplication {
         continueAfterFailure=false
         let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString;app.launchEnvironment["PIYALI_STORY_FIXTURE"]=mode;app.launchEnvironment["PIYALI_PRACTICE_FIXTURE"]="delight:natural_or_weird";app.launchEnvironment["PIYALI_READING_FIXTURE"]="1";app.launchEnvironment["PIYALI_STORY_SPEECH_RESULTS"]="miss,pass,pass,pass"
+        if delay { app.launchEnvironment["PIYALI_STORY_GENERATION_DELAY_MS"]="8000" }
         if role { app.launchEnvironment["PIYALI_STORY_LEARNER_CAST"]="1" };if failure { app.launchEnvironment["PIYALI_STORY_AUDIO_FAIL_FIRST"]="1" }
         app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme",theme];app.launch()
         let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Story Learner");if app.buttons["entryKeyboardDone"].exists { app.buttons["entryKeyboardDone"].tap() };app.buttons["createAccount"].tap()
-        XCTAssertTrue(app.buttons["startLearning"].waitForExistence(timeout:20));app.buttons["startLearning"].tap();open(app);return app
+        XCTAssertTrue(app.buttons["startLearning"].waitForExistence(timeout:20));app.buttons["startLearning"].tap();open(app,expectStory:!delay);return app
     }
     private func open(_ app:XCUIApplication,expectStory:Bool=true) {
         XCTAssertTrue(app.buttons["productMenu"].waitForExistence(timeout:15));app.buttons["productMenu"].tap();app.buttons["productModeMenu"].tap();app.buttons["productMode-path"].tap()
@@ -32,6 +33,14 @@ import XCTest
     private func xp(_ amount:Int,_ app:XCUIApplication) {
         tap("productMenu",app);tap("productPanel-settings",app)
         let total=app.staticTexts.matching(NSPredicate(format:"label BEGINSWITH %@","\(amount) total XP")).firstMatch;reveal(total,app);XCTAssertTrue(total.label.hasPrefix("\(amount) total XP"));tap("productPanelClose",app)
+    }
+    func testBackgroundedGenerationRestartsAndReturnsToExplicitRecording() {
+        let app=start("speaking",delay:true)
+        XCTAssertTrue(app.staticTexts["storyLoading"].waitForExistence(timeout:3))
+        XCUIDevice.shared.press(.home);app.activate()
+        XCTAssertTrue(app.staticTexts["storyProgress"].waitForExistence(timeout:20))
+        XCTAssertTrue(app.buttons["storyRecord"].isHittable);XCTAssertFalse(app.staticTexts["storySpeechXP"].exists)
+        photo("Native story generation resumes after backgrounding",app)
     }
     func testRadioFailureRetryOneAttemptResumeAutoPlaybackAndOneSixXPCompletion() {
         let app=start("radio",failure:true)

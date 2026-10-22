@@ -22,7 +22,8 @@ public struct StoryTurn:Codable,Equatable,Sendable {
     public let speaker:String
     public let target:String
     public var support:String?
-    public init(speaker:String,target:String,support:String? = nil) { self.speaker=speaker;self.target=target;self.support=support }
+    public var gender:String?
+    public init(speaker:String,target:String,support:String? = nil,gender:String? = nil) { self.speaker=speaker;self.target=target;self.support=support;self.gender=gender }
 }
 public struct StoryQuestion:Codable,Equatable,Sendable {
     public var type:String

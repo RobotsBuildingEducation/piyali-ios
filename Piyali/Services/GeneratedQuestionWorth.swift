@@ -14,4 +14,15 @@ import Foundation
     static func fallback(level:String,learner:LearnerState,recipes:PracticeRecipes) throws ->JSONValue {
         try recipes.inspect("worth",parameters:.object(["questionLevel":.string(level),"targetLang":.string(learner.target),"user":learner.recipeUser]))
     }
+    static func assessMany(questions:[JSONValue],level:String,mode:String,learner:LearnerState,recipes:PracticeRecipes,ai:AIService) async throws ->[JSONValue] {
+        guard !questions.isEmpty else { return [] }
+        if questions.count == 1 { return [try await assess(question:questions[0],level:level,mode:mode,learner:learner,recipes:recipes,ai:ai)] }
+        var parameters:JSONValue = .object(["questions":.array(questions),"questionLevel":.string(level),"targetLang":.string(learner.target),"mode":.string(mode),"user":learner.recipeUser])
+        do {
+            let prompt=try recipes.story("batchDifficultyPrompt",parameters:parameters).string
+            let output=try await ai.text(prompt,json:true);try Task.checkCancellation()
+            parameters=parameters.setting("raw",.string(output))
+        } catch is CancellationError { throw CancellationError() } catch { }
+        return try recipes.story("batchWorth",parameters:parameters).array
+    }
 }

@@ -14,7 +14,7 @@ methods = {'lesson-content':'testActualCurriculumContextProducesFamilyVocabulary
            'quiz':'testNativeFinalQuizQuestionsUseAuthoredContentAndProviderFallback',
            'exploration':'testNativeExplorationQuestReauthoringAndNPCSpeechPreservePlayablePaths',
            'reading': 'testNativeReadingGenerationAndResponsesFallback',
-           'stories': 'testNativeStoryModesAndStrictResponsesFallback',
+           'stories': 'testNativeStorySourcePoliciesBatchWorthAndResponsesFallback',
            'services': 'testNativeAuthenticationGeminiResponsesAndVoice',
            'immersion': 'testNativeImmersionGenerationUsesResponsesAndPreservesExistingMissions',
            'conversation': 'testNativeConversationGoalsGradeCommunicationAndReanchorPremiseRejection',

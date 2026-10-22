@@ -14,6 +14,7 @@ public struct StoryRun:Codable,Equatable,Sendable {
     public var sentences:[StoryTurn]
     public let title:String
     public let worth:JSONValue
+    public var sentenceWorths:[JSONValue]?
     public var index=0
     public var answers:[String:[Int]]=[:]
     public var results:[String:Bool]=[:]
@@ -42,6 +43,7 @@ public struct StoryRun:Codable,Equatable,Sendable {
     public var atEnd:Bool { index >= count }
     public var currentSegment:StorySegment? { guard let episode,episode.segments.indices.contains(index) else { return nil };return episode.segments[index] }
     public var currentSentence:StoryTurn? { sentences.indices.contains(index) ? sentences[index] : nil }
+    public var currentSentenceWorth:JSONValue { sentenceWorths?.indices.contains(index) == true ? sentenceWorths![index] : worth }
     public var result:Bool? { results[String(index)] }
     public var correctQuestions:Int { results.values.filter { $0 }.count }
     public var text:String { episode?.text ?? sentences.map(\.target).joined(separator:"\n") }
@@ -81,8 +83,8 @@ public extension LearnerState {
         change.attachCurriculumLesson(id:run.lessonID,level:run.lessonLevel ?? run.level)
         if verdict.pass {
             run.passedLines.insert(run.index);run.earnedXP += 2
-            change.correct=true;change.independent=true;change.conversationWorth=run.worth;change.conversationGoalText = .object(["en":.string(line.target)])
-            let updated=ConversationPractice.rating(rating,level:run.level,success:true,worth:run.worth)
+            change.correct=true;change.independent=true;change.conversationWorth=run.currentSentenceWorth;change.conversationGoalText = .object(["en":.string(line.target)])
+            let updated=ConversationPractice.rating(rating,level:run.level,success:true,worth:run.currentSentenceWorth)
             if ratingByLanguage == nil { ratingByLanguage=[:] };ratingByLanguage?[target]=updated
             if gradedByLanguage == nil { gradedByLanguage=[:] };gradedByLanguage?[target,default:0] += 1
             addXP(2,now:now,calendar:.current)

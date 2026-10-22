@@ -42,6 +42,10 @@ public enum PracticeRecipeFailure:LocalizedError {
     public func reading(_ operation:String,parameters:JSONValue) throws ->String {
         try call("reading",arguments:[operation,try encoded(parameters)])
     }
+    public func story(_ operation:String,parameters:JSONValue) throws ->JSONValue {
+        let result=try call("story",arguments:[operation,try encoded(parameters)])
+        return try JSONDecoder().decode(JSONValue.self,from:Data(result.utf8))
+    }
     public func resetOptions() throws { _=try call("resetOptions",arguments:[]) }
     private func encoded(_ parameters:JSONValue) throws -> String {
         let encoder=JSONEncoder();encoder.outputFormatting=[.sortedKeys,.withoutEscapingSlashes]

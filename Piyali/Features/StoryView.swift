@@ -31,8 +31,8 @@ struct StoryView:View {
     private var content:JSONValue { lesson?.content["stories"] ?? .null }
     private var saved:StoryRun? { guard let value=app.learner.story,value.support == app.learner.support,value.lessonID == lesson?.id else { return nil };return value }
     private var mode:StoryMode? { StoryService.fixtureMode ?? (content["topic"].string == "tutorial" ? .speaking : StoryMode(rawValue:content["storyMode"].string)) ?? chosen ?? saved?.mode }
-    private var run:StoryRun? { guard let saved,saved.mode == mode else { return nil };return saved }
-    private var scope:String { [app.identity.npub,app.learner.target,app.learner.support,app.learner.level,lesson?.id ?? "free",mode?.rawValue ?? "pending",String(refresh)].joined(separator:"|") }
+    private var run:StoryRun? { guard let saved,saved.mode == mode,saved.id == service.activeRunID else { return nil };return saved }
+    private var scope:String { [app.identity.npub,app.learner.target,app.learner.support,app.learner.level,lesson?.id ?? "free",(try? StoryService.contextID(lesson,learnerLevel:app.learner.level)) ?? "invalid",mode?.rawValue ?? "pending",String(refresh)].joined(separator:"|") }
     private var recordingNow:Bool { fixtureRecording || speech.recording }
     private func t(_ key:String)->String { appearance.text(key,language:app.learner.support) }
     private func ui(_ key:String)->String { EntryCopy.ui(app.learner.support,key) }
@@ -44,14 +44,14 @@ struct StoryView:View {
                 stop();autoplayKey=nil;translations=[];translating=[];roleResult=nil
                 guard let mode else { chosen=StoryMode.choose(content:content,random:Double.random(in:0..<1));return }
                 let fresh=refresh > 0 || startsFresh && !appeared;appeared=true
-                await service.prepare(app,lesson:lesson,mode:mode,fresh:fresh)
-                guard !Task.isCancelled,active,hasAccess else { return }
+                let prepared=await service.prepare(app,lesson:lesson,mode:mode,fresh:fresh)
+                guard prepared,!Task.isCancelled,active,hasAccess else { return }
                 if let run,run.atEnd { if !run.completed { finish() } else if let onComplete { onComplete() } else { newStory() } }
                 else if let run { autoplaySentence(run) }
             }
             .onAppear { active=true }
             .onChange(of:speech.recording) { previous,value in if active,phase == .active,previous,!value { evaluateRecording(words:speech.transcript,confidence:speech.confidence,metrics:speech.audioMetrics) } }
-            .onChange(of:phase) { _,value in if value != .active { stop();service.cancel() } }
+            .onChange(of:phase) { _,value in if value == .background { stop();service.cancel() } else if value == .active,active,service.activeRunID == nil { refresh += 1 } }
             .onDisappear { active=false;stop();service.cancel() }
     }
     private var activity:some View {
@@ -70,7 +70,7 @@ struct StoryView:View {
                                 if run.heard.contains(run.index),let question=run.currentSegment?.question { checkpoint(run,question:question).id("story-question") }
                             }
                             if audio.phase == .failed || audio.previewError { Text(t("audioError")).font(PiyaliBrand.productFont(14)).foregroundStyle(brand.questionError).accessibilityIdentifier("storyAudioError") }
-                        } else { VStack(spacing:14) { ProgressView();Text(t("loading"));Text(t("loadingSub")).font(PiyaliBrand.productFont(13)).foregroundStyle(brand.muted) }.frame(maxWidth:.infinity,minHeight:260) }
+                        } else { VStack(spacing:14) { ProgressView();Text(t("loading")).accessibilityIdentifier("storyLoading");Text(t("loadingSub")).font(PiyaliBrand.productFont(13)).foregroundStyle(brand.muted) }.frame(maxWidth:.infinity,minHeight:260) }
                         if let error=service.error { Text(error).font(PiyaliBrand.productFont(14)).foregroundStyle(brand.questionError) }
                         if let error=speech.error { Text(error).font(PiyaliBrand.productFont(14)).foregroundStyle(brand.questionError) }
                     }.padding(.horizontal,12).padding(.vertical,8).padding(.bottom,18).frame(maxWidth:760).frame(maxWidth:.infinity)
@@ -83,6 +83,7 @@ struct StoryView:View {
         let prefixes=["sentence practice","practice","call","story",t("call"),t("practice"),t("story"),t("speaking")]
         var value=run.title
         for prefix in prefixes where value.lowercased().hasPrefix(prefix.lowercased()+":") { value=String(value.dropFirst(prefix.count+1)).trimmingCharacters(in:.whitespacesAndNewlines);break }
+        if prefixes.contains(where:{ value.caseInsensitiveCompare($0) == .orderedSame }) { value="" }
         return t(run.mode == .radio ? "call" : run.mode == .speaking ? "practice" : "story")+(value.isEmpty ? "" : ": "+value)
     }
     private func panel<Content:View>(gradient:Bool=false,@ViewBuilder content:()->Content)->some View {
