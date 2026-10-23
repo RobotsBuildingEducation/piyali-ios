@@ -2,6 +2,8 @@
 
 This replaces the earlier generic welcome/account form. It is an in-progress part of the larger functional and design correction, not a completed port of the landing page or whole product.
 
+The signed-in home comparison is tracked separately in [Today’s Focus](TODAY_FOCUS.md), including the companion acknowledgement, setup/placement handoff, editor and immersion completion.
+
 ## Implemented in this branch
 
 - Native entry hero uses the original public copy in ten languages, original DM Sans font files, floating greeting content/timing, gradient/grid background, source control shapes, name field, guarded named registration and localized/sorted language menu. The fixed header now uses the animated 50-point display orb without its shadow, theme switch and source scroll-triggered actions.

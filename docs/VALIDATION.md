@@ -2,6 +2,8 @@
 
 The checks below verify particular helpers, services and the earlier native UI. They do **not** establish end-to-end parity with the reference web app. Functional and design parity remain incomplete; the current gap inventory is in [PARITY_AUDIT.md](PARITY_AUDIT.md).
 
+Latest home checkpoint: the final built-app resource check and both English/light and Arabic/dark home/editor/immersion/relaunch journeys pass (3 tests, no failures/skips in `Focus-PickerFinal.xcresult`). The menu/next-mode regression passes separately. Original component captures, keyboard and RTL bounds fixes, test fixture boundaries and remaining gaps are in [TODAY_FOCUS.md](TODAY_FOCUS.md). These checks replace no broader parity requirement.
+
 The correction branch's core suite passes 153 tests, including 336 actual-renderer lesson-access cases and account/language/day session scoping. Entry interaction checks cover the original onboarding fields, key errors/back navigation, atlas, tabs, carousel, toolkit, FAQs and privacy. The full entry-to-task journey now passes through Today’s Focus, both menu levels, tutorial-gated lesson nodes, companion acknowledgment, starting-level choice and Start tasks opening the Tutor library without starting a lesson or microphone. Separate app checks verify free practice at 0–299 account XP and gating at 300 across languages. These are bounded checks, not completion of the product parity goal.
 
 # Native implementation validation

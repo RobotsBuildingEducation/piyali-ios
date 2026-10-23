@@ -22,7 +22,7 @@ struct DailyActivityView:View {
             ScrollView(.horizontal,showsIndicators:false) { LazyHGrid(rows:Array(repeating:GridItem(.fixed(8),spacing:3),count:7),spacing:3) { ForEach(dates,id:\.self) { date in let day=CalendarDay.key(date);Button { selected=day } label:{ RoundedRectangle(cornerRadius:2).fill(amount(day) >= app.learner.dailyGoal ? PiyaliBrand.teal : amount(day) > 0 ? PiyaliBrand.teal.opacity(0.35) : brand.border.opacity(date > Date() ? 0.15 : 0.4)).frame(width:8,height:8) }.accessibilityLabel(day+", \(amount(day)) XP") } }.padding(.vertical,4) }
             if let selected { Text(selected+": \(amount(selected)) XP").font(PiyaliBrand.font(12)).foregroundStyle(brand.secondary) }
             if let error { Text(error).font(PiyaliBrand.font(12)).foregroundStyle(brand.muted) }
-            HStack(spacing:12) { Button("Companion",action:onBack);Button("Achievements",action:onAchievements) }.font(PiyaliBrand.font(13,600)).buttonStyle(.bordered).tint(PiyaliBrand.teal)
+            HStack(spacing:12) { Button(FocusCopy.data(app.learner.support)["companion"].string,action:onBack);Button(FocusCopy.data(app.learner.support)["achievements"].string,action:onAchievements) }.buttonStyle(FocusOutlineButtonStyle())
         }.padding(18).background(brand.surface.opacity(0.6),in:RoundedRectangle(cornerRadius:20)).overlay { RoundedRectangle(cornerRadius:20).stroke(brand.border) }.task(id:app.identity.npub+":"+String(year)) {
             let account=app.identity.npub;error=nil
             do { let loaded=try await FirebaseService.shared.activityHistory(npub:account,year:year);guard account == app.identity.npub else { return };history=loaded }
