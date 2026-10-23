@@ -7,7 +7,7 @@ final class ReadingTests:XCTestCase {
         let root=URL(fileURLWithPath:#filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
         struct Fixture:Decodable { let operation:String;let parameters:JSONValue;let expected:String }
         let engine=try PracticeRecipes(source:root.appendingPathComponent("Piyali/Resources/practice-recipes.js")),fixtures=try ContentLibrary.decode([Fixture].self,url:root.appendingPathComponent("Tests/PiyaliCoreTests/Fixtures/reading-prompts.json.gz"))
-        XCTAssertEqual(fixtures.count,16)
+        XCTAssertEqual(fixtures.count,20)
         for sample in fixtures { XCTAssertEqual(try engine.reading(sample.operation,parameters:sample.parameters),sample.expected,sample.operation) }
     }
     func testSourceReadingProtocolKeepsQuestionAndRejectsPartialOrInvalidOutput() throws {
@@ -65,6 +65,25 @@ final class ReadingTests:XCTestCase {
         XCTAssertEqual(state.rating,initial);XCTAssertNil(state.gradedByLanguage?["es"])
         XCTAssertEqual(state.pendingChanges?.first?.source,.readingSpeech)
         XCTAssertEqual(state.pendingChanges?.first?.readingProof?["xpAwarded"],.number(7))
+    }
+    func testSpeechFeedbackUsesSourceCriteriaAndColorBoundariesWithoutInventingMissingScores() throws {
+        XCTAssertEqual(ReadingSpeechFeedback.criteria.map { $0["key"].string },["accuracy","completeness","pronunciation","fluency","confidence","comprehension"])
+        for sample in try fixture()["speechColors"].array { XCTAssertEqual(ReadingSpeechFeedback.color(sample["score"].number),sample["expected"].string) }
+        let feedback=try XCTUnwrap(ReadingSpeechFeedback(.object(["summary":.string("Keep reading."),"scores":.object(["accuracy":.number(15),"completeness":.object(["score":.number(-2),"note":.string("Only the opening.")]),"fluency":.string("8"),"extra":.number(10)])])))
+        XCTAssertEqual(feedback.total,11);XCTAssertEqual(feedback.maximum,20);XCTAssertNil(feedback.scores["fluency"]);XCTAssertEqual(feedback.scores["completeness"]?.note,"Only the opening.")
+        XCTAssertNil(ReadingSpeechFeedback(.string("bad feedback")));XCTAssertNil(ReadingSpeechFeedback(.object([:])))
+        XCTAssertEqual(ReadingSpeechFeedback.unavailable(support:"es").summary,"No se pudo generar retroalimentación. ¡Sigue practicando!")
+    }
+    func testSpeechCardsPersistWithTheSharedPracticeReceiptAndNoScoreAssessment() throws {
+        let feedback=try XCTUnwrap(ReadingSpeechFeedback(.object(["summary":.string("Read the rest next time."),"scores":.object(["accuracy":.object(["score":.number(3),"note":.string("A short start.")])])])))
+        var state=LearnerState();var run=try readingRun();run.method="speech";state.saveReading(run);let rating=state.rating
+        XCTAssertEqual(state.reviewReading(answer:"short fragment",correct:true,feedback:feedback.summary,speech:true,speechFeedback:feedback),7)
+        XCTAssertEqual(state.reviewReading(answer:"second submission",correct:true,feedback:"another",speech:true,speechFeedback:.unavailable(support:"en")),0)
+        let restored=try JSONDecoder().decode(LearnerState.self,from:JSONEncoder().encode(state))
+        XCTAssertEqual(restored.reading?.speechFeedback,feedback);XCTAssertEqual(restored.reading?.answer,"short fragment");XCTAssertEqual(restored.rating,rating);XCTAssertNil(restored.gradedByLanguage?["es"])
+        XCTAssertEqual(restored.pendingChanges?.first?.readingProof?["speechFeedback"],feedback.value);XCTAssertEqual(restored.totalXP,7)
+        var legacy=try JSONDecoder().decode(JSONValue.self,from:JSONEncoder().encode(run));if case .object(var fields)=legacy { fields.removeValue(forKey:"speechFeedback");legacy = .object(fields) }
+        XCTAssertNil(try JSONDecoder().decode(ReadingRun.self,from:Data(legacy.json.utf8)).speechFeedback)
     }
     func testDraftKeepsAnswerAndSharedAwardThroughLanguageSwitchAndInFlightSync() throws {
         let sent=LearnerState();var current=sent;var draft=try readingRun();draft.answer="my unfinished answer";current.saveReading(draft)

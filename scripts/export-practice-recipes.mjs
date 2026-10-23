@@ -215,7 +215,7 @@ for(const parameters of [
  {targetLang:'ja',supportLang:'es',cefrLevel:'A2',lessonContent:{topic:'family',tutorialPracticeLevel:'A2'}},
  {targetLang:'fr',supportLang:'de',cefrLevel:'B2',lessonContent:{topic:'an everyday choice',cefrLevel:'B2'}},
  {targetLang:'ar',supportLang:'en',cefrLevel:'A1',lessonContent:{topic:'a bus timetable',cefrLevel:'A1'}}
-]) for(const operation of ['passage','judge','explain','translate']) {
+]) for(const operation of ['passage','judge','explain','translate','speech']) {
  const p=canonical({...parameters,isFirst:false,previousTitles:['A previous day'],reviewQuestionType:'mc',passage:'A plant grows near the window.',reviewQuestion:{question:'Where is the plant?',answer:'near the window'},answer:'by a window',sentences:['A plant grows.','It is near the window.'],user:{}});
  readingFixtures.push({operation,parameters:p,expected:context.PiyaliPracticeRecipes.reading(operation,JSON.stringify(p))});
 }

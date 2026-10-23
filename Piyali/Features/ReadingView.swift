@@ -19,8 +19,12 @@ struct ReadingView:View {
     @State private var showTranslation=false
     @State private var activeSentence:Int?
     @State private var readingAll=false
+    @State private var fixtureRecording=false
+    @State private var recordingScope:String?
     @FocusState private var answering:Bool
     private var brand:PiyaliBrand { .init(dark:scheme == .dark) }
+    private var hasAccess:Bool { app.subscription.hasAccess || ReadingService.fixture }
+    private var recordingNow:Bool { speech.recording || fixtureRecording }
     private var scope:String { [app.identity.npub,app.learner.target,app.learner.support,app.learner.level,lesson?.id ?? "free",String(refresh)].joined(separator:"|") }
     private var run:ReadingRun? { guard let run=app.learner.reading,run.support == app.learner.support,run.lessonID == lesson?.id else { return nil };return run }
     private func t(_ key:String)->String { EntryCopy.ui(app.learner.support,key) }
@@ -28,10 +32,11 @@ struct ReadingView:View {
         Group { if ReadingService.fixture { activity } else { SubscriptionRequiredView(service:app.subscription) { activity } } }
             .activityFooter(owner:footerOwner,revision:footerRevision,access:app.subscription,fixtureAllowed:ReadingService.fixture,correct:run?.correct) { footer }
             .navigationTitle(embedded ? lesson?.title.localized(app.learner.support) ?? t("reading_title") : t("reading_title"))
-            .task(id:scope) { stop();answer="";showTranslation=false;let fresh=refresh > 0 || startsFresh && !appeared;appeared=true;await service.prepare(app,lesson:lesson,fresh:fresh);answer=run?.answer ?? "" }
+            .task(id:scope) { stop();answer="";showTranslation=false;let fresh=refresh > 0 || startsFresh && !appeared;appeared=true;await service.prepare(app,lesson:lesson,fresh:fresh);guard !Task.isCancelled else { return };answer=run?.answer ?? "";speech.transcript=run?.method == "speech" && run?.awarded == false ? run?.answer ?? "" : "" }
             .toolbar { ToolbarItemGroup(placement:.keyboard) { Spacer();Button(t("proficiency_modal_done")) { answering=false }.accessibilityIdentifier("readingKeyboardDone") } }
-            .onChange(of:phase) { _,value in if value != .active { stop();service.cancel() } else if run == nil { refresh += 1 } }
-            .onDisappear { service.cancel();stop() }
+            .onChange(of:speech.recording) { previous,value in if previous,!value { saveTranscript() } }
+            .onChange(of:phase) { _,value in if value == .background { saveTranscript();stop();service.cancel() } else if value == .active,run == nil { refresh += 1 } }
+            .onDisappear { saveTranscript();service.cancel();stop() }
     }
     private var activity:some View {
         VStack(spacing:0) {
@@ -100,13 +105,18 @@ struct ReadingView:View {
         }
     }
     @ViewBuilder private func recording(_ run:ReadingRun)->some View {
-        if speech.recording { Image(systemName:"waveform.circle.fill").font(.system(size:64)).foregroundStyle(PiyaliBrand.teal).frame(maxWidth:.infinity);Text(t("history_speech_listening")).font(PiyaliBrand.productFont(12,600)).frame(maxWidth:.infinity) }
-        if !speech.transcript.isEmpty { Text(speech.transcript).font(PiyaliBrand.productFont(13)).italic() }
+        if !run.awarded {
+            if recordingNow { BrandArtwork(name:"piyali-orb.png").frame(width:75,height:75).frame(maxWidth:.infinity);Text(t("history_speech_listening")).font(PiyaliBrand.productFont(12,600)).frame(maxWidth:.infinity) }
+            if !speech.transcript.isEmpty { Text(speech.transcript).font(PiyaliBrand.productFont(12)).lineSpacing(6).italic().accessibilityIdentifier("readingSpeechTranscript") }
+        }
     }
-    private var footerRevision:String { [scope,run?.id.uuidString ?? "",String(run?.awarded ?? false),String(describing:run?.correct),run?.feedback ?? "",run?.explanation ?? "",answer,String(service.busy),service.error ?? "",String(speech.recording),speech.transcript].joined(separator:"|") }
+    private var footerRevision:String { [scope,run?.id.uuidString ?? "",String(run?.awarded ?? false),String(describing:run?.correct),run?.feedback ?? "",String(lessonPercent ?? -1),run?.explanation ?? "",answer,String(service.busy),service.error ?? "",String(recordingNow),speech.transcript].joined(separator:"|") }
+    private var lessonPercent:Int? { guard let lesson,lesson.id != IntroTutorial.lessonID,lesson.xpReward > 0 else { return nil };let work=app.learner.lessonWork?[app.learner.completionKey(lesson.id)];return Int((work?.fraction(goal:lesson.xpReward) ?? 0)*100+0.5) }
     private var footer:some View {
-        ActivityFooterSurface(hasFeedback:run?.feedback.isEmpty == false || run?.awarded == true,feedback:{
-            if let run {
+        ActivityFooterSurface(feedbackLimit:run?.method == "speech" ? UIScreen.main.bounds.height*0.45 : nil,hasFeedback:run?.feedback.isEmpty == false || run?.awarded == true,feedback:{
+            if let run,run.method == "speech",run.awarded {
+                ReadingSpeechFeedbackView(feedback:run.speechFeedback ?? ReadingSpeechFeedback(.object(["summary":.string(run.feedback)])) ?? .unavailable(support:run.support),support:run.support,reward:run.reward,progress:lessonPercent)
+            } else if let run {
                 VStack(alignment:.leading,spacing:12) {
                     if !run.feedback.isEmpty { Text(run.feedback).font(PiyaliBrand.productFont(15,600)).foregroundStyle(run.awarded ? brand.questionSuccess : brand.questionError).accessibilityIdentifier("readingFeedback") }
                     if run.method == "question",run.correct != nil {
@@ -125,19 +135,24 @@ struct ReadingView:View {
     }
     @ViewBuilder private func primary(_ run:ReadingRun)->some View {
         if run.awarded {
-            Button(t("reading_btn_finish")) { stop();if let onComplete { onComplete();if !embedded { dismiss() } } else { refresh += 1 } }.buttonStyle(ActivityPrimaryButtonStyle(tone:"success")).accessibilityIdentifier("readingContinue")
+            Button(t("reading_btn_next")) { guard hasAccess else { return };stop();if let onComplete { onComplete();if !embedded { dismiss() } } else { refresh += 1 } }.buttonStyle(ActivityPrimaryButtonStyle(tone:"success")).accessibilityIdentifier("readingContinue")
         } else if run.method == "question" {
             Button { answering=false;stop();Task { await service.check(app,run:run,answer:answer.isEmpty ? run.answer : answer,speech:false) } } label:{ if service.busy { ProgressView().tint(.white) } else { Text(t("quiz_submit")) } }.buttonStyle(ActivityPrimaryButtonStyle()).disabled(service.busy || (answer.isEmpty && run.answer.isEmpty)).accessibilityIdentifier("readingCheck")
         } else {
-            if !speech.transcript.isEmpty,!speech.recording { Button(t("history_speech_start_over")) { stop();speech.transcript="" }.font(PiyaliBrand.productFont(14,600)).disabled(service.busy) }
+            if !speech.transcript.isEmpty,!recordingNow { Button(t("history_speech_start_over")) { guard hasAccess else { return };stop();speech.transcript="";update { $0.answer="" } }.font(PiyaliBrand.productFont(14,600)).disabled(service.busy).accessibilityIdentifier("readingSpeechStartOver") }
             Button {
-                if speech.recording { speech.stop() }
+                guard hasAccess else { return }
+                if recordingNow {
+                    if fixtureRecording { fixtureRecording=false;let fixture=(try? ContentLibrary.load(JSONValue.self,name:"reading-test-passage")) ?? .null;speech.transcript=fixture["speechTranscript"].string;saveTranscript() }
+                    else { speech.stop();saveTranscript() }
+                }
                 else if !speech.transcript.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty { let words=speech.transcript;Task { await service.check(app,run:run,answer:words,speech:true) } }
-                else { Task { await speech.start(language:run.target) } }
-            } label:{ if service.busy { ProgressView().tint(.white) } else { Label(t(speech.recording ? "history_speech_stop_mic" : speech.transcript.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty ? "history_speech_start_mic" : "history_speech_submit"),systemImage:speech.recording ? "stop.fill" : "mic.fill") } }.buttonStyle(ActivityPrimaryButtonStyle(tone:speech.recording ? "stop" : speech.transcript.isEmpty ? "speak" : "primary")).disabled(service.busy).accessibilityIdentifier("readingMicrophone")
+                else { stop();recordingScope=app.identity.npub+":"+run.id.uuidString;if ReadingService.fixture { fixtureRecording=true } else { Task { await speech.start(language:run.target) } } }
+            } label:{ if service.busy { ProgressView().tint(.white) } else { Label(t(recordingNow ? "history_speech_stop_mic" : speech.transcript.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty ? "history_speech_start_mic" : "history_speech_submit"),systemImage:recordingNow ? "stop.fill" : "mic.fill") } }.buttonStyle(ActivityPrimaryButtonStyle(tone:recordingNow ? "stop" : speech.transcript.isEmpty ? "speak" : "primary")).disabled(service.busy).accessibilityIdentifier("readingMicrophone")
         }
     }
-    private func stop() { speech.stopAll();readingAll=false;activeSentence=nil }
+    private func saveTranscript() { guard hasAccess,let run,run.method == "speech",!run.awarded,recordingScope == app.identity.npub+":"+run.id.uuidString else { return };let words=speech.transcript;update { $0.answer=String(words.prefix(4000)) } }
+    private func stop() { recordingScope=nil;fixtureRecording=false;speech.stopAll();readingAll=false;activeSentence=nil }
     private func update(_ action:(inout ReadingRun)->Void) { guard var current=app.learner.reading,current.id == run?.id else { return };action(&current);app.learner.saveReading(current);app.persist() }
 }
 

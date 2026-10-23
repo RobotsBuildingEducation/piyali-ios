@@ -36,6 +36,7 @@ private struct FeedbackHeight:PreferenceKey {
     static func reduce(value:inout CGFloat,nextValue:()->CGFloat) { value=max(value,nextValue()) }
 }
 struct ActivityFooterSurface<Feedback:View,Actions:View>:View {
+    var feedbackLimit:CGFloat?=nil
     let hasFeedback:Bool
     @ViewBuilder let feedback:()->Feedback
     @ViewBuilder let actions:()->Actions
@@ -44,8 +45,9 @@ struct ActivityFooterSurface<Feedback:View,Actions:View>:View {
         VStack(alignment:.leading,spacing:12) {
             if hasFeedback {
                 ScrollView { feedback().frame(maxWidth:.infinity,alignment:.leading).background { GeometryReader { geometry in Color.clear.preference(key:FeedbackHeight.self,value:geometry.size.height) } } }
-                    .frame(height:min(feedbackHeight,min(240,UIScreen.main.bounds.height*0.28)))
+                    .frame(height:min(feedbackHeight,feedbackLimit ?? min(240,UIScreen.main.bounds.height*0.28)))
                     .onPreferenceChange(FeedbackHeight.self) { feedbackHeight=$0 }
+                    .accessibilityIdentifier("activityFeedbackScroll")
             }
             HStack(spacing:8) { actions() }.padding(.leading,52).frame(minHeight:40)
         }

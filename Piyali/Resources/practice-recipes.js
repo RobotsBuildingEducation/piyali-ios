@@ -9747,7 +9747,7 @@ Return ONLY JSON:
   function reading(operation, parametersJSON) {
     return withParameters(parametersJSON, (p) => {
       if (operation === "passage") return buildStreamingPrompt(p);
-      const viewLecture = { target: p.passage || "" }, reviewQuestion = p.reviewQuestion || {}, reviewAnswer = p.answer || "", targetLang = p.targetLang, supportLang = p.supportLang, targetSentences = p.sentences || [];
+      const viewLecture = { target: p.passage || "" }, reviewQuestion = p.reviewQuestion || {}, reviewAnswer = p.answer || "", targetLang = p.targetLang, supportLang = p.supportLang, targetSentences = p.sentences || [], originalText = viewLecture.target, speechTranscript = reviewAnswer, langName = LANG_NAME(targetLang), supportName = LANG_NAME(supportLang);
       if (operation === "translate") return [
         `Translate each sentence below from ${LANG_NAME(targetLang)} (${targetLang}) into ${LANG_NAME(supportLang)} (${supportLang}).`,
         "Output plain text only.",
@@ -9785,6 +9785,30 @@ Return ONLY JSON:
         `Explain briefly in ${LANG_NAME(supportLang)} why the correct answer is "${reviewQuestion.answer}".`,
         `Keep it to 2-3 sentences.`
       ].join("\n");
+      if (operation === "speech") return `You are grading a language learner's attempt to read a ${langName} paragraph aloud.
+
+ORIGINAL PARAGRAPH:
+${originalText}
+
+STUDENT'S ATTEMPT (transcription):
+${speechTranscript}
+
+Grade the student's reading attempt on these criteria (1-10 scale):
+
+SCORING GUIDELINES:
+- accuracy (1-10): How closely does the student's text match the original? Word-for-word comparison.
+- completeness (1-10): Did the student read the full paragraph or only parts?
+- pronunciation (1-10): Based on transcription accuracy, how well were words likely pronounced? Wrong or missing words suggest pronunciation difficulty.
+- fluency (1-10): Based on the flow and coherence of the transcript, how smooth was the reading?
+- confidence (1-10): Overall assessment of reading confidence based on completeness and accuracy.
+- comprehension (1-10): Does the transcript suggest the student understood what they were reading?
+
+BE ENCOURAGING but HONEST. This is practice, not a test. Highlight what they did well and what to work on.
+
+LANGUAGE REQUIREMENT: Write ALL text in ${supportName}. The summary AND every criterion note must be in ${supportName}, not English.
+
+Return ONLY valid JSON:
+{"summary":"[2-3 sentence summary in ${supportName}]","scores":{"accuracy":{"score":5,"note":"[reason in ${supportName}]"},"completeness":{"score":5,"note":"[reason in ${supportName}]"},"pronunciation":{"score":5,"note":"[reason in ${supportName}]"},"fluency":{"score":5,"note":"[reason in ${supportName}]"},"confidence":{"score":5,"note":"[reason in ${supportName}]"},"comprehension":{"score":5,"note":"[reason in ${supportName}]"}}}`;
       throw Error("Unsupported reading operation");
     });
   }

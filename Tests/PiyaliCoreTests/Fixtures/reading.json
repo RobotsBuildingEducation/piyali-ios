@@ -6456,5 +6456,55 @@
         "Line one\nline two without punctuation"
       ]
     }
+  ],
+  "speechColors": [
+    {
+      "score": -1,
+      "expected": "purple"
+    },
+    {
+      "score": 0,
+      "expected": "purple"
+    },
+    {
+      "score": 1,
+      "expected": "purple"
+    },
+    {
+      "score": 3.9,
+      "expected": "purple"
+    },
+    {
+      "score": 4,
+      "expected": "yellow"
+    },
+    {
+      "score": 5.9,
+      "expected": "yellow"
+    },
+    {
+      "score": 6,
+      "expected": "teal"
+    },
+    {
+      "score": 7.9,
+      "expected": "teal"
+    },
+    {
+      "score": 8,
+      "expected": "green"
+    },
+    {
+      "score": 9.9,
+      "expected": "green"
+    },
+    {
+      "score": 10,
+      "expected": "green"
+    },
+    {
+      "score": 11,
+      "expected": "green"
+    }
   ]
 }

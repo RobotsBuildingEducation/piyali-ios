@@ -244,6 +244,11 @@ import NostrSDK
                     } catch { failure=error }
                 }
                 guard let reading=verified else { throw failure };XCTAssertFalse(reading.text.isEmpty);XCTAssertEqual(reading.takeaways.count,3);XCTAssertNotNil(QuestionWorth.delta(level:level,correct:true,independent:true,worth:reading.worth))
+                if index == 0 || index == 2 {
+                    let feedback=try await ai.readingSpeechFeedback(run:reading,transcript:Reading.displaySentences(reading.text).first ?? reading.text)
+                    XCTAssertEqual(feedback.scores.count,6);XCTAssertFalse(feedback.summary.isEmpty);XCTAssertTrue(feedback.scores.values.allSatisfy { (1...10).contains($0.score) && !$0.note.isEmpty })
+                    let sample=XCTAttachment(string:feedback.value.json);sample.name=index == 0 ? "Gemini original Reading speech feedback" : "Responses original Reading speech feedback";sample.lifetime = .keepAlways;add(sample)
+                }
                 if tutorial { XCTAssertEqual(Reading.sentences(reading.text).count,4) }
                 if index == 0 {
                     let parameters:Piyali.JSONValue = .object(["passage":.string(reading.text),"reviewQuestion":.object(["question":.string(reading.question.question),"answer":.string(reading.question.answer)]),"answer":.string(reading.question.answer),"targetLang":.string("es"),"supportLang":.string("en")])

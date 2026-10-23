@@ -650,7 +650,8 @@
     "bindings": [
       "checkReviewAnswer:prompt",
       "explainReviewAnswer:prompt",
-      "translateLectureLines:prompt"
+      "translateLectureLines:prompt",
+      "gradeSpeechAttempt:prompt"
     ],
     "nativeAdapter": "Only original prompt expressions receive explicit JSON reading data. Native UI, audio and network remain outside the interpreter."
   }
