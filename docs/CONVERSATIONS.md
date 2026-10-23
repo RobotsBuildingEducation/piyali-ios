@@ -14,13 +14,23 @@ New connections do not treat the old chat log as fresh speech. Pause/resume reta
 
 A successful goal remains visible briefly before the next goal, matching the source's 1.5-second transition. The purple completion summary shows this connection's XP, goals and speaking turns, plus per-language XP progress. Its totals survive pause/resume and do not award again when reviewed. The chat log preserves separate learner/tutor bubbles, translation and saving to private notes.
 
+## Language changes and overlapping requests
+
+Changing support language now regenerates the goal and starter while preserving the private session, message log, turn receipts, XP and rating. Goals record their requested support language; translations record theirs and are only displayed for that language. Unknown older translations remain stored but can be translated again. Older goals are adopted only when a single matching language key proves their language; the source sometimes aliases a localized goal under `en`, so multiple untagged keys trigger regeneration. Optional fields keep older drafts decodable.
+
+Account, practice-language and support-language changes close the old connection and clear temporary voice text. Every pending goal, starter, translation and grade fences both its result and error against that context. An old request cannot overwrite the current goal or clear another request's busy state. Speech still gets assessed while a translation is pending; only another pending grade causes neutral practice. Continued speech during the source's delayed successor-goal transition shares one goal request. Returning to an already completed saved goal advances without another completion reward.
+
 ## Verified
+
+After the language-switching correction, the full Core suite passes **221 tests, zero failures** (164.8s). The three conversation simulator journeys pass together: settings/theme (42.3s), support-language refresh/relaunch (89.3s) and the full voice/reward/history journey (74.3s). The fourteen native language/service and voice-controller checks also pass.
 
 - Full Core suite: **217 tests, zero failures** (185.3s). New cases cover source goal/judge/starter prompts, contextual alignment, support translation, late transcript ordering, provider replay and older draft decoding.
 - Six native voice-controller checks pass input-before-reply grading, muted resume, frozen history, source personality/VAD, playback locks, starter ducking, failure cleanup and duplicate/stale callbacks.
 - The real provider check passes (30.0s): initial and contextual goals, communication-success/wrong-language/premise-rejection judging, starter, translation and the legacy text/reply/Gemini audio paths. It uses disposable Piyali authentication, which is removed. The default OpenAI WebRTC connection's separate verified scope is documented in [VOICE_TRANSPORT.md](VOICE_TRANSPORT.md).
 - The simulator settings journey passes (43.7s): original labels, proficiency/pronunciation/topics, dismissal without recording, persistence and dark relaunch.
 - The complete voice-first journey passes (70.3s): no typed form/opening reply, help, a missed turn, mute, pause, muted resume, a successful turn, one +5-XP summary, one goal/two turns, history, private note saving, relaunch and unchanged account XP. Strictly scoped Debug fixtures send scripted protocol events through the production voice controller and learning service. They do not capture actual microphone audio or insert extra learner controls.
+
+The language-switching correction adds seven native service checks and a seventh voice-controller check, all passing. Held requests verify stale goal/starter/translation/grade/error rejection, independent translation/assessment, successor-request coalescing and completed-goal recovery without extra rewards. The simulator English → French → Spanish support journey passes (89.3s), including updated goal/starter/translation, same-language translation without a model, private history and unchanged five-XP rewards after relaunch. Settings/theme persistence also passes again (42.3s).
 
 ## Source/native captures
 
@@ -34,8 +44,10 @@ The reference renderer uses the unmodified goal/orb and call-control JSX, origin
 
 The dark images show different call states; they are labeled accordingly. `scripts/render-conversation-reference.mjs --serve` recreates the isolated source fixture, and `scripts/export-conversation-ui.mjs` refreshes the source UI copy/manifests. The reference repo remains read-only.
 
+Language-state captures from that successful run: [French support](native/conversation-support-fr.png) and [Spanish support restored](native/conversation-support-es-restored.png).
+
 ## Remaining differences
 
-This is a scoped correction, not completed Conversations parity. The orb still uses the bundled static artwork; it lacks the source's 3D expression, dark palette, reactions and audio response. Live text lacks source morpheme alignment/selection, archival animation and some translation/streaming behavior. Exact recorded-audio replay/cache, source Realtime narration, unfinished-speech continuation on resume, advanced global voice/personality/pause preferences and cross-device web draft compatibility remain open. The native summary is currently an iOS sheet rather than the centered web dialog; detailed geometry, icon/palette and locale comparisons remain. Support-language changes also still need explicit invalidation of saved goal/translation language metadata, rather than retaining a previous language's draft.
+This is a scoped correction, not completed Conversations parity. The orb still uses the bundled static artwork; it lacks the source's 3D expression, dark palette, reactions and audio response. Live text lacks source morpheme alignment/selection, archival animation and some translation/streaming behavior. Exact recorded-audio replay/cache, source Realtime narration, unfinished-speech continuation on resume, advanced global voice/personality/pause preferences and cross-device web draft compatibility remain open. The native summary is currently an iOS sheet rather than the centered web dialog; detailed geometry, icon/palette and locale comparisons remain.
 
 Physical microphone capture, audible playback, starter ducking, interruptions/routes and device background behavior still require iPhone audio interaction. Passing scripted events, model calls and received RTP packets does not establish those behaviors or full functional/design parity across the app.

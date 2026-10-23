@@ -39,3 +39,26 @@ import XCTest
         XCTAssertTrue(app.buttons["conversationLevel"].label.contains("A2"));XCTAssertEqual(app.switches["conversationPronunciation"].value as? String,"1");let saved=app.textViews["conversationTopics"].exists ? app.textViews["conversationTopics"] : app.textFields["conversationTopics"];XCTAssertEqual(saved.value as? String,"Travel at the cafe");photo("Native conversation source settings dark",app)
     }
 }
+
+extension ConversationPlayTests {
+    private func changeSupport(_ language:String,_ app:XCUIApplication) {
+        tap("productMenu",app);tap("productPanel-settings",app)
+        let picker=app.buttons["supportLanguagePicker"]
+        for _ in 0..<6 where !picker.isHittable { app.swipeDown(velocity:.slow) }
+        XCTAssertTrue(picker.waitForExistence(timeout:5));picker.tap();XCTAssertTrue(app.buttons[language].waitForExistence(timeout:5));app.buttons[language].tap();tap("productPanelClose",app)
+    }
+    func testSupportLanguageRefreshesGoalStarterAndTranslationWithoutReplayingRewards() {
+        let app=start();tap("conversationStart",app)
+        let reply=app.staticTexts["conversationLatestReply"];expectation(for:NSPredicate(format:"label CONTAINS %@","¡Hola, Ana!"),evaluatedWith:reply);waitForExpectations(timeout:15)
+        tap("conversationEnd",app);XCTAssertTrue(app.staticTexts["conversationSummaryXP"].waitForExistence(timeout:10));XCTAssertTrue(app.staticTexts["conversationSummaryXP"].label.contains("+5"));tap("conversationSummaryDone",app)
+        tap("conversationTranslate",app);XCTAssertTrue(app.staticTexts["conversationTranslation"].waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts["conversationTranslation"].label.contains("Hello, Ana!"))
+        changeSupport("French",app)
+        XCTAssertTrue(app.staticTexts["conversationGoal"].waitForExistence(timeout:10));XCTAssertEqual(app.staticTexts["conversationGoal"].label,"Dites une chose que vous aimez");XCTAssertFalse(app.staticTexts["conversationTranslation"].exists);XCTAssertTrue(app.buttons["conversationTranslate"].exists)
+        tap("conversationStarter",app);XCTAssertTrue(app.staticTexts["conversationStarterSupport"].waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts["conversationStarterSupport"].label.contains("J’aime"));tap("conversationStarter",app)
+        tap("conversationTranslate",app);XCTAssertTrue(app.staticTexts["conversationTranslation"].waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts["conversationTranslation"].label.contains("Bonjour Ana"));photo("Native conversation French support",app)
+        changeSupport("Spanish",app);XCTAssertEqual(app.staticTexts["conversationGoal"].label,"Di algo que te guste");XCTAssertFalse(app.staticTexts["conversationStarterPhrase"].exists);XCTAssertFalse(app.staticTexts["conversationTranslation"].exists)
+        tap("conversationTranslate",app);XCTAssertEqual(app.staticTexts["conversationTranslation"].label,app.staticTexts["conversationLatestReply"].label)
+        app.terminate();app.launch();open(app);XCTAssertEqual(app.staticTexts["conversationGoal"].label,"Di algo que te guste");XCTAssertEqual(app.staticTexts["conversationTranslation"].label,"¡Hola, Ana! ¿Qué te gusta hacer?");photo("Native conversation Spanish support restored",app)
+        tap("productMenu",app);tap("productPanel-settings",app);let xp=app.staticTexts.matching(NSPredicate(format:"label BEGINSWITH %@","5 total XP")).firstMatch;for _ in 0..<6 where !xp.isHittable { app.swipeUp(velocity:.slow) };XCTAssertTrue(xp.waitForExistence(timeout:5))
+    }
+}

@@ -91,7 +91,7 @@ struct AccountView: View {
             Section("Learning preferences") {
                 TextField("Name", text: $app.learner.name)
                 LanguagePicker(title: "Practice language", selection: Binding(get:{ app.learner.target },set:{ app.setPracticeLanguage($0) }), codes: LearningLanguages.practice).accessibilityIdentifier("practiceLanguagePicker")
-                LanguagePicker(title: "Support language", selection: $app.learner.support, codes: LearningLanguages.support)
+                LanguagePicker(title: "Support language", selection: $app.learner.support, codes: LearningLanguages.support).accessibilityIdentifier("supportLanguagePicker")
                 TextField("Learning goal", text: $app.learner.goal, axis: .vertical).accessibilityIdentifier("learningGoalField").focused($goalFocused)
                 Stepper("Daily goal: \(app.learner.dailyGoal) XP", value: $app.learner.dailyGoal, in: 10...300, step: 10)
                 TextField("Companion name", text: $app.learner.companionName)

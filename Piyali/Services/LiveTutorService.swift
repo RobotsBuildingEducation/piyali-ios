@@ -139,5 +139,8 @@ import AVFoundation
     private func close() {
         generation=UUID();idleMonitor?.cancel();idleMonitor=nil;transport?.close();transport=nil;connected=false;connecting=false;muted=false;voiceState="idle";onLearnerTurn=nil;onConversationTurn=nil;onInputTurn=nil;onAssistantTurn=nil
     }
-    func stop() async { close() }
+    func stop(clearTranscript:Bool=false) async {
+        close()
+        if clearTranscript { transcript="";learnerTranscript="";assistantTurnText="";completedLearnerTurn="" }
+    }
 }

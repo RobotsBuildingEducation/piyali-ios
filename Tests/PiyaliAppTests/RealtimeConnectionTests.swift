@@ -163,3 +163,16 @@ extension RealtimeVoiceControllerTests {
         service.setMuted(false);XCTAssertTrue(transport.microphone);await service.stop()
     }
 }
+
+extension RealtimeVoiceControllerTests {
+    func testChangingContextClearsTransientVoiceTextAndFencesThePreviousConnection() async throws {
+        let transport=VoiceTransportFixture(),service=LiveTutorService(permission:{true},transportFactory:{transport})
+        await service.start(learner:LearnerState(),conversationDraft:ConversationDraft())
+        try transport.receive(#"{"type":"response.created","response":{"id":"r1"}}"#)
+        try transport.receive(#"{"type":"response.output_audio_transcript.delta","response_id":"r1","delta":"Old language reply"}"#)
+        XCTAssertEqual(service.assistantTurnText,"Old language reply");let oldEvent=transport.onEvent
+        await service.stop(clearTranscript:true);XCTAssertTrue(service.assistantTurnText.isEmpty);XCTAssertTrue(service.transcript.isEmpty)
+        oldEvent?(.object(["type":.string("response.output_audio_transcript.delta"),"response_id":.string("r1"),"delta":.string(" late words")]))
+        XCTAssertTrue(service.assistantTurnText.isEmpty);XCTAssertFalse(service.connected)
+    }
+}

@@ -137,3 +137,35 @@ extension ConversationSourcePromptTests {
         XCTAssertEqual(parsed["target"].string,"Hola, me llamo ___.");XCTAssertEqual(parsed["support"].string,"Hello, my name is ___.")
     }
 }
+
+final class ConversationLanguageTests:XCTestCase {
+    func testSupportChangeReplacesOnlyGoalWhileKeepingHistoryAndLearningReceipts() throws {
+        var draft=ConversationDraft();var goal=ConversationGoal(text:.object(["en":.string("Ask a name")]),questionLevel:"Pre-A1",worth:.null);goal.supportLang="en";goal.starter="¿Cómo te llamas?";goal.starterSupport="What is your name?";draft.goal=goal
+        draft.turns=2;draft.goalsCompleted=1;draft.earnedXP=5;draft.seenTurnIDs=[UUID()];draft.append(.init(role:"assistant",text:"¡Hola!",providerID:"r1"))
+        let id=draft.id,messages=draft.messages,receipts=draft.seenTurnIDs
+        draft.refreshSupport("fr")
+        XCTAssertNil(draft.goal);XCTAssertEqual(draft.id,id);XCTAssertEqual(draft.messages,messages);XCTAssertEqual(draft.seenTurnIDs,receipts);XCTAssertEqual(draft.turns,2);XCTAssertEqual(draft.goalsCompleted,1);XCTAssertEqual(draft.earnedXP,5)
+        let restored=try JSONDecoder().decode(ConversationDraft.self,from:JSONEncoder().encode(draft));XCTAssertEqual(restored,draft)
+    }
+    func testSafeLegacyGoalIsAdoptedOnceAndUnknownStarterLanguageIsCleared() throws {
+        var draft=ConversationDraft();draft.goal=ConversationGoal(text:.object(["en":.string("Say hello")]),questionLevel:"Pre-A1",worth:.null);draft.goal?.starter="Hola";draft.goal?.starterSupport="Unlabelled translation"
+        let id=draft.goal?.id;draft.refreshSupport("en")
+        XCTAssertEqual(draft.goal?.id,id);XCTAssertEqual(draft.goal?.supportLang,"en");XCTAssertNil(draft.goal?.starter);XCTAssertNil(draft.goal?.starterSupport)
+        draft.goal?.starter="Hola";draft.goal?.starterSupport="Hello";draft.refreshSupport("en");XCTAssertEqual(draft.goal?.starterSupport,"Hello")
+        draft.refreshSupport("es");XCTAssertNil(draft.goal)
+    }
+    func testTranslationIsVisibleOnlyForItsTaggedLanguageAndOldMessagesStillDecode() throws {
+        var message=ConversationMessage(role:"assistant",text:"Hola");message.translation="Hello";message.translationLang="en"
+        XCTAssertEqual(message.translation(for:"en"),"Hello");XCTAssertNil(message.translation(for:"fr"));XCTAssertEqual(message.translation,"Hello")
+        let data=try JSONEncoder().encode(message),restored=try JSONDecoder().decode(ConversationMessage.self,from:data);XCTAssertEqual(restored.translation(for:"en"),"Hello")
+        let old=#"{"id":"DB57F28E-6A01-4FA8-8D2C-8B038D746D6A","role":"assistant","text":"Hola","translation":"Unlabelled"}"#
+        let legacy=try JSONDecoder().decode(ConversationMessage.self,from:Data(old.utf8));XCTAssertNil(legacy.translationLang);XCTAssertNil(legacy.translation(for:"en"));XCTAssertEqual(legacy.translation,"Unlabelled")
+    }
+}
+
+extension ConversationLanguageTests {
+    func testOldLocalizedEnAliasDoesNotMasqueradeAsAnEnglishGoal() {
+        var draft=ConversationDraft();draft.goal=ConversationGoal(text:.object(["en":.string("Saluda y di tu nombre"),"es":.string("Saluda y di tu nombre")]),questionLevel:"Pre-A1",worth:.null)
+        draft.refreshSupport("en");XCTAssertNil(draft.goal)
+    }
+}

@@ -36,11 +36,11 @@ struct ConversationView:View {
     var body:some View {
         Group { if conversation.fixture { content } else { SubscriptionRequiredView(service:app.subscription) { content } } }
             .navigationTitle(t("course_conversation","Conversation")).navigationBarTitleDisplayMode(.inline)
-            .task(id:app.identity.npub+":"+app.learner.target+":"+app.learner.support+":"+String(allowed)) { active=true;await conversation.prepare(app) }
+            .task(id:app.identity.npub+":"+app.learner.target+":"+app.learner.support+":"+String(allowed)) {
+                active=false;conversation.cancel();speech.stopAll();paused=false;pausedReply="";showStarter=false;starterPlaying=false
+                await live.stop(clearTranscript:true);guard !Task.isCancelled else { return };active=true;await conversation.prepare(app)
+            }
             .activityFooter(owner:footerOwner,revision:footerRevision,access:app.subscription,fixtureAllowed:conversation.fixture) { ActivityFooterSurface(hasFeedback:false,feedback:{EmptyView()},actions:{controls}) }
-            .onChange(of:app.learner.target) { _,_ in stop() }
-            .onChange(of:app.learner.support) { _,_ in stop() }
-            .onChange(of:app.identity.npub) { _,_ in stop() }
             .onChange(of:scenePhase) { _,phase in if phase == .background { stop() } }
             .onChange(of:app.subscription.hasAccess) { _,access in if !access { stop() } }
             .onChange(of:draft.goal?.id) { _,_ in stopStarter();showStarter=false;Task { await live.updateConversation(app.learner.conversation,learner:app.learner) } }
@@ -94,8 +94,8 @@ struct ConversationView:View {
     private var replyBubble:some View {
         VStack(alignment:.leading,spacing:10) {
             Text(reply).font(PiyaliBrand.productFont(16)).lineSpacing(6).fixedSize(horizontal:false,vertical:true).textSelection(.enabled).accessibilityIdentifier("conversationLatestReply")
-            if let translation=latest?.translation { Text(translation).font(PiyaliBrand.productFont(12)).lineSpacing(4.5).foregroundStyle(brand.secondary).accessibilityIdentifier("conversationTranslation") }
-            if let latest,latest.text == reply,latest.translation == nil {
+            if let translation=latest?.translation(for:app.learner.support) { Text(translation).font(PiyaliBrand.productFont(12)).lineSpacing(4.5).foregroundStyle(brand.secondary).accessibilityIdentifier("conversationTranslation") }
+            if let latest,latest.text == reply,latest.translation(for:app.learner.support) == nil {
                 Button { Task { await conversation.translate(latest,app:app) } } label:{ Label(t("ra_btn_translate","Translate"),systemImage:"character.bubble").font(PiyaliBrand.productFont(12)) }.disabled(conversation.busy).accessibilityIdentifier("conversationTranslate")
             }
         }.frame(maxWidth:.infinity,alignment:.leading).padding(12).background { ConversationGoalSurface(light:scheme != .dark,radius:28) }.overlay { RoundedRectangle(cornerRadius:28,style:.continuous).stroke(scheme == .dark ? .white.opacity(0.06) : brand.border) }.shadow(color:.black.opacity(scheme == .dark ? 0.35 : 0.06),radius:14,y:scheme == .dark ? 14 : 8).frame(maxWidth:.infinity,minHeight:150,alignment:.topLeading)
@@ -123,7 +123,7 @@ struct ConversationView:View {
         paused=false
         Task { await live.start(learner:app.learner,conversationDraft:context,initiallyMuted:resuming && pausedMuted,onInputTurn:{ input in
             guard active,app.identity.npub == account,app.learner.target == target,app.learner.support == support,app.learner.conversation.id == session,allowed else { return }
-            Task { await conversation.voiceTurn(input.text,answered:input.answered,reply:"",id:UUID(),app:app,providerID:input.id,beforeResponseID:input.responseID);guard active,app.identity.npub == account,app.learner.target == target,app.learner.conversation.id == session else { return };await live.updateConversation(app.learner.conversation,learner:app.learner) }
+            Task { await conversation.voiceTurn(input.text,answered:input.answered,reply:"",id:UUID(),app:app,providerID:input.id,beforeResponseID:input.responseID);guard active,app.identity.npub == account,app.learner.target == target,app.learner.support == support,app.learner.conversation.id == session else { return };await live.updateConversation(app.learner.conversation,learner:app.learner) }
         },onAssistantTurn:{ id,text in
             guard active,app.identity.npub == account,app.learner.target == target,app.learner.support == support,app.learner.conversation.id == session,allowed else { return }
             conversation.assistantReply(text,providerID:id,app:app)
@@ -155,7 +155,7 @@ struct ConversationView:View {
     }
     private var historySheet:some View {
         NavigationStack { ScrollView { LazyVStack(alignment:.leading,spacing:12) {
-            ForEach(draft.messages) { message in HStack { if message.role == "user" { Spacer(minLength:36) };VStack(alignment:.leading,spacing:8) { Text(message.role == "user" ? t("ra_you","You") : "Piyali").font(PiyaliBrand.productFont(11,600)).foregroundStyle(brand.secondary);Text(message.text).font(PiyaliBrand.productFont(16)).textSelection(.enabled);if let translated=message.translation { Text(translated).font(PiyaliBrand.productFont(13)).foregroundStyle(brand.secondary) };if message.role == "assistant",message.translation == nil { Button(t("ra_btn_translate","Translate")) { Task { await conversation.translate(message,app:app) } }.disabled(conversation.busy) } }.padding(14).background(message.role == "user" ? Color.cyan.opacity(0.1) : brand.surface,in:RoundedRectangle(cornerRadius:16));if message.role != "user" { Spacer(minLength:24) } } }
+            ForEach(draft.messages) { message in HStack { if message.role == "user" { Spacer(minLength:36) };VStack(alignment:.leading,spacing:8) { Text(message.role == "user" ? t("ra_you","You") : "Piyali").font(PiyaliBrand.productFont(11,600)).foregroundStyle(brand.secondary);Text(message.text).font(PiyaliBrand.productFont(16)).textSelection(.enabled);if let translated=message.translation(for:app.learner.support) { Text(translated).font(PiyaliBrand.productFont(13)).foregroundStyle(brand.secondary) };if message.role == "assistant",message.translation(for:app.learner.support) == nil { Button(t("ra_btn_translate","Translate")) { Task { await conversation.translate(message,app:app) } }.disabled(conversation.busy) } }.padding(14).background(message.role == "user" ? Color.cyan.opacity(0.1) : brand.surface,in:RoundedRectangle(cornerRadius:16));if message.role != "user" { Spacer(minLength:24) } } }
             Button("Save transcript to notes") { app.learner.notes.insert(.init(title:"Conversation · "+app.learner.target,body:draft.transcript),at:0);app.persist() }.buttonStyle(.bordered).accessibilityIdentifier("conversationSave")
         }.padding(16) }.background(brand.background).foregroundStyle(brand.text).navigationTitle(t("ra_conversation_log","Conversation log")).navigationBarTitleDisplayMode(.inline).toolbar { ToolbarItem(placement:.confirmationAction) { Button("Done") { showHistory=false } } } }
     }
