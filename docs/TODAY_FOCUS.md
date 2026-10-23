@@ -44,7 +44,7 @@ The existing regular simulator receives the same built application without erasi
 
 ## Still open
 
-- Primary-provider headline streaming, original task/prompt policy, canonical caching, offline retry, scope fencing and relaunch are now implemented and checked; see [HEADLINES.md](HEADLINES.md). The Responses recovery route still delivers one final update, so equivalent fallback-provider streaming remains open.
+- Both Gemini and Responses recovery now stream headlines through the original task/prompt policy, canonical caching, offline retry and scope fences; see [HEADLINES.md](HEADLINES.md). Real recovery returns 17 updates. An iPhone WebKit baseline closely matches the English/Arabic subtitle; title width, other locales and device sizes remain calibration work.
 - Returning-day companion messages still require the web's ready blueprint preference, cleared repair recap and full repair/goal-memory comparisons. The first deterministic welcome is the journey covered here.
 - Native activity history is interactive but its full heatmap, year legend/loading/error and transitions still require a source comparison. The companion/activity and achievements buttons now use source copy.
 - The native queued/offline immersion receipt model remains in place. Source reward-claim failure/retry presentation, the complete reward particle/sound choreography and live generated-task quality need separate verification.

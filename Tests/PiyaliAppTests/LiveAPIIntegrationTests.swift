@@ -20,6 +20,7 @@ import NostrSDK
             let ai=AIService(configuration:AppConfiguration(values:AppConfiguration().values.merging(["AIProvider":provider]){_,new in new})),prompt=try policy.run("prompt",.object(["targetLang":.string("es"),"appLanguage":.string(support),"taskSummary":summary])).string
             var updates:[String]=[],usedProvider:String?;let raw=try await ai.plateHeadline(prompt,onProvider:{usedProvider=$0}){updates.append($0)},text=try policy.clean(raw)
             XCTAssertEqual(usedProvider,provider,"A fallback must not masquerade as a Gemini streaming check.")
+            if provider == "responses"{XCTAssertGreaterThan(updates.count,1,"Recovery must deliver actual provider deltas before completion.")}
             XCTAssertFalse(text.isEmpty);XCTAssertLessThan(text.count,512);XCTAssertEqual(updates.last,raw);XCTAssertFalse(text.contains("```"));if support == "ar" {XCTAssertNotNil(text.range(of:"\\p{Arabic}",options:.regularExpression))}
             print("HEADLINE LIVE \(support) \(provider): \(updates.count) updates; \(text)")
         }

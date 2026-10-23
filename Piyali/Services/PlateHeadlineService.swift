@@ -23,9 +23,7 @@ extension AIService {
                 if !output.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty{onProvider?("gemini");return output}
             }catch{try Task.checkCancellation()}
         }
-        // The configured worker currently returns a complete Responses body.
-        // Keep that existing recovery route; Gemini supplies streaming updates.
-        let text=try await responsesText(prompt);try Task.checkCancellation();onProvider?("responses");onChunk(text);return text
+        let text=try await responsesStream(prompt,onChunk:onChunk);try Task.checkCancellation();onProvider?("responses");return text
     }
 }
 
