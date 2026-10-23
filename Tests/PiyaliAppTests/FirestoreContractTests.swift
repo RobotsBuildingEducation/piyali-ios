@@ -801,12 +801,14 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
         var base=try requireState(try await service.load(npub:npub));base.target="es";base.support="en";base.level="A1";base.preferencesModifiedAt=Date()
         let payload=try ContentLibrary.load(JSONValue.self,name:"reading-test-passage"),feedback=try XCTUnwrap(ReadingSpeechFeedback(payload["speechFeedback"]))
         var reading=try ReadingRun(payload:payload,target:"es",support:"en",level:"A1",lessonID:nil,selection:.null,worth:.null,roll:0.7);reading.method="speech";base.saveReading(reading)
+        let transcript=String(repeating:"Una frase del párrafo. ",count:220)+"Últimas palabras."
         var a=base,b=base
-        XCTAssertEqual(a.reviewReading(answer:payload["speechTranscript"].string,correct:true,feedback:feedback.summary,speech:true,speechFeedback:feedback),7)
-        XCTAssertEqual(b.reviewReading(answer:payload["speechTranscript"].string,correct:true,feedback:feedback.summary,speech:true,speechFeedback:feedback),7)
+        XCTAssertGreaterThan(transcript.count,4000)
+        XCTAssertEqual(a.reviewReading(answer:transcript,correct:true,feedback:feedback.summary,speech:true,speechFeedback:feedback),7)
+        XCTAssertEqual(b.reviewReading(answer:transcript,correct:true,feedback:feedback.summary,speech:true,speechFeedback:feedback),7)
         async let one=service.save(a,npub:npub);async let two=service.save(b,npub:npub);_=try await (one,two)
         _=try await service.save(a,npub:npub)
-        let restored=try requireState(try await service.load(npub:npub));XCTAssertEqual(restored.totalXP,157);XCTAssertEqual(restored.rating,base.rating);XCTAssertEqual(restored.gradedByLanguage?["es"] ?? 0,0);XCTAssertEqual(restored.reading?.speechFeedback,feedback)
+        let restored=try requireState(try await service.load(npub:npub));XCTAssertEqual(restored.totalXP,157);XCTAssertEqual(restored.rating,base.rating);XCTAssertEqual(restored.gradedByLanguage?["es"] ?? 0,0);XCTAssertEqual(restored.reading?.speechFeedback,feedback);XCTAssertEqual(restored.reading?.answer,transcript)
         let records=try await db.collection("users").document(npub).collection("readingTurns").getDocuments(source:.server);XCTAssertEqual(records.count,1);XCTAssertEqual(JSONValue.foundation(records.documents.first?.data()["speechFeedback"] ?? [:]),feedback.value)
         let root=try await db.collection("users").document(npub).getDocument(source:.server);XCTAssertEqual(root.data()?["patreonVerified"] as? Bool,true)
     }

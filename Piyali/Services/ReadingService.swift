@@ -109,7 +109,7 @@ import FirebaseAILogic
 }
 extension AIService {
     func readingSpeechFeedback(run:ReadingRun,transcript:String) async throws->ReadingSpeechFeedback {
-        let prompt=try PracticeRecipes().reading("speech",parameters:.object(["passage":.string(run.text),"answer":.string(String(transcript.prefix(4000))),"targetLang":.string(run.target),"supportLang":.string(run.support)]))
+        let prompt=try PracticeRecipes().reading("speech",parameters:.object(["passage":.string(run.text),"answer":.string(ReadingSpeechCapture.boundedTranscript(transcript)),"targetLang":.string(run.target),"supportLang":.string(run.support)]))
         let raw:String
         if configuration.string("AIProvider") == "gemini",FirebaseService.shared.configured {
             let model=FirebaseAI.firebaseAI(backend:configuration.geminiBackend()).generativeModel(modelName:configuration.string("GeminiModel"),generationConfig:GenerationConfig(maxOutputTokens:4096,responseMIMEType:"application/json",thinkingConfig:ThinkingConfig(thinkingBudget:1024)))

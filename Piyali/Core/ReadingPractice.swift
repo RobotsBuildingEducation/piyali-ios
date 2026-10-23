@@ -41,7 +41,7 @@ public extension LearnerState {
     }
     @discardableResult mutating func reviewReading(answer:String,correct:Bool,feedback:String,speech:Bool = false,speechFeedback:ReadingSpeechFeedback? = nil,now:Date = Date()) -> Int {
         guard var run=reading,run.support == support,!run.awarded,!answer.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else { return 0 }
-        run.answer=String(answer.prefix(4000));run.correct=correct;run.feedback=String(feedback.prefix(2000))
+        run.answer=speech ? ReadingSpeechCapture.boundedTranscript(answer) : String(answer.prefix(4000));run.correct=correct;run.feedback=String(feedback.prefix(2000))
         if speech { run.speechFeedback=speechFeedback }
         let success=speech || correct,amount=success ? run.reward : 0
         var change=PracticeChange(date:now,dayKey:CalendarDay.key(now),target:target,level:run.level,amount:amount,source:success ? (speech ? .readingSpeech : .readingTurn) : .practice,contentID:success ? run.contentID : run.contentID+":miss:"+UUID().uuidString)

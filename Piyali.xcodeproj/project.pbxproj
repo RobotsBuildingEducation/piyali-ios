@@ -204,6 +204,7 @@
 		9E497284CCDAF9A56D4506B4 /* language-timezones.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 1DCC93B75E03F141B1B7CCAD /* language-timezones.json.gz */; };
 		9FCE373B59C4F781791505CE /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 692CA897213292DE677C7BBB /* FirebaseAuth */; };
 		A0161D0ED54C0199CE479ECC /* LessonPathView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 891D98E5164559371D320FE6 /* LessonPathView.swift */; };
+		A2BE2C0C00271066C8E72752 /* ReadingSpeechRecorderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61DFBB192541AA0C973D4A96 /* ReadingSpeechRecorderTests.swift */; };
 		A4289A164520D5BFCCD2A182 /* FirebaseAILogic in Frameworks */ = {isa = PBXBuildFile; productRef = 2A5991AA1CBD73DBC54B0A6C /* FirebaseAILogic */; };
 		A796C5C8744AB39111F12DE7 /* IdentityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C93EFBC5CACA2291D2D0436C /* IdentityTests.swift */; };
 		A877E84CD10C1FB5B0B82B67 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9304277563CFDA73534542C /* AppModel.swift */; };
@@ -273,6 +274,7 @@
 		CE5013790C9D1196AFAC0BEB /* AIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F89245EBCF6A1E38A3CF7FC8 /* AIService.swift */; };
 		CF201CA1D5A55B1DC0C3072B /* story-portrait-24.webp in Resources */ = {isa = PBXBuildFile; fileRef = D768E469C858E5F010E8DE3F /* story-portrait-24.webp */; };
 		D057E0802DB50E5F0B178AE1 /* StoryPlaybackContractTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1375E1B32B254B1220DC98 /* StoryPlaybackContractTests.swift */; };
+		D0793107FDB7C39CF36F37F6 /* ReadingSpeechCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B006D54BAA2825F14AF92E41 /* ReadingSpeechCapture.swift */; };
 		D0949BA7E9F95F8C9432E78A /* WebProgressContract.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FFD762011E7104BE63A9CD4 /* WebProgressContract.swift */; };
 		D0C788CD668D760E425408F3 /* rpg-manifests.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 4D6E2FA84892F4A3EF62CC1E /* rpg-manifests.json.gz */; };
 		D122DC4B747F96D126F8D6C4 /* CashuHTTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3410C8E8F3B885C506DE99E1 /* CashuHTTPClient.swift */; };
@@ -295,6 +297,7 @@
 		E25FDB14E22AED90924EBD9E /* IntroTutorialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBF60AB271200BF8C49FC11B /* IntroTutorialView.swift */; };
 		E2F9FF3137C7A8E1AE5A0FD8 /* EntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CB9BCDFB1F336589308FB9B /* EntryView.swift */; };
 		E3BAFA4E1BBFC86E61B57F87 /* FirebaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 988C5B69C6BEE00FBA34C5C0 /* FirebaseService.swift */; };
+		E46BF3CC165FCAA05AF8F198 /* ReadingSpeechRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7638BA96797991822AF03883 /* ReadingSpeechRecorder.swift */; };
 		E4F83186407D25B0A9F4471F /* EntryOnboardingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E46D615887D779E180B3D032 /* EntryOnboardingTests.swift */; };
 		E68585417AFEB0C3FA396931 /* story-portrait-33.webp in Resources */ = {isa = PBXBuildFile; fileRef = 9E4EE1FE8E7E92F3423DB662 /* story-portrait-33.webp */; };
 		E7BF14B7C0519972EE30DF42 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = BB448BAF674D32F0259B5803 /* FirebaseCore */; };
@@ -454,6 +457,7 @@
 		5CB9BCDFB1F336589308FB9B /* EntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EntryView.swift; sourceTree = "<group>"; };
 		61395557CA19D81155863164 /* ExplorationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExplorationService.swift; sourceTree = "<group>"; };
 		613A8DD17B86DBDE8853B437 /* ReadingSpeechTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingSpeechTests.swift; sourceTree = "<group>"; };
+		61DFBB192541AA0C973D4A96 /* ReadingSpeechRecorderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingSpeechRecorderTests.swift; sourceTree = "<group>"; };
 		641596110162775AE6F5FEF9 /* PrivateTeamsContractTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivateTeamsContractTests.swift; sourceTree = "<group>"; };
 		6444929F41BE8BDD4B3A3123 /* AchievementProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementProgress.swift; sourceTree = "<group>"; };
 		656917F8DE0E67C213D100A3 /* story-portrait-40.webp */ = {isa = PBXFileReference; path = "story-portrait-40.webp"; sourceTree = "<group>"; };
@@ -472,6 +476,7 @@
 		74D0919860725E45CA524288 /* NostrTeamsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NostrTeamsTests.swift; sourceTree = "<group>"; };
 		7563E00713B8022E3C66661A /* story-portrait-30.webp */ = {isa = PBXFileReference; path = "story-portrait-30.webp"; sourceTree = "<group>"; };
 		75A81EB37359426EB51041A7 /* Exploration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Exploration.swift; sourceTree = "<group>"; };
+		7638BA96797991822AF03883 /* ReadingSpeechRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingSpeechRecorder.swift; sourceTree = "<group>"; };
 		76B47233B16A215B96E0ACAE /* intro-yua.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "intro-yua.json.gz"; sourceTree = "<group>"; };
 		7754A7E9B5E0B517E9C9293A /* CompanionMemoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionMemoryView.swift; sourceTree = "<group>"; };
 		777A473B331F684E2FA3D426 /* PracticeQuestion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PracticeQuestion.swift; sourceTree = "<group>"; };
@@ -548,6 +553,7 @@
 		AFA5DC38745046003438922A /* PracticeDeckView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PracticeDeckView.swift; sourceTree = "<group>"; };
 		AFD41E29A7A9BD79EF4DEC23 /* placement-copy.manifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "placement-copy.manifest.json"; sourceTree = "<group>"; };
 		AFFC95D7BF28D6C60802DDBF /* intro-ga.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "intro-ga.json.gz"; sourceTree = "<group>"; };
+		B006D54BAA2825F14AF92E41 /* ReadingSpeechCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingSpeechCapture.swift; sourceTree = "<group>"; };
 		B035DFC1736E1F69047CEB9B /* PiyaliApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiyaliApp.swift; sourceTree = "<group>"; };
 		B0A4ECB4A4F2554486D40A97 /* landing-proficiency.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "landing-proficiency.json.gz"; sourceTree = "<group>"; };
 		B0E5FAB11A89213A6100AE88 /* story-portrait-37.webp */ = {isa = PBXFileReference; path = "story-portrait-37.webp"; sourceTree = "<group>"; };
@@ -736,6 +742,7 @@
 				E54650A0AFE07F46F1F799A1 /* PracticeAccessTests.swift */,
 				895C9A096BE7225A6E1F1385 /* PracticeJudgingTests.swift */,
 				641596110162775AE6F5FEF9 /* PrivateTeamsContractTests.swift */,
+				61DFBB192541AA0C973D4A96 /* ReadingSpeechRecorderTests.swift */,
 				613A8DD17B86DBDE8853B437 /* ReadingSpeechTests.swift */,
 				14ACB35E459D0E1D217992EB /* RemoteSignerTests.swift */,
 				7453BBE3FEF38033092DD0CC /* StoreKitSubscriptionTests.swift */,
@@ -983,6 +990,7 @@
 				A16E871FF3DC43D1056E0306 /* Reading.swift */,
 				DF68FEFE2428E318C30CC481 /* ReadingPractice.swift */,
 				83802F6071E4373F5023E7F7 /* ReadingRules.swift */,
+				B006D54BAA2825F14AF92E41 /* ReadingSpeechCapture.swift */,
 				15067594FDE785CA4A426C17 /* ReadingSpeechFeedback.swift */,
 				86929F5BD2D91302F5DD04FB /* RealtimeLessonRun.swift */,
 				0E89C484BDEA99B90F65C050 /* ResponsesOutput.swift */,
@@ -1033,6 +1041,7 @@
 				DF1957B115E1F57633EC904D /* PrivateTeamsService.swift */,
 				D310219DADD12CA138323777 /* PrivateTeamsUIEmulator.swift */,
 				E3B68431555373F1C291780A /* ReadingService.swift */,
+				7638BA96797991822AF03883 /* ReadingSpeechRecorder.swift */,
 				08306B32EB84EAC797E5F9BC /* RealtimeLessonService.swift */,
 				14A0722BA40D89741D5238E2 /* RemoteSignerService.swift */,
 				3DA4F848A945C95B123C723D /* RPGService.swift */,
@@ -1481,6 +1490,7 @@
 				4990524DDB974A8DCE175D6E /* PracticeAccessTests.swift in Sources */,
 				D8271DC3838A3EE7C53E4B25 /* PracticeJudgingTests.swift in Sources */,
 				958799F7F4DDA667ED9FE18C /* PrivateTeamsContractTests.swift in Sources */,
+				A2BE2C0C00271066C8E72752 /* ReadingSpeechRecorderTests.swift in Sources */,
 				071DEF2A7130DA3669CFC47E /* ReadingSpeechTests.swift in Sources */,
 				854BD8D830B07607225EC3F7 /* RemoteSignerTests.swift in Sources */,
 				1971914F4DA0A1C8DC020B19 /* StoreKitSubscriptionTests.swift in Sources */,
@@ -1594,8 +1604,10 @@
 				DF4FAED9B2CA26B433F3A42A /* ReadingPractice.swift in Sources */,
 				CC777A3496696AADC37CA1FD /* ReadingRules.swift in Sources */,
 				787C9B715A3E08DC6E634CAE /* ReadingService.swift in Sources */,
+				D0793107FDB7C39CF36F37F6 /* ReadingSpeechCapture.swift in Sources */,
 				C9221DF103BA1E76BA6E3A6C /* ReadingSpeechFeedback.swift in Sources */,
 				BAD582D7B4B804752241AB84 /* ReadingSpeechFeedbackView.swift in Sources */,
+				E46BF3CC165FCAA05AF8F198 /* ReadingSpeechRecorder.swift in Sources */,
 				46AC2B8DB5FE762625473479 /* ReadingView.swift in Sources */,
 				593B84E396DEA330744FAFBC /* RealtimeLessonRun.swift in Sources */,
 				6D8D6B01747F9E07BA8A8272 /* RealtimeLessonService.swift in Sources */,

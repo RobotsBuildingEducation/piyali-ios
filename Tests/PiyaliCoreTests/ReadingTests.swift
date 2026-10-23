@@ -85,6 +85,15 @@ final class ReadingTests:XCTestCase {
         var legacy=try JSONDecoder().decode(JSONValue.self,from:JSONEncoder().encode(run));if case .object(var fields)=legacy { fields.removeValue(forKey:"speechFeedback");legacy = .object(fields) }
         XCTAssertNil(try JSONDecoder().decode(ReadingRun.self,from:Data(legacy.json.utf8)).speechFeedback)
     }
+    @MainActor func testLongReadingTranscriptKeepsTheClosingWordsInDraftAndReceipt() throws {
+        let text=String(repeating:"Ein längerer Satz mit Wörtern. ",count:180)+"Schlusswort."
+        var state=LearnerState();state.saveReading(try readingRun())
+        XCTAssertGreaterThan(text.count,4000);XCTAssertEqual(state.reviewReading(answer:text,correct:true,feedback:"Practice complete",speech:true),7)
+        XCTAssertEqual(state.reading?.answer,text);XCTAssertEqual(state.pendingChanges?.first?.readingProof?["answer"],.string(text))
+        let root=URL(fileURLWithPath:#filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent(),recipes=try PracticeRecipes(source:root.appendingPathComponent("Piyali/Resources/practice-recipes.js"))
+        let prompt=try recipes.reading("speech",parameters:.object(["passage":.string(text),"answer":.string(ReadingSpeechCapture.boundedTranscript(text)),"targetLang":.string("de"),"supportLang":.string("en")]))
+        XCTAssertTrue(prompt.contains("STUDENT'S ATTEMPT (transcription):\n"+text))
+    }
     func testDraftKeepsAnswerAndSharedAwardThroughLanguageSwitchAndInFlightSync() throws {
         let sent=LearnerState();var current=sent;var draft=try readingRun();draft.answer="my unfinished answer";current.saveReading(draft)
         let merged=LearnerState.rebased(current:current,sent:sent,acknowledged:sent);XCTAssertEqual(merged.reading?.answer,draft.answer)

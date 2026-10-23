@@ -13,10 +13,12 @@ import XCTest
         XCTAssertTrue(app.descendants(matching:.any)["readingPassage"].waitForExistence(timeout:15));XCTAssertFalse(app.pickers["readingMethod"].exists)
     }
     private func tap(_ id:String,_ app:XCUIApplication) { let button=app.buttons[id];reveal(button,in:app);button.tap() }
-    private func speechApp(failure:Bool=false)->XCUIApplication {
+    private func speechApp(failure:Bool=false,noEnd:Bool=false,denied:Bool=false)->XCUIApplication {
         continueAfterFailure=false
         let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString;app.launchEnvironment["PIYALI_READING_FIXTURE"]="1";app.launchEnvironment["PIYALI_READING_SPEECH_FIXTURE"]="1";app.launchEnvironment["PIYALI_PRACTICE_FIXTURE"]="delight:natural_or_weird"
         if failure { app.launchEnvironment["PIYALI_READING_SPEECH_FAILURE"]="1" }
+        if noEnd { app.launchEnvironment["PIYALI_READING_CAPTURE_NO_END"]="1" }
+        if denied { app.launchEnvironment["PIYALI_READING_CAPTURE_DENIED"]="1" }
         app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"];app.launch()
         let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Speech Reader");if app.buttons["entryKeyboardDone"].exists { app.buttons["entryKeyboardDone"].tap() };app.buttons["createAccount"].tap()
         XCTAssertTrue(app.buttons["startLearning"].waitForExistence(timeout:20));app.buttons["startLearning"].tap();open(app);return app
@@ -46,6 +48,22 @@ import XCTest
         XCTAssertTrue(app.staticTexts["readingCompleted"].waitForExistence(timeout:10));XCTAssertEqual(app.staticTexts["readingSpeechSummary"].label,"Could not generate feedback. Keep practicing!");XCTAssertFalse(app.staticTexts["readingSpeechTotal"].exists)
         app.terminate();app.launch();open(app);XCTAssertTrue(app.staticTexts["readingCompleted"].exists);XCTAssertFalse(app.buttons["readingMicrophone"].exists);tap("readingContinue",app)
         XCTAssertEqual(app.buttons["introStep-stories"].value as? String,"Current")
+    }
+    func testMissingCaptureEndRecoversAndBackgroundingKeepsPartialWithoutGrading() {
+        let app=speechApp(noEnd:true);tap("readingMicrophone",app);tap("readingMicrophone",app)
+        XCTAssertTrue(app.buttons["readingSpeechStartOver"].waitForExistence(timeout:5));XCTAssertEqual(app.buttons["readingMicrophone"].value as? String,"idle");XCTAssertFalse(app.staticTexts["readingCompleted"].exists)
+        tap("readingSpeechStartOver",app);tap("readingMicrophone",app);XCUIDevice.shared.press(.home);app.activate()
+        XCTAssertTrue(app.buttons["readingMicrophone"].waitForExistence(timeout:10));XCTAssertEqual(app.buttons["readingMicrophone"].value as? String,"idle");XCTAssertFalse(app.staticTexts["readingCompleted"].exists)
+        let partial=app.staticTexts["readingSpeechTranscript"].label;XCTAssertTrue(partial.contains("Mi libreta verde"))
+        reveal(app.staticTexts["readingSpeechTranscript"],in:app);let retained=XCTAttachment(screenshot:app.screenshot());retained.name="Native reading retained partial after background";retained.lifetime = .keepAlways;add(retained)
+        app.terminate();app.launch();open(app);XCTAssertEqual(app.staticTexts["readingSpeechTranscript"].label,partial);XCTAssertEqual(app.buttons["readingMicrophone"].value as? String,"idle")
+    }
+    func testCapturePermissionFailureShowsRecordingFeedbackAndCanRetry() {
+        let app=speechApp(denied:true);tap("readingMicrophone",app)
+        let error=app.staticTexts["readingRecordingError"];XCTAssertTrue(error.waitForExistence(timeout:5));XCTAssertFalse(error.label.isEmpty);XCTAssertFalse(error.label.lowercased().contains("connection"));XCTAssertFalse(app.staticTexts["readingCompleted"].exists)
+        reveal(error,in:app);let denied=XCTAttachment(screenshot:app.screenshot());denied.name="Native reading capture permission error";denied.lifetime = .keepAlways;add(denied)
+        app.terminate();app.launchEnvironment.removeValue(forKey:"PIYALI_READING_CAPTURE_DENIED");app.launch();open(app);spokenFragment(app)
+        XCTAssertFalse(error.exists);XCTAssertFalse(app.staticTexts["readingCompleted"].exists)
     }
     func testWrongAnswerRetryResumeAndOneReward() {
         continueAfterFailure=false
