@@ -10,6 +10,7 @@ import WebRTC
     func connect(session:JSONValue) async throws
     @discardableResult func send(_ event:JSONValue)->Bool
     func setMicrophoneEnabled(_ enabled:Bool)
+    func setRemoteAudioEnabled(_ enabled:Bool)
     func close()
 }
 
@@ -88,6 +89,7 @@ import WebRTC
         let enabled=enabled && capturesMicrophone && !closed
         microphone?.isEnabled=enabled;sender?.track=enabled ? microphone : nil
     }
+    func setRemoteAudioEnabled(_ enabled:Bool) { for receiver in peer?.receivers ?? [] { receiver.track?.isEnabled=enabled } }
     func receivedAudioBytes() async ->Int {
         guard let peer else { return 0 }
         return await withCheckedContinuation { continuation in peer.statistics { report in

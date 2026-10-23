@@ -35,9 +35,9 @@ private final class SpeechSamples:@unchecked Sendable {
     func speak(_ text: String, language: String) {
         speakSeries([text],language:language,onFinished:{})
     }
-    func speakSeries(_ texts:[String],language:String,onStarted:(()->Void)?=nil,onInterrupted:(()->Void)?=nil,onFinished:@escaping ()->Void) {
+    func speakSeries(_ texts:[String],language:String,onStarted:(()->Void)?=nil,onInterrupted:(()->Void)?=nil,keepsVoiceSession:Bool=false,onFinished:@escaping ()->Void) {
         stopAll();playback=texts.filter { !$0.isEmpty };playbackLanguage=language;playbackStarted=onStarted;playbackInterrupted=onInterrupted;playbackFinished=onFinished
-        do { try AVAudioSession.sharedInstance().setCategory(.playback, mode: .spokenAudio); try AVAudioSession.sharedInstance().setActive(true) } catch { self.error = error.localizedDescription;let interrupted=playbackInterrupted;playbackInterrupted=nil;playbackStarted=nil;playbackFinished=nil;playback=[];interrupted?();return }
+        do { if !keepsVoiceSession { try AVAudioSession.sharedInstance().setCategory(.playback, mode: .spokenAudio); try AVAudioSession.sharedInstance().setActive(true) } } catch { self.error = error.localizedDescription;let interrupted=playbackInterrupted;playbackInterrupted=nil;playbackStarted=nil;playbackFinished=nil;playback=[];interrupted?();return }
         nextUtterance()
     }
     private func nextUtterance() {

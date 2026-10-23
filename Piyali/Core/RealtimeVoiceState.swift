@@ -4,6 +4,7 @@ import Foundation
 /// assistant's response. Keep their IDs until both sides of a turn are known.
 public struct RealtimeVoiceState: Sendable {
     public struct Turn: Equatable, Sendable { public let text:String;public let answered:String;public let reply:String }
+    public struct InputTurn:Equatable,Sendable { public let id:String;public let text:String;public let answered:String;public let responseID:String? }
     private struct Input: Sendable { var text:String?;var answered:String;var response:String?;var delivered=false }
     private struct Output: Sendable { var text="";var channel="";var complete=false }
     private var inputs:[String:Input]=[:],order:[String]=[],outputs:[String:Output]=[:]
@@ -19,6 +20,8 @@ public struct RealtimeVoiceState: Sendable {
         }.joined(separator:"\n").suffix(16000))
     }
     public init(previousAssistant:String="") { self.previousAssistant=previousAssistant }
+    public func inputTurn(_ id:String)->InputTurn? { guard let value=inputs[id],let text=value.text else { return nil };return .init(id:id,text:text,answered:value.answered,responseID:value.response) }
+    public func completedAssistant(_ id:String)->String? { guard let value=outputs[id],value.complete,!value.text.isEmpty else { return nil };return value.text }
     public mutating func setMuted(_ value:Bool) { muted=value }
     public mutating func receive(_ event:JSONValue)->[Turn] {
         let type=event["type"].string

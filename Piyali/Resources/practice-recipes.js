@@ -6085,6 +6085,20 @@ Exercise data: ${String(item || "").slice(0, 6e3)}`;
     return `${subject} must use an adult beginner register: the learner is an adult with limited target-language ability. This rule controls language complexity and age-appropriateness only; it does not choose the assistant's demeanor or personality. Sound conversational, not telegraphic: prefer short complete memorized phrases and simple formulaic sentences over isolated word fragments. Do not repeat basic words merely to fill a turn. Do not use childish, patronizing, sing-song, caveman-like, or classroom-for-toddlers phrasing.`;
   }
 
+  // Reference: src/constants/supportLanguages.js
+  var SUPPORT_LANGUAGE_CODES = Object.freeze([
+    "en",
+    "es",
+    "pt",
+    "it",
+    "fr",
+    "de",
+    "ja",
+    "hi",
+    "ar",
+    "zh"
+  ]);
+
   // Reference: src/components/flagsIcons/flags.jsx
   function egyptianFlag() {
     return null;
@@ -6131,20 +6145,6 @@ Exercise data: ${String(item || "").slice(0, 6e3)}`;
   function irishFlag() {
     return null;
   }
-
-  // Reference: src/constants/supportLanguages.js
-  var SUPPORT_LANGUAGE_CODES = Object.freeze([
-    "en",
-    "es",
-    "pt",
-    "it",
-    "fr",
-    "de",
-    "ja",
-    "hi",
-    "ar",
-    "zh"
-  ]);
 
   // Reference: src/constants/languages.js
   var DEFAULT_SUPPORT_LANGUAGE = "en";
@@ -9428,13 +9428,19 @@ PREFLIGHT CHECK: This is a generated exercise, not a learner answer. Also requir
   // Reference: src/components/Conversations.jsx
   var Conversations_exports = {};
   __export(Conversations_exports, {
+    DEFAULT_SUPPORT_LANGUAGE: () => DEFAULT_SUPPORT_LANGUAGE,
     buildConversationResponseCreateEvent: () => buildConversationResponseCreateEvent,
     buildConversationTurnDetection: () => buildConversationTurnDetection,
     buildRealtimeResumeContext: () => buildRealtimeResumeContext,
     buildVoicePersonaPolicy: () => buildVoicePersonaPolicy,
     eloForUser: () => eloForUser,
+    foundationGoalRules: () => foundationGoalRules,
     generationPerformanceContextFor: () => generationPerformanceContextFor,
     getAdultBeginnerToneRule: () => getAdultBeginnerToneRule,
+    getLanguagePromptName: () => getLanguagePromptName,
+    isFoundationConversationLevel: () => isFoundationConversationLevel,
+    isFoundationStarterLevel: () => isFoundationStarterLevel,
+    normalizeSupportLanguage: () => normalizeSupportLanguage,
     practiceLevelForElo: () => practiceLevelForElo
   });
 
@@ -9499,6 +9505,15 @@ PREFLIGHT CHECK: This is a generated exercise, not a learner answer. Also requir
       }
     };
   }
+
+  // Reference: src/utils/starterPhrase.js
+  var isFoundationStarterLevel = (level) => level === "Pre-A1" || level === "A1";
+
+  // Reference: src/components/Conversations.jsx
+  var isFoundationConversationLevel = (level) => isFoundationStarterLevel(level);
+  var foundationGoalRules = (level) => isFoundationConversationLevel(level) ? `
+FOUNDATION GOAL RULES (${level}): The goal must be ONE small conversational move, completable with a SINGLE short utterance of about 3-8 words built from high-frequency beginner chunks (greetings, name, how you feel, family words, likes, numbers). Phrase it as the natural next thing to say in this conversation \u2014 warm and conversational, never a classroom drill. Do NOT stack tasks: never ask for two different things in one goal (e.g. "introduce yourself AND describe your family"), and never ask the learner to describe, list, or explain anything.
+Good foundation goals: "Say hello and your name" (one breath: "Hola, me llamo Ana"), "Answer with how you feel", "Say one thing you like", "Ask them how they are".` : "";
 
   // <stdin>
   var recipes = { grammar: { "fill": "buildFillStreamPrompt", "mc": "buildMCStreamPrompt", "ma": "buildMAStreamPrompt", "speak": "buildSpeakGrammarStreamPrompt", "match": "buildMatchStreamPrompt", "translate": "buildTranslateStreamPrompt", "repeat": "buildTranslateStreamPrompt", "judgeFill": "buildFillJudgePrompt", "judgeMC": "buildMCJudgePrompt", "judgeMA": "buildMAJudgePrompt", "judgeTranslate": "buildTranslateJudgePrompt" }, vocabulary: { "fill": "buildFillVocabStreamPrompt", "mc": "buildMCVocabStreamPrompt", "ma": "buildMAVocabStreamPrompt", "speak": "buildSpeakVocabStreamPrompt", "match": "buildMatchVocabStreamPrompt", "translate": "buildVocabTranslateStreamPrompt", "repeat": "buildVocabTranslateStreamPrompt", "judgeFill": "buildFillVocabJudgePrompt", "judgeMC": "buildMCVocabJudgePrompt", "judgeMA": "buildMAVocabJudgePrompt", "judgeMatch": "buildMatchVocabJudgePrompt", "judgeTranslate": "buildVocabTranslateJudgePrompt" } };
@@ -9649,8 +9664,8 @@ ${JSON.stringify(raw)}`)({ stage: p.stage, raw: p.raw, error: { message: p.error
   }
   function conversation(operation, parametersJSON) {
     return withParameters(parametersJSON, (p) => {
-      const { buildVoicePersonaPolicy: buildVoicePersonaPolicy2, practiceLevelForElo: practiceLevelForElo2, eloForUser: eloForUser2, getAdultBeginnerToneRule: getAdultBeginnerToneRule2, generationPerformanceContextFor: generationPerformanceContextFor2, buildConversationResponseCreateEvent: buildConversationResponseCreateEvent2, buildConversationTurnDetection: buildConversationTurnDetection2, buildRealtimeResumeContext: buildRealtimeResumeContext2 } = Conversations_exports;
-      const targetLangRef = { current: p.targetLang }, voicePersonaRef = { current: p.personality || "" }, conversationSettingsRef = { current: { practicePronunciation: !!p.pronunciation, conversationSubjects: p.interests || "" } }, currentGoalRef = { current: p.goal || null }, goalShepherdRef = { current: p.guidance || "" }, useUserStore = { getState: () => ({ user: p.user || {} }) };
+      const { buildVoicePersonaPolicy: buildVoicePersonaPolicy2, practiceLevelForElo: practiceLevelForElo2, eloForUser: eloForUser2, getAdultBeginnerToneRule: getAdultBeginnerToneRule2, generationPerformanceContextFor: generationPerformanceContextFor2, getLanguagePromptName: getLanguagePromptName2, foundationGoalRules: foundationGoalRules2, normalizeSupportLanguage: normalizeSupportLanguage2, DEFAULT_SUPPORT_LANGUAGE: DEFAULT_SUPPORT_LANGUAGE2, buildConversationResponseCreateEvent: buildConversationResponseCreateEvent2, buildConversationTurnDetection: buildConversationTurnDetection2, buildRealtimeResumeContext: buildRealtimeResumeContext2 } = Conversations_exports;
+      const targetLangRef = { current: p.targetLang }, voicePersonaRef = { current: p.personality || "" }, conversationSettingsRef = { current: { practicePronunciation: !!p.pronunciation, conversationSubjects: p.interests || "" } }, currentGoalRef = { current: p.goal || null }, goalShepherdRef = { current: p.guidance || "" }, useUserStore = { getState: () => ({ user: p.user || {} }) }, resolvedSupportLang = p.supportLang || "en", selectedLevel = practiceLevelForElo2(eloForUser2(p.user || {}, p.targetLang)), customSubjects = p.interests || "", skillTreeTopics = p.topics || [], messagesRef = { current: p.messages || [] }, goal = p.goal || { text: { en: "" } }, currentGoal = goal, previousGoalAbandoned = !!p.abandoned, userMessage = p.utterance || "", aiResponse = p.answered || "";
       function buildLanguageInstructionsBase() {
         const tLang = targetLangRef.current;
         const personaPolicy = buildVoicePersonaPolicy2(
@@ -9658,11 +9673,11 @@ ${JSON.stringify(raw)}`)({ stage: p.stage, raw: p.raw, error: { message: p.error
           "conversation partner"
         );
         const currentSettings = conversationSettingsRef.current;
-        const selectedLevel = practiceLevelForElo2(
+        const selectedLevel2 = practiceLevelForElo2(
           eloForUser2(useUserStore.getState().user, tLang)
         );
         const practicePronunciation = currentSettings.practicePronunciation || false;
-        const customSubjects = currentSettings.conversationSubjects || "";
+        const customSubjects2 = currentSettings.conversationSubjects || "";
         let strict;
         if (tLang === "nah") {
           strict = "Respond ONLY in Eastern Huasteca Nahuatl (N\xE1huatl Huasteco Oriental). Do not use Spanish or English.";
@@ -9705,13 +9720,13 @@ ${JSON.stringify(raw)}`)({ stage: p.stage, raw: p.raw, error: { message: p.error
           C1: "CRITICAL: User is advanced (C1). Use sophisticated vocabulary and nuanced expressions. Use complex sentence structures with multiple clauses. Use idiomatic expressions. Can handle abstract and specialized topics.",
           C2: "CRITICAL: User is near-native (C2). Use native-like expressions, colloquialisms, and subtle distinctions. Can use any grammatical structure. Can handle any topic with precision and style."
         };
-        const proficiencyHint = levelGuidance[selectedLevel] || levelGuidance.A1;
+        const proficiencyHint = levelGuidance[selectedLevel2] || levelGuidance.A1;
         const adultBeginnerTone = getAdultBeginnerToneRule2(
-          selectedLevel,
+          selectedLevel2,
           "conversation"
         );
         const pronunciationInstructions = practicePronunciation ? "PRONUNCIATION PRACTICE MODE: When the user makes pronunciation errors or uses awkward phrasing, correct them briefly and ask them to repeat the correct pronunciation. Use phonetic hints when helpful. Acknowledge clear pronunciation briefly in the selected personality." : "";
-        const customSubjectsContext = customSubjects ? `CUSTOM CONTEXT: The user wants to practice conversations related to: "${customSubjects}". Try to incorporate relevant vocabulary and scenarios from this context when appropriate.` : "";
+        const customSubjectsContext = customSubjects2 ? `CUSTOM CONTEXT: The user wants to practice conversations related to: "${customSubjects2}". Try to incorporate relevant vocabulary and scenarios from this context when appropriate.` : "";
         const activeGoal = currentGoalRef.current;
         const activeGoalText = !activeGoal?.completed && activeGoal?.text?.en || "";
         const goalContext = activeGoalText ? `LEARNER'S CURRENT GOAL: "${activeGoalText}". Quietly steer the conversation so your reply gives the learner a natural opening to do this. Never announce the goal, read it aloud, or quiz the learner on it. Your follow-up questions must serve this goal, not compete with it; if the goal asks the learner to ASK about something, invite that topic briefly and do not ask an unrelated question of your own.` : "";
@@ -9733,6 +9748,127 @@ ${JSON.stringify(raw)}`)({ stage: p.stage, raw: p.raw, error: { message: p.error
           personaPolicy
         ].filter(Boolean).join(" ");
       }
+      function sourceInitialGoal() {
+        const responseLang = getLanguagePromptName2(resolvedSupportLang) || "English";
+        const levelDescription = selectedLevel === "Pre-A1" ? "foundations - use very basic vocabulary in natural memorized phrases" : selectedLevel === "A1" ? "absolute beginner - use very simple vocabulary and short sentences" : selectedLevel === "A2" ? "elementary - use simple everyday topics and basic sentences" : selectedLevel === "B1" ? "intermediate - discuss experiences, opinions, and plans" : selectedLevel === "B2" ? "upper intermediate - handle complex and abstract topics" : selectedLevel === "C1" ? "advanced - use sophisticated vocabulary concisely" : "mastery - use nuanced vocabulary concisely";
+        const customSubjectsPrompt = customSubjects ? `
+
+IMPORTANT: The user has specified they want to practice these specific topics/contexts:
+"${customSubjects}"
+Prioritize generating topics related to these interests when possible.` : "";
+        return `You are creating a conversation practice topic for a ${selectedLevel} level language learner (${levelDescription}).
+
+Live learner performance: ${JSON.stringify(generationPerformanceContextFor2(useUserStore.getState().user, targetLangRef.current))}. Use its recent accuracy and weak concepts to tune the topic and support; keep the selected challenge level ${selectedLevel}.
+
+Here are some topics from their learning curriculum that you can reference or be inspired by:
+${skillTreeTopics.join("\n")}${customSubjectsPrompt}
+
+Generate ONE clear, specific conversation topic that:
+1. Is appropriate for ${selectedLevel} level complexity
+2. Encourages the learner to speak and practice
+3. Can be either based on the curriculum topics above, the user's custom interests, OR a creative topic you think would be engaging
+4. Is specific enough to guide the conversation (not generic like "practice speaking")
+5. Is CONCISE: Maximum 10-15 words. For advanced levels (C1/C2), use sophisticated vocabulary, NOT longer sentences.
+6. For Pre-A1/A1, simple does not mean childish: prefer adult-realistic situations over kid-coded topics.
+${foundationGoalRules2(selectedLevel)}
+Examples of good topics:
+- "Describe your morning routine" (A1)
+- "Explain your favorite hobby and why" (B1)
+- "Debate the ethics of AI in healthcare" (C2)
+- "Discuss cultural nuances in business etiquette" (C2)
+
+BAD examples (too verbose): "Analyze the socio-economic implications of modern consumer culture..."
+
+Respond with ONLY the topic text in ${responseLang}. No quotes, no JSON, no explanation - just the topic itself (max 15 words).`;
+      }
+      function sourceNextGoal() {
+        const recentMessages = messagesRef.current.slice(-6).map(
+          (m) => `${m.role === "user" ? "User" : "AI"}: ${m.textFinal || ""}`
+        ).join("\n");
+        const lastAiMessage = [...messagesRef.current].reverse().find((m) => m.role === "assistant" && (m.textFinal || "").trim())?.textFinal?.trim() || "";
+        const customSubjectsHint = customSubjects ? `
+The user is interested in practicing: "${customSubjects}". Consider incorporating relevant topics when appropriate.` : "";
+        const goalAlignmentHint = lastAiMessage ? `
+
+The AI partner's latest message to the learner is: "${lastAiMessage}"
+
+CRITICAL: The learner must be able to complete the new goal simply by replying naturally to that latest AI message. If the AI asked a question, the goal is to answer it (optionally adding one small detail or question of their own). Never create a goal that ignores or competes with the AI's pending question.` : "";
+        const previousGoalLine = previousGoalAbandoned ? `Previous goal was: "${currentGoal.text.en}". The learner did NOT complete it \u2014 the conversation legitimately moved past it. The new goal must fit where the conversation is NOW; do not repeat or rephrase the abandoned goal.` : `Previous goal was: "${currentGoal.text.en}"`;
+        return `You are helping a ${selectedLevel} level language learner practice conversation.
+
+Live learner performance: ${JSON.stringify(generationPerformanceContextFor2(useUserStore.getState().user, targetLangRef.current))}. Use the current Elo, recent accuracy and weak concepts when choosing this goal; keep the selected challenge level ${selectedLevel}.
+
+Recent conversation:
+${recentMessages || "Just started"}
+
+${previousGoalLine}${customSubjectsHint}${goalAlignmentHint}
+
+Generate the NEXT natural conversation goal that follows the flow of the conversation.
+The goal should be appropriate for ${selectedLevel} level (${selectedLevel === "Pre-A1" ? "foundations - very basic vocabulary in natural memorized phrases" : selectedLevel === "A1" ? "beginner - simple tasks" : selectedLevel === "A2" ? "elementary - everyday topics" : selectedLevel === "B1" ? "intermediate - opinions and experiences" : selectedLevel === "B2" ? "upper intermediate - complex discussions" : selectedLevel === "C1" ? "advanced - nuanced but concise" : "mastery - sophisticated but concise"}).
+
+IMPORTANT: Keep the goal CONCISE (max 10-15 words). For advanced levels, use sophisticated vocabulary, NOT longer sentences.
+For Pre-A1/A1, simple does not mean childish: use adult-realistic goals and neutral adult wording.
+${foundationGoalRules2(selectedLevel)}
+Respond with ONLY a JSON object: {"en": "goal in English (max 15 words)", "es": "goal in Spanish (max 15 words)", "pt": "goal in Portuguese (max 15 words)", "it": "goal in Italian (max 15 words)", "fr": "goal in French (max 15 words)", "de": "goal in German (max 15 words)", "ja": "goal in Japanese (max 15 words)", "hi": "goal in Hindi (max 15 words)", "ar": "goal in Egyptian Arabic (max 15 words)", "zh": "goal in Mandarin Chinese (max 15 words)"}`;
+      }
+      function sourceConversationJudge() {
+        const goalText = goal.text.en, tLang = targetLangRef.current, sLang = resolvedSupportLang;
+        const languageName = tLang === "es" ? "Spanish" : tLang === "pt" ? "Portuguese" : tLang === "fr" ? "French" : tLang === "it" ? "Italian" : tLang === "zh" ? "Mandarin Chinese" : tLang === "nl" ? "Dutch" : tLang === "nah" ? "Eastern Huasteca Nahuatl" : tLang === "ja" ? "Japanese" : tLang === "ru" ? "Russian" : tLang === "de" ? "German" : tLang === "el" ? "Greek" : tLang === "pl" ? "Polish" : tLang === "ga" ? "Irish" : tLang === "yua" ? "Yucatec Maya" : "English";
+        const feedbackLanguage = getLanguagePromptName2(
+          normalizeSupportLanguage2(sLang, DEFAULT_SUPPORT_LANGUAGE2)
+        ) || "English";
+        return `You are a warm, encouraging language tutor checking whether a learner's reply makes a reasonable attempt at a conversation goal. You reward communication, not perfection, and you read the learner's words the way a real conversation partner would \u2014 not literally.
+
+Goal: "${goalText}"
+Target language: ${languageName}
+Learner's reply (judge THIS): "${userMessage}"
+Conversation context (the tutor's line they answered): "${aiResponse}"
+
+Set completed = true when BOTH are true:
+1. The reply is mostly in ${languageName}.
+2. The learner gets the goal's main idea across \u2014 even if phrased differently, partially, informally, or without every sub-detail. On a close call, give credit.
+
+Set completed = false ONLY when the reply is in the wrong language, is off-topic / unrelated to the goal, or makes no real attempt.
+
+Read it like a human, not literally. Examples that are completed = true (do not reject things like these):
+- Goal "Ask how the other person is feeling today" + reply "How are you feeling?" \u2192 true ("you" means the other person; the word "today" is not required).
+- Goal "Introduce your family and tell me their names and jobs" + reply "This is my family, Ana and Luis, and we work at a restaurant" \u2192 true (names and a job are given; no rigid "name: job" format is needed).
+- Goal "Describe your morning routine" + reply "I wake up, have coffee, then go to work" \u2192 true.
+Examples that are completed = false:
+- Goal "Describe your favorite restaurant" + reply "My dog is white" \u2192 false (off-topic).
+- A reply not in ${languageName} \u2192 false.
+
+Feedback in ${feedbackLanguage}, one short sentence: if true, give warm, specific praise; if false, briefly say what to try.
+
+Also set goalStillFits (only meaningful when completed = false): true when the conversation is still in a place where the learner could naturally do the goal on their next turn \u2014 weak attempts, wrong language, or no real attempt leave the goal fitting. Set it to false when the learner's reply legitimately moved the conversation somewhere else: they rejected the goal's premise (e.g. "I don't watch TV" against a TV goal) or took a different direction that a real conversation would now follow. When completed = true, set goalStillFits = true.
+
+Respond with ONLY a JSON object: {"completed": true/false, "reason": "...", "goalStillFits": true/false}`;
+      }
+      function sourceStarter(goal2, level, targetName, supportName, lastAiMessage) {
+        return `A ${level} beginner is practicing spoken ${targetName} conversation. Their current goal: "${goal2}".${lastAiMessage ? `
+The conversation partner just said: "${lastAiMessage}". The phrase must work as a natural spoken reply to that.` : ""}
+Write ONE starter phrase in ${targetName} the learner can say out loud to complete the goal: about 3-8 words, ${level}-appropriate high-frequency chunks only, natural and friendly. If a personal detail belongs in it (their name, a family member, a thing they like), put "___" in that spot \u2014 at most one blank. Also give its ${supportName} translation (keep "___" as "___").
+Respond with ONLY a JSON object: {"target":"phrase in ${targetName}","support":"translation in ${supportName}"}`;
+      }
+      function parseStarterPhrase(text) {
+        const raw = String(text || "").trim();
+        const start = raw.indexOf("{");
+        const end = raw.lastIndexOf("}");
+        if (start < 0 || end <= start) return null;
+        try {
+          const parsed = JSON.parse(raw.slice(start, end + 1));
+          const target = String(parsed?.target || "").trim();
+          if (!target) return null;
+          return { target, support: String(parsed?.support || "").trim() };
+        } catch {
+          return null;
+        }
+      }
+      if (operation === "starter") return sourceStarter(goal.text.en, selectedLevel, getLanguagePromptName2(p.targetLang) || "English", getLanguagePromptName2(resolvedSupportLang) || "English", [...messagesRef.current].reverse().find((m) => m.role === "assistant")?.textFinal || "");
+      if (operation === "parseStarter") return JSON.stringify(parseStarterPhrase(p.raw));
+      if (operation === "goal") return sourceInitialGoal();
+      if (operation === "contextualGoal") return sourceNextGoal();
+      if (operation === "judge") return sourceConversationJudge();
       const instructions = [buildLanguageInstructionsBase(), buildRealtimeResumeContext2(p.messages || [])].filter(Boolean).join("\n\n");
       if (operation === "instructions") return instructions;
       if (operation === "response") return JSON.stringify(buildConversationResponseCreateEvent2({ sessionInstructions: instructions, persona: p.personality || "" }));

@@ -345,6 +345,8 @@ import NostrSDK
         do {
             let ai=AIService();var learner=LearnerState(),draft=ConversationDraft()
             learner.target="es";learner.support="en"
+            let initial=try await ai.conversationGoal(learner:learner,draft:ConversationDraft(),topics:["Pre-A1: Introductions"],abandoned:false,contextual:false)
+            XCTAssertFalse(initial.text["en"].string.isEmpty);XCTAssertEqual(initial.questionLevel,"Pre-A1");XCTAssertEqual(initial.worth["version"].number,4)
             let goal=ConversationGoal(text:.object(["en":.string("Say hello and your name")]),questionLevel:"Pre-A1",worth:ConversationPractice.worth(rating:800,level:"Pre-A1"))
             draft.goal=goal;draft.append(.init(role:"assistant",text:"¡Hola! ¿Cómo te llamas?"))
             let success=try await ai.conversationVerdict(goal:goal,learner:learner,reply:"Hola, soy Ana.",answeredLine:"¡Hola! ¿Cómo te llamas?")
@@ -370,8 +372,8 @@ import NostrSDK
                 let result=try await group.next() ?? false;await session.close();group.cancelAll();return result
             }
             XCTAssertTrue(audio);print("LIVE NATIVE: Conversation voice context update returned PCM audio")
-        } catch { try? await Auth.auth().currentUser?.delete();try? Auth.auth().signOut();throw error }
-        try await Auth.auth().currentUser?.delete();try Auth.auth().signOut()
+        } catch { try? await Auth.auth().currentUser?.delete();try? Auth.auth().signOut();try? identity.disconnect();throw error }
+        try await Auth.auth().currentUser?.delete();try Auth.auth().signOut();try identity.disconnect()
     }
     func testNativeImmersionGenerationUsesResponsesAndPreservesExistingMissions() async throws {
         guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else { throw XCTSkip("Explicit live API opt-in required.") }

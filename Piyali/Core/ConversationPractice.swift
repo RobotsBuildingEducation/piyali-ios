@@ -9,6 +9,7 @@ public struct ConversationGoal: Codable, Identifiable, Equatable, Sendable {
     public var misses=0
     public var guidance=""
     public var starter: String?
+    public var starterSupport:String?
     public init(text: JSONValue, questionLevel: String, worth: JSONValue) { self.text=text;self.questionLevel=questionLevel;self.worth=worth }
 }
 public struct ConversationVerdict: Codable, Equatable, Sendable {
@@ -22,7 +23,8 @@ public struct ConversationMessage: Codable, Identifiable, Equatable, Sendable {
     public let role: String
     public var text: String
     public var translation: String?
-    public init(role: String, text: String) { self.role=role;self.text=String(text.prefix(2000)) }
+    public var providerID:String?
+    public init(role: String, text: String,providerID:String?=nil) { self.role=role;self.text=String(text.prefix(2000));self.providerID=providerID }
 }
 public struct ConversationDraft: Codable, Equatable, Sendable {
     public var id=UUID()
@@ -37,8 +39,10 @@ public struct ConversationDraft: Codable, Equatable, Sendable {
     public var earnedXP=0
     public var seenTurnIDs: [UUID]=[]
     public init() {}
-    public mutating func append(_ message: ConversationMessage) {
-        messages.append(message);messages=Array(messages.suffix(40))
+    public mutating func append(_ message: ConversationMessage,beforeProviderID:String?=nil) {
+        if let id=message.providerID,messages.contains(where:{$0.providerID == id}) { return }
+        if let beforeProviderID,let index=messages.firstIndex(where:{$0.providerID == beforeProviderID}) { messages.insert(message,at:index) } else { messages.append(message) }
+        messages=Array(messages.suffix(40))
         while messages.count > 1,(try? JSONEncoder().encode(self).count) ?? 0 > 24_000 { messages.removeFirst() }
     }
     public var transcript: String { messages.map { ($0.role == "user" ? "You: " : "Piyali: ")+$0.text }.joined(separator:"\n") }

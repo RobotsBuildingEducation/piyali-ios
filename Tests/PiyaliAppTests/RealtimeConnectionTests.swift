@@ -68,6 +68,8 @@ import FirebaseAppCheck
     func connect(session:JSONValue) async throws { self.session=session;onOpen?() }
     func send(_ event:JSONValue)->Bool { events.append(event);return sendsSucceed }
     func setMicrophoneEnabled(_ enabled:Bool) { microphone=enabled }
+    var remoteAudio=true
+    func setRemoteAudioEnabled(_ enabled:Bool) { remoteAudio=enabled }
     func close() { closed=true;microphone=false }
     func receive(_ raw:String) throws { onEvent?(try JSONDecoder().decode(JSONValue.self,from:Data(raw.utf8))) }
     var vad:JSONValue { events.last { $0["session"]["audio"]["input"].object.keys.contains("turn_detection") }?["session"]["audio"]["input"]["turn_detection"] ?? .null }
@@ -120,5 +122,44 @@ import FirebaseAppCheck
         XCTAssertFalse(try XCTUnwrap(transport.events.last)["session"].object.keys.contains("audio"))
         transport.sendsSucceed=false;service.setMuted(true)
         XCTAssertFalse(service.connected);XCTAssertTrue(transport.closed);XCTAssertNotNil(service.error)
+    }
+}
+
+extension RealtimeVoiceControllerTests {
+    func testInputCanBeGradedBeforeAssistantFinishesAndResumeMuteNeverOpensMicrophone() async throws {
+        let transport=VoiceTransportFixture(),service=LiveTutorService(permission:{true},transportFactory:{transport})
+        var inputs:[RealtimeVoiceState.InputTurn]=[],replies:[String]=[]
+        await service.start(learner:LearnerState(),conversationDraft:ConversationDraft(),initiallyMuted:true,onInputTurn:{inputs.append($0)},onAssistantTurn:{_,text in replies.append(text)})
+        XCTAssertTrue(service.connected);XCTAssertTrue(service.muted);XCTAssertFalse(transport.microphone);XCTAssertEqual(transport.vad,.null)
+        service.setMuted(false)
+        for raw in [#"{"type":"input_audio_buffer.committed","item_id":"u1"}"#,#"{"type":"response.created","response":{"id":"r1"}}"#,#"{"type":"conversation.item.input_audio_transcription.completed","item_id":"u1","transcript":"Me llamo Ana."}"#] { try transport.receive(raw) }
+        XCTAssertEqual(inputs.count,1);XCTAssertEqual(inputs.first?.responseID,"r1");XCTAssertTrue(replies.isEmpty);XCTAssertEqual(service.learnerTurnNumber,0)
+        try transport.receive(#"{"type":"conversation.item.input_audio_transcription.completed","item_id":"u1","transcript":"Me llamo Ana."}"#);XCTAssertEqual(inputs.count,1)
+        try transport.receive(#"{"type":"response.done","response":{"id":"r1","status":"completed","output":[{"content":[{"transcript":"¡Hola, Ana!"}]}]}}"#)
+        XCTAssertEqual(replies,["¡Hola, Ana!"]);XCTAssertEqual(service.learnerTurnNumber,1)
+        await service.stop()
+    }
+    func testInstructionUpdatesKeepOnlyTheFrozenResumeHistory() async throws {
+        let transport=VoiceTransportFixture(),service=LiveTutorService(permission:{true},transportFactory:{transport})
+        var draft=ConversationDraft();draft.append(.init(role:"assistant",text:"This was saved before pause."))
+        await service.start(learner:LearnerState(),conversationDraft:draft)
+        draft.append(.init(role:"user",text:"This belongs to the current connection."));draft.interests="travel"
+        await service.updateConversation(draft,learner:LearnerState())
+        let prompt=try XCTUnwrap(transport.events.last)["session"]["instructions"].string
+        XCTAssertTrue(prompt.contains("This was saved before pause."));XCTAssertFalse(prompt.contains("This belongs to the current connection."))
+        await service.stop()
+    }
+}
+
+extension RealtimeVoiceControllerTests {
+    func testStarterPlaybackDucksBothAudioDirectionsWithoutChangingUserMuteOrAssistantLock() async throws {
+        let transport=VoiceTransportFixture(),service=LiveTutorService(permission:{true},transportFactory:{transport})
+        await service.start(learner:LearnerState(),conversationDraft:ConversationDraft())
+        service.setPlaybackDucked(true);XCTAssertFalse(transport.microphone);XCTAssertFalse(transport.remoteAudio);XCTAssertEqual(transport.vad,.null);XCTAssertFalse(service.muted)
+        try transport.receive(#"{"type":"response.created","response":{"id":"r1"}}"#)
+        service.setPlaybackDucked(false);XCTAssertTrue(transport.remoteAudio);XCTAssertFalse(transport.microphone)
+        service.setMuted(true);try transport.receive(#"{"type":"output_audio_buffer.stopped"}"#);XCTAssertFalse(transport.microphone)
+        service.setPlaybackDucked(true);service.setPlaybackDucked(false);XCTAssertTrue(service.muted);XCTAssertFalse(transport.microphone)
+        service.setMuted(false);XCTAssertTrue(transport.microphone);await service.stop()
     }
 }

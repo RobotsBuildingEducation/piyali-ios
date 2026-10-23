@@ -268,13 +268,19 @@
     "file": "src/components/Conversations.jsx",
     "sha256": "85010736ae62a383795b88c192e0190b7f9b02a0d51cfa080d9b5eac8f19525d",
     "bindings": [
+      "DEFAULT_SUPPORT_LANGUAGE",
       "buildConversationResponseCreateEvent",
       "buildConversationTurnDetection",
       "buildRealtimeResumeContext",
       "buildVoicePersonaPolicy",
       "eloForUser",
+      "foundationGoalRules",
       "generationPerformanceContextFor",
       "getAdultBeginnerToneRule",
+      "getLanguagePromptName",
+      "isFoundationConversationLevel",
+      "isFoundationStarterLevel",
+      "normalizeSupportLanguage",
       "practiceLevelForElo"
     ]
   },
@@ -407,34 +413,6 @@
     ]
   },
   {
-    "file": "src/utils/conversationRealtimePolicy.js",
-    "sha256": "c157da4881b14926cd9c8b85c3ed60a447a04888de1a36469913aa64cc184bbd",
-    "bindings": [
-      "buildConversationResponseCreateEvent",
-      "buildConversationResponseInstructions",
-      "buildConversationTurnDetection",
-      "buildVoicePersonaReminder"
-    ]
-  },
-  {
-    "file": "src/utils/realtimeSessionControls.js",
-    "sha256": "355b82624878e4efdb951308d2ef9b87389001a35b3bb641c6fcd9fdae87b006",
-    "bindings": [
-      "buildRealtimeResumeContext"
-    ]
-  },
-  {
-    "file": "src/utils/cefrUtils.js",
-    "sha256": "1728261507ff4b90e05e0ccfa0717f4e1b758fc1f908fffb9c5ea3d101ab91b7",
-    "bindings": [
-      "CEFR_DESCRIPTIONS",
-      "extractCEFRLevel",
-      "getCEFRDescription",
-      "getCEFRPromptHint",
-      "normalizeCEFRLevel"
-    ]
-  },
-  {
     "file": "src/constants/languages.js",
     "sha256": "02cb1507cb2ee1b5822ac4dd98cd7faf3e67a5101a13dd6c93826f553201ab32",
     "bindings": [
@@ -465,6 +443,34 @@
       "polishFlag",
       "russianFlag",
       "usaFlag"
+    ]
+  },
+  {
+    "file": "src/utils/conversationRealtimePolicy.js",
+    "sha256": "c157da4881b14926cd9c8b85c3ed60a447a04888de1a36469913aa64cc184bbd",
+    "bindings": [
+      "buildConversationResponseCreateEvent",
+      "buildConversationResponseInstructions",
+      "buildConversationTurnDetection",
+      "buildVoicePersonaReminder"
+    ]
+  },
+  {
+    "file": "src/utils/realtimeSessionControls.js",
+    "sha256": "355b82624878e4efdb951308d2ef9b87389001a35b3bb641c6fcd9fdae87b006",
+    "bindings": [
+      "buildRealtimeResumeContext"
+    ]
+  },
+  {
+    "file": "src/utils/cefrUtils.js",
+    "sha256": "1728261507ff4b90e05e0ccfa0717f4e1b758fc1f908fffb9c5ea3d101ab91b7",
+    "bindings": [
+      "CEFR_DESCRIPTIONS",
+      "extractCEFRLevel",
+      "getCEFRDescription",
+      "getCEFRPromptHint",
+      "normalizeCEFRLevel"
     ]
   },
   {
@@ -519,6 +525,13 @@
       "getBaseLanguageCode",
       "getTutorStarterTargetExamples",
       "getTutorStarterVocabularyPairs"
+    ]
+  },
+  {
+    "file": "src/utils/starterPhrase.js",
+    "sha256": "2646aeb8aa96f2be46c4f963b435fd3653039f449b609289f2f81656cda5602b",
+    "bindings": [
+      "isFoundationStarterLevel"
     ]
   },
   {
@@ -592,6 +605,13 @@
     ]
   },
   {
+    "file": "src/constants/supportLanguages.js",
+    "sha256": "d8e8dc17f353a5106bdc984f2cce9696669bc7216be10e006738cb0a04b40b5a",
+    "bindings": [
+      "SUPPORT_LANGUAGE_CODES"
+    ]
+  },
+  {
     "file": "src/components/flagsIcons/flags.jsx",
     "sha256": "2f1101d10f316c803cd6a97b795152472ca1cad561b059aebc2bbd68309fb1f0",
     "bindings": [
@@ -621,19 +641,24 @@
     ]
   },
   {
-    "file": "src/constants/supportLanguages.js",
-    "sha256": "d8e8dc17f353a5106bdc984f2cce9696669bc7216be10e006738cb0a04b40b5a",
+    "file": "src/utils/starterPhrase.js",
+    "sha256": "2646aeb8aa96f2be46c4f963b435fd3653039f449b609289f2f81656cda5602b",
     "bindings": [
-      "SUPPORT_LANGUAGE_CODES"
-    ]
+      "generateStarterPhrase:prompt",
+      "parseStarterPhrase"
+    ],
+    "nativeAdapter": "Original starter prompt/parser; native text provider and playback."
   },
   {
     "file": "src/components/Conversations.jsx",
     "sha256": "85010736ae62a383795b88c192e0190b7f9b02a0d51cfa080d9b5eac8f19525d",
     "bindings": [
-      "buildLanguageInstructionsBase"
+      "buildLanguageInstructionsBase",
+      "generateConversationTopic:prompt",
+      "generateContextualGoal:prompt",
+      "evaluateGoalCompletion:prompt"
     ],
-    "nativeAdapter": "Original conversation prompt receives explicit private refs; audio, UI and network stay native."
+    "nativeAdapter": "Original conversation instruction, initial/contextual goal and judge expressions receive explicit private refs; audio, UI and network stay native."
   },
   {
     "file": "src/components/RealTimeTest.jsx",

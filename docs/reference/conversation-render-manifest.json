@@ -1,0 +1,57 @@
+{
+  "sources": [
+    {
+      "file": "src/components/Conversations.jsx",
+      "sha256": "85010736ae62a383795b88c192e0190b7f9b02a0d51cfa080d9b5eac8f19525d"
+    },
+    {
+      "file": "src/components/VoiceOrbNext.jsx",
+      "sha256": "391bb530fe8950fe1f74f13b2d134918d2bff10194b1bf83bc90da4561c8cb37"
+    },
+    {
+      "file": "src/components/VoiceOrb3D.jsx",
+      "sha256": "0976870d8e84c69772d503611f1d5c4f7731aaa024ea1069f6141485241edaf8"
+    },
+    {
+      "file": "src/components/orbing/createOrbScene.js",
+      "sha256": "b9c6b482b78f993d158f1df4492c8aa6e08abccdd5c41f773eb9d6cf8c3022d9"
+    },
+    {
+      "file": "src/components/orbing/orbModel.js",
+      "sha256": "ec941ded136ac1a6e320a59ff118d92da5d4dbe47482331c951597ceafcb2132"
+    },
+    {
+      "file": "src/components/ActivityActionRow.jsx",
+      "sha256": "3c23b2db2865f64c746005d756e4e101432090a95e86902fc6e55f238befbc2f"
+    },
+    {
+      "file": "src/utils/voiceCallControlStyle.js",
+      "sha256": "fbb0bf552ce06cd2c6280c0978085f82a20ab4ab69e8fdc23cfb913b7d6ca5f2"
+    },
+    {
+      "file": "src/utils/softStopButton.js",
+      "sha256": "f0ef9cb52255274d27ee5a1df22185b1765b24561e15c271b9c6fb8e84b39a6f"
+    },
+    {
+      "file": "src/utils/starterPhrase.js",
+      "sha256": "2646aeb8aa96f2be46c4f963b435fd3653039f449b609289f2f81656cda5602b"
+    },
+    {
+      "file": "src/theme.js",
+      "sha256": "6fe6093ecca51d0debb1314a587d6bd0927e7ac9f8c1ba2c6c744017e3be407e"
+    },
+    {
+      "file": "src/index.css",
+      "sha256": "79a5362dc1b189acd0d2288c0e85ff29c9cc1c8e39b8bb5cabe164ddd1c29030"
+    }
+  ],
+  "scope": "Original goal/orb and call-control JSX; fixed initial QA state. Footer host approximates the global portal slot; global app header and account/network/microphone effects omitted.",
+  "viewport": {
+    "width": 402,
+    "height": 874
+  },
+  "savedCaptureCrop": {
+    "width": 402,
+    "height": 874
+  }
+}
