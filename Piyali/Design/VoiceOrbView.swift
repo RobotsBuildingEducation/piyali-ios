@@ -3,12 +3,17 @@ import SceneKit
 import simd
 
 struct OrbFeedback:Equatable { let id=UUID();let correct:Bool }
+struct OrbDisplayReaction:Equatable {let id=UUID();let kind:String}
 
 /// A native scene, using the reference sphere, pigment expression and eye paths.
 struct VoiceOrbView:UIViewRepresentable {
     var state="idle"
     var callActive=false
     var feedback:OrbFeedback?
+    var personality:OrbDisplayPersonality?
+    var displayReaction:OrbDisplayReaction?
+    var dragging=false
+    var dragTurn=0.0
     var audioLevel=0.0
     var dark=false
     var reducedMotion=false
@@ -27,7 +32,7 @@ final class VoiceOrbHost:UIView {
     private var ripple=0.0,spiral=0.0,warp=0.0,turbulence=0.0,lastDark:Bool?
     private var reactionExpiry:Task<Void,Never>?
     private var observers:[NSObjectProtocol]=[]
-    private var foreground=true
+    private var foreground=true,pointerTurn=0.0
     override init(frame:CGRect) {
         super.init(frame:frame);backgroundColor = .clear;isUserInteractionEnabled=false
         sceneView.backgroundColor = .clear;sceneView.isOpaque=false;sceneView.scene=scene;sceneView.antialiasingMode = .multisampling4X;sceneView.preferredFramesPerSecond=40;sceneView.isPlaying=false;sceneView.rendersContinuously=false
@@ -40,9 +45,12 @@ final class VoiceOrbHost:UIView {
     override func didMoveToWindow() { super.didMoveToWindow();updateRunning() }
     func configure(_ options:VoiceOrbView) {
         self.options=options
-        if feedbackID != options.feedback?.id {
-            reactionExpiry?.cancel();feedbackID=options.feedback?.id;reactionStart=CACurrentMediaTime()
-            if let feedback=options.feedback { reactionMood=(feedback.correct ? ["joy","love","excited"] : ["curious","sad"]).randomElement();reaction=feedback.correct ? ["wave","bounce","celebrate","spin"].randomElement() : nil }
+        if options.dragging {pointerTurn=options.dragTurn}
+        let signalID=options.displayReaction?.id ?? options.feedback?.id
+        if feedbackID != signalID {
+            reactionExpiry?.cancel();feedbackID=signalID;reactionStart=CACurrentMediaTime()
+            if let display=options.displayReaction {reaction=display.kind;reactionMood=display.kind == "boop" ? "love" : nil}
+            else if let feedback=options.feedback { reactionMood=(feedback.correct ? ["joy","love","excited"] : ["curious","sad"]).randomElement();reaction=feedback.correct ? ["wave","bounce","celebrate","spin"].randomElement() : nil }
             else { reaction=nil;reactionMood=nil }
             if let id=feedbackID {
                 let duration=reaction.map {OrbVisuals.duration($0)+0.65} ?? 3.5
@@ -90,11 +98,12 @@ final class VoiceOrbHost:UIView {
     }
     private func render(dt:Double) {
         let moving=options.animating && !options.reducedMotion
-        let dt=moving ? dt : 0,amount=moving ? 0.7 : 0
+        let dt=moving ? dt : 0,amount=moving ? (options.personality == nil ? 0.7 : 1.5) : 0
         time += dt
         let elapsed=max(0,CACurrentMediaTime()-reactionStart),duration=reaction.map { OrbVisuals.duration($0) } ?? 0
         if elapsed >= (reaction == nil ? 3.5 : duration+0.65) { reactionMood=nil;reaction=nil }
-        let currentMood=reactionMood ?? (options.callActive ? defaultMood : "sleepy"),state=options.callActive && ["idle","listening","thinking","speaking"].contains(options.state) ? options.state : "idle"
+        let currentMood=reactionMood ?? options.personality?.mood ?? (options.callActive ? defaultMood : "sleepy"),state=options.personality?.state ?? (options.callActive && ["idle","listening","thinking","speaking"].contains(options.state) ? options.state : "idle")
+        if !options.dragging {pointerTurn *= exp(-dt*4.2)}
         let p=OrbVisuals.reaction(reaction ?? "",elapsed:elapsed,amount:amount)
         if time > blinkAt+0.18 { blinkAt=time+Double.random(in:2.8...5.5) }
         let blink=moving && time > blinkAt ? sin(OrbVisuals.clamp((time-blinkAt)/0.18) * .pi) : 0
@@ -104,10 +113,11 @@ final class VoiceOrbHost:UIView {
         let sleepy=currentMood == "sleepy",a=moving ? 1-exp(-dt*5.5) : 1
         tilt += ((currentMood == "curious" ? -0.15 : sleepy ? 0.11 : 0)-tilt)*a
         pitch += ((sleepy ? 0.12 : state == "listening" ? -0.06 : 0)-pitch)*a
+        let squash=p.squash+(options.dragging ? 0.075*amount : 0)
         let breath=sin(time*(sleepy ? 1.4 : 2.1))*0.018*amount,bounce=currentMood == "excited" ? abs(sin(time*4.7))*0.10*amount : 0,stretch=(state == "speaking" ? level*0.065 : level*0.018)*amount
-        let blend=Float(moving ? 1-exp(-dt*12) : 1),position=SIMD3<Float>(Float(p.x),Float(min(0.14,0.04+sin(time*1.7)*0.045*amount+p.y+bounce)),0),scale=SIMD3<Float>(Float(1.04+p.squash*0.65-breath*0.4),Float(min(1.12,1-p.squash+breath+stretch)),Float(1+p.squash*0.35))
+        let blend=Float(moving ? 1-exp(-dt*12) : 1),position=SIMD3<Float>(Float(p.x),Float(min(0.14,0.04+sin(time*1.7)*0.045*amount+p.y+bounce)),0),scale=SIMD3<Float>(Float(1.04+squash*0.65-breath*0.4),Float(min(1.12,1-squash+breath+stretch)),Float(1+squash*0.35))
         character.simdPosition += (position-character.simdPosition)*blend;character.simdScale += (scale-character.simdScale)*blend
-        let qx=simd_quatf(angle:Float(pitch+p.pitch),axis:SIMD3(1,0,0)),qy=simd_quatf(angle:Float(p.turn),axis:SIMD3(0,1,0)),qz=simd_quatf(angle:Float(tilt+p.roll+sin(time*1.15)*0.025*amount),axis:SIMD3(0,0,1));character.simdOrientation=simd_slerp(character.simdOrientation,qx*qy*qz,blend)
+        let qx=simd_quatf(angle:Float(pitch+p.pitch),axis:SIMD3(1,0,0)),qy=simd_quatf(angle:Float(p.turn+pointerTurn*amount),axis:SIMD3(0,1,0)),qz=simd_quatf(angle:Float(tilt+p.roll+sin(time*1.15)*0.025*amount),axis:SIMD3(0,0,1));character.simdOrientation=simd_slerp(character.simdOrientation,qx*qy*qz,blend)
         let flow=OrbVisuals.data["flow"][state],f=moving ? 1-exp(-dt*3) : 1
         flowSpeed += (flow["speed"].number-flowSpeed)*f;phase += dt*flowSpeed
         ripple += (flow["listening"].number-ripple)*f;spiral += (flow["speaking"].number-spiral)*f;warp += (flow["thinking"].number-warp)*f;turbulence += (flow["listening"].number*0.4+flow["thinking"].number*0.65+flow["speaking"].number-turbulence)*f

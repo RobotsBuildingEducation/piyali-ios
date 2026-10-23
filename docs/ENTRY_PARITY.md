@@ -10,7 +10,7 @@ This replaces the earlier generic welcome/account form. It is an in-progress par
 - Native language atlas uses the original twelve postcard datasets and original globe geometry, with selectable languages and translated postcard meanings. Its initial mobile structure has been ported; detailed appearance and interaction review continues.
 - Key login is still backed by the existing native Nostr identity service. Remote signing is a native alternative to the source's conditional browser extension login.
 - Capabilities tabs, original memory/proficiency content, source-drawn animated companion carousel, 23-tool expansion, original light/dark ethos and mission vectors, independent FAQ disclosures, privacy sheet and shared lower signup form are ported. Their detailed visual comparison continues.
-- Public voice uses the exact exported lesson instructions and five-turn structure with streamed microphone/model audio, transcript bubbles, cancellation and a separate Firebase demo session. A live native check returned real PCM while the learner remained signed out. Microphone turn-taking and full-session completion still need verification.
+- Public voice now follows the source five teaching turns plus sixth final-feedback response, playback-gated input, duplicate/late-event handling, retry/reset and separate Firebase demo session. Its compact bubbles, language selector, display/tutor orb and nine-bar wave follow the source component. See [public demo evidence and device limits](LANDING_DEMO.md).
 - The original orb is packaged as the iOS app icon. DM Sans regular, medium, semibold and bold are bundled and registered.
 
 ## Evidence and limits
@@ -21,6 +21,6 @@ Native checks cover guarded signup/login/back/errors, actual onboarding controls
 
 ## Still required
 
-Match scrolling header actions, floating greetings, orb interaction/motion, selected-tab rendering, proficiency-card geometry, dark atlas styling and right-to-left presentation. Finish errors/loading/accessibility and equivalent screenshots for language/theme states. Verify the entire public voice lesson with microphone input and cancellation rather than treating one returned audio response as a complete voice check.
+Match scrolling header actions, floating greetings, hero orb interaction/motion, selected-tab rendering, proficiency-card geometry, dark atlas styling and right-to-left presentation. Finish errors/loading/accessibility and equivalent screenshots for language/theme states. Verify the entire public voice lesson with physical microphone input and audible playback, beyond the controller, scripted UI and provider checks in [LANDING_DEMO.md](LANDING_DEMO.md).
 
 The first Today’s Focus/menu shell, scoped conductor and sequential lesson gates are now implemented. Distinct exercise interaction types, leaf-screen designs and complete guided-session lifecycle remain. The broad gaps are tracked in [PARITY_AUDIT.md](PARITY_AUDIT.md).

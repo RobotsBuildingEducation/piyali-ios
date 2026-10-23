@@ -23,6 +23,10 @@
     {
       "file": "node_modules/three/examples/jsm/environments/RoomEnvironment.js",
       "sha256": "c83d34dd5ec39ced21367a7571675cdaf9de1b35685c44437f86516b89a830f2"
+    },
+    {
+      "file": "src/components/realtimeArchiveStream.jsx",
+      "sha256": "6bcac1a39ebe7bf137a13d28bee5cedce9ce3be15fad35bfd6ea66f8cb4fb65a"
     }
   ],
   "environment": {

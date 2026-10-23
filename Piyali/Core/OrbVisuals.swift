@@ -67,3 +67,17 @@ public struct TutorVoiceEnvelope:Sendable {
         level += (target-level)*(1-exp(-dt/duration));if target == 0,level < 0.001 {level=0};return level
     }
 }
+
+public struct OrbDisplayPersonality:Equatable,Sendable {
+    public let mood:String,state:String,reaction:String
+    public init(mood:String,state:String,reaction:String){self.mood=mood;self.state=state;self.reaction=reaction}
+    public static func random(excludeThinking:Bool=false,data:JSONValue=OrbVisuals.data,random:()->Double={Double.random(in:0..<1)})->Self {
+        func choose(_ list:[String])->String {guard !list.isEmpty else{return "idle"};return list[min(list.count-1,max(0,Int(floor(random()*Double(list.count)))))]}
+        let states=data["states"].array.map(\.string).filter{!excludeThinking || $0 != "thinking"}
+        return .init(mood:choose(data["displayMoods"].array.map(\.string)),state:choose(states),reaction:choose(data["displayReactions"].array.map(\.string)))
+    }
+}
+extension OrbVisuals {
+    /// Conversations deliberately swaps its visual listening/speaking patterns.
+    public static func conversationState(_ state:String,data:JSONValue=OrbVisuals.data)->String {let value=data["conversationStates"][state].string;return value.isEmpty ? state : value}
+}

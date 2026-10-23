@@ -9,6 +9,9 @@ struct LandingSectionsView<Signup:View>:View {
     @State private var toolkitOpen=false
     @State private var openFAQs:Set<Int>=[]
     @State private var privacyOpen=false
+    @State private var demoTarget:String
+    @StateObject private var publicDemo=LandingDemoFixture.service()
+    init(language:String,@ViewBuilder signup:@escaping()->Signup) {self.language=language;self.signup=signup;_demoTarget=State(initialValue:EntryCopy.landingTarget(language))}
     private let companions=["ghost","alien","robot","slime","dog","axolotl"]
     private var brand:PiyaliBrand { PiyaliBrand(dark:scheme == .dark) }
     private var green:Color { scheme == .dark ? Color(red:0.47,green:0.85,blue:0.75) : Color(red:0.03,green:0.49,blue:0.42) }
@@ -37,6 +40,7 @@ struct LandingSectionsView<Signup:View>:View {
             Button(privacyTitle) { privacyOpen=true }.font(PiyaliBrand.font(14)).underline().padding(.vertical,24).accessibilityIdentifier("landingPrivacy")
         }.foregroundStyle(brand.text).padding(.horizontal,18).padding(.bottom,28)
             .sheet(isPresented:$privacyOpen) { privacy }
+            .onChange(of:language) {_,_ in demoTarget=EntryCopy.landingTarget(language);publicDemo.reset()}
     }
     private func heading(_ text:String)->some View { Text(text).font(PiyaliBrand.font(32,500)).tracking(-1.3).fixedSize(horizontal:false,vertical:true) }
     private func paragraph(_ text:String,size:CGFloat=13.6)->some View { Text(text).font(PiyaliBrand.font(size)).foregroundStyle(brand.secondary).lineSpacing(size*0.5).fixedSize(horizontal:false,vertical:true) }
@@ -50,10 +54,10 @@ struct LandingSectionsView<Signup:View>:View {
                 } }.padding(4).background(brand.surface,in:Capsule()).overlay { Capsule().stroke(brand.border) }
                 VStack(spacing:0) {
                     Group {
-                        if tab == "speak" { LandingTutorDemoView(language:language).id(language) }
+                        if tab == "speak" { LandingTutorDemoView(language:language,target:$demoTarget,demo:publicDemo).id(language) }
                         else if tab == "remember" { memoryPreview }
                         else { proficiencyPreview }
-                    }.padding(tab == "remember" ? 0 : 18).frame(maxWidth:.infinity,minHeight:345).background(brand.surface,in:RoundedRectangle(cornerRadius:18)).overlay { RoundedRectangle(cornerRadius:18).stroke(brand.border) }.padding([.horizontal,.top],18)
+                    }.padding(tab == "remember" ? 0 : 18).frame(maxWidth:.infinity,minHeight:345).background(PiyaliBrand.unitColor(scheme == .dark ? "141e2a" : "fffcf6"),in:RoundedRectangle(cornerRadius:18)).overlay { RoundedRectangle(cornerRadius:18).stroke(brand.border) }.padding([.horizontal,.top],18)
                     VStack(alignment:.leading,spacing:16) {
                         Image(systemName:tab == "speak" ? "bubble.left" : tab == "remember" ? "bookmark" : "chart.line.uptrend.xyaxis").font(.system(size:25,weight:.light)).foregroundStyle(green).frame(width:43,height:43).background(mint,in:RoundedRectangle(cornerRadius:12))
                         Text(tab == "speak" ? c("feature_tutor") : w(tab == "remember" ? "memoryTitle" : "proficiencyTitle")).font(PiyaliBrand.font(27.2,600))

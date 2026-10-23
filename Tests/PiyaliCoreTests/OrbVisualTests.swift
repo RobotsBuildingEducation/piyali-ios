@@ -28,3 +28,11 @@ extension OrbVisualTests {
         for c in try fixtures()["envelopeCases"].array { var envelope=TutorVoiceEnvelope(microphone:c["microphone"].boolean);for step in c["steps"].array {XCTAssertEqual(envelope.sample(step["amplitude"].number,elapsedMs:step["elapsedMs"].number),step["value"].number,accuracy:1e-10)} }
     }
 }
+
+extension OrbVisualTests {
+    func testDisplayPersonalitiesAndConversationPatternSwapMatchTheActualSource() throws {
+        let data=try visuals(),fixture=try fixtures()
+        for c in fixture["displayCases"].array {var i=0;let values=c["values"].array,p=OrbDisplayPersonality.random(excludeThinking:c["excludeThinking"].boolean,data:data,random:{defer{i += 1};return values[i].number});XCTAssertEqual(p.mood,c["result"]["mood"].string);XCTAssertEqual(p.state,c["result"]["state"].string);XCTAssertEqual(p.reaction,c["result"]["reaction"].string)}
+        for (state,expected) in fixture["conversationStates"].object {XCTAssertEqual(OrbVisuals.conversationState(state,data:data),expected.string)}
+    }
+}

@@ -1,0 +1,53 @@
+{
+  "sources": [
+    {
+      "file": "src/constants/languages.js",
+      "sha256": "02cb1507cb2ee1b5822ac4dd98cd7faf3e67a5101a13dd6c93826f553201ab32"
+    },
+    {
+      "file": "src/constants/supportLanguages.js",
+      "sha256": "d8e8dc17f353a5106bdc984f2cce9696669bc7216be10e006738cb0a04b40b5a"
+    },
+    {
+      "file": "src/features/publicCopy/landing/en.js",
+      "sha256": "42f0efe5eb314254ecb4b6e86e2abeacd83e359fb38144f5ea0d74131ab708fa"
+    },
+    {
+      "file": "src/features/publicCopy/landing/es.js",
+      "sha256": "e6e3b97db173459274aef72c87cdaa0fd925dd0fff5667e849084f999c0d3dda"
+    },
+    {
+      "file": "src/features/publicCopy/landing/pt.js",
+      "sha256": "cf62f7d8b2f8f1edb066df596ca44fe4fba73fb0d46de819e32c4d5a95e8c365"
+    },
+    {
+      "file": "src/features/publicCopy/landing/fr.js",
+      "sha256": "b81efc776a120922c4716515ae5c7b192bd2435b2160b6864930b0175743fc6e"
+    },
+    {
+      "file": "src/features/publicCopy/landing/it.js",
+      "sha256": "df969ce866f1cc5f9c8d25a9808502d524fbe5658126f6021b5b40d772ca4d14"
+    },
+    {
+      "file": "src/features/publicCopy/landing/de.js",
+      "sha256": "a6649e9b5af12aba38887281a05ff3537f5e7a8211143e61865c5e91b659704e"
+    },
+    {
+      "file": "src/features/publicCopy/landing/ja.js",
+      "sha256": "66362cfa0ee79caea9855cc8f761e418c0cd51f6797d1b3460a897401c45a8ea"
+    },
+    {
+      "file": "src/features/publicCopy/landing/hi.js",
+      "sha256": "e39b35b6dea382bd41ee6c7c0cc3fbb8aaf6dfa9dc86b76d67a5f5957fde944b"
+    },
+    {
+      "file": "src/features/publicCopy/landing/ar.js",
+      "sha256": "3bd84937f4010b5c436d805055f7c0c78cfe57967abf98f3c10d07daf9ab6da0"
+    },
+    {
+      "file": "src/features/publicCopy/landing/zh.js",
+      "sha256": "361fada18ec38c61de4037117f00ab02cbfc365e1d7300222a6f032782ff6957"
+    }
+  ],
+  "scope": "Actual getPracticeLanguageOptions executed with each original public copy locale. Labels include source beta tags and source tier/locale sorting. Flag renderers replaced with null only during data export."
+}
