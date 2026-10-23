@@ -11,8 +11,10 @@ import WebRTC
     @discardableResult func send(_ event:JSONValue)->Bool
     func setMicrophoneEnabled(_ enabled:Bool)
     func setRemoteAudioEnabled(_ enabled:Bool)
+    func audioAmplitude(speaking:Bool) async ->Double
     func close()
 }
+extension RealtimeVoiceTransport { func audioAmplitude(speaking:Bool) async ->Double { 0 } }
 
 /// Native WebRTC media and oai-events data channel. Only an SDP offer is sent
 /// through Cloudflare; the standard provider key never enters the app.
@@ -90,6 +92,16 @@ import WebRTC
         microphone?.isEnabled=enabled;sender?.track=enabled ? microphone : nil
     }
     func setRemoteAudioEnabled(_ enabled:Bool) { for receiver in peer?.receivers ?? [] { receiver.track?.isEnabled=enabled } }
+    func audioAmplitude(speaking:Bool) async ->Double {
+        guard let peer,!closed else { return 0 }
+        let rms:Double=await withCheckedContinuation { continuation in peer.statistics { report in
+            let levels=report.statistics.values.filter { stat in
+                stat.type == (speaking ? "inbound-rtp" : "media-source") && ((stat.values["kind"] as? String) == "audio" || (stat.values["mediaType"] as? String) == "audio")
+            }.compactMap { ($0.values["audioLevel"] as? NSNumber)?.doubleValue }.filter { $0.isFinite }
+            continuation.resume(returning:levels.max() ?? 0)
+        } }
+        guard !closed,self.peer === peer else {return 0};return min(1,max(0,rms))
+    }
     func receivedAudioBytes() async ->Int {
         guard let peer else { return 0 }
         return await withCheckedContinuation { continuation in peer.statistics { report in

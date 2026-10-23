@@ -12,6 +12,8 @@ import AVFoundation
 @Published private(set) var completedLearnerTurn=""
     @Published private(set) var learnerTurnNumber=0
     @Published private(set) var voiceState="idle"
+    @Published private(set) var audioLevel=0.0
+    private var audioMeter:Task<Void,Never>?
     @Published var error:String?
     private let configuration:AppConfiguration
     private var transport:RealtimeVoiceTransport?
@@ -60,7 +62,7 @@ import AVFoundation
             let transport=makeTransport();self.transport=transport
             transport.onOpen={ [weak self] in
                 guard let self,self.generation == run else { return }
-                self.connected=true;self.connecting=false;self.voiceState="listening";self.lastActivity=Date();self.applyMicrophone()
+                self.connected=true;self.connecting=false;self.voiceState="listening";self.lastActivity=Date();self.applyMicrophone();self.startAudioMeter(run)
                 // The intro lesson deliberately starts by listening. Private
                 // reconnect context never becomes a synthetic learner turn.
                 if conversationDraft == nil,let openingPrompt {
@@ -122,6 +124,22 @@ import AVFoundation
             onLearnerTurn?(turn.text);onConversationTurn?(turn.text,turn.answered,turn.reply)
         }
     }
+    private func startAudioMeter(_ run:UUID) {
+        audioMeter?.cancel();audioLevel=0
+        audioMeter=Task { [weak self] in
+            var envelope=TutorVoiceEnvelope(microphone:true),previousState="",last=Date()
+            while !Task.isCancelled {
+                do {try await Task.sleep(for:.milliseconds(100))} catch {return}
+                guard let self,self.generation == run,self.connected,let transport=self.transport else {return}
+                let state=self.voiceState,speaking=state == "speaking"
+                if previousState != state {envelope=TutorVoiceEnvelope(microphone:!speaking);previousState=state;last=Date()}
+                guard !self.playbackDucked,(speaking || (state == "listening" && self.state.microphoneEnabled)) else {self.audioLevel=0;continue}
+                let rms=await transport.audioAmplitude(speaking:speaking)
+                guard !Task.isCancelled,self.generation == run,self.connected,self.voiceState == state,!self.playbackDucked,(speaking || self.state.microphoneEnabled) else {continue}
+                let now=Date();self.audioLevel=envelope.sample(rms,elapsedMs:now.timeIntervalSince(last)*1000);last=now
+            }
+        }
+    }
     private func applyMicrophone() {
         let enabled=state.microphoneEnabled && !playbackDucked
         transport?.setMicrophoneEnabled(enabled && connected)
@@ -134,10 +152,10 @@ import AVFoundation
         do { let previous=instructions;try configureConversation(draft,learner:learner);if instructions != previous { send(.object(["type":.string("session.update"),"session":.object(["type":.string("realtime"),"instructions":.string(instructions)])])) } }
         catch { self.error=error.localizedDescription }
     }
-    func setMuted(_ value:Bool) { muted=value;state.setMuted(value);applyMicrophone() }
-    func setPlaybackDucked(_ value:Bool) { guard playbackDucked != value else { return };playbackDucked=value;transport?.setRemoteAudioEnabled(!value);applyMicrophone() }
+    func setMuted(_ value:Bool) { muted=value;state.setMuted(value);if value,voiceState != "speaking" {audioLevel=0};applyMicrophone() }
+    func setPlaybackDucked(_ value:Bool) { guard playbackDucked != value else { return };playbackDucked=value;if value {audioLevel=0};transport?.setRemoteAudioEnabled(!value);applyMicrophone() }
     private func close() {
-        generation=UUID();idleMonitor?.cancel();idleMonitor=nil;transport?.close();transport=nil;connected=false;connecting=false;muted=false;voiceState="idle";onLearnerTurn=nil;onConversationTurn=nil;onInputTurn=nil;onAssistantTurn=nil
+        generation=UUID();audioMeter?.cancel();audioMeter=nil;audioLevel=0;idleMonitor?.cancel();idleMonitor=nil;transport?.close();transport=nil;connected=false;connecting=false;muted=false;voiceState="idle";onLearnerTurn=nil;onConversationTurn=nil;onInputTurn=nil;onAssistantTurn=nil
     }
     func stop(clearTranscript:Bool=false) async {
         close()

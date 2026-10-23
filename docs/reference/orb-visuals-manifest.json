@@ -1,0 +1,38 @@
+{
+  "sources": [
+    {
+      "file": "src/components/orbing/orbModel.js",
+      "sha256": "ec941ded136ac1a6e320a59ff118d92da5d4dbe47482331c951597ceafcb2132"
+    },
+    {
+      "file": "src/components/orbing/orbEyeMorph.js",
+      "sha256": "ec52246004725fa4fc70ba6d4faeb90196010efcc92343d96be8b6e781f0c7e0"
+    },
+    {
+      "file": "src/components/orbing/orbFace.js",
+      "sha256": "2eba5fad63b5bec01e0835a1e99e5c86ad1df1e458d306320222094f2cbe7b52"
+    },
+    {
+      "file": "src/components/orbing/createOrbScene.js",
+      "sha256": "b9c6b482b78f993d158f1df4492c8aa6e08abccdd5c41f773eb9d6cf8c3022d9"
+    },
+    {
+      "file": "src/utils/tutorVoiceEnvelope.js",
+      "sha256": "56b5f78baa13e68fa37280bab0d3e1894a891b1ee8700f9226a661fd2237a39d"
+    },
+    {
+      "file": "node_modules/three/examples/jsm/environments/RoomEnvironment.js",
+      "sha256": "c83d34dd5ec39ced21367a7571675cdaf9de1b35685c44437f86516b89a830f2"
+    }
+  ],
+  "environment": {
+    "file": "orb-room.hdr",
+    "sha256": "0e01d95401cf09cff96b66a924a4a4a421cd35c13bb774f55423bfd745ce8911",
+    "source": "Three RoomEnvironment, captured as linear RGBE through the isolated reference fixture; no display tone mapping"
+  },
+  "tone": {
+    "file": "node_modules/three/src/renderers/shaders/ShaderChunk/tonemapping_pars_fragment.glsl.js",
+    "sha256": "447958b93d07616c83d9273829ed810eb734d02ebbe60f12fc9bdda4f7928f44"
+  },
+  "scope": "Original eye outlines, palettes, flow and reaction poses. Native spring/reaction math compared against executed source. Original default pigment expression converted from GLSL vectors to Metal for SceneKit; reward-only experimental surfaces excluded."
+}

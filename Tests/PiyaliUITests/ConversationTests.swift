@@ -22,7 +22,10 @@ import XCTest
         let reply=app.staticTexts["conversationLatestReply"];let replied=NSPredicate(format:"label CONTAINS %@","¡Hola, Ana!");expectation(for:replied,evaluatedWith:reply);waitForExpectations(timeout:12)
         photo("Native conversation live reply",app)
         tap("conversationEnd",app);XCTAssertTrue(app.staticTexts["conversationSummaryXP"].waitForExistence(timeout:10));XCTAssertTrue(app.staticTexts["conversationSummaryXP"].label.contains("+5"));XCTAssertTrue(app.staticTexts["conversationSummaryGoals"].label.contains("1"));XCTAssertTrue(app.staticTexts["conversationSummaryTurns"].label.contains("2"))
-        photo("Native conversation complete summary",app);tap("conversationSummaryDone",app)
+        XCTAssertLessThan(app.buttons["conversationSummaryDone"].frame.maxY,app.frame.maxY-100);XCTAssertGreaterThan(app.staticTexts["conversationSummaryXP"].frame.minY,100);if app.buttons["conversationStart"].exists {XCTAssertFalse(app.buttons["conversationStart"].isHittable)}
+        photo("Native conversation complete summary",app)
+        app.coordinate(withNormalizedOffset:CGVector(dx:0.5,dy:0.08)).tap();XCTAssertTrue(app.buttons["conversationStart"].waitForExistence(timeout:5))
+        tap("conversationStart",app);tap("conversationEnd",app);XCTAssertTrue(app.staticTexts["conversationSummaryXP"].waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts["conversationSummaryXP"].label.contains("+0"));tap("conversationSummaryDone",app)
         tap("conversationHistory",app);XCTAssertTrue(app.staticTexts["wrong topic"].waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts["Hola, me llamo Ana."].exists);photo("Native conversation private history",app)
         tap("conversationSave",app);app.buttons["Done"].tap()
         app.terminate();app.launch();open(app);XCTAssertTrue(app.buttons["conversationStart"].exists);XCTAssertEqual(app.staticTexts["conversationLatestReply"].label,"¡Hola, Ana! ¿Qué te gusta hacer?")
@@ -35,7 +38,7 @@ import XCTest
         let toggle=app.switches["conversationPronunciation"];XCTAssertTrue(toggle.exists);toggle.tap()
         let topics=app.textViews["conversationTopics"].exists ? app.textViews["conversationTopics"] : app.textFields["conversationTopics"];topics.tap();topics.typeText("Travel at the cafe");app.buttons["Close"].tap()
         XCTAssertTrue(app.staticTexts["conversationGoal"].waitForExistence(timeout:10));XCTAssertFalse(app.staticTexts["conversationVoiceStatus"].exists)
-        app.terminate();var args=app.launchArguments;if let index=args.firstIndex(of:"-piyali.theme") { args[index+1]="dark" };app.launchArguments=args;app.launch();open(app);photo("Native conversation initial dark",app);tap("conversationSettings",app)
+        app.terminate();var args=app.launchArguments;if let index=args.firstIndex(of:"-piyali.theme") { args[index+1]="dark" };app.launchArguments=args;app.launch();open(app);XCTAssertEqual(app.otherElements["conversationOrb"].value as? String,"Blue animated sphere");photo("Native conversation initial dark",app);tap("conversationSettings",app)
         XCTAssertTrue(app.buttons["conversationLevel"].label.contains("A2"));XCTAssertEqual(app.switches["conversationPronunciation"].value as? String,"1");let saved=app.textViews["conversationTopics"].exists ? app.textViews["conversationTopics"] : app.textFields["conversationTopics"];XCTAssertEqual(saved.value as? String,"Travel at the cafe");photo("Native conversation source settings dark",app)
     }
 }

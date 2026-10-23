@@ -4,6 +4,7 @@ struct ConversationView:View {
     @EnvironmentObject var app:AppModel
     @Environment(\.colorScheme) private var scheme
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @StateObject private var conversation=ConversationService()
     @StateObject private var speech=SpeechService()
     @StateObject private var live:LiveTutorService
@@ -47,14 +48,14 @@ struct ConversationView:View {
             .onDisappear { stop() }
             .sheet(isPresented:$showSettings,onDismiss:settingsClosed) { settingsSheet.presentationDetents([.fraction(0.8)]).presentationDragIndicator(.visible) }
             .sheet(isPresented:$showHistory) { historySheet.presentationDetents([.large]).presentationDragIndicator(.visible) }
-            .sheet(isPresented:$showSummary) { summarySheet.presentationDetents([.height(570)]).presentationDragIndicator(.visible) }
+            .fullScreenCover(isPresented:$showSummary) { summaryDialog.presentationBackground(.clear) }
     }
     private var content:some View {
         ScrollView {
             VStack(spacing:6) {
                 goalCard.padding(.horizontal,16)
                 VStack(spacing:2) {
-                    BrandArtwork(name:"piyali-orb.png").frame(width:52,height:52).frame(width:64,height:64).opacity(0.95).frame(width:112).accessibilityLabel("Tutor orb").accessibilityIdentifier("conversationOrb")
+                    VoiceOrbView(state:live.voiceState,callActive:live.connected,feedback:conversation.orbFeedback,audioLevel:live.audioLevel,dark:scheme == .dark,reducedMotion:reduceMotion,animating:scenePhase == .active && !showSummary && !showSettings && !showHistory).frame(width:64,height:64).opacity(0.95).frame(width:112).accessibilityElement(children:.ignore).accessibilityLabel("Tutor orb").accessibilityValue(scheme == .dark ? "Blue animated sphere" : "Mint animated sphere").accessibilityIdentifier("conversationOrb")
                     if paused || live.connected {
                         Text(paused ? "Paused" : live.muted ? "Muted" : t("proficiency_"+live.voiceState,live.voiceState.capitalized)).font(PiyaliBrand.productFont(12,paused || live.muted ? 600 : 400)).tracking(paused || live.muted ? 0.8 : 0).textCase(paused || live.muted ? .uppercase : nil).padding(.horizontal,10).padding(.vertical,2).background((paused ? Color.yellow : live.muted ? Color.red : .clear).opacity(0.12),in:Capsule()).accessibilityIdentifier("conversationVoiceStatus")
                     }
@@ -105,7 +106,7 @@ struct ConversationView:View {
             HStack(spacing:12) {
                 callButton(live.muted ? "mic.slash.fill" : "mic.fill",label:live.muted ? "Unmute microphone" : "Mute microphone",selected:live.muted) { live.setMuted(!live.muted) }.disabled(paused || !live.connected).accessibilityIdentifier("conversationMute")
                 callButton(paused ? "play.fill" : "pause.fill",label:paused ? "Resume conversation" : "Pause conversation",selected:paused) { if paused { start(resuming:true) } else { pause() } }.accessibilityIdentifier("conversationPause")
-                callButton("phone.down.fill",label:"End conversation",stop:true) { paused=false;starterPlaying=false;speech.stopAll();Task { await live.stop();showSummary=true } }.accessibilityIdentifier("conversationEnd")
+                callButton("phone.down.fill",label:"End conversation",stop:true) { paused=false;starterPlaying=false;speech.stopAll();Task { await live.stop();var transaction=Transaction();transaction.disablesAnimations=true;withTransaction(transaction) { showSummary=true } } }.accessibilityIdentifier("conversationEnd")
             }.frame(maxWidth:288).frame(maxWidth:.infinity)
         } else {
             Button { start() } label:{ Label(live.connecting ? t("ra_btn_starting","Starting...") : t("ra_btn_start","Start"),systemImage:"mic.fill") }.buttonStyle(ActivityPrimaryButtonStyle(tone:"speak")).disabled(live.connecting || conversation.busy || draft.goal == nil).accessibilityIdentifier("conversationStart")
@@ -159,20 +160,37 @@ struct ConversationView:View {
             Button("Save transcript to notes") { app.learner.notes.insert(.init(title:"Conversation · "+app.learner.target,body:draft.transcript),at:0);app.persist() }.buttonStyle(.bordered).accessibilityIdentifier("conversationSave")
         }.padding(16) }.background(brand.background).foregroundStyle(brand.text).navigationTitle(t("ra_conversation_log","Conversation log")).navigationBarTitleDisplayMode(.inline).toolbar { ToolbarItem(placement:.confirmationAction) { Button("Done") { showHistory=false } } } }
     }
-    private var summarySheet:some View {
-        VStack(spacing:20) {
-            StoryCharacterAvatar(name:"Piyali",portraitID:"34",size:76).padding(8).background(.white.opacity(0.2),in:Circle()).overlay { Circle().stroke(.white.opacity(0.3),lineWidth:2) }
-            Text(summary("title")).font(PiyaliBrand.productFont(26,700)).multilineTextAlignment(.center)
-            VStack(spacing:16) {
-                VStack(spacing:4) { Text(summary("xpEarned").uppercased()).font(PiyaliBrand.productFont(14)).opacity(0.82);Text("+\(max(0,draft.earnedXP-baseXP))").font(PiyaliBrand.productFont(44,700)).foregroundStyle(PiyaliBrand.unitColor("f6e05e")) }.accessibilityElement(children:.combine).accessibilityIdentifier("conversationSummaryXP")
-                HStack(spacing:12) { summaryMetric(max(0,draft.goalsCompleted-baseGoals),summary("goalsCompleted"),id:"conversationSummaryGoals");summaryMetric(max(0,draft.turns-baseTurns),summary("speakingTurns"),id:"conversationSummaryTurns") }
-                HStack { Text(t("ra_label_level","Level")+" \(app.learner.xp/100+1)");Spacer();Text(t("ra_label_xp","XP")+" \(app.learner.xp)") }.font(PiyaliBrand.productFont(12,600))
-                ProgressView(value:Double(app.learner.xp%100),total:100).tint(.yellow)
-            }.padding(20).background(.white.opacity(0.18),in:RoundedRectangle(cornerRadius:12)).overlay { RoundedRectangle(cornerRadius:12).stroke(.white.opacity(0.38),lineWidth:2) }
-            Button(summary("done")) { showSummary=false }.font(PiyaliBrand.productFont(17,700)).foregroundStyle(PiyaliBrand.unitColor("805ad5")).frame(maxWidth:.infinity,minHeight:48).background(.white,in:RoundedRectangle(cornerRadius:12)).accessibilityIdentifier("conversationSummaryDone")
-        }.padding(24).frame(maxWidth:.infinity,maxHeight:.infinity).foregroundStyle(.white).background(LinearGradient(colors:[PiyaliBrand.unitColor("667eea"),PiyaliBrand.unitColor("764ba2")],startPoint:.topLeading,endPoint:.bottomTrailing))
+    private func closeSummary() { var transaction=Transaction();transaction.disablesAnimations=true;withTransaction(transaction) {showSummary=false} }
+    private var summaryDialog:some View {
+        GeometryReader { geometry in
+            ZStack {
+                (scheme == .dark ? Color(red:2/255,green:6/255,blue:23/255).opacity(0.92) : Color(red:28/255,green:20/255,blue:12/255).opacity(0.82)).ignoresSafeArea().contentShape(Rectangle()).onTapGesture { closeSummary() }
+                ScrollView {
+                    VStack(spacing:0) {
+                        Color.clear.frame(minHeight:12,maxHeight:.infinity).contentShape(Rectangle()).onTapGesture {closeSummary()}
+                        summaryCard.frame(maxWidth:448)
+                        Color.clear.frame(minHeight:12,maxHeight:.infinity).contentShape(Rectangle()).onTapGesture {closeSummary()}
+                    }.frame(minHeight:geometry.size.height)
+                }.frame(width:geometry.size.width*0.95).scrollBounceBehavior(.basedOnSize)
+            }.frame(maxWidth:.infinity,maxHeight:.infinity).accessibilityElement(children:.contain).accessibilityIdentifier("conversationSummaryDialog")
+        }.ignoresSafeArea().accessibilityAction(.escape) { closeSummary() }
     }
-    private func summaryMetric(_ value:Int,_ label:String,id:String)->some View { VStack(spacing:4) { Text("\(value)").font(PiyaliBrand.productFont(24,700));Text(label).font(PiyaliBrand.productFont(12)).multilineTextAlignment(.center) }.frame(maxWidth:.infinity,minHeight:64).background(.white.opacity(0.12),in:RoundedRectangle(cornerRadius:8)).accessibilityElement(children:.combine).accessibilityIdentifier(id) }
+    private var summaryCard:some View {
+        VStack(spacing:16) {
+            BrandArtwork(name:StoryCharacterAvatar.appearance.portraitFile("34")).frame(width:76,height:76).padding(10).background(.white.opacity(0.2),in:Circle()).overlay { Circle().stroke(.white.opacity(0.3),lineWidth:2) }
+            Text(summary("title")).font(PiyaliBrand.productFont(24,700)).multilineTextAlignment(.center)
+            VStack(spacing:16) {
+                VStack(spacing:4) { Text(summary("xpEarned").uppercased()).font(PiyaliBrand.productFont(14)).frame(height:21).opacity(0.82);Text("+\(max(0,draft.earnedXP-baseXP))").font(PiyaliBrand.productFont(36,700)).frame(height:36).foregroundStyle(PiyaliBrand.unitColor("f6e05e")) }.accessibilityElement(children:.combine).accessibilityIdentifier("conversationSummaryXP")
+                HStack(spacing:12) { summaryMetric(max(0,draft.goalsCompleted-baseGoals),summary("goalsCompleted"),id:"conversationSummaryGoals");summaryMetric(max(0,draft.turns-baseTurns),summary("speakingTurns"),id:"conversationSummaryTurns") }
+                VStack(spacing:4) {
+                    HStack { Text(t("ra_label_level","Level")+" \(app.learner.xp/100+1)").font(PiyaliBrand.productFont(14,700));Spacer();Text(t("ra_label_xp","XP")+" \(app.learner.xp)").font(PiyaliBrand.productFont(12,800)).tracking(0.24).frame(height:18).padding(.horizontal,10).padding(.vertical,5).foregroundStyle(scheme == .dark ? PiyaliBrand.unitColor("dbe6f3") : PiyaliBrand.unitColor("6f5a47")).background(scheme == .dark ? PiyaliBrand.unitColor("111827").opacity(0.92) : PiyaliBrand.unitColor("fffdf9").opacity(0.96),in:RoundedRectangle(cornerRadius:6)) }
+                    ConversationXPBar(value:Double(app.learner.xp%100))
+                }.padding(.top,4)
+            }.padding(.horizontal,22).padding(.vertical,18).background(.white.opacity(0.18),in:RoundedRectangle(cornerRadius:12)).overlay { RoundedRectangle(cornerRadius:12).stroke(.white.opacity(0.38),lineWidth:2) }
+            Button(summary("done")) { closeSummary() }.font(PiyaliBrand.productFont(18,700)).foregroundStyle(PiyaliBrand.unitColor("6b46c1")).frame(maxWidth:.infinity,minHeight:48).background(.white,in:RoundedRectangle(cornerRadius:12)).accessibilityIdentifier("conversationSummaryDone")
+        }.padding(.horizontal,28).padding(.vertical,28).frame(maxWidth:.infinity).foregroundStyle(.white).background(LinearGradient(colors:[PiyaliBrand.unitColor("667eea"),PiyaliBrand.unitColor("764ba2")],startPoint:.topLeading,endPoint:.bottomTrailing),in:RoundedRectangle(cornerRadius:48,style:.continuous)).shadow(color:.black.opacity(0.28),radius:25,y:20)
+    }
+    private func summaryMetric(_ value:Int,_ label:String,id:String)->some View { VStack(spacing:4) { Text("\(value)").font(PiyaliBrand.productFont(24,700));Text(label).font(PiyaliBrand.productFont(12)).multilineTextAlignment(.center) }.frame(maxWidth:.infinity,minHeight:63).background(.white.opacity(0.12),in:RoundedRectangle(cornerRadius:8)).accessibilityElement(children:.combine).accessibilityIdentifier(id) }
 }
 
 private struct ConversationGoalSurface:View {
@@ -184,5 +202,19 @@ private struct ConversationGoalSurface:View {
             RadialGradient(colors:[(light ? Color.brown : Color.blue).opacity(0.12),.clear],center:.init(x:0.2,y:0.15),startRadius:0,endRadius:180)
             Canvas { context,size in var grid=Path();for x in stride(from:CGFloat(0),to:size.width,by:28) { grid.move(to:.init(x:x,y:0));grid.addLine(to:.init(x:x,y:size.height)) };for y in stride(from:CGFloat(0),to:size.height,by:28) { grid.move(to:.init(x:0,y:y));grid.addLine(to:.init(x:size.width,y:y)) };context.stroke(grid,with:.color((light ? Color.brown : Color.gray).opacity(light ? 0.012 : 0.025)),lineWidth:1) }
         }.clipShape(RoundedRectangle(cornerRadius:radius,style:.continuous))
+    }
+}
+
+private struct ConversationXPBar:View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    let value:Double
+    @State private var fill=0.0
+    var body:some View {
+        GeometryReader { geometry in
+            ZStack(alignment:.leading) {
+                Capsule().fill(.white.opacity(0.8))
+                LinearGradient(colors:[PiyaliBrand.unitColor("43e97b"),PiyaliBrand.unitColor("38f9d7")],startPoint:.leading,endPoint:.trailing).opacity(0.9).frame(width:geometry.size.width*fill)
+            }.clipShape(Capsule()).overlay { Capsule().stroke(PiyaliBrand.unitColor("ededed")) }
+        }.frame(height:15).task(id:value) { withAnimation(reduceMotion ? nil : .timingCurve(0.22,1,0.36,1,duration:0.8)) {fill=max(0,min(100,value))/100} }.accessibilityLabel("Experience progress").accessibilityValue("\(Int(value)) percent")
     }
 }

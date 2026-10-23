@@ -20,7 +20,8 @@ import FirebaseAppCheck
         print("LIVE REALTIME CHECK: native WebRTC factory created")
         do {
             let opened=expectation(description:"oai-events channel opened"),spoken=expectation(description:"assistant audio played")
-            var sessionModel="",output="",failure:String?,didStartAudio=false
+            var sessionModel="",output="",failure:String?,didStartAudio=false,peakAmplitude=0.0
+            var audioMeter:Task<Void,Never>?;defer {audioMeter?.cancel()}
             transport.onOpen={ opened.fulfill() }
             transport.onFailure={ failure=$0 }
             transport.onEvent={ event in
@@ -36,13 +37,21 @@ import FirebaseAppCheck
             try await transport.connect(session:RealtimeVoicePolicy.session(instructions:"You are a Spanish practice partner. Say exactly 'Hola, buenos días.' when asked to greet.",manualResponse:true))
             print("LIVE REALTIME CHECK: remote SDP applied")
             await fulfillment(of:[opened],timeout:20)
+            audioMeter=Task {
+                while !Task.isCancelled {
+                    peakAmplitude=max(peakAmplitude,await transport.audioAmplitude(speaking:true))
+                    do {try await Task.sleep(for:.milliseconds(50))} catch {return}
+                }
+            }
             let input:JSONValue = .object(["type":.string("conversation.item.create"),"item":.object(["type":.string("message"),"role":.string("user"),"content":.array([.object(["type":.string("input_text"),"text":.string("Greet me in Spanish.")])])])])
             let response:JSONValue = .object(["type":.string("response.create"),"response":.object(["output_modalities":.array([.string("audio")])])])
             XCTAssertTrue(transport.send(input));XCTAssertTrue(transport.send(response))
             await fulfillment(of:[spoken],timeout:35)
+            audioMeter?.cancel();await audioMeter?.value
+            XCTAssertGreaterThan(peakAmplitude,0,"Real incoming RTP audio must supply amplitude for the visual envelope.")
             XCTAssertNil(failure);XCTAssertTrue(sessionModel.hasPrefix("gpt-realtime-2.1-mini"),sessionModel)
             XCTAssertFalse(output.isEmpty);XCTAssertTrue(didStartAudio);let bytes=await transport.receivedAudioBytes();XCTAssertGreaterThan(bytes,0)
-            print("LIVE OPENAI WEBRTC: authenticated native SDP, source mini model, oai-events transcripts, playback stop and incoming audio packets verified; microphone capture disabled")
+            print("LIVE OPENAI WEBRTC: authenticated native SDP, source mini model, oai-events transcripts, playback stop, incoming audio packets and positive receiver amplitude verified; microphone capture disabled")
         } catch { transport.close();try? await Auth.auth().currentUser?.delete();try? Auth.auth().signOut();try? identity.disconnect();throw error }
         transport.close();try await Auth.auth().currentUser?.delete();try Auth.auth().signOut();try identity.disconnect()
     }
@@ -68,6 +77,11 @@ import FirebaseAppCheck
     func connect(session:JSONValue) async throws { self.session=session;onOpen?() }
     func send(_ event:JSONValue)->Bool { events.append(event);return sendsSucceed }
     func setMicrophoneEnabled(_ enabled:Bool) { microphone=enabled }
+    var amplitude=0.06
+    var amplitudeRequest:CheckedContinuation<Double,Never>?
+    var holdsAmplitude=false
+    var amplitudeStarted:XCTestExpectation?
+    func audioAmplitude(speaking:Bool) async ->Double { if holdsAmplitude {return await withCheckedContinuation {amplitudeRequest=$0;amplitudeStarted?.fulfill()}};return amplitude }
     var remoteAudio=true
     func setRemoteAudioEnabled(_ enabled:Bool) { remoteAudio=enabled }
     func close() { closed=true;microphone=false }
@@ -174,5 +188,23 @@ extension RealtimeVoiceControllerTests {
         await service.stop(clearTranscript:true);XCTAssertTrue(service.assistantTurnText.isEmpty);XCTAssertTrue(service.transcript.isEmpty)
         oldEvent?(.object(["type":.string("response.output_audio_transcript.delta"),"response_id":.string("r1"),"delta":.string(" late words")]))
         XCTAssertTrue(service.assistantTurnText.isEmpty);XCTAssertFalse(service.connected)
+    }
+}
+
+extension RealtimeVoiceControllerTests {
+    func testVisualAudioEnvelopeMutesDucksAndRejectsSamplesFromThePreviousConnection() async throws {
+        let transport=VoiceTransportFixture(),service=LiveTutorService(permission:{true},transportFactory:{transport})
+        await service.start(learner:LearnerState(),conversationDraft:ConversationDraft())
+        let audible=expectation(for:NSPredicate {_,_ in service.audioLevel > 0},evaluatedWith:nil)
+        await fulfillment(of:[audible],timeout:3)
+        service.setMuted(true);XCTAssertEqual(service.audioLevel,0)
+        try transport.receive(#"{"type":"output_audio_buffer.started"}"#)
+        let reply=expectation(for:NSPredicate {_,_ in service.audioLevel > 0},evaluatedWith:nil)
+        await fulfillment(of:[reply],timeout:3)
+        service.setPlaybackDucked(true);XCTAssertEqual(service.audioLevel,0);service.setPlaybackDucked(false)
+        transport.holdsAmplitude=true;transport.amplitudeStarted=expectation(description:"Old audio sample pending")
+        await fulfillment(of:[transport.amplitudeStarted!],timeout:3);await service.stop(clearTranscript:true)
+        transport.amplitudeRequest?.resume(returning:1);transport.amplitudeRequest=nil
+        await Task.yield();XCTAssertEqual(service.audioLevel,0);XCTAssertFalse(service.connected)
     }
 }

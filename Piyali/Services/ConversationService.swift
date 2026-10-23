@@ -12,6 +12,7 @@ extension AIService:ConversationProviding {}
     @Published private(set) var busy=false
     @Published var error: String?
     @Published private(set) var feedback=""
+    @Published private(set) var orbFeedback:OrbFeedback?
     private var generation=UUID()
     private var work:Set<UUID>=[]
     private var grading:UUID?
@@ -34,7 +35,7 @@ extension AIService:ConversationProviding {}
         return false
         #endif
     }
-    func cancel() { generation=UUID();work=[];grading=nil;pendingNextGoals=[];busy=false;error=nil;feedback="" }
+    func cancel() { generation=UUID();work=[];grading=nil;pendingNextGoals=[];busy=false;error=nil;feedback="";orbFeedback=nil }
     private func valid(_ app: AppModel, account: String, target: String, support:String, session: UUID, token: UUID) -> Bool {
         app.identity.npub == account && app.learner.target == target && app.learner.support == support && app.learner.conversation.id == session && generation == token && (app.subscription.hasAccess || fixture)
     }
@@ -133,6 +134,7 @@ extension AIService:ConversationProviding {}
         guard valid(app,account:account,target:target,support:support,session:session,token:token) else { return }
         if app.learner.conversation.goal?.id != captured?.id { verdict=nil }
         if grading == id { grading=nil }
+        if let verdict,verdict.completed || verdict.goalStillFits != false { orbFeedback=OrbFeedback(correct:verdict.completed) }
         let earned=app.learner.conversationTurn(id:id,answer:text,verdict:verdict,turnXP:fixture ? 2 : Int.random(in:1...3),goalXP:fixture ? 3 : Int.random(in:2...4));app.persist()
         feedback=(verdict?.reason ?? "Practice turn saved")+(earned > 0 ? " · +\(earned) XP" : "")
         do {
