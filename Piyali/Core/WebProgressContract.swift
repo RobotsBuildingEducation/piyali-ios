@@ -38,6 +38,8 @@ public enum WebProgressContract {
     }
     public static func imported(_ fields: [String:Any], native: LearnerState? = nil, now: Date = Date()) -> LearnerState {
         var state = native ?? LearnerState()
+        state.plateHeadlines=(fields["dailyPlateHeadline"] as? [String:Any] ?? [:]).compactMapValues(PlateHeadline.decode)
+        for (target,pending) in state.pendingPlateHeadlines ?? [:] {state.plateHeadlines?[target]=pending}
         state.acknowledgedEventIDs = Set((fields["iosRecentEventIDs"] as? [String] ?? []).compactMap(UUID.init(uuidString:)))
         state.completedConversationGoals=(state.completedConversationGoals ?? []).union(fields["iosCompletedConversationGoalIDs"] as? [String] ?? [])
         state.companionProgress = JSONValue.foundation(fields.filter { CompanionHealth.keys.contains($0.key) }.merging(CompanionHealth.reconcileFields(fields,now:now)) { _,new in new })

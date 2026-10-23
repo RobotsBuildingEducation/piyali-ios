@@ -44,7 +44,7 @@ The existing regular simulator receives the same built application without erasi
 
 ## Still open
 
-- Today's Focus still uses the fixed source fallback subtitle. The web generates, streams and caches a personalized headline from the scheduled tasks under `dailyPlateHeadline[target]`; that behavior needs a native implementation and cloud/relaunch tests.
+- Primary-provider headline streaming, original task/prompt policy, canonical caching, offline retry, scope fencing and relaunch are now implemented and checked; see [HEADLINES.md](HEADLINES.md). The Responses recovery route still delivers one final update, so equivalent fallback-provider streaming remains open.
 - Returning-day companion messages still require the web's ready blueprint preference, cleared repair recap and full repair/goal-memory comparisons. The first deterministic welcome is the journey covered here.
 - Native activity history is interactive but its full heatmap, year legend/loading/error and transitions still require a source comparison. The companion/activity and achievements buttons now use source copy.
 - The native queued/offline immersion receipt model remains in place. Source reward-claim failure/retry presentation, the complete reward particle/sound choreography and live generated-task quality need separate verification.

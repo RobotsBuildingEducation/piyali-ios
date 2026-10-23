@@ -15,6 +15,25 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
     func createProvider(with app: FirebaseApp) -> AppCheckProvider? { EmulatorAppCheckProvider() }
 }
 @MainActor final class FirestoreContractTests: XCTestCase {
+    func testHeadlinesMergeByLanguageKeepSourceLastWriteAndPreserveMembershipAndXP() async throws {
+        let (service,db,npub)=try context();try await seed(db,npub)
+        try await db.collection("users").document(npub).setData(["membership":["active":true]],merge:true)
+        let original=try requireState(await service.load(npub:npub)),today=CalendarDay.key(Date()),tomorrow=CalendarDay.shift(CalendarDay.key(Date()),by:1)
+        var first=original,second=original
+        first.storePlateHeadline(.init(dayKey:today,appLanguage:"en",text:"Ask about plans."),target:"es")
+        second.storePlateHeadline(.init(dayKey:today,appLanguage:"ar",text:"تحدث بثقة."),target:"fr")
+        async let a=service.save(first,npub:npub),b=service.save(second,npub:npub);_=try await(a,b)
+        _=try await service.save(first,npub:npub)
+        let together=try requireState(await service.load(npub:npub));XCTAssertEqual(together.plateHeadlines?["es"]?.text,"Ask about plans.");XCTAssertEqual(together.plateHeadlines?["fr"]?.appLanguage,"ar")
+        var later=together;later.storePlateHeadline(.init(dayKey:tomorrow,appLanguage:"en",text:"A new day."),target:"es");_=try await service.save(later,npub:npub)
+        let stale=try requireState(await service.save(first,npub:npub));XCTAssertEqual(stale.plateHeadlines?["es"]?.dayKey,today,"The original setDoc helper uses last-write semantics even across date changes.");XCTAssertTrue(stale.pendingPlateHeadlines?.isEmpty == true)
+        var support=stale;support.storePlateHeadline(.init(dayKey:tomorrow,appLanguage:"fr",text:"Une nouvelle journée."),target:"es");let saved=try requireState(await service.save(support,npub:npub));XCTAssertEqual(saved.plateHeadlines?["es"]?.appLanguage,"fr");XCTAssertEqual(saved.totalXP,original.totalXP)
+        let fields=try await db.collection("users").document(npub).getDocument().data() ?? [:]
+        XCTAssertEqual(WebProgressContract.integer(fields["xp"]),150)
+        XCTAssertEqual(fields["patreonVerified"] as? Bool,true)
+        XCTAssertEqual((fields["membership"] as? [String:Any])?["active"] as? Bool,true)
+        let snapshot=try JSONDecoder().decode(LearnerState.self,from:Data((fields["iosStateJSON"] as? String ?? "").utf8));XCTAssertNil(snapshot.plateHeadlines,"Canonical headlines must not be shadowed inside iosStateJSON.")
+    }
     func testQuotedAssessmentsUseTheSavedPriceAcrossConcurrentSyncAndRetriesWithoutXP() async throws {
         let (service,db,npub)=try context();try await seed(db,npub)
         try await db.collection("users").document(npub).setData(["learningIntelligence":["fr":["elo":["rating":1100,"scaleVersion":4,"totalGraded":3]]]],merge:true)

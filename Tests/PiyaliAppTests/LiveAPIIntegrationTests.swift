@@ -9,6 +9,21 @@ import NostrSDK
 
 /// Explicit opt-in only. Uses an isolated test identity, bounded prompts and no paid access grant.
 @MainActor final class LiveAPIIntegrationTests: XCTestCase {
+    func testNativePlateHeadlineStreamsPublicLessonOutcomesAndResponsesRecovery() async throws {
+        guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else{throw XCTSkip("Explicit live API opt-in required.")}
+        XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))
+        if FirebaseApp.app() == nil {AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure()};XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let identity=IdentityService();try identity.create();try await FirebaseIdentityService.shared.ensure(identity)
+        defer{try? identity.disconnect();FirebaseIdentityService.shared.clearSession()}
+        let policy=try PlateHeadlinePolicy(),summary:Piyali.JSONValue = .array([.object(["kind":.string("learn"),"topic":.string("Asking for directions"),"progress":.string("0/1")]),.object(["kind":.string("speak"),"topic":.string("Tutor conversation practice"),"progress":.string("0/1")])])
+        for (support,provider) in [("en","gemini"),("fr","gemini"),("ar","gemini"),("fr","responses")] {
+            let ai=AIService(configuration:AppConfiguration(values:AppConfiguration().values.merging(["AIProvider":provider]){_,new in new})),prompt=try policy.run("prompt",.object(["targetLang":.string("es"),"appLanguage":.string(support),"taskSummary":summary])).string
+            var updates:[String]=[],usedProvider:String?;let raw=try await ai.plateHeadline(prompt,onProvider:{usedProvider=$0}){updates.append($0)},text=try policy.clean(raw)
+            XCTAssertEqual(usedProvider,provider,"A fallback must not masquerade as a Gemini streaming check.")
+            XCTAssertFalse(text.isEmpty);XCTAssertLessThan(text.count,512);XCTAssertEqual(updates.last,raw);XCTAssertFalse(text.contains("```"));if support == "ar" {XCTAssertNotNil(text.range(of:"\\p{Arabic}",options:.regularExpression))}
+            print("HEADLINE LIVE \(support) \(provider): \(updates.count) updates; \(text)")
+        }
+    }
     func testActualCurriculumContextProducesFamilyVocabularyAndMatching() async throws {
         guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else { throw XCTSkip("Explicit live API opt-in required.") }
         XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))

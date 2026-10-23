@@ -75,6 +75,10 @@ public extension LearnerState {
     // Merge a completed sync without losing practice performed while the network request was in flight.
     static func rebased(current: LearnerState, sent: LearnerState, acknowledged: LearnerState) -> LearnerState {
         var merged = current
+        let pendingHeadlines=(current.pendingPlateHeadlines ?? [:]).filter {sent.pendingPlateHeadlines?[$0.key] != $0.value}
+        merged.plateHeadlines=acknowledged.plateHeadlines
+        merged.pendingPlateHeadlines=pendingHeadlines
+        for (target,value) in pendingHeadlines {if merged.plateHeadlines == nil {merged.plateHeadlines=[:]};merged.plateHeadlines?[target]=value}
         let sentIDs = Set((sent.pendingChanges ?? []).map(\.id))
         let newer = (current.pendingChanges ?? []).filter { !sentIDs.contains($0.id) && !(acknowledged.acknowledgedEventIDs ?? []).contains($0.id) }
         merged.pendingChanges = newer

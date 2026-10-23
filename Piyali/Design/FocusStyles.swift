@@ -1,5 +1,21 @@
 import SwiftUI
 
+struct FocusHeadlineDots:View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    var body:some View {
+        TimelineView(.animation(minimumInterval:1/20,paused:reduceMotion)) {clock in
+            Canvas {context,size in
+                for index in 0..<3 {
+                    let phase=reduceMotion ? 0.4 : (clock.date.timeIntervalSinceReferenceDate-Double(index)*0.2).truncatingRemainder(dividingBy:1.4)/1.4
+                    let strength=max(0,min(1,phase < 0.4 ? phase/0.4 : phase < 0.8 ? (0.8-phase)/0.4 : 0)),diameter=5*(0.6+strength*0.6)
+                    context.opacity=0.7*(0.25+strength*0.75)
+                    context.fill(Path(ellipseIn:CGRect(x:CGFloat(index)*9+2.5-diameter/2,y:(size.height-diameter)/2,width:diameter,height:diameter)),with:.foreground)
+                }
+            }.frame(width:23,height:21)
+        }.frame(maxWidth:.infinity,minHeight:21)
+    }
+}
+
 enum FocusCopy {
     static let source=(try? ContentLibrary.load(JSONValue.self,name:"focus-ui")) ?? .null
     static func data(_ language:String)->JSONValue { let value=source["copy"][language];return value == .null ? source["copy"]["en"] : value }

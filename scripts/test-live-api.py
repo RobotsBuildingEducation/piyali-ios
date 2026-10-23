@@ -4,9 +4,10 @@ import argparse, json, os, subprocess, uuid
 from pathlib import Path
 root = Path(__file__).resolve().parent.parent
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument('--only', choices=['lesson-content', 'realtime', 'realtime-connection', 'realtime-legacy-gemini', 'landing', 'practice', 'practice-formats', 'services', 'immersion', 'conversation', 'rpg', 'signer', 'stories', 'reading', 'exploration', 'quiz'])
+parser.add_argument('--only', choices=['headline', 'lesson-content', 'realtime', 'realtime-connection', 'realtime-legacy-gemini', 'landing', 'practice', 'practice-formats', 'services', 'immersion', 'conversation', 'rpg', 'signer', 'stories', 'reading', 'exploration', 'quiz'])
 selection = parser.parse_args().only
-methods = {'lesson-content':'testActualCurriculumContextProducesFamilyVocabularyAndMatching',
+methods = {'headline':'testNativePlateHeadlineStreamsPublicLessonOutcomesAndResponsesRecovery',
+           'lesson-content':'testActualCurriculumContextProducesFamilyVocabularyAndMatching',
            'realtime-connection':'testDefaultRealtimeModelReturnsDataEventsAndNativeWebRTCAudio',
            'realtime-legacy-gemini':'testOriginalRealtimeGoalAndJudgingWithLegacyGeminiAudio',
            'realtime':'testDefaultRealtimeModelReturnsDataEventsAndNativeWebRTCAudio',

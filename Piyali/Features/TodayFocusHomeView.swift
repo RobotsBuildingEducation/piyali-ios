@@ -8,6 +8,7 @@ struct TodayFocusHomeView:View {
     let onStart:()->Void
     let onPanel:(ProductPanel)->Void
     let onCompanionContinue:()->Void
+    @StateObject private var headline=PlateHeadlineController()
     @State private var bubbleDismissed=false
     @State private var showActivity=false
     @State private var immersionError:String?
@@ -19,6 +20,11 @@ struct TodayFocusHomeView:View {
     private var cleared:Bool {!courses.isEmpty && courses.allSatisfy(\.done)}
     private var bubbleKey:String {"piyali.companionBubbleDismissed:"+app.identity.npub+":"+app.learner.target+":"+CalendarDay.key(now)}
     private var showBubble:Bool {!cleared && !bubbleDismissed}
+    private var headlineScope:PlateHeadlineScope {.init(account:app.identity.npub,target:app.learner.target,support:language,day:CalendarDay.key(now))}
+    private var headlineCache:String? {app.learner.plateHeadline(day:CalendarDay.key(now))}
+    private var headlineText:String {headline.scope == headlineScope ? headline.text : headlineCache ?? ""}
+    private var headlineLoading:Bool {headline.scope == headlineScope ? headline.loading : headlineCache == nil && !cleared}
+    private struct HeadlineLoad:Equatable {let scope:PlateHeadlineScope,cached:String?,cleared:Bool}
     var body:some View {
         ScrollView {
             VStack(spacing:12) {
@@ -28,8 +34,10 @@ struct TodayFocusHomeView:View {
                 }.frame(maxWidth:.infinity)
                 if cleared {
                     Text(ProductCopy.text(language,"PLATE_CLEARED_COPY")).font(PiyaliBrand.productFont(16,700)).frame(maxWidth:.infinity).padding(.horizontal,16).padding(.vertical,12).foregroundStyle(PiyaliBrand.unitColor(scheme == .dark ? "faf089" : "975a16")).background(PiyaliBrand.unitColor(scheme == .dark ? "facc15" : "b7791f").opacity(0.14),in:EntryCornerShape(radius:28)).overlay{EntryCornerShape(radius:28).stroke(PiyaliBrand.unitColor(scheme == .dark ? "facc15" : "b7791f").opacity(0.5))}
+                } else if headlineText.isEmpty && headlineLoading {
+                    FocusHeadlineDots().foregroundStyle(brand.muted).accessibilityElement(children:.ignore).accessibilityLabel(EntryCopy.ui(language,"generic_loading")).accessibilityIdentifier("focusHeadlineLoading")
                 } else {
-                    OnboardingText(text:ProductCopy.text(language,"subtitle"),size:14,weight:.medium,lineHeight:19.6).foregroundStyle(brand.secondary).multilineTextAlignment(.center).padding(.horizontal,16)
+                    OnboardingText(text:headlineText.isEmpty ? ProductCopy.text(language,"subtitle") : headlineText,size:14,weight:.medium,lineHeight:19.6).foregroundStyle(brand.secondary).multilineTextAlignment(.center).padding(.horizontal,16).accessibilityIdentifier("focusHeadline")
                 }
                 VStack(spacing:10){ForEach(courses){courseRow($0)}}.opacity(showBubble ? 0.4 : 1)
                 if !cleared {
@@ -42,6 +50,13 @@ struct TodayFocusHomeView:View {
                 FocusScoreJourney(now:now,preparingImmersion:preparingImmersion,immersionError:immersionError,onRetry:{Task{await prepareImmersion()}})
             }.padding(.horizontal,12).padding(.top,16).padding(.bottom,24).frame(maxWidth:584).frame(maxWidth:.infinity)
         }.background(BrandBackground()).task(id:bubbleKey){bubbleDismissed=UserDefaults.standard.bool(forKey:bubbleKey);app.prepareDailyPlate()}.task(id:app.immersionPreparationKey){await prepareImmersion()}
+            .task(id:HeadlineLoad(scope:headlineScope,cached:headlineCache,cleared:cleared)) {
+                let scope=headlineScope
+                await headline.load(scope:scope,cached:headlineCache,cleared:cleared,policy:try? PlateHeadlinePolicy(),generate:{onChunk in
+                    let prompt=try app.plateHeadlinePrompt(scope:scope)
+                    return try await app.ai.plateHeadline(prompt,onChunk:onChunk)
+                },save:{app.savePlateHeadline($0,scope:scope)})
+            }.onDisappear{headline.cancel()}
     }
     private func courseRow(_ course:PlateCourse)->some View {
         let next=courses.first(where:{!$0.done})?.kind == course.kind,accent=PiyaliBrand.unitColor(scheme == .dark ? "81e6d9" : "285e61"),border=course.done ? PiyaliBrand.unitColor(scheme == .dark ? "81e6d9" : "319795") : course.count > 0 ? PiyaliBrand.unitColor("9f7aea") : brand.border

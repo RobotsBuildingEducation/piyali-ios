@@ -141,7 +141,7 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
         for change in (state.pendingMemoryChanges ?? []).sorted(by:{ $0.date < $1.date }) {
             try await applyMemory(change,user:user,database:database)
         }
-        var snapshotState = state; snapshotState.pendingImmersionChanges = []; snapshotState.pendingChanges = []; snapshotState.pendingMemoryChanges = []; snapshotState.pendingGoalChanges = []; snapshotState.preferencesModifiedAt = nil
+        var snapshotState = state; snapshotState.pendingPlateHeadlines = [:]; snapshotState.pendingImmersionChanges = []; snapshotState.pendingChanges = []; snapshotState.pendingMemoryChanges = []; snapshotState.pendingGoalChanges = []; snapshotState.preferencesModifiedAt = nil
         let uploaded = snapshotState
         // Keep other-device completion evidence. Preference writes occur only after an explicit local change.
         _ = try await database.runTransaction { transaction, errorPointer -> Any? in
@@ -155,10 +155,18 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                     merged.practicedModes.formUnion(remote.practicedModes)
                 }
                 merged = WebProgressContract.imported(Self.normalized(fields),native:merged)
-                merged.immersionBatch=nil;merged.immersionHistory=nil;merged.immersionRewardReceipts=nil;merged.immersionPlacementAt=nil;merged.pendingImmersionChanges=[]
+                merged.plateHeadlines=nil;merged.pendingPlateHeadlines=[:];merged.immersionBatch=nil;merged.immersionHistory=nil;merged.immersionRewardReceipts=nil;merged.immersionPlacementAt=nil;merged.pendingImmersionChanges=[]
                 // Companion memory has its own shared web document, not a second snapshot authority.
                 merged.shareNostrAchievements = nil; merged.achievementRecords = nil; merged.achievementEvidence = nil; merged.achievementLedger = nil; merged.companionProgress = nil; merged.companionMemory = nil; merged.pendingMemoryChanges = []; merged.goalIntelligence = nil; merged.goalArtifacts = nil; merged.pendingGoalChanges = []; merged.questProgress = nil; merged.journeyQuestCounts = nil; merged.tutorLessons = nil; merged.acknowledgedEventIDs = nil
                 var patch: [String:Any] = ["local_npub":npub,"iosStateJSON":String(decoding:try JSONEncoder().encode(merged),as:UTF8.self),"iosStateVersion":2,"iosUpdatedAt":FieldValue.serverTimestamp()]
+                // The shared field is the sole headline authority. Merge only
+                // dirty language entries, retaining the web's last-write
+                // behavior across local-day/timezone and support changes.
+                var headlinePatch:[String:Any]=[:]
+                for (target,value) in state.pendingPlateHeadlines ?? [:] {
+                    headlinePatch[target]=value.fields
+                }
+                if !headlinePatch.isEmpty {patch["dailyPlateHeadline"]=headlinePatch}
                 // Acknowledging guidance is monotonic and independent of
                 // preference timestamps, so a stale device cannot unsee it.
                 if state.gettingStartedModalShown == true {patch["gettingStartedModalShown"]=true}

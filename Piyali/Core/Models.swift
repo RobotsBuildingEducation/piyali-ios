@@ -113,6 +113,8 @@ public struct Note: Codable, Identifiable, Sendable {
     public var body: String
 }
 public struct LearnerState: Codable, Sendable {
+    public var plateHeadlines:[String:PlateHeadline]?
+    public var pendingPlateHeadlines:[String:PlateHeadline]?
     public var quizRuns:[String:FinalQuizRun]?
     public var quizPasses:[String:QuizRules]?
     public var explorationRuns:[String:ExplorationRun]?
