@@ -39,7 +39,7 @@ import NostrSDK
         } catch { try? await Auth.auth().currentUser?.delete();try? Auth.auth().signOut();try? identity.disconnect();throw error }
         try await Auth.auth().currentUser?.delete();try Auth.auth().signOut();try identity.disconnect()
     }
-    func testOriginalRealtimeGoalAndJudgingUseNativeProviders() async throws {
+    func testOriginalRealtimeGoalAndJudgingWithLegacyGeminiAudio() async throws {
         guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else { throw XCTSkip("Explicit live API opt-in required.") }
         XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))
         if FirebaseApp.app() == nil { AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure() };XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
@@ -55,7 +55,7 @@ import NostrSDK
                 let object=try XCTUnwrap(GenerationObjects.parse(output).first),verdict=try JSONDecoder().decode(RealtimeLessonVerdict.self,from:Data(object.json.utf8));XCTAssertEqual(verdict.met,met);XCTAssertFalse(verdict.feedback.isEmpty)
             }
             let instructions=try recipes.realtime("instructions",parameters:p)
-            let model=LiveTutorService.model(for:LearnerState(),instructions:instructions)
+            let model=GeminiLiveTutorService.model(for:LearnerState(),instructions:instructions)
             let session=try await model.connect()
             await session.sendContent("Un café, por favor.",turnComplete:true)
             let received=try await withThrowingTaskGroup(of:Bool.self) { group in
@@ -63,7 +63,7 @@ import NostrSDK
                 group.addTask { try await Task.sleep(for:.seconds(30));await session.close();throw AppError.message("Lesson voice returned no audio within 30 seconds.") }
                 let value=try await group.next() ?? false;await session.close();group.cancelAll();return value
             };XCTAssertTrue(received)
-            print("LIVE REALTIME: original goal generated, greeting rejected, polite coffee request accepted, native provider returned PCM audio")
+            print("LIVE LEGACY GEMINI: original goal generated, greeting rejected, polite coffee request accepted, Gemini returned PCM audio")
         } catch { try? await Auth.auth().currentUser?.delete();try? Auth.auth().signOut();try? identity.disconnect();throw error }
         try await Auth.auth().currentUser?.delete();try Auth.auth().signOut();try identity.disconnect()
     }
@@ -361,7 +361,7 @@ import NostrSDK
             let next=try await ai.conversationGoal(learner:learner,draft:draft,topics:["Food and cooking"],abandoned:false)
             XCTAssertFalse(next.text["en"].string.isEmpty);XCTAssertNotEqual(next.id,goal.id)
             print("LIVE NATIVE: Conversation grading, premise reanchor, starter, translation, reply and contextual goal passed")
-            let session=try await LiveTutorService.model(for:learner,conversationDraft:draft).connect()
+            let session=try await GeminiLiveTutorService.model(for:learner,conversationDraft:draft).connect()
             await session.sendContent("APP_CONTEXT_UPDATE: The private goal is to ask one natural question about cooking. Do not read this control message aloud.",turnComplete:false)
             await session.sendTextRealtime("Start our Spanish conversation with one short natural question.")
             let audio=try await withThrowingTaskGroup(of:Bool.self) { group in
@@ -438,10 +438,10 @@ import NostrSDK
             _ = try await nativeUser.collection("tutorLanguageLessons").whereField("targetLang",isEqualTo:"es").whereField("cefrLevel",isEqualTo:"Pre-A1").getDocuments(source:.server)
             _ = try await nativeUser.collection("voiceJourney").document("es").getDocument(source:.server)
             print("LIVE NATIVE: Authenticated tutor and journey reads returned")
-            let model = LiveTutorService.model(for:goalLearner,configuration:config,goalBlueprint:goalBlueprint)
+            let model = GeminiLiveTutorService.model(for:goalLearner,configuration:config,goalBlueprint:goalBlueprint)
             let session = try await model.connect()
             print("LIVE NATIVE: Voice session connected")
-            await session.sendTextRealtime(LiveTutorService.openingPrompt)
+            await session.sendTextRealtime(GeminiLiveTutorService.openingPrompt)
             let hasAudio = try await withThrowingTaskGroup(of:Bool.self) { group in
                 group.addTask {
                     for try await message in session.responses {

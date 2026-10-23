@@ -265,6 +265,20 @@
     ]
   },
   {
+    "file": "src/components/Conversations.jsx",
+    "sha256": "85010736ae62a383795b88c192e0190b7f9b02a0d51cfa080d9b5eac8f19525d",
+    "bindings": [
+      "buildConversationResponseCreateEvent",
+      "buildConversationTurnDetection",
+      "buildRealtimeResumeContext",
+      "buildVoicePersonaPolicy",
+      "eloForUser",
+      "generationPerformanceContextFor",
+      "getAdultBeginnerToneRule",
+      "practiceLevelForElo"
+    ]
+  },
+  {
     "file": "src/components/RealTimeTest.jsx",
     "sha256": "9c45b94d47afed3c84f776f7ca23b49dfc2da721cda52365bbf8402405a432a6",
     "bindings": [
@@ -374,14 +388,13 @@
     ]
   },
   {
-    "file": "src/utils/cefrUtils.js",
-    "sha256": "1728261507ff4b90e05e0ccfa0717f4e1b758fc1f908fffb9c5ea3d101ab91b7",
+    "file": "src/utils/voicePersonaPrompt.js",
+    "sha256": "b34f89fff23bdedc5a0b1e71110a65c6dd8261e616ba67cfc5814e8215395641",
     "bindings": [
-      "CEFR_DESCRIPTIONS",
-      "extractCEFRLevel",
-      "getCEFRDescription",
-      "getCEFRPromptHint",
-      "normalizeCEFRLevel"
+      "MAX_VOICE_PERSONA_LENGTH",
+      "buildVoicePersonaPolicy",
+      "buildVoicePersonaReminder",
+      "normalizeVoicePersona"
     ]
   },
   {
@@ -391,6 +404,34 @@
       "EARLY_BEGINNER_LEVELS",
       "getAdultBeginnerToneRule",
       "isEarlyBeginnerLevel"
+    ]
+  },
+  {
+    "file": "src/utils/conversationRealtimePolicy.js",
+    "sha256": "c157da4881b14926cd9c8b85c3ed60a447a04888de1a36469913aa64cc184bbd",
+    "bindings": [
+      "buildConversationResponseCreateEvent",
+      "buildConversationResponseInstructions",
+      "buildConversationTurnDetection",
+      "buildVoicePersonaReminder"
+    ]
+  },
+  {
+    "file": "src/utils/realtimeSessionControls.js",
+    "sha256": "355b82624878e4efdb951308d2ef9b87389001a35b3bb641c6fcd9fdae87b006",
+    "bindings": [
+      "buildRealtimeResumeContext"
+    ]
+  },
+  {
+    "file": "src/utils/cefrUtils.js",
+    "sha256": "1728261507ff4b90e05e0ccfa0717f4e1b758fc1f908fffb9c5ea3d101ab91b7",
+    "bindings": [
+      "CEFR_DESCRIPTIONS",
+      "extractCEFRLevel",
+      "getCEFRDescription",
+      "getCEFRPromptHint",
+      "normalizeCEFRLevel"
     ]
   },
   {
@@ -424,13 +465,6 @@
       "polishFlag",
       "russianFlag",
       "usaFlag"
-    ]
-  },
-  {
-    "file": "src/utils/realtimeSessionControls.js",
-    "sha256": "355b82624878e4efdb951308d2ef9b87389001a35b3bb641c6fcd9fdae87b006",
-    "bindings": [
-      "buildRealtimeResumeContext"
     ]
   },
   {
@@ -592,6 +626,14 @@
     "bindings": [
       "SUPPORT_LANGUAGE_CODES"
     ]
+  },
+  {
+    "file": "src/components/Conversations.jsx",
+    "sha256": "85010736ae62a383795b88c192e0190b7f9b02a0d51cfa080d9b5eac8f19525d",
+    "bindings": [
+      "buildLanguageInstructionsBase"
+    ],
+    "nativeAdapter": "Original conversation prompt receives explicit private refs; audio, UI and network stay native."
   },
   {
     "file": "src/components/RealTimeTest.jsx",

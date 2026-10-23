@@ -18,7 +18,7 @@ struct ConversationView: View {
             .onChange(of:speech.transcript) { _,text in input=text }
             .onChange(of:app.learner.target) { _,_ in stop() }
             .onChange(of:app.identity.npub) { _,_ in stop() }
-            .onChange(of:scenePhase) { _,phase in if phase != .active { stop() } }
+            .onChange(of:scenePhase) { _,phase in if phase == .background { stop() } }
             .onChange(of:app.subscription.hasAccess) { _,allowed in if !allowed { stop() } }
             .onDisappear { stop() }
             .toolbar { ToolbarItemGroup(placement:.keyboard) { Spacer();Button("Done") { replyFocused=false } } }
@@ -76,7 +76,7 @@ struct ConversationView: View {
                     }
                 }.disabled(live.connecting || conversation.busy || conversation.fixture || draft.goal == nil)
                 if live.connecting { ProgressView("Connecting…") }
-                if live.connected { Text("Microphone active · audio streamed to Firebase Gemini") }
+                if live.connected { Text("Microphone active · live conversation with Piyali") }
                 if let error=live.error { Text(error).foregroundStyle(.red) }
             }
             Section("Settings") {

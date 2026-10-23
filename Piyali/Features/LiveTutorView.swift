@@ -16,7 +16,7 @@ struct LiveTutorView: View {
         SubscriptionRequiredView(service: app.subscription) {
             List {
                 Section {
-                    Text("Speak naturally with your tutor. Microphone audio is sent to Firebase Gemini during this session.")
+                    Text("Speak naturally with your tutor. Microphone audio is sent to OpenAI during this live session.")
                     Button(live.connected ? "End voice session" : "Start voice session") {
                         Task {
                             if live.connected { await live.stop() }
@@ -65,7 +65,7 @@ struct LiveTutorView: View {
         }.navigationTitle("Live voice tutor")
             .onChange(of:live.connected) { _,connected in if connected { checkedTurn = live.learnerTurnNumber } }
             .onDisappear { Task { await live.stop() } }
-            .onChange(of: scenePhase) { _, phase in if phase != .active { Task { await live.stop() } } }
+            .onChange(of: scenePhase) { _, phase in if phase == .background { Task { await live.stop() } } }
             .onChange(of:goalBlueprint.map { app.goalIsCurrent($0) } ?? true) { _,valid in if !valid { Task { await live.stop() } } }
             .onChange(of:app.learner.target) { _,_ in Task { await live.stop() } }
             .onChange(of:app.identity.npub) { _,_ in Task { await live.stop() } }

@@ -7,6 +7,7 @@ preview_urls = false
 
 [vars]
 ALLOWED_RESPONSE_MODELS = "gpt-6-luna,gpt-5-nano"
+REALTIME_MODEL = "gpt-realtime-2.1-mini"
 FIREBASE_PROJECT_ID = "piyali-ios"
 FIREBASE_PROJECT_NUMBER = "861709486546"
 FIREBASE_APP_ID = "1:861709486546:ios:edbba9ce75380765bc200b"
@@ -27,6 +28,11 @@ simple = { limit = 20, period = 60 }
 [[ratelimits]]
 name = "DEMO_RATE_LIMITER"
 namespace_id = "861709488"
+simple = { limit = 5, period = 60 }
+
+[[ratelimits]]
+name = "REALTIME_RATE_LIMITER"
+namespace_id = "861709489"
 simple = { limit = 5, period = 60 }
 
 [[ratelimits]]

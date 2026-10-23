@@ -41,7 +41,7 @@ struct RealtimeLessonView:View {
             .onChange(of:app.learner.target) { _,_ in stop() }
             .onChange(of:app.learner.support) { _,_ in stop() }
             .onChange(of:app.subscription.hasAccess) { _,allowed in if !allowed { stop() } }
-            .onChange(of:scenePhase) { _,phase in if phase != .active { stop() } }
+            .onChange(of:scenePhase) { _,phase in if phase == .background { stop() } }
             .onDisappear { stop() }
             .sheet(isPresented:$showHistory) { NavigationStack { List { ForEach(run?.messages ?? []) { message in VStack(alignment:.leading,spacing:8) { Text(message.role == "user" ? t("ra_you","You") : "Piyali").font(.caption);Text(message.text).textSelection(.enabled);Button(t("story_listen","Listen")) { speech.speak(message.text,language:app.learner.target) }.buttonStyle(.borderless) } };if let run,!run.messages.isEmpty { Button("Save transcript to notes") { app.learner.notes.insert(.init(title:run.title,body:run.messages.map { ($0.role == "user" ? "You: " : "Piyali: ")+$0.text }.joined(separator:"\n")),at:0);app.persist() } } }.navigationTitle(t("ra_chat_log","Chat log")).toolbar { ToolbarItem(placement:.confirmationAction) { Button("Done") { showHistory=false } } } }.presentationDetents([.large]) }
     }

@@ -13,6 +13,9 @@ settings:
     MARKETING_VERSION: '0.1.0'
     CURRENT_PROJECT_VERSION: '1'
 packages:
+  WebRTC:
+    url: https://github.com/jitsi/webrtc.git
+    revision: 9edb2100fc29f847b5d01def716a979daf397901
   Firebase:
     url: https://github.com/firebase/firebase-ios-sdk.git
     from: 12.19.2
@@ -42,6 +45,8 @@ targets:
             fi
           done
     dependencies:
+      - package: WebRTC
+        product: WebRTC
       - package: Firebase
         product: FirebaseCore
       - package: Firebase

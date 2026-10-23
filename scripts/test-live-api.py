@@ -4,10 +4,12 @@ import argparse, json, os, subprocess, uuid
 from pathlib import Path
 root = Path(__file__).resolve().parent.parent
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument('--only', choices=['lesson-content', 'realtime', 'landing', 'practice', 'practice-formats', 'services', 'immersion', 'conversation', 'rpg', 'signer', 'stories', 'reading', 'exploration', 'quiz'])
+parser.add_argument('--only', choices=['lesson-content', 'realtime', 'realtime-connection', 'realtime-legacy-gemini', 'landing', 'practice', 'practice-formats', 'services', 'immersion', 'conversation', 'rpg', 'signer', 'stories', 'reading', 'exploration', 'quiz'])
 selection = parser.parse_args().only
 methods = {'lesson-content':'testActualCurriculumContextProducesFamilyVocabularyAndMatching',
-           'realtime':'testOriginalRealtimeGoalAndJudgingUseNativeProviders',
+           'realtime-connection':'testDefaultRealtimeModelReturnsDataEventsAndNativeWebRTCAudio',
+           'realtime-legacy-gemini':'testOriginalRealtimeGoalAndJudgingWithLegacyGeminiAudio',
+           'realtime':'testDefaultRealtimeModelReturnsDataEventsAndNativeWebRTCAudio',
            'landing':'testPublicLandingDemoReturnsLiveAudioWithoutAccount',
            'practice':'testOriginalPracticeRecipesGenerateAndJudgeNativeQuestionContracts',
            'practice-formats':'testEveryOriginalPracticeFormatProducesAUsableNativeQuestion',
@@ -27,6 +29,6 @@ env.update(TEST_RUNNER_PIYALI_OFFLINE_TESTS='1', TEST_RUNNER_PIYALI_LIVE_API_TES
            TEST_RUNNER_PIYALI_TEST_IDENTITY_SCOPE=str(uuid.uuid4()), TEST_RUNNER_FIRAAppCheckDebugToken=token)
 if selection == 'exploration':
     env['TEST_RUNNER_PIYALI_EXPLORATION_DIAGNOSTICS_DIR'] = str(root / '.secrets/exploration-diagnostics')
-test = 'PiyaliTests/LiveAPIIntegrationTests' + ('/' + methods[selection] if selection else '')
+test = ('PiyaliTests/RealtimeConnectionTests' if selection in ('realtime','realtime-connection') else 'PiyaliTests/LiveAPIIntegrationTests') + ('/' + methods[selection] if selection else '')
 subprocess.run([str(root / 'scripts/test-ios.sh'), '-only-testing:' + test],
                cwd=root, env=env, check=True)

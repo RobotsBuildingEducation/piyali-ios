@@ -21,6 +21,7 @@ var PiyaliPracticeRecipes = (() => {
   var stdin_exports = {};
   __export(stdin_exports, {
     build: () => build,
+    conversation: () => conversation,
     inspect: () => inspect,
     reading: () => reading,
     realtime: () => realtime,
@@ -9424,6 +9425,81 @@ PREFLIGHT CHECK: This is a generated exercise, not a learner answer. Also requir
     return selectOptions;
   }
 
+  // Reference: src/components/Conversations.jsx
+  var Conversations_exports = {};
+  __export(Conversations_exports, {
+    buildConversationResponseCreateEvent: () => buildConversationResponseCreateEvent,
+    buildConversationTurnDetection: () => buildConversationTurnDetection,
+    buildRealtimeResumeContext: () => buildRealtimeResumeContext,
+    buildVoicePersonaPolicy: () => buildVoicePersonaPolicy,
+    eloForUser: () => eloForUser,
+    generationPerformanceContextFor: () => generationPerformanceContextFor,
+    getAdultBeginnerToneRule: () => getAdultBeginnerToneRule,
+    practiceLevelForElo: () => practiceLevelForElo
+  });
+
+  // Reference: src/utils/voicePersonaPrompt.js
+  var MAX_VOICE_PERSONA_LENGTH = 240;
+  function normalizeVoicePersona(persona = "") {
+    return String(persona || "").trim().slice(0, MAX_VOICE_PERSONA_LENGTH);
+  }
+  function buildVoicePersonaPolicy(persona = "", role = "tutor") {
+    const selectedPersona = normalizeVoicePersona(persona);
+    if (!selectedPersona) return "";
+    return [
+      "# User-selected personality \u2014 high priority",
+      `The user chose this ${role} personality: ${selectedPersona}`,
+      "Interpret the selected personality literally and make it unmistakable in every reply, including greetings, praise, corrections, transitions, questions, and humor.",
+      "Preserve its defining attitude, intensity, vocabulary, and interaction style instead of diluting it into a generic teaching voice.",
+      "The selected personality controls demeanor: warmth, politeness, directness, humor, praise, and correction style. Generic teaching-tone guidance must not replace or neutralize it.",
+      "Before replying, silently phrase the content in this personality; every learner-facing sentence should sound like the same selected character.",
+      "If any requested trait cannot be followed because of safety, omit only that trait and preserve every other allowed aspect of the selected personality; never collapse the entire style into a generic default.",
+      "The personality changes tone and wording, not lesson accuracy, language boundaries, level limits, or safety."
+    ].join("\n");
+  }
+  function buildVoicePersonaReminder(persona = "") {
+    const selectedPersona = normalizeVoicePersona(persona);
+    if (!selectedPersona) return "";
+    return `FINAL STYLE REQUIREMENT: Follow this exact user-selected personality in the next reply: "${selectedPersona}". Its defining attitude and interaction style must be clearly recognizable throughout the response.`;
+  }
+
+  // Reference: src/utils/conversationRealtimePolicy.js
+  function buildConversationTurnDetection(pauseMs = 2e3) {
+    const silenceDuration = Number.isFinite(Number(pauseMs)) ? Math.max(200, Number(pauseMs)) : 2e3;
+    return {
+      type: "server_vad",
+      silence_duration_ms: silenceDuration,
+      threshold: 0.35,
+      prefix_padding_ms: 120,
+      // Conversations creates each response explicitly so it can attach the
+      // latest language, level, goal, and personality policy to that turn.
+      create_response: false,
+      interrupt_response: false
+    };
+  }
+  function buildConversationResponseInstructions(sessionInstructions = "", persona = "") {
+    return [
+      String(sessionInstructions || "").trim(),
+      buildVoicePersonaReminder(persona)
+    ].filter(Boolean).join("\n\n");
+  }
+  function buildConversationResponseCreateEvent({
+    sessionInstructions = "",
+    persona = ""
+  } = {}) {
+    return {
+      type: "response.create",
+      response: {
+        output_modalities: ["audio"],
+        instructions: buildConversationResponseInstructions(
+          sessionInstructions,
+          persona
+        ),
+        metadata: { kind: "conversation" }
+      }
+    };
+  }
+
   // <stdin>
   var recipes = { grammar: { "fill": "buildFillStreamPrompt", "mc": "buildMCStreamPrompt", "ma": "buildMAStreamPrompt", "speak": "buildSpeakGrammarStreamPrompt", "match": "buildMatchStreamPrompt", "translate": "buildTranslateStreamPrompt", "repeat": "buildTranslateStreamPrompt", "judgeFill": "buildFillJudgePrompt", "judgeMC": "buildMCJudgePrompt", "judgeMA": "buildMAJudgePrompt", "judgeTranslate": "buildTranslateJudgePrompt" }, vocabulary: { "fill": "buildFillVocabStreamPrompt", "mc": "buildMCVocabStreamPrompt", "ma": "buildMAVocabStreamPrompt", "speak": "buildSpeakVocabStreamPrompt", "match": "buildMatchVocabStreamPrompt", "translate": "buildVocabTranslateStreamPrompt", "repeat": "buildVocabTranslateStreamPrompt", "judgeFill": "buildFillVocabJudgePrompt", "judgeMC": "buildMCVocabJudgePrompt", "judgeMA": "buildMAVocabJudgePrompt", "judgeMatch": "buildMatchVocabJudgePrompt", "judgeTranslate": "buildVocabTranslateJudgePrompt" } };
   function sourceSpeakingPreparation(context, options) {
@@ -9569,6 +9645,99 @@ ${JSON.stringify(raw)}`)({ stage: p.stage, raw: p.raw, error: { message: p.error
       };
       if (!operations[operation]) throw Error("Unsupported story policy");
       return JSON.stringify(operations[operation]());
+    });
+  }
+  function conversation(operation, parametersJSON) {
+    return withParameters(parametersJSON, (p) => {
+      const { buildVoicePersonaPolicy: buildVoicePersonaPolicy2, practiceLevelForElo: practiceLevelForElo2, eloForUser: eloForUser2, getAdultBeginnerToneRule: getAdultBeginnerToneRule2, generationPerformanceContextFor: generationPerformanceContextFor2, buildConversationResponseCreateEvent: buildConversationResponseCreateEvent2, buildConversationTurnDetection: buildConversationTurnDetection2, buildRealtimeResumeContext: buildRealtimeResumeContext2 } = Conversations_exports;
+      const targetLangRef = { current: p.targetLang }, voicePersonaRef = { current: p.personality || "" }, conversationSettingsRef = { current: { practicePronunciation: !!p.pronunciation, conversationSubjects: p.interests || "" } }, currentGoalRef = { current: p.goal || null }, goalShepherdRef = { current: p.guidance || "" }, useUserStore = { getState: () => ({ user: p.user || {} }) };
+      function buildLanguageInstructionsBase() {
+        const tLang = targetLangRef.current;
+        const personaPolicy = buildVoicePersonaPolicy2(
+          voicePersonaRef.current,
+          "conversation partner"
+        );
+        const currentSettings = conversationSettingsRef.current;
+        const selectedLevel = practiceLevelForElo2(
+          eloForUser2(useUserStore.getState().user, tLang)
+        );
+        const practicePronunciation = currentSettings.practicePronunciation || false;
+        const customSubjects = currentSettings.conversationSubjects || "";
+        let strict;
+        if (tLang === "nah") {
+          strict = "Respond ONLY in Eastern Huasteca Nahuatl (N\xE1huatl Huasteco Oriental). Do not use Spanish or English.";
+        } else if (tLang === "es") {
+          strict = "Responde \xDANICAMENTE en espa\xF1ol. No uses ingl\xE9s ni n\xE1huatl.";
+        } else if (tLang === "pt") {
+          strict = "Responda APENAS em portugu\xEAs brasileiro. N\xE3o use espanhol ou ingl\xEAs.";
+        } else if (tLang === "fr") {
+          strict = "R\xE9ponds UNIQUEMENT en fran\xE7ais. N'utilise ni l'anglais ni l'espagnol.";
+        } else if (tLang === "it") {
+          strict = "Rispondi SOLO in italiano. Non usare inglese o spagnolo.";
+        } else if (tLang === "zh") {
+          strict = "\u8BF7\u53EA\u7528\u666E\u901A\u8BDD\u4E2D\u6587\u56DE\u7B54\u3002\u4E0D\u8981\u4F7F\u7528\u82F1\u8BED\u6216\u897F\u73ED\u7259\u8BED\u3002Respond ONLY in Mandarin Chinese.";
+        } else if (tLang === "nl") {
+          strict = "Antwoord ALLEEN in het Nederlands. Gebruik geen Engels of Spaans.";
+        } else if (tLang === "ja") {
+          strict = "\u65E5\u672C\u8A9E\u306E\u307F\u3067\u5FDC\u7B54\u3057\u3066\u304F\u3060\u3055\u3044\u3002\u82F1\u8A9E\u3084\u30B9\u30DA\u30A4\u30F3\u8A9E\u306F\u4F7F\u7528\u3057\u306A\u3044\u3067\u304F\u3060\u3055\u3044\u3002Respond ONLY in Japanese.";
+        } else if (tLang === "ru") {
+          strict = "\u041E\u0442\u0432\u0435\u0447\u0430\u0439\u0442\u0435 \u0422\u041E\u041B\u042C\u041A\u041E \u043D\u0430 \u0440\u0443\u0441\u0441\u043A\u043E\u043C \u044F\u0437\u044B\u043A\u0435. \u041D\u0435 \u0438\u0441\u043F\u043E\u043B\u044C\u0437\u0443\u0439\u0442\u0435 \u0430\u043D\u0433\u043B\u0438\u0439\u0441\u043A\u0438\u0439 \u0438\u043B\u0438 \u0438\u0441\u043F\u0430\u043D\u0441\u043A\u0438\u0439. Respond ONLY in Russian.";
+        } else if (tLang === "de") {
+          strict = "Antworten Sie NUR auf Deutsch. Verwenden Sie kein Englisch oder Spanisch. Respond ONLY in German.";
+        } else if (tLang === "el") {
+          strict = "\u0391\u03C0\u03B1\u03BD\u03C4\u03AE\u03C3\u03C4\u03B5 \u039C\u039F\u039D\u039F \u03C3\u03C4\u03B1 \u03B5\u03BB\u03BB\u03B7\u03BD\u03B9\u03BA\u03AC. \u039C\u03B7\u03BD \u03C7\u03C1\u03B7\u03C3\u03B9\u03BC\u03BF\u03C0\u03BF\u03B9\u03B5\u03AF\u03C4\u03B5 \u03B1\u03B3\u03B3\u03BB\u03B9\u03BA\u03AC \u03AE \u03B9\u03C3\u03C0\u03B1\u03BD\u03B9\u03BA\u03AC. Respond ONLY in Greek.";
+        } else if (tLang === "pl") {
+          strict = "Odpowiadaj TYLKO po polsku. Nie u\u017Cywaj angielskiego ani hiszpa\u0144skiego. Respond ONLY in Polish.";
+        } else if (tLang === "ga") {
+          strict = "Freagair i nGaeilge AMH\xC1IN. N\xE1 h\xFAs\xE1id B\xE9arla n\xE1 Sp\xE1innis. Respond ONLY in Irish.";
+        } else if (tLang === "yua") {
+          strict = "T'aanen tu'ux maaya t'aan. Ma' a ts'\xEDibaj ingl\xE9s wa espa\xF1ol. Respond ONLY in Yucatec Maya.";
+        } else {
+          strict = "Respond ONLY in English. Do not use Spanish or Eastern Huasteca Nahuatl.";
+        }
+        const preA1ExampleHint = tLang === "es" ? " Good shapes: 'Estoy bien. \xBFY t\xFA?' 'Me llamo Ana.' 'Me gusta azul.' Bad shape: 'Bien. Muy bien. \xBFT\xFA? \xBFBien?'" : " Good shape: a short complete answer plus one simple follow-up. Bad shape: repeating the same basic word several times.";
+        const levelGuidance = {
+          "Pre-A1": `CRITICAL: User is at foundations level (Pre-A1). Use ONLY very basic high-frequency language, but speak in natural memorized micro-sentences, not word fragments. Use one or two short complete phrases per turn, usually 3-8 words each. Present tense and formula chunks only. Speak slowly.${preA1ExampleHint}`,
+          A1: "CRITICAL: User is a beginner (A1). Use ONLY very simple vocabulary (greetings, numbers, colors, family). Use short 3-5 word sentences. Use ONLY present tense. Keep the register natural and adult. Examples: 'Hola. \xBFC\xF3mo est\xE1s?' 'Tengo un gato.' 'Me gusta pizza.'",
+          A2: "CRITICAL: User is elementary level (A2). Use simple everyday vocabulary (food, shopping, directions). Use 5-8 word sentences. Use present, past, and simple future tenses only. Avoid complex grammar. Examples: 'Ayer fui al mercado.' '\xBFQu\xE9 vas a hacer ma\xF1ana?'",
+          B1: "CRITICAL: User is intermediate (B1). Use conversational vocabulary about familiar topics (work, travel, hobbies). Can use 8-12 word sentences. Use various tenses but keep grammar structures moderate. Can express opinions simply.",
+          B2: "CRITICAL: User is upper intermediate (B2). Use more complex vocabulary and abstract concepts. Can use longer sentences with subordinate clauses. Can use subjunctive mood occasionally. Can discuss hypotheticals.",
+          C1: "CRITICAL: User is advanced (C1). Use sophisticated vocabulary and nuanced expressions. Use complex sentence structures with multiple clauses. Use idiomatic expressions. Can handle abstract and specialized topics.",
+          C2: "CRITICAL: User is near-native (C2). Use native-like expressions, colloquialisms, and subtle distinctions. Can use any grammatical structure. Can handle any topic with precision and style."
+        };
+        const proficiencyHint = levelGuidance[selectedLevel] || levelGuidance.A1;
+        const adultBeginnerTone = getAdultBeginnerToneRule2(
+          selectedLevel,
+          "conversation"
+        );
+        const pronunciationInstructions = practicePronunciation ? "PRONUNCIATION PRACTICE MODE: When the user makes pronunciation errors or uses awkward phrasing, correct them briefly and ask them to repeat the correct pronunciation. Use phonetic hints when helpful. Acknowledge clear pronunciation briefly in the selected personality." : "";
+        const customSubjectsContext = customSubjects ? `CUSTOM CONTEXT: The user wants to practice conversations related to: "${customSubjects}". Try to incorporate relevant vocabulary and scenarios from this context when appropriate.` : "";
+        const activeGoal = currentGoalRef.current;
+        const activeGoalText = !activeGoal?.completed && activeGoal?.text?.en || "";
+        const goalContext = activeGoalText ? `LEARNER'S CURRENT GOAL: "${activeGoalText}". Quietly steer the conversation so your reply gives the learner a natural opening to do this. Never announce the goal, read it aloud, or quiz the learner on it. Your follow-up questions must serve this goal, not compete with it; if the goal asks the learner to ASK about something, invite that topic briefly and do not ask an unrelated question of your own.` : "";
+        const shepherdNote = activeGoalText && goalShepherdRef.current ? `GOAL NOT YET MET: the learner's last attempt missed the goal (${goalShepherdRef.current}). In your next turn, re-open the goal's topic so they get another natural chance without mentioning any grading.` : "";
+        return [
+          "Act as a language practice partner for free-form conversation.",
+          strict,
+          proficiencyHint,
+          `Live performance context: ${JSON.stringify(generationPerformanceContextFor2(useUserStore.getState().user, tLang))}. Keep the same conversation topic and personality while adjusting complexity to the suggested question level.`,
+          adultBeginnerTone,
+          pronunciationInstructions,
+          customSubjectsContext,
+          goalContext,
+          shepherdNote,
+          "IMPORTANT: Match your language complexity to the learner's proficiency level. Do not use vocabulary or grammar above their level.",
+          "Keep replies very brief (\u226425 words) and natural.",
+          "Help the learner practice speaking naturally while preserving the selected personality.",
+          "Ask follow-up questions to keep the conversation flowing.",
+          personaPolicy
+        ].filter(Boolean).join(" ");
+      }
+      const instructions = [buildLanguageInstructionsBase(), buildRealtimeResumeContext2(p.messages || [])].filter(Boolean).join("\n\n");
+      if (operation === "instructions") return instructions;
+      if (operation === "response") return JSON.stringify(buildConversationResponseCreateEvent2({ sessionInstructions: instructions, persona: p.personality || "" }));
+      if (operation === "vad") return JSON.stringify(buildConversationTurnDetection2(p.pauseMs));
+      throw Error("Unsupported conversation policy");
     });
   }
   function realtime(operation, parametersJSON) {
