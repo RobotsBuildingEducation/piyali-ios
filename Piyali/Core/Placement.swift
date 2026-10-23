@@ -40,6 +40,7 @@ public extension LearnerState {
     var flashcardLevel: String { flashcardLevels?[target] ?? level }
     mutating func place(_ placement: Placement) {
         guard LearningLanguages.levels.contains(placement.level) else { return }
+        legacyFirstRunPlacement=nil
         var placement = placement; placement.gradedAtPlacement = gradedByLanguage?[target] ?? 0
         if placements == nil { placements = [:] }; placements?[target] = placement
         if pendingPlacements == nil { pendingPlacements = [:] }; pendingPlacements?[target] = placement

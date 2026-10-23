@@ -1,0 +1,41 @@
+{
+  "character": {
+    "id": "39",
+    "file": "src/assets/40.webp"
+  },
+  "sources": [
+    {
+      "file": "src/App.jsx",
+      "sha256": "eb7e06e1422cac6d205059dc92d68370bec40c1009c1a316f0c2d3eb5f325fd6"
+    },
+    {
+      "file": "src/components/GettingStartedModal.jsx",
+      "sha256": "77013aa8090df95b9a8af96c8cbfa0d0f3a16f38426deb0c08d12c2a5857d75f"
+    },
+    {
+      "file": "src/components/ProficiencyTestModal.jsx",
+      "sha256": "02041215b955d5b380a70ff71b9ab63896538b353100c5d2b836d7af566b5e1f"
+    },
+    {
+      "file": "src/components/DailyPlateHome.jsx",
+      "sha256": "92310a11263430a66a3e11a6cfe9046432606670e22ab079f682736dc5683cf7"
+    },
+    {
+      "file": "src/theme.js",
+      "sha256": "6fe6093ecca51d0debb1314a587d6bd0927e7ac9f8c1ba2c6c744017e3be407e"
+    },
+    {
+      "file": "src/index.css",
+      "sha256": "79a5362dc1b189acd0d2288c0e85ff29c9cc1c8e39b8bb5cabe164ddd1c29030"
+    },
+    {
+      "file": "src/components/RandomCharacter.jsx",
+      "sha256": "926ca4aa285166d5b47908dfe92c135ed25eaba567ffd5d2476204af5980b729"
+    },
+    {
+      "file": "src/assets/40.webp",
+      "sha256": "607f7c208ed11ee9f47738e1b73e1171933e7a53d858726e225ef7e5a1d1f083"
+    }
+  ],
+  "scope": "Actual companion Continue, proficiency guard and GettingStarted Skip callbacks executed directly for 72 combinations, with identity/storage/render/sound/network effects replaced by inert fixture setters. Flag writing is stubbed; native Firestore behavior is checked separately. Native app-installed acknowledgement and authenticated expiring/local-only key copying are platform adaptations. The five original browser installation steps remain available."
+}

@@ -85,6 +85,7 @@ struct AccountView: View {
     @State private var backup: String?
     @State private var importKey = ""
     @State private var importConfirmation = false
+    @State private var gettingStarted=false
     @FocusState private var goalFocused: Bool
     var body: some View {
         Form {
@@ -99,6 +100,7 @@ struct AccountView: View {
                 Button("Save preferences") { app.persist(); Task { await app.reloadContent() } }
             }
             Section("Your Nostr identity") {
+                Button(FirstRunCopy.text(app.learner.support,0)) {gettingStarted=true}.accessibilityIdentifier("accountGettingStarted")
                 Text(app.identity.npub).font(.caption).textSelection(.enabled)
                 if app.identity.isRemote {
                     Text("Connected through your remote signer. Your main private key stays with that signer.").font(.footnote)
@@ -135,6 +137,12 @@ struct AccountView: View {
                         Text(backup ?? "").textSelection(.enabled).privacySensitive().font(.caption)
                     }.padding().navigationTitle("Private key backup").toolbar { Button("Done") { backup = nil } }
                 }
+            }
+            .fullScreenCover(isPresented:$gettingStarted) {
+                ZStack {
+                    Color.black.opacity(0.82).ignoresSafeArea().onTapGesture {gettingStarted=false;app.learner.gettingStartedModalShown=true;app.persist()}
+                    GettingStartedView {gettingStarted=false;app.learner.gettingStartedModalShown=true;app.persist()}
+                }.presentationBackground(.clear).environment(\.layoutDirection,app.learner.support == "ar" ? .rightToLeft : .leftToRight)
             }
             .confirmationDialog("Switch to another account? Your current progress is saved on this iPhone.", isPresented: $importConfirmation) {
                 Button("Switch account") { Task { await app.signIn(nsec: importKey); importKey = "" } }

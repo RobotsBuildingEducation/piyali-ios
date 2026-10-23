@@ -1,5 +1,6 @@
 import XCTest
 import UIKit
+import CryptoKit
 import SwiftUI
 @testable import Piyali
 
@@ -11,10 +12,12 @@ import SwiftUI
         XCTAssertTrue(prompt.contains("Create ONE short Spanish grammar fill-in-the-blank"));XCTAssertTrue(prompt.contains("\"type\":\"fill\""))
     }
     func testOriginalArtworkAndFontsDecodeFromTheBuiltApp() throws {
-        for name in ["piyali-orb.png","onboarding-character.webp"] {
+        for name in ["piyali-orb.png","onboarding-character.webp","getting-started-character.webp"] {
             let url=try XCTUnwrap(Bundle.main.url(forResource:name,withExtension:nil));let image=try XCTUnwrap(UIImage(contentsOfFile:url.path),name)
             XCTAssertGreaterThan(image.size.width,100);XCTAssertGreaterThan(image.size.height,100)
         }
+        let setup=try Data(contentsOf:try XCTUnwrap(Bundle.main.url(forResource:"getting-started-character.webp",withExtension:nil)))
+        XCTAssertEqual(SHA256.hash(data:setup).map{String(format:"%02x",$0)}.joined(),"607f7c208ed11ee9f47738e1b73e1171933e7a53d858726e225ef7e5a1d1f083","Source character ID 39 resolves through RandomCharacter's map to asset 40, not asset 39.")
         for name in ["LandingGlobe","LandingMission","LandingHuman","LandingCommunity","LandingTechnology"] { XCTAssertNotNil(UIImage(named:name),name) }
         for code in Set(LearningLanguages.support+LearningLanguages.practice) {XCTAssertNotNil(UIImage(named:"LanguageFlag-"+code),code)}
         XCTAssertEqual(LandingDemoService.course["turns"]["es"].array.count,6)

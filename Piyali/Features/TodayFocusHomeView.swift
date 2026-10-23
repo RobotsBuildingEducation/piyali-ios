@@ -7,6 +7,7 @@ struct TodayFocusHomeView:View {
     let sessionActive:Bool
     let onStart:()->Void
     let onPanel:(ProductPanel)->Void
+    let onCompanionContinue:()->Void
     @State private var bubbleDismissed=false
     @State private var showActivity=false
     @State private var immersionError:String?
@@ -52,7 +53,7 @@ struct TodayFocusHomeView:View {
         VStack(spacing:16) {
             CompanionArtwork(type:app.learner.effectiveCompanionType).frame(width:112,height:112).padding(.top,12)
             if showBubble {
-                VStack(spacing:14) { Text(bubble).font(PiyaliBrand.productFont(14)).lineSpacing(5);Button(ProductCopy.text(language,"PLATE_CONTINUE_COPY")) { bubbleDismissed=true;UserDefaults.standard.set(true,forKey:bubbleKey);if app.learner.placements?[app.learner.target] == nil { onPanel(.placement) } }.buttonStyle(BrandButtonStyle()).accessibilityIdentifier("companionContinue") }.padding(18).background(brand.surface,in:RoundedRectangle(cornerRadius:18)).overlay { RoundedRectangle(cornerRadius:18).stroke(brand.border) }
+                VStack(spacing:14) { Text(bubble).font(PiyaliBrand.productFont(14)).lineSpacing(5);Button(ProductCopy.text(language,"PLATE_CONTINUE_COPY")) { bubbleDismissed=true;UserDefaults.standard.set(true,forKey:bubbleKey);onCompanionContinue() }.buttonStyle(BrandButtonStyle()).accessibilityIdentifier("companionContinue") }.padding(18).background(brand.surface,in:RoundedRectangle(cornerRadius:18)).overlay { RoundedRectangle(cornerRadius:18).stroke(brand.border) }
             }
             HStack { Text(app.learner.companionStatus.uppercased()).font(PiyaliBrand.productFont(10,700)).foregroundStyle(PiyaliBrand.teal).padding(6).background(PiyaliBrand.teal.opacity(0.12),in:Capsule());Spacer();Button { onPanel(.settings) } label:{ Image(systemName:"pencil").frame(width:36,height:36) }.accessibilityLabel("Customize companion").disabled(showBubble) }
             VStack(spacing:5) { Text(app.learner.companionName.isEmpty ? "Your companion" : app.learner.companionName).font(PiyaliBrand.productFont(18,700));Text("Level \(app.learner.companionLevel)").font(PiyaliBrand.productFont(12)).foregroundStyle(brand.secondary);Text("Stay healthy by hitting your daily XP goal.").font(PiyaliBrand.productFont(12)).foregroundStyle(brand.secondary) }

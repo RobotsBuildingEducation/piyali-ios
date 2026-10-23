@@ -522,6 +522,17 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
         XCTAssertEqual(restored.goalIntelligence?["es"]?["activeGoal"]["text"].string,"Talk with family");XCTAssertEqual(restored.goalIntelligence?["it"]?["activeGoal"]["id"].string,"untouched");XCTAssertNil(restored.goalIntelligence?["en"])
         XCTAssertEqual(restored.totalXP,0);XCTAssertNil(restored.placements);XCTAssertEqual((fields["membership"] as? [String:Any])?["active"] as? Bool,true)
     }
+    func testGettingStartedAcknowledgmentSurvivesStaleDeviceAndKeepsPlacementMembershipAndXP() async throws {
+        let (service,db,npub)=try context();try await seed(db,npub)
+        let user=db.collection("users").document(npub)
+        try await user.setData(["membership":["active":true],"proficiencyPlacements":["fr":"A1"]],merge:true)
+        let stale=try requireState(await service.load(npub:npub));var seen=stale;seen.gettingStartedModalShown=true
+        async let first=service.save(seen,npub:npub),second=service.save(stale,npub:npub);_=try await(first,second)
+        _=try await service.save(stale,npub:npub)
+        let restored=try requireState(await service.load(npub:npub)),fields=try await user.getDocument().data() ?? [:]
+        XCTAssertTrue(restored.gettingStartedModalShown == true);XCTAssertEqual(fields["gettingStartedModalShown"] as? Bool,true)
+        XCTAssertEqual(restored.totalXP,stale.totalXP);XCTAssertEqual(restored.placements?["fr"]?.level,"A1");XCTAssertEqual((fields["membership"] as? [String:Any])?["active"] as? Bool,true)
+    }
     func testFirstGoalUploadInitializesCanonicalProfile() async throws {
         let (service,db,npub) = try context()
         var state = LearnerState(); state.name = "First goal learner"; state.target = "fr"; state.support = "es"; state.onboardingComplete = true

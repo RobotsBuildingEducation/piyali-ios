@@ -159,6 +159,9 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                 // Companion memory has its own shared web document, not a second snapshot authority.
                 merged.shareNostrAchievements = nil; merged.achievementRecords = nil; merged.achievementEvidence = nil; merged.achievementLedger = nil; merged.companionProgress = nil; merged.companionMemory = nil; merged.pendingMemoryChanges = []; merged.goalIntelligence = nil; merged.goalArtifacts = nil; merged.pendingGoalChanges = []; merged.questProgress = nil; merged.journeyQuestCounts = nil; merged.tutorLessons = nil; merged.acknowledgedEventIDs = nil
                 var patch: [String:Any] = ["local_npub":npub,"iosStateJSON":String(decoding:try JSONEncoder().encode(merged),as:UTF8.self),"iosStateVersion":2,"iosUpdatedAt":FieldValue.serverTimestamp()]
+                // Acknowledging guidance is monotonic and independent of
+                // preference timestamps, so a stale device cannot unsee it.
+                if state.gettingStartedModalShown == true {patch["gettingStartedModalShown"]=true}
                 patch.merge(petPatch) { _,new in new }
                 if fields["createdAt"] == nil { patch["createdAt"] = WebProgressContract.iso(Date()) }
                 if state.preferencesModifiedAt.map({ $0 > (WebProgressContract.date(Self.normalized(fields)["iosPreferencesModifiedAt"]) ?? .distantPast) }) == true || fields["iosStateJSON"] == nil || !snapshot.exists {

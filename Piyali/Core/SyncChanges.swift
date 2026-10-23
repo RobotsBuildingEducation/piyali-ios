@@ -123,6 +123,8 @@ public extension LearnerState {
             }
             newGoalRewards.append((change,reward))
         }
+        merged.legacyFirstRunPlacement = (current.pendingPlacements ?? [:]).isEmpty ? acknowledged.legacyFirstRunPlacement : nil
+        merged.gettingStartedModalShown = current.gettingStartedModalShown == true || acknowledged.gettingStartedModalShown == true ? true : acknowledged.gettingStartedModalShown
         if current.goal == sent.goal && newGoals.isEmpty { merged.goal = acknowledged.goal }
         if current.preferencesModifiedAt == sent.preferencesModifiedAt {
             merged.preferencesModifiedAt = nil

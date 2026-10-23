@@ -44,6 +44,7 @@
 		1BB81699C78A009137170421 /* score-milestones.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 69895E04FD79ECC670F31216 /* score-milestones.json.gz */; };
 		1F941D519A35BF55573D3A85 /* landing-postcards.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = A1B18DF7D2278F1F0AE5365B /* landing-postcards.json.gz */; };
 		202E3EF5E687BCE075DF9636 /* flashcards.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 26503B7732937779B13146B7 /* flashcards.json.gz */; };
+		20D25374E7B879D3695019BB /* FirstRunCopy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36B95D65EB16B2E42905D94A /* FirstRunCopy.swift */; };
 		21547AD9D1E8F6C48C82CFB1 /* FirestoreContractTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8947C3D4C258C6F2B162D45D /* FirestoreContractTests.swift */; };
 		21A7E2996EACEB43ED0B85E2 /* PiyaliBrand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DB262D4FDC3A00D8C2CC47D /* PiyaliBrand.swift */; };
 		2345D12648B3840CCAAE0F01 /* CashuMintBatchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AE049B48D639956D405A072 /* CashuMintBatchTests.swift */; };
@@ -78,6 +79,7 @@
 		377DE83118F2E76D403AEAF1 /* rpg-fr.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = DBCD1871ED0A2E69493C85DB /* rpg-fr.json.gz */; };
 		3AAE91493ECC436D139D48A2 /* ExplorationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B6938C3E4F3910896B8E975 /* ExplorationTests.swift */; };
 		3D0B927AE1AB927BEE852E0E /* ConversationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 684E13734BF72CB70ADD60C1 /* ConversationService.swift */; };
+		3E8E7B8E333D2C5CDAB4FF43 /* getting-started-character.webp in Resources */ = {isa = PBXBuildFile; fileRef = 631B89AE213A2C8EA7BD0A25 /* getting-started-character.webp */; };
 		3F6D12BA1756F07FC181B14B /* CompanionMemory.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC8C1AFE520430E24776DD16 /* CompanionMemory.swift */; };
 		4050AA0CEDC58D40B1E91393 /* curriculum-pl.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = E14BD18E0DD3B4E10CE07EC6 /* curriculum-pl.json.gz */; };
 		40AFEA685653C089AA2A6229 /* WalletImport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 255944DC706492A20A879FA9 /* WalletImport.swift */; };
@@ -125,6 +127,7 @@
 		5D28414C2F07FE12F7CF382E /* conversation-topics.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = D903D3C7CA281D9C04A8D702 /* conversation-topics.json.gz */; };
 		5D7C8F5070B13FA8A1A40831 /* rpg-en.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = FC760E9D416A01A784DADC43 /* rpg-en.json.gz */; };
 		5E66A1F082CD75C112869C70 /* story-portrait-10.webp in Resources */ = {isa = PBXBuildFile; fileRef = 43EC12BAB419C08452B4F8D7 /* story-portrait-10.webp */; };
+		5EADAA681B2B0D12AA66DF6A /* FirstRunJourneyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF3D07C8FCE37EC2B8554C50 /* FirstRunJourneyTests.swift */; };
 		5EF3A34589AC8C78A904021B /* NostrRelayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A73A3BD58CB1624626C46856 /* NostrRelayTests.swift */; };
 		63628243AF3A7E473CD80EFB /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58B5DF2715F289D91F1BC127 /* RootView.swift */; };
 		642967F33AED3D7C77F685A9 /* DailyPlate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F42527C788190E694332A9D4 /* DailyPlate.swift */; };
@@ -229,6 +232,7 @@
 		9FCE373B59C4F781791505CE /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = BB448BAF674D32F0259B5803 /* FirebaseCore */; };
 		A0161D0ED54C0199CE479ECC /* LessonPathView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 891D98E5164559371D320FE6 /* LessonPathView.swift */; };
 		A2BE2C0C00271066C8E72752 /* ReadingSpeechRecorderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61DFBB192541AA0C973D4A96 /* ReadingSpeechRecorderTests.swift */; };
+		A337805B2904CE2156F389CE /* KeyBackupTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13727954F83F0EF463BDD8CC /* KeyBackupTests.swift */; };
 		A4289A164520D5BFCCD2A182 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 6B127B17B8A5D92960B33ED4 /* FirebaseFirestore */; };
 		A74705D9A66ACFDE04E34C5C /* OrbVisuals.swift in Sources */ = {isa = PBXBuildFile; fileRef = A76733C807F10795F0BECB0D /* OrbVisuals.swift */; };
 		A796C5C8744AB39111F12DE7 /* IdentityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C93EFBC5CACA2291D2D0436C /* IdentityTests.swift */; };
@@ -315,6 +319,7 @@
 		D412910177B65445823FF060 /* achievements.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = D52D0469B4F81A6B04F8CFAC /* achievements.json.gz */; };
 		D41C26ECDC3E9FD6109087C9 /* story-portrait-38.webp in Resources */ = {isa = PBXBuildFile; fileRef = E059E7704D9C1B2401A49002 /* story-portrait-38.webp */; };
 		D489A604E22D09485931F125 /* story-portrait-35.webp in Resources */ = {isa = PBXBuildFile; fileRef = BCA3779787CF8FBFD74E259A /* story-portrait-35.webp */; };
+		D4CF6BCEF2D6B353D8ED2592 /* KeyBackupController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A99A07040015D19F0176D4E /* KeyBackupController.swift */; };
 		D5447148D4708853F8E7728C /* rpg-profiles.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 0AF3DF1533D6A77A933DED04 /* rpg-profiles.json.gz */; };
 		D697821DA032E91338AD3D58 /* rpg-nl.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = E21EB40C523D0419595AE27F /* rpg-nl.json.gz */; };
 		D6FF9035A10C8656108E60BD /* NostrAchievementCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563BB6553A8CD2222612191A /* NostrAchievementCollection.swift */; };
@@ -357,8 +362,10 @@
 		F558DACF265EC8AC5DD565E8 /* immersion-coaching.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = CED7E36E4938C995A77B9926 /* immersion-coaching.json.gz */; };
 		F5EF14DC320C52CF8EB4BF40 /* intro-pl.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 8DA8B2FFF9C95208FB067491 /* intro-pl.json.gz */; };
 		F62712A97732D749751C53B0 /* PracticeQuestion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 777A473B331F684E2FA3D426 /* PracticeQuestion.swift */; };
+		F70C3CB41639FE9E0C267BD3 /* GettingStartedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE6BCA01C34386F9D9FA8583 /* GettingStartedView.swift */; };
 		F73D8811F03B3C56E1182FDA /* curriculum-en.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = BE22780758139B90DD773C16 /* curriculum-en.json.gz */; };
 		F78562CE5E50C6C98634E1CE /* landing-demo.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = C21458DE903C1E3ACFC9FD92 /* landing-demo.json.gz */; };
+		F7974CC478E87665D18B385F /* FirstRunFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64F723922658E920A6171C61 /* FirstRunFlow.swift */; };
 		F7BCBB285235EC65D301AD52 /* onboarding-character.webp in Resources */ = {isa = PBXBuildFile; fileRef = 7A7A81BC9CDBA3374F75F3AF /* onboarding-character.webp */; };
 		F873A2030E77B1894C8FD484 /* rpg-es.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 3ABCA7AE06A86A7901F8F4AA /* rpg-es.json.gz */; };
 		FA2BA18E1A188D5D0EC01F86 /* curriculum-it.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 0CB4B84CC1F280F400282026 /* curriculum-it.json.gz */; };
@@ -416,6 +423,7 @@
 		11A78A1973CF409D27AF02C0 /* intro-play.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "intro-play.json"; sourceTree = "<group>"; };
 		11ABC9BD0F693833A22451AC /* story-portrait-32.webp */ = {isa = PBXFileReference; path = "story-portrait-32.webp"; sourceTree = "<group>"; };
 		1369ADFC6D3FAD61E2A23BDF /* CashuMintBatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CashuMintBatch.swift; sourceTree = "<group>"; };
+		13727954F83F0EF463BDD8CC /* KeyBackupTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyBackupTests.swift; sourceTree = "<group>"; };
 		13E4545F53F551782B2E387C /* LandingDemoService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandingDemoService.swift; sourceTree = "<group>"; };
 		14A0722BA40D89741D5238E2 /* RemoteSignerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteSignerService.swift; sourceTree = "<group>"; };
 		14ACB35E459D0E1D217992EB /* RemoteSignerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteSignerTests.swift; sourceTree = "<group>"; };
@@ -456,6 +464,7 @@
 		33319DC3287D9AE1604BAB7A /* intro-ru.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "intro-ru.json.gz"; sourceTree = "<group>"; };
 		33D94227C1537ABA3336B07F /* story-portrait-12.webp */ = {isa = PBXFileReference; path = "story-portrait-12.webp"; sourceTree = "<group>"; };
 		3410C8E8F3B885C506DE99E1 /* CashuHTTPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CashuHTTPClient.swift; sourceTree = "<group>"; };
+		36B95D65EB16B2E42905D94A /* FirstRunCopy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirstRunCopy.swift; sourceTree = "<group>"; };
 		3764D7C0BB0F262218B7D433 /* placement-copy.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "placement-copy.json.gz"; sourceTree = "<group>"; };
 		387D1A3BB971A0E8A4AC3034 /* FlashcardReview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlashcardReview.swift; sourceTree = "<group>"; };
 		388908E421131C96BE8C5437 /* GeminiLiveTutorService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeminiLiveTutorService.swift; sourceTree = "<group>"; };
@@ -508,9 +517,11 @@
 		613A8DD17B86DBDE8853B437 /* ReadingSpeechTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingSpeechTests.swift; sourceTree = "<group>"; };
 		61DFBB192541AA0C973D4A96 /* ReadingSpeechRecorderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingSpeechRecorderTests.swift; sourceTree = "<group>"; };
 		621531F713FDB7D6E836554A /* entry-hero-layout.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "entry-hero-layout.json"; sourceTree = "<group>"; };
+		631B89AE213A2C8EA7BD0A25 /* getting-started-character.webp */ = {isa = PBXFileReference; path = "getting-started-character.webp"; sourceTree = "<group>"; };
 		6375DD0B5E84249BF05ADE96 /* orb-visuals.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "orb-visuals.json.gz"; sourceTree = "<group>"; };
 		641596110162775AE6F5FEF9 /* PrivateTeamsContractTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivateTeamsContractTests.swift; sourceTree = "<group>"; };
 		6444929F41BE8BDD4B3A3123 /* AchievementProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementProgress.swift; sourceTree = "<group>"; };
+		64F723922658E920A6171C61 /* FirstRunFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirstRunFlow.swift; sourceTree = "<group>"; };
 		651BEA4A005933F7ABE9451C /* orb-room.hdr */ = {isa = PBXFileReference; path = "orb-room.hdr"; sourceTree = "<group>"; };
 		656917F8DE0E67C213D100A3 /* story-portrait-40.webp */ = {isa = PBXFileReference; path = "story-portrait-40.webp"; sourceTree = "<group>"; };
 		66577C96C4071AB6D6B95BB8 /* AppConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfiguration.swift; sourceTree = "<group>"; };
@@ -563,6 +574,7 @@
 		89D896264F4A55AE52053240 /* LandingDemoIdentity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandingDemoIdentity.swift; sourceTree = "<group>"; };
 		8A40A19602FF5A18A111F073 /* practice-copy.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "practice-copy.json.gz"; sourceTree = "<group>"; };
 		8A8986E1AE6B61658DD03360 /* CashuHTTPClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CashuHTTPClientTests.swift; sourceTree = "<group>"; };
+		8A99A07040015D19F0176D4E /* KeyBackupController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyBackupController.swift; sourceTree = "<group>"; };
 		8B6938C3E4F3910896B8E975 /* ExplorationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExplorationTests.swift; sourceTree = "<group>"; };
 		8D8FE73AB157397B56A8E477 /* lesson-appearance.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "lesson-appearance.json.gz"; sourceTree = "<group>"; };
 		8DA8B2FFF9C95208FB067491 /* intro-pl.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "intro-pl.json.gz"; sourceTree = "<group>"; };
@@ -687,6 +699,7 @@
 		DBCD1871ED0A2E69493C85DB /* rpg-fr.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "rpg-fr.json.gz"; sourceTree = "<group>"; };
 		DC36DA8B36D46EF515B5339C /* story-portrait-26.webp */ = {isa = PBXFileReference; path = "story-portrait-26.webp"; sourceTree = "<group>"; };
 		DC79F67970B7D4F4D80D7D45 /* StoryGenerationCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryGenerationCoordinator.swift; sourceTree = "<group>"; };
+		DE6BCA01C34386F9D9FA8583 /* GettingStartedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GettingStartedView.swift; sourceTree = "<group>"; };
 		DF1957B115E1F57633EC904D /* PrivateTeamsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivateTeamsService.swift; sourceTree = "<group>"; };
 		DF68FEFE2428E318C30CC481 /* ReadingPractice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingPractice.swift; sourceTree = "<group>"; };
 		DF73DB5D3A308B3F62FDEE54 /* rpg-de.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "rpg-de.json.gz"; sourceTree = "<group>"; };
@@ -744,6 +757,7 @@
 		FD2145F5F4EC6EFDE91813F6 /* curriculum-yua.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "curriculum-yua.json.gz"; sourceTree = "<group>"; };
 		FDDA585F43A2605655108EDD /* SpeechService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechService.swift; sourceTree = "<group>"; };
 		FE8593C607F3F1F4B2FC4D37 /* ExplorationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExplorationView.swift; sourceTree = "<group>"; };
+		FF3D07C8FCE37EC2B8554C50 /* FirstRunJourneyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirstRunJourneyTests.swift; sourceTree = "<group>"; };
 		FF433A9FE198E89B755DBA31 /* IntroTutorialTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntroTutorialTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -782,6 +796,7 @@
 				0D6C1779C56CBBD24C3BF371 /* ActivityFooter.swift */,
 				FA6CDBE08CB4BA6657F8C7A5 /* CompanionArtwork.swift */,
 				91DB34D15FEF56054D1E9025 /* EntryStyles.swift */,
+				36B95D65EB16B2E42905D94A /* FirstRunCopy.swift */,
 				E74D817FF4886C160B4044E0 /* LandingDemoBubble.swift */,
 				9DB262D4FDC3A00D8C2CC47D /* PiyaliBrand.swift */,
 				1EDE93E3F00B7D0643A9B32C /* PublicVoiceOrb.swift */,
@@ -816,6 +831,7 @@
 				F6B8311CBE80AD6E10E96469 /* FirebaseIdentityTests.swift */,
 				8947C3D4C258C6F2B162D45D /* FirestoreContractTests.swift */,
 				C93EFBC5CACA2291D2D0436C /* IdentityTests.swift */,
+				13727954F83F0EF463BDD8CC /* KeyBackupTests.swift */,
 				68FC9A30FF0C5110B1AA8EE9 /* LandingDemoServiceTests.swift */,
 				AEC72430BBF570FFE8C5C686 /* LiveAPIIntegrationTests.swift */,
 				9126021BAFA3586E5009884E /* NostrAchievementTests.swift */,
@@ -956,6 +972,7 @@
 				FE8593C607F3F1F4B2FC4D37 /* ExplorationView.swift */,
 				9686C842047F10B7D3CAE2B5 /* FinalQuizView.swift */,
 				85F27477992C4AC12CDC7D07 /* FocusedLearningViews.swift */,
+				DE6BCA01C34386F9D9FA8583 /* GettingStartedView.swift */,
 				82DE9E947F9BAD6E1426FAEF /* GoalPreparationView.swift */,
 				EBF60AB271200BF8C49FC11B /* IntroTutorialView.swift */,
 				5444FBC8C6E23C4197E066B1 /* LandingAtlasView.swift */,
@@ -1031,6 +1048,7 @@
 				30B828DE81FEB1F841675EFB /* EntryParityTests.swift */,
 				8B6938C3E4F3910896B8E975 /* ExplorationTests.swift */,
 				CFF909DF0AEFA1E2A949150E /* FinalQuizTests.swift */,
+				FF3D07C8FCE37EC2B8554C50 /* FirstRunJourneyTests.swift */,
 				FF433A9FE198E89B755DBA31 /* IntroTutorialTests.swift */,
 				F8512BB62E4860C24576BA95 /* LandingDemoTests.swift */,
 				1FBC2B0D6BD82D25A568D5D9 /* OnboardingParityTests.swift */,
@@ -1080,6 +1098,7 @@
 				75A81EB37359426EB51041A7 /* Exploration.swift */,
 				026D3E8717165FF5A2DD91B2 /* ExplorationText.swift */,
 				BF1DAC2CE3C470808CF34F10 /* FinalQuiz.swift */,
+				64F723922658E920A6171C61 /* FirstRunFlow.swift */,
 				387D1A3BB971A0E8A4AC3034 /* FlashcardReview.swift */,
 				3E9FEB2A3C61C4FB1A872D28 /* GoalPractice.swift */,
 				53BFEB8FF2020865B744083C /* GuidedPracticeSession.swift */,
@@ -1148,6 +1167,7 @@
 				527B10414BCA8F8C3F103693 /* GeneratedQuestionWorth.swift */,
 				AABBD4AEE1A0DCEFEC828765 /* IdentityService.swift */,
 				807123B77A97FA5EA2F0A829 /* JourneyRecorder.swift */,
+				8A99A07040015D19F0176D4E /* KeyBackupController.swift */,
 				BCB2FE439907BDB580B6E8F3 /* LandingDemoFixture.swift */,
 				89D896264F4A55AE52053240 /* LandingDemoIdentity.swift */,
 				13E4545F53F551782B2E387C /* LandingDemoService.swift */,
@@ -1230,6 +1250,7 @@
 				03990BDCD73CB3876A0427F3 /* DMSans-700.ttf */,
 				F5153C3007241ED76870C5E5 /* DMSans-LICENSE.txt */,
 				7C17DBC9623603D6AAEA65A9 /* DMSans-OFL.txt */,
+				631B89AE213A2C8EA7BD0A25 /* getting-started-character.webp */,
 				7A7A81BC9CDBA3374F75F3AF /* onboarding-character.webp */,
 				D1DAE22D15DE94917B20977D /* piyali-orb.png */,
 				D588FE34EAC93191B3A60DE8 /* placement-dog.webp */,
@@ -1454,6 +1475,7 @@
 				0DDEA061D4CC507790C2516B /* exploration.json.gz in Resources */,
 				E7F9764A37FE914523015C9A /* flashcard-index.json.gz in Resources */,
 				202E3EF5E687BCE075DF9636 /* flashcards.json.gz in Resources */,
+				3E8E7B8E333D2C5CDAB4FF43 /* getting-started-character.webp in Resources */,
 				F558DACF265EC8AC5DD565E8 /* immersion-coaching.json.gz in Resources */,
 				EE71E32ACE6C5CD369FD52A6 /* intro-de.json.gz in Resources */,
 				FEDE16053502E4893A9CF1F0 /* intro-el.json.gz in Resources */,
@@ -1592,6 +1614,7 @@
 				26AD3D3C72415FE8B77EB536 /* EntryParityTests.swift in Sources */,
 				3AAE91493ECC436D139D48A2 /* ExplorationTests.swift in Sources */,
 				81E47A335AAB7BCCB1397243 /* FinalQuizTests.swift in Sources */,
+				5EADAA681B2B0D12AA66DF6A /* FirstRunJourneyTests.swift in Sources */,
 				DF682771BCA946E68CFFBCE1 /* IntroTutorialTests.swift in Sources */,
 				64C05D2E2B7F68CC621E519A /* LandingDemoTests.swift in Sources */,
 				7B02CD5EAEFC68F1EB560E73 /* LocalNostrRelay.swift in Sources */,
@@ -1624,6 +1647,7 @@
 				4C89332D63FE744BE38512EA /* FirebaseIdentityTests.swift in Sources */,
 				21547AD9D1E8F6C48C82CFB1 /* FirestoreContractTests.swift in Sources */,
 				A796C5C8744AB39111F12DE7 /* IdentityTests.swift in Sources */,
+				A337805B2904CE2156F389CE /* KeyBackupTests.swift in Sources */,
 				99E93ADE84879C573289C089 /* LandingDemoServiceTests.swift in Sources */,
 				AF26B447C5881DD47BF3F72A /* LiveAPIIntegrationTests.swift in Sources */,
 				DB5BEAAC22A6FF5389F4065A /* LocalNostrRelay.swift in Sources */,
@@ -1698,10 +1722,13 @@
 				026C16DBB2FA2FC25CAD44B3 /* FinalQuizView.swift in Sources */,
 				73C8A3FBBF0937A4C9C6BF4D /* FirebaseIdentityService.swift in Sources */,
 				E3BAFA4E1BBFC86E61B57F87 /* FirebaseService.swift in Sources */,
+				20D25374E7B879D3695019BB /* FirstRunCopy.swift in Sources */,
+				F7974CC478E87665D18B385F /* FirstRunFlow.swift in Sources */,
 				25B412D8E7AE1938ED2AF18A /* FlashcardReview.swift in Sources */,
 				97CD86E7CAFD7CE4585A68DE /* FocusedLearningViews.swift in Sources */,
 				E68EB81789864386C6E50663 /* GeminiLiveTutorService.swift in Sources */,
 				50DC0C459286E70C75FD72C4 /* GeneratedQuestionWorth.swift in Sources */,
+				F70C3CB41639FE9E0C267BD3 /* GettingStartedView.swift in Sources */,
 				5CDE4798258806DE8734CEE1 /* GoalPractice.swift in Sources */,
 				5385A9226388A581243ECD21 /* GoalPreparationView.swift in Sources */,
 				4E0171F687B0B168C62E3529 /* GuidedPracticeSession.swift in Sources */,
@@ -1709,6 +1736,7 @@
 				B8D02DC1DE1FC99F021E40BF /* IntroTutorial.swift in Sources */,
 				E25FDB14E22AED90924EBD9E /* IntroTutorialView.swift in Sources */,
 				B0DDFD286606B7954031B002 /* JourneyRecorder.swift in Sources */,
+				D4CF6BCEF2D6B353D8ED2592 /* KeyBackupController.swift in Sources */,
 				EFB6B0B724D71C633BA8D588 /* LandingAtlasView.swift in Sources */,
 				920D8E2B5946506A60355364 /* LandingDemoBubble.swift in Sources */,
 				74F5380E08790C8CE5DD9F8F /* LandingDemoFixture.swift in Sources */,

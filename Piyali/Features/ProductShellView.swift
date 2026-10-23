@@ -21,6 +21,7 @@ struct ProductShellView:View {
     @EnvironmentObject var app:AppModel
     @Environment(\.colorScheme) private var scheme
     @AppStorage("piyali.theme") private var theme="light"
+    @State private var firstRun=FirstRunFlow()
     @State private var mode:ProductMode = .focus
     @State private var specialCourse:String?
     @State private var menuOpen=false
@@ -35,6 +36,7 @@ struct ProductShellView:View {
     private var language:String { app.learner.support }
     private var brand:PiyaliBrand { PiyaliBrand(dark:scheme == .dark) }
     private var sessionKey:String { "piyali.guidedSession."+app.identity.npub }
+    private var firstRunScope:String {app.identity.npub+":"+app.learner.target}
     private var contextKey:String { app.identity.npub+":"+app.learner.target+":"+CalendarDay.key(now) }
     var body:some View {
         ZStack(alignment:.bottom) {
@@ -60,7 +62,7 @@ struct ProductShellView:View {
                 }
             if menuOpen { menu }
         }.font(PiyaliBrand.productFont(16)).foregroundStyle(brand.text)
-            .accessibilityHidden(lessonCompletion != nil)
+            .accessibilityHidden(lessonCompletion != nil || firstRun.step != nil)
             .overlay {
                 if let data=lessonCompletion {
                     ZStack {
@@ -69,6 +71,16 @@ struct ProductShellView:View {
                     }.accessibilityElement(children:.contain).accessibilityIdentifier("lessonCompletionDialog")
                 }
             }
+            .overlay {
+                if let step=firstRun.step {
+                    ZStack {
+                        (scheme == .dark ? Color(red:2/255,green:6/255,blue:23/255).opacity(0.92) : Color(red:28/255,green:20/255,blue:12/255).opacity(0.82)).ignoresSafeArea().onTapGesture {closeFirstRun()}
+                        if step == .gettingStarted {GettingStartedView(onClose:closeFirstRun)}
+                        else {PlacementView(overlay:true,onClose:{firstRun.close()})}
+                    }.accessibilityElement(children:.contain).accessibilityIdentifier("firstRunDialog")
+                }
+            }
+            .onChange(of:firstRunScope) {_,scope in firstRun.reconcile(scope:scope)}
             .preferredColorScheme(theme == "dark" ? .dark : .light)
             .environment(\.layoutDirection,language == "ar" ? .rightToLeft : .leftToRight)
             .sheet(item:$panel) { selected in NavigationStack { panelContent(selected).toolbar { ToolbarItem(placement:.confirmationAction) { Button(EntryCopy.text(language,"back_button")) { panel=nil }.accessibilityIdentifier("productPanelClose") } } }.tint(PiyaliBrand.teal) }
@@ -88,6 +100,11 @@ struct ProductShellView:View {
             .onChange(of:app.pendingLessonCompletion?.id) { _,_ in presentPendingLessonCompletion() }
             .onChange(of:app.lessonActivityActive) { _,active in if !active { presentPendingLessonCompletion();checkCompletion() } }
     }
+    private func closeFirstRun() {
+        if firstRun.step == .gettingStarted {
+            if firstRun.acknowledge(scope:firstRunScope,hasPlacement:app.learner.hasFirstRunPlacement) {app.learner.gettingStartedModalShown=true;app.persist()}
+        } else {firstRun.close()}
+    }
     private func menuButton(compact:Bool)->some View {
         Button { modesOpen=false;menuOpen.toggle() } label:{ Image(systemName:"square.grid.3x3.fill").font(.system(size:compact ? 18 : 20)).foregroundStyle(brand.text).frame(width:compact ? 40 : 58,height:compact ? 40 : 58).background(brand.surface.opacity(0.92),in:RoundedRectangle(cornerRadius:compact ? 14 : 20)).overlay { RoundedRectangle(cornerRadius:compact ? 14 : 20).stroke(brand.border) } }.accessibilityLabel(mode.title(language)).accessibilityIdentifier("productMenu")
     }
@@ -95,7 +112,7 @@ struct ProductShellView:View {
         if specialCourse == "goal" { FocusedGoalView() }
         else if specialCourse == "repair" { RepairPracticeView() }
         else { switch mode {
-        case .focus: TodayFocusHomeView(now:now,sessionActive:guided != nil,onStart:startPractice,onPanel:{ panel=$0 })
+        case .focus: TodayFocusHomeView(now:now,sessionActive:guided != nil,onStart:startPractice,onPanel:{ panel=$0 },onCompanionContinue:{firstRun.request(scope:firstRunScope,shown:app.learner.gettingStartedModalShown == true,hasPlacement:app.learner.hasFirstRunPlacement)})
         case .path: LessonPathView()
         case .cards: FlashcardsView()
         case .phonics: PhonicsView()

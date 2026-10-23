@@ -24,4 +24,4 @@ Public layout measurements for English light and Arabic dark are retained alongs
 
 ## Remaining first-run work
 
-The companion's Continue action still needs the original installation/key-backup → proficiency-decision chain, with a native adaptation for installation instructions. Post-introduction dialogs also remain. This drawer work does not establish those chains or full Today’s Focus/design parity. Optional interaction sounds, hidden voice/effect defaults and broader locale/accessibility layouts still need comparison.
+The companion’s Continue → setup/key-backup → proficiency-decision chain is now implemented with an installed-app adaptation and the original web steps; see [FIRST_RUN.md](FIRST_RUN.md). Post-introduction daily-goal/timer dialogs and full Today’s Focus/design parity remain. Optional interaction sounds, hidden voice/effect defaults and broader locale/accessibility layouts still need comparison.

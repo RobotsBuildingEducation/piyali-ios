@@ -41,6 +41,10 @@ public enum WebProgressContract {
         state.acknowledgedEventIDs = Set((fields["iosRecentEventIDs"] as? [String] ?? []).compactMap(UUID.init(uuidString:)))
         state.completedConversationGoals=(state.completedConversationGoals ?? []).union(fields["iosCompletedConversationGoalIDs"] as? [String] ?? [])
         state.companionProgress = JSONValue.foundation(fields.filter { CompanionHealth.keys.contains($0.key) }.merging(CompanionHealth.reconcileFields(fields,now:now)) { _,new in new })
+        state.gettingStartedModalShown = state.gettingStartedModalShown == true || fields["gettingStartedModalShown"] as? Bool == true ? true : state.gettingStartedModalShown
+        // The original prompt falls back to the old account-wide placement
+        // only while the language placement map is entirely absent.
+        state.legacyFirstRunPlacement = fields["proficiencyPlacements"] == nil || fields["proficiencyPlacements"] is NSNull ? (fields["proficiencyPlacement"] as? String).flatMap{$0.isEmpty ? nil : $0} : nil
         let progress = fields["progress"] as? [String:Any] ?? [:]
         let questKeys = Set(DailyPlate.fields.values).union(["dailyQuestFirstSeen","dailyQuestFirstDayKey","plateBonusDailyActivity"])
         state.questProgress = JSONValue.foundation(progress.filter { questKeys.contains($0.key) })
