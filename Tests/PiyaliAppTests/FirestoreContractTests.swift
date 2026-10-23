@@ -510,6 +510,18 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
         XCTAssertEqual(state.courseCompletion?["fr"]?["skillTree"]?["Pre-A1"],86)
         XCTAssertTrue(state.completed.isEmpty); XCTAssertTrue(state.flashcardMastery.isEmpty)
     }
+    func testOnboardingGoalsForEveryChosenLanguageSurviveConcurrentRetryAndKeepMembership() async throws {
+        let (service,db,npub)=try context(),user=db.collection("users").document(npub)
+        try await user.setData(["membership":["active":true],"learningIntelligence":["it":["activeGoal":["id":"untouched","text":"Visit my friend","status":"active"]]]])
+        var state=LearnerState();state.name="Onboarding learner"
+        state.completeOnboarding(OnboardingDraft(support:"fr",target:"fr",learningGoals:["es":"Talk with family","fr":"Order in a cafe","en":" "]))
+        async let first=service.save(state,npub:npub),second=service.save(state,npub:npub);_=try await(first,second)
+        _=try await service.save(state,npub:npub)
+        let restored=try requireState(await service.load(npub:npub)),fields=try await user.getDocument().data() ?? [:]
+        XCTAssertTrue(restored.onboardingComplete);XCTAssertEqual(restored.support,"fr");XCTAssertEqual(restored.target,"fr");XCTAssertEqual(restored.goal,"Order in a cafe")
+        XCTAssertEqual(restored.goalIntelligence?["es"]?["activeGoal"]["text"].string,"Talk with family");XCTAssertEqual(restored.goalIntelligence?["it"]?["activeGoal"]["id"].string,"untouched");XCTAssertNil(restored.goalIntelligence?["en"])
+        XCTAssertEqual(restored.totalXP,0);XCTAssertNil(restored.placements);XCTAssertEqual((fields["membership"] as? [String:Any])?["active"] as? Bool,true)
+    }
     func testFirstGoalUploadInitializesCanonicalProfile() async throws {
         let (service,db,npub) = try context()
         var state = LearnerState(); state.name = "First goal learner"; state.target = "fr"; state.support = "es"; state.onboardingComplete = true

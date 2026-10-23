@@ -16,6 +16,7 @@ import SwiftUI
             XCTAssertGreaterThan(image.size.width,100);XCTAssertGreaterThan(image.size.height,100)
         }
         for name in ["LandingGlobe","LandingMission","LandingHuman","LandingCommunity","LandingTechnology"] { XCTAssertNotNil(UIImage(named:name),name) }
+        for code in Set(LearningLanguages.support+LearningLanguages.practice) {XCTAssertNotNil(UIImage(named:"LanguageFlag-"+code),code)}
         XCTAssertEqual(LandingDemoService.course["turns"]["es"].array.count,6)
         XCTAssertTrue(LandingDemoService.course["instructions"]["ja"]["en"].string.contains("five-turn"))
         for name in ["DMSans-Regular","DMSans-Medium","DMSans-SemiBold","DMSans-Bold"] { XCTAssertNotNil(UIFont(name:name,size:16),name) }

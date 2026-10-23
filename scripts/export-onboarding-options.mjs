@@ -1,0 +1,13 @@
+import fs from 'node:fs/promises';import path from 'node:path';import vm from 'node:vm';import {gzipSync,gunzipSync} from 'node:zlib';import {createHash} from 'node:crypto';
+const root=process.cwd(),reference=path.resolve(root,'../nosabos/nosabos'),file='src/constants/languages.js',source=await fs.readFile(path.join(reference,file),'utf8');
+const flagNames=source.match(/^import \{([\s\S]*?)\} from "\.\.\/components\/flagsIcons\/flags";/)?.[1].split(',').map(s=>s.trim()).filter(Boolean);if(!flagNames?.length)throw Error('Flag imports moved');
+const {SUPPORT_LANGUAGE_CODES}=await import(path.join(reference,'src/constants/supportLanguages.js'));
+const module=vm.runInNewContext(`(()=>{${source.replace(/^import[\s\S]*?from "[^"]+";\n/gm,'').replace(/^export /gm,'')};return {getPracticeLanguageOptions,getSupportLanguageOptions}})()`,{Intl,CANONICAL_SUPPORT_LANGUAGE_CODES:SUPPORT_LANGUAGE_CODES,...Object.fromEntries(flagNames.map(name=>[name,()=>null]))});
+// This is the exported original translations table used by the native product,
+// not the distinct landing-page public-copy table.
+const copy=JSON.parse(gunzipSync(await fs.readFile(path.join(root,'Piyali/Resources/app-copy.json.gz')))),result={};
+for(const [language,ui] of Object.entries(copy)){result[language]={support:module.getSupportLanguageOptions({ui,uiLang:language}).map(({value,label,tier})=>({value,label,tier})),practice:module.getPracticeLanguageOptions({ui,uiLang:language}).map(({value,label,tier})=>({value,label,tier}))}}
+await fs.writeFile(path.join(root,'Piyali/Resources/onboarding-options.json.gz'),gzipSync(JSON.stringify(result),{level:9}));
+const files=[file,'src/constants/supportLanguages.js','src/components/Onboarding.jsx','src/components/LearningGoalSettings.jsx','src/utils/learningGoalCopy.js','src/utils/translation.jsx','src/index.css','src/theme.js','src/components/flagsIcons/flags.jsx'];
+await fs.writeFile(path.join(root,'docs/reference/onboarding-manifest.json'),JSON.stringify({sources:await Promise.all(files.map(async file=>({file,sha256:createHash('sha256').update(await fs.readFile(path.join(reference,file))).digest('hex')}))),scope:'Actual source option builders executed with original exported app translations. Community-only Nahuatl and Maya remain selectorHidden; ordinary onboarding does not expose them. Read-only original Onboarding component rendered in target-owned fixture with in-memory completion, sound disabled and no learner identity/profile writes. Native screenshots include iPhone status/home chrome.'},null,2)+'\n');
+console.log('Exported exact source onboarding options for '+Object.keys(result).length+' locales.');

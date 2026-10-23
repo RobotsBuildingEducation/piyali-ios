@@ -5,7 +5,7 @@ struct RootView: View {
     var body: some View {
         Group {
         if !app.signedIn { EntryView() }
-        else if !app.learner.onboardingComplete { BrandedOnboardingView() }
+        else if !app.learner.onboardingComplete { NavigationStack {BrandedOnboardingView(initial:app.learner).toolbar(.hidden,for:.navigationBar)} }
         else {
             ProductAccessView(service:app.subscription).id(app.identity.npub)
         }

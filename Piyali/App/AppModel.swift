@@ -143,8 +143,9 @@ import SwiftUI
         } catch { self.error=error.localizedDescription }
     }
     func boot() async { guard signedIn else { return };scheduleAutomaticTips(recovering:true); await reloadContent(); await sync(); await subscription.refresh(); scheduleNostrAchievements();scheduleAutomaticTips() }
-    func finishOnboarding() {
-        learner.onboardingComplete=true;learner.preferencesModifiedAt=Date();persist();Task { await reloadContent() }
+    func finishOnboarding(_ draft:OnboardingDraft?=nil) {
+        if let draft {learner.completeOnboarding(draft)} else {learner.onboardingComplete=true;learner.preferencesModifiedAt=Date()}
+        persist();Task { await reloadContent() }
     }
     var immersionPreparationKey: String {
         let scope=learner.immersionScope()
