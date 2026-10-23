@@ -1,12 +1,17 @@
 // Serve the reference read-only at an isolated origin. All Vite caches live in this repo.
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import fs from 'node:fs/promises';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const reference=path.resolve(process.argv[2] || path.join(root,'../nosabos/nosabos'));
 const vite=await import(path.join(reference,'node_modules/vite/dist/node/index.js'));
 const loaded=await vite.loadConfigFromFile({command:'serve',mode:'dev-direct'},path.join(reference,'vite.config.js'),reference,'warn',undefined,'runner');
 if(!loaded) throw new Error('Reference configuration not found');
 const flatten=(plugins)=>plugins.flat(Infinity).filter(Boolean);
+// Same-origin mobile frame keeps browser accessibility/actions available while
+// the original app receives an actual iPhone-width layout viewport.
+const frameHTML=await fs.readFile(new URL('./reference-mobile-frame.html',import.meta.url),'utf8');
+const mobileFrame={name:'piyali-reference-mobile-frame',configureServer(server){server.middlewares.use('/__piyali-mobile-frame',(req,res)=>{res.setHeader('Content-Type','text/html');res.end(frameHTML)})}};
 // The reference stories harness supplies batch services but its newer component
 // otherwise starts the real default stream. Keep this test entry on its own
 // explicit fixture over the new protocol without changing the component or main app.
@@ -28,5 +33,5 @@ const storyFixtureCompatibility={name:'piyali-source-story-fixture',enforce:'pre
  fixture=fixture.replace('applyThemeMode("dark");','applyThemeMode(new URLSearchParams(window.location.search).get("theme") === "light" ? "light" : "dark");');
  return fixture;
 }};
-const server=await vite.createServer({...loaded.config,configFile:false,root:reference,envDir:reference,cacheDir:path.join(root,'.reference-preview/cache'),plugins:[storyFixtureCompatibility,...flatten(loaded.config.plugins).filter(p=>!String(p.name).includes('pwa') && !String(p.name).includes('visualizer'))],server:{...loaded.config.server,host:'127.0.0.1',port:5181,strictPort:true}});
+const server=await vite.createServer({...loaded.config,configFile:false,root:reference,envDir:reference,cacheDir:path.join(root,'.reference-preview/cache'),plugins:[mobileFrame,storyFixtureCompatibility,...flatten(loaded.config.plugins).filter(p=>!String(p.name).includes('pwa') && !String(p.name).includes('visualizer'))],server:{...loaded.config.server,host:'127.0.0.1',port:5181,strictPort:true}});
 await server.listen();console.log('Read-only reference preview: http://127.0.0.1:5181');

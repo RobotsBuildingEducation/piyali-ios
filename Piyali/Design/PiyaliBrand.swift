@@ -63,13 +63,16 @@ struct BrandButtonStyle:ButtonStyle {
 }
 struct BrandInput:View {
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.layoutDirection) private var direction
     let placeholder:String
     @Binding var text:String
     var secure=false
+    var highlighted=false
     var body:some View {
         let brand=PiyaliBrand(dark:scheme == .dark)
         Group { if secure { SecureField(placeholder,text:$text,prompt:Text(placeholder).foregroundStyle(brand.muted)) } else { TextField(placeholder,text:$text,prompt:Text(placeholder).foregroundStyle(brand.muted)) } }
-            .font(PiyaliBrand.font(16)).padding(.horizontal,20).frame(height:58).background(brand.surface.opacity(0.5),in:RoundedRectangle(cornerRadius:20,style:.continuous)).overlay { RoundedRectangle(cornerRadius:20,style:.continuous).stroke(brand.border) }
+            .multilineTextAlignment(direction == .rightToLeft ? .trailing : .leading).environment(\.layoutDirection,.leftToRight)
+            .font(PiyaliBrand.font(16)).padding(.horizontal,21).frame(height:59.6).background(PiyaliBrand.unitColor(scheme == .dark ? "0b1220" : "fff9f2").opacity(scheme == .dark ? 0.12 : 0.88),in:EntryCornerShape()).overlay {EntryCornerShape().stroke(highlighted ? PiyaliBrand.teal : brand.border)}.background {if highlighted {EntryCornerShape().stroke(PiyaliBrand.teal.opacity(0.1),lineWidth:6)}}
             .textInputAutocapitalization(.never).autocorrectionDisabled()
     }
 }

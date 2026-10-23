@@ -1,5 +1,6 @@
 import XCTest
 import UIKit
+import SwiftUI
 @testable import Piyali
 
 @MainActor final class EntryBundleTests:XCTestCase {
@@ -18,5 +19,11 @@ import UIKit
         XCTAssertEqual(LandingDemoService.course["turns"]["es"].array.count,6)
         XCTAssertTrue(LandingDemoService.course["instructions"]["ja"]["en"].string.contains("five-turn"))
         for name in ["DMSans-Regular","DMSans-Medium","DMSans-SemiBold","DMSans-Bold"] { XCTAssertNotNil(UIFont(name:name,size:16),name) }
+    }
+    func testSubtitleMatchesActualBrowserLineBoxAndStillScalesForAccessibility() throws {
+        let data=try Data(contentsOf:try XCTUnwrap(Bundle(for:Self.self).url(forResource:"entry-hero-layout",withExtension:"json"))),sample=try JSONDecoder().decode(JSONValue.self,from:data)["paragraph"],width=sample["rect"]["width"].number
+        let subtitle=EntryLineText(text:sample["text"].string,size:11.2),normal=UIHostingController(rootView:subtitle.environment(\.dynamicTypeSize,.large)),accessible=UIHostingController(rootView:subtitle.environment(\.dynamicTypeSize,.accessibility2))
+        let measured=normal.sizeThatFits(in:CGSize(width:width,height:2000)),larger=accessible.sizeThatFits(in:CGSize(width:width,height:2000))
+        XCTAssertEqual(measured.height,sample["rect"]["height"].number,accuracy:0.8,"Original browser paragraph is three 17.92-point line boxes at 354 points wide.");XCTAssertGreaterThan(larger.height,measured.height)
     }
 }

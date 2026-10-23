@@ -18,6 +18,7 @@ struct VoiceOrbView:UIViewRepresentable {
     var dark=false
     var reducedMotion=false
     var animating=true
+    var showShadow=true
     func makeUIView(context:Context)->VoiceOrbHost { VoiceOrbHost() }
     func updateUIView(_ view:VoiceOrbHost,context:Context) { view.configure(self) }
     static func dismantleUIView(_ view:VoiceOrbHost,coordinator:()) { view.stop() }
@@ -45,6 +46,7 @@ final class VoiceOrbHost:UIView {
     override func didMoveToWindow() { super.didMoveToWindow();updateRunning() }
     func configure(_ options:VoiceOrbView) {
         self.options=options
+        shadow.isHidden = !options.showShadow;camera.look(at:SCNVector3(0,options.showShadow ? -0.18 : 0,0))
         if options.dragging {pointerTurn=options.dragTurn}
         let signalID=options.displayReaction?.id ?? options.feedback?.id
         if feedbackID != signalID {

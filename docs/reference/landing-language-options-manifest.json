@@ -49,5 +49,5 @@
       "sha256": "361fada18ec38c61de4037117f00ab02cbfc365e1d7300222a6f032782ff6957"
     }
   ],
-  "scope": "Actual getPracticeLanguageOptions executed with each original public copy locale. Labels include source beta tags and source tier/locale sorting. Flag renderers replaced with null only during data export."
+  "scope": "Actual getPracticeLanguageOptions and getSupportLanguageOptions executed with each original public copy locale for the demo and entry menus. Labels include source tier tags and source tier/locale sorting. Flag renderers replaced with null only during data export."
 }

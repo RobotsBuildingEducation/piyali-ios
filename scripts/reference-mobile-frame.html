@@ -1,0 +1,14 @@
+<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0">
+<iframe id="reference" src="/" title="Original Piyali at iPhone width" style="width:402px;height:874px;border:0;display:block"></iframe>
+<aside style="position:absolute;left:420px;top:0;max-width:700px"><button id="measure">Measure public layout</button><pre id="metrics" style="white-space:pre-wrap"></pre></aside>
+<script>
+// Read-only QA instrumentation outside the original app/frame. No input values,
+// account state, storage, microphone or model APIs are read or changed.
+document.getElementById('measure').onclick=async()=>{
+ const frame=document.getElementById('reference'),d=frame.contentDocument,w=frame.contentWindow;await d.fonts.ready;const h=d.querySelector('h1');
+ const rect=r=>({x:r.x,y:r.y,width:r.width,height:r.height});
+ const read=el=>{const s=w.getComputedStyle(el),r=el.getBoundingClientRect(),range=d.createRange();range.selectNodeContents(el);return {tag:el.tagName,text:el.tagName==='INPUT'?el.placeholder:el.innerText,rect:rect(r),font:s.font,fontFamily:s.fontFamily,fontSize:s.fontSize,fontWeight:s.fontWeight,lineHeight:s.lineHeight,letterSpacing:s.letterSpacing,fontStretch:s.fontStretch,opticalSizing:s.fontOpticalSizing,padding:s.padding,lines:el.tagName==='P'?[...range.getClientRects()].map(rect):undefined}};
+ const elements=h?[h,h.parentElement,...h.parentElement.querySelectorAll('p,input,button')]:[];
+ document.getElementById('metrics').textContent=JSON.stringify({viewport:{width:w.innerWidth,height:w.innerHeight,scrollY:w.scrollY},fonts:[...d.fonts].filter(f=>f.family==='DM Sans').map(f=>({family:f.family,weight:f.weight,status:f.status})),elements:elements.map(read)},null,2);
+};
+</script></body></html>

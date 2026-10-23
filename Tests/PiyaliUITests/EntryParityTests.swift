@@ -7,9 +7,9 @@ import XCTest
     }
     func testLandingHasNamedSignupAndDedicatedKeyLoginWithBackAndErrors() {
         continueAfterFailure=false;let app=launch()
-        XCTAssertTrue(app.staticTexts["Your Personal"].waitForExistence(timeout:15));XCTAssertTrue(app.staticTexts["Language Tutor"].exists)
+        XCTAssertTrue(app.staticTexts["entryHeroTitle"].waitForExistence(timeout:15));XCTAssertEqual(app.staticTexts["entryHeroTitle"].label,"Your Personal Language Tutor")
         let snapshot=XCTAttachment(screenshot:app.screenshot());snapshot.name="Native landing hero";snapshot.lifetime = .keepAlways;add(snapshot)
-        print("ENTRY FRAME: headingY=\(app.staticTexts["Your Personal"].frame.minY), inputY=\(app.textFields["entryName"].frame.minY), inputHeight=\(app.textFields["entryName"].frame.height)")
+        print("ENTRY FRAME: headingY=\(app.staticTexts["entryHeroTitle"].frame.minY), headingHeight=\(app.staticTexts["entryHeroTitle"].frame.height), inputY=\(app.textFields["entryName"].frame.minY), inputHeight=\(app.textFields["entryName"].frame.height)")
         let create=app.buttons["createAccount"];XCTAssertFalse(create.isEnabled)
         let name=app.textFields["entryName"];name.tap();name.typeText("nsec1not-a-display-name");XCTAssertFalse(create.isEnabled)
         if app.buttons["entryKeyboardDone"].exists { app.buttons["entryKeyboardDone"].tap() };app.buttons["entrySignIn"].tap();XCTAssertTrue(app.staticTexts["Welcome Back"].waitForExistence(timeout:5))
@@ -39,13 +39,17 @@ import XCTest
     func testCapabilityTabsCompanionToolkitFAQsAndFooterSignup() {
         continueAfterFailure=false;let app=launch()
         func reveal(_ element:XCUIElement,limit:Int=25) {
-            for _ in 0..<limit where !element.exists || !element.isHittable { app.swipeUp(velocity:.fast) }
+            for _ in 0..<limit where !element.exists || !element.isHittable {
+                let top=app.buttons["entryTheme"].frame.maxY+20,above=element.exists && element.frame.midY < top
+                let from=app.coordinate(withNormalizedOffset:CGVector(dx:0.97,dy:above ? 0.3 : 0.8)),to=app.coordinate(withNormalizedOffset:CGVector(dx:0.97,dy:above ? 0.75 : 0.35))
+                from.press(forDuration:0.1,thenDragTo:to,withVelocity:.slow,thenHoldForDuration:0.3)
+            }
             XCTAssertTrue(element.isHittable)
         }
         let remember=app.buttons["landingTab-remember"];reveal(remember);remember.tap()
         XCTAssertTrue(app.staticTexts["Your first try"].exists)
         let shot=XCTAttachment(screenshot:app.screenshot());shot.name="Native Remember capability";shot.lifetime = .keepAlways;add(shot)
-        app.buttons["landingTab-grow"].tap();XCTAssertTrue(app.staticTexts["Vocabulary cards"].exists)
+        app.buttons["landingTab-grow"].tap();let vocabulary=app.staticTexts["Vocabulary cards"];reveal(vocabulary);XCTAssertTrue(vocabulary.exists)
         let next=app.buttons["Next companion"];reveal(next);next.tap();XCTAssertEqual(app.staticTexts["landingCompanionName"].label,"Alien")
         let toolkit=app.buttons["landingToolkit"];reveal(toolkit);toolkit.tap();XCTAssertTrue(app.staticTexts["Game Review RPG"].exists);toolkit.tap()
         let cost=app.buttons["landingFAQ-2"];reveal(cost);cost.tap();XCTAssertTrue(app.staticTexts["landingFAQAnswer-2"].exists)
@@ -67,7 +71,7 @@ import XCTest
         app.buttons["productMenu"].tap();app.buttons["productModeMenu"].tap();app.buttons["productMode-focus"].tap();XCTAssertTrue(app.staticTexts["todayFocusTitle"].waitForExistence(timeout:5))
         let continueButton=app.buttons["companionContinue"]
         for _ in 0..<6 where !continueButton.isHittable { app.swipeUp(velocity:.slow) }
-        continueButton.tap();XCTAssertTrue(app.navigationBars["Starting level"].waitForExistence(timeout:5));app.buttons["I'm completely new"].tap()
+        continueButton.tap();XCTAssertTrue(app.buttons["placementNew"].waitForExistence(timeout:5));XCTAssertTrue(app.buttons["placementFindLevel"].exists);app.buttons["placementNew"].tap()
         let start=app.buttons["startDailyPractice"];for _ in 0..<6 where !start.isHittable { app.swipeDown(velocity:.slow) }
         XCTAssertTrue(start.isEnabled);start.tap();XCTAssertTrue(app.navigationBars["Tutor"].waitForExistence(timeout:10));XCTAssertFalse(app.buttons["Start voice session"].exists,"Starting a daily task chooses the mode, not a lesson or microphone session")
     }

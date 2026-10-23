@@ -19,7 +19,7 @@ import XCTest
         XCTAssertTrue(app.textViews["landingDemoTutor"].label.contains("Goodbye!"));XCTAssertEqual(app.textViews["landingDemoLearner"].label,"gracias");shot("Native public demo finished unsaved lesson",app)
         XCTAssertTrue(app.buttons["landingDemoLanguage"].isEnabled);XCTAssertEqual(app.buttons["landingDemoStart"].label,"Try another short lesson")
         let finalText=app.textViews["landingDemoTutor"].label
-        let grow=app.buttons["landingTab-grow"];for _ in 0..<8 where !grow.isHittable {app.swipeDown(velocity:.slow)};grow.tap();XCTAssertTrue(app.staticTexts["Vocabulary cards"].waitForExistence(timeout:5));app.buttons["landingTab-speak"].tap()
+        let grow=app.buttons["landingTab-grow"];XCTAssertGreaterThan(grow.frame.minY,app.buttons["entryHeaderSignIn"].frame.maxY);XCTAssertTrue(grow.isHittable);grow.tap();XCTAssertTrue(app.staticTexts["Vocabulary cards"].waitForExistence(timeout:5));app.buttons["landingTab-speak"].tap()
         XCTAssertEqual(app.textViews["landingDemoTutor"].label,finalText);XCTAssertTrue(app.buttons["landingDemoLanguage"].label.contains("Spanish"));XCTAssertEqual(app.buttons["landingDemoStart"].label,"Try another short lesson")
         app.buttons["landingDemoStart"].tap();app.buttons["landingDemoStart"].tap()
         XCTAssertEqual(app.buttons["landingDemoStart"].label,"Try it!")

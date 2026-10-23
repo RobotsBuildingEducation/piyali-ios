@@ -4,11 +4,13 @@ struct LandingSectionsView<Signup:View>:View {
     let language:String
     @ViewBuilder var signup:()->Signup
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.entryHeaderBounds) private var headerBounds
     @State private var tab="speak"
     @State private var companion=0
     @State private var toolkitOpen=false
     @State private var openFAQs:Set<Int>=[]
     @State private var privacyOpen=false
+    @State private var showcaseFrame:CGRect = .zero
     @State private var demoTarget:String
     @StateObject private var publicDemo=LandingDemoFixture.service()
     init(language:String,@ViewBuilder signup:@escaping()->Signup) {self.language=language;self.signup=signup;_demoTarget=State(initialValue:EntryCopy.landingTarget(language))}
@@ -49,9 +51,10 @@ struct LandingSectionsView<Signup:View>:View {
         VStack(spacing:28) {
             VStack(spacing:17) { eyebrow(c("features_label").localizedCapitalized);heading(w("title"));paragraph(w("intro")) }.multilineTextAlignment(.center)
             VStack(spacing:15) {
-                HStack(spacing:2) { ForEach(["speak","remember","grow"],id:\.self) { mode in
-                    Button { tab=mode } label:{ Label(w(mode),systemImage:mode == "speak" ? "bubble.left" : mode == "remember" ? "bookmark" : "chart.line.uptrend.xyaxis").font(PiyaliBrand.font(12.3)).padding(.horizontal,12).frame(minHeight:44).foregroundStyle(tab == mode ? Color.white : brand.secondary).background(tab == mode ? green : .clear,in:Capsule()) }.buttonStyle(.plain).accessibilityIdentifier("landingTab-"+mode).accessibilityAddTraits(tab == mode ? .isSelected : [])
-                } }.padding(4).background(brand.surface,in:Capsule()).overlay { Capsule().stroke(brand.border) }
+                GeometryReader {g in
+                    let rect=g.frame(in:.global),offset=max(0,min(headerBounds.maxY+10-rect.minY,showcaseFrame.maxY-rect.maxY))
+                    capabilityTabs.frame(maxWidth:.infinity).offset(y:offset)
+                }.frame(height:52).zIndex(30)
                 VStack(spacing:0) {
                     Group {
                         if tab == "speak" { LandingTutorDemoView(language:language,target:$demoTarget,demo:publicDemo).id(language) }
@@ -65,8 +68,13 @@ struct LandingSectionsView<Signup:View>:View {
                         HStack(alignment:.top,spacing:10) { Circle().fill(green).frame(width:5,height:5).padding(.top,7);paragraph(tab == "speak" ? c("feature_conversations_desc") : w(tab == "remember" ? "memoryDetail" : "proficiencyDetail"),size:12.8) }
                     }.frame(maxWidth:.infinity,alignment:.leading).padding(28)
                 }.background(tab == "speak" ? mint : tab == "remember" ? lilac : peach,in:RoundedRectangle(cornerRadius:22)).overlay { RoundedRectangle(cornerRadius:22).stroke(brand.border) }
-            }
+            }.background {GeometryReader {g in Color.clear.preference(key:LandingShowcaseFrame.self,value:g.frame(in:.global))}}.onPreferenceChange(LandingShowcaseFrame.self){showcaseFrame=$0}
         }
+    }
+    private var capabilityTabs:some View {
+        HStack(spacing:2) {ForEach(["speak","remember","grow"],id:\.self) {mode in
+            Button {tab=mode} label:{Label(w(mode),systemImage:mode == "speak" ? "bubble.left" : mode == "remember" ? "bookmark" : "chart.line.uptrend.xyaxis").font(PiyaliBrand.font(12.3)).padding(.horizontal,12).frame(minHeight:44).foregroundStyle(tab == mode ? Color.white : brand.secondary).background(tab == mode ? PiyaliBrand.unitColor("137a68") : .clear,in:Capsule())}.buttonStyle(.plain).accessibilityIdentifier("landingTab-"+mode).accessibilityAddTraits(tab == mode ? .isSelected : [])
+        }}.padding(4).background(PiyaliBrand.unitColor(scheme == .dark ? "141e2a" : "fffcf6"),in:Capsule()).overlay {Capsule().stroke(brand.border)}
     }
     private var memoryPreview:some View {
         VStack(alignment:.leading,spacing:10) {
@@ -133,4 +141,8 @@ struct LandingSectionsView<Signup:View>:View {
         NavigationStack { ScrollView { VStack(alignment:.leading,spacing:16) { ForEach(Array(policy.components(separatedBy:"\n\n").enumerated()),id:\.offset) { _,block in Text((try? AttributedString(markdown:block)) ?? AttributedString(block)).font(PiyaliBrand.font(15)).frame(maxWidth:.infinity,alignment:.leading) } }.padding(24) }.background(brand.surface).foregroundStyle(brand.text).navigationTitle(privacyTitle).navigationBarTitleDisplayMode(.inline).toolbar { ToolbarItem(placement:.confirmationAction) { Button(EntryCopy.ui(language,"close")) { privacyOpen=false } } }.environment(\.layoutDirection,.leftToRight) }
     }
     private var policy:String { Bundle.main.url(forResource:"privacy-policy",withExtension:"md").flatMap { try? String(contentsOf:$0,encoding:.utf8) } ?? "" }
+}
+private struct LandingShowcaseFrame:PreferenceKey {
+    static var defaultValue:CGRect = .zero
+    static func reduce(value:inout CGRect,nextValue:()->CGRect){let next=nextValue();if next.height>0 {value=next}}
 }
