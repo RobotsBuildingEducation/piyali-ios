@@ -129,7 +129,7 @@ public struct LearnerState: Codable, Sendable {
     public var support = "en"
     public var level = "Pre-A1"
     public var goal = ""
-    public var dailyGoal = 50
+    public var dailyGoal = 100
     public var xpByLanguage: [String: Int] = [:]
     public var subscriptionXPAdjustment:Int?
     public var dailyXP = 0
@@ -144,7 +144,7 @@ public struct LearnerState: Codable, Sendable {
     public var flashcardMastery: Set<String> = []
     public var history: [HistoryEntry] = []
     public var notes: [Note] = []
-    public var companionName = "Piyali"
+    public var companionName = ""
     public var companionType = "ghost"
     public var companionProgress: JSONValue?
     public var achievementRecords: [String:JSONValue]?

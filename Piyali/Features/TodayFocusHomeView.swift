@@ -82,8 +82,3 @@ struct TodayFocusHomeView:View {
         do {try await app.prepareImmersion()}catch is CancellationError{}catch {if immersionRequest == request {immersionError=error.localizedDescription}}
     }
 }
-
-struct DailyGoalSettingsView:View {
-    @EnvironmentObject var app:AppModel
-    var body:some View { Form { Section("Daily XP goal") { Stepper("\(app.learner.dailyGoal) XP",value:$app.learner.dailyGoal,in:10...300,step:10);ProgressView(value:Double(min(app.learner.dailyXP,app.learner.dailyGoal)),total:Double(app.learner.dailyGoal));Text("\(app.learner.dailyXP) / \(app.learner.dailyGoal) XP");Button("Save") { app.persist() } };Section { Text("\(app.learner.streak) day streak");Text("Health: \(app.learner.companionHealth)%") } }.navigationTitle("Daily goal") }
-}

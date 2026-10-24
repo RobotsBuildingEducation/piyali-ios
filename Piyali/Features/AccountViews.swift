@@ -86,6 +86,7 @@ struct AccountView: View {
     @State private var importKey = ""
     @State private var importConfirmation = false
     @State private var gettingStarted=false
+    @State private var dailyGoalOpen=false
     @FocusState private var goalFocused: Bool
     var body: some View {
         Form {
@@ -94,7 +95,7 @@ struct AccountView: View {
                 LanguagePicker(title: "Practice language", selection: Binding(get:{ app.learner.target },set:{ app.setPracticeLanguage($0) }), codes: LearningLanguages.practice).accessibilityIdentifier("practiceLanguagePicker")
                 LanguagePicker(title: "Support language", selection: $app.learner.support, codes: LearningLanguages.support).accessibilityIdentifier("supportLanguagePicker")
                 TextField("Learning goal", text: $app.learner.goal, axis: .vertical).accessibilityIdentifier("learningGoalField").focused($goalFocused)
-                Stepper("Daily goal: \(app.learner.dailyGoal) XP", value: $app.learner.dailyGoal, in: 10...300, step: 10)
+                Button(EntryCopy.ui(app.learner.support,"daily_goal_title")){dailyGoalOpen=true}.accessibilityIdentifier("accountDailyGoal")
                 TextField("Companion name", text: $app.learner.companionName)
                 Picker("Companion", selection: $app.learner.companionType) { ForEach(CompanionTypes.available(level: app.learner.companionLevel), id: \.self) { Text($0.capitalized).tag($0) } }
                 Button("Save preferences") { app.persist(); Task { await app.reloadContent() } }
@@ -144,6 +145,7 @@ struct AccountView: View {
                     GettingStartedView {gettingStarted=false;app.learner.gettingStartedModalShown=true;app.persist()}
                 }.presentationBackground(.clear).environment(\.layoutDirection,app.learner.support == "ar" ? .rightToLeft : .leftToRight)
             }
+            .fullScreenCover(isPresented:$dailyGoalOpen){DailyGoalManagerView(onClose:{dailyGoalOpen=false}).presentationBackground(.clear).environment(\.layoutDirection,app.learner.support == "ar" ? .rightToLeft : .leftToRight)}
             .confirmationDialog("Switch to another account? Your current progress is saved on this iPhone.", isPresented: $importConfirmation) {
                 Button("Switch account") { Task { await app.signIn(nsec: importKey); importKey = "" } }
             }

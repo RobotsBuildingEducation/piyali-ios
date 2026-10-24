@@ -1,0 +1,26 @@
+import XCTest
+
+@MainActor final class SessionToolsJourneyTests:XCTestCase {
+    private func enter(language:String="en",theme:String="light")->XCUIApplication {
+        continueAfterFailure=false
+        let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString;app.launchEnvironment["PIYALI_ENTRY_INITIAL_LANGUAGE"]=language;app.launchEnvironment["PIYALI_ENTRY_INITIAL_THEME"]=theme;app.launchEnvironment["PIYALI_HEADLINE_FIXTURE"]="failure";app.launch()
+        let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Session Learner");if app.buttons["entryKeyboardDone"].exists{app.buttons["entryKeyboardDone"].tap()};app.buttons["createAccount"].tap();XCTAssertTrue(app.buttons["startLearning"].waitForExistence(timeout:15));app.buttons["startLearning"].tap();XCTAssertTrue(app.buttons["openDailyGoal"].waitForExistence(timeout:15));return app
+    }
+    private func shot(_ app:XCUIApplication,_ name:String){let a=XCTAttachment(screenshot:app.screenshot());a.name=name;a.lifetime = .keepAlways;add(a)}
+    private func replace(_ field:XCUIElement,_ text:String){field.tap();let old=field.value as? String ?? "";field.typeText(String(repeating:XCUIKeyboardKey.delete.rawValue,count:old.count)+text)}
+    func testGoalDraftTimerClockPauseRestorationAndRealExpiration() {
+        let app=enter();shot(app,"Session header English")
+        app.buttons["openDailyGoal"].tap();let goal=app.textFields["dailyGoalDraft"];XCTAssertTrue(goal.waitForExistence(timeout:5));XCTAssertEqual(goal.value as? String,"100");shot(app,"Goal Manager English")
+        app.buttons["goalPreset-150"].tap();XCTAssertEqual(goal.value as? String,"150");replace(goal,"5");app.buttons["dailyGoalSave"].tap();XCTAssertTrue(app.buttons["openDailyGoal"].waitForExistence(timeout:5));app.buttons["openDailyGoal"].tap();XCTAssertTrue(goal.waitForExistence(timeout:5));XCTAssertEqual(goal.value as? String,"5");replace(goal,"999");app.buttons["dailyGoalClose"].tap();app.buttons["openDailyGoal"].tap();XCTAssertEqual(goal.value as? String,"5");app.buttons["dailyGoalClose"].tap()
+        app.buttons["openSessionTimer"].tap();let minutes=app.textFields["timerMinutesDraft"];XCTAssertTrue(minutes.waitForExistence(timeout:5));XCTAssertEqual(minutes.value as? String,"20");shot(app,"Session timer English")
+        app.buttons["timerPreset-45"].tap();let clock=app.otherElements["sessionClock"];XCTAssertTrue(clock.exists);clock.coordinate(withNormalizedOffset:CGVector(dx:0.5,dy:0.09)).press(forDuration:0.05,thenDragTo:clock.coordinate(withNormalizedOffset:CGVector(dx:0.94,dy:0.5)));XCTAssertEqual(minutes.value as? String,"75")
+        app.buttons["timerClose"].tap();XCTAssertFalse(app.buttons["toggleSessionTimer"].exists);app.buttons["openSessionTimer"].tap();XCTAssertTrue(minutes.waitForExistence(timeout:5));XCTAssertEqual(minutes.value as? String,"75");replace(minutes,"1");app.buttons["timerStart"].tap();XCTAssertTrue(app.buttons["toggleSessionTimer"].waitForExistence(timeout:5));app.buttons["toggleSessionTimer"].tap();XCTAssertEqual(app.buttons["toggleSessionTimer"].label,"Resume timer")
+        XCUIDevice.shared.press(.home);app.activate();XCTAssertEqual(app.buttons["toggleSessionTimer"].label,"Resume timer");app.terminate();app.launch();XCTAssertTrue(app.buttons["toggleSessionTimer"].waitForExistence(timeout:15));XCTAssertEqual(app.buttons["toggleSessionTimer"].label,"Resume timer");shot(app,"Paused timer restored")
+        app.buttons["toggleSessionTimer"].tap();XCTAssertEqual(app.buttons["toggleSessionTimer"].label,"Pause timer")
+        XCTAssertTrue(app.buttons["timerTimeUpClose"].waitForExistence(timeout:75));XCTAssertTrue(app.buttons["timerTimeUpX"].exists);shot(app,"Real one minute timer complete");app.terminate();app.launch();XCTAssertTrue(app.buttons["timerTimeUpClose"].waitForExistence(timeout:15));app.buttons["timerTimeUpRestart"].tap();XCTAssertTrue(minutes.waitForExistence(timeout:5));XCTAssertEqual(minutes.value as? String,"1");app.buttons["timerClose"].tap();XCTAssertFalse(app.buttons["toggleSessionTimer"].exists)
+    }
+    func testArabicDarkGoalAndTimerKeepTheirContentAndDraftBoundaries() {
+        let app=enter(language:"ar",theme:"dark");app.buttons["openDailyGoal"].tap();let goal=app.textFields["dailyGoalDraft"];XCTAssertTrue(goal.waitForExistence(timeout:5));shot(app,"Goal Manager Arabic dark");replace(goal,"1001");app.buttons["dailyGoalSave"].tap();app.buttons["openDailyGoal"].tap();XCTAssertTrue(goal.waitForExistence(timeout:5));XCTAssertEqual(goal.value as? String,"1000");app.buttons["dailyGoalClose"].tap()
+        app.buttons["openSessionTimer"].tap();let minutes=app.textFields["timerMinutesDraft"];XCTAssertTrue(minutes.waitForExistence(timeout:5));app.buttons["timerPreset-240"].tap();XCTAssertEqual(minutes.value as? String,"240");shot(app,"Session timer Arabic dark 240 minutes");replace(minutes,"250");XCTAssertEqual(minutes.value as? String,"240");app.buttons["timerClose"].tap();XCTAssertFalse(app.buttons["toggleSessionTimer"].exists)
+    }
+}

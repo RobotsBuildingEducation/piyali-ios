@@ -20,6 +20,11 @@ struct ProductShellView:View {
     var now=Date()
     @EnvironmentObject var app:AppModel
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.scenePhase) private var scenePhase
+    @StateObject private var timer=SessionTimerController()
+    @State private var goalOpen=false
+    @State private var timerOpen=false
+    @State private var timerAwardRevision=UUID()
     @AppStorage("piyali.theme") private var theme="light"
     @State private var firstRun=FirstRunFlow()
     @State private var mode:ProductMode = .focus
@@ -38,16 +43,15 @@ struct ProductShellView:View {
     private var sessionKey:String { "piyali.guidedSession."+app.identity.npub }
     private var firstRunScope:String {app.identity.npub+":"+app.learner.target}
     private var contextKey:String { app.identity.npub+":"+app.learner.target+":"+CalendarDay.key(now) }
-    var body:some View {
+    private var timerAwardKey:String {timer.session.account+":"+(timer.pending.first ?? "")+":"+timerAwardRevision.uuidString}
+    private var shell:some View {
         ZStack(alignment:.bottom) {
             BrandBackground()
             NavigationStack {
                 surface.navigationBarTitleDisplayMode(.inline)
-                    .toolbar {
-                        ToolbarItem(placement:.topBarLeading) { if mode == .focus { BrandArtwork(name:"piyali-orb.png").frame(width:32,height:32) } }
-                        ToolbarItem(placement:.topBarTrailing) { Button { panel = .goal } label:{ HStack(spacing:7) { Image(systemName:"flame");Text("\(app.learner.dailyXP) / \(app.learner.dailyGoal) XP").font(PiyaliBrand.productFont(12,600)) } }.accessibilityLabel("Open daily goal") }
-                    }
+                    .toolbar(mode == .focus ? .hidden:.automatic,for:.navigationBar)
             }.id(revision).tint(PiyaliBrand.teal).blur(radius:menuOpen ? 6 : 0).allowsHitTesting(!menuOpen)
+                .safeAreaInset(edge:.top,spacing:0){ProductTopBar(timer:timer,onGoal:{goalOpen=true},onTimer:{timer.load(account:app.identity.npub);timerOpen=true})}
                 .safeAreaInset(edge:.bottom) { if app.activityFooter == nil { menuButton(compact:false).padding(.bottom,10) } }
                 .overlay(alignment:.bottom) {
                     if let footer=app.activityFooter {
@@ -62,7 +66,7 @@ struct ProductShellView:View {
                 }
             if menuOpen { menu }
         }.font(PiyaliBrand.productFont(16)).foregroundStyle(brand.text)
-            .accessibilityHidden(lessonCompletion != nil || firstRun.step != nil)
+            .accessibilityElement(children:.contain).accessibilityHidden(lessonCompletion != nil || firstRun.step != nil || goalOpen || timerOpen || timer.session.status == .finished)
             .overlay {
                 if let data=lessonCompletion {
                     ZStack {
@@ -83,9 +87,26 @@ struct ProductShellView:View {
             .onChange(of:firstRunScope) {_,scope in firstRun.reconcile(scope:scope)}
             .preferredColorScheme(theme == "dark" ? .dark : .light)
             .environment(\.layoutDirection,language == "ar" ? .rightToLeft : .leftToRight)
+    }
+    var body:some View {
+        shell
+            .overlay{if goalOpen{DailyGoalManagerView(onClose:{goalOpen=false}).accessibilityHidden(timerOpen || timer.session.status == .finished)}}
+            .overlay{if timerOpen{SessionTimerView(timer:timer,language:language,onClose:{timerOpen=false}).accessibilityHidden(timer.session.status == .finished)}}
+            .overlay{if timer.session.status == .finished,firstRun.step == nil,lessonCompletion == nil,panel == nil{SessionTimeUpView(minutes:timer.session.duration/60,language:language,onClose:timer.clear,onRestart:{timer.clear();timerOpen=true})}}
+            .environment(\.layoutDirection,language == "ar" ? .rightToLeft : .leftToRight)
+            .task(id:timerAwardKey){
+                let account=timer.session.account
+                guard account==app.identity.npub,let id=timer.pending.first else{return}
+                do{try await FirebaseService.shared.recordSessionTimer(npub:account,id:id);try Task.checkCancellation();timer.acknowledge(id,account:account)}catch{}
+            }
+            .onChange(of:scenePhase){_,value in if value == .active{timer.refresh();timerAwardRevision=UUID()}}
+            .onChange(of:app.syncStatus){_,value in if value == "Synced with Firebase"{timerAwardRevision=UUID()}}
+            .onChange(of:app.identity.npub){_,_ in goalOpen=false;timerOpen=false;timer.load(account:app.identity.npub)}
+            .onChange(of:timer.session.status){_,value in if value == .finished{UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder),to:nil,from:nil,for:nil)}}
             .sheet(item:$panel) { selected in NavigationStack { panelContent(selected).toolbar { ToolbarItem(placement:.confirmationAction) { Button(EntryCopy.text(language,"back_button")) { panel=nil }.accessibilityIdentifier("productPanelClose") } } }.tint(PiyaliBrand.teal) }
             .sheet(isPresented:$celebration) { completion }
             .task(id:contextKey) {
+                timer.load(account:app.identity.npub)
                 if app.learner.dailyKey != CalendarDay.key(now) { app.learner.rollDay(now:now);app.persist() }
                 app.prepareDailyPlate()
                 if let guided,!guided.matches(account:app.identity.npub,target:app.learner.target,day:CalendarDay.key(now)) { celebration=false;waitingCelebration=false;specialCourse=nil }
@@ -146,7 +167,7 @@ struct ProductShellView:View {
         case .memory: NotebookView()
         case .achievements: AchievementsView()
         case .placement: PlacementView()
-        case .goal: DailyGoalSettingsView()
+        case .goal: DailyGoalManagerView(onClose:{self.panel=nil})
         }
     }
     private func switchMode(_ value:ProductMode) { guided=nil;waitingCelebration=false;celebration=false;saveSession();specialCourse=nil;mode=value;menuOpen=false;revision=UUID() }

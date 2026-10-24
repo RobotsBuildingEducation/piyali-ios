@@ -68,7 +68,10 @@ public enum WebProgressContract {
             state.support = progress["supportLang"] as? String ?? fields["language"] as? String ?? state.support
             let candidate = progress["cefrLevel"] as? String ?? state.level
             state.level = LearningLanguages.levels.contains(candidate) ? candidate : "Pre-A1"
-            state.dailyGoal = max(10,integer(fields["dailyGoalXp"],default:state.dailyGoal))
+            let candidates=[fields["dailyGoalXp"],progress["dailyGoalXp"],(fields["stats"] as? [String:Any])?["dailyGoalXp"]]
+            let rawGoal=candidates.compactMap{$0 is NSNull ? nil:$0}.first
+            let goal=(rawGoal as? NSNumber)?.doubleValue ?? (rawGoal as? String).flatMap{Double($0.trimmingCharacters(in:.whitespacesAndNewlines))} ?? 0
+            state.dailyGoal = goal.isFinite && goal>0 ? goal>=Double(Int.max) ? Int.max:max(1,Int(goal)) : 100
             state.companionName = fields["dailyGoalPetName"] as? String ?? state.companionName
             state.companionType = fields["dailyGoalPetType"] as? String ?? state.companionType
             state.onboardingComplete = (fields["onboarding"] as? [String:Any])?["completed"] as? Bool ?? state.onboardingComplete

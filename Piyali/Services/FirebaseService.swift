@@ -36,6 +36,18 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
         guard injectedDatabase == nil else { return } // Named emulator databases belong to isolated test fixtures.
         guard Auth.auth().currentUser?.uid == npub else { throw AppError.message("Authenticate your Nostr account before syncing progress.") }
     }
+    func recordSessionTimer(npub:String,id:String) async throws {
+        guard let database else{throw AppError.message("Sync your account to save this timer achievement.")};try requireOwner(npub)
+        guard UUID(uuidString:id) != nil else{throw AppError.message("Invalid timer completion.")}
+        let user=database.collection("users").document(npub)
+        let event=user.collection("achievementProgress").document("nosabos").collection("events").document(try AchievementSyncService.documentID(metric:"session_timers",id:id))
+        _ = try await database.runTransaction {transaction,error in
+            do{if !(try transaction.getDocument(event)).exists{transaction.setData(["source":"nosabos","metric":"session_timers","completionId":id,"createdAt":FieldValue.serverTimestamp()],forDocument:event)};return true}
+            catch let failure{error?.pointee=failure as NSError;return nil}
+        }
+        try await AchievementSyncService.shared.refreshLedger(user:user)
+        try await AchievementSyncService.shared.sync(user:user,changes:[])
+    }
     func activityHistory(npub:String,year:Int) async throws -> JSONValue {
         guard (1900...2200).contains(year),let database else { return .object([:]) }
         try requireOwner(npub)

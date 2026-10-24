@@ -15,6 +15,22 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
     func createProvider(with app: FirebaseApp) -> AppCheckProvider? { EmulatorAppCheckProvider() }
 }
 @MainActor final class FirestoreContractTests: XCTestCase {
+    func testSessionTimerCompletionIsIdempotentAndGoalEditsPreserveXPAndPaidFields() async throws {
+        let (service,db,npub)=try context();try await seed(db,npub)
+        let window=try await db.collection("users").document(npub).getDocument(source:.server)
+        var state=try requireState(await service.load(npub:npub));state.dailyGoal=5;state.preferencesModifiedAt=Date()
+        _=try await service.save(state,npub:npub)
+        let id=UUID().uuidString,path=try AchievementSyncService.documentID(metric:"session_timers",id:id)
+        try await service.recordSessionTimer(npub:npub,id:id)
+        let ref=db.collection("users").document(npub).collection("achievementProgress").document("nosabos").collection("events").document(path)
+        let first=try await ref.getDocument(source:.server)
+        try await service.recordSessionTimer(npub:npub,id:id)
+        let second=try await ref.getDocument(source:.server),events=try await ref.parent.whereField("metric",isEqualTo:"session_timers").getDocuments(source:.server)
+        XCTAssertEqual(events.documents.count,1);XCTAssertEqual(first["createdAt"] as? Timestamp,second["createdAt"] as? Timestamp);XCTAssertEqual(second["completionId"] as? String,id)
+        let root=try await db.collection("users").document(npub).getDocument(source:.server)
+        XCTAssertEqual(root["dailyGoalXp"] as? Int,5);XCTAssertEqual(root["dailyXp"] as? Int,5);XCTAssertEqual(root["xp"] as? Int,150);XCTAssertEqual(root["patreonVerified"] as? Bool,true);XCTAssertEqual(root["unrelatedWebSetting"] as? String,"preserve")
+        XCTAssertEqual(root["dailyStartedAt"] as? String,window["dailyStartedAt"] as? String);XCTAssertEqual(root["dailyResetAt"] as? String,window["dailyResetAt"] as? String)
+    }
     func testHeadlinesMergeByLanguageKeepSourceLastWriteAndPreserveMembershipAndXP() async throws {
         let (service,db,npub)=try context();try await seed(db,npub)
         try await db.collection("users").document(npub).setData(["membership":["active":true]],merge:true)
