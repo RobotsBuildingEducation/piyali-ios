@@ -11,14 +11,16 @@ import WebRTC
     @discardableResult func send(_ event:JSONValue)->Bool
     func setMicrophoneEnabled(_ enabled:Bool)
     func setRemoteAudioEnabled(_ enabled:Bool)
+    func playbackDrainMilliseconds() async ->Double
     func audioAmplitude(speaking:Bool) async ->Double
     func close()
 }
-extension RealtimeVoiceTransport { func audioAmplitude(speaking:Bool) async ->Double { 0 } }
+extension RealtimeVoiceTransport { func playbackDrainMilliseconds() async ->Double {1000};func audioAmplitude(speaking:Bool) async ->Double { 0 } }
 
 /// Native WebRTC media and oai-events data channel. Only an SDP offer is sent
 /// through Cloudflare; the standard provider key never enters the app.
 @MainActor final class RealtimeRTCTransport:NSObject,RealtimeVoiceTransport {
+    enum Purpose:String {case conversation,narration}
     var onOpen:(()->Void)?
     var onEvent:((JSONValue)->Void)?
     var onFailure:((String)->Void)?
@@ -26,13 +28,16 @@ extension RealtimeVoiceTransport { func audioAmplitude(speaking:Bool) async ->Do
     private let configuration:AppConfiguration
     private var peer:RTCPeerConnection?,channel:RTCDataChannel?,microphone:RTCAudioTrack?,sender:RTCRtpSender?
     private var ownsAudio=false,closed=false
-    private let capturesMicrophone:Bool
-    init(configuration:AppConfiguration=AppConfiguration(),capturesMicrophone:Bool=true) { self.configuration=configuration;self.capturesMicrophone=capturesMicrophone;super.init() }
+    private let capturesMicrophone:Bool,activatesPlayback:Bool
+    private let purpose:Purpose
+    init(configuration:AppConfiguration=AppConfiguration(),capturesMicrophone:Bool=true,activatesPlayback:Bool=true,purpose:Purpose = .conversation) { self.configuration=configuration;self.capturesMicrophone=capturesMicrophone;self.activatesPlayback=activatesPlayback;self.purpose=purpose;super.init() }
     func connect(session:JSONValue) async throws {
         closed=false
-        if capturesMicrophone {
+        if capturesMicrophone || activatesPlayback {
             let audio=RTCAudioSession.sharedInstance();audio.lockForConfiguration();defer { audio.unlockForConfiguration() }
             let config=RTCAudioSessionConfiguration.webRTC();config.category=AVAudioSession.Category.playAndRecord.rawValue;config.mode=AVAudioSession.Mode.voiceChat.rawValue;config.categoryOptions=[.defaultToSpeaker,.allowBluetoothHFP]
+            // WebRTC's voice-processing audio unit uses its standard audio
+            // session even for a receive-only track; no input sender is added.
             try audio.setConfiguration(config,active:true);ownsAudio=true
         }
         let config=RTCConfiguration();config.sdpSemantics = .unifiedPlan
@@ -72,7 +77,10 @@ extension RealtimeVoiceTransport { func audioAmplitude(speaking:Bool) async ->Do
         request.setValue("application/json",forHTTPHeaderField:"Content-Type")
         for (key,value) in try await FirebaseService.shared.appCheckHeaders() { request.setValue(value,forHTTPHeaderField:key) }
         request.setValue("Bearer "+(try await user.getIDToken()),forHTTPHeaderField:"Authorization")
-        request.httpBody=try JSONEncoder().encode(JSONValue.object(["sdp":.string(sdp),"session":session]))
+        // The source narration session sends its model alongside the SDP. The
+        // native worker requires the fixed model inside its normalized session.
+        let normalized=session["model"].string.isEmpty ? session.setting("model",.string(configuration.string("RealtimeModel",default:"gpt-realtime-2.1-mini"))):session
+        request.httpBody=try JSONEncoder().encode(JSONValue.object(["sdp":.string(sdp),"session":normalized,"purpose":.string(purpose.rawValue)]))
         let (data,response)=try await URLSession.shared.data(for:request)
         guard let http=response as? HTTPURLResponse else { throw AppError.message("Live conversation could not connect. Try again.") }
         guard (200..<300).contains(http.statusCode) else {
@@ -101,6 +109,21 @@ extension RealtimeVoiceTransport { func audioAmplitude(speaking:Bool) async ->Do
             continuation.resume(returning:levels.max() ?? 0)
         } }
         guard !closed,self.peer === peer else {return 0};return min(1,max(0,rms))
+    }
+    func playbackDrainMilliseconds() async ->Double {
+        guard let peer,!closed else{return 1000}
+        return await withCheckedContinuation {continuation in
+            var resumed=false
+            let timeout=Task{try? await Task.sleep(for:.milliseconds(500));if !Task.isCancelled,!resumed{resumed=true;continuation.resume(returning:1000)}}
+            peer.statistics{report in Task{@MainActor in
+                guard !resumed else{return};resumed=true;timeout.cancel();var tail=1000.0
+                for stat in report.statistics.values where stat.type == "inbound-rtp" {
+                    let count=(stat.values["jitterBufferEmittedCount"] as? NSNumber)?.doubleValue ?? 0
+                    if count>0 {let delay=max((stat.values["jitterBufferDelay"] as? NSNumber)?.doubleValue ?? 0,(stat.values["jitterBufferTargetDelay"] as? NSNumber)?.doubleValue ?? 0)/count;tail=max(tail,delay*1000+500)}
+                }
+                continuation.resume(returning:tail)
+            }}
+        }
     }
     func receivedAudioBytes() async ->Int {
         guard let peer else { return 0 }

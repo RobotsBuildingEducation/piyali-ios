@@ -1,7 +1,7 @@
 import Foundation
 
 public enum PracticeSource: String, Codable, Sendable {
-    case practice, repairPractice, assessment, lessonStart, lesson, review, phonics, goal, goalMode, repair, immersion, speak, tutorTurn, conversation, readingTurn, readingSpeech, storyTurn, storyCompletion, questStart, plateBonus
+    case phonicsAttempt, phonicsDeck, practice, repairPractice, assessment, lessonStart, lesson, review, phonics, goal, goalMode, repair, immersion, speak, tutorTurn, conversation, readingTurn, readingSpeech, storyTurn, storyCompletion, questStart, plateBonus
     public var activityField: String? {
         switch self { case .lesson:"lessonDailyActivity"; case .review:"flashcardDailyActivity"; case .phonics:"phonicsDailyActivity"; case .goal:"goalDailyActivity"; case .repair:"repairDailyActivity"; case .speak:"speakDailyActivity"; case .conversation:"conversationDailyActivity"; default:nil }
     }
@@ -24,6 +24,7 @@ public struct PracticeChange: Codable, Identifiable, Sendable {
     public var questKinds: [String]?
     public var reviewRating: ReviewRating?
     public var reviewPatch: FlashcardReview?
+    public var phonicsData:JSONValue?
     public var activityDayKey:String {reviewPatch?.lastReviewedAt.map{CalendarDay.key($0)} ?? dayKey}
     public var correct: Bool?
     public var independent: Bool?
@@ -60,7 +61,7 @@ public enum CalendarDay {
     }
 }
 public extension LearnerState {
-    mutating func enqueue(_ change: PracticeChange) { applyGoalLessonWork(change);applyLessonWork(change);questProgress = DailyPlate.recorded(change,progress:plateProgress); if pendingChanges == nil { pendingChanges = [] }; pendingChanges?.append(change) }
+    mutating func enqueue(_ change: PracticeChange) { applyPhonics(change);applyGoalLessonWork(change);applyLessonWork(change);questProgress = DailyPlate.recorded(change,progress:plateProgress); if pendingChanges == nil { pendingChanges = [] }; pendingChanges?.append(change) }
     mutating func review(cardID: String, rating: ReviewRating, xp:Int? = nil, patch:FlashcardReview? = nil, now: Date = Date(), calendar: Calendar = .current) {
         rollDay(now:now,calendar:calendar)
         let key = completionKey(cardID)
@@ -93,6 +94,8 @@ public extension LearnerState {
         let sentIDs = Set((sent.pendingChanges ?? []).map(\.id))
         let newer = (current.pendingChanges ?? []).filter { !sentIDs.contains($0.id) && !(acknowledged.acknowledgedEventIDs ?? []).contains($0.id) }
         merged.pendingChanges = newer
+        merged.phonicsRecords=acknowledged.phonicsRecords
+        for change in newer.sorted(by:{$0.date < $1.date}){merged.applyPhonics(change)}
         merged.questProgress = acknowledged.questProgress
         for change in newer { merged.questProgress = DailyPlate.recorded(change,progress:merged.plateProgress) }
         for (target,plan) in acknowledged.questPlans ?? [:] {

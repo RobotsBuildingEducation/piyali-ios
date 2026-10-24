@@ -2707,11 +2707,25 @@ return {getTodaysCapturedNotes,getCompanionDayKey,getLocalDayKey,getCompanionNot
 const M14=(function(){
 
 const PHONICS_LEVELS = Object.freeze(['Pre-A1', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2']);
+const PHONICS_SUPPORTS = Object.freeze(['en', 'es', 'pt', 'it', 'fr', 'de', 'ja', 'hi', 'ar', 'zh']);
+const PHONICS_TARGETS=Object.freeze(["en","es","pt","it","fr","de","ja","hi","ar","zh","ru","nl","el","pl","ga","nah","yua"]);
 function initialPhonicsLevel({ placementLevel, cefrLevel } = {}) {
   return PHONICS_LEVELS.includes(placementLevel) ? placementLevel
     : PHONICS_LEVELS.includes(cefrLevel) ? cefrLevel : 'Pre-A1';
 }
 function getAuthoredPhonicsDeck(target,support,level){return snapshotDecks[target+":"+support+":"+level]||[];}
+function partitionPhonicsProgress(cards, documents) {
+  const counts = {};
+  for (const document of documents) {
+    if (document.targetLang !== cards[0]?.targetLang || !Number.isSafeInteger(document.correctCount) || document.correctCount <= 0) continue;
+    counts[document.letterId] = Math.max(counts[document.letterId] || 0, document.correctCount);
+  }
+  return {
+    counts,
+    remaining: cards.filter(card => !counts[card.id]),
+    collected: cards.filter(card => counts[card.id]),
+  };
+}
 function getAuthoredPhonicsFocusCards(focus) {
   const item = focus.plan?.items?.[0];
   const captured = item?.sourceContext?.card;
@@ -2728,7 +2742,19 @@ function getAuthoredPhonicsFocusCards(focus) {
   const siblings = getAuthoredPhonicsDeck(focus.targetLang, focus.supportLang, first.cefrLevel);
   return [first, ...siblings.filter(card => card.id !== first.id)].slice(0, focus.blueprint ? 2 : 3);
 }
-return {getAuthoredPhonicsFocusCards,initialPhonicsLevel,PHONICS_LEVELS,getAuthoredPhonicsDeck};})();
+const PHONICS_CONTROLS = Object.freeze({
+  en: { level: 'Practice level', next: 'Next level', repeat: 'Practice again', complete: 'This collection is complete.', subhead: 'Practice sounds, stress and rhythm at your level.' },
+  es: { level: 'Nivel de práctica', next: 'Siguiente nivel', repeat: 'Practicar de nuevo', complete: 'Esta colección está completa.', subhead: 'Practica sonidos, acento y ritmo según tu nivel.' },
+  pt: { level: 'Nível de prática', next: 'Próximo nível', repeat: 'Praticar novamente', complete: 'Esta coleção está completa.', subhead: 'Pratique sons, acento e ritmo no seu nível.' },
+  it: { level: 'Livello di pratica', next: 'Livello successivo', repeat: 'Pratica di nuovo', complete: 'Questa raccolta è completa.', subhead: 'Pratica suoni, accento e ritmo al tuo livello.' },
+  fr: { level: 'Niveau de pratique', next: 'Niveau suivant', repeat: 'Pratiquer à nouveau', complete: 'Cette collection est complète.', subhead: 'Pratique les sons, les accents et le rythme à ton niveau.' },
+  de: { level: 'Übungsniveau', next: 'Nächste Stufe', repeat: 'Erneut üben', complete: 'Diese Sammlung ist vollständig.', subhead: 'Übe Laute, Betonung und Rhythmus auf deinem Niveau.' },
+  ja: { level: '練習レベル', next: '次のレベル', repeat: 'もう一度練習', complete: 'このコレクションは完了です。', subhead: '自分のレベルに合った音・強勢・リズムを練習します。' },
+  hi: { level: 'अभ्यास स्तर', next: 'अगला स्तर', repeat: 'फिर अभ्यास करें', complete: 'यह संग्रह पूरा है।', subhead: 'अपने स्तर पर ध्वनि, बल और लय का अभ्यास करें।' },
+  ar: { level: 'مستوى التدريب', next: 'المستوى التالي', repeat: 'تدرب مرة أخرى', complete: 'اكتملت هذه المجموعة.', subhead: 'تدرب على الأصوات والنبر والإيقاع في مستواك.' },
+  zh: { level: '练习级别', next: '下一级', repeat: '再次练习', complete: '本组已完成。', subhead: '按你的级别练习发音、重音和节奏。' },
+});
+return {getAuthoredPhonicsFocusCards,initialPhonicsLevel,PHONICS_LEVELS,getAuthoredPhonicsDeck,PHONICS_CONTROLS,partitionPhonicsProgress,PHONICS_TARGETS,PHONICS_SUPPORTS};})();
 // src/utils/lessonProgress.js
 const M15=(function(){
 
@@ -3653,6 +3679,705 @@ function getFlashcardDailyTarget({
   return FLASHCARD_RANDOM_DAILY_TARGET_MIN + roll;
 }
 return {getFlashcardDailyTarget,FLASHCARD_RANDOM_DAILY_TARGET_MAX,FLASHCARD_RANDOM_DAILY_TARGET_MIN,hashString};})();
+// src/utils/supplementalPhonics.js
+const M27=(function(){
+const PHONICS_TARGETS=M14.PHONICS_TARGETS;
+const PHONICS_SUPPORTS=M14.PHONICS_SUPPORTS;
+const PHONICS_LEVELS=M14.PHONICS_LEVELS;
+const SUPPLEMENTAL_PHONICS_VERSION = 'phonics-extra-v1';
+const SUPPLEMENTAL_DECK_SIZE = 6;
+const scripts = { hi: /[\u0900-\u097f]/u, ar: /[\u0600-\u06ff]/u, ja: /[\u3040-\u30ff\u3400-\u9fff]/u, zh: /[\u3400-\u9fff]/u, ru: /[\u0400-\u04ff]/u, el: /[\u0370-\u03ff]/u };
+const clean = value => typeof value === 'string' ? value.trim() : '';
+const wordKey = value => clean(value).normalize('NFKC').toLocaleLowerCase();
+const usesScript = (value, language) => {
+  if (!scripts[language]) return true;
+  const letters = value.match(/\p{L}/gu) || [];
+  return letters.length > 0 && letters.filter(letter => scripts[language].test(letter)).length >= letters.length / 2;
+};
+function buildSupplementalPhonicsDeck(units, { target, support, level, batchId, existingWords = [] }) {
+  if (!PHONICS_TARGETS.includes(target) || !PHONICS_SUPPORTS.includes(support) ||
+    !PHONICS_LEVELS.includes(level) || !/^\d{13,16}$/.test(String(batchId)) ||
+    !Array.isArray(units) || units.length !== SUPPLEMENTAL_DECK_SIZE) throw new Error('Invalid phonics deck');
+  const seen = new Set(existingWords.map(wordKey));
+  const deckId = [SUPPLEMENTAL_PHONICS_VERSION, target, support, level, batchId].join(':');
+  return units.map((unit, index) => {
+    const fields = Object.fromEntries(['grapheme', 'exampleWord', 'sound', 'tip', 'meaning'].map(key => [key, clean(unit?.[key])]));
+    if (Object.values(fields).some(value => !value || value.length > 600) ||
+      [fields.sound, fields.tip, fields.meaning].some(value => !usesScript(value, support)) ||
+      !usesScript(fields.exampleWord, target) ||
+      seen.has(wordKey(fields.exampleWord))) throw new Error('Incomplete or repeated phonics content');
+    seen.add(wordKey(fields.exampleWord));
+    return {
+      id: 'gen_' + batchId + '_' + index, deckId,
+      curriculumVersion: SUPPLEMENTAL_PHONICS_VERSION,
+      generated: true, generatedDeckSize: SUPPLEMENTAL_DECK_SIZE,
+      supportLanguage: support, targetLang: target, cefrLevel: level,
+      type: 'sound', letter: fields.grapheme, name: '', sound: fields.sound, tip: fields.tip,
+      tts: fields.exampleWord, practiceWord: fields.exampleWord,
+      practiceWordMeaning: { [support]: fields.meaning },
+    };
+  });
+}
+function supplementalPhonicsRecord(card) {
+  return {
+    letterId: card.id, targetLang: card.targetLang, generated: true,
+    generatedDeckSize: card.generatedDeckSize, curriculumVersion: card.curriculumVersion,
+    deckId: card.deckId, supportLanguage: card.supportLanguage, cefrLevel: card.cefrLevel,
+    grapheme: card.letter, sound: card.sound, tip: card.tip,
+    currentWord: card.practiceWord, currentMeaning: card.practiceWordMeaning,
+  };
+}
+function restoreSupplementalPhonics(target, support, level, records) {
+  const groups = new Map();
+  for (const record of records) {
+    if (record.generated !== true || record.curriculumVersion !== SUPPLEMENTAL_PHONICS_VERSION ||
+      record.targetLang !== target || record.supportLanguage !== support || record.cefrLevel !== level) continue;
+    const match = /^gen_(\d{13,16})_([0-5])$/.exec(record.letterId || '');
+    if (!match || record.generatedDeckSize !== SUPPLEMENTAL_DECK_SIZE) continue;
+    const group = groups.get(match[1]) || new Map();
+    group.set(Number(match[2]), record);
+    groups.set(match[1], group);
+  }
+  const cards = [];
+  for (const [batchId, group] of [...groups].sort(([a], [b]) => a.localeCompare(b))) {
+    if (group.size !== SUPPLEMENTAL_DECK_SIZE) continue;
+    const batch = Array.from({ length: SUPPLEMENTAL_DECK_SIZE }, (_, index) => group.get(index));
+    try {
+      const restored = buildSupplementalPhonicsDeck(batch.map(record => ({
+        grapheme: record.grapheme, exampleWord: record.currentWord,
+        sound: record.sound, tip: record.tip, meaning: record.currentMeaning?.[support],
+      })), { target, support, level, batchId });
+      if (batch.every((record, index) => record.deckId === restored[index].deckId)) cards.push(...restored);
+    } catch { /* Invalid or partially saved batches cannot replace authored cards. */ }
+  }
+  return cards;
+}
+function supplementalPhonicsEvents(target, records) {
+  const successful = new Set(records.filter(record => record.targetLang === target &&
+    Number.isSafeInteger(record.correctCount) && record.correctCount > 0).map(record => record.letterId));
+  const scopes = new Map(records.filter(record => record.targetLang === target && record.generated === true)
+    .map(record => [record.supportLanguage + ':' + record.cefrLevel, record]));
+  const decks = new Map();
+  for (const record of scopes.values()) for (const card of restoreSupplementalPhonics(target, record.supportLanguage, record.cefrLevel, records)) {
+    const group = decks.get(card.deckId) || [];
+    group.push(card.id); decks.set(card.deckId, group);
+  }
+  return [...decks].filter(([, ids]) => ids.every(id => successful.has(id)))
+    .map(([id]) => ({ metric: 'phonics_decks', id: target + ':' + id }));
+}
+return {SUPPLEMENTAL_PHONICS_VERSION,buildSupplementalPhonicsDeck,PHONICS_TARGETS,PHONICS_SUPPORTS,PHONICS_LEVELS,SUPPLEMENTAL_DECK_SIZE,wordKey,clean,usesScript,scripts,supplementalPhonicsRecord,restoreSupplementalPhonics,supplementalPhonicsEvents};})();
+// src/components/AlphabetBootcamp.jsx
+const M25=(function(){
+const normalizeSupportLanguage=M6.normalizeSupportLanguage;
+const DEFAULT_SUPPORT_LANGUAGE=M6.DEFAULT_SUPPORT_LANGUAGE;
+const PHONICS_CONTROLS=M14.PHONICS_CONTROLS;
+const PHONICS_TARGET_NAMES={
+  en: { en:'English', es:'Spanish', pt:'Brazilian Portuguese', it:'Italian', fr:'French', de:'German', ja:'Japanese', ru:'Russian', nl:'Dutch', el:'Greek', pl:'Polish', ga:'Irish', nah:'Eastern Huasteca Nahuatl', yua:'Yucatec Maya', ar:'Egyptian Arabic', hi:'Hindi', zh:'Mandarin Chinese' },
+  es: { en:'Inglés', es:'Español', pt:'Portugués brasileño', it:'Italiano', fr:'Francés', de:'Alemán', ja:'Japonés', ru:'Ruso', nl:'Neerlandés', el:'Griego', pl:'Polaco', ga:'Irlandés', nah:'Náhuatl huasteco oriental', yua:'Maya yucateco', ar:'Árabe egipcio', hi:'Hindi', zh:'Chino mandarín' },
+  pt: { en:'Inglês', es:'Espanhol', pt:'Português brasileiro', it:'Italiano', fr:'Francês', de:'Alemão', ja:'Japonês', ru:'Russo', nl:'Neerlandês', el:'Grego', pl:'Polonês', ga:'Irlandês', nah:'Náuatle da Huasteca Oriental', yua:'Maia iucateque', ar:'Árabe egípcio', hi:'Hindi', zh:'Chinês mandarim' },
+  it: { en:'Inglese', es:'Spagnolo', pt:'Portoghese brasiliano', it:'Italiano', fr:'Francese', de:'Tedesco', ja:'Giapponese', ru:'Russo', nl:'Neerlandese', el:'Greco', pl:'Polacco', ga:'Irlandese', nah:'Nahuatl della Huasteca orientale', yua:'Maya yucateco', ar:'Arabo egiziano', hi:'Hindi', zh:'Cinese mandarino' },
+  fr: { en:'Anglais', es:'Espagnol', pt:'Portugais brésilien', it:'Italien', fr:'Français', de:'Allemand', ja:'Japonais', ru:'Russe', nl:'Néerlandais', el:'Grec', pl:'Polonais', ga:'Irlandais', nah:'Nahuatl de la Huasteca orientale', yua:'Maya yucatèque', ar:'Arabe égyptien', hi:'Hindi', zh:'Chinois mandarin' },
+  de: { en:'Englisch', es:'Spanisch', pt:'Brasilianisches Portugiesisch', it:'Italienisch', fr:'Französisch', de:'Deutsch', ja:'Japanisch', ru:'Russisch', nl:'Niederländisch', el:'Griechisch', pl:'Polnisch', ga:'Irisch', nah:'Östliches Huasteca-Nahuatl', yua:'Yucatec-Maya', ar:'Ägyptisches Arabisch', hi:'Hindi', zh:'Mandarin-Chinesisch' },
+  ja: { en:'英語', es:'スペイン語', pt:'ブラジルポルトガル語', it:'イタリア語', fr:'フランス語', de:'ドイツ語', ja:'日本語', ru:'ロシア語', nl:'オランダ語', el:'ギリシャ語', pl:'ポーランド語', ga:'アイルランド語', nah:'東部ワステカ・ナワトル語', yua:'ユカテコ・マヤ語', ar:'エジプトアラビア語', hi:'ヒンディー語', zh:'中国語（普通話）' },
+  hi: { en:'अंग्रेज़ी', es:'स्पेनिश', pt:'ब्राज़ीलियाई पुर्तगाली', it:'इतालवी', fr:'फ़्रेंच', de:'जर्मन', ja:'जापानी', ru:'रूसी', nl:'डच', el:'ग्रीक', pl:'पोलिश', ga:'आयरिश', nah:'पूर्वी हुआस्तेका नाहुआत्ल', yua:'युकातेक माया', ar:'मिस्री अरबी', hi:'हिन्दी', zh:'मंदारिन चीनी' },
+  ar: { en:'الإنجليزية', es:'الإسبانية', pt:'البرتغالية البرازيلية', it:'الإيطالية', fr:'الفرنسية', de:'الألمانية', ja:'اليابانية', ru:'الروسية', nl:'الهولندية', el:'اليونانية', pl:'البولندية', ga:'الأيرلندية', nah:'ناواتل هواستيكا الشرقية', yua:'المايا اليوكاتيكية', ar:'العربية المصرية', hi:'الهندية', zh:'الصينية المندرينية' },
+  zh: { en:'英语', es:'西班牙语', pt:'巴西葡萄牙语', it:'意大利语', fr:'法语', de:'德语', ja:'日语', ru:'俄语', nl:'荷兰语', el:'希腊语', pl:'波兰语', ga:'爱尔兰语', nah:'东部瓦斯特卡纳瓦特尔语', yua:'尤卡坦玛雅语', ar:'埃及阿拉伯语', hi:'印地语', zh:'汉语（普通话）' },
+};
+const SUPPLEMENTAL_PHONICS_VERSION=M27.SUPPLEMENTAL_PHONICS_VERSION;
+const LANGUAGE_PROMPT_LABELS=M6.LANGUAGE_PROMPT_LABELS;
+const ALPHABET_UI_TEXT = {
+  en: {
+    vowel: "Vowel",
+    consonant: "Consonant",
+    sign: "Sign",
+    sound: "Sound",
+    practice: "Practice",
+    playSound: "Play sound",
+    playWord: "Play word",
+    close: "Close",
+    sayThisWord: "Say this word:",
+    grading: "Grading...",
+    next: "Next",
+    nextWord: "Next word",
+    correct: "Correct!",
+    tryAgain: "Try again",
+    back: "Back",
+    connecting: "Connecting...",
+    stop: "Stop",
+    record: "Record",
+    recordingErrorTitle: "Recording error",
+    recordingErrorDescription: "Could not record. Please try again.",
+    gradingErrorTitle: "Grading error",
+    gradingErrorDescription: "Could not grade your answer.",
+    speechUnsupportedTitle: "Speech not supported",
+    speechUnsupportedDescription:
+      "Your browser doesn't support speech recognition.",
+    micDeniedTitle: "Microphone denied",
+    micDeniedDescription: "Please allow microphone access to record.",
+    generateWordErrorTitle: "Couldn't generate a new word",
+    level: "Level",
+    progress: "Progress",
+    alphabetHeadline: "{language} Phonics",
+    alphabetSubhead: "Practice {language} letters and sounds.",
+    note: "After this, switch to Path mode in the menu to explore lessons.",
+    complete: "Congratulations! You've completed the alphabet.",
+    deckComplete: "Deck cleared! Generate a new one to keep going.",
+    generateDeckError: "Couldn't generate a new deck. Please try again.",
+    startSkillTree: "Start lessons",
+    newRound: "New round",
+    collection: "Collection",
+    loadError: "We couldn't load the alphabet. Please try again.",
+  },
+  es: {
+    vowel: "Vocal",
+    consonant: "Consonante",
+    sign: "Signo",
+    practice: "Practicar",
+    playSound: "Reproducir sonido",
+    playWord: "Reproducir palabra",
+    close: "Cerrar",
+    sayThisWord: "Di esta palabra:",
+    grading: "Evaluando...",
+    next: "Siguiente",
+    nextWord: "Siguiente palabra",
+    correct: "¡Correcto!",
+    tryAgain: "Otra vez",
+    back: "Volver",
+    connecting: "Conectando...",
+    stop: "Detener",
+    record: "Grabar",
+    recordingErrorTitle: "Error de grabación",
+    recordingErrorDescription: "No se pudo grabar. Intenta de nuevo.",
+    gradingErrorTitle: "Error al evaluar",
+    gradingErrorDescription: "No pudimos evaluar tu respuesta.",
+    speechUnsupportedTitle: "Sin soporte de voz",
+    speechUnsupportedDescription:
+      "Tu navegador no soporta reconocimiento de voz.",
+    micDeniedTitle: "Micrófono denegado",
+    micDeniedDescription: "Permite el acceso al micrófono para grabar.",
+    generateWordErrorTitle: "No pudimos generar una palabra",
+    level: "Nivel",
+    progress: "Progreso",
+    alphabetHeadline: "Fonética del {language}",
+    alphabetSubhead: "Practica las letras y los sonidos del {language}.",
+    note:
+      "Después de esto, cambia al modo Ruta en el menú para explorar las lecciones.",
+    complete: "¡Felicidades! Has completado el alfabeto.",
+    startSkillTree: "Iniciar lecciones",
+    newRound: "Nueva ronda",
+    collection: "Colección",
+    loadError: "No pudimos cargar el alfabeto. Intenta nuevamente.",
+  },
+  it: {
+    vowel: "Vocale",
+    consonant: "Consonante",
+    sign: "Segno",
+    practice: "Esercitati",
+    playSound: "Riproduci suono",
+    playWord: "Riproduci parola",
+    close: "Chiudi",
+    sayThisWord: "Pronuncia questa parola:",
+    grading: "Valutazione...",
+    next: "Avanti",
+    nextWord: "Prossima parola",
+    correct: "Corretto!",
+    tryAgain: "Riprova",
+    back: "Indietro",
+    connecting: "Connessione...",
+    stop: "Ferma",
+    record: "Registra",
+    recordingErrorTitle: "Errore di registrazione",
+    recordingErrorDescription: "Non è stato possibile registrare. Riprova.",
+    gradingErrorTitle: "Errore di valutazione",
+    gradingErrorDescription: "Non abbiamo potuto valutare la tua risposta.",
+    speechUnsupportedTitle: "Voce non supportata",
+    speechUnsupportedDescription:
+      "Il tuo browser non supporta il riconoscimento vocale.",
+    micDeniedTitle: "Microfono negato",
+    micDeniedDescription: "Consenti l'accesso al microfono per registrare.",
+    generateWordErrorTitle: "Non abbiamo potuto generare una nuova parola",
+    level: "Livello",
+    progress: "Progressi",
+    alphabetHeadline: "Fonetica {language}",
+    alphabetSubhead: "Esercitati con le lettere e i suoni del {language}.",
+    note:
+      "Dopo questo, passa alla modalità Percorso nel menu per esplorare le lezioni.",
+    complete: "Congratulazioni! Hai completato l'alfabeto.",
+    startSkillTree: "Inizia l'albero delle abilità",
+    newRound: "Nuovo giro",
+    collection: "Collezione",
+    loadError: "Non siamo riusciti a caricare l'alfabeto. Riprova.",
+  },
+  fr: {
+    vowel: "Voyelle",
+    consonant: "Consonne",
+    sign: "Signe",
+    practice: "Pratiquer",
+    playSound: "Lire le son",
+    playWord: "Lire le mot",
+    close: "Fermer",
+    sayThisWord: "Dis ce mot :",
+    grading: "Evaluation...",
+    next: "Suivant",
+    nextWord: "Mot suivant",
+    correct: "Correct !",
+    tryAgain: "Reessaie",
+    back: "Retour",
+    connecting: "Connexion...",
+    stop: "Arreter",
+    record: "Enregistrer",
+    recordingErrorTitle: "Erreur d'enregistrement",
+    recordingErrorDescription: "Impossible d'enregistrer. Reessaie.",
+    gradingErrorTitle: "Erreur d'evaluation",
+    gradingErrorDescription: "Impossible d'evaluer ta reponse.",
+    speechUnsupportedTitle: "Voix non prise en charge",
+    speechUnsupportedDescription:
+      "Ton navigateur ne prend pas en charge la reconnaissance vocale.",
+    micDeniedTitle: "Micro refuse",
+    micDeniedDescription: "Autorise l'acces au micro pour enregistrer.",
+    generateWordErrorTitle: "Impossible de generer un nouveau mot",
+    level: "Niveau",
+    progress: "Progres",
+    alphabetHeadline: "Phonétique {language}",
+    alphabetSubhead: "Pratique les lettres et les sons du {language}.",
+    note:
+      "Ensuite, passe au mode Parcours dans le menu pour explorer les lecons.",
+    complete: "Felicitations ! Tu as termine l'alphabet.",
+    startSkillTree: "Commencer l'arbre",
+    newRound: "Nouvelle manche",
+    collection: "Collection",
+    loadError: "Impossible de charger l'alphabet. Reessaie.",
+  },
+  de: {
+    vowel: "Vokal",
+    consonant: "Konsonant",
+    sign: "Zeichen",
+    practice: "Üben",
+    playSound: "Laut abspielen",
+    playWord: "Wort abspielen",
+    close: "Schließen",
+    sayThisWord: "Sprich dieses Wort:",
+    grading: "Wird bewertet...",
+    next: "Weiter",
+    nextWord: "Nächstes Wort",
+    correct: "Richtig!",
+    tryAgain: "Erneut versuchen",
+    back: "Zurück",
+    connecting: "Verbindung wird hergestellt...",
+    stop: "Stopp",
+    record: "Aufnehmen",
+    recordingErrorTitle: "Aufnahmefehler",
+    recordingErrorDescription: "Aufnahme nicht möglich. Bitte versuche es erneut.",
+    gradingErrorTitle: "Bewertungsfehler",
+    gradingErrorDescription: "Deine Antwort konnte nicht bewertet werden.",
+    speechUnsupportedTitle: "Sprache wird nicht unterstützt",
+    speechUnsupportedDescription:
+      "Dein Browser unterstützt keine Spracherkennung.",
+    micDeniedTitle: "Mikrofon verweigert",
+    micDeniedDescription: "Erlaube den Mikrofonzugriff zum Aufnehmen.",
+    generateWordErrorTitle: "Kein neues Wort generierbar",
+    level: "Level",
+    progress: "Fortschritt",
+    alphabetHeadline: "{language}-Phonetik",
+    alphabetSubhead: "Übe die Buchstaben und Laute von {language}.",
+    note:
+      "Wechsle danach im Menü zum Pfadmodus, um Lektionen zu erkunden.",
+    complete: "Glückwunsch! Du hast das Alphabet abgeschlossen.",
+    startSkillTree: "Skill-Tree starten",
+    newRound: "Neue Runde",
+    collection: "Sammlung",
+    loadError: "Das Alphabet konnte nicht geladen werden. Bitte versuche es erneut.",
+  },
+  ja: {
+    vowel: "母音",
+    consonant: "子音",
+    sign: "記号",
+    practice: "練習",
+    playSound: "音を再生",
+    playWord: "単語を再生",
+    close: "閉じる",
+    sayThisWord: "この単語を言ってください:",
+    grading: "採点中...",
+    next: "次へ",
+    nextWord: "次の単語",
+    correct: "正解！",
+    tryAgain: "もう一度",
+    back: "戻る",
+    connecting: "接続中...",
+    stop: "停止",
+    record: "録音",
+    recordingErrorTitle: "録音エラー",
+    recordingErrorDescription: "録音できませんでした。もう一度お試しください。",
+    gradingErrorTitle: "採点エラー",
+    gradingErrorDescription: "答えを採点できませんでした。",
+    speechUnsupportedTitle: "音声はサポートされていません",
+    speechUnsupportedDescription:
+      "このブラウザは音声認識に対応していません。",
+    micDeniedTitle: "マイクが拒否されました",
+    micDeniedDescription: "録音するにはマイクアクセスを許可してください。",
+    generateWordErrorTitle: "新しい単語を生成できませんでした",
+    level: "レベル",
+    progress: "進捗",
+    alphabetHeadline: "{language}のフォニックス",
+    alphabetSubhead: "{language}の文字と音を練習しましょう。",
+    note: "この後は、メニューでパスモードに切り替えてレッスンを探索しましょう。",
+    complete: "おめでとうございます！文字練習を完了しました。",
+    startSkillTree: "スキルツリーを始める",
+    newRound: "新しいラウンド",
+    collection: "コレクション",
+    loadError: "文字データを読み込めませんでした。もう一度お試しください。",
+  },
+  hi: {
+    vowel: "स्वर",
+    consonant: "व्यंजन",
+    sign: "चिह्न",
+    practice: "अभ्यास",
+    playSound: "ध्वनि चलाएं",
+    playWord: "शब्द चलाएं",
+    close: "बंद करें",
+    sayThisWord: "यह शब्द बोलें:",
+    grading: "मूल्यांकन हो रहा है...",
+    next: "आगे बढ़ें",
+    nextWord: "अगला शब्द",
+    correct: "सही!",
+    tryAgain: "फिर से कोशिश करें",
+    back: "वापस",
+    connecting: "कनेक्ट हो रहा है...",
+    stop: "रोकें",
+    record: "रिकॉर्ड करें",
+    recordingErrorTitle: "रिकॉर्डिंग त्रुटि",
+    recordingErrorDescription: "रिकॉर्ड नहीं हो सका। कृपया फिर प्रयास करें।",
+    gradingErrorTitle: "मूल्यांकन त्रुटि",
+    gradingErrorDescription: "हम आपके उत्तर का मूल्यांकन नहीं कर सके।",
+    speechUnsupportedTitle: "वॉइस सपोर्ट उपलब्ध नहीं है",
+    speechUnsupportedDescription:
+      "आपका ब्राउज़र वॉइस रिकग्निशन का समर्थन नहीं करता।",
+    micDeniedTitle: "माइक्रोफोन अस्वीकृत",
+    micDeniedDescription: "रिकॉर्ड करने के लिए माइक्रोफोन की अनुमति दें।",
+    generateWordErrorTitle: "नया शब्द तैयार नहीं किया जा सका",
+    level: "स्तर",
+    progress: "प्रगति",
+    alphabetHeadline: "{language} फ़ोनिक्स",
+    alphabetSubhead: "{language} के अक्षरों और ध्वनियों का अभ्यास करें।",
+    note: "इसके बाद मेनू में पाथ मोड पर जाकर पाठों को देखें।",
+    complete: "बधाई हो! आपने वर्णमाला पूरी कर ली है।",
+    startSkillTree: "स्किल ट्री शुरू करें",
+    newRound: "नया दौर",
+    collection: "संग्रह",
+    loadError: "हम वर्णमाला लोड नहीं कर सके। कृपया फिर कोशिश करें।",
+  },
+  ar: {
+    vowel: "حرف علّة",
+    consonant: "حرف ساكن",
+    sign: "علامة",
+    practice: "اتدرّب",
+    playSound: "شغّل الصوت",
+    playWord: "شغّل الكلمة",
+    close: "اقفل",
+    sayThisWord: "قول الكلمة دي:",
+    grading: "جارٍ التقييم...",
+    next: "التالي",
+    nextWord: "الكلمة اللي بعد كده",
+    correct: "صحيح!",
+    tryAgain: "حاول تاني",
+    back: "رجوع",
+    connecting: "جارٍ الاتصال...",
+    stop: "إيقاف",
+    record: "سجّل",
+    recordingErrorTitle: "خطأ في التسجيل",
+    recordingErrorDescription: "ما قدرناش نسجّل. جرّب تاني.",
+    gradingErrorTitle: "خطأ في التقييم",
+    gradingErrorDescription: "ما قدرناش نقيّم إجابتك.",
+    speechUnsupportedTitle: "الصوت غير مدعوم",
+    speechUnsupportedDescription:
+      "المتصفح ده مش بيدعم التعرّف على الكلام.",
+    micDeniedTitle: "المايك مرفوض",
+    micDeniedDescription: "اسمح للمايك علشان تسجّل.",
+    generateWordErrorTitle: "ما قدرناش نطلّع كلمة جديدة",
+    level: "المستوى",
+    progress: "التقدّم",
+    alphabetHeadline: "صوتيات {language}",
+    alphabetSubhead: "تدرّب على حروف وأصوات {language}.",
+    note:
+      "بعد كده بدّل لوضع المسار من القائمة علشان تستكشف الدروس.",
+    complete: "مبروك! خلّصت الأبجدية.",
+    startSkillTree: "ابدأ شجرة المهارات",
+    newRound: "جولة جديدة",
+    collection: "المجموعة",
+    loadError: "ما قدرناش نحمّل الأبجدية. جرّب تاني.",
+  },
+  zh: {
+    vowel: "元音",
+    consonant: "辅音",
+    sign: "符号",
+    practice: "练习",
+    playSound: "播放发音",
+    playWord: "播放单词",
+    close: "关闭",
+    sayThisWord: "说这个词：",
+    grading: "正在评分...",
+    next: "下一个",
+    nextWord: "下一个词",
+    correct: "正确！",
+    tryAgain: "再试一次",
+    back: "返回",
+    connecting: "正在连接...",
+    stop: "停止",
+    record: "录音",
+    recordingErrorTitle: "录音出错",
+    recordingErrorDescription: "无法录音。请再试一次。",
+    gradingErrorTitle: "评分出错",
+    gradingErrorDescription: "无法评估你的回答。",
+    speechUnsupportedTitle: "不支持语音",
+    speechUnsupportedDescription:
+      "你的浏览器不支持语音识别。",
+    micDeniedTitle: "麦克风被拒绝",
+    micDeniedDescription: "请允许麦克风权限以便录音。",
+    generateWordErrorTitle: "无法生成新单词",
+    level: "等级",
+    progress: "进度",
+    alphabetHeadline: "{language}自然拼读",
+    alphabetSubhead: "练习{language}的字母和发音。",
+    note:
+      "完成后，在菜单中切换到路径模式继续学习课程。",
+    complete: "恭喜！你已完成字母练习。",
+    startSkillTree: "开始技能树",
+    newRound: "新一轮",
+    collection: "收藏",
+    loadError: "无法加载字母数据。请再试一次。",
+  },
+};
+const PHONICS_EXTRA_UI_TEXT = {
+  es: {
+    sound: "Sonido",
+    deckComplete: "¡Mazo completado! Genera uno nuevo para seguir.",
+    generateDeckError: "No se pudo generar un mazo nuevo. Inténtalo de nuevo.",
+  },
+  pt: {
+    sound: "Som",
+    deckComplete: "Baralho concluído! Gere um novo para continuar.",
+    generateDeckError: "Não foi possível gerar um novo baralho. Tente de novo.",
+  },
+  it: {
+    sound: "Suono",
+    deckComplete: "Mazzo completato! Generane uno nuovo per continuare.",
+    generateDeckError: "Impossibile generare un nuovo mazzo. Riprova.",
+  },
+  fr: {
+    sound: "Son",
+    deckComplete: "Paquet terminé ! Génère-en un nouveau pour continuer.",
+    generateDeckError: "Impossible de générer un nouveau paquet. Réessaie.",
+  },
+  de: {
+    sound: "Laut",
+    deckComplete: "Stapel geschafft! Erzeuge einen neuen, um weiterzumachen.",
+    generateDeckError:
+      "Neuer Stapel konnte nicht erzeugt werden. Bitte erneut versuchen.",
+  },
+  ja: {
+    sound: "音",
+    deckComplete: "デッキ完了！新しいデッキを作って続けましょう。",
+    generateDeckError:
+      "新しいデッキを生成できませんでした。もう一度お試しください。",
+  },
+  hi: {
+    sound: "ध्वनि",
+    deckComplete: "डेक पूरा! जारी रखने के लिए नया बनाएँ।",
+    generateDeckError: "नया डेक नहीं बन सका। कृपया फिर से प्रयास करें।",
+  },
+  ar: {
+    sound: "صوت",
+    deckComplete: "اكتملت المجموعة! أنشئ واحدة جديدة للمتابعة.",
+    generateDeckError: "تعذّر إنشاء مجموعة جديدة. حاول مرة أخرى.",
+  },
+  zh: {
+    sound: "音",
+    deckComplete: "卡组完成！生成新的一组继续学习。",
+    generateDeckError: "无法生成新卡组。请重试。",
+  },
+};
+const uiText = (lang, key, params = {}) => {
+  const normalizedLang = normalizeSupportLanguage(lang, DEFAULT_SUPPORT_LANGUAGE);
+  const raw =
+    ALPHABET_UI_TEXT[normalizedLang]?.[key] ??
+    PHONICS_EXTRA_UI_TEXT[normalizedLang]?.[key] ??
+    ALPHABET_UI_TEXT.en[key] ??
+    key;
+  return raw.replace(/\{(\w+)\}/g, (_, token) =>
+    params[token] != null ? String(params[token]) : `{${token}}`,
+  );
+};
+const getLanguageName = (code, uiLang) => PHONICS_TARGET_NAMES[uiLang]?.[code] || "";
+const LOCALIZED_FIELD_SUFFIX = {
+  en: "",
+  es: "Es",
+  pt: "Pt",
+  it: "It",
+  fr: "Fr",
+  de: "De",
+  ja: "Ja",
+  hi: "Hi",
+  ar: "Ar",
+  zh: "Zh",
+};
+const getLocalizedLetterField = (letter, uiLang, baseKey) => {
+  if (!letter || !baseKey) return "";
+  const normalizedLang = normalizeSupportLanguage(uiLang, DEFAULT_SUPPORT_LANGUAGE);
+  if (letter.authored || letter.curriculumVersion === SUPPLEMENTAL_PHONICS_VERSION) return letter.supportLanguage === normalizedLang ? (letter[baseKey] || "") : "";
+  const suffix = LOCALIZED_FIELD_SUFFIX[normalizedLang];
+  const fieldName = suffix ? `${baseKey}${suffix}` : baseKey;
+  const value = letter[fieldName];
+  return typeof value === "string" ? value.trim() : "";
+};
+const getMeaningText = (meaning, uiLang) => meaning?.[normalizeSupportLanguage(uiLang, DEFAULT_SUPPORT_LANGUAGE)] || "";
+const getLetterName = (letter, uiLang) => {
+  const localizedName = getLocalizedLetterField(letter, uiLang, "name");
+  if (localizedName) {
+    return localizedName;
+  }
+
+  const normalizedLang = normalizeSupportLanguage(uiLang, DEFAULT_SUPPORT_LANGUAGE);
+  if (normalizedLang === "en") {
+    return letter.name || "";
+  }
+
+  if (letter?.type === "phrase") {
+    return getMeaningText(normalizeMeaning(letter.practiceWordMeaning), normalizedLang);
+  }
+
+  return "";
+};
+const getLetterSound = (letter, uiLang) =>
+  getLocalizedLetterField(letter, uiLang, "sound");
+const getLetterTip = (letter, uiLang) =>
+  getLocalizedLetterField(letter, uiLang, "tip");
+const normalizeMeaning = (meaning) => meaning && typeof meaning === "object" ? { ...meaning } : {};
+function buildAlphabetJudgePrompt({ practiceWord, userAnswer, targetLang, phoneme = "", cefrLevel = "Pre-A1" }) {
+  const langName = LANGUAGE_PROMPT_LABELS[targetLang] || "the target";
+
+  return `
+Judge if the user correctly pronounced a ${langName} word.
+
+Target word: ${practiceWord}
+${phoneme ? `Focus sound: ${phoneme}. The target sound must be recognizable in the attempt; do not accept a different sound just because the overall word is close.` : ""}
+User's pronunciation (transcribed): ${userAnswer}
+
+Policy:
+- Say YES if the transcription matches or is phonetically very close to the target word.
+- Allow minor transcription errors since speech recognition may not be perfect for ${langName}.
+- Practice level: ${cefrLevel}. Assess recognizable speech; do not demand a native accent.
+- A transcript cannot prove pitch, tone, stress or rhythm. Do not claim to have measured those features.
+- If completely wrong or incomprehensible, say NO.
+
+Reply with ONE of these formats:
+YES | <xp_amount>
+NO
+
+Where <xp_amount> is 1-2 based on:
+- 2 XP: Accurate pronunciation
+- 1 XP: Recognizable but imperfect
+`.trim();
+}
+const getPracticeLetterMarker = (letter) => {
+  if (!letter?.letter) return "";
+  return letter.letter.split("/")[0]?.trim()?.split(" ")[0] || "";
+};
+const getHighlightedWordParts = (word, marker) => {
+  if (!word || !marker) return [{ text: word, highlight: false }];
+
+  const parts = [];
+  let index = 0;
+  const lowerWord = word.toLowerCase();
+  const lowerMarker = marker.toLowerCase();
+
+  while (index < word.length) {
+    const matchIndex = lowerWord.indexOf(lowerMarker, index);
+    if (matchIndex === -1) {
+      parts.push({ text: word.slice(index), highlight: false });
+      break;
+    }
+
+    if (matchIndex > index) {
+      parts.push({ text: word.slice(index, matchIndex), highlight: false });
+    }
+
+    // Use the actual characters from the word (preserving original case)
+    parts.push({
+      text: word.slice(matchIndex, matchIndex + marker.length),
+      highlight: true,
+    });
+    index = matchIndex + marker.length;
+  }
+
+  return parts;
+};
+return {uiText,normalizeSupportLanguage,DEFAULT_SUPPORT_LANGUAGE,ALPHABET_UI_TEXT,PHONICS_EXTRA_UI_TEXT,PHONICS_CONTROLS,getLanguageName,PHONICS_TARGET_NAMES,getLetterName,getLocalizedLetterField,SUPPLEMENTAL_PHONICS_VERSION,LOCALIZED_FIELD_SUFFIX,getMeaningText,normalizeMeaning,getLetterSound,getLetterTip,getPracticeLetterMarker,getHighlightedWordParts,buildAlphabetJudgePrompt,LANGUAGE_PROMPT_LABELS};})();
+// src/utils/phonicsCourseProgress.js
+const M28=(function(){
+const PHONICS_LEVELS=M14.PHONICS_LEVELS;
+function getPhonicsCourseProgress({ cards = [], counts = {}, placementLevel, courseLevel } = {}) {
+  const entryIndex = Math.max(0, PHONICS_LEVELS.indexOf(placementLevel), PHONICS_LEVELS.indexOf(courseLevel));
+  const levels = Object.fromEntries(PHONICS_LEVELS.map(level => {
+    const required = cards.filter(card => card.cefrLevel === level);
+    const completed = required.filter(card => Number.isSafeInteger(counts[card.id]) && counts[card.id] > 0).length;
+    return [level, {
+      completed,
+      total: required.length,
+      percentage: required.length ? completed / required.length * 100 : 0,
+      isComplete: required.length > 0 && completed === required.length,
+    }];
+  }));
+  let unlockedIndex = entryIndex;
+  while (unlockedIndex < PHONICS_LEVELS.length - 1 && levels[PHONICS_LEVELS[unlockedIndex]].isComplete) unlockedIndex++;
+  return { levels, entryLevel: PHONICS_LEVELS[entryIndex], unlockedLevel: PHONICS_LEVELS[unlockedIndex] };
+}
+function canAccessPhonicsLevel(level, unlockedLevel, masterUnlocked = false) {
+  const index = PHONICS_LEVELS.indexOf(level);
+  return index >= 0 && (masterUnlocked || index <= PHONICS_LEVELS.indexOf(unlockedLevel));
+}
+function resolvePhonicsLevel(selectedLevel, unlockedLevel, masterUnlocked = false) {
+  return canAccessPhonicsLevel(selectedLevel, unlockedLevel, masterUnlocked) ? selectedLevel : unlockedLevel;
+}
+return {getPhonicsCourseProgress,PHONICS_LEVELS,canAccessPhonicsLevel,resolvePhonicsLevel};})();
+// src/utils/tts.js
+const M29=(function(){
+
+const DEFAULT_TTS_VOICE = "ash";
+const TTS_LANG_TAG = {
+  ar: "ar-EG",
+  zh: "zh-CN",
+  en: "en-US",
+  es: "es-MX",
+  pt: "pt-BR",
+  fr: "fr-FR",
+  it: "it-IT",
+  hi: "hi-IN",
+  nl: "nl-NL",
+  nah: "es-MX",
+  ru: "ru-RU",
+  ja: "ja-JP",
+  de: "de-DE",
+  el: "el-GR",
+  pl: "pl-PL",
+  ga: "ga-IE",
+  yua: "es-MX",
+};
+const SUPPORTED_TTS_VOICES = new Set([
+  "alloy",
+  "echo",
+  "shimmer",
+  "coral",
+  "verse",
+  "ballad",
+  "ash",
+  "sage",
+  "marin",
+  "cedar",
+]);
+function sanitizeVoice(voice) {
+  return SUPPORTED_TTS_VOICES.has(voice) ? voice : DEFAULT_TTS_VOICE;
+}
+return {TTS_LANG_TAG,sanitizeVoice,SUPPORTED_TTS_VOICES,DEFAULT_TTS_VOICE};})();
 function parseRepairEntries(raw){  const text = String(raw || "");
   const start = text.indexOf("[");
   const end = text.lastIndexOf("]");
@@ -3858,8 +4583,54 @@ const softGlowColor=isDue ? "rgba(251, 191, 36, 0.3)" : isWeak ? "rgba(244,114,1
 } : undefined,cardTextColor,cardTextShadow,glowColor,softGlowColor};})()};}
 if(op==='flashWeak')return {weak:t.isWeakCardSnapshot(p.snapshot),score:t.getWeaknessScore(p.snapshot)};
 throw Error('Unknown flashcard operation');}
+function phonicsRun(op,p,now){const a=M25,e=M27,c=M28;
+if(op==='ph_tts'){const personality=p.personality||'',targetLangTag=M29.TTS_LANG_TAG[p.language]||M29.TTS_LANG_TAG.es,sanitizedVoice=M29.sanitizeVoice(p.voice);return {
+  type: "realtime",
+  output_modalities: ["audio"],
+  instructions: personality ? `You are ${personality}, speaking in the ${targetLangTag} locale. Use the correct pronunciation for that language. You will receive text to read aloud. Read the text EXACTLY as written - word for word, verbatim, but in the voice and tone of your character. Do not interpret, respond to, answer, or comment on the content. Do not have a conversation. Do not add any words. Simply narrate the exact text provided with your character's vocal qualities. Begin immediately with the first word of the text; never preface it with acknowledgments like "Understood" or "Okay".` : `You are an audiobook narrator speaking in the ${targetLangTag} locale. Use the correct pronunciation for that language. You will receive text to read aloud. Read the text EXACTLY as written - word for word, verbatim. Do not interpret, respond to, answer, or comment on the content. Do not have a conversation. Do not add any words. Simply narrate the exact text provided. Begin immediately with the first word of the text; never preface it with acknowledgments like "Understood" or "Okay".`,
+  audio: {
+    input: {
+      turn_detection: null
+    },
+    output: {
+      format: {
+        type: "audio/pcm",
+        rate: 24000
+      },
+      voice: sanitizedVoice
+    }
+  }
+};}
+if(op==='ph_copy')return {text:a.uiText(p.language,p.key,p.params),controls:a.PHONICS_CONTROLS[p.language],headline:a.uiText(p.language,'alphabetHeadline',{language:a.getLanguageName(p.targetLang,p.language)})};
+if(op==='ph_card')return {name:a.getLetterName(p.card,p.language),sound:a.getLetterSound(p.card,p.language),tip:a.getLetterTip(p.card,p.language),meaning:a.getMeaningText(p.card.practiceWordMeaning,p.language),parts:a.getHighlightedWordParts(p.card.practiceWord,a.getPracticeLetterMarker(p.card))};
+if(op==='ph_judge')return a.buildAlphabetJudgePrompt(p);
+if(op==='ph_grade'){const response=p.raw;      const trimmed = (response || "").trim().toUpperCase();
+      const isYes = trimmed.startsWith("YES");
+
+      let xp = 1;
+      if (isYes && trimmed.includes("|")) {
+        const parts = trimmed.split("|");
+        const xpPart = parseInt(parts[1]?.trim());
+        if (xpPart >= 1 && xpPart <= 2) {
+          xp = xpPart;
+        }
+      }
+
+;return {correct:isYes,xp:isYes?xp:0};}
+if(op==='ph_course')return c.getPhonicsCourseProgress(p);
+if(op==='ph_access')return {allowed:c.canAccessPhonicsLevel(p.level,p.unlockedLevel,p.masterUnlocked),resolved:c.resolvePhonicsLevel(p.level,p.unlockedLevel,p.masterUnlocked)};
+if(op==='ph_partition')return M14.partitionPhonicsProgress(p.cards,p.records);
+if(op==='ph_generatePrompt'){const {target,support,level,existingWords=[]}=p,LANGUAGE_PROMPT_LABELS=a.LANGUAGE_PROMPT_LABELS,SUPPLEMENTAL_DECK_SIZE=6;return ['Create an optional continuation deck for pronunciation practice.', 'Target language: ' + LANGUAGE_PROMPT_LABELS[target] + '. Support language: ' + LANGUAGE_PROMPT_LABELS[support] + '.', 'Practice level: ' + level + '. Produce exactly ' + SUPPLEMENTAL_DECK_SIZE + ' distinct units at this level.', 'Use genuine target-language words or phrases in their native writing system.', 'For Pre-A1/A1 use simple sound contrasts. A2/B1: syllables, length, clusters and stress. B2/C1/C2: connected speech, subtle contrasts and natural phrasing.', 'ALL explanations, coaching tips and meanings must be in the support language. Do not use English comparisons when English is not the support language.', 'Avoid all of these previously practiced words/phrases: ' + JSON.stringify(existingWords.slice(-1000)), 'Return ONLY a JSON array. Each object has these required string fields:', '{"grapheme":"target sound or spelling","exampleWord":"target word or phrase","sound":"localized explanation","tip":"localized coaching","meaning":"localized meaning"}', 'Do not claim that transcription can measure tone, stress or pitch. Do not include markdown, HTML or alternative English fields.'].join('\n');}
+if(op==='ph_generateParse'){const {raw,target,support,level,existingWords=[],batchId}=p,buildSupplementalPhonicsDeck=e.buildSupplementalPhonicsDeck;  const text = typeof raw === 'string' ? raw.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '') : '';
+  return buildSupplementalPhonicsDeck(JSON.parse(text), { target, support, level, existingWords, batchId });
+}
+if(op==='ph_extraRecord')return e.supplementalPhonicsRecord(p.card);
+if(op==='ph_extraRestore')return e.restoreSupplementalPhonics(p.target,p.support,p.level,p.records);
+if(op==='ph_extraEvents')return e.supplementalPhonicsEvents(p.target,p.records);
+throw Error('Unknown phonics operation');}
 function run(operation,json){const p=JSON.parse(json),now=new SystemDate(p.now||SystemDate.now());Date=class extends SystemDate{constructor(...args){super(...(args.length?args:[now.getTime()]));}static now(){return now.getTime();}};snapshotUser=p.user||{};snapshotDecks=p.decks||{};snapshotTranslations=p.copy||{};snapshotAppLanguage=p.language||p.supportLang||'en';try{const m=M0,c=M1,model=M2;let value;
-if(operation.startsWith('flash'))value=flashRun(operation,p,now);
+if(operation.startsWith('ph_'))value=phonicsRun(operation,p,now);
+else if(operation.startsWith('flash'))value=flashRun(operation,p,now);
 else if(operation==='reusable')value=m.getReusableMemory(p.user,p.targetLang,now);
 else if(operation==='captured')value=m.getTodaysCapturedNotes(p.user,p.targetLang,now);
 else if(operation==='rank')value=m.rankReusableNotes(p.notes||[]);

@@ -49,7 +49,8 @@ public enum CompanionQuestDay {
             else if existing["ownerKey"] == incoming["ownerKey"] {
                 var outcomes=existing["outcomes"]
                 for (id,value) in incoming["outcomes"].object where existing["cards"].array.contains(where:{$0["id"].string == id}) {
-                    if !outcomes[id]["success"].boolean {outcomes=outcomes.setting(id,value)}
+                    if !value["iosAttemptID"].string.isEmpty {if value["iosUpdatedAt"].string >= outcomes[id]["iosUpdatedAt"].string{outcomes=outcomes.setting(id,value)}}
+                    else if !outcomes[id]["success"].boolean {outcomes=outcomes.setting(id,value)}
                 }
                 merged=merged.setting(field,existing.setting("outcomes",outcomes))
             }

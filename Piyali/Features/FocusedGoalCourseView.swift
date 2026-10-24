@@ -24,7 +24,7 @@ struct FocusedGoalCourseView:View {
         switch blueprint["mode"].string {
         case "lesson":if let lesson=try? app.sourceGoalLesson(blueprint){LessonView(lesson:lesson)}
         case "flashcards":FlashcardsView(goalBlueprint:blueprint)
-        case "phonics":if app.authoredGoalPhonics(blueprint).isEmpty {LiveTutorView(goalBlueprint:blueprint,goalMode:"phonics")}else{GoalPreparationView(mode:"phonics",blueprint:blueprint)}
+        case "phonics":if app.authoredGoalPhonics(blueprint).isEmpty {LiveTutorView(goalBlueprint:blueprint,goalMode:"phonics")}else{PhonicsView(goalBlueprint:blueprint)}
         default:LiveTutorView(goalBlueprint:blueprint,goalMode:blueprint["mode"].string)
         }
     }

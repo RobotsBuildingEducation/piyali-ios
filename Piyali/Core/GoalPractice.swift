@@ -186,7 +186,7 @@ public enum GoalPractice {
         guard previous["iosUpdatedAt"].string <= WebProgressContract.iso(change.date) else { return (original,0) }
         var rewarded = Set(list(original["iosAwardedCardIDs"],max:20))
         for (id,outcome) in original["outcomes"].object where outcome["success"].boolean { rewarded.insert(id) }
-        let reward = payload["success"].boolean && !rewarded.contains(cardID) ? (mode == "flashcards" ? 2 : 5) : 0
+        let reward = payload["externalReward"].boolean ? 0:payload["success"].boolean && !rewarded.contains(cardID) ? (mode == "flashcards" ? 2 : 5) : 0
         if payload["success"].boolean { rewarded.insert(cardID) }
         let outcome: JSONValue = .object(["success":payload["success"],"support":payload["support"],"item":payload["item"],"transfer":payload["transfer"],"iosUpdatedAt":.string(WebProgressContract.iso(change.date))])
         return (original.setting("outcomes",original["outcomes"].setting(cardID,outcome)).setting("iosAwardedCardIDs",strings(rewarded.sorted())),reward)

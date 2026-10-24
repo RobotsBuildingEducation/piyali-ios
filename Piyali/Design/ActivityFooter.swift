@@ -85,3 +85,17 @@ struct ActivityProgressBar:View {
             .accessibilityElement(children:.ignore).accessibilityLabel(label).accessibilityValue("\(value)%")
     }
 }
+
+/// QuestionActionArea's iPhone glass fallback, feedback colors and 40-point radius.
+struct SourceActivityDockBackground:View {
+    let correct:Bool?
+    @Environment(\.colorScheme) private var scheme
+    private var dark:Bool {scheme == .dark}
+    private var brand:PiyaliBrand {.init(dark:dark)}
+    var body:some View {
+        let accent=correct.map{$0 ? brand.questionSuccess:brand.questionError},base=correct == nil ? PiyaliBrand.unitColor(dark ? "0b1220":"fffcf7").opacity(dark ? 0.12:0.58):PiyaliBrand.unitColor(dark ? "0b1220":"fffcf7").opacity(dark ? 0.66:0.94)
+        RoundedRectangle(cornerRadius:40).fill(base).overlay{if let accent{RoundedRectangle(cornerRadius:40).fill(accent.opacity(dark ? 0.14:0.10))}}.overlay{RoundedRectangle(cornerRadius:40).stroke(accent ?? brand.border)}
+            .shadow(color:correct == nil ? .clear:.black.opacity(0.16),radius:21,y:18)
+            .shadow(color:accent?.opacity(dark ? 0.14:0.10) ?? .clear,radius:12)
+    }
+}

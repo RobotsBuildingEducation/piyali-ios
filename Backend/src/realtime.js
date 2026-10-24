@@ -7,12 +7,18 @@ export function realtimeOffer(data, env) {
   if (typeof data.sdp !== 'string' || data.sdp.length > 65536 || !/^v=0\r?\n/.test(data.sdp) || !/^m=audio /m.test(data.sdp)) throw new HTTPError(400,'A valid audio offer is required.');
   const value=data.session;
   if (!value || typeof value !== 'object' || Array.isArray(value) || value.type !== 'realtime') throw new HTTPError(400,'A Realtime session is required.');
+  if (data.purpose !== undefined && !['conversation','narration'].includes(data.purpose)) throw new HTTPError(400,'Unsupported voice purpose.');
+  const narration=data.purpose === 'narration';
   const model=env.REALTIME_MODEL || 'gpt-realtime-2.1-mini';
   if (value.model !== model) throw new HTTPError(400,'Unsupported voice model.');
   if (typeof value.instructions !== 'string' || !value.instructions.trim() || value.instructions.length > 30000) throw new HTTPError(400,'Voice instructions are required.');
   const voice=value.audio?.output?.voice ?? 'ash';
   if (!voices.has(voice)) throw new HTTPError(400,'Unsupported voice.');
   const vad=value.audio?.input?.turn_detection;
+  if (narration) {
+    if (vad !== null) throw new HTTPError(400,'Narration must disable microphone turn detection.');
+    return {sdp:data.sdp,session:{type:'realtime',model,instructions:value.instructions,output_modalities:['audio'],audio:{input:{turn_detection:null},output:{voice,format:{type:'audio/pcm',rate:24000}}}}};
+  }
   if (!vad || vad.type !== 'server_vad' || !Number.isFinite(vad.silence_duration_ms) || vad.silence_duration_ms < 200 || vad.silence_duration_ms > 10000) throw new HTTPError(400,'A valid speech pause is required.');
   return {sdp:data.sdp,session:{type:'realtime',model,instructions:value.instructions,output_modalities:['audio'],audio:{input:{transcription:{model:'gpt-4o-mini-transcribe'},turn_detection:{type:'server_vad',silence_duration_ms:vad.silence_duration_ms,threshold:0.35,prefix_padding_ms:120,create_response:vad.create_response !== false,interrupt_response:false}},output:{voice,format:{type:'audio/pcm',rate:24000}}}}};
 }

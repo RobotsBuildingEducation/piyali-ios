@@ -117,6 +117,10 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
             if (review.updatedAt ?? .distantPast) >= (state.cardReviews?[key]?.updatedAt ?? .distantPast) { state.cardReviews?[key] = review }
             if review.completed { state.flashcardMastery.insert(key) }
         }
+        let phonics=try await user.collection("alphabetPractice").whereField("targetLang",isEqualTo:state.target).getDocuments(source:.server)
+        state.phonicsRecords=(state.phonicsRecords ?? [:]).filter{!$0.key.hasPrefix(state.target+":")}
+        for document in phonics.documents {let value=PhonicsProgress.document(Self.normalized(document.data()));let id=value["letterId"].string;if !id.isEmpty{state.phonicsRecords?[PhonicsProgress.key(state.target,id)]=value}}
+        for change in state.pendingChanges ?? [] where !(state.acknowledgedEventIDs ?? []).contains(change.id){state.applyPhonics(change)}
         let summary = try await user.collection("courseProgress").document(state.target).getDocument(source:.server)
         if let data = summary.data() {
             if state.courseCompletion == nil { state.courseCompletion = [:] }
@@ -237,7 +241,7 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                     merged.practicedModes.formUnion(remote.practicedModes)
                 }
                 merged = WebProgressContract.imported(Self.normalized(fields),native:merged)
-                merged.pendingRepairEvidence=[];merged.companionQuestDays=nil;merged.pendingCompanionQuestDays=[:];merged.plateHeadlines=nil;merged.pendingPlateHeadlines=[:];merged.immersionBatch=nil;merged.immersionHistory=nil;merged.immersionRewardReceipts=nil;merged.immersionPlacementAt=nil;merged.pendingImmersionChanges=[]
+                merged.phonicsRecords=nil;merged.pendingRepairEvidence=[];merged.companionQuestDays=nil;merged.pendingCompanionQuestDays=[:];merged.plateHeadlines=nil;merged.pendingPlateHeadlines=[:];merged.immersionBatch=nil;merged.immersionHistory=nil;merged.immersionRewardReceipts=nil;merged.immersionPlacementAt=nil;merged.pendingImmersionChanges=[]
                 // Companion memory has its own shared web document, not a second snapshot authority.
                 merged.shareNostrAchievements = nil; merged.achievementRecords = nil; merged.achievementEvidence = nil; merged.achievementLedger = nil; merged.companionProgress = nil; merged.companionMemory = nil; merged.pendingMemoryChanges = []; merged.goalIntelligence = nil; merged.goalArtifacts = nil; merged.pendingGoalChanges = []; merged.questProgress = nil; merged.journeyQuestCounts = nil; merged.tutorLessons = nil; merged.acknowledgedEventIDs = nil
                 var patch: [String:Any] = ["local_npub":npub,"iosStateJSON":String(decoding:try JSONEncoder().encode(merged),as:UTF8.self),"iosStateVersion":2,"iosUpdatedAt":FieldValue.serverTimestamp()]
@@ -327,12 +331,28 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
             } catch { errorPointer?.pointee = error as NSError; return nil }
         }
     }
+    private func applyPhonicsDeck(_ change:PracticeChange,user:DocumentReference,database:Firestore) async throws {
+        let records=change.phonicsData?["records"].array ?? []
+        guard records.count == 6,Set(records.map{$0["letterId"].string}).count == 6,records.allSatisfy({$0["targetLang"].string == change.target && $0["letterId"].string.hasPrefix("gen_") && !$0["letterId"].string.contains("/")}) else{throw AppError.message("Invalid pronunciation deck.")}
+        let receipt=user.collection("iosPracticeReceipts").document(change.id.uuidString)
+        _=try await database.runTransaction {transaction,error in
+            do {
+                let prior=try transaction.getDocument(receipt),fields=try transaction.getDocument(user).data() ?? [:]
+                if prior.exists {Self.acknowledge(change.id,user:user,fields:fields,transaction:transaction);return false}
+                for record in records {var data=record.foundation as? [String:Any] ?? [:];data["createdAt"]=FieldValue.serverTimestamp();data["updatedAt"]=FieldValue.serverTimestamp();transaction.setData(data,forDocument:user.collection("alphabetPractice").document(change.target+"_"+record["letterId"].string),merge:true)}
+                Self.acknowledge(change.id,user:user,fields:fields,transaction:transaction)
+                transaction.setData(["source":"phonicsDeck","syncedAt":FieldValue.serverTimestamp()],forDocument:receipt)
+                return true
+            }catch let failure{error?.pointee=failure as NSError;return nil}
+        }
+    }
     private func apply(_ change: PracticeChange, state: LearnerState, user: DocumentReference, database: Firestore) async throws {
+        if change.source == .phonicsDeck {try await applyPhonicsDeck(change,user:user,database:database);return}
         let stable = [.readingTurn,.readingSpeech].contains(change.source) ? "reading:\(change.target):\(change.contentID ?? change.id.uuidString)" : [.lesson,.goal,.repair,.repairPractice,.plateBonus,.speak,.phonics,.storyTurn,.storyCompletion].contains(change.source) ? "\(change.source.rawValue):\(change.target):\(change.source == .plateBonus ? change.dayKey : change.source == .phonics ? change.dayKey + ":" + (change.contentID ?? change.id.uuidString) : change.contentID ?? change.id.uuidString)" : change.id.uuidString
         let receiptID = SHA256.hash(data:Data(stable.utf8)).map { String(format:"%02x",$0) }.joined()
         let receipt = user.collection("iosPracticeReceipts").document(receiptID)
         let month = user.collection("xpHistory").document(String(change.dayKey.prefix(7)))
-        let collection = change.source == .phonics ? "alphabetPractice" : change.source == .review ? "languageFlashcards" : [.lessonStart,.lesson].contains(change.source) ? "languageLessons" : [.tutorTurn,.speak].contains(change.source) ? "tutorLanguageLessons" : nil
+        let collection = change.source == .phonicsAttempt ? (change.phonicsData?["focused"].boolean == true ? nil:"alphabetPractice"):change.source == .phonics ? (change.phonicsData?["collection"].boolean == true ? nil:"alphabetPractice") : change.source == .review ? "languageFlashcards" : [.lessonStart,.lesson].contains(change.source) ? "languageLessons" : [.tutorTurn,.speak].contains(change.source) ? "tutorLanguageLessons" : nil
         let content = collection.flatMap { collection in change.contentID.map { user.collection(collection).document("\(change.target)_\($0)") } }
         let activeLesson = change.skillTreeLessonID.flatMap { CurriculumLessonProgress.isCurriculumID($0) && change.amount > 0 && change.source != .lesson ? user.collection("languageLessons").document("\(change.target)_\($0)") : nil }
         let summary = user.collection("courseProgress").document(change.target)
@@ -383,14 +403,21 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                     if goalClaimed || accepted.correct == true && goalID == nil { accepted.correct=nil }
                 }
                 let patch = WebProgressContract.rootPatch(fields:fields,month:Self.normalized(monthSnapshot.data() ?? [:]),change:accepted)
-                var root = patch.root; root["local_npub"] = user.documentID
+                let phonicsWithoutXP=accepted.amount == 0 && (accepted.source == .phonicsAttempt || accepted.source == .phonics && accepted.phonicsData?["collection"].boolean == true)
+                var root=patch.root
+                if phonicsWithoutXP {
+                    var activity:[String:Any]=["lastActiveAt":WebProgressContract.iso(change.date)]
+                    if accepted.source == .phonics,let progress=patch.root["progress"] as? [String:Any],let value=progress["phonicsDailyActivity"]{activity["phonicsDailyActivity"]=value}
+                    root=["progress":activity,"updatedAt":WebProgressContract.iso(change.date)]
+                }
+                root["local_npub"] = user.documentID
                 root["iosRecentEventIDs"] = Self.recentIDs(fields,adding:change.id)
                 if let goalID {
                     root["iosCompletedConversationGoalIDs"]=Array(((fields["iosCompletedConversationGoalIDs"] as? [String] ?? []).filter { $0 != goalID }+[goalID]).suffix(400))
                 }
                 if !userSnapshot.exists { root["createdAt"] = WebProgressContract.iso(change.date); root["dailyGoalXp"] = state.dailyGoal }
                 transaction.setData(root,forDocument:user,merge:true)
-                transaction.setData(patch.month,forDocument:month,merge:true)
+                if !phonicsWithoutXP{transaction.setData(patch.month,forDocument:month,merge:true)}
                 if let activeLesson,let saved=activeLessonSnapshot?.data(),saved["status"] as? String == "in_progress" {
                     transaction.setData(["earnedXp":max(0,WebProgressContract.integer(saved["earnedXp"]))+change.amount,"updatedAt":WebProgressContract.iso(change.date)],forDocument:activeLesson,merge:true)
                 }
@@ -404,10 +431,14 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                     transaction.setData(["version":1,"completedQuests":count,"unlockedAt":unlocked,"updatedAt":WebProgressContract.iso(change.date)],forDocument:journey,merge:true)
                     transaction.setData(["completedAt":WebProgressContract.iso(change.date),"session":count],forDocument:journeyReceipt)
                 }
+                if let content,change.source == .phonicsAttempt {
+                    let next=PhonicsProgress.applying(change,to:PhonicsProgress.document(Self.normalized(contentSnapshot?.data() ?? [:])))
+                    transaction.setData(next.foundation as? [String:Any] ?? [:],forDocument:content,merge:true)
+                }
                 if let content, change.source == .phonics {
                     transaction.setData(["letterId":change.contentID ?? "","targetLang":change.target,"cefrLevel":change.level,"correctCount":FieldValue.increment(Int64(1)),"updatedAt":WebProgressContract.iso(change.date)],forDocument:content,merge:true)
                 }
-                if let content, change.source != .phonics {
+                if let content, change.source != .phonics,change.source != .phonicsAttempt {
                     let existing = Self.normalized(contentSnapshot?.data() ?? [:])
                     var data: [String:Any] = ["targetLang":change.target,"cefrLevel":change.level,"updatedAt":WebProgressContract.iso(change.date)]
                     let completed: Bool, wasCompleted: Bool, mode: String

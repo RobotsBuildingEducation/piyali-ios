@@ -4,9 +4,10 @@ import argparse, json, os, subprocess, uuid
 from pathlib import Path
 root = Path(__file__).resolve().parent.parent
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument('--only', choices=['flashcards', 'focused-goal', 'companion-quest', 'headline', 'lesson-content', 'realtime', 'realtime-connection', 'realtime-legacy-gemini', 'landing', 'practice', 'practice-formats', 'services', 'immersion', 'conversation', 'rpg', 'signer', 'stories', 'reading', 'exploration', 'quiz'])
+parser.add_argument('--only', choices=['phonics', 'flashcards', 'focused-goal', 'companion-quest', 'headline', 'lesson-content', 'realtime', 'realtime-connection', 'realtime-legacy-gemini', 'landing', 'practice', 'practice-formats', 'services', 'immersion', 'conversation', 'rpg', 'signer', 'stories', 'reading', 'exploration', 'quiz'])
 selection = parser.parse_args().only
-methods = {'flashcards':'testOriginalFlashcardJudgeRevealAndDifficultyThroughNativeProviders',
+methods = {'phonics':'testNativePhonicsJudgeGeneratedDeckAndReceiveOnlyNarration',
+           'flashcards':'testOriginalFlashcardJudgeRevealAndDifficultyThroughNativeProviders',
            'focused-goal':'testOriginalFocusedGoalPlannerAndWrittenRubricUseNativeProvider',
            'companion-quest':'testNativeCompanionBlueprintAndRecallDeckUseOriginalPrompts',
            'headline':'testNativePlateHeadlineStreamsPublicLessonOutcomesAndResponsesRecovery',
@@ -34,5 +35,8 @@ env.update(TEST_RUNNER_PIYALI_OFFLINE_TESTS='1', TEST_RUNNER_PIYALI_LIVE_API_TES
 if selection == 'exploration':
     env['TEST_RUNNER_PIYALI_EXPLORATION_DIAGNOSTICS_DIR'] = str(root / '.secrets/exploration-diagnostics')
 test = ('PiyaliTests/RealtimeConnectionTests' if selection in ('realtime','realtime-connection') else 'PiyaliTests/LiveAPIIntegrationTests') + ('/' + methods[selection] if selection else '')
-subprocess.run([str(root / 'scripts/test-ios.sh'), '-only-testing:' + test],
+tests = [test]
+if selection == 'phonics':
+    tests.append('PiyaliTests/RealtimeConnectionTests/testDefaultRealtimeModelReturnsDataEventsAndNativeWebRTCAudio')
+subprocess.run([str(root / 'scripts/test-ios.sh'), *['-only-testing:' + item for item in tests]],
                cwd=root, env=env, check=True)

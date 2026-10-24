@@ -9,6 +9,23 @@ import NostrSDK
 
 /// Explicit opt-in only. Uses an isolated test identity, bounded prompts and no paid access grant.
 @MainActor final class LiveAPIIntegrationTests: XCTestCase {
+    func testNativePhonicsJudgeGeneratedDeckAndReceiveOnlyNarration()async throws {
+        guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else{throw XCTSkip("Explicit live API opt-in required")}
+        XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))
+        if FirebaseApp.app() == nil{AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure()};XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let identity=IdentityService();try identity.create();try await FirebaseIdentityService.shared.ensure(identity)
+        do {
+            let ai=AIService(),provider=PhonicsProvider.native(ai),policy=try PhonicsPolicy()
+            for (answer,expected) in [("kasa",true),("perro",false)]{let prompt=try policy.run("ph_judge",.object(["practiceWord":.string("casa"),"userAnswer":.string(answer),"targetLang":.string("es"),"cefrLevel":.string("Pre-A1")])).string,raw=try await provider.judge(prompt),grade=try policy.grade(raw);XCTAssertEqual(grade.correct,expected);if expected{XCTAssertTrue((1...2).contains(grade.xp))}}
+            let args:Piyali.JSONValue = .object(["target":.string("es"),"support":.string("en"),"level":.string("A1"),"existingWords":.array([.string("casa")])]),prompt=try policy.run("ph_generatePrompt",args).string,raw=try await provider.judge(prompt),cards=try policy.run("ph_generateParse",args.setting("raw",.string(raw)).setting("batchId",.number(1792830600000000))).array;XCTAssertEqual(cards.count,6)
+            let rtc=RealtimeRTCTransport(capturesMicrophone:false,purpose:.narration),narration=RealtimeNarrationService(factory:{rtc});defer{narration.stopAll()};var finished=false,bytes=0,peakAmplitude=0.0
+            narration.play("casa",language:"es",engine:policy.engine){finished=true}
+            for _ in 0..<500 {bytes=max(bytes,await rtc.receivedAudioBytes());peakAmplitude=max(peakAmplitude,await rtc.audioAmplitude(speaking:true));if finished || narration.error != nil{break};try await Task.sleep(for:.milliseconds(100))}
+            XCTAssertNil(narration.error,narration.failureDetail ?? "No diagnostic");XCTAssertTrue(finished);XCTAssertGreaterThan(bytes,0);XCTAssertGreaterThan(peakAmplitude,0)
+            if narration.error == nil,finished,bytes>0,peakAmplitude>0 {print("LIVE PHONICS: semantic pronunciation grading, six-card original continuation policy and receive-only Realtime narration with incoming audio and positive amplitude succeeded; no learner progress writes")}
+        }catch{try? await Auth.auth().currentUser?.delete();try? Auth.auth().signOut();try? identity.disconnect();throw error}
+        try await Auth.auth().currentUser?.delete();try Auth.auth().signOut();try identity.disconnect()
+    }
     func testOriginalFlashcardJudgeRevealAndDifficultyThroughNativeProviders()async throws {
         guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else{throw XCTSkip("Explicit live API opt-in required")}
         XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))

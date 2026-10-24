@@ -75,6 +75,17 @@ public struct PhonicsCard: Codable, Identifiable, Sendable {
     public let sound: String
     public let tip: String
     public var cefrLevel:String? = nil
+    public var deckId:String? = nil
+    public var curriculumVersion:String? = nil
+    public var authored:Bool? = nil
+    public var supportLanguage:String? = nil
+    public var targetLang:String? = nil
+    public var type:String? = nil
+    public var name:String? = nil
+    public var phoneme:String? = nil
+    public var pronunciationDrill:Bool? = nil
+    public var generated:Bool? = nil
+    public var generatedDeckSize:Int? = nil
     public var authoredId:String? = nil
     public var practiceRole:String? = nil
 }
@@ -183,6 +194,7 @@ public struct LearnerState: Codable, Sendable {
     public var journeyQuestCounts: [String:Int]?
     public var focusPlans: [String: FocusedPlan]?
     public var masteredPhonics: Set<String>?
+    public var phonicsRecords:[String:JSONValue]?
     public var immersionDays: Set<String>?
     public var conversationDrafts: [String:ConversationDraft]?
     public var completedConversationGoals: Set<String>?

@@ -46,6 +46,31 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
         XCTAssertEqual(fields["patreonVerified"] as? Bool,true);XCTAssertEqual(fields["unrelatedWebSetting"] as? String,"preserve")
         let snapshot=try JSONDecoder().decode(LearnerState.self,from:Data((fields["iosStateJSON"] as? String ?? "").utf8));XCTAssertNil(snapshot.companionQuestDays);XCTAssertTrue(snapshot.pendingRepairEvidence?.isEmpty == true)
     }
+    func testPhonicsAttemptsRepeatRewardsAndCollectionUseCanonicalSeparateReceipts()async throws {
+        let (service,db,npub)=try context();try await seed(db,npub);var state=try requireState(await service.load(npub:npub));let target=state.target,card:JSONValue = .object(["id":.string("authored-v1:fr:Pre-A1:public-test"),"practiceWord":.string("Bonjour"),"practiceWordMeaning":.object(["en":.string("Hello")]),"cefrLevel":.string("Pre-A1")])
+        state.attemptPhonics(card:card,grade:.init(correct:false,xp:0));state.attemptPhonics(card:card,grade:.init(correct:true,xp:2));let pending=state
+        _=try await service.save(pending,npub:npub);_=try await service.save(pending,npub:npub);state=try requireState(await service.load(npub:npub));XCTAssertEqual(state.totalXP,152)
+        let record=try XCTUnwrap(state.phonicsRecords?[PhonicsProgress.key(target,card["id"].string)]);XCTAssertEqual(record["attempts"].number,2);XCTAssertEqual(record["correctCount"].number,1);XCTAssertEqual(record["currentWord"].string,"Bonjour");XCTAssertEqual(record["practicedWords"].array.count,1);XCTAssertEqual(state.plateProgress["phonicsDailyActivity"][target][CalendarDay.key(Date())].number,0)
+        state.attemptPhonics(card:card,grade:.init(correct:true,xp:1));state.collectPhonics(cardID:card["id"].string);let repeated=state;_=try await service.save(repeated,npub:npub);_=try await service.save(repeated,npub:npub)
+        let final=try requireState(await service.load(npub:npub)),root=try await db.collection("users").document(npub).getDocument(source:.server).data() ?? [:]
+        XCTAssertEqual(final.totalXP,153);XCTAssertEqual(final.phonicsRecords?[PhonicsProgress.key(target,card["id"].string)]?["attempts"].number,3);XCTAssertEqual(final.phonicsRecords?[PhonicsProgress.key(target,card["id"].string)]?["correctCount"].number,2);XCTAssertEqual(final.plateProgress["phonicsDailyActivity"][target][CalendarDay.key(Date())].number,1);XCTAssertEqual(root["patreonVerified"] as? Bool,true);XCTAssertEqual(root["unrelatedWebSetting"] as? String,"preserve")
+        let saved=try JSONDecoder().decode(LearnerState.self,from:Data(try XCTUnwrap(root["iosStateJSON"] as? String).utf8));XCTAssertNil(saved.phonicsRecords,"alphabetPractice is the shared authority")
+    }
+    func testSupplementalPhonicsBatchIsAtomicAndRestoresWithoutReplacingCompletion()async throws {
+        let (service,db,npub)=try context();try await seed(db,npub);var state=try requireState(await service.load(npub:npub));let policy=try PhonicsPolicy(),units=["lapin","chapeau","nuage","feuille","soleil","plume"].enumerated().map{index,word in JSONValue.object(["grapheme":.string(String(word.prefix(1))),"exampleWord":.string(word),"sound":.string("A clear sound"),"tip":.string("Keep it clear"),"meaning":.string("Example \(index)")])},cards=try policy.run("ph_generateParse",.object(["target":.string("fr"),"support":.string("en"),"level":.string("Pre-A1"),"existingWords":.array([]),"batchId":.number(1792830600000000),"raw":.string(JSONValue.array(units).json)])).array,records=try cards.map{try policy.run("ph_extraRecord",.object(["card":$0]))}
+        state.storeSupplementalPhonics(records);let batch=state;_=try await service.save(batch,npub:npub);_=try await service.save(batch,npub:npub);state=try requireState(await service.load(npub:npub));XCTAssertEqual(state.totalXP,150);XCTAssertEqual(try policy.run("ph_extraRestore",.object(["target":.string("fr"),"support":.string("en"),"level":.string("Pre-A1"),"records":.array(state.phonicsDocuments)])).array,cards)
+        state.attemptPhonics(card:try XCTUnwrap(cards.first),grade:.init(correct:true,xp:2));_=try await service.save(state,npub:npub);_=try await service.save(batch,npub:npub)
+        let final=try requireState(await service.load(npub:npub));XCTAssertEqual(final.totalXP,152);XCTAssertEqual(final.phonicsRecords?[PhonicsProgress.key("fr",cards[0]["id"].string)]?["correctCount"].number,1)
+        let docs=try await db.collection("users").document(npub).collection("alphabetPractice").whereField("generated",isEqualTo:true).getDocuments(source:.server);XCTAssertEqual(docs.count,6)
+    }
+    func testFocusedPhonicsAwardsOneToTwoXPPerAttemptAndCompletesOnlyItsOwnMode()async throws {
+        let (service,db,_)=try context(),app=AppModel(progressService:service);try app.identity.create();defer{try? app.identity.disconnect()};let npub=app.identity.npub;try await seed(db,npub);app.subscription.bind(app.identity);app.signedIn=true;app.learner=try requireState(await service.load(npub:npub));app.learner.editGoal("Pronounce two words");await app.reloadContent()
+        let cards=try app.phonics.prefix(2).enumerated().map{index,card->JSONValue in try JSONDecoder().decode(JSONValue.self,from:JSONEncoder().encode(card)).setting("authoredId",.string(card.id)).setting("id",.string("public-phonics-\(index)")).setting("isGoal",.bool(true))},day=CalendarDay.key(Date()),bp:JSONValue = .object(["goalId":app.learner.goalBucket["activeGoal"]["id"],"dayKey":.string(day),"lang":.string(app.learner.target),"mode":.string("phonics"),"modes":.array([.string("phonics"),.string("lesson")]),"cefrLevel":cards.first?["cefrLevel"] ?? .string("Pre-A1"),"objective":.string("Pronounce two words")])
+        XCTAssertEqual(cards.count,2);app.learner.applyGoal(.init(action:.blueprint,target:app.learner.target,payload:bp));app.learner.applyGoal(.init(action:.artifact,target:app.learner.target,payload:bp.setting("cards",.array(cards))));await app.sync()
+        let provider=PhonicsProvider(judge:{_ in "YES | 2"},quote:{card,state in try GeneratedQuestionWorth.fallback(level:card["cefrLevel"].string,learner:state,recipes:PracticeRecipes())})
+        for index in [0,0,1]{let session=try PhonicsSessionController(app:app,card:cards[index],goal:bp,provider:provider);session.practice(app);session.submit(cards[index]["practiceWord"].string,app:app);for _ in 0..<700 where session.busy{try await Task.sleep(for:.milliseconds(20))};XCTAssertNil(session.error);let audit=app.goalArtifact(bp,mode:"phonics");XCTAssertTrue(audit["outcomes"][cards[index]["id"].string]["success"].boolean);session.cancel()}
+        let final=try requireState(await service.load(npub:npub));XCTAssertEqual(final.totalXP,156);XCTAssertEqual(final.gradedByLanguage?[final.target],3);XCTAssertTrue(final.phonicsDocuments.isEmpty);XCTAssertEqual(final.plateProgress["phonicsDailyActivity"][final.target][day].number,0);XCTAssertEqual(final.dailyGoalTask?["modeProgress"]["phonics"].number,2);XCTAssertEqual(final.dailyGoalTask?["modeProgress"]["lesson"].number,0)
+    }
     func testSourceFlashcardGradeAndRatingPersistOnceAndGoalCardsRemainOutsideNormalSRS()async throws {
         let (service,db,_)=try context(),app=AppModel(progressService:service);try app.identity.create();defer{try? app.identity.disconnect()};let npub=app.identity.npub;try await seed(db,npub)
         app.subscription.bind(app.identity);app.signedIn=true;app.learner=try requireState(await service.load(npub:npub))
@@ -469,8 +494,12 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
         let decks=try ContentLibrary.load([String:[JSONValue]].self,name:"phonics")
         let cards=try XCTUnwrap(decks["fr:es:Pre-A1"])
         XCTAssertFalse(cards.isEmpty)
-        for card in cards { state.award(5,source:.phonics,contentID:card["id"].string) }
+        // Finish migration first: incremental phonicsAttempt sync must load the canonical evidence too.
+        state=try requireState(try await service.save(state,npub:npub))
+        for card in cards { state.attemptPhonics(card:card,grade:.init(correct:true,xp:2)) }
         let saved=try requireState(try await service.save(state,npub:npub))
+        XCTAssertEqual(saved.totalXP,150+cards.count*2)
+        XCTAssertEqual(saved.plateProgress["phonicsDailyActivity"]["fr"][CalendarDay.key(Date())].number,0)
         XCTAssertGreaterThan(saved.achievementRecords?["nosabos_phonics_decks_1"]?["unlockedAt"].number ?? 0,0)
         XCTAssertGreaterThan(saved.achievementRecords?["nosabos_phonics_cards_all"]?["unlockedAt"].number ?? 0,0)
         _=try await service.save(state,npub:npub)

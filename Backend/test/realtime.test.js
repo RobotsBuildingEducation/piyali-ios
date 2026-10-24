@@ -21,6 +21,13 @@ test('App Check, owner authentication, and connection limits precede any upstrea
  assert.equal((await worker.fetch(request(),{...env,REALTIME_RATE_LIMITER:{limit:async({key})=>{assert.equal(key,'npub');return {success:false};}}})).status,429);
  assert.equal(calls,0);
 });
+test('explicit narration disables VAD/transcription and preserves bounded source narration settings',async()=>{
+ const narration={...data,purpose:'narration',session:{...data.session,audio:{input:{turn_detection:null,transcription:{model:'arbitrary'}},output:{voice:'ash'}}}};
+ const value=realtimeOffer(narration,env);assert.deepEqual(value.session.audio.input,{turn_detection:null});assert.equal(value.session.tools,undefined);assert.equal(value.session.model,'gpt-realtime-2.1-mini');assert.deepEqual(value.session.output_modalities,['audio']);
+ for(const bad of [{...narration,purpose:'arbitrary'},{...narration,purpose:undefined},{...data,purpose:'narration'},{...narration,session:{...narration.session,model:'arbitrary'}},{...narration,session:{...narration.session,audio:{input:{turn_detection:null},output:{voice:'invalid'}}}}]) assert.throws(()=>realtimeOffer(bad,env));
+ const worker=handler(async()=>{},async()=> 'npub',async(url,options)=>{const sent=JSON.parse(options.body.get('session'));assert.deepEqual(sent.audio.input,{turn_detection:null});assert.equal(sent.audio.output.voice,'ash');return new Response(sdp);});
+ assert.equal((await worker.fetch(request(narration),env)).status,200);
+});
 test('authenticated SDP is exchanged using multipart at the official calls endpoint',async()=>{
  const worker=handler(async()=>{},async()=> 'npub',async(url,options)=>{
   assert.equal(url,'https://api.openai.com/v1/realtime/calls');assert.equal(options.headers.Authorization,'Bearer fixture-not-a-key');assert.equal(options.redirect,'manual');

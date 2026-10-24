@@ -278,7 +278,11 @@
         "getAuthoredPhonicsFocusCards",
         "initialPhonicsLevel",
         "PHONICS_LEVELS",
-        "getAuthoredPhonicsDeck"
+        "getAuthoredPhonicsDeck",
+        "PHONICS_CONTROLS",
+        "partitionPhonicsProgress",
+        "PHONICS_TARGETS",
+        "PHONICS_SUPPORTS"
       ]
     },
     {
@@ -392,11 +396,92 @@
         "APP_CARD_RADIUS",
         "APP_SQUIRCLE_SHAPE"
       ]
+    },
+    {
+      "file": "src/components/AlphabetBootcamp.jsx",
+      "sha256": "51a7b8ab6a3c0ee80fc7594fcf9ee66f345d002278c0987b717d5c4b309282d7",
+      "declarations": [
+        "uiText",
+        "normalizeSupportLanguage",
+        "DEFAULT_SUPPORT_LANGUAGE",
+        "ALPHABET_UI_TEXT",
+        "PHONICS_EXTRA_UI_TEXT",
+        "PHONICS_CONTROLS",
+        "getLanguageName",
+        "PHONICS_TARGET_NAMES",
+        "getLetterName",
+        "getLocalizedLetterField",
+        "SUPPLEMENTAL_PHONICS_VERSION",
+        "LOCALIZED_FIELD_SUFFIX",
+        "getMeaningText",
+        "normalizeMeaning",
+        "getLetterSound",
+        "getLetterTip",
+        "getPracticeLetterMarker",
+        "getHighlightedWordParts",
+        "buildAlphabetJudgePrompt",
+        "LANGUAGE_PROMPT_LABELS"
+      ]
+    },
+    {
+      "file": "src/utils/supplementalPhonics.js",
+      "sha256": "de9f68af6aeaf20613a4828a3469971dd1a60fcf5940acb62c0ab75f4006771f",
+      "declarations": [
+        "SUPPLEMENTAL_PHONICS_VERSION",
+        "buildSupplementalPhonicsDeck",
+        "PHONICS_TARGETS",
+        "PHONICS_SUPPORTS",
+        "PHONICS_LEVELS",
+        "SUPPLEMENTAL_DECK_SIZE",
+        "wordKey",
+        "clean",
+        "usesScript",
+        "scripts",
+        "supplementalPhonicsRecord",
+        "restoreSupplementalPhonics",
+        "supplementalPhonicsEvents"
+      ]
+    },
+    {
+      "file": "src/utils/phonicsCourseProgress.js",
+      "sha256": "417d12de20ba70f55ab2c67f14cce7fa65817d439150f83b945828b61e3a6b39",
+      "declarations": [
+        "getPhonicsCourseProgress",
+        "PHONICS_LEVELS",
+        "canAccessPhonicsLevel",
+        "resolvePhonicsLevel"
+      ]
+    },
+    {
+      "file": "src/utils/tts.js",
+      "sha256": "d6b7f16803fa7c88c7e94cd05186d491e8fd7846a08940bf86bf5175a36b7c7d",
+      "declarations": [
+        "TTS_LANG_TAG",
+        "sanitizeVoice",
+        "SUPPORTED_TTS_VOICES",
+        "DEFAULT_TTS_VOICE"
+      ]
     }
   ],
   "fixtureCount": 198,
   "goalFixtureCount": 116,
   "flashcardFixtureCount": 117,
+  "phonicsFixtureCount": 106,
+  "phonicsAdapters": {
+    "targetLabels": {
+      "file": "src/data/phonics/names.js",
+      "sha256": "260e98e1957e57e221ce4bf2a51926c8e5e93a878a2bf4274315fc8cca5e0903",
+      "scope": "Original literal default export; no source module is imported at runtime."
+    },
+    "narration": "Original narrationSession expression and locale/voice helpers; native receive-only transport requires successful generation, buffer-stopped and the source minimum jitter-buffer tail before completion.",
+    "targets": "Exact PHONICS_CURRICULUM object keys replace loading authored payload modules; deck selection still uses exported authored snapshots.",
+    "grade": "Original 1-2 XP parser and pronunciation prompt; no source providers or stores execute.",
+    "generation": {
+      "file": "src/utils/phonicsDeckGeneration.js",
+      "sha256": "4ddb003827d7baa0444fccdb8ebefbe8083baa6f0dec719ed89a18272dac050c",
+      "scope": "Original input expression and parser split at the network boundary."
+    }
+  },
   "flashcardAdapters": {
     "uiLanguage": "Explicit p.language snapshot replaces getAppLanguage; p.copy supplies the previously exported source string dictionaries.",
     "visuals": "JSX icon elements are omitted from original plain theme values. UI and source provider/store code never execute in this bundle.",

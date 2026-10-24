@@ -32,6 +32,7 @@ struct ProductShellView:View {
     @State private var specialCourse:String?
     @State private var launchTask:Task<Void,Never>?
     @State private var launchID:UUID?
+    @State private var activityFooter:ActivityFooterPresentation?
     @State private var menuOpen=false
     @State private var modesOpen=false
     @State private var panel:ProductPanel?
@@ -52,18 +53,15 @@ struct ProductShellView:View {
             BrandBackground()
             NavigationStack {
                 surface.navigationBarTitleDisplayMode(.inline)
-                    .toolbar(mode == .focus || mode == .cards ? .hidden:.automatic,for:.navigationBar)
+                    .toolbar(mode == .focus || mode == .cards || mode == .phonics ? .hidden:.automatic,for:.navigationBar)
             }.id(revision).tint(PiyaliBrand.teal).blur(radius:menuOpen ? 6 : 0).allowsHitTesting(!menuOpen)
                 .safeAreaInset(edge:.top,spacing:0){ProductTopBar(timer:timer,onGoal:{goalOpen=true},onTimer:{timer.load(account:app.identity.npub);timerOpen=true})}
-                .safeAreaInset(edge:.bottom) { if app.activityFooter == nil { menuButton(compact:false).padding(.bottom,10) } }
+                .safeAreaInset(edge:.bottom) { if activityFooter == nil { menuButton(compact:false).padding(.bottom,10) } }
                 .overlay(alignment:.bottom) {
-                    if let footer=app.activityFooter {
+                    if let footer=activityFooter {
                         ZStack(alignment:.bottomLeading) {
-                            footer.content.id(footer.owner).padding(12).background {
-                                RoundedRectangle(cornerRadius:24).fill(.ultraThinMaterial)
-                                if let correct=footer.correct { RoundedRectangle(cornerRadius:24).fill((correct ? brand.questionSuccess : brand.questionError).opacity(scheme == .dark ? 0.14 : 0.10)) }
-                            }.overlay { RoundedRectangle(cornerRadius:24).stroke(footer.correct.map { $0 ? brand.questionSuccess : brand.questionError } ?? brand.border) }.padding(.horizontal,8).padding(.bottom,6)
-                            menuButton(compact:true).padding(.leading,20).padding(.bottom,18)
+                            footer.content.id(footer.owner).padding(12).background{SourceActivityDockBackground(correct:footer.correct)}.padding(.horizontal,8).padding(.bottom,12)
+                            menuButton(compact:true).padding(.leading,20).padding(.bottom,24)
                         }.onGeometryChange(for:CGFloat.self,of:{ $0.size.height }) { app.activityFooterHeight=$0 }
                     }
                 }
@@ -140,7 +138,8 @@ struct ProductShellView:View {
     }
     var body:some View {
         goalCoordinatedShell
-            .onChange(of:app.activityFooter == nil) { _,absent in if absent { app.activityFooterHeight=0 } }
+            // The value publisher replays a footer created while NavigationStack is mounting.
+            .onReceive(app.$activityFooter) { footer in activityFooter=footer;if footer == nil {app.activityFooterHeight=0} }
             .onChange(of:app.learner.target) { _,_ in revision=UUID() }
             .onChange(of:app.localPracticeRevision) { _,_ in checkCompletion() }
             .onChange(of:panel) { _,value in if value == nil { presentPendingLessonCompletion();checkCompletion() } }

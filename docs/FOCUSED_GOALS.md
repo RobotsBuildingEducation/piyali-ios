@@ -28,6 +28,6 @@ The screenshots below compare the actual unmodified web components in iPhone Web
 | ![Source and native Goal check dialog](native/focused-goal-dialog-en.png) | ![Source and native Arabic Goal check dialog](native/focused-goal-dialog-ar.png) |
 | ![Source and native goal editor](native/focused-goal-editor-en.png) | ![Source and native Arabic goal editor](native/focused-goal-editor-ar.png) |
 
-The underlying focused flashcard/phonics controls and live Tutor still need their full source layout, copy and interaction treatment. Source Tutor’s turn/XP lifecycle, physical pronunciation/audio behavior, complete modal choreography and cross-device interruption journeys remain open. Broader work remains in [the parity audit](PARITY_AUDIT.md).
+Focused flashcard and phonics now use their original source controls, copy and separate artifact/reward ordering; see [flashcards](FLASHCARDS.md) and [phonics](PHONICS.md). Their wider complete journeys and live Tutor still need verification. Source Tutor’s turn/XP lifecycle, physical pronunciation/audio behavior, complete modal choreography and cross-device interruption journeys remain open. Broader work remains in [the parity audit](PARITY_AUDIT.md).
 
 The later [flashcard checkpoint](FLASHCARDS.md) replaces the focused recall form with the source deck/dialog and acknowledgment/retry behavior. Phonics and live Tutor parity remain open.

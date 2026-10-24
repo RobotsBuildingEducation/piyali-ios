@@ -6,7 +6,7 @@ struct FlashcardPracticeDialog:View {
     @Environment(\.scenePhase) private var scenePhase
     @ObservedObject var session:FlashcardSessionController
     @StateObject private var recorder=SpeechPracticeService()
-    @StateObject private var playback=SpeechService()
+    @StateObject private var playback=RealtimeNarrationService()
     @State private var help=false
     @FocusState private var typing:Bool
     private var dark:Bool {scheme == .dark}
@@ -49,7 +49,7 @@ struct FlashcardPracticeDialog:View {
             else {OnboardingText(text:session.flipped ? session.revealed:session.concept,size:30,weight:.black,lineHeight:45).multilineTextAlignment(.center).environment(\.layoutDirection,(session.flipped ? session.scope.target:session.scope.support) == "ar" ? .rightToLeft:.leftToRight).accessibilityIdentifier("flashcardPrompt")}
         }.padding(16).frame(maxWidth:.infinity).frame(height:140).overlay(alignment:.topLeading){
             if !session.flipped {Button{session.flip(app)}label:{FlashcardIcon(name:"support",size:18).frame(width:32,height:32).foregroundStyle(dark ? Color.blue:PiyaliBrand.unitColor("5d6edc")).background(dark ? Color.white:paint.color("var(--app-surface)"),in:RoundedRectangle(cornerRadius:12))}.buttonStyle(.plain).padding(12).accessibilityLabel(session.copy("show_answer")).accessibilityIdentifier("flashcardReveal")}
-        }.overlay(alignment:.bottomLeading){if session.flipped,!session.revealing,!session.revealed.isEmpty {Button{playback.speak(session.revealed,language:session.scope.target)}label:{FlashcardIcon(name:"listen",size:14).frame(width:32,height:32)}.buttonStyle(.plain).padding(12).accessibilityLabel(session.copy("listen")).accessibilityIdentifier("flashcardListen")}}
+        }.overlay(alignment:.bottomLeading){if session.flipped,!session.revealing,!session.revealed.isEmpty {Button{recorder.cancel();playback.play(session.revealed,language:session.scope.target,engine:app.companionQuestPolicy)}label:{if playback.loading{ProgressView().scaleEffect(0.6).frame(width:32,height:32)}else{FlashcardIcon(name:"listen",size:14).frame(width:32,height:32)}}.buttonStyle(.plain).disabled(playback.loading).padding(12).accessibilityLabel(session.copy(playback.loading ? "loading":"listen")).accessibilityIdentifier("flashcardListen")}}
             .overlay(alignment:.bottomTrailing){if session.flipped {Button{session.flip(app)}label:{Text(session.copy("tap_to_flip")).font(PiyaliBrand.productFont(12))}.buttonStyle(.plain).padding(12).accessibilityIdentifier("flashcardFlipBack")}}
     }
     private var input:some View {

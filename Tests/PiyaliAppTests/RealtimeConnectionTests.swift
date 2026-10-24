@@ -51,7 +51,7 @@ import FirebaseAppCheck
             XCTAssertGreaterThan(peakAmplitude,0,"Real incoming RTP audio must supply amplitude for the visual envelope.")
             XCTAssertNil(failure);XCTAssertTrue(sessionModel.hasPrefix("gpt-realtime-2.1-mini"),sessionModel)
             XCTAssertFalse(output.isEmpty);XCTAssertTrue(didStartAudio);let bytes=await transport.receivedAudioBytes();XCTAssertGreaterThan(bytes,0)
-            print("LIVE OPENAI WEBRTC: authenticated native SDP, source mini model, oai-events transcripts, playback stop, incoming audio packets and positive receiver amplitude verified; microphone capture disabled")
+            if failure == nil,peakAmplitude>0,bytes>0 {print("LIVE OPENAI WEBRTC: authenticated native SDP, source mini model, oai-events transcripts, playback stop, incoming audio packets and positive receiver amplitude verified; microphone capture disabled")}
         } catch { transport.close();try? await Auth.auth().currentUser?.delete();try? Auth.auth().signOut();try? identity.disconnect();throw error }
         transport.close();try await Auth.auth().currentUser?.delete();try Auth.auth().signOut();try identity.disconnect()
     }

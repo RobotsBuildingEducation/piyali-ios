@@ -145,7 +145,7 @@ import FirebaseFirestore
             for language in targets {
                 let id=language+"_"+CalendarDay.key(Date()),quest=try await user.collection("questDays").document(id).getDocument(source:.server)
                 if let data=quest.data() { records["questDays",default:[]].append(.object(["id":.string(id),"data":value(data)])) }
-                if changes.contains(where:{ $0.target == language && $0.source == .phonics }) {
+                if changes.contains(where:{ $0.target == language && ($0.source == .phonics || $0.source == .phonicsAttempt && $0.phonicsData?["focused"].boolean != true) }) {
                     let docs=try await user.collection("alphabetPractice").whereField("targetLang",isEqualTo:language).getDocuments(source:.server)
                     records["alphabetPractice",default:[]].append(contentsOf:docs.documents.map { .object(["id":.string($0.documentID),"data":value($0.data())]) })
                 }
