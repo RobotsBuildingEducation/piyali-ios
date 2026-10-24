@@ -13,7 +13,7 @@ import SwiftUI
     @Published var cards: [Flashcard] = []
     @Published var phonics: [PhonicsCard] = []
     var curriculumIndex: [String:[String:[String]]] = [:]
-    private var phonicsLibrary: [String:[PhonicsCard]] = [:]
+    var phonicsLibrary: [String:[PhonicsCard]] = [:]
     var flashcardIndex: [String:[String]] = [:]
     @Published var achievements: [AchievementDefinition] = []
     @Published var error: String?
@@ -26,6 +26,7 @@ import SwiftUI
     @Published var pendingLessonCompletion:LessonCompletionPresentation?
     let identity = IdentityService()
     let ai = AIService()
+    let companionQuestPolicy=try? CompanionQuestPolicy()
     let subscription = SubscriptionService()
     let teams = NostrTeamsService()
     private let automaticWallet:WalletService
@@ -256,7 +257,7 @@ import SwiftUI
         let prior=Set((lastPersisted.pendingChanges ?? []).map(\.id)),newPractice=(learner.pendingChanges ?? []).filter { !prior.contains($0.id) }
         do { try writeLocal(); lastPersisted = learner }
         catch { self.error = "Could not save progress: \(error.localizedDescription)"; return }
-        if newPractice.contains(where:{ $0.amount > 0 }) { localPracticeRevision=UUID() }
+        if newPractice.contains(where:{ $0.amount > 0 || $0.source == .repair }) { localPracticeRevision=UUID() }
         scheduleAutomaticTips(changes:newPractice)
         saveTask?.cancel()
         let state = learner, npub = identity.npub
@@ -275,11 +276,15 @@ import SwiftUI
         }
     }
     private var synchronizedStatus: String {
-        (learner.pendingChanges ?? []).isEmpty && (learner.pendingImmersionChanges ?? []).isEmpty && (learner.pendingMemoryChanges ?? []).isEmpty && (learner.pendingPlacements ?? [:]).isEmpty && (learner.pendingGoalChanges ?? []).isEmpty && (learner.pendingPlateHeadlines ?? [:]).isEmpty ? "Synced with Firebase" : "Saved on iPhone; cloud sync pending"
+        (learner.pendingChanges ?? []).isEmpty && (learner.pendingImmersionChanges ?? []).isEmpty && (learner.pendingMemoryChanges ?? []).isEmpty && (learner.pendingPlacements ?? [:]).isEmpty && (learner.pendingGoalChanges ?? []).isEmpty && (learner.pendingPlateHeadlines ?? [:]).isEmpty && (learner.pendingCompanionQuestDays ?? [:]).isEmpty && (learner.pendingRepairEvidence ?? []).isEmpty ? "Synced with Firebase" : "Saved on iPhone; cloud sync pending"
     }
     private func applyAcknowledgment(_ cloud: LearnerState, sent: LearnerState) throws {
         let target = learner.target, support = learner.support, level = learner.level, cardLevel = learner.flashcardLevel, tutorLevel = learner.tutorLevel
         learner = LearnerState.rebased(current:learner,sent:sent,acknowledged:cloud)
+        for change in learner.pendingRepairEvidence ?? [] {
+            let bucket=learner.goalIntelligence?[change.target] ?? .object([:])
+            if let summary=try? companionQuestPolicy?.run("evidence",.object(["summary":bucket["repairSummary"],"event":change.event,"now":.number(change.date.timeIntervalSince1970*1000)])) {if learner.goalIntelligence == nil {learner.goalIntelligence=[:]};learner.goalIntelligence?[change.target]=bucket.setting("repairSummary",summary)}
+        }
         let claimed = learner.claimPlate(user:identity.npub)
         lastPersisted = learner; try writeLocal()
         if claimed { persist() }
@@ -300,6 +305,7 @@ import SwiftUI
         if let correct { learner.assess(correct:correct,independent:true,now:now,questionLevel:card.cefrLevel) }
         if correct == false { learner.captureMemory(mode:"flashcard",concept:card.text(learner.target),answer:answer,expected:card.text(learner.target),feedback:"",context:card.id,now:now) }
         learner.review(cardID:card.id,rating:rating,now:now)
+
         learner.history.insert(HistoryEntry(date:now,target:learner.target,mode:"Flashcard review",question:card.text(learner.support),answer:card.text(learner.target),feedback:"Review: \(rating.rawValue)",correct:correct ?? false,repairInMemory:correct == false),at:0)
         learner.history = Array(learner.history.prefix(500)); persist()
     }
@@ -468,6 +474,7 @@ import SwiftUI
     }
     func place(_ placement: Placement) { learner.place(placement); persist(); Task { await reloadContent() } }
     func canComplete(_ lesson: Lesson) -> Bool {
+        if lesson.isRepair == true {return learner.lessonWork?[learner.completionKey(lesson.id)]?.ready(goal:lesson.xpReward) == true}
         if lesson.isFinalQuiz == true { return learner.quizPassed(lesson) }
         guard !lesson.modes.contains("game") else { return false }
         if CurriculumLessonProgress.isCurriculumID(lesson.id) { return learner.lessonWork?[learner.completionKey(lesson.id)]?.ready(goal:lesson.xpReward) == true }
@@ -476,7 +483,10 @@ import SwiftUI
     func beginLesson(_ lesson:Lesson) { if learner.beginLessonWork(lesson) { persist() } }
     func complete(_ lesson: Lesson) {
         guard canComplete(lesson) else { return }
-        if lesson.id.hasPrefix("goal-") {
+        if lesson.isRepair == true {
+            guard let step=currentRepairStep,lesson.id == step.id else{return}
+            finishRepair(step,observation:"Completed a short mixed lesson on: "+step.item["originalConcept"].string)
+        } else if lesson.id.hasPrefix("goal-") {
             guard let daily = readyGoal, lesson.id == GoalPractice.lesson(daily["blueprint"]).id else { return }
             learner.completed.insert(learner.completionKey(lesson.id))
             recordGoalAttempt(daily["blueprint"],mode:"lesson",success:true,support:"prompted",observation:"Completed all five goal-specific lesson skills for: " + daily["blueprint"]["objective"].string + ". This demonstrates supported practice, not independent real-world mastery.")

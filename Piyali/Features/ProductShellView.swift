@@ -25,6 +25,7 @@ struct ProductShellView:View {
     @State private var goalOpen=false
     @State private var timerOpen=false
     @State private var timerAwardRevision=UUID()
+    @State private var questRetryRevision=UUID()
     @AppStorage("piyali.theme") private var theme="light"
     @State private var firstRun=FirstRunFlow()
     @State private var mode:ProductMode = .focus
@@ -94,12 +95,13 @@ struct ProductShellView:View {
             .overlay{if timerOpen{SessionTimerView(timer:timer,language:language,onClose:{timerOpen=false}).accessibilityHidden(timer.session.status == .finished)}}
             .overlay{if timer.session.status == .finished,firstRun.step == nil,lessonCompletion == nil,panel == nil{SessionTimeUpView(minutes:timer.session.duration/60,language:language,onClose:timer.clear,onRestart:{timer.clear();timerOpen=true})}}
             .environment(\.layoutDirection,language == "ar" ? .rightToLeft : .leftToRight)
+            .task(id:app.companionQuestPreparationKey+questRetryRevision.uuidString){await app.prepareCompanionQuest()}
             .task(id:timerAwardKey){
                 let account=timer.session.account
                 guard account==app.identity.npub,let id=timer.pending.first else{return}
                 do{try await FirebaseService.shared.recordSessionTimer(npub:account,id:id);try Task.checkCancellation();timer.acknowledge(id,account:account)}catch{}
             }
-            .onChange(of:scenePhase){_,value in if value == .active{timer.refresh();timerAwardRevision=UUID()}}
+            .onChange(of:scenePhase){_,value in if value == .active{timer.refresh();timerAwardRevision=UUID();questRetryRevision=UUID()}}
             .onChange(of:app.syncStatus){_,value in if value == "Synced with Firebase"{timerAwardRevision=UUID()}}
             .onChange(of:app.identity.npub){_,_ in goalOpen=false;timerOpen=false;timer.load(account:app.identity.npub)}
             .onChange(of:timer.session.status){_,value in if value == .finished{UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder),to:nil,from:nil,for:nil)}}

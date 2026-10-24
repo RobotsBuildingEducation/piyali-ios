@@ -87,7 +87,7 @@ struct DailyPlateView: View {
 struct LessonView: View {
     let lesson:Lesson
     var body:some View {
-        if CurriculumLessonProgress.isCurriculumID(lesson.id),lesson.id != IntroTutorial.lessonID,!lesson.modes.contains("game") { CurriculumSessionView(lesson:lesson) }
+        if lesson.isRepair == true || (CurriculumLessonProgress.isCurriculumID(lesson.id) && lesson.id != IntroTutorial.lessonID && !lesson.modes.contains("game")) { CurriculumSessionView(lesson:lesson) }
         else { LegacyLessonOverviewView(lesson:lesson) }
     }
 }
@@ -166,6 +166,7 @@ struct PracticeLibraryView: View {
     }
 }
 struct FlashcardsView: View {
+    var repairStep:RepairStep? = nil
     @EnvironmentObject var app: AppModel
     @State private var currentID: String?
     @State private var dueOnly = false
@@ -176,9 +177,13 @@ struct FlashcardsView: View {
     @State private var rated = false
     @State private var correct = false
     @StateObject private var speech = SpeechService()
-    var card: Flashcard? { app.cards.first { $0.id == currentID } }
+    var library:[Flashcard] {
+        if let repairStep {return (try? JSONDecoder().decode([Flashcard].self,from:Data(app.learner.repairArtifact(repairStep,mode:"flashcards")["cards"].json.utf8))) ?? []}
+        return app.cards
+    }
+    var card: Flashcard? { library.first { $0.id == currentID } }
     var available: [Flashcard] {
-        app.cards.filter { card in
+        library.filter { card in
             let review = app.learner.cardReviews?[app.learner.completionKey(card.id)]
             return !dueOnly || review == nil || review?.schedulerState == .new || review?.isDue() == true
         }.sorted { left,right in
@@ -190,8 +195,9 @@ struct FlashcardsView: View {
     }
     var body: some View {
         Form {
-            Picker("Flashcard level",selection:Binding(get:{ app.learner.flashcardLevel },set:{ app.setCardLevel($0) })) { ForEach(app.cardLevels,id:\.self) { Text($0).tag($0) } }
-            Toggle("Due and new cards only",isOn:$dueOnly)
+            if let repairStep {RepairFocusSummary(step:repairStep)}
+            if repairStep == nil {Picker("Flashcard level",selection:Binding(get:{ app.learner.flashcardLevel },set:{ app.setCardLevel($0) })) { ForEach(app.cardLevels,id:\.self) { Text($0).tag($0) } }
+            Toggle("Due and new cards only",isOn:$dueOnly)}
             if let card {
                 Section("\(card.cefrLevel) · \(card.category)") {
                     Text(card.text(app.learner.support)).font(.title2).accessibilityIdentifier("flashcardPrompt")
@@ -200,16 +206,17 @@ struct FlashcardsView: View {
                     if let target = card.concept[app.learner.target] {
                         Button("Check answer") {
                             correct = AnswerMatcher.matches(answer,target); checked = true
+                            if repairStep != nil {app.learner.assess(correct:correct,independent:true,questionLevel:card.cefrLevel);app.persist()}
                             feedback = correct ? "Correct! Choose how easily you remembered it." : "Answer: \(target). Review again soon."
-                            if !correct { app.reviewFlashcard(card,rating:.again,correct:false,answer:answer); rated = true }
+                            if !correct {if let repairStep {app.recordRepairOutcome(repairStep,mode:"flashcards",cardID:card.id,success:false,item:target)}else{app.reviewFlashcard(card,rating:.again,correct:false,answer:answer)}; rated = true }
                         }.disabled(answer.trimmingCharacters(in:.whitespaces).isEmpty || checked || revealed)
-                        Button("Reveal answer") { revealed = true; feedback = target; app.reviewFlashcard(card,rating:.again,correct:nil); rated = true }.disabled(checked || revealed)
+                        Button("Reveal answer") { revealed = true; feedback = target; if let repairStep {app.recordRepairOutcome(repairStep,mode:"flashcards",cardID:card.id,success:false,item:target)}else{app.reviewFlashcard(card,rating:.again,correct:nil)}; rated = true }.disabled(checked || revealed)
                         Button("Listen") { speech.speak(target,language:app.learner.target) }
                         if checked && correct && !rated {
                             ForEach([ReviewRating.hard,.good,.easy],id:\.self) { rating in
-                                Button("\(rating.rawValue.capitalized) · next \(reviewDelay(card,rating:rating))") {
-                                    app.reviewFlashcard(card,rating:rating,correct:true); rated = true
-                                    feedback = "Saved review · +\(rating == .hard ? 4 : rating == .easy ? 7 : 5) XP"
+                                Button(repairStep == nil ? "\(rating.rawValue.capitalized) · next \(reviewDelay(card,rating:rating))":rating.rawValue.capitalized) {
+                                    if let repairStep {app.recordRepairOutcome(repairStep,mode:"flashcards",cardID:card.id,success:rating != .hard,item:target)}else{app.reviewFlashcard(card,rating:rating,correct:true)}; rated = true;checkRepairCompletion()
+                                    feedback = repairStep == nil ? "Saved review · +\(rating == .hard ? 4 : rating == .easy ? 7 : 5) XP":"+\(rating == .hard ? 0:2) XP"
                                 }
                             }
                         }
@@ -225,11 +232,16 @@ struct FlashcardsView: View {
                 Text(dueOnly ? "No reviews are due at this level. Come back when the next review is scheduled, or browse all cards." : "No flashcards at this level. Choose another CEFR level in Learn.")
             }
         }.navigationTitle("Flashcards")
+            .task(id:repairStep?.id) {
+                if let repairStep {do{try await app.prepareRepairDeck(repairStep)}catch{feedback=error.localizedDescription}}
+                if currentID == nil {selectNext(after:nil)};checkRepairCompletion()
+            }
             .onAppear { if currentID == nil { selectNext(after:nil) } }
             .onChange(of:dueOnly) { _,_ in selectNext(after:nil) }
             .onChange(of:app.cards.count) { _,_ in selectNext(after:nil) }
             .onDisappear { speech.stopAll() }
     }
+    func checkRepairCompletion() {if let step=repairStep {app.checkRepairPracticeCompletion(step,mode:"flashcards")}}
     func selectNext(after id: String?) {
         let queue = available
         if let id, let index = queue.firstIndex(where:{ $0.id == id }), !queue.isEmpty { currentID = queue[(index + 1) % queue.count].id }
@@ -243,12 +255,14 @@ struct FlashcardsView: View {
     }
 }
 struct PhonicsView: View {
+    var repairStep:RepairStep? = nil
     @EnvironmentObject var app: AppModel
     @StateObject private var speech = SpeechService()
     @State private var active: String?
     var body: some View {
         List {
-            ForEach(app.phonics) { card in
+            if let repairStep {RepairFocusSummary(step:repairStep)}
+            ForEach(repairStep.map{app.repairPhonics($0)} ?? app.phonics) { card in
                 DisclosureGroup(card.letter + " · " + card.practiceWord) {
                     Text(card.sound); Text(card.tip)
                     if let meaning = card.practiceWordMeaning[app.learner.support] { Text(meaning) }
@@ -261,9 +275,12 @@ struct PhonicsView: View {
                         Text("You said: \(speech.transcript)")
                         Button("Check pronunciation words") {
                             if AnswerMatcher.matches(speech.transcript, card.practiceWord) {
-                                if app.learner.masteredPhonics == nil { app.learner.masteredPhonics = [] }
-                                let key = app.learner.target + ":" + CalendarDay.key(Date()) + ":" + card.id
-                                if app.learner.masteredPhonics?.insert(key).inserted == true { app.learner.award(5,source:.phonics,contentID:card.id); app.persist() }
+                                if let step=repairStep {app.recordRepairOutcome(step,mode:"phonics",cardID:card.id,success:true,item:card.practiceWord)}
+                                else {
+                                    if app.learner.masteredPhonics == nil {app.learner.masteredPhonics=[]}
+                                    let key=app.learner.target+":"+CalendarDay.key(Date())+":"+card.id
+                                    if app.learner.masteredPhonics?.insert(key).inserted == true {app.learner.award(5,source:.phonics,contentID:card.id);app.persist()}
+                                }
                             } else { speech.error = "Try again: " + card.practiceWord }
                         }
                     }
@@ -271,6 +288,6 @@ struct PhonicsView: View {
             }
             if app.phonics.isEmpty { Text("Phonics content is unavailable for this language pair.") }
             if let error = speech.error { Text(error).foregroundStyle(.red) }
-        }.navigationTitle("Phonics").onDisappear { speech.stopAll() }
+        }.navigationTitle("Phonics").task(id:repairStep?.id){if let repairStep {do{try await app.prepareRepairPhonics(repairStep);app.checkRepairPracticeCompletion(repairStep,mode:"phonics")}catch{speech.error=error.localizedDescription}}}.onDisappear { speech.stopAll() }
     }
 }

@@ -11,6 +11,29 @@ import SwiftUI
         func webView(_ webView:WKWebView,didFailProvisionalNavigation navigation:WKNavigation!,withError error:Error){failure=error}
         func webView(_ webView:WKWebView,didFail navigation:WKNavigation!,withError error:Error){failure=error}
     }
+    func testOriginalReturningCompanionRendersInEnglishAndArabicOnIPhone() async throws {
+        let env=ProcessInfo.processInfo.environment
+        guard env["PIYALI_REFERENCE_PREVIEW_TESTS"] == "1",env["PIYALI_OFFLINE_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Requires an isolated local source preview.")}
+        let scene=try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap{$0 as? UIWindowScene}.first),oldKey=scene.windows.first{$0.isKeyWindow}
+        for language in ["en","ar"] {
+            let configuration=WKWebViewConfiguration();configuration.websiteDataStore = .nonPersistent()
+            let frame=CGRect(x:0,y:0,width:402,height:874),web=WKWebView(frame:frame,configuration:configuration),controller=UIViewController(),window=UIWindow(windowScene:scene),navigation=Navigation()
+            window.frame=frame;web.navigationDelegate=navigation;web.scrollView.contentInsetAdjustmentBehavior = .never;controller.view=web;window.rootViewController=controller;window.makeKeyAndVisible()
+            defer{web.stopLoading();web.removeFromSuperview();window.isHidden=true;window.rootViewController=nil;oldKey?.makeKey()}
+            web.load(URLRequest(url:try XCTUnwrap(URL(string:"http://127.0.0.1:5181/__piyali-onboarding?screen=focus&state=returning&language=\(language)&theme=light"))))
+            var ready=false
+            for _ in 0..<400 {
+                if let failure=navigation.failure{throw failure}
+                ready=(try? await web.evaluateJavaScript("document.body.textContent.includes('I saved a quick warm-up') || document.body.textContent.includes('حفظت لك تدريبًا قصيرًا')")) as? Bool == true
+                if ready{break};try await Task.sleep(for:.milliseconds(50))
+            }
+            XCTAssertTrue(ready);guard ready else{return}
+            for _ in 0..<200 {if (try await web.evaluateJavaScript("document.fonts.status")) as? String == "loaded"{break};try await Task.sleep(for:.milliseconds(25))}
+            try await Task.sleep(for:.milliseconds(250))
+            let picture=try await web.takeSnapshot(configuration:nil),attachment=XCTAttachment(image:picture);attachment.name="Source returning companion \(language)";attachment.lifetime = .keepAlways;add(attachment)
+            XCTAssertGreaterThan(try XCTUnwrap(picture.pngData()).count,20_000)
+        }
+    }
     func testOriginalEnglishAndArabicHeadlinesRenderInIPhoneWebKit() async throws {
         let env=ProcessInfo.processInfo.environment
         guard env["PIYALI_REFERENCE_PREVIEW_TESTS"] == "1",env["PIYALI_OFFLINE_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Requires the target-owned local source preview and an isolated offline identity.")}

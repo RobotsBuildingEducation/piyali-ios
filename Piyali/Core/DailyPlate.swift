@@ -4,6 +4,7 @@ public struct DailyQuestPlan: Codable, Sendable, Equatable {
     public let day: String
     public let kinds: [String]
     public var carry: [String]? = nil
+    public var yesterdayComplete:Bool? = nil
     public init(day: String, kinds: [String]) { self.day = day; self.kinds = kinds }
 }
 public struct PlateCourse: Identifiable, Sendable {
@@ -112,12 +113,14 @@ public extension LearnerState {
         if questPlans == nil { questPlans = [:] }; var plan = DailyQuestPlan(day:day,kinds:base.isEmpty ? DailyPlate.introductory : base)
         if !first, let previous, previous.day == CalendarDay.shift(day,by:-1), !activeMemories.isEmpty || GoalPractice.active(goalBucket) != nil {
             let priorFirst = introductoryQuest(day:previous.day)
-            let kinds = DailyPlate.compose(base:previous.kinds,carry:previous.carry ?? [],repair:false,goal:false,first:priorFirst)
-            plan.carry = Array(DailyPlate.courses(progress:plateProgress,bucket:.object([:]),user:user,target:target,day:previous.day,kinds:kinds,first:priorFirst).filter { !$0.done }.prefix(2).map(\.kind))
+            let kinds = DailyPlate.compose(base:previous.kinds,carry:previous.carry ?? [],repair:repairPlan(day:previous.day) != nil,goal:false,first:priorFirst)
+            let priorCourses=DailyPlate.courses(progress:plateProgress,bucket:goalBucket,user:user,target:target,day:previous.day,kinds:kinds,first:priorFirst,repairTarget:repairPlan(day:previous.day)?["items"].array.count ?? 1)
+            plan.yesterdayComplete=priorCourses.allSatisfy(\.done)
+            plan.carry = Array(priorCourses.filter { !$0.done && $0.kind != "repair" }.prefix(2).map(\.kind))
         }
         questPlans?[target] = plan
         var change = PracticeChange(date:now,dayKey:day,target:target,level:level,amount:0,source:.questStart)
-        change.questCarry = plan.carry
+        change.questCarry = plan.carry;change.questYesterdayComplete=plan.yesterdayComplete
         change.questIntro = first
         change.questKinds = questPlans?[target]?.kinds
         enqueue(change)
@@ -125,10 +128,11 @@ public extension LearnerState {
     func plateCourses(user: String, now: Date = Date()) -> [PlateCourse] {
         let day = CalendarDay.key(now), first = introductoryQuest(day:day)
         let base = first ? DailyPlate.introductory : questPlans?[target].flatMap { $0.day == day ? $0.kinds : nil } ?? DailyPlate.introductory
-        let previous = CalendarDay.shift(day,by:-1)
-        let repair = !first && activeMemories.contains { $0.text("createdDayKey") == previous }
-        let composed = DailyPlate.compose(base:base,carry:questPlans?[target].flatMap { $0.day == day ? $0.carry : nil } ?? [],repair:repair,goal:GoalPractice.active(goalBucket) != nil,first:first)
-        return DailyPlate.courses(progress:plateProgress,bucket:goalBucket,user:user,target:target,day:day,kinds:composed,first:first)
+        let savedRepair = repairPlan(day:day)
+        let repair = savedRepair != nil
+        let blueprint=questDay(day:day)["blueprint"],carry=blueprint["status"].string == "ready" ? blueprint["carryOverKinds"].array.map(\.string):[]
+        let composed = DailyPlate.compose(base:base,carry:carry,repair:repair,goal:GoalPractice.active(goalBucket) != nil,first:first)
+        return DailyPlate.courses(progress:plateProgress,bucket:goalBucket,user:user,target:target,day:day,kinds:composed,first:first,repairTarget:savedRepair?["items"].array.count ?? 1)
     }
     mutating func claimPlate(user: String, now: Date = Date()) -> Bool {
         let day = CalendarDay.key(now), courses = plateCourses(user:user,now:now)

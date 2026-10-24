@@ -1,6 +1,7 @@
 import SwiftUI
 struct LiveTutorView: View {
     @EnvironmentObject var app: AppModel
+    var repairStep:RepairStep? = nil
     var goalBlueprint: JSONValue? = nil
     var goalMode = "tutor"
     var plateKind: String? = nil
@@ -15,6 +16,7 @@ struct LiveTutorView: View {
     var body: some View {
         SubscriptionRequiredView(service: app.subscription) {
             List {
+                if let repairStep {RepairFocusSummary(step:repairStep)}
                 Section {
                     Text("Speak naturally with your tutor. Microphone audio is sent to OpenAI during this live session.")
                     Button(live.connected ? "End voice session" : "Start voice session") {
@@ -25,13 +27,23 @@ struct LiveTutorView: View {
                                 await live.start(learner:learner,goalBlueprint:goalBlueprint,tutorLesson:tutorLesson,onLearnerTurn:plateKind == "conversation" ? { text in
                                     guard app.identity.npub == account, app.learner.target == learner.target, app.subscription.hasAccess else { return }
                                     app.recordConversationTurn(text)
-                                } : nil)
+                                } : nil,instructions:repairStep.map{app.repairInstructions($0)})
                             }
                         }
                     }.disabled(live.connecting || (goalBlueprint.map { !app.goalIsCurrent($0) } ?? false))
                     if live.connecting { ProgressView("Connecting…") }
                     if live.connected { Text("Microphone active") }
                     if let error = live.error { Text(error).foregroundStyle(.red) }
+                }
+                if let repairStep {
+                    Section {
+                        Button("Check my latest response") {
+                            checking=true;checkError=nil
+                            Task {defer{checking=false};do{verdict=try await app.checkRepair(repairStep,response:live.completedLearnerTurn.isEmpty ? live.learnerTranscript:live.completedLearnerTurn,context:live.transcript)}catch{checkError=error.localizedDescription}}
+                        }.disabled(checking || live.completedLearnerTurn.isEmpty && live.learnerTranscript.isEmpty)
+                        if let verdict {Text(verdict.feedback)}
+                        if let checkError {Text(checkError).foregroundStyle(.red)}
+                    }
                 }
                 if let tutorLesson {
                     Section("Tutor lesson") {

@@ -12,12 +12,13 @@ public struct CurriculumLessonProgress:Codable,Equatable,Sendable {
         .init(status:LessonAccessStatus(rawValue:fields["status"] as? String ?? "") ?? .inProgress,earnedXP:WebProgressContract.integer(fields["earnedXp"]),updatedAt:WebProgressContract.date(fields["updatedAt"]))
     }
     public static func isCurriculumID(_ id:String)->Bool { !id.isEmpty && !id.hasPrefix("goal-") && !id.hasPrefix("repair-") }
+    public static func localWorkID(_ change:PracticeChange)->String? {if let id=change.skillTreeLessonID,id.hasPrefix("repair-"){return id};return lessonID(change)}
     public static func lessonID(_ change:PracticeChange)->String? {
         let id:[String?] = [change.skillTreeLessonID,[.lessonStart,.lesson].contains(change.source) ? change.contentID : nil]
         return id.compactMap { $0 }.first(where:isCurriculumID)
     }
     public static func applying(_ change:PracticeChange,to saved:Self?)->Self? {
-        guard lessonID(change) != nil else { return saved }
+        guard localWorkID(change) != nil else { return saved }
         if change.source == .lessonStart {
             guard saved?.status != .completed else { return saved }
             return .init(status:.inProgress,earnedXP:saved?.earnedXP ?? 0,updatedAt:change.date)
@@ -32,7 +33,7 @@ public struct CurriculumLessonProgress:Codable,Equatable,Sendable {
 }
 public extension PracticeChange {
     mutating func attachCurriculumLesson(id:String?,level:String) {
-        guard let id,CurriculumLessonProgress.isCurriculumID(id) else { return }
+        guard let id,CurriculumLessonProgress.isCurriculumID(id) || id.hasPrefix("repair-") else { return }
         skillTreeLessonID=id;skillTreeLessonLevel=level
     }
 }
@@ -44,12 +45,16 @@ public extension LearnerState {
         if lessonWork?[key]?.status == .completed { completed.insert(key) }
     }
     mutating func applyLessonWork(_ change:PracticeChange) {
-        guard let id=CurriculumLessonProgress.lessonID(change) else { return }
+        guard let id=CurriculumLessonProgress.localWorkID(change) else { return }
         let key="\(change.target):\(id)"
         guard let result=CurriculumLessonProgress.applying(change,to:lessonWork?[key]) else { return }
         if lessonWork == nil { lessonWork=[:] };lessonWork?[key]=result
     }
     @discardableResult mutating func beginLessonWork(_ lesson:Lesson,now:Date = Date())->Bool {
+        if lesson.isRepair == true {
+            let key=completionKey(lesson.id);guard lessonWork?[key] == nil,!completed.contains(key) else{return false}
+            if lessonWork == nil {lessonWork=[:]};lessonWork?[key] = .init();return true
+        }
         guard CurriculumLessonProgress.isCurriculumID(lesson.id),!completed.contains(completionKey(lesson.id)),lessonWork?[completionKey(lesson.id)]?.status != .completed else { return false }
         guard lessonWork?[completionKey(lesson.id)] == nil else { return false }
         enqueue(.init(date:now,dayKey:CalendarDay.key(now),target:target,level:lesson.cefrLevel ?? level,amount:0,source:.lessonStart,contentID:lesson.id))

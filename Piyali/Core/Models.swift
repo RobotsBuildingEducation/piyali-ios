@@ -50,6 +50,11 @@ public struct Lesson: Codable, Identifiable, Sendable {
     public var isFinalQuiz:Bool? = nil
     public var quizConfig:JSONValue? = nil
     public var cefrLevel:String? = nil
+    public var isRepair:Bool? = nil
+    public var repairMemoryIds:[String]? = nil
+    public var repairItems:[JSONValue]? = nil
+    public var repairTarget:Int? = nil
+    public var curriculumCefrLevel:String? = nil
 }
 public struct Flashcard: Codable, Identifiable, Sendable {
     public let id: String
@@ -67,6 +72,9 @@ public struct PhonicsCard: Codable, Identifiable, Sendable {
     public let practiceWordMeaning: [String: String]
     public let sound: String
     public let tip: String
+    public var cefrLevel:String? = nil
+    public var authoredId:String? = nil
+    public var practiceRole:String? = nil
 }
 public enum PracticeMode: String, CaseIterable, Identifiable, Codable, Sendable {
     case vocabulary = "Vocabulary", grammar = "Grammar", reading = "Reading", listening = "Listening", speaking = "Speaking", stories = "Stories", conversation = "Conversation", game = "Adventure"
@@ -113,6 +121,9 @@ public struct Note: Codable, Identifiable, Sendable {
     public var body: String
 }
 public struct LearnerState: Codable, Sendable {
+    public var pendingRepairEvidence:[RepairEvidenceChange]?
+    public var companionQuestDays:[String:JSONValue]?
+    public var pendingCompanionQuestDays:[String:JSONValue]?
     public var plateHeadlines:[String:PlateHeadline]?
     public var pendingPlateHeadlines:[String:PlateHeadline]?
     public var quizRuns:[String:FinalQuizRun]?
@@ -238,7 +249,7 @@ public struct LearnerState: Codable, Sendable {
     }
     public mutating func complete(_ lesson: Lesson) -> Bool {
         let key = completionKey(lesson.id)
-        guard !completed.contains(key),lessonWork?[key]?.status != .completed,lesson.isFinalQuiz != true || quizPassed(lesson) else { return false }
+        guard lesson.isRepair != true,!completed.contains(key),lessonWork?[key]?.status != .completed,lesson.isFinalQuiz != true || quizPassed(lesson) else { return false }
         let source: PracticeSource = lesson.id.hasPrefix("goal-") ? .goal : lesson.id.hasPrefix("repair-") ? .repair : .lesson
         completed.insert(key); award(lesson.xpReward,source:source,contentID:lesson.id,lesson:lesson)
         if lesson.id.hasPrefix("repair-memory-") { reinforceMemory(id:String(lesson.id.dropFirst("repair-memory-".count))) }

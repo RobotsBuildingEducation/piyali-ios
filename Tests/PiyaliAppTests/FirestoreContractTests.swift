@@ -15,6 +15,37 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
     func createProvider(with app: FirebaseApp) -> AppCheckProvider? { EmulatorAppCheckProvider() }
 }
 @MainActor final class FirestoreContractTests: XCTestCase {
+    func testCompanionBlueprintLeaseCanonicalMirrorsAndRepairEvidenceSurviveRetries() async throws {
+        let (service,db,npub)=try context();try await seed(db,npub)
+        var state=try requireState(await service.load(npub:npub));let target=state.target,day=CalendarDay.key(Date()),key=CompanionQuestDay.key(target,day),reference=db.collection("users").document(npub).collection("questDays").document(key)
+        try await reference.setData(["iosPlate":["kinds":["learn","review"]],"foreignArtifact":["keep":true]],merge:true)
+        async let a=service.reserveCompanionQuest(npub:npub,target:target,day:day,id:"one")
+        async let b=service.reserveCompanionQuest(npub:npub,target:target,day:day,id:"two")
+        let reservations=try await[a,b],owner=try XCTUnwrap(reservations.first?["blueprint"]["iosGenerationID"].string)
+        XCTAssertFalse(owner.isEmpty);XCTAssertTrue(reservations.allSatisfy{$0["blueprint"]["iosGenerationID"].string == owner})
+        let item:JSONValue = .object(["memoryId":.string("repair-memory"),"concept":.string("Say a greeting"),"originalConcept":.string("greetings"),"expectedAnswer":.string("Bonjour"),"mode":.string("flashcards"),"errorType":.string("conversation_flow"),"cefrLevel":.string("A1")])
+        let plan:JSONValue = .object(["targetLang":.string(target),"dayKey":.string(day),"target":.number(1),"items":.array([item]),"memoryIds":.array([.string("repair-memory")])])
+        let ready:JSONValue = .object(["status":.string("ready"),"iosGenerationID":.string(owner),"message":.object(["long":.string("A focused warm-up")]),"repair":plan,"rationale":.object(["summary":.string("Why this repair")])])
+        var stale=state;state.storeCompanionBlueprint(ready,target:target,day:day);stale.storeCompanionBlueprint(ready.setting("iosGenerationID",.string("late")).setting("message",.object(["long":.string("Late")])) ,target:target,day:day)
+        _=try await service.save(state,npub:npub);_=try await service.save(stale,npub:npub);_=try await service.save(state,npub:npub)
+        let saved=JSONValue.foundation(try await reference.getDocument(source:.server).data() ?? [:])
+        XCTAssertEqual(saved["blueprint"]["message"]["long"].string,"A focused warm-up");XCTAssertEqual(saved["repair"],plan);XCTAssertEqual(saved["explanation"],ready["rationale"]);XCTAssertEqual(saved["lang"].string,target);XCTAssertEqual(saved["dayKey"].string,day);XCTAssertEqual(saved["foreignArtifact"]["keep"],.bool(true));XCTAssertEqual(saved["iosPlate"]["kinds"].array.count,2)
+        var restored=try requireState(await service.load(npub:npub));let policy=try CompanionQuestPolicy(),next=try policy.run("next",.object(["plan":plan,"completedCount":.number(0)])),step=try JSONDecoder().decode(RepairStep.self,from:Data(next.json.utf8))
+        let card:JSONValue = .object(["id":.string("repair-"+target+"-"+day+"-s0-c0"),"concept":.object(["en":.string("Greeting"),target:.string("Bonjour")]),"cefrLevel":.string("A1"),"isRepair":.bool(true)])
+        let candidate:JSONValue = .object(["version":.number(1),"ownerKey":.string(CompanionQuestDay.artifactKey(step,mode:"flashcards")),"cards":.array([card]),"outcomes":.object([:])])
+        let artifact=try await service.reserveRepairArtifact(npub:npub,step:step,mode:"flashcards",candidate:candidate)
+        let retry=try await service.reserveRepairArtifact(npub:npub,step:step,mode:"flashcards",candidate:candidate.setting("cards",.array([])));XCTAssertEqual(artifact,retry)
+        restored.storeRepairArtifact(artifact,step:step,mode:"flashcards")
+        XCTAssertTrue(restored.recordRepairOutcome(step,mode:"flashcards",cardID:card["id"].string,success:true,item:"Bonjour",support:"prompted"))
+        XCTAssertFalse(restored.recordRepairOutcome(step,mode:"flashcards",cardID:card["id"].string,success:true,item:"Bonjour",support:"prompted"))
+        let event=step.event.setting("success",.bool(true)).setting("support",.string("prompted")).setting("observation",.string("Produced Bonjour")),summary=try policy.run("evidence",.object(["summary":.object([:]),"event":event]))
+        XCTAssertTrue(restored.completeRepairStep(step,summary:summary,observation:"Produced Bonjour"))
+        _=try await service.save(restored,npub:npub);_=try await service.save(restored,npub:npub)
+        let result=try requireState(await service.load(npub:npub)),fields=try await db.collection("users").document(npub).getDocument(source:.server).data() ?? [:]
+        XCTAssertEqual(result.questDay(day:day)["repair"],plan);XCTAssertEqual(result.plateProgress["repairDailyActivity"][target][day].number,1);XCTAssertEqual(result.goalBucket["repairSummary"]["eventIds"].array.count,1);XCTAssertEqual(result.totalXP,152);XCTAssertEqual(result.plateProgress["flashcardDailyActivity"],state.plateProgress["flashcardDailyActivity"]);XCTAssertNil(result.cardReviews?[result.completionKey(card["id"].string)]);XCTAssertTrue(result.repairArtifact(step,mode:"flashcards")["outcomes"][card["id"].string]["success"].boolean)
+        XCTAssertEqual(fields["patreonVerified"] as? Bool,true);XCTAssertEqual(fields["unrelatedWebSetting"] as? String,"preserve")
+        let snapshot=try JSONDecoder().decode(LearnerState.self,from:Data((fields["iosStateJSON"] as? String ?? "").utf8));XCTAssertNil(snapshot.companionQuestDays);XCTAssertTrue(snapshot.pendingRepairEvidence?.isEmpty == true)
+    }
     func testSessionTimerCompletionIsIdempotentAndGoalEditsPreserveXPAndPaidFields() async throws {
         let (service,db,npub)=try context();try await seed(db,npub)
         let window=try await db.collection("users").document(npub).getDocument(source:.server)

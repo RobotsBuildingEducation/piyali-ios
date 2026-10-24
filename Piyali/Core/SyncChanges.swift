@@ -1,7 +1,7 @@
 import Foundation
 
 public enum PracticeSource: String, Codable, Sendable {
-    case practice, assessment, lessonStart, lesson, review, phonics, goal, goalMode, repair, immersion, speak, tutorTurn, conversation, readingTurn, readingSpeech, storyTurn, storyCompletion, questStart, plateBonus
+    case practice, repairPractice, assessment, lessonStart, lesson, review, phonics, goal, goalMode, repair, immersion, speak, tutorTurn, conversation, readingTurn, readingSpeech, storyTurn, storyCompletion, questStart, plateBonus
     public var activityField: String? {
         switch self { case .lesson:"lessonDailyActivity"; case .review:"flashcardDailyActivity"; case .phonics:"phonicsDailyActivity"; case .goal:"goalDailyActivity"; case .repair:"repairDailyActivity"; case .speak:"speakDailyActivity"; case .conversation:"conversationDailyActivity"; default:nil }
     }
@@ -18,6 +18,7 @@ public struct PracticeChange: Codable, Identifiable, Sendable {
     public var skillTreeLessonID:String?
     public var skillTreeLessonLevel:String?
     public var tutorAgendaItemID: String?
+    public var questYesterdayComplete:Bool?
     public var questCarry: [String]?
     public var questIntro: Bool?
     public var questKinds: [String]?
@@ -75,6 +76,12 @@ public extension LearnerState {
     // Merge a completed sync without losing practice performed while the network request was in flight.
     static func rebased(current: LearnerState, sent: LearnerState, acknowledged: LearnerState) -> LearnerState {
         var merged = current
+        let sentRepair=Set((sent.pendingRepairEvidence ?? []).map(\.id))
+        merged.pendingRepairEvidence=(current.pendingRepairEvidence ?? []).filter{!sentRepair.contains($0.id)}
+        let pendingQuest=(current.pendingCompanionQuestDays ?? [:]).filter {sent.pendingCompanionQuestDays?[$0.key] != $0.value}
+        merged.pendingCompanionQuestDays=pendingQuest
+        for (key,value) in acknowledged.companionQuestDays ?? [:] {if merged.companionQuestDays == nil {merged.companionQuestDays=[:]};merged.companionQuestDays?[key]=value}
+        for (key,value) in pendingQuest {if merged.companionQuestDays == nil {merged.companionQuestDays=[:]};let existing=merged.companionQuestDays?[key] ?? .object([:]);merged.companionQuestDays?[key]=CompanionQuestDay.merging(value,into:existing)}
         let pendingHeadlines=(current.pendingPlateHeadlines ?? [:]).filter {sent.pendingPlateHeadlines?[$0.key] != $0.value}
         merged.plateHeadlines=acknowledged.plateHeadlines
         merged.pendingPlateHeadlines=pendingHeadlines

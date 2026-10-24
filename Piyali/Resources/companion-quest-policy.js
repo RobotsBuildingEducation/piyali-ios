@@ -1,0 +1,1986 @@
+// Generated source policy; no network, Firebase, UI stores or host bindings.
+var PiyaliCompanionQuest=(function(SystemDate){
+let Date=SystemDate,snapshotUser={},snapshotDecks={};const snapshotStore={getState:()=>({user:snapshotUser})};
+// src/utils/userDataSchema.js
+const M4=(function(){
+
+function getLocalCalendarDayKey(value = new Date()) {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+function questDayDocumentId(langKey, dayKey) {
+  return `${String(langKey || "es").trim().toLowerCase()}_${dayKey}`;
+}
+return {getLocalCalendarDayKey,questDayDocumentId};})();
+// src/utils/flashcardReview.js
+const M3=(function(){
+const getLocalCalendarDayKey=M4.getLocalCalendarDayKey;
+function coerceDate(value) {
+  if (!value) return null;
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+function getLocalDayKey(value) {
+  const date = coerceDate(value);
+  if (!date) return null;
+  return getLocalCalendarDayKey(date) || null;
+}
+return {getLocalDayKey,coerceDate,getLocalCalendarDayKey};})();
+// src/utils/dailyPlate.js
+const M5=(function(){
+
+function normalizePlateLang(targetLang) {
+  return typeof targetLang === "string" && targetLang.trim()
+    ? targetLang.trim().toLowerCase()
+    : "es";
+}
+return {normalizePlateLang};})();
+// src/constants/supportLanguages.js
+const M7=(function(){
+
+const SUPPORT_LANGUAGE_CODES = Object.freeze([
+  "en",
+  "es",
+  "pt",
+  "it",
+  "fr",
+  "de",
+  "ja",
+  "hi",
+  "ar",
+  "zh",
+]);
+return {SUPPORT_LANGUAGE_CODES};})();
+// src/constants/languages.js
+const M6=(function(){
+const egyptianFlag=null;
+const netherlandsFlag=null;
+const usaFlag=null;
+const frenchFlag=null;
+const germanFlag=null;
+const italianFlag=null;
+const indianFlag=null;
+const chineseFlag=null;
+const brazilianFlag=null;
+const mexicanFlag=null;
+const greekFlag=null;
+const japaneseFlag=null;
+const russianFlag=null;
+const polishFlag=null;
+const irishFlag=null;
+const CANONICAL_SUPPORT_LANGUAGE_CODES=M7.SUPPORT_LANGUAGE_CODES;
+const DEFAULT_SUPPORT_LANGUAGE = "en";
+const LANGUAGE_FALLBACK_LABELS = {
+  ar: "Egyptian Arabic",
+  zh: "Mandarin Chinese",
+  en: "English",
+  es: "Spanish",
+  pt: "Portuguese",
+  fr: "French",
+  it: "Italian",
+  hi: "Hindi",
+  nl: "Dutch",
+  nah: "Eastern Huasteca Nahuatl",
+  ja: "Japanese (日本語)",
+  ru: "Russian",
+  de: "German",
+  el: "Greek",
+  pl: "Polish",
+  ga: "Irish",
+  yua: "Yucatec Maya",
+};
+const LANGUAGE_PROMPT_LABELS = {
+  ar: "Egyptian Arabic (العربية المصرية)",
+  zh: "Mandarin Chinese (普通话中文)",
+  es: "Spanish (espanol)",
+  en: "English",
+  pt: "Portuguese (portugues brasileiro)",
+  fr: "French (francais)",
+  it: "Italian (italiano)",
+  hi: "Hindi (hindi)",
+  nl: "Dutch (Nederlands)",
+  nah: "Eastern Huasteca Nahuatl (nahuatl huasteco oriental)",
+  ru: "Russian",
+  de: "German (Deutsch)",
+  el: "Greek",
+  pl: "Polish (polski)",
+  ga: "Irish (Gaeilge)",
+  yua: "Yucatec Maya (maaya t'aan)",
+  ja: "Japanese (日本語)",
+};
+const LANGUAGE_META = [
+  {
+    value: "ar",
+    languageKey: "language_ar",
+    practiceKey: "onboarding_practice_ar",
+    tier: "stable",
+    supportTier: "stable",
+    practiceEnabled: false,
+    flag: egyptianFlag,
+  },
+  {
+    value: "nl",
+    languageKey: "language_nl",
+    practiceKey: "onboarding_practice_nl",
+    tier: "stable",
+    flag: netherlandsFlag,
+  },
+  {
+    value: "en",
+    languageKey: "language_en",
+    practiceKey: "onboarding_practice_en",
+    tier: "stable",
+    flag: usaFlag,
+  },
+  {
+    value: "fr",
+    languageKey: "language_fr",
+    practiceKey: "onboarding_practice_fr",
+    tier: "stable",
+    flag: frenchFlag,
+  },
+  {
+    value: "de",
+    languageKey: "language_de",
+    practiceKey: "onboarding_practice_de",
+    tier: "stable",
+    flag: germanFlag,
+  },
+  {
+    value: "it",
+    languageKey: "language_it",
+    practiceKey: "onboarding_practice_it",
+    tier: "stable",
+    flag: italianFlag,
+  },
+  {
+    value: "hi",
+    languageKey: "language_hi",
+    practiceKey: "onboarding_practice_hi",
+    tier: "stable",
+    supportTier: "stable",
+    practiceEnabled: false,
+    flag: indianFlag,
+  },
+  {
+    value: "zh",
+    languageKey: "language_zh",
+    practiceKey: "onboarding_practice_zh",
+    tier: "stable",
+    supportTier: "stable",
+    practiceEnabled: false,
+    flag: chineseFlag,
+  },
+  {
+    value: "pt",
+    languageKey: "language_pt",
+    practiceKey: "onboarding_practice_pt",
+    tier: "stable",
+    flag: brazilianFlag,
+  },
+  {
+    value: "es",
+    languageKey: "language_es",
+    practiceKey: "onboarding_practice_es",
+    tier: "stable",
+    flag: mexicanFlag,
+  },
+  {
+    value: "nah",
+    languageKey: "language_nah",
+    practiceKey: "onboarding_practice_nah",
+    tier: "alpha",
+    // Temporarily hidden from practice-language selectors. Keep the language
+    // registered so existing user data and the underlying implementation work.
+    selectorHidden: true,
+    flag: mexicanFlag,
+  },
+  {
+    value: "yua",
+    languageKey: "language_yua",
+    practiceKey: "onboarding_practice_yua",
+    tier: "alpha",
+    // Temporarily hidden from practice-language selectors. Keep the language
+    // registered so existing user data and the underlying implementation work.
+    selectorHidden: true,
+    flag: mexicanFlag,
+  },
+  {
+    value: "el",
+    languageKey: "language_el",
+    practiceKey: "onboarding_practice_el",
+    tier: "beta",
+    flag: greekFlag,
+  },
+  {
+    value: "ja",
+    languageKey: "language_ja",
+    practiceKey: "onboarding_practice_ja",
+    tier: "beta",
+    supportTier: "stable",
+    flag: japaneseFlag,
+  },
+  {
+    value: "ru",
+    languageKey: "language_ru",
+    practiceKey: "onboarding_practice_ru",
+    tier: "beta",
+    flag: russianFlag,
+  },
+  {
+    value: "pl",
+    languageKey: "language_pl",
+    practiceKey: "onboarding_practice_pl",
+    tier: "beta",
+    flag: polishFlag,
+  },
+  {
+    value: "ga",
+    languageKey: "language_ga",
+    practiceKey: "onboarding_practice_ga",
+    tier: "beta",
+    flag: irishFlag,
+  },
+];
+const SUPPORTED_LANGUAGE_CODES_SET = new Set(
+  LANGUAGE_META.map((item) => item.value),
+);
+const SUPPORT_LANGUAGE_CODES_BASE = [...CANONICAL_SUPPORT_LANGUAGE_CODES];
+const SUPPORT_LANGUAGE_CODES_SET = new Set(SUPPORT_LANGUAGE_CODES_BASE);
+const normalizeCode = (raw) => String(raw || "").trim().toLowerCase();
+const normalizeSupportedCode = (raw) => {
+  const normalized = normalizeCode(raw);
+  if (!normalized) return "";
+  if (normalized === "arz") return "ar";
+  if (normalized === "cmn") return "zh";
+  if (SUPPORTED_LANGUAGE_CODES_SET.has(normalized)) return normalized;
+  const [base] = normalized.split(/[-_]/);
+  if (base === "arz" && SUPPORTED_LANGUAGE_CODES_SET.has("ar")) return "ar";
+  if (base === "cmn" && SUPPORTED_LANGUAGE_CODES_SET.has("zh")) return "zh";
+  if (SUPPORTED_LANGUAGE_CODES_SET.has(base)) return base;
+  return normalized;
+};
+function normalizeSupportLanguage(
+  code,
+  fallback = DEFAULT_SUPPORT_LANGUAGE,
+) {
+  const normalized = normalizeSupportedCode(code);
+  if (SUPPORT_LANGUAGE_CODES_SET.has(normalized)) return normalized;
+  return fallback;
+}
+function getLanguagePromptName(code) {
+  const normalized = normalizeSupportedCode(code);
+  if (!normalized) return "";
+  return (
+    LANGUAGE_PROMPT_LABELS[normalized] ||
+    LANGUAGE_FALLBACK_LABELS[normalized] ||
+    normalized.toUpperCase()
+  );
+}
+return {normalizeSupportLanguage,DEFAULT_SUPPORT_LANGUAGE,normalizeSupportedCode,normalizeCode,SUPPORTED_LANGUAGE_CODES_SET,LANGUAGE_META,egyptianFlag,netherlandsFlag,usaFlag,frenchFlag,germanFlag,italianFlag,indianFlag,chineseFlag,brazilianFlag,mexicanFlag,greekFlag,japaneseFlag,russianFlag,polishFlag,irishFlag,SUPPORT_LANGUAGE_CODES_SET,SUPPORT_LANGUAGE_CODES_BASE,CANONICAL_SUPPORT_LANGUAGE_CODES,getLanguagePromptName,LANGUAGE_PROMPT_LABELS,LANGUAGE_FALLBACK_LABELS};})();
+// src/utils/germanCopy.js
+const M8=(function(){
+
+const GERMAN_COPY = {
+  "Save failed": "Speichern fehlgeschlagen",
+  "Error al guardar": "Speichern fehlgeschlagen",
+  "Show translation": "Übersetzung anzeigen",
+  "Subscription passcode is not configured":
+    "Abonnement-Zugangscode ist nicht konfiguriert",
+  "Passcode accepted": "Zugangscode akzeptiert",
+  "Failed to save passcode": "Zugangscode konnte nicht gespeichert werden",
+  "Connect your account to use this feature.":
+    "Verbinde dein Konto, um diese Funktion zu nutzen.",
+  "Account required": "Konto erforderlich",
+  "Connect your account to analyze your level.":
+    "Verbinde dein Konto, um dein Niveau zu analysieren.",
+  "Analysis complete": "Analyse abgeschlossen",
+  "Assigned level: {level}.": "Zugewiesenes Niveau: {level}.",
+  "Analysis failed": "Analyse fehlgeschlagen",
+  "Please try again later.": "Bitte versuche es später erneut.",
+  "Couldn't find the current user.": "Der aktuelle Benutzer wurde nicht gefunden.",
+  Help: "Hilfe",
+  Cards: "Karten",
+  Notes: "Notizen",
+  Alphabet: "Alphabet",
+  Path: "Pfad",
+  Conversation: "Gespräch",
+  Mode: "Modus",
+  "Start proficiency test": "Einstufungstest starten",
+  "Lesson Complete!": "Lektion abgeschlossen!",
+  "XP Earned": "XP verdient",
+  "Experience Points": "Erfahrungspunkte",
+  Continue: "Weiter",
+  "Keep learning": "Weiterlernen",
+  Goal: "Ziel",
+  "Daily goal reached!": "Tagesziel erreicht!",
+  "You hit your XP goal for today.": "Du hast dein XP-Ziel für heute erreicht.",
+  "Streak protected": "Serie geschützt",
+  "Enter the passcode": "Zugangscode eingeben",
+  Verifying: "Wird geprüft",
+  Submit: "Absenden",
+  "Invalid passcode. Please try again.":
+    "Ungültiger Zugangscode. Bitte versuche es erneut.",
+  "Browser is blocking the mic for this site. Click the lock icon → Site settings → Microphone → Allow, then reload.":
+    "Der Browser blockiert das Mikrofon für diese Website. Klicke auf das Schloss → Website-Einstellungen → Mikrofon → Zulassen und lade neu.",
+  "Microphone requires HTTPS (or localhost). Open the app over https:// and try again.":
+    "Das Mikrofon benötigt HTTPS (oder localhost). Öffne die App über https:// und versuche es erneut.",
+  "The microphone is busy (Zoom/Teams/Discord). Close other apps using the mic and try again.":
+    "Das Mikrofon ist belegt (Zoom/Teams/Discord). Schließe andere Apps mit Mikrofonzugriff und versuche es erneut.",
+  "No microphone was found or it’s disabled at the OS level.":
+    "Es wurde kein Mikrofon gefunden oder es ist im Betriebssystem deaktiviert.",
+  "Requested audio constraints are not supported by your mic.":
+    "Die angeforderten Audioeinstellungen werden von deinem Mikrofon nicht unterstützt.",
+  "Microphone error. If permissions look allowed, reload the page and try again.":
+    "Mikrofonfehler. Wenn die Berechtigungen korrekt aussehen, lade die Seite neu und versuche es erneut.",
+  "Your chats": "Deine Chats",
+  "No saved chats": "Keine gespeicherten Chats",
+  Delete: "Löschen",
+  "Morpheme mode": "Morphem-Modus",
+  "Break down words": "Wörter zerlegen",
+  "New chat": "Neuer Chat",
+  Menu: "Menü",
+  Morphemes: "Morpheme",
+  "Save chat": "Chat speichern",
+  "What do you want to learn today?": "Was möchtest du heute lernen?",
+  "Stop voice chat": "Sprachchat stoppen",
+  "Start voice chat": "Sprachchat starten",
+  Play: "Abspielen",
+  "Ask about this lesson...": "Frag etwas zu dieser Lektion...",
+  Send: "Senden",
+  Stop: "Stopp",
+  "Immersion & Score": "Immersion & Punktzahl",
+  "3 tasks to use your language outside the app":
+    "3 Aufgaben, um deine Sprache außerhalb der App zu nutzen",
+  "Next batch in": "Nächster Stapel in",
+  "Creating tasks...": "Aufgaben werden erstellt...",
+  "Try again": "Erneut versuchen",
+  "No tasks yet.": "Noch keine Aufgaben.",
+  "Claim +15 XP": "+15 XP abholen",
+  Claiming: "Wird abgeholt",
+  Claimed: "Abgeholt",
+  "Failed to award reward": "Belohnung konnte nicht vergeben werden",
+  "Ready to refresh": "Bereit zum Aktualisieren",
+  "Could not generate tasks. Please try again.":
+    "Aufgaben konnten nicht erstellt werden. Bitte versuche es erneut.",
+  "Enter a display name": "Anzeigenamen eingeben",
+  "Display name updated": "Anzeigename aktualisiert",
+  Error: "Fehler",
+  "Get full access to more education apps and content":
+    "Erhalte vollen Zugriff auf weitere Bildungs-Apps und Inhalte",
+  "Create display name": "Anzeigenamen erstellen",
+  "Saving…": "Wird gespeichert…",
+  "Wallet not ready": "Wallet nicht bereit",
+  "Please try again in a moment.": "Bitte versuche es gleich noch einmal.",
+  "Invalid key": "Ungültiger Schlüssel",
+  "Key must start with 'nsec'.": "Der Schlüssel muss mit „nsec“ beginnen.",
+  "Couldn't create wallet": "Wallet konnte nicht erstellt werden",
+  "Failed to create wallet": "Wallet konnte nicht erstellt werden",
+  "Select an identity": "Identität auswählen",
+  "Choose who receives your deposits before continuing.":
+    "Wähle aus, wer deine Einzahlungen erhält, bevor du fortfährst.",
+  "Couldn't create invoice": "Rechnung konnte nicht erstellt werden",
+  "Failed to initiate deposit": "Einzahlung konnte nicht gestartet werden",
+  "Address copied": "Adresse kopiert",
+  "Lightning invoice copied to clipboard.":
+    "Lightning-Rechnung in die Zwischenablage kopiert.",
+  "Bitcoin wallet": "Bitcoin-Wallet",
+  "Loading wallet…": "Wallet wird geladen…",
+  "Choose a recipient": "Empfänger auswählen",
+  "Select an option to enable deposits.":
+    "Wähle eine Option, um Einzahlungen zu aktivieren.",
+  "Create wallet": "Wallet erstellen",
+  "Creating wallet…": "Wallet wird erstellt…",
+  "Copy key": "Schlüssel kopieren",
+  "Copy Secret Key": "Geheimen Schlüssel kopieren",
+  "Secret key required": "Geheimer Schlüssel erforderlich",
+  "Maybe later": "Vielleicht später",
+  Done: "Fertig",
+  Close: "Schließen",
+  "View site": "Website ansehen",
+  "Join us on Patreon": "Unterstütze uns auf Patreon",
+  Join: "Beitreten",
+  "Change display name": "Anzeigenamen ändern",
+  "Display name": "Anzeigename",
+  "Save": "Speichern",
+  "Saving": "Speichern",
+};
+const getGermanCopy = (text) => {
+  if (typeof text !== "string") return "";
+  return GERMAN_COPY[text] || "";
+};
+return {getGermanCopy,GERMAN_COPY};})();
+// src/utils/companionMemoryCopy.js
+const M1=(function(){
+const normalizeSupportLanguage=M6.normalizeSupportLanguage;
+const DEFAULT_SUPPORT_LANGUAGE=M6.DEFAULT_SUPPORT_LANGUAGE;
+const getGermanCopy=M8.getGermanCopy;
+const memoryCopy = (lang, copy) => {
+  const normalized = normalizeSupportLanguage(lang, DEFAULT_SUPPORT_LANGUAGE);
+  if (copy[normalized]) return copy[normalized];
+  if (normalized === "de") return getGermanCopy(copy.en) || copy.en;
+  return copy.en;
+};
+const fill = (template, vars = {}) =>
+  String(template || "").replace(/\{(\w+)\}/g, (_, key) =>
+    vars[key] != null ? String(vars[key]) : "",
+  );
+const SAVED_FOR_TOMORROW = {
+  en: "Saved for tomorrow: {concept}",
+  es: "Guardado para mañana: {concept}",
+  pt: "Guardado para amanhã: {concept}",
+  fr: "Gardé pour demain : {concept}",
+  it: "Salvato per domani: {concept}",
+  de: "Für morgen gemerkt: {concept}",
+  ja: "明日のために保存：{concept}",
+  zh: "已为明天保存：{concept}",
+  ru: "Сохранено на завтра: {concept}",
+  ar: "محفوظ لبكرة: {concept}",
+  hi: "कल के लिए सहेजा: {concept}",
+};
+function companionMemorySummary(lang, concept) {
+  return fill(memoryCopy(lang, SAVED_FOR_TOMORROW), { concept });
+}
+const BUBBLE_LEAD_REPAIR = {
+  en: "Yesterday “{concept}” felt a little shaky, so I lined up a quick repair first.",
+  es: "Ayer “{concept}” se sintió un poco flojo, así que preparé una reparación rápida primero.",
+  pt: "Ontem “{concept}” ficou meio inseguro, então preparei um reparo rápido primeiro.",
+  fr: "Hier, « {concept} » était un peu hésitant, alors j'ai prévu une petite réparation d'abord.",
+  it: "Ieri “{concept}” era un po' incerto, così ho preparato prima un veloce ripasso.",
+  de: "Gestern saß „{concept}“ noch nicht ganz, also habe ich zuerst eine kurze Auffrischung eingeplant.",
+  ja: "昨日は「{concept}」が少しあやしかったので、まず軽くリペアを用意したよ。",
+  zh: "昨天“{concept}”有点不稳，所以我先安排了一个快速修复。",
+  ru: "Вчера «{concept}» давалось нелегко, поэтому я приготовил быстрый повтор.",
+  ar: "إمبارح “{concept}” كانت لسه مش ثابتة، فجهّزت مراجعة سريعة الأول.",
+  hi: "कल “{concept}” थोड़ा कच्चा लगा, इसलिए मैंने पहले एक त्वरित मरम्मत रखी है।",
+};
+const BUBBLE_LEAD_REPAIR_MULTI = {
+  en: "I saved a few tricky bits from yesterday — a quick repair warms up “{concept}” first, then the rest of today’s focus moves you forward.",
+  es: "Guardé varias cositas difíciles de ayer; una reparación rápida calienta primero con “{concept}” y el resto del enfoque de hoy te hace avanzar.",
+  pt: "Guardei algumas partes difíceis de ontem; um reparo rápido aquece primeiro com “{concept}” e o resto do foco de hoje te faz avançar.",
+  fr: "J'ai gardé quelques passages délicats d'hier — une réparation rapide échauffe « {concept} » d'abord, puis le reste du focus du jour te fait avancer.",
+  it: "Ho salvato un paio di punti ostici di ieri: un veloce ripasso scalda prima “{concept}”, poi il resto del focus di oggi ti porta avanti.",
+  de: "Ich habe ein paar knifflige Stellen von gestern gemerkt — eine kurze Auffrischung wärmt zuerst mit „{concept}“ auf, der Rest des heutigen Fokus bringt dich voran.",
+  ja: "昨日の難しかったところをいくつか保存したよ。まずはクイックリペアで「{concept}」を温めて、残りのフォーカスで先へ進もう。",
+  zh: "我存了昨天几个棘手的地方——先用一个快速修复热身“{concept}”，今日重点的其余部分继续带你前进。",
+  ru: "Я сохранил пару сложных моментов со вчера — быстрый повтор сначала разомнёт «{concept}», а остальной фокус дня поведёт тебя дальше.",
+  ar: "حفظت كذا حاجة صعبة من إمبارح؛ مراجعة سريعة تسخّن بـ “{concept}” الأول، وباقي تركيز اليوم يوديك لقدام.",
+  hi: "मैंने कल की कुछ मुश्किल चीज़ें सहेजीं — पहले एक त्वरित मरम्मत “{concept}” से वार्मअप कराएगी, फिर आज का बाकी फ़ोकस आपको आगे बढ़ाएगा।",
+};
+const BUBBLE_WELCOME = {
+  en: "Hi! I'm your learning companion. I'll remember what you struggle with so we can review it the next day. Ready for today’s focus?",
+  es: "¡Hola! Soy tu compañero de aprendizaje. Recordaré lo que te cueste para que podamos repasarlo al día siguiente. ¿Empezamos con el enfoque de hoy?",
+  pt: "Oi! Sou seu companheiro de aprendizado. Vou lembrar do que você achar difícil para podermos revisar no dia seguinte. Vamos começar com o foco de hoje?",
+  fr: "Salut ! Je suis ton compagnon d'apprentissage. Je retiendrai ce qui te pose problème pour qu'on puisse le revoir le lendemain. Prêt pour le focus du jour ?",
+  it: "Ciao! Sono il tuo compagno di studio. Ricorderò ciò che ti mette in difficoltà così potremo ripassarlo il giorno dopo. Pronto per il focus di oggi?",
+  de: "Hi! Ich bin dein Lernbegleiter. Ich merke mir, womit du Schwierigkeiten hast, damit wir es am nächsten Tag wiederholen können. Bereit für den heutigen Fokus?",
+  ja: "やあ！ぼくはきみの学習バディ。苦手なところを覚えておいて、次の日にいっしょに復習できるようにするよ。今日のフォーカスを始めよう！",
+  zh: "嗨！我是你的学习伙伴。我会记住你觉得困难的地方，这样我们第二天就能一起复习。准备好开始今日重点了吗？",
+  ru: "Привет! Я твой помощник в учёбе. Я запомню, что даётся тебе с трудом, чтобы мы могли повторить это на следующий день. Начнём фокус дня?",
+  ar: "أهلاً! أنا رفيقك في التعلّم. هفتكر الحاجات اللي بتصعب عليك علشان نراجعها مع بعض تاني يوم. جاهز لتركيز اليوم؟",
+  hi: "नमस्ते! मैं आपका लर्निंग साथी हूँ। आपको जिन चीज़ों में कठिनाई होती है, मैं उन्हें याद रखूँगा ताकि हम अगले दिन उन्हें दोहरा सकें। आज का फ़ोकस शुरू करें?",
+};
+const BUBBLE_WELCOME_GOAL = {
+  en: "Hi! I'm your learning companion. I'll shape your daily practice around your goal — “{goal}” — and remember what you struggle with so we can review it the next day. Ready for today’s focus?",
+  es: "¡Hola! Soy tu compañero de aprendizaje. Adaptaré tu práctica diaria a tu meta —“{goal}”— y recordaré lo que te cueste para que podamos repasarlo al día siguiente. ¿Empezamos con el enfoque de hoy?",
+  pt: "Oi! Sou seu companheiro de aprendizado. Vou adaptar sua prática diária à sua meta — “{goal}” — e lembrar do que você achar difícil para revisarmos no dia seguinte. Vamos começar o foco de hoje?",
+  fr: "Salut ! Je suis ton compagnon d'apprentissage. J'adapterai ta pratique quotidienne à ton objectif — « {goal} » — et je retiendrai ce qui te pose problème pour qu'on puisse le revoir le lendemain. Prêt pour le focus du jour ?",
+  it: "Ciao! Sono il tuo compagno di studio. Adatterò la pratica quotidiana al tuo obiettivo — “{goal}” — e ricorderò ciò che ti mette in difficoltà per ripassarlo il giorno dopo. Pronto per il focus di oggi?",
+  de: "Hi! Ich bin dein Lernbegleiter. Ich richte deine tägliche Übung an deinem Ziel „{goal}“ aus und merke mir, womit du Schwierigkeiten hast, damit wir es am nächsten Tag wiederholen können. Bereit für den heutigen Fokus?",
+  ja: "やあ！ぼくはきみの学習バディ。毎日の練習を「{goal}」という目標に合わせて、苦手なところも覚えておくから、次の日にいっしょに復習できるよ。今日のフォーカスを始めよう！",
+  zh: "嗨！我是你的学习伙伴。我会围绕你的目标“{goal}”安排每日练习，并记住你觉得困难的地方，方便第二天一起复习。准备好开始今日重点了吗？",
+  ru: "Привет! Я твой помощник в учёбе. Я буду строить ежедневные занятия вокруг твоей цели — «{goal}» — и запоминать трудные моменты, чтобы мы повторили их на следующий день. Начнём фокус дня?",
+  ar: "أهلاً! أنا رفيقك في التعلّم. هظبط تمرينك اليومي على هدفك — “{goal}” — وهفتكر الحاجات اللي بتصعب عليك علشان نراجعها تاني يوم. جاهز لتركيز اليوم؟",
+  hi: "नमस्ते! मैं आपका लर्निंग साथी हूँ। मैं आपके रोज़ के अभ्यास को आपके लक्ष्य — “{goal}” — के अनुसार बनाऊँगा और मुश्किल चीज़ों को याद रखूँगा ताकि हम अगले दिन उन्हें दोहरा सकें। आज का फ़ोकस शुरू करें?",
+};
+const BUBBLE_LEAD_FRESH = {
+  en: "Fresh start today — nothing left over from yesterday. Let's keep the streak going.",
+  es: "Hoy empezamos frescos, sin pendientes de ayer. Sigamos la racha.",
+  pt: "Hoje começamos do zero, sem pendências de ontem. Vamos manter a sequência.",
+  fr: "On repart à neuf aujourd'hui, rien d'hier. Continuons la série.",
+  it: "Oggi si riparte freschi, niente di ieri. Teniamo viva la serie.",
+  de: "Heute starten wir frisch — nichts von gestern offen. Halten wir die Serie am Laufen.",
+  ja: "今日はまっさら、昨日の宿題はなし。連続記録を伸ばそう。",
+  zh: "今天全新开始，没有昨天的遗留。继续保持连胜吧。",
+  ru: "Сегодня начинаем с чистого листа — ничего со вчера. Продолжим серию.",
+  ar: "النهاردة بداية جديدة، مفيش حاجة من إمبارح. نكمّل السلسلة.",
+  hi: "आज नई शुरुआत — कल का कुछ बाकी नहीं। चलो स्ट्रीक बनाए रखें।",
+};
+const BUBBLE_PLAN_LABEL = {
+  en: "Today's focus",
+  es: "Enfoque de hoy",
+  pt: "Foco de hoje",
+  fr: "Focus du jour",
+  it: "Focus di oggi",
+  de: "Heutiger Fokus",
+  ja: "今日のフォーカス",
+  zh: "今日重点",
+  ru: "Фокус дня",
+  ar: "تركيز اليوم",
+  hi: "आज का फ़ोकस",
+};
+const BUBBLE_CLEARED = {
+  en: "Today’s focus cleared — yesterday's tricky bits feel stronger now. Proud of you.",
+  es: "Enfoque de hoy completado: lo difícil de ayer ya se siente más firme. Orgulloso de ti.",
+  pt: "Foco de hoje concluído: o difícil de ontem já está mais firme. Orgulhoso de você.",
+  fr: "Focus du jour terminé — les points délicats d'hier sont plus solides. Fier de toi.",
+  it: "Focus di oggi completato: i punti ostici di ieri ora reggono meglio. Fiero di te.",
+  de: "Heutiger Fokus geschafft — die kniffligen Stellen von gestern sitzen jetzt besser. Stolz auf dich.",
+  ja: "今日のフォーカス達成！昨日の難所がしっかりしてきたね。えらい！",
+  zh: "今日重点完成——昨天的难点现在更稳了。为你骄傲。",
+  ru: "Фокус дня выполнен — вчерашние трудности стали увереннее. Горжусь тобой.",
+  ar: "خلص تركيز اليوم — صعوبات إمبارح بقت أمتن. فخور بيك.",
+  hi: "आज का फ़ोकस पूरा हो गया — कल की कठिन बातें अब और पक्की लग रही हैं। आप पर गर्व है।",
+};
+function buildQuestBubble({
+  lang,
+  leadKind = "fresh",
+  concept = "",
+  goal = "",
+  taskList = "",
+  cleared = false,
+}) {
+  if (cleared) {
+    const text = memoryCopy(lang, BUBBLE_CLEARED);
+    return { short: text, long: text };
+  }
+
+  let leadTpl;
+  if (leadKind === "welcome") leadTpl = BUBBLE_WELCOME;
+  else if (leadKind === "welcomeGoal") leadTpl = BUBBLE_WELCOME_GOAL;
+  else if (leadKind === "repair") leadTpl = BUBBLE_LEAD_REPAIR;
+  else if (leadKind === "repairMulti") leadTpl = BUBBLE_LEAD_REPAIR_MULTI;
+  else leadTpl = BUBBLE_LEAD_FRESH;
+
+  const short = fill(memoryCopy(lang, leadTpl), { concept, goal });
+  const planLabel = memoryCopy(lang, BUBBLE_PLAN_LABEL);
+  // The welcome stays short — the course rows are listed right below it, so
+  // appending the task list there is redundant and makes the balloon tall.
+  const long =
+    taskList && !["welcome", "welcomeGoal"].includes(leadKind)
+      ? `${short} ${planLabel}: ${taskList}.`
+      : short;
+  return { short, long };
+}
+const REPAIR_COPY = {
+  courseLabel: {
+    en: "Repair",
+    es: "Reparar",
+    pt: "Reparar",
+    fr: "Réparer",
+    it: "Ripasso",
+    de: "Auffrischen",
+    ja: "リペア",
+    zh: "修复",
+    ru: "Повтор",
+    ar: "مراجعة",
+    hi: "मरम्मत",
+  },
+  title: {
+    en: "Quick repair",
+    es: "Reparación rápida",
+    pt: "Reparo rápido",
+    fr: "Réparation rapide",
+    it: "Ripasso veloce",
+    de: "Kurze Auffrischung",
+    ja: "クイックリペア",
+    zh: "快速修复",
+    ru: "Быстрый повтор",
+    ar: "مراجعة سريعة",
+    hi: "त्वरित मरम्मत",
+  },
+  intro: {
+    en: "Let's make yesterday's tricky bits automatic.",
+    es: "Hagamos automático lo difícil de ayer.",
+    pt: "Vamos tornar automático o difícil de ontem.",
+    fr: "Rendons automatiques les points délicats d'hier.",
+    it: "Rendiamo automatici i punti ostici di ieri.",
+    de: "Machen wir die kniffligen Stellen von gestern automatisch.",
+    ja: "昨日の難所を自然に出せるようにしよう。",
+    zh: "把昨天的难点变成自然反应。",
+    ru: "Сделаем вчерашние трудности автоматическими.",
+    ar: "خلّينا نخلي صعوبات إمبارح تطلع تلقائي.",
+    hi: "कल की मुश्किल चीज़ों को सहज बना देते हैं।",
+  },
+  reveal: {
+    en: "Show answer",
+    es: "Mostrar respuesta",
+    pt: "Mostrar resposta",
+    fr: "Voir la réponse",
+    it: "Mostra risposta",
+    de: "Antwort zeigen",
+    ja: "答えを見る",
+    zh: "显示答案",
+    ru: "Показать ответ",
+    ar: "اظهر الإجابة",
+    hi: "उत्तर दिखाएँ",
+  },
+  gotIt: {
+    en: "I've got it",
+    es: "Ya lo tengo",
+    pt: "Já entendi",
+    fr: "Je l'ai",
+    it: "Ce l'ho",
+    de: "Sitzt",
+    ja: "できた",
+    zh: "我会了",
+    ru: "Понял",
+    ar: "فهمتها",
+    hi: "समझ गया",
+  },
+  next: {
+    en: "Next",
+    es: "Siguiente",
+    pt: "Próximo",
+    fr: "Suivant",
+    it: "Avanti",
+    de: "Weiter",
+    ja: "次へ",
+    zh: "下一个",
+    ru: "Далее",
+    ar: "التالي",
+    hi: "अगला",
+  },
+  done: {
+    en: "Repair complete!",
+    es: "¡Reparación completa!",
+    pt: "Reparo concluído!",
+    fr: "Réparation terminée !",
+    it: "Ripasso completato!",
+    de: "Auffrischung abgeschlossen!",
+    ja: "リペア完了！",
+    zh: "修复完成！",
+    ru: "Повтор завершён!",
+    ar: "خلصت المراجعة!",
+    hi: "मरम्मत पूरी!",
+  },
+  yourAnswerLabel: {
+    en: "You said",
+    es: "Dijiste",
+    pt: "Você disse",
+    fr: "Tu as dit",
+    it: "Hai detto",
+    de: "Du sagtest",
+    ja: "あなたの答え",
+    zh: "你的回答",
+    ru: "Ты ответил",
+    ar: "إنت قلت",
+    hi: "आपने कहा",
+  },
+  answerLabel: {
+    en: "Answer",
+    es: "Respuesta",
+    pt: "Resposta",
+    fr: "Réponse",
+    it: "Risposta",
+    de: "Antwort",
+    ja: "答え",
+    zh: "答案",
+    ru: "Ответ",
+    ar: "الإجابة",
+    hi: "उत्तर",
+  },
+  promptLabel: {
+    en: "Remember this",
+    es: "Recuerda esto",
+    pt: "Lembre-se disto",
+    fr: "Souviens-toi de ça",
+    it: "Ricorda questo",
+    de: "Merke dir das",
+    ja: "これを思い出して",
+    zh: "记住这个",
+    ru: "Вспомни это",
+    ar: "افتكر ده",
+    hi: "इसे याद रखें",
+  },
+  // Repair focus banner (shown in the routed live engine)
+  focusLabel: {
+    en: "Repair focus",
+    es: "Enfoque de repaso",
+    pt: "Foco do reparo",
+    fr: "Objectif de révision",
+    it: "Focus del ripasso",
+    de: "Auffrischungs-Fokus",
+    ja: "リペアの焦点",
+    zh: "复习重点",
+    ru: "Фокус повтора",
+    ar: "محور المراجعة",
+    hi: "मरम्मत का फोकस",
+  },
+  focusHint: {
+    en: "Practice this to clear today's repair.",
+    es: "Practica esto para completar el repaso de hoy.",
+    pt: "Pratique isto para concluir o reparo de hoje.",
+    fr: "Entraîne-toi là-dessus pour valider la révision du jour.",
+    it: "Allenati su questo per completare il ripasso di oggi.",
+    de: "Übe das, um die heutige Auffrischung abzuschließen.",
+    ja: "これを練習すると今日のリペアが完了するよ。",
+    zh: "练习这个就能完成今天的复习。",
+    ru: "Потренируй это, чтобы закрыть сегодняшний повтор.",
+    ar: "اتمرّن على ده علشان تخلّص مراجعة النهاردة.",
+    hi: "आज की मरम्मत पूरी करने के लिए इसका अभ्यास करें।",
+  },
+  focusExit: {
+    en: "Skip repair",
+    es: "Omitir repaso",
+    pt: "Pular reparo",
+    fr: "Passer la révision",
+    it: "Salta il ripasso",
+    de: "Auffrischung überspringen",
+    ja: "リペアをスキップ",
+    zh: "跳过复习",
+    ru: "Пропустить повтор",
+    ar: "تخطّي المراجعة",
+    hi: "मरम्मत छोड़ें",
+  },
+  focusDone: {
+    en: "Repair complete — nice work!",
+    es: "Repaso completo, ¡bien hecho!",
+    pt: "Reparo concluído, mandou bem!",
+    fr: "Révision terminée, beau travail !",
+    it: "Ripasso completato, ottimo lavoro!",
+    de: "Auffrischung abgeschlossen — super!",
+    ja: "リペア完了、よくできました！",
+    zh: "复习完成，做得好！",
+    ru: "Повтор завершён — отличная работа!",
+    ar: "خلصت المراجعة — شغل جامد!",
+    hi: "मरम्मत पूरी — बढ़िया काम!",
+  },
+  // Keep a repaired item past its 2-day life by saving it as a permanent note.
+  saveNote: {
+    en: "Save to notes",
+    es: "Guardar en notas",
+    pt: "Salvar nas notas",
+    fr: "Enregistrer dans les notes",
+    it: "Salva nelle note",
+    de: "In Notizen speichern",
+    ja: "ノートに保存",
+    zh: "保存到笔记",
+    ru: "Сохранить в заметки",
+    ar: "احفظ في الملاحظات",
+    hi: "नोट्स में सहेजें",
+  },
+  saved: {
+    en: "Saved to notes",
+    es: "Guardado en notas",
+    pt: "Salvo nas notas",
+    fr: "Enregistré dans les notes",
+    it: "Salvato nelle note",
+    de: "In Notizen gespeichert",
+    ja: "ノートに保存しました",
+    zh: "已保存到笔记",
+    ru: "Сохранено в заметки",
+    ar: "اتحفظ في الملاحظات",
+    hi: "नोट्स में सहेजा गया",
+  },
+};
+return {buildQuestBubble,memoryCopy,normalizeSupportLanguage,DEFAULT_SUPPORT_LANGUAGE,getGermanCopy,BUBBLE_CLEARED,BUBBLE_WELCOME,BUBBLE_WELCOME_GOAL,BUBBLE_LEAD_REPAIR,BUBBLE_LEAD_REPAIR_MULTI,BUBBLE_LEAD_FRESH,fill,BUBBLE_PLAN_LABEL,REPAIR_COPY,companionMemorySummary,SAVED_FOR_TOMORROW};})();
+// src/utils/cefrUtils.js
+const M9=(function(){
+
+function normalizeCEFRLevel(level, fallback = "A1") {
+  const raw = typeof level === "string" ? level.trim() : "";
+  if (!raw) return normalizeCEFRLevel(fallback, "A1");
+
+  const compact = raw.replace(/[\s_]+/g, "-").toUpperCase();
+  if (compact === "A0" || compact === "PRE-A1" || compact === "PREA1") {
+    return "PRE-A1";
+  }
+  if (["A1", "A2", "B1", "B2", "C1", "C2"].includes(compact)) {
+    return compact;
+  }
+  return normalizeCEFRLevel(fallback, "A1");
+}
+return {normalizeCEFRLevel};})();
+// src/utils/learningIntelligenceModel.js
+const M2=(function(){
+
+const INTELLIGENCE_VERSION = 1;
+const GOAL_MODES = [
+  "tutor",
+  "phonics",
+  "flashcards",
+  "lesson",
+];
+const SUPPORT_LEVELS = [
+  "modeled",
+  "prompted",
+  "lightly supported",
+  "independent",
+  "transferred",
+];
+const languageKey = (lang = "es") => String(lang).trim().toLowerCase();
+const text = (value, max = 180) =>
+  typeof value === "string" ? value.trim().slice(0, max) : "";
+const list = (value, max = 5) =>
+  [
+    ...new Set(
+      (Array.isArray(value) ? value : []).map((v) => text(v)).filter(Boolean),
+    ),
+  ].slice(0, max);
+const words = (value) =>
+  String(value || "")
+    .trim()
+    .split(/\s+/u)
+    .filter(Boolean);
+const capWords = (value, max = 200) =>
+  words(value).slice(0, max).join(" ");
+function activeGoalFor(user, lang) {
+  const goal = user?.learningIntelligence?.[languageKey(lang)]?.activeGoal;
+  return goal?.status === "active" && goal?.text && goal?.id ? goal : null;
+}
+function compactSummary(
+  raw = {},
+  kind = "repair",
+  now = new Date().toISOString(),
+) {
+  raw = raw && typeof raw === "object" ? raw : {};
+  const result = { version: INTELLIGENCE_VERSION };
+  let remaining = 200;
+  const take = (value) => {
+    const bounded = capWords(text(value, 500), Math.min(remaining, 32));
+    remaining -= words(bounded).length;
+    return bounded;
+  };
+  const keys =
+    kind === "goal"
+      ? ["demonstrated", "openCapabilities", "usefulLanguage", "modeEvidence"]
+      : ["openPatterns", "recentlyRepaired", "effectiveSupports"];
+  for (const key of keys) {
+    result[key] = (Array.isArray(raw[key]) ? raw[key] : [])
+      .slice(0, key === "openPatterns" ? 3 : 4)
+      .map((entry) => {
+        if (typeof entry === "string") return take(entry);
+        return {
+          target: take(entry?.target),
+          example: take(entry?.example),
+          stage: SUPPORT_LEVELS.includes(entry?.stage)
+            ? entry.stage
+            : "prompted",
+          demonstratedStage:
+            entry?.domain === "recall"
+              ? "recognition"
+              : entry?.stage === "transferred"
+              ? "later transfer"
+              : entry?.stage === "independent"
+              ? "independent production"
+              : "production with help",
+          mode: GOAL_MODES.includes(entry?.mode) ? entry.mode : "lesson",
+          domain: take(entry?.domain),
+          recurrence: Math.min(99, Math.max(1, Number(entry?.recurrence) || 1)),
+          severity: Math.min(3, Math.max(1, Number(entry?.severity) || 1)),
+          lastSeen: text(entry?.lastSeen, 30),
+        };
+      })
+      .filter(Boolean);
+  }
+  const guidanceKey =
+    kind === "goal" ? "nextGoalGuidance" : "nextRepairGuidance";
+  result[guidanceKey] = {
+    target: take(raw[guidanceKey]?.target),
+    support: take(raw[guidanceKey]?.support),
+    avoid: take(raw[guidanceKey]?.avoid),
+  };
+  result.eventIds = list(raw.eventIds, 24);
+  result.updatedAt = now;
+  const prose = keys.flatMap((key) =>
+    result[key].map((e) =>
+      typeof e === "string"
+        ? e
+        : `${e.target}: ${e.example} (${e.stage}, ${e.mode}, ${e.domain}; occurrences ${e.recurrence}; ${e.lastSeen})`,
+    ),
+  );
+  result.prose = capWords(
+    [...prose, ...Object.values(result[guidanceKey])]
+      .filter(Boolean)
+      .join("; "),
+  );
+  result.wordCount = words(result.prose).length;
+  return result;
+}
+function mergeEvidence(
+  summary,
+  event,
+  kind = "repair",
+  now = new Date().toISOString(),
+) {
+  const previous = compactSummary(summary, kind, now);
+  if (!event?.id || previous.eventIds.includes(event.id)) return previous;
+  const target = text(event.target);
+  if (!target) return previous;
+  const cutoff = Date.parse(now) - 45 * 86400000;
+  const unresolvedKey = kind === "goal" ? "openCapabilities" : "openPatterns";
+  const resolvedKey = kind === "goal" ? "demonstrated" : "recentlyRepaired";
+  if (kind === "repair")
+    previous[resolvedKey] = previous[resolvedKey].filter(
+      (e) => Date.parse(e.lastSeen) >= cutoff,
+    );
+  const open = previous[unresolvedKey].filter(
+    (e) => typeof e !== "string" && Date.parse(e.lastSeen) >= cutoff,
+  );
+  const earlier = open.find((e) => e.target === target);
+  const observed =
+    event.success === true && Boolean(text(event.observation, 600));
+  const entry = {
+    target,
+    example: text(event.observation || event.expectedAnswer),
+    stage: SUPPORT_LEVELS.includes(event.support) ? event.support : "prompted",
+    mode: event.mode,
+    domain: text(event.domain),
+    severity: event.severity,
+    recurrence: (earlier?.recurrence || 0) + 1,
+    lastSeen: now,
+  };
+  const next = { ...previous, eventIds: [event.id, ...previous.eventIds] };
+  next[unresolvedKey] = observed
+    ? open.filter((e) => e.target !== target)
+    : [entry, ...open.filter((e) => e.target !== target)];
+  next[resolvedKey] = observed
+    ? [entry, ...previous[resolvedKey].filter((e) => e.target !== target)]
+    : previous[resolvedKey].filter((e) => e.target !== target);
+  if (kind === "goal") {
+    next.modeEvidence = [
+      `${event.mode}: ${observed ? entry.stage : "needs practice"} — ${target}`,
+      ...previous.modeEvidence,
+    ];
+    next.usefulLanguage = list([
+      event.expectedAnswer,
+      ...previous.usefulLanguage,
+    ]);
+    next.nextGoalGuidance = {
+      target: observed ? `Transfer ${target} to a fresh situation` : target,
+      support: observed
+        ? "Reduce support gradually"
+        : "Model, then elicit a fresh response",
+      avoid: observed
+        ? "Do not repeat the demonstrated exercise"
+        : "Do not count exposure as success",
+    };
+  } else {
+    next.effectiveSupports = [
+      `${event.mode}: ${entry.stage}; ${
+        observed ? "helped" : "not yet successful"
+      }`,
+      ...previous.effectiveSupports,
+    ];
+    next.nextRepairGuidance = {
+      target:
+        next.openPatterns[0]?.target || `Check later transfer of ${target}`,
+      support: observed
+        ? "Retention check with less help"
+        : "Model then elicit",
+      avoid: observed
+        ? `Repeating ${target} immediately`
+        : "Replaying the failed question",
+    };
+  }
+  return compactSummary(next, kind, now);
+}
+return {compactSummary,INTELLIGENCE_VERSION,capWords,words,text,SUPPORT_LEVELS,GOAL_MODES,list,languageKey,activeGoalFor,mergeEvidence};})();
+// src/utils/learningIntelligence.js
+const M10=(function(){
+const compactSummary=M2.compactSummary;
+const languageKey=M2.languageKey;
+function repairSummaryFor(user, targetLang) {
+  return compactSummary(
+    user?.learningIntelligence?.[languageKey(targetLang)]?.repairSummary,
+    "repair",
+  );
+}
+return {repairSummaryFor,compactSummary,languageKey};})();
+// src/data/flashcards/common.js
+const M13=(function(){
+
+const CEFR_LEVEL_COUNTS = {
+  "Pre-A1": 100,
+  A1: 300,
+  A2: 250,
+  B1: 200,
+  B2: 150,
+  C1: 100,
+  C2: 50,
+};
+return {CEFR_LEVEL_COUNTS};})();
+// src/utils/cefrProgress.js
+const M12=(function(){
+const CEFR_LEVEL_COUNTS=M13.CEFR_LEVEL_COUNTS;
+const LESSON_COUNTS = {
+  "Pre-A1": 86,
+  A1: 98,
+  A2: 126,
+  B1: 105,
+  B2: 84,
+  C1: 70,
+  C2: 56,
+};
+function getLessonLevelFromId(lessonId = "") {
+  const id = String(lessonId || "").toLowerCase();
+  if (!id) return null;
+
+  if (id.includes("lesson-tutorial") || id.includes("unit-tutorial-pre-a1")) {
+    return "Pre-A1";
+  }
+
+  if (/(?:lesson|unit)-pre-a1(?:-|$)/.test(id)) {
+    return "Pre-A1";
+  }
+
+  if (/(?:lesson|unit)-a1-(?:1|3|4)(?:-|$)/.test(id)) {
+    return "Pre-A1";
+  }
+
+  const match = id.match(/(?:lesson|unit)-(a1|a2|b1|b2|c1|c2)(?:-|$)/i);
+  return match ? match[1].toUpperCase() : null;
+}
+function calculateLessonCompletion(userProgress, cefrLevel, targetLang = 'es') {
+  if (!userProgress || !cefrLevel) return 0;
+
+  const lessons = userProgress.languageLessons?.[targetLang] || userProgress.lessons || {};
+  const totalLessonsInLevel = LESSON_COUNTS[cefrLevel] || 0;
+
+  if (totalLessonsInLevel === 0) return 0;
+
+  const summaryKey = String(cefrLevel).toLowerCase().replace(/-/g, '_');
+  const summaryCompleted = Number(
+    userProgress.courseSummary?.skillTree?.levels?.[summaryKey]?.completed,
+  );
+  const completedCount = Number.isFinite(summaryCompleted)
+    ? Math.max(0, summaryCompleted)
+    : Object.keys(lessons).filter(lessonId => {
+        const isInLevel = getLessonLevelFromId(lessonId) === cefrLevel;
+        const isCompleted = lessons[lessonId]?.status === 'completed';
+        return isInLevel && isCompleted;
+      }).length;
+
+  return Number(((completedCount / totalLessonsInLevel) * 100).toFixed(2));
+}
+function calculateFlashcardCompletion(userProgress, cefrLevel, targetLang = 'es') {
+  if (!userProgress || !cefrLevel) return 0;
+
+  const flashcards = userProgress.languageFlashcards?.[targetLang] || userProgress.flashcards || {};
+  const totalFlashcardsInLevel = CEFR_LEVEL_COUNTS[cefrLevel] || 0;
+
+  if (totalFlashcardsInLevel === 0) return 0;
+
+  const summaryKey = String(cefrLevel).toLowerCase().replace(/-/g, '_');
+  const summaryCompleted = Number(
+    userProgress.courseSummary?.flashcards?.levels?.[summaryKey]?.completed,
+  );
+  const completedCount = Number.isFinite(summaryCompleted)
+    ? Math.max(0, summaryCompleted)
+    : Object.keys(flashcards).filter(cardId => {
+        const isInLevel = cardId.startsWith(`${cefrLevel.toLowerCase()}-`);
+        const isCompleted = flashcards[cardId]?.completed === true;
+        return isInLevel && isCompleted;
+      }).length;
+
+  return Number(((completedCount / totalFlashcardsInLevel) * 100).toFixed(2));
+}
+return {calculateLessonCompletion,LESSON_COUNTS,getLessonLevelFromId,calculateFlashcardCompletion,CEFR_LEVEL_COUNTS};})();
+// src/utils/performanceEloModel.js
+const M11=(function(){
+const calculateLessonCompletion=M12.calculateLessonCompletion;
+const calculateFlashcardCompletion=M12.calculateFlashcardCompletion;
+const ELO_LEVELS = ["Pre-A1", "A1", "A2", "B1", "B2", "C1", "C2"];
+const SCORE_LEVEL_BANDS = Object.freeze({
+  "Pre-A1": [0, 14],
+  A1: [15, 28],
+  A2: [29, 42],
+  B1: [43, 56],
+  B2: [57, 70],
+  C1: [71, 84],
+  C2: [85, 100],
+});
+const SCORE_LEVEL_DEFAULTS = Object.freeze({
+  "Pre-A1": 1,
+  A1: 18,
+  A2: 32,
+  B1: 46,
+  B2: 60,
+  C1: 74,
+  C2: 89,
+});
+const LEGACY_SCORE_POINTS = [[600, 1], [800, 1], [1000, 125], [1100, 175], [1200, 225], [1400, 325], [1500, 375], [1600, 425], [1700, 475], [1800, 525], [1900, 575], [2000, 625], [2200, 700]];
+const SCORE_SCALE_VERSION = 4;
+const MIN_SCORE = 0;
+const MAX_SCORE = 100;
+const MIN_RATING = 800;
+const MAX_RATING = 2200;
+const ELO_PER_SCORE = (MAX_RATING - MIN_RATING) / MAX_SCORE;
+function scoreToElo(value) {
+  const score = Number(value);
+  const bounded = Math.max(MIN_SCORE, Math.min(MAX_SCORE, Number.isFinite(score) ? score : MIN_SCORE));
+  // Seed prior whole-number Scores near the middle of their display interval.
+  // Otherwise one miss at a freshly seeded Score would immediately lower it.
+  if (bounded === MIN_SCORE) return MIN_RATING;
+  if (bounded === MAX_SCORE) return MAX_RATING;
+  return MIN_RATING + (bounded + 0.5) * ELO_PER_SCORE;
+}
+function eloToScore(value) {
+  const rating = Number(value);
+  if (!Number.isFinite(rating)) return MIN_SCORE;
+  // Fractional Elo changes accumulate before the next visible Score point.
+  return Math.max(MIN_SCORE, Math.min(MAX_SCORE, Math.floor((rating - MIN_RATING) / ELO_PER_SCORE + 1e-8)));
+}
+function migrateScoreV2(value) {
+  const rating = Number(value);
+  if (!Number.isFinite(rating)) return null;
+  const oldScore = Math.max(1, Math.min(700, rating));
+  const levelIndex = Math.min(6, Math.floor((oldScore - 1) / 100));
+  const [floor, ceiling] = SCORE_LEVEL_BANDS[ELO_LEVELS[levelIndex]];
+  const oldFloor = levelIndex * 100 + 1;
+  const migratedFloor = levelIndex === 0 ? 1 : floor;
+  return migratedFloor + Math.round(((oldScore - oldFloor) / 99) * (ceiling - migratedFloor));
+}
+function migrateLegacyEloRating(value) {
+  const rating = Number(value);
+  if (!Number.isFinite(rating)) return null;
+  if (rating <= LEGACY_SCORE_POINTS[0][0]) return 1;
+  for (let index = 1; index < LEGACY_SCORE_POINTS.length; index += 1) {
+    const [upperLegacy, upperScore] = LEGACY_SCORE_POINTS[index];
+    if (rating <= upperLegacy) {
+      const [lowerLegacy, lowerScore] = LEGACY_SCORE_POINTS[index - 1];
+      const oldScore = lowerScore + ((rating - lowerLegacy) / (upperLegacy - lowerLegacy)) * (upperScore - lowerScore);
+      return migrateScoreV2(oldScore);
+    }
+  }
+  return MAX_SCORE;
+}
+function storedRating(bucket) {
+  if (bucket?.elo?.rating == null) return null;
+  const rating = Number(bucket?.elo?.rating);
+  if (!Number.isFinite(rating)) return null;
+  // The old “completely new” button was saved as a self report with no
+  // selected statements and a starting rating of 1 (or 800 on the old scale).
+  if (bucket.elo.initializedFrom === "self_report" &&
+      (!bucket.selfAssessment?.selectedIds?.length) &&
+      Number(bucket.elo.totalGraded || 0) === 0 &&
+      (rating === 1 || rating === 800)) return MIN_RATING;
+  if (bucket.elo.scaleVersion === SCORE_SCALE_VERSION)
+    return Math.max(MIN_RATING, Math.min(MAX_RATING, rating));
+  if (bucket.elo.scaleVersion === 3) return scoreToElo(rating);
+  return scoreToElo(bucket.elo.scaleVersion === 2
+    ? migrateScoreV2(rating)
+    : migrateLegacyEloRating(rating));
+}
+function normalizeEloLevel(value, fallback = "A1") {
+  const raw = String(value || "").trim().toUpperCase().replace(/[\s_]+/g, "-");
+  if (raw === "PRE-A1" || raw === "PREA1" || raw === "A0") return "Pre-A1";
+  if (ELO_LEVELS.includes(raw)) return raw;
+  return fallback;
+}
+function initialEloRating(level = "A1") {
+  return SCORE_LEVEL_DEFAULTS[normalizeEloLevel(level)] || SCORE_LEVEL_DEFAULTS.A1;
+}
+const higherLevel = (left, right) => ELO_LEVELS[
+  Math.max(ELO_LEVELS.indexOf(normalizeEloLevel(left, "Pre-A1")),
+    ELO_LEVELS.indexOf(normalizeEloLevel(right, "Pre-A1")))
+];
+function curriculumLevelsForUser(user, targetLang) {
+  const lang = String(targetLang || "es").toLowerCase();
+  const placed = user?.proficiencyPlacements?.[lang];
+  const unlockedThrough = (completion) => {
+    let level = "Pre-A1";
+    for (let index = 0; index < ELO_LEVELS.length - 1; index += 1) {
+      if (completion(user?.progress, ELO_LEVELS[index], lang) < 100) break;
+      level = ELO_LEVELS[index + 1];
+    }
+    return higherLevel(level, placed);
+  };
+  const skillTree = unlockedThrough(calculateLessonCompletion);
+  const flashcards = unlockedThrough(calculateFlashcardCompletion);
+  const tutor = higherLevel(user?.progress?.tutorUnlockedLevels?.[lang], placed);
+  const overall = [skillTree, flashcards, tutor,
+    user?.progress?.targetLang === lang ? user?.progress?.level : null,
+  ].reduce(higherLevel, "Pre-A1");
+  return { skillTree, flashcards, tutor, overall };
+}
+function initialEloLevelForUser(user, targetLang) {
+  return curriculumLevelsForUser(user, targetLang).overall;
+}
+function internalEloForUser(user, targetLang) {
+  const lang = String(targetLang || "es").toLowerCase();
+  const stored = storedRating(user?.learningIntelligence?.[lang]);
+  if (stored !== null) return stored;
+  // Accounts that completed onboarding before the zero baseline was persisted
+  // still need to show 0 until they provide placement or practice evidence.
+  const hasPlacement = Boolean(user?.proficiencyPlacements?.[lang] || (
+    user?.progress?.targetLang === lang && user?.proficiencyPlacement
+  ));
+  const noPractice = Number(user?.xp || 0) === 0 &&
+    Number(user?.progress?.xp || 0) === 0 && Number(user?.streak || 0) === 0;
+  if (user?.onboarding?.completed === true && !hasPlacement && noPractice)
+    return MIN_RATING;
+  return scoreToElo(initialEloRating(initialEloLevelForUser(user, lang)));
+}
+function practiceLevelForElo(rating) {
+  const score = Number.isFinite(Number(rating)) ? Number(rating) : SCORE_LEVEL_DEFAULTS.A1;
+  return ELO_LEVELS.find((level) => score <= SCORE_LEVEL_BANDS[level][1]) || "C2";
+}
+function performanceContextFor(user, targetLang) {
+  const lang = String(targetLang || "es").toLowerCase();
+  const eloRating = internalEloForUser(user, lang);
+  const score = eloToScore(eloRating);
+  const curriculumLevels = curriculumLevelsForUser(user, lang);
+  const curriculumCefrLevel = curriculumLevels.overall;
+  const bucket = user?.learningIntelligence?.[lang] || {};
+  const summary = bucket.performanceSummary || {};
+  return {
+    score,
+    eloRating: Math.round(eloRating),
+    curriculumCefrLevel,
+    curriculumLevels,
+    suggestedQuestionLevel: practiceLevelForElo(score),
+    ratingGuide: "Elo is the internal 800–2200 estimate of demonstrated ability across all CEFR question levels. Score is its 0–100 learner-facing projection; fractional Elo changes accumulate between Score points. Use Elo, recent accuracy and weak concepts to choose challenge and support; keep the curriculum CEFR as the course objective, not a difficulty ceiling. A miss on an easy question is stronger negative evidence than a miss on a hard one. Self-report and placement are initial estimates until practice confirms them.",
+    selfReportedStatements: bucket.selfAssessment?.selectedIds || [],
+    weakConcepts: (Array.isArray(summary.weakConcepts) ? summary.weakConcepts : []).slice(0, 5),
+    recentAccuracy: Array.isArray(summary.recentResults) && summary.recentResults.length
+      ? summary.recentResults.slice(0, 10).reduce((sum, value) => sum + Number(value || 0), 0) / Math.min(10, summary.recentResults.length)
+      : null,
+    byLevel: summary.byLevel || {},
+  };
+}
+function generationPerformanceContextFor(user, targetLang, { curriculumCefrLevel } = {}) {
+  const context = performanceContextFor(user, targetLang);
+  const results = user?.learningIntelligence?.[String(targetLang || "es").toLowerCase()]?.performanceSummary?.recentResults;
+  return {
+    eloRating: context.eloRating,
+    eloScale: "800–2200; higher means stronger performance across CEFR levels",
+    curriculumCefrLevel: curriculumCefrLevel
+      ? normalizeEloLevel(curriculumCefrLevel, context.curriculumCefrLevel)
+      : context.curriculumCefrLevel,
+    curriculumLevels: context.curriculumLevels,
+    suggestedQuestionLevel: context.suggestedQuestionLevel,
+    recentAccuracy: context.recentAccuracy,
+    recentAccuracySampleCount: Array.isArray(results) ? Math.min(10, results.length) : 0,
+    weakConcepts: context.weakConcepts.slice(0, 3).map(({ concept, questionLevel, misses }) => ({
+      concept, questionLevel, misses,
+    })),
+    byLevel: Object.fromEntries(Object.entries(context.byLevel)
+      .filter(([level]) => ELO_LEVELS.includes(level))
+      .map(([level, counts]) => [level, {
+        correct: Math.max(0, Number(counts?.correct) || 0),
+        missed: Math.max(0, Number(counts?.missed) || 0),
+      }])),
+    selfReportedStatements: context.selfReportedStatements.slice(0, 10),
+  };
+}
+return {performanceContextFor,internalEloForUser,storedRating,MIN_RATING,SCORE_SCALE_VERSION,MAX_RATING,scoreToElo,MIN_SCORE,MAX_SCORE,ELO_PER_SCORE,migrateScoreV2,SCORE_LEVEL_BANDS,ELO_LEVELS,migrateLegacyEloRating,LEGACY_SCORE_POINTS,initialEloRating,SCORE_LEVEL_DEFAULTS,normalizeEloLevel,initialEloLevelForUser,curriculumLevelsForUser,higherLevel,calculateLessonCompletion,calculateFlashcardCompletion,eloToScore,practiceLevelForElo,generationPerformanceContextFor};})();
+// src/utils/companionMemory.js
+const M0=(function(){
+const getLocalDayKey=M3.getLocalDayKey;
+const normalizePlateLang=M5.normalizePlateLang;
+const questDayDocumentId=M4.questDayDocumentId;
+const buildQuestBubble=M1.buildQuestBubble;
+const getLanguagePromptName=M6.getLanguagePromptName;
+const normalizeCEFRLevel=M9.normalizeCEFRLevel;
+const repairSummaryFor=M10.repairSummaryFor;
+const useUserStore=snapshotStore;
+const performanceContextFor=M11.performanceContextFor;
+const REPAIR_COPY=M1.REPAIR_COPY;
+const generationPerformanceContextFor=M11.generationPerformanceContextFor;
+const DAY_MS = 24 * 60 * 60 * 1000;
+const MEMORY_STATUS = {
+  captured: "captured",
+  queuedForRepair: "queued_for_repair",
+  usedInQuest: "used_in_quest",
+  reinforced: "reinforced",
+  expired: "expired",
+};
+function displayCEFRLevel(level, fallback = "Pre-A1") {
+  const normalized = normalizeCEFRLevel(level || fallback, fallback);
+  return normalized === "PRE-A1" ? "Pre-A1" : normalized;
+}
+function isFoundationCEFRLevel(level) {
+  return ["Pre-A1", "A1"].includes(displayCEFRLevel(level, "Pre-A1"));
+}
+const ERROR_TYPE_TO_REPAIR_MODE = {
+  vocabulary: "flashcards",
+  grammar: "lesson", // structured → a generated mixed-question mini-lesson
+  reading: "flashcards",
+  writing: "lesson",
+  pronunciation: "phonics",
+  phonics: "phonics",
+  listening: "flashcards",
+  conversation_flow: "tutor",
+  confidence: "tutor",
+  unknown: "flashcards",
+};
+function repairModeForError(errorType) {
+  return ERROR_TYPE_TO_REPAIR_MODE[errorType] || "review";
+}
+function getCompanionDayKey(now = new Date()) {
+  return getLocalDayKey(now) || "";
+}
+function getYesterdayKey(now = new Date()) {
+  return getLocalDayKey(new Date(now.getTime() - DAY_MS)) || "";
+}
+function readBucket(user, langKey) {
+  const bucket = user?.companionMemory?.[langKey];
+  const notes = Array.isArray(bucket?.notes) ? bucket.notes : [];
+  return {
+    notes,
+    lastPrunedDayKey:
+      typeof bucket?.lastPrunedDayKey === "string"
+        ? bucket.lastPrunedDayKey
+        : "",
+  };
+}
+function getCompanionNotes(user = {}, targetLang = "es") {
+  return readBucket(user, normalizePlateLang(targetLang)).notes;
+}
+function getTodaysCapturedNotes(user, targetLang, now = new Date()) {
+  const dayKey = getCompanionDayKey(now);
+  return getCompanionNotes(user, targetLang).filter(
+    (n) => n.createdDayKey === dayKey,
+  );
+}
+function getReusableMemory(user, targetLang, now = new Date()) {
+  const yesterday = getYesterdayKey(now);
+  return getCompanionNotes(user, targetLang).filter(
+    (n) =>
+      n.createdDayKey === yesterday &&
+      n.status !== MEMORY_STATUS.reinforced &&
+      n.status !== MEMORY_STATUS.expired,
+  );
+}
+function normalizeConceptKey(concept) {
+  return String(concept || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+}
+function repairLessonLevelGuard(cefrLevel) {
+  const level = displayCEFRLevel(cefrLevel, "Pre-A1");
+  if (level === "Pre-A1") {
+    return [
+      "REPAIR LEVEL GUARD: The learner is Pre-A1/A0.",
+      "Use only memorized high-frequency chunks, greetings, names, numbers, simple present-tense phrases, and one-clause sentences of about 3-6 words.",
+      "Do not introduce, name, compare, or test past tenses, preterite/indefinite/imperfect, subjunctive, conditional, object pronouns, or multi-clause grammar.",
+      "If the weak spot is advanced, downshift it into recognition or practice of one useful beginner word/chunk instead of teaching the advanced rule.",
+    ].join(" ");
+  }
+  if (level === "A1") {
+    return [
+      "REPAIR LEVEL GUARD: The learner is A1.",
+      "Use basic everyday vocabulary, simple present-tense patterns, memorized chunks, and short one-clause sentences.",
+      "Do not introduce, name, compare, or test past tenses, preterite/indefinite/imperfect, subjunctive, conditional, or advanced grammar.",
+      "If the weak spot is advanced, downshift it into one useful beginner-safe word/chunk.",
+    ].join(" ");
+  }
+  return `REPAIR LEVEL GUARD: Keep every exercise within CEFR ${level}; the repair topic must not exceed that level.`;
+}
+function buildEphemeralRepairLesson({
+  plan,
+  targetLang,
+  cefrLevel = "Pre-A1",
+  dayKey,
+  recommendedMode = "lesson",
+  stepIndex = 0,
+}) {
+  const items = Array.isArray(plan?.items) ? plan.items : [];
+  const concepts = items.map((it) => it?.concept).filter(Boolean);
+  if (!concepts.length) return null;
+  const lessonCefrLevel = performanceContextFor(
+    useUserStore.getState().user,
+    targetLang,
+  ).suggestedQuestionLevel || displayCEFRLevel(cefrLevel, "Pre-A1");
+  const isFoundationLevel = isFoundationCEFRLevel(lessonCefrLevel);
+  const levelGuard = repairLessonLevelGuard(lessonCefrLevel);
+
+  // Target-language material the engines should drill: prefer the corrected
+  // form; fall back to the concept label.
+  const rawWords = items
+    .map((it) => it?.expectedAnswer || it?.concept)
+    .filter(Boolean);
+  const words = rawWords;
+  const repairTargets = isFoundationLevel
+    ? words
+    : words.length
+      ? words
+      : concepts;
+  const focusPoints = [
+        ...items
+          .map((it) => {
+            const tip = it?.summary || "";
+            return tip ? `${it.concept}: ${tip}` : it?.concept;
+          })
+          .filter(Boolean),
+      ];
+
+  // `flashcards` repair = pure recall → the vocabulary engine (it includes the
+  // flashcard submodule). `lesson` repair = the FULL lesson experience at every
+  // CEFR level: every submodule except game review, all seeded with the same
+  // weak material. The level guard controls difficulty without hiding modes.
+  const modes =
+    recommendedMode === "flashcards"
+      ? ["vocabulary"]
+      : [...REPAIR_LESSON_MODES];
+
+  const topic = isFoundationLevel
+    ? repairTargets.length
+      ? `beginner repair with these words or chunks: ${repairTargets.join("; ")}`
+      : "beginner repair based on recent weak spots"
+    : concepts.join("; ");
+  const content = {};
+  modes.forEach((m) => {
+    content[m] = {
+      topic,
+      words,
+      focusPoints,
+      cefrLevel: lessonCefrLevel,
+      isRepair: true,
+      levelGuard,
+      repairTargets,
+    };
+  });
+
+  return {
+    // Step-scoped id: each repair step is its own ephemeral lesson, so a
+    // restored activeLesson from an earlier step can't be mistaken for the
+    // current one.
+    id: `repair-${normalizePlateLang(targetLang)}-${dayKey || getCompanionDayKey()}-s${Math.max(0, Number(stepIndex) || 0)}`,
+    isRepair: true,
+    title: { ...REPAIR_COPY.title },
+    description: { ...REPAIR_COPY.intro },
+    cefrLevel: lessonCefrLevel,
+    curriculumCefrLevel: displayCEFRLevel(cefrLevel, "Pre-A1"),
+    // Small goal: a handful of correct answers in the seeded engines completes
+    // the lesson through the normal XP-goal path.
+    xpReward: 10,
+    modes,
+    content,
+    // Completion data embedded in the lesson itself so finishing still flips
+    // the repair course + reinforces notes even if the in-memory repair focus
+    // was lost (e.g. the app reloaded mid-lesson and restored activeLesson
+    // from localStorage).
+    repairTarget: Math.max(1, Number(plan?.target) || items.length || 1),
+    repairMemoryIds: Array.isArray(plan?.memoryIds) ? plan.memoryIds : [],
+    repairItems: items,
+  };
+}
+const REPAIR_MAX_ITEMS = 3;
+function rankReusableNotes(reusable = [], max = REPAIR_MAX_ITEMS) {
+  const seen = new Set();
+  return [...reusable]
+    .sort((a, b) => (b.severity || 1) - (a.severity || 1))
+    .filter((n) => {
+      const key = normalizeConceptKey(n.concept);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, max);
+}
+function repairItemsFromNotes(ranked = []) {
+  return ranked.map((n) => ({
+    memoryId: n.id,
+    concept: n.concept,
+    expectedAnswer: n.expectedAnswer || "",
+    userAnswer: n.userAnswer || "",
+    errorType: n.errorType,
+    sourceMode: n.sourceMode,
+    // The practice mode this item's step should run in (getRepairSteps
+    // dedupes across items so a multi-item repair spans different modes).
+    mode: repairModeForError(n.errorType),
+    // Carries a mode-specific pointer back to the exact source (e.g. the
+    // phonics letter id) so a routed repair can deep-seed the right material
+    // instead of just naming the concept. Free-form per sourceMode.
+    sourceContext: n.sourceContext || "",
+    originalConcept: n.concept,
+    originalAnswer: n.expectedAnswer || "",
+    cefrLevel: n.cefrLevel,
+    summary: n.companionSummary || "",
+  }));
+}
+function buildRepairPlan({
+  user,
+  targetLang,
+  now = new Date(),
+  dayKey,
+  max = REPAIR_MAX_ITEMS,
+}) {
+  const ranked = rankReusableNotes(getReusableMemory(user, targetLang, now), max);
+  if (!ranked.length) return null;
+
+  const items = repairItemsFromNotes(ranked);
+  // Legacy hint only — actual routing is per-item/per-step via getRepairSteps,
+  // which reads each item's own mode.
+  const recommendedMode = items[0]?.mode || "lesson";
+
+  return {
+    dayKey: dayKey || getCompanionDayKey(now),
+    targetLang: normalizePlateLang(targetLang),
+    mode: "review",
+    recommendedMode,
+    target: items.length,
+    items,
+    memoryIds: items.map((i) => i.memoryId),
+    createdAt: now.getTime(),
+  };
+}
+function getStoredRepairPlan(user, targetLang, dayKey) {
+  const langKey = normalizePlateLang(targetLang);
+  const plan = user?.dailyQuestRepair?.[langKey]?.[dayKey];
+  return plan && Array.isArray(plan.items) && plan.items.length ? plan : null;
+}
+function getStoredQuestExplanation(user, targetLang, dayKey) {
+  const langKey = normalizePlateLang(targetLang);
+  return user?.dailyQuestExplanations?.[langKey]?.[dayKey] || null;
+}
+const BLUEPRINT_STALE_MS = 10 * 60 * 1000;
+const REPAIR_MODES = ["tutor", "phonics", "flashcards", "lesson"];
+const REPAIR_STEP_FALLBACK_MODES = ["lesson", "flashcards", "tutor"];
+function normalizeRepairMode(mode) {
+  const m = String(mode || "")
+    .trim()
+    .toLowerCase();
+  if (REPAIR_MODES.includes(m)) return m;
+  if (m === "conversation" || m === "speak") return "tutor";
+  return "";
+}
+function getRepairSteps(plan) {
+  const items = Array.isArray(plan?.items) ? plan.items : [];
+  if (!items.length) return [];
+  const used = new Set();
+  return items.map((item, index) => {
+    const preferred =
+      normalizeRepairMode(item?.mode) ||
+      normalizeRepairMode(repairModeForError(item?.errorType)) ||
+      "lesson";
+    let mode = preferred;
+    if (used.has(mode)) {
+      mode = REPAIR_STEP_FALLBACK_MODES.find((m) => !used.has(m)) || preferred;
+    }
+    used.add(mode);
+    return {
+      index,
+      mode,
+      item,
+      plan: {
+        ...plan,
+        recommendedMode: mode,
+        target: 1,
+        items: [item],
+        memoryIds: item?.memoryId ? [item.memoryId] : [],
+      },
+    };
+  });
+}
+function getNextRepairStep(plan, completedCount = 0) {
+  const steps = getRepairSteps(plan);
+  if (!steps.length) return null;
+  const idx = Math.min(
+    Math.max(0, Math.floor(Number(completedCount) || 0)),
+    steps.length - 1,
+  );
+  return { ...steps[idx], stepCount: steps.length };
+}
+function buildRepairCard({
+  support,
+  target,
+  supportBase,
+  targetBase,
+  langKey,
+  dayKey,
+  stepIndex,
+  cardIndex,
+  level,
+}) {
+  const supportText = String(support || "").trim().slice(0, 160);
+  const targetText = String(target || "").trim().slice(0, 160);
+  if (!supportText && !targetText) return null;
+  const concept = {};
+  concept[supportBase] = supportText || targetText;
+  if (!concept.en) concept.en = supportText || targetText;
+  if (targetText) concept[targetBase] = targetText;
+  return {
+    id: `repair-${langKey}-${dayKey}-s${stepIndex}-c${cardIndex}`,
+    concept,
+    cefrLevel: level,
+    category: "repair",
+    type: (targetText || supportText).split(/\s+/).length > 1 ? "phrase" : "word",
+    isRepair: true,
+  };
+}
+function generateRepairDeckEntries({
+  item,
+  targetLang,
+  supportLang,
+  level,
+  count,
+}) {
+  const targetName = langName(targetLang);
+  const supportName = langName(supportLang);
+  const guard = repairLessonLevelGuard(level);
+  const input = [
+    `A learner studying ${targetName} (CEFR ${level}) recently struggled with this weak spot: "${item.concept}".`,
+    item.expectedAnswer ? `The correct ${targetName} form is: "${item.expectedAnswer}".` : "",
+    item.summary ? `Coach note: ${item.summary}` : "",
+    guard,
+    `Create ${count} tiny recall flashcards that drill EXACTLY this weak spot. The FIRST card must be the weak item itself; the others are minimal variations or directly supporting words/short phrases for the same concept — nothing unrelated.`,
+    `Each card: "support" is the cue shown to the learner, written in ${supportName}; "target" is the ${targetName} answer they must produce. Keep both short — a word or one short phrase, never a full sentence beyond ${level}.`,
+    `Return ONLY a strict minified JSON array with exactly ${count} items, no markdown: [{"support":"...","target":"..."}]`,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  return input;
+}
+const REPAIR_LESSON_MODES = [
+  "vocabulary",
+  "grammar",
+  "reading",
+  "stories",
+  "realtime",
+];
+const BATCH_LANG_NAMES = {
+  en: "English",
+  es: "Spanish",
+  pt: "Portuguese",
+  fr: "French",
+  it: "Italian",
+  de: "German",
+  ja: "Japanese",
+  zh: "Chinese",
+  ru: "Russian",
+  ar: "Arabic",
+  hi: "Hindi",
+};
+function getStoredBlueprint(user, targetLang, dayKey) {
+  const langKey = normalizePlateLang(targetLang);
+  const bp = user?.dailyQuestBlueprint?.[langKey]?.[dayKey];
+  return bp && typeof bp === "object" ? bp : null;
+}
+function shouldRunDailyBatch(user, targetLang, dayKey, now = new Date()) {
+  const langKey = normalizePlateLang(targetLang);
+  if (
+    Number(user?.schemaVersion || 1) >= 2 &&
+    !user?.questDaysLoaded?.[questDayDocumentId(langKey, dayKey)]
+  ) {
+    return false;
+  }
+  const bp = getStoredBlueprint(user, targetLang, dayKey);
+  if (!bp) return true;
+  if (bp.status === "ready" || bp.status === "failed") return false;
+  if (bp.status === "generating") {
+    return now.getTime() - (Number(bp.startedAt) || 0) > BLUEPRINT_STALE_MS;
+  }
+  return true;
+}
+function langName(code) {
+  return (
+    getLanguagePromptName(code) ||
+    BATCH_LANG_NAMES[normalizePlateLang(code)] ||
+    BATCH_LANG_NAMES[code] ||
+    code
+  );
+}
+function buildBatchInput({
+  ranked,
+  targetLang,
+  appLanguage,
+  todayCleared,
+  carryOverKinds,
+  cefrLevel,
+  goal,
+  goalProgress,
+  performance,
+}) {
+  const targetName = langName(targetLang);
+  const supportName = langName(appLanguage);
+  const level = displayCEFRLevel(cefrLevel || ranked[0]?.cefrLevel, "Pre-A1");
+  const levelGuard = repairLessonLevelGuard(level);
+  const notes = ranked.map((n) => ({
+    memoryId: n.id,
+    concept: n.concept,
+    theirAnswer: n.userAnswer || "",
+    correctAnswer: n.expectedAnswer || n.correction || "",
+    cefrLevel: displayCEFRLevel(n.cefrLevel || level, level),
+    // Enriched at capture time by the Flash-Lite pass — gives the batch a richer,
+    // already-diagnosed picture of each slip instead of just raw answers.
+    whatWentWrong: n.mistake || "",
+    improvementTip: n.tip || "",
+    errorType: n.errorType,
+    severity: n.severity || 1,
+  }));
+  const completion = todayCleared
+    ? "The learner finished their last quest."
+    : "The learner did NOT finish their last quest. Gently acknowledge that without any blame, and put the most important concept first.";
+  const carry = carryOverKinds?.length
+    ? `They also have unfinished tasks carrying into today: ${carryOverKinds.join(", ")}.`
+    : "";
+
+  return [
+    `You are the learner's friendly language-learning companion (a small pet character) for a ${targetName} course.`,
+    `Write the "message" and every "tip" in ${supportName}. Write each practice "prompt" and "answer" in ${targetName}.`,
+    `These are the weak spots the learner struggled with most recently (JSON):`,
+    JSON.stringify(notes),
+    completion,
+    carry,
+    goal
+      ? `The learner also has this active long-term goal: ${JSON.stringify(
+          goal.text,
+        )}. Today's quest contains a dedicated Goal task. Make the companion message inclusive of that goal as well as any repair: briefly connect today's practice to forward movement toward the goal without claiming mastery.`
+      : "The learner has no active personal goal today.",
+    goal
+      ? `Durable goal learning intelligence (use demonstrated abilities, open capabilities, useful language, and next-step guidance): ${JSON.stringify(
+          goalProgress,
+        )}`
+      : "",
+    `The curriculum track is CEFR ${level}. Live performance across ALL CEFR levels: ${JSON.stringify(performance)}. Set this repair's question difficulty near ${performance?.suggestedQuestionLevel || level}, even when that is below or above the curriculum track. Keep the same repair concept but change scaffolding and complexity. The actual question level determines the effect of its answer on Score.`,
+    performance?.suggestedQuestionLevel === level ? levelGuard : "",
+    `Durable repair learning intelligence (use prior outcomes, avoid recently repaired targets unless checking transfer): ${JSON.stringify(repairSummaryFor(useUserStore.getState().user, targetLang))}`,
+    `The repair runs as a SEQUENCE of short activities — one per item — so pick each item's "mode" to match how THAT weak concept is best PRACTICED. Every mode is a real interactive surface, so choose deliberately:`,
+    `- "tutor": producing a specific target-language phrase or sentence correctly out loud, functional language you'd say to another person, or focused grammar-in-speech coaching.`,
+    `- "phonics": pronunciation, specific sounds, letters, or minimal pairs.`,
+    `- "flashcards": fast recall of vocabulary words or short set phrases (meaning ⇄ form) — best when the weak spot is a discrete item to memorize.`,
+    `- "lesson": a richer concept that benefits from VARIED practice (a grammar pattern, conjugations, agreement, word order) — this generates a short mixed-question mini-lesson.`,
+    `Match each mode to its concept; when there are multiple items, give them DIFFERENT modes whenever sensible so the repair sequence feels varied. Use "flashcards" for pure recall and "lesson" for anything with structure/rules.`,
+    `Compose a short, game-like repair for their next session.`,
+    `SCOPE: a repair is only ONE small task inside today's quest, while the Goal task moves the learner toward their personal destination. When the message explains what you lined up and why, name both when both exist. Attribute weak material specifically to a "repair" or quick warm-up, then connect the Goal task to forward progress. Never imply the whole quest is repair, and never claim the long-term goal is already mastered.`,
+    `Return ONLY strict minified JSON (no markdown, no commentary) with EXACTLY this shape:`,
+    `{"message":{"short":"one playful sentence in a manga speech-bubble voice","long":"2-4 warm sentences naming what the repair task focuses on and why, explicitly scoped to the repair task with the rest of the quest framed as their normal progress; never say the learner got something wrong"},"repair":{"items":[{"memoryId":"an id copied from the notes above","mode":"one of ${REPAIR_MODES.join("/")}","prompt":"a FRESH ${level}-appropriate practice cue in ${targetName} that exercises the same concept (do not copy the original)","answer":"the correct answer in ${targetName}","tip":"a short encouraging memory tip in ${supportName}"}]},"summary":"one short line in ${supportName}: why this repair"}`,
+    `Use one item per weak spot, max ${REPAIR_MAX_ITEMS}, each memoryId from the list. Stay positive and encouraging.`,
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+function parseBlueprintJson(raw) {
+  if (!raw) return null;
+  let text = String(raw).trim();
+  const fence = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fence) text = fence[1].trim();
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+  if (start === -1 || end === -1 || end <= start) return null;
+  try {
+    const obj = JSON.parse(text.slice(start, end + 1));
+    return obj && typeof obj === "object" ? obj : null;
+  } catch {
+    return null;
+  }
+}
+const GOAL_MESSAGE_SUFFIX = {
+  en: "I also included focused practice to move you toward “{goal}”.",
+  es: "También incluí práctica enfocada para acercarte a «{goal}».",
+  pt: "Também incluí prática focada para aproximar você de “{goal}”.",
+  fr: "J’ai aussi prévu une pratique ciblée pour avancer vers « {goal} ».",
+  it: "Ho incluso anche pratica mirata per avvicinarti a “{goal}”.",
+  de: "Ich habe auch gezieltes Üben eingeplant, damit du „{goal}“ näherkommst.",
+  ja: "「{goal}」に近づくための集中練習も入れました。",
+  zh: "我还安排了专项练习，帮助你朝“{goal}”继续前进。",
+  ru: "Я также добавил целевую практику, чтобы приблизить тебя к цели «{goal}».",
+  ar: "أضفت أيضًا تدريبًا مركزًا ليقرّبك من «{goal}».",
+  hi: "मैंने “{goal}” की ओर बढ़ने के लिए केंद्रित अभ्यास भी शामिल किया है।",
+};
+function appendGoalToMessage(message, goal, appLanguage) {
+  if (!goal?.text) return message;
+  const template = GOAL_MESSAGE_SUFFIX[appLanguage] || GOAL_MESSAGE_SUFFIX.en;
+  const suffix = template.replace("{goal}", goal.text);
+  return `${String(message || "").trim()} ${suffix}`.trim();
+}
+function buildDeterministicBlueprint({
+  ranked,
+  langKey,
+  appLanguage,
+  todayCleared,
+  carryOverKinds,
+  targetDayKey,
+  now,
+  goal,
+}) {
+  const items = repairItemsFromNotes(ranked);
+  const concept = items[0]?.concept || "";
+  const leadKind = !concept ? "fresh" : items.length > 1 ? "repairMulti" : "repair";
+  const bubble = buildQuestBubble({
+    lang: appLanguage,
+    leadKind,
+    concept,
+    taskList: "",
+    cleared: false,
+  });
+  const recommendedMode = items[0]?.mode || "lesson";
+  const memoryIds = items.map((i) => i.memoryId).filter(Boolean);
+
+  return {
+    status: "ready",
+    source: "deterministic",
+    generatedAt: now.getTime(),
+    dayKey: targetDayKey,
+    targetLang: langKey,
+    yesterdayComplete: todayCleared,
+    carryOverKinds: carryOverKinds || [],
+    message: {
+      short: bubble.short,
+      long: appendGoalToMessage(bubble.long, goal, appLanguage),
+    },
+    repair: items.length
+      ? {
+          dayKey: targetDayKey,
+          targetLang: langKey,
+          mode: "review",
+          recommendedMode,
+          target: items.length,
+          items,
+          memoryIds,
+          createdAt: now.getTime(),
+        }
+      : null,
+    rationale: {
+      questDayKey: targetDayKey,
+      targetLang: langKey,
+      repairMemoryIds: memoryIds,
+      summary: concept ? `Repair: ${concept}` : "",
+    },
+  };
+}
+function assembleAiBlueprint({
+  parsed,
+  ranked,
+  fallback,
+  langKey,
+  todayCleared,
+  carryOverKinds,
+  targetDayKey,
+  now,
+}) {
+  const noteById = new Map(ranked.map((n) => [n.id, n]));
+  const aiItems = Array.isArray(parsed?.repair?.items) ? parsed.repair.items : [];
+  const items = aiItems
+    .map((it) => {
+      const note = noteById.get(it?.memoryId) || null;
+      if (!note) return null;
+      const concept = String(it?.prompt || it?.concept || note?.concept || "").trim();
+      if (!concept) return null;
+      const errorType = note?.errorType || "unknown";
+      return {
+        memoryId: note?.id || it?.memoryId || "",
+        concept,
+        expectedAnswer: String(
+          it?.answer || it?.expectedAnswer || note?.expectedAnswer || "",
+        ).trim(),
+        userAnswer: note?.userAnswer || "",
+        errorType,
+        sourceMode: note?.sourceMode || "",
+        // The AI's per-item practice mode when valid, else the heuristic one.
+        mode:
+          normalizeRepairMode(it?.mode) ||
+          normalizeRepairMode(repairModeForError(errorType)) ||
+          "lesson",
+        sourceContext: note?.sourceContext || "",
+        originalConcept: note?.concept || concept,
+        originalAnswer: note?.expectedAnswer || "",
+        cefrLevel: displayCEFRLevel(note?.cefrLevel, "Pre-A1"),
+        summary: String(it?.tip || it?.summary || note?.companionSummary || "").trim(),
+      };
+    })
+    .filter(Boolean)
+    .slice(0, REPAIR_MAX_ITEMS);
+
+  const useItems = items.length ? items : fallback.repair?.items || [];
+  const memoryIds = useItems.map((i) => i.memoryId).filter(Boolean);
+  // Legacy hint (routing is per-item via getRepairSteps): the first step's mode.
+  const recommendedMode =
+    useItems[0]?.mode || fallback.repair?.recommendedMode || "lesson";
+  const longMsg = String(parsed?.message?.long || "").trim();
+  const shortMsg = String(parsed?.message?.short || "").trim();
+
+  return {
+    status: "ready",
+    source: "ai",
+    generatedAt: now.getTime(),
+    dayKey: targetDayKey,
+    targetLang: langKey,
+    yesterdayComplete: todayCleared,
+    carryOverKinds: carryOverKinds || [],
+    message: {
+      short: shortMsg || fallback.message.short,
+      long: longMsg || fallback.message.long,
+    },
+    repair: useItems.length
+      ? {
+          dayKey: targetDayKey,
+          targetLang: langKey,
+          mode: "review",
+          recommendedMode,
+          target: useItems.length,
+          items: useItems,
+          memoryIds,
+          createdAt: now.getTime(),
+        }
+      : null,
+    rationale: {
+      questDayKey: targetDayKey,
+      targetLang: langKey,
+      repairMemoryIds: memoryIds,
+      summary: String(parsed?.summary || fallback.rationale.summary || "").trim(),
+    },
+  };
+}
+return {getTodaysCapturedNotes,getCompanionDayKey,getLocalDayKey,getCompanionNotes,readBucket,normalizePlateLang,getReusableMemory,getYesterdayKey,DAY_MS,MEMORY_STATUS,rankReusableNotes,REPAIR_MAX_ITEMS,normalizeConceptKey,buildRepairPlan,repairItemsFromNotes,repairModeForError,ERROR_TYPE_TO_REPAIR_MODE,getStoredRepairPlan,getStoredQuestExplanation,getStoredBlueprint,shouldRunDailyBatch,questDayDocumentId,BLUEPRINT_STALE_MS,buildDeterministicBlueprint,buildQuestBubble,appendGoalToMessage,GOAL_MESSAGE_SUFFIX,buildBatchInput,langName,getLanguagePromptName,BATCH_LANG_NAMES,displayCEFRLevel,normalizeCEFRLevel,repairLessonLevelGuard,repairSummaryFor,useUserStore,REPAIR_MODES,parseBlueprintJson,assembleAiBlueprint,normalizeRepairMode,getRepairSteps,REPAIR_STEP_FALLBACK_MODES,getNextRepairStep,buildEphemeralRepairLesson,performanceContextFor,isFoundationCEFRLevel,REPAIR_LESSON_MODES,REPAIR_COPY,generationPerformanceContextFor,buildRepairCard,generateRepairDeckEntries};})();
+// src/data/phonics/index.js
+const M14=(function(){
+
+const PHONICS_LEVELS = Object.freeze(['Pre-A1', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2']);
+function initialPhonicsLevel({ placementLevel, cefrLevel } = {}) {
+  return PHONICS_LEVELS.includes(placementLevel) ? placementLevel
+    : PHONICS_LEVELS.includes(cefrLevel) ? cefrLevel : 'Pre-A1';
+}
+function getAuthoredPhonicsDeck(target,support,level){return snapshotDecks[target+":"+support+":"+level]||[];}
+function getAuthoredPhonicsFocusCards(focus) {
+  const item = focus.plan?.items?.[0];
+  const captured = item?.sourceContext?.card;
+  const level = initialPhonicsLevel({ cefrLevel: focus.blueprint?.cefrLevel || item?.cefrLevel });
+  const requested = getAuthoredPhonicsDeck(focus.targetLang, focus.supportLang, level);
+  const id = captured?.id || (typeof item?.sourceContext === 'string' ? item.sourceContext : '');
+  const word = captured?.practiceWord || item?.originalAnswer || item?.expectedAnswer || focus.blueprint?.targetLanguage?.[0];
+  const all = PHONICS_LEVELS.flatMap(level => getAuthoredPhonicsDeck(focus.targetLang, focus.supportLang, level));
+  const first = all.find(card => card.id === id) || requested.find(card => card.practiceWord === word)
+    || all.find(card => card.practiceWord === word);
+  // An arbitrary goal word must retain its objective in Tutor. Never mark a
+  // different phonics word as success on the original goal or repair.
+  if (!first) return [];
+  const siblings = getAuthoredPhonicsDeck(focus.targetLang, focus.supportLang, first.cefrLevel);
+  return [first, ...siblings.filter(card => card.id !== first.id)].slice(0, focus.blueprint ? 2 : 3);
+}
+return {getAuthoredPhonicsFocusCards,initialPhonicsLevel,PHONICS_LEVELS,getAuthoredPhonicsDeck};})();
+function parseRepairEntries(raw){  const text = String(raw || "");
+  const start = text.indexOf("[");
+  const end = text.lastIndexOf("]");
+  if (start < 0 || end <= start) return null;
+  try {
+    const parsed = JSON.parse(text.slice(start, end + 1));
+    if (!Array.isArray(parsed)) return null;
+    const entries = parsed
+      .map((e) => ({
+        support: String(e?.support || "").trim(),
+        target: String(e?.target || "").trim(),
+      }))
+      .filter((e) => e.support && e.target);
+    return entries.length ? entries : null;
+  } catch {
+    return null;
+  }
+}
+function run(operation,json){const p=JSON.parse(json),now=new SystemDate(p.now||SystemDate.now());Date=class extends SystemDate{constructor(...args){super(...(args.length?args:[now.getTime()]));}static now(){return now.getTime();}};snapshotUser=p.user||{};snapshotDecks=p.decks||{};try{const m=M0,c=M1,model=M2;let value;
+if(operation==='reusable')value=m.getReusableMemory(p.user,p.targetLang,now);
+else if(operation==='captured')value=m.getTodaysCapturedNotes(p.user,p.targetLang,now);
+else if(operation==='rank')value=m.rankReusableNotes(p.notes||[]);
+else if(operation==='stored')value={blueprint:m.getStoredBlueprint(p.user,p.targetLang,p.dayKey),repair:m.getStoredRepairPlan(p.user,p.targetLang,p.dayKey),explanation:m.getStoredQuestExplanation(p.user,p.targetLang,p.dayKey),shouldRun:m.shouldRunDailyBatch(p.user,p.targetLang,p.dayKey,now)};
+else if(operation==='steps')value=m.getRepairSteps(p.plan);
+else if(operation==='next')value=m.getNextRepairStep(p.plan,p.completedCount);
+else if(operation==='lesson')value=m.buildEphemeralRepairLesson(p);
+else if(operation==='performance')value=m.generationPerformanceContextFor(p.user,p.targetLang);
+else if(operation==='deckPrompt')value=m.generateRepairDeckEntries(p);
+else if(operation==='deckCard')value=m.buildRepairCard(p);
+else if(operation==='deckEntries')value=parseRepairEntries(p.raw);
+else if(operation==='phonics')value=M14.getAuthoredPhonicsFocusCards(p.focus);
+else if(operation==='evidence')value=model.mergeEvidence(p.summary,p.event,'repair',now.toISOString());
+else if(operation==='bubble')value=c.buildQuestBubble(p);
+else if(operation==='summary')value=c.companionMemorySummary(p.lang,p.concept);
+else if(operation==='prepare'){const ranked=m.rankReusableNotes(p.notes||[]),goal=model.activeGoalFor(p.user,p.targetLang),goalProgress=model.compactSummary(p.user?.learningIntelligence?.[p.targetLang]?.goalProgress,'goal'),args={ranked,langKey:p.targetLang,appLanguage:p.appLanguage,todayCleared:p.todayCleared,carryOverKinds:p.carryOverKinds||[],targetDayKey:p.dayKey,now,goal};value={ranked,fallback:m.buildDeterministicBlueprint(args),prompt:m.buildBatchInput({...args,targetLang:p.targetLang,cefrLevel:p.cefrLevel,goal,goalProgress,performance:p.performance||m.generationPerformanceContextFor(p.user,p.targetLang)})};}
+else if(operation==='assemble'){const parsed=m.parseBlueprintJson(p.raw);value=parsed?m.assembleAiBlueprint({...p,parsed,langKey:p.targetLang,targetDayKey:p.dayKey,now}):p.fallback;}
+else throw Error('Unknown companion operation');return JSON.stringify(value??null);}finally{snapshotUser={};snapshotDecks={};Date=SystemDate;}}
+return {run};})(Date);

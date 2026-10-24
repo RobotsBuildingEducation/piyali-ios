@@ -19,7 +19,7 @@ struct TodayFocusHomeView:View {
     private var courses:[PlateCourse] {app.plateCourses}
     private var cleared:Bool {!courses.isEmpty && courses.allSatisfy(\.done)}
     private var bubbleKey:String {"piyali.companionBubbleDismissed:"+app.identity.npub+":"+app.learner.target+":"+CalendarDay.key(now)}
-    private var showBubble:Bool {!cleared && !bubbleDismissed}
+    private var showBubble:Bool {!bubble.isEmpty && !bubbleDismissed}
     private var headlineScope:PlateHeadlineScope {.init(account:app.identity.npub,target:app.learner.target,support:language,day:CalendarDay.key(now))}
     private var headlineCache:String? {app.learner.plateHeadline(day:CalendarDay.key(now))}
     private var headlineText:String {headline.scope == headlineScope ? headline.text : headlineCache ?? ""}
@@ -72,9 +72,7 @@ struct TodayFocusHomeView:View {
         }.padding(.horizontal,17).padding(.vertical,13).background(course.done ? PiyaliBrand.unitColor(scheme == .dark ? "2dd4bf" : "319795").opacity(scheme == .dark ? 0.18 : 0.16) : FocusCopy.color(scheme == .dark ? "rgba(11,18,32,0.12)" : "rgba(255,249,242,0.88)"),in:EntryCornerShape(radius:28)).overlay{EntryCornerShape(radius:28).stroke(border)}.accessibilityElement(children:.combine).accessibilityIdentifier("focusCourse-"+course.kind)
     }
     private var bubble:String {
-        let first=app.learner.introductoryQuest(day:CalendarDay.key(now))
-        let kind=first ? app.learner.goal.isEmpty ? "welcome" : "welcomeGoal" : app.learner.activeMemories.isEmpty ? "fresh" : app.learner.activeMemories.count > 1 ? "repairMulti" : "repair"
-        return ProductCopy.data(language)["bubbles"][kind].string.replacingOccurrences(of:"{goal}",with:app.learner.goal).replacingOccurrences(of:"{concept}",with:app.learner.activeMemories.first?.text("concept") ?? "").replacingOccurrences(of:"{taskList}",with:courses.map{ProductCopy.course(language,$0.kind)}.joined(separator:", "))
+        app.companionBubble(now:now)["display"].string
     }
     private func prepareImmersion() async {
         let request=UUID();immersionRequest=request;preparingImmersion=true;immersionError=nil

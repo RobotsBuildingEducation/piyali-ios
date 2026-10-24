@@ -9,6 +9,31 @@ import NostrSDK
 
 /// Explicit opt-in only. Uses an isolated test identity, bounded prompts and no paid access grant.
 @MainActor final class LiveAPIIntegrationTests: XCTestCase {
+    func testNativeCompanionBlueprintAndRecallDeckUseOriginalPrompts() async throws {
+        guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else{throw XCTSkip("Explicit live API opt-in required.")}
+        XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))
+        if FirebaseApp.app() == nil {AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure()};XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let identity=IdentityService();try identity.create();try await FirebaseIdentityService.shared.ensure(identity)
+        do {
+            let ai=AIService(),policy=try CompanionQuestPolicy(),now=Date(),day=CalendarDay.key(now)
+            let notes:Piyali.JSONValue = .array([.object(["id":.string("public-greeting"),"concept":.string("Greet a family member"),"expectedAnswer":.string("Hola, mamá"),"userAnswer":.string("Ola mama"),"cefrLevel":.string("Pre-A1"),"errorType":.string("vocabulary"),"severity":.number(2)])])
+            var learner=LearnerState();learner.editGoal("Greet my family in Spanish")
+            for support in ["en","ar"] {
+                let args:Piyali.JSONValue = .object(["user":learner.companionQuestUser,"targetLang":.string("es"),"appLanguage":.string(support),"dayKey":.string(day),"now":.number(now.timeIntervalSince1970*1000),"notes":notes,"cefrLevel":.string("Pre-A1"),"todayCleared":.bool(true),"carryOverKinds":.array([])])
+                let prepared=try policy.run("prepare",args),raw=try await ai.responsesText(prepared["prompt"].string),blueprint=try policy.run("assemble",args.setting("ranked",prepared["ranked"]).setting("fallback",prepared["fallback"]).setting("raw",.string(raw)))
+                XCTAssertEqual(blueprint["source"].string,"ai");XCTAssertFalse(blueprint["message"]["long"].string.isEmpty);XCTAssertEqual(blueprint["repair"]["memoryIds"].array,[.string("public-greeting")])
+                if support == "ar" {XCTAssertNotNil(blueprint["message"]["long"].string.range(of:"[\\u0600-\\u06ff]",options:.regularExpression))}
+                let steps=try policy.run("steps",.object(["plan":blueprint["repair"]])).array;XCTAssertEqual(steps.count,1);XCTAssertTrue(["tutor","phonics","flashcards","lesson"].contains(steps.first?["mode"].string ?? ""))
+                if support == "en" {
+                    let prompt=try policy.run("deckPrompt",.object(["item":steps[0]["item"],"targetLang":.string("es"),"supportLang":.string("en"),"level":.string("Pre-A1"),"count":.number(3)])).string
+                    let rawDeck=try await ai.responsesText(prompt),entries=try policy.run("deckEntries",.object(["raw":.string(rawDeck)])).array
+                    XCTAssertEqual(entries.count,3);XCTAssertTrue(entries.allSatisfy{!$0["support"].string.isEmpty && !$0["target"].string.isEmpty})
+                }
+            }
+            print("LIVE COMPANION: original English/Arabic batch prompts parsed into native plans; original recall-deck prompt returned three usable entries; no learner progress writes")
+        }catch{try? await Auth.auth().currentUser?.delete();try? Auth.auth().signOut();try? identity.disconnect();throw error}
+        try await Auth.auth().currentUser?.delete();try Auth.auth().signOut();try identity.disconnect()
+    }
     func testNativePlateHeadlineStreamsPublicLessonOutcomesAndResponsesRecovery() async throws {
         guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else{throw XCTSkip("Explicit live API opt-in required.")}
         XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))
