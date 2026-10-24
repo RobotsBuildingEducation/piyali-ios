@@ -121,6 +121,7 @@ public struct Note: Codable, Identifiable, Sendable {
     public var id = UUID()
     public var title: String
     public var body: String
+    public var study:JSONValue? = nil
 }
 public struct LearnerState: Codable, Sendable {
     public var pendingRepairEvidence:[RepairEvidenceChange]?

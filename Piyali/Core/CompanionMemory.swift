@@ -77,9 +77,9 @@ public enum MemoryContract {
 }
 public extension LearnerState {
     var activeMemories: [MemoryNote] { (companionMemory?[target] ?? []).filter { $0.active(on:CalendarDay.key(Date())) }.sorted { $0.severity == $1.severity ? $0.createdAt > $1.createdAt : $0.severity > $1.severity } }
-    mutating func captureMemory(mode: String, concept: String, answer: String, expected: String, feedback: String, context: String = "", now: Date = Date()) {
+    mutating func captureMemory(mode: String, concept: String, answer: String, expected: String, feedback: String, context: String = "", now: Date = Date(), questionLevel:String? = nil) {
         guard !concept.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else { return }
-        let note = MemoryContract.capture(target:target,support:support,level:level,mode:mode,concept:concept,answer:answer,expected:expected,feedback:feedback,context:context,now:now)
+        let note = MemoryContract.capture(target:target,support:support,level:questionLevel ?? level,mode:mode,concept:concept,answer:answer,expected:expected,feedback:feedback,context:context,now:now)
         applyMemory(MemoryChange(action:.capture,target:target,date:now,dayKey:CalendarDay.key(now),note:note))
     }
     mutating func reinforceMemory(id: String, now: Date = Date()) {

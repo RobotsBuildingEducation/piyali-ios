@@ -104,9 +104,9 @@ extension AppModel {
         try Task.checkCancellation();guard identity.npub == account,learner.support == support,learner.repairStepIsCurrent(step) else{return}
         learner.storeRepairArtifact(artifact,step:step,mode:"phonics");persist()
     }
-    func recordRepairOutcome(_ step:RepairStep,mode:String,cardID:String,success:Bool,item:String) {
+    func recordRepairOutcome(_ step:RepairStep,mode:String,cardID:String,success:Bool,item:String,deferCompletion:Bool = false) {
         guard learner.recordRepairOutcome(step,mode:mode,cardID:cardID,success:success,item:item,support:mode == "phonics" ? "modeled":"prompted") else{return}
-        persist();checkRepairPracticeCompletion(step,mode:mode)
+        persist();if !deferCompletion {checkRepairPracticeCompletion(step,mode:mode)}
     }
     func checkRepairPracticeCompletion(_ step:RepairStep,mode:String) {
         let artifact=learner.repairArtifact(step,mode:mode),cards=artifact["cards"].array

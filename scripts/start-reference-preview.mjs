@@ -38,5 +38,13 @@ const storyFixtureCompatibility={name:'piyali-source-story-fixture',enforce:'pre
  fixture=fixture.replace('applyThemeMode("dark");','applyThemeMode(new URLSearchParams(window.location.search).get("theme") === "light" ? "light" : "dark");');
  return fixture;
 }};
-const server=await vite.createServer({...loaded.config,configFile:false,root:reference,envDir:reference,cacheDir:path.join(root,'.reference-preview/cache'),plugins:[mobileFrame,toolsFixture,onboardingPreview,storyFixtureCompatibility,...flatten(loaded.config.plugins).filter(p=>!String(p.name).includes('pwa') && !String(p.name).includes('visualizer'))],server:{...loaded.config.server,host:'127.0.0.1',port:5181,strictPort:true}});
+// The actual flashcard component keeps its UI/state; only external I/O is replaced by explicit public fixtures.
+const flashcardFixture={name:'piyali-source-flashcard-fixture',enforce:'pre',resolveId(id,importer){if(!importer?.endsWith('/FlashcardPractice.jsx'))return;if(id.endsWith('/llm'))return '\0piyali-flashcard-judge';if(id.endsWith('/firebaseResources'))return '\0piyali-flashcard-stream';if(id.endsWith('/learningIntelligence'))return '\0piyali-flashcard-score';if(id.endsWith('/companionMemory'))return '\0piyali-flashcard-memory';if(id.endsWith('/questionDifficultyAssessment'))return '\0piyali-flashcard-worth';},load(id){
+ if(id==='\0piyali-flashcard-judge')return `export const DEFAULT_RESPONSES_MODEL='public-fixture';export const callResponses=async ({input})=>{await new Promise(r=>setTimeout(r,150));return input.includes('WRONG_FIXTURE')?'NO':'YES | 6'};`;
+ if(id==='\0piyali-flashcard-stream')return `export const simplemodel={generateContentStream:async()=>({stream:(async function*(){yield {text:()=> 'ma'};await new Promise(r=>setTimeout(r,150));yield {text:()=> 'má'};})(),response:Promise.resolve({text:()=> 'mamá'})})};`;
+ if(id==='\0piyali-flashcard-score')return 'export const recordGradedOutcome=async()=>{};';
+ if(id==='\0piyali-flashcard-memory')return 'export const captureCompanionMemory=async()=>{};';
+ if(id==='\0piyali-flashcard-worth')return 'export const assessGeneratedQuestionWorth=async()=>null;';
+}};
+const server=await vite.createServer({...loaded.config,configFile:false,root:reference,envDir:reference,cacheDir:path.join(root,'.reference-preview/cache'),plugins:[flashcardFixture,mobileFrame,toolsFixture,onboardingPreview,storyFixtureCompatibility,...flatten(loaded.config.plugins).filter(p=>!String(p.name).includes('pwa') && !String(p.name).includes('visualizer'))],server:{...loaded.config.server,host:'127.0.0.1',port:5181,strictPort:true}});
 await server.listen();console.log('Read-only reference preview: http://127.0.0.1:5181');

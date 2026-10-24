@@ -23,6 +23,8 @@ public struct PracticeChange: Codable, Identifiable, Sendable {
     public var questIntro: Bool?
     public var questKinds: [String]?
     public var reviewRating: ReviewRating?
+    public var reviewPatch: FlashcardReview?
+    public var activityDayKey:String {reviewPatch?.lastReviewedAt.map{CalendarDay.key($0)} ?? dayKey}
     public var correct: Bool?
     public var independent: Bool?
     public var conversationGoalID: String?
@@ -59,7 +61,7 @@ public enum CalendarDay {
 }
 public extension LearnerState {
     mutating func enqueue(_ change: PracticeChange) { applyGoalLessonWork(change);applyLessonWork(change);questProgress = DailyPlate.recorded(change,progress:plateProgress); if pendingChanges == nil { pendingChanges = [] }; pendingChanges?.append(change) }
-    mutating func review(cardID: String, rating: ReviewRating, now: Date = Date(), calendar: Calendar = .current) {
+    mutating func review(cardID: String, rating: ReviewRating, xp:Int? = nil, patch:FlashcardReview? = nil, now: Date = Date(), calendar: Calendar = .current) {
         rollDay(now:now,calendar:calendar)
         let key = completionKey(cardID)
         var review = cardReviews?[key] ?? FlashcardReview()
@@ -67,12 +69,13 @@ public extension LearnerState {
             // Preserve completion when importing a v1 native account with no scheduler record.
             review.completed = true; review.schedulerState = .review; review.intervalDays = 1
         }
-        let next = review.applying(rating,now:now)
+        let next = patch ?? review.applying(rating,now:now)
         if cardReviews == nil { cardReviews = [:] }; cardReviews?[key] = next
         if next.completed { flashcardMastery.insert(key) }
-        let amount = rating == .again ? 0 : rating == .hard ? 4 : rating == .easy ? 7 : 5
+        let amount = max(0,min(7,xp ?? (rating == .again ? 0 : rating == .hard ? 4 : rating == .easy ? 7 : 5)))
         addXP(amount,now:now,calendar:calendar)
-        enqueue(PracticeChange(date:now,dayKey:dailyKey,target:target,level:flashcardLevel,amount:amount,source:.review,contentID:cardID,reviewRating:rating))
+        var change=PracticeChange(date:now,dayKey:dailyKey,target:target,level:flashcardLevel,amount:amount,source:.review,contentID:cardID,reviewRating:rating)
+        change.reviewPatch=next;enqueue(change)
     }
     // Merge a completed sync without losing practice performed while the network request was in flight.
     static func rebased(current: LearnerState, sent: LearnerState, acknowledged: LearnerState) -> LearnerState {
@@ -183,6 +186,13 @@ public extension LearnerState {
         for (key, review) in acknowledged.cardReviews ?? [:] {
             if (merged.cardReviews?[key]?.updatedAt ?? .distantPast) <= (review.updatedAt ?? .distantPast) {
                 if merged.cardReviews == nil { merged.cardReviews = [:] }; merged.cardReviews?[key] = review
+            }
+        }
+        // A chosen source patch is frozen when the card opens. Replay unsent choices
+        // after the acknowledged snapshot even if that open timestamp is older.
+        for change in newer.sorted(by:{$0.date < $1.date}) where change.source == .review {
+            if let patch=change.reviewPatch,let id=change.contentID {
+                if merged.cardReviews == nil {merged.cardReviews=[:]};merged.cardReviews?["\(change.target):\(id)"]=patch
             }
         }
         merged.achievementRecords = NostrAchievementCollection.merging([.object(current.achievementRecords ?? [:]),.object(acknowledged.achievementRecords ?? [:]),current.nostrAchievementRecords ?? .object([:])]).object; merged.achievementEvidence = acknowledged.achievementEvidence; merged.achievementLedger = acknowledged.achievementLedger

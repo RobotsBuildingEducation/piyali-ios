@@ -24,6 +24,7 @@ import SwiftUI
     @Published var activityFooter:ActivityFooterPresentation?
     @Published var activityFooterHeight:CGFloat=0
     @Published var goalCheck:GoalCheckPresentation?
+    @Published var flashcardSession:FlashcardSessionController?
     @Published var pendingLessonCompletion:LessonCompletionPresentation?
     var goalEditorFlush:(id:UUID,flush:()->Void)?
     let progressService:any LearnerProgressService
@@ -407,14 +408,14 @@ import SwiftUI
         guard identity.npub == account, learner.target == target else { return }
         guard !(learner.pendingGoalChanges ?? []).contains(where:{ $0.target == target && $0.action == .artifact }) else { throw AppError.message("Reconnect to save this practice deck across devices.") }
     }
-    func recordGoalPreparation(_ blueprint: JSONValue, mode: String, card: JSONValue, success: Bool, answer: String) {
+    func recordGoalPreparation(_ blueprint: JSONValue, mode: String, card: JSONValue, success: Bool, answer: String, assess:Bool = true) {
         guard goalIsCurrent(blueprint) else { return }
         guard !goalArtifact(blueprint,mode:mode)["outcomes"][card["id"].string]["success"].boolean else{return}
         let item = mode == "phonics" ? card["practiceWord"].string : card["concept"][learner.target].string
         let support = mode == "phonics" ? "modeled" : "prompted"
         let payload = blueprint.setting("mode",.string(mode)).setting("cardID",card["id"]).setting("success",.bool(success)).setting("support",.string(support)).setting("item",.string(item)).setting("transfer",.bool(card["practiceRole"].string == "transfer"))
         learner.applyGoal(GoalChange(action:.outcome,target:learner.target,payload:payload))
-        learner.assess(correct:success,independent:false,questionLevel:card["cefrLevel"].string.isEmpty ? blueprint["cefrLevel"].string:card["cefrLevel"].string,support:mode == "phonics" ? "modeled":"prompted")
+        if assess {learner.assess(correct:success,independent:false,questionLevel:card["cefrLevel"].string.isEmpty ? blueprint["cefrLevel"].string:card["cefrLevel"].string,support:mode == "phonics" ? "modeled":"prompted")}
         let observation = "\(success ? "Correct" : "Unsuccessful") \(mode == "phonics" ? "modeled practice of" : "recall of") \(item): \(answer). Preparation, not independent production."
         let evidence = payload.setting("target",.string(item)).setting("observation",.string(observation)).setting("domain",.string(mode == "phonics" ? "pronunciation" : "recall")).setting("expectedAnswer",.string(item))
         learner.applyGoal(GoalChange(action:.evidence,target:learner.target,payload:evidence))

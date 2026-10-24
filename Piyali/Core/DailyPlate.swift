@@ -88,7 +88,7 @@ public enum DailyPlate {
     public static func recorded(_ change: PracticeChange, progress: JSONValue) -> JSONValue {
         var updated = progress
         if let field = change.source.activityField {
-            let days = progress[field][change.target].setting(change.dayKey,.number(progress[field][change.target][change.dayKey].number + 1))
+            let days = progress[field][change.target].setting(change.activityDayKey,.number(progress[field][change.target][change.activityDayKey].number + 1))
             updated = updated.setting(field,progress[field].setting(change.target,days))
         }
         if change.source == .questStart {

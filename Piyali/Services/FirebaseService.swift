@@ -419,7 +419,8 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                         completed=false;wasCompleted=existing["status"] as? String == "completed";mode="skillTree"
                     } else if change.source == .review {
                         var review = WebProgressContract.review(existing)
-                        if (review.updatedAt ?? .distantPast) <= change.date, let rating = change.reviewRating { review = review.applying(rating,now:change.date) }
+                        if let patch=change.reviewPatch {review=patch}
+                        else if (review.updatedAt ?? .distantPast) <= change.date, let rating=change.reviewRating {review=review.applying(rating,now:change.date)}
                         data.merge(WebProgressContract.reviewFields(review)) { _,new in new }; data["cardId"] = change.contentID
                         completed = review.completed; wasCompleted = existing["completed"] as? Bool == true; mode = "flashcards"
                     } else if change.source == .tutorTurn {

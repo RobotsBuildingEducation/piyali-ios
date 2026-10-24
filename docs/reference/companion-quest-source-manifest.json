@@ -112,7 +112,31 @@
       "declarations": [
         "getLocalDayKey",
         "coerceDate",
-        "getLocalCalendarDayKey"
+        "getLocalCalendarDayKey",
+        "getFlashcardReviewSnapshot",
+        "normalizeSchedulerState",
+        "FLASHCARD_SCHEDULER_STATES",
+        "normalizeIntervalDays",
+        "clamp",
+        "FLASHCARD_ANKI_PRESET",
+        "FLASHCARD_REVIEW_STATES",
+        "deriveMasteryStage",
+        "getSchedulerRatingOptions",
+        "buildFlashcardReviewUpdate",
+        "buildLearningDelayMinutes",
+        "roundMinutes",
+        "isoAfterDays",
+        "DAY_MS",
+        "HOUR_MS",
+        "MINUTE_MS",
+        "isoAfterMinutes",
+        "formatShortDelay",
+        "mapXpToReviewOutcome",
+        "formatAbsoluteReviewTime",
+        "normalizeSupportLanguage",
+        "DEFAULT_SUPPORT_LANGUAGE",
+        "getLanguageLocale",
+        "isSameLocalDay"
       ]
     },
     {
@@ -160,7 +184,9 @@
         "CANONICAL_SUPPORT_LANGUAGE_CODES",
         "getLanguagePromptName",
         "LANGUAGE_PROMPT_LABELS",
-        "LANGUAGE_FALLBACK_LABELS"
+        "LANGUAGE_FALLBACK_LABELS",
+        "getLanguageLocale",
+        "LANGUAGE_LOCALES"
       ]
     },
     {
@@ -241,7 +267,8 @@
       "file": "src/data/flashcards/common.js",
       "sha256": "e4110d661b925ecb53e3cf33c02227ea51ac0b67db9cb02a91ee71e14724a2c4",
       "declarations": [
-        "CEFR_LEVEL_COUNTS"
+        "CEFR_LEVEL_COUNTS",
+        "CEFR_COLORS"
       ]
     },
     {
@@ -275,10 +302,111 @@
         "goalLessonCompletionCopy",
         "completionRows"
       ]
+    },
+    {
+      "file": "src/components/FlashcardPractice.jsx",
+      "sha256": "b1da353b8d9d095030637a8e57f100d80184f69bb1e5b5f6a4c37ac3cb756a14",
+      "declarations": [
+        "buildFlashcardJudgePrompt",
+        "LANG_NAME",
+        "getAppLanguage",
+        "translations",
+        "getFlashcardModalTrimTheme",
+        "FLASHCARD_REVIEW_STATES",
+        "APP_BORDER",
+        "getTranslation",
+        "getEffectiveCardLanguage",
+        "normalizeSupportLanguage",
+        "APP_CARD_RADIUS",
+        "APP_SQUIRCLE_SHAPE",
+        "APP_SURFACE",
+        "APP_SURFACE_ELEVATED",
+        "APP_SURFACE_MUTED",
+        "APP_BORDER_STRONG",
+        "APP_TEXT_PRIMARY",
+        "APP_TEXT_SECONDARY",
+        "APP_TEXT_MUTED",
+        "APP_SHADOW"
+      ]
+    },
+    {
+      "file": "src/components/FlashcardSkillTree.jsx",
+      "sha256": "953b1553e067d2cd7dfec1cb87e20798336c6a9ec78eaed0136efbbd4c1b644f",
+      "declarations": [
+        "getCardDecor",
+        "APP_SURFACE_ELEVATED",
+        "APP_BORDER",
+        "getWeaknessScore",
+        "FLASHCARD_REVIEW_STATES",
+        "isWeakCardSnapshot",
+        "buildFallbackActivityMap",
+        "getLocalDayKey",
+        "APP_TEXT_PRIMARY"
+      ]
+    },
+    {
+      "file": "src/hooks/useSpeechPractice.js",
+      "sha256": "22b8562a05705b4c1df72f4ed5c2e466c947d95385dfe74c5a803af37ceb8099",
+      "declarations": [
+        "buildRealtimeSpeechSession",
+        "BCP47_TO_WHISPER"
+      ]
+    },
+    {
+      "file": "src/utils/noteGeneration.js",
+      "sha256": "84b74e70390456b31b6d11b779acf79d4d321f2eadbf461776f573f38e082825",
+      "declarations": [
+        "LANG_NAME",
+        "getLanguagePromptName"
+      ]
+    },
+    {
+      "file": "src/utils/flashcardActivity.js",
+      "sha256": "10a19647f82edfcce2511bd8077472f11433613da77b1ce9d932bffdb6e128f2",
+      "declarations": [
+        "mergeFlashcardActivityCounts",
+        "getFlashcardReviewPreviewCount"
+      ]
+    },
+    {
+      "file": "src/utils/dailyQuestTargets.js",
+      "sha256": "32f102401e70f1bfe86daaeffd56da490fb94fc8bc68dec42aa39ff9829f3b58",
+      "declarations": [
+        "getFlashcardDailyTarget",
+        "FLASHCARD_RANDOM_DAILY_TARGET_MAX",
+        "FLASHCARD_RANDOM_DAILY_TARGET_MIN",
+        "hashString"
+      ]
+    },
+    {
+      "file": "src/utils/cefrLevelInfo.js",
+      "sha256": "50ad5e9e5733d6ba42e40ad9bcd1027f9ea4f741b450afe71bcb6848b749d0c3",
+      "declarations": [
+        "CEFR_LEVEL_INFO"
+      ]
+    },
+    {
+      "file": "src/theme.js",
+      "sha256": "6fe6093ecca51d0debb1314a587d6bd0927e7ac9f8c1ba2c6c744017e3be407e",
+      "declarations": [
+        "APP_CARD_RADIUS",
+        "APP_SQUIRCLE_SHAPE"
+      ]
     }
   ],
   "fixtureCount": 198,
   "goalFixtureCount": 116,
+  "flashcardFixtureCount": 117,
+  "flashcardAdapters": {
+    "uiLanguage": "Explicit p.language snapshot replaces getAppLanguage; p.copy supplies the previously exported source string dictionaries.",
+    "visuals": "JSX icon elements are omitted from original plain theme values. UI and source provider/store code never execute in this bundle.",
+    "prompts": "Original judge, reveal, explanation, note prompts and parser are split at network boundaries; the original native capture session configuration is unchanged.",
+    "rewardHandler": {
+      "file": "src/App.jsx",
+      "sha256": "eb7e06e1422cac6d205059dc92d68370bec40c1009c1a316f0c2d3eb5f325fd6",
+      "expression": "card.xpReward || 5"
+    }
+  },
   "goalPlanner": {
     "file": "src/utils/learningIntelligence.js",
     "sha256": "224601a49ac60a341fb2b654de2284facb5da9f2c5053ff1ad400ab2a24aa66d",

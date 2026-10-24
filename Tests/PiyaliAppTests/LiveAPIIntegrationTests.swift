@@ -9,6 +9,24 @@ import NostrSDK
 
 /// Explicit opt-in only. Uses an isolated test identity, bounded prompts and no paid access grant.
 @MainActor final class LiveAPIIntegrationTests: XCTestCase {
+    func testOriginalFlashcardJudgeRevealAndDifficultyThroughNativeProviders()async throws {
+        guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else{throw XCTSkip("Explicit live API opt-in required")}
+        XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))
+        if FirebaseApp.app() == nil {AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure()};XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let identity=IdentityService();try identity.create();try await FirebaseIdentityService.shared.ensure(identity)
+        do {
+            let ai=AIService(),provider=FlashcardProvider.native(ai),policy=try FlashcardPolicy(),card:Piyali.JSONValue = .object(["id":.string("public-mom"),"concept":.object(["en":.string("mom"),"es":.string("mamá")]),"cefrLevel":.string("Pre-A1"),"category":.string("family"),"type":.string("word")])
+            for (answer,expected) in [("mamá",true),("a blue train",false)] {
+                let prompt=try policy.run("flashJudge",.object(["concept":.string("mom"),"userAnswer":.string(answer),"targetLang":.string("es"),"supportLang":.string("en"),"cefrLevel":.string("Pre-A1")])).string,raw=try await provider.judge(prompt),grade=try policy.grade(raw)
+                XCTAssertEqual(grade.correct,expected);if expected{XCTAssertTrue((4...7).contains(grade.xp))}
+            }
+            let prompt=try policy.run("flashReveal",.object(["concept":.string("mom"),"targetLang":.string("es"),"supportLang":.string("en")])).string;var chunks:[String]=[]
+            let answer=try await provider.stream(prompt){chunks.append($0)};XCTAssertFalse(answer.isEmpty);XCTAssertFalse(chunks.isEmpty);XCTAssertLessThan(answer.count,120)
+            let quote=try await provider.quote(card,LearnerState());XCTAssertGreaterThan(quote["gainBySupport"]["independent"].number,0)
+            print("LIVE FLASHCARDS: original semantic YES/NO grading, streamed translation and native question-worth quote succeeded; no learner progress writes")
+        }catch{try? await Auth.auth().currentUser?.delete();try? Auth.auth().signOut();try? identity.disconnect();throw error}
+        try await Auth.auth().currentUser?.delete();try Auth.auth().signOut();try identity.disconnect()
+    }
     func testOriginalFocusedGoalPlannerAndWrittenRubricUseNativeProvider() async throws {
         guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else{throw XCTSkip("Explicit live API opt-in required.")}
         XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))

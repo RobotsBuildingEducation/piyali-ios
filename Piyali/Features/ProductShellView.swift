@@ -52,7 +52,7 @@ struct ProductShellView:View {
             BrandBackground()
             NavigationStack {
                 surface.navigationBarTitleDisplayMode(.inline)
-                    .toolbar(mode == .focus ? .hidden:.automatic,for:.navigationBar)
+                    .toolbar(mode == .focus || mode == .cards ? .hidden:.automatic,for:.navigationBar)
             }.id(revision).tint(PiyaliBrand.teal).blur(radius:menuOpen ? 6 : 0).allowsHitTesting(!menuOpen)
                 .safeAreaInset(edge:.top,spacing:0){ProductTopBar(timer:timer,onGoal:{goalOpen=true},onTimer:{timer.load(account:app.identity.npub);timerOpen=true})}
                 .safeAreaInset(edge:.bottom) { if app.activityFooter == nil { menuButton(compact:false).padding(.bottom,10) } }
@@ -69,7 +69,7 @@ struct ProductShellView:View {
                 }
             if menuOpen { menu }
         }.font(PiyaliBrand.productFont(16)).foregroundStyle(brand.text)
-            .accessibilityElement(children:.contain).accessibilityHidden(app.goalCheck != nil || lessonCompletion != nil || firstRun.step != nil || goalOpen || timerOpen || timer.session.status == .finished)
+            .accessibilityElement(children:.contain).accessibilityHidden(app.flashcardSession != nil || app.goalCheck != nil || lessonCompletion != nil || firstRun.step != nil || goalOpen || timerOpen || timer.session.status == .finished)
             .overlay {
                 if let data=lessonCompletion {
                     ZStack {
@@ -93,6 +93,7 @@ struct ProductShellView:View {
     }
     private var presentedShell:some View {
         shell
+            .overlay{if let session=app.flashcardSession{FlashcardPracticeDialog(session:session)}}
             .overlay{if let goalCheck=app.goalCheck {GoalCheckDialog(presentation:goalCheck)}}
             .overlay{if goalOpen{DailyGoalManagerView(onClose:{goalOpen=false}).accessibilityHidden(timerOpen || timer.session.status == .finished)}}
             .overlay{if timerOpen{SessionTimerView(timer:timer,language:language,onClose:{timerOpen=false}).accessibilityHidden(timer.session.status == .finished)}}
@@ -127,6 +128,7 @@ struct ProductShellView:View {
     }
     private var goalCoordinatedShell:some View {
         sessionShell
+            .onChange(of:app.flashcardSession?.id){_,id in if id == nil {presentPendingLessonCompletion();checkCompletion()}}
             .onChange(of:app.goalCheck?.id){_,value in if value == nil {presentPendingLessonCompletion();checkCompletion()}}
             .onChange(of:app.goalCourseScope,goalScopeChanged)
             .onDisappear{cancelPracticeLaunch()}
@@ -148,6 +150,7 @@ struct ProductShellView:View {
     }
     private func goalScopeChanged(_ old:GoalCourseScope,_ scope:GoalCourseScope) {
         if old != scope {cancelPracticeLaunch()}
+        if let session=app.flashcardSession,!session.matches(app){session.close(app,abandoned:false)}
         if let check=app.goalCheck,check.scope != scope {app.goalCheck=nil}
         if specialCourse == "goal",old.account != scope.account || old.target != scope.target || old.goalID != scope.goalID || old.day != scope.day {
             specialCourse=nil;mode = .focus;guided=nil;saveSession();revision=UUID()
@@ -241,7 +244,7 @@ struct ProductShellView:View {
         guided=saved
         saveSession()
     }
-    private var canPresentPracticeModal:Bool {panel == nil && !menuOpen && !goalOpen && !timerOpen && timer.session.status != .finished && firstRun.step == nil && app.goalCheck == nil && lessonCompletion == nil}
+    private var canPresentPracticeModal:Bool {panel == nil && !menuOpen && !goalOpen && !timerOpen && timer.session.status != .finished && firstRun.step == nil && app.goalCheck == nil && app.flashcardSession == nil && lessonCompletion == nil}
     private func checkCompletion() {
         guard let guided,guided.matches(account:app.identity.npub,target:app.learner.target,day:CalendarDay.key(Date())),guided.taskCompleted(app.plateCourses) else { return }
         if canPresentPracticeModal,!app.lessonActivityActive,app.pendingLessonCompletion == nil { waitingCelebration=false;celebration=true } else { waitingCelebration=true }

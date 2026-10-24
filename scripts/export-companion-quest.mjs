@@ -9,7 +9,7 @@ const require=createRequire(path.join(reference,'package.json')),{parse}=require
 const modules=new Map(),globals=new Set(['undefined','NaN','Infinity','String','Number','Boolean','Object','Array','JSON','Date','Math','Set','Map','RegExp','Error','Intl','parseInt','parseFloat','isNaN','isFinite']);
 async function moduleFor(file){
  if(modules.has(file))return modules.get(file);
- const source=await fs.readFile(path.join(reference,file),'utf8'),ast=parse(source,{sourceType:'module'}),m={file,source,ast,bindings:new Map(),exports:new Map(),selected:new Set(),imports:new Map(),index:modules.size};modules.set(file,m);
+ const source=await fs.readFile(path.join(reference,file),'utf8'),ast=parse(source,{sourceType:'module',plugins:['jsx']}),m={file,source,ast,bindings:new Map(),exports:new Map(),selected:new Set(),imports:new Map(),index:modules.size};modules.set(file,m);
  traverse(ast,{Program(p){for(const [name,binding] of Object.entries(p.scope.bindings))m.bindings.set(name,binding.path);p.stop();}});
  for(const statement of ast.program.body){
   if(statement.type==='ExportNamedDeclaration'){
@@ -23,11 +23,13 @@ async function moduleFor(file){
 }
 async function select(m,name){
  if(m.selected.has(name))return;m.selected.add(name);
+ if(name==='getAppLanguage' && m.file==='src/components/FlashcardPractice.jsx')return;
  const p=m.bindings.get(name);if(!p)throw Error(`Missing binding ${m.file}:${name}`);
  if(m.file==='src/data/phonics/index.js'&&name==='getAuthoredPhonicsDeck')return; // Explicit authored-deck snapshot adapter, never a generated pronunciation fallback.
  if(m.file==='src/utils/companionMemory.js'&&name==='generateRepairDeckEntries'){await select(m,'langName');await select(m,'repairLessonLevelGuard');return;}
  if(p.isImportSpecifier()||p.isImportDefaultSpecifier()){
   const spec=p.parentPath.node.source.value;
+  if(m.file==='src/components/FlashcardPractice.jsx'&&name==='translations'){m.imports.set(name,{flashcardCopy:true});return;}
   if(m.file==='src/utils/companionMemory.js'&&spec==='../hooks/useUserStore'){m.imports.set(name,{snapshot:true});return;}
   if(m.file==='src/constants/languages.js'&&spec==='../components/flagsIcons/flags'){m.imports.set(name,{unusedVisual:true});return;}
   if(!spec.startsWith('.'))throw Error(`Impure external dependency ${m.file}:${spec}`);
@@ -49,24 +51,68 @@ for(const name of ['activeGoalFor','compactSummary','mergeEvidence','normalizeGo
 const goalLessonProgress=await moduleFor('src/utils/lessonProgress.js'),goalCopy=await moduleFor('src/utils/learningGoalCopy.js');
 for(const name of ['getGoalPreparationXp','nextGoalPreparationXp','isGoalLessonReady'])await select(goalLessonProgress,name);
 for(const name of ['goalCopy','goalLessonCompletionCopy'])await select(goalCopy,name);
+const review=await moduleFor('src/utils/flashcardReview.js'),flash=await moduleFor('src/components/FlashcardPractice.jsx'),flashTree=await moduleFor('src/components/FlashcardSkillTree.jsx'),flashColors=await moduleFor('src/data/flashcards/common.js');
+for(const name of ['getFlashcardReviewSnapshot','getSchedulerRatingOptions','mapXpToReviewOutcome','formatAbsoluteReviewTime'])await select(review,name);
+for(const name of ['buildFlashcardJudgePrompt','getFlashcardModalTrimTheme','getTranslation','LANG_NAME','getEffectiveCardLanguage'])await select(flash,name);
+for(const name of ['getCardDecor','getWeaknessScore','isWeakCardSnapshot','buildFallbackActivityMap','APP_TEXT_PRIMARY'])await select(flashTree,name);
+await select(flashColors,'CEFR_COLORS');
+const flashSpeech=await moduleFor('src/hooks/useSpeechPractice.js');await select(flashSpeech,'buildRealtimeSpeechSession');
+const flashNote=await moduleFor('src/utils/noteGeneration.js');await select(flashNote,'LANG_NAME');
+const flashActivity=await moduleFor('src/utils/flashcardActivity.js');for(const name of ['mergeFlashcardActivityCounts','getFlashcardReviewPreviewCount'])await select(flashActivity,name);
+const flashTarget=await moduleFor('src/utils/dailyQuestTargets.js');await select(flashTarget,'getFlashcardDailyTarget');
+const flashLevels=await moduleFor('src/utils/cefrLevelInfo.js');await select(flashLevels,'CEFR_LEVEL_INFO');
+const flashAppTokens=[...flash.bindings.keys()].filter(n=>n.startsWith('APP_'));for(const name of flashAppTokens)await select(flash,name);
 const emitted=new Set(),ordered=[];
 function emit(m,visiting=new Set()){
  if(emitted.has(m))return;if(visiting.has(m))throw Error('Circular pure module graph: '+m.file);visiting.add(m);
  for(const i of m.imports.values())if(i.module)emit(i.module,visiting);visiting.delete(m);
- const imports=[...m.imports].map(([name,i])=>`const ${name}=${i.snapshot?'snapshotStore':i.unusedVisual?'null':`M${i.module.index}.${i.local}`};`).join('\n');
+ const imports=[...m.imports].map(([name,i])=>`const ${name}=${i.flashcardCopy?'new Proxy({}, {get:(_,key)=>snapshotTranslations[key]})':i.snapshot?'snapshotStore':i.unusedVisual?'null':`M${i.module.index}.${i.local}`};`).join('\n');
  const declarations=[...m.selected].filter(n=>!m.imports.has(n)).map(n=>m.bindings.get(n)).sort((a,b)=>a.node.start-b.node.start).map(p=>{
+ if(m.file==='src/components/FlashcardPractice.jsx'&&p.node.id?.name==='getAppLanguage')return 'const getAppLanguage=()=>snapshotAppLanguage;';
  if(m.file==='src/data/phonics/index.js'&&p.node.id?.name==='getAuthoredPhonicsDeck')return 'function getAuthoredPhonicsDeck(target,support,level){return snapshotDecks[target+":"+support+":"+level]||[];}';
  if(m.file==='src/utils/companionMemory.js'&&p.node.id?.name==='generateRepairDeckEntries'){const original=m.source.slice(p.node.start,p.node.end);return original.slice(0,original.indexOf('  let raw =')).replace('async function','function')+'  return input;\n}';}
  return (p.isVariableDeclarator()?'const ':'')+m.source.slice(p.node.start,p.node.end)+(p.isVariableDeclarator()?';':'');}).join('\n');
  ordered.push(`// ${m.file}\nconst M${m.index}=(function(){\n${imports}\n${declarations}\nreturn {${[...m.selected].join(',')}};})();`);emitted.add(m);
 }
-emit(memory);emit(copy);emit(model);emit(phonics);emit(goalLessonProgress);emit(goalCopy);
+emit(memory);emit(copy);emit(model);emit(phonics);emit(goalLessonProgress);emit(goalCopy);emit(review);emit(flash);emit(flashTree);emit(flashColors);emit(flashSpeech);emit(flashNote);emit(flashLevels);emit(flashActivity);emit(flashTarget);
 const intelligenceFile='src/utils/learningIntelligence.js',intelligenceText=await fs.readFile(path.join(reference,intelligenceFile),'utf8');
 let goalPlanTemplate,goalJudgeTemplate;traverse(parse(intelligenceText,{sourceType:'module'}),{TemplateLiteral(p){if(p.parentPath.isObjectProperty()&&p.parentPath.node.key.name==='input'&&intelligenceText.slice(p.node.start,p.node.end).includes('Plan ONE daily language Goal task.'))goalPlanTemplate=intelligenceText.slice(p.node.start,p.node.end);if(p.parentPath.isObjectProperty()&&p.parentPath.node.key.name==='input'&&intelligenceText.slice(p.node.start,p.node.end).includes("Evaluate this learner's attempt at their language goal."))goalJudgeTemplate=intelligenceText.slice(p.node.start,p.node.end);}});
 if(!goalPlanTemplate||!goalJudgeTemplate)throw Error('Original daily Goal planner moved.');
+const generator=require('@babel/generator').default;
+function expression(m,name,owner){let found;traverse(m.ast,{VariableDeclarator(p){if(p.node.id.name!==name)return;if(owner&&!p.findParent(a=>a.isVariableDeclarator()&&a.node.id.name===owner))return;found=p.node.init;}});if(!found)throw Error('Flashcard expression moved: '+name+':'+owner);const copy=JSON.parse(JSON.stringify(found));traverse({type:'File',program:{type:'Program',sourceType:'module',body:[{type:'ExpressionStatement',expression:copy}]}},{JSXElement(p){p.replaceWith({type:'NullLiteral'});}});return generator(copy).code;}
+const shells=['defaultModalShell','resultTheme','reviewButtonThemes'].map(name=>'const '+name+'='+expression(flash,name)+';').join('\n');
+let cardPseudo;traverse(flashTree.ast,{JSXAttribute(p){if(p.node.name.name==='sx'&&p.findParent(a=>a.isVariableDeclarator()&&a.node.id.name==='FlashcardCard'))cardPseudo=generator(p.node.value.expression).code;}});if(!cardPseudo)throw Error('Original flashcard pseudo styles moved');
+const cardVisualExpressions=['cardTextColor','cardTextShadow','glowColor','softGlowColor'].map(name=>'const '+name+'='+expression(flashTree,name,'FlashcardCard')+';').join('\n');
+const revealTemplate=expression(flash,'prompt','revealAnswer'),explainTemplate=expression(flash,'prompt','handleExplainAnswer');
+const gradeOwner=flash.bindings.get('FlashcardPractice'),gradeText=flash.source.slice(gradeOwner.node.start,gradeOwner.node.end),gradeParser=gradeText.slice(gradeText.indexOf('      const trimmed = (response'),gradeText.indexOf('      setIsCorrect(isYes)'));
+if(!gradeParser.includes('let xp = 5'))throw Error('Flashcard grade parser moved');
+const noteNode=flashNote.bindings.get('generateNoteContent').node,noteBody=flashNote.source.slice(noteNode.body.start+1,noteNode.body.end-1),notePromptBody=noteBody.slice(0,noteBody.indexOf('  try {'));
+const noteParser=noteBody.slice(noteBody.indexOf('    const trimmed = (response'),noteBody.indexOf('  } catch'));
+const noteFallback=noteBody.slice(noteBody.indexOf('    return {',noteBody.indexOf('  } catch')),noteBody.lastIndexOf('  }'));
+const earnedExpression=expression(flash,'earnedXp','handleReviewRating');
+const flashApp=await moduleFor('src/App.jsx'),persistedExpression=expression(flashApp,'xpAmount','persistFlashcardReview');
+const flashRuntime=`function flashRun(op,p,now){const f=M${flash.index},r=M${review.index},t=M${flashTree.index},c=M${flashColors.index},isLightTheme=p.light!==false,isCorrect=Boolean(p.correct),assessmentMode=p.assessment||'ai',getTranslation=f.getTranslation,cefrColor=c.CEFR_COLORS[p.level||'Pre-A1'];
+if(op==='flashPreview')return M${flashActivity.index}.getFlashcardReviewPreviewCount(p.saved,p.base);
+if(op==='flashActivity')return M${flashActivity.index}.mergeFlashcardActivityCounts(p.saved,t.buildFallbackActivityMap(p.reviews));
+if(op==='flashTarget')return M${flashTarget.index}.getFlashcardDailyTarget(p);
+if(op==='flashLevels')return M${flashLevels.index}.CEFR_LEVEL_INFO;
+if(op==='flashNotePrompt'){const {concept,userAnswer,wasCorrect,targetLang,supportLang,cefrLevel,moduleType}=p,LANG_NAME=M${flashNote.index}.LANG_NAME;${notePromptBody};return prompt;}
+if(op==='flashNoteParse'){const response=p.raw,concept=p.concept,cefrLevel=p.cefrLevel,moduleType='flashcard';try{${noteParser}}catch{${noteFallback}}}
+if(op==='flashSpeech')return M${flashSpeech.index}.buildRealtimeSpeechSession(p);
+if(op==='flashGrade'){const response=p.raw;${gradeParser};return {correct:isYes,xp:isYes?xp:0,suggested:isYes?r.mapXpToReviewOutcome(xp):'again'};}
+if(op==='flashReward'){const rating=p.rating,xpAwarded=p.xp||0;const earnedXp=${earnedExpression},card={xpReward:earnedXp},persistedXp=${persistedExpression};return {displayXp:earnedXp,persistedXp:p.focused?(rating==='good'||rating==='easy'?2:0):persistedXp,success:rating==='good'||rating==='easy'};}
+if(op==='flashJudge')return f.buildFlashcardJudgePrompt(p);
+if(op==='flashReveal'||op==='flashExplain'){const sourceText=p.concept,concept=p.concept,userAnswer=p.answer,effectiveCardLanguage=p.supportLang,targetLang=p.targetLang,LANG_NAME=f.LANG_NAME;return op==='flashReveal'?${revealTemplate}:${explainTemplate};}
+if(op==='flashSnapshot')return r.getFlashcardReviewSnapshot(p.progress||{},now);
+if(op==='flashRatings')return r.getSchedulerRatingOptions(p.progress||{},now);
+if(op==='flashDate')return r.formatAbsoluteReviewTime(p.date,p.language,now);
+if(op==='flashTheme'){const {${flashAppTokens.join(',')}}=f;${shells};return {shell:defaultModalShell,result:resultTheme,ratings:reviewButtonThemes,trim:f.getFlashcardModalTrimTheme(p.card||{},cefrColor,isLightTheme),decor:t.getCardDecor(p.status||'active',cefrColor,isLightTheme),cefr:cefrColor,visuals:(()=>{const status=p.status||'active',isDue=status==='due',isWeak=status==='weak',isLocked=status==='locked',isActionable=['active','due','weak'].includes(status),APP_TEXT_PRIMARY=t.APP_TEXT_PRIMARY;${cardVisualExpressions};return {sx:${cardPseudo},cardTextColor,cardTextShadow,glowColor,softGlowColor};})()};}
+if(op==='flashWeak')return {weak:t.isWeakCardSnapshot(p.snapshot),score:t.getWeaknessScore(p.snapshot)};
+throw Error('Unknown flashcard operation');}`;
 const deckFunction=memory.bindings.get('generateRepairDeckEntries').node,deckSource=memory.source.slice(deckFunction.start,deckFunction.end),deckParser='function parseRepairEntries(raw){'+deckSource.slice(deckSource.indexOf('  const text = String(raw'));
-const bridge=`function run(operation,json){const p=JSON.parse(json),now=new SystemDate(p.now||SystemDate.now());Date=class extends SystemDate{constructor(...args){super(...(args.length?args:[now.getTime()]));}static now(){return now.getTime();}};snapshotUser=p.user||{};snapshotDecks=p.decks||{};try{const m=M${memory.index},c=M${copy.index},model=M${model.index};let value;
-if(operation==='reusable')value=m.getReusableMemory(p.user,p.targetLang,now);
+const bridge=`function run(operation,json){const p=JSON.parse(json),now=new SystemDate(p.now||SystemDate.now());Date=class extends SystemDate{constructor(...args){super(...(args.length?args:[now.getTime()]));}static now(){return now.getTime();}};snapshotUser=p.user||{};snapshotDecks=p.decks||{};snapshotTranslations=p.copy||{};snapshotAppLanguage=p.language||p.supportLang||'en';try{const m=M${memory.index},c=M${copy.index},model=M${model.index};let value;
+if(operation.startsWith('flash'))value=flashRun(operation,p,now);
+else if(operation==='reusable')value=m.getReusableMemory(p.user,p.targetLang,now);
 else if(operation==='captured')value=m.getTodaysCapturedNotes(p.user,p.targetLang,now);
 else if(operation==='rank')value=m.rankReusableNotes(p.notes||[]);
 else if(operation==='stored')value={blueprint:m.getStoredBlueprint(p.user,p.targetLang,p.dayKey),repair:m.getStoredRepairPlan(p.user,p.targetLang,p.dayKey),explanation:m.getStoredQuestExplanation(p.user,p.targetLang,p.dayKey),shouldRun:m.shouldRunDailyBatch(p.user,p.targetLang,p.dayKey,now)};
@@ -94,8 +140,8 @@ else if(operation==='bubble')value=c.buildQuestBubble(p);
 else if(operation==='summary')value=c.companionMemorySummary(p.lang,p.concept);
 else if(operation==='prepare'){const ranked=m.rankReusableNotes(p.notes||[]),goal=model.activeGoalFor(p.user,p.targetLang),goalProgress=model.compactSummary(p.user?.learningIntelligence?.[p.targetLang]?.goalProgress,'goal'),args={ranked,langKey:p.targetLang,appLanguage:p.appLanguage,todayCleared:p.todayCleared,carryOverKinds:p.carryOverKinds||[],targetDayKey:p.dayKey,now,goal};value={ranked,fallback:m.buildDeterministicBlueprint(args),prompt:m.buildBatchInput({...args,targetLang:p.targetLang,cefrLevel:p.cefrLevel,goal,goalProgress,performance:p.performance||m.generationPerformanceContextFor(p.user,p.targetLang)})};}
 else if(operation==='assemble'){const parsed=m.parseBlueprintJson(p.raw);value=parsed?m.assembleAiBlueprint({...p,parsed,langKey:p.targetLang,targetDayKey:p.dayKey,now}):p.fallback;}
-else throw Error('Unknown companion operation');return JSON.stringify(value??null);}finally{snapshotUser={};snapshotDecks={};Date=SystemDate;}}`;
-const script=`// Generated source policy; no network, Firebase, UI stores or host bindings.\nvar PiyaliCompanionQuest=(function(SystemDate){\nlet Date=SystemDate,snapshotUser={},snapshotDecks={};const snapshotStore={getState:()=>({user:snapshotUser})};\n${ordered.join('\n')}\n${deckParser}\n${bridge}\nreturn {run};})(Date);\n`;
+else throw Error('Unknown companion operation');return JSON.stringify(value??null);}finally{snapshotUser={};snapshotDecks={};snapshotTranslations={};Date=SystemDate;}}`;
+const script=`// Generated source policy; no network, Firebase, UI stores or host bindings.\nvar PiyaliCompanionQuest=(function(SystemDate){\nlet Date=SystemDate,snapshotUser={},snapshotDecks={},snapshotTranslations={},snapshotAppLanguage='en';const snapshotStore={getState:()=>({user:snapshotUser})};\n${ordered.join('\n')}\n${deckParser}\n${flashRuntime}\n${bridge}\nreturn {run};})(Date);\n`;
 const api=Function(script+';return PiyaliCompanionQuest;')();
 function stableJSON(value){return JSON.stringify(value,(_,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.fromEntries(Object.keys(v).sort().map(k=>[k,v[k]])):v);}
 const rows=[],now='2026-10-23T12:00:00',dayKey='2026-10-23',targetLang='es';
@@ -137,7 +183,21 @@ for(const earned of [0,9,19,20,21])for(const active of [true,false]){
  for(const amount of [0,3])goalRecord('goalPreparation',{bucket,focus:{npub:'public',targetLang:'es',blueprint:lessonBlueprint},npub:'public',targetLang:'es',dayKey,lessonId:goalLesson.id,amount});
 }
 await fs.writeFile(path.join(root,'Tests/PiyaliCoreTests/Fixtures/goal-source-policy.json.gz'),gzipSync(JSON.stringify(goalRows),{level:9}));
+const flashRows=[],appCopy=JSON.parse(gunzipSync(await fs.readFile(path.join(root,'Piyali/Resources/app-copy.json.gz'))));
+function flashRecord(operation,input){const p={copy:appCopy,now:'2026-10-24T12:00:00',...input};flashRows.push({operation,input:p,expected:JSON.parse(api.run(operation,stableJSON(p)))});}
+for(const raw of ['YES | 4','YES | 6','YES | 7','YES','yes | 9','NO','unknown','YES | 4.8'])flashRecord('flashGrade',{raw});
+for(const focused of [false,true])for(const correct of [false,true])for(const rating of ['again','hard','good','easy'])for(const xp of [0,4,6,7])flashRecord('flashReward',{focused,correct,rating,xp});
+for(const language of ['en','ar','fr']){flashRecord('flashJudge',{language,concept:'mom',userAnswer:'mamá',targetLang:'es',supportLang:language,cefrLevel:'Pre-A1'});for(const op of ['flashReveal','flashExplain'])flashRecord(op,{language,concept:'mom',answer:'mama',targetLang:'es',supportLang:language});}
+for(const light of [true,false])for(const level of ['Pre-A1','A1','B2'])for(const correct of [true,false])flashRecord('flashTheme',{light,level,correct});
+for(const progress of [{},{schedulerState:'learning',nextReviewAt:'2026-10-24T12:10:00'},{schedulerState:'review',intervalDays:10,lapseCount:2,consecutiveCorrect:0,nextReviewAt:'2026-10-25T12:00:00'}]){const p={progress};flashRecord('flashSnapshot',p);flashRecord('flashRatings',p);}
+for(const supportLang of ['en','ar','fr'])flashRecord('flashNotePrompt',{concept:'mom',userAnswer:'mama',wasCorrect:false,targetLang:'es',supportLang,cefrLevel:'Pre-A1',moduleType:'flashcard'});
+for(const raw of ['{"example":"Mi mamá","summary":"A family word"}','{bad}','no JSON'])flashRecord('flashNoteParse',{raw,concept:'mom',cefrLevel:'Pre-A1'});
+for(const [saved,base] of [[0,null],[0,0],[1,0],[7,4],[0,4]])flashRecord('flashPreview',{saved,base});
+for(const target of [null,5])flashRecord('flashTarget',{userKey:'public-source-fixture',langKey:'es',dayKey:'2026-10-24',plateSnapshot:target?{courses:[{kind:'review',target}]}:{courses:[]}});
+flashRecord('flashActivity',{saved:{'2026-10-24':2},reviews:{one:{lastReviewedAt:'2026-10-24T12:00:00'},two:{lastReviewedAt:'2026-10-24T12:00:00'},three:{completedAt:'2026-10-24T12:00:00'}}});
+for(const targetLang of ['es','ar','ja','nah'])flashRecord('flashSpeech',{targetLang,transcriptionHint:'',timeoutMs:2000});
+await fs.writeFile(path.join(root,'Tests/PiyaliCoreTests/Fixtures/flashcard-source-policy.json.gz'),gzipSync(JSON.stringify(flashRows),{level:9}));
 await fs.writeFile(path.join(root,'Piyali/Resources/companion-quest-policy.js'),script);
 await fs.writeFile(path.join(root,'Tests/PiyaliCoreTests/Fixtures/companion-quest-policy.json.gz'),gzipSync(JSON.stringify(rows),{level:9}));
-await fs.writeFile(path.join(root,'docs/reference/companion-quest-source-manifest.json'),JSON.stringify({modules:[...modules.values()].filter(m=>m.selected.size).map(m=>({file:m.file,sha256:createHash('sha256').update(m.source).digest('hex'),declarations:[...m.selected]})),fixtureCount:rows.length,goalFixtureCount:goalRows.length,goalPlanner:{file:intelligenceFile,sha256:createHash('sha256').update(intelligenceText).digest('hex'),scope:'Original callResponses input template; source network/persistence code is excluded.'},fixtureEncoding:"gzip(JSON)",snapshotAdapter:'An explicit clock scopes Date during each call for reproducibility. Only useUserStore.getState().user is replaced by the explicit plain input snapshot; all source I/O functions are excluded. The deck prompt and parser are split at the source network call; no provider code executes. Authored phonics selection reads the exact pre-exported deck snapshot. Unread flag component fields in language metadata are null; language labels/normalization remain source functions.'},null,2)+'\n');
-console.log(`Exported ${rows.length} source-executed companion cases and ${goalRows.length} goal cases, ${script.length} bytes of pure policy.`);
+await fs.writeFile(path.join(root,'docs/reference/companion-quest-source-manifest.json'),JSON.stringify({modules:[...modules.values()].filter(m=>m.selected.size).map(m=>({file:m.file,sha256:createHash('sha256').update(m.source).digest('hex'),declarations:[...m.selected]})),fixtureCount:rows.length,goalFixtureCount:goalRows.length,flashcardFixtureCount:flashRows.length,flashcardAdapters:{uiLanguage:"Explicit p.language snapshot replaces getAppLanguage; p.copy supplies the previously exported source string dictionaries.",visuals:"JSX icon elements are omitted from original plain theme values. UI and source provider/store code never execute in this bundle.",prompts:"Original judge, reveal, explanation, note prompts and parser are split at network boundaries; the original native capture session configuration is unchanged.",rewardHandler:{file:flashApp.file,sha256:createHash('sha256').update(flashApp.source).digest('hex'),expression:persistedExpression}},goalPlanner:{file:intelligenceFile,sha256:createHash('sha256').update(intelligenceText).digest('hex'),scope:'Original callResponses input template; source network/persistence code is excluded.'},fixtureEncoding:"gzip(JSON)",snapshotAdapter:'An explicit clock scopes Date during each call for reproducibility. Only useUserStore.getState().user is replaced by the explicit plain input snapshot; all source I/O functions are excluded. The deck prompt and parser are split at the source network call; no provider code executes. Authored phonics selection reads the exact pre-exported deck snapshot. Unread flag component fields in language metadata are null; language labels/normalization remain source functions.'},null,2)+'\n');
+console.log(`Exported ${rows.length} source-executed companion cases and ${goalRows.length} goal cases, ${flashRows.length} flashcard cases, ${script.length} bytes of pure policy.`);

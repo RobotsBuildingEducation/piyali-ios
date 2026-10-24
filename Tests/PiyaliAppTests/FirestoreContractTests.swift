@@ -46,6 +46,28 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
         XCTAssertEqual(fields["patreonVerified"] as? Bool,true);XCTAssertEqual(fields["unrelatedWebSetting"] as? String,"preserve")
         let snapshot=try JSONDecoder().decode(LearnerState.self,from:Data((fields["iosStateJSON"] as? String ?? "").utf8));XCTAssertNil(snapshot.companionQuestDays);XCTAssertTrue(snapshot.pendingRepairEvidence?.isEmpty == true)
     }
+    func testSourceFlashcardGradeAndRatingPersistOnceAndGoalCardsRemainOutsideNormalSRS()async throws {
+        let (service,db,_)=try context(),app=AppModel(progressService:service);try app.identity.create();defer{try? app.identity.disconnect()};let npub=app.identity.npub;try await seed(db,npub)
+        app.subscription.bind(app.identity);app.signedIn=true;app.learner=try requireState(await service.load(npub:npub))
+        let card:JSONValue = .object(["id":.string("pre-a1-public-review"),"concept":.object(["es":.string("mamá"),"fr":.string("maman")]),"cefrLevel":.string("Pre-A1"),"category":.string("people"),"type":.string("word")])
+        let provider=FlashcardProvider(judge:{_ in "YES | 6"},stream:{_,update in update("maman");return "maman"},quote:{card,state in try GeneratedQuestionWorth.fallback(level:card["cefrLevel"].string,learner:state,recipes:PracticeRecipes())})
+        func settle(_ session:FlashcardSessionController)async throws {for _ in 0..<700 where session.grading || session.saving {try await Task.sleep(for:.milliseconds(20))};XCTAssertFalse(session.grading);XCTAssertFalse(session.saving)}
+        let ordinary=try FlashcardSessionController(app:app,card:card,status:"active",provider:provider);app.flashcardSession=ordinary;ordinary.answer="maman";ordinary.submit(app);try await settle(ordinary)
+        XCTAssertEqual(app.learner.totalXP,150);XCTAssertNil(app.learner.cardReviews)
+        ordinary.commit(.hard,app:app);try await settle(ordinary);let sent=app.learner
+        _=try await service.save(sent,npub:npub);_=try await service.save(sent,npub:npub);await app.sync()
+        let first=try requireState(await service.load(npub:npub));XCTAssertEqual(first.totalXP,156);XCTAssertEqual(first.cardReviews?["fr:pre-a1-public-review"]?.lastReviewOutcome,.hard);XCTAssertEqual(first.cardReviews?["fr:pre-a1-public-review"]?.reviewCount,1)
+        let day=CalendarDay.key(Date());app.learner.editGoal("Greet a family member")
+        let bp:JSONValue = .object(["goalId":app.learner.goalBucket["activeGoal"]["id"],"dayKey":.string(day),"lang":.string("fr"),"mode":.string("flashcards"),"modes":.array([.string("flashcards"),.string("lesson")]),"modeTargets":.object(["flashcards":.number(3),"lesson":.number(20)]),"objective":.string("Greet a family member"),"cefrLevel":.string("Pre-A1")])
+        let focused=card.setting("id",.string("focused-public-review")).setting("isGoal",.bool(true))
+        app.learner.applyGoal(GoalChange(action:.blueprint,target:"fr",payload:bp));app.learner.applyGoal(GoalChange(action:.artifact,target:"fr",payload:bp.setting("cards",.array([focused]))));await app.sync();XCTAssertNotNil(app.readyGoal)
+        let goal=try FlashcardSessionController(app:app,card:focused,status:"active",goal:bp,provider:provider);app.flashcardSession=goal;goal.answer="maman";goal.submit(app);try await settle(goal);goal.commit(.good,app:app);try await settle(goal)
+        XCTAssertNil(goal.error);XCTAssertNil(app.flashcardSession)
+        let restored=try requireState(await service.load(npub:npub)),user=db.collection("users").document(npub),root=try await user.getDocument(source:.server).data() ?? [:],ephemeral=try await user.collection("languageFlashcards").document("fr_focused-public-review").getDocument(source:.server)
+        XCTAssertEqual(restored.totalXP,158);XCTAssertEqual(restored.gradedByLanguage?["fr"],2,"Focused practice must not grade the same answer again when scheduling it")
+        XCTAssertFalse(ephemeral.exists);XCTAssertEqual(restored.plateProgress["flashcardDailyActivity"]["fr"][day].number,1);XCTAssertTrue(restored.goalArtifacts?.values.contains{$0["outcomes"]["focused-public-review"]["success"].boolean} == true)
+        XCTAssertEqual(root["patreonVerified"] as? Bool,true);XCTAssertEqual(root["unrelatedWebSetting"] as? String,"preserve")
+    }
     func testFocusedGoalLessonCommitsFinalXPBeforeCompletionAndRetriesWithoutBonus() async throws {
         let (service,db,_)=try context(),app=AppModel(progressService:service);try app.identity.create();defer{try? app.identity.disconnect()}
         let npub=app.identity.npub;try await seed(db,npub);app.subscription.bind(app.identity);app.signedIn=true

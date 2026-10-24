@@ -169,7 +169,7 @@ public enum WebProgressContract {
         if let field = change.source.activityField {
             var byLanguage = progress[field] as? [String:[String:Any]] ?? [:]
             var byDay = byLanguage[change.target] ?? [:]
-            byDay[change.dayKey] = integer(byDay[change.dayKey]) + 1
+            byDay[change.activityDayKey] = integer(byDay[change.activityDayKey]) + 1
             byLanguage[change.target] = byDay.filter { $0.key >= cutoff && $0.key <= today }
             progress[field] = byLanguage
         }

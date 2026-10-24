@@ -12,6 +12,10 @@ import ProficiencyTestModal from '/src/components/ProficiencyTestModal';
 import DailyPlateHome from '/src/components/DailyPlateHome';
 import DailyGoalModal from '/src/components/DailyGoalModal';
 import SessionTimerModal from '/src/components/SessionTimerModal';
+import FlashcardPractice from '/src/components/FlashcardPractice';
+import FlashcardSkillTree from '/src/components/FlashcardSkillTree';
+import CEFRLevelNavigator from '/src/components/CEFRLevelNavigator';
+import CourseProgressHeader from '/src/components/CourseProgressHeader';
 import GoalFocusBanner from '/src/components/GoalFocusBanner';
 import {LearningGoalField} from '/src/components/LearningGoalSettings';
 import useGoalFocusStore from '/src/hooks/useGoalFocusStore';
@@ -29,6 +33,13 @@ useSoundSettings.getState().setSoundEnabled(false);
 syncDocumentLanguage(language);
 function FirstRunPreview(){const [step,setStep]=useState('install');return <><GettingStartedModal isOpen={step==='install'} lang={language} secretKey="fixture-only-no-private-key" onClose={()=>setStep('placement')}/><ProficiencyTestModal isOpen={step==='placement'} lang={language} targetLangLabel={translate(language,'language_'+(language==='es'?'en':'es'))} onClose={()=>setStep('done')} onStartAtLevel={()=>setStep('done')} onTakeTest={()=>setStep('done')}/></>}
 function ToolsPreview(){const [tool,setTool]=useState(query.get('tool')||'goal'),[minutes,setMinutes]=useState('20'),[result,setResult]=useState(null);return <><SourceTopBar appLanguage={language} onOpenDailyGoalModal={()=>setTool('goal')} onOpenTimerModal={()=>setTool('timer')}/><DailyGoalModal isOpen={tool==='goal'} dismissible lang={language} npub="piyali-public-fixture-no-account" defaultGoal={100} petHealth={100} onClose={()=>setTool('')} onSaveGoal={goal=>{setResult({goal});setTool('')}} onCustomizePet={()=>{}}/><SessionTimerModal isOpen={tool==='timer'} lang={language} t={Object.fromEntries(['title','description','minutes_label','max_hint','drag_hint','quick_picks','close','start','restart'].map(key=>['timer_modal_'+key,translate(language,'timer_modal_'+key)]))} minutes={minutes} onMinutesChange={setMinutes} onClose={()=>setTool('')} onStart={value=>{setResult({minutes:value});setTool('')}}/>{result&&<pre id="tools-result">{JSON.stringify(result)}</pre>}</>}
+function FlashcardPreview(){
+ const [open,setOpen]=useState(true),[result,setResult]=useState(null);localStorage.setItem('appLanguage',language);
+ const card={id:'pre-a1-people-1',concept:{en:'mom',es:'mamá',ar:'ماما',fr:'maman'},cefrLevel:'Pre-A1',category:'people',type:'word',reviewProgress:{},practiceStatus:'active'};
+ React.useLayoutEffect(()=>{useUserStore.setState({user:null});useGoalFocusStore.setState({focus:null})},[]);
+ if(query.get('tool')==='deck')return <Box px={3} pt={3} pb={6}><CEFRLevelNavigator currentLevel="Pre-A1" activeCEFRLevel="Pre-A1" supportLang={language} onLevelChange={()=>{}}/><CourseProgressHeader totalXp={10} activeLevel="Pre-A1" percentage={0} supportLang={language}/><FlashcardSkillTree targetLang="es" supportLang={language} activeCEFRLevel="Pre-A1" dailyPlateSnapshot={{courses:[{kind:'review',target:5,count:0}]}} userProgress={{flashcards:{}}}/></Box>;
+ return <>{result&&<pre id="flashcard-result">{JSON.stringify(result)}</pre>}<FlashcardPractice card={card} isOpen={open} targetLang="es" supportLang={language} languageXp={10} dailyReviewed={0} dailyTarget={5} onClose={()=>setOpen(false)} onComplete={value=>{setResult(value);setOpen(false)}}/></>;
+}
 function GoalPreview(){
  const [value,setValue]=useState('Speak with family'),dayKey=new Date().toLocaleDateString('en-CA'),npub='piyali-public-fixture-no-account';
  const blueprint={goalId:'public-goal',dayKey,lang:'es',mode:'lesson',modes:['lesson','tutor'],cefrLevel:'Pre-A1',objective:language==='ar'?'حيّ أفراد عائلتك':'Greet a family member',scenario:language==='ar'?'أنت تزور عائلتك. ابدأ محادثة قصيرة بالإسبانية.':'You are visiting family. Start a short conversation in Spanish.',targetLanguage:['Hola','¿Cómo estás?'],supports:language==='ar'?['تدرّب على تحية','استخدم نموذجًا']:['Rehearse a greeting','Use a model'],successCriteria:language==='ar'?['قل مرحبًا','اسأل كيف حالهم']:['Say hello','Ask how they are']};
@@ -58,4 +69,4 @@ function FocusPreview(){
  if(state==='welcome'||state==='returning')localStorage.removeItem(dismissKey);else localStorage.setItem(dismissKey,'1');
  return <DailyPlateHome key={language+state} user={user} targetLang={target} appLanguage={language} dailyXp={state==='progress'?125:0} dailyGoalXp={state==='returning'?100:50} languageXp={state==='progress'?240:0} companionLevel={state==='progress'?3:1} petHealth={state==='progress'?49:100} petName={custom.name} petType={custom.petType} onCustomizePet={setCustom} questKinds={state==='returning'?['repair','speak','learn','review']:['speak','learn','review']} onStartPractice={()=>{}} onCompanionContinue={()=>{}} immersion={state==='immersion'?{awaitingPlacement:false,tasks:['Notice a familiar word','Listen for a useful detail','Describe something nearby'].map(title=>({title,description:'Practice privately at home, then mark this mission complete.'})),completed,status:'ready',rewarded:completed.every(Boolean),toggleTask:index=>setCompleted(old=>old.map((v,i)=>i===index?!v:v))}:{awaitingPlacement:true,tasks:[],completed:[],status:'new'}}/>;
 }
-createRoot(document.getElementById('root')).render(<ChakraProvider theme={theme}><MemoryRouter initialEntries={['/onboarding']}>{query.get('screen')==='focused-goal'?<GoalPreview/>:query.get('screen')==='tools'?<ToolsPreview/>:query.get('screen')==='first-run'?<FirstRunPreview/>:query.get('screen')==='focus'?<FocusPreview/>:<Preview/>}</MemoryRouter></ChakraProvider>);
+createRoot(document.getElementById('root')).render(<ChakraProvider theme={theme}><MemoryRouter initialEntries={['/onboarding']}>{query.get('screen')==='flashcards'?<FlashcardPreview/>:query.get('screen')==='focused-goal'?<GoalPreview/>:query.get('screen')==='tools'?<ToolsPreview/>:query.get('screen')==='first-run'?<FirstRunPreview/>:query.get('screen')==='focus'?<FocusPreview/>:<Preview/>}</MemoryRouter></ChakraProvider>);

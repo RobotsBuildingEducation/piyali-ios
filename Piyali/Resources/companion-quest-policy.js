@@ -1,6 +1,6 @@
 // Generated source policy; no network, Firebase, UI stores or host bindings.
 var PiyaliCompanionQuest=(function(SystemDate){
-let Date=SystemDate,snapshotUser={},snapshotDecks={};const snapshotStore={getState:()=>({user:snapshotUser})};
+let Date=SystemDate,snapshotUser={},snapshotDecks={},snapshotTranslations={},snapshotAppLanguage='en';const snapshotStore={getState:()=>({user:snapshotUser})};
 // src/utils/userDataSchema.js
 const M4=(function(){
 
@@ -13,29 +13,6 @@ function questDayDocumentId(langKey, dayKey) {
   return `${String(langKey || "es").trim().toLowerCase()}_${dayKey}`;
 }
 return {getLocalCalendarDayKey,questDayDocumentId};})();
-// src/utils/flashcardReview.js
-const M3=(function(){
-const getLocalCalendarDayKey=M4.getLocalCalendarDayKey;
-function coerceDate(value) {
-  if (!value) return null;
-  const date = value instanceof Date ? value : new Date(value);
-  return Number.isNaN(date.getTime()) ? null : date;
-}
-function getLocalDayKey(value) {
-  const date = coerceDate(value);
-  if (!date) return null;
-  return getLocalCalendarDayKey(date) || null;
-}
-return {getLocalDayKey,coerceDate,getLocalCalendarDayKey};})();
-// src/utils/dailyPlate.js
-const M5=(function(){
-
-function normalizePlateLang(targetLang) {
-  return typeof targetLang === "string" && targetLang.trim()
-    ? targetLang.trim().toLowerCase()
-    : "es";
-}
-return {normalizePlateLang};})();
 // src/constants/supportLanguages.js
 const M7=(function(){
 
@@ -248,6 +225,25 @@ const SUPPORTED_LANGUAGE_CODES_SET = new Set(
 );
 const SUPPORT_LANGUAGE_CODES_BASE = [...CANONICAL_SUPPORT_LANGUAGE_CODES];
 const SUPPORT_LANGUAGE_CODES_SET = new Set(SUPPORT_LANGUAGE_CODES_BASE);
+const LANGUAGE_LOCALES = {
+  ar: "ar-EG",
+  zh: "zh-CN",
+  en: "en-US",
+  es: "es-MX",
+  pt: "pt-BR",
+  fr: "fr-FR",
+  it: "it-IT",
+  hi: "hi-IN",
+  nl: "nl-NL",
+  nah: "es-MX",
+  ja: "ja-JP",
+  ru: "ru-RU",
+  de: "de-DE",
+  el: "el-GR",
+  pl: "pl-PL",
+  ga: "ga-IE",
+  yua: "es-MX",
+};
 const normalizeCode = (raw) => String(raw || "").trim().toLowerCase();
 const normalizeSupportedCode = (raw) => {
   const normalized = normalizeCode(raw);
@@ -278,7 +274,609 @@ function getLanguagePromptName(code) {
     normalized.toUpperCase()
   );
 }
-return {normalizeSupportLanguage,DEFAULT_SUPPORT_LANGUAGE,normalizeSupportedCode,normalizeCode,SUPPORTED_LANGUAGE_CODES_SET,LANGUAGE_META,egyptianFlag,netherlandsFlag,usaFlag,frenchFlag,germanFlag,italianFlag,indianFlag,chineseFlag,brazilianFlag,mexicanFlag,greekFlag,japaneseFlag,russianFlag,polishFlag,irishFlag,SUPPORT_LANGUAGE_CODES_SET,SUPPORT_LANGUAGE_CODES_BASE,CANONICAL_SUPPORT_LANGUAGE_CODES,getLanguagePromptName,LANGUAGE_PROMPT_LABELS,LANGUAGE_FALLBACK_LABELS};})();
+function getLanguageLocale(code, fallback = "en-US") {
+  const normalized = normalizeSupportedCode(code);
+  return LANGUAGE_LOCALES[normalized] || fallback;
+}
+return {normalizeSupportLanguage,DEFAULT_SUPPORT_LANGUAGE,normalizeSupportedCode,normalizeCode,SUPPORTED_LANGUAGE_CODES_SET,LANGUAGE_META,egyptianFlag,netherlandsFlag,usaFlag,frenchFlag,germanFlag,italianFlag,indianFlag,chineseFlag,brazilianFlag,mexicanFlag,greekFlag,japaneseFlag,russianFlag,polishFlag,irishFlag,SUPPORT_LANGUAGE_CODES_SET,SUPPORT_LANGUAGE_CODES_BASE,CANONICAL_SUPPORT_LANGUAGE_CODES,getLanguagePromptName,LANGUAGE_PROMPT_LABELS,LANGUAGE_FALLBACK_LABELS,getLanguageLocale,LANGUAGE_LOCALES};})();
+// src/utils/flashcardReview.js
+const M3=(function(){
+const getLocalCalendarDayKey=M4.getLocalCalendarDayKey;
+const normalizeSupportLanguage=M6.normalizeSupportLanguage;
+const DEFAULT_SUPPORT_LANGUAGE=M6.DEFAULT_SUPPORT_LANGUAGE;
+const getLanguageLocale=M6.getLanguageLocale;
+const MINUTE_MS = 60 * 1000;
+const HOUR_MS = 60 * MINUTE_MS;
+const DAY_MS = 24 * HOUR_MS;
+const FLASHCARD_REVIEW_STATES = {
+  NEW: "new",
+  DUE: "due",
+  LEARNING: "learning",
+  SCHEDULED: "scheduled",
+};
+const FLASHCARD_SCHEDULER_STATES = {
+  NEW: "new",
+  LEARNING: "learning",
+  REVIEW: "review",
+  RELEARNING: "relearning",
+};
+const FLASHCARD_ANKI_PRESET = {
+  learningStepsMinutes: [1, 10],
+  relearningStepsMinutes: [10],
+  graduatingIntervalDays: 1,
+  easyIntervalDays: 1,
+  startingEase: 2.5,
+  hardIntervalMultiplier: 1.2,
+  easyBonus: 1.3,
+  againEasePenalty: 0.2,
+  hardEasePenalty: 0.15,
+  easyEaseBonus: 0.15,
+  lapseIntervalMultiplier: 0,
+  minimumIntervalDays: 1,
+};
+const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+function coerceDate(value) {
+  if (!value) return null;
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+function roundMinutes(value) {
+  return Math.max(1, Math.round(value));
+}
+function isoAfterMinutes(now, minutes) {
+  return new Date(now.getTime() + minutes * MINUTE_MS).toISOString();
+}
+function isoAfterDays(now, days) {
+  return new Date(now.getTime() + days * DAY_MS).toISOString();
+}
+function normalizeIntervalDays(progress = {}) {
+  if (Number.isFinite(Number(progress?.intervalDays))) {
+    return Math.max(0, Number(progress.intervalDays));
+  }
+
+  if (Number.isFinite(Number(progress?.intervalHours))) {
+    return Math.max(0, Number(progress.intervalHours) / 24);
+  }
+
+  return 0;
+}
+function normalizeSchedulerState(progress = {}) {
+  if (Object.values(FLASHCARD_SCHEDULER_STATES).includes(progress?.schedulerState)) {
+    return progress.schedulerState;
+  }
+
+  if (progress?.completed === true) {
+    return FLASHCARD_SCHEDULER_STATES.REVIEW;
+  }
+
+  if (progress?.nextReviewAt) {
+    return FLASHCARD_SCHEDULER_STATES.LEARNING;
+  }
+
+  return FLASHCARD_SCHEDULER_STATES.NEW;
+}
+function deriveMasteryStage(schedulerState, intervalDays) {
+  if (schedulerState === FLASHCARD_SCHEDULER_STATES.NEW) return 0;
+  if (
+    schedulerState === FLASHCARD_SCHEDULER_STATES.LEARNING ||
+    schedulerState === FLASHCARD_SCHEDULER_STATES.RELEARNING
+  ) {
+    return 1;
+  }
+  if (intervalDays < 1) return 1;
+  if (intervalDays < 4) return 2;
+  if (intervalDays < 10) return 3;
+  if (intervalDays < 30) return 4;
+  if (intervalDays < 90) return 5;
+  return 6;
+}
+function buildLearningDelayMinutes({
+  schedulerState,
+  stepIndex,
+  rating,
+  steps,
+}) {
+  const safeSteps = Array.isArray(steps) && steps.length > 0 ? steps : [1];
+  const firstStep = safeSteps[0];
+  const normalizedIndex =
+    schedulerState === FLASHCARD_SCHEDULER_STATES.NEW
+      ? -1
+      : clamp(Number(stepIndex) || 0, 0, safeSteps.length - 1);
+
+  if (rating === "again") {
+    return {
+      schedulerState:
+        schedulerState === FLASHCARD_SCHEDULER_STATES.RELEARNING
+          ? FLASHCARD_SCHEDULER_STATES.RELEARNING
+          : FLASHCARD_SCHEDULER_STATES.LEARNING,
+      stepIndex: 0,
+      delayMinutes: firstStep,
+      graduates: false,
+    };
+  }
+
+  if (rating === "hard") {
+    if (normalizedIndex <= 0 && safeSteps.length > 1) {
+      return {
+        schedulerState:
+          schedulerState === FLASHCARD_SCHEDULER_STATES.RELEARNING
+            ? FLASHCARD_SCHEDULER_STATES.RELEARNING
+            : FLASHCARD_SCHEDULER_STATES.LEARNING,
+        stepIndex: 0,
+        delayMinutes: roundMinutes((safeSteps[0] + safeSteps[1]) / 2),
+        graduates: false,
+      };
+    }
+
+    return {
+      schedulerState:
+        schedulerState === FLASHCARD_SCHEDULER_STATES.RELEARNING
+          ? FLASHCARD_SCHEDULER_STATES.RELEARNING
+          : FLASHCARD_SCHEDULER_STATES.LEARNING,
+      stepIndex: Math.max(0, normalizedIndex),
+      delayMinutes: safeSteps[Math.max(0, normalizedIndex)],
+      graduates: false,
+    };
+  }
+
+  if (rating === "good") {
+    const nextIndex = normalizedIndex + 1;
+    if (nextIndex < safeSteps.length) {
+      return {
+        schedulerState:
+          schedulerState === FLASHCARD_SCHEDULER_STATES.RELEARNING
+            ? FLASHCARD_SCHEDULER_STATES.RELEARNING
+            : FLASHCARD_SCHEDULER_STATES.LEARNING,
+        stepIndex: nextIndex,
+        delayMinutes: safeSteps[nextIndex],
+        graduates: false,
+      };
+    }
+
+    return {
+      schedulerState: FLASHCARD_SCHEDULER_STATES.REVIEW,
+      stepIndex: null,
+      delayMinutes: null,
+      graduates: true,
+    };
+  }
+
+  return {
+    schedulerState: FLASHCARD_SCHEDULER_STATES.REVIEW,
+    stepIndex: null,
+    delayMinutes: null,
+    graduates: true,
+  };
+}
+function getLocalDayKey(value) {
+  const date = coerceDate(value);
+  if (!date) return null;
+  return getLocalCalendarDayKey(date) || null;
+}
+function getFlashcardReviewSnapshot(progress = {}, now = new Date()) {
+  const schedulerState = normalizeSchedulerState(progress);
+  const nextReviewDate = coerceDate(progress?.nextReviewAt);
+  const lastReviewedDate = coerceDate(
+    progress?.lastReviewedAt || progress?.completedAt,
+  );
+  const intervalDays = normalizeIntervalDays(progress);
+  const reviewCount = Math.max(0, Number(progress?.reviewCount) || 0);
+  const lapseCount = Math.max(0, Number(progress?.lapseCount) || 0);
+  const successfulReviews = Math.max(
+    0,
+    Number(progress?.successfulReviews) ||
+      (schedulerState !== FLASHCARD_SCHEDULER_STATES.NEW ? 1 : 0),
+  );
+  const consecutiveCorrect = Math.max(
+    0,
+    Number(progress?.consecutiveCorrect) || 0,
+  );
+  const easeFactor = clamp(
+    Number(progress?.easeFactor) || FLASHCARD_ANKI_PRESET.startingEase,
+    1.3,
+    3.5,
+  );
+  const learningStepIndex = Math.max(0, Number(progress?.learningStepIndex) || 0);
+  const postLapseIntervalDays = Math.max(
+    FLASHCARD_ANKI_PRESET.minimumIntervalDays,
+    Number(progress?.postLapseIntervalDays) || intervalDays || 1,
+  );
+  const completed =
+    schedulerState === FLASHCARD_SCHEDULER_STATES.REVIEW ||
+    schedulerState === FLASHCARD_SCHEDULER_STATES.RELEARNING ||
+    progress?.completed === true;
+
+  let reviewState = FLASHCARD_REVIEW_STATES.NEW;
+  if (schedulerState !== FLASHCARD_SCHEDULER_STATES.NEW) {
+    if (!nextReviewDate || nextReviewDate.getTime() <= now.getTime()) {
+      reviewState = FLASHCARD_REVIEW_STATES.DUE;
+    } else if (
+      schedulerState === FLASHCARD_SCHEDULER_STATES.LEARNING ||
+      schedulerState === FLASHCARD_SCHEDULER_STATES.RELEARNING
+    ) {
+      reviewState = FLASHCARD_REVIEW_STATES.LEARNING;
+    } else {
+      reviewState = FLASHCARD_REVIEW_STATES.SCHEDULED;
+    }
+  }
+
+  const masteryStage = deriveMasteryStage(schedulerState, intervalDays);
+
+  return {
+    ...progress,
+    completed,
+    schedulerState,
+    nextReviewDate,
+    lastReviewedDate,
+    intervalDays,
+    intervalHours: Number((intervalDays * 24).toFixed(2)),
+    reviewCount,
+    lapseCount,
+    successfulReviews,
+    consecutiveCorrect,
+    easeFactor,
+    learningStepIndex,
+    postLapseIntervalDays,
+    masteryStage,
+    reviewState,
+    isDue: reviewState === FLASHCARD_REVIEW_STATES.DUE,
+  };
+}
+function mapXpToReviewOutcome(xpReward = 5) {
+  const xp = Number(xpReward) || 5;
+  if (xp >= 7) return "easy";
+  if (xp <= 4) return "hard";
+  return "good";
+}
+function buildFlashcardReviewUpdate(
+  progress = {},
+  rating = "good",
+  now = new Date(),
+) {
+  const snapshot = getFlashcardReviewSnapshot(progress, now);
+  const preset = FLASHCARD_ANKI_PRESET;
+  const nowIso = now.toISOString();
+  const reviewCount = snapshot.reviewCount + 1;
+
+  let schedulerState = snapshot.schedulerState;
+  let completed = snapshot.completed;
+  let completedAt = progress?.completedAt || null;
+  let easeFactor = snapshot.easeFactor;
+  let lapseCount = snapshot.lapseCount;
+  let successfulReviews = snapshot.successfulReviews;
+  let consecutiveCorrect = snapshot.consecutiveCorrect;
+  let intervalDays = snapshot.intervalDays;
+  let learningStepIndex = snapshot.learningStepIndex;
+  let nextReviewAt = progress?.nextReviewAt || null;
+  let postLapseIntervalDays = snapshot.postLapseIntervalDays;
+
+  if (schedulerState === FLASHCARD_SCHEDULER_STATES.NEW) {
+    const learningUpdate = buildLearningDelayMinutes({
+      schedulerState,
+      stepIndex: -1,
+      rating,
+      steps: preset.learningStepsMinutes,
+    });
+
+    if (learningUpdate.graduates) {
+      schedulerState = FLASHCARD_SCHEDULER_STATES.REVIEW;
+      completed = true;
+      completedAt = completedAt || nowIso;
+      intervalDays =
+        rating === "easy"
+          ? preset.easyIntervalDays
+          : preset.graduatingIntervalDays;
+      nextReviewAt = isoAfterDays(now, intervalDays);
+      learningStepIndex = 0;
+      successfulReviews += 1;
+      consecutiveCorrect += 1;
+      if (rating === "easy") {
+        easeFactor = clamp(
+          easeFactor + preset.easyEaseBonus,
+          1.3,
+          3.5,
+        );
+      }
+    } else {
+      schedulerState = learningUpdate.schedulerState;
+      completed = false;
+      completedAt = null;
+      learningStepIndex = learningUpdate.stepIndex;
+      nextReviewAt = isoAfterMinutes(now, learningUpdate.delayMinutes);
+      intervalDays = learningUpdate.delayMinutes / (24 * 60);
+      if (rating === "again") {
+        consecutiveCorrect = 0;
+      } else {
+        successfulReviews += 1;
+        consecutiveCorrect += 1;
+      }
+      if (rating === "hard") {
+        easeFactor = clamp(
+          easeFactor - preset.hardEasePenalty,
+          1.3,
+          3.5,
+        );
+      }
+    }
+  } else if (
+    schedulerState === FLASHCARD_SCHEDULER_STATES.LEARNING ||
+    schedulerState === FLASHCARD_SCHEDULER_STATES.RELEARNING
+  ) {
+    const steps =
+      schedulerState === FLASHCARD_SCHEDULER_STATES.RELEARNING
+        ? preset.relearningStepsMinutes
+        : preset.learningStepsMinutes;
+    const learningUpdate = buildLearningDelayMinutes({
+      schedulerState,
+      stepIndex: learningStepIndex,
+      rating,
+      steps,
+    });
+
+    if (learningUpdate.graduates) {
+      schedulerState = FLASHCARD_SCHEDULER_STATES.REVIEW;
+      completed = true;
+      completedAt = completedAt || nowIso;
+      if (rating === "easy") {
+        intervalDays =
+          snapshot.schedulerState === FLASHCARD_SCHEDULER_STATES.RELEARNING
+            ? Math.max(
+                preset.minimumIntervalDays + 1,
+                Math.round(postLapseIntervalDays * preset.easyBonus),
+              )
+            : preset.easyIntervalDays;
+        easeFactor = clamp(
+          easeFactor + preset.easyEaseBonus,
+          1.3,
+          3.5,
+        );
+      } else {
+        intervalDays =
+          snapshot.schedulerState === FLASHCARD_SCHEDULER_STATES.RELEARNING
+            ? postLapseIntervalDays
+            : preset.graduatingIntervalDays;
+      }
+      nextReviewAt = isoAfterDays(now, intervalDays);
+      successfulReviews += 1;
+      consecutiveCorrect += 1;
+    } else {
+      schedulerState = learningUpdate.schedulerState;
+      completed =
+        schedulerState === FLASHCARD_SCHEDULER_STATES.RELEARNING ||
+        snapshot.schedulerState === FLASHCARD_SCHEDULER_STATES.RELEARNING;
+      learningStepIndex = learningUpdate.stepIndex;
+      nextReviewAt = isoAfterMinutes(now, learningUpdate.delayMinutes);
+      intervalDays = learningUpdate.delayMinutes / (24 * 60);
+      if (rating === "again") {
+        consecutiveCorrect = 0;
+      } else {
+        successfulReviews += 1;
+        consecutiveCorrect += 1;
+      }
+      if (rating === "hard") {
+        easeFactor = clamp(
+          easeFactor - preset.hardEasePenalty,
+          1.3,
+          3.5,
+        );
+      }
+    }
+  } else {
+    const currentIntervalDays = Math.max(
+      snapshot.intervalDays || preset.graduatingIntervalDays,
+      preset.minimumIntervalDays,
+    );
+
+    if (rating === "again") {
+      lapseCount += 1;
+      consecutiveCorrect = 0;
+      easeFactor = clamp(
+        easeFactor - preset.againEasePenalty,
+        1.3,
+        3.5,
+      );
+      postLapseIntervalDays = Math.max(
+        preset.minimumIntervalDays,
+        Math.round(currentIntervalDays * preset.lapseIntervalMultiplier) ||
+          preset.minimumIntervalDays,
+      );
+
+      if (preset.relearningStepsMinutes.length > 0) {
+        schedulerState = FLASHCARD_SCHEDULER_STATES.RELEARNING;
+        completed = true;
+        intervalDays = postLapseIntervalDays;
+        learningStepIndex = 0;
+        nextReviewAt = isoAfterMinutes(now, preset.relearningStepsMinutes[0]);
+      } else {
+        schedulerState = FLASHCARD_SCHEDULER_STATES.REVIEW;
+        completed = true;
+        intervalDays = postLapseIntervalDays;
+        nextReviewAt = isoAfterDays(now, intervalDays);
+      }
+    } else if (rating === "hard") {
+      schedulerState = FLASHCARD_SCHEDULER_STATES.REVIEW;
+      completed = true;
+      intervalDays = Math.max(
+        currentIntervalDays + 1,
+        Math.round(currentIntervalDays * preset.hardIntervalMultiplier),
+      );
+      nextReviewAt = isoAfterDays(now, intervalDays);
+      easeFactor = clamp(
+        easeFactor - preset.hardEasePenalty,
+        1.3,
+        3.5,
+      );
+      successfulReviews += 1;
+      consecutiveCorrect += 1;
+    } else if (rating === "easy") {
+      schedulerState = FLASHCARD_SCHEDULER_STATES.REVIEW;
+      completed = true;
+      const goodIntervalDays = Math.max(
+        currentIntervalDays + 1,
+        Math.round(currentIntervalDays * easeFactor),
+      );
+      intervalDays = Math.max(
+        goodIntervalDays + 1,
+        Math.round(goodIntervalDays * preset.easyBonus),
+      );
+      nextReviewAt = isoAfterDays(now, intervalDays);
+      easeFactor = clamp(
+        easeFactor + preset.easyEaseBonus,
+        1.3,
+        3.5,
+      );
+      successfulReviews += 1;
+      consecutiveCorrect += 1;
+    } else {
+      schedulerState = FLASHCARD_SCHEDULER_STATES.REVIEW;
+      completed = true;
+      intervalDays = Math.max(
+        currentIntervalDays + 1,
+        Math.round(currentIntervalDays * easeFactor),
+      );
+      nextReviewAt = isoAfterDays(now, intervalDays);
+      successfulReviews += 1;
+      consecutiveCorrect += 1;
+    }
+  }
+
+  return {
+    completed,
+    completedAt,
+    updatedAt: nowIso,
+    lastReviewedAt: nowIso,
+    lastReviewOutcome: rating,
+    nextReviewAt,
+    intervalDays: Number(intervalDays.toFixed(2)),
+    intervalHours: Number((intervalDays * 24).toFixed(2)),
+    easeFactor: Number(easeFactor.toFixed(2)),
+    schedulerState,
+    learningStepIndex:
+      schedulerState === FLASHCARD_SCHEDULER_STATES.NEW
+        ? 0
+        : Number(learningStepIndex) || 0,
+    postLapseIntervalDays: Number(postLapseIntervalDays.toFixed(2)),
+    masteryStage: deriveMasteryStage(schedulerState, intervalDays),
+    lapseCount,
+    reviewCount,
+    successfulReviews,
+    consecutiveCorrect,
+  };
+}
+function getSchedulerRatingOptions(progress = {}, now = new Date()) {
+  const ratings = ["again", "hard", "good", "easy"];
+  return ratings.map((rating) => {
+    const patch = buildFlashcardReviewUpdate(progress, rating, now);
+    return {
+      rating,
+      patch,
+      delayLabel: formatShortDelay(patch.nextReviewAt, now),
+    };
+  });
+}
+function isSameLocalDay(dateA, dateB) {
+  return (
+    dateA.getFullYear() === dateB.getFullYear() &&
+    dateA.getMonth() === dateB.getMonth() &&
+    dateA.getDate() === dateB.getDate()
+  );
+}
+function formatAbsoluteReviewTime(
+  nextReviewAt,
+  language = "en",
+  now = new Date(),
+) {
+  const reviewDate = coerceDate(nextReviewAt);
+  const lang = normalizeSupportLanguage(language, DEFAULT_SUPPORT_LANGUAGE);
+  if (!reviewDate) {
+    if (lang === "es") return "Sin programar";
+    if (lang === "pt") return "Nao agendado";
+    if (lang === "it") return "Non programmato";
+    if (lang === "fr") return "Non programme";
+    if (lang === "de") return "Nicht geplant";
+    if (lang === "hi") return "निर्धारित नहीं";
+    if (lang === "ja") return "未スケジュール";
+    if (lang === "ar") return "غير مجدول";
+    if (lang === "zh") return "未安排";
+    return "Unscheduled";
+  }
+
+  const locale = getLanguageLocale(lang);
+  const timeLabel = new Intl.DateTimeFormat(locale, {
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(reviewDate);
+
+  if (isSameLocalDay(reviewDate, now)) {
+    if (lang === "es") return `Hoy a las ${timeLabel}`;
+    if (lang === "pt") return `Hoje as ${timeLabel}`;
+    if (lang === "it") return `Oggi alle ${timeLabel}`;
+    if (lang === "fr") return `Aujourd'hui a ${timeLabel}`;
+    if (lang === "de") return `Heute um ${timeLabel}`;
+    if (lang === "hi") return `आज ${timeLabel} बजे`;
+    if (lang === "ja") return `今日 ${timeLabel}`;
+    if (lang === "ar") return `اليوم الساعة ${timeLabel}`;
+    if (lang === "zh") return `今天 ${timeLabel}`;
+    return `Today at ${timeLabel}`;
+  }
+
+  const tomorrow = new Date(now);
+  tomorrow.setDate(now.getDate() + 1);
+  if (isSameLocalDay(reviewDate, tomorrow)) {
+    if (lang === "es") return `Mañana a las ${timeLabel}`;
+    if (lang === "pt") return `Amanha as ${timeLabel}`;
+    if (lang === "it") return `Domani alle ${timeLabel}`;
+    if (lang === "fr") return `Demain a ${timeLabel}`;
+    if (lang === "de") return `Morgen um ${timeLabel}`;
+    if (lang === "hi") return `कल ${timeLabel} बजे`;
+    if (lang === "ja") return `明日 ${timeLabel}`;
+    if (lang === "ar") return `بكرة الساعة ${timeLabel}`;
+    if (lang === "zh") return `明天 ${timeLabel}`;
+    return `Tomorrow at ${timeLabel}`;
+  }
+
+  const dateLabel = new Intl.DateTimeFormat(locale, {
+    month: "short",
+    day: "numeric",
+    ...(reviewDate.getFullYear() !== now.getFullYear()
+      ? { year: "numeric" }
+      : {}),
+  }).format(reviewDate);
+
+  if (lang === "es") return `${dateLabel} a las ${timeLabel}`;
+  if (lang === "pt") return `${dateLabel} as ${timeLabel}`;
+  if (lang === "it") return `${dateLabel} alle ${timeLabel}`;
+  if (lang === "fr") return `${dateLabel} a ${timeLabel}`;
+  if (lang === "de") return `${dateLabel} um ${timeLabel}`;
+  if (lang === "hi") return `${dateLabel} ${timeLabel} बजे`;
+  if (lang === "ja") return `${dateLabel} ${timeLabel}`;
+  if (lang === "ar") return `${dateLabel} الساعة ${timeLabel}`;
+  if (lang === "zh") return `${dateLabel} ${timeLabel}`;
+  return `${dateLabel} at ${timeLabel}`;
+}
+function formatShortDelay(nextReviewAt, now = new Date()) {
+  const reviewDate = coerceDate(nextReviewAt);
+  if (!reviewDate) return "now";
+
+  const diffMs = Math.max(0, reviewDate.getTime() - now.getTime());
+  if (diffMs < HOUR_MS) {
+    return `${Math.max(1, Math.round(diffMs / MINUTE_MS))}m`;
+  }
+  if (diffMs < DAY_MS) {
+    return `${Math.max(1, Math.round(diffMs / HOUR_MS))}h`;
+  }
+  return `${Math.max(1, Math.round(diffMs / DAY_MS))}d`;
+}
+return {getLocalDayKey,coerceDate,getLocalCalendarDayKey,getFlashcardReviewSnapshot,normalizeSchedulerState,FLASHCARD_SCHEDULER_STATES,normalizeIntervalDays,clamp,FLASHCARD_ANKI_PRESET,FLASHCARD_REVIEW_STATES,deriveMasteryStage,getSchedulerRatingOptions,buildFlashcardReviewUpdate,buildLearningDelayMinutes,roundMinutes,isoAfterDays,DAY_MS,HOUR_MS,MINUTE_MS,isoAfterMinutes,formatShortDelay,mapXpToReviewOutcome,formatAbsoluteReviewTime,normalizeSupportLanguage,DEFAULT_SUPPORT_LANGUAGE,getLanguageLocale,isSameLocalDay};})();
+// src/utils/dailyPlate.js
+const M5=(function(){
+
+function normalizePlateLang(targetLang) {
+  return typeof targetLang === "string" && targetLang.trim()
+    ? targetLang.trim().toLowerCase()
+    : "es";
+}
+return {normalizePlateLang};})();
 // src/utils/germanCopy.js
 const M8=(function(){
 
@@ -1162,6 +1760,21 @@ return {repairSummaryFor,compactSummary,languageKey};})();
 // src/data/flashcards/common.js
 const M13=(function(){
 
+const CEFR_COLORS = {
+  "Pre-A1": {
+    primary: "#8B5CF6",
+    gradient: "linear(135deg, #A78BFA, #8B5CF6, #7C3AED, #6D28D9)",
+  },
+  A1: {
+    primary: "#3B82F6",
+    gradient: "linear(135deg, #60A5FA, #3B82F6, #2563EB, #1D4ED8)",
+  },
+  A2: { primary: "#3B82F6", gradient: "linear(135deg, #3B82F6, #2563EB)" },
+  B1: { primary: "#A855F7", gradient: "linear(135deg, #A855F7, #9333EA)" },
+  B2: { primary: "#F97316", gradient: "linear(135deg, #F97316, #EA580C)" },
+  C1: { primary: "#EF4444", gradient: "linear(135deg, #EF4444, #DC2626)" },
+  C2: { primary: "#EC4899", gradient: "linear(135deg, #EC4899, #DB2777)" },
+};
 const CEFR_LEVEL_COUNTS = {
   "Pre-A1": 100,
   A1: 300,
@@ -1171,7 +1784,7 @@ const CEFR_LEVEL_COUNTS = {
   C1: 100,
   C2: 50,
 };
-return {CEFR_LEVEL_COUNTS};})();
+return {CEFR_LEVEL_COUNTS,CEFR_COLORS};})();
 // src/utils/cefrProgress.js
 const M12=(function(){
 const CEFR_LEVEL_COUNTS=M13.CEFR_LEVEL_COUNTS;
@@ -2376,6 +2989,670 @@ function goalLessonCompletionCopy(lang = "en") {
   return { saving, error, retry };
 }
 return {goalCopy,keys,rows,goalLessonCompletionCopy,completionRows};})();
+// src/theme.js
+const M24=(function(){
+
+const APP_CARD_RADIUS = "72px";
+const APP_SQUIRCLE_SHAPE = "superellipse(2)";
+return {APP_CARD_RADIUS,APP_SQUIRCLE_SHAPE};})();
+// src/components/FlashcardPractice.jsx
+const M17=(function(){
+const translations=new Proxy({}, {get:(_,key)=>snapshotTranslations[key]});
+const FLASHCARD_REVIEW_STATES=M3.FLASHCARD_REVIEW_STATES;
+const normalizeSupportLanguage=M6.normalizeSupportLanguage;
+const APP_CARD_RADIUS=M24.APP_CARD_RADIUS;
+const APP_SQUIRCLE_SHAPE=M24.APP_SQUIRCLE_SHAPE;
+const APP_SURFACE = "var(--app-surface)";
+const APP_SURFACE_ELEVATED = "var(--app-surface-elevated)";
+const APP_SURFACE_MUTED = "var(--app-surface-muted)";
+const APP_BORDER = "var(--app-border)";
+const APP_BORDER_STRONG = "var(--app-border-strong)";
+const APP_TEXT_PRIMARY = "var(--app-text-primary)";
+const APP_TEXT_SECONDARY = "var(--app-text-secondary)";
+const APP_TEXT_MUTED = "var(--app-text-muted)";
+const APP_SHADOW = "var(--app-shadow-soft)";
+const getAppLanguage=()=>snapshotAppLanguage;
+const getTranslation = (key, params = {}) => {
+  const lang = getAppLanguage();
+  const dict = translations[lang] ?? translations.en;
+  const raw = dict[key] || key;
+  if (typeof raw !== "string") return raw;
+  return raw.replace(/\{(\w+)\}/g, (_, k) =>
+    params[k] != null ? String(params[k]) : `{${k}}`,
+  );
+};
+const getEffectiveCardLanguage = (supportLang) => {
+  const appLang = getAppLanguage();
+  const normalizedSupportLang = normalizeSupportLanguage(supportLang, appLang);
+  // If supportLang is set to something other than default "en", use it
+  // This means user explicitly chose a support language in conversation settings
+  if (supportLang && normalizedSupportLang !== "en") {
+    return normalizedSupportLang;
+  }
+  // Otherwise use the app language preference
+  return appLang;
+};
+const LANG_NAME = (code) => {
+  const appLang = getAppLanguage();
+  const dict = translations[appLang] || translations.en;
+  const key = `language_${code === "nah" ? "nah" : code}`;
+  return dict[key] || translations.en[key] || code;
+};
+function buildFlashcardJudgePrompt({
+  concept,
+  userAnswer,
+  targetLang,
+  supportLang,
+  cefrLevel,
+}) {
+  const TARGET = LANG_NAME(targetLang);
+  const SUPPORT = LANG_NAME(supportLang);
+
+  return `
+Judge a flashcard translation from ${SUPPORT} to ${TARGET} (CEFR ${cefrLevel}).
+
+Original (${SUPPORT}):
+${concept}
+
+User's translation (${TARGET}):
+${userAnswer}
+
+Policy:
+- Say YES if the translation accurately conveys the meaning in ${TARGET}.
+- Allow natural variations and synonyms that maintain the core meaning.
+- Ignore minor grammatical errors if the meaning is clear.
+- Allow missing or incorrect accent marks/diacritics.
+- For common phrases, accept culturally appropriate equivalents.
+- If the meaning is significantly wrong or incomprehensible, say NO.
+
+Reply with ONE of these formats:
+YES | <xp_amount>
+NO
+
+Where <xp_amount> is 4-7 based on:
+- 7 XP: Perfect translation with natural phrasing
+- 6 XP: Correct meaning with minor imperfections
+- 5 XP: Acceptable translation with some awkwardness
+- 4 XP: Barely acceptable but conveys basic meaning
+`.trim();
+}
+function getFlashcardModalTrimTheme(card, cefrColor, isLightTheme) {
+  const practiceStatus =
+    card?.practiceStatus ||
+    (card?.reviewState === FLASHCARD_REVIEW_STATES.DUE
+      ? "due"
+      : card?.reviewState === FLASHCARD_REVIEW_STATES.LEARNING
+        ? "learning"
+        : card?.reviewState === FLASHCARD_REVIEW_STATES.SCHEDULED
+          ? "scheduled"
+          : "active");
+
+  switch (practiceStatus) {
+    case "due":
+      return {
+        borderColor: isLightTheme
+          ? "rgba(181, 137, 71, 0.34)"
+          : "rgba(251, 191, 36, 0.55)",
+        ringColor: isLightTheme
+          ? "rgba(181, 137, 71, 0.1)"
+          : "rgba(251, 191, 36, 0.22)",
+      };
+    case "weak":
+      return {
+        borderColor: isLightTheme
+          ? "rgba(194, 103, 132, 0.3)"
+          : "rgba(244, 114, 182, 0.36)",
+        ringColor: isLightTheme
+          ? "rgba(194, 103, 132, 0.1)"
+          : "rgba(244, 114, 182, 0.18)",
+      };
+    case "learning":
+      return {
+        borderColor: isLightTheme
+          ? "rgba(69, 145, 122, 0.28)"
+          : "rgba(45, 212, 191, 0.34)",
+        ringColor: isLightTheme
+          ? "rgba(69, 145, 122, 0.1)"
+          : "rgba(45, 212, 191, 0.18)",
+      };
+    case "scheduled":
+      return {
+        borderColor: isLightTheme ? APP_BORDER : "rgba(255, 255, 255, 0.22)",
+        ringColor: isLightTheme
+          ? "rgba(122, 94, 61, 0.08)"
+          : "rgba(255, 255, 255, 0.12)",
+      };
+    default:
+      return {
+        borderColor: isLightTheme
+          ? `${cefrColor.primary}52`
+          : `${cefrColor.primary}80`,
+        ringColor: isLightTheme
+          ? `${cefrColor.primary}14`
+          : `${cefrColor.primary}26`,
+      };
+  }
+}
+return {buildFlashcardJudgePrompt,LANG_NAME,getAppLanguage,translations,getFlashcardModalTrimTheme,FLASHCARD_REVIEW_STATES,APP_BORDER,getTranslation,getEffectiveCardLanguage,normalizeSupportLanguage,APP_CARD_RADIUS,APP_SQUIRCLE_SHAPE,APP_SURFACE,APP_SURFACE_ELEVATED,APP_SURFACE_MUTED,APP_BORDER_STRONG,APP_TEXT_PRIMARY,APP_TEXT_SECONDARY,APP_TEXT_MUTED,APP_SHADOW};})();
+// src/components/FlashcardSkillTree.jsx
+const M18=(function(){
+const FLASHCARD_REVIEW_STATES=M3.FLASHCARD_REVIEW_STATES;
+const getLocalDayKey=M3.getLocalDayKey;
+const APP_SURFACE_ELEVATED = "var(--app-surface-elevated)";
+const APP_BORDER = "var(--app-border)";
+const APP_TEXT_PRIMARY = "var(--app-text-primary)";
+function buildFallbackActivityMap(progressMap = {}) {
+  return Object.values(progressMap).reduce((accumulator, progress) => {
+    const dayKey = getLocalDayKey(
+      progress?.lastReviewedAt || progress?.completedAt,
+    );
+    if (!dayKey) return accumulator;
+
+    accumulator[dayKey] = (accumulator[dayKey] || 0) + 1;
+    return accumulator;
+  }, {});
+}
+function getCardDecor(status, cefrColor, isLightTheme) {
+  if (isLightTheme) {
+    switch (status) {
+      case "due":
+        return {
+          bg: "#f6ebd9",
+          bgGradient:
+            "linear(180deg, rgba(248, 238, 221, 0.98) 0%, rgba(240, 224, 198, 0.98) 100%)",
+          borderColor: "rgba(181, 137, 71, 0.36)",
+          opacity: 1,
+        };
+      case "active":
+        return {
+          bg: "#f4f0ea",
+          bgGradient: `linear(180deg, ${cefrColor.primary}1a 0%, rgba(255, 252, 247, 0.98) 58%, rgba(241, 232, 219, 0.98) 100%)`,
+          borderColor: `${cefrColor.primary}55`,
+          opacity: 1,
+        };
+      case "learning":
+        return {
+          bg: "#edf5f0",
+          bgGradient:
+            "linear(180deg, rgba(222, 243, 236, 0.98) 0%, rgba(240, 248, 244, 0.98) 100%)",
+          borderColor: "rgba(69, 145, 122, 0.28)",
+          opacity: 0.94,
+        };
+      case "weak":
+        return {
+          bg: "#f7ecef",
+          bgGradient:
+            "linear(180deg, rgba(248, 229, 236, 0.98) 0%, rgba(252, 242, 246, 0.98) 100%)",
+          borderColor: "rgba(194, 103, 132, 0.28)",
+          opacity: 0.96,
+        };
+      case "scheduled":
+        return {
+          bg: APP_SURFACE_ELEVATED,
+          bgGradient:
+            "linear(180deg, rgba(255, 252, 247, 0.98) 0%, rgba(243, 236, 226, 0.98) 100%)",
+          borderColor: APP_BORDER,
+          opacity: 0.78,
+        };
+      case "locked":
+        return {
+          bg: "#efe5d8",
+          bgGradient:
+            "linear(180deg, rgba(244, 238, 229, 0.98) 0%, rgba(231, 220, 204, 0.98) 100%)",
+          borderColor: "rgba(120, 101, 77, 0.16)",
+          opacity: 0.76,
+        };
+      default:
+        return {
+          bg: "#f4f0ea",
+          bgGradient: `linear(180deg, ${cefrColor.primary}16 0%, rgba(255, 252, 247, 0.98) 60%, rgba(241, 232, 219, 0.98) 100%)`,
+          borderColor: `${cefrColor.primary}4a`,
+          opacity: 1,
+        };
+    }
+  }
+
+  switch (status) {
+    case "due":
+      return {
+        bg: "#24140b",
+        bgGradient:
+          "linear(180deg, rgba(124,45,18,0.96) 0%, rgba(69,26,3,0.98) 100%)",
+        borderColor: "rgba(251, 191, 36, 0.55)",
+        opacity: 1,
+      };
+    case "active":
+      return {
+        bg: "#08142b",
+        bgGradient: undefined,
+        borderColor: "rgba(56,189,248,0.36)",
+        opacity: 1,
+      };
+    case "learning":
+      return {
+        bg: "#0f172a",
+        bgGradient:
+          "linear(180deg, rgba(15,23,42,0.92) 0%, rgba(8,20,43,0.98) 100%)",
+        borderColor: "rgba(45,212,191,0.34)",
+        opacity: 0.86,
+      };
+    case "weak":
+      return {
+        bg: "#11243d",
+        bgGradient:
+          "linear(180deg, rgba(17,36,61,0.95) 0%, rgba(10,24,45,0.98) 100%)",
+        borderColor: "rgba(244,114,182,0.36)",
+        opacity: 0.92,
+      };
+    case "scheduled":
+      return {
+        bg: APP_SURFACE_ELEVATED,
+        bgGradient: undefined,
+        borderColor: APP_BORDER,
+        opacity: 0.62,
+      };
+    case "locked":
+      return {
+        bg: cefrColor.primary,
+        bgGradient: cefrColor.gradient,
+        borderColor: `${cefrColor.primary}55`,
+        opacity: 0.38,
+      };
+    default:
+      return {
+        bg: cefrColor.primary,
+        bgGradient: cefrColor.gradient,
+        borderColor: `${cefrColor.primary}80`,
+        opacity: 1,
+      };
+  }
+}
+function getWeaknessScore(snapshot) {
+  return (
+    snapshot.lapseCount * 6 +
+    (snapshot.reviewState === FLASHCARD_REVIEW_STATES.DUE ? 4 : 0) +
+    (6 - snapshot.masteryStage) * 2 -
+    snapshot.consecutiveCorrect
+  );
+}
+function isWeakCardSnapshot(snapshot) {
+  if (!snapshot) return false;
+  if (snapshot.reviewState !== FLASHCARD_REVIEW_STATES.SCHEDULED) return false;
+  return getWeaknessScore(snapshot) >= 6;
+}
+return {getCardDecor,APP_SURFACE_ELEVATED,APP_BORDER,getWeaknessScore,FLASHCARD_REVIEW_STATES,isWeakCardSnapshot,buildFallbackActivityMap,getLocalDayKey,APP_TEXT_PRIMARY};})();
+// src/hooks/useSpeechPractice.js
+const M19=(function(){
+
+const BCP47_TO_WHISPER = {
+  ar: "ar",
+  zh: "zh",
+  es: "es",
+  en: "en",
+  pt: "pt",
+  fr: "fr",
+  it: "it",
+  hi: "hi",
+  nl: "nl",
+  nah: "es", // Nahuatl fallback to Spanish
+  ru: "ru",
+  de: "de",
+  ja: "ja",
+  el: "el",
+  pl: "pl",
+  ga: "ga",
+  yua: "es",
+};
+function buildRealtimeSpeechSession({
+  transcriptionHint,
+  targetLang,
+  timeoutMs,
+  vadSilenceDurationMs,
+}) {
+  const whisperLang = BCP47_TO_WHISPER[targetLang] || "es";
+  const expectedUtterance = (transcriptionHint || "").toString().trim();
+  const transcriptionPrompt = [
+    `The input is spoken in the language with ISO-639-1 code "${whisperLang}".`,
+    "Transcribe the actual speech in that language's normal writing system only. Do not translate or transliterate it into another language or script.",
+    expectedUtterance
+      ? `The speaker is attempting the practice phrase "${expectedUtterance}" and may pronounce it incorrectly.`
+      : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  return {
+    type: "realtime",
+    output_modalities: ["text"],
+    instructions:
+      "Transcribe the user's speech exactly. Do not answer the user.",
+    audio: {
+      input: {
+        turn_detection: {
+          type: "server_vad",
+          silence_duration_ms:
+            vadSilenceDurationMs ?? Math.min(timeoutMs, 2000),
+          threshold: 0.35,
+          prefix_padding_ms: 120,
+          create_response: false,
+          interrupt_response: false,
+        },
+        transcription: {
+          model: "gpt-4o-mini-transcribe",
+          language: whisperLang,
+          prompt: transcriptionPrompt,
+        },
+      },
+    },
+  };
+}
+return {buildRealtimeSpeechSession,BCP47_TO_WHISPER};})();
+// src/utils/noteGeneration.js
+const M20=(function(){
+const getLanguagePromptName=M6.getLanguagePromptName;
+const LANG_NAME = (code) => getLanguagePromptName(code) || code;
+return {LANG_NAME,getLanguagePromptName};})();
+// src/utils/cefrLevelInfo.js
+const M23=(function(){
+
+const CEFR_LEVEL_INFO = Object.freeze({
+  "Pre-A1": {
+    label: "A0",
+    displayLabel: "A0",
+    color: "#8B5CF6",
+    gradient: "linear(135deg, #A78BFA, #8B5CF6)",
+    name: {
+      en: "Ultimate Beginner",
+      es: "Principiante Total",
+      pt: "Iniciante absoluto",
+      it: "Principiante assoluto",
+      fr: "Grand débutant",
+      de: "Absoluter Anfänger",
+      ja: "完全初心者",
+      hi: "पूर्ण शुरुआती",
+      ar: "مبتدئ تمامًا",
+      zh: "完全初学者",
+      ru: "Абсолютный новичок",
+    },
+    description: {
+      en: "First words and recognition",
+      es: "Primeras palabras y reconocimiento",
+      pt: "Primeiras palavras e reconhecimento",
+      it: "Prime parole e riconoscimento",
+      fr: "Premiers mots et reconnaissance",
+      de: "Erste Wörter und Wiedererkennung",
+      ja: "最初の単語と認識",
+      hi: "पहले शब्द और पहचान",
+      ar: "أول كلمات والتعرّف عليها",
+      zh: "最初的词语与识别",
+      ru: "Первые слова и распознавание",
+    },
+  },
+  A1: {
+    label: "A1",
+    displayLabel: "A1",
+    color: "#3B82F6",
+    gradient: "linear(135deg, #60A5FA, #3B82F6)",
+    name: {
+      en: "Beginner",
+      es: "Principiante",
+      pt: "Iniciante",
+      it: "Principiante",
+      fr: "Débutant",
+      de: "Anfänger",
+      ja: "初心者",
+      hi: "शुरुआती",
+      ar: "مبتدئ",
+      zh: "初学者",
+      ru: "Начинающий",
+    },
+    description: {
+      en: "Basic survival language",
+      es: "Lenguaje básico de supervivencia",
+      pt: "Linguagem básica de sobrevivência",
+      it: "Lingua di sopravvivenza di base",
+      fr: "Langue de survie de base",
+      de: "Grundlegende Alltagssprache",
+      ja: "基本的なサバイバル表現",
+      hi: "बुनियादी रोज़मर्रा की भाषा",
+      ar: "لغة أساسية للحياة اليومية",
+      zh: "基础生存表达",
+      ru: "Базовые фразы для общения",
+    },
+  },
+  A2: {
+    label: "A2",
+    displayLabel: "A2",
+    color: "#8B5CF6",
+    gradient: "linear(135deg, #A78BFA, #8B5CF6)",
+    name: {
+      en: "Elementary",
+      es: "Elemental",
+      pt: "Elementar",
+      it: "Elementare",
+      fr: "Élémentaire",
+      de: "Grundstufe",
+      ja: "初級",
+      hi: "प्रारंभिक",
+      ar: "أساسي",
+      zh: "初级",
+      ru: "Элементарный",
+    },
+    description: {
+      en: "Simple everyday communication",
+      es: "Comunicación cotidiana simple",
+      pt: "Comunicação cotidiana simples",
+      it: "Comunicazione quotidiana semplice",
+      fr: "Communication simple du quotidien",
+      de: "Einfache Alltagskommunikation",
+      ja: "簡単な日常コミュニケーション",
+      hi: "सरल रोज़मर्रा का संचार",
+      ar: "تواصل يومي بسيط",
+      zh: "简单日常沟通",
+      ru: "Простое ежедневное общение",
+    },
+  },
+  B1: {
+    label: "B1",
+    displayLabel: "B1",
+    color: "#A855F7",
+    gradient: "linear(135deg, #C084FC, #A855F7)",
+    name: {
+      en: "Intermediate",
+      es: "Intermedio",
+      pt: "Intermediário",
+      it: "Intermedio",
+      fr: "Intermédiaire",
+      de: "Mittelstufe",
+      ja: "中級",
+      hi: "मध्यवर्ती",
+      ar: "متوسط",
+      zh: "中级",
+      ru: "Средний",
+    },
+    description: {
+      en: "Handle everyday situations",
+      es: "Manejo de situaciones cotidianas",
+      pt: "Lidar com situações do dia a dia",
+      it: "Gestire situazioni quotidiane",
+      fr: "Gérer les situations quotidiennes",
+      de: "Alltagssituationen bewältigen",
+      ja: "日常場面に対応",
+      hi: "रोज़मर्रा की स्थितियों को संभालना",
+      ar: "التعامل مع مواقف الحياة اليومية",
+      zh: "处理日常情境",
+      ru: "Понимание повседневных ситуаций",
+    },
+  },
+  B2: {
+    label: "B2",
+    displayLabel: "B2",
+    color: "#F97316",
+    gradient: "linear(135deg, #FB923C, #F97316)",
+    name: {
+      en: "Upper Intermediate",
+      es: "Intermedio Alto",
+      pt: "Intermediário avançado",
+      it: "Intermedio superiore",
+      fr: "Intermédiaire avancé",
+      de: "Obere Mittelstufe",
+      ja: "中上級",
+      hi: "उच्च मध्यवर्ती",
+      ar: "متوسط أعلى",
+      zh: "中高级",
+      ru: "Выше среднего",
+    },
+    description: {
+      en: "Complex discussions",
+      es: "Discusiones complejas",
+      pt: "Discussões complexas",
+      it: "Discussioni complesse",
+      fr: "Discussions complexes",
+      de: "Komplexe Gespräche",
+      ja: "複雑な話し合い",
+      hi: "जटिल चर्चाएं",
+      ar: "نقاشات أكثر تعقيدًا",
+      zh: "复杂讨论",
+      ru: "Сложные темы и обсуждения",
+    },
+  },
+  C1: {
+    label: "C1",
+    displayLabel: "C1",
+    color: "#EF4444",
+    gradient: "linear(135deg, #F87171, #EF4444)",
+    name: {
+      en: "Advanced",
+      es: "Avanzado",
+      pt: "Avançado",
+      it: "Avanzato",
+      fr: "Avancé",
+      de: "Fortgeschritten",
+      ja: "上級",
+      hi: "उन्नत",
+      ar: "متقدم",
+      zh: "高级",
+      ru: "Продвинутый",
+    },
+    description: {
+      en: "Sophisticated language use",
+      es: "Uso sofisticado del idioma",
+      pt: "Uso sofisticado do idioma",
+      it: "Uso sofisticato della lingua",
+      fr: "Usage sophistiqué de la langue",
+      de: "Anspruchsvolle Sprachverwendung",
+      ja: "洗練された言語運用",
+      hi: "भाषा का परिष्कृत उपयोग",
+      ar: "استخدام متطور للغة",
+      zh: "成熟的语言运用",
+      ru: "Уверенное и гибкое владение языком",
+    },
+  },
+  C2: {
+    label: "C2",
+    displayLabel: "C2",
+    color: "#EC4899",
+    gradient: "linear(135deg, #F472B6, #EC4899)",
+    name: {
+      en: "Mastery",
+      es: "Maestría",
+      pt: "Domínio",
+      it: "Padronanza",
+      fr: "Maîtrise",
+      de: "Meisterschaft",
+      ja: "熟達",
+      hi: "निपुणता",
+      ar: "إتقان",
+      zh: "精通",
+      ru: "В совершенстве",
+    },
+    description: {
+      en: "Near-native proficiency",
+      es: "Competencia casi nativa",
+      pt: "Proficiência quase nativa",
+      it: "Competenza quasi nativa",
+      fr: "Compétence quasi native",
+      de: "Nahezu muttersprachliche Kompetenz",
+      ja: "ネイティブに近い熟達度",
+      hi: "मूल वक्ता जैसी दक्षता",
+      ar: "إتقان قريب من المتحدث الأصلي",
+      zh: "接近母语水平",
+      ru: "Владение на уровне носителя",
+    },
+  },
+});
+return {CEFR_LEVEL_INFO};})();
+// src/utils/flashcardActivity.js
+const M21=(function(){
+
+function mergeFlashcardActivityCounts(...maps) {
+  const merged = {};
+  for (const map of maps) {
+    for (const [day, value] of Object.entries(map || {})) {
+      const count = Number(value);
+      if (!day || !Number.isFinite(count) || count <= 0) continue;
+      merged[day] = Math.max(merged[day] || 0, count);
+    }
+  }
+  return merged;
+}
+function getFlashcardReviewPreviewCount(savedCount, countBeforeAnswer = null) {
+  const saved = Math.max(0, Number(savedCount) || 0);
+  if (countBeforeAnswer === null) return saved;
+  return Math.max(saved, Math.max(0, Number(countBeforeAnswer) || 0) + 1);
+}
+return {mergeFlashcardActivityCounts,getFlashcardReviewPreviewCount};})();
+// src/utils/dailyQuestTargets.js
+const M22=(function(){
+
+function hashString(value) {
+  const text = String(value || "");
+  let hash = 1779033703 ^ text.length;
+  for (let index = 0; index < text.length; index += 1) {
+    hash = Math.imul(hash ^ text.charCodeAt(index), 3432918353);
+    hash = (hash << 13) | (hash >>> 19);
+  }
+  return hash >>> 0;
+}
+const FLASHCARD_RANDOM_DAILY_TARGET_MIN = 3;
+const FLASHCARD_RANDOM_DAILY_TARGET_MAX = 7;
+function getFlashcardDailyTarget({
+  plateSnapshot,
+  user,
+  userKey = "",
+  langKey = "",
+  dayKey = "",
+} = {}) {
+  const reviewCourse =
+    plateSnapshot?.byKind?.review ||
+    plateSnapshot?.courses?.find((c) => c.kind === "review");
+  if (
+    reviewCourse &&
+    Number.isFinite(reviewCourse.target) &&
+    reviewCourse.target > 0
+  ) {
+    return reviewCourse.target;
+  }
+
+  const resolvedUserKey =
+    userKey ||
+    user?.local_npub ||
+    user?.identity ||
+    user?.id ||
+    plateSnapshot?.userKey ||
+    "";
+  const resolvedLangKey = langKey || plateSnapshot?.langKey || "";
+  const resolvedDayKey = dayKey || plateSnapshot?.dayKey || "";
+
+  const span =
+    FLASHCARD_RANDOM_DAILY_TARGET_MAX - FLASHCARD_RANDOM_DAILY_TARGET_MIN + 1;
+  const roll =
+    hashString(
+      `flashcard_daily_random|${resolvedUserKey}|${resolvedLangKey}|${resolvedDayKey}`,
+    ) % span;
+  return FLASHCARD_RANDOM_DAILY_TARGET_MIN + roll;
+}
+return {getFlashcardDailyTarget,FLASHCARD_RANDOM_DAILY_TARGET_MAX,FLASHCARD_RANDOM_DAILY_TARGET_MIN,hashString};})();
 function parseRepairEntries(raw){  const text = String(raw || "");
   const start = text.indexOf("[");
   const end = text.lastIndexOf("]");
@@ -2394,8 +3671,196 @@ function parseRepairEntries(raw){  const text = String(raw || "");
     return null;
   }
 }
-function run(operation,json){const p=JSON.parse(json),now=new SystemDate(p.now||SystemDate.now());Date=class extends SystemDate{constructor(...args){super(...(args.length?args:[now.getTime()]));}static now(){return now.getTime();}};snapshotUser=p.user||{};snapshotDecks=p.decks||{};try{const m=M0,c=M1,model=M2;let value;
-if(operation==='reusable')value=m.getReusableMemory(p.user,p.targetLang,now);
+function flashRun(op,p,now){const f=M17,r=M3,t=M18,c=M13,isLightTheme=p.light!==false,isCorrect=Boolean(p.correct),assessmentMode=p.assessment||'ai',getTranslation=f.getTranslation,cefrColor=c.CEFR_COLORS[p.level||'Pre-A1'];
+if(op==='flashPreview')return M21.getFlashcardReviewPreviewCount(p.saved,p.base);
+if(op==='flashActivity')return M21.mergeFlashcardActivityCounts(p.saved,t.buildFallbackActivityMap(p.reviews));
+if(op==='flashTarget')return M22.getFlashcardDailyTarget(p);
+if(op==='flashLevels')return M23.CEFR_LEVEL_INFO;
+if(op==='flashNotePrompt'){const {concept,userAnswer,wasCorrect,targetLang,supportLang,cefrLevel,moduleType}=p,LANG_NAME=M20.LANG_NAME;
+  const targetLangName = LANG_NAME(targetLang);
+  const supportLangName = LANG_NAME(supportLang);
+
+  const prompt = `You are a language learning assistant. Generate a study note for a ${cefrLevel} level student learning ${targetLangName}.
+
+Topic/Concept: "${concept}"
+${
+  userAnswer
+    ? `User's answer: "${userAnswer}" (${wasCorrect ? "correct" : "incorrect"})`
+    : ""
+}
+Module: ${moduleType}
+
+Generate:
+1. EXAMPLE: A short, practical example sentence in ${targetLangName} using this concept. Keep it appropriate for ${cefrLevel} level.
+2. SUMMARY: A 1-2 sentence explanation in ${supportLangName} that helps the student remember this concept.${
+    !wasCorrect ? " Include a brief tip about common mistakes." : ""
+  }
+
+Reply in this exact JSON format (no markdown, just raw JSON):
+{"example": "...", "summary": "..."}`;
+
+;return prompt;}
+if(op==='flashNoteParse'){const response=p.raw,concept=p.concept,cefrLevel=p.cefrLevel,moduleType='flashcard';try{    const trimmed = (response || "").trim();
+
+    // Find JSON in response
+    const jsonMatch = trimmed.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const parsed = JSON.parse(jsonMatch[0]);
+      return {
+        example: parsed.example || `Example for "${concept}"`,
+        summary: parsed.summary || `Study note for "${concept}"`,
+      };
+    }
+
+    // Fallback if parsing fails
+    return {
+      example: `Example: ${concept}`,
+      summary: `Practice this ${cefrLevel} ${moduleType} concept regularly.`,
+    };
+}catch{    return {
+      example: `${concept}`,
+      summary: `Keep practicing this ${cefrLevel} level concept.`,
+    };
+}}
+if(op==='flashSpeech')return M19.buildRealtimeSpeechSession(p);
+if(op==='flashGrade'){const response=p.raw;      const trimmed = (response || "").trim().toUpperCase();
+      const isYes = trimmed.startsWith("YES");
+
+      let xp = 5; // default
+      if (isYes && trimmed.includes("|")) {
+        const parts = trimmed.split("|");
+        const xpPart = parseInt(parts[1]?.trim());
+        if (xpPart >= 4 && xpPart <= 7) {
+          xp = xpPart;
+        }
+      }
+
+;return {correct:isYes,xp:isYes?xp:0,suggested:isYes?r.mapXpToReviewOutcome(xp):'again'};}
+if(op==='flashReward'){const rating=p.rating,xpAwarded=p.xp||0;const earnedXp=rating === "again" ? 0 : assessmentMode === "ai" && isCorrect ? xpAwarded : 0,card={xpReward:earnedXp},persistedXp=card.xpReward || 5;return {displayXp:earnedXp,persistedXp:p.focused?(rating==='good'||rating==='easy'?2:0):persistedXp,success:rating==='good'||rating==='easy'};}
+if(op==='flashJudge')return f.buildFlashcardJudgePrompt(p);
+if(op==='flashReveal'||op==='flashExplain'){const sourceText=p.concept,concept=p.concept,userAnswer=p.answer,effectiveCardLanguage=p.supportLang,targetLang=p.targetLang,LANG_NAME=f.LANG_NAME;return op==='flashReveal'?`Translate "${sourceText}" to ${LANG_NAME(targetLang)}. Reply with ONLY the translated word or phrase, nothing else. No explanations, no quotes, no punctuation unless part of the translation.`:`You are a helpful language tutor for ${LANG_NAME(targetLang)}. A student tried to translate a prompt from ${LANG_NAME(effectiveCardLanguage)} to ${LANG_NAME(targetLang)}.
+
+Prompt (${LANG_NAME(effectiveCardLanguage)}): ${concept}
+Student translation attempt (${LANG_NAME(targetLang)}): ${userAnswer}
+
+Provide a brief response in ${LANG_NAME(effectiveCardLanguage)} with two parts:
+1) Correct translation: the best translation into ${LANG_NAME(targetLang)}
+2) Explanation: 2-3 concise sentences in ${LANG_NAME(effectiveCardLanguage)} explaining how the student's answer could be improved.`;}
+if(op==='flashSnapshot')return r.getFlashcardReviewSnapshot(p.progress||{},now);
+if(op==='flashRatings')return r.getSchedulerRatingOptions(p.progress||{},now);
+if(op==='flashDate')return r.formatAbsoluteReviewTime(p.date,p.language,now);
+if(op==='flashTheme'){const {APP_CARD_RADIUS,APP_SQUIRCLE_SHAPE,APP_SURFACE,APP_SURFACE_ELEVATED,APP_SURFACE_MUTED,APP_BORDER,APP_BORDER_STRONG,APP_TEXT_PRIMARY,APP_TEXT_SECONDARY,APP_TEXT_MUTED,APP_SHADOW}=f;const defaultModalShell={
+  bg: isLightTheme ? APP_SURFACE_ELEVATED : "#08142b",
+  background: isLightTheme ? "linear-gradient(180deg, rgba(255, 251, 245, 0.98) 0%, rgba(246, 237, 224, 0.98) 100%)" : "radial-gradient(circle at 20% 15%, rgba(56,189,248,0.14) 0%, transparent 42%), " + "radial-gradient(circle at 82% 25%, rgba(45,212,191,0.12) 0%, transparent 40%), " + "radial-gradient(circle at 50% 100%, rgba(30,64,175,0.28) 0%, transparent 62%), " + "linear-gradient(180deg, rgba(8,20,43,0.95) 0%, rgba(5,16,36,0.98) 100%)"
+};
+const resultTheme=assessmentMode === "self" ? {
+  title: getTranslation("flashcard_rate_recall"),
+  icon: null,
+  shellBg: isLightTheme ? APP_SURFACE_ELEVATED : "#10233d",
+  shellBorderColor: isLightTheme ? "rgba(113, 145, 186, 0.28)" : "rgba(96, 165, 250, 0.38)",
+  shellRingColor: isLightTheme ? "rgba(113, 145, 186, 0.08)" : "rgba(96, 165, 250, 0.2)",
+  shellBackground: isLightTheme ? "linear-gradient(180deg, rgba(249, 247, 243, 0.98) 0%, rgba(236, 242, 250, 0.96) 100%)" : "radial-gradient(circle at 20% 15%, rgba(125,211,252,0.14) 0%, transparent 42%), " + "radial-gradient(circle at 82% 22%, rgba(96,165,250,0.16) 0%, transparent 38%), " + "radial-gradient(circle at 50% 100%, rgba(37,99,235,0.24) 0%, transparent 60%), " + "linear-gradient(180deg, rgba(18,44,84,0.95) 0%, rgba(10,26,54,0.98) 100%)"
+} : isCorrect ? {
+  title: getTranslation("flashcard_correct"),
+  icon: null,
+  shellBg: isLightTheme ? APP_SURFACE_ELEVATED : "#1c6668",
+  shellBorderColor: isLightTheme ? "rgba(74, 160, 112, 0.28)" : "rgba(74, 222, 128, 0.42)",
+  shellRingColor: isLightTheme ? "rgba(74, 160, 112, 0.08)" : "rgba(45, 212, 191, 0.2)",
+  shellBackground: isLightTheme ? "linear-gradient(180deg, rgba(248, 250, 244, 0.98) 0%, rgba(230, 242, 234, 0.98) 100%)" : "radial-gradient(circle at 20% 15%, rgba(74,222,128,0.14) 0%, transparent 40%), " + "radial-gradient(circle at 82% 20%, rgba(45,212,191,0.18) 0%, transparent 38%), " + "radial-gradient(circle at 50% 100%, rgba(34,197,94,0.16) 0%, transparent 60%), " + "linear-gradient(180deg, rgba(58,155,155,0.95) 0%, rgba(49,140,140,0.98) 100%)"
+} : {
+  title: getTranslation("flashcard_incorrect"),
+  icon: null,
+  shellBg: isLightTheme ? APP_SURFACE_ELEVATED : "#6b1d25",
+  shellBorderColor: isLightTheme ? "rgba(198, 112, 126, 0.3)" : "rgba(248, 113, 113, 0.5)",
+  shellRingColor: isLightTheme ? "rgba(198, 112, 126, 0.08)" : "rgba(239, 68, 68, 0.24)",
+  shellBackground: isLightTheme ? "linear-gradient(180deg, rgba(252, 246, 246, 0.98) 0%, rgba(248, 233, 236, 0.98) 100%)" : "radial-gradient(circle at 20% 15%, rgba(251,113,133,0.12) 0%, transparent 40%), " + "radial-gradient(circle at 82% 20%, rgba(248,113,113,0.18) 0%, transparent 36%), " + "radial-gradient(circle at 50% 100%, rgba(127,29,29,0.22) 0%, transparent 60%), " + "linear-gradient(180deg, rgba(112,28,39,0.96) 0%, rgba(96,22,32,0.98) 100%)"
+};
+const reviewButtonThemes={
+  again: {
+    bg: isLightTheme ? "#ddb4c3" : "#d45b88",
+    hoverBg: isLightTheme ? "#d7a8ba" : "#dc7098",
+    activeBg: isLightTheme ? "#cf9bad" : "#c54d79",
+    borderColor: isLightTheme ? "rgba(176, 94, 122, 0.32)" : "rgba(255, 227, 237, 0.38)",
+    shadow: isLightTheme ? "0px 3px 0px #c993a3" : "0px 4px 0px #8f2950",
+    activeShadow: isLightTheme ? "0px 1px 0px #c993a3" : "0px 2px 0px #8f2950",
+    textColor: isLightTheme ? "#432b33" : "white",
+    delayColor: isLightTheme ? "#5b4b3a" : "whiteAlpha.900"
+  },
+  hard: {
+    bg: isLightTheme ? "#e0c28d" : "#d4951f",
+    hoverBg: isLightTheme ? "#dbb777" : "#deA637",
+    activeBg: isLightTheme ? "#d3ab60" : "#c78612",
+    borderColor: isLightTheme ? "rgba(154, 109, 36, 0.28)" : "rgba(255, 239, 204, 0.38)",
+    shadow: isLightTheme ? "0px 3px 0px #bf9b62" : "0px 4px 0px #8a5300",
+    activeShadow: isLightTheme ? "0px 1px 0px #bf9b62" : "0px 2px 0px #8a5300",
+    textColor: isLightTheme ? "#4a3921" : "white",
+    delayColor: isLightTheme ? "#5b4b3a" : "whiteAlpha.900"
+  },
+  good: {
+    bg: isLightTheme ? "#abd8ca" : "#27c1a5",
+    hoverBg: isLightTheme ? "#9fcebf" : "#38ceb3",
+    activeBg: isLightTheme ? "#92c3b4" : "#19b197",
+    borderColor: isLightTheme ? "rgba(68, 135, 122, 0.24)" : "rgba(213, 255, 247, 0.34)",
+    shadow: isLightTheme ? "0px 3px 0px #88b8aa" : "0px 4px 0px #0c7a6d",
+    activeShadow: isLightTheme ? "0px 1px 0px #88b8aa" : "0px 2px 0px #0c7a6d",
+    textColor: isLightTheme ? "#2d403a" : "white",
+    delayColor: isLightTheme ? "#5b4b3a" : "whiteAlpha.900"
+  },
+  easy: {
+    bg: isLightTheme ? "#b5cdea" : "#62b0ff",
+    hoverBg: isLightTheme ? "#a6c1e2" : "#77bcff",
+    activeBg: isLightTheme ? "#97b4d9" : "#4ea4fa",
+    borderColor: isLightTheme ? "rgba(90, 124, 169, 0.26)" : "rgba(226, 242, 255, 0.36)",
+    shadow: isLightTheme ? "0px 3px 0px #93afd2" : "0px 4px 0px #2f6fda",
+    activeShadow: isLightTheme ? "0px 1px 0px #93afd2" : "0px 2px 0px #2f6fda",
+    textColor: isLightTheme ? "#314256" : "white",
+    delayColor: isLightTheme ? "#5b4b3a" : "whiteAlpha.900"
+  }
+};;return {shell:defaultModalShell,result:resultTheme,ratings:reviewButtonThemes,trim:f.getFlashcardModalTrimTheme(p.card||{},cefrColor,isLightTheme),decor:t.getCardDecor(p.status||'active',cefrColor,isLightTheme),cefr:cefrColor,visuals:(()=>{const status=p.status||'active',isDue=status==='due',isWeak=status==='weak',isLocked=status==='locked',isActionable=['active','due','weak'].includes(status),APP_TEXT_PRIMARY=t.APP_TEXT_PRIMARY;const cardTextColor=isLightTheme ? isLocked ? "#8c7a67" : isWeak ? "#7d6268" : isDue ? "#7a5d40" : "#746250" : status === "scheduled" ? APP_TEXT_PRIMARY : "white";
+const cardTextShadow=isLightTheme ? "0 1px 8px rgba(255, 249, 241, 0.52)" : status === "scheduled" ? "none" : "0 2px 12px rgba(0,0,0,0.4)";
+const glowColor=isDue ? "rgba(251, 191, 36, 0.65)" : isWeak ? "rgba(244,114,182,0.52)" : `${cefrColor.primary}90`;
+const softGlowColor=isDue ? "rgba(251, 191, 36, 0.3)" : isWeak ? "rgba(244,114,182,0.22)" : `${cefrColor.primary}66`;;return {sx:isLightTheme ? {
+  "&::before": {
+    content: '""',
+    position: "absolute",
+    inset: 0,
+    backgroundImage: "repeating-linear-gradient(0deg, rgba(96,77,56,0.035) 0px, rgba(96,77,56,0.035) 1px, transparent 1px, transparent 28px), repeating-linear-gradient(90deg, rgba(96,77,56,0.03) 0px, rgba(96,77,56,0.03) 1px, transparent 1px, transparent 28px)",
+    opacity: 0.36,
+    zIndex: 0,
+    pointerEvents: "none"
+  }
+} : isActionable ? {
+  "&::before": {
+    content: '""',
+    position: "absolute",
+    inset: 0,
+    background: isDue ? "radial-gradient(circle at 20% 15%, rgba(251,191,36,0.18) 0%, transparent 40%), radial-gradient(circle at 82% 25%, rgba(249,115,22,0.16) 0%, transparent 42%), linear-gradient(180deg, rgba(36,20,11,0.94) 0%, rgba(69,26,3,0.98) 100%)" : isWeak ? "radial-gradient(circle at 20% 15%, rgba(244,114,182,0.14) 0%, transparent 40%), radial-gradient(circle at 82% 25%, rgba(125,211,252,0.12) 0%, transparent 40%), radial-gradient(circle at 50% 100%, rgba(59,130,246,0.18) 0%, transparent 60%), linear-gradient(180deg, rgba(17,36,61,0.95) 0%, rgba(10,24,45,0.98) 100%)" : "radial-gradient(circle at 20% 15%, rgba(56,189,248,0.14) 0%, transparent 42%), radial-gradient(circle at 82% 25%, rgba(45,212,191,0.12) 0%, transparent 40%), radial-gradient(circle at 50% 100%, rgba(30,64,175,0.28) 0%, transparent 62%), linear-gradient(180deg, rgba(8,20,43,0.95) 0%, rgba(5,16,36,0.98) 100%)",
+    animation: "flashcardGlowShift 10s ease-in-out infinite",
+    zIndex: 0
+  },
+  "&::after": {
+    content: '""',
+    position: "absolute",
+    inset: 0,
+    backgroundImage: "repeating-linear-gradient(0deg, rgba(148,163,184,0.06) 0px, rgba(148,163,184,0.06) 1px, transparent 1px, transparent 28px), repeating-linear-gradient(90deg, rgba(148,163,184,0.05) 0px, rgba(148,163,184,0.05) 1px, transparent 1px, transparent 28px)",
+    opacity: 0.4,
+    mixBlendMode: "screen",
+    zIndex: 0
+  },
+  "@keyframes flashcardGlowShift": {
+    "0%, 100%": {
+      transform: "translate(0, 0) scale(1)"
+    },
+    "50%": {
+      transform: "translate(0, -2%) scale(1.02)"
+    }
+  }
+} : undefined,cardTextColor,cardTextShadow,glowColor,softGlowColor};})()};}
+if(op==='flashWeak')return {weak:t.isWeakCardSnapshot(p.snapshot),score:t.getWeaknessScore(p.snapshot)};
+throw Error('Unknown flashcard operation');}
+function run(operation,json){const p=JSON.parse(json),now=new SystemDate(p.now||SystemDate.now());Date=class extends SystemDate{constructor(...args){super(...(args.length?args:[now.getTime()]));}static now(){return now.getTime();}};snapshotUser=p.user||{};snapshotDecks=p.decks||{};snapshotTranslations=p.copy||{};snapshotAppLanguage=p.language||p.supportLang||'en';try{const m=M0,c=M1,model=M2;let value;
+if(operation.startsWith('flash'))value=flashRun(operation,p,now);
+else if(operation==='reusable')value=m.getReusableMemory(p.user,p.targetLang,now);
 else if(operation==='captured')value=m.getTodaysCapturedNotes(p.user,p.targetLang,now);
 else if(operation==='rank')value=m.rankReusableNotes(p.notes||[]);
 else if(operation==='stored')value={blueprint:m.getStoredBlueprint(p.user,p.targetLang,p.dayKey),repair:m.getStoredRepairPlan(p.user,p.targetLang,p.dayKey),explanation:m.getStoredQuestExplanation(p.user,p.targetLang,p.dayKey),shouldRun:m.shouldRunDailyBatch(p.user,p.targetLang,p.dayKey,now)};
@@ -2445,5 +3910,5 @@ else if(operation==='bubble')value=c.buildQuestBubble(p);
 else if(operation==='summary')value=c.companionMemorySummary(p.lang,p.concept);
 else if(operation==='prepare'){const ranked=m.rankReusableNotes(p.notes||[]),goal=model.activeGoalFor(p.user,p.targetLang),goalProgress=model.compactSummary(p.user?.learningIntelligence?.[p.targetLang]?.goalProgress,'goal'),args={ranked,langKey:p.targetLang,appLanguage:p.appLanguage,todayCleared:p.todayCleared,carryOverKinds:p.carryOverKinds||[],targetDayKey:p.dayKey,now,goal};value={ranked,fallback:m.buildDeterministicBlueprint(args),prompt:m.buildBatchInput({...args,targetLang:p.targetLang,cefrLevel:p.cefrLevel,goal,goalProgress,performance:p.performance||m.generationPerformanceContextFor(p.user,p.targetLang)})};}
 else if(operation==='assemble'){const parsed=m.parseBlueprintJson(p.raw);value=parsed?m.assembleAiBlueprint({...p,parsed,langKey:p.targetLang,targetDayKey:p.dayKey,now}):p.fallback;}
-else throw Error('Unknown companion operation');return JSON.stringify(value??null);}finally{snapshotUser={};snapshotDecks={};Date=SystemDate;}}
+else throw Error('Unknown companion operation');return JSON.stringify(value??null);}finally{snapshotUser={};snapshotDecks={};snapshotTranslations={};Date=SystemDate;}}
 return {run};})(Date);
