@@ -7,20 +7,17 @@ struct GoalPreparationView: View {
     @StateObject private var speech = SpeechService()
     @State private var index = 0
     @State private var answer = ""
-    @State private var response = ""
     @State private var feedback: String?
     @State private var error: String?
     @State private var busy = false
     @State private var revealed = false
     @State private var checked = false
-    @State private var verdict: GoalVerdict?
     var artifact: JSONValue { app.goalArtifact(blueprint,mode:mode) }
     var cards: [JSONValue] { artifact["cards"].array }
-    var ready: Bool { !cards.isEmpty && cards.allSatisfy { artifact["outcomes"][$0["id"].string]["success"].boolean } }
     var body: some View {
         SubscriptionRequiredView(service:app.subscription) {
+            VStack(spacing:0){GoalFocusBanner(blueprint:blueprint)
             Form {
-                Text(blueprint["objective"].string)
                 if !app.goalIsCurrent(blueprint) { Text("This task has changed. Return to today's goal.") }
                 else if artifact["requiresTutor"].boolean {
                     Text("This goal needs a practical conversation. Its words aren't in the authored pronunciation collection.")
@@ -49,23 +46,13 @@ struct GoalPreparationView: View {
                         Button("Next preparation card") { index = (index + 1) % max(1,cards.count); answer = ""; feedback = nil; revealed = false; checked = false; speech.stopAll(); speech.transcript = "" }
                         Button("Try without the answer") { answer = ""; feedback = nil; revealed = false; checked = false; speech.transcript = "" }
                     }
-                    if mode == "flashcards" && ready {
-                        Section("Put the words into practice") {
-                            Text(blueprint["scenario"].string)
-                            TextField("Your practical response",text:$response,axis:.vertical)
-                            Button("Check my goal attempt") {
-                                busy = true; error = nil
-                                Task { defer { busy = false }; do { verdict = try await app.checkGoal(blueprint,mode:mode,response:response,context:"After recalling three preparation cards, the learner attempted the scenario: " + blueprint["scenario"].string) } catch { self.error = error.localizedDescription } }
-                            }.disabled(busy || response.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty)
-                            if let verdict { Text(verdict.feedback) }
-                        }
-                    }
+
                 }
                 if busy { ProgressView("Preparing practice…") }
                 if let error { Text(error).foregroundStyle(.red); Button("Retry") { prepare() } }
                 if let error = speech.error { Text(error).foregroundStyle(.red) }
             }
-        }.navigationTitle("Goal " + mode)
+        }}.navigationTitle(app.goalText("title"))
             .task { prepare() }
             .onChange(of:speech.transcript) { _,text in answer = text }
             .onDisappear { speech.stopAll() }

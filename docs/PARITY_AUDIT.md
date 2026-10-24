@@ -30,6 +30,8 @@ The public demo uses a separate named Firebase app and a fixed public service id
 
 Returning-day companion planning now uses the original pure source policy, canonical per-day blueprints and explanations, stable repair counters and per-step native activity routing. Recall/pronunciation outcomes are separate from normal Review/Phonics, and mixed repair lessons use the source 10-XP threshold without an extra completion reward. See [the checkpoint and its remaining limits](COMPANION_QUESTS.md). This does not complete the other learner surfaces or their designs.
 
+Focused Goal now uses the source planner, next unfinished activity, 20-XP lesson boundary, optional rubric dialog and translated autosaving Settings field. Confirmed completion controls sequencing and the plate bonus; failed lesson saves retain work and retry. See [the focused Goal checkpoint](FOCUSED_GOALS.md) for tests, component comparisons and remaining underlying activity work.
+
 ## Verification required before completion
 
 Capture the reference at iPhone dimensions, list its visible controls and transitions, implement the native screen with the original assets/copy/theme, and compare equivalent signed-out and learner states. Validate user journeys from landing through onboarding and actual practice, including errors, resume, rewards, back navigation, modal sequencing and paywalls. Tests of the older substitute flows must be replaced rather than preserved behind a test-only shell.

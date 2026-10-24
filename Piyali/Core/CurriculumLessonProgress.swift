@@ -33,7 +33,7 @@ public struct CurriculumLessonProgress:Codable,Equatable,Sendable {
 }
 public extension PracticeChange {
     mutating func attachCurriculumLesson(id:String?,level:String) {
-        guard let id,CurriculumLessonProgress.isCurriculumID(id) || id.hasPrefix("repair-") else { return }
+        guard let id,CurriculumLessonProgress.isCurriculumID(id) || id.hasPrefix("repair-") || id.hasPrefix("goal-") else { return }
         skillTreeLessonID=id;skillTreeLessonLevel=level
     }
 }

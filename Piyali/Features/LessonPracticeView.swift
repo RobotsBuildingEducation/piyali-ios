@@ -32,7 +32,7 @@ struct LessonPracticeView:View {
         return PracticeCopy.text(variant:flashcard ? "flashcard" : run.question.variant,language:run.question.support,key:sourceKey,fallback:fallback)
     }
     var body:some View {
-        SubscriptionRequiredView(service:app.subscription) {
+        SubscriptionRequiredView(service:app.subscription,preserveEarnedWork:app.preserveEarnedGoalLesson(lesson)) {
             ScrollView {
                 VStack(alignment:.leading,spacing:22) {
                     if let run {

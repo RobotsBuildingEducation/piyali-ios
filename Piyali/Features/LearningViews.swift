@@ -87,7 +87,7 @@ struct DailyPlateView: View {
 struct LessonView: View {
     let lesson:Lesson
     var body:some View {
-        if lesson.isRepair == true || (CurriculumLessonProgress.isCurriculumID(lesson.id) && lesson.id != IntroTutorial.lessonID && !lesson.modes.contains("game")) { CurriculumSessionView(lesson:lesson) }
+        if lesson.isGoal == true || lesson.isRepair == true || (CurriculumLessonProgress.isCurriculumID(lesson.id) && lesson.id != IntroTutorial.lessonID && !lesson.modes.contains("game")) { CurriculumSessionView(lesson:lesson) }
         else { LegacyLessonOverviewView(lesson:lesson) }
     }
 }

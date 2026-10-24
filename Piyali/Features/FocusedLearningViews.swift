@@ -1,66 +1,9 @@
 import SwiftUI
 import CryptoKit
 
-struct FocusedGoalView: View {
-    @EnvironmentObject var app: AppModel
-    @State private var draft = ""
-    @State private var busy = false
-    @State private var error: String?
-    var body: some View {
-        SubscriptionRequiredView(service:app.subscription) {
-            Form {
-                Section("Your goal") {
-                    TextField("What would you like to do?",text:$draft,axis:.vertical)
-                    Button("Save goal") { app.learner.editGoal(draft); app.persist(); prepare() }.disabled(busy || draft.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty)
-                    if !app.learner.goalBucket["activeGoal"]["id"].string.isEmpty {
-                        let status = app.learner.goalBucket["activeGoal"]["status"].string
-                        Text("Status: " + status)
-                        Button(status == "active" ? "Pause goal" : "Resume goal") { app.setGoalStatus(status == "active" ? "paused" : "active"); if status != "active" { prepare() } }
-                        Button("Mark personal goal achieved") { app.setGoalStatus("achieved") }
-                        Button("Remove goal",role:.destructive) { app.learner.editGoal(""); draft = ""; app.persist() }
-                    }
-                }
-                if let daily = app.readyGoal {
-                    let blueprint = daily["blueprint"]
-                    Section("Today's focus") {
-                        Text(blueprint["objective"].string).font(.headline)
-                        Text(blueprint["scenario"].string)
-                        ForEach(GoalPractice.list(blueprint["successCriteria"]),id:\.self) { Text($0) }
-                        Text(blueprint["rationale"].string).font(.footnote)
-                    }
-                    Section(daily["completed"].boolean ? "Today's bundle completed" : "Practice bundle") {
-                        ForEach(GoalPractice.list(blueprint["modes"],max:4),id:\.self) { mode in
-                            NavigationLink {
-                                if mode == "lesson" { LessonView(lesson:GoalPractice.lesson(blueprint)) }
-                                else if mode == "tutor" { TutorView(goalBlueprint:blueprint) }
-                                else { GoalPreparationView(mode:mode,blueprint:blueprint) }
-                            } label: {
-                                HStack {
-                                    Text(mode.capitalized); Spacer()
-                                    if daily["modeProgress"][mode].number >= Double(GoalPractice.targets[mode] ?? 1) { Image(systemName:"checkmark.circle.fill") }
-                                    else if GoalPractice.nextMode(daily) == mode { Text("Next").foregroundStyle(.secondary) }
-                                }
-                            }
-                        }
-                        Text("Recall and modeled pronunciation are preparation. Task checks use what you demonstrate against today's criteria.").font(.footnote)
-                    }
-                    if !app.learner.goalBucket["goalProgress"]["prose"].string.isEmpty {
-                        Section("Progress evidence") { Text(app.learner.goalBucket["goalProgress"]["prose"].string) }
-                    }
-                } else if app.learner.goalBucket["activeGoal"]["status"].string == "active" {
-                    Button("Prepare today's practice") { prepare() }.disabled(busy)
-                }
-                if busy { ProgressView("Preparing today's goal…") }
-                if let error { Text(error).foregroundStyle(.red) }
-            }
-        }.navigationTitle("Focused goal")
-            .onAppear { draft = app.learner.goal }
-            .task(id:app.goalPreparationKey) { guard !busy else { return }; busy = true; defer { busy = false }; do { try await app.prepareGoal() } catch { self.error = error.localizedDescription } }
-    }
-    func prepare() {
-        busy = true; error = nil
-        Task { defer { busy = false }; do { try await app.prepareGoal() } catch { self.error = error.localizedDescription } }
-    }
+struct FocusedGoalView:View {
+    @EnvironmentObject var app:AppModel
+    var body:some View {ScrollView{LearningGoalEditorView().padding(16)}.background(BrandBackground()).navigationTitle(app.goalText("label"))}
 }
 struct RepairPracticeView: View {
     @EnvironmentObject var app:AppModel

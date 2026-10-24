@@ -23,7 +23,7 @@ struct RealtimeLessonView:View {
     private var brand:PiyaliBrand { .init(dark:scheme == .dark) }
     private func t(_ key:String,_ fallback:String)->String { let result=EntryCopy.ui(app.learner.support,key);return result == key ? fallback : result }
     var body:some View {
-        SubscriptionRequiredView(service:app.subscription) {
+        SubscriptionRequiredView(service:app.subscription,preserveEarnedWork:app.preserveEarnedGoalLesson(lesson)) {
             ScrollView {
                 VStack(spacing:12) {
                     goalCard

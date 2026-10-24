@@ -11,7 +11,7 @@ import JavaScriptCore
     }
     public convenience init(bundle:Bundle = .main)throws {guard let url=bundle.url(forResource:"companion-quest-policy",withExtension:"js") else{throw PracticeRecipeFailure.unavailable};try self.init(source:url)}
     public func run(_ operation:String,_ input:JSONValue)throws->JSONValue {
-        context.exception=nil;let result=api.invokeMethod("run",withArguments:[operation,input.json])
+        context.exception=nil;let result=api.invokeMethod("run",withArguments:[operation,input.canonicalJSON])
         guard context.exception == nil,let text=result?.toString() else{throw PracticeRecipeFailure.invalidRecipe}
         return try JSONDecoder().decode(JSONValue.self,from:Data(text.utf8))
     }
@@ -127,7 +127,7 @@ public enum CompanionQuestRuntime {
     public static func run(source:String,operation:String,input:JSONValue)throws->JSONValue {
         guard let context=JSContext() else{throw PracticeRecipeFailure.unavailable}
         context.evaluateScript(source)
-        guard context.exception == nil,let api=context.objectForKeyedSubscript("PiyaliCompanionQuest"),let result=api.invokeMethod("run",withArguments:[operation,input.json])?.toString(),context.exception == nil else{throw PracticeRecipeFailure.invalidRecipe}
+        guard context.exception == nil,let api=context.objectForKeyedSubscript("PiyaliCompanionQuest"),let result=api.invokeMethod("run",withArguments:[operation,input.canonicalJSON])?.toString(),context.exception == nil else{throw PracticeRecipeFailure.invalidRecipe}
         return try JSONDecoder().decode(JSONValue.self,from:Data(result.utf8))
     }
 }
@@ -165,4 +165,8 @@ public extension LearnerState {
         let bucket=goalBucket.setting("version",.number(1)).setting("repairSummary",summary);if goalIntelligence == nil {goalIntelligence=[:]};goalIntelligence?[target]=bucket
         return true
     }
+}
+
+public extension JSONValue {
+    var canonicalJSON:String {let encoder=JSONEncoder();encoder.outputFormatting=[.sortedKeys];return String(data:(try? encoder.encode(self)) ?? Data("{}".utf8),encoding:.utf8) ?? "{}"}
 }

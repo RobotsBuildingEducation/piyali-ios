@@ -121,6 +121,7 @@ public enum WebProgressContract {
             let result = GoalPractice.applying(change,to:state.goalIntelligence?[change.target] ?? .object([:]))
             state.goalIntelligence?[change.target] = result.bucket
         }
+        for change in state.pendingChanges ?? [] where !(state.acknowledgedEventIDs ?? []).contains(change.id) {state.applyGoalLessonWork(change)}
         if !state.goalBucket["activeGoal"]["text"].string.isEmpty { state.goal = state.goalBucket["activeGoal"]["text"].string }
         state.immersionBatch=JSONValue.foundation(fields["realWorldTasks"] as? [String:Any] ?? [:])
         state.immersionHistory=JSONValue.foundation(fields["realWorldTaskHistoryByLanguage"] as? [String:Any] ?? [:]).object
@@ -201,12 +202,12 @@ public enum WebProgressContract {
             var bucket = intelligence[change.target] ?? [:]
             var elo = bucket["elo"] as? [String:Any] ?? [:]
             let baseline = integer(elo["scaleVersion"]) == 4 ? number(elo["rating"],default:800) : 800
-            elo["rating"] = [.conversation,.storyTurn,.readingTurn].contains(change.source) ? ConversationPractice.rating(baseline,level:change.level,success:correct,worth:change.conversationWorth ?? .null) : QuestionWorth.rating(baseline,level:change.level,correct:correct,independent:change.independent ?? false,worth:change.gradedWorth)
+            elo["rating"] = [.conversation,.storyTurn,.readingTurn].contains(change.source) ? ConversationPractice.rating(baseline,level:change.level,success:correct,worth:change.conversationWorth ?? .null) : QuestionWorth.rating(baseline,level:change.level,correct:correct,independent:change.independent ?? false,worth:change.gradedWorth,support:change.gradedSupport)
             elo["scaleVersion"] = 4; elo["updatedAt"] = iso(change.date)
             elo["totalGraded"] = integer(elo["totalGraded"]) + 1
             var summary = bucket["performanceSummary"] as? [String:Any] ?? [:]
             var levels = summary["byLevel"] as? [String:[String:Any]] ?? [:]
-            let evidence=QuestionWorth.evidenceLevel(level:change.level,correct:correct,independent:change.independent ?? false,worth:change.gradedWorth)
+            let evidence=QuestionWorth.evidenceLevel(level:change.level,correct:correct,independent:change.independent ?? false,worth:change.gradedWorth,support:change.gradedSupport)
             var counts = levels[evidence] ?? [:]
             counts[correct ? "correct" : "missed"] = integer(counts[correct ? "correct" : "missed"]) + 1
             levels[evidence] = counts; summary["byLevel"] = levels
@@ -215,6 +216,11 @@ public enum WebProgressContract {
             if [.conversation,.storyTurn,.readingTurn].contains(change.source) { bucket=ConversationPractice.gradedBucket((fields["learningIntelligence"] as? [String:[String:Any]])?[change.target] ?? [:],change:change) }
             intelligence[change.target] = bucket
             root["learningIntelligence"] = intelligence
+        }
+        if change.skillTreeLessonID?.hasPrefix("goal-") == true,change.earnedAmount > 0 {
+            var intelligence=root["learningIntelligence"] as? [String:[String:Any]] ?? fields["learningIntelligence"] as? [String:[String:Any]] ?? [:]
+            let bucket=JSONValue.foundation(intelligence[change.target] ?? [:]),next=GoalLessonProgress.applying(change,to:bucket)
+            if next != bucket {intelligence[change.target]=next.foundation;root["learningIntelligence"]=intelligence}
         }
         return (root,["monthKey":String(change.dayKey.prefix(7)),"days":days,"goalDays":goalDays,"updatedAt":iso(now)])
     }

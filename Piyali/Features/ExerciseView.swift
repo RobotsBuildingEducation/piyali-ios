@@ -94,8 +94,9 @@ private struct LegacyExerciseView: View {
 }
 struct SubscriptionRequiredView<Content: View>: View {
     @ObservedObject var service: SubscriptionService
+    var preserveEarnedWork=false
     @ViewBuilder var content: () -> Content
-    var body: some View { if service.hasAccess { content() } else { SubscriptionView(service: service) } }
+    var body: some View { if service.hasAccess || preserveEarnedWork { content() } else { SubscriptionView(service: service) } }
 }
 struct GrammarReferenceView: View {
     @EnvironmentObject var app: AppModel

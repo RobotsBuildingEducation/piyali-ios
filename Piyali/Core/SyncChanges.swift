@@ -29,6 +29,7 @@ public struct PracticeChange: Codable, Identifiable, Sendable {
     public var conversationBonus: Int?
     public var gradedWorth:JSONValue?
     public var gradedConcept:String?
+    public var gradedSupport:String?
     public var gradedMode:String?
     public var conversationWorth: JSONValue?
     public var conversationGoalText: JSONValue?
@@ -57,7 +58,7 @@ public enum CalendarDay {
     }
 }
 public extension LearnerState {
-    mutating func enqueue(_ change: PracticeChange) { applyLessonWork(change);questProgress = DailyPlate.recorded(change,progress:plateProgress); if pendingChanges == nil { pendingChanges = [] }; pendingChanges?.append(change) }
+    mutating func enqueue(_ change: PracticeChange) { applyGoalLessonWork(change);applyLessonWork(change);questProgress = DailyPlate.recorded(change,progress:plateProgress); if pendingChanges == nil { pendingChanges = [] }; pendingChanges?.append(change) }
     mutating func review(cardID: String, rating: ReviewRating, now: Date = Date(), calendar: Calendar = .current) {
         rollDay(now:now,calendar:calendar)
         let key = completionKey(cardID)
@@ -134,6 +135,7 @@ public extension LearnerState {
             }
             newGoalRewards.append((change,reward))
         }
+        for change in newer.sorted(by:{$0.date < $1.date}) {merged.applyGoalLessonWork(change)}
         merged.legacyFirstRunPlacement = (current.pendingPlacements ?? [:]).isEmpty ? acknowledged.legacyFirstRunPlacement : nil
         merged.gettingStartedModalShown = current.gettingStartedModalShown == true || acknowledged.gettingStartedModalShown == true ? true : acknowledged.gettingStartedModalShown
         if current.goal == sent.goal && newGoals.isEmpty { merged.goal = acknowledged.goal }

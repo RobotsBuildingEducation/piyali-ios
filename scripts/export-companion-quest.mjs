@@ -45,7 +45,10 @@ const roots=['getTodaysCapturedNotes','getReusableMemory','rankReusableNotes','b
 for(const name of roots)await select(memory,name);
 for(const name of ['buildQuestBubble','companionMemorySummary'])await select(copy,name);
 const phonics=await moduleFor('src/data/phonics/index.js');await select(phonics,'getAuthoredPhonicsFocusCards');
-for(const name of ['activeGoalFor','compactSummary','mergeEvidence'])await select(model,name);
+for(const name of ['activeGoalFor','compactSummary','mergeEvidence','normalizeGoalBlueprint','goalModesFor','nextGoalMode','buildGoalLesson','goalInstructions'])await select(model,name);
+const goalLessonProgress=await moduleFor('src/utils/lessonProgress.js'),goalCopy=await moduleFor('src/utils/learningGoalCopy.js');
+for(const name of ['getGoalPreparationXp','nextGoalPreparationXp','isGoalLessonReady'])await select(goalLessonProgress,name);
+for(const name of ['goalCopy','goalLessonCompletionCopy'])await select(goalCopy,name);
 const emitted=new Set(),ordered=[];
 function emit(m,visiting=new Set()){
  if(emitted.has(m))return;if(visiting.has(m))throw Error('Circular pure module graph: '+m.file);visiting.add(m);
@@ -57,7 +60,10 @@ function emit(m,visiting=new Set()){
  return (p.isVariableDeclarator()?'const ':'')+m.source.slice(p.node.start,p.node.end)+(p.isVariableDeclarator()?';':'');}).join('\n');
  ordered.push(`// ${m.file}\nconst M${m.index}=(function(){\n${imports}\n${declarations}\nreturn {${[...m.selected].join(',')}};})();`);emitted.add(m);
 }
-emit(memory);emit(copy);emit(model);emit(phonics);
+emit(memory);emit(copy);emit(model);emit(phonics);emit(goalLessonProgress);emit(goalCopy);
+const intelligenceFile='src/utils/learningIntelligence.js',intelligenceText=await fs.readFile(path.join(reference,intelligenceFile),'utf8');
+let goalPlanTemplate,goalJudgeTemplate;traverse(parse(intelligenceText,{sourceType:'module'}),{TemplateLiteral(p){if(p.parentPath.isObjectProperty()&&p.parentPath.node.key.name==='input'&&intelligenceText.slice(p.node.start,p.node.end).includes('Plan ONE daily language Goal task.'))goalPlanTemplate=intelligenceText.slice(p.node.start,p.node.end);if(p.parentPath.isObjectProperty()&&p.parentPath.node.key.name==='input'&&intelligenceText.slice(p.node.start,p.node.end).includes("Evaluate this learner's attempt at their language goal."))goalJudgeTemplate=intelligenceText.slice(p.node.start,p.node.end);}});
+if(!goalPlanTemplate||!goalJudgeTemplate)throw Error('Original daily Goal planner moved.');
 const deckFunction=memory.bindings.get('generateRepairDeckEntries').node,deckSource=memory.source.slice(deckFunction.start,deckFunction.end),deckParser='function parseRepairEntries(raw){'+deckSource.slice(deckSource.indexOf('  const text = String(raw'));
 const bridge=`function run(operation,json){const p=JSON.parse(json),now=new SystemDate(p.now||SystemDate.now());Date=class extends SystemDate{constructor(...args){super(...(args.length?args:[now.getTime()]));}static now(){return now.getTime();}};snapshotUser=p.user||{};snapshotDecks=p.decks||{};try{const m=M${memory.index},c=M${copy.index},model=M${model.index};let value;
 if(operation==='reusable')value=m.getReusableMemory(p.user,p.targetLang,now);
@@ -73,6 +79,17 @@ else if(operation==='deckCard')value=m.buildRepairCard(p);
 else if(operation==='deckEntries')value=parseRepairEntries(p.raw);
 else if(operation==='phonics')value=M${phonics.index}.getAuthoredPhonicsFocusCards(p.focus);
 else if(operation==='evidence')value=model.mergeEvidence(p.summary,p.event,'repair',now.toISOString());
+else if(operation==='goalPlan'){const user=p.user||{},lang=model.languageKey(p.targetLang),supportLang=p.supportLang||'en',dayKey=p.dayKey,cefrLevel=p.cefrLevel||'Pre-A1',goal=model.activeGoalFor(user,lang),bucket=user.learningIntelligence?.[lang]||{},compactSummary=model.compactSummary,context={goal,targetLang:lang,dayKey,cefrLevel,goalProgress:bucket.goalProgress,performance:m.generationPerformanceContextFor(user,lang,{curriculumCefrLevel:cefrLevel})};value=goal?{context,prompt:${goalPlanTemplate},fallback:model.normalizeGoalBlueprint(null,context)}:null;}
+else if(operation==='goalJudgePrompt'){const focus={blueprint:p.blueprint,targetLang:p.targetLang,supportLang:p.supportLang},response=p.response||'',context=p.context||'';value=${goalJudgeTemplate};}
+else if(operation==='goalParse')value=m.parseBlueprintJson(p.raw);
+else if(operation==='goalNormalize')value=model.normalizeGoalBlueprint(p.raw,p.context);
+else if(operation==='goalLesson')value=model.buildGoalLesson(p.blueprint);
+else if(operation==='goalInstructions')value=model.goalInstructions(p.blueprint,p.supportLang);
+else if(operation==='goalNext')value=model.nextGoalMode(p.bucket,p.blueprint);
+else if(operation==='goalPreparation')value=M${goalLessonProgress.index}.nextGoalPreparationXp(p);
+else if(operation==='goalReady')value=M${goalLessonProgress.index}.isGoalLessonReady(p.bucket,p.lesson);
+else if(operation==='goalCopy')value=M${goalCopy.index}.goalCopy(p.lang);
+else if(operation==='goalCompletionCopy')value=M${goalCopy.index}.goalLessonCompletionCopy(p.lang);
 else if(operation==='bubble')value=c.buildQuestBubble(p);
 else if(operation==='summary')value=c.companionMemorySummary(p.lang,p.concept);
 else if(operation==='prepare'){const ranked=m.rankReusableNotes(p.notes||[]),goal=model.activeGoalFor(p.user,p.targetLang),goalProgress=model.compactSummary(p.user?.learningIntelligence?.[p.targetLang]?.goalProgress,'goal'),args={ranked,langKey:p.targetLang,appLanguage:p.appLanguage,todayCleared:p.todayCleared,carryOverKinds:p.carryOverKinds||[],targetDayKey:p.dayKey,now,goal};value={ranked,fallback:m.buildDeterministicBlueprint(args),prompt:m.buildBatchInput({...args,targetLang:p.targetLang,cefrLevel:p.cefrLevel,goal,goalProgress,performance:p.performance||m.generationPerformanceContextFor(p.user,p.targetLang)})};}
@@ -80,10 +97,11 @@ else if(operation==='assemble'){const parsed=m.parseBlueprintJson(p.raw);value=p
 else throw Error('Unknown companion operation');return JSON.stringify(value??null);}finally{snapshotUser={};snapshotDecks={};Date=SystemDate;}}`;
 const script=`// Generated source policy; no network, Firebase, UI stores or host bindings.\nvar PiyaliCompanionQuest=(function(SystemDate){\nlet Date=SystemDate,snapshotUser={},snapshotDecks={};const snapshotStore={getState:()=>({user:snapshotUser})};\n${ordered.join('\n')}\n${deckParser}\n${bridge}\nreturn {run};})(Date);\n`;
 const api=Function(script+';return PiyaliCompanionQuest;')();
+function stableJSON(value){return JSON.stringify(value,(_,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.fromEntries(Object.keys(v).sort().map(k=>[k,v[k]])):v);}
 const rows=[],now='2026-10-23T12:00:00',dayKey='2026-10-23',targetLang='es';
 const notes=[['a','Pronunciation','phonics',3],['b','Verb agreement','grammar',2],['c','Greetings','vocabulary',1],['d','  verb AGREEMENT  ','grammar',1]].map(([id,concept,errorType,severity])=>({id,concept,errorType,severity,createdDayKey:'2026-10-22',status:'captured',expectedAnswer:'Hola',userAnswer:'Ola',cefrLevel:'A1'}));
 const user={schemaVersion:2,questDaysLoaded:{es_2026_10_23:true,'es_2026-10-23':true},companionMemory:{es:{notes}},learningIntelligence:{es:{activeGoal:{id:'goal',text:'Speak with family',status:'active'},goalProgress:{},repairSummary:{}}}};
-function record(operation,input){const expected=JSON.parse(api.run(operation,JSON.stringify(input)));rows.push({operation,input,expected});return expected;}
+function record(operation,input){const expected=JSON.parse(api.run(operation,stableJSON(input)));rows.push({operation,input,expected});return expected;}
 for(const lang of ['en','es','pt','fr','it','de','ja','zh','ru','ar','hi'])for(const leadKind of ['welcome','welcomeGoal','fresh','repair','repairMulti'])for(const cleared of [false,true])record('bubble',{lang,leadKind,goal:'Speak with family',concept:'saludos',taskList:'Learn, Speak',cleared});
 record('rank',{notes});record('reusable',{user,targetLang,now});record('captured',{user,targetLang,now});
 for(const status of [null,'ready','failed','generating','other'])for(const startedAt of [0,Date.parse(now)-1])record('stored',{user:{...user,dailyQuestBlueprint:{es:{[dayKey]:status?{status,startedAt}:null}}},targetLang,dayKey,now});
@@ -102,7 +120,24 @@ for(const level of ['Pre-A1','A1','B2'])record('deckPrompt',{item:notes[0],targe
 for(const raw of ['bad','[]','```json\n[{"support":" Hi ","target":" Hola "},{"support":"","target":"skip"}]\n```'])record('deckEntries',{raw});
 record('deckCard',{support:'Greeting',target:'Hola',supportBase:'en',targetBase:'es',langKey:'es',dayKey,stepIndex:1,cardIndex:0,level:'A1'});
 for(const success of [true,false])record('evidence',{now,event:{id:'repair:a',target:'saludos',expectedAnswer:'Hola',mode:'tutor',domain:'conversation_flow',success,support:'prompted',observation:'Produced a greeting correctly'},summary:{}});
+const goalRows=[];
+function goalRecord(operation,input){const expected=JSON.parse(api.run(operation,stableJSON(input)));goalRows.push({operation,input,expected});return expected;}
+for(const lang of ['en','es','pt','fr','it','de','ja','zh','ru','ar','hi']){goalRecord('goalCopy',{lang});goalRecord('goalCompletionCopy',{lang});}
+for(const level of ['Pre-A1','A1','B2'])for(const mode of ['lesson','flashcards','tutor','phonics','conversation']){
+ const context={goal:{id:'public-goal',text:'Speak with family'},targetLang:'es',dayKey,cefrLevel:level,goalProgress:{},performance:{suggestedQuestionLevel:level,eloRating:1100,curriculumCefrLevel:'A1'}};
+ const bp=goalRecord('goalNormalize',{raw:{mode,objective:'Greet a family member',scenario:'Say hello to your grandmother',targetLanguage:['Hola'],supports:['A short model'],successCriteria:['Produce a greeting'],rationale:'Practice a useful greeting'},context});
+ goalRecord('goalInstructions',{blueprint:bp,supportLang:'ar'});goalRecord('goalLesson',{blueprint:{...bp,mode:'lesson'}});
+ goalRecord('goalNext',{bucket:{dailyGoal:{modeProgress:Object.fromEntries(bp.modes.map((m,i)=>[m,i===0?99:0]))}},blueprint:bp});
+}
+for(const supportLang of ['en','ar']){goalRecord('goalPlan',{user,targetLang:'es',supportLang,dayKey,cefrLevel:'A1',now});goalRecord('goalJudgePrompt',{blueprint:{goalText:'Speak with family',objective:'Greet a relative',scenario:'Say hello',successCriteria:['Produce a greeting'],targetLanguage:['Hola']},targetLang:'es',supportLang,response:'Hola, mamá',context:'A model was provided'});}
+const lessonBlueprint={goalId:'public-goal',dayKey,mode:'lesson',lang:'es'},goalLesson={id:'goal-public-goal-'+dayKey,isGoal:true,goalBlueprint:lessonBlueprint,xpReward:20};
+for(const earned of [0,9,19,20,21])for(const active of [true,false]){
+ const bucket={activeGoal:{id:'public-goal',status:active?'active':'paused'},dailyGoal:{blueprint:lessonBlueprint,preparationXp:earned}};
+ goalRecord('goalReady',{bucket,lesson:goalLesson});
+ for(const amount of [0,3])goalRecord('goalPreparation',{bucket,focus:{npub:'public',targetLang:'es',blueprint:lessonBlueprint},npub:'public',targetLang:'es',dayKey,lessonId:goalLesson.id,amount});
+}
+await fs.writeFile(path.join(root,'Tests/PiyaliCoreTests/Fixtures/goal-source-policy.json.gz'),gzipSync(JSON.stringify(goalRows),{level:9}));
 await fs.writeFile(path.join(root,'Piyali/Resources/companion-quest-policy.js'),script);
 await fs.writeFile(path.join(root,'Tests/PiyaliCoreTests/Fixtures/companion-quest-policy.json.gz'),gzipSync(JSON.stringify(rows),{level:9}));
-await fs.writeFile(path.join(root,'docs/reference/companion-quest-source-manifest.json'),JSON.stringify({modules:[...modules.values()].filter(m=>m.selected.size).map(m=>({file:m.file,sha256:createHash('sha256').update(m.source).digest('hex'),declarations:[...m.selected]})),fixtureCount:rows.length,fixtureEncoding:"gzip(JSON)",snapshotAdapter:'An explicit clock scopes Date during each call for reproducibility. Only useUserStore.getState().user is replaced by the explicit plain input snapshot; all source I/O functions are excluded. The deck prompt and parser are split at the source network call; no provider code executes. Authored phonics selection reads the exact pre-exported deck snapshot. Unread flag component fields in language metadata are null; language labels/normalization remain source functions.'},null,2)+'\n');
-console.log(`Exported ${rows.length} source-executed companion cases, ${script.length} bytes of pure policy.`);
+await fs.writeFile(path.join(root,'docs/reference/companion-quest-source-manifest.json'),JSON.stringify({modules:[...modules.values()].filter(m=>m.selected.size).map(m=>({file:m.file,sha256:createHash('sha256').update(m.source).digest('hex'),declarations:[...m.selected]})),fixtureCount:rows.length,goalFixtureCount:goalRows.length,goalPlanner:{file:intelligenceFile,sha256:createHash('sha256').update(intelligenceText).digest('hex'),scope:'Original callResponses input template; source network/persistence code is excluded.'},fixtureEncoding:"gzip(JSON)",snapshotAdapter:'An explicit clock scopes Date during each call for reproducibility. Only useUserStore.getState().user is replaced by the explicit plain input snapshot; all source I/O functions are excluded. The deck prompt and parser are split at the source network call; no provider code executes. Authored phonics selection reads the exact pre-exported deck snapshot. Unread flag component fields in language metadata are null; language labels/normalization remain source functions.'},null,2)+'\n');
+console.log(`Exported ${rows.length} source-executed companion cases and ${goalRows.length} goal cases, ${script.length} bytes of pure policy.`);

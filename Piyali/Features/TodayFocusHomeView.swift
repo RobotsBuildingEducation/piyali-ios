@@ -5,6 +5,7 @@ struct TodayFocusHomeView:View {
     @EnvironmentObject var app:AppModel
     @Environment(\.colorScheme) private var scheme
     let sessionActive:Bool
+    var startingPractice=false
     let onStart:()->Void
     let onPanel:(ProductPanel)->Void
     let onCompanionContinue:()->Void
@@ -41,7 +42,7 @@ struct TodayFocusHomeView:View {
                 }
                 VStack(spacing:10){ForEach(courses){courseRow($0)}}.opacity(showBubble ? 0.4 : 1)
                 if !cleared {
-                    Button(action:onStart){HStack(spacing:8){Image(systemName:"play");Text(ProductCopy.text(language,sessionActive || courses.contains{$0.count > 0} ? "continue" : "start"))}}.buttonStyle(FocusPrimaryButtonStyle()).disabled(showBubble || app.loadingContent).accessibilityIdentifier("startDailyPractice")
+                    Button(action:onStart){HStack(spacing:8){Image(systemName:"play");Text(ProductCopy.text(language,sessionActive || courses.contains{$0.count > 0} ? "continue" : "start"))}.opacity(startingPractice ? 0:1).overlay{if startingPractice{ProgressView().tint(.white)}}}.buttonStyle(FocusPrimaryButtonStyle()).disabled(showBubble || app.loadingContent || startingPractice).accessibilityIdentifier("startDailyPractice")
                 }
                 if showActivity {DailyActivityView(onBack:{showActivity=false},onAchievements:{onPanel(.achievements)}).zIndex(showBubble ? 30 : 0)}
                 else {

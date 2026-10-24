@@ -12,11 +12,14 @@ struct CurriculumSessionView:View {
     @State private var fresh=false
     @State private var finishing=false
     @State private var startedCompleted=false
+    @State private var goalCompletionError:String?
+    @State private var goalCompletionTask:Task<Void,Never>?
     private var brand:PiyaliBrand { .init(dark:scheme == .dark) }
-    private var work:CurriculumLessonProgress? { app.learner.lessonWork?[app.learner.completionKey(lesson.id)] }
+    private var work:CurriculumLessonProgress? {if lesson.isGoal == true {return .init(earnedXP:Int(min(99999,GoalLessonProgress.earned(app.learner.goalBucket))))};return app.learner.lessonWork?[app.learner.completionKey(lesson.id)]}
     private var complete:Bool { app.learner.completed.contains(app.learner.completionKey(lesson.id)) }
     var body:some View {
         VStack(spacing:0) {
+            if lesson.isGoal == true,let bp=lesson.goalBlueprint {GoalFocusBanner(blueprint:bp)}
             if lesson.isFinalQuiz != true { VStack(spacing:10) {
                 if lesson.isFinalQuiz != true {
                     HStack { Text(lesson.title.localized(app.learner.support)).font(PiyaliBrand.productFont(16,700));Spacer();Text("\(work?.earnedXP ?? 0) / \(lesson.xpReward) XP").font(PiyaliBrand.productFont(13,600)).accessibilityIdentifier("activeLessonXP") }
@@ -28,12 +31,15 @@ struct CurriculumSessionView:View {
                     } } }
                 }
             }.padding(18).background(brand.background) }
-            if !mode.isEmpty { engine.id(revision) }
+            if let goalCompletionError {
+                VStack(spacing:16){Text(goalCompletionError).multilineTextAlignment(.center).accessibilityIdentifier("goalLessonSaveError");Button(app.goalCompletionText("retry")){finishGoalLesson()}.buttonStyle(EntryButtonStyle()).accessibilityIdentifier("retryGoalLessonSave")}.padding(24)
+            } else if finishing,lesson.isGoal == true,!complete {ProgressView(app.goalCompletionText("saving")).padding(24).accessibilityIdentifier("savingGoalLesson")}
+            if !mode.isEmpty {engine.id(revision).allowsHitTesting(!finishing)}
         }.background(brand.background).navigationTitle(lesson.title.localized(app.learner.support)).navigationBarTitleDisplayMode(.inline)
             .onAppear { startedCompleted=complete;app.lessonActivityActive=true;if mode.isEmpty { mode=lesson.modes.first ?? "vocabulary" };app.beginLesson(lesson);checkThreshold() }
-            .onDisappear { app.lessonActivityActive=false }
+            .onDisappear {goalCompletionTask?.cancel();app.lessonActivityActive=false}
             .onChange(of:work?.earnedXP) { _,_ in checkThreshold() }
-            .onChange(of:complete) { _,completed in if completed,!startedCompleted,!finishing { presentCompletion(reward:work?.earnedXP ?? lesson.xpReward) } }
+            .onChange(of:complete) { _,completed in if completed,lesson.isGoal != true,!startedCompleted,!finishing { presentCompletion(reward:work?.earnedXP ?? lesson.xpReward) } }
     }
     @ViewBuilder private var engine:some View {
         if lesson.isFinalQuiz == true { FinalQuizView(lesson:lesson) }
@@ -52,9 +58,14 @@ struct CurriculumSessionView:View {
     }
     private func checkThreshold() {
         guard !finishing,!complete,work?.status == .inProgress,lesson.isFinalQuiz != true,!lesson.modes.contains("game"),app.canComplete(lesson) else { return }
+        if lesson.isGoal == true {finishGoalLesson();return}
         finishing=true;app.complete(lesson)
         guard complete else { finishing=false;return }
         publishCompletion(reward:lesson.xpReward)
+    }
+    private func finishGoalLesson(){
+        guard goalCompletionTask == nil else{return};finishing=true;goalCompletionError=nil
+        goalCompletionTask=Task {defer{goalCompletionTask=nil};do{try await app.completeFocusedGoalLesson(lesson);app.lessonActivityActive=false}catch is CancellationError{}catch{goalCompletionError=app.goalCompletionText("error")}}
     }
     private func presentCompletion(reward:Int) { finishing=true;publishCompletion(reward:reward) }
     private func publishCompletion(reward:Int) {

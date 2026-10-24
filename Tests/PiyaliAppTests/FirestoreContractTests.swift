@@ -46,6 +46,20 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
         XCTAssertEqual(fields["patreonVerified"] as? Bool,true);XCTAssertEqual(fields["unrelatedWebSetting"] as? String,"preserve")
         let snapshot=try JSONDecoder().decode(LearnerState.self,from:Data((fields["iosStateJSON"] as? String ?? "").utf8));XCTAssertNil(snapshot.companionQuestDays);XCTAssertTrue(snapshot.pendingRepairEvidence?.isEmpty == true)
     }
+    func testFocusedGoalLessonCommitsFinalXPBeforeCompletionAndRetriesWithoutBonus() async throws {
+        let (service,db,_)=try context(),app=AppModel(progressService:service);try app.identity.create();defer{try? app.identity.disconnect()}
+        let npub=app.identity.npub;try await seed(db,npub);app.subscription.bind(app.identity);app.signedIn=true
+        var state=try requireState(await service.load(npub:npub));state.editGoal("Greet a family member")
+        let day=CalendarDay.key(Date()),bp:JSONValue = .object(["goalId":state.goalBucket["activeGoal"]["id"],"dayKey":.string(day),"lang":.string("fr"),"mode":.string("lesson"),"modes":.array([.string("lesson"),.string("tutor")]),"objective":.string("Greet a family member"),"scenario":.string("Start a greeting"),"targetLanguage":.array([.string("Bonjour")]),"supports":.array([]),"successCriteria":.array([.string("Say hello")]),"cefrLevel":.string("A1")])
+        state.applyGoal(GoalChange(action:.blueprint,target:"fr",payload:bp));app.learner=try requireState(await service.save(state,npub:npub))
+        let lesson=try app.sourceGoalLesson(bp);app.learner.award(12,lesson:lesson);app.learner.award(10,lesson:lesson)
+        try await app.completeFocusedGoalLesson(lesson);try await app.completeFocusedGoalLesson(lesson)
+        let restored=try requireState(await service.load(npub:npub)),root=try await db.collection("users").document(npub).getDocument(source:.server).data() ?? [:]
+        XCTAssertEqual(GoalLessonProgress.earned(restored.goalBucket),22);XCTAssertEqual(restored.goalBucket["dailyGoal"]["modeProgress"]["lesson"].number,20);XCTAssertFalse(restored.goalBucket["dailyGoal"]["completed"].boolean)
+        XCTAssertEqual(restored.totalXP,172);XCTAssertEqual(restored.goalBucket["activeGoal"]["status"].string,"active");XCTAssertEqual(root["patreonVerified"] as? Bool,true);XCTAssertEqual(root["unrelatedWebSetting"] as? String,"preserve")
+        let document=try await db.collection("users").document(npub).collection("languageLessons").document("fr_"+lesson.id).getDocument(source:.server);XCTAssertFalse(document.exists)
+        XCTAssertTrue(app.learner.pendingGoalChanges?.isEmpty == true);XCTAssertTrue(app.learner.pendingChanges?.isEmpty == true);XCTAssertEqual(GoalPractice.nextMode(try XCTUnwrap(app.readyGoal)),"tutor")
+    }
     func testSessionTimerCompletionIsIdempotentAndGoalEditsPreserveXPAndPaidFields() async throws {
         let (service,db,npub)=try context();try await seed(db,npub)
         let window=try await db.collection("users").document(npub).getDocument(source:.server)

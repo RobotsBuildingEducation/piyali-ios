@@ -23,7 +23,10 @@ import SwiftUI
     @Published var lessonActivityActive=false
     @Published var activityFooter:ActivityFooterPresentation?
     @Published var activityFooterHeight:CGFloat=0
+    @Published var goalCheck:GoalCheckPresentation?
     @Published var pendingLessonCompletion:LessonCompletionPresentation?
+    var goalEditorFlush:(id:UUID,flush:()->Void)?
+    let progressService:any LearnerProgressService
     let identity = IdentityService()
     let ai = AIService()
     let companionQuestPolicy=try? CompanionQuestPolicy()
@@ -35,6 +38,7 @@ import SwiftUI
     private var lastPersisted = LearnerState()
     private var saveTask: Task<Void, Never>?
     private var goalTasks: [String:Task<Void,Error>] = [:]
+    private var goalJudging:[String:Task<GoalVerdict,Error>] = [:]
     private var achievementUpdates: AnyCancellable?
     private var contentTask: Task<Void, Never>?
     var introLesson:Lesson? { guard introLibrary?.target == learner.target else { return nil };return introLibrary?.units[learner.level]?.lessons.first }
@@ -76,7 +80,8 @@ import SwiftUI
         }
         _ = learner.completeTutor(lesson); persist(); return earned
     }
-    init(automaticWallet:WalletService? = nil) {
+    init(automaticWallet:WalletService? = nil,progressService:(any LearnerProgressService)? = nil) {
+        self.progressService=progressService ?? FirebaseService.shared
         self.automaticWallet=automaticWallet ?? WalletService()
         curriculumIndex = (try? ContentLibrary.load([String:[String:[String]]].self, name: "curriculum-index")) ?? [:]
         flashcardIndex = (try? ContentLibrary.load([String:[String]].self, name: "flashcard-index")) ?? [:]
@@ -104,6 +109,7 @@ import SwiftUI
         learner.rollDay(); lastPersisted = learner
     }
     func signIn(nsec: String?,name:String? = nil,support:String? = nil) async {
+        flushGoalEditor();goalCheck=nil
         nostrSyncTask?.cancel();nostrAchievements.cancel()
         teams.cancel(clear:true)
         do {
@@ -125,7 +131,7 @@ import SwiftUI
         do {
             try await FirebaseIdentityService.shared.ensure(identity)
             if FileManager.default.fileExists(atPath:localURL.path) { await sync() }
-            else if let cloud = try await FirebaseService.shared.load(npub:account) {
+            else if let cloud = try await progressService.load(npub:account) {
                 guard identity.npub == account else { return }
                 learner = cloud; lastPersisted = learner; try writeLocal()
             }
@@ -133,11 +139,13 @@ import SwiftUI
         await reloadContent(); await subscription.refresh(); scheduleNostrAchievements()
     }
     func signInRemote(_ token:String,onConnected:@MainActor ()->Void = {}) async -> Bool {
+        flushGoalEditor();goalCheck=nil
         nostrSyncTask?.cancel();nostrAchievements.cancel();teams.cancel(clear:true)
         do { try await identity.connect(token);try Task.checkCancellation();onConnected();await activateIdentity();return true }
         catch { if !(error is CancellationError) { self.error=error.localizedDescription };return false }
     }
     func disconnectRemote() {
+        flushGoalEditor();goalCheck=nil
         do {
             try writeLocal();automaticTipTask?.task.cancel();automaticTipTask=nil;automaticWallet.cancel(clear:true);saveTask?.cancel();contentTask?.cancel();nostrSyncTask?.cancel();nostrAchievements.cancel();teams.cancel(clear:true)
             try identity.disconnect();FirebaseIdentityService.shared.clearSession();signedIn=false;lessonActivityActive=false;activityFooter=nil;pendingLessonCompletion=nil;subscription.bind(identity);learner=LearnerState()
@@ -267,7 +275,7 @@ import SwiftUI
                 guard !Task.isCancelled else { return }
                 try await FirebaseIdentityService.shared.ensure(identity)
                 guard identity.npub == npub, !Task.isCancelled else { return }
-                let acknowledged = try await FirebaseService.shared.save(state,npub:npub)
+                let acknowledged = try await progressService.save(state,npub:npub)
                 guard identity.npub == npub, !Task.isCancelled else { return }
                 if let acknowledged { try applyAcknowledgment(acknowledged,sent:state); syncStatus = synchronizedStatus }
                 else { syncStatus = "Saved on this iPhone" }
@@ -279,12 +287,14 @@ import SwiftUI
         (learner.pendingChanges ?? []).isEmpty && (learner.pendingImmersionChanges ?? []).isEmpty && (learner.pendingMemoryChanges ?? []).isEmpty && (learner.pendingPlacements ?? [:]).isEmpty && (learner.pendingGoalChanges ?? []).isEmpty && (learner.pendingPlateHeadlines ?? [:]).isEmpty && (learner.pendingCompanionQuestDays ?? [:]).isEmpty && (learner.pendingRepairEvidence ?? []).isEmpty ? "Synced with Firebase" : "Saved on iPhone; cloud sync pending"
     }
     private func applyAcknowledgment(_ cloud: LearnerState, sent: LearnerState) throws {
+        let priorGoalModes=readyGoal?["modeProgress"]
         let target = learner.target, support = learner.support, level = learner.level, cardLevel = learner.flashcardLevel, tutorLevel = learner.tutorLevel
         learner = LearnerState.rebased(current:learner,sent:sent,acknowledged:cloud)
         for change in learner.pendingRepairEvidence ?? [] {
             let bucket=learner.goalIntelligence?[change.target] ?? .object([:])
             if let summary=try? companionQuestPolicy?.run("evidence",.object(["summary":bucket["repairSummary"],"event":change.event,"now":.number(change.date.timeIntervalSince1970*1000)])) {if learner.goalIntelligence == nil {learner.goalIntelligence=[:]};learner.goalIntelligence?[change.target]=bucket.setting("repairSummary",summary)}
         }
+        if readyGoal?["modeProgress"] != priorGoalModes {localPracticeRevision=UUID()}
         let claimed = learner.claimPlate(user:identity.npub)
         lastPersisted = learner; try writeLocal()
         if claimed { persist() }
@@ -295,7 +305,7 @@ import SwiftUI
         do {
             try await FirebaseIdentityService.shared.ensure(identity)
             guard identity.npub == npub else { return }
-            if let cloud = try await FirebaseService.shared.save(state,npub:npub) {
+            if let cloud = try await progressService.save(state,npub:npub) {
                 guard identity.npub == npub else { return }
                 try applyAcknowledgment(cloud,sent:state); syncStatus = synchronizedStatus
             } else { syncStatus = "Saved on this iPhone" }
@@ -312,7 +322,7 @@ import SwiftUI
     func record(exercise: Exercise, answer: String, grade: Grade, mode: PracticeMode, lesson: Lesson?, flashcardID: String? = nil) {
         learner.history.insert(HistoryEntry(date: Date(), target: learner.target, mode: mode.rawValue, question: exercise.question, answer: answer, feedback: grade.feedback, correct: grade.correct,repairInMemory:!grade.correct), at: 0)
         learner.history = Array(learner.history.prefix(500))
-        learner.assess(correct: grade.correct, independent: exercise.choices.isEmpty, questionLevel:lesson?.id.hasPrefix("goal-") == true ? lesson?.agenda["cefrLevel"].string : nil)
+        learner.assess(correct: grade.correct, independent: exercise.choices.isEmpty, questionLevel:lesson?.isGoal == true ? lesson?.cefrLevel : nil)
         if !grade.correct {
             let source = flashcardID != nil ? "flashcard" : mode == .speaking || mode == .stories ? "story" : mode.rawValue.lowercased()
             learner.captureMemory(mode:source,concept:exercise.question,answer:answer,expected:grade.correctedAnswer,feedback:grade.feedback,context:lesson?.id ?? "")
@@ -329,10 +339,10 @@ import SwiftUI
         persist()
     }
     var readyGoal: JSONValue? {
-        guard !(learner.pendingGoalChanges ?? []).contains(where:{ $0.target == learner.target && [.edit,.blueprint].contains($0.action) }) else { return nil }
-        return learner.dailyGoalTask
+        guard !(learner.pendingGoalChanges ?? []).contains(where:{ $0.target == learner.target && [.edit,.blueprint,.bundleUpgrade].contains($0.action) }) else { return nil }
+        return GoalPractice.today(learner.confirmedGoalBucket,day:CalendarDay.key(Date()))
     }
-    var goalPreparationKey: String { "\(identity.npub):\(learner.target):\(learner.goal):\(learner.goalBucket["activeGoal"]["status"].string):\(CalendarDay.key(Date())):\(subscription.hasAccess)" }
+    var goalPreparationKey:String {[identity.npub,learner.target,learner.support,learner.goalBucket["activeGoal"]["id"].string,learner.goal,learner.goalBucket["activeGoal"]["status"].string,CalendarDay.key(Date()),String(subscription.hasAccess)].joined(separator:"\u{1f}")}
     func prepareGoal() async throws {
         guard subscription.hasAccess, !learner.goal.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else { return }
         if learner.goalBucket["activeGoal"]["id"].string.isEmpty { learner.editGoal(learner.goal); persist() }
@@ -342,25 +352,6 @@ import SwiftUI
         goalTasks[key] = task
         defer { goalTasks.removeValue(forKey:key) }
         try await task.value
-    }
-    private func buildDailyGoal() async throws {
-        let account = identity.npub, target = learner.target, day = CalendarDay.key(Date())
-        if learner.goalBucket["activeGoal"]["id"].string.isEmpty { learner.editGoal(learner.goal); persist() }
-        await sync()
-        guard identity.npub == account, learner.target == target else { return }
-        guard (learner.pendingGoalChanges ?? []).filter({ $0.target == target }).isEmpty else { throw AppError.message("Reconnect and sync to save your goal across devices.") }
-        guard let goal = GoalPractice.active(learner.goalBucket) else { return }
-        if readyGoal != nil { return }
-        let progress = learner.goalBucket["goalProgress"], state = learner
-        var raw: JSONValue = .object([:])
-        do {
-            raw = try await ai.goalBlueprint(learner:state,goal:goal)
-        } catch { /* The web's deterministic tutor/lesson task remains usable when generation fails. */ }
-        guard identity.npub == account, learner.target == target, GoalPractice.active(learner.goalBucket)?["id"] == goal["id"], CalendarDay.key(Date()) == day else { return }
-        let blueprint = GoalPractice.blueprint(raw:raw,goal:goal,target:target,day:day,level:state.level,rating:state.rating,progress:progress)
-        learner.applyGoal(GoalChange(action:.blueprint,target:target,payload:blueprint)); persist(); await sync()
-        guard identity.npub == account, learner.target == target else { return }
-        guard readyGoal != nil else { throw AppError.message("Your task is ready. Reconnect and sync to save the same task across devices.") }
     }
     func setGoalStatus(_ status: String) { learner.editGoal(learner.goal,status:status); persist() }
     func goalArtifact(_ blueprint: JSONValue, mode: String) -> JSONValue {
@@ -418,18 +409,19 @@ import SwiftUI
     }
     func recordGoalPreparation(_ blueprint: JSONValue, mode: String, card: JSONValue, success: Bool, answer: String) {
         guard goalIsCurrent(blueprint) else { return }
+        guard !goalArtifact(blueprint,mode:mode)["outcomes"][card["id"].string]["success"].boolean else{return}
         let item = mode == "phonics" ? card["practiceWord"].string : card["concept"][learner.target].string
         let support = mode == "phonics" ? "modeled" : "prompted"
         let payload = blueprint.setting("mode",.string(mode)).setting("cardID",card["id"]).setting("success",.bool(success)).setting("support",.string(support)).setting("item",.string(item)).setting("transfer",.bool(card["practiceRole"].string == "transfer"))
         learner.applyGoal(GoalChange(action:.outcome,target:learner.target,payload:payload))
-        learner.assess(correct:success,independent:false,questionLevel:blueprint["cefrLevel"].string)
+        learner.assess(correct:success,independent:false,questionLevel:card["cefrLevel"].string.isEmpty ? blueprint["cefrLevel"].string:card["cefrLevel"].string,support:mode == "phonics" ? "modeled":"prompted")
         let observation = "\(success ? "Correct" : "Unsuccessful") \(mode == "phonics" ? "modeled practice of" : "recall of") \(item): \(answer). Preparation, not independent production."
         let evidence = payload.setting("target",.string(item)).setting("observation",.string(observation)).setting("domain",.string(mode == "phonics" ? "pronunciation" : "recall")).setting("expectedAnswer",.string(item))
         learner.applyGoal(GoalChange(action:.evidence,target:learner.target,payload:evidence))
-        if mode == "phonics" {
-            let artifact = goalArtifact(blueprint,mode:mode), required = Array(artifact["cards"].array.prefix(2))
-            if required.count == 2 && required.allSatisfy({ artifact["outcomes"][$0["id"].string]["success"].boolean }) {
-                recordGoalAttempt(blueprint,mode:mode,success:true,support:"modeled",observation:required.map { $0["practiceWord"].string + " pronounced successfully after a model" }.joined(separator:"; "),domain:"pronunciation")
+        if mode == "phonics" || mode == "flashcards" {
+            let artifact = goalArtifact(blueprint,mode:mode), required = mode == "phonics" ? Array(artifact["cards"].array.prefix(2)):artifact["cards"].array
+            if required.count == (mode == "phonics" ? 2:3) && required.allSatisfy({ artifact["outcomes"][$0["id"].string]["success"].boolean }) {
+                recordGoalAttempt(blueprint,mode:mode,success:true,support:mode == "phonics" ? "modeled":"prompted",observation:required.map{mode == "phonics" ? $0["practiceWord"].string+" pronounced successfully after a model":$0["concept"][learner.target].string+" recalled correctly; recall only, not independent production"}.joined(separator:"; "),domain:mode == "phonics" ? "pronunciation":"recall")
             }
         }
         persist()
@@ -440,19 +432,31 @@ import SwiftUI
     }
     func recordGoalAttempt(_ blueprint: JSONValue, mode: String, success: Bool, support: String, observation: String, domain: String = "production") {
         guard goalIsCurrent(blueprint) else { return }
-        let payload: JSONValue = .object(["goalId":blueprint["goalId"],"dayKey":blueprint["dayKey"],"cefrLevel":blueprint["cefrLevel"],"mode":.string(mode),"success":.bool(success),"support":.string(support),"observation":.string(observation),"domain":.string(domain)])
+        let payload: JSONValue = .object(["goalId":blueprint["goalId"],"dayKey":blueprint["dayKey"],"cefrLevel":blueprint["cefrLevel"],"mode":.string(mode),"success":.bool(success),"support":.string(support),"observation":.string(observation),"domain":.string(domain),"priorModeProgress":learner.goalBucket["dailyGoal"]["modeProgress"][mode]])
         learner.applyGoal(GoalChange(action:.attempt,target:learner.target,payload:payload)); persist()
     }
     func checkGoal(_ blueprint: JSONValue, mode: String, response: String, context: String) async throws -> GoalVerdict {
+        guard !response.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else{return GoalVerdict(success:false,support:"prompted",feedback:"Try a response first.",observation:"")}
+        let scope=goalCourseScope,key=[scope.account,scope.target,scope.support,scope.goalID,scope.day,mode,response].joined(separator:"\u{1f}")
+        if let pending=goalJudging[key] {return try await pending.value}
+        let task=Task { @MainActor in try await self.performGoalCheck(blueprint,mode:mode,response:response,context:context) }
+        goalJudging[key]=task;defer{goalJudging.removeValue(forKey:key)}
+        return try await task.value
+    }
+    private func performGoalCheck(_ blueprint:JSONValue,mode:String,response:String,context:String)async throws->GoalVerdict {
         guard subscription.hasAccess, goalIsCurrent(blueprint) else { throw AppError.message("This daily task has changed. Open today's goal again.") }
         if (readyGoal?["modeProgress"][mode].number ?? 0) >= Double(GoalPractice.targets[mode] ?? 1) {
             return GoalVerdict(success:true,support:"prompted",feedback:"This part of today’s bundle is already complete. Continue with the next task.",observation:"Previously recorded goal evidence")
         }
-        let account = identity.npub, target = learner.target, state = learner
+        let scope=goalCourseScope, state = learner
         let verdict = try await ai.goalVerdict(blueprint:blueprint,response:response,context:context,support:state.support)
-        guard identity.npub == account, learner.target == target, goalIsCurrent(blueprint), !verdict.observation.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else { throw AppError.message("This check is no longer current. Open today's goal again.") }
-        learner.assess(correct:verdict.success,independent:["independent","transferred"].contains(verdict.support),questionLevel:blueprint["cefrLevel"].string)
-        recordGoalAttempt(blueprint,mode:mode,success:verdict.success,support:verdict.support,observation:verdict.observation,domain:"production")
+        guard goalCourseScope == scope, goalIsCurrent(blueprint), !verdict.observation.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else { throw AppError.message("This check is no longer current. Open today's goal again.") }
+        let worth=blueprint["worth"] == .null ? try GeneratedQuestionWorth.fallback(level:blueprint["cefrLevel"].string,learner:state,recipes:PracticeRecipes()):blueprint["worth"]
+        learner.assess(correct:verdict.success,independent:["independent","transferred"].contains(verdict.support),questionLevel:blueprint["cefrLevel"].string,worth:worth,concept:blueprint["objective"].string,mode:mode,support:verdict.support)
+        recordGoalAttempt(blueprint,mode:mode,success:verdict.success,support:verdict.support,observation:verdict.observation,domain:mode == "phonics" ? "pronunciation":"production")
+        await sync();try Task.checkCancellation()
+        guard goalCourseScope == scope,goalIsCurrent(blueprint) else{throw CancellationError()}
+        if verdict.success,(readyGoal?["modeProgress"][mode].number ?? 0) < Double(GoalPractice.targets[mode] ?? 1) {throw AppError.message("The check is unavailable. Your practice is saved; try the check again.")}
         return verdict
     }
     var tutorLevels: [String] { learner.unlockedLevels(mode:"tutor",index:curriculumIndex[learner.target] ?? [:]) }
@@ -474,6 +478,7 @@ import SwiftUI
     }
     func place(_ placement: Placement) { learner.place(placement); persist(); Task { await reloadContent() } }
     func canComplete(_ lesson: Lesson) -> Bool {
+        if lesson.isGoal == true {guard let bp=lesson.goalBlueprint,goalIsCurrent(bp) else{return false};return GoalLessonProgress.ready(learner.goalBucket,goalID:bp["goalId"].string,day:bp["dayKey"].string,lessonID:lesson.id,target:lesson.xpReward)}
         if lesson.isRepair == true {return learner.lessonWork?[learner.completionKey(lesson.id)]?.ready(goal:lesson.xpReward) == true}
         if lesson.isFinalQuiz == true { return learner.quizPassed(lesson) }
         guard !lesson.modes.contains("game") else { return false }
@@ -482,14 +487,10 @@ import SwiftUI
     }
     func beginLesson(_ lesson:Lesson) { if learner.beginLessonWork(lesson) { persist() } }
     func complete(_ lesson: Lesson) {
-        guard canComplete(lesson) else { return }
+        guard canComplete(lesson),lesson.isGoal != true,!lesson.id.hasPrefix("goal-") else { return }
         if lesson.isRepair == true {
             guard let step=currentRepairStep,lesson.id == step.id else{return}
             finishRepair(step,observation:"Completed a short mixed lesson on: "+step.item["originalConcept"].string)
-        } else if lesson.id.hasPrefix("goal-") {
-            guard let daily = readyGoal, lesson.id == GoalPractice.lesson(daily["blueprint"]).id else { return }
-            learner.completed.insert(learner.completionKey(lesson.id))
-            recordGoalAttempt(daily["blueprint"],mode:"lesson",success:true,support:"prompted",observation:"Completed all five goal-specific lesson skills for: " + daily["blueprint"]["objective"].string + ". This demonstrates supported practice, not independent real-world mastery.")
         } else { _ = learner.complete(lesson); persist() }
     }
     static func modes(for lesson: Lesson) -> [PracticeMode] {

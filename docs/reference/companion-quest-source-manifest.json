@@ -93,7 +93,17 @@
         "list",
         "languageKey",
         "activeGoalFor",
-        "mergeEvidence"
+        "mergeEvidence",
+        "normalizeGoalBlueprint",
+        "selectGoalModes",
+        "seededGoalRandom",
+        "goalModeTarget",
+        "GOAL_MODE_TARGETS",
+        "goalModesFor",
+        "nextGoalMode",
+        "buildGoalLesson",
+        "goalInstructions",
+        "LESSON_PRACTICE_MODES"
       ]
     },
     {
@@ -243,9 +253,37 @@
         "PHONICS_LEVELS",
         "getAuthoredPhonicsDeck"
       ]
+    },
+    {
+      "file": "src/utils/lessonProgress.js",
+      "sha256": "920511022ee6347096173d8e7bc34135304b1ae1ad6645a5db3a77233c5e099c",
+      "declarations": [
+        "getGoalPreparationXp",
+        "getLessonEarnedXp",
+        "nextGoalPreparationXp",
+        "isGoalLessonReady",
+        "hasCompletedLessonXp"
+      ]
+    },
+    {
+      "file": "src/utils/learningGoalCopy.js",
+      "sha256": "0c92fed98622bf1a3db70f3a83778a26ecced8788c92b859a36aa76c9e347833",
+      "declarations": [
+        "goalCopy",
+        "keys",
+        "rows",
+        "goalLessonCompletionCopy",
+        "completionRows"
+      ]
     }
   ],
   "fixtureCount": 198,
+  "goalFixtureCount": 116,
+  "goalPlanner": {
+    "file": "src/utils/learningIntelligence.js",
+    "sha256": "224601a49ac60a341fb2b654de2284facb5da9f2c5053ff1ad400ab2a24aa66d",
+    "scope": "Original callResponses input template; source network/persistence code is excluded."
+  },
   "fixtureEncoding": "gzip(JSON)",
   "snapshotAdapter": "An explicit clock scopes Date during each call for reproducibility. Only useUserStore.getState().user is replaced by the explicit plain input snapshot; all source I/O functions are excluded. The deck prompt and parser are split at the source network call; no provider code executes. Authored phonics selection reads the exact pre-exported deck snapshot. Unread flag component fields in language metadata are null; language labels/normalization remain source functions."
 }

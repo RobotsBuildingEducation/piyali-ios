@@ -14,7 +14,7 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
         #endif
     }
 }
-@MainActor final class FirebaseService {
+@MainActor final class FirebaseService:LearnerProgressService {
     static let shared = FirebaseService()
     private let injectedDatabase: Firestore?
     init(database: Firestore? = nil) { injectedDatabase = database }
@@ -173,11 +173,15 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                 } catch { errorPointer?.pointee = error as NSError; return nil }
             }
         }
-        for change in (state.pendingGoalChanges ?? []).sorted(by:{ $0.date < $1.date }) {
+        for change in (state.pendingGoalChanges ?? []).filter({!$0.payload["requireLessonCompletion"].boolean}).sorted(by:{ $0.date < $1.date }) {
             try await applyGoal(change,state:state,user:user,database:database)
         }
         for change in (state.pendingChanges ?? []).sorted(by:{ $0.date < $1.date }) {
             try await apply(change, state:state, user:user, database:database)
+        }
+        // The final question's XP must reach the canonical goal counter before its completion is checked.
+        for change in (state.pendingGoalChanges ?? []).filter({$0.payload["requireLessonCompletion"].boolean}).sorted(by:{$0.date < $1.date}) {
+            try await applyGoal(change,state:state,user:user,database:database)
         }
         for change in (state.pendingImmersionChanges ?? []).sorted(by:{ $0.date < $1.date }) {
             try await applyImmersion(change,state:state,user:user,database:database)

@@ -31,7 +31,7 @@ struct ReadingView:View {
     private var run:ReadingRun? { guard let run=app.learner.reading,run.support == app.learner.support,run.lessonID == lesson?.id else { return nil };return run }
     private func t(_ key:String)->String { EntryCopy.ui(app.learner.support,key) }
     var body:some View {
-        Group { if ReadingService.fixture { activity } else { SubscriptionRequiredView(service:app.subscription) { activity } } }
+        Group { if ReadingService.fixture { activity } else { SubscriptionRequiredView(service:app.subscription,preserveEarnedWork:app.preserveEarnedGoalLesson(lesson)) { activity } } }
             .activityFooter(owner:footerOwner,revision:footerRevision,access:app.subscription,fixtureAllowed:ReadingService.fixture,correct:run?.correct) { footer }
             .navigationTitle(embedded ? lesson?.title.localized(app.learner.support) ?? t("reading_title") : t("reading_title"))
             .task(id:scope) { stop();answer="";showTranslation=false;let fresh=refresh > 0 || startsFresh && !appeared;appeared=true;await service.prepare(app,lesson:lesson,fresh:fresh);guard !Task.isCancelled else { return };answer=run?.answer ?? "";recorder.restore(run?.method == "speech" && run?.awarded == false ? run?.answer ?? "" : "") }

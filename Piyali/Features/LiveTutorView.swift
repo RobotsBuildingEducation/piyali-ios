@@ -15,6 +15,7 @@ struct LiveTutorView: View {
     @StateObject private var live = LiveTutorService()
     var body: some View {
         SubscriptionRequiredView(service: app.subscription) {
+            VStack(spacing:0){if let goalBlueprint {GoalFocusBanner(blueprint:goalBlueprint)}
             List {
                 if let repairStep {RepairFocusSummary(step:repairStep)}
                 Section {
@@ -27,7 +28,7 @@ struct LiveTutorView: View {
                                 await live.start(learner:learner,goalBlueprint:goalBlueprint,tutorLesson:tutorLesson,onLearnerTurn:plateKind == "conversation" ? { text in
                                     guard app.identity.npub == account, app.learner.target == learner.target, app.subscription.hasAccess else { return }
                                     app.recordConversationTurn(text)
-                                } : nil,instructions:repairStep.map{app.repairInstructions($0)})
+                                } : nil,instructions:repairStep.map{app.repairInstructions($0)} ?? goalBlueprint.flatMap{app.sourceGoalInstructions($0)})
                             }
                         }
                     }.disabled(live.connecting || (goalBlueprint.map { !app.goalIsCurrent($0) } ?? false))
@@ -74,7 +75,7 @@ struct LiveTutorView: View {
                     Button("Save conversation to notes") { app.learner.notes.insert(Note(title: "Voice tutor · \(app.learner.target)", body: live.transcript), at: 0); app.persist() }
                 }
             }
-        }.navigationTitle("Live voice tutor")
+        }}.navigationTitle("Live voice tutor")
             .onChange(of:live.connected) { _,connected in if connected { checkedTurn = live.learnerTurnNumber } }
             .onDisappear { Task { await live.stop() } }
             .onChange(of: scenePhase) { _, phase in if phase == .background { Task { await live.stop() } } }

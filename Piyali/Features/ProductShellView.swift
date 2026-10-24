@@ -30,6 +30,8 @@ struct ProductShellView:View {
     @State private var firstRun=FirstRunFlow()
     @State private var mode:ProductMode = .focus
     @State private var specialCourse:String?
+    @State private var launchTask:Task<Void,Never>?
+    @State private var launchID:UUID?
     @State private var menuOpen=false
     @State private var modesOpen=false
     @State private var panel:ProductPanel?
@@ -67,7 +69,7 @@ struct ProductShellView:View {
                 }
             if menuOpen { menu }
         }.font(PiyaliBrand.productFont(16)).foregroundStyle(brand.text)
-            .accessibilityElement(children:.contain).accessibilityHidden(lessonCompletion != nil || firstRun.step != nil || goalOpen || timerOpen || timer.session.status == .finished)
+            .accessibilityElement(children:.contain).accessibilityHidden(app.goalCheck != nil || lessonCompletion != nil || firstRun.step != nil || goalOpen || timerOpen || timer.session.status == .finished)
             .overlay {
                 if let data=lessonCompletion {
                     ZStack {
@@ -89,12 +91,16 @@ struct ProductShellView:View {
             .preferredColorScheme(theme == "dark" ? .dark : .light)
             .environment(\.layoutDirection,language == "ar" ? .rightToLeft : .leftToRight)
     }
-    var body:some View {
+    private var presentedShell:some View {
         shell
+            .overlay{if let goalCheck=app.goalCheck {GoalCheckDialog(presentation:goalCheck)}}
             .overlay{if goalOpen{DailyGoalManagerView(onClose:{goalOpen=false}).accessibilityHidden(timerOpen || timer.session.status == .finished)}}
             .overlay{if timerOpen{SessionTimerView(timer:timer,language:language,onClose:{timerOpen=false}).accessibilityHidden(timer.session.status == .finished)}}
-            .overlay{if timer.session.status == .finished,firstRun.step == nil,lessonCompletion == nil,panel == nil{SessionTimeUpView(minutes:timer.session.duration/60,language:language,onClose:timer.clear,onRestart:{timer.clear();timerOpen=true})}}
+            .overlay{if timer.session.status == .finished,firstRun.step == nil,lessonCompletion == nil,panel == nil,app.goalCheck == nil{SessionTimeUpView(minutes:timer.session.duration/60,language:language,onClose:timer.clear,onRestart:{timer.clear();timerOpen=true})}}
             .environment(\.layoutDirection,language == "ar" ? .rightToLeft : .leftToRight)
+    }
+    private var timedShell:some View {
+        presentedShell
             .task(id:app.companionQuestPreparationKey+questRetryRevision.uuidString){await app.prepareCompanionQuest()}
             .task(id:timerAwardKey){
                 let account=timer.session.account
@@ -107,6 +113,9 @@ struct ProductShellView:View {
             .onChange(of:timer.session.status){_,value in if value == .finished{UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder),to:nil,from:nil,for:nil)}}
             .sheet(item:$panel) { selected in NavigationStack { panelContent(selected).toolbar { ToolbarItem(placement:.confirmationAction) { Button(EntryCopy.text(language,"back_button")) { panel=nil }.accessibilityIdentifier("productPanelClose") } } }.tint(PiyaliBrand.teal) }
             .sheet(isPresented:$celebration) { completion }
+    }
+    private var sessionShell:some View {
+        timedShell
             .task(id:contextKey) {
                 timer.load(account:app.identity.npub)
                 if app.learner.dailyKey != CalendarDay.key(now) { app.learner.rollDay(now:now);app.persist() }
@@ -115,6 +124,20 @@ struct ProductShellView:View {
                 restoreSession()
                 presentPendingLessonCompletion()
             }
+    }
+    private var goalCoordinatedShell:some View {
+        sessionShell
+            .onChange(of:app.goalCheck?.id){_,value in if value == nil {presentPendingLessonCompletion();checkCompletion()}}
+            .onChange(of:app.goalCourseScope,goalScopeChanged)
+            .onDisappear{cancelPracticeLaunch()}
+            .onChange(of:app.readyGoal?["modeProgress"]){_,_ in if let check=app.goalCheck,let daily=app.readyGoal,let next=GoalPractice.nextMode(daily),next != check.blueprint["mode"].string {app.goalCheck=nil}}
+            .onChange(of:goalOpen){_,open in if !open {presentPendingLessonCompletion();checkCompletion()}}
+            .onChange(of:timerOpen){_,open in if !open {presentPendingLessonCompletion();checkCompletion()}}
+            .onChange(of:timer.session.status){_,status in if status != .finished {presentPendingLessonCompletion();checkCompletion()}}
+            .onChange(of:firstRun.step){_,step in if step == nil {presentPendingLessonCompletion();checkCompletion()}}
+    }
+    var body:some View {
+        goalCoordinatedShell
             .onChange(of:app.activityFooter == nil) { _,absent in if absent { app.activityFooterHeight=0 } }
             .onChange(of:app.learner.target) { _,_ in revision=UUID() }
             .onChange(of:app.localPracticeRevision) { _,_ in checkCompletion() }
@@ -122,6 +145,13 @@ struct ProductShellView:View {
             .onChange(of:menuOpen) { _,open in if !open { presentPendingLessonCompletion();checkCompletion() } }
             .onChange(of:app.pendingLessonCompletion?.id) { _,_ in presentPendingLessonCompletion() }
             .onChange(of:app.lessonActivityActive) { _,active in if !active { presentPendingLessonCompletion();checkCompletion() } }
+    }
+    private func goalScopeChanged(_ old:GoalCourseScope,_ scope:GoalCourseScope) {
+        if old != scope {cancelPracticeLaunch()}
+        if let check=app.goalCheck,check.scope != scope {app.goalCheck=nil}
+        if specialCourse == "goal",old.account != scope.account || old.target != scope.target || old.goalID != scope.goalID || old.day != scope.day {
+            specialCourse=nil;mode = .focus;guided=nil;saveSession();revision=UUID()
+        }
     }
     private func closeFirstRun() {
         if firstRun.step == .gettingStarted {
@@ -132,10 +162,10 @@ struct ProductShellView:View {
         Button { modesOpen=false;menuOpen.toggle() } label:{ Image(systemName:"square.grid.3x3.fill").font(.system(size:compact ? 18 : 20)).foregroundStyle(brand.text).frame(width:compact ? 40 : 58,height:compact ? 40 : 58).background(brand.surface.opacity(0.92),in:RoundedRectangle(cornerRadius:compact ? 14 : 20)).overlay { RoundedRectangle(cornerRadius:compact ? 14 : 20).stroke(brand.border) } }.accessibilityLabel(mode.title(language)).accessibilityIdentifier("productMenu")
     }
     @ViewBuilder private var surface:some View {
-        if specialCourse == "goal" { FocusedGoalView() }
+        if specialCourse == "goal" {FocusedGoalCourseView(onSurface:{mode=$0})}
         else if specialCourse == "repair" { RepairPracticeView() }
         else { switch mode {
-        case .focus: TodayFocusHomeView(now:now,sessionActive:guided != nil,onStart:startPractice,onPanel:{ panel=$0 },onCompanionContinue:{firstRun.request(scope:firstRunScope,shown:app.learner.gettingStartedModalShown == true,hasPlacement:app.learner.hasFirstRunPlacement)})
+        case .focus: TodayFocusHomeView(now:now,sessionActive:guided != nil,startingPractice:launchID != nil,onStart:startPractice,onPanel:{ panel=$0 },onCompanionContinue:{firstRun.request(scope:firstRunScope,shown:app.learner.gettingStartedModalShown == true,hasPlacement:app.learner.hasFirstRunPlacement)})
         case .path: LessonPathView()
         case .cards: FlashcardsView()
         case .phonics: PhonicsView()
@@ -172,13 +202,28 @@ struct ProductShellView:View {
         case .goal: DailyGoalManagerView(onClose:{self.panel=nil})
         }
     }
-    private func switchMode(_ value:ProductMode) { guided=nil;waitingCelebration=false;celebration=false;saveSession();specialCourse=nil;mode=value;menuOpen=false;revision=UUID() }
+    private func switchMode(_ value:ProductMode) { cancelPracticeLaunch();guided=nil;waitingCelebration=false;celebration=false;saveSession();specialCourse=nil;mode=value;menuOpen=false;revision=UUID() }
     private func startPractice() {
+        guard launchID == nil else{return}
         app.prepareDailyPlate()
         guided=GuidedPracticeSession(account:app.identity.npub,target:app.learner.target,day:CalendarDay.key(Date()),courses:app.plateCourses)
         saveSession();openGuidedSurface()
     }
+    private func cancelPracticeLaunch(){launchTask?.cancel();launchTask=nil;launchID=nil}
     private func openGuidedSurface() {
+        cancelPracticeLaunch()
+        if guided?.current == "goal",app.subscription.hasAccess {
+            let id=UUID(),scope=app.goalCourseScope;launchID=id
+            launchTask=Task { @MainActor in
+                defer{if launchID == id {launchTask=nil;launchID=nil}}
+                do {
+                    try await app.prepareGoal();try Task.checkCancellation()
+                    guard launchID == id,app.goalCourseScope == scope, guided?.current == "goal" else{return}
+                    specialCourse="goal";revision=UUID()
+                }catch is CancellationError{}catch{if launchID == id {app.error=error.localizedDescription}}
+            }
+            return
+        }
         specialCourse=nil
         switch guided?.current {
         case "goal","repair": specialCourse=guided?.current
@@ -196,17 +241,18 @@ struct ProductShellView:View {
         guided=saved
         saveSession()
     }
+    private var canPresentPracticeModal:Bool {panel == nil && !menuOpen && !goalOpen && !timerOpen && timer.session.status != .finished && firstRun.step == nil && app.goalCheck == nil && lessonCompletion == nil}
     private func checkCompletion() {
         guard let guided,guided.matches(account:app.identity.npub,target:app.learner.target,day:CalendarDay.key(Date())),guided.taskCompleted(app.plateCourses) else { return }
-        if panel == nil,!menuOpen,!app.lessonActivityActive,app.pendingLessonCompletion == nil,lessonCompletion == nil { waitingCelebration=false;celebration=true } else { waitingCelebration=true }
+        if canPresentPracticeModal,!app.lessonActivityActive,app.pendingLessonCompletion == nil { waitingCelebration=false;celebration=true } else { waitingCelebration=true }
     }
     private func presentPendingLessonCompletion() {
         guard let pending=app.pendingLessonCompletion else { return }
         guard pending.account == app.identity.npub,pending.target == app.learner.target else { app.pendingLessonCompletion=nil;return }
-        guard !app.lessonActivityActive,panel == nil,!menuOpen,lessonCompletion == nil else { return }
+        guard !app.lessonActivityActive,canPresentPracticeModal else { return }
         Task { @MainActor in
             try? await Task.sleep(for:.milliseconds(150))
-            guard app.pendingLessonCompletion?.id == pending.id,pending.account == app.identity.npub,pending.target == app.learner.target,!app.lessonActivityActive,panel == nil,!menuOpen,lessonCompletion == nil else { return }
+            guard app.pendingLessonCompletion?.id == pending.id,pending.account == app.identity.npub,pending.target == app.learner.target,!app.lessonActivityActive,canPresentPracticeModal else { return }
             presentedLessonCompletionID=pending.id;lessonCompletion=pending
         }
     }

@@ -9,6 +9,27 @@ import NostrSDK
 
 /// Explicit opt-in only. Uses an isolated test identity, bounded prompts and no paid access grant.
 @MainActor final class LiveAPIIntegrationTests: XCTestCase {
+    func testOriginalFocusedGoalPlannerAndWrittenRubricUseNativeProvider() async throws {
+        guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else{throw XCTSkip("Explicit live API opt-in required.")}
+        XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))
+        if FirebaseApp.app() == nil {AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure()};XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let identity=IdentityService();try identity.create();try await FirebaseIdentityService.shared.ensure(identity)
+        do {
+            let ai=AIService(),policy=try CompanionQuestPolicy(),now=Date(),day=CalendarDay.key(now);var learner=LearnerState();learner.editGoal("Greet my family in Spanish")
+            for support in ["en","ar"] {
+                let args:Piyali.JSONValue = .object(["user":learner.companionQuestUser,"targetLang":.string("es"),"supportLang":.string(support),"dayKey":.string(day),"cefrLevel":.string("Pre-A1"),"now":.number(now.timeIntervalSince1970*1000)]),plan=try policy.run("goalPlan",args)
+                let raw=try await ai.responsesText(plan["prompt"].string),parsed=try policy.run("goalParse",.object(["raw":.string(raw)])),bp=try policy.run("goalNormalize",.object(["raw":parsed,"context":plan["context"]]))
+                XCTAssertFalse(parsed.object.isEmpty);XCTAssertFalse(bp["objective"].string.isEmpty);XCTAssertGreaterThanOrEqual(bp["modes"].array.count,2);XCTAssertFalse(bp["targetLanguage"].array.isEmpty)
+                if support == "ar" {XCTAssertNotNil(bp["objective"].string.range(of:"\\p{Arabic}",options:.regularExpression))}
+                if support == "en" {
+                    let written=bp.setting("mode",.string("lesson")),verdict=try await ai.goalVerdict(blueprint:written,response:"I do not know how to say anything yet. Please show me a model.",context:"The learner has asked for help; this is not an attempt at the target task.",support:support)
+                    XCTAssertFalse(verdict.success);XCTAssertFalse(verdict.observation.isEmpty);XCTAssertTrue(GoalPractice.supports.contains(verdict.support))
+                }
+            }
+            print("LIVE FOCUSED GOAL: original English/Arabic planner prompts and supported written rubric parsed through native Responses; no learner progress writes")
+        }catch{try? await Auth.auth().currentUser?.delete();try? Auth.auth().signOut();try? identity.disconnect();throw error}
+        try await Auth.auth().currentUser?.delete();try Auth.auth().signOut();try identity.disconnect()
+    }
     func testNativeCompanionBlueprintAndRecallDeckUseOriginalPrompts() async throws {
         guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else{throw XCTSkip("Explicit live API opt-in required.")}
         XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))

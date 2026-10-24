@@ -87,18 +87,17 @@ struct AccountView: View {
     @State private var importConfirmation = false
     @State private var gettingStarted=false
     @State private var dailyGoalOpen=false
-    @FocusState private var goalFocused: Bool
     var body: some View {
         Form {
             Section("Learning preferences") {
                 TextField("Name", text: $app.learner.name)
                 LanguagePicker(title: "Practice language", selection: Binding(get:{ app.learner.target },set:{ app.setPracticeLanguage($0) }), codes: LearningLanguages.practice).accessibilityIdentifier("practiceLanguagePicker")
                 LanguagePicker(title: "Support language", selection: $app.learner.support, codes: LearningLanguages.support).accessibilityIdentifier("supportLanguagePicker")
-                TextField("Learning goal", text: $app.learner.goal, axis: .vertical).accessibilityIdentifier("learningGoalField").focused($goalFocused)
+                LearningGoalEditorView().listRowInsets(EdgeInsets(top:8,leading:0,bottom:8,trailing:0)).listRowBackground(Color.clear)
                 Button(EntryCopy.ui(app.learner.support,"daily_goal_title")){dailyGoalOpen=true}.accessibilityIdentifier("accountDailyGoal")
                 TextField("Companion name", text: $app.learner.companionName)
                 Picker("Companion", selection: $app.learner.companionType) { ForEach(CompanionTypes.available(level: app.learner.companionLevel), id: \.self) { Text($0.capitalized).tag($0) } }
-                Button("Save preferences") { app.persist(); Task { await app.reloadContent() } }
+                Button("Save preferences") {app.flushGoalEditor();app.persist(); Task { await app.reloadContent() } }
             }
             Section("Your Nostr identity") {
                 Button(FirstRunCopy.text(app.learner.support,0)) {gettingStarted=true}.accessibilityIdentifier("accountGettingStarted")
@@ -127,7 +126,7 @@ struct AccountView: View {
         }.navigationTitle("Account")
             .toolbar {
                 ToolbarItem(placement:.topBarTrailing) {
-                    Button("Save") { goalFocused = false; app.persist(); Task { await app.reloadContent() } }.accessibilityIdentifier("saveLearningPreferences")
+                    Button("Save") { app.flushGoalEditor();UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder),to:nil,from:nil,for:nil);app.persist(); Task { await app.reloadContent() } }.accessibilityIdentifier("saveLearningPreferences")
                 }
             }
             .onChange(of: app.learner.support) { _, _ in app.persist(); Task { await app.reloadContent() } }

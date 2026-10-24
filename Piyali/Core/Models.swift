@@ -50,6 +50,8 @@ public struct Lesson: Codable, Identifiable, Sendable {
     public var isFinalQuiz:Bool? = nil
     public var quizConfig:JSONValue? = nil
     public var cefrLevel:String? = nil
+    public var isGoal:Bool? = nil
+    public var goalBlueprint:JSONValue? = nil
     public var isRepair:Bool? = nil
     public var repairMemoryIds:[String]? = nil
     public var repairItems:[JSONValue]? = nil
@@ -204,13 +206,13 @@ public struct LearnerState: Codable, Sendable {
     public var rating: Double { ratingByLanguage?[target] ?? 800 }
     public var score: Int { PerformanceScore.score(rating: rating) }
     public var effectiveCompanionType: String { CompanionTypes.effective(companionType, level: companionLevel) }
-    public mutating func assess(correct: Bool, independent: Bool, now: Date = Date(), questionLevel: String? = nil,worth:JSONValue? = nil,concept:String? = nil,mode:String? = nil) {
+    public mutating func assess(correct: Bool, independent: Bool, now: Date = Date(), questionLevel: String? = nil,worth:JSONValue? = nil,concept:String? = nil,mode:String? = nil,support:String? = nil) {
         if ratingByLanguage == nil { ratingByLanguage = [:] }
         if gradedByLanguage == nil { gradedByLanguage = [:] }; gradedByLanguage?[target, default: 0] += 1
         let baseline=rating
-        let updated = QuestionWorth.rating(rating,level:questionLevel ?? level,correct:correct,independent:independent,worth:worth)
+        let updated = QuestionWorth.rating(rating,level:questionLevel ?? level,correct:correct,independent:independent,worth:worth,support:support)
         ratingByLanguage?[target] = updated
-        var change=PracticeChange(date:now,dayKey:CalendarDay.key(now),target:target,level:questionLevel ?? level,amount:0,source:.assessment,correct:correct,independent:independent);change.gradedWorth=worth;change.gradedConcept=concept;change.gradedMode=mode
+        var change=PracticeChange(date:now,dayKey:CalendarDay.key(now),target:target,level:questionLevel ?? level,amount:0,source:.assessment,correct:correct,independent:independent);change.gradedWorth=worth;change.gradedConcept=concept;change.gradedMode=mode;change.gradedSupport=support
         if worth != nil {
             let bucket=goalBucket.setting("elo",goalBucket["elo"].setting("rating",.number(baseline)).setting("scaleVersion",.number(4)).setting("totalGraded",.number(Double((gradedByLanguage?[target] ?? 1)-1))))
             if goalIntelligence == nil { goalIntelligence=[:] };goalIntelligence?[target]=JSONValue.foundation(QuestionWorth.gradedBucket(bucket.foundation,change:change))
@@ -249,7 +251,7 @@ public struct LearnerState: Codable, Sendable {
     }
     public mutating func complete(_ lesson: Lesson) -> Bool {
         let key = completionKey(lesson.id)
-        guard lesson.isRepair != true,!completed.contains(key),lessonWork?[key]?.status != .completed,lesson.isFinalQuiz != true || quizPassed(lesson) else { return false }
+        guard lesson.isRepair != true,lesson.isGoal != true,!completed.contains(key),lessonWork?[key]?.status != .completed,lesson.isFinalQuiz != true || quizPassed(lesson) else { return false }
         let source: PracticeSource = lesson.id.hasPrefix("goal-") ? .goal : lesson.id.hasPrefix("repair-") ? .repair : .lesson
         completed.insert(key); award(lesson.xpReward,source:source,contentID:lesson.id,lesson:lesson)
         if lesson.id.hasPrefix("repair-memory-") { reinforceMemory(id:String(lesson.id.dropFirst("repair-memory-".count))) }

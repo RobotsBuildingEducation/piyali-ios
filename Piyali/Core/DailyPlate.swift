@@ -132,7 +132,7 @@ public extension LearnerState {
         let repair = savedRepair != nil
         let blueprint=questDay(day:day)["blueprint"],carry=blueprint["status"].string == "ready" ? blueprint["carryOverKinds"].array.map(\.string):[]
         let composed = DailyPlate.compose(base:base,carry:carry,repair:repair,goal:GoalPractice.active(goalBucket) != nil,first:first)
-        return DailyPlate.courses(progress:plateProgress,bucket:goalBucket,user:user,target:target,day:day,kinds:composed,first:first,repairTarget:savedRepair?["items"].array.count ?? 1)
+        return DailyPlate.courses(progress:plateProgress,bucket:confirmedGoalBucket,user:user,target:target,day:day,kinds:composed,first:first,repairTarget:savedRepair?["items"].array.count ?? 1)
     }
     mutating func claimPlate(user: String, now: Date = Date()) -> Bool {
         let day = CalendarDay.key(now), courses = plateCourses(user:user,now:now)

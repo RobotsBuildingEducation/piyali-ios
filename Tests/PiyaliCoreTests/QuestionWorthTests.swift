@@ -7,16 +7,17 @@ final class QuestionWorthTests:XCTestCase {
     private func user(_ rating:Double)->JSONValue { .object(["learningIntelligence":.object(["es":.object(["elo":.object(["rating":.number(rating),"scaleVersion":.number(4)])])])]) }
     @MainActor func testQuotedNativeOutcomesAgreeWithOriginalSourceAcrossDifficultyAndHelp() throws {
         let recipes=try PracticeRecipes(source:root.appendingPathComponent("Piyali/Resources/practice-recipes.js"));var count=0
-        for rating in [800.0,821,1100,1800,2199,2200] { for level in LearningLanguages.levels { for difficulty:Double? in [nil,7,42,93] { for independent in [false,true] { for correct in [false,true] {
+        for rating in [800.0,821,1100,1800,2199,2200] { for level in LearningLanguages.levels { for difficulty:Double? in [nil,7,42,93] { for support in GoalPractice.supports { for correct in [false,true] {
+            let independent=["independent","transferred"].contains(support)
             var p:JSONValue = .object(["user":user(rating),"targetLang":.string("es"),"questionLevel":.string(level)])
             if let difficulty { p=p.setting("assessment",.object(["difficultyScore":.number(difficulty)])) }
             let quote=try recipes.inspect("worth",parameters:p)
             let fields:JSONValue = .object(["elo":.object(["rating":.number(rating),"scaleVersion":.number(4),"totalGraded":.number(4)])])
-            var event=PracticeChange(date:now,dayKey:CalendarDay.key(now),target:"es",level:level,amount:0,source:.assessment,correct:correct,independent:independent);event.gradedWorth=quote;event.gradedConcept="family";event.gradedMode="grammar"
-            let input:JSONValue = .object(["bucket":fields,"event":.object(["id":.string(event.id.uuidString),"questionLevel":.string(level),"worth":quote,"success":.bool(correct),"support":.string(independent ? "independent" : "prompted"),"concept":.string("family"),"mode":.string("grammar")]),"fallbackLevel":.string(level),"now":.string(WebProgressContract.iso(now))])
+            var event=PracticeChange(date:now,dayKey:CalendarDay.key(now),target:"es",level:level,amount:0,source:.assessment,correct:correct,independent:independent);event.gradedSupport=support;event.gradedWorth=quote;event.gradedConcept="family";event.gradedMode="grammar"
+            let input:JSONValue = .object(["bucket":fields,"event":.object(["id":.string(event.id.uuidString),"questionLevel":.string(level),"worth":quote,"success":.bool(correct),"support":.string(support),"concept":.string("family"),"mode":.string("grammar")]),"fallbackLevel":.string(level),"now":.string(WebProgressContract.iso(now))])
             let expected=try recipes.inspect("graded",parameters:input),native=JSONValue.foundation(QuestionWorth.gradedBucket(fields.foundation,change:event))
             XCTAssertEqual(native,expected,"\(rating)/\(level)/\(String(describing:difficulty))/\(independent)/\(correct)");count += 1
-        } } } } };XCTAssertEqual(count,672)
+        } } } } };XCTAssertEqual(count,1680)
     }
     @MainActor func testDifficultyParserUsesStrictSourceBoundsAndFallbackProvenance() throws {
         let recipes=try PracticeRecipes(source:root.appendingPathComponent("Piyali/Resources/practice-recipes.js"))

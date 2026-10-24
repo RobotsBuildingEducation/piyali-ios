@@ -37,7 +37,7 @@ struct StoryView:View {
     private func t(_ key:String)->String { appearance.text(key,language:app.learner.support) }
     private func ui(_ key:String)->String { EntryCopy.ui(app.learner.support,key) }
     var body:some View {
-        Group { if StoryService.fixtureMode != nil { activity } else { SubscriptionRequiredView(service:app.subscription) { activity } } }
+        Group { if StoryService.fixtureMode != nil { activity } else { SubscriptionRequiredView(service:app.subscription,preserveEarnedWork:app.preserveEarnedGoalLesson(lesson)) { activity } } }
             .navigationTitle(embedded ? lesson?.title.localized(app.learner.support) ?? t("story") : t("story"))
             .activityFooter(owner:footerOwner,revision:footerRevision,access:app.subscription,fixtureAllowed:StoryService.fixtureMode != nil,correct:feedbackCorrect) { footer }
             .task(id:scope) {
