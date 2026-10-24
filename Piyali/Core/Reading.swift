@@ -13,6 +13,22 @@ public enum Reading {
         normalized.enumerateSubstrings(in:normalized.startIndex...,options:.byWords) { value,_,_,_ in if let value { values.append(value) } };return values
     }
     public static func sentences(_ text:String) -> [String] { groups(text,"[^.!?。！？\\n]+[.!?。！？]*").map { $0.trimmingCharacters(in:.whitespacesAndNewlines) }.filter { !$0.isEmpty } }
+    /// Original History.jsx sentence boundaries for tap-to-read and aligned translation.
+    public static func displaySentences(_ text:String)->[String] {
+        var parts=groups(text,"[^.!?。！？]*[.!?。！？]+")
+        if parts.isEmpty { return text.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty ? [] : [text.trimmingCharacters(in:.whitespacesAndNewlines)] }
+        let remainder=String(text.dropFirst(parts.joined().count)).trimmingCharacters(in:.whitespacesAndNewlines)
+        if !remainder.isEmpty { parts.append(remainder) }
+        return parts.map { $0.trimmingCharacters(in:.whitespacesAndNewlines) }.filter { !$0.isEmpty }
+    }
+    public static func protocolPayload(_ output:String,questionType:String)throws->JSONValue {
+        let objects=try GenerationObjects.parse(output)
+        guard let title=objects.first(where:{$0["type"].string == "title"}),let review=objects.first(where:{$0["type"].string == "review_question"}),objects.last?["type"].string == "done" else { throw ReadingFailure.invalid }
+        let targets=objects.filter { $0["type"].string == "target" }.map { $0["text"].string },takeaways=objects.filter { $0["type"].string == "takeaway" }.map { $0["text"].string }
+        let question=review.setting("questionType",review["questionType"] == .null ? .string(questionType) : review["questionType"])
+        guard ReadingQuestion(question) != nil else { throw ReadingFailure.invalid }
+        return .object(["title":title["text"],"target":.string(targets.joined(separator:" ")),"takeaways":.array(takeaways.map(JSONValue.string)),"reviewQuestion":question,"rawReviewQuestion":review])
+    }
     public static func award(roll:Double) -> Int { 5+Int(floor((roll.isFinite ? max(0,min(1-Double.ulpOfOne,roll)) : 0)*4)) }
     public static func stripPreamble(_ text:String) -> String { var result=text.trimmingCharacters(in:.whitespacesAndNewlines);for pattern in ReadingRules.data["preambles"].array.map(\.string) { result=result.replacingOccurrences(of:pattern,with:"",options:[.regularExpression,.caseInsensitive]).trimmingCharacters(in:.whitespacesAndNewlines) };return result }
     private static func reaction(_ text:String) -> Bool { matches(text.replacingOccurrences(of:"^[¡¿\\s]+",with:"",options:.regularExpression),"^(?:oh\\b|ah\\b|wow\\b|yay\\b|hooray\\b|really\\b|look\\b|how\\s+(?:nice|lovely|wonderful|exciting|great)|what\\s+(?:a|an)\\b|ay\\b|vaya\\b|guau\\b|qué\\s+(?:bien|bonito|bueno|maravilla)|waouh\\b|super\\b|comme\\s+c'est|che\\s+bello|que\\s+(?:bom|legal)|wie\\s+(?:schön|toll)|わあ|すごい|哇)") }

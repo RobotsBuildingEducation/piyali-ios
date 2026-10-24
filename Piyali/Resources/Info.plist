@@ -29,5 +29,12 @@
 	</array>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>DMSans-400.ttf</string>
+		<string>DMSans-500.ttf</string>
+		<string>DMSans-600.ttf</string>
+		<string>DMSans-700.ttf</string>
+	</array>
 </dict>
 </plist>

@@ -38,7 +38,7 @@ struct ExplorationView:View {
             .task(id:scope) { stop();await service.load(app) }
             .onChange(of:speech.transcript) { _,text in answer=text }
             .onChange(of:phase) { _,state in if state != .active { stop() } }
-            .onChange(of:app.subscription.authorized) { _,allowed in if !allowed { stop() } }
+            .onChange(of:app.subscription.hasAccess) { _,allowed in if !allowed { stop() } }
             .onDisappear { stop() }
             .confirmationDialog("Replace the saved exploration quest for this language?",isPresented:$replacing,titleVisibility:.visible) { Button("Start another quest") { create() } }
     }

@@ -85,20 +85,22 @@ struct AccountView: View {
     @State private var backup: String?
     @State private var importKey = ""
     @State private var importConfirmation = false
-    @FocusState private var goalFocused: Bool
+    @State private var gettingStarted=false
+    @State private var dailyGoalOpen=false
     var body: some View {
         Form {
             Section("Learning preferences") {
                 TextField("Name", text: $app.learner.name)
                 LanguagePicker(title: "Practice language", selection: Binding(get:{ app.learner.target },set:{ app.setPracticeLanguage($0) }), codes: LearningLanguages.practice).accessibilityIdentifier("practiceLanguagePicker")
-                LanguagePicker(title: "Support language", selection: $app.learner.support, codes: LearningLanguages.support)
-                TextField("Learning goal", text: $app.learner.goal, axis: .vertical).accessibilityIdentifier("learningGoalField").focused($goalFocused)
-                Stepper("Daily goal: \(app.learner.dailyGoal) XP", value: $app.learner.dailyGoal, in: 10...300, step: 10)
+                LanguagePicker(title: "Support language", selection: $app.learner.support, codes: LearningLanguages.support).accessibilityIdentifier("supportLanguagePicker")
+                LearningGoalEditorView().listRowInsets(EdgeInsets(top:8,leading:0,bottom:8,trailing:0)).listRowBackground(Color.clear)
+                Button(EntryCopy.ui(app.learner.support,"daily_goal_title")){dailyGoalOpen=true}.accessibilityIdentifier("accountDailyGoal")
                 TextField("Companion name", text: $app.learner.companionName)
                 Picker("Companion", selection: $app.learner.companionType) { ForEach(CompanionTypes.available(level: app.learner.companionLevel), id: \.self) { Text($0.capitalized).tag($0) } }
-                Button("Save preferences") { app.persist(); Task { await app.reloadContent() } }
+                Button("Save preferences") {app.flushGoalEditor();app.persist(); Task { await app.reloadContent() } }
             }
             Section("Your Nostr identity") {
+                Button(FirstRunCopy.text(app.learner.support,0)) {gettingStarted=true}.accessibilityIdentifier("accountGettingStarted")
                 Text(app.identity.npub).font(.caption).textSelection(.enabled)
                 if app.identity.isRemote {
                     Text("Connected through your remote signer. Your main private key stays with that signer.").font(.footnote)
@@ -124,7 +126,7 @@ struct AccountView: View {
         }.navigationTitle("Account")
             .toolbar {
                 ToolbarItem(placement:.topBarTrailing) {
-                    Button("Save") { goalFocused = false; app.persist(); Task { await app.reloadContent() } }.accessibilityIdentifier("saveLearningPreferences")
+                    Button("Save") { app.flushGoalEditor();UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder),to:nil,from:nil,for:nil);app.persist(); Task { await app.reloadContent() } }.accessibilityIdentifier("saveLearningPreferences")
                 }
             }
             .onChange(of: app.learner.support) { _, _ in app.persist(); Task { await app.reloadContent() } }
@@ -136,6 +138,13 @@ struct AccountView: View {
                     }.padding().navigationTitle("Private key backup").toolbar { Button("Done") { backup = nil } }
                 }
             }
+            .fullScreenCover(isPresented:$gettingStarted) {
+                ZStack {
+                    Color.black.opacity(0.82).ignoresSafeArea().onTapGesture {gettingStarted=false;app.learner.gettingStartedModalShown=true;app.persist()}
+                    GettingStartedView {gettingStarted=false;app.learner.gettingStartedModalShown=true;app.persist()}
+                }.presentationBackground(.clear).environment(\.layoutDirection,app.learner.support == "ar" ? .rightToLeft : .leftToRight)
+            }
+            .fullScreenCover(isPresented:$dailyGoalOpen){DailyGoalManagerView(onClose:{dailyGoalOpen=false}).presentationBackground(.clear).environment(\.layoutDirection,app.learner.support == "ar" ? .rightToLeft : .leftToRight)}
             .confirmationDialog("Switch to another account? Your current progress is saved on this iPhone.", isPresented: $importConfirmation) {
                 Button("Switch account") { Task { await app.signIn(nsec: importKey); importKey = "" } }
             }

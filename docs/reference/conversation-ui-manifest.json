@@ -1,0 +1,13 @@
+{
+  "sources": [
+    {
+      "file": "src/components/Conversations.jsx",
+      "sha256": "85010736ae62a383795b88c192e0190b7f9b02a0d51cfa080d9b5eac8f19525d"
+    },
+    {
+      "file": "src/components/ConversationSettingsDrawer.jsx",
+      "sha256": "4ba9e4ec6b33761cc8d204d91667ea568a543f9a76ece313d0442b1106a361fe"
+    }
+  ],
+  "scope": "Original summary, proficiency and conversation-settings copy; geometry verified separately from JSX."
+}

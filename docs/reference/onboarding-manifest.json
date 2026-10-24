@@ -1,0 +1,41 @@
+{
+  "sources": [
+    {
+      "file": "src/constants/languages.js",
+      "sha256": "02cb1507cb2ee1b5822ac4dd98cd7faf3e67a5101a13dd6c93826f553201ab32"
+    },
+    {
+      "file": "src/constants/supportLanguages.js",
+      "sha256": "d8e8dc17f353a5106bdc984f2cce9696669bc7216be10e006738cb0a04b40b5a"
+    },
+    {
+      "file": "src/components/Onboarding.jsx",
+      "sha256": "1cff488a23f66c15ac6d4d908478f7bdde3a46e00e045f6f825223bd5d4b3e57"
+    },
+    {
+      "file": "src/components/LearningGoalSettings.jsx",
+      "sha256": "5515848092afa22a87b41897860a6e183a592aa5353fea52c392cdf569f3f031"
+    },
+    {
+      "file": "src/utils/learningGoalCopy.js",
+      "sha256": "0c92fed98622bf1a3db70f3a83778a26ecced8788c92b859a36aa76c9e347833"
+    },
+    {
+      "file": "src/utils/translation.jsx",
+      "sha256": "10c6705379ed869d84ece0ec7a829193bb3c9522d742683701de56cb194666b9"
+    },
+    {
+      "file": "src/index.css",
+      "sha256": "79a5362dc1b189acd0d2288c0e85ff29c9cc1c8e39b8bb5cabe164ddd1c29030"
+    },
+    {
+      "file": "src/theme.js",
+      "sha256": "6fe6093ecca51d0debb1314a587d6bd0927e7ac9f8c1ba2c6c744017e3be407e"
+    },
+    {
+      "file": "src/components/flagsIcons/flags.jsx",
+      "sha256": "2f1101d10f316c803cd6a97b795152472ca1cad561b059aebc2bbd68309fb1f0"
+    }
+  ],
+  "scope": "Actual source option builders executed with original exported app translations. Community-only Nahuatl and Maya remain selectorHidden; ordinary onboarding does not expose them. Read-only original Onboarding component rendered in target-owned fixture with in-memory completion, sound disabled and no learner identity/profile writes. Native screenshots include iPhone status/home chrome."
+}

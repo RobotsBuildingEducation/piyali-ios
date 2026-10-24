@@ -85,8 +85,18 @@ struct DailyPlateView: View {
     }
 }
 struct LessonView: View {
+    let lesson:Lesson
+    var body:some View {
+        if lesson.isGoal == true || lesson.isRepair == true || (CurriculumLessonProgress.isCurriculumID(lesson.id) && lesson.id != IntroTutorial.lessonID && !lesson.modes.contains("game")) { CurriculumSessionView(lesson:lesson) }
+        else { LegacyLessonOverviewView(lesson:lesson) }
+    }
+}
+private struct LegacyLessonOverviewView: View {
     @EnvironmentObject var app: AppModel
     let lesson: Lesson
+    private var curriculum:Bool { CurriculumLessonProgress.isCurriculumID(lesson.id) }
+    private var work:CurriculumLessonProgress? { app.learner.lessonWork?[app.learner.completionKey(lesson.id)] }
+    private var started:Bool { !curriculum || work != nil || app.learner.completed.contains(app.learner.completionKey(lesson.id)) }
     var body: some View {
         List {
             Section("Lesson") {
@@ -95,14 +105,19 @@ struct LessonView: View {
                     let goal = item["goal"].localized(app.learner.support)
                     if !goal.isEmpty { Text(goal) }
                 }
+                if curriculum {
+                    ProgressView(value:work?.fraction(goal:lesson.xpReward) ?? 0)
+                    Text("\(work?.earnedXP ?? 0) / \(lesson.xpReward) XP").font(.footnote).accessibilityIdentifier("lessonOwnedXP")
+                    if !started { Button("Start lesson") { app.beginLesson(lesson) }.accessibilityIdentifier("startCurriculumLesson") }
+                }
             }
-            if lesson.isFinalQuiz == true {
+            if started,lesson.isFinalQuiz == true {
                 Section("Final quiz") {
                     let rules=QuizRules(lesson.quizConfig ?? .object([:]))
                     Text("Pass by answering \(rules.passingScore) of up to \(rules.questionsRequired) questions correctly.")
                     NavigationLink("Take final quiz") { FinalQuizView(lesson:lesson) }.accessibilityIdentifier("finalQuizLink")
                 }
-            } else { Section("Practice each skill") {
+            } else if started { Section("Practice") {
                 ForEach(AppModel.modes(for: lesson)) { mode in
                     NavigationLink { if mode == .game { RPGView(lesson:lesson,episode:nil) } else if mode == .reading { ReadingView(lesson:lesson) } else if mode == .stories { StoryView(lesson:lesson) } else { ExerciseView(mode: mode, lesson: lesson) } } label: {
                         HStack {
@@ -111,12 +126,19 @@ struct LessonView: View {
                         }
                     }
                 }
-                if !lesson.modes.contains("game") { Button(lesson.id.hasPrefix("goal-") ? "Complete today’s goal lesson" : "Complete lesson (+\(lesson.xpReward) XP)") { app.complete(lesson) }
+                if !lesson.modes.contains("game") {
+                    if !curriculum { Button(lesson.id.hasPrefix("goal-") ? "Complete today’s goal lesson" : "Complete lesson (+\(lesson.xpReward) XP)") { app.complete(lesson) }
                     .disabled(!app.canComplete(lesson) || app.learner.completed.contains(app.learner.completionKey(lesson.id)))
-                Text("Complete a correct exercise in every listed skill to finish this lesson.").font(.footnote) }
+                    }
+                    Text(curriculum ? "Practice to reach this lesson’s XP goal. Your progress is saved when you leave." : "Complete a correct exercise in every listed skill to finish this lesson.").font(.footnote)
+                    if app.learner.completed.contains(app.learner.completionKey(lesson.id)) { Label("Lesson completed",systemImage:"checkmark.circle.fill").accessibilityIdentifier("curriculumLessonCompleted") }
+                }
                 else { Text("Finish the adventure and confirm its recap to complete this unit review. Stars determine the lesson XP reward.").font(.footnote) }
             } }
         }.navigationTitle(lesson.title.localized(app.learner.support))
+            .onChange(of:work?.earnedXP,initial:true) { _,_ in
+                if curriculum,lesson.isFinalQuiz != true,!lesson.modes.contains("game"),app.canComplete(lesson) { app.complete(lesson) }
+            }
     }
 }
 struct PracticeLibraryView: View {
@@ -143,89 +165,15 @@ struct PracticeLibraryView: View {
         }.navigationTitle("Practice")
     }
 }
-struct FlashcardsView: View {
-    @EnvironmentObject var app: AppModel
-    @State private var currentID: String?
-    @State private var dueOnly = false
-    @State private var answer = ""
-    @State private var feedback: String?
-    @State private var revealed = false
-    @State private var checked = false
-    @State private var rated = false
-    @State private var correct = false
-    @StateObject private var speech = SpeechService()
-    var card: Flashcard? { app.cards.first { $0.id == currentID } }
-    var available: [Flashcard] {
-        app.cards.filter { card in
-            let review = app.learner.cardReviews?[app.learner.completionKey(card.id)]
-            return !dueOnly || review == nil || review?.schedulerState == .new || review?.isDue() == true
-        }.sorted { left,right in
-            let a = app.learner.cardReviews?[app.learner.completionKey(left.id)]
-            let b = app.learner.cardReviews?[app.learner.completionKey(right.id)]
-            if a?.isDue() != b?.isDue() { return a?.isDue() == true }
-            return (a?.nextReviewAt ?? .distantFuture) < (b?.nextReviewAt ?? .distantFuture)
-        }
-    }
-    var body: some View {
-        Form {
-            Toggle("Due and new cards only",isOn:$dueOnly)
-            if let card {
-                Section("\(card.cefrLevel) · \(card.category)") {
-                    Text(card.text(app.learner.support)).font(.title2).accessibilityIdentifier("flashcardPrompt")
-                    Text("Translate into \(LearningLanguages.names[app.learner.target] ?? app.learner.target).")
-                    TextField("Your translation",text:$answer).autocorrectionDisabled().disabled(checked || revealed)
-                    if let target = card.concept[app.learner.target] {
-                        Button("Check answer") {
-                            correct = AnswerMatcher.matches(answer,target); checked = true
-                            feedback = correct ? "Correct! Choose how easily you remembered it." : "Answer: \(target). Review again soon."
-                            if !correct { app.reviewFlashcard(card,rating:.again,correct:false,answer:answer); rated = true }
-                        }.disabled(answer.trimmingCharacters(in:.whitespaces).isEmpty || checked || revealed)
-                        Button("Reveal answer") { revealed = true; feedback = target; app.reviewFlashcard(card,rating:.again,correct:nil); rated = true }.disabled(checked || revealed)
-                        Button("Listen") { speech.speak(target,language:app.learner.target) }
-                        if checked && correct && !rated {
-                            ForEach([ReviewRating.hard,.good,.easy],id:\.self) { rating in
-                                Button("\(rating.rawValue.capitalized) · next \(reviewDelay(card,rating:rating))") {
-                                    app.reviewFlashcard(card,rating:rating,correct:true); rated = true
-                                    feedback = "Saved review · +\(rating == .hard ? 4 : rating == .easy ? 7 : 5) XP"
-                                }
-                            }
-                        }
-                    } else {
-                        NavigationLink("Practice with the tutor") { ExerciseView(mode:.vocabulary,lesson:app.selectedLesson,concept:card.text(app.learner.support),flashcardID:card.id) }
-                    }
-                    if let feedback { Text(feedback).accessibilityIdentifier("flashcardFeedback") }
-                    if let next = app.learner.cardReviews?[app.learner.completionKey(card.id)]?.nextReviewAt { Text("Next review: " + next.formatted(date:.abbreviated,time:.shortened)).font(.footnote).accessibilityIdentifier("nextReview") }
-                    Button("Next card") { selectNext(after:card.id) }.accessibilityIdentifier("nextFlashcard").disabled(checked && correct && !rated)
-                }
-                Text("\(available.count) cards available · \(app.cards.count) in this level")
-            } else {
-                Text(dueOnly ? "No reviews are due at this level. Come back when the next review is scheduled, or browse all cards." : "No flashcards at this level. Choose another CEFR level in Learn.")
-            }
-        }.navigationTitle("Flashcards")
-            .onAppear { if currentID == nil { selectNext(after:nil) } }
-            .onChange(of:dueOnly) { _,_ in selectNext(after:nil) }
-            .onChange(of:app.cards.count) { _,_ in selectNext(after:nil) }
-            .onDisappear { speech.stopAll() }
-    }
-    func selectNext(after id: String?) {
-        let queue = available
-        if let id, let index = queue.firstIndex(where:{ $0.id == id }), !queue.isEmpty { currentID = queue[(index + 1) % queue.count].id }
-        else { currentID = queue.first?.id }
-        answer = ""; feedback = nil; revealed = false; checked = false; rated = false; correct = false
-    }
-    func reviewDelay(_ card: Flashcard, rating: ReviewRating) -> String {
-        let now = Date(), review = app.learner.cardReviews?[app.learner.completionKey(card.id)] ?? FlashcardReview()
-        let seconds = (review.applying(rating,now:now).nextReviewAt ?? now).timeIntervalSince(now)
-        return seconds < 3600 ? "\(Int((seconds/60).rounded()))m" : seconds < 86400 ? "\(Int((seconds/3600).rounded()))h" : "\(Int((seconds/86400).rounded()))d"
-    }
-}
 struct PhonicsView: View {
+    var repairStep:RepairStep? = nil
     @EnvironmentObject var app: AppModel
     @StateObject private var speech = SpeechService()
     @State private var active: String?
     var body: some View {
         List {
-            ForEach(app.phonics) { card in
+            if let repairStep {RepairFocusSummary(step:repairStep)}
+            ForEach(repairStep.map{app.repairPhonics($0)} ?? app.phonics) { card in
                 DisclosureGroup(card.letter + " · " + card.practiceWord) {
                     Text(card.sound); Text(card.tip)
                     if let meaning = card.practiceWordMeaning[app.learner.support] { Text(meaning) }
@@ -238,9 +186,12 @@ struct PhonicsView: View {
                         Text("You said: \(speech.transcript)")
                         Button("Check pronunciation words") {
                             if AnswerMatcher.matches(speech.transcript, card.practiceWord) {
-                                if app.learner.masteredPhonics == nil { app.learner.masteredPhonics = [] }
-                                let key = app.learner.target + ":" + CalendarDay.key(Date()) + ":" + card.id
-                                if app.learner.masteredPhonics?.insert(key).inserted == true { app.learner.award(5,source:.phonics,contentID:card.id); app.persist() }
+                                if let step=repairStep {app.recordRepairOutcome(step,mode:"phonics",cardID:card.id,success:true,item:card.practiceWord)}
+                                else {
+                                    if app.learner.masteredPhonics == nil {app.learner.masteredPhonics=[]}
+                                    let key=app.learner.target+":"+CalendarDay.key(Date())+":"+card.id
+                                    if app.learner.masteredPhonics?.insert(key).inserted == true {app.learner.award(5,source:.phonics,contentID:card.id);app.persist()}
+                                }
                             } else { speech.error = "Try again: " + card.practiceWord }
                         }
                     }
@@ -248,6 +199,6 @@ struct PhonicsView: View {
             }
             if app.phonics.isEmpty { Text("Phonics content is unavailable for this language pair.") }
             if let error = speech.error { Text(error).foregroundStyle(.red) }
-        }.navigationTitle("Phonics").onDisappear { speech.stopAll() }
+        }.navigationTitle("Phonics").task(id:repairStep?.id){if let repairStep {do{try await app.prepareRepairPhonics(repairStep);app.checkRepairPracticeCompletion(repairStep,mode:"phonics")}catch{speech.error=error.localizedDescription}}}.onDisappear { speech.stopAll() }
     }
 }

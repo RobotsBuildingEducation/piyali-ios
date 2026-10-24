@@ -3,6 +3,20 @@ import XCTest
 
 final class ReadingTests:XCTestCase {
     private func fixture() throws -> JSONValue { try JSONDecoder().decode(JSONValue.self,from:Data(contentsOf:URL(fileURLWithPath:#filePath).deletingLastPathComponent().appendingPathComponent("Fixtures/reading.json"))) }
+    @MainActor func testOriginalReadingPoliciesExecuteInNativeWithoutWebEffects() throws {
+        let root=URL(fileURLWithPath:#filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        struct Fixture:Decodable { let operation:String;let parameters:JSONValue;let expected:String }
+        let engine=try PracticeRecipes(source:root.appendingPathComponent("Piyali/Resources/practice-recipes.js")),fixtures=try ContentLibrary.decode([Fixture].self,url:root.appendingPathComponent("Tests/PiyaliCoreTests/Fixtures/reading-prompts.json.gz"))
+        XCTAssertEqual(fixtures.count,20)
+        for sample in fixtures { XCTAssertEqual(try engine.reading(sample.operation,parameters:sample.parameters),sample.expected,sample.operation) }
+    }
+    func testSourceReadingProtocolKeepsQuestionAndRejectsPartialOrInvalidOutput() throws {
+        let lines:[JSONValue]=[.object(["type":.string("title"),"text":.string("A small garden")]),.object(["type":.string("target"),"text":.string("A plant grows near the window.")]),.object(["type":.string("takeaway"),"text":.string("A plant")]),.object(["type":.string("takeaway"),"text":.string("A window")]),.object(["type":.string("takeaway"),"text":.string("A garden")]),.object(["type":.string("review_question"),"questionType":.string("fill"),"question":.string("The plant is near the ___."),"answer":.string("window")]),.object(["type":.string("done")])]
+        let output=lines.map(\.json).joined(separator:"\n"),payload=try Reading.protocolPayload(output,questionType:"mc")
+        XCTAssertEqual(payload["target"].string,"A plant grows near the window.");XCTAssertEqual(ReadingQuestion(payload["reviewQuestion"])?.type,"fill");XCTAssertEqual(payload["rawReviewQuestion"],lines[5])
+        XCTAssertThrowsError(try Reading.protocolPayload(lines.dropLast().map(\.json).joined(separator:"\n"),questionType:"mc"))
+        XCTAssertThrowsError(try Reading.protocolPayload(output.replacingOccurrences(of:"___",with:"here"),questionType:"mc"))
+    }
     func testReferenceQualityChecksPreserveDocumentsAndRejectScriptsAndRepeats() throws {
         let samples=try fixture()["quality"].array;XCTAssertEqual(samples.count,67)
         for sample in samples { let options=sample["options"];XCTAssertEqual(Reading.issues(candidate:sample["candidate"],recent:options["recentEntries"].array,selection:options["formatSelection"],tutorial:options["isTutorial"].boolean),sample["expected"].array.map(\.string),sample.json) }
@@ -17,6 +31,13 @@ final class ReadingTests:XCTestCase {
             if expected == .null { XCTAssertNil(q,sample.json) }
             else { let q=try XCTUnwrap(q);XCTAssertEqual(q.type,expected["type"].string);XCTAssertEqual(q.question,expected["question"].string);XCTAssertEqual(q.answer,expected["answer"].string);XCTAssertEqual(q.options,expected["options"].array.map(\.string)) }
         }
+    }
+    func testDisplaySentenceBoundariesMatchExecutedSourceAndTranslationsResume() throws {
+        for sample in try fixture()["displaySentences"].array { XCTAssertEqual(Reading.displaySentences(sample["text"].string),sample["expected"].array.map(\.string),sample["text"].string) }
+        var run=try readingRun();run.lessonLevel="B1";run.lineTranslations=["My notebook is on the table.","I draw a red flower and write its name.","Tomorrow my sister wants to draw with me."]
+        var state=LearnerState();state.saveReading(run)
+        let restored=try JSONDecoder().decode(LearnerState.self,from:JSONEncoder().encode(state));XCTAssertEqual(restored.reading?.lineTranslations,run.lineTranslations);XCTAssertEqual(restored.xp,0)
+        XCTAssertEqual(state.reviewReading(answer:"red",correct:true,feedback:"Correct"),7);let event=try XCTUnwrap(state.pendingChanges?.first { $0.source == .readingTurn });XCTAssertEqual(event.level,"A1");XCTAssertEqual(event.skillTreeLessonLevel,"B1")
     }
     func testReferenceFiveToEightXPIsLatchedWithinRange() throws {
         for sample in try fixture()["xp"].array { XCTAssertEqual(Reading.award(roll:sample["roll"].number),Int(sample["expected"].number)) }
@@ -44,6 +65,34 @@ final class ReadingTests:XCTestCase {
         XCTAssertEqual(state.rating,initial);XCTAssertNil(state.gradedByLanguage?["es"])
         XCTAssertEqual(state.pendingChanges?.first?.source,.readingSpeech)
         XCTAssertEqual(state.pendingChanges?.first?.readingProof?["xpAwarded"],.number(7))
+    }
+    func testSpeechFeedbackUsesSourceCriteriaAndColorBoundariesWithoutInventingMissingScores() throws {
+        XCTAssertEqual(ReadingSpeechFeedback.criteria.map { $0["key"].string },["accuracy","completeness","pronunciation","fluency","confidence","comprehension"])
+        for sample in try fixture()["speechColors"].array { XCTAssertEqual(ReadingSpeechFeedback.color(sample["score"].number),sample["expected"].string) }
+        let feedback=try XCTUnwrap(ReadingSpeechFeedback(.object(["summary":.string("Keep reading."),"scores":.object(["accuracy":.number(15),"completeness":.object(["score":.number(-2),"note":.string("Only the opening.")]),"fluency":.string("8"),"extra":.number(10)])])))
+        XCTAssertEqual(feedback.total,11);XCTAssertEqual(feedback.maximum,20);XCTAssertNil(feedback.scores["fluency"]);XCTAssertEqual(feedback.scores["completeness"]?.note,"Only the opening.")
+        XCTAssertNil(ReadingSpeechFeedback(.string("bad feedback")));XCTAssertNil(ReadingSpeechFeedback(.object([:])))
+        XCTAssertEqual(ReadingSpeechFeedback.unavailable(support:"es").summary,"No se pudo generar retroalimentación. ¡Sigue practicando!")
+    }
+    func testSpeechCardsPersistWithTheSharedPracticeReceiptAndNoScoreAssessment() throws {
+        let feedback=try XCTUnwrap(ReadingSpeechFeedback(.object(["summary":.string("Read the rest next time."),"scores":.object(["accuracy":.object(["score":.number(3),"note":.string("A short start.")])])])))
+        var state=LearnerState();var run=try readingRun();run.method="speech";state.saveReading(run);let rating=state.rating
+        XCTAssertEqual(state.reviewReading(answer:"short fragment",correct:true,feedback:feedback.summary,speech:true,speechFeedback:feedback),7)
+        XCTAssertEqual(state.reviewReading(answer:"second submission",correct:true,feedback:"another",speech:true,speechFeedback:.unavailable(support:"en")),0)
+        let restored=try JSONDecoder().decode(LearnerState.self,from:JSONEncoder().encode(state))
+        XCTAssertEqual(restored.reading?.speechFeedback,feedback);XCTAssertEqual(restored.reading?.answer,"short fragment");XCTAssertEqual(restored.rating,rating);XCTAssertNil(restored.gradedByLanguage?["es"])
+        XCTAssertEqual(restored.pendingChanges?.first?.readingProof?["speechFeedback"],feedback.value);XCTAssertEqual(restored.totalXP,7)
+        var legacy=try JSONDecoder().decode(JSONValue.self,from:JSONEncoder().encode(run));if case .object(var fields)=legacy { fields.removeValue(forKey:"speechFeedback");legacy = .object(fields) }
+        XCTAssertNil(try JSONDecoder().decode(ReadingRun.self,from:Data(legacy.json.utf8)).speechFeedback)
+    }
+    @MainActor func testLongReadingTranscriptKeepsTheClosingWordsInDraftAndReceipt() throws {
+        let text=String(repeating:"Ein längerer Satz mit Wörtern. ",count:180)+"Schlusswort."
+        var state=LearnerState();state.saveReading(try readingRun())
+        XCTAssertGreaterThan(text.count,4000);XCTAssertEqual(state.reviewReading(answer:text,correct:true,feedback:"Practice complete",speech:true),7)
+        XCTAssertEqual(state.reading?.answer,text);XCTAssertEqual(state.pendingChanges?.first?.readingProof?["answer"],.string(text))
+        let root=URL(fileURLWithPath:#filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent(),recipes=try PracticeRecipes(source:root.appendingPathComponent("Piyali/Resources/practice-recipes.js"))
+        let prompt=try recipes.reading("speech",parameters:.object(["passage":.string(text),"answer":.string(ReadingSpeechCapture.boundedTranscript(text)),"targetLang":.string("de"),"supportLang":.string("en")]))
+        XCTAssertTrue(prompt.contains("STUDENT'S ATTEMPT (transcription):\n"+text))
     }
     func testDraftKeepsAnswerAndSharedAwardThroughLanguageSwitchAndInFlightSync() throws {
         let sent=LearnerState();var current=sent;var draft=try readingRun();draft.answer="my unfinished answer";current.saveReading(draft)

@@ -1,0 +1,9 @@
+{
+  "sources": [
+    {
+      "file": "src/utils/landingTutorDemo.js",
+      "sha256": "d6f34e13b1a529b57aa761f8b86b52f8b0819734a98d5a6ca7702b569f67acb7"
+    }
+  ],
+  "scope": "Six journeys executed by the original controller: full five-turn lesson plus final feedback; input gating, duplicate completions, stop, provider errors and transcription bounds. Original per-turn prompts captured in each trace."
+}

@@ -50,6 +50,13 @@ public struct Lesson: Codable, Identifiable, Sendable {
     public var isFinalQuiz:Bool? = nil
     public var quizConfig:JSONValue? = nil
     public var cefrLevel:String? = nil
+    public var isGoal:Bool? = nil
+    public var goalBlueprint:JSONValue? = nil
+    public var isRepair:Bool? = nil
+    public var repairMemoryIds:[String]? = nil
+    public var repairItems:[JSONValue]? = nil
+    public var repairTarget:Int? = nil
+    public var curriculumCefrLevel:String? = nil
 }
 public struct Flashcard: Codable, Identifiable, Sendable {
     public let id: String
@@ -67,6 +74,9 @@ public struct PhonicsCard: Codable, Identifiable, Sendable {
     public let practiceWordMeaning: [String: String]
     public let sound: String
     public let tip: String
+    public var cefrLevel:String? = nil
+    public var authoredId:String? = nil
+    public var practiceRole:String? = nil
 }
 public enum PracticeMode: String, CaseIterable, Identifiable, Codable, Sendable {
     case vocabulary = "Vocabulary", grammar = "Grammar", reading = "Reading", listening = "Listening", speaking = "Speaking", stories = "Stories", conversation = "Conversation", game = "Adventure"
@@ -111,8 +121,14 @@ public struct Note: Codable, Identifiable, Sendable {
     public var id = UUID()
     public var title: String
     public var body: String
+    public var study:JSONValue? = nil
 }
 public struct LearnerState: Codable, Sendable {
+    public var pendingRepairEvidence:[RepairEvidenceChange]?
+    public var companionQuestDays:[String:JSONValue]?
+    public var pendingCompanionQuestDays:[String:JSONValue]?
+    public var plateHeadlines:[String:PlateHeadline]?
+    public var pendingPlateHeadlines:[String:PlateHeadline]?
     public var quizRuns:[String:FinalQuizRun]?
     public var quizPasses:[String:QuizRules]?
     public var explorationRuns:[String:ExplorationRun]?
@@ -126,18 +142,23 @@ public struct LearnerState: Codable, Sendable {
     public var target = "es"
     public var support = "en"
     public var level = "Pre-A1"
-    public var goal = "Hold everyday conversations"
-    public var dailyGoal = 50
+    public var goal = ""
+    public var dailyGoal = 100
     public var xpByLanguage: [String: Int] = [:]
+    public var subscriptionXPAdjustment:Int?
     public var dailyXP = 0
     public var dailyKey = ""
     public var streak = 0
     public var completed: Set<String> = []
     public var practicedModes: Set<String> = []
+    public var lessonWork:[String:CurriculumLessonProgress]?
+    public var realtimeLessonRuns:[String:RealtimeLessonRun]?
+    public var practiceRuns:[String:PracticeRun]?
+    public var practiceDecks:[String:[PracticeCollectedCard]]?
     public var flashcardMastery: Set<String> = []
     public var history: [HistoryEntry] = []
     public var notes: [Note] = []
-    public var companionName = "Piyali"
+    public var companionName = ""
     public var companionType = "ghost"
     public var companionProgress: JSONValue?
     public var achievementRecords: [String:JSONValue]?
@@ -178,20 +199,29 @@ public struct LearnerState: Codable, Sendable {
     public var lessonLevels: [String: String]?
     public var flashcardLevels: [String: String]?
     public var courseCompletion: [String: [String: [String: Int]]]?
+    public var gettingStartedModalShown:Bool?
+    public var legacyFirstRunPlacement:String?
     public var onboardingComplete = false
     public init() {}
     public var xp: Int { xpByLanguage[target, default: 0] }
     public var rating: Double { ratingByLanguage?[target] ?? 800 }
     public var score: Int { PerformanceScore.score(rating: rating) }
     public var effectiveCompanionType: String { CompanionTypes.effective(companionType, level: companionLevel) }
-    public mutating func assess(correct: Bool, independent: Bool, now: Date = Date(), questionLevel: String? = nil) {
+    public mutating func assess(correct: Bool, independent: Bool, now: Date = Date(), questionLevel: String? = nil,worth:JSONValue? = nil,concept:String? = nil,mode:String? = nil,support:String? = nil) {
         if ratingByLanguage == nil { ratingByLanguage = [:] }
         if gradedByLanguage == nil { gradedByLanguage = [:] }; gradedByLanguage?[target, default: 0] += 1
-        let updated = PerformanceScore.update(rating: rating, questionLevel: questionLevel ?? level, correct: correct, independent: independent)
+        let baseline=rating
+        let updated = QuestionWorth.rating(rating,level:questionLevel ?? level,correct:correct,independent:independent,worth:worth,support:support)
         ratingByLanguage?[target] = updated
-        enqueue(PracticeChange(date:now,dayKey:CalendarDay.key(now),target:target,level:questionLevel ?? level,amount:0,source:.assessment,correct:correct,independent:independent))
+        var change=PracticeChange(date:now,dayKey:CalendarDay.key(now),target:target,level:questionLevel ?? level,amount:0,source:.assessment,correct:correct,independent:independent);change.gradedWorth=worth;change.gradedConcept=concept;change.gradedMode=mode;change.gradedSupport=support
+        if worth != nil {
+            let bucket=goalBucket.setting("elo",goalBucket["elo"].setting("rating",.number(baseline)).setting("scaleVersion",.number(4)).setting("totalGraded",.number(Double((gradedByLanguage?[target] ?? 1)-1))))
+            if goalIntelligence == nil { goalIntelligence=[:] };goalIntelligence?[target]=JSONValue.foundation(QuestionWorth.gradedBucket(bucket.foundation,change:change))
+        }
+        enqueue(change)
     }
     public var totalXP: Int { xpByLanguage.values.reduce(0, +) }
+    public var subscriptionXP:Int { max(0,totalXP+(subscriptionXPAdjustment ?? 0)) }
     public var companionLevel: Int { max(1, xp / 100 + 1) }
     public func completionKey(_ lesson: String) -> String { "\(target):\(lesson)" }
     public func modeKey(_ lesson: String, _ mode: String) -> String { "\(target):\(lesson):\(mode)" }
@@ -205,11 +235,13 @@ public struct LearnerState: Codable, Sendable {
             dailyKey = key; dailyXP = 0
         }
     }
-    public mutating func award(_ amount: Int, source: PracticeSource = .practice, contentID: String? = nil, now: Date = Date(), calendar: Calendar = .current) {
+    public mutating func award(_ amount: Int, source: PracticeSource = .practice, contentID: String? = nil, lesson:Lesson? = nil, now: Date = Date(), calendar: Calendar = .current) {
         let earned = max(0, min(amount, 100))
         guard earned > 0 else { return }
         addXP(earned,now:now,calendar:calendar)
-        enqueue(PracticeChange(date:now,dayKey:dailyKey,target:target,level:source == .speak ? tutorLevel : level,amount:earned,source:source,contentID:contentID))
+        var change=PracticeChange(date:now,dayKey:dailyKey,target:target,level:source == .speak ? tutorLevel : lesson?.cefrLevel ?? level,amount:earned,source:source,contentID:contentID)
+        change.attachCurriculumLesson(id:lesson?.id,level:lesson?.cefrLevel ?? level)
+        enqueue(change)
     }
     mutating func addXP(_ amount: Int, now: Date, calendar: Calendar) {
         rollDay(now:now,calendar:calendar)
@@ -220,9 +252,9 @@ public struct LearnerState: Codable, Sendable {
     }
     public mutating func complete(_ lesson: Lesson) -> Bool {
         let key = completionKey(lesson.id)
-        guard !completed.contains(key),lesson.isFinalQuiz != true || quizPassed(lesson) else { return false }
+        guard lesson.isRepair != true,lesson.isGoal != true,!completed.contains(key),lessonWork?[key]?.status != .completed,lesson.isFinalQuiz != true || quizPassed(lesson) else { return false }
         let source: PracticeSource = lesson.id.hasPrefix("goal-") ? .goal : lesson.id.hasPrefix("repair-") ? .repair : .lesson
-        completed.insert(key); award(lesson.xpReward,source:source,contentID:lesson.id)
+        completed.insert(key); award(lesson.xpReward,source:source,contentID:lesson.id,lesson:lesson)
         if lesson.id.hasPrefix("repair-memory-") { reinforceMemory(id:String(lesson.id.dropFirst("repair-memory-".count))) }
         return true
     }

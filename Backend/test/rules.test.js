@@ -10,7 +10,13 @@ test('production rules isolate Nostr-authenticated learners and protect subscrip
     const db=env.authenticatedContext(npub,{nostr_pubkey:hex,firebase:{sign_in_provider:'custom'}}).firestore();
     const guest=env.unauthenticatedContext().firestore();
     const anonymous=env.authenticatedContext(npub,{firebase:{sign_in_provider:'anonymous'}}).firestore();
+    const demo=env.authenticatedContext('piyali-landing-demo',{piyali_public_demo:true,firebase:{sign_in_provider:'custom'}}).firestore();
     await assertSucceeds(setDoc(doc(db,'users',npub),{local_npub:npub,displayName:'Learner'}));
+    const headline={dailyPlateHeadline:{es:{dayKey:'2026-10-23',appLanguage:'en',text:'Ask for directions with confidence.'}}};
+    await assertSucceeds(setDoc(doc(db,'users',npub),headline,{merge:true}));
+    await assertFails(setDoc(doc(db,'users',other),{local_npub:other,...headline},{merge:true}));
+    for(const denied of [guest,anonymous,demo])await assertFails(setDoc(doc(denied,'users',npub),headline,{merge:true}));
+    await assertFails(setDoc(doc(db,'users',npub),{...headline,patreonVerified:true},{merge:true}));
     await assertSucceeds(setDoc(doc(db,'users',npub,'companion','es'),{notes:[]}));
     await assertSucceeds(getDoc(doc(db,'users',npub)));
     await assertSucceeds(setDoc(doc(db,'users',npub,'questDays','es_2026-10-13'),{practice_flashcards_goal:{cards:[],outcomes:{}}}));
@@ -40,6 +46,9 @@ test('production rules isolate Nostr-authenticated learners and protect subscrip
     await assertFails(setDoc(doc(db,'users',npub,'achievementProgress','robotsbuildingeducation','events','one'),{source:'robotsbuildingeducation'}));
     await assertFails(getDoc(doc(guest,'users',npub)));
     await assertFails(getDoc(doc(anonymous,'users',npub)));
+    await assertFails(getDoc(doc(demo,'users',npub)));
+    await assertFails(getDoc(doc(demo,'users','piyali-landing-demo')));
+    await assertFails(setDoc(doc(demo,'users','piyali-landing-demo'),{local_npub:'piyali-landing-demo'}));
     await assertFails(getDoc(doc(db,'users',other)));
     await assertFails(setDoc(doc(db,'users',other,'companion','es'),{notes:[]}));
     await assertFails(setDoc(doc(db,'users',npub),{local_npub:other}));

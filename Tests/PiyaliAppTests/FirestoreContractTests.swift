@@ -15,6 +15,155 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
     func createProvider(with app: FirebaseApp) -> AppCheckProvider? { EmulatorAppCheckProvider() }
 }
 @MainActor final class FirestoreContractTests: XCTestCase {
+    func testCompanionBlueprintLeaseCanonicalMirrorsAndRepairEvidenceSurviveRetries() async throws {
+        let (service,db,npub)=try context();try await seed(db,npub)
+        var state=try requireState(await service.load(npub:npub));let target=state.target,day=CalendarDay.key(Date()),key=CompanionQuestDay.key(target,day),reference=db.collection("users").document(npub).collection("questDays").document(key)
+        try await reference.setData(["iosPlate":["kinds":["learn","review"]],"foreignArtifact":["keep":true]],merge:true)
+        async let a=service.reserveCompanionQuest(npub:npub,target:target,day:day,id:"one")
+        async let b=service.reserveCompanionQuest(npub:npub,target:target,day:day,id:"two")
+        let reservations=try await[a,b],owner=try XCTUnwrap(reservations.first?["blueprint"]["iosGenerationID"].string)
+        XCTAssertFalse(owner.isEmpty);XCTAssertTrue(reservations.allSatisfy{$0["blueprint"]["iosGenerationID"].string == owner})
+        let item:JSONValue = .object(["memoryId":.string("repair-memory"),"concept":.string("Say a greeting"),"originalConcept":.string("greetings"),"expectedAnswer":.string("Bonjour"),"mode":.string("flashcards"),"errorType":.string("conversation_flow"),"cefrLevel":.string("A1")])
+        let plan:JSONValue = .object(["targetLang":.string(target),"dayKey":.string(day),"target":.number(1),"items":.array([item]),"memoryIds":.array([.string("repair-memory")])])
+        let ready:JSONValue = .object(["status":.string("ready"),"iosGenerationID":.string(owner),"message":.object(["long":.string("A focused warm-up")]),"repair":plan,"rationale":.object(["summary":.string("Why this repair")])])
+        var stale=state;state.storeCompanionBlueprint(ready,target:target,day:day);stale.storeCompanionBlueprint(ready.setting("iosGenerationID",.string("late")).setting("message",.object(["long":.string("Late")])) ,target:target,day:day)
+        _=try await service.save(state,npub:npub);_=try await service.save(stale,npub:npub);_=try await service.save(state,npub:npub)
+        let saved=JSONValue.foundation(try await reference.getDocument(source:.server).data() ?? [:])
+        XCTAssertEqual(saved["blueprint"]["message"]["long"].string,"A focused warm-up");XCTAssertEqual(saved["repair"],plan);XCTAssertEqual(saved["explanation"],ready["rationale"]);XCTAssertEqual(saved["lang"].string,target);XCTAssertEqual(saved["dayKey"].string,day);XCTAssertEqual(saved["foreignArtifact"]["keep"],.bool(true));XCTAssertEqual(saved["iosPlate"]["kinds"].array.count,2)
+        var restored=try requireState(await service.load(npub:npub));let policy=try CompanionQuestPolicy(),next=try policy.run("next",.object(["plan":plan,"completedCount":.number(0)])),step=try JSONDecoder().decode(RepairStep.self,from:Data(next.json.utf8))
+        let card:JSONValue = .object(["id":.string("repair-"+target+"-"+day+"-s0-c0"),"concept":.object(["en":.string("Greeting"),target:.string("Bonjour")]),"cefrLevel":.string("A1"),"isRepair":.bool(true)])
+        let candidate:JSONValue = .object(["version":.number(1),"ownerKey":.string(CompanionQuestDay.artifactKey(step,mode:"flashcards")),"cards":.array([card]),"outcomes":.object([:])])
+        let artifact=try await service.reserveRepairArtifact(npub:npub,step:step,mode:"flashcards",candidate:candidate)
+        let retry=try await service.reserveRepairArtifact(npub:npub,step:step,mode:"flashcards",candidate:candidate.setting("cards",.array([])));XCTAssertEqual(artifact,retry)
+        restored.storeRepairArtifact(artifact,step:step,mode:"flashcards")
+        XCTAssertTrue(restored.recordRepairOutcome(step,mode:"flashcards",cardID:card["id"].string,success:true,item:"Bonjour",support:"prompted"))
+        XCTAssertFalse(restored.recordRepairOutcome(step,mode:"flashcards",cardID:card["id"].string,success:true,item:"Bonjour",support:"prompted"))
+        let event=step.event.setting("success",.bool(true)).setting("support",.string("prompted")).setting("observation",.string("Produced Bonjour")),summary=try policy.run("evidence",.object(["summary":.object([:]),"event":event]))
+        XCTAssertTrue(restored.completeRepairStep(step,summary:summary,observation:"Produced Bonjour"))
+        _=try await service.save(restored,npub:npub);_=try await service.save(restored,npub:npub)
+        let result=try requireState(await service.load(npub:npub)),fields=try await db.collection("users").document(npub).getDocument(source:.server).data() ?? [:]
+        XCTAssertEqual(result.questDay(day:day)["repair"],plan);XCTAssertEqual(result.plateProgress["repairDailyActivity"][target][day].number,1);XCTAssertEqual(result.goalBucket["repairSummary"]["eventIds"].array.count,1);XCTAssertEqual(result.totalXP,152);XCTAssertEqual(result.plateProgress["flashcardDailyActivity"],state.plateProgress["flashcardDailyActivity"]);XCTAssertNil(result.cardReviews?[result.completionKey(card["id"].string)]);XCTAssertTrue(result.repairArtifact(step,mode:"flashcards")["outcomes"][card["id"].string]["success"].boolean)
+        XCTAssertEqual(fields["patreonVerified"] as? Bool,true);XCTAssertEqual(fields["unrelatedWebSetting"] as? String,"preserve")
+        let snapshot=try JSONDecoder().decode(LearnerState.self,from:Data((fields["iosStateJSON"] as? String ?? "").utf8));XCTAssertNil(snapshot.companionQuestDays);XCTAssertTrue(snapshot.pendingRepairEvidence?.isEmpty == true)
+    }
+    func testSourceFlashcardGradeAndRatingPersistOnceAndGoalCardsRemainOutsideNormalSRS()async throws {
+        let (service,db,_)=try context(),app=AppModel(progressService:service);try app.identity.create();defer{try? app.identity.disconnect()};let npub=app.identity.npub;try await seed(db,npub)
+        app.subscription.bind(app.identity);app.signedIn=true;app.learner=try requireState(await service.load(npub:npub))
+        let card:JSONValue = .object(["id":.string("pre-a1-public-review"),"concept":.object(["es":.string("mamá"),"fr":.string("maman")]),"cefrLevel":.string("Pre-A1"),"category":.string("people"),"type":.string("word")])
+        let provider=FlashcardProvider(judge:{_ in "YES | 6"},stream:{_,update in update("maman");return "maman"},quote:{card,state in try GeneratedQuestionWorth.fallback(level:card["cefrLevel"].string,learner:state,recipes:PracticeRecipes())})
+        func settle(_ session:FlashcardSessionController)async throws {for _ in 0..<700 where session.grading || session.saving {try await Task.sleep(for:.milliseconds(20))};XCTAssertFalse(session.grading);XCTAssertFalse(session.saving)}
+        let ordinary=try FlashcardSessionController(app:app,card:card,status:"active",provider:provider);app.flashcardSession=ordinary;ordinary.answer="maman";ordinary.submit(app);try await settle(ordinary)
+        XCTAssertEqual(app.learner.totalXP,150);XCTAssertNil(app.learner.cardReviews)
+        ordinary.commit(.hard,app:app);try await settle(ordinary);let sent=app.learner
+        _=try await service.save(sent,npub:npub);_=try await service.save(sent,npub:npub);await app.sync()
+        let first=try requireState(await service.load(npub:npub));XCTAssertEqual(first.totalXP,156);XCTAssertEqual(first.cardReviews?["fr:pre-a1-public-review"]?.lastReviewOutcome,.hard);XCTAssertEqual(first.cardReviews?["fr:pre-a1-public-review"]?.reviewCount,1)
+        let day=CalendarDay.key(Date());app.learner.editGoal("Greet a family member")
+        let bp:JSONValue = .object(["goalId":app.learner.goalBucket["activeGoal"]["id"],"dayKey":.string(day),"lang":.string("fr"),"mode":.string("flashcards"),"modes":.array([.string("flashcards"),.string("lesson")]),"modeTargets":.object(["flashcards":.number(3),"lesson":.number(20)]),"objective":.string("Greet a family member"),"cefrLevel":.string("Pre-A1")])
+        let focused=card.setting("id",.string("focused-public-review")).setting("isGoal",.bool(true))
+        app.learner.applyGoal(GoalChange(action:.blueprint,target:"fr",payload:bp));app.learner.applyGoal(GoalChange(action:.artifact,target:"fr",payload:bp.setting("cards",.array([focused]))));await app.sync();XCTAssertNotNil(app.readyGoal)
+        let goal=try FlashcardSessionController(app:app,card:focused,status:"active",goal:bp,provider:provider);app.flashcardSession=goal;goal.answer="maman";goal.submit(app);try await settle(goal);goal.commit(.good,app:app);try await settle(goal)
+        XCTAssertNil(goal.error);XCTAssertNil(app.flashcardSession)
+        let restored=try requireState(await service.load(npub:npub)),user=db.collection("users").document(npub),root=try await user.getDocument(source:.server).data() ?? [:],ephemeral=try await user.collection("languageFlashcards").document("fr_focused-public-review").getDocument(source:.server)
+        XCTAssertEqual(restored.totalXP,158);XCTAssertEqual(restored.gradedByLanguage?["fr"],2,"Focused practice must not grade the same answer again when scheduling it")
+        XCTAssertFalse(ephemeral.exists);XCTAssertEqual(restored.plateProgress["flashcardDailyActivity"]["fr"][day].number,1);XCTAssertTrue(restored.goalArtifacts?.values.contains{$0["outcomes"]["focused-public-review"]["success"].boolean} == true)
+        XCTAssertEqual(root["patreonVerified"] as? Bool,true);XCTAssertEqual(root["unrelatedWebSetting"] as? String,"preserve")
+    }
+    func testFocusedGoalLessonCommitsFinalXPBeforeCompletionAndRetriesWithoutBonus() async throws {
+        let (service,db,_)=try context(),app=AppModel(progressService:service);try app.identity.create();defer{try? app.identity.disconnect()}
+        let npub=app.identity.npub;try await seed(db,npub);app.subscription.bind(app.identity);app.signedIn=true
+        var state=try requireState(await service.load(npub:npub));state.editGoal("Greet a family member")
+        let day=CalendarDay.key(Date()),bp:JSONValue = .object(["goalId":state.goalBucket["activeGoal"]["id"],"dayKey":.string(day),"lang":.string("fr"),"mode":.string("lesson"),"modes":.array([.string("lesson"),.string("tutor")]),"objective":.string("Greet a family member"),"scenario":.string("Start a greeting"),"targetLanguage":.array([.string("Bonjour")]),"supports":.array([]),"successCriteria":.array([.string("Say hello")]),"cefrLevel":.string("A1")])
+        state.applyGoal(GoalChange(action:.blueprint,target:"fr",payload:bp));app.learner=try requireState(await service.save(state,npub:npub))
+        let lesson=try app.sourceGoalLesson(bp);app.learner.award(12,lesson:lesson);app.learner.award(10,lesson:lesson)
+        try await app.completeFocusedGoalLesson(lesson);try await app.completeFocusedGoalLesson(lesson)
+        let restored=try requireState(await service.load(npub:npub)),root=try await db.collection("users").document(npub).getDocument(source:.server).data() ?? [:]
+        XCTAssertEqual(GoalLessonProgress.earned(restored.goalBucket),22);XCTAssertEqual(restored.goalBucket["dailyGoal"]["modeProgress"]["lesson"].number,20);XCTAssertFalse(restored.goalBucket["dailyGoal"]["completed"].boolean)
+        XCTAssertEqual(restored.totalXP,172);XCTAssertEqual(restored.goalBucket["activeGoal"]["status"].string,"active");XCTAssertEqual(root["patreonVerified"] as? Bool,true);XCTAssertEqual(root["unrelatedWebSetting"] as? String,"preserve")
+        let document=try await db.collection("users").document(npub).collection("languageLessons").document("fr_"+lesson.id).getDocument(source:.server);XCTAssertFalse(document.exists)
+        XCTAssertTrue(app.learner.pendingGoalChanges?.isEmpty == true);XCTAssertTrue(app.learner.pendingChanges?.isEmpty == true);XCTAssertEqual(GoalPractice.nextMode(try XCTUnwrap(app.readyGoal)),"tutor")
+    }
+    func testSessionTimerCompletionIsIdempotentAndGoalEditsPreserveXPAndPaidFields() async throws {
+        let (service,db,npub)=try context();try await seed(db,npub)
+        let window=try await db.collection("users").document(npub).getDocument(source:.server)
+        var state=try requireState(await service.load(npub:npub));state.dailyGoal=5;state.preferencesModifiedAt=Date()
+        _=try await service.save(state,npub:npub)
+        let id=UUID().uuidString,path=try AchievementSyncService.documentID(metric:"session_timers",id:id)
+        try await service.recordSessionTimer(npub:npub,id:id)
+        let ref=db.collection("users").document(npub).collection("achievementProgress").document("nosabos").collection("events").document(path)
+        let first=try await ref.getDocument(source:.server)
+        try await service.recordSessionTimer(npub:npub,id:id)
+        let second=try await ref.getDocument(source:.server),events=try await ref.parent.whereField("metric",isEqualTo:"session_timers").getDocuments(source:.server)
+        XCTAssertEqual(events.documents.count,1);XCTAssertEqual(first["createdAt"] as? Timestamp,second["createdAt"] as? Timestamp);XCTAssertEqual(second["completionId"] as? String,id)
+        let root=try await db.collection("users").document(npub).getDocument(source:.server)
+        XCTAssertEqual(root["dailyGoalXp"] as? Int,5);XCTAssertEqual(root["dailyXp"] as? Int,5);XCTAssertEqual(root["xp"] as? Int,150);XCTAssertEqual(root["patreonVerified"] as? Bool,true);XCTAssertEqual(root["unrelatedWebSetting"] as? String,"preserve")
+        XCTAssertEqual(root["dailyStartedAt"] as? String,window["dailyStartedAt"] as? String);XCTAssertEqual(root["dailyResetAt"] as? String,window["dailyResetAt"] as? String)
+    }
+    func testHeadlinesMergeByLanguageKeepSourceLastWriteAndPreserveMembershipAndXP() async throws {
+        let (service,db,npub)=try context();try await seed(db,npub)
+        try await db.collection("users").document(npub).setData(["membership":["active":true]],merge:true)
+        let original=try requireState(await service.load(npub:npub)),today=CalendarDay.key(Date()),tomorrow=CalendarDay.shift(CalendarDay.key(Date()),by:1)
+        var first=original,second=original
+        first.storePlateHeadline(.init(dayKey:today,appLanguage:"en",text:"Ask about plans."),target:"es")
+        second.storePlateHeadline(.init(dayKey:today,appLanguage:"ar",text:"تحدث بثقة."),target:"fr")
+        async let a=service.save(first,npub:npub),b=service.save(second,npub:npub);_=try await(a,b)
+        _=try await service.save(first,npub:npub)
+        let together=try requireState(await service.load(npub:npub));XCTAssertEqual(together.plateHeadlines?["es"]?.text,"Ask about plans.");XCTAssertEqual(together.plateHeadlines?["fr"]?.appLanguage,"ar")
+        var later=together;later.storePlateHeadline(.init(dayKey:tomorrow,appLanguage:"en",text:"A new day."),target:"es");_=try await service.save(later,npub:npub)
+        let stale=try requireState(await service.save(first,npub:npub));XCTAssertEqual(stale.plateHeadlines?["es"]?.dayKey,today,"The original setDoc helper uses last-write semantics even across date changes.");XCTAssertTrue(stale.pendingPlateHeadlines?.isEmpty == true)
+        var support=stale;support.storePlateHeadline(.init(dayKey:tomorrow,appLanguage:"fr",text:"Une nouvelle journée."),target:"es");let saved=try requireState(await service.save(support,npub:npub));XCTAssertEqual(saved.plateHeadlines?["es"]?.appLanguage,"fr");XCTAssertEqual(saved.totalXP,original.totalXP)
+        let fields=try await db.collection("users").document(npub).getDocument().data() ?? [:]
+        XCTAssertEqual(WebProgressContract.integer(fields["xp"]),150)
+        XCTAssertEqual(fields["patreonVerified"] as? Bool,true)
+        XCTAssertEqual((fields["membership"] as? [String:Any])?["active"] as? Bool,true)
+        let snapshot=try JSONDecoder().decode(LearnerState.self,from:Data((fields["iosStateJSON"] as? String ?? "").utf8));XCTAssertNil(snapshot.plateHeadlines,"Canonical headlines must not be shadowed inside iosStateJSON.")
+    }
+    func testQuotedAssessmentsUseTheSavedPriceAcrossConcurrentSyncAndRetriesWithoutXP() async throws {
+        let (service,db,npub)=try context();try await seed(db,npub)
+        try await db.collection("users").document(npub).setData(["learningIntelligence":["fr":["elo":["rating":1100,"scaleVersion":4,"totalGraded":3]]]],merge:true)
+        var state=try requireState(await service.load(npub:npub));state.pendingChanges=[]
+        let recipes=try PracticeRecipes(),quote=try recipes.inspect("worth",parameters:.object(["user":state.recipeUser,"targetLang":.string("fr"),"questionLevel":.string("B2"),"assessment":.object(["difficultyScore":.number(10)])]))
+        var first=state,second=state
+        first.assess(correct:true,independent:true,questionLevel:"B2",worth:quote,concept:nil,mode:"vocabulary")
+        second.assess(correct:false,independent:false,questionLevel:"B2",worth:quote,concept:"famille",mode:"grammar")
+        async let a=service.save(first,npub:npub),b=service.save(second,npub:npub);_=try await(a,b)
+        _=try await service.save(first,npub:npub);_=try await service.save(second,npub:npub)
+        let fields=try await db.collection("users").document(npub).getDocument().data() ?? [:],bucket=((fields["learningIntelligence"] as? [String:[String:Any]])?["fr"] ?? [:]),elo=bucket["elo"] as? [String:Any] ?? [:]
+        let expected=1100+quote["gainBySupport"]["independent"].number-quote["loss"].number
+        XCTAssertEqual(WebProgressContract.number(elo["rating"]),expected,accuracy:1e-8);XCTAssertEqual(WebProgressContract.integer(elo["totalGraded"]),5);XCTAssertEqual(WebProgressContract.integer(fields["xp"]),150)
+        let counts=(((bucket["performanceSummary"] as? [String:Any])?["byLevel"] as? [String:[String:Any]])?["Pre-A1"] ?? [:]);XCTAssertEqual(WebProgressContract.integer(counts["correct"]),1);XCTAssertEqual(WebProgressContract.integer(counts["missed"]),1)
+        let restored=try requireState(await service.load(npub:npub));XCTAssertEqual(restored.rating,expected,accuracy:1e-8)
+    }
+    func testCurriculumOwnXPResumesAndConcurrentPracticeRetriesDoNotDuplicateWork() async throws {
+        let (service,db,npub)=try context();try await seed(db,npub)
+        let lesson=Lesson(id:"lesson-a1-counter",title:.string("Greetings"),description:.string("Use greetings"),xpReward:50,modes:["grammar","vocabulary"],agenda:.object([:]),content:.object([:]),cefrLevel:"A1")
+        var state=try requireState(await service.load(npub:npub));XCTAssertTrue(state.beginLessonWork(lesson))
+        state=try requireState(await service.save(state,npub:npub));state.pendingChanges=[]
+        let key=state.completionKey(lesson.id)
+        XCTAssertEqual(state.lessonWork?[key]?.status,.inProgress);XCTAssertEqual(state.lessonWork?[key]?.earnedXP,0)
+        var a=state,b=state;a.award(6,lesson:lesson);b.award(5,lesson:lesson)
+        async let first=service.save(a,npub:npub),second=service.save(b,npub:npub);_=try await(first,second)
+        _=try await service.save(a,npub:npub);_=try await service.save(b,npub:npub)
+        state=try requireState(await service.load(npub:npub));state.pendingChanges=[]
+        XCTAssertEqual(state.lessonWork?[key]?.earnedXP,11);XCTAssertEqual(state.totalXP,161)
+        state.award(20,source:.tutorTurn);state=try requireState(await service.save(state,npub:npub));state.pendingChanges=[]
+        XCTAssertEqual(state.lessonWork?[key]?.earnedXP,11)
+        state.award(44,lesson:lesson);state=try requireState(await service.save(state,npub:npub));state.pendingChanges=[]
+        XCTAssertTrue(try XCTUnwrap(state.lessonWork?[key]).ready(goal:50));XCTAssertTrue(state.complete(lesson))
+        _=try await service.save(state,npub:npub);_=try await service.save(state,npub:npub)
+        let restored=try requireState(await service.load(npub:npub))
+        XCTAssertEqual(restored.lessonWork?[key]?.status,.completed);XCTAssertEqual(restored.lessonWork?[key]?.earnedXP,50);XCTAssertEqual(restored.totalXP,275)
+        let document=try await db.collection("users").document(npub).collection("languageLessons").document("fr_"+lesson.id).getDocument().data()
+        XCTAssertEqual(WebProgressContract.integer(document?["xpEarned"]),50)
+    }
+    func testWebCompletedLessonDoesNotClaimAnotherNativeCompletionBonus() async throws {
+        let (service,db,npub)=try context();try await seed(db,npub)
+        let lesson=Lesson(id:"lesson-web-completed",title:.string("Greetings"),description:.string(""),xpReward:50,modes:["grammar"],agenda:.object([:]),content:.object([:]),cefrLevel:"A1")
+        var offline=LearnerState();offline.target="fr";offline.level="A1";XCTAssertTrue(offline.complete(lesson))
+        try await db.collection("users").document(npub).collection("languageLessons").document("fr_"+lesson.id).setData(["lessonId":lesson.id,"targetLang":"fr","cefrLevel":"A1","status":"completed","earnedXp":50,"xpEarned":50])
+        _=try await service.save(offline,npub:npub)
+        let restored=try requireState(await service.load(npub:npub))
+        XCTAssertEqual(restored.totalXP,150);XCTAssertEqual(restored.lessonWork?["fr:"+lesson.id]?.status,.completed)
+    }
     func testFinalQuizRestoresQuestionAndCountsAssessmentsAndLessonRewardOnce() async throws {
         let (service,db,npub)=try context();try await seed(db,npub)
         let levels=try ContentLibrary.load([String:[LearningUnit]].self,name:"curriculum-fr"),lesson=try XCTUnwrap(levels["Pre-A1"]?.flatMap(\.lessons).first { $0.isFinalQuiz == true })
@@ -463,6 +612,29 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
         XCTAssertEqual(state.courseCompletion?["fr"]?["skillTree"]?["Pre-A1"],86)
         XCTAssertTrue(state.completed.isEmpty); XCTAssertTrue(state.flashcardMastery.isEmpty)
     }
+    func testOnboardingGoalsForEveryChosenLanguageSurviveConcurrentRetryAndKeepMembership() async throws {
+        let (service,db,npub)=try context(),user=db.collection("users").document(npub)
+        try await user.setData(["membership":["active":true],"learningIntelligence":["it":["activeGoal":["id":"untouched","text":"Visit my friend","status":"active"]]]])
+        var state=LearnerState();state.name="Onboarding learner"
+        state.completeOnboarding(OnboardingDraft(support:"fr",target:"fr",learningGoals:["es":"Talk with family","fr":"Order in a cafe","en":" "]))
+        async let first=service.save(state,npub:npub),second=service.save(state,npub:npub);_=try await(first,second)
+        _=try await service.save(state,npub:npub)
+        let restored=try requireState(await service.load(npub:npub)),fields=try await user.getDocument().data() ?? [:]
+        XCTAssertTrue(restored.onboardingComplete);XCTAssertEqual(restored.support,"fr");XCTAssertEqual(restored.target,"fr");XCTAssertEqual(restored.goal,"Order in a cafe")
+        XCTAssertEqual(restored.goalIntelligence?["es"]?["activeGoal"]["text"].string,"Talk with family");XCTAssertEqual(restored.goalIntelligence?["it"]?["activeGoal"]["id"].string,"untouched");XCTAssertNil(restored.goalIntelligence?["en"])
+        XCTAssertEqual(restored.totalXP,0);XCTAssertNil(restored.placements);XCTAssertEqual((fields["membership"] as? [String:Any])?["active"] as? Bool,true)
+    }
+    func testGettingStartedAcknowledgmentSurvivesStaleDeviceAndKeepsPlacementMembershipAndXP() async throws {
+        let (service,db,npub)=try context();try await seed(db,npub)
+        let user=db.collection("users").document(npub)
+        try await user.setData(["membership":["active":true],"proficiencyPlacements":["fr":"A1"]],merge:true)
+        let stale=try requireState(await service.load(npub:npub));var seen=stale;seen.gettingStartedModalShown=true
+        async let first=service.save(seen,npub:npub),second=service.save(stale,npub:npub);_=try await(first,second)
+        _=try await service.save(stale,npub:npub)
+        let restored=try requireState(await service.load(npub:npub)),fields=try await user.getDocument().data() ?? [:]
+        XCTAssertTrue(restored.gettingStartedModalShown == true);XCTAssertEqual(fields["gettingStartedModalShown"] as? Bool,true)
+        XCTAssertEqual(restored.totalXP,stale.totalXP);XCTAssertEqual(restored.placements?["fr"]?.level,"A1");XCTAssertEqual((fields["membership"] as? [String:Any])?["active"] as? Bool,true)
+    }
     func testFirstGoalUploadInitializesCanonicalProfile() async throws {
         let (service,db,npub) = try context()
         var state = LearnerState(); state.name = "First goal learner"; state.target = "fr"; state.support = "es"; state.onboardingComplete = true
@@ -707,14 +879,20 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
         let (service,db,npub)=try context();try await seed(db,npub)
         var base=try requireState(try await service.load(npub:npub));base.target="es";base.support="en";base.level="A1";base.preferencesModifiedAt=Date()
         let payload=try ContentLibrary.load(JSONValue.self,name:"story-test-episode"),lines=payload["segments"].array.flatMap { $0["turns"].array }
-        let spoken=try StoryRun(payload:.object(["title":payload["title"],"sentences":.array(lines+lines)]),mode:.speaking,target:"es",support:"en",level:"A1",lessonID:nil,worth:ConversationPractice.worth(rating:base.rating,level:"A1"))
+        var spoken=try StoryRun(payload:.object(["title":payload["title"],"sentences":.array(Array((lines+lines).prefix(10)))]),mode:.speaking,target:"es",support:"en",level:"A1",lessonID:nil,worth:ConversationPractice.worth(rating:base.rating,level:"A1"))
+        let questions=spoken.sentences.map { JSONValue.object(["sentence":.string($0.target),"task":.string("Understand and pronounce this sentence")]) }
+        let scores=(0..<questions.count).map { JSONValue.number($0 == 0 ? 0 : 100) }
+        spoken.sentenceWorths=try PracticeRecipes().story("batchWorth",parameters:.object(["questions":.array(questions),"user":base.recipeUser,"targetLang":.string("es"),"questionLevel":.string("A1"),"raw":.object(["difficultyScores":.array(scores)])])).array
+        spoken.lessonLevel="A1";spoken.sourceContext="canonical-lesson-context";spoken.portraitIDs=["Ana":"25","Luis":"6"]
         base.saveStory(spoken);var first=base,second=base
         XCTAssertEqual(first.practiceStoryLine(words:spoken.sentences[0].target,typed:true),2);XCTAssertEqual(second.practiceStoryLine(words:spoken.sentences[0].target,typed:true),2)
         async let one=service.save(first,npub:npub);async let two=service.save(second,npub:npub);_=try await (one,two)
         var restored=try requireState(try await service.load(npub:npub));XCTAssertEqual(restored.totalXP,152);XCTAssertEqual(restored.gradedByLanguage?["es"],1)
+        XCTAssertEqual(restored.story?.sourceContext,spoken.sourceContext);XCTAssertEqual(restored.story?.portraitIDs,spoken.portraitIDs);XCTAssertEqual(restored.story?.lessonLevel,"A1");XCTAssertEqual(restored.story?.sentenceWorths,spoken.sentenceWorths)
+        XCTAssertEqual(restored.rating,ConversationPractice.rating(base.rating,level:"A1",success:true,worth:spoken.sentenceWorths![0]),accuracy:1e-8)
         let spokenProofs=try await db.collection("users").document(npub).collection("storyTurns").getDocuments(source:.server);XCTAssertEqual(spokenProofs.count,1)
         let fresh=try StoryRun(payload:payload,mode:.radio,target:"es",support:"en",level:"A1",lessonID:nil,worth:.null)
-        var a=fresh;a.index=a.count;a.results=["0":true,"1":true];var b=a;b.results=["0":false,"1":false]
+        var a=fresh;a.index=a.count;a.results=Dictionary(uniqueKeysWithValues:(0..<a.count).map { (String($0),true) });var b=a;b.results=Dictionary(uniqueKeysWithValues:(0..<b.count).map { (String($0),false) })
         first=restored;second=restored;first.saveStory(a);second.saveStory(b);XCTAssertEqual(first.finishStory(),6);XCTAssertEqual(second.finishStory(),6)
         let pendingFirst=first,pendingSecond=second
         async let three=service.save(pendingFirst,npub:npub);async let four=service.save(pendingSecond,npub:npub);_=try await (three,four)
@@ -740,6 +918,23 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
         let method=records.documents.first?.data()["method"] as? String
         XCTAssertEqual(restored.gradedByLanguage?["es"] ?? 0,method == "question" ? 1 : 0)
         XCTAssertTrue(restored.reading!.awarded)
+        let root=try await db.collection("users").document(npub).getDocument(source:.server);XCTAssertEqual(root.data()?["patreonVerified"] as? Bool,true)
+    }
+
+    func testReadingSpeechCardsPersistWithOnePracticeReceipt() async throws {
+        let (service,db,npub)=try context();try await seed(db,npub)
+        var base=try requireState(try await service.load(npub:npub));base.target="es";base.support="en";base.level="A1";base.preferencesModifiedAt=Date()
+        let payload=try ContentLibrary.load(JSONValue.self,name:"reading-test-passage"),feedback=try XCTUnwrap(ReadingSpeechFeedback(payload["speechFeedback"]))
+        var reading=try ReadingRun(payload:payload,target:"es",support:"en",level:"A1",lessonID:nil,selection:.null,worth:.null,roll:0.7);reading.method="speech";base.saveReading(reading)
+        let transcript=String(repeating:"Una frase del párrafo. ",count:220)+"Últimas palabras."
+        var a=base,b=base
+        XCTAssertGreaterThan(transcript.count,4000)
+        XCTAssertEqual(a.reviewReading(answer:transcript,correct:true,feedback:feedback.summary,speech:true,speechFeedback:feedback),7)
+        XCTAssertEqual(b.reviewReading(answer:transcript,correct:true,feedback:feedback.summary,speech:true,speechFeedback:feedback),7)
+        async let one=service.save(a,npub:npub);async let two=service.save(b,npub:npub);_=try await (one,two)
+        _=try await service.save(a,npub:npub)
+        let restored=try requireState(try await service.load(npub:npub));XCTAssertEqual(restored.totalXP,157);XCTAssertEqual(restored.rating,base.rating);XCTAssertEqual(restored.gradedByLanguage?["es"] ?? 0,0);XCTAssertEqual(restored.reading?.speechFeedback,feedback);XCTAssertEqual(restored.reading?.answer,transcript)
+        let records=try await db.collection("users").document(npub).collection("readingTurns").getDocuments(source:.server);XCTAssertEqual(records.count,1);XCTAssertEqual(JSONValue.foundation(records.documents.first?.data()["speechFeedback"] ?? [:]),feedback.value)
         let root=try await db.collection("users").document(npub).getDocument(source:.server);XCTAssertEqual(root.data()?["patreonVerified"] as? Bool,true)
     }
 

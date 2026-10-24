@@ -19,7 +19,7 @@ private final class SpeechSamples:@unchecked Sendable {
     @Published var confidence=0.0
     @Published var audioMetrics:SpeechAudioMetrics?
     private let synthesizer = AVSpeechSynthesizer()
-    private let engine = AVAudioEngine()
+    private var audioEngine:AVAudioEngine?
     private var task: SFSpeechRecognitionTask?
     private var request: SFSpeechAudioBufferRecognitionRequest?
     private var tapInstalled = false
@@ -27,15 +27,17 @@ private final class SpeechSamples:@unchecked Sendable {
     private var samples=SpeechSamples()
     private var playback:[String]=[]
     private var playbackLanguage=""
+    private var playbackStarted:(()->Void)?
+    private var playbackInterrupted:(()->Void)?
     private var playbackFinished:(()->Void)?
     private var activeUtterance:AVSpeechUtterance?
     override init() { super.init();synthesizer.delegate=self }
     func speak(_ text: String, language: String) {
         speakSeries([text],language:language,onFinished:{})
     }
-    func speakSeries(_ texts:[String],language:String,onFinished:@escaping ()->Void) {
-        stopAll();playback=texts.filter { !$0.isEmpty };playbackLanguage=language;playbackFinished=onFinished
-        do { try AVAudioSession.sharedInstance().setCategory(.playback, mode: .spokenAudio); try AVAudioSession.sharedInstance().setActive(true) } catch { self.error = error.localizedDescription; return }
+    func speakSeries(_ texts:[String],language:String,onStarted:(()->Void)?=nil,onInterrupted:(()->Void)?=nil,keepsVoiceSession:Bool=false,onFinished:@escaping ()->Void) {
+        stopAll();playback=texts.filter { !$0.isEmpty };playbackLanguage=language;playbackStarted=onStarted;playbackInterrupted=onInterrupted;playbackFinished=onFinished
+        do { if !keepsVoiceSession { try AVAudioSession.sharedInstance().setCategory(.playback, mode: .spokenAudio); try AVAudioSession.sharedInstance().setActive(true) } } catch { self.error = error.localizedDescription;let interrupted=playbackInterrupted;playbackInterrupted=nil;playbackStarted=nil;playbackFinished=nil;playback=[];interrupted?();return }
         nextUtterance()
     }
     private func nextUtterance() {
@@ -46,6 +48,8 @@ private final class SpeechSamples:@unchecked Sendable {
         activeUtterance=utterance
         synthesizer.speak(utterance)
     }
+    nonisolated func speechSynthesizer(_ synthesizer:AVSpeechSynthesizer,didStart utterance:AVSpeechUtterance) { Task { @MainActor [weak self] in guard let self,self.activeUtterance === utterance else { return };let started=self.playbackStarted;self.playbackStarted=nil;started?() } }
+    nonisolated func speechSynthesizer(_ synthesizer:AVSpeechSynthesizer,didCancel utterance:AVSpeechUtterance) { Task { @MainActor [weak self] in guard let self,self.activeUtterance === utterance else { return };let interrupted=self.playbackInterrupted;self.playbackInterrupted=nil;self.playbackStarted=nil;self.playbackFinished=nil;self.playback=[];self.activeUtterance=nil;interrupted?() } }
     nonisolated func speechSynthesizer(_ synthesizer:AVSpeechSynthesizer,didFinish utterance:AVSpeechUtterance) { Task { @MainActor [weak self] in guard let self,self.activeUtterance === utterance else { return };self.nextUtterance() } }
     func start(language: String) async {
         stopAll();transcript="";confidence=0;audioMetrics=nil;samples=SpeechSamples();let token=generation
@@ -54,8 +58,9 @@ private final class SpeechSamples:@unchecked Sendable {
         let mic = await AVAudioApplication.requestRecordPermission()
         guard generation == token,!Task.isCancelled else { return }
         guard status == .authorized, mic else { error = "Enable microphone and speech recognition in Settings to practice aloud."; return }
-        guard let recognizer = SFSpeechRecognizer(locale: Locale(identifier: LearningLanguages.locales[language] ?? "en-US")), recognizer.isAvailable else { error = "Speech recognition is unavailable for this language. You can type your answer."; return }
+        guard let recognizer = SFSpeechRecognizer(locale: Locale(identifier: LearningLanguages.locales[language] ?? "en-US")), recognizer.isAvailable else { error = "Speech recognition is unavailable for this language. Please try again later."; return }
         do {
+            let engine=audioEngine ?? AVAudioEngine();audioEngine=engine
             try AVAudioSession.sharedInstance().setCategory(.playAndRecord, mode: .measurement, options: [.defaultToSpeaker, .allowBluetoothHFP])
             try AVAudioSession.sharedInstance().setActive(true)
             let request = SFSpeechAudioBufferRecognitionRequest(); request.shouldReportPartialResults = true
@@ -76,10 +81,10 @@ private final class SpeechSamples:@unchecked Sendable {
     }
     func stop() {
         generation=UUID()
-        engine.stop()
-        if tapInstalled { engine.inputNode.removeTap(onBus: 0); tapInstalled = false }
+        audioEngine?.stop()
+        if tapInstalled { audioEngine?.inputNode.removeTap(onBus: 0); tapInstalled = false }
         request?.endAudio(); task?.cancel(); task = nil; request = nil; recording = false
         audioMetrics=samples.metrics()
     }
-    func stopAll() { stop();playback=[];playbackFinished=nil;activeUtterance=nil;synthesizer.stopSpeaking(at: .immediate) }
+    func stopAll() { stop();playback=[];playbackStarted=nil;playbackInterrupted=nil;playbackFinished=nil;activeUtterance=nil;synthesizer.stopSpeaking(at: .immediate) }
 }

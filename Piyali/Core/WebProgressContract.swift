@@ -38,9 +38,15 @@ public enum WebProgressContract {
     }
     public static func imported(_ fields: [String:Any], native: LearnerState? = nil, now: Date = Date()) -> LearnerState {
         var state = native ?? LearnerState()
+        state.plateHeadlines=(fields["dailyPlateHeadline"] as? [String:Any] ?? [:]).compactMapValues(PlateHeadline.decode)
+        for (target,pending) in state.pendingPlateHeadlines ?? [:] {state.plateHeadlines?[target]=pending}
         state.acknowledgedEventIDs = Set((fields["iosRecentEventIDs"] as? [String] ?? []).compactMap(UUID.init(uuidString:)))
         state.completedConversationGoals=(state.completedConversationGoals ?? []).union(fields["iosCompletedConversationGoalIDs"] as? [String] ?? [])
         state.companionProgress = JSONValue.foundation(fields.filter { CompanionHealth.keys.contains($0.key) }.merging(CompanionHealth.reconcileFields(fields,now:now)) { _,new in new })
+        state.gettingStartedModalShown = state.gettingStartedModalShown == true || fields["gettingStartedModalShown"] as? Bool == true ? true : state.gettingStartedModalShown
+        // The original prompt falls back to the old account-wide placement
+        // only while the language placement map is entirely absent.
+        state.legacyFirstRunPlacement = fields["proficiencyPlacements"] == nil || fields["proficiencyPlacements"] is NSNull ? (fields["proficiencyPlacement"] as? String).flatMap{$0.isEmpty ? nil : $0} : nil
         let progress = fields["progress"] as? [String:Any] ?? [:]
         let questKeys = Set(DailyPlate.fields.values).union(["dailyQuestFirstSeen","dailyQuestFirstDayKey","plateBonusDailyActivity"])
         state.questProgress = JSONValue.foundation(progress.filter { questKeys.contains($0.key) })
@@ -62,7 +68,10 @@ public enum WebProgressContract {
             state.support = progress["supportLang"] as? String ?? fields["language"] as? String ?? state.support
             let candidate = progress["cefrLevel"] as? String ?? state.level
             state.level = LearningLanguages.levels.contains(candidate) ? candidate : "Pre-A1"
-            state.dailyGoal = max(10,integer(fields["dailyGoalXp"],default:state.dailyGoal))
+            let candidates=[fields["dailyGoalXp"],progress["dailyGoalXp"],(fields["stats"] as? [String:Any])?["dailyGoalXp"]]
+            let rawGoal=candidates.compactMap{$0 is NSNull ? nil:$0}.first
+            let goal=(rawGoal as? NSNumber)?.doubleValue ?? (rawGoal as? String).flatMap{Double($0.trimmingCharacters(in:.whitespacesAndNewlines))} ?? 0
+            state.dailyGoal = goal.isFinite && goal>0 ? goal>=Double(Int.max) ? Int.max:max(1,Int(goal)) : 100
             state.companionName = fields["dailyGoalPetName"] as? String ?? state.companionName
             state.companionType = fields["dailyGoalPetType"] as? String ?? state.companionType
             state.onboardingComplete = (fields["onboarding"] as? [String:Any])?["completed"] as? Bool ?? state.onboardingComplete
@@ -71,9 +80,25 @@ public enum WebProgressContract {
             state.flashcardLevels = progress["activeFlashcardLevels"] as? [String:String] ?? state.flashcardLevels
             if let active = state.lessonLevels?[state.target], LearningLanguages.levels.contains(active) { state.level = active }
         }
+        if let languages=progress["languageLessons"] as? [String:[String:[String:Any]]] {
+            for (target,lessons) in languages { for (id,fields) in lessons { state.importLessonWork(fields,id:id,target:target) } }
+        } else if let lessons=progress["lessons"] as? [String:[String:Any]] {
+            for (id,fields) in lessons { state.importLessonWork(fields,id:id,target:state.target) }
+        }
         if let languageXP = progress["languageXp"] as? [String:Any] {
             state.xpByLanguage = languageXP.mapValues { max(0,integer($0)) }
         } else if progress["totalXp"] != nil { state.xpByLanguage[state.target] = max(0,integer(progress["totalXp"])) }
+        // App.jsx uses the first valid account XP value for its 300-XP gate.
+        // Preserve legacy root XP that differs from the per-language ledger.
+        let candidates:[Any?]=[fields["xp"],progress["totalXp"],(progress["languageXp"] as? [String:Any])?[state.target]]
+        let accountXP=candidates.compactMap { value -> Double? in
+            guard let value else { return nil }
+            if value is NSNull { return 0 }
+            let text=String(describing:value).trimmingCharacters(in:.whitespacesAndNewlines)
+            let number=text.isEmpty ? 0 : Double(text)
+            guard let number,number.isFinite,number >= 0 else { return nil };return number
+        }.first
+        state.subscriptionXPAdjustment=accountXP.map { Int(min($0,Double(Int32.max)))-state.totalXP } ?? 0
         let today = CalendarDay.key(now)
         let recent = fields["dailyXpRecent"] as? [String:Any] ?? fields["dailyXpHistory"] as? [String:Any] ?? [:]
         state.dailyKey = today
@@ -82,7 +107,7 @@ public enum WebProgressContract {
         state.streak = [today,CalendarDay.shift(today,by:-1)].contains(lastGoal) ? integer(fields["goalStreakCount"]) : 0
         for (language, bucket) in fields["learningIntelligence"] as? [String:[String:Any]] ?? [:] {
             if state.goalIntelligence == nil { state.goalIntelligence = [:] }
-            state.goalIntelligence?[language] = JSONValue.foundation(bucket.filter { ["version","activeGoal","dailyGoal","goalProgress"].contains($0.key) })
+            state.goalIntelligence?[language] = JSONValue.foundation(bucket.filter { ["version","activeGoal","dailyGoal","goalProgress","performanceSummary","repairSummary","elo","selfAssessment"].contains($0.key) })
             let elo = bucket["elo"] as? [String:Any] ?? [:]
             if state.gradedByLanguage == nil { state.gradedByLanguage = [:] }
             state.gradedByLanguage?[language] = max(0,integer(elo["totalGraded"]))
@@ -96,6 +121,7 @@ public enum WebProgressContract {
             let result = GoalPractice.applying(change,to:state.goalIntelligence?[change.target] ?? .object([:]))
             state.goalIntelligence?[change.target] = result.bucket
         }
+        for change in state.pendingChanges ?? [] where !(state.acknowledgedEventIDs ?? []).contains(change.id) {state.applyGoalLessonWork(change)}
         if !state.goalBucket["activeGoal"]["text"].string.isEmpty { state.goal = state.goalBucket["activeGoal"]["text"].string }
         state.immersionBatch=JSONValue.foundation(fields["realWorldTasks"] as? [String:Any] ?? [:])
         state.immersionHistory=JSONValue.foundation(fields["realWorldTaskHistoryByLanguage"] as? [String:Any] ?? [:]).object
@@ -143,7 +169,7 @@ public enum WebProgressContract {
         if let field = change.source.activityField {
             var byLanguage = progress[field] as? [String:[String:Any]] ?? [:]
             var byDay = byLanguage[change.target] ?? [:]
-            byDay[change.dayKey] = integer(byDay[change.dayKey]) + 1
+            byDay[change.activityDayKey] = integer(byDay[change.activityDayKey]) + 1
             byLanguage[change.target] = byDay.filter { $0.key >= cutoff && $0.key <= today }
             progress[field] = byLanguage
         }
@@ -176,18 +202,25 @@ public enum WebProgressContract {
             var bucket = intelligence[change.target] ?? [:]
             var elo = bucket["elo"] as? [String:Any] ?? [:]
             let baseline = integer(elo["scaleVersion"]) == 4 ? number(elo["rating"],default:800) : 800
-            elo["rating"] = [.conversation,.storyTurn,.readingTurn].contains(change.source) ? ConversationPractice.rating(baseline,level:change.level,success:correct,worth:change.conversationWorth ?? .null) : PerformanceScore.update(rating:baseline,questionLevel:change.level,correct:correct,independent:change.independent ?? false)
+            elo["rating"] = [.conversation,.storyTurn,.readingTurn].contains(change.source) ? ConversationPractice.rating(baseline,level:change.level,success:correct,worth:change.conversationWorth ?? .null) : QuestionWorth.rating(baseline,level:change.level,correct:correct,independent:change.independent ?? false,worth:change.gradedWorth,support:change.gradedSupport)
             elo["scaleVersion"] = 4; elo["updatedAt"] = iso(change.date)
             elo["totalGraded"] = integer(elo["totalGraded"]) + 1
             var summary = bucket["performanceSummary"] as? [String:Any] ?? [:]
             var levels = summary["byLevel"] as? [String:[String:Any]] ?? [:]
-            var counts = levels[change.level] ?? [:]
+            let evidence=QuestionWorth.evidenceLevel(level:change.level,correct:correct,independent:change.independent ?? false,worth:change.gradedWorth,support:change.gradedSupport)
+            var counts = levels[evidence] ?? [:]
             counts[correct ? "correct" : "missed"] = integer(counts[correct ? "correct" : "missed"]) + 1
-            levels[change.level] = counts; summary["byLevel"] = levels
+            levels[evidence] = counts; summary["byLevel"] = levels
             bucket["elo"] = elo; bucket["performanceSummary"] = summary
+            if change.source == .assessment,change.gradedWorth != nil { bucket=QuestionWorth.gradedBucket((fields["learningIntelligence"] as? [String:[String:Any]])?[change.target] ?? [:],change:change) }
             if [.conversation,.storyTurn,.readingTurn].contains(change.source) { bucket=ConversationPractice.gradedBucket((fields["learningIntelligence"] as? [String:[String:Any]])?[change.target] ?? [:],change:change) }
             intelligence[change.target] = bucket
             root["learningIntelligence"] = intelligence
+        }
+        if change.skillTreeLessonID?.hasPrefix("goal-") == true,change.earnedAmount > 0 {
+            var intelligence=root["learningIntelligence"] as? [String:[String:Any]] ?? fields["learningIntelligence"] as? [String:[String:Any]] ?? [:]
+            let bucket=JSONValue.foundation(intelligence[change.target] ?? [:]),next=GoalLessonProgress.applying(change,to:bucket)
+            if next != bucket {intelligence[change.target]=next.foundation;root["learningIntelligence"]=intelligence}
         }
         return (root,["monthKey":String(change.dayKey.prefix(7)),"days":days,"goalDays":goalDays,"updatedAt":iso(now)])
     }

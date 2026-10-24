@@ -4,6 +4,17 @@ import XCTest
 final class IntroTutorialTests:XCTestCase {
     private var root:URL { URL(fileURLWithPath:#filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent() }
     private func library(_ target:String = "es") throws -> IntroLibrary { try ContentLibrary.decode(IntroLibrary.self,url:root.appendingPathComponent("Piyali/Resources/intro-\(target).json.gz")) }
+    func testCompletedIntroCanRestartItsActivitiesWithoutAnotherCompletionReward() {
+        var state=LearnerState()
+        for mode in IntroTutorial.modes { XCTAssertTrue(state.visitIntro(mode,expectedLevel:state.level)) }
+        state.completed.insert(state.completionKey(IntroTutorial.lessonID));state.addXP(50,now:Date(),calendar:.current)
+        state.restartIntroReview();XCTAssertEqual(state.introSession.next,"vocabulary");XCTAssertEqual(state.xp,50);XCTAssertTrue(state.completed.contains("es:"+IntroTutorial.lessonID))
+        for mode in IntroTutorial.modes { XCTAssertTrue(state.visitIntro(mode,expectedLevel:state.level)) };XCTAssertTrue(state.introSession.ready)
+        let lesson=Lesson(id:IntroTutorial.lessonID,title:.string("Getting Started"),description:.string(""),xpReward:50,modes:IntroTutorial.modes,agenda:.object([:]),content:.object([:]))
+        XCTAssertFalse(state.completeIntro(lesson));XCTAssertEqual(state.xp,50)
+        var unfinished=LearnerState();_=unfinished.visitIntro("vocabulary",expectedLevel:unfinished.level);unfinished.restartIntroReview();XCTAssertEqual(unfinished.introSession.next,"grammar")
+    }
+
     func testSourceVisibilityAndAllAdaptedContentAndAdventures() throws {
         let fixtures=try JSONDecoder().decode(JSONValue.self,from:Data(contentsOf:root.appendingPathComponent("Tests/PiyaliCoreTests/Fixtures/intro.json")))
         for value in fixtures["visibility"].array { XCTAssertEqual(IntroTutorial.needed(level:value["level"].string,completed:value["lessons"][IntroTutorial.lessonID]["status"].string == "completed",hasFirstQuest:value["hasFirstQuestHistory"].boolean),value["expected"].boolean) }

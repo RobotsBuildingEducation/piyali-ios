@@ -17,7 +17,7 @@ for(const [target,levels] of Object.entries(web.LEARNING_PATHS)) {
  for(const level of Object.keys(levels)) {
   const unit=web.adaptIntroTutorialUnit(original,level),lesson=unit.lessons.find(l=>l.id==='lesson-tutorial-1');
   if(lesson.xpReward!==50 || lesson.modes.length!==6) throw new Error('Reference introduction contract changed: '+JSON.stringify({target,level,xp:lesson.xpReward,modes:lesson.modes}));
-  data.units[level]={id:unit.id,title:unit.title,description:unit.description,lessons:[{id:lesson.id,title:lesson.title,description:lesson.description,xpReward:lesson.xpReward,modes:lesson.modes,agenda:lesson.agenda??{},content:lesson.content,objectives:lesson.objectives??{}}]};
+  data.units[level]={id:unit.id,title:unit.title,description:unit.description,lessons:[{id:lesson.id,title:lesson.title,description:lesson.description,xpReward:lesson.xpReward,cefrLevel:level,modes:lesson.modes,agenda:lesson.agenda??{},content:lesson.content,objectives:lesson.objectives??{}}]};
   const context=web.buildGameReviewContext({lesson,unit,fallbackLevel:level,targetLang:target}),review={context,bySupport:{}};
   for(const support of supports) {
    const s=web.buildLegacyEpisodeScenario({lesson:{...lesson,gameReviewContext:context},targetLang:target,supportLang:support});
