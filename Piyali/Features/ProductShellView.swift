@@ -23,6 +23,7 @@ struct ProductShellView:View {
     @Environment(\.scenePhase) private var scenePhase
     @State private var practiceSounds=PracticeSoundPlayer()
     @StateObject private var timer=SessionTimerController()
+    @StateObject private var help=HelpChatController()
     @State private var goalOpen=false
     @State private var timerOpen=false
     @State private var timerAwardRevision=UUID()
@@ -70,7 +71,7 @@ struct ProductShellView:View {
                 }
             if menuOpen { menu }
         }.font(PiyaliBrand.productFont(16)).foregroundStyle(brand.text)
-            .accessibilityElement(children:.contain).accessibilityHidden(panel == .memory || panel == .settings || app.journeyRecording != nil || app.flashcardSession != nil || app.goalCheck != nil || lessonCompletion != nil || firstRun.step != nil || goalOpen || timerOpen || timer.session.status == .finished || practice.visible != nil || practice.dailyGoalVisible != nil)
+            .accessibilityElement(children:.contain).accessibilityHidden(panel == .memory || panel == .settings || panel == .assistant || app.journeyRecording != nil || app.flashcardSession != nil || app.goalCheck != nil || lessonCompletion != nil || firstRun.step != nil || goalOpen || timerOpen || timer.session.status == .finished || practice.visible != nil || practice.dailyGoalVisible != nil)
             .overlay {
                 if let data=lessonCompletion {
                     ZStack {
@@ -113,7 +114,8 @@ struct ProductShellView:View {
             .onChange(of:app.syncStatus){_,value in if value == "Synced with Firebase"{timerAwardRevision=UUID()}}
             .onChange(of:app.identity.npub){_,_ in goalOpen=false;timerOpen=false;timer.load(account:app.identity.npub)}
             .onChange(of:timer.session.status){_,value in if value == .finished{UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder),to:nil,from:nil,for:nil)}}
-            .sheet(item:Binding(get:{panel == .memory || panel == .settings ? nil:panel},set:{panel=$0})) { selected in NavigationStack { panelContent(selected).toolbar { ToolbarItem(placement:.confirmationAction) { Button(EntryCopy.text(language,"back_button")) { panel=nil }.accessibilityIdentifier("productPanelClose") } } }.tint(PiyaliBrand.teal) }
+            .sheet(item:Binding(get:{panel == .memory || panel == .settings || panel == .assistant ? nil:panel},set:{panel=$0})) { selected in NavigationStack { panelContent(selected).toolbar { ToolbarItem(placement:.confirmationAction) { Button(EntryCopy.text(language,"back_button")) { panel=nil }.accessibilityIdentifier("productPanelClose") } } }.tint(PiyaliBrand.teal) }
+            .overlay{if panel == .assistant{HelpChatView(controller:help,onClose:{panel=nil})}}
             .overlay {if let reward=practice.dailyGoalVisible{DailyGoalCelebrationView(reward:reward,onContinue:{practice.closeDailyGoal(app)})}}
             .overlay {if let data=practice.visible {PlateCelebrationView(data:data,language:language,onContinue:{practice.continuePractice(app,ephemeralLesson:specialCourse != nil && mode == .path)},onNotes:{practice.continuePractice(app,viewNotes:true,ephemeralLesson:specialCourse != nil && mode == .path)}).environment(\.layoutDirection,language == "ar" ? .rightToLeft:.leftToRight)}}
     }
@@ -208,7 +210,7 @@ struct ProductShellView:View {
         switch panel {
         case .settings: AccountView()
         case .teams: TeamsView(service:app.teams)
-        case .assistant: AssistantStudyView()
+        case .assistant: EmptyView()
         case .memory: MemoryDrawerView(onClose:{self.panel=nil})
         case .achievements: AchievementsView()
         case .placement: PlacementView()

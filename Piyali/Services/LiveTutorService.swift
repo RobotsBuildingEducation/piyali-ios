@@ -23,6 +23,7 @@ import AVFoundation
     private var instructions="",responseEvent:JSONValue?,manualResponse=false
     private var sessionConfiguration:JSONValue?
     private var committed:Set<String>=[]
+    private var eventObserver:((JSONValue)->Void)?
     private var onLearnerTurn:((String)->Void)?,onConversationTurn:((String,String,String)->Void)?
     private var onInputTurn:((RealtimeVoiceState.InputTurn)->Void)?,onAssistantTurn:((String,String)->Void)?
     private var notifiedInputs:Set<String>=[],notifiedResponses:Set<String>=[]
@@ -44,14 +45,14 @@ import AVFoundation
         instructions=try recipes.conversation("instructions",parameters:parameters)
         responseEvent=try JSONDecoder().decode(JSONValue.self,from:Data(recipes.conversation("response",parameters:parameters).utf8))
     }
-    func start(learner:LearnerState,goalBlueprint:JSONValue?=nil,tutorLesson:Lesson?=nil,onLearnerTurn:((String)->Void)?=nil,conversationDraft:ConversationDraft?=nil,onConversationTurn:((String,String,String)->Void)?=nil,instructions:String?=nil,openingPrompt:String?=LiveTutorService.openingPrompt,inactivityTimeout:TimeInterval?=nil,initiallyMuted:Bool=false,onInputTurn:((RealtimeVoiceState.InputTurn)->Void)?=nil,onAssistantTurn:((String,String)->Void)?=nil,sessionConfiguration:JSONValue?=nil,externallyControlled:Bool=false,previousAssistant:String?=nil) async {
+    func start(learner:LearnerState,goalBlueprint:JSONValue?=nil,tutorLesson:Lesson?=nil,onLearnerTurn:((String)->Void)?=nil,conversationDraft:ConversationDraft?=nil,onConversationTurn:((String,String,String)->Void)?=nil,instructions:String?=nil,openingPrompt:String?=LiveTutorService.openingPrompt,inactivityTimeout:TimeInterval?=nil,initiallyMuted:Bool=false,onInputTurn:((RealtimeVoiceState.InputTurn)->Void)?=nil,onAssistantTurn:((String,String)->Void)?=nil,sessionConfiguration:JSONValue?=nil,externallyControlled:Bool=false,previousAssistant:String?=nil,onEvent:((JSONValue)->Void)?=nil) async {
         guard !connecting && !connected else { return }
         connecting=true;autoStopped=false;muted=initiallyMuted;voiceState="thinking";error=nil;transcript="";learnerTranscript="";assistantTurnText="";completedLearnerTurn="";committed=[];speaking=false;notifiedInputs=[];notifiedResponses=[];playbackDucked=false
         let run=UUID();generation=run
         self.onLearnerTurn=onLearnerTurn;self.onConversationTurn=onConversationTurn
         self.onInputTurn=onInputTurn;self.onAssistantTurn=onAssistantTurn;resumeMessages=conversationDraft?.messages ?? []
         state=RealtimeVoiceState(previousAssistant:previousAssistant ?? conversationDraft?.messages.last { $0.role == "assistant" }?.text ?? "")
-        self.sessionConfiguration=sessionConfiguration
+        self.sessionConfiguration=sessionConfiguration;eventObserver=onEvent
         state.setMuted(initiallyMuted)
         do {
             guard await permission() else { throw AppError.message("Enable the microphone in Settings to use live audio.") }
@@ -101,6 +102,7 @@ import AVFoundation
     private func valid(_ run:UUID) throws { if generation != run || Task.isCancelled { throw CancellationError() } }
     private func send(_ value:JSONValue) { if transport?.send(value) != true { error="Live conversation disconnected. Try connecting again.";close() } }
     private func receive(_ event:JSONValue) {
+        eventObserver?(event)
         let type=event["type"].string
         if type == "response.created" || type == "output_audio_buffer.started"{outputPending=true}
         if ["output_audio_buffer.stopped","output_audio_buffer.cleared"].contains(type){outputPending=false}
@@ -167,7 +169,7 @@ import AVFoundation
     func setMuted(_ value:Bool) { muted=value;state.setMuted(value);if value,voiceState != "speaking" {audioLevel=0};applyMicrophone() }
     func setPlaybackDucked(_ value:Bool) { guard playbackDucked != value else { return };playbackDucked=value;if value {audioLevel=0};transport?.setRemoteAudioEnabled(!value);applyMicrophone() }
     private func close() {
-        generation=UUID();audioMeter?.cancel();audioMeter=nil;audioLevel=0;idleMonitor?.cancel();idleMonitor=nil;transport?.close();transport=nil;connected=false;connecting=false;muted=false;voiceState="idle";outputPending=false;onLearnerTurn=nil;onConversationTurn=nil;onInputTurn=nil;onAssistantTurn=nil
+        generation=UUID();eventObserver=nil;audioMeter?.cancel();audioMeter=nil;audioLevel=0;idleMonitor?.cancel();idleMonitor=nil;transport?.close();transport=nil;connected=false;connecting=false;muted=false;voiceState="idle";outputPending=false;onLearnerTurn=nil;onConversationTurn=nil;onInputTurn=nil;onAssistantTurn=nil
     }
     func stop(clearTranscript:Bool=false) async {
         close()

@@ -470,6 +470,31 @@ import NostrSDK
         } catch { try? await Auth.auth().currentUser?.delete();try? Auth.auth().signOut();try? identity.disconnect();throw error }
         try await Auth.auth().currentUser?.delete();try Auth.auth().signOut();try identity.disconnect()
     }
+    func testNativeHelpChatStreamsSupportLanguageAndAnalyzesTargetMorphemes()async throws {
+        guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else{throw XCTSkip("Explicit live Help opt-in required")}
+        XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))
+        if FirebaseApp.app() == nil{AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure()};XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let identity=IdentityService();try identity.create()
+        do{
+            try await FirebaseIdentityService.shared.ensure(identity)
+            let directory=FileManager.default.temporaryDirectory.appendingPathComponent("help-live-"+UUID().uuidString),chat=HelpChatController(directory:directory),provider=HelpChatProvider.native(AIService());defer{chat.stop();try? FileManager.default.removeItem(at:directory)}
+            chat.configure(account:identity.npub,progress:.object(["targetLang":.string("es"),"supportLang":.string("ar")]),appLanguage:"ar")
+            chat.send("How can I use the Spanish word hermana?",provider:provider)
+            for _ in 0..<1800 where chat.busy{try await Task.sleep(for:.milliseconds(50))};XCTAssertFalse(chat.busy);XCTAssertNil(chat.notice);let reply=try XCTUnwrap(chat.messages.last?.text);XCTAssertTrue(reply.unicodeScalars.contains{(0x0600...0x06ff).contains(Int($0.value))});XCTAssertTrue(reply.lowercased().contains("hermana"));XCTAssertNotEqual(reply,chat.copy("requestFailed"))
+            chat.newChat();chat.setMorphemes(true);chat.send("hermanas",provider:provider)
+            for _ in 0..<1800 where chat.busy{try await Task.sleep(for:.milliseconds(50))};XCTAssertFalse(chat.busy);XCTAssertNil(chat.notice);let result=try XCTUnwrap(chat.messages.last?.text);XCTAssertTrue(result.hasPrefix("// "));XCTAssertTrue(try chat.run("hasBreakdown",.object(["text":.string(result)])).boolean);XCTAssertTrue(result.lowercased().contains("hermanas"));XCTAssertTrue(chat.saved.isEmpty)
+            // Exercise the actual Help voice session and incoming RTP with a
+            // synthetic question. No physical microphone is captured.
+            let transport=RealtimeRTCTransport(capturesMicrophone:false);defer{transport.close()};var opened=false,played=false,started=false,transcript="",failure:String?
+            transport.onOpen={opened=true};transport.onFailure={failure=$0};transport.onEvent={event in switch event["type"].string{case "output_audio_buffer.started":started=true;case "output_audio_buffer.stopped":played=true;case "response.output_audio_transcript.done","response.audio_transcript.done":transcript=event["transcript"].string;case "error":failure=event["error"]["code"].string;default:break}}
+            try await transport.connect(session:chat.run("session"));for _ in 0..<400 where !opened{try await Task.sleep(for:.milliseconds(50))};XCTAssertTrue(opened);XCTAssertNil(failure)
+            let voiceQuestion:Piyali.JSONValue = .object(["type":.string("conversation.item.create"),"item":.object(["type":.string("message"),"role":.string("user"),"content":.array([.object(["type":.string("input_text"),"text":.string("What does the Spanish word hermana mean? Explain briefly.")])])])])
+            let voiceResponse:Piyali.JSONValue = .object(["type":.string("response.create"),"response":.object(["output_modalities":.array([.string("audio")])])])
+            XCTAssertTrue(transport.send(voiceQuestion));XCTAssertTrue(transport.send(voiceResponse))
+            for _ in 0..<700 where !played && failure == nil{try await Task.sleep(for:.milliseconds(50))};XCTAssertTrue(started);XCTAssertTrue(played);XCTAssertNil(failure);XCTAssertTrue(transcript.unicodeScalars.contains{(0x0600...0x06ff).contains(Int($0.value))});let bytes=await transport.receivedAudioBytes();XCTAssertGreaterThan(bytes,0)
+        }catch{try? await Auth.auth().currentUser?.delete();try? Auth.auth().signOut();try? identity.disconnect();throw error}
+        try await Auth.auth().currentUser?.delete();try Auth.auth().signOut();try identity.disconnect()
+    }
     func testNativeRPGObjectsUseOriginalPromptAndReturnBilingualAmbientContent()async throws {
         guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else{throw XCTSkip("Explicit live API opt-in required")}
         XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))

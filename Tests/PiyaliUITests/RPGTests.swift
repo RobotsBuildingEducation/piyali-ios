@@ -17,7 +17,7 @@ import XCTest
         let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_HEADLINE_FIXTURE":"failure"];app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"];app.launch()
         let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Adventure Learner");tap("entryKeyboardDone",app);tap("createAccount",app);tap("startLearning",app)
         tap("companionContinue",app);tap("gettingStartedGotIt",app);tap("placementNew",app)
-        open(app,fixture);shot("Native source-art course game",app);try rpgExamineCounterFromDistance(fixture,app)
+        open(app,fixture);shot("Native source-art course game",app);tap("rpgHelp",app);XCTAssertTrue(app.staticTexts["helpEmptyPrompt"].waitForExistence(timeout:5));shot("Native RPG Help drawer",app);tap("helpClose",app);try rpgExamineCounterFromDistance(fixture,app)
         tap("rpgQuest",app);shot("Native course quest log",app);app.buttons["Close dialogue"].tap()
         try rpgApproach(fixture.steps[0],fixture,app);shot("Native RPG choice",app)
         let wrong=(fixture.steps[0].correct+1)%3;for _ in 0..<3{tap("rpgChoice-\(wrong)",app)};tap("rpgContinue",app)

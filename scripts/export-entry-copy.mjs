@@ -77,21 +77,4 @@ for(const language of locales) {
 await fs.writeFile(new URL('../Piyali/Resources/product-copy.json.gz',import.meta.url),gzipSync(JSON.stringify(product),{level:9}));
 await fs.writeFile(new URL('../Piyali/Resources/score-milestones.json.gz',import.meta.url),gzipSync(JSON.stringify(productModule.SCORE_MILESTONES),{level:9}));
 const parser=await import(path.join(reference,'node_modules/@babel/parser/lib/index.js'));
-const helpSource=await fs.readFile(path.join(reference,'src/components/HelpChatFab.jsx'),'utf8');
-const helpAST=parser.parse(helpSource,{sourceType:'module',plugins:['jsx']});
-function findDeclaration(node,name) {
- if(!node || typeof node!=='object') return null;
- if(node.type==='VariableDeclarator' && node.id?.name===name) return node;
- for(const value of Object.values(node)) for(const child of Array.isArray(value) ? value : [value]) { const found=findDeclaration(child,name);if(found) return found; }
- return null;
-}
-const callbackSource=name=>{const node=findDeclaration(helpAST,name)?.init?.arguments?.[0];if(!node) throw Error('Assistant source callback changed: '+name);return helpSource.slice(node.start,node.end);};
-const languageName=Function('return ('+callbackSource('nameForLanguage')+');')();
-const policy=await import(path.join(reference,'src/utils/assistantLanguagePolicy.js'));
-const instruction=Function('progress','appLanguage','nameForLanguage','normalizeSupportLanguage','normalizePracticeLanguage','DEFAULT_SUPPORT_LANGUAGE','buildAssistantLanguagePolicy','return ('+callbackSource('buildInstruction')+')();');
-const assistant={};
-for(const language of locales) {
- assistant[language]={};
- for(const target of Object.keys(demo.LANDING_TUTOR_SAMPLES)) assistant[language][target]=Object.fromEntries([true,false].map(showTranslations=>[String(showTranslations),instruction({level:'Pre-A1',supportLang:language,targetLang:target,showTranslations},language,languageName,code=>code,code=>code,'en',policy.buildAssistantLanguagePolicy)]));
-}
-await fs.writeFile(new URL('../Piyali/Resources/assistant-instructions.json.gz',import.meta.url),gzipSync(JSON.stringify(assistant),{level:9}));
+// Dynamic Help policies and UI copy are exported by export-help-chat.mjs.

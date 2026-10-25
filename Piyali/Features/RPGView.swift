@@ -43,6 +43,7 @@ struct RPGView:View {
     @StateObject private var narration=RealtimeNarrationService()
     @StateObject private var music=RPGMusicPlayer()
     @StateObject private var observations=RPGObjectController()
+    @StateObject private var help=HelpChatController()
     @AppStorage("piyali.rpgCompanion") private var selectedPet=""
     @State private var dialogueContentHeight:CGFloat=0
     @State private var talking=false
@@ -65,7 +66,7 @@ struct RPGView:View {
     private var pet:String{CompanionTypes.effective(selectedPet.isEmpty ? app.learner.effectiveCompanionType:selectedPet,level:app.learner.companionLevel)}
     private func t(_ key:String)->String{RPGArt.shared.copy(key,lang:app.learner.support)}
     var body:some View {
-        Group{if Self.fixture{surface}else{SubscriptionRequiredView(service:app.subscription,preserveEarnedWork:run?.completed == true){surface}}}
+        Group{if Self.fixture{surface}else{SubscriptionRequiredView(service:app.subscription,preserveEarnedWork:run?.completed == true){surface}}}.accessibilityHidden(panel == "help")
             .toolbar(.hidden,for:.navigationBar).statusBarHidden(!embedded).ignoresSafeArea(.container)
             .task(id:scope){stop();panel=initialPanel;talking=false;await service.prepare(app,lesson:lesson,episode:episode,tutor:tutor);configureObjects();startMusic()}
             .onChange(of:run?.id){_,_ in configureObjects()}
@@ -76,7 +77,7 @@ struct RPGView:View {
             .onChange(of:app.subscription.hasAccess){_,allowed in if !allowed{stop()}else{configureObjects();startMusic()}}
             .onDisappear{stop()}
             .toolbar{ToolbarItemGroup(placement:.keyboard){Spacer();Button("Done"){focused=false}.accessibilityIdentifier("rpgKeyboardDone")}}
-            .sheet(isPresented:Binding(get:{panel == "help"},set:{if !$0{panel=""}})){NavigationStack{AssistantStudyView().toolbar{ToolbarItem(placement:.confirmationAction){Button(t("closeDialogue")){panel=""}}}}}
+            .overlay{if panel == "help"{HelpChatView(controller:help,progress:.object(["targetLang":.string(app.learner.target),"supportLang":.string(app.learner.support)]),onClose:{panel=""})}}
     }
     @ViewBuilder private var surface:some View {
         GeometryReader{g in ZStack {
@@ -115,7 +116,7 @@ struct RPGView:View {
     private var hudInk:Color{light ? ink:.white}
     private var actions:some View {
         VStack(spacing:16){
-            Button{panel="help"}label:{RPGArt.shared.image("RPGIconHelp").resizable().frame(width:20,height:20).frame(width:40,height:40).background(.white,in:Circle()).shadow(color:PiyaliBrand.unitColor("2b6cb0"),radius:0,y:2)}.accessibilityLabel(t("help"))
+            Button{panel="help"}label:{RPGArt.shared.image("RPGIconHelp").resizable().frame(width:20,height:20).frame(width:40,height:40).background(.white,in:Circle()).shadow(color:PiyaliBrand.unitColor("2b6cb0"),radius:0,y:2)}.accessibilityLabel(t("help")).accessibilityIdentifier("rpgHelp")
             quick("RPGIconInventory",label:t("inventory"),id:"rpgInventory"){panel="inventory"}
             quick("RPGIconQuest",label:RPGArt.shared.quest("button",lang:app.learner.support),id:"rpgQuest"){panel="quest"}
             Button{panel="companion"}label:{RPGPetPreview(pet:pet,size:44).frame(width:40,height:40)}.accessibilityLabel(RPGArt.shared.data["customize"][app.learner.support]["gameCompanion"].string).accessibilityIdentifier("rpgCompanion")
