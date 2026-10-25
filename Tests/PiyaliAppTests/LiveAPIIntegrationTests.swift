@@ -470,6 +470,27 @@ import NostrSDK
         } catch { try? await Auth.auth().currentUser?.delete();try? Auth.auth().signOut();try? identity.disconnect();throw error }
         try await Auth.auth().currentUser?.delete();try Auth.auth().signOut();try identity.disconnect()
     }
+    func testNativeRPGObjectsUseOriginalPromptAndReturnBilingualAmbientContent()async throws {
+        guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else{throw XCTSkip("Explicit live API opt-in required")}
+        XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))
+        if FirebaseApp.app() == nil{AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure()};XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let identity=IdentityService();try identity.create()
+        do {
+            try await FirebaseIdentityService.shared.ensure(identity)
+            let library=try ContentLibrary.load(RPGLibrary.self,name:"rpg-es"),review=try XCTUnwrap(library.reviews["unit-pre-a1-people-game"]),scenario=try XCTUnwrap(review.bySupport["ar"]),world=try XCTUnwrap(library.worlds[scenario.worldKey]),policy=try RPGObjectPolicy(),ai=AIService()
+            let objects=[try XCTUnwrap(world.objects.first{$0.type == "counter"}),try XCTUnwrap(world.objects.first{$0.type == "plant"})],map=RPGArt.shared.map(scenario)
+            var state=LearnerState();state.support="ar"
+            let input:Piyali.JSONValue = .object(["map":map,"scenarioID":.string(scenario.id),"target":.string("es"),"support":.string("ar"),"level":.string("Pre-A1"),"user":state.rpgObjectUser,"reviewContext":review.context,"objects":try JSONDecoder().decode(Piyali.JSONValue.self,from:JSONEncoder().encode(objects))])
+            let raw=try await ai.responsesText(policy.run("prompt",input).string),resolved=try policy.run("resolve",input.setting("response",.string(raw)))
+            for object in objects {
+                let item=try JSONDecoder().decode(Piyali.JSONValue.self,from:JSONEncoder().encode(object)),key=try policy.run("key",input.setting("object",item)).string,entry=resolved[key]
+                XCTAssertFalse(entry["name"].string.isEmpty);XCTAssertFalse(entry["text"].string.isEmpty);XCTAssertFalse(entry["text"].string.hasPrefix("You notice"),"Live response must not be a silent local fallback")
+                XCTAssertNotNil(entry["supportName"].string.range(of:"[\\u0600-\\u06ff]",options:.regularExpression));XCTAssertNotNil(entry["supportText"].string.range(of:"[\\u0600-\\u06ff]",options:.regularExpression))
+            }
+            print("LIVE RPG OBJECTS: original object-first prompt returned Spanish observations and Arabic names/translations for two real chapter props; no learner progress or rewards written")
+        }catch{try? await Auth.auth().currentUser?.delete();FirebaseIdentityService.shared.clearSession();try? identity.disconnect();throw error}
+        try await Auth.auth().currentUser?.delete();FirebaseIdentityService.shared.clearSession();try identity.disconnect()
+    }
     func testNativeRPGStoryAndRoleplayUseTheAuthoredChapter() async throws {
         guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else { throw XCTSkip("Explicit live API opt-in required.") }
         XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))

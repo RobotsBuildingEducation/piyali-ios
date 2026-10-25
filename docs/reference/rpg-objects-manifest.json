@@ -1,0 +1,26 @@
+{
+  "sources": [
+    {
+      "file": "src/components/RPGGame/index.jsx",
+      "sha256": "f597e8f7a9296ff3f72fad4e6f24ca4a1a313fddbc87ba3cf2d128c1d6ea95a2"
+    },
+    {
+      "file": "src/constants/languages.js",
+      "sha256": "02cb1507cb2ee1b5822ac4dd98cd7faf3e67a5101a13dd6c93826f553201ab32"
+    },
+    {
+      "file": "src/utils/performanceEloModel.js",
+      "sha256": "1c6caa8c52f76576e8fe507d2698c4a65736d5492e49a19d937db8f16e1894a1"
+    },
+    {
+      "file": "src/utils/cefrProgress.js",
+      "sha256": "6681ba74b8d2d4c2e142f6c310274ecbe075c7ed5fb61a2817605c1583e41c85"
+    },
+    {
+      "file": "src/utils/gameReviewContext.js",
+      "sha256": "2dd6d2516790e17e51c533b97f89e6d9c8678f108517fe0ed7adfba1f08135df"
+    }
+  ],
+  "cases": 590,
+  "adapters": "Original pure fallback/key/hit helpers, original memoized object prompt rules, original prompt declarations and response normalization/cache-fill block. Performance and language modules are original pure imports. Provider/network/store/React/renderer I/O is replaced by explicit snapshots. Cache scheduling, scope fencing and the 3.6-second display lifecycle execute natively."
+}

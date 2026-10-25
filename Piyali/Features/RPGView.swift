@@ -42,6 +42,7 @@ struct RPGView:View {
     @StateObject private var speech=SpeechService()
     @StateObject private var narration=RealtimeNarrationService()
     @StateObject private var music=RPGMusicPlayer()
+    @StateObject private var observations=RPGObjectController()
     @AppStorage("piyali.rpgCompanion") private var selectedPet=""
     @State private var dialogueContentHeight:CGFloat=0
     @State private var talking=false
@@ -56,6 +57,7 @@ struct RPGView:View {
     private var run:RPGRun?{guard let value=app.learner.rpgRuns?[app.learner.target],value.support == app.learner.support,(value.tutor == true) == tutor,value.lessonID == lesson?.id,episode == nil || value.scenario.authoredEpisode.id == episode else{return nil};return value}
     private var scope:String{[app.identity.npub,app.learner.target,app.learner.support,tutor ? app.learner.tutorLevel:app.learner.level].joined(separator:":")}
     private var chromeInset:CGFloat{embedded ? 0:(UIApplication.shared.connectedScenes.compactMap{$0 as? UIWindowScene}.flatMap(\.windows).first{$0.isKeyWindow}?.safeAreaInsets.top ?? 0)}
+    private var bottomInset:CGFloat{embedded ? 0:(UIApplication.shared.connectedScenes.compactMap{$0 as? UIWindowScene}.flatMap(\.windows).first{$0.isKeyWindow}?.safeAreaInsets.bottom ?? 0)}
     private var light:Bool{scheme != .dark}
     private var ink:Color{PiyaliBrand.unitColor(light ? "4b3726":"1a202c")}
     private var paper:Color{PiyaliBrand.unitColor(light ? "fffaf1":"faf4e8")}
@@ -65,12 +67,13 @@ struct RPGView:View {
     var body:some View {
         Group{if Self.fixture{surface}else{SubscriptionRequiredView(service:app.subscription,preserveEarnedWork:run?.completed == true){surface}}}
             .toolbar(.hidden,for:.navigationBar).statusBarHidden(!embedded).ignoresSafeArea(.container)
-            .task(id:scope){stop();panel=initialPanel;talking=false;await service.prepare(app,lesson:lesson,episode:episode,tutor:tutor);startMusic()}
+            .task(id:scope){stop();panel=initialPanel;talking=false;await service.prepare(app,lesson:lesson,episode:episode,tutor:tutor);configureObjects();startMusic()}
+            .onChange(of:run?.id){_,_ in configureObjects()}
             .onChange(of:run?.completed){_,completed in if completed == true{music.stop()}}
             .onChange(of:speech.transcript){_,text in answer=text}
             .onChange(of:speech.recording){old,value in if old && !value,speechArmed,talking,!answer.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty{sendSpeech()}}
-            .onChange(of:phase){_,value in if value != .active{stop()}else{startMusic()}}
-            .onChange(of:app.subscription.hasAccess){_,allowed in if !allowed{stop()}}
+            .onChange(of:phase){_,value in if value != .active{stop(clearObservations:false)}else{configureObjects();startMusic()}}
+            .onChange(of:app.subscription.hasAccess){_,allowed in if !allowed{stop()}else{configureObjects();startMusic()}}
             .onDisappear{stop()}
             .toolbar{ToolbarItemGroup(placement:.keyboard){Spacer();Button("Done"){focused=false}.accessibilityIdentifier("rpgKeyboardDone")}}
             .sheet(isPresented:Binding(get:{panel == "help"},set:{if !$0{panel=""}})){NavigationStack{AssistantStudyView().toolbar{ToolbarItem(placement:.confirmationAction){Button(t("closeDialogue")){panel=""}}}}}
@@ -81,7 +84,8 @@ struct RPGView:View {
                 RPGWorldView(run:run,pet:pet,onTile:tile).ignoresSafeArea(.container)
                 VStack{top(run);Spacer()}.padding(12).padding(.top,chromeInset)
                 if !run.completed{actions.padding(.trailing,12).padding(.top,56+chromeInset).frame(maxWidth:.infinity,maxHeight:.infinity,alignment:.topTrailing)}
-                if talking,let node=run.node,!run.completed{VStack{Spacer();dialogue(run,node:node,heightLimit:g.size.height*0.44).padding(.horizontal,12).padding(.bottom,16+g.safeAreaInsets.bottom)}}
+                if talking,let node=run.node,!run.completed{VStack{Spacer();dialogue(run,node:node,heightLimit:g.size.height*0.44).padding(.horizontal,12).padding(.bottom,16+max(g.safeAreaInsets.bottom,bottomInset))}}
+                if !talking,!run.completed,let observation=observations.observation{VStack{Spacer();RPGObjectObservationView(observation:observation,target:run.target,support:run.support).padding(.horizontal,12).padding(.bottom,16+max(g.safeAreaInsets.bottom,bottomInset))}.allowsHitTesting(false)}
                 if run.completed{completion(run)}
                 if ["quest","inventory","companion"].contains(panel){modal(run)}
             }else{
@@ -178,13 +182,26 @@ struct RPGView:View {
                 .padding(.horizontal,companion ? 16:9)
         }.environment(\.layoutDirection,.leftToRight)
     }
-    private func tile(_ point:RPGPoint){guard let run,!talking,!run.completed,!service.busy,panel.isEmpty else{return};if let index=run.scenario.npcs.firstIndex(where:{$0.tx == point.x && $0.ty == point.y}){guard index == run.step?.npcIdx else{return};if abs(run.position.x-point.x)+abs(run.position.y-point.y)<=1{talking=true;translation=[];answer="";play(run.node?.npcLine ?? "",target:run.target);return}};let movement=RPGSpatial.step(from:run.position,toward:point,world:run.world,npcs:run.scenario.npcs);if movement.moved{change{$0.position=movement.position;$0.updatedAt=Date()}}}
+    private func tile(_ point:RPGPoint){guard let run,!talking,!run.completed,!service.busy,panel.isEmpty else{return};if let object=observations.hit(point){observations.examine(object);return};if let index=run.scenario.npcs.firstIndex(where:{$0.tx == point.x && $0.ty == point.y}){guard index == run.step?.npcIdx else{return};if abs(run.position.x-point.x)+abs(run.position.y-point.y)<=1{talking=true;translation=[];answer="";play(run.node?.npcLine ?? "",target:run.target);return}};let movement=RPGSpatial.step(from:run.position,toward:point,world:run.world,npcs:run.scenario.npcs);if movement.moved{change{$0.position=movement.position;$0.updatedAt=Date()}}}
     private func change(_ action:(inout RPGRun)->Void){guard !service.busy,var value=run else{return};action(&value);app.learner.saveRPG(value);app.persist()}
     private func closeDialogue(){speechArmed=false;narration.stopAll();speech.stopAll();talking=false;dialogueContentHeight=0;typedReply=false;answer="";translation=[];focused=false;showExample=false}
     private func fresh(){closeDialogue();Task{await service.prepare(app,lesson:lesson,episode:episode,fresh:true,tutor:tutor)}}
     private func sendSpeech(){let text=answer.trimmingCharacters(in:.whitespacesAndNewlines);guard !text.isEmpty,!service.busy else{return};speechArmed=false;speech.stopAll();narration.stopAll();focused=false;Task{await service.speak(text,app:app);if let value=run{play(value.feedback,target:value.target)}}}
     private func play(_ text:String,target:String){guard !Self.fixture else{return};let character=RPGArt.shared.data["voices"][run?.npc?.characterKind ?? "frog"],voice=character["voice"].string.isEmpty ? "ash":character["voice"].string;let session=try? app.companionQuestPolicy?.run("ph_tts",.object(["language":.string(target),"voice":.string(voice),"personality":character["personality"]]));narration.play(RPGDialogue.split(text).spoken,language:target,engine:app.companionQuestPolicy,voice:voice,sessionOverride:session)}
     private func translate(_ run:RPGRun,node:RPGNode){if !translation.isEmpty{translation=[];return};guard !translating else{return};translating=true;let id=run.id,step=run.stepIndex,scope=self.scope;Task{let result=await service.translate(run:run,app:app);guard self.scope == scope,self.run?.id == id,self.run?.stepIndex == step,talking else{translating=false;return};translation=result ?? [];translating=false}}
+    private func configureObjects(){
+        guard let run,let policy=try? RPGObjectPolicy() else{return}
+        let review:JSONValue
+        if run.tutorial == true{review=app.introLibrary?.games[run.scenario.authoredEpisode.level]?.context ?? .null}
+        else if let id=run.lessonID,let value=service.library?.reviews[id]?.context{review=value}
+        else{review=(try? policy.run("review",.object(["lesson":lesson.map(PracticeCurriculum.lessonData) ?? .null,"target":.string(run.target),"level":.string(run.scenario.authoredEpisode.level)]))) ?? .null}
+        let map=RPGArt.shared.map(run.scenario)
+        let parameters:JSONValue = .object(["scenarioID":.string(run.scenario.id),"map":map,"target":.string(run.target),"support":.string(run.support),"level":.string(run.scenario.authoredEpisode.level),"reviewContext":review,"user":app.learner.rpgObjectUser,"objects":(try? JSONDecoder().decode(JSONValue.self,from:JSONEncoder().encode(run.world.objects))) ?? .array([])])
+        observations.configure(scope:scope+":"+run.id.uuidString,parameters:parameters,objects:run.world.objects){prompt in
+            if Self.fixture{throw URLError(.notConnectedToInternet)}
+            return try await app.ai.responsesText(prompt)
+        }
+    }
     private func startMusic(){
         guard run?.completed != true else{music.stop();return}
         let snapshot=app.learner.settingsSnapshot
@@ -192,7 +209,7 @@ struct RPGView:View {
         if snapshot["rpgMusicPreferenceVersion"] != .number(2) || !validFlag{app.updateSettings(.object(["rpgMusicEnabled":.bool(false),"rpgMusicPreferenceVersion":.number(2)]))}
         music.apply(app.learner.settingsSnapshot["rpgMusicEnabled"].boolean)
     }
-    private func stop(){speechArmed=false;service.cancel();speech.stopAll();narration.stopAll();music.stop();focused=false}
+    private func stop(clearObservations:Bool=true){if clearObservations{observations.cancel()};speechArmed=false;service.cancel();speech.stopAll();narration.stopAll();music.stop();focused=false}
     private static var fixture:Bool {
         #if DEBUG
         let env=ProcessInfo.processInfo.environment;return env["PIYALI_OFFLINE_TESTS"] == "1" && UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil

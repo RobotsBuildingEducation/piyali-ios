@@ -7,6 +7,7 @@ import SpriteKit
     private var images:[String:UIImage]=[:]
     private init(){data=(try? ContentLibrary.load(JSONValue.self,name:"rpg-art")) ?? .null}
     func image(_ name:String)->Image {if let value=images[name]{return Image(uiImage:value)};let url=Bundle.main.url(forResource:name,withExtension:"png"),value=url.flatMap{UIImage(contentsOfFile:$0.path)} ?? UIImage();images[name]=value;return Image(uiImage:value)}
+    func map(_ scenario:RPGScenario)->JSONValue{let world=data["worlds"][scenario.worldKey],specific=world["maps"][scenario.id];return specific == .null ? world["map"]:specific}
     func copy(_ key:String,lang:String)->String{let value=data["ui"][lang][key].string;return value.isEmpty ? data["ui"]["en"][key].string:value}
     func quest(_ key:String,lang:String,_ args:[String]=[])->String{var text=data["questLog"][lang][key].string;if text.isEmpty{text=data["questLog"]["en"][key].string};for(i,value)in args.enumerated(){text=text.replacingOccurrences(of:"{{\(i)}}",with:value)};return text}
 }

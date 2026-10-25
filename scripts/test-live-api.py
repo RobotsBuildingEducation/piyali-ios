@@ -4,7 +4,7 @@ import argparse, json, os, subprocess, uuid
 from pathlib import Path
 root = Path(__file__).resolve().parent.parent
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument('--only', choices=['tutor-gemini', 'tutor-focused', 'tutor', 'phonics', 'flashcards', 'focused-goal', 'companion-quest', 'headline', 'lesson-content', 'realtime', 'realtime-connection', 'realtime-legacy-gemini', 'landing', 'practice', 'practice-formats', 'services', 'immersion', 'conversation', 'rpg', 'signer', 'stories', 'reading', 'exploration', 'quiz'])
+parser.add_argument('--only', choices=['tutor-gemini', 'tutor-focused', 'tutor', 'phonics', 'flashcards', 'focused-goal', 'companion-quest', 'headline', 'lesson-content', 'realtime', 'realtime-connection', 'realtime-legacy-gemini', 'landing', 'practice', 'practice-formats', 'services', 'immersion', 'conversation', 'rpg', 'rpg-objects', 'signer', 'stories', 'reading', 'exploration', 'quiz'])
 selection = parser.parse_args().only
 methods = {'tutor-gemini':'testLearnerGeminiTutorUsesFirebaseIdentitySourcePromptAndNativePlayback',
            'tutor-focused':'testOriginalFocusedTutorGoalAndRepairJudgesUseNativeProviders',
@@ -29,6 +29,7 @@ methods = {'tutor-gemini':'testLearnerGeminiTutorUsesFirebaseIdentitySourcePromp
            'immersion': 'testNativeImmersionGenerationUsesResponsesAndPreservesExistingMissions',
            'conversation': 'testNativeConversationGoalsGradeCommunicationAndReanchorPremiseRejection',
            'rpg': 'testNativeRPGStoryAndRoleplayUseTheAuthoredChapter',
+           'rpg-objects': 'testNativeRPGObjectsUseOriginalPromptAndReturnBilingualAmbientContent',
            'signer': 'testNativeRemoteSignerAuthenticatesWithActualUserAndWebRestoreDeniesUnlinkedAccount'}
 with (root / '.secrets/app-check-debug.json').open() as f:
     token = json.load(f)['token']

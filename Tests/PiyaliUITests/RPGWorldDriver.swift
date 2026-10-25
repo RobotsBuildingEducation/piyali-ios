@@ -3,12 +3,25 @@ import XCTest
 struct RPGPlayPoint:Codable,Hashable {let x:Int,y:Int}
 struct RPGPlayFixture:Decodable {
         struct Step:Decodable {let npc:Int,mode:String,correct:Int,example:String}
-        struct World:Decodable {let width:Int,height:Int,tiles:[Int],solidTiles:[Int]}
+        struct World:Decodable {struct Object:Decodable{let type:String,tx:Int,ty:Int};let width:Int,height:Int,tiles:[Int],solidTiles:[Int],objects:[Object]}
         let lessonID:String,world:World,npcs:[RPGPlayPoint],steps:[Step]
     }
 
 @MainActor extension XCTestCase {
     private func position(_ world:XCUIElement)throws->RPGPlayPoint{let parts=(world.value as? String ?? "").split(separator:",").compactMap{Int($0)};XCTAssertEqual(parts.count,2);guard parts.count == 2 else{throw NSError(domain:"RPG position",code:1)};return RPGPlayPoint(x:parts[0],y:parts[1])}
+    func rpgExamineCounterFromDistance(_ fixture:RPGPlayFixture,_ app:XCUIApplication)throws {
+        let surface=app.otherElements["rpgWorld"],start=try position(surface),tile=surface.frame.height/10
+        surface.coordinate(withNormalizedOffset:.zero).withOffset(CGVector(dx:surface.frame.width/2,dy:surface.frame.height/2-0.88*tile)).tap()
+        let expected=RPGPlayPoint(x:start.x,y:start.y-1)
+        XCTAssertEqual(XCTWaiter.wait(for:[XCTNSPredicateExpectation(predicate:NSPredicate(format:"value == %@","\(expected.x),\(expected.y)"),object:surface)],timeout:5),.completed)
+        let target=try XCTUnwrap(fixture.world.objects.first{$0.type == "counter"}),now=try position(surface)
+        XCTAssertGreaterThan(abs(target.tx-now.x)+abs(target.ty-now.y),1)
+        surface.coordinate(withNormalizedOffset:.zero).withOffset(CGVector(dx:surface.frame.width/2+CGFloat(target.tx-now.x)*tile,dy:surface.frame.height/2+(CGFloat(target.ty-now.y)+0.12)*tile)).tap()
+        let text=app.staticTexts["rpgObjectText"];XCTAssertTrue(text.waitForExistence(timeout:5));XCTAssertEqual(text.label,"You notice counter.");XCTAssertEqual(try position(surface),now)
+        let shot=XCTAttachment(screenshot:app.screenshot());shot.name="Native RPG ambient object examination";shot.lifetime = .keepAlways;add(shot)
+        XCTAssertEqual(XCTWaiter.wait(for:[XCTNSPredicateExpectation(predicate:NSPredicate(format:"exists == false"),object:text)],timeout:6),.completed)
+        XCTAssertTrue(app.descendants(matching:.any)["rpgStatus"].label.contains("0/3"));XCTAssertFalse(app.buttons["rpgComplete"].exists)
+    }
     func rpgApproach(_ step:RPGPlayFixture.Step,_ fixture:RPGPlayFixture,_ app:XCUIApplication)throws {
         let surface=app.otherElements["rpgWorld"],start=try position(surface),target=fixture.npcs[step.npc],occupied=Set(fixture.npcs),solid=Set(fixture.world.solidTiles)
         func adjacent(_ p:RPGPlayPoint)->Bool{abs(p.x-target.x)+abs(p.y-target.y)==1}
