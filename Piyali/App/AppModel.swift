@@ -26,6 +26,7 @@ import SwiftUI
     func observePractice(owner:UUID,_ update:@escaping()->Void){practiceObservers[owner]=update}
     func stopObservingPractice(owner:UUID){practiceObservers.removeValue(forKey:owner)}
     private func notifyPracticeObservers(){for callback in Array(practiceObservers.values){callback()}}
+    @Published var journeyRecording:JourneyRecordingPresentation?
     @Published var plateCourseCompletion:PlateCourseCompletion?
     @Published var dailyGoalReward:DailyGoalReward?
     private var deferredTutorReviews:Set<UUID>=[]
@@ -183,13 +184,13 @@ import SwiftUI
         flushGoalEditor();goalCheck=nil
         do {
             try writeLocal();automaticTipTask?.task.cancel();automaticTipTask=nil;automaticWallet.cancel(clear:true);saveTask?.cancel();contentTask?.cancel();nostrSyncTask?.cancel();nostrAchievements.cancel();teams.cancel(clear:true)
-            try identity.disconnect();FirebaseIdentityService.shared.clearSession();signedIn=false;lessonActivityActive=false;activityFooter=nil;pendingLessonCompletion=nil;subscription.bind(identity);learner=LearnerState()
+            journeyRecording?.controller.close();journeyRecording=nil;try identity.disconnect();FirebaseIdentityService.shared.clearSession();signedIn=false;lessonActivityActive=false;activityFooter=nil;pendingLessonCompletion=nil;subscription.bind(identity);learner=LearnerState()
         } catch { self.error=error.localizedDescription }
     }
     func boot() async { guard signedIn else { return };scheduleAutomaticTips(recovering:true); await reloadContent(); await sync(); await subscription.refresh(); scheduleNostrAchievements();scheduleAutomaticTips() }
     func finishOnboarding(_ draft:OnboardingDraft?=nil) {
         if let draft {learner.completeOnboarding(draft)} else {learner.onboardingComplete=true;learner.preferencesModifiedAt=Date()}
-        PlatePracticeFixture.seed(self);persist();Task { await reloadContent() }
+        PlatePracticeFixture.seed(self);MemoryDrawerFixture.seed(self);persist();Task { await reloadContent() }
     }
     var immersionPreparationKey: String {
         let scope=learner.immersionScope()

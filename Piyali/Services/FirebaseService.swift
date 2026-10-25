@@ -556,8 +556,15 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                 let original = try Self.memoryNotes(memory.data()?["notes"])
                 let today = CalendarDay.key(Date())
                 let notes = MemoryContract.applying(change,to:original,today:today)
-                let json = try JSONEncoder().encode(notes.map(\.fields))
-                let payload = try JSONSerialization.jsonObject(with:json)
+                let rawNotes = memory.data()?["notes"] as? [[String:Any]] ?? []
+                let payload: [[String:Any]] = try notes.map { note in
+                    let encoded = try JSONSerialization.jsonObject(with:JSONEncoder().encode(note.fields)) as? [String:Any] ?? [:]
+                    guard let index = original.firstIndex(where:{$0.id == note.id}), index < rawNotes.count else { return encoded }
+                    // Retain Firestore values (including foreign timestamps) for unchanged fields.
+                    return encoded.mapValues { $0 }.reduce(into: [String:Any]()) { result,entry in
+                        result[entry.key] = original[index].fields[entry.key] == note.fields[entry.key] ? rawNotes[index][entry.key] ?? entry.value : entry.value
+                    }
+                }
                 transaction.setData(["local_npub":user.documentID,"iosRecentEventIDs":Self.recentIDs(userSnapshot.data() ?? [:],adding:change.id)],forDocument:user,merge:true)
                 var patch: [String:Any] = ["lang":change.target,"notes":payload]
                 if original.contains(where:{ !$0.text("expiresAfterDayKey").isEmpty && $0.text("expiresAfterDayKey") < today }) { patch["lastPrunedDayKey"] = today }

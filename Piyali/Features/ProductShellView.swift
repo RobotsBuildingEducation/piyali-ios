@@ -37,6 +37,7 @@ struct ProductShellView:View {
     @State private var menuOpen=false
     @State private var modesOpen=false
     @State private var panel:ProductPanel?
+    @State private var memoryInitialTab="repairs"
     @State private var revision=UUID()
     @StateObject private var practice:PlatePracticeController
     @State private var lessonCompletion:LessonCompletionPresentation?
@@ -44,7 +45,7 @@ struct ProductShellView:View {
     private var language:String { app.learner.support }
     private var brand:PiyaliBrand { PiyaliBrand(dark:scheme == .dark) }
     init(now:Date=Date(),practice:PlatePracticeController?=nil){self.now=now;_practice=StateObject(wrappedValue:practice ?? PlatePracticeController())}
-    private var presentationKey:String { [String(panel != nil),String(menuOpen),String(goalOpen),String(timerOpen),String(timer.session.status == .finished),String(firstRun.step != nil),String(app.goalCheck != nil),String(app.flashcardSession != nil),String(lessonCompletion != nil)].joined(separator:":") }
+    private var presentationKey:String { [String(app.journeyRecording != nil),String(panel != nil),String(menuOpen),String(goalOpen),String(timerOpen),String(timer.session.status == .finished),String(firstRun.step != nil),String(app.goalCheck != nil),String(app.flashcardSession != nil),String(lessonCompletion != nil)].joined(separator:":") }
     private var firstRunScope:String {app.identity.npub+":"+app.learner.target}
     private var contextKey:String { app.identity.npub+":"+app.learner.target+":"+CalendarDay.key(now) }
     private var timerAwardKey:String {timer.session.account+":"+(timer.pending.first ?? "")+":"+timerAwardRevision.uuidString}
@@ -69,7 +70,7 @@ struct ProductShellView:View {
                 }
             if menuOpen { menu }
         }.font(PiyaliBrand.productFont(16)).foregroundStyle(brand.text)
-            .accessibilityElement(children:.contain).accessibilityHidden(app.flashcardSession != nil || app.goalCheck != nil || lessonCompletion != nil || firstRun.step != nil || goalOpen || timerOpen || timer.session.status == .finished || practice.visible != nil || practice.dailyGoalVisible != nil)
+            .accessibilityElement(children:.contain).accessibilityHidden(panel == .memory || app.journeyRecording != nil || app.flashcardSession != nil || app.goalCheck != nil || lessonCompletion != nil || firstRun.step != nil || goalOpen || timerOpen || timer.session.status == .finished || practice.visible != nil || practice.dailyGoalVisible != nil)
             .overlay {
                 if let data=lessonCompletion {
                     ZStack {
@@ -87,7 +88,7 @@ struct ProductShellView:View {
                     }.accessibilityElement(children:.contain).accessibilityIdentifier("firstRunDialog")
                 }
             }
-            .onChange(of:firstRunScope) {_,scope in firstRun.reconcile(scope:scope)}
+            .onChange(of:firstRunScope) {_,scope in firstRun.reconcile(scope:scope);if let p=app.journeyRecording,p.account+":"+p.target != scope{p.controller.close();app.journeyRecording=nil}}
             .preferredColorScheme(theme == "dark" ? .dark : .light)
             .environment(\.layoutDirection,language == "ar" ? .rightToLeft : .leftToRight)
     }
@@ -112,12 +113,15 @@ struct ProductShellView:View {
             .onChange(of:app.syncStatus){_,value in if value == "Synced with Firebase"{timerAwardRevision=UUID()}}
             .onChange(of:app.identity.npub){_,_ in goalOpen=false;timerOpen=false;timer.load(account:app.identity.npub)}
             .onChange(of:timer.session.status){_,value in if value == .finished{UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder),to:nil,from:nil,for:nil)}}
-            .sheet(item:$panel) { selected in NavigationStack { panelContent(selected).toolbar { ToolbarItem(placement:.confirmationAction) { Button(EntryCopy.text(language,"back_button")) { panel=nil }.accessibilityIdentifier("productPanelClose") } } }.tint(PiyaliBrand.teal) }
+            .sheet(item:Binding(get:{panel == .memory ? nil:panel},set:{panel=$0})) { selected in NavigationStack { panelContent(selected).toolbar { ToolbarItem(placement:.confirmationAction) { Button(EntryCopy.text(language,"back_button")) { panel=nil }.accessibilityIdentifier("productPanelClose") } } }.tint(PiyaliBrand.teal) }
             .overlay {if let reward=practice.dailyGoalVisible{DailyGoalCelebrationView(reward:reward,onContinue:{practice.closeDailyGoal(app)})}}
             .overlay {if let data=practice.visible {PlateCelebrationView(data:data,language:language,onContinue:{practice.continuePractice(app,ephemeralLesson:specialCourse != nil && mode == .path)},onNotes:{practice.continuePractice(app,viewNotes:true,ephemeralLesson:specialCourse != nil && mode == .path)}).environment(\.layoutDirection,language == "ar" ? .rightToLeft:.leftToRight)}}
     }
+    private var memoryShell:some View {timedShell.overlay{if panel == .memory{MemoryDrawerView(onClose:{panel=nil},initialTab:memoryInitialTab).accessibilityHidden(app.journeyRecording != nil)}}.overlay{if let p=app.journeyRecording,p.account == app.identity.npub,p.target == app.learner.target{JourneyRecordingView(journey:p.controller,milestone:p.milestone,onClose:{app.journeyRecording=nil},onOpenJourney:{app.journeyRecording=nil;memoryInitialTab="journey";panel = .memory})}}}
+    private var journeyCanPresent:Bool {app.signedIn && app.learner.onboardingComplete && !app.loadingContent && panel == nil && !menuOpen && !goalOpen && !timerOpen && timer.session.status != .finished && firstRun.step == nil && app.journeyRecording == nil && app.goalCheck == nil && app.flashcardSession == nil && lessonCompletion == nil && app.pendingLessonCompletion == nil && practice.visible == nil && practice.pending == nil && practice.dailyGoalVisible == nil && app.dailyGoalReward == nil && !app.lessonActivityActive && !app.hasEarnedPractice(excluding:practice.owner) && launchID == nil}
     private var sessionShell:some View {
-        timedShell
+        memoryShell
+            .background{JourneyMilestoneGateView(canPresent:journeyCanPresent){controller,n in app.journeyRecording = .init(controller:controller,milestone:n,account:app.identity.npub,target:app.learner.target)}}
             .task(id:contextKey) {
                 timer.load(account:app.identity.npub)
                 if app.learner.dailyKey != CalendarDay.key(now) { app.learner.rollDay(now:now);app.persist() }
@@ -146,7 +150,7 @@ struct ProductShellView:View {
             .onReceive(app.$activityFooter) { footer in activityFooter=footer;if footer == nil {app.activityFooterHeight=0} }
             .onChange(of:app.learner.target) { _,_ in revision=UUID() }
             .onChange(of:app.localPracticeRevision) { _,_ in updatePracticePresentation() }
-            .onChange(of:panel) { _,value in if value == nil { practice.closeNotes(app);presentPendingLessonCompletion();updatePracticePresentation() } }
+            .onChange(of:panel) { _,value in if value == nil { memoryInitialTab="repairs";practice.closeNotes(app);presentPendingLessonCompletion();updatePracticePresentation() } }
             .onChange(of:menuOpen) { _,open in if !open { presentPendingLessonCompletion();updatePracticePresentation() } }
             .onChange(of:app.pendingLessonCompletion?.id) { _,_ in presentPendingLessonCompletion() }
             .onChange(of:practice.visible){_,value in if value == nil{presentPendingLessonCompletion()}}
@@ -190,7 +194,7 @@ struct ProductShellView:View {
                     HStack { Spacer();Capsule().fill(brand.muted.opacity(0.6)).frame(width:48,height:5);Spacer();Button { menuOpen=false } label:{ Image(systemName:"xmark").frame(width:36,height:36) }.accessibilityLabel(ProductCopy.data(language)["menu"]["closeMenu"].string).accessibilityIdentifier("productMenuClose") }.padding(.bottom,12)
                     LazyVGrid(columns:[GridItem(.flexible()),GridItem(.flexible())],spacing:9) {
                         if modesOpen { ForEach(ProductMode.allCases,id:\.self) { item in menuTile(item.title(language),symbol:item.symbol,selected:item == mode) { switchMode(item) }.accessibilityIdentifier("productMode-"+item.rawValue) } }
-                        else { ForEach([ProductPanel.settings,.teams,.assistant,.memory]) { item in menuTile(ProductCopy.data(language)["menu"][item.rawValue].string,symbol:[.settings:"gearshape",.teams:"hands.sparkles",.assistant:"person.crop.circle",.memory:"bookmark"][item] ?? "gearshape") { menuOpen=false;panel=item }.accessibilityIdentifier("productPanel-"+item.rawValue) } }
+                        else { ForEach([ProductPanel.settings,.teams,.assistant,.memory]) { item in menuTile(ProductCopy.data(language)["menu"][item.rawValue].string,symbol:[.settings:"gearshape",.teams:"hands.sparkles",.assistant:"person.crop.circle",.memory:"bookmark"][item] ?? "gearshape") { menuOpen=false;memoryInitialTab="repairs";panel=item }.accessibilityIdentifier("productPanel-"+item.rawValue) } }
                     }
                     Button { modesOpen.toggle() } label:{ HStack { Image(systemName:modesOpen ? "arrow.left" : mode.symbol);Text(modesOpen ? ProductCopy.data(language)["menu"]["back"].string : mode.title(language));Spacer();if !modesOpen { Image(systemName:"chevron.right") } }.font(PiyaliBrand.productFont(13,600)).padding(18).frame(maxWidth:.infinity,minHeight:64).background(brand.text.opacity(0.04),in:RoundedRectangle(cornerRadius:18)).overlay { RoundedRectangle(cornerRadius:18).stroke(brand.border) } }.accessibilityIdentifier("productModeMenu")
                 }.padding(11).background(brand.surface,in:RoundedRectangle(cornerRadius:24)).overlay { RoundedRectangle(cornerRadius:24).stroke(brand.border) }.frame(width:min(geometry.size.width-24,560)).padding(.bottom,82)
@@ -205,7 +209,7 @@ struct ProductShellView:View {
         case .settings: AccountView()
         case .teams: TeamsView(service:app.teams)
         case .assistant: AssistantStudyView()
-        case .memory: NotebookView()
+        case .memory: MemoryDrawerView(onClose:{self.panel=nil})
         case .achievements: AchievementsView()
         case .placement: PlacementView()
         case .goal: DailyGoalManagerView(onClose:{self.panel=nil})

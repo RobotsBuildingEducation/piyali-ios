@@ -1,7 +1,7 @@
 import test from 'node:test';
 import fs from 'node:fs';
 import { initializeTestEnvironment, assertSucceeds, assertFails } from '@firebase/rules-unit-testing';
-import { doc,getDoc,setDoc,collection,getDocs } from 'firebase/firestore';
+import { doc,getDoc,setDoc,collection,getDocs,deleteDoc,Bytes } from 'firebase/firestore';
 import { generateSecretKey,getPublicKey,nip19 } from 'nostr-tools';
 test('production rules isolate Nostr-authenticated learners and protect subscription fields',{skip:process.env.PIYALI_RULES_EMULATOR!=='1'},async()=>{
   const hex=getPublicKey(generateSecretKey()),npub=nip19.npubEncode(hex),other=nip19.npubEncode(getPublicKey(generateSecretKey()));
@@ -26,6 +26,16 @@ test('production rules isolate Nostr-authenticated learners and protect subscrip
     await assertSucceeds(setDoc(doc(db,'users',npub,'tutorLanguageLessons','es_lesson'),{earnedXp:5}));
     await assertSucceeds(setDoc(doc(db,'users',npub,'voiceJourney','es'),{completedQuests:1}));
     await assertSucceeds(setDoc(doc(db,'users',npub,'voiceJourney','es','completions','2026-10-13'),{session:1}));
+    const recording=['users',npub,'voiceJourney','es','recordings','1'];
+    await assertSucceeds(setDoc(doc(db,...recording),{version:1,wrappedKey:'encrypted',iv:Bytes.fromUint8Array(new Uint8Array(12)),ciphertext:Bytes.fromUint8Array(new Uint8Array(32))}));
+    await assertSucceeds(getDoc(doc(db,...recording)));
+    for(const denied of [guest,anonymous,demo,env.authenticatedContext(other,{firebase:{sign_in_provider:'custom'}}).firestore()]) {
+      await assertFails(getDoc(doc(denied,...recording)));
+      await assertFails(setDoc(doc(denied,...recording),{ciphertext:'overwrite'}));
+      await assertFails(deleteDoc(doc(denied,...recording)));
+    }
+    await assertSucceeds(deleteDoc(doc(db,...recording)));
+
     await assertFails(getDoc(doc(guest,'users',npub,'voiceJourney','es','completions','2026-10-13')));
     await assertFails(setDoc(doc(db,'users',other,'voiceJourney','es','completions','2026-10-13'),{session:1}));
     await assertSucceeds(setDoc(doc(db,'users',npub,'achievements','nosabos_flashcards_completed_5'),{source:'nosabos',unlockedAt:1,test:false}));

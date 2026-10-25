@@ -1,0 +1,17 @@
+// The actual source drawer and children. Only account snapshots and external
+// provider/recording I/O are public fixtures; component behavior is unchanged.
+import React,{useLayoutEffect,useState,useEffect} from 'react';
+import NotesDrawer from '/src/components/NotesDrawer';
+import useUserStore from '/src/hooks/useUserStore';
+import useNotesStore from '/src/hooks/useNotesStore';
+const q=new URLSearchParams(location.search),lang=q.get('language')||'en',day=d=>{const n=new Date();n.setDate(n.getDate()+d);return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`;};
+export const summary=lang==='ar'?'التحيات فيها حرف h صامت. اتصلحت تحية المساء ولسه تحية الصباح محتاجة مراجعة.':'Greetings kept a silent h. The evening greeting was repaired; the morning greeting remains open.';
+globalThis.__piyaliMemorySummary=summary;
+const repairs=[['today',0,'captured','hola','ola',2],['yesterday',-1,'reinforced','buenas noches','buenos noches',1],['open',-1,'used_in_quest','buenos días','buenas días',1]].map(([id,offset,status,concept,userAnswer,severity])=>({id,createdDayKey:day(offset),status,concept,userAnswer,expectedAnswer:concept,correction:concept,sourceMode:'grammar',severity,supportLang:lang,targetLang:'es',mistake:lang==='ar'?'راجع شكل التحية.':'Check the greeting form.',tip:lang==='ar'?'افتكر التحية كاملة.':'Remember the whole greeting.',enriched:true}));
+const notes=[['00000000-0000-0000-0000-000000000001','es','Hola, mamá.','A1','grammar',false],['00000000-0000-0000-0000-000000000002','es','Me gusta leer.','B1','vocabulary',true],['00000000-0000-0000-0000-000000000003','fr','Bonjour, maman.','A1','flashcard',true]].map(([id,targetLang,example,cefrLevel,moduleType,wasCorrect])=>({id,targetLang,example,cefrLevel,moduleType,wasCorrect,summary:lang==='ar'?'استخدم التحية في مكالمة مع العيلة.':'Use this greeting during a family call.',lessonTitle:{en:'Family greetings',ar:'تحيات العيلة'},createdAt:1792918800000,supportLang:lang}));
+export default function SourceMemoryPreview(){
+ const [open,setOpen]=useState(true),[data,setData]=useState({completedQuests:5,recordings:{1:{createdAt:'2026-10-20T12:00:00Z',capturedSession:1}}});
+ useLayoutEffect(()=>{useNotesStore.setState({notes:q.get('empty')==='1'?[]:notes});useUserStore.setState({user:{id:'piyali-public-fixture',companionMemory:{es:{notes:q.get('empty')==='1'?[]:repairs}},learningIntelligence:{es:q.get('goal')==='0'?{}:{activeGoal:{id:'public-goal',text:'Talk with family',status:'active'},goalProgress:{demonstrated:['Greet a family member'],openCapabilities:[{target:'Ask a follow-up',example:'¿Cómo estás?'}],usefulLanguage:['Hola']},dailyGoal:{blueprint:{goalId:'public-goal',dayKey:day(0),objective:'Greet a relative',rationale:'A short family call'}}}}}})},[]);
+ useEffect(()=>{const save=e=>setData(old=>({...old,recordings:{...old.recordings,[e.detail]:{createdAt:new Date().toISOString(),capturedSession:5}}})),remove=e=>setData(old=>{const records={...old.recordings};delete records[e.detail];return {...old,recordings:records}});window.addEventListener('public-journey-save',save);window.addEventListener('public-journey-delete',remove);return()=>{window.removeEventListener('public-journey-save',save);window.removeEventListener('public-journey-delete',remove)}},[]);
+ return <NotesDrawer isOpen={open} onClose={()=>setOpen(false)} appLanguage={lang} targetLang="es" npub="piyali-public-fixture" initialTab={q.get('tool')||'repairs'} journeyResource={{data,loading:false,error:false,retry:()=>{}}}/>;
+}

@@ -1,0 +1,6 @@
+// Copy original React icon paths into target-owned, tintable vector assets.
+import fs from 'node:fs/promises';import path from 'node:path';import {createRequire} from 'node:module';
+const root=process.cwd(),reference=path.resolve(root,'../nosabos/nosabos'),require=createRequire(path.join(reference,'package.json')),React=require('react'),{renderToStaticMarkup}=require('react-dom/server');
+const icons={seedling:['ri','RiSeedlingLine'],mic:['fi','FiMic'],check:['fi','FiCheck'],lock:['fi','FiLock'],play:['fi','FiPlay'],pause:['fi','FiPause'],stop:['fi','FiSquare'],download:['fi','FiDownload'],trash:['fi','FiTrash2'],close:['fi','FiX'],chevron:['fi','FiChevronDown']};
+for(const [name,[group,key]]of Object.entries(icons)){const svg=renderToStaticMarkup(React.createElement(require('react-icons/'+group)[key],{size:32})).replaceAll('currentColor','#000000'),folder=path.join(root,'Piyali/Resources/BrandAssets.xcassets/Memory-'+name+'.imageset');await fs.mkdir(folder,{recursive:true});await fs.writeFile(path.join(folder,'icon.svg'),svg);await fs.writeFile(path.join(folder,'Contents.json'),JSON.stringify({images:[{filename:'icon.svg',idiom:'universal'}],info:{author:'xcode',version:1},properties:{'preserves-vector-representation':true,'template-rendering-intent':'template'}}));}
+console.log('Exported '+Object.keys(icons).length+' original Memory icon paths.');

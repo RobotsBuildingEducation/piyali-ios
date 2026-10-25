@@ -168,3 +168,8 @@ The accompanying regression run passes 29 native app checks (six conductor/visua
 Final product results: Conversation course stop/Continue (30.1s), Tutor → lesson → review → bonus/Notes/relaunch (96.3s), and the earned Tutor/daily-goal/review/course sequence across the root trial limit (61.0s) all pass. The final source/native screen check passes six paired states; final minor paint corrections are rechecked separately. Resource exports reproduce byte for byte.
 
 The final six behavior checks pass after allowing a newly reached daily goal to appear during an active lesson; Tutor's owned result sequence still defers it. The separate final paint check passes (48.5s) after Arabic XP direction and the source Continue color are corrected. Across these runs there are seven distinct conductor/visual app checks, plus the 20 Tutor and three access regressions above. No live-provider or backend behavior changed in this checkpoint.
+
+
+## Memory and Journey correction, 2026-10-25
+
+The complete Core suite passed **285 tests** and the backend suite passed **25 tests**, including production recording-rule ownership/denial checks against the local emulator. Source policies cover 55 Memory cases plus the 0–160 Journey count/baseline/expiry matrix and a public source AES-GCM/NIP-44 interoperability vector. Six app-level Memory checks and three real Firestore SDK contracts passed across the focused runs. Four Memory product journeys passed, alongside the existing guided daily-practice → rewards → Notes/relaunch regression. Final source/native comparisons cover five screens in English/light and Arabic/dark. The recording rules were deployed only to `piyali-ios`; the worker was unchanged. See [the checkpoint, comparisons and remaining limits](MEMORY_JOURNEY.md).

@@ -17,6 +17,7 @@ struct LessonPracticeView:View {
     private var quiz:Bool { lesson?.isFinalQuiz == true }
     @State private var showTranscript=false
     @State private var noteSaved=false
+    @State private var noteCreating=false
     @State private var showDeck=false
     @State private var active=false
     @State private var appeared=false
@@ -207,7 +208,7 @@ struct LessonPracticeView:View {
                 if !run.question.audioText.isEmpty { Button { speech.speak(run.question.audioText,language:run.question.audioLanguage) } label:{ Image(systemName:"speaker.wave.2") }.accessibilityLabel(copy("vocab_listen_question")) }
                 if !quiz { Button { Task { await service.explain(app,run:run) } } label:{ Label(questionCopy(run,"askForHelp",fallback:copy("vocab_ask_assistant")),systemImage:"sparkles") }.disabled(service.busy) }
                 Spacer()
-                if !quiz || run.correct != nil { Button { app.learner.notes.insert(Note(title:run.question.questionText,body:[run.answerText,run.expected,run.explanation].filter { !$0.isEmpty }.joined(separator:"\n\n")),at:0);app.persist();noteSaved=true } label:{ Image(systemName:noteSaved ? "checkmark" : "note.text.badge.plus") }.disabled(noteSaved).accessibilityLabel(copy(noteSaved ? "vocab_note_saved" : "vocab_create_note")) }
+                if !quiz || run.correct != nil { Button {noteCreating=true;Task{defer{noteCreating=false};if (try? await app.createStudyNote(run:run,lesson:lesson)) == true{noteSaved=true}}} label:{if noteCreating{ProgressView()}else{Image(systemName:noteSaved ? "checkmark" : "note.text.badge.plus")}}.disabled(noteSaved || noteCreating).accessibilityIdentifier("createTypedStudyNote").accessibilityLabel(copy(noteSaved ? "vocab_note_saved" : "vocab_create_note")) }
             }.font(PiyaliBrand.productFont(14,500)).foregroundStyle(brand.questionTool)
             if run.question.kind == "repeat",run.question.options["isListening"].boolean { Button(showTranscript ? "Hide transcript" : "Show transcript") { showTranscript.toggle() }.font(PiyaliBrand.productFont(13)).foregroundStyle(brand.secondary) }
             if run.correct == nil,!run.explanation.isEmpty { Text(run.explanation).font(PiyaliBrand.productFont(15)) }

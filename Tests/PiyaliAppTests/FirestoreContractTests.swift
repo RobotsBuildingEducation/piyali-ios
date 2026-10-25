@@ -228,6 +228,42 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
         var newer=state;var edited=run;XCTAssertTrue(edited.drop(0));newer.saveExploration(edited)
         XCTAssertTrue(LearnerState.rebased(current:newer,sent:state,acknowledged:restored).explorationRuns?["es"]?.inventory.isEmpty ?? false)
     }
+    func testJourneyEncryptedRecordingsUseCanonicalFirestoreAndRejectExpiredOrDuplicateSaves()async throws {
+        let (_,db,npub)=try context();try await seed(db,npub)
+        let ref=db.collection("users").document(npub).collection("voiceJourney").document("fr")
+        try await ref.setData(["completedQuests":5,"foreignJourneyField":"preserve","recordings":[:]])
+        let store=VoiceJourneyStore(database:db),key=Data(repeating:7,count:32),nonce=Data(repeating:8,count:12)
+        let payload:JSONValue = .object(["audio":.string(MemoryDrawerFixture.audio().base64EncodedString()),"mimeType":.string("audio/wav"),"duration":.number(1.5),"prompt":.string("Bonjour"),"support":.string("independent")])
+        let ciphertext=try JourneyCryptography.seal(payload,key:key,nonce:nonce,account:npub,target:"fr",milestone:5),envelope=JourneyEnvelope(wrappedKey:"public-test-wrapper",iv:nonce,ciphertext:ciphertext)
+        do {try await store.save(envelope,account:npub,target:"fr",milestone:1);XCTFail("Expired milestone accepted")}catch{}
+        try await store.acknowledge(account:npub,target:"fr",milestone:1)
+        try await store.acknowledge(account:npub,target:"fr",milestone:5)
+        let acknowledged=try await ref.getDocument(source:.server).data() ?? [:]
+        XCTAssertEqual(acknowledged["lastPromptedMilestone"] as? Int,5)
+        try await store.save(envelope,account:npub,target:"fr",milestone:5)
+        do {try await store.save(envelope,account:npub,target:"fr",milestone:5);XCTFail("Duplicate recording accepted")}catch{}
+        let loaded=try await store.load(account:npub,target:"fr",milestone:5)
+        XCTAssertEqual(try JourneyCryptography.open(loaded,key:key,account:npub,target:"fr",milestone:5),payload)
+        let saved=try await ref.getDocument(source:.server).data() ?? [:],raw=try await ref.collection("recordings").document("5").getDocument(source:.server).data() ?? [:]
+        XCTAssertEqual(saved["completedQuests"] as? Int,5);XCTAssertEqual(saved["lastPromptedMilestone"] as? Int,5);XCTAssertEqual(saved["foreignJourneyField"] as? String,"preserve")
+        XCTAssertEqual(Set(raw.keys),Set(["version","wrappedKey","iv","ciphertext"]));XCTAssertNil(raw["audio"])
+        try await store.delete(account:npub,target:"fr",milestone:5)
+        let removed=try await ref.getDocument(source:.server).data() ?? [:],clip=try await ref.collection("recordings").document("5").getDocument(source:.server)
+        XCTAssertFalse(clip.exists);XCTAssertTrue((removed["recordings"] as? [String:Any])?.isEmpty == true);XCTAssertEqual(removed["completedQuests"] as? Int,5)
+    }
+    func testMemoryLocalizationRetainsConcurrentLifecycleForeignTimestampAndXPOnRetry()async throws {
+        let (service,db,npub)=try context();try await seed(db,npub)
+        var state=try requireState(await service.load(npub:npub));state.captureMemory(mode:"grammar",concept:"salutation",answer:"bad",expected:"bonjour",feedback:"")
+        state=try requireState(await service.save(state,npub:npub));let note=try XCTUnwrap(state.companionMemory?["fr"]?.first),ref=db.collection("users").document(npub).collection("companion").document("fr"),timestamp=Timestamp(date:Date(timeIntervalSince1970:1_700_000_000))
+        let before=try await ref.getDocument(source:.server)
+        var raw=try XCTUnwrap(before.data()?["notes"] as? [[String:Any]])
+        raw[0]["status"]="reinforced";raw[0]["severity"]=4;raw[0]["foreignTimestamp"]=timestamp;raw[0]["foreignNested"]=["date":timestamp,"keep":true]
+        try await ref.setData(["notes":raw,"foreignRoot":timestamp],merge:true)
+        state.localizeMemory(note,fields:.object(["mistake":.string("Un saludo"),"correction":.string("bonjour"),"tip":.string("Saluda primero")]),support:"es")
+        _=try await service.save(state,npub:npub);_=try await service.save(state,npub:npub)
+        let saved=try await ref.getDocument(source:.server).data() ?? [:],notes=try XCTUnwrap(saved["notes"] as? [[String:Any]]),root=try await db.collection("users").document(npub).getDocument(source:.server).data() ?? [:]
+        XCTAssertEqual(notes[0]["tip"] as? String,"Saluda primero");XCTAssertEqual(notes[0]["status"] as? String,"reinforced");XCTAssertEqual(notes[0]["severity"] as? Int,4);XCTAssertEqual(notes[0]["foreignTimestamp"] as? Timestamp,timestamp);XCTAssertEqual((notes[0]["foreignNested"] as? [String:Any])?["date"] as? Timestamp,timestamp);XCTAssertEqual(saved["foreignRoot"] as? Timestamp,timestamp);XCTAssertEqual(root["xp"] as? Int,150)
+    }
     private func context() throws -> (FirebaseService,Firestore,String) {
         guard ProcessInfo.processInfo.environment["PIYALI_FIRESTORE_EMULATOR_TESTS"] == "1" else { throw XCTSkip("Run with the local Firestore emulator and TEST_RUNNER_PIYALI_FIRESTORE_EMULATOR_TESTS=1.") }
         let name = "PiyaliContractEmulator"

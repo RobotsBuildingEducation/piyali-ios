@@ -44,3 +44,5 @@ The main app's web subscription link still points to `piyali.app/subscribe`. The
 Daily goal preparation uses owner-only `questDays` documents. The deployed native rules include this collection, with emulator coverage for owner access and other-user/unauthenticated denial.
 
 Daily quest/tutor update: owner access now includes `tutorLanguageLessons`, `voiceJourney` and its per-day `completions` receipts. Production rule emulator checks passed before deploying these rules to `piyali-ios`. The original web project and its rules were not changed.
+
+Voice Journey recordings update (2026-10-25): owner-only nested `voiceJourney/<language>/recordings/<milestone>` access now supports the original encrypted envelope. Ownership/denial emulator checks passed before rules deployment only to `piyali-ios`. The rules deployment did not change the worker or the reference Firebase project.

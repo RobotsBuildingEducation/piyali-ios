@@ -88,6 +88,9 @@ service cloud.firestore {
       match /achievementProgress/{source}/events/{event} {
         allow read, write: if owns(userId) && source == 'nosabos';
       }
+      match /voiceJourney/{language}/recordings/{milestone} {
+        allow read, write: if owns(userId);
+      }
       match /voiceJourney/{language}/completions/{day} {
         allow read, write: if owns(userId);
       }

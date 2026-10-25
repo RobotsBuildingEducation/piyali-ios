@@ -142,6 +142,7 @@ public struct Note: Codable, Identifiable, Sendable {
     public var title: String
     public var body: String
     public var study:JSONValue? = nil
+    public var createdAt:Date? = nil
 }
 public struct LearnerState: Codable, Sendable {
     public var pendingRepairEvidence:[RepairEvidenceChange]?

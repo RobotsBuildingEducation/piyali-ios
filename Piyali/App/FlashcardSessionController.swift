@@ -117,7 +117,7 @@ import Combine
             let raw=(try? await provider.judge(prompt)) ?? "",note=try policy.run("flashNoteParse",parameters.setting("raw",.string(raw)),language:scope.support)
             try Task.checkCancellation();guard token == request,matches(app) else{return}
             let metadata=parameters.setting("lessonTitle",.object(["en":.string(concept),"es":.string(concept)])).setting("example",note["example"]).setting("summary",note["summary"])
-            app.learner.notes.insert(Note(title:concept,body:note["example"].string+"\n\n"+note["summary"].string,study:metadata),at:0);app.persist();noteSaved=true
+            app.learner.notes.insert(Note(title:concept,body:note["example"].string+"\n\n"+note["summary"].string,study:metadata,createdAt:Date()),at:0);app.persist();noteSaved=true
         }catch is CancellationError{}catch{if token == request,matches(app){self.error=copy("note_error")}}}
     }
     func canRate(_ rating:ReviewRating)->Bool {!saving && (intentRating == nil || intentRating == rating)}

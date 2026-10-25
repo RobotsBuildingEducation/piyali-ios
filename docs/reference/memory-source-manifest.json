@@ -1,0 +1,193 @@
+{
+  "sources": [
+    {
+      "file": "src/constants/languages.js",
+      "sha256": "02cb1507cb2ee1b5822ac4dd98cd7faf3e67a5101a13dd6c93826f553201ab32",
+      "declarations": [
+        "getLanguageLocale",
+        "normalizeSupportedCode",
+        "normalizeCode",
+        "SUPPORTED_LANGUAGE_CODES_SET",
+        "LANGUAGE_META",
+        "egyptianFlag",
+        "netherlandsFlag",
+        "usaFlag",
+        "frenchFlag",
+        "germanFlag",
+        "italianFlag",
+        "indianFlag",
+        "chineseFlag",
+        "brazilianFlag",
+        "mexicanFlag",
+        "greekFlag",
+        "japaneseFlag",
+        "russianFlag",
+        "polishFlag",
+        "irishFlag",
+        "LANGUAGE_LOCALES",
+        "getLanguagePromptName",
+        "LANGUAGE_PROMPT_LABELS",
+        "LANGUAGE_FALLBACK_LABELS",
+        "normalizeSupportLanguage",
+        "DEFAULT_SUPPORT_LANGUAGE",
+        "SUPPORT_LANGUAGE_CODES_SET",
+        "SUPPORT_LANGUAGE_CODES_BASE",
+        "CANONICAL_SUPPORT_LANGUAGE_CODES"
+      ]
+    },
+    {
+      "file": "src/utils/noteGeneration.js",
+      "sha256": "84b74e70390456b31b6d11b779acf79d4d321f2eadbf461776f573f38e082825",
+      "declarations": [
+        "generateNoteContent",
+        "LANG_NAME",
+        "getLanguagePromptName",
+        "callResponses",
+        "DEFAULT_RESPONSES_MODEL"
+      ]
+    },
+    {
+      "file": "src/utils/companionMemory.js",
+      "sha256": "05aeb83111145a419b83877ef3335063d55ace85e5a651f865fbf67d6d84bd91",
+      "declarations": [
+        "generateMemorySummaryText",
+        "langName",
+        "getLanguagePromptName",
+        "BATCH_LANG_NAMES",
+        "normalizePlateLang",
+        "getCompanionDayKey",
+        "getLocalDayKey",
+        "getYesterdayKey",
+        "DAY_MS",
+        "cleanMemoryConceptForSupportLanguage",
+        "normalizeMemorySupportLang",
+        "normalizeSupportLanguage",
+        "DEFAULT_SUPPORT_LANGUAGE",
+        "distinctiveEnglishWordCount",
+        "DISTINCTIVE_ENGLISH_WORDS",
+        "memoryStatusLabel",
+        "supportLanguageGuard",
+        "SUPPORT_SCRIPT_REQUIREMENTS",
+        "callResponses",
+        "memoryTextMatchesSupportLanguage",
+        "enrichNoteFields",
+        "parseBlueprintJson",
+        "enrichmentMatchesSupportLanguage",
+        "memoryLogSignature",
+        "MEMORY_SUMMARY_PROMPT_VERSION",
+        "memoryNoteMatchesSupportLanguage",
+        "getCompanionNotes",
+        "readBucket",
+        "MEMORY_STATUS"
+      ]
+    },
+    {
+      "file": "src/utils/companionMemoryCopy.js",
+      "sha256": "cdfb764934e9372e83c8e8d471d30ff8b942e50d1c29c8f98b17f96526b22777",
+      "declarations": [
+        "memoryStatusLabel",
+        "memoryCopy",
+        "normalizeSupportLanguage",
+        "DEFAULT_SUPPORT_LANGUAGE",
+        "getGermanCopy",
+        "MEMORY_STATUS_COPY",
+        "MEMORY_CARD_COPY",
+        "MEMORY_DRAWER_COPY"
+      ]
+    },
+    {
+      "file": "src/utils/voiceJourneyCopy.js",
+      "sha256": "33aab7aebe23660e5789283f96dc430e5c9890046110653c887b81d232e73b38",
+      "declarations": [
+        "journeyCopy",
+        "dictionaries",
+        "en",
+        "es",
+        "pt",
+        "fr",
+        "it",
+        "de",
+        "ja",
+        "zh",
+        "ru",
+        "hi",
+        "ar",
+        "tabs"
+      ]
+    },
+    {
+      "file": "src/utils/voiceJourneyModel.js",
+      "sha256": "2c5250f018252479aaf4430a22f7dcc9fba1c35620691ea23b0090351686bce3",
+      "declarations": [
+        "JOURNEY_MILESTONES",
+        "journeySessionCount",
+        "QUESTS_PER_JOURNEY_SESSION",
+        "completeJourneyQuest",
+        "pendingJourneyMilestone",
+        "journeyBaseline",
+        "isJourneyMilestoneExpired",
+        "canRecordJourneyMilestone"
+      ]
+    },
+    {
+      "file": "src/utils/dailyPlate.js",
+      "sha256": "a3f4fdc3c618cadc880008646d827812cfe63376252f11af6163883e2a5e6649",
+      "declarations": [
+        "normalizePlateLang"
+      ]
+    },
+    {
+      "file": "src/utils/flashcardReview.js",
+      "sha256": "7223f0a31f1e739452e0b83524ea49cc1ea2a0d373324b2c393d6ed94ab3043b",
+      "declarations": [
+        "getLocalDayKey",
+        "coerceDate",
+        "getLocalCalendarDayKey"
+      ]
+    },
+    {
+      "file": "src/utils/userDataSchema.js",
+      "sha256": "128298da9601794909e9970029871ebbf98cec59fab38bd643d373f9fa4e9597",
+      "declarations": [
+        "getLocalCalendarDayKey"
+      ]
+    },
+    {
+      "file": "src/constants/supportLanguages.js",
+      "sha256": "d8e8dc17f353a5106bdc984f2cce9696669bc7216be10e006738cb0a04b40b5a",
+      "declarations": [
+        "SUPPORT_LANGUAGE_CODES"
+      ]
+    },
+    {
+      "file": "src/utils/germanCopy.js",
+      "sha256": "c5d8071bc25c6907cf33693b8e6ae274d3796d7f72b80b21a2056946ebba4307",
+      "declarations": [
+        "getGermanCopy",
+        "GERMAN_COPY"
+      ]
+    },
+    {
+      "file": "src/components/NotesDrawer.jsx",
+      "sha256": "ef36fd9a00b83ee5a2061e7690aeeced5037d295368ed9b26a0a2cf3a0ba1979",
+      "declarations": [
+        "CEFR_LEVELS",
+        "CEFR_COLORS",
+        "CEFR_TEXT_COLORS",
+        "MODULE_LABELS"
+      ]
+    },
+    {
+      "file": "src/components/CompanionMemoryList.jsx",
+      "sha256": "ed3c49235f718abcabaae4506d75d40ca1f0b5b8f180e5c7da4818983ad55153",
+      "declarations": [
+        "SOURCE_LABELS",
+        "STATUS_ACCENT",
+        "resolveStatus",
+        "MEMORY_STATUS"
+      ]
+    }
+  ],
+  "adapters": "Only provider awaits become explicit synchronous response snapshots; native code executes their recorded requests and retries. Original prompts, parsers, language guards, signatures, status and copy rules remain. No stores, React, DOM, Firebase or network executes.",
+  "cases": 55
+}
