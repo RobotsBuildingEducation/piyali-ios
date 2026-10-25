@@ -32,7 +32,8 @@ extension AppModel {
         var accepted:[String:JSONValue]=[:]
         if Set(partial.object.keys).isSubset(of:LearnerSettings.directKeys) {
             for(key,value)in partial.object {
-                if ["soundEnabled","allowPosts"].contains(key){accepted[key] = .bool(value.boolean)}
+                if ["soundEnabled","allowPosts","rpgMusicEnabled"].contains(key){accepted[key] = .bool(value.boolean)}
+                else if key == "rpgMusicPreferenceVersion"{accepted[key] = .number(2)}
                 else if key == "tutorVolume"{accepted[key] = .number(max(0,min(4,(value.number*10).rounded()/10)))}
                 else if key == "soundVolume"{accepted[key] = .number(max(0,min(100,value.number.rounded())))}
             }

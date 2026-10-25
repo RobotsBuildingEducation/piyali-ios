@@ -17,7 +17,7 @@ import Foundation
         let token=generation,account=app.identity.npub,target=app.learner.target,support=app.learner.support
         let courseLevel=tutor ? (lesson?.cefrLevel ?? app.learner.tutorLevel):app.learner.level
         await load(target:target);guard valid(app,account:account,target:target,support:support,token:token),let library,!busy else { return }
-        if !fresh,let saved=app.learner.rpgRuns?[target],saved.support == support,(saved.tutor == true) == tutor,saved.lessonID == lesson?.id,(episode == nil || saved.scenario.authoredEpisode.id == episode),saved.scenario.authoredEpisode.level == (lesson?.content["game"]["cefrLevel"].string.isEmpty == false ? lesson!.content["game"]["cefrLevel"].string : courseLevel) { return }
+        if !fresh,let saved=app.learner.rpgRuns?[target],saved.support == support,!(saved.completed && saved.claimed),(saved.tutor == true) == tutor,saved.lessonID == lesson?.id,(episode == nil || saved.scenario.authoredEpisode.id == episode),saved.scenario.authoredEpisode.level == (lesson?.content["game"]["cefrLevel"].string.isEmpty == false ? lesson!.content["game"]["cefrLevel"].string : courseLevel) { return }
         let tutorial=lesson?.id == IntroTutorial.lessonID || lesson?.isTutorial == true
         let review=tutorial ? app.introLibrary.flatMap { $0.target == target ? $0.games[courseLevel] : nil } : lesson.flatMap { library.reviews[$0.id] }
         guard let original=review?.bySupport[support] ?? library.scenarios(level:courseLevel,support:support).first(where:{ $0.authoredEpisode.id == episode }),let world=(tutorial ? app.introLibrary?.worlds[original.worldKey] : library.worlds[original.worldKey]) else { error="This episode is not available for the selected language and level.";return }
@@ -30,6 +30,14 @@ import Foundation
             } catch { if valid(app,account:account,target:target,support:support,token:token) { self.error="Story generation is unavailable. Using the authored local review." } }
         }
         guard valid(app,account:account,target:target,support:support,token:token) else { return }
+        let art=RPGArt.shared.data,rows=art["npcRows"].array.shuffled()
+        if !rows.isEmpty {
+            let members=scenario.npcs.indices.compactMap{index->RPGCast.Member? in
+                let row=rows[index%rows.count],variants=art["npcs"].array.filter{$0["type"].string == row["id"].string};guard let variant=variants.randomElement()else{return nil}
+                return RPGCast.Member(name:row["name"].string,image:variant["image"].string,kind:row["id"].string)
+            }
+            if let cast=try? RPGCast.applying(members,to:scenario){scenario=cast}
+        }
         app.learner.saveRPG(RPGRun(target:target,support:support,lessonID:lesson?.id,xpReward:lesson?.xpReward ?? 30,scenario:scenario,world:world,tutorial:tutorial,tutor:tutor));app.persist()
     }
     func speak(_ answer:String,app:AppModel) async {
@@ -70,5 +78,16 @@ extension AIService {
         Then react specifically to the player's actual meaning, humor, hesitation or refusal, in character, keeping the story moving regardless of grade. Reply ONLY in the target language, 1–2 brief spoken first-person sentences with no stage directions, narrator tags or new named characters. Never mention grades, lessons, grammar rules, CEFR or being an AI. Tip is one short warm coaching line ONLY in the support language, empty for full. Return ONLY JSON {"grade":"full|partial|miss","reply":"...","tip":"..."}. Data:
         """
         return try JSONDecoder().decode(RPGSpeechTurn.self,from:Data((try await responsesText(prompt+data.json,json:true,outputProfile:"rpg_speech")).utf8))
+    }
+}
+
+extension RPGService {
+    /// Same plain-line translation contract as the source dialogue toggle.
+    func translate(run:RPGRun,app:AppModel)async->[String]? {
+        guard let node=run.node else{return nil};let token=generation,account=app.identity.npub
+        let spoken=RPGDialogue.split(run.feedback.isEmpty ? node.npcLine:run.feedback).spoken,entries=[spoken]+(node.responseMode == "choice" ? node.choices.map(\.text):[])
+        var seen:Set<String>=[];let names=run.scenario.npcs.map(\.name).filter{seen.insert($0).inserted},roster=["Assigned character roster: \(names.joined(separator:", ")).","Only use those exact names when referring to people in this scene.","Do not invent, translate, swap, or mention any other person names.","Prefer pronouns or second-person phrasing unless a roster name is truly necessary."].joined(separator:"\n")
+        let prompt=["Translate each entry below into \(LearningLanguages.names[run.support] ?? run.support).",roster,"Preserve every character name exactly as written.","Output plain text only.","Return exactly \(entries.count) line\(entries.count>1 ? "s":"").","Each line must be only the translation for the matching entry index.","No numbering, labels, markdown, or commentary.","","Entries:"]+entries.enumerated().map{"\($0.offset+1). \($0.element)"}
+        do{let raw=try await app.ai.text(prompt.joined(separator:"\n"));guard valid(app,account:account,target:run.target,support:run.support,token:token)else{return nil};return Array(raw.components(separatedBy:.newlines).map{$0.replacingOccurrences(of:"^\\s*\\d+[).:-]\\s*",with:"",options:.regularExpression).trimmingCharacters(in:.whitespacesAndNewlines)}.filter{!$0.isEmpty}.prefix(entries.count))}catch{return nil}
     }
 }

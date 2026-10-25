@@ -23,6 +23,17 @@ final class SettingsSourcePolicyTests:XCTestCase {
         XCTAssertEqual(final.pendingSettingsChanges?.count,1);XCTAssertEqual(final.settingsSnapshot["progress"]["pauseMs"],.number(800));XCTAssertEqual(final.settingsSnapshot["progress"]["tutorVoice"],.string("cedar"));XCTAssertFalse(final.soundEffectsEnabled);XCTAssertEqual(final.totalXP,0)
         let restored=try JSONDecoder().decode(LearnerState.self,from:JSONEncoder().encode(final));XCTAssertEqual(restored.pendingSettingsChanges?.count,1)
     }
+    func testRPGMusicPreferenceRemainsCanonicalAcrossRetryAndAcknowledgment()throws {
+        let partial:JSONValue = .object(["rpgMusicEnabled":.bool(true),"rpgMusicPreferenceVersion":.number(2)])
+        var current=LearnerState();current.addXP(150,now:Date(),calendar:.current);current.changeSettings(partial);let sent=current,id=try XCTUnwrap(sent.pendingSettingsChanges?.first?.id)
+        let patch=try LearnerSettings.patch(try XCTUnwrap(sent.pendingSettingsChanges?.first),fields:.object(["progress":.object(["xp":.number(150)])]),policy:policy())
+        XCTAssertEqual(patch,partial)
+        current.changeSettings(.object(["rpgMusicEnabled":.bool(false),"rpgMusicPreferenceVersion":.number(2)]))
+        let cloud=WebProgressContract.imported(["xp":150,"rpgMusicEnabled":true,"rpgMusicPreferenceVersion":2,"iosRecentEventIDs":[id.uuidString]],native:sent)
+        let rebased=LearnerState.rebased(current:current,sent:sent,acknowledged:cloud)
+        XCTAssertEqual(rebased.pendingSettingsChanges?.count,1);XCTAssertEqual(rebased.settingsSnapshot["rpgMusicEnabled"],.bool(false));XCTAssertEqual(rebased.settingsSnapshot["rpgMusicPreferenceVersion"],.number(2));XCTAssertEqual(rebased.totalXP,150)
+        let restored=try JSONDecoder().decode(LearnerState.self,from:JSONEncoder().encode(rebased));XCTAssertEqual(restored.settingsSnapshot,rebased.settingsSnapshot)
+    }
     func testOfflineGeminiVoiceKeepsItsProviderThroughEncodingAndLegacyEntriesRemainReadable()throws {
         let p=try policy(),fields:JSONValue = .object(["progress":.object(["targetLang":.string("es"),"supportLang":.string("en")])])
         let change=SettingsChange(partial:.object(["tutorVoice":.string("Charon")]),provider:"gemini"),restored=try JSONDecoder().decode(SettingsChange.self,from:JSONEncoder().encode(change))

@@ -28,7 +28,7 @@ final class RPGTests:XCTestCase {
         }
         for sample in fixture["dialogue"].array { let value=RPGDialogue.split(sample["text"].string);XCTAssertEqual(value.spoken,sample["expected"]["spokenText"].string);XCTAssertEqual(value.scene,sample["expected"]["subtext"].string) }
     }
-    func testEveryAuthoredLanguageLevelEpisodeAndUnitReviewHasSevenPlayableTasks() throws {
+    func testEveryAuthoredLanguageLevelEpisodeAndUnitReviewKeepsItsPlayableSourceTasks() throws {
         var count=0,reviews=0
         for target in LearningLanguages.practice+["nah","yua"] {
             let curriculum=try ContentLibrary.decode([String:[LearningUnit]].self,url:root.appendingPathComponent("Piyali/Resources/curriculum-\(target).json.gz"))
@@ -48,8 +48,31 @@ final class RPGTests:XCTestCase {
         XCTAssertEqual(count,11760);XCTAssertEqual(reviews,1246)
     }
     private func verify(_ scenario:RPGScenario,library:RPGLibrary,file:StaticString = #filePath,line:UInt = #line) {
-        XCTAssertEqual(scenario.quest.steps.count,7,file:file,line:line);XCTAssertEqual(scenario.quest.steps.map(\.weight).reduce(0,+),8,file:file,line:line);XCTAssertFalse(scenario.npcs.isEmpty,file:file,line:line);XCTAssertNotNil(library.worlds[scenario.worldKey],file:file,line:line)
+        XCTAssertTrue((1...7).contains(scenario.quest.steps.count),file:file,line:line);XCTAssertTrue(scenario.quest.steps.allSatisfy{$0.weight == ($0.id == "finale" ? 2:1)},file:file,line:line);XCTAssertFalse(scenario.npcs.isEmpty,file:file,line:line);XCTAssertNotNil(library.worlds[scenario.worldKey],file:file,line:line)
         for step in scenario.quest.steps { XCTAssertTrue(scenario.npcs.indices.contains(step.npcIdx),file:file,line:line);XCTAssertEqual(step.nodes.count,1,file:file,line:line);let node=step.nodes[0];XCTAssertFalse(node.npcLine.isEmpty,file:file,line:line);if node.responseMode == "choice" { XCTAssertEqual(node.choices.filter(\.correct).count,1,file:file,line:line) } else { XCTAssertFalse((node.speechTarget ?? "").isEmpty,file:file,line:line) } }
+    }
+    func testAllChapterDecksEqualUnmodifiedSourceTasks()throws {
+        let samples=try ContentLibrary.decode([JSONValue].self,url:root.appendingPathComponent("Tests/PiyaliCoreTests/Fixtures/rpg-decks.json.gz"))
+        XCTAssertEqual(samples.count,12460)
+        var libraries:[String:RPGLibrary]=[:],short=0
+        for sample in samples {
+            let target=sample["target"].string
+            if libraries[target] == nil{libraries[target]=try library(target)}
+            let actual=try XCTUnwrap(libraries[target]?.reviews[sample["lesson"].string]?.bySupport[sample["support"].string])
+            let expected=try JSONDecoder().decode([RPGStep].self,from:JSONEncoder().encode(sample["steps"]))
+            XCTAssertEqual(actual.quest.steps,expected,"\(target) \(sample["lesson"].string) \(sample["support"].string)")
+            if expected.count<7{short += 1}
+        }
+        XCTAssertEqual(short,450)
+    }
+    func testCastUsesOriginalWholeNameRulesAndPersistsAppearance()throws {
+        let samples=try JSONDecoder().decode([JSONValue].self,from:Data(contentsOf:root.appendingPathComponent("Tests/PiyaliCoreTests/Fixtures/rpg-names.json")))
+        for sample in samples {XCTAssertEqual(RPGCast.rename(sample["text"].string,mapping:sample["mapping"].object.mapValues(\.string)),sample["expected"].string)}
+        let original=try makeRun(),members=original.scenario.npcs.enumerated().map{RPGCast.Member(name:"NewName\($0.offset)",image:"sprite\($0.offset)",kind:"cat")}
+        let changed=try RPGCast.applying(members,to:original.scenario)
+        XCTAssertEqual(changed.quest.steps.map(\.weight),original.scenario.quest.steps.map(\.weight))
+        for (index,npc) in changed.npcs.enumerated(){XCTAssertEqual(npc.name,members[index].name);XCTAssertEqual(npc.appearance,members[index].image);XCTAssertEqual(npc.characterKind,"cat")}
+        XCTAssertEqual(try JSONDecoder().decode(RPGScenario.self,from:JSONEncoder().encode(changed)),changed)
     }
     func testRetriesHaveDecliningPointsAndThreeMissesRevealWithoutCompletionXP() throws {
         var run=try makeRun(),state=LearnerState();state.saveRPG(run)

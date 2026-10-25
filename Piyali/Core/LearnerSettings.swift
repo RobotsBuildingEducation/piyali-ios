@@ -9,8 +9,8 @@ public struct SettingsChange:Codable,Identifiable,Sendable {
 }
 public enum LearnerSettings {
     public static let progressKeys:Set<String>=["tutorVoice","tutorVoicePersona","pauseMs","showTranslations","helpRequest","practicePronunciation"]
-    public static let rootKeys:Set<String>=["themeMode","allowPosts","soundEnabled","soundVolume","tutorVolume"]
-    public static let directKeys:Set<String>=["allowPosts","soundEnabled","soundVolume","tutorVolume"]
+    public static let rootKeys:Set<String>=["themeMode","allowPosts","soundEnabled","soundVolume","tutorVolume","rpgMusicEnabled","rpgMusicPreferenceVersion"]
+    public static let directKeys:Set<String>=["allowPosts","soundEnabled","soundVolume","tutorVolume","rpgMusicEnabled","rpgMusicPreferenceVersion"]
     public static func sourceUser(_ fields:[String:Any])->JSONValue {
         let p=(fields["progress"] as? [String:Any] ?? [:]).filter{progressKeys.union(["targetLang","supportLang","level","voice","voicePersona"]).contains($0.key)}
         return PhonicsProgress.document(fields.filter{rootKeys.contains($0.key)}.merging(["progress":p]){_,new in new})

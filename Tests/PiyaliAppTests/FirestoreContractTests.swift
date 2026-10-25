@@ -287,6 +287,15 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
         let result=try requireState(await service.load(npub:npub)),fields=try await ref.getDocument(source:.server).data() ?? [:]
         XCTAssertEqual(result.settingsSnapshot["progress"]["tutorVoice"],.string("Charon"));XCTAssertEqual(result.settingsSnapshot["tutorVolume"],.number(0.6));XCTAssertEqual(result.totalXP,150);XCTAssertEqual(fields["patreonVerified"] as? Bool,true);XCTAssertEqual((fields["progress"] as? [String:Any])?["foreignTimestamp"] as? Timestamp,stamp)
     }
+    func testRPGMusicRetryPreservesCanonicalXPAndForeignSettings()async throws {
+        let(service,db,npub)=try context();try await seed(db,npub)
+        let ref=db.collection("users").document(npub),stamp=Timestamp(date:Date(timeIntervalSince1970:1_700_000_000))
+        try await ref.setData(["progress":["foreignTimestamp":stamp],"foreignRoot":stamp],merge:true)
+        var state=try requireState(await service.load(npub:npub));state.changeSettings(.object(["rpgMusicEnabled":.bool(true),"rpgMusicPreferenceVersion":.number(2)]))
+        let restored=try JSONDecoder().decode(LearnerState.self,from:JSONEncoder().encode(state));_=try await service.save(restored,npub:npub);_=try await service.save(restored,npub:npub)
+        let result=try requireState(await service.load(npub:npub)),fields=try await ref.getDocument(source:.server).data() ?? [:]
+        XCTAssertEqual(result.settingsSnapshot["rpgMusicEnabled"],.bool(true));XCTAssertEqual(result.settingsSnapshot["rpgMusicPreferenceVersion"],.number(2));XCTAssertEqual(result.totalXP,150);XCTAssertEqual(fields["patreonVerified"] as? Bool,true);XCTAssertEqual(fields["foreignRoot"] as? Timestamp,stamp);XCTAssertEqual((fields["progress"] as? [String:Any])?["foreignTimestamp"] as? Timestamp,stamp)
+    }
     private func context() throws -> (FirebaseService,Firestore,String) {
         guard ProcessInfo.processInfo.environment["PIYALI_FIRESTORE_EMULATOR_TESTS"] == "1" else { throw XCTSkip("Run with the local Firestore emulator and TEST_RUNNER_PIYALI_FIRESTORE_EMULATOR_TESTS=1.") }
         let name = "PiyaliContractEmulator"

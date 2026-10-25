@@ -8,9 +8,11 @@ struct CurriculumSessionView:View {
     @Environment(\.colorScheme) private var scheme
     let lesson:Lesson
     @State private var mode=""
+    @State private var gamePresented=false
     @State private var revision=UUID()
     @State private var fresh=false
     @State private var finishing=false
+    @State private var appeared=false
     @State private var startedCompleted=false
     @State private var goalCompletionError:String?
     @State private var goalCompletionTask:Task<Void,Never>?
@@ -20,7 +22,7 @@ struct CurriculumSessionView:View {
     var body:some View {
         VStack(spacing:0) {
             if lesson.isGoal == true,let bp=lesson.goalBlueprint {GoalFocusBanner(blueprint:bp)}
-            if lesson.isFinalQuiz != true { VStack(spacing:10) {
+            if lesson.isFinalQuiz != true,!lesson.modes.contains("game") { VStack(spacing:10) {
                 if lesson.isFinalQuiz != true {
                     HStack { Text(lesson.title.localized(app.learner.support)).font(PiyaliBrand.productFont(16,700));Spacer();Text("\(work?.earnedXP ?? 0) / \(lesson.xpReward) XP").font(PiyaliBrand.productFont(13,600)).accessibilityIdentifier("activeLessonXP") }
                     ProgressView(value:work?.fraction(goal:lesson.xpReward) ?? 0).tint(brand.questionChoice)
@@ -36,10 +38,11 @@ struct CurriculumSessionView:View {
             } else if finishing,lesson.isGoal == true,!complete {ProgressView(app.goalCompletionText("saving")).padding(24).accessibilityIdentifier("savingGoalLesson")}
             if !mode.isEmpty {engine.id(revision).allowsHitTesting(!finishing)}
         }.background(brand.background).navigationTitle(lesson.title.localized(app.learner.support)).navigationBarTitleDisplayMode(.inline)
-            .onAppear { startedCompleted=complete;app.lessonActivityActive=true;if mode.isEmpty { mode=lesson.modes.first ?? "vocabulary" };app.beginLesson(lesson);checkThreshold() }
-            .onDisappear {goalCompletionTask?.cancel();app.lessonActivityActive=false}
+            .fullScreenCover(isPresented:$gamePresented,onDismiss:finishGamePresentation){NavigationStack{RPGView(lesson:lesson,episode:nil,onReviewComplete:{gamePresented=false})}}
+            .onAppear { app.lessonActivityActive=true;guard !appeared else{return};appeared=true;startedCompleted=complete;if lesson.modes.contains("game"){gamePresented=true};if mode.isEmpty { mode=lesson.modes.first ?? "vocabulary" };app.beginLesson(lesson);checkThreshold() }
+            .onDisappear {goalCompletionTask?.cancel();if !gamePresented{app.lessonActivityActive=false}}
             .onChange(of:work?.earnedXP) { _,_ in checkThreshold() }
-            .onChange(of:complete) { _,completed in if completed,lesson.isGoal != true,!startedCompleted,!finishing { presentCompletion(reward:work?.earnedXP ?? lesson.xpReward) } }
+            .onChange(of:complete) { _,completed in if completed,lesson.isGoal != true,!startedCompleted,!finishing { if lesson.modes.contains("game"){gamePresented=false}else{presentCompletion(reward:work?.earnedXP ?? lesson.xpReward)} } }
     }
     @ViewBuilder private var engine:some View {
         if lesson.isFinalQuiz == true { FinalQuizView(lesson:lesson) }
@@ -47,10 +50,13 @@ struct CurriculumSessionView:View {
         case "grammar","vocabulary":LessonPracticeView(module:mode == "grammar" ? .grammar : .vocabulary,lesson:lesson,onNext:advance,startsFresh:fresh,embedded:true)
         case "reading":ReadingView(lesson:lesson,onComplete:advance,embedded:true,startsFresh:fresh)
         case "stories":StoryView(lesson:lesson,onComplete:advance,embedded:true,startsFresh:fresh)
-        case "game":RPGView(lesson:lesson,episode:nil)
+        case "game":Color.clear
         case "realtime":RealtimeLessonView(lesson:lesson,onNext:advance,startsFresh:fresh)
         default:EmptyView()
         } }
+    }
+    private func finishGamePresentation(){
+        if complete,!startedCompleted,!finishing{presentCompletion(reward:app.learner.rpgRuns?[app.learner.target]?.reward ?? lesson.xpReward)}else{dismiss()}
     }
     private func advance() {
         guard !finishing else { return };checkThreshold();guard !finishing else { return }

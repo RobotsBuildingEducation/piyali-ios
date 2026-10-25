@@ -27,7 +27,7 @@ import XCTest
         continueAfterFailure=false;let app=launch(kind:"delight:natural_or_weird",enterPractice:false)
         func openPath() { XCTAssertTrue(app.buttons["productMenu"].waitForExistence(timeout:15));app.buttons["productMenu"].tap();app.buttons["productModeMenu"].tap();app.buttons["productMode-path"].tap() }
         openPath();XCTAssertTrue(app.buttons["introLink"].waitForExistence(timeout:15));app.buttons["introLink"].tap();app.buttons["startLessonFromPreview"].tap()
-        for _ in 0..<6 { let next=app.buttons.matching(NSPredicate(format:"identifier IN %@",["skipLessonActivity","skipIntroActivity","realtimeSkip"])).firstMatch;XCTAssertTrue(next.waitForExistence(timeout:10));reveal(next,app);next.tap() }
+        for _ in 0..<6 { let next=app.buttons.matching(NSPredicate(format:"identifier IN %@",["skipLessonActivity","skipIntroActivity","realtimeSkip","rpgBack"])).firstMatch;XCTAssertTrue(next.waitForExistence(timeout:10));reveal(next,app);next.tap() }
         XCTAssertTrue(app.staticTexts["lessonCompletionBonus"].waitForExistence(timeout:10));XCTAssertEqual(app.staticTexts["lessonCompletionBonus"].label,"+50");app.buttons["continueLessonCompletion"].tap()
         let first=app.buttons["lessonNode-lesson-pre-a1-1-1"],second=app.buttons["lessonNode-lesson-pre-a1-1-2"]
         XCTAssertTrue(first.waitForExistence(timeout:5));XCTAssertTrue(first.isEnabled);XCTAssertFalse(second.isEnabled)

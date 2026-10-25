@@ -17,7 +17,7 @@ public struct RPGWorld: Codable, Equatable, Sendable {
         return nil
     }
 }
-public struct RPGNPC: Codable, Equatable, Sendable { public var name:String;public let role:String;public var personality:String;public let tx:Int;public let ty:Int }
+public struct RPGNPC: Codable, Equatable, Sendable { public var name:String;public let role:String;public var personality:String;public let tx:Int;public let ty:Int;public var appearance:String?;public var characterKind:String? }
 public struct RPGChoice: Codable, Equatable, Sendable { public var text:String;public var correct:Bool;public var npcReply:String?;public var sceneLine:String? }
 public struct RPGNode: Codable, Equatable, Sendable {
     public var id:String;public var responseMode:String;public var npcLine:String;public var supportLine:String;public var choices:[RPGChoice];public var weight:Int;public var conceptLabel:String;public var expectedAnswer:String;public var primitive:String
@@ -42,8 +42,8 @@ public struct RPGRun: Codable, Equatable, Identifiable, Sendable {
     public var tutorial:Bool?
     public var tutor:Bool?
     public var position:RPGPoint;public var stepIndex=0;public var attempts=0;public var score=0;public var resolved=false;public var feedback="";public var tip="";public var misses:[RPGMiss]=[];public var dialogue:[String]=[];public var updatedAt=Date();public var claimed=false
-    public init(target:String,support:String,lessonID:String?,xpReward:Int,scenario:RPGScenario,world:RPGWorld,tutorial:Bool = false,tutor:Bool = false) { self.tutor=tutor;self.tutorial=tutorial;self.target=target;self.support=support;self.lessonID=lessonID;self.xpReward=xpReward;self.scenario=scenario;self.world=world;self.position=world.start }
-    public var completed:Bool { stepIndex >= scenario.quest.steps.count && scenario.quest.steps.count == 7 }
+    public init(target:String,support:String,lessonID:String?,xpReward:Int,scenario:RPGScenario,world:RPGWorld,tutorial:Bool = false,tutor:Bool = false) { self.tutor=tutor;self.tutorial=tutorial;self.target=target;self.support=support;self.lessonID=lessonID;self.xpReward=xpReward;self.scenario=scenario;self.world=world;self.position=RPGSpatial.start(world:world,npcs:scenario.npcs,center:lessonID != nil) }
+    public var completed:Bool { stepIndex >= scenario.quest.steps.count && !scenario.quest.steps.isEmpty }
     public var step:RPGStep? { completed || !scenario.quest.steps.indices.contains(stepIndex) ? nil : scenario.quest.steps[stepIndex] }
     public var node:RPGNode? { step?.nodes.first }
     public var npc:RPGNPC? { guard let step,scenario.npcs.indices.contains(step.npcIdx) else { return nil };return scenario.npcs[step.npcIdx] }

@@ -11,6 +11,8 @@ struct IntroTutorialView:View {
     private var scope:String { app.identity.npub+":"+app.learner.target+":"+app.learner.support+":"+app.learner.level }
     private var mode:String { app.learner.introSession.next ?? "game" }
     private var brand:PiyaliBrand { .init(dark:scheme == .dark) }
+    @State private var gamePresented=false
+    @State private var finishGameOnDismiss=false
     @State private var finishing=false
     @State private var reviewing=false
     @State private var appeared=false
@@ -22,14 +24,17 @@ struct IntroTutorialView:View {
             engine(scope:capturedScope).id(capturedScope+":"+mode)
         }.background(brand.background).navigationTitle(lesson.title.localized(app.learner.support)).navigationBarTitleDisplayMode(.inline)
             .disabled(app.loadingContent || app.introLibrary?.target != app.learner.target || finishing)
+            .fullScreenCover(isPresented:$gamePresented,onDismiss:{if finishGameOnDismiss{finishGameOnDismiss=false;advance("game",scope:capturedScope)}else{dismiss()}}){NavigationStack{RPGView(lesson:lesson,episode:nil,onTutorialComplete:{finishGameOnDismiss=true;gamePresented=false})}}
+            .onChange(of:mode){_,value in if value == "game",!finishing{gamePresented=true}}
             .onAppear {
                 app.lessonActivityActive=true
                 guard !appeared else { return };appeared=true
                 reviewing=app.learner.completed.contains(app.learner.completionKey(IntroTutorial.lessonID))
                 if reviewing,app.learner.introSession.ready { app.learner.restartIntroReview();app.persist() }
                 else if app.learner.introSession.ready { finish(scope:capturedScope) }
+                else if mode == "game",!finishing{gamePresented=true}
             }
-            .onDisappear { app.lessonActivityActive=false }
+            .onDisappear { if !gamePresented{app.lessonActivityActive=false} }
             .popover(item:$descriptionMode) { selected in let item=selected.id;VStack(alignment:.leading,spacing:12) { Text(LessonSessionCopy.module(item,language:app.learner.support)).font(.headline);Text(item == mode ? lesson.content[item]["tutorialDescription"].localized(app.learner.support) : LessonSessionCopy.module(item,language:app.learner.support,key:"description")) }.padding(24).presentationCompactAdaptation(.popover) }
     }
     private var stepper:some View {
@@ -55,7 +60,7 @@ struct IntroTutorialView:View {
         case "reading":ReadingView(lesson:lesson,onComplete:{ advance("reading",scope:scope) },embedded:true)
         case "stories":StoryView(lesson:lesson,onComplete:{ advance("stories",scope:scope) },embedded:true)
         case "realtime":RealtimeLessonView(lesson:lesson,onNext:{ advance("realtime",scope:scope) },startsFresh:reviewing)
-        case "game":RPGView(lesson:lesson,episode:nil,onTutorialComplete:{ advance("game",scope:scope) },embedded:true).safeAreaInset(edge:.bottom) { skip("game",scope:scope) }
+        case "game":Color.clear
         default:EmptyView()
         }
     }

@@ -3,6 +3,7 @@
 <aside style="position:absolute;left:420px;top:0;max-width:700px"><button id="measure">Measure public layout</button><pre aria-hidden="true" id="metrics" style="white-space:pre-wrap"></pre></aside>
 <script>
 const params=new URLSearchParams(window.location.search);
+if(params.get('screen')==='rpg')document.getElementById('reference').src='/__piyali-rpg?'+new URLSearchParams({language:params.get('language')||'en',theme:params.get('theme')||'light'});
 if(['onboarding','first-run','focus','tools','tutor'].includes(params.get('screen')))document.getElementById('reference').src='/__piyali-onboarding?'+new URLSearchParams({screen:params.get('screen'),language:params.get('language')||'en',theme:params.get('theme')||'light',state:params.get('state')||'welcome',tool:params.get('tool')||'goal',focus:params.get('focus')||''});
 // Read-only QA instrumentation outside the original app/frame. No input values,
 // account state, storage, microphone or model APIs are read or changed.
