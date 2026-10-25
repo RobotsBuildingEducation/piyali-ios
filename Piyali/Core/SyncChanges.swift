@@ -168,6 +168,8 @@ public extension LearnerState {
             }
         }
         merged.courseCompletion = acknowledged.courseCompletion
+        merged.courseSummaries = acknowledged.courseSummaries
+        merged.tutorUnlockedLevels=TutorProgression.merging(current.tutorUnlockedLevels,acknowledged.tutorUnlockedLevels)
         let sentImmersionIDs=Set((sent.pendingImmersionChanges ?? []).map(\.id))
         let newImmersion=(current.pendingImmersionChanges ?? []).filter { !sentImmersionIDs.contains($0.id) && !(acknowledged.acknowledgedEventIDs ?? []).contains($0.id) }
         merged.pendingImmersionChanges=newImmersion;merged.immersionBatch=acknowledged.immersionBatch;merged.immersionHistory=acknowledged.immersionHistory;merged.immersionRewardReceipts=acknowledged.immersionRewardReceipts;merged.immersionPlacementAt=acknowledged.immersionPlacementAt

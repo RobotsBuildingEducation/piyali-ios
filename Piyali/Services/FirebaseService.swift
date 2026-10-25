@@ -120,16 +120,9 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
         for document in phonics.documents {let value=PhonicsProgress.document(Self.normalized(document.data()));let id=value["letterId"].string;if !id.isEmpty{state.phonicsRecords?[PhonicsProgress.key(state.target,id)]=value}}
         for change in state.pendingChanges ?? [] where !(state.acknowledgedEventIDs ?? []).contains(change.id){state.applyPhonics(change)}
         let summary = try await user.collection("courseProgress").document(state.target).getDocument(source:.server)
-        if let data = summary.data() {
-            if state.courseCompletion == nil { state.courseCompletion = [:] }
-            for mode in ["skillTree", "flashcards", "tutor"] {
-                let levels = (data[mode] as? [String:Any])?["levels"] as? [String:[String:Any]] ?? [:]
-                var counts: [String:Int] = [:]
-                for level in LearningLanguages.levels { counts[level] = WebProgressContract.integer(levels[level.lowercased().replacingOccurrences(of:"-",with:"_")]?["completed"]) }
-                if state.courseCompletion?[state.target] == nil { state.courseCompletion?[state.target] = [:] }
-                state.courseCompletion?[state.target]?[mode] = counts
-            }
-        }
+        state.importCourseSummary(PhonicsProgress.document(Self.normalized(summary.data() ?? [:])),target:state.target)
+        let tutorIndex=(try? ContentLibrary.load([String:[String:[String]]].self,name:"tutor-curriculum-index"))?[state.target] ?? [:]
+        state.reconcileTutorUnlock(index:tutorIndex)
         let day = CalendarDay.key(Date())
         let quest = try await user.collection("questDays").document("\(state.target)_\(day)").getDocument(source:.server)
         state.importQuestDay(JSONValue.foundation(Self.normalized(quest.data() ?? [:])),target:state.target,day:day)
@@ -227,11 +220,13 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
         }
         var snapshotState = state; snapshotState.pendingCompanionQuestDays=[:];snapshotState.pendingRepairEvidence=[]; snapshotState.pendingPlateHeadlines = [:]; snapshotState.pendingImmersionChanges = []; snapshotState.pendingChanges = []; snapshotState.pendingMemoryChanges = []; snapshotState.pendingGoalChanges = []; snapshotState.preferencesModifiedAt = nil
         let uploaded = snapshotState
+        let tutorIndex=(try? ContentLibrary.load([String:[String:[String]]].self,name:"tutor-curriculum-index"))?[uploaded.target] ?? [:]
         // Keep other-device completion evidence. Preference writes occur only after an explicit local change.
         _ = try await database.runTransaction { transaction, errorPointer -> Any? in
             do {
                 let snapshot = try transaction.getDocument(user)
                 let fields = snapshot.data() ?? [:]
+                let courseSummary=Self.normalized(try transaction.getDocument(user.collection("courseProgress").document(uploaded.target)).data() ?? [:])
                 let petPatch = CompanionHealth.reconcileFields(Self.normalized(fields))
                 var merged = uploaded
                 if let text = fields["iosStateJSON"] as? String, let remote = try? JSONDecoder().decode(LearnerState.self,from:Data(text.utf8)) {
@@ -239,6 +234,9 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                     merged.practicedModes.formUnion(remote.practicedModes)
                 }
                 merged = WebProgressContract.imported(Self.normalized(fields),native:merged)
+                merged.importCourseSummary(PhonicsProgress.document(courseSummary),target:uploaded.target)
+                let selectedTarget=merged.target;merged.target=uploaded.target
+                merged.reconcileTutorUnlock(index:tutorIndex);merged.target=selectedTarget
                 merged.phonicsRecords=nil;merged.pendingRepairEvidence=[];merged.companionQuestDays=nil;merged.pendingCompanionQuestDays=[:];merged.plateHeadlines=nil;merged.pendingPlateHeadlines=[:];merged.immersionBatch=nil;merged.immersionHistory=nil;merged.immersionRewardReceipts=nil;merged.immersionPlacementAt=nil;merged.pendingImmersionChanges=[]
                 // Companion memory has its own shared web document, not a second snapshot authority.
                 merged.shareNostrAchievements = nil; merged.achievementRecords = nil; merged.achievementEvidence = nil; merged.achievementLedger = nil; merged.companionProgress = nil; merged.companionMemory = nil; merged.pendingMemoryChanges = []; merged.goalIntelligence = nil; merged.goalArtifacts = nil; merged.pendingGoalChanges = []; merged.questProgress = nil; merged.journeyQuestCounts = nil; merged.tutorLessons = nil; merged.acknowledgedEventIDs = nil
@@ -263,6 +261,11 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                     patch["dailyGoalXp"] = profile.dailyGoal; patch["dailyGoalPetName"] = profile.companionName; patch["dailyGoalPetType"] = profile.effectiveCompanionType
                     patch["onboarding"] = ["completed":profile.onboardingComplete]
                     patch["progress"] = ["targetLang":profile.target,"supportLang":profile.support,"cefrLevel":profile.level,"activeTutorLevels":profile.tutorLevels ?? [profile.target:profile.tutorLevel],"activeLessonLevels":profile.lessonLevels ?? [profile.target:profile.level],"activeFlashcardLevels":profile.flashcardLevels ?? [profile.target:profile.flashcardLevel]]
+                }
+                if !(merged.tutorUnlockedLevels ?? [:]).isEmpty {
+                    var progress=patch["progress"] as? [String:Any] ?? [:]
+                    progress["tutorUnlockedLevels"]=merged.tutorUnlockedLevels
+                    patch["progress"]=progress
                 }
                 transaction.setData(patch,forDocument:user,merge:true)
                 return true
@@ -475,7 +478,7 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                         if let game=change.gameResult,existing["gameResult"] == nil { data["gameResult"]=game.foundation }
                         completed = true; wasCompleted = existing["status"] as? String == "completed"; mode = change.source == .speak ? "tutor" : "skillTree"
                     }
-                    transaction.setData(data,forDocument:content,merge:true)
+                    if !data.isEmpty {transaction.setData(data,forDocument:content,merge:true)}
                     if completed && !wasCompleted {
                         let levelKey = change.level.lowercased().replacingOccurrences(of:"-",with:"_")
                         let totals = ["skillTree","tutor"].contains(mode) ? ["Pre-A1":86,"A1":98,"A2":126,"B1":105,"B2":84,"C1":70,"C2":56] : ["Pre-A1":100,"A1":300,"A2":250,"B1":200,"B2":150,"C1":100,"C2":50]

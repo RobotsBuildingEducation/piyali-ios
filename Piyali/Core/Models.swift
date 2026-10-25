@@ -219,6 +219,8 @@ public struct LearnerState: Codable, Sendable {
     public var gradedByLanguage: [String: Int]?
     public var lessonLevels: [String: String]?
     public var flashcardLevels: [String: String]?
+    public var tutorUnlockedLevels: [String:String]?
+    public var courseSummaries: [String:JSONValue]?
     public var courseCompletion: [String: [String: [String: Int]]]?
     public var gettingStartedModalShown:Bool?
     public var legacyFirstRunPlacement:String?

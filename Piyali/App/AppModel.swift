@@ -240,7 +240,7 @@ import SwiftUI
         if !cardLevels.contains(learner.flashcardLevel) {
             if learner.flashcardLevels == nil { learner.flashcardLevels = [:] }; learner.flashcardLevels?[learner.target] = cardLevels.last ?? "Pre-A1"
         }
-        if !tutorLevels.contains(learner.tutorLevel) {
+        if learner.tutorLevels?[learner.target] == nil || !tutorLevels.contains(learner.tutorLevel) {
             if learner.tutorLevels == nil { learner.tutorLevels = [:] }; learner.tutorLevels?[learner.target] = tutorLevels.last ?? "Pre-A1"
         }
         let target = learner.target, support = learner.support, level = learner.level, cardLevel = learner.flashcardLevel, tutorLevel = learner.tutorLevel
@@ -263,6 +263,7 @@ import SwiftUI
     }
     private func writeLocal() throws { try JSONEncoder().encode(learner).write(to:localURL,options:[.atomic,.completeFileProtection]) }
     func persist() {
+        learner.reconcileTutorUnlock(index:tutorCurriculumIndex[learner.target] ?? [:])
         if learner.onboardingComplete && !learner.goal.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty && (learner.goalBucket["activeGoal"]["id"].string.isEmpty || learner.goal != learner.goalBucket["activeGoal"]["text"].string) { learner.editGoal(learner.goal) }
         if learner.onboardingComplete { learner.preparePlate(user:identity.npub,available:availablePlateKinds); _ = learner.claimPlate(user:identity.npub) }
         if learner.name != lastPersisted.name || learner.target != lastPersisted.target || learner.support != lastPersisted.support || learner.level != lastPersisted.level || learner.dailyGoal != lastPersisted.dailyGoal || learner.companionName != lastPersisted.companionName || learner.companionType != lastPersisted.companionType || learner.onboardingComplete != lastPersisted.onboardingComplete || learner.flashcardLevels != lastPersisted.flashcardLevels || learner.lessonLevels != lastPersisted.lessonLevels || learner.tutorLevels != lastPersisted.tutorLevels { learner.preferencesModifiedAt = Date() }
@@ -463,7 +464,7 @@ import SwiftUI
         if verdict.success,(readyGoal?["modeProgress"][mode].number ?? 0) < Double(GoalPractice.targets[mode] ?? 1) {throw AppError.message("The check is unavailable. Your practice is saved; try the check again.")}
         return verdict
     }
-    var tutorLevels: [String] { learner.unlockedLevels(mode:"tutor",index:tutorCurriculumIndex[learner.target] ?? curriculumIndex[learner.target] ?? [:]) }
+    var tutorLevels: [String] { learner.availableTutorLevels(index:tutorCurriculumIndex[learner.target] ?? [:],lessons:lessonLevels,flashcards:cardLevels) }
     func setTutorLevel(_ level: String) {
         guard tutorLevels.contains(level) else { return }
         if learner.tutorLevels == nil { learner.tutorLevels = [:] }; learner.tutorLevels?[learner.target] = level

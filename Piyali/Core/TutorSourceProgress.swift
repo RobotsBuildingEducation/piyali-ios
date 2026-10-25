@@ -3,7 +3,7 @@ import Foundation
 /// Canonical Tutor documents retain their own XP, agenda cursor and private reconnect draft.
 public enum TutorSourceProgress {
     public static func patch(_ change:PracticeChange,record:JSONValue)->JSONValue {
-        guard let data=change.tutorData,let id=change.contentID else{return .object([:])}
+        guard let data=change.tutorData,let id=change.contentID,!data["review"].boolean else{return .object([:])}
         guard record["status"].string != "completed" || change.source == .speak else{return .object([:])}
         var patch:JSONValue = .object(["lessonId":.string(id),"targetLang":.string(change.target),"cefrLevel":.string(change.level),"updatedAt":.string(WebProgressContract.iso(change.date))])
         if change.source == .speak {
@@ -54,6 +54,12 @@ public extension LearnerState {
         let earned=max(3,min(7,xp));addXP(earned,now:now,calendar:.current)
         var change=PracticeChange(date:now,dayKey:CalendarDay.key(now),target:target,level:lesson.cefrLevel ?? tutorLevel,amount:earned,source:.tutorTurn,contentID:lesson.id)
         var data:JSONValue = .object(["required":.number(Double(required)),"agenda":agenda]);if let quiz{data=data.setting("quiz",quiz).setting("replaceAgenda",.bool(true))};change.tutorData=data;enqueue(change);return change.id
+    }
+    /// Completed lessons keep a session agenda, while correct review turns still earn ordinary practice XP.
+    mutating func sourceTutorReview(lesson:Lesson,xp:Int,now:Date=Date()) {
+        let earned=max(3,min(7,xp));addXP(earned,now:now,calendar:.current)
+        var change=PracticeChange(date:now,dayKey:CalendarDay.key(now),target:target,level:lesson.cefrLevel ?? tutorLevel,amount:earned,source:.tutorTurn,contentID:lesson.id)
+        change.tutorData = .object(["review":.bool(true)]);enqueue(change)
     }
     @discardableResult mutating func completeSourceTutor(lesson:Lesson,required:Int,ready:Bool,gameCompleted:Bool=false,now:Date=Date())->Bool {
         guard ready,required>0,(gameCompleted || tutorProgress(lesson.id).earnedXP>=required),completed.insert(tutorKey(lesson.id)).inserted else{return false}

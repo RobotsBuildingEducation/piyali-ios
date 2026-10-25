@@ -574,6 +574,29 @@
       "declarations": [
         "composeOpenAIRealtimeResponseInstructions"
       ]
+    },
+    {
+      "file": "src/achievements/proficiencyCompletion.js",
+      "sha256": "6a384cef8e71f0481f548d2e27755c4dc42951dd9d3a85134ddf7e47cc3ac069",
+      "declarations": [
+        "tutorLevelFromCompletions",
+        "PROFICIENCY_LEVELS"
+      ]
+    },
+    {
+      "file": "src/achievements/progression.js",
+      "sha256": "09826ba0eb60c6bfa647c460776fad855244ef7c64a6dc25d1441e5380d9ed13",
+      "declarations": [
+        "PROFICIENCY_LEVELS"
+      ]
+    },
+    {
+      "file": "src/utils/courseProgress.js",
+      "sha256": "e182154b5986d226aa2f645a4e16f68bd6f59fd7edeac21f83f2df3ccbc77a96",
+      "declarations": [
+        "getCourseLevelStats",
+        "toCourseLevelKey"
+      ]
     }
   ],
   "adapters": [
@@ -605,7 +628,7 @@
     "useUserStore"
   ],
   "boundary": "Original pure declarations and prompt builders with explicit learner/lesson/agenda/reconnect snapshots. No React, source stores, Firebase, provider or transport executes. Regular agenda snapshot uses original item and progress helpers without its mount-time ref mutation; Swift owns sequencing and persistence.",
-  "fixtureCount": 307,
+  "fixtureCount": 451,
   "translationAdapter": {
     "resource": "Piyali/Resources/app-copy.json.gz",
     "sha256": "0ea8bc3ce2e566ced7a1f3bb623e912354f714ce849f7f100ed1d8171e215fbe",

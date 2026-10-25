@@ -48,6 +48,7 @@ public enum WebProgressContract {
         // only while the language placement map is entirely absent.
         state.legacyFirstRunPlacement = fields["proficiencyPlacements"] == nil || fields["proficiencyPlacements"] is NSNull ? (fields["proficiencyPlacement"] as? String).flatMap{$0.isEmpty ? nil : $0} : nil
         let progress = fields["progress"] as? [String:Any] ?? [:]
+        state.tutorUnlockedLevels=TutorProgression.merging(state.tutorUnlockedLevels,progress["tutorUnlockedLevels"] as? [String:String])
         let questKeys = Set(DailyPlate.fields.values).union(["dailyQuestFirstSeen","dailyQuestFirstDayKey","plateBonusDailyActivity"])
         state.questProgress = JSONValue.foundation(progress.filter { questKeys.contains($0.key) })
         for change in state.pendingChanges ?? [] where !(state.acknowledgedEventIDs ?? []).contains(change.id) { state.questProgress = DailyPlate.recorded(change,progress:state.plateProgress) }

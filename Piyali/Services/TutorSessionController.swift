@@ -31,6 +31,9 @@ import Combine
     private var levelCache:JSONValue?
     private var liveUpdates:AnyCancellable?
     private var completionLesson:Lesson?,completionChange:UUID?
+    private var reviewRecord:JSONValue?
+    var practicingCompletedLesson:Bool { reviewRecord != nil }
+    private func sessionRecord(_ app:AppModel)->JSONValue { reviewRecord ?? record(app) }
     init(live:LiveTutorService?=nil,provider:TutorProvider?=nil){self.live=live ?? TutorVoiceFixture.service();self.provider=provider;policy=try? TutorSourcePolicy();liveUpdates=self.live.objectWillChange.sink{[weak self] _ in self?.objectWillChange.send()}}
     static var fixture:Bool {TutorVoiceFixture.enabled}
     var id:String {lesson["id"].string}
@@ -55,7 +58,7 @@ import Combine
     func details(_ app:AppModel,lesson:JSONValue,unit:JSONValue)->JSONValue {
         let key=[app.learner.target,app.learner.support,unit["id"].string,lesson["id"].string].joined(separator:":")
         if let cached=contentCache[key]{return cached}
-        let value=(try? policy?.run("content",.object(["lesson":lesson,"unit":unit,"target":.string(app.learner.target),"support":.string(app.learner.support)]))) ?? .null
+        let value=(try? policy?.run("content",.object(["completed":.bool(practicingCompletedLesson),"lesson":lesson,"unit":unit,"target":.string(app.learner.target),"support":.string(app.learner.support)]))) ?? .null
         contentCache[key]=value;return value
     }
     func xpRequired(_ lesson:JSONValue)->Int {
@@ -66,8 +69,8 @@ import Combine
     func pathCopy(_ key:String,_ support:String)->String {let cacheKey=support+":"+key;if let cached=pathCopyCache[cacheKey]{return cached};let value=(try? policy?.run("pathCopy",.object(["key":.string(key),"support":.string(support)])))?.string ?? key;pathCopyCache[cacheKey]=value;return value}
     func levels()->JSONValue {if let levelCache{return levelCache};let value=(try? policy?.run("levels")) ?? .null;levelCache=value;return value}
     private func payload(_ app:AppModel)->JSONValue {
-        let settings:JSONValue = .object(["practicePronunciation":.bool(app.learner.conversation.pronunciation),"conversationSubjects":.string(app.learner.conversation.interests)]),record=record(app)
-        return .object(["lesson":lesson,"unit":unit,"target":.string(app.learner.target),"support":.string(app.learner.support),"level":.string(app.learner.tutorLevel),"user":app.learner.recipeUser,"settings":settings,"progress":record["tutorAgendaProgress"]["items"],"earned":record["earnedXp"],"turn":.number(Double(turn)),"messages":.array(messages),"resume":.array(resume),"pausedMessages":.array(pausedMessages),"voice":app.learner.plateProgress["tutorVoice"] == .null ? .string("marin"):app.learner.plateProgress["tutorVoice"],"persona":.string(app.learner.plateProgress["tutorVoicePersona"].string.isEmpty ? EntryCopy.ui(app.learner.support,"onboarding_persona_default_example"):app.learner.plateProgress["tutorVoicePersona"].string),"pause":.number(1200),"quizLastFeedback":quizFeedback,"quizPreviousAttemptResult":previousQuiz])
+        let settings:JSONValue = .object(["practicePronunciation":.bool(app.learner.conversation.pronunciation),"conversationSubjects":.string(app.learner.conversation.interests)]),record=sessionRecord(app)
+        return .object(["completed":.bool(practicingCompletedLesson),"lesson":lesson,"unit":unit,"target":.string(app.learner.target),"support":.string(app.learner.support),"level":.string(app.learner.tutorLevel),"user":app.learner.recipeUser,"settings":settings,"progress":record["tutorAgendaProgress"]["items"],"earned":record["earnedXp"],"turn":.number(Double(turn)),"messages":.array(messages),"resume":.array(resume),"pausedMessages":.array(pausedMessages),"voice":app.learner.plateProgress["tutorVoice"] == .null ? .string("marin"):app.learner.plateProgress["tutorVoice"],"persona":.string(app.learner.plateProgress["tutorVoicePersona"].string.isEmpty ? EntryCopy.ui(app.learner.support,"onboarding_persona_default_example"):app.learner.plateProgress["tutorVoicePersona"].string),"pause":.number(1200),"quizLastFeedback":quizFeedback,"quizPreviousAttemptResult":previousQuiz])
     }
     func refresh(_ app:AppModel) {guard owner == scope(app),!id.isEmpty else{return};content=details(app,lesson:lesson,unit:unit);state=(try? policy?.run("state",payload(app))) ?? .null}
     func prepare(_ app:AppModel) async {
@@ -94,17 +97,19 @@ import Combine
     func adoptLevel(_ app:AppModel){owner=scope(app)}
     func select(_ app:AppModel,lesson:JSONValue,unit:JSONValue){
         self.lesson=lesson;self.unit=unit;messages=[];resume=[];pausedMessages=[];turn=0;quizFeedback = .null;previousQuiz = .null;seenInputs=[];seenResponses=[];lastInput="";lastInputAt = .distantPast
-        quiz=record(app)["tutorAgendaProgress"]["quiz"];refresh(app)
+        let saved=record(app)
+        reviewRecord=saved["status"].string == "completed" ? saved.setting("earnedXp",.number(Double(xpRequired(lesson)))):nil
+        quiz=sessionRecord(app)["tutorAgendaProgress"]["quiz"];refresh(app)
     }
     func start(_ app:AppModel,resuming:Bool=false) async {
         guard !live.connected,!live.connecting,!saving,!id.isEmpty,Self.fixture || app.subscription.hasAccess,let policy,let typedLesson else{return}
         error=nil;draftTask?.cancel()
         if !resuming {
-            let privateMessages=messages.isEmpty ? ((try? policy.run("resume",.object(["record":record(app)]))) ?? .null)["resumeContextMessages"].array:messages
+            let privateMessages=messages.isEmpty ? ((try? policy.run("resume",.object(["record":sessionRecord(app)]))) ?? .null)["resumeContextMessages"].array:messages
             resume=privateMessages;messages=[];pausedMessages=[];turn=0;mutedWhenPaused=false;seenInputs=[];seenResponses=[]
         }
         paused=false;epoch=UUID();let token=epoch
-        app.learner.storeTutorState(lesson:typedLesson,data:.object(["kind":.string("start"),"agenda":record(app)["tutorAgendaProgress"]["items"]]));app.persist();refresh(app)
+        if !practicingCompletedLesson {app.learner.storeTutorState(lesson:typedLesson,data:.object(["kind":.string("start"),"agenda":record(app)["tutorAgendaProgress"]["items"]]));app.persist()};refresh(app)
         welcomePending = !resuming && state["starter"].boolean && resume.isEmpty
         do {
             let session=try policy.run("session",payload(app))
@@ -154,7 +159,7 @@ import Combine
             let grade=try policy.run("grade",.object(["parsed":parsed,"local":.bool(!isQuiz && local["local"].boolean),"attempted":.bool(semantic)]))
             let confidence=grade["confidence"].number,accepted=grade["verdict"].string == "accepted",mistake=parsed["mistake"].boolean && confidence>=0.55 && !accepted
             let objective=local["objectiveLocal"].boolean || (grade["successful"].boolean && (parsed["objectiveAdvanced"] == .null || parsed["objectiveAdvanced"].boolean))
-            var agenda=record(app)["tutorAgendaProgress"]["items"],acceptedIDs:[JSONValue]=[]
+            var agenda=sessionRecord(app)["tutorAgendaProgress"]["items"],acceptedIDs:[JSONValue]=[]
             if isQuiz,semantic,confidence>=0.55,parsed["quizAnswered"].boolean {
                 let next=try policy.run("quiz",.object(["items":before["items"],"progress":agenda,"correctItems":quiz["correctItems"],"correct":.bool(accepted)]))
                 agenda=next["progress"];quiz = .object(["correctItems":next["correctItems"],"attemptNumber":.number(max(1,quiz["attemptNumber"].number)+(next["failed"].boolean ? 1:0))]);quizFeedback = .object(["correct":.bool(accepted),"correction":parsed["correction"],"reason":parsed["reason"]]);previousQuiz=next["failed"].boolean ? .object(["score":next["score"],"total":.number(Double(before["items"].array.count))]):.null
@@ -168,20 +173,29 @@ import Combine
             if accepted {
                 // A confirmed local phrase remains XP-worthy even when the
                 // capability judge cannot advance the current objective.
-                completionPending=record(app)["earnedXp"].number+7>=Double(required) && (isQuiz || before["items"].array.allSatisfy{agenda[$0["id"].string].boolean})
-                app.learner.sourceTutorTurn(lesson:typedLesson,required:required,agenda:agenda,xp:Int.random(in:3...7),quiz:isQuiz ? quiz:nil)
+                if practicingCompletedLesson {
+                    app.learner.sourceTutorReview(lesson:typedLesson,xp:Int.random(in:3...7))
+                }else {
+                    completionPending=record(app)["earnedXp"].number+7>=Double(required) && (isQuiz || before["items"].array.allSatisfy{agenda[$0["id"].string].boolean})
+                    app.learner.sourceTutorTurn(lesson:typedLesson,required:required,agenda:agenda,xp:Int.random(in:3...7),quiz:isQuiz ? quiz:nil)
+                }
                 app.learner.assess(correct:true,independent:true,questionLevel:question?["questionLevel"].string.nilIfEmpty ?? state["level"].string,worth:quoted ?? nil,mode:"tutor",support:"independent");feedback = .init(correct:true)
             }else {
-                if isQuiz {app.learner.storeTutorState(lesson:typedLesson,data:.object(["agenda":agenda,"quiz":quiz,"replaceAgenda":.bool(true)]))}
+                if isQuiz,!practicingCompletedLesson {app.learner.storeTutorState(lesson:typedLesson,data:.object(["agenda":agenda,"quiz":quiz,"replaceAgenda":.bool(true)]))}
                 if mistake {
                     app.learner.assess(correct:false,independent:false,questionLevel:question?["questionLevel"].string.nilIfEmpty ?? state["level"].string,worth:quoted ?? nil,concept:parsed["concept"].string,mode:"tutor")
                     app.learner.captureMemory(mode:"tutor",concept:parsed["concept"].string.nilIfEmpty ?? parsed["correction"].string,answer:text,expected:parsed["correction"].string,feedback:parsed["reason"].string,context:"tutor",questionLevel:state["level"].string,sourceContext:.string("tutor"));feedback = .init(correct:false)
                 }
             }
+            if let saved=reviewRecord {
+                var progress=saved["tutorAgendaProgress"].setting("items",agenda)
+                if isQuiz {progress=progress.setting("quiz",quiz)}
+                reviewRecord=saved.setting("tutorAgendaProgress",progress)
+            }
             app.persist();refresh(app)
             if accepted || mistake {app.learner.history.insert(.init(date:now,target:app.learner.target,mode:"Tutor",question:question?["textFinal"].string ?? "",answer:text,feedback:parsed["reason"].string,correct:accepted,repairInMemory:mistake),at:0);app.learner.history=Array(app.learner.history.prefix(500));app.persist()}
             let ready=isQuiz || state["isComplete"].boolean
-            if ready,record(app)["earnedXp"].number>=Double(required){await complete(app,ready:true);return}
+            if !practicingCompletedLesson,ready,record(app)["earnedXp"].number>=Double(required){await complete(app,ready:true);return}
             completionPending=false
             if Self.fixture || app.subscription.hasAccess {let session=try policy.run("session",payload(app));live.updateTranscription(session["audio"]["input"]["transcription"]);try request(app,answer:text,accepted:.array(acceptedIDs),verdict:grade["verdict"].string)}else{await stop(app)}
         }catch {if valid(app,token){self.error="This turn could not be checked. Please try again.";grading=false;completionPending=false;live.discardInput(input.id)}}
@@ -206,7 +220,7 @@ import Combine
         if saveDraft{flushDraft(app)};epoch=UUID();draftTask?.cancel();worth.values.forEach{$0.cancel()};worth=[:];paused=false;grading=false;await live.stop()
     }
     func complete(_ app:AppModel,ready:Bool,gameCompleted:Bool=false) async {
-        guard let typedLesson,let policy,!saving else{return}
+        guard !practicingCompletedLesson,let typedLesson,let policy,!saving else{return}
         completionPending=true;draftTask?.cancel();saving=true;let token=epoch
         defer{if epoch == token{saving=false}}
         if completionChange == nil {
@@ -216,7 +230,15 @@ import Combine
         await live.stop();paused=false;await app.sync();guard valid(app,token) else{return}
         if !Self.fixture,let change=completionChange,app.learner.pendingChanges?.contains(where:{$0.id == change}) == true {error="Tutor progress is saved on this iPhone. Retry when you’re connected to finish saving.";return}
         completion=try? policy.run("completed",payload(app).setting("earned",.number(Double(required))))
-        let level=app.learner.tutorLevel,next=path(app,level:level,id:id)["next"]
+        let level=app.learner.tutorLevel
+        var next=path(app,level:level,id:id)["next"]
+        if next["lesson"] == .null,let index=LearningLanguages.levels.firstIndex(of:level),index+1<LearningLanguages.levels.count {
+            let nextLevel=LearningLanguages.levels[index+1]
+            if app.tutorLevels.contains(nextLevel),!catalog[nextLevel].array.isEmpty {
+                next=path(app,level:nextLevel)["current"]
+                app.setTutorLevel(nextLevel);owner=scope(app)
+            }
+        }
         if next["lesson"] != .null{select(app,lesson:next["lesson"],unit:next["unit"])}else{refresh(app)}
         completionChange=nil;completionLesson=nil;error=nil
     }

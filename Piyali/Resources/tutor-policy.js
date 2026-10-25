@@ -7489,7 +7489,7 @@ const getTutorLessonLaunchMode=M30.getTutorLessonLaunchMode;
 const getTutorAgendaSnapshot=M31.getTutorAgendaSnapshot;
 const targetLang=p.target||'es',resolvedSupportLang=p.support||'en',supportLang=resolvedSupportLang,maxProficiencyLevel=p.level||p.lesson?.cefrLevel||'Pre-A1';
 const inlineFeedbackRef={current:p.feedback||''},pausedMessagesRef={current:p.pausedMessages||[]};
-const selectedTutorLessonRef={current:p.lesson||null},selectedTutorUnitRef={current:p.unit||null},targetLangRef={current:targetLang},supportLangRef={current:resolvedSupportLang},conversationSettingsRef={current:{proficiencyLevel:maxProficiencyLevel,...p.settings}},messagesRef={current:p.messages||[]},realtimeProviderRef={current:'openai'},turnCountRef={current:p.turn||0},openAIRegularAgendaRef={current:{progress:p.progress||{},quizLastFeedback:p.quizLastFeedback,quizPreviousAttemptResult:p.quizPreviousAttemptResult}},tutorStarterAgendaProgressRef={current:p.progress||{}},tutorLessonEarnedXpRef={current:p.earned||0},tutorLessonCompletionTriggeredRef={current:false},tutorRestoredConversationNeedsContextRef={current:!!p.resume?.length},tutorConversationResumeContextRef={current:p.resume||[]},tutorItemRetryCountRef={current:p.retry||0},voicePersonaRef={current:p.persona||''};
+const selectedTutorLessonRef={current:p.lesson||null},selectedTutorUnitRef={current:p.unit||null},targetLangRef={current:targetLang},supportLangRef={current:resolvedSupportLang},conversationSettingsRef={current:{proficiencyLevel:maxProficiencyLevel,...p.settings}},messagesRef={current:p.messages||[]},realtimeProviderRef={current:'openai'},turnCountRef={current:p.turn||0},openAIRegularAgendaRef={current:{progress:p.progress||{},quizLastFeedback:p.quizLastFeedback,quizPreviousAttemptResult:p.quizPreviousAttemptResult}},tutorStarterAgendaProgressRef={current:p.progress||{}},tutorLessonEarnedXpRef={current:p.earned||0},tutorLessonCompletionTriggeredRef={current:!!p.completed},tutorRestoredConversationNeedsContextRef={current:!!p.resume?.length},tutorConversationResumeContextRef={current:p.resume||[]},tutorItemRetryCountRef={current:p.retry||0},voicePersonaRef={current:p.persona||''};
 const currentGoalFocus=()=>p.goalFocus||null,currentRepairFocus=()=>p.repairFocus||null,useUserStore={getState:()=>({user:p.user||null})};
 function getOpenAIRegularTutorAgendaSnapshot(){const lesson=p.lesson;if(!lesson||lesson.isGoal||lesson.isRepair||isTutorStarterAgendaLesson(lesson))return null;const items=getTutorLessonFocusAgendaItems(lesson,resolvedSupportLang,targetLang,p.unit);return items.length?{lesson,items,...getTutorAgendaSnapshot(items,p.progress||{})}:null;}
 const DEFAULT_TUTOR_PAUSE_MS = 1200;
@@ -10287,6 +10287,49 @@ function composeOpenAIRealtimeResponseInstructions(
   return [composed, suffix].filter(Boolean).join("\n\n");
 }
 return {composeOpenAIRealtimeResponseInstructions};})();
+// src/achievements/progression.js
+const M35=(function(){
+
+
+const PROFICIENCY_LEVELS = ["Pre-A1", "A1", "A2", "B1", "B2", "C1", "C2"];
+return {PROFICIENCY_LEVELS};})();
+// src/achievements/proficiencyCompletion.js
+const M34=(function(){
+const PROFICIENCY_LEVELS=M35.PROFICIENCY_LEVELS;
+
+function tutorLevelFromCompletions(status) {
+  let unlocked = PROFICIENCY_LEVELS[0];
+  for (let i = 0; i < PROFICIENCY_LEVELS.length; i++) {
+    if (status?.[PROFICIENCY_LEVELS[i]]?.isComplete === true) {
+      unlocked = PROFICIENCY_LEVELS[Math.min(i + 1, PROFICIENCY_LEVELS.length - 1)];
+    }
+  }
+  return unlocked;
+}
+return {tutorLevelFromCompletions,PROFICIENCY_LEVELS};})();
+// src/utils/courseProgress.js
+const M36=(function(){
+
+
+function toCourseLevelKey(level) {
+  return String(level || "")
+    .trim()
+    .toLowerCase()
+    .replace(/-/g, "_");
+}
+function getCourseLevelStats(summary, mode, level, fallbackTotal = 0) {
+  const key = toCourseLevelKey(level);
+  const stored = summary?.[mode]?.levels?.[key];
+  const completed = Number(stored?.completed);
+  const total = Number(stored?.total);
+  return {
+    completed: Number.isFinite(completed) ? Math.max(0, completed) : null,
+    total: Number.isFinite(total)
+      ? Math.max(0, total)
+      : Math.max(0, Number(fallbackTotal) || 0),
+  };
+}
+return {getCourseLevelStats,toCourseLevelKey};})();
 const localizedCopy={"Choose a lesson":{
       en: "Choose a lesson",
       es: "Elige una leccion",
@@ -10502,6 +10545,8 @@ case 'path':value={statuses:Object.fromEntries((p.units||[]).flatMap(unit=>(unit
 case 'state':{const starter=t.isTutorStarterAgendaLesson(p.lesson),items=starter?t.TUTOR_STARTER_AGENDA_ITEMS.map(item=>({id:item.id,phrase:t.getTutorStarterItemModelPhrase(item,p.target),label:t.getTutorStarterItemSupportTask(item,p.support),meaning:t.getTutorStarterItemSupportMeaning(item,p.support),targetForms:[t.getTutorStarterItemModelPhrase(item,p.target)]})):t.getTutorLessonFocusAgendaItems(p.lesson,p.support,p.target,p.unit);value={starter,required:t.getTutorLessonXpRequired(p.lesson),level:t.getTutorAdaptiveLevel(p.level||p.unit?.cefrLevel||'Pre-A1'),items,...f.getTutorAgendaSnapshot(items,p.progress||{})};break;}
 case 'classify':{const starter=t.isTutorStarterAgendaLesson(p.lesson),candidateIds=t.getTutorStarterAgendaCandidateItemIds(),exact=starter?t.getTutorStarterAgendaMatches(p.answer,p.target):[],phrases=starter?candidateIds.map(id=>t.TUTOR_STARTER_AGENDA_ITEMS.find(item=>item.id===id)).filter(Boolean).map(item=>t.getTutorStarterItemModelPhrase(item,p.target)):t.getRegularTutorAcceptedPhrases(),regular=!starter&&phrases.some(phrase=>t.tutorPhraseMatchesTranscript(phrase,p.answer)),direct=t.anyTutorPhraseIsDirectAnswer(phrases,p.answer),local=t.getLocalTutorTurnSuccessfulForXp({isStarterLesson:starter,starterCandidateItemIds:candidateIds,exactStarterMatches:exact,regularTurnAccepted:regular,directPhraseAnswer:direct}),objectiveLocal=!starter&&local?t.transcriptDemonstratesOpenAIRegularObjective(p.answer):false;value={starter,candidateIds,phrases,local,objectiveLocal,options:{starterCandidateItemIds:candidateIds,exactStarterMatches:exact,regularPhraseMatch:regular,directPhraseAnswer:direct,acceptedPhrases:phrases}};break;}
 
+case 'earnedLevel':value=M34.tutorLevelFromCompletions(p.status);break;
+case 'levelStats':{const stats=M36.getCourseLevelStats(p.summary,'tutor',p.level,p.fallbackTotal),total=stats.total||p.fallbackTotal,completed=stats.completed??p.localCompleted;value={total,completed,isComplete:total>0&&completed>=total,progress:total>0?Math.round(completed/total*100):0};break;}
 case 'levels':value=t.TUTOR_LEVEL_INFO;break;
 case 'copy':value=t.tutorCopy(p.support,localizedCopy[p.text]||{en:p.text});break;
 case 'pathCopy':value=t.getTutorPathCopy(p.key,p.support);break;

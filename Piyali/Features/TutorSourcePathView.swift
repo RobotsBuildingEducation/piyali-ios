@@ -17,9 +17,7 @@ struct TutorSourcePathView:View {
     private var support:String{app.learner.support}
     private var levels:JSONValue{tutor.levels()}
     private var info:JSONValue{levels[level]}
-    private var total:Int{units.reduce(0){$0+$1["lessons"].array.count}}
-    private var completed:Int{statuses.object.values.filter{$0.string == "completed"}.count}
-    private var progress:Int{total>0 ? Int((Double(completed)/Double(total)*100).rounded()):0}
+    private var progress:Int{app.learner.tutorCompletion(level:level,index:app.tutorCurriculumIndex[app.learner.target] ?? [:]).progress}
     private var revision:String{level+":"+String(app.learner.pendingChanges?.count ?? 0)+":"+String(app.learner.completed.count)}
     var body:some View {
         ZStack{

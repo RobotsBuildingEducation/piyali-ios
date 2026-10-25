@@ -75,7 +75,7 @@ public extension LearnerState {
         }
         var intelligence=goalIntelligence ?? [:]
         intelligence[target]=goalBucket.setting("elo",goalBucket["elo"].setting("rating",.number(rating)).setting("scaleVersion",.number(Double(PerformanceScore.version))).setting("totalGraded",.number(Double(gradedByLanguage?[target] ?? 0))))
-        let progress=plateProgress.setting("targetLang",.string(target)).setting("level",.string(level)).setting("cefrLevel",.string(level)).setting("tutorUnlockedLevels",.object((tutorLevels ?? [:]).mapValues(JSONValue.string)))
+        let progress=plateProgress.setting("targetLang",.string(target)).setting("level",.string(level)).setting("cefrLevel",.string(level)).setting("tutorUnlockedLevels",.object((tutorUnlockedLevels ?? [:]).mapValues(JSONValue.string)))
         return .object(["schemaVersion":.number(2),"questDaysLoaded":.object(Dictionary(uniqueKeysWithValues:(companionQuestDays ?? [:]).keys.map{($0,.bool(true))})),"dailyQuestBlueprint":.object(blueprint),"dailyQuestRepair":.object(repair),"dailyQuestExplanations":.object(explanation),"companionMemory":.object((companionMemory ?? [:]).mapValues{.object(["notes":.array($0.map{.object($0.fields)})])}),"learningIntelligence":.object(intelligence),"progress":progress])
     }
     mutating func importQuestDay(_ value:JSONValue,target:String,day:String) {

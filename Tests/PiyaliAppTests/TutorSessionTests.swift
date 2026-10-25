@@ -108,3 +108,42 @@ extension TutorSessionTests {
         session.closeReview();XCTAssertFalse(session.completionPending);XCTAssertFalse(app.subscription.hasAccess);XCTAssertEqual(app.learner.totalXP,349);await session.stop(app)
     }
 }
+
+extension TutorSessionTests {
+    func testCompletedVoiceLessonAdvancesSessionAgendaAndRewardsPracticeWithoutRecompletion()async throws {
+        let app=try await app();defer{try? app.identity.disconnect()};let transport=TutorTransport(),session=await session(app,transport,provider:provider(.object(["successful":.bool(true),"confidence":.number(1),"objectiveAdvanced":.bool(true)])))
+        let unit=try XCTUnwrap(session.catalog["A1"].array.first),lesson=try XCTUnwrap(unit["lessons"].array.first),id=lesson["id"].string,required=session.xpRequired(lesson)
+        let canonical:JSONValue = .object(["lessonId":.string(id),"status":.string("completed"),"earnedXp":.number(Double(required)),"completedAt":.string("2026-10-25T00:00:00Z"),"foreign":.string("keep")])
+        app.learner.tutorLevels=["es":"A1"];session.adoptLevel(app);app.learner.completed.insert(app.learner.tutorKey(id));app.learner.tutorLessons=[app.learner.tutorKey(id):TutorSourceProgress.importing(canonical)]
+        session.select(app,lesson:lesson,unit:unit);let first=session.state["currentItem"]["id"];XCTAssertTrue(session.practicingCompletedLesson);XCTAssertFalse(first.string.isEmpty)
+        await session.start(app);transport.assistant("Attempt this practice objective.")
+        await session.input(input("A public practice response","review-turn"),app:app);let xp=app.learner.totalXP
+        XCTAssertTrue((3...7).contains(xp));XCTAssertNotEqual(session.state["currentItem"]["id"],first);XCTAssertEqual(app.learner.tutorProgress(id).sourceState,canonical)
+        XCTAssertEqual(app.learner.pendingChanges?.filter{$0.source == .speak}.count ?? 0,0);XCTAssertFalse(session.completionPending);XCTAssertNil(session.completion);XCTAssertTrue(session.live.connected)
+        session.refresh(app);XCTAssertNotEqual(session.state["currentItem"]["id"],first,"Cloud refresh does not reset session-only progress")
+        await session.complete(app,ready:true);XCTAssertEqual(app.learner.totalXP,xp);XCTAssertNil(session.completion)
+        session.flushDraft(app);XCTAssertEqual(app.learner.tutorProgress(id).sourceState,canonical)
+        await session.stop(app);await session.start(app);XCTAssertTrue(session.messages.isEmpty);XCTAssertNotEqual(session.state["currentItem"]["id"],first)
+        await session.stop(app)
+    }
+    func testTutorInheritsHighestOtherCourseUnlockButKeepsExplicitLowerBrowsingChoice()async throws {
+        let app=try await app();defer{try? app.identity.disconnect()}
+        app.learner.place(PlacementAssessment.estimate(["read_write"])!);app.learner.tutorLevels=nil;await app.reloadContent()
+        XCTAssertEqual(app.learner.tutorLevel,"B1");XCTAssertEqual(app.tutorLevels.last,"B1")
+        app.setTutorLevel("Pre-A1");await app.reloadContent();XCTAssertEqual(app.learner.tutorLevel,"Pre-A1");XCTAssertEqual(app.tutorLevels.last,"B1")
+        app.learner.tutorUnlockedLevels=["es":"C1"];XCTAssertEqual(app.tutorLevels.last,"C1");XCTAssertEqual(app.learner.tutorLevel,"Pre-A1")
+    }
+}
+
+extension TutorSessionTests {
+    func testFinalLessonContinuesIntoNextTutorCourseWithoutChangingCompletionReview()async throws {
+        let app=try await app(progressService:TutorAcknowledgment());defer{try? app.identity.disconnect()};let transport=TutorTransport(),session=await session(app,transport)
+        let units=session.catalog["Pre-A1"].array,unit=try XCTUnwrap(units.last),lesson=try XCTUnwrap(unit["lessons"].array.last),id=lesson["id"].string,required=session.xpRequired(lesson)
+        for previous in units.flatMap({$0["lessons"].array}) where previous["id"].string != id {app.learner.completed.insert(app.learner.tutorKey(previous["id"].string))}
+        app.learner.tutorLessons=[app.learner.tutorKey(id):TutorSourceProgress.importing(.object(["status":.string("in_progress"),"earnedXp":.number(Double(required))]))]
+        session.select(app,lesson:lesson,unit:unit);await session.complete(app,ready:true)
+        XCTAssertEqual(app.learner.tutorLevel,"A1");XCTAssertEqual(app.tutorLevels.last,"A1");XCTAssertEqual(session.id,"lesson-a1-5-1");XCTAssertEqual(session.unit["cefrLevel"].string,"A1")
+        XCTAssertEqual(session.completion?["title"],session.details(app,lesson:lesson,unit:unit)["title"]);XCTAssertEqual(session.completion?["level"].string,"Pre-A1");XCTAssertEqual(session.completion?["xpEarned"].number,Double(required));XCTAssertFalse(session.practicingCompletedLesson)
+        session.closeCompletion();XCTAssertEqual(session.review?["title"],session.details(app,lesson:lesson,unit:unit)["title"]);XCTAssertEqual(session.review?["level"].string,"Pre-A1");session.closeReview();await session.stop(app)
+    }
+}

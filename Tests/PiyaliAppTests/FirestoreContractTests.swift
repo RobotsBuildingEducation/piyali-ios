@@ -987,3 +987,29 @@ extension FirestoreContractTests {
         XCTAssertEqual(data["status"] as? String,"completed");XCTAssertNil(data["conversationDraft"]);XCTAssertNil(data["tutorAgendaProgress"]);XCTAssertEqual(data["foreignDate"] as? Timestamp,foreignDate);XCTAssertEqual((data["foreignField"] as? [String:Bool])?["keep"],true);XCTAssertTrue((root["progress"] as? [String:Any])?["currentTutorLesson"] is NSNull);XCTAssertEqual(root["unrelatedWebSetting"] as? String,"preserve");XCTAssertEqual(final.courseCompletion?["fr"]?["tutor"]?["Pre-A1"],1)
     }
 }
+
+extension FirestoreContractTests {
+    func testTutorSummaryUnlockAndCompletedReviewPreserveCanonicalWorkAcrossStaleDevices()async throws {
+        let (service,db,npub)=try context();try await seed(db,npub);let user=db.collection("users").document(npub),summary=user.collection("courseProgress").document("fr")
+        try await summary.setData(["tutor":["levels":["b1":["completed":105,"total":105],"pre_a1":["completed":0,"total":86]]]])
+        var state=try requireState(await service.load(npub:npub));XCTAssertEqual(state.earnedTutorLevel(index:[:]),"B2");XCTAssertEqual(state.tutorLevel,"A1");XCTAssertNil(state.courseCompletion?["fr"]?["tutor"]?["A1"])
+        _=try await service.save(state,npub:npub)
+        var root=try await user.getDocument(source:.server).data() ?? [:]
+        XCTAssertEqual(((root["progress"] as? [String:Any])?["tutorUnlockedLevels"] as? [String:String])?["fr"],"B2")
+        let stale=state
+        try await user.updateData(["progress.tutorUnlockedLevels.fr":"C1","progress.tutorUnlockedLevels.ja":"B1"])
+        _=try await service.save(stale,npub:npub);_=try await service.save(stale,npub:npub)
+        root=try await user.getDocument(source:.server).data() ?? [:]
+        XCTAssertEqual((root["progress"] as? [String:Any])?["tutorUnlockedLevels"] as? [String:String],["fr":"C1","ja":"B1"])
+        let curriculum=try ContentLibrary.load([String:[LearningUnit]].self,name:"tutor-curriculum-fr"),lesson=try XCTUnwrap(curriculum["A1"]?.first?.lessons.first),reference=user.collection("tutorLanguageLessons").document("fr_"+lesson.id)
+        let date=Timestamp(date:Date(timeIntervalSince1970:1792800000))
+        try await reference.setData(["lessonId":lesson.id,"targetLang":"fr","cefrLevel":"A1","status":"completed","earnedXp":50,"completedAt":date,"foreignDate":date])
+        state=try requireState(await service.load(npub:npub));let xp=state.totalXP
+        state.sourceTutorReview(lesson:lesson,xp:5);_=try await service.save(state,npub:npub);_=try await service.save(state,npub:npub)
+        let restored=try requireState(await service.load(npub:npub)),record=try await reference.getDocument(source:.server).data() ?? [:]
+        XCTAssertEqual(restored.totalXP,xp+5);XCTAssertEqual(restored.tutorProgress(lesson.id).earnedXP,50)
+        XCTAssertEqual(record["status"] as? String,"completed");XCTAssertEqual(record["completedAt"] as? Timestamp,date);XCTAssertEqual(record["foreignDate"] as? Timestamp,date);XCTAssertNil(record["tutorAgendaProgress"]);XCTAssertNil(record["conversationDraft"])
+        XCTAssertEqual(restored.courseCompletion?["fr"]?["tutor"]?["B1"],105);XCTAssertEqual(restored.courseCompletion?["fr"]?["tutor"]?["A1"],0,"The achievement migration creates a real zero count, preserved by review")
+        XCTAssertEqual(restored.tutorUnlockedLevels?["fr"],"C1");XCTAssertEqual(restored.plateProgress["speakDailyActivity"]["fr"][CalendarDay.key(Date())].number,0)
+    }
+}
