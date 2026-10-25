@@ -21,6 +21,7 @@ struct ProductShellView:View {
     @EnvironmentObject var app:AppModel
     @Environment(\.colorScheme) private var scheme
     @Environment(\.scenePhase) private var scenePhase
+    @State private var practiceSounds=PracticeSoundPlayer()
     @StateObject private var timer=SessionTimerController()
     @State private var goalOpen=false
     @State private var timerOpen=false
@@ -37,14 +38,13 @@ struct ProductShellView:View {
     @State private var modesOpen=false
     @State private var panel:ProductPanel?
     @State private var revision=UUID()
-    @State private var guided:GuidedPracticeSession?
-    @State private var celebration=false
-    @State private var waitingCelebration=false
+    @StateObject private var practice:PlatePracticeController
     @State private var lessonCompletion:LessonCompletionPresentation?
     @State private var presentedLessonCompletionID:UUID?
     private var language:String { app.learner.support }
     private var brand:PiyaliBrand { PiyaliBrand(dark:scheme == .dark) }
-    private var sessionKey:String { "piyali.guidedSession."+app.identity.npub }
+    init(now:Date=Date(),practice:PlatePracticeController?=nil){self.now=now;_practice=StateObject(wrappedValue:practice ?? PlatePracticeController())}
+    private var presentationKey:String { [String(panel != nil),String(menuOpen),String(goalOpen),String(timerOpen),String(timer.session.status == .finished),String(firstRun.step != nil),String(app.goalCheck != nil),String(app.flashcardSession != nil),String(lessonCompletion != nil)].joined(separator:":") }
     private var firstRunScope:String {app.identity.npub+":"+app.learner.target}
     private var contextKey:String { app.identity.npub+":"+app.learner.target+":"+CalendarDay.key(now) }
     private var timerAwardKey:String {timer.session.account+":"+(timer.pending.first ?? "")+":"+timerAwardRevision.uuidString}
@@ -69,7 +69,7 @@ struct ProductShellView:View {
                 }
             if menuOpen { menu }
         }.font(PiyaliBrand.productFont(16)).foregroundStyle(brand.text)
-            .accessibilityElement(children:.contain).accessibilityHidden(app.flashcardSession != nil || app.goalCheck != nil || lessonCompletion != nil || firstRun.step != nil || goalOpen || timerOpen || timer.session.status == .finished)
+            .accessibilityElement(children:.contain).accessibilityHidden(app.flashcardSession != nil || app.goalCheck != nil || lessonCompletion != nil || firstRun.step != nil || goalOpen || timerOpen || timer.session.status == .finished || practice.visible != nil || practice.dailyGoalVisible != nil)
             .overlay {
                 if let data=lessonCompletion {
                     ZStack {
@@ -97,7 +97,7 @@ struct ProductShellView:View {
             .overlay{if let goalCheck=app.goalCheck {GoalCheckDialog(presentation:goalCheck)}}
             .overlay{if goalOpen{DailyGoalManagerView(onClose:{goalOpen=false}).accessibilityHidden(timerOpen || timer.session.status == .finished)}}
             .overlay{if timerOpen{SessionTimerView(timer:timer,language:language,onClose:{timerOpen=false}).accessibilityHidden(timer.session.status == .finished)}}
-            .overlay{if timer.session.status == .finished,firstRun.step == nil,lessonCompletion == nil,panel == nil,app.goalCheck == nil{SessionTimeUpView(minutes:timer.session.duration/60,language:language,onClose:timer.clear,onRestart:{timer.clear();timerOpen=true})}}
+            .overlay{if timer.session.status == .finished,practice.visible == nil,firstRun.step == nil,lessonCompletion == nil,panel == nil,app.goalCheck == nil{SessionTimeUpView(minutes:timer.session.duration/60,language:language,onClose:timer.clear,onRestart:{timer.clear();timerOpen=true})}}
             .environment(\.layoutDirection,language == "ar" ? .rightToLeft : .leftToRight)
     }
     private var timedShell:some View {
@@ -113,7 +113,8 @@ struct ProductShellView:View {
             .onChange(of:app.identity.npub){_,_ in goalOpen=false;timerOpen=false;timer.load(account:app.identity.npub)}
             .onChange(of:timer.session.status){_,value in if value == .finished{UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder),to:nil,from:nil,for:nil)}}
             .sheet(item:$panel) { selected in NavigationStack { panelContent(selected).toolbar { ToolbarItem(placement:.confirmationAction) { Button(EntryCopy.text(language,"back_button")) { panel=nil }.accessibilityIdentifier("productPanelClose") } } }.tint(PiyaliBrand.teal) }
-            .sheet(isPresented:$celebration) { completion }
+            .overlay {if let reward=practice.dailyGoalVisible{DailyGoalCelebrationView(reward:reward,onContinue:{practice.closeDailyGoal(app)})}}
+            .overlay {if let data=practice.visible {PlateCelebrationView(data:data,language:language,onContinue:{practice.continuePractice(app,ephemeralLesson:specialCourse != nil && mode == .path)},onNotes:{practice.continuePractice(app,viewNotes:true,ephemeralLesson:specialCourse != nil && mode == .path)}).environment(\.layoutDirection,language == "ar" ? .rightToLeft:.leftToRight)}}
     }
     private var sessionShell:some View {
         timedShell
@@ -121,40 +122,44 @@ struct ProductShellView:View {
                 timer.load(account:app.identity.npub)
                 if app.learner.dailyKey != CalendarDay.key(now) { app.learner.rollDay(now:now);app.persist() }
                 app.prepareDailyPlate()
-                if let guided,!guided.matches(account:app.identity.npub,target:app.learner.target,day:CalendarDay.key(now)) { celebration=false;waitingCelebration=false;specialCourse=nil }
-                restoreSession()
+                if let guided=practice.guided,!guided.matches(account:app.identity.npub,target:app.learner.target,day:CalendarDay.key(now)){specialCourse=nil}
+                configurePractice()
+                practice.bind(app)
                 presentPendingLessonCompletion()
             }
     }
     private var goalCoordinatedShell:some View {
         sessionShell
-            .onChange(of:app.flashcardSession?.id){_,id in if id == nil {presentPendingLessonCompletion();checkCompletion()}}
-            .onChange(of:app.goalCheck?.id){_,value in if value == nil {presentPendingLessonCompletion();checkCompletion()}}
+            .onChange(of:app.flashcardSession?.id){_,id in if id == nil {presentPendingLessonCompletion();updatePracticePresentation()}}
+            .onChange(of:app.goalCheck?.id){_,value in if value == nil {presentPendingLessonCompletion();updatePracticePresentation()}}
             .onChange(of:app.goalCourseScope,goalScopeChanged)
-            .onDisappear{cancelPracticeLaunch()}
+            .onDisappear{cancelPracticeLaunch();practice.unbind();practiceSounds.stop()}
             .onChange(of:app.readyGoal?["modeProgress"]){_,_ in if let check=app.goalCheck,let daily=app.readyGoal,let next=GoalPractice.nextMode(daily),next != check.blueprint["mode"].string {app.goalCheck=nil}}
-            .onChange(of:goalOpen){_,open in if !open {presentPendingLessonCompletion();checkCompletion()}}
-            .onChange(of:timerOpen){_,open in if !open {presentPendingLessonCompletion();checkCompletion()}}
-            .onChange(of:timer.session.status){_,status in if status != .finished {presentPendingLessonCompletion();checkCompletion()}}
-            .onChange(of:firstRun.step){_,step in if step == nil {presentPendingLessonCompletion();checkCompletion()}}
+            .onChange(of:goalOpen){_,open in if !open {presentPendingLessonCompletion();updatePracticePresentation()}}
+            .onChange(of:timerOpen){_,open in if !open {presentPendingLessonCompletion();updatePracticePresentation()}}
+            .onChange(of:timer.session.status){_,status in if status != .finished {presentPendingLessonCompletion();updatePracticePresentation()}}
+            .onChange(of:firstRun.step){_,step in if step == nil {presentPendingLessonCompletion();updatePracticePresentation()}}
     }
     var body:some View {
         goalCoordinatedShell
             // The value publisher replays a footer created while NavigationStack is mounting.
             .onReceive(app.$activityFooter) { footer in activityFooter=footer;if footer == nil {app.activityFooterHeight=0} }
             .onChange(of:app.learner.target) { _,_ in revision=UUID() }
-            .onChange(of:app.localPracticeRevision) { _,_ in checkCompletion() }
-            .onChange(of:panel) { _,value in if value == nil { presentPendingLessonCompletion();checkCompletion() } }
-            .onChange(of:menuOpen) { _,open in if !open { presentPendingLessonCompletion();checkCompletion() } }
+            .onChange(of:app.localPracticeRevision) { _,_ in updatePracticePresentation() }
+            .onChange(of:panel) { _,value in if value == nil { practice.closeNotes(app);presentPendingLessonCompletion();updatePracticePresentation() } }
+            .onChange(of:menuOpen) { _,open in if !open { presentPendingLessonCompletion();updatePracticePresentation() } }
             .onChange(of:app.pendingLessonCompletion?.id) { _,_ in presentPendingLessonCompletion() }
-            .onChange(of:app.lessonActivityActive) { _,active in if !active { presentPendingLessonCompletion();checkCompletion() } }
+            .onChange(of:practice.visible){_,value in if value == nil{presentPendingLessonCompletion()}}
+            .onChange(of:practice.dailyGoalVisible?.id){_,value in if value == nil{presentPendingLessonCompletion()}}
+            .onChange(of:presentationKey){_,_ in updatePracticePresentation()}
+            .onChange(of:app.lessonActivityActive) { _,active in if !active { presentPendingLessonCompletion();updatePracticePresentation() } }
     }
     private func goalScopeChanged(_ old:GoalCourseScope,_ scope:GoalCourseScope) {
         if old != scope {cancelPracticeLaunch()}
         if let session=app.flashcardSession,!session.matches(app){session.close(app,abandoned:false)}
         if let check=app.goalCheck,check.scope != scope {app.goalCheck=nil}
         if specialCourse == "goal",old.account != scope.account || old.target != scope.target || old.goalID != scope.goalID || old.day != scope.day {
-            specialCourse=nil;mode = .focus;guided=nil;saveSession();revision=UUID()
+            specialCourse=nil;mode = .focus;practice.cancel(app);revision=UUID()
         }
     }
     private func closeFirstRun() {
@@ -169,7 +174,7 @@ struct ProductShellView:View {
         if specialCourse == "goal" {FocusedGoalCourseView(onSurface:{mode=$0})}
         else if specialCourse == "repair" { RepairPracticeView(onSurface:{mode=$0}) }
         else { switch mode {
-        case .focus: TodayFocusHomeView(now:now,sessionActive:guided != nil,startingPractice:launchID != nil,onStart:startPractice,onPanel:{ panel=$0 },onCompanionContinue:{firstRun.request(scope:firstRunScope,shown:app.learner.gettingStartedModalShown == true,hasPlacement:app.learner.hasFirstRunPlacement)})
+        case .focus: TodayFocusHomeView(now:now,sessionActive:practice.guided != nil,startingPractice:launchID != nil,onStart:startPractice,onPanel:{ panel=$0 },onCompanionContinue:{firstRun.request(scope:firstRunScope,shown:app.learner.gettingStartedModalShown == true,hasPlacement:app.learner.hasFirstRunPlacement)})
         case .path: LessonPathView()
         case .cards: FlashcardsView()
         case .phonics: PhonicsView()
@@ -206,31 +211,36 @@ struct ProductShellView:View {
         case .goal: DailyGoalManagerView(onClose:{self.panel=nil})
         }
     }
-    private func switchMode(_ value:ProductMode) { cancelPracticeLaunch();guided=nil;waitingCelebration=false;celebration=false;saveSession();specialCourse=nil;mode=value;menuOpen=false;revision=UUID() }
+    private func switchMode(_ value:ProductMode) { cancelPracticeLaunch();practice.cancel(app);specialCourse=nil;mode=value;menuOpen=false;revision=UUID() }
+    private func configurePractice(){
+                practice.onNavigate={openPlateCourse($0)}
+                practice.onHome={specialCourse=nil;mode = .focus;revision=UUID()}
+                practice.onNotes={panel = .memory}
+                practice.onSound={practiceSounds.play($0)}
+    }
     private func startPractice() {
         guard launchID == nil else{return}
-        app.prepareDailyPlate()
-        guided=GuidedPracticeSession(account:app.identity.npub,target:app.learner.target,day:CalendarDay.key(Date()),courses:app.plateCourses)
-        saveSession();openGuidedSurface()
+        app.prepareDailyPlate();configurePractice()
+        practice.start(app)
     }
     private func cancelPracticeLaunch(){launchTask?.cancel();launchTask=nil;launchID=nil}
-    private func openGuidedSurface() {
+    private func openPlateCourse(_ kind:String) {
         cancelPracticeLaunch()
-        if guided?.current == "goal",app.subscription.hasAccess {
+        if kind == "goal",app.subscription.hasAccess {
             let id=UUID(),scope=app.goalCourseScope;launchID=id
             launchTask=Task { @MainActor in
                 defer{if launchID == id {launchTask=nil;launchID=nil}}
                 do {
                     try await app.prepareGoal();try Task.checkCancellation()
-                    guard launchID == id,app.goalCourseScope == scope, guided?.current == "goal" else{return}
+                    guard launchID == id,app.goalCourseScope == scope else{return}
                     specialCourse="goal";revision=UUID()
                 }catch is CancellationError{}catch{if launchID == id {app.error=error.localizedDescription}}
             }
             return
         }
         specialCourse=nil
-        switch guided?.current {
-        case "goal","repair": specialCourse=guided?.current
+        switch kind {
+        case "goal","repair": specialCourse=kind
         case "learn": mode = .path
         case "review": mode = .cards
         case "phonics": mode = .phonics
@@ -239,17 +249,8 @@ struct ProductShellView:View {
         }
         revision=UUID()
     }
-    private func restoreSession() {
-        guard let data=UserDefaults.standard.data(forKey:sessionKey),var saved=try? JSONDecoder().decode(GuidedPracticeSession.self,from:data),saved.matches(account:app.identity.npub,target:app.learner.target,day:CalendarDay.key(now)) else { guided=nil;saveSession();return }
-        if saved.taskCompleted(app.plateCourses),!saved.advance(app.plateCourses) { guided=nil;saveSession();return }
-        guided=saved
-        saveSession()
-    }
-    private var canPresentPracticeModal:Bool {panel == nil && !menuOpen && !goalOpen && !timerOpen && timer.session.status != .finished && firstRun.step == nil && app.goalCheck == nil && app.flashcardSession == nil && lessonCompletion == nil}
-    private func checkCompletion() {
-        guard let guided,guided.matches(account:app.identity.npub,target:app.learner.target,day:CalendarDay.key(Date())),guided.taskCompleted(app.plateCourses) else { return }
-        if canPresentPracticeModal,!app.lessonActivityActive,app.pendingLessonCompletion == nil { waitingCelebration=false;celebration=true } else { waitingCelebration=true }
-    }
+    private var canPresentPracticeModal:Bool {panel == nil && !menuOpen && !goalOpen && !timerOpen && timer.session.status != .finished && firstRun.step == nil && app.goalCheck == nil && app.flashcardSession == nil && lessonCompletion == nil && practice.visible == nil && app.dailyGoalReward == nil}
+    private func updatePracticePresentation(){practice.presentationBlocked(panel != nil || menuOpen || goalOpen || timerOpen || timer.session.status == .finished || firstRun.step != nil || lessonCompletion != nil,app:app)}
     private func presentPendingLessonCompletion() {
         guard let pending=app.pendingLessonCompletion else { return }
         guard pending.account == app.identity.npub,pending.target == app.learner.target else { app.pendingLessonCompletion=nil;return }
@@ -262,22 +263,7 @@ struct ProductShellView:View {
     }
     private func finishLessonCompletion() {
         if app.pendingLessonCompletion?.id == presentedLessonCompletionID { app.pendingLessonCompletion=nil }
-        presentedLessonCompletionID=nil;presentPendingLessonCompletion();checkCompletion()
+        presentedLessonCompletionID=nil;presentPendingLessonCompletion();updatePracticePresentation()
     }
     private func closeLessonCompletion() { lessonCompletion=nil;finishLessonCompletion() }
-    private func saveSession() { if let guided,let data=try? JSONEncoder().encode(guided) { UserDefaults.standard.set(data,forKey:sessionKey) } else { UserDefaults.standard.removeObject(forKey:sessionKey) } }
-    private var completion:some View {
-        let cleared=app.plateCourses.allSatisfy(\.done)
-        return VStack(spacing:24) {
-            CompanionArtwork(type:app.learner.effectiveCompanionType).frame(width:96,height:96)
-            Text(ProductCopy.text(language,cleared ? "PLATE_CLEARED_COPY" : "PLATE_EXERCISE_COMPLETE_COPY")).font(PiyaliBrand.productFont(28,700)).multilineTextAlignment(.center)
-            if cleared { Text("+\(DailyPlate.bonus) XP").font(PiyaliBrand.productFont(40,700)) }
-            else if let next=app.plateCourses.first(where:{ !$0.done }) { Text(ProductCopy.text(language,"PLATE_NEXT_COPY")+": "+ProductCopy.course(language,next.kind)) }
-            Button(ProductCopy.text(language,"PLATE_CONTINUE_COPY")) {
-                celebration=false
-                if var next=guided,next.advance(app.plateCourses) { guided=next;saveSession();openGuidedSurface() }
-                else { guided=nil;saveSession();specialCourse=nil;mode = .focus;revision=UUID() }
-            }.buttonStyle(BrandButtonStyle()).accessibilityIdentifier("guidedContinue")
-        }.padding(32).presentationDetents([.medium]).interactiveDismissDisabled()
-    }
 }

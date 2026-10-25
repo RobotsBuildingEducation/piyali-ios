@@ -15,3 +15,14 @@ final class GuidedPracticeSessionTests:XCTestCase {
         XCTAssertFalse(restored.advance(complete));XCTAssertNil(GuidedPracticeSession(account:"alice",target:"es",day:"2026-10-20",courses:complete))
     }
 }
+
+extension GuidedPracticeSessionTests {
+    @MainActor func testOriginalWebConductorJourneysMatchNativePolicy()throws {
+        let root=URL(fileURLWithPath:#filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent(),rows=try ContentLibrary.decode([JSONValue].self,url:root.appendingPathComponent("Tests/PiyaliCoreTests/Fixtures/plate-session-policy.json.gz"))
+        XCTAssertEqual(rows.count,6)
+        for journey in rows {
+            let policy=try PlateSessionPolicy(source:root.appendingPathComponent("Piyali/Resources/plate-session-policy.js"))
+            for row in journey["cases"].array {XCTAssertEqual(try policy.run(row["operation"].string,row["input"]),row["expected"],journey["name"].string)}
+        }
+    }
+}

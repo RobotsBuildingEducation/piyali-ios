@@ -12,6 +12,8 @@ import ProficiencyTestModal from '/src/components/ProficiencyTestModal';
 import DailyPlateHome from '/src/components/DailyPlateHome';
 import DailyGoalModal from '/src/components/DailyGoalModal';
 import SessionTimerModal from '/src/components/SessionTimerModal';
+import SourceDailyGoalReward from '/__piyali-daily-goal-completion.jsx';
+import SourcePlateCompletion from '/__piyali-plate-completion.jsx';
 import Tutor from '/src/components/Tutor';
 import AlphabetBootcamp from '/src/components/AlphabetBootcamp';
 import useRepairFocusStore from '/src/hooks/useRepairFocusStore';
@@ -81,4 +83,4 @@ function FocusPreview(){
  if(state==='welcome'||state==='returning')localStorage.removeItem(dismissKey);else localStorage.setItem(dismissKey,'1');
  return <DailyPlateHome key={language+state} user={user} targetLang={target} appLanguage={language} dailyXp={state==='progress'?125:0} dailyGoalXp={state==='returning'?100:50} languageXp={state==='progress'?240:0} companionLevel={state==='progress'?3:1} petHealth={state==='progress'?49:100} petName={custom.name} petType={custom.petType} onCustomizePet={setCustom} questKinds={state==='returning'?['repair','speak','learn','review']:['speak','learn','review']} onStartPractice={()=>{}} onCompanionContinue={()=>{}} immersion={state==='immersion'?{awaitingPlacement:false,tasks:['Notice a familiar word','Listen for a useful detail','Describe something nearby'].map(title=>({title,description:'Practice privately at home, then mark this mission complete.'})),completed,status:'ready',rewarded:completed.every(Boolean),toggleTask:index=>setCompleted(old=>old.map((v,i)=>i===index?!v:v))}:{awaitingPlacement:true,tasks:[],completed:[],status:'new'}}/>;
 }
-createRoot(document.getElementById('root')).render(<ChakraProvider theme={theme}><MemoryRouter initialEntries={['/onboarding']}>{query.get('screen')==='tutor'?<TutorPreview/>:query.get('screen')==='phonics'?<PhonicsPreview/>:query.get('screen')==='flashcards'?<FlashcardPreview/>:query.get('screen')==='focused-goal'?<GoalPreview/>:query.get('screen')==='tools'?<ToolsPreview/>:query.get('screen')==='first-run'?<FirstRunPreview/>:query.get('screen')==='focus'?<FocusPreview/>:<Preview/>}</MemoryRouter></ChakraProvider>);
+createRoot(document.getElementById('root')).render(<ChakraProvider theme={theme}><MemoryRouter initialEntries={['/onboarding']}>{query.get('screen')==='daily-goal-completion'?<SourceDailyGoalReward/>:query.get('screen')==='plate-completion'?<SourcePlateCompletion/>:query.get('screen')==='tutor'?<TutorPreview/>:query.get('screen')==='phonics'?<PhonicsPreview/>:query.get('screen')==='flashcards'?<FlashcardPreview/>:query.get('screen')==='focused-goal'?<GoalPreview/>:query.get('screen')==='tools'?<ToolsPreview/>:query.get('screen')==='first-run'?<FirstRunPreview/>:query.get('screen')==='focus'?<FocusPreview/>:<Preview/>}</MemoryRouter></ChakraProvider>);

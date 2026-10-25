@@ -30,7 +30,7 @@ struct SourceTutorView:View {
             .toolbar(.hidden,for:.navigationBar)
             .task(id:tutor.scope(app)){
                 let account=app.identity.npub,target=app.learner.target,day=CalendarDay.key(Date()),owner=footerOwner,notify=completionPendingChanged
-                tutor.onCompletionPending={[weak app] active in app?.retainEarnedPractice(owner:owner,active:active,account:account,target:target,day:day);notify(active)}
+                tutor.onCompletionPending={[weak app] active in if !active{app?.releaseTutorReview(owner:owner)};app?.retainEarnedPractice(owner:owner,active:active,account:account,target:target,day:day);notify(active)}
                 tutor.onFocusedCompletion=focusedCompleted;await tutor.prepare(app)
             }
             .activityFooter(owner:footerOwner,revision:revision,access:app.subscription,fixtureAllowed:TutorSessionController.fixture || tutor.completionPending) {ActivityFooterSurface(hasFeedback:false,feedback:{EmptyView()},actions:{controls})}
@@ -38,10 +38,10 @@ struct SourceTutorView:View {
             .onChange(of:narration.error){_,value in if value != nil{tutor.live.setPlaybackDucked(false)}}
             .onChange(of:phase){_,value in if value == .background{stop()}}
             .onChange(of:app.subscription.hasAccess){_,allowed in if !allowed,!tutor.completionPending{stop()}}
-            .onDisappear{if !pathOpen && !historyOpen{app.releaseEarnedPractice(owner:footerOwner);stop()}}
+            .onDisappear{if !pathOpen && !historyOpen{app.releaseTutorReview(owner:footerOwner);app.releaseEarnedPractice(owner:footerOwner);stop()}}
             .fullScreenCover(isPresented:$pathOpen){TutorSourcePathView(tutor:tutor,onClose:{pathOpen=false})}
             .sheet(isPresented:$historyOpen){history.presentationDetents([.large]).presentationDragIndicator(.visible)}
-            .overlay {if let data=tutor.completion{TutorSourceCompletion(data:data,copy:{tutor.copy($0,app.learner.support)},onContinue:{tutor.closeCompletion()})}else if let data=tutor.review{TutorSourceReview(data:data,copy:{tutor.copy($0,app.learner.support)},onContinue:{tutor.closeReview()})}}
+            .overlay {if let data=tutor.completion{TutorSourceCompletion(data:data,copy:{tutor.copy($0,app.learner.support)},onContinue:{app.deferTutorReview(owner:footerOwner);tutor.closeCompletion()})}else if let data=tutor.review,app.dailyGoalReward == nil{TutorSourceReview(data:data,copy:{tutor.copy($0,app.learner.support)},onContinue:{tutor.closeReview()})}}
     }
     private var surface:some View {
         ScrollView {

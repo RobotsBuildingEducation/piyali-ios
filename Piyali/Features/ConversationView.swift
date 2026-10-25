@@ -45,6 +45,7 @@ struct ConversationView:View {
             .onChange(of:scenePhase) { _,phase in if phase == .background { stop() } }
             .onChange(of:app.subscription.hasAccess) { _,access in if !access { stop() } }
             .onChange(of:draft.goal?.id) { _,_ in stopStarter();showStarter=false;Task { await live.updateConversation(app.learner.conversation,learner:app.learner) } }
+            .onChange(of:app.plateCourseCompletion?.id){_,_ in if app.plateCourseCompletion?.kind == "conversation"{stop()}}
             .onDisappear { stop() }
             .sheet(isPresented:$showSettings,onDismiss:settingsClosed) { settingsSheet.presentationDetents([.fraction(0.8)]).presentationDragIndicator(.visible) }
             .sheet(isPresented:$showHistory) { historySheet.presentationDetents([.large]).presentationDragIndicator(.visible) }

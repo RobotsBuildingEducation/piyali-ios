@@ -1,0 +1,284 @@
+{
+  "sources": [
+    {
+      "file": "src/App.jsx",
+      "sha256": "eb7e06e1422cac6d205059dc92d68370bec40c1009c1a316f0c2d3eb5f325fd6",
+      "declarations": [
+        "flushPlateCelebrationWhenQuiet",
+        "requestPlateCelebration",
+        "handlePlateCelebrationContinue",
+        "course-completion useEffect"
+      ]
+    },
+    {
+      "file": "src/utils/dailyQuestState.js",
+      "sha256": "48be9a3818a4eed0bbea6fee715cf7e1424e8b7baf59fc1fb2ae167451e29ffa",
+      "declarations": [
+        "buildPlateCelebrationKey"
+      ]
+    },
+    {
+      "file": "src/utils/SoundManager.js",
+      "sha256": "74b0ae85c6ea2b8a077af4176d6ad5df6f5715ecc7d0bcdf65789a4875fc7471",
+      "declarations": [
+        "questComplete",
+        "questCleared"
+      ]
+    },
+    {
+      "file": "src/utils/dailyPlateCopy.js",
+      "sha256": "94346c92686705f12853e960856372efb0f0abfe74a94cd75311df7c8b5b9298"
+    },
+    {
+      "file": "src/theme.js",
+      "sha256": "6fe6093ecca51d0debb1314a587d6bd0927e7ac9f8c1ba2c6c744017e3be407e"
+    },
+    {
+      "file": "src/index.css",
+      "sha256": "79a5362dc1b189acd0d2288c0e85ff29c9cc1c8e39b8bb5cabe164ddd1c29030"
+    },
+    {
+      "file": "src/components/DailyGoalPetPanel.jsx",
+      "sha256": "59b5919a3c0e93718d9a5e18e804cf5c1f989db31860900f028f2e4c620e422e"
+    }
+  ],
+  "adapters": "Explicit plate snapshots, guided flag, native modal blockers, Goal/repair details, deterministic Date/timers, route/sound/voice-stop actions. No React, DOM, Firebase, browser storage or network executes. Source course effect and quiet-queue callbacks are unchanged.",
+  "journeys": 6,
+  "cases": 34,
+  "nativeAudio": "Actual source note pitches, timing, envelope parameters and gain. PCM synthesis approximates Tone exponential envelopes at 120 BPM; no network or audio runtime executes.",
+  "sounds": [
+    {
+      "name": "questComplete",
+      "notes": [
+        {
+          "note": "D2",
+          "duration": "8n",
+          "at": 0,
+          "envelope": {
+            "type": "sine",
+            "attack": 0.015,
+            "decay": 0.25,
+            "sustain": 0.08,
+            "release": 0.45
+          },
+          "volume": -12
+        },
+        {
+          "note": "A2",
+          "duration": "8n",
+          "at": 0.14,
+          "envelope": {
+            "type": "sine",
+            "attack": 0.015,
+            "decay": 0.25,
+            "sustain": 0.08,
+            "release": 0.45
+          },
+          "volume": -12
+        },
+        {
+          "note": "D4",
+          "duration": "16n",
+          "at": 0.02,
+          "envelope": {
+            "type": "sine",
+            "attack": 0.012,
+            "decay": 0.14,
+            "sustain": 0,
+            "release": 0.2
+          },
+          "volume": -10
+        },
+        {
+          "note": "F#4",
+          "duration": "16n",
+          "at": 0.1,
+          "envelope": {
+            "type": "sine",
+            "attack": 0.012,
+            "decay": 0.14,
+            "sustain": 0,
+            "release": 0.2
+          },
+          "volume": -10
+        },
+        {
+          "note": "A4",
+          "duration": "16n",
+          "at": 0.18,
+          "envelope": {
+            "type": "sine",
+            "attack": 0.012,
+            "decay": 0.14,
+            "sustain": 0,
+            "release": 0.2
+          },
+          "volume": -10
+        },
+        {
+          "note": "D5",
+          "duration": "8n",
+          "at": 0.26,
+          "envelope": {
+            "type": "sine",
+            "attack": 0.012,
+            "decay": 0.14,
+            "sustain": 0,
+            "release": 0.2
+          },
+          "volume": -10
+        }
+      ],
+      "seconds": 0.84
+    },
+    {
+      "name": "questCleared",
+      "notes": [
+        {
+          "note": "G2",
+          "duration": "8n",
+          "at": 0,
+          "envelope": {
+            "type": "sine",
+            "attack": 0.01,
+            "decay": 0.18,
+            "sustain": 0,
+            "release": 0.22
+          },
+          "volume": -10
+        },
+        {
+          "note": "D2",
+          "duration": "8n",
+          "at": 0.14,
+          "envelope": {
+            "type": "sine",
+            "attack": 0.01,
+            "decay": 0.18,
+            "sustain": 0,
+            "release": 0.22
+          },
+          "volume": -10
+        },
+        {
+          "note": "G3",
+          "duration": "16n",
+          "at": 0,
+          "envelope": {
+            "type": "sine",
+            "attack": 0.01,
+            "decay": 0.2,
+            "sustain": 0.08,
+            "release": 0.28
+          },
+          "volume": -8
+        },
+        {
+          "note": "B3",
+          "duration": "16n",
+          "at": 0.09,
+          "envelope": {
+            "type": "sine",
+            "attack": 0.01,
+            "decay": 0.2,
+            "sustain": 0.08,
+            "release": 0.28
+          },
+          "volume": -8
+        },
+        {
+          "note": "D4",
+          "duration": "16n",
+          "at": 0.18,
+          "envelope": {
+            "type": "sine",
+            "attack": 0.01,
+            "decay": 0.2,
+            "sustain": 0.08,
+            "release": 0.28
+          },
+          "volume": -8
+        },
+        {
+          "note": "G4",
+          "duration": "4n",
+          "at": 0.28,
+          "envelope": {
+            "type": "sine",
+            "attack": 0.01,
+            "decay": 0.2,
+            "sustain": 0.08,
+            "release": 0.28
+          },
+          "volume": -8
+        },
+        {
+          "note": "B4",
+          "duration": "4n",
+          "at": 0.28,
+          "envelope": {
+            "type": "sine",
+            "attack": 0.01,
+            "decay": 0.2,
+            "sustain": 0.08,
+            "release": 0.28
+          },
+          "volume": -8
+        },
+        {
+          "note": "D5",
+          "duration": "4n",
+          "at": 0.28,
+          "envelope": {
+            "type": "sine",
+            "attack": 0.01,
+            "decay": 0.2,
+            "sustain": 0.08,
+            "release": 0.28
+          },
+          "volume": -8
+        },
+        {
+          "note": "G5",
+          "duration": "32n",
+          "at": 0.44,
+          "envelope": {
+            "type": "sine",
+            "attack": 0.004,
+            "decay": 0.1,
+            "sustain": 0,
+            "release": 0.15
+          },
+          "volume": -16
+        },
+        {
+          "note": "B5",
+          "duration": "32n",
+          "at": 0.5,
+          "envelope": {
+            "type": "sine",
+            "attack": 0.004,
+            "decay": 0.1,
+            "sustain": 0,
+            "release": 0.15
+          },
+          "volume": -16
+        },
+        {
+          "note": "D6",
+          "duration": "32n",
+          "at": 0.56,
+          "envelope": {
+            "type": "sine",
+            "attack": 0.004,
+            "decay": 0.1,
+            "sustain": 0,
+            "release": 0.15
+          },
+          "volume": -16
+        }
+      ],
+      "seconds": 1.06
+    }
+  ]
+}

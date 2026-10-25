@@ -55,7 +55,7 @@ enum TutorFocus:Equatable {
     private var reviewRecord:JSONValue?
     var practicingCompletedLesson:Bool { reviewRecord != nil }
     private func sessionRecord(_ app:AppModel)->JSONValue { focus != nil ? focusedRecord:reviewRecord ?? record(app) }
-    init(focus:TutorFocus?=nil,live:LiveTutorService?=nil,provider:TutorProvider?=nil,turnXP:@escaping()->Int={Int.random(in:3...7)}){self.turnXP=turnXP;self.focus=focus;self.live=live ?? TutorVoiceFixture.service();self.provider=provider;policy=try? TutorSourcePolicy();liveUpdates=self.live.objectWillChange.sink{[weak self] _ in self?.objectWillChange.send()}}
+    init(focus:TutorFocus?=nil,live:LiveTutorService?=nil,provider:TutorProvider?=nil,turnXP:@escaping()->Int={PlatePracticeFixture.turnXP()}){self.turnXP=turnXP;self.focus=focus;self.live=live ?? TutorVoiceFixture.service();self.provider=provider;policy=try? TutorSourcePolicy();liveUpdates=self.live.objectWillChange.sink{[weak self] _ in self?.objectWillChange.send()}}
     static var fixture:Bool {TutorVoiceFixture.enabled}
     var id:String {lesson["id"].string}
     var required:Int {Int(state["required"].number)}

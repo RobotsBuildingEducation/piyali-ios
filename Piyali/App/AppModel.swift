@@ -3,7 +3,7 @@ import Combine
 import SwiftUI
 
 @MainActor final class AppModel: ObservableObject {
-    @Published var learner = LearnerState() { didSet { subscription.updatePracticeXP(learner.subscriptionXP) } }
+    @Published var learner = LearnerState() { didSet {captureDailyGoalReward(previous:oldValue);notifyPracticeObservers();subscription.updatePracticeXP(learner.subscriptionXP)} }
     let nostrAchievements=NostrAchievementsService()
     private var nostrSyncTask: Task<Void,Never>?
     @Published var signedIn = false
@@ -21,12 +21,36 @@ import SwiftUI
     @Published var syncStatus = "Saved on this iPhone"
     @Published var loadingContent = false
     @Published private(set) var localPracticeRevision=UUID()
+    private var restoringLearner=false
+    private var practiceObservers:[UUID:()->Void]=[:]
+    func observePractice(owner:UUID,_ update:@escaping()->Void){practiceObservers[owner]=update}
+    func stopObservingPractice(owner:UUID){practiceObservers.removeValue(forKey:owner)}
+    private func notifyPracticeObservers(){for callback in Array(practiceObservers.values){callback()}}
+    @Published var plateCourseCompletion:PlateCourseCompletion?
+    @Published var dailyGoalReward:DailyGoalReward?
+    private var deferredTutorReviews:Set<UUID>=[]
+    func deferTutorReview(owner:UUID){deferredTutorReviews.insert(owner);notifyPracticeObservers()}
+    func releaseTutorReview(owner:UUID){deferredTutorReviews.remove(owner);notifyPracticeObservers()}
+    func dailyGoalBlocked(excluding owner:UUID)->Bool {
+        let scope=[identity.npub,learner.target,CalendarDay.key(Date())].joined(separator:":")
+        return earnedPracticeOwners.contains{$0.key != owner && $0.value == scope && !deferredTutorReviews.contains($0.key)}
+    }
+    private func captureDailyGoalReward(previous:LearnerState){
+        guard !restoringLearner,signedIn,learner.onboardingComplete,learner.companionProgress?["dailyHasCelebrated"].boolean == true,previous.companionProgress?["dailyHasCelebrated"].boolean != true else{return}
+        let oldIDs=Set((previous.pendingChanges ?? []).map(\.id))
+        guard (learner.pendingChanges ?? []).contains(where:{!oldIDs.contains($0.id) && $0.amount>0}) else{return}
+        dailyGoalReward=DailyGoalReward(account:identity.npub,day:CalendarDay.key(Date()),goal:learner.dailyGoal,health:learner.companionHealth)
+    }
+
     @Published private var earnedPracticeOwners:[UUID:String]=[:]
     var preservingEarnedPractice:Bool {earnedPracticeOwners.values.contains([identity.npub,learner.target,CalendarDay.key(Date())].joined(separator:":"))}
     func retainEarnedPractice(owner:UUID,active:Bool,account:String,target:String,day:String) {
-        if active,!account.isEmpty{earnedPracticeOwners[owner]=[account,target,day].joined(separator:":")}else{earnedPracticeOwners.removeValue(forKey:owner)}
+        let value=active && !account.isEmpty ? [account,target,day].joined(separator:":"):nil
+        guard earnedPracticeOwners[owner] != value else{return}
+        earnedPracticeOwners[owner]=value;notifyPracticeObservers()
     }
-    func releaseEarnedPractice(owner:UUID){earnedPracticeOwners.removeValue(forKey:owner)}
+    func releaseEarnedPractice(owner:UUID){guard earnedPracticeOwners.removeValue(forKey:owner) != nil else{return};notifyPracticeObservers()}
+    func hasEarnedPractice(excluding owner:UUID)->Bool {let scope=[identity.npub,learner.target,CalendarDay.key(Date())].joined(separator:":");return earnedPracticeOwners.contains{$0.key != owner && $0.value == scope}}
     @Published var lessonActivityActive=false
     @Published var activityFooter:ActivityFooterPresentation?
     @Published var activityFooterHeight:CGFloat=0
@@ -113,7 +137,9 @@ import SwiftUI
         try? FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         return root.appendingPathComponent(identity.npub + ".json")
     }
+    private func restoreLearner(_ state:LearnerState){restoringLearner=true;learner=state;restoringLearner=false}
     func loadLocal() {
+        restoringLearner=true;defer{restoringLearner=false}
         if let data = try? Data(contentsOf: localURL), let state = try? JSONDecoder().decode(LearnerState.self, from: data) { learner = state } else { learner = LearnerState() }
         learner.rollDay(); lastPersisted = learner
     }
@@ -142,7 +168,7 @@ import SwiftUI
             if FileManager.default.fileExists(atPath:localURL.path) { await sync() }
             else if let cloud = try await progressService.load(npub:account) {
                 guard identity.npub == account else { return }
-                learner = cloud; lastPersisted = learner; try writeLocal()
+                restoreLearner(cloud); lastPersisted = learner; try writeLocal()
             }
         } catch { syncStatus = "Saved on iPhone; cloud sync pending" }
         await reloadContent(); await subscription.refresh(); scheduleNostrAchievements()
@@ -163,7 +189,7 @@ import SwiftUI
     func boot() async { guard signedIn else { return };scheduleAutomaticTips(recovering:true); await reloadContent(); await sync(); await subscription.refresh(); scheduleNostrAchievements();scheduleAutomaticTips() }
     func finishOnboarding(_ draft:OnboardingDraft?=nil) {
         if let draft {learner.completeOnboarding(draft)} else {learner.onboardingComplete=true;learner.preferencesModifiedAt=Date()}
-        persist();Task { await reloadContent() }
+        PlatePracticeFixture.seed(self);persist();Task { await reloadContent() }
     }
     var immersionPreparationKey: String {
         let scope=learner.immersionScope()
@@ -300,7 +326,7 @@ import SwiftUI
     private func applyAcknowledgment(_ cloud: LearnerState, sent: LearnerState) throws {
         let priorGoalModes=readyGoal?["modeProgress"]
         let target = learner.target, support = learner.support, level = learner.level, cardLevel = learner.flashcardLevel, tutorLevel = learner.tutorLevel
-        learner = LearnerState.rebased(current:learner,sent:sent,acknowledged:cloud)
+        restoreLearner(LearnerState.rebased(current:learner,sent:sent,acknowledged:cloud))
         for change in learner.pendingRepairEvidence ?? [] {
             let bucket=learner.goalIntelligence?[change.target] ?? .object([:])
             if let summary=try? companionQuestPolicy?.run("evidence",.object(["summary":bucket["repairSummary"],"event":change.event,"now":.number(change.date.timeIntervalSince1970*1000)])) {if learner.goalIntelligence == nil {learner.goalIntelligence=[:]};learner.goalIntelligence?[change.target]=bucket.setting("repairSummary",summary)}
