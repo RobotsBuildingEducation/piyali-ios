@@ -32,6 +32,7 @@
 		0F00D26B54CA25E3C39753E0 /* OnboardingDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E2DBF577F78E0048747252B /* OnboardingDraft.swift */; };
 		0F76A915ECC4BC84D0019E89 /* intro-nah.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = E3301E706F58913A3029CAAE /* intro-nah.json.gz */; };
 		0FBCD70084638697AF28ED8E /* practice-recipes.manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = 26063226F45F7983E9DD8A7D /* practice-recipes.manifest.json */; };
+		0FFE8830A4DC1EB9F2CFCE53 /* SettingsFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E6A93DC78DF2A0AE1FAC03C /* SettingsFixture.swift */; };
 		101AF35D3A99C0DA638E2F5F /* ConversationVoiceFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = C182C3D2686C913A73E4D156 /* ConversationVoiceFixture.swift */; };
 		105826B658695A7B0BEB6805 /* tutor-curriculum-ja.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 6BF02A36741DEC778FEE7E60 /* tutor-curriculum-ja.json.gz */; };
 		111E0D84D47542B2E5414B74 /* rpg-ja.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = B3872E7D9BC2586B2437CDB3 /* rpg-ja.json.gz */; };
@@ -66,6 +67,7 @@
 		24358314F54DB289911EC3B0 /* PhonicsSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFAF3A1FBDD0A5E284A4AAF5 /* PhonicsSessionController.swift */; };
 		24642ECEB395C02025C64362 /* ExplorationText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 026D3E8717165FF5A2DD91B2 /* ExplorationText.swift */; };
 		2499A9650DA557B456772DB7 /* AchievementProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6444929F41BE8BDD4B3A3123 /* AchievementProgress.swift */; };
+		253B8EA053FA3113C75CEEC3 /* AutomaticProgressController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44CC37F4F1A89ABE345C746B /* AutomaticProgressController.swift */; };
 		25B412D8E7AE1938ED2AF18A /* FlashcardReview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 387D1A3BB971A0E8A4AC3034 /* FlashcardReview.swift */; };
 		26936FCF0F0550FB59FAE1AE /* intro-play.json in Resources */ = {isa = PBXBuildFile; fileRef = 11A78A1973CF409D27AF02C0 /* intro-play.json */; };
 		26AD3D3C72415FE8B77EB536 /* EntryParityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30B828DE81FEB1F841675EFB /* EntryParityTests.swift */; };
@@ -73,6 +75,7 @@
 		276515C6BE780F29AD271E0C /* piyali-orb.png in Resources */ = {isa = PBXBuildFile; fileRef = D1DAE22D15DE94917B20977D /* piyali-orb.png */; };
 		28058A385EE99239E9D065C9 /* FinalQuizService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A3B598B5948C7C587B7E666 /* FinalQuizService.swift */; };
 		2829E8C18A91B29DA3B51221 /* intro-en.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 1E1748566ED167FF55113B21 /* intro-en.json.gz */; };
+		283A54811981205705CDCD26 /* settings-policy.js in Resources */ = {isa = PBXBuildFile; fileRef = E6EEAC36E7E3981ECD281D1D /* settings-policy.js */; };
 		288BDA0A19E10ED1886DE67C /* PlatePracticeController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 515BB32271C34128BCBBF2FA /* PlatePracticeController.swift */; };
 		28B56083FAB9E6F248C812E7 /* SmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C1539DEC5F6DCC632774299 /* SmokeTests.swift */; };
 		29513AB7642DBF1DB8ED8A1B /* tutor-curriculum-ru.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 330DDCCDC2D67EC3E37C509F /* tutor-curriculum-ru.json.gz */; };
@@ -83,6 +86,7 @@
 		2E6869DE8DD460991509500C /* story-ui.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 7FE8959996A913BF46BCA646 /* story-ui.json.gz */; };
 		2EB6DCE3A82A7A8952DB5C4C /* RepairFocusSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 176EF303230589ADFA247D2F /* RepairFocusSummary.swift */; };
 		2EC750B929AB1AD872367676 /* MemorySourcePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D1F4EEFA04DA74DD8D94A12 /* MemorySourcePolicy.swift */; };
+		2FE987065A196F4DF6F1BF6E /* LearnerSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = B914547C79C2BAE568F9C0D5 /* LearnerSettings.swift */; };
 		3056AAADFC5ECB42B96F230A /* story-portrait-32.webp in Resources */ = {isa = PBXBuildFile; fileRef = 11ABC9BD0F693833A22451AC /* story-portrait-32.webp */; };
 		30815E8C44F6C20D3D6467FD /* StoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C34F507B12BF0E54D7347349 /* StoryTests.swift */; };
 		310EDAD4A33031741B03FC14 /* rpg-ga.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = CD78ED6BC6E57FC3B7994670 /* rpg-ga.json.gz */; };
@@ -141,6 +145,7 @@
 		4AF2C2BE44A3F0FF8218BA10 /* story-portrait-7.webp in Resources */ = {isa = PBXBuildFile; fileRef = C2319A1D51694D83259F8C8B /* story-portrait-7.webp */; };
 		4C4A5B96A2649EE00217DAA6 /* NostrAchievementsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0EEF0AF6541DCD050F8D722 /* NostrAchievementsService.swift */; };
 		4C89332D63FE744BE38512EA /* FirebaseIdentityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6B8311CBE80AD6E10E96469 /* FirebaseIdentityTests.swift */; };
+		4CE5DD462B9E937C4BB11292 /* SettingsFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09B6BFADD13E198EFAB33D22 /* SettingsFlowTests.swift */; };
 		4D76B17180CFD23CD6E3597C /* PatreonRestoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 944FFD69FFAD8CB17111F599 /* PatreonRestoreTests.swift */; };
 		4E0171F687B0B168C62E3529 /* GuidedPracticeSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53BFEB8FF2020865B744083C /* GuidedPracticeSession.swift */; };
 		4F4C06F7C13EBAE123FBEF76 /* story-portrait-27.webp in Resources */ = {isa = PBXBuildFile; fileRef = 9824D07DE27D0BEBEFB42605 /* story-portrait-27.webp */; };
@@ -246,6 +251,7 @@
 		7F708493794DE1FB60F4E3F3 /* memory-policy.js in Resources */ = {isa = PBXBuildFile; fileRef = EFC79CA52EC107FFA01C7788 /* memory-policy.js */; };
 		7F90C3E8B938E68CD88EC908 /* BrandAssets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9C2A46A91AC402BD2A010049 /* BrandAssets.xcassets */; };
 		7FB8FC7DC5DB6C2D0A18FBBF /* LandingTutorDemoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90C87EA6CE91EF589DCE50C6 /* LandingTutorDemoView.swift */; };
+		801202777BE4E38B05B348F5 /* AppModel+Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 156AC099D65E79FDC7AB89E0 /* AppModel+Settings.swift */; };
 		80986DEA5C6BC8F7904F6D82 /* RemoteSignerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537D3AFD0BD651B3531983B3 /* RemoteSignerTests.swift */; };
 		8191C1588D26BA97B9B879DA /* StorySession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5476E4C47685971FD594D792 /* StorySession.swift */; };
 		81E47A335AAB7BCCB1397243 /* FinalQuizTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFF909DF0AEFA1E2A949150E /* FinalQuizTests.swift */; };
@@ -263,6 +269,7 @@
 		882DF197F6E0043796DBFC66 /* AppConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66577C96C4071AB6D6B95BB8 /* AppConfiguration.swift */; };
 		884336910204A887C2E3014D /* FlashcardAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 319317AB7336B039C297278A /* FlashcardAppearance.swift */; };
 		885482EC75BEF40DA41DDF4E /* PrivateTeamsUIEmulator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D310219DADD12CA138323777 /* PrivateTeamsUIEmulator.swift */; };
+		885C53AB169CA83CA7956F8D /* SettingsSourcePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 171F3067E79A85C8AB56671F /* SettingsSourcePolicy.swift */; };
 		88DE43F2DA84173A75B75A4B /* PiyaliApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B035DFC1736E1F69047CEB9B /* PiyaliApp.swift */; };
 		8A846814AB20DC0B0359BBE6 /* TutorSourceProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = A402BA2BF0D6D39F59871331 /* TutorSourceProgress.swift */; };
 		8B4A3CDDE6C36E4691273249 /* PublicVoiceOrb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EDE93E3F00B7D0643A9B32C /* PublicVoiceOrb.swift */; };
@@ -277,6 +284,7 @@
 		8DD1E88B018C39C5B0AA817E /* curriculum-nah.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = EB2602DA316EDF948B13F026 /* curriculum-nah.json.gz */; };
 		8E2340F34B7A4D15AB61F466 /* story-portrait-31.webp in Resources */ = {isa = PBXBuildFile; fileRef = AE767433C29711775F0B87E7 /* story-portrait-31.webp */; };
 		8E5AAA977BA89D5E8F986ADB /* DailyActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83B8A7A15D89A25011C382B9 /* DailyActivityView.swift */; };
+		8E66B69E33676EBA86B9F5B8 /* SettingsDrawerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 850FF3E23122E2F3CA41A21A /* SettingsDrawerView.swift */; };
 		8ED401ABAE07EFB683CD9730 /* FlashcardPracticeDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = E92EA28479EAD299B5C219BB /* FlashcardPracticeDialog.swift */; };
 		8F969D7FA266B5DEF6D4277D /* story-portrait-6.webp in Resources */ = {isa = PBXBuildFile; fileRef = 55EEDF9BAF731DAC2140E3CA /* story-portrait-6.webp */; };
 		8FD0C5CE1B4E673375B8818A /* PlateCelebrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC2780A245EDBCA6F35BBEEB /* PlateCelebrationView.swift */; };
@@ -307,7 +315,9 @@
 		9DB0D6C6CA010FEF1945938C /* ConversationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E40731046FF69894B5F1FF4 /* ConversationView.swift */; };
 		9E40132BF179E0EE9CC724AE /* practice-recipes.js in Resources */ = {isa = PBXBuildFile; fileRef = F74B1AABF9F5C6510E0EE56D /* practice-recipes.js */; };
 		9E497284CCDAF9A56D4506B4 /* language-timezones.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 1DCC93B75E03F141B1B7CCAD /* language-timezones.json.gz */; };
+		9EC04337327F54998FEB3402 /* SettingsSupportingViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE4E37BEF1AD171C5BA5DD6F /* SettingsSupportingViews.swift */; };
 		9ED4F00A464D4F02626A5880 /* EntryFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76A4DC08A9599E86B01E04CA /* EntryFixture.swift */; };
+		9F923247F8B29C0A20383D27 /* SettingsJourneyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72301B4100E7177AD39A2A75 /* SettingsJourneyTests.swift */; };
 		9FCE373B59C4F781791505CE /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = BB448BAF674D32F0259B5803 /* FirebaseCore */; };
 		A0161D0ED54C0199CE479ECC /* LessonPathView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 891D98E5164559371D320FE6 /* LessonPathView.swift */; };
 		A2BE2C0C00271066C8E72752 /* ReadingSpeechRecorderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61DFBB192541AA0C973D4A96 /* ReadingSpeechRecorderTests.swift */; };
@@ -456,6 +466,7 @@
 		E68585417AFEB0C3FA396931 /* story-portrait-33.webp in Resources */ = {isa = PBXBuildFile; fileRef = 9E4EE1FE8E7E92F3423DB662 /* story-portrait-33.webp */; };
 		E68EB81789864386C6E50663 /* GeminiLiveTutorService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 388908E421131C96BE8C5437 /* GeminiLiveTutorService.swift */; };
 		E76AFE07CA32D1EE5201D42E /* headline-curriculum-nah.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 286933467FECB0BE0D90B32D /* headline-curriculum-nah.json.gz */; };
+		E79B7C33AF5EA6C356AD150B /* settings-copy.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 42B6E63E48F0152709A4373C /* settings-copy.json.gz */; };
 		E7BF14B7C0519972EE30DF42 /* WebRTC in Frameworks */ = {isa = PBXBuildFile; productRef = C61C14C78CE838E03C81BAAE /* WebRTC */; };
 		E7F9764A37FE914523015C9A /* flashcard-index.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 0AA1700E5D87C167E920D5B5 /* flashcard-index.json.gz */; };
 		E896888406CC9EE7545586E5 /* FlashcardPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558BBCC7E9F4F9016E525278 /* FlashcardPolicy.swift */; };
@@ -464,6 +475,7 @@
 		E9155E476E97D8D533B05A1F /* AppModel+StudyNotes.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5F31E9A0B6B91BB6AFC7C84 /* AppModel+StudyNotes.swift */; };
 		E96E3FB48DFD5D477D9EB498 /* StorySpeechRules.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDC5F989C9C92BF21F5EED29 /* StorySpeechRules.swift */; };
 		E98B27859F255A07C9651D6F /* WalletVaultTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2650D8CDA59C4FE04CFC716 /* WalletVaultTests.swift */; };
+		EA59C43EA044F5C0EA42F4ED /* SettingsPersonaController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D216E90359E48AB44412841F /* SettingsPersonaController.swift */; };
 		EBBA4FA31F81EFE61ACBB809 /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 8E738A4A023DB4E7E4CF5C0E /* libz.tbd */; };
 		EBD649A1AF4BADCCCF725F9E /* CompanionQuestFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 224ABBC8F6DECFE03873CD0B /* CompanionQuestFlowTests.swift */; };
 		ED152669EF807A77A271209F /* CompanionArtwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6CDBE08CB4BA6657F8C7A5 /* CompanionArtwork.swift */; };
@@ -541,6 +553,7 @@
 		0896985B023EFF7F6CD6E06D /* RPGStory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RPGStory.swift; sourceTree = "<group>"; };
 		092DC1DE9C023E91A09971A5 /* 28.webp */ = {isa = PBXFileReference; path = 28.webp; sourceTree = "<group>"; };
 		09591D7C2CC9BF7F536C4B7B /* journey-crypto.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "journey-crypto.json"; sourceTree = "<group>"; };
+		09B6BFADD13E198EFAB33D22 /* SettingsFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsFlowTests.swift; sourceTree = "<group>"; };
 		0A0F86A2F8B66A36CB368930 /* daily-goal-celebration-copy.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "daily-goal-celebration-copy.json.gz"; sourceTree = "<group>"; };
 		0AA1700E5D87C167E920D5B5 /* flashcard-index.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "flashcard-index.json.gz"; sourceTree = "<group>"; };
 		0AF3DF1533D6A77A933DED04 /* rpg-profiles.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "rpg-profiles.json.gz"; sourceTree = "<group>"; };
@@ -565,8 +578,10 @@
 		14ACB35E459D0E1D217992EB /* RemoteSignerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteSignerTests.swift; sourceTree = "<group>"; };
 		14DA95A65F3C49FB29B2AD2D /* headline-curriculum-ga.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "headline-curriculum-ga.json.gz"; sourceTree = "<group>"; };
 		15067594FDE785CA4A426C17 /* ReadingSpeechFeedback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingSpeechFeedback.swift; sourceTree = "<group>"; };
+		156AC099D65E79FDC7AB89E0 /* AppModel+Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+Settings.swift"; sourceTree = "<group>"; };
 		16D6BE54856D741FAF49C52E /* LessonCompletionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LessonCompletionView.swift; sourceTree = "<group>"; };
 		17196505DA266C8D498881D0 /* WalletService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletService.swift; sourceTree = "<group>"; };
+		171F3067E79A85C8AB56671F /* SettingsSourcePolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsSourcePolicy.swift; sourceTree = "<group>"; };
 		176EF303230589ADFA247D2F /* RepairFocusSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepairFocusSummary.swift; sourceTree = "<group>"; };
 		197BC114F78A173B8A1E1950 /* companion-preview.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "companion-preview.json.gz"; sourceTree = "<group>"; };
 		1A1C1EC31B99C0C6DF8F569B /* TypedPracticeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypedPracticeTests.swift; sourceTree = "<group>"; };
@@ -638,9 +653,11 @@
 		3E9FEB2A3C61C4FB1A872D28 /* GoalPractice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalPractice.swift; sourceTree = "<group>"; };
 		3F6A143DD1483AC2F20A1CD0 /* CommunityFeed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityFeed.swift; sourceTree = "<group>"; };
 		4277C13CC7020963310477DF /* story-portrait-28.webp */ = {isa = PBXFileReference; path = "story-portrait-28.webp"; sourceTree = "<group>"; };
+		42B6E63E48F0152709A4373C /* settings-copy.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "settings-copy.json.gz"; sourceTree = "<group>"; };
 		433D5978FFDE6DED42FECAD2 /* StoryGeneration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryGeneration.swift; sourceTree = "<group>"; };
 		43E5738CC2AE4EEEA134FAFD /* QuestionWorth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuestionWorth.swift; sourceTree = "<group>"; };
 		43EC12BAB419C08452B4F8D7 /* story-portrait-10.webp */ = {isa = PBXFileReference; path = "story-portrait-10.webp"; sourceTree = "<group>"; };
+		44CC37F4F1A89ABE345C746B /* AutomaticProgressController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticProgressController.swift; sourceTree = "<group>"; };
 		4577D0B5345DA1463980AA55 /* story-portrait-20.webp */ = {isa = PBXFileReference; path = "story-portrait-20.webp"; sourceTree = "<group>"; };
 		457A19466E8D8D7CD807C5E9 /* SessionTimerControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionTimerControllerTests.swift; sourceTree = "<group>"; };
 		461C4C51B8B4F3F19454661F /* StoryAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryAppearance.swift; sourceTree = "<group>"; };
@@ -659,6 +676,7 @@
 		4D6E2FA84892F4A3EF62CC1E /* rpg-manifests.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "rpg-manifests.json.gz"; sourceTree = "<group>"; };
 		4DC57ABF9C2D1514501996F1 /* product-copy.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "product-copy.json.gz"; sourceTree = "<group>"; };
 		4E1FF8F69603927ECFD7F18D /* questComplete.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = questComplete.wav; sourceTree = "<group>"; };
+		4E6A93DC78DF2A0AE1FAC03C /* SettingsFixture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsFixture.swift; sourceTree = "<group>"; };
 		4EFC13D0659B118668D5EB59 /* RealtimeNarrationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealtimeNarrationService.swift; sourceTree = "<group>"; };
 		4F7F8D3F0508DA4007F2A5C9 /* intro-it.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "intro-it.json.gz"; sourceTree = "<group>"; };
 		4FAA7EE77D52F7CE9B037AD5 /* FocusedGoalFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusedGoalFlowTests.swift; sourceTree = "<group>"; };
@@ -730,6 +748,7 @@
 		6F2FCD18E65A63DC2B78A433 /* CurriculumLessonProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurriculumLessonProgress.swift; sourceTree = "<group>"; };
 		70130D68363B553BABCEE38E /* RPG.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RPG.swift; sourceTree = "<group>"; };
 		70DD58155A8A0EDBF5443FAF /* CommunityFeedTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityFeedTests.swift; sourceTree = "<group>"; };
+		72301B4100E7177AD39A2A75 /* SettingsJourneyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsJourneyTests.swift; sourceTree = "<group>"; };
 		72D9450A8E1F928FB8CAE9AC /* FocusHomeJourneyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusHomeJourneyTests.swift; sourceTree = "<group>"; };
 		739170FEAFFE01E5C4D5D4EA /* NostrTeamsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NostrTeamsService.swift; sourceTree = "<group>"; };
 		7453BBE3FEF38033092DD0CC /* StoreKitSubscriptionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreKitSubscriptionTests.swift; sourceTree = "<group>"; };
@@ -764,6 +783,7 @@
 		83802F6071E4373F5023E7F7 /* ReadingRules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingRules.swift; sourceTree = "<group>"; };
 		83B8A7A15D89A25011C382B9 /* DailyActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyActivityView.swift; sourceTree = "<group>"; };
 		84765BC95CFB59753006F082 /* story-portrait-19.webp */ = {isa = PBXFileReference; path = "story-portrait-19.webp"; sourceTree = "<group>"; };
+		850FF3E23122E2F3CA41A21A /* SettingsDrawerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsDrawerView.swift; sourceTree = "<group>"; };
 		85F27477992C4AC12CDC7D07 /* FocusedLearningViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusedLearningViews.swift; sourceTree = "<group>"; };
 		86929F5BD2D91302F5DD04FB /* RealtimeLessonRun.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealtimeLessonRun.swift; sourceTree = "<group>"; };
 		86C39135928FFE70520599DF /* StoryCharacterAvatar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryCharacterAvatar.swift; sourceTree = "<group>"; };
@@ -865,6 +885,7 @@
 		B6639D16699389463DDCACD2 /* PrivateTeamsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivateTeamsView.swift; sourceTree = "<group>"; };
 		B83EFE6781F381D810ACDAFE /* entry-copy.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "entry-copy.json.gz"; sourceTree = "<group>"; };
 		B890B4AEACDF32092D34B641 /* DMSans-400.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "DMSans-400.ttf"; sourceTree = "<group>"; };
+		B914547C79C2BAE568F9C0D5 /* LearnerSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearnerSettings.swift; sourceTree = "<group>"; };
 		B945F8DF723EF3E0E60B5A0E /* LandingDemoLesson.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandingDemoLesson.swift; sourceTree = "<group>"; };
 		BA31D468CC9982F8CC105599 /* BunkerConnection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BunkerConnection.swift; sourceTree = "<group>"; };
 		BAA8E1D6F5FB24181FEB3D17 /* BrandedOnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrandedOnboardingView.swift; sourceTree = "<group>"; };
@@ -919,6 +940,7 @@
 		D1C878E79AC68E074187F57D /* PhonicsSpeechFixture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhonicsSpeechFixture.swift; sourceTree = "<group>"; };
 		D1DAE22D15DE94917B20977D /* piyali-orb.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "piyali-orb.png"; sourceTree = "<group>"; };
 		D1F738CAFD029FFB61A5AA58 /* PlateHeadlineJourneyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlateHeadlineJourneyTests.swift; sourceTree = "<group>"; };
+		D216E90359E48AB44412841F /* SettingsPersonaController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsPersonaController.swift; sourceTree = "<group>"; };
 		D27DDFD8571B87D1C9F72186 /* TutorReferenceScreensTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorReferenceScreensTests.swift; sourceTree = "<group>"; };
 		D310219DADD12CA138323777 /* PrivateTeamsUIEmulator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivateTeamsUIEmulator.swift; sourceTree = "<group>"; };
 		D33E69333E1A7880D2F0FC40 /* PhonicsSourceCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhonicsSourceCard.swift; sourceTree = "<group>"; };
@@ -966,6 +988,7 @@
 		E53E75E9A9C27367CE2539AF /* LessonAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LessonAccess.swift; sourceTree = "<group>"; };
 		E54650A0AFE07F46F1F799A1 /* PracticeAccessTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PracticeAccessTests.swift; sourceTree = "<group>"; };
 		E632BE26C7121F505C93A15C /* curriculum-ga.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "curriculum-ga.json.gz"; sourceTree = "<group>"; };
+		E6EEAC36E7E3981ECD281D1D /* settings-policy.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "settings-policy.js"; sourceTree = "<group>"; };
 		E707D6EB11B623F173CB0C31 /* curriculum-index.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "curriculum-index.json.gz"; sourceTree = "<group>"; };
 		E74D817FF4886C160B4044E0 /* LandingDemoBubble.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandingDemoBubble.swift; sourceTree = "<group>"; };
 		E75539774A55EB713C9752BC /* story-portrait-16.webp */ = {isa = PBXFileReference; path = "story-portrait-16.webp"; sourceTree = "<group>"; };
@@ -1012,6 +1035,7 @@
 		FC8C1AFE520430E24776DD16 /* CompanionMemory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionMemory.swift; sourceTree = "<group>"; };
 		FD2145F5F4EC6EFDE91813F6 /* curriculum-yua.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "curriculum-yua.json.gz"; sourceTree = "<group>"; };
 		FDDA585F43A2605655108EDD /* SpeechService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechService.swift; sourceTree = "<group>"; };
+		FE4E37BEF1AD171C5BA5DD6F /* SettingsSupportingViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsSupportingViews.swift; sourceTree = "<group>"; };
 		FE8593C607F3F1F4B2FC4D37 /* ExplorationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExplorationView.swift; sourceTree = "<group>"; };
 		FF3D07C8FCE37EC2B8554C50 /* FirstRunJourneyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirstRunJourneyTests.swift; sourceTree = "<group>"; };
 		FF433A9FE198E89B755DBA31 /* IntroTutorialTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntroTutorialTests.swift; sourceTree = "<group>"; };
@@ -1115,6 +1139,7 @@
 				14ACB35E459D0E1D217992EB /* RemoteSignerTests.swift */,
 				457A19466E8D8D7CD807C5E9 /* SessionTimerControllerTests.swift */,
 				4872AB87288E8D12155C0347 /* SessionToolResourceTests.swift */,
+				09B6BFADD13E198EFAB33D22 /* SettingsFlowTests.swift */,
 				E80D4E7DD41C6D657D46A3BC /* SourceSessionToolsTests.swift */,
 				7FC59CF706789548DBC55605 /* SourceWebKitTypographyTests.swift */,
 				B52E27660B2B635D271CFFC8 /* SpeechPracticeServiceTests.swift */,
@@ -1245,6 +1270,8 @@
 				523FDC72FD0A235EB9754CE3 /* rpg-yua.json.gz */,
 				69895E04FD79ECC670F31216 /* score-milestones.json.gz */,
 				961FB1EC03675BF15BC48E3B /* session-tools-ui.json.gz */,
+				42B6E63E48F0152709A4373C /* settings-copy.json.gz */,
+				E6EEAC36E7E3981ECD281D1D /* settings-policy.js */,
 				C9306EAF50D641B64FAFDCD4 /* story-test-episode.json.gz */,
 				7FE8959996A913BF46BCA646 /* story-ui.json.gz */,
 				04BA356EF04DCE5CAAC953BE /* story-ui.manifest.json */,
@@ -1322,6 +1349,8 @@
 				58B5DF2715F289D91F1BC127 /* RootView.swift */,
 				1C4783A80838FD8C51D21499 /* RPGView.swift */,
 				C4EFE28C6D663B4058736BF4 /* SessionToolViews.swift */,
+				850FF3E23122E2F3CA41A21A /* SettingsDrawerView.swift */,
+				FE4E37BEF1AD171C5BA5DD6F /* SettingsSupportingViews.swift */,
 				EEFFAD8FCAD34A46F68D94BD /* ShufflePracticeView.swift */,
 				630D899CDC7EA39FA2A6310B /* SourceFlashcardsView.swift */,
 				8DDAE8B627084D1EE782C5A8 /* SourcePhonicsView.swift */,
@@ -1342,7 +1371,9 @@
 				C9304277563CFDA73534542C /* AppModel.swift */,
 				64989D3A68AA8CE1986A56DC /* AppModel+CompanionQuest.swift */,
 				1E0026F1C2027A48B1842713 /* AppModel+FocusedGoal.swift */,
+				156AC099D65E79FDC7AB89E0 /* AppModel+Settings.swift */,
 				B5F31E9A0B6B91BB6AFC7C84 /* AppModel+StudyNotes.swift */,
+				44CC37F4F1A89ABE345C746B /* AutomaticProgressController.swift */,
 				CE8515E4F4A40310F85DC008 /* FlashcardSessionController.swift */,
 				2E1DF6C8F4BE4742D057C2BB /* GoalEditorController.swift */,
 				51ABD3889F2BB35BC5A1BF37 /* MemoryDrawerController.swift */,
@@ -1352,6 +1383,8 @@
 				B035DFC1736E1F69047CEB9B /* PiyaliApp.swift */,
 				515BB32271C34128BCBBF2FA /* PlatePracticeController.swift */,
 				D556171277722258A5EEC52A /* PlatePracticeFixture.swift */,
+				4E6A93DC78DF2A0AE1FAC03C /* SettingsFixture.swift */,
+				D216E90359E48AB44412841F /* SettingsPersonaController.swift */,
 				336E2C492B966F6F2CE38DBC /* VoiceJourneyController.swift */,
 			);
 			path = App;
@@ -1409,6 +1442,7 @@
 				537D3AFD0BD651B3531983B3 /* RemoteSignerTests.swift */,
 				2CFC425DEA793B07BA6A7ECF /* RPGTests.swift */,
 				0B5C87AC9BC7E40F256B552C /* SessionToolsJourneyTests.swift */,
+				72301B4100E7177AD39A2A75 /* SettingsJourneyTests.swift */,
 				0C1539DEC5F6DCC632774299 /* SmokeTests.swift */,
 				C34F507B12BF0E54D7347349 /* StoryTests.swift */,
 				39C7258FD66B24C728599FBA /* TeamsTests.swift */,
@@ -1462,6 +1496,7 @@
 				8E2927E452B81CED9C6A3C27 /* IntroTutorial.swift */,
 				B945F8DF723EF3E0E60B5A0E /* LandingDemoLesson.swift */,
 				1B8C9F9053FD09737D00C500 /* LandingGeminiGate.swift */,
+				B914547C79C2BAE568F9C0D5 /* LearnerSettings.swift */,
 				4A919107C8A686BE6D656685 /* LearningProgress.swift */,
 				F1FEDB94750C892769E89085 /* LearningTeams.swift */,
 				E53E75E9A9C27367CE2539AF /* LessonAccess.swift */,
@@ -1493,6 +1528,7 @@
 				70130D68363B553BABCEE38E /* RPG.swift */,
 				0896985B023EFF7F6CD6E06D /* RPGStory.swift */,
 				61E81C151B8ED229B9494FAF /* SessionTimer.swift */,
+				171F3067E79A85C8AB56671F /* SettingsSourcePolicy.swift */,
 				461C4C51B8B4F3F19454661F /* StoryAppearance.swift */,
 				433D5978FFDE6DED42FECAD2 /* StoryGeneration.swift */,
 				DC79F67970B7D4F4D80D7D45 /* StoryGenerationCoordinator.swift */,
@@ -1944,6 +1980,8 @@
 				1BB81699C78A009137170421 /* score-milestones.json.gz in Resources */,
 				8BFF4255FDCE8C6EA42B9476 /* session-timer-character.webp in Resources */,
 				F2BA8314066792FD664944B8 /* session-tools-ui.json.gz in Resources */,
+				E79B7C33AF5EA6C356AD150B /* settings-copy.json.gz in Resources */,
+				283A54811981205705CDCD26 /* settings-policy.js in Resources */,
 				A95ECF91860C4C172732E3D8 /* story-portrait-1.webp in Resources */,
 				5E66A1F082CD75C112869C70 /* story-portrait-10.webp in Resources */,
 				CC4034D373DC12A6907EA103 /* story-portrait-11.webp in Resources */,
@@ -2059,6 +2097,7 @@
 				7C6DB63900D50D03D0049B71 /* ReadingTests.swift in Sources */,
 				80986DEA5C6BC8F7904F6D82 /* RemoteSignerTests.swift in Sources */,
 				E49DEF56166B5B834CF738B9 /* SessionToolsJourneyTests.swift in Sources */,
+				9F923247F8B29C0A20383D27 /* SettingsJourneyTests.swift in Sources */,
 				28B56083FAB9E6F248C812E7 /* SmokeTests.swift in Sources */,
 				30815E8C44F6C20D3D6467FD /* StoryTests.swift in Sources */,
 				C3F8FED07A9B2CD3DC9FC975 /* TeamsTests.swift in Sources */,
@@ -2112,6 +2151,7 @@
 				854BD8D830B07607225EC3F7 /* RemoteSignerTests.swift in Sources */,
 				CA885FC2839546A78E7D7AFD /* SessionTimerControllerTests.swift in Sources */,
 				38EE8B0CA0A86B874C17C68D /* SessionToolResourceTests.swift in Sources */,
+				4CE5DD462B9E937C4BB11292 /* SettingsFlowTests.swift in Sources */,
 				B853CDF4DC0F518F4545D2A1 /* SourceSessionToolsTests.swift in Sources */,
 				36FAAEA303FFBB8858B3A688 /* SourceWebKitTypographyTests.swift in Sources */,
 				8BBC6C63AF21602216ED3EA5 /* SpeechPracticeServiceTests.swift in Sources */,
@@ -2138,9 +2178,11 @@
 				882DF197F6E0043796DBFC66 /* AppConfiguration.swift in Sources */,
 				C809E1674A5A3F3890B0C161 /* AppModel+CompanionQuest.swift in Sources */,
 				D51105E004BC4069C9C55F05 /* AppModel+FocusedGoal.swift in Sources */,
+				801202777BE4E38B05B348F5 /* AppModel+Settings.swift in Sources */,
 				E9155E476E97D8D533B05A1F /* AppModel+StudyNotes.swift in Sources */,
 				A877E84CD10C1FB5B0B82B67 /* AppModel.swift in Sources */,
 				C785F6BFB87C7E942FD7D3FC /* AssistantStudyView.swift in Sources */,
+				253B8EA053FA3113C75CEEC3 /* AutomaticProgressController.swift in Sources */,
 				6DBD994EC7A05EA406383B73 /* AutomaticTips.swift in Sources */,
 				73C1EF083007FAB095C39C34 /* BrandedOnboardingView.swift in Sources */,
 				CB9D82FBF26F2B92C92D9A94 /* BunkerConnection.swift in Sources */,
@@ -2220,6 +2262,7 @@
 				9A73BF7110B07912358513B2 /* LandingSectionsView.swift in Sources */,
 				7FB8FC7DC5DB6C2D0A18FBBF /* LandingTutorDemoView.swift in Sources */,
 				7AD5F90288B019DCB8FF3C49 /* LearnerProgressService.swift in Sources */,
+				2FE987065A196F4DF6F1BF6E /* LearnerSettings.swift in Sources */,
 				BA3587196E9859E44561EBDF /* LearningGoalEditorView.swift in Sources */,
 				B70AED57B1666BE863E9F462 /* LearningProgress.swift in Sources */,
 				44AEA966DFA0E6AC9F201AF5 /* LearningTeams.swift in Sources */,
@@ -2306,6 +2349,11 @@
 				AFBB126B7B1DB1DAF833B1D6 /* SessionTimer.swift in Sources */,
 				717D667C6539A05113F5E951 /* SessionTimerController.swift in Sources */,
 				0B2A73368D9E7B567FAA58D6 /* SessionToolViews.swift in Sources */,
+				8E66B69E33676EBA86B9F5B8 /* SettingsDrawerView.swift in Sources */,
+				0FFE8830A4DC1EB9F2CFCE53 /* SettingsFixture.swift in Sources */,
+				EA59C43EA044F5C0EA42F4ED /* SettingsPersonaController.swift in Sources */,
+				885C53AB169CA83CA7956F8D /* SettingsSourcePolicy.swift in Sources */,
+				9EC04337327F54998FEB3402 /* SettingsSupportingViews.swift in Sources */,
 				6E14381391F0C471C85D1D45 /* ShufflePracticeView.swift in Sources */,
 				8CA0806D79208BA56BD6F020 /* SourceFlashcardsView.swift in Sources */,
 				B6D679FF81517B9FA6EC57A6 /* SourcePhonicsView.swift in Sources */,

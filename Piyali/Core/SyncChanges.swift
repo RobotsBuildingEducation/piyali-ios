@@ -118,6 +118,9 @@ public extension LearnerState {
                 if change.source == .speak{merged.questProgress=merged.plateProgress.setting("currentTutorLesson",.null)}
             }
         }
+        merged.userSettings=acknowledged.userSettings
+        merged.pendingSettingsChanges=(current.pendingSettingsChanges ?? []).filter{!(acknowledged.acknowledgedEventIDs ?? []).contains($0.id)}
+        for change in merged.pendingSettingsChanges ?? []{merged.userSettings=LearnerSettings.applying(change,to:merged.settingsSnapshot)}
         let sentMemoryIDs = Set((sent.pendingMemoryChanges ?? []).map(\.id))
         let newMemory = (current.pendingMemoryChanges ?? []).filter { !sentMemoryIDs.contains($0.id) && !(acknowledged.acknowledgedEventIDs ?? []).contains($0.id) }
         merged.pendingMemoryChanges = newMemory

@@ -12,19 +12,20 @@ import Foundation
     private var responseSucceeded=false,bufferStopped=false
     private var finished:(()->Void)?
     init(factory:(()->RealtimeVoiceTransport)?=nil){self.factory=factory ?? {RealtimeRTCTransport(capturesMicrophone:false,purpose:.narration)}}
-    func play(_ text:String,language:String,engine:CompanionQuestPolicy?,voice:String="ash",onFinished:(()->Void)?=nil){
+    func play(_ text:String,language:String,engine:CompanionQuestPolicy?,voice:String="ash",sessionOverride:JSONValue?=nil,startupMilliseconds:Int=20000,onFinished:(()->Void)?=nil){
         guard !text.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else{return}
         Self.owner?.stopAll();stopAll();Self.owner=self;loading=true;error=nil;failureDetail=nil;finished=onFinished;let token=epoch
         work=Task{do {
-            guard let engine else{throw PracticeRecipeFailure.unavailable}
-            let session=try engine.run("ph_tts",.object(["language":.string(language),"voice":.string(voice)])),client=factory();self.client=client
+            let session:JSONValue
+            if let sessionOverride{session=sessionOverride}else{guard let engine else{throw PracticeRecipeFailure.unavailable};session=try engine.run("ph_tts",.object(["language":.string(language),"voice":.string(voice)]))}
+            let client=factory();self.client=client
             client.onOpen={ [weak self,weak client] in guard let self,self.epoch == token else{return};client?.setMicrophoneEnabled(false);client?.setRemoteAudioEnabled(true)
                 let item:JSONValue = .object(["type":.string("conversation.item.create"),"item":.object(["type":.string("message"),"role":.string("user"),"content":.array([.object(["type":.string("input_text"),"text":.string("[NARRATE THIS TEXT EXACTLY]: "+text)])])])])
                 guard client?.send(item) == true,client?.send(.object(["type":.string("response.create"),"response":.object(["output_modalities":.array([.string("audio")]),"instructions":session["instructions"]])])) == true else{self.fail("send");return}
             }
             client.onEvent={ [weak self] event in guard let self,self.epoch == token else{return};self.receive(event)}
             client.onFailure={ [weak self] detail in guard let self,self.epoch == token else{return};self.fail("transport: "+detail)}
-            startup=Task{try? await Task.sleep(for:.seconds(20));if !Task.isCancelled,self.epoch == token,self.loading{self.fail("startup")}}
+            startup=Task{try? await Task.sleep(for:.milliseconds(startupMilliseconds));if !Task.isCancelled,self.epoch == token,self.loading{self.fail("startup")}}
             hardDeadline=Task{try? await Task.sleep(for:.milliseconds(max(45000,text.count*180+10000)));if !Task.isCancelled,self.epoch == token{self.fail("deadline")}}
             try await client.connect(session:session);try Task.checkCancellation()
         }catch is CancellationError{}catch{if epoch == token{fail("connection: "+error.localizedDescription)}}}

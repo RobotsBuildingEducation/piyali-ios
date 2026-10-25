@@ -25,6 +25,9 @@ import StoreKit
     private var entitlementCheck = 0
     init(configuration: AppConfiguration = AppConfiguration(), webSession: URLSession = .shared) {
         self.config = configuration; self.webSession = webSession
+        #if DEBUG
+        externalPaymentAllowed = true
+        #endif
         expiryMonitor = Task { [weak self] in
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(30))

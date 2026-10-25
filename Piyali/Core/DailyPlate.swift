@@ -102,7 +102,7 @@ public enum DailyPlate {
     public static func hasActivity(_ progress: JSONValue) -> Bool { fields.values.contains { field in progress[field].object.values.contains { !$0.object.isEmpty } } }
 }
 public extension LearnerState {
-    var plateProgress: JSONValue { questProgress ?? .object([:]) }
+    var plateProgress: JSONValue { var value=questProgress ?? .object([:]);for(key,setting)in settingsSnapshot["progress"].object{value=value.setting(key,setting)};return value }
     func introductoryQuest(day: String) -> Bool { DailyPlate.firstSession(progress:plateProgress,day:day,priorLearning:totalXP > 0 || !completed.isEmpty || DailyPlate.hasActivity(plateProgress)) }
     mutating func preparePlate(user: String, available: [String], now: Date = Date()) {
         let day = CalendarDay.key(now)

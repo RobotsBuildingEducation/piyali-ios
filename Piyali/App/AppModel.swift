@@ -65,6 +65,7 @@ import SwiftUI
     let companionQuestPolicy=try? CompanionQuestPolicy()
     let subscription = SubscriptionService()
     let teams = NostrTeamsService()
+    let automaticProgress=AutomaticProgressController()
     private let automaticWallet:WalletService
     private var automaticTipTask:(id:UUID,task:Task<Void,Never>)?
     private var automaticTipUpdates:AnyCancellable?
@@ -142,10 +143,10 @@ import SwiftUI
     func loadLocal() {
         restoringLearner=true;defer{restoringLearner=false}
         if let data = try? Data(contentsOf: localURL), let state = try? JSONDecoder().decode(LearnerState.self, from: data) { learner = state } else { learner = LearnerState() }
-        learner.rollDay(); lastPersisted = learner
+        learner.rollDay(); syncSettingsAppearance();lastPersisted = learner
     }
     func signIn(nsec: String?,name:String? = nil,support:String? = nil) async {
-        flushGoalEditor();goalCheck=nil
+        flushGoalEditor();goalCheck=nil;automaticProgress.reset()
         nostrSyncTask?.cancel();nostrAchievements.cancel()
         teams.cancel(clear:true)
         do {
@@ -169,28 +170,29 @@ import SwiftUI
             if FileManager.default.fileExists(atPath:localURL.path) { await sync() }
             else if let cloud = try await progressService.load(npub:account) {
                 guard identity.npub == account else { return }
-                restoreLearner(cloud); lastPersisted = learner; try writeLocal()
+                restoreLearner(cloud); syncSettingsAppearance();automaticProgress.observe(cloud,identity:identity,locallyAllowed:learner.automaticPostsEnabled); lastPersisted = learner; try writeLocal()
             }
         } catch { syncStatus = "Saved on iPhone; cloud sync pending" }
         await reloadContent(); await subscription.refresh(); scheduleNostrAchievements()
     }
     func signInRemote(_ token:String,onConnected:@MainActor ()->Void = {}) async -> Bool {
-        flushGoalEditor();goalCheck=nil
+        flushGoalEditor();goalCheck=nil;automaticProgress.reset()
         nostrSyncTask?.cancel();nostrAchievements.cancel();teams.cancel(clear:true)
         do { try await identity.connect(token);try Task.checkCancellation();onConnected();await activateIdentity();return true }
         catch { if !(error is CancellationError) { self.error=error.localizedDescription };return false }
     }
+    func signOut(){disconnectRemote()}
     func disconnectRemote() {
         flushGoalEditor();goalCheck=nil
         do {
-            try writeLocal();automaticTipTask?.task.cancel();automaticTipTask=nil;automaticWallet.cancel(clear:true);saveTask?.cancel();contentTask?.cancel();nostrSyncTask?.cancel();nostrAchievements.cancel();teams.cancel(clear:true)
+            try writeLocal();automaticProgress.reset();automaticTipTask?.task.cancel();automaticTipTask=nil;automaticWallet.cancel(clear:true);saveTask?.cancel();contentTask?.cancel();nostrSyncTask?.cancel();nostrAchievements.cancel();teams.cancel(clear:true)
             journeyRecording?.controller.close();journeyRecording=nil;try identity.disconnect();FirebaseIdentityService.shared.clearSession();signedIn=false;lessonActivityActive=false;activityFooter=nil;pendingLessonCompletion=nil;subscription.bind(identity);learner=LearnerState()
         } catch { self.error=error.localizedDescription }
     }
     func boot() async { guard signedIn else { return };scheduleAutomaticTips(recovering:true); await reloadContent(); await sync(); await subscription.refresh(); scheduleNostrAchievements();scheduleAutomaticTips() }
     func finishOnboarding(_ draft:OnboardingDraft?=nil) {
         if let draft {learner.completeOnboarding(draft)} else {learner.onboardingComplete=true;learner.preferencesModifiedAt=Date()}
-        PlatePracticeFixture.seed(self);MemoryDrawerFixture.seed(self);persist();Task { await reloadContent() }
+        PlatePracticeFixture.seed(self);MemoryDrawerFixture.seed(self);SettingsFixture.seed(self);persist();Task { await reloadContent() }
     }
     var immersionPreparationKey: String {
         let scope=learner.immersionScope()
@@ -322,12 +324,13 @@ import SwiftUI
         }
     }
     private var synchronizedStatus: String {
-        (learner.pendingChanges ?? []).isEmpty && (learner.pendingImmersionChanges ?? []).isEmpty && (learner.pendingMemoryChanges ?? []).isEmpty && (learner.pendingPlacements ?? [:]).isEmpty && (learner.pendingGoalChanges ?? []).isEmpty && (learner.pendingPlateHeadlines ?? [:]).isEmpty && (learner.pendingCompanionQuestDays ?? [:]).isEmpty && (learner.pendingRepairEvidence ?? []).isEmpty ? "Synced with Firebase" : "Saved on iPhone; cloud sync pending"
+        (learner.pendingChanges ?? []).isEmpty && (learner.pendingImmersionChanges ?? []).isEmpty && (learner.pendingMemoryChanges ?? []).isEmpty && (learner.pendingSettingsChanges ?? []).isEmpty && (learner.pendingPlacements ?? [:]).isEmpty && (learner.pendingGoalChanges ?? []).isEmpty && (learner.pendingPlateHeadlines ?? [:]).isEmpty && (learner.pendingCompanionQuestDays ?? [:]).isEmpty && (learner.pendingRepairEvidence ?? []).isEmpty ? "Synced with Firebase" : "Saved on iPhone; cloud sync pending"
     }
     private func applyAcknowledgment(_ cloud: LearnerState, sent: LearnerState) throws {
+        automaticProgress.observe(cloud,identity:identity,locallyAllowed:learner.automaticPostsEnabled)
         let priorGoalModes=readyGoal?["modeProgress"]
         let target = learner.target, support = learner.support, level = learner.level, cardLevel = learner.flashcardLevel, tutorLevel = learner.tutorLevel
-        restoreLearner(LearnerState.rebased(current:learner,sent:sent,acknowledged:cloud))
+        restoreLearner(LearnerState.rebased(current:learner,sent:sent,acknowledged:cloud));syncSettingsAppearance()
         for change in learner.pendingRepairEvidence ?? [] {
             let bucket=learner.goalIntelligence?[change.target] ?? .object([:])
             if let summary=try? companionQuestPolicy?.run("evidence",.object(["summary":bucket["repairSummary"],"event":change.event,"now":.number(change.date.timeIntervalSince1970*1000)])) {if learner.goalIntelligence == nil {learner.goalIntelligence=[:]};learner.goalIntelligence?[change.target]=bucket.setting("repairSummary",summary)}

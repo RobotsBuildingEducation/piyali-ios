@@ -2,6 +2,7 @@ import SwiftUI
 
 struct LearningGoalEditorView:View {
     @EnvironmentObject var app:AppModel
+    var onFocusChange:(Bool)->Void={_ in}
     @Environment(\.colorScheme) private var scheme
     @StateObject private var editor=GoalEditorController()
     @FocusState private var focused:Bool
@@ -19,7 +20,7 @@ struct LearningGoalEditorView:View {
             HStack {Spacer();if editor.saved {Text(app.goalText("saved")).font(PiyaliBrand.productFont(12)).foregroundStyle(PiyaliBrand.unitColor(scheme == .dark ? "a3b4c9":"786654")).accessibilityIdentifier("learningGoalSaved")}}.frame(minHeight:18).padding(.top,4)
         }.foregroundStyle(brand.text).padding(12).background(PiyaliBrand.unitColor(scheme == .dark ? "111827":"f1e8dc"),in:RoundedRectangle(cornerRadius:6))
             .task(id:scope){editor.load(app)}
-            .onChange(of:focused){_,value in editor.focus(value,app:app)}
+            .onChange(of:focused){_,value in editor.focus(value,app:app);onFocusChange(value)}
             .onChange(of:observed){_,_ in editor.receive(app)}
             .onDisappear{editor.close(app)}
     }

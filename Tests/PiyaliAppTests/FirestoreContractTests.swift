@@ -264,6 +264,20 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
         let saved=try await ref.getDocument(source:.server).data() ?? [:],notes=try XCTUnwrap(saved["notes"] as? [[String:Any]]),root=try await db.collection("users").document(npub).getDocument(source:.server).data() ?? [:]
         XCTAssertEqual(notes[0]["tip"] as? String,"Saluda primero");XCTAssertEqual(notes[0]["status"] as? String,"reinforced");XCTAssertEqual(notes[0]["severity"] as? Int,4);XCTAssertEqual(notes[0]["foreignTimestamp"] as? Timestamp,timestamp);XCTAssertEqual((notes[0]["foreignNested"] as? [String:Any])?["date"] as? Timestamp,timestamp);XCTAssertEqual(saved["foreignRoot"] as? Timestamp,timestamp);XCTAssertEqual(root["xp"] as? Int,150)
     }
+    func testConcurrentSettingsPreserveVoiceForeignValuesXPAndNewerOfflineEdits()async throws {
+        let(service,db,npub)=try context();try await seed(db,npub)
+        let ref=db.collection("users").document(npub),timestamp=Timestamp(date:Date(timeIntervalSince1970:1_700_000_000))
+        try await ref.setData(["themeMode":"dark","progress":["tutorVoice":"Aoede","foreignTimestamp":timestamp,"foreignBytes":Data([1,2,3])]],merge:true)
+        var a=try requireState(await service.load(npub:npub)),b=a
+        a.changeSettings(.object(["tutorVoice":.string("cedar"),"tutorVoicePersona":.string("A calm guide")]))
+        b.changeSettings(.object(["pauseMs":.number(800)]))
+        async let first=service.save(a,npub:npub),second=service.save(b,npub:npub);_=try await(first,second)
+        _=try await service.save(a,npub:npub);_=try await service.save(b,npub:npub)
+        let result=try requireState(await service.load(npub:npub)),fields=try await ref.getDocument(source:.server).data() ?? [:],progress=fields["progress"] as? [String:Any] ?? [:]
+        XCTAssertEqual(result.settingsSnapshot["progress"]["tutorVoice"],.string("cedar"));XCTAssertEqual(result.tutorPauseMilliseconds,800);XCTAssertEqual(result.settingsSnapshot["progress"]["tutorVoicePersona"],.string("A calm guide"));XCTAssertEqual(result.settingsSnapshot["themeMode"],.string("dark"));XCTAssertEqual(result.totalXP,150)
+        XCTAssertEqual(progress["foreignTimestamp"] as? Timestamp,timestamp);XCTAssertEqual(progress["foreignBytes"] as? Data,Data([1,2,3]));XCTAssertEqual(fields["patreonVerified"] as? Bool,true)
+        let snapshot=try JSONDecoder().decode(LearnerState.self,from:Data(try XCTUnwrap(fields["iosStateJSON"] as? String).utf8));XCTAssertNil(snapshot.userSettings);XCTAssertTrue(snapshot.pendingSettingsChanges?.isEmpty == true)
+    }
     private func context() throws -> (FirebaseService,Firestore,String) {
         guard ProcessInfo.processInfo.environment["PIYALI_FIRESTORE_EMULATOR_TESTS"] == "1" else { throw XCTSkip("Run with the local Firestore emulator and TEST_RUNNER_PIYALI_FIRESTORE_EMULATOR_TESTS=1.") }
         let name = "PiyaliContractEmulator"

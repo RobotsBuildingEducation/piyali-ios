@@ -29,7 +29,7 @@ import XCTest
         tap("conversationHistory",app);XCTAssertTrue(app.staticTexts["wrong topic"].waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts["Hola, me llamo Ana."].exists);photo("Native conversation private history",app)
         tap("conversationSave",app);app.buttons["Done"].tap()
         app.terminate();app.launch();open(app);XCTAssertTrue(app.buttons["conversationStart"].exists);XCTAssertEqual(app.staticTexts["conversationLatestReply"].label,"¡Hola, Ana! ¿Qué te gusta hacer?")
-        tap("productMenu",app);tap("productPanel-settings",app);let xp=app.staticTexts.matching(NSPredicate(format:"label BEGINSWITH %@","5 total XP")).firstMatch;for _ in 0..<6 where !xp.isHittable { app.swipeUp(velocity:.slow) };XCTAssertTrue(xp.waitForExistence(timeout:5))
+        let xp=app.descendants(matching:.any).matching(identifier:"dailyXPStatus").firstMatch;XCTAssertTrue(xp.waitForExistence(timeout:5));XCTAssertEqual(xp.value as? String,"5%")
     }
     func testSourceSettingsPersistAcrossDismissalAndDarkRelaunchWithoutStartingAudio() {
         let app=start();tap("conversationSettings",app)
@@ -48,7 +48,7 @@ extension ConversationPlayTests {
         tap("productMenu",app);tap("productPanel-settings",app)
         let picker=app.buttons["supportLanguagePicker"]
         for _ in 0..<6 where !picker.isHittable { app.swipeDown(velocity:.slow) }
-        XCTAssertTrue(picker.waitForExistence(timeout:5));picker.tap();XCTAssertTrue(app.buttons[language].waitForExistence(timeout:5));app.buttons[language].tap();tap("productPanelClose",app)
+        XCTAssertTrue(picker.waitForExistence(timeout:5));picker.tap();let option=app.buttons["settingsLanguage-support-"+(language == "French" ? "fr":"es")];XCTAssertTrue(option.waitForExistence(timeout:5));option.tap();tap("productPanelClose",app)
     }
     func testSupportLanguageRefreshesGoalStarterAndTranslationWithoutReplayingRewards() {
         let app=start();tap("conversationStart",app)
@@ -59,9 +59,9 @@ extension ConversationPlayTests {
         XCTAssertTrue(app.staticTexts["conversationGoal"].waitForExistence(timeout:10));XCTAssertEqual(app.staticTexts["conversationGoal"].label,"Dites une chose que vous aimez");XCTAssertFalse(app.staticTexts["conversationTranslation"].exists);XCTAssertTrue(app.buttons["conversationTranslate"].exists)
         tap("conversationStarter",app);XCTAssertTrue(app.staticTexts["conversationStarterSupport"].waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts["conversationStarterSupport"].label.contains("J’aime"));tap("conversationStarter",app)
         tap("conversationTranslate",app);XCTAssertTrue(app.staticTexts["conversationTranslation"].waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts["conversationTranslation"].label.contains("Bonjour Ana"));photo("Native conversation French support",app)
-        changeSupport("Spanish",app);XCTAssertEqual(app.staticTexts["conversationGoal"].label,"Di algo que te guste");XCTAssertFalse(app.staticTexts["conversationStarterPhrase"].exists);XCTAssertFalse(app.staticTexts["conversationTranslation"].exists)
+        changeSupport("Espagnol",app);XCTAssertEqual(app.staticTexts["conversationGoal"].label,"Di algo que te guste");XCTAssertFalse(app.staticTexts["conversationStarterPhrase"].exists);XCTAssertFalse(app.staticTexts["conversationTranslation"].exists)
         tap("conversationTranslate",app);XCTAssertEqual(app.staticTexts["conversationTranslation"].label,app.staticTexts["conversationLatestReply"].label)
         app.terminate();app.launch();open(app);XCTAssertEqual(app.staticTexts["conversationGoal"].label,"Di algo que te guste");XCTAssertEqual(app.staticTexts["conversationTranslation"].label,"¡Hola, Ana! ¿Qué te gusta hacer?");photo("Native conversation Spanish support restored",app)
-        tap("productMenu",app);tap("productPanel-settings",app);let xp=app.staticTexts.matching(NSPredicate(format:"label BEGINSWITH %@","5 total XP")).firstMatch;for _ in 0..<6 where !xp.isHittable { app.swipeUp(velocity:.slow) };XCTAssertTrue(xp.waitForExistence(timeout:5))
+        let xp=app.descendants(matching:.any).matching(identifier:"dailyXPStatus").firstMatch;XCTAssertTrue(xp.waitForExistence(timeout:5));XCTAssertEqual(xp.value as? String,"5%")
     }
 }

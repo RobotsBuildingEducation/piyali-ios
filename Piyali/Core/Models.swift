@@ -192,6 +192,8 @@ public struct LearnerState: Codable, Sendable {
     public var cardReviews: [String: FlashcardReview]?
     public var companionMemory: [String:[MemoryNote]]?
     public var pendingMemoryChanges: [MemoryChange]?
+    public var userSettings:JSONValue?
+    public var pendingSettingsChanges:[SettingsChange]?
     public var acknowledgedEventIDs: Set<UUID>?
     public var ratingByLanguage: [String: Double]?
     public var goalArtifacts: [String: JSONValue]?

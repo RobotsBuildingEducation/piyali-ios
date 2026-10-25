@@ -184,6 +184,7 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
         for change in (state.pendingMemoryChanges ?? []).sorted(by:{ $0.date < $1.date }) {
             try await applyMemory(change,user:user,database:database)
         }
+        for change in state.pendingSettingsChanges ?? [] {try await applySettings(change,user:user,database:database)}
         if !(state.pendingRepairEvidence ?? []).isEmpty {
             guard let sourceURL=Bundle.main.url(forResource:"companion-quest-policy",withExtension:"js") else{throw PracticeRecipeFailure.unavailable}
             let source=try String(contentsOf:sourceURL,encoding:.utf8)
@@ -239,7 +240,7 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                 merged.reconcileTutorUnlock(index:tutorIndex);merged.target=selectedTarget
                 merged.phonicsRecords=nil;merged.pendingRepairEvidence=[];merged.companionQuestDays=nil;merged.pendingCompanionQuestDays=[:];merged.plateHeadlines=nil;merged.pendingPlateHeadlines=[:];merged.immersionBatch=nil;merged.immersionHistory=nil;merged.immersionRewardReceipts=nil;merged.immersionPlacementAt=nil;merged.pendingImmersionChanges=[]
                 // Companion memory has its own shared web document, not a second snapshot authority.
-                merged.shareNostrAchievements = nil; merged.achievementRecords = nil; merged.achievementEvidence = nil; merged.achievementLedger = nil; merged.companionProgress = nil; merged.companionMemory = nil; merged.pendingMemoryChanges = []; merged.goalIntelligence = nil; merged.goalArtifacts = nil; merged.pendingGoalChanges = []; merged.questProgress = nil; merged.journeyQuestCounts = nil; merged.tutorLessons = nil; merged.acknowledgedEventIDs = nil
+                merged.shareNostrAchievements = nil; merged.achievementRecords = nil; merged.achievementEvidence = nil; merged.achievementLedger = nil; merged.companionProgress = nil; merged.companionMemory = nil; merged.pendingMemoryChanges = []; merged.userSettings=nil;merged.pendingSettingsChanges=[]; merged.goalIntelligence = nil; merged.goalArtifacts = nil; merged.pendingGoalChanges = []; merged.questProgress = nil; merged.journeyQuestCounts = nil; merged.tutorLessons = nil; merged.acknowledgedEventIDs = nil
                 var patch: [String:Any] = ["local_npub":npub,"iosStateJSON":String(decoding:try JSONEncoder().encode(merged),as:UTF8.self),"iosStateVersion":2,"iosUpdatedAt":FieldValue.serverTimestamp()]
                 // The shared field is the sole headline authority. Merge only
                 // dirty language entries, retaining the web's last-write
@@ -257,7 +258,7 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                 if state.preferencesModifiedAt.map({ $0 > (WebProgressContract.date(Self.normalized(fields)["iosPreferencesModifiedAt"]) ?? .distantPast) }) == true || fields["iosStateJSON"] == nil || !snapshot.exists {
                     patch["iosPreferencesModifiedAt"] = WebProgressContract.iso(state.preferencesModifiedAt ?? Date())
                     let profile = state.preferencesModifiedAt == nil ? merged : state
-                    patch["displayName"] = profile.name; patch["language"] = profile.support
+                    patch["displayName"] = profile.name; patch["language"] = profile.support; patch["appLanguage"] = profile.support
                     patch["dailyGoalXp"] = profile.dailyGoal; patch["dailyGoalPetName"] = profile.companionName; patch["dailyGoalPetType"] = profile.effectiveCompanionType
                     patch["onboarding"] = ["completed":profile.onboardingComplete]
                     patch["progress"] = ["targetLang":profile.target,"supportLang":profile.support,"cefrLevel":profile.level,"activeTutorLevels":profile.tutorLevels ?? [profile.target:profile.tutorLevel],"activeLessonLevels":profile.lessonLevels ?? [profile.target:profile.level],"activeFlashcardLevels":profile.flashcardLevels ?? [profile.target:profile.flashcardLevel]]
@@ -540,6 +541,18 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
             tx.setData(["eventID":change.id.uuidString,"source":"immersion-"+change.action.rawValue,"targetLang":change.target,"amount":reward,"syncedAt":FieldValue.serverTimestamp()],forDocument:operation)
             return true
         } catch let failure { error?.pointee=failure as NSError;return nil } }
+    }
+    private func applySettings(_ change:SettingsChange,user:DocumentReference,database:Firestore)async throws {
+        guard let url=Bundle.main.url(forResource:"settings-policy",withExtension:"js") else{throw PracticeRecipeFailure.unavailable}
+        let source=try String(contentsOf:url,encoding:.utf8),receipt=user.collection("iosPracticeReceipts").document("settings-"+change.id.uuidString)
+        _=try await database.runTransaction{tx,error in do {
+            let recorded=try tx.getDocument(receipt),snapshot=try tx.getDocument(user),fields=snapshot.data() ?? [:]
+            if recorded.exists{Self.acknowledge(change.id,user:user,fields:fields,transaction:tx);return false}
+            let policy=try SettingsSourcePolicy(source:source),patch=try LearnerSettings.patch(change,fields:LearnerSettings.sourceUser(Self.normalized(fields)),policy:policy)
+            var values=patch.foundation;values["local_npub"]=user.documentID;values["iosRecentEventIDs"]=Self.recentIDs(fields,adding:change.id)
+            tx.setData(values,forDocument:user,merge:true)
+            tx.setData(["eventID":change.id.uuidString,"source":"settings","savedAt":FieldValue.serverTimestamp()],forDocument:receipt);return true
+        }catch let failure{error?.pointee=failure as NSError;return nil}}
     }
     private func applyMemory(_ change: MemoryChange, user: DocumentReference, database: Firestore) async throws {
         let receipt = user.collection("iosPracticeReceipts").document("memory-" + change.id.uuidString)

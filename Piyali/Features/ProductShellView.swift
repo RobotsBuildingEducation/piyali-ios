@@ -70,7 +70,7 @@ struct ProductShellView:View {
                 }
             if menuOpen { menu }
         }.font(PiyaliBrand.productFont(16)).foregroundStyle(brand.text)
-            .accessibilityElement(children:.contain).accessibilityHidden(panel == .memory || app.journeyRecording != nil || app.flashcardSession != nil || app.goalCheck != nil || lessonCompletion != nil || firstRun.step != nil || goalOpen || timerOpen || timer.session.status == .finished || practice.visible != nil || practice.dailyGoalVisible != nil)
+            .accessibilityElement(children:.contain).accessibilityHidden(panel == .memory || panel == .settings || app.journeyRecording != nil || app.flashcardSession != nil || app.goalCheck != nil || lessonCompletion != nil || firstRun.step != nil || goalOpen || timerOpen || timer.session.status == .finished || practice.visible != nil || practice.dailyGoalVisible != nil)
             .overlay {
                 if let data=lessonCompletion {
                     ZStack {
@@ -113,11 +113,11 @@ struct ProductShellView:View {
             .onChange(of:app.syncStatus){_,value in if value == "Synced with Firebase"{timerAwardRevision=UUID()}}
             .onChange(of:app.identity.npub){_,_ in goalOpen=false;timerOpen=false;timer.load(account:app.identity.npub)}
             .onChange(of:timer.session.status){_,value in if value == .finished{UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder),to:nil,from:nil,for:nil)}}
-            .sheet(item:Binding(get:{panel == .memory ? nil:panel},set:{panel=$0})) { selected in NavigationStack { panelContent(selected).toolbar { ToolbarItem(placement:.confirmationAction) { Button(EntryCopy.text(language,"back_button")) { panel=nil }.accessibilityIdentifier("productPanelClose") } } }.tint(PiyaliBrand.teal) }
+            .sheet(item:Binding(get:{panel == .memory || panel == .settings ? nil:panel},set:{panel=$0})) { selected in NavigationStack { panelContent(selected).toolbar { ToolbarItem(placement:.confirmationAction) { Button(EntryCopy.text(language,"back_button")) { panel=nil }.accessibilityIdentifier("productPanelClose") } } }.tint(PiyaliBrand.teal) }
             .overlay {if let reward=practice.dailyGoalVisible{DailyGoalCelebrationView(reward:reward,onContinue:{practice.closeDailyGoal(app)})}}
             .overlay {if let data=practice.visible {PlateCelebrationView(data:data,language:language,onContinue:{practice.continuePractice(app,ephemeralLesson:specialCourse != nil && mode == .path)},onNotes:{practice.continuePractice(app,viewNotes:true,ephemeralLesson:specialCourse != nil && mode == .path)}).environment(\.layoutDirection,language == "ar" ? .rightToLeft:.leftToRight)}}
     }
-    private var memoryShell:some View {timedShell.overlay{if panel == .memory{MemoryDrawerView(onClose:{panel=nil},initialTab:memoryInitialTab).accessibilityHidden(app.journeyRecording != nil)}}.overlay{if let p=app.journeyRecording,p.account == app.identity.npub,p.target == app.learner.target{JourneyRecordingView(journey:p.controller,milestone:p.milestone,onClose:{app.journeyRecording=nil},onOpenJourney:{app.journeyRecording=nil;memoryInitialTab="journey";panel = .memory})}}}
+    private var memoryShell:some View {timedShell.overlay{if panel == .settings{SettingsDrawerView(onClose:{panel=nil},onPlacement:{panel = .placement})}}.overlay{if panel == .memory{MemoryDrawerView(onClose:{panel=nil},initialTab:memoryInitialTab).accessibilityHidden(app.journeyRecording != nil)}}.overlay{if let p=app.journeyRecording,p.account == app.identity.npub,p.target == app.learner.target{JourneyRecordingView(journey:p.controller,milestone:p.milestone,onClose:{app.journeyRecording=nil},onOpenJourney:{app.journeyRecording=nil;memoryInitialTab="journey";panel = .memory})}}}
     private var journeyCanPresent:Bool {app.signedIn && app.learner.onboardingComplete && !app.loadingContent && panel == nil && !menuOpen && !goalOpen && !timerOpen && timer.session.status != .finished && firstRun.step == nil && app.journeyRecording == nil && app.goalCheck == nil && app.flashcardSession == nil && lessonCompletion == nil && app.pendingLessonCompletion == nil && practice.visible == nil && practice.pending == nil && practice.dailyGoalVisible == nil && app.dailyGoalReward == nil && !app.lessonActivityActive && !app.hasEarnedPractice(excluding:practice.owner) && launchID == nil}
     private var sessionShell:some View {
         memoryShell
@@ -220,7 +220,7 @@ struct ProductShellView:View {
                 practice.onNavigate={openPlateCourse($0)}
                 practice.onHome={specialCourse=nil;mode = .focus;revision=UUID()}
                 practice.onNotes={panel = .memory}
-                practice.onSound={practiceSounds.play($0)}
+                practice.onSound={practiceSounds.play($0,enabled:app.learner.soundEffectsEnabled)}
     }
     private func startPractice() {
         guard launchID == nil else{return}
