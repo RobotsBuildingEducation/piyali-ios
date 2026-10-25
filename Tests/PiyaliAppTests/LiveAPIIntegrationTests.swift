@@ -591,3 +591,28 @@ import NostrSDK
         try await Auth.auth().currentUser?.delete(); try Auth.auth().signOut()
     }
 }
+
+extension LiveAPIIntegrationTests {
+    func testOriginalTutorJudgeWelcomeAndNativeVoiceWithSourceTranscriptionContext()async throws {
+        guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else{throw XCTSkip("Explicit live API opt-in required")}
+        XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))
+        if FirebaseApp.app() == nil{AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure()};XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let identity=IdentityService();try identity.create();try await FirebaseIdentityService.shared.ensure(identity)
+        let rtc=RealtimeRTCTransport(capturesMicrophone:false)
+        do {
+            let policy=try TutorSourcePolicy(),provider=TutorProvider.native(AIService()),catalog=try ContentLibrary.load(Piyali.JSONValue.self,name:"tutor-curriculum-es"),unit=try XCTUnwrap(catalog["Pre-A1"].array.first),lesson=try XCTUnwrap(unit["lessons"].array.first)
+            let p:Piyali.JSONValue = .object(["lesson":lesson,"unit":unit,"target":.string("es"),"support":.string("en"),"level":.string("Pre-A1"),"pause":.number(1200),"messages":.array([.object(["id":.string("public-prompt"),"role":.string("assistant"),"textFinal":.string("Say hola.")])])])
+            for (answer,expected) in [("hola",true),("How do you say hola?",false)]{let prompt=try policy.run("judge",p.setting("answer",.string(answer))).string,parsed=try await provider.judge(prompt),grade=try policy.run("grade",.object(["parsed":parsed,"attempted":.bool(true)]));XCTAssertEqual(grade["successful"].boolean,expected)}
+            let session=try policy.run("session",p),response=try policy.run("response",p.setting("welcome",.bool(true)))
+            XCTAssertEqual(session["audio"]["output"]["voice"].string,"marin");XCTAssertFalse(session["audio"]["input"]["transcription"]["prompt"].string.isEmpty)
+            var opened=false,stopped=false,output="",failure:String?,bytes=0,peak=0.0
+            rtc.onOpen={opened=true};rtc.onFailure={failure=$0};rtc.onEvent={event in switch event["type"].string{case "response.output_audio_transcript.done":output=event["transcript"].string;case "output_audio_buffer.stopped":stopped=true;case "error":failure=event["error"]["code"].string;default:break}}
+            try await rtc.connect(session:session);for _ in 0..<200 where !opened && failure == nil{try await Task.sleep(for:.milliseconds(100))};XCTAssertTrue(opened)
+            XCTAssertTrue(rtc.send(.object(["type":.string("response.create"),"response":.object(["output_modalities":.array([.string("audio")]),"instructions":response])])) )
+            for _ in 0..<500{bytes=max(bytes,await rtc.receivedAudioBytes());peak=max(peak,await rtc.audioAmplitude(speaking:true));if stopped || failure != nil{break};try await Task.sleep(for:.milliseconds(100))}
+            XCTAssertNil(failure);XCTAssertTrue(stopped);XCTAssertFalse(output.isEmpty);XCTAssertGreaterThan(bytes,0);XCTAssertGreaterThan(peak,0)
+            if stopped,failure == nil,bytes>0,peak>0{print("LIVE TUTOR: original semantic gate accepts target production and rejects a meta-question; source welcome, marin voice, bilingual ASR hint/vocabulary, native authenticated WebRTC and positive incoming audio verified; no learner progress writes")}
+        }catch{rtc.close();try? await Auth.auth().currentUser?.delete();try? Auth.auth().signOut();try? identity.disconnect();throw error}
+        rtc.close();try await Auth.auth().currentUser?.delete();try Auth.auth().signOut();try identity.disconnect()
+    }
+}

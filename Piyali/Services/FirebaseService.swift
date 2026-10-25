@@ -98,13 +98,11 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
             let data = Self.normalized(document.data())
             if let id=data["lessonId"] as? String { state.importLessonWork(data,id:id,target:state.target) }
         }
-        let tutors = try await user.collection("tutorLanguageLessons").whereField("targetLang",isEqualTo:state.target).whereField("cefrLevel",isEqualTo:state.tutorLevel).getDocuments(source:.server)
+        let tutors = try await user.collection("tutorLanguageLessons").whereField("targetLang",isEqualTo:state.target).getDocuments(source:.server)
         for document in tutors.documents {
             let data = Self.normalized(document.data()); guard let id = data["lessonId"] as? String else { continue }
             if state.tutorLessons == nil { state.tutorLessons = [:] }
-            var tutor = TutorLessonProgress(); tutor.earnedXP = max(0,WebProgressContract.integer(data["earnedXp"]))
-            let agenda = (data["tutorAgendaProgress"] as? [String:Any])?["items"] as? [String:Bool] ?? [:]
-            tutor.items = Set(agenda.filter { $0.value }.keys)
+            let tutor = TutorSourceProgress.importing(PhonicsProgress.document(data))
             let key = state.tutorKey(id); state.tutorLessons?[key] = tutor
             if data["status"] as? String == "completed" { state.completed.insert(state.tutorKey(id)) }
         }
@@ -352,7 +350,7 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
         let receiptID = SHA256.hash(data:Data(stable.utf8)).map { String(format:"%02x",$0) }.joined()
         let receipt = user.collection("iosPracticeReceipts").document(receiptID)
         let month = user.collection("xpHistory").document(String(change.dayKey.prefix(7)))
-        let collection = change.source == .phonicsAttempt ? (change.phonicsData?["focused"].boolean == true ? nil:"alphabetPractice"):change.source == .phonics ? (change.phonicsData?["collection"].boolean == true ? nil:"alphabetPractice") : change.source == .review ? "languageFlashcards" : [.lessonStart,.lesson].contains(change.source) ? "languageLessons" : [.tutorTurn,.speak].contains(change.source) ? "tutorLanguageLessons" : nil
+        let collection = change.source == .phonicsAttempt ? (change.phonicsData?["focused"].boolean == true ? nil:"alphabetPractice"):change.source == .phonics ? (change.phonicsData?["collection"].boolean == true ? nil:"alphabetPractice") : change.source == .review ? "languageFlashcards" : [.lessonStart,.lesson].contains(change.source) ? "languageLessons" : [.tutorTurn,.tutorState,.speak].contains(change.source) ? "tutorLanguageLessons" : nil
         let content = collection.flatMap { collection in change.contentID.map { user.collection(collection).document("\(change.target)_\($0)") } }
         let activeLesson = change.skillTreeLessonID.flatMap { CurriculumLessonProgress.isCurriculumID($0) && change.amount > 0 && change.source != .lesson ? user.collection("languageLessons").document("\(change.target)_\($0)") : nil }
         let summary = user.collection("courseProgress").document(change.target)
@@ -403,12 +401,15 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                     if goalClaimed || accepted.correct == true && goalID == nil { accepted.correct=nil }
                 }
                 let patch = WebProgressContract.rootPatch(fields:fields,month:Self.normalized(monthSnapshot.data() ?? [:]),change:accepted)
-                let phonicsWithoutXP=accepted.amount == 0 && (accepted.source == .phonicsAttempt || accepted.source == .phonics && accepted.phonicsData?["collection"].boolean == true)
+                let activityWithoutXP=accepted.amount == 0 && (accepted.source == .tutorState || accepted.source == .phonicsAttempt || accepted.source == .phonics && accepted.phonicsData?["collection"].boolean == true)
                 var root=patch.root
-                if phonicsWithoutXP {
+                if activityWithoutXP {
                     var activity:[String:Any]=["lastActiveAt":WebProgressContract.iso(change.date)]
                     if accepted.source == .phonics,let progress=patch.root["progress"] as? [String:Any],let value=progress["phonicsDailyActivity"]{activity["phonicsDailyActivity"]=value}
                     root=["progress":activity,"updatedAt":WebProgressContract.iso(change.date)]
+                }
+                if change.tutorData != nil,change.source == .speak || change.source == .tutorState && change.tutorData?["kind"].string == "start" {
+                    var progress=root["progress"] as? [String:Any] ?? [:];progress["currentTutorLesson"]=change.source == .speak ? NSNull():(change.contentID ?? "") as Any;root["progress"]=progress
                 }
                 root["local_npub"] = user.documentID
                 root["iosRecentEventIDs"] = Self.recentIDs(fields,adding:change.id)
@@ -417,7 +418,7 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                 }
                 if !userSnapshot.exists { root["createdAt"] = WebProgressContract.iso(change.date); root["dailyGoalXp"] = state.dailyGoal }
                 transaction.setData(root,forDocument:user,merge:true)
-                if !phonicsWithoutXP{transaction.setData(patch.month,forDocument:month,merge:true)}
+                if !activityWithoutXP{transaction.setData(patch.month,forDocument:month,merge:true)}
                 if let activeLesson,let saved=activeLessonSnapshot?.data(),saved["status"] as? String == "in_progress" {
                     transaction.setData(["earnedXp":max(0,WebProgressContract.integer(saved["earnedXp"]))+change.amount,"updatedAt":WebProgressContract.iso(change.date)],forDocument:activeLesson,merge:true)
                 }
@@ -454,6 +455,11 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                         else if (review.updatedAt ?? .distantPast) <= change.date, let rating=change.reviewRating {review=review.applying(rating,now:change.date)}
                         data.merge(WebProgressContract.reviewFields(review)) { _,new in new }; data["cardId"] = change.contentID
                         completed = review.completed; wasCompleted = existing["completed"] as? Bool == true; mode = "flashcards"
+                    } else if change.tutorData != nil,[.tutorState,.tutorTurn,.speak].contains(change.source) {
+                        let patch=TutorSourceProgress.patch(change,record:PhonicsProgress.document(existing))
+                        data=patch.foundation as? [String:Any] ?? [:]
+                        if change.source == .speak {data["tutorAgendaProgress"]=FieldValue.delete();data["conversationDraft"]=FieldValue.delete();data["lessonStartXp"]=FieldValue.delete()}
+                        completed=change.source == .speak;wasCompleted=existing["status"] as? String == "completed";mode="tutor"
                     } else if change.source == .tutorTurn {
                         data["lessonId"] = change.contentID; data["status"] = existing["status"] ?? "in_progress"
                         data["earnedXp"] = WebProgressContract.integer(existing["earnedXp"]) + change.amount

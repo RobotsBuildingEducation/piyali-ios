@@ -13,13 +13,14 @@ import Foundation
         do { let loaded=try await Task.detached { try ContentLibrary.load(RPGLibrary.self,name:"rpg-"+target) }.value;guard generation == token,!Task.isCancelled else { return };library=loaded;loadedTarget=target } catch { if generation == token { self.error=error.localizedDescription } }
     }
     private func valid(_ app:AppModel,account:String,target:String,support:String,token:UUID) -> Bool { app.identity.npub == account && app.learner.target == target && app.learner.support == support && token == generation && !Task.isCancelled }
-    func prepare(_ app:AppModel,lesson:Lesson?,episode:String?,fresh:Bool = false) async {
+    func prepare(_ app:AppModel,lesson:Lesson?,episode:String?,fresh:Bool = false,tutor:Bool = false) async {
         let token=generation,account=app.identity.npub,target=app.learner.target,support=app.learner.support
+        let courseLevel=tutor ? (lesson?.cefrLevel ?? app.learner.tutorLevel):app.learner.level
         await load(target:target);guard valid(app,account:account,target:target,support:support,token:token),let library,!busy else { return }
-        if !fresh,let saved=app.learner.rpgRuns?[target],saved.support == support,saved.lessonID == lesson?.id,(episode == nil || saved.scenario.authoredEpisode.id == episode),saved.scenario.authoredEpisode.level == (lesson?.content["game"]["cefrLevel"].string.isEmpty == false ? lesson!.content["game"]["cefrLevel"].string : app.learner.level) { return }
-        let tutorial=lesson?.id == IntroTutorial.lessonID
-        let review=tutorial ? app.introLibrary.flatMap { $0.target == target ? $0.games[app.learner.level] : nil } : lesson.flatMap { library.reviews[$0.id] }
-        guard let original=review?.bySupport[support] ?? library.scenarios(level:app.learner.level,support:support).first(where:{ $0.authoredEpisode.id == episode }),let world=(tutorial ? app.introLibrary?.worlds[original.worldKey] : library.worlds[original.worldKey]) else { error="This episode is not available for the selected language and level.";return }
+        if !fresh,let saved=app.learner.rpgRuns?[target],saved.support == support,(saved.tutor == true) == tutor,saved.lessonID == lesson?.id,(episode == nil || saved.scenario.authoredEpisode.id == episode),saved.scenario.authoredEpisode.level == (lesson?.content["game"]["cefrLevel"].string.isEmpty == false ? lesson!.content["game"]["cefrLevel"].string : courseLevel) { return }
+        let tutorial=lesson?.id == IntroTutorial.lessonID || lesson?.isTutorial == true
+        let review=tutorial ? app.introLibrary.flatMap { $0.target == target ? $0.games[courseLevel] : nil } : lesson.flatMap { library.reviews[$0.id] }
+        guard let original=review?.bySupport[support] ?? library.scenarios(level:courseLevel,support:support).first(where:{ $0.authoredEpisode.id == episode }),let world=(tutorial ? app.introLibrary?.worlds[original.worldKey] : library.worlds[original.worldKey]) else { error="This episode is not available for the selected language and level.";return }
         busy=true;error=nil;defer { if generation == token { busy=false } }
         var scenario=original
         if app.subscription.hasAccess {
@@ -29,7 +30,7 @@ import Foundation
             } catch { if valid(app,account:account,target:target,support:support,token:token) { self.error="Story generation is unavailable. Using the authored local review." } }
         }
         guard valid(app,account:account,target:target,support:support,token:token) else { return }
-        app.learner.saveRPG(RPGRun(target:target,support:support,lessonID:lesson?.id,xpReward:lesson?.xpReward ?? 30,scenario:scenario,world:world,tutorial:tutorial));app.persist()
+        app.learner.saveRPG(RPGRun(target:target,support:support,lessonID:lesson?.id,xpReward:lesson?.xpReward ?? 30,scenario:scenario,world:world,tutorial:tutorial,tutor:tutor));app.persist()
     }
     func speak(_ answer:String,app:AppModel) async {
         guard !busy,let run=app.learner.rpgRuns?[app.learner.target],!run.resolved,let node=run.node,node.responseMode == "speech",!answer.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else { return }

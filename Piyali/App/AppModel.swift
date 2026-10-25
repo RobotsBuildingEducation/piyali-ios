@@ -15,6 +15,7 @@ import SwiftUI
     var curriculumIndex: [String:[String:[String]]] = [:]
     var phonicsLibrary: [String:[PhonicsCard]] = [:]
     var flashcardIndex: [String:[String]] = [:]
+    var tutorCurriculumIndex:[String:[String:[String]]] = [:]
     @Published var achievements: [AchievementDefinition] = []
     @Published var error: String?
     @Published var syncStatus = "Saved on this iPhone"
@@ -86,6 +87,7 @@ import SwiftUI
         self.automaticWallet=automaticWallet ?? WalletService()
         curriculumIndex = (try? ContentLibrary.load([String:[String:[String]]].self, name: "curriculum-index")) ?? [:]
         flashcardIndex = (try? ContentLibrary.load([String:[String]].self, name: "flashcard-index")) ?? [:]
+        tutorCurriculumIndex = (try? ContentLibrary.load([String:[String:[String]]].self,name:"tutor-curriculum-index")) ?? [:]
         achievements = (try? ContentLibrary.load([AchievementDefinition].self, name: "achievements")) ?? []
         achievementUpdates=AchievementSyncService.shared.updates.sink { [weak self] npub,records in
             guard let self,self.signedIn,self.identity.npub == npub else { return }
@@ -249,7 +251,8 @@ import SwiftUI
                     let curriculum = try ContentLibrary.load([String:[LearningUnit]].self, name: "curriculum-" + target)
                     let cards = try ContentLibrary.load([Flashcard].self, name: "flashcards").filter { $0.cefrLevel == cardLevel }
                     let allPhonics = try ContentLibrary.load([String:[PhonicsCard]].self, name: "phonics")
-                    return (curriculum[level] ?? [], cards, allPhonics["\(target):\(support):\(level)"] ?? [], allPhonics, curriculum[tutorLevel] ?? [],try ContentLibrary.load(IntroLibrary.self,name:"intro-"+target))
+                    let tutor = try ContentLibrary.load([String:[LearningUnit]].self,name:"tutor-curriculum-"+target)
+                    return (curriculum[level] ?? [], cards, allPhonics["\(target):\(support):\(level)"] ?? [], allPhonics, tutor[tutorLevel] ?? [],try ContentLibrary.load(IntroLibrary.self,name:"intro-"+target))
                 }.value
                 guard !Task.isCancelled else { return }
                 self?.units = data.0; self?.cards = data.1; self?.phonics = data.2; self?.phonicsLibrary = data.3; self?.tutorUnits = data.4;self?.introLibrary=data.5
@@ -460,7 +463,7 @@ import SwiftUI
         if verdict.success,(readyGoal?["modeProgress"][mode].number ?? 0) < Double(GoalPractice.targets[mode] ?? 1) {throw AppError.message("The check is unavailable. Your practice is saved; try the check again.")}
         return verdict
     }
-    var tutorLevels: [String] { learner.unlockedLevels(mode:"tutor",index:curriculumIndex[learner.target] ?? [:]) }
+    var tutorLevels: [String] { learner.unlockedLevels(mode:"tutor",index:tutorCurriculumIndex[learner.target] ?? curriculumIndex[learner.target] ?? [:]) }
     func setTutorLevel(_ level: String) {
         guard tutorLevels.contains(level) else { return }
         if learner.tutorLevels == nil { learner.tutorLevels = [:] }; learner.tutorLevels?[learner.target] = level

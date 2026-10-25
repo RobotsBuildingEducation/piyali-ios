@@ -41,3 +41,11 @@ test('upstream failures and malformed answers never expose provider response bod
  }
  const result=await handler(async()=>{},async()=> 'npub',async()=>{throw Error('secret transport diagnostic');}).fetch(request(),env);assert.equal(result.status,502);assert.doesNotMatch(await result.text(),/secret transport/);
 });
+
+test('source Tutor ASR language and vocabulary context survive the authenticated offer',()=>{
+ const source={...data,session:{...data.session,audio:{...data.session.audio,input:{...data.session.audio.input,transcription:{model:'arbitrary',language:'es',prompt:'Spanish lesson; English questions. Current phrase: hola.',extra:'ignored'}}}}};
+ const input=realtimeOffer(source,env).session.audio.input;
+ assert.deepEqual(input.transcription,{model:'gpt-4o-mini-transcribe',language:'es',prompt:'Spanish lesson; English questions. Current phrase: hola.'});
+ assert.equal(input.turn_detection.create_response,false);
+ for(const hint of [{language:'es-ES'},{language:['es']},{prompt:'x'.repeat(4097)},{prompt:{bad:true}}])assert.throws(()=>realtimeOffer({...source,session:{...source.session,audio:{...source.session.audio,input:{...source.session.audio.input,transcription:hint}}}},env));
+});

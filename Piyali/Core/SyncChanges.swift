@@ -1,7 +1,7 @@
 import Foundation
 
 public enum PracticeSource: String, Codable, Sendable {
-    case phonicsAttempt, phonicsDeck, practice, repairPractice, assessment, lessonStart, lesson, review, phonics, goal, goalMode, repair, immersion, speak, tutorTurn, conversation, readingTurn, readingSpeech, storyTurn, storyCompletion, questStart, plateBonus
+    case tutorState, phonicsAttempt, phonicsDeck, practice, repairPractice, assessment, lessonStart, lesson, review, phonics, goal, goalMode, repair, immersion, speak, tutorTurn, conversation, readingTurn, readingSpeech, storyTurn, storyCompletion, questStart, plateBonus
     public var activityField: String? {
         switch self { case .lesson:"lessonDailyActivity"; case .review:"flashcardDailyActivity"; case .phonics:"phonicsDailyActivity"; case .goal:"goalDailyActivity"; case .repair:"repairDailyActivity"; case .speak:"speakDailyActivity"; case .conversation:"conversationDailyActivity"; default:nil }
     }
@@ -18,6 +18,7 @@ public struct PracticeChange: Codable, Identifiable, Sendable {
     public var skillTreeLessonID:String?
     public var skillTreeLessonLevel:String?
     public var tutorAgendaItemID: String?
+    public var tutorData:JSONValue?
     public var questYesterdayComplete:Bool?
     public var questCarry: [String]?
     public var questIntro: Bool?
@@ -61,7 +62,7 @@ public enum CalendarDay {
     }
 }
 public extension LearnerState {
-    mutating func enqueue(_ change: PracticeChange) { applyPhonics(change);applyGoalLessonWork(change);applyLessonWork(change);questProgress = DailyPlate.recorded(change,progress:plateProgress); if pendingChanges == nil { pendingChanges = [] }; pendingChanges?.append(change) }
+    mutating func enqueue(_ change: PracticeChange) { applySourceTutor(change);applyPhonics(change);applyGoalLessonWork(change);applyLessonWork(change);questProgress = DailyPlate.recorded(change,progress:plateProgress); if pendingChanges == nil { pendingChanges = [] }; pendingChanges?.append(change) }
     mutating func review(cardID: String, rating: ReviewRating, xp:Int? = nil, patch:FlashcardReview? = nil, now: Date = Date(), calendar: Calendar = .current) {
         rollDay(now:now,calendar:calendar)
         let key = completionKey(cardID)
@@ -107,11 +108,15 @@ public extension LearnerState {
         merged.tutorLessons = acknowledged.tutorLessons
         merged.lessonWork=acknowledged.lessonWork
         for change in newer { merged.applyLessonWork(change) }
-        for change in newer where change.source == .tutorTurn {
+        for change in newer.sorted(by:{$0.date < $1.date}) where [.tutorTurn,.tutorState,.speak].contains(change.source) {
             let key = "\(change.target):tutor:\(change.contentID ?? "")"
             if merged.tutorLessons == nil { merged.tutorLessons = [:] }
-            let progress = TutorCourse.applying(change,to:merged.tutorLessons?[key] ?? TutorLessonProgress())
+            let progress = TutorSourceProgress.applying(change,to:merged.tutorLessons?[key] ?? TutorLessonProgress())
             merged.tutorLessons?[key] = progress
+            if change.tutorData != nil {
+                if change.source == .tutorState,change.tutorData?["kind"].string == "start"{merged.questProgress=merged.plateProgress.setting("currentTutorLesson",.string(change.contentID ?? ""))}
+                if change.source == .speak{merged.questProgress=merged.plateProgress.setting("currentTutorLesson",.null)}
+            }
         }
         let sentMemoryIDs = Set((sent.pendingMemoryChanges ?? []).map(\.id))
         let newMemory = (current.pendingMemoryChanges ?? []).filter { !sentMemoryIDs.contains($0.id) && !(acknowledged.acknowledgedEventIDs ?? []).contains($0.id) }

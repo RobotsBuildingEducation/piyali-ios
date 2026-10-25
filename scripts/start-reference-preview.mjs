@@ -2,6 +2,7 @@
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import fs from 'node:fs/promises';
+import {tutorFixture} from './reference-tutor-fixtures.mjs';
 import {phonicsFixture} from './reference-phonics-fixtures.mjs';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const reference=path.resolve(process.argv[2] || path.join(root,'../nosabos/nosabos'));
@@ -47,5 +48,5 @@ const flashcardFixture={name:'piyali-source-flashcard-fixture',enforce:'pre',res
  if(id==='\0piyali-flashcard-memory')return 'export const captureCompanionMemory=async()=>{};';
  if(id==='\0piyali-flashcard-worth')return 'export const assessGeneratedQuestionWorth=async()=>null;';
 }};
-const server=await vite.createServer({...loaded.config,configFile:false,root:reference,envDir:reference,cacheDir:path.join(root,'.reference-preview/cache'),plugins:[phonicsFixture,flashcardFixture,mobileFrame,toolsFixture,onboardingPreview,storyFixtureCompatibility,...flatten(loaded.config.plugins).filter(p=>!String(p.name).includes('pwa') && !String(p.name).includes('visualizer'))],server:{...loaded.config.server,host:'127.0.0.1',port:5181,strictPort:true}});
+const server=await vite.createServer({...loaded.config,configFile:false,root:reference,envDir:reference,cacheDir:path.join(root,'.reference-preview/cache'),plugins:[tutorFixture,phonicsFixture,flashcardFixture,mobileFrame,toolsFixture,onboardingPreview,storyFixtureCompatibility,...flatten(loaded.config.plugins).filter(p=>!String(p.name).includes('pwa') && !String(p.name).includes('visualizer'))],server:{...loaded.config.server,host:'127.0.0.1',port:5181,strictPort:true}});
 await server.listen();console.log('Read-only reference preview: http://127.0.0.1:5181');

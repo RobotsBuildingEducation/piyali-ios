@@ -37,6 +37,10 @@ public struct LearningUnit: Codable, Identifiable, Sendable {
     public let title: JSONValue
     public let description: JSONValue
     public let lessons: [Lesson]
+    public var color:String? = nil
+    public var position:JSONValue? = nil
+    public var cefrLevel:String? = nil
+    public var isTutorial:Bool? = nil
 }
 public struct Lesson: Codable, Identifiable, Sendable {
     public let id: String
@@ -57,6 +61,11 @@ public struct Lesson: Codable, Identifiable, Sendable {
     public var repairItems:[JSONValue]? = nil
     public var repairTarget:Int? = nil
     public var curriculumCefrLevel:String? = nil
+    public var tutorPurpose:String? = nil
+    public var isGame:Bool? = nil
+    public var isTutorial:Bool? = nil
+    public var xpRequired:Int? = nil
+    public var communicativeFocus:JSONValue? = nil
 }
 public struct Flashcard: Codable, Identifiable, Sendable {
     public let id: String

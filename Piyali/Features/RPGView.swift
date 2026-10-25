@@ -36,6 +36,8 @@ struct RPGView: View {
     let lesson:Lesson?
     let episode:String?
     var onTutorialComplete:(()->Void)? = nil
+    var onTutorComplete:(()->Void)? = nil
+    var tutor=false
     var embedded=false
     @StateObject private var service=RPGService()
     @StateObject private var speech=SpeechService()
@@ -44,23 +46,23 @@ struct RPGView: View {
     @State private var showSupport=true
     @State private var showExample=false
     @FocusState private var focused:Bool
-    var run:RPGRun? { guard let run=app.learner.rpgRuns?[app.learner.target],run.support == app.learner.support,run.lessonID == lesson?.id,episode == nil || run.scenario.authoredEpisode.id == episode else { return nil };return run }
-    private var scope:String { [app.identity.npub,app.learner.target,app.learner.support,app.learner.level].joined(separator:":") }
+    var run:RPGRun? { guard let run=app.learner.rpgRuns?[app.learner.target],run.support == app.learner.support,(run.tutor == true) == tutor,run.lessonID == lesson?.id,episode == nil || run.scenario.authoredEpisode.id == episode else { return nil };return run }
+    private var scope:String { [app.identity.npub,app.learner.target,app.learner.support,(tutor ? app.learner.tutorLevel:app.learner.level)].joined(separator:":") }
     var body: some View {
         Form {
             if let run {
                 overview(run)
                 if run.completed { recap(run) }
                 else { exploration(run);if talking,let node=run.node { dialogue(run,node:node) } }
-                Button("New run") { stop();talking=false;answer="";Task { await service.prepare(app,lesson:lesson,episode:episode,fresh:true) } }.disabled(service.busy)
+                Button("New run") { stop();talking=false;answer="";Task { await service.prepare(app,lesson:lesson,episode:episode,fresh:true,tutor:tutor) } }.disabled(service.busy)
                 if !app.subscription.hasAccess { Text("Authored local play is available offline. A subscription enables a connected AI story and NPC roleplay replies.").font(.footnote) }
-            } else if !service.busy { Button("Retry adventure") { Task { await service.prepare(app,lesson:lesson,episode:episode) } } }
+            } else if !service.busy { Button("Retry adventure") { Task { await service.prepare(app,lesson:lesson,episode:episode,tutor:tutor) } } }
             if service.busy { ProgressView("Preparing your adventure…") }
             if let error=service.error { Text(error).foregroundStyle(.red) }
             if let error=speech.error { Text(error).foregroundStyle(.red) }
         }.navigationTitle("Adventure")
             .toolbar { ToolbarItemGroup(placement:.keyboard) { Spacer();Button("Done") { focused=false } } }
-            .task(id:scope) { stop();talking=false;await service.prepare(app,lesson:lesson,episode:episode) }
+            .task(id:scope) { stop();talking=false;await service.prepare(app,lesson:lesson,episode:episode,tutor:tutor) }
             .onChange(of:speech.transcript) { _,text in answer=text }
             .onChange(of:app.subscription.hasAccess) { _,allowed in if !allowed { stop() } }
             .onChange(of:phase) { _,p in if p != .active { stop() } }
@@ -78,7 +80,8 @@ struct RPGView: View {
         Section("Episode complete · "+String(repeating:"★",count:run.stars)) {
             Text("\(run.score * 100 / 800)% · \(run.stars) stars")
             if let epilogue=run.scenario.storyEpilogue { Text(epilogue["target"].string);if showSupport { Text(epilogue["support"].string).font(.footnote) } }
-            if run.tutorial == true { Button("Continue introduction") { onTutorialComplete?();if !embedded { dismiss() } }.disabled(onTutorialComplete == nil) }
+            if tutor {Button("Continue"){onTutorComplete?()}.disabled(onTutorComplete == nil).accessibilityIdentifier("tutorGameComplete")}
+            else if run.tutorial == true { Button("Continue introduction") { onTutorialComplete?();if !embedded { dismiss() } }.disabled(onTutorialComplete == nil) }
             else if let lessonID=run.lessonID {
                 let saved=run.claimed || app.learner.completed.contains(app.learner.completionKey(lessonID))
                 Button(saved ? "Review completion saved" : "Finish unit review (+\(run.reward) XP)") { _=app.learner.completeRPG(run);app.persist() }.accessibilityIdentifier("rpgComplete").disabled(saved)

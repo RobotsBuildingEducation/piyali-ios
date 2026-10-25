@@ -20,7 +20,16 @@ export function realtimeOffer(data, env) {
     return {sdp:data.sdp,session:{type:'realtime',model,instructions:value.instructions,output_modalities:['audio'],audio:{input:{turn_detection:null},output:{voice,format:{type:'audio/pcm',rate:24000}}}}};
   }
   if (!vad || vad.type !== 'server_vad' || !Number.isFinite(vad.silence_duration_ms) || vad.silence_duration_ms < 200 || vad.silence_duration_ms > 10000) throw new HTTPError(400,'A valid speech pause is required.');
-  return {sdp:data.sdp,session:{type:'realtime',model,instructions:value.instructions,output_modalities:['audio'],audio:{input:{transcription:{model:'gpt-4o-mini-transcribe'},turn_detection:{type:'server_vad',silence_duration_ms:vad.silence_duration_ms,threshold:0.35,prefix_padding_ms:120,create_response:vad.create_response !== false,interrupt_response:false}},output:{voice,format:{type:'audio/pcm',rate:24000}}}}};
+  const hints=value.audio?.input?.transcription,transcription={model:'gpt-4o-mini-transcribe'};
+  if (hints?.language !== undefined) {
+    if (typeof hints.language !== 'string' || !/^[a-z]{2}$/.test(hints.language)) throw new HTTPError(400,'A valid transcription language is required.');
+    transcription.language=hints.language;
+  }
+  if (hints?.prompt !== undefined) {
+    if (typeof hints.prompt !== 'string' || hints.prompt.length > 4096) throw new HTTPError(400,'Transcription context is too long.');
+    transcription.prompt=hints.prompt;
+  }
+  return {sdp:data.sdp,session:{type:'realtime',model,instructions:value.instructions,output_modalities:['audio'],audio:{input:{transcription,turn_detection:{type:'server_vad',silence_duration_ms:vad.silence_duration_ms,threshold:0.35,prefix_padding_ms:120,create_response:vad.create_response !== false,interrupt_response:false}},output:{voice,format:{type:'audio/pcm',rate:24000}}}}};
 }
 
 export async function proxyRealtime(data,env,fetchUpstream=fetch) {

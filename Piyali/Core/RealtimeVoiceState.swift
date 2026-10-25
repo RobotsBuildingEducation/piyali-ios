@@ -10,6 +10,7 @@ public struct RealtimeVoiceState: Sendable {
     private var inputs:[String:Input]=[:],order:[String]=[],outputs:[String:Output]=[:]
     private var timeline:[(user:Bool,id:String)]=[]
     private var currentResponse="",previousAssistant="",speechAnswer:String?
+    private var outputPlaying=false
     public private(set) var assistantText="",assistantLocked=false
     public private(set) var muted=false
     public var microphoneEnabled:Bool { !muted && !assistantLocked }
@@ -23,6 +24,10 @@ public struct RealtimeVoiceState: Sendable {
     public func inputTurn(_ id:String)->InputTurn? { guard let value=inputs[id],let text=value.text else { return nil };return .init(id:id,text:text,answered:value.answered,responseID:value.response) }
     public func completedAssistant(_ id:String)->String? { guard let value=outputs[id],value.complete,!value.text.isEmpty else { return nil };return value.text }
     public mutating func setMuted(_ value:Bool) { muted=value }
+    public mutating func discardInput(_ id:String) {
+        inputs[id]?.delivered=true
+        if !outputPlaying,outputs[currentResponse]?.complete != false {assistantLocked=false}
+    }
     public mutating func receive(_ event:JSONValue)->[Turn] {
         let type=event["type"].string
         switch type {
@@ -62,7 +67,8 @@ public struct RealtimeVoiceState: Sendable {
                 if id == currentResponse { assistantText=output.text }
             }
             if type.contains("cancel") || ["cancelled","failed"].contains(event["response"]["status"].string) { assistantLocked=false }
-        case "output_audio_buffer.stopped","output_audio_buffer.cleared": assistantLocked=false
+        case "output_audio_buffer.started":outputPlaying=true
+        case "output_audio_buffer.stopped","output_audio_buffer.cleared": outputPlaying=false;assistantLocked=false
         default: break
         }
         var turns:[Turn]=[]

@@ -40,8 +40,9 @@ public struct RPGSpeechTurn: Codable, Sendable { public let grade:String;public 
 public struct RPGRun: Codable, Equatable, Identifiable, Sendable {
     public var id=UUID();public let target:String;public let support:String;public let lessonID:String?;public let xpReward:Int;public var scenario:RPGScenario;public let world:RPGWorld
     public var tutorial:Bool?
+    public var tutor:Bool?
     public var position:RPGPoint;public var stepIndex=0;public var attempts=0;public var score=0;public var resolved=false;public var feedback="";public var tip="";public var misses:[RPGMiss]=[];public var dialogue:[String]=[];public var updatedAt=Date();public var claimed=false
-    public init(target:String,support:String,lessonID:String?,xpReward:Int,scenario:RPGScenario,world:RPGWorld,tutorial:Bool = false) { self.tutorial=tutorial;self.target=target;self.support=support;self.lessonID=lessonID;self.xpReward=xpReward;self.scenario=scenario;self.world=world;self.position=world.start }
+    public init(target:String,support:String,lessonID:String?,xpReward:Int,scenario:RPGScenario,world:RPGWorld,tutorial:Bool = false,tutor:Bool = false) { self.tutor=tutor;self.tutorial=tutorial;self.target=target;self.support=support;self.lessonID=lessonID;self.xpReward=xpReward;self.scenario=scenario;self.world=world;self.position=world.start }
     public var completed:Bool { stepIndex >= scenario.quest.steps.count && scenario.quest.steps.count == 7 }
     public var step:RPGStep? { completed || !scenario.quest.steps.indices.contains(stepIndex) ? nil : scenario.quest.steps[stepIndex] }
     public var node:RPGNode? { step?.nodes.first }
@@ -94,7 +95,7 @@ public enum RPGScoring {
 public extension LearnerState {
     mutating func saveRPG(_ run:RPGRun) { if rpgRuns == nil { rpgRuns=[:] };rpgRuns?[run.target]=run;for key in (rpgRuns ?? [:]).sorted(by:{ $0.value.updatedAt > $1.value.updatedAt }).dropFirst(3).map(\.key) { rpgRuns?.removeValue(forKey:key) } }
     @discardableResult mutating func completeRPG(_ run:RPGRun,now:Date = Date()) -> Int {
-        guard run.completed,run.tutorial != true,!run.claimed,run.target == target,rpgRuns?[target]?.id == run.id,let lessonID=run.lessonID else { return 0 }
+        guard run.tutor != true,run.completed,run.tutorial != true,!run.claimed,run.target == target,rpgRuns?[target]?.id == run.id,let lessonID=run.lessonID else { return 0 }
         var saved=run;saved.claimed=true;saveRPG(saved)
         let key=completionKey(lessonID);guard !completed.contains(key) else { return 0 };completed.insert(key)
         addXP(run.reward,now:now,calendar:.current)

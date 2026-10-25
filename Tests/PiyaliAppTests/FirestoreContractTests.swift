@@ -968,3 +968,22 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
     }
 
 }
+
+extension FirestoreContractTests {
+    func testSourceTutorOwnXPCapPrivateDraftQuizResetAndCompletionSurviveRetriesBeyondTrial()async throws {
+        let (service,db,npub)=try context();try await seed(db,npub);let user=db.collection("users").document(npub)
+        try await user.updateData(["xp":298,"progress.totalXp":298,"progress.languageXp.fr":248])
+        let curriculum=try ContentLibrary.load([String:[LearningUnit]].self,name:"tutor-curriculum-fr"),lesson=try XCTUnwrap(curriculum["Pre-A1"]?.first?.lessons.first),reference=user.collection("tutorLanguageLessons").document("fr_"+lesson.id),foreignDate=Timestamp(date:Date(timeIntervalSince1970:1792800000))
+        try await reference.setData(["lessonId":lesson.id,"targetLang":"fr","cefrLevel":"Pre-A1","status":"in_progress","earnedXp":47,"foreignDate":foreignDate,"foreignField":["keep":true],"tutorAgendaProgress":["schemaVersion":2,"items":["old":true],"quiz":["correctItems":["old":true],"attemptNumber":1]]])
+        var state=try requireState(await service.load(npub:npub));XCTAssertEqual(state.totalXP,298)
+        let draft:JSONValue = .object(["version":.number(1),"messages":.array([.object(["id":.string("public-assistant"),"role":.string("assistant"),"text":.string("Bonjour"),"ts":.number(1792800000000)])])])
+        state.storeTutorState(lesson:lesson,data:.object(["kind":.string("start"),"draft":draft,"agenda":.object([:]),"replaceAgenda":.bool(true),"quiz":.object(["correctItems":.object([:]),"attemptNumber":.number(2)])]))
+        let stale=state;_=try await service.save(state,npub:npub);state=try requireState(await service.load(npub:npub))
+        XCTAssertEqual(state.tutorProgress(lesson.id).earnedXP,47);XCTAssertTrue(state.tutorProgress(lesson.id).items.isEmpty);XCTAssertEqual(state.tutorProgress(lesson.id).sourceState?["conversationDraft"]["version"].number,1);XCTAssertEqual(state.tutorProgress(lesson.id).sourceState?["tutorAgendaProgress"]["quiz"]["attemptNumber"].number,2)
+        state.sourceTutorTurn(lesson:lesson,required:50,agenda:.object(["hello":.bool(true)]),xp:7);XCTAssertEqual(state.totalXP,305);XCTAssertEqual(state.tutorProgress(lesson.id).earnedXP,50);XCTAssertTrue(state.completeSourceTutor(lesson:lesson,required:50,ready:true));let sent=state
+        _=try await service.save(sent,npub:npub);_=try await service.save(sent,npub:npub);_=try await service.save(stale,npub:npub)
+        let final=try requireState(await service.load(npub:npub)),data=try await reference.getDocument(source:.server).data() ?? [:],root=try await user.getDocument(source:.server).data() ?? [:],day=CalendarDay.key(Date())
+        XCTAssertEqual(final.totalXP,355);XCTAssertEqual(final.tutorProgress(lesson.id).earnedXP,50);XCTAssertTrue(final.completed.contains(final.tutorKey(lesson.id)));XCTAssertFalse(final.completed.contains(final.completionKey(lesson.id)));XCTAssertEqual(final.plateProgress["speakDailyActivity"]["fr"][day].number,1);XCTAssertEqual(final.plateProgress["lessonDailyActivity"]["fr"][day].number,0)
+        XCTAssertEqual(data["status"] as? String,"completed");XCTAssertNil(data["conversationDraft"]);XCTAssertNil(data["tutorAgendaProgress"]);XCTAssertEqual(data["foreignDate"] as? Timestamp,foreignDate);XCTAssertEqual((data["foreignField"] as? [String:Bool])?["keep"],true);XCTAssertTrue((root["progress"] as? [String:Any])?["currentTutorLesson"] is NSNull);XCTAssertEqual(root["unrelatedWebSetting"] as? String,"preserve");XCTAssertEqual(final.courseCompletion?["fr"]?["tutor"]?["Pre-A1"],1)
+    }
+}

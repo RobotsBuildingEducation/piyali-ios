@@ -116,28 +116,5 @@ struct TutorView: View {
 }
 
 struct TutorLibraryView: View {
-    @EnvironmentObject var app: AppModel
-    var body: some View {
-        SubscriptionRequiredView(service:app.subscription) {
-            List {
-                Section("Tutor course") {
-                    Picker("Tutor level",selection:Binding(get:{ app.learner.tutorLevel },set:{ app.setTutorLevel($0) })) { ForEach(app.tutorLevels,id:\.self) { Text($0).tag($0) } }
-                    if let lesson = app.selectedTutorLesson { NavigationLink("Continue: " + lesson.title.localized(app.learner.support)) { TutorView(tutorLesson:lesson) } }
-                    ForEach(app.tutorUnits) { unit in
-                        DisclosureGroup(unit.title.localized(app.learner.support)) {
-                            ForEach(unit.lessons) { lesson in
-                                let access=app.learner.lessonAccess(lesson,units:app.tutorUnits,tutor:true)
-                                NavigationLink { TutorView(tutorLesson:lesson) } label: {
-                                    HStack { Text(lesson.title.localized(app.learner.support)); Spacer(); if access == .locked { Image(systemName:"lock.fill") } else if app.learner.completed.contains(app.learner.tutorKey(lesson.id)) { Image(systemName:"checkmark.circle.fill") } }
-                                }.disabled(!access.canOpen).accessibilityIdentifier("tutorNode-"+lesson.id).accessibilityValue(access.rawValue)
-                            }
-                        }
-                    }
-                }
-                Section("Conversation") {
-                    NavigationLink("Conversation goals · text or live voice") { ConversationView() }
-                }
-            }
-        }.navigationTitle("Tutor")
-    }
+    var body:some View {SourceTutorView()}
 }

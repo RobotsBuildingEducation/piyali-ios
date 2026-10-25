@@ -51,11 +51,13 @@ struct ProductShellView:View {
     private var shell:some View {
         ZStack(alignment:.bottom) {
             BrandBackground()
-            NavigationStack {
-                surface.navigationBarTitleDisplayMode(.inline)
-                    .toolbar(mode == .focus || mode == .cards || mode == .phonics ? .hidden:.automatic,for:.navigationBar)
-            }.id(revision).tint(PiyaliBrand.teal).blur(radius:menuOpen ? 6 : 0).allowsHitTesting(!menuOpen)
-                .safeAreaInset(edge:.top,spacing:0){ProductTopBar(timer:timer,onGoal:{goalOpen=true},onTimer:{timer.load(account:app.identity.npub);timerOpen=true})}
+            VStack(spacing:0) {
+                ProductTopBar(timer:timer,onGoal:{goalOpen=true},onTimer:{timer.load(account:app.identity.npub);timerOpen=true})
+                NavigationStack {
+                    surface.navigationBarTitleDisplayMode(.inline)
+                        .toolbar(mode == .focus || mode == .cards || mode == .phonics || mode == .tutor ? .hidden:.automatic,for:.navigationBar)
+                }.id(revision)
+            }.tint(PiyaliBrand.teal).blur(radius:menuOpen ? 6 : 0).allowsHitTesting(!menuOpen)
                 .safeAreaInset(edge:.bottom) { if activityFooter == nil { menuButton(compact:false).padding(.bottom,10) } }
                 .overlay(alignment:.bottom) {
                     if let footer=activityFooter {

@@ -6,6 +6,7 @@ import AVFoundation
 @Published private(set) var connecting=false
 @Published private(set) var muted=false
 @Published private(set) var autoStopped=false
+    @Published private(set) var outputPending=false
     @Published private(set) var transcript=""
 @Published private(set) var learnerTranscript=""
 @Published private(set) var assistantTurnText=""
@@ -20,6 +21,7 @@ import AVFoundation
     private let makeTransport:()->RealtimeVoiceTransport
     private var generation=UUID(),state=RealtimeVoiceState()
     private var instructions="",responseEvent:JSONValue?,manualResponse=false
+    private var sessionConfiguration:JSONValue?
     private var committed:Set<String>=[]
     private var onLearnerTurn:((String)->Void)?,onConversationTurn:((String,String,String)->Void)?
     private var onInputTurn:((RealtimeVoiceState.InputTurn)->Void)?,onAssistantTurn:((String,String)->Void)?
@@ -42,18 +44,19 @@ import AVFoundation
         instructions=try recipes.conversation("instructions",parameters:parameters)
         responseEvent=try JSONDecoder().decode(JSONValue.self,from:Data(recipes.conversation("response",parameters:parameters).utf8))
     }
-    func start(learner:LearnerState,goalBlueprint:JSONValue?=nil,tutorLesson:Lesson?=nil,onLearnerTurn:((String)->Void)?=nil,conversationDraft:ConversationDraft?=nil,onConversationTurn:((String,String,String)->Void)?=nil,instructions:String?=nil,openingPrompt:String?=LiveTutorService.openingPrompt,inactivityTimeout:TimeInterval?=nil,initiallyMuted:Bool=false,onInputTurn:((RealtimeVoiceState.InputTurn)->Void)?=nil,onAssistantTurn:((String,String)->Void)?=nil) async {
+    func start(learner:LearnerState,goalBlueprint:JSONValue?=nil,tutorLesson:Lesson?=nil,onLearnerTurn:((String)->Void)?=nil,conversationDraft:ConversationDraft?=nil,onConversationTurn:((String,String,String)->Void)?=nil,instructions:String?=nil,openingPrompt:String?=LiveTutorService.openingPrompt,inactivityTimeout:TimeInterval?=nil,initiallyMuted:Bool=false,onInputTurn:((RealtimeVoiceState.InputTurn)->Void)?=nil,onAssistantTurn:((String,String)->Void)?=nil,sessionConfiguration:JSONValue?=nil,externallyControlled:Bool=false,previousAssistant:String?=nil) async {
         guard !connecting && !connected else { return }
         connecting=true;autoStopped=false;muted=initiallyMuted;voiceState="thinking";error=nil;transcript="";learnerTranscript="";assistantTurnText="";completedLearnerTurn="";committed=[];speaking=false;notifiedInputs=[];notifiedResponses=[];playbackDucked=false
         let run=UUID();generation=run
         self.onLearnerTurn=onLearnerTurn;self.onConversationTurn=onConversationTurn
         self.onInputTurn=onInputTurn;self.onAssistantTurn=onAssistantTurn;resumeMessages=conversationDraft?.messages ?? []
-        state=RealtimeVoiceState(previousAssistant:conversationDraft?.messages.last { $0.role == "assistant" }?.text ?? "")
+        state=RealtimeVoiceState(previousAssistant:previousAssistant ?? conversationDraft?.messages.last { $0.role == "assistant" }?.text ?? "")
+        self.sessionConfiguration=sessionConfiguration
         state.setMuted(initiallyMuted)
         do {
             guard await permission() else { throw AppError.message("Enable the microphone in Settings to use live audio.") }
             try valid(run)
-            manualResponse=conversationDraft != nil
+            manualResponse=conversationDraft != nil || externallyControlled
             if let conversationDraft { try configureConversation(conversationDraft,learner:learner) }
             else {
                 self.instructions=instructions ?? Self.tutorInstructions(learner,goalBlueprint:goalBlueprint,tutorLesson:tutorLesson)
@@ -71,7 +74,7 @@ import AVFoundation
             }
             transport.onEvent={ [weak self] event in guard let self,self.generation == run else { return };self.receive(event) }
             transport.onFailure={ [weak self] message in guard let self,self.generation == run else { return };self.error=message;self.close() }
-            let session=RealtimeVoicePolicy.session(instructions:self.instructions,model:configuration.string("RealtimeModel",default:"gpt-realtime-2.1-mini"),voice:configuration.string("RealtimeVoice",default:"ash"),manualResponse:manualResponse)
+            let session=sessionConfiguration ?? RealtimeVoicePolicy.session(instructions:self.instructions,model:configuration.string("RealtimeModel",default:"gpt-realtime-2.1-mini"),voice:configuration.string("RealtimeVoice",default:"ash"),manualResponse:manualResponse)
             try await transport.connect(session:session)
             let deadline=Date().addingTimeInterval(20)
             while generation == run,!connected,connecting,Date() < deadline { try await Task.sleep(for:.milliseconds(50)) }
@@ -99,8 +102,11 @@ import AVFoundation
     private func send(_ value:JSONValue) { if transport?.send(value) != true { error="Live conversation disconnected. Try connecting again.";close() } }
     private func receive(_ event:JSONValue) {
         let type=event["type"].string
+        if type == "response.created" || type == "output_audio_buffer.started"{outputPending=true}
+        if ["output_audio_buffer.stopped","output_audio_buffer.cleared"].contains(type){outputPending=false}
         if type == "error" { error="Live conversation could not continue. Try connecting again.";close();return }
-        if type == "conversation.item.input_audio_transcription.failed" { error="That speech could not be transcribed. Please try saying it again.";speaking=false }
+        if type == "conversation.item.input_audio_transcription.completed",event["transcript"].string.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty {speaking=false;state.discardInput(event["item_id"].string);voiceState="listening";applyMicrophone()}
+        if type == "conversation.item.input_audio_transcription.failed" { error="That speech could not be transcribed. Please try saying it again.";speaking=false;state.discardInput(event["item_id"].string);voiceState="listening";applyMicrophone() }
         if type == "input_audio_buffer.speech_started" { speaking=true }
         if type == "input_audio_buffer.speech_stopped" || type == "input_audio_buffer.committed" { speaking=false }
         if type.hasPrefix("response.") || type.hasPrefix("input_audio_buffer.") || type == "output_audio_buffer.stopped" { lastActivity=Date() }
@@ -145,8 +151,12 @@ import AVFoundation
         transport?.setMicrophoneEnabled(enabled && connected)
         guard connected else { return }
         if !enabled { send(.object(["type":.string("input_audio_buffer.clear")])) }
-        send(.object(["type":.string("session.update"),"session":.object(["type":.string("realtime"),"audio":.object(["input":.object(["turn_detection":enabled ? RealtimeVoicePolicy.vad(manualResponse:manualResponse) : .null])])])]))
+        let vad=sessionConfiguration?["audio"]["input"]["turn_detection"] ?? RealtimeVoicePolicy.vad(manualResponse:manualResponse)
+        send(.object(["type":.string("session.update"),"session":.object(["type":.string("realtime"),"audio":.object(["input":.object(["turn_detection":enabled ? vad : .null])])])]))
     }
+    func requestResponse(_ response:JSONValue) {guard connected else{return};send(response)}
+    func discardInput(_ id:String) {guard connected else{return};state.discardInput(id);voiceState="listening";applyMicrophone()}
+    func updateTranscription(_ value:JSONValue) {guard connected else{return};send(.object(["type":.string("session.update"),"session":.object(["type":.string("realtime"),"audio":.object(["input":.object(["transcription":value])])])]))}
     func updateConversation(_ draft:ConversationDraft,learner:LearnerState) async {
         guard connected else { return }
         do { let previous=instructions;try configureConversation(draft,learner:learner);if instructions != previous { send(.object(["type":.string("session.update"),"session":.object(["type":.string("realtime"),"instructions":.string(instructions)])])) } }
@@ -155,7 +165,7 @@ import AVFoundation
     func setMuted(_ value:Bool) { muted=value;state.setMuted(value);if value,voiceState != "speaking" {audioLevel=0};applyMicrophone() }
     func setPlaybackDucked(_ value:Bool) { guard playbackDucked != value else { return };playbackDucked=value;if value {audioLevel=0};transport?.setRemoteAudioEnabled(!value);applyMicrophone() }
     private func close() {
-        generation=UUID();audioMeter?.cancel();audioMeter=nil;audioLevel=0;idleMonitor?.cancel();idleMonitor=nil;transport?.close();transport=nil;connected=false;connecting=false;muted=false;voiceState="idle";onLearnerTurn=nil;onConversationTurn=nil;onInputTurn=nil;onAssistantTurn=nil
+        generation=UUID();audioMeter?.cancel();audioMeter=nil;audioLevel=0;idleMonitor?.cancel();idleMonitor=nil;transport?.close();transport=nil;connected=false;connecting=false;muted=false;voiceState="idle";outputPending=false;onLearnerTurn=nil;onConversationTurn=nil;onInputTurn=nil;onAssistantTurn=nil
     }
     func stop(clearTranscript:Bool=false) async {
         close()
