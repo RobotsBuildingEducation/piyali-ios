@@ -1,6 +1,19 @@
 import Foundation
 import Combine
 
+enum TutorFocus:Equatable {
+    case goal(JSONValue)
+    case repair(RepairStep)
+    var key:String {switch self {case .goal(let bp):return "goal:"+bp["goalId"].string+":"+bp["dayKey"].string+":"+bp["mode"].string;case .repair(let step):return step.id+":"+step.mode}}
+    var level:String {switch self {case .goal(let bp):return bp["cefrLevel"].string;case .repair(let step):return step.item["cefrLevel"].string}}
+    @MainActor func isCurrent(_ app:AppModel)->Bool {switch self {case .goal(let bp):return app.goalIsCurrent(bp);case .repair(let step):return app.learner.repairStepIsCurrent(step)}}
+    @MainActor func snapshot(_ app:AppModel)->JSONValue {
+        var value:JSONValue = .object(["npub":.string(app.identity.npub),"targetLang":.string(app.learner.target),"supportLang":.string(app.learner.support),"surface":.string("tutor")])
+        switch self {case .goal(let bp):value=value.setting("blueprint",bp).setting("mode",bp["mode"]);case .repair(let step):value=value.setting("plan",step.plan).setting("mode",.string(step.mode)).setting("stepIndex",.number(Double(step.index))).setting("stepCount",.number(Double(step.stepCount)))}
+        return value
+    }
+}
+
 /// Native sequencing around the reference Tutor's unmodified policy and prompts.
 @MainActor final class TutorSessionController:ObservableObject {
     @Published private(set) var catalog:JSONValue = .null
@@ -13,7 +26,12 @@ import Combine
     @Published private(set) var grading=false
     @Published private(set) var paused=false
     @Published private(set) var saving=false
-    @Published private(set) var completionPending=false
+    @Published private(set) var completionPending=false {didSet{onCompletionPending?(completionPending)}}
+    @Published private(set) var focus:TutorFocus?
+    @Published private(set) var focusSkipped=false
+    @Published private(set) var focusedFinished=false
+    var onCompletionPending:((Bool)->Void)?
+    var onFocusedCompletion:(()->Void)?
     @Published var error:String?
     @Published var completion:JSONValue?
     @Published var review:JSONValue?
@@ -21,6 +39,7 @@ import Combine
     let live:LiveTutorService
     private(set) var policy:TutorSourcePolicy?
     private var provider:TutorProvider?
+    private let turnXP:()->Int
     private var owner="",epoch=UUID(),turn=0,welcomePending=false,mutedWhenPaused=false
     private var seenInputs:Set<String>=[],seenResponses:Set<String>=[]
     private var lastInput="",lastInputAt=Date.distantPast
@@ -31,16 +50,31 @@ import Combine
     private var levelCache:JSONValue?
     private var liveUpdates:AnyCancellable?
     private var completionLesson:Lesson?,completionChange:UUID?
+    private var focusedRecord:JSONValue = .object([:]),repairEvidence:JSONValue = .object([:])
+    private var focusedGoalChange:UUID?,focusedRepairChange:UUID?
     private var reviewRecord:JSONValue?
     var practicingCompletedLesson:Bool { reviewRecord != nil }
-    private func sessionRecord(_ app:AppModel)->JSONValue { reviewRecord ?? record(app) }
-    init(live:LiveTutorService?=nil,provider:TutorProvider?=nil){self.live=live ?? TutorVoiceFixture.service();self.provider=provider;policy=try? TutorSourcePolicy();liveUpdates=self.live.objectWillChange.sink{[weak self] _ in self?.objectWillChange.send()}}
+    private func sessionRecord(_ app:AppModel)->JSONValue { focus != nil ? focusedRecord:reviewRecord ?? record(app) }
+    init(focus:TutorFocus?=nil,live:LiveTutorService?=nil,provider:TutorProvider?=nil,turnXP:@escaping()->Int={Int.random(in:3...7)}){self.turnXP=turnXP;self.focus=focus;self.live=live ?? TutorVoiceFixture.service();self.provider=provider;policy=try? TutorSourcePolicy();liveUpdates=self.live.objectWillChange.sink{[weak self] _ in self?.objectWillChange.send()}}
     static var fixture:Bool {TutorVoiceFixture.enabled}
     var id:String {lesson["id"].string}
     var required:Int {Int(state["required"].number)}
-    func scope(_ app:AppModel)->String {[app.identity.npub,app.learner.target,app.learner.support,app.learner.tutorLevel].joined(separator:":")}
+    func scope(_ app:AppModel)->String {
+        let course=focus.map{focus in let day=CalendarDay.key(Date());if case .goal=focus{return focus.key+":"+day+":"+app.goalCourseScope.goalID};return focus.key+":"+day} ?? app.learner.tutorLevel
+        return [app.identity.npub,app.learner.target,app.learner.support,course].joined(separator:":")
+    }
+    func earnedXP(_ app:AppModel)->Int {Int(sessionRecord(app)["earnedXp"].number)}
+    private func focusIsCurrent(_ app:AppModel)->Bool {focus?.isCurrent(app) ?? true}
     private func valid(_ app:AppModel,_ token:UUID)->Bool {epoch == token && owner == scope(app) && !Task.isCancelled}
-    var typedLesson:Lesson? {try? JSONDecoder().decode(Lesson.self,from:Data(lesson.json.utf8))}
+    var typedLesson:Lesson? {
+        // The source ephemeral builder omits curriculum-only fields. Supply
+        // neutral decoder defaults here; prompts keep using its untouched JSON.
+        var raw=lesson
+        if raw["agenda"] == .null{raw=raw.setting("agenda",.object([:]))}
+        if raw["xpReward"] == .null{raw=raw.setting("xpReward",.number(0))}
+        if raw["modes"] == .null{raw=raw.setting("modes",.array([.string("realtime")]))}
+        return try? JSONDecoder().decode(Lesson.self,from:Data(raw.json.utf8))
+    }
     func record(_ app:AppModel,_ lessonID:String?=nil)->JSONValue {
         let key=lessonID ?? id,progress=app.learner.tutorProgress(key)
         var value=progress.sourceState ?? .object([:])
@@ -70,18 +104,26 @@ import Combine
     func levels()->JSONValue {if let levelCache{return levelCache};let value=(try? policy?.run("levels")) ?? .null;levelCache=value;return value}
     private func payload(_ app:AppModel)->JSONValue {
         let settings:JSONValue = .object(["practicePronunciation":.bool(app.learner.conversation.pronunciation),"conversationSubjects":.string(app.learner.conversation.interests)]),record=sessionRecord(app)
-        return .object(["completed":.bool(practicingCompletedLesson),"lesson":lesson,"unit":unit,"target":.string(app.learner.target),"support":.string(app.learner.support),"level":.string(app.learner.tutorLevel),"user":app.learner.recipeUser,"settings":settings,"progress":record["tutorAgendaProgress"]["items"],"earned":record["earnedXp"],"turn":.number(Double(turn)),"messages":.array(messages),"resume":.array(resume),"pausedMessages":.array(pausedMessages),"voice":app.learner.plateProgress["tutorVoice"] == .null ? .string("marin"):app.learner.plateProgress["tutorVoice"],"persona":.string(app.learner.plateProgress["tutorVoicePersona"].string.isEmpty ? EntryCopy.ui(app.learner.support,"onboarding_persona_default_example"):app.learner.plateProgress["tutorVoicePersona"].string),"pause":.number(1200),"quizLastFeedback":quizFeedback,"quizPreviousAttemptResult":previousQuiz])
+        return .object(["completed":.bool(practicingCompletedLesson),"lesson":lesson,"unit":unit,"target":.string(app.learner.target),"support":.string(app.learner.support),"level":.string(focus?.level ?? app.learner.tutorLevel),"goalFocus":{if case .goal?=focus{return focus?.snapshot(app) ?? .null};return JSONValue.null}(),"repairFocus":{if case .repair?=focus,!focusSkipped{return focus?.snapshot(app) ?? .null};return JSONValue.null}(),"user":app.learner.recipeUser,"settings":settings,"progress":record["tutorAgendaProgress"]["items"],"earned":record["earnedXp"],"turn":.number(Double(turn)),"messages":.array(messages),"resume":.array(resume),"pausedMessages":.array(pausedMessages),"voice":app.learner.plateProgress["tutorVoice"] == .null ? .string("marin"):app.learner.plateProgress["tutorVoice"],"persona":.string(app.learner.plateProgress["tutorVoicePersona"].string.isEmpty ? EntryCopy.ui(app.learner.support,"onboarding_persona_default_example"):app.learner.plateProgress["tutorVoicePersona"].string),"pause":.number(1200),"quizLastFeedback":quizFeedback,"quizPreviousAttemptResult":previousQuiz])
     }
     func refresh(_ app:AppModel) {guard owner == scope(app),!id.isEmpty else{return};content=details(app,lesson:lesson,unit:unit);state=(try? policy?.run("state",payload(app))) ?? .null}
     func prepare(_ app:AppModel) async {
         if owner == scope(app),!id.isEmpty {refresh(app);return}
-        await stop(app,saveDraft:false);owner=scope(app);let token=epoch,target=app.learner.target;loading=true;error=nil
+        await stop(app,saveDraft:false)
+        completionPending=false;completion=nil;review=nil;saving=false;focusedFinished=false;focusedGoalChange=nil;focusedRepairChange=nil;completionChange=nil;completionLesson=nil;reviewRecord=nil
+        owner=scope(app);let token=epoch,target=app.learner.target;loading=true;error=nil
         defer {if epoch == token{loading=false}}
         do {
             catalog=try await Task.detached {try ContentLibrary.load(JSONValue.self,name:"tutor-curriculum-"+target)}.value
             guard valid(app,token) else{return}
             if provider == nil {provider=Self.fixture ? TutorVoiceFixture.provider():.native(app.ai)}
             guard policy != nil else{throw PracticeRecipeFailure.unavailable}
+            if let focus {
+                guard focus.isCurrent(app) else{throw AppError.message("Return to today's current focused task.")}
+                let lesson=try policy!.run("focusLesson",.object(["focus":focus.snapshot(app)]))
+                guard lesson != .null else{throw PracticeRecipeFailure.invalidRecipe}
+                select(app,lesson:lesson,unit:.object(["cefrLevel":lesson["cefrLevel"]]));return
+            }
             let level=app.learner.tutorLevel,stored=app.learner.plateProgress["currentTutorLesson"].string
             let units=catalog[level].array
             if let unit=units.first(where:{$0["lessons"].array.contains(where:{$0["id"].string == stored})}),let lesson=unit["lessons"].array.first(where:{$0["id"].string == stored}),record(app,stored)["status"].string != "completed",allowed(app,level:level,id:stored){select(app,lesson:lesson,unit:unit)}
@@ -97,20 +139,23 @@ import Combine
     func adoptLevel(_ app:AppModel){owner=scope(app)}
     func select(_ app:AppModel,lesson:JSONValue,unit:JSONValue){
         self.lesson=lesson;self.unit=unit;messages=[];resume=[];pausedMessages=[];turn=0;quizFeedback = .null;previousQuiz = .null;seenInputs=[];seenResponses=[];lastInput="";lastInputAt = .distantPast
-        let saved=record(app)
-        reviewRecord=saved["status"].string == "completed" ? saved.setting("earnedXp",.number(Double(xpRequired(lesson)))):nil
+        if lesson["isGoal"].boolean || lesson["isRepair"].boolean {
+            focusedRecord = .object(["earnedXp":.number(0)]);repairEvidence = .object([:]);reviewRecord=nil
+        }else{focus=nil;focusSkipped=false;focusedFinished=false;owner=scope(app)}
+        let saved=focus == nil ? record(app):focusedRecord
+        reviewRecord=focus == nil && saved["status"].string == "completed" ? saved.setting("earnedXp",.number(Double(xpRequired(lesson)))):nil
         quiz=sessionRecord(app)["tutorAgendaProgress"]["quiz"];refresh(app)
     }
     func start(_ app:AppModel,resuming:Bool=false) async {
-        guard !live.connected,!live.connecting,!saving,!id.isEmpty,Self.fixture || app.subscription.hasAccess,let policy,let typedLesson else{return}
+        guard !focusedFinished,focusIsCurrent(app),!live.connected,!live.connecting,!saving,!id.isEmpty,Self.fixture || app.subscription.hasAccess,let policy,let typedLesson else{return}
         error=nil;draftTask?.cancel()
         if !resuming {
             let privateMessages=messages.isEmpty ? ((try? policy.run("resume",.object(["record":sessionRecord(app)]))) ?? .null)["resumeContextMessages"].array:messages
             resume=privateMessages;messages=[];pausedMessages=[];turn=0;mutedWhenPaused=false;seenInputs=[];seenResponses=[]
         }
         paused=false;epoch=UUID();let token=epoch
-        if !practicingCompletedLesson {app.learner.storeTutorState(lesson:typedLesson,data:.object(["kind":.string("start"),"agenda":record(app)["tutorAgendaProgress"]["items"]]));app.persist()};refresh(app)
-        welcomePending = !resuming && state["starter"].boolean && resume.isEmpty
+        if focus == nil,!practicingCompletedLesson {app.learner.storeTutorState(lesson:typedLesson,data:.object(["kind":.string("start"),"agenda":record(app)["tutorAgendaProgress"]["items"]]));app.persist()};refresh(app)
+        welcomePending = focus == nil && !resuming && state["starter"].boolean && resume.isEmpty
         do {
             let session=try policy.run("session",payload(app))
             await live.start(learner:app.learner,instructions:session["instructions"].string,openingPrompt:nil,inactivityTimeout:30,initiallyMuted:resuming && mutedWhenPaused,onInputTurn:{[weak self,weak app] input in guard let self,let app,self.valid(app,token) else{return};Task{await self.input(input,app:app,token:token)}},onAssistantTurn:{[weak self,weak app] response,text in guard let self,let app,self.valid(app,token) else{return};self.assistant(response,text:text,app:app,token:token)},sessionConfiguration:session,externallyControlled:true,previousAssistant:resuming ? messages.last(where:{$0["role"].string == "assistant"})?["textFinal"].string:nil)
@@ -137,7 +182,7 @@ import Combine
     }
     func input(_ input:RealtimeVoiceState.InputTurn,app:AppModel,token:UUID?=nil) async {
         let token=token ?? epoch
-        guard valid(app,token),!paused,!grading,!completionPending,let policy,let typedLesson,seenInputs.insert(input.id).inserted else{return}
+        guard valid(app,token),focusIsCurrent(app),!paused,!grading,!completionPending,let policy,let typedLesson,seenInputs.insert(input.id).inserted else{return}
         let text=input.text.trimmingCharacters(in:.whitespacesAndNewlines),now=Date()
         do {
             let match=try policy.run("matches",payload(app).setting("answer",.string(text)))
@@ -148,14 +193,21 @@ import Combine
             turn += 1;grading=true
             defer{if epoch == token{grading=false}}
             let before=state,p=payload(app).setting("answer",.string(text)),local=try policy.run("classify",p),isQuiz=lesson["isFinalQuiz"].boolean
-            let needsJudge=isQuiz || !local["local"].boolean || (!before["starter"].boolean && !local["objectiveLocal"].boolean && !before["isComplete"].boolean)
+            let needsJudge=focus != nil || isQuiz || !local["local"].boolean || (!before["starter"].boolean && !local["objectiveLocal"].boolean && !before["isComplete"].boolean)
             var parsed:JSONValue = .object([:]),semantic=false
             if needsJudge {
                 var options=local["options"]
                 if isQuiz || local["local"].boolean {options=options.setting("directPhraseAnswer",.bool(false));if isQuiz{options=options.setting("regularPhraseMatch",.bool(false))}}
-                do{parsed=try await provider?.judge(try policy.run("judge",p.setting("options",options)).string) ?? .null;semantic=true}catch{parsed = .object(["confidence":.number(0)])}
+                do {
+                    if case .goal(let bp)?=focus {
+                        guard let provider else{throw PracticeRecipeFailure.unavailable}
+                        let verdict=try await provider.goal(bp,text,options.json,app.learner.support)
+                        parsed = .object(["successful":.bool(verdict.success),"confidence":.number(1),"reason":.string(verdict.feedback),"observation":.string(verdict.observation)])
+                    }else{parsed=try await provider?.judge(try policy.run("judge",p.setting("options",options)).string) ?? .null}
+                    semantic=true
+                }catch{parsed = .object(["confidence":.number(0)])}
             }
-            guard valid(app,token),!paused else{return}
+            guard valid(app,token),focusIsCurrent(app),!paused else{return}
             let grade=try policy.run("grade",.object(["parsed":parsed,"local":.bool(!isQuiz && local["local"].boolean),"attempted":.bool(semantic)]))
             let confidence=grade["confidence"].number,accepted=grade["verdict"].string == "accepted",mistake=parsed["mistake"].boolean && confidence>=0.55 && !accepted
             let objective=local["objectiveLocal"].boolean || (grade["successful"].boolean && (parsed["objectiveAdvanced"] == .null || parsed["objectiveAdvanced"].boolean))
@@ -163,25 +215,33 @@ import Combine
             if isQuiz,semantic,confidence>=0.55,parsed["quizAnswered"].boolean {
                 let next=try policy.run("quiz",.object(["items":before["items"],"progress":agenda,"correctItems":quiz["correctItems"],"correct":.bool(accepted)]))
                 agenda=next["progress"];quiz = .object(["correctItems":next["correctItems"],"attemptNumber":.number(max(1,quiz["attemptNumber"].number)+(next["failed"].boolean ? 1:0))]);quizFeedback = .object(["correct":.bool(accepted),"correction":parsed["correction"],"reason":parsed["reason"]]);previousQuiz=next["failed"].boolean ? .object(["score":next["score"],"total":.number(Double(before["items"].array.count))]):.null
-            }else if accepted {
+            }else if accepted,focus == nil {
                 if before["starter"].boolean {
                     for candidate in local["candidateIds"].array where before["items"].array.contains(where:{$0["id"] == candidate}) {agenda=agenda.setting(candidate.string,.bool(true));acceptedIDs.append(candidate)}
                 }else if objective,let current=before["currentItem"]["id"].string.nilIfEmpty {agenda=agenda.setting(current,.bool(true))}
             }
             let question=messages.last(where:{$0["role"].string == "assistant" && !$0["welcome"].boolean}),quoted=await worth[question?["id"].string ?? ""]?.value
-            guard valid(app,token),!paused else{return}
+            guard valid(app,token),focusIsCurrent(app),!paused else{return}
+            let repairAdvanced:Bool
+            if case .repair?=focus {repairAdvanced=parsed["repairAdvanced"].boolean}else{repairAdvanced=false}
+            if repairAdvanced {repairEvidence = .object(["success":.bool(true),"support":.string("prompted"),"observation":.string(String(text.prefix(600)))]);completionPending=true}
             if accepted {
                 // A confirmed local phrase remains XP-worthy even when the
                 // capability judge cannot advance the current objective.
-                if practicingCompletedLesson {
-                    app.learner.sourceTutorReview(lesson:typedLesson,xp:Int.random(in:3...7))
+                if focus != nil {
+                    let xp=max(3,min(7,turnXP())),earned=min(required,earnedXP(app)+xp)
+                    completionPending=repairAdvanced || earned>=required
+                    focusedRecord=focusedRecord.setting("earnedXp",.number(Double(earned)))
+                    app.learner.sourceFocusedTutorTurn(level:focus?.level ?? app.learner.tutorLevel,xp:xp)
+                }else if practicingCompletedLesson {
+                    app.learner.sourceTutorReview(lesson:typedLesson,xp:turnXP())
                 }else {
                     completionPending=record(app)["earnedXp"].number+7>=Double(required) && (isQuiz || before["items"].array.allSatisfy{agenda[$0["id"].string].boolean})
-                    app.learner.sourceTutorTurn(lesson:typedLesson,required:required,agenda:agenda,xp:Int.random(in:3...7),quiz:isQuiz ? quiz:nil)
+                    app.learner.sourceTutorTurn(lesson:typedLesson,required:required,agenda:agenda,xp:turnXP(),quiz:isQuiz ? quiz:nil)
                 }
                 app.learner.assess(correct:true,independent:true,questionLevel:question?["questionLevel"].string.nilIfEmpty ?? state["level"].string,worth:quoted ?? nil,mode:"tutor",support:"independent");feedback = .init(correct:true)
             }else {
-                if isQuiz,!practicingCompletedLesson {app.learner.storeTutorState(lesson:typedLesson,data:.object(["agenda":agenda,"quiz":quiz,"replaceAgenda":.bool(true)]))}
+                if focus == nil,isQuiz,!practicingCompletedLesson {app.learner.storeTutorState(lesson:typedLesson,data:.object(["agenda":agenda,"quiz":quiz,"replaceAgenda":.bool(true)]))}
                 if mistake {
                     app.learner.assess(correct:false,independent:false,questionLevel:question?["questionLevel"].string.nilIfEmpty ?? state["level"].string,worth:quoted ?? nil,concept:parsed["concept"].string,mode:"tutor")
                     app.learner.captureMemory(mode:"tutor",concept:parsed["concept"].string.nilIfEmpty ?? parsed["correction"].string,answer:text,expected:parsed["correction"].string,feedback:parsed["reason"].string,context:"tutor",questionLevel:state["level"].string,sourceContext:.string("tutor"));feedback = .init(correct:false)
@@ -194,8 +254,8 @@ import Combine
             }
             app.persist();refresh(app)
             if accepted || mistake {app.learner.history.insert(.init(date:now,target:app.learner.target,mode:"Tutor",question:question?["textFinal"].string ?? "",answer:text,feedback:parsed["reason"].string,correct:accepted,repairInMemory:mistake),at:0);app.learner.history=Array(app.learner.history.prefix(500));app.persist()}
-            let ready=isQuiz || state["isComplete"].boolean
-            if !practicingCompletedLesson,ready,record(app)["earnedXp"].number>=Double(required){await complete(app,ready:true);return}
+            let ready=focus != nil || isQuiz || state["isComplete"].boolean
+            if !practicingCompletedLesson,ready,(repairAdvanced || earnedXP(app)>=required){await complete(app,ready:true);return}
             completionPending=false
             if Self.fixture || app.subscription.hasAccess {let session=try policy.run("session",payload(app));live.updateTranscription(session["audio"]["input"]["transcription"]);try request(app,answer:text,accepted:.array(acceptedIDs),verdict:grade["verdict"].string)}else{await stop(app)}
         }catch {if valid(app,token){self.error="This turn could not be checked. Please try again.";grading=false;completionPending=false;live.discardInput(input.id)}}
@@ -203,7 +263,7 @@ import Combine
     private func uniqueMessages(_ values:[JSONValue])->[JSONValue]{var seen:Set<String>=[];return values.filter{seen.insert($0["id"].string).inserted}}
     private func scheduleDraft(_ app:AppModel){draftTask?.cancel();let token=epoch;draftTask=Task{try? await Task.sleep(for:.milliseconds(900));guard !Task.isCancelled,valid(app,token) else{return};flushDraft(app)}}
     func flushDraft(_ app:AppModel){
-        draftTask?.cancel();guard owner == scope(app),let typedLesson,!completionPending,record(app)["status"].string != "completed",let draft=try? policy?.run("draft",.object(["messages":.array(uniqueMessages(resume+messages))])),!draft.array.isEmpty else{return}
+        draftTask?.cancel();guard focus == nil,owner == scope(app),let typedLesson,!completionPending,record(app)["status"].string != "completed",let draft=try? policy?.run("draft",.object(["messages":.array(uniqueMessages(resume+messages))])),!draft.array.isEmpty else{return}
         let current=record(app)["conversationDraft"]["messages"];guard current != draft else{return}
         app.learner.storeTutorState(lesson:typedLesson,data:.object(["draft":.object(["version":.number(1),"messages":draft]) ]));app.persist()
     }
@@ -218,8 +278,11 @@ import Combine
     }
     func stop(_ app:AppModel,saveDraft:Bool=true) async {
         if saveDraft{flushDraft(app)};epoch=UUID();draftTask?.cancel();worth.values.forEach{$0.cancel()};worth=[:];paused=false;grading=false;await live.stop()
+        if focusSkipped {focus=nil;focusSkipped=false;owner="";await prepare(app)}
     }
+    func skipFocus(_ app:AppModel)async {focusSkipped=true;if !live.connected && !live.connecting{await stop(app)}}
     func complete(_ app:AppModel,ready:Bool,gameCompleted:Bool=false) async {
+        if let focus {await completeFocus(app,focus:focus,ready:ready);return}
         guard !practicingCompletedLesson,let typedLesson,let policy,!saving else{return}
         completionPending=true;draftTask?.cancel();saving=true;let token=epoch
         defer{if epoch == token{saving=false}}
@@ -241,6 +304,30 @@ import Combine
         }
         if next["lesson"] != .null{select(app,lesson:next["lesson"],unit:next["unit"])}else{refresh(app)}
         completionChange=nil;completionLesson=nil;error=nil
+    }
+    private func completeFocus(_ app:AppModel,focus:TutorFocus,ready:Bool)async {
+        guard ready,!saving,!focusedFinished,(completionPending || focus.isCurrent(app)),(earnedXP(app)>=required || repairEvidence["success"].boolean) else{return}
+        completionPending=true;saving=true;draftTask?.cancel();let token=epoch
+        defer{if epoch == token{saving=false}}
+        await live.stop();paused=false
+        switch focus {
+        case .goal(let bp):
+            if focusedGoalChange == nil {
+                app.recordGoalAttempt(bp,mode:bp["mode"].string,success:true,support:"prompted",observation:"Completed \(required) XP of goal-specific Tutor practice with successful spoken turns.",domain:"production")
+                focusedGoalChange=app.learner.pendingGoalChanges?.last(where:{$0.action == .attempt && $0.payload["goalId"] == bp["goalId"] && $0.payload["dayKey"] == bp["dayKey"] && $0.payload["mode"] == bp["mode"]})?.id
+            }
+        case .repair(let step):
+            if focusedRepairChange == nil {
+                guard app.completeSourceTutorRepair(step,bonus:required,evidence:repairEvidence) else{error="Return to today's current repair task.";return}
+                focusedRepairChange=app.learner.pendingChanges?.last(where:{$0.source == .repair && $0.contentID == step.id})?.id
+            }
+        }
+        await app.sync();guard valid(app,token) else{return}
+        let pendingGoal=focusedGoalChange.map{id in app.learner.pendingGoalChanges?.contains(where:{$0.id == id}) == true} ?? false
+        let pendingRepair=focusedRepairChange.map{id in app.learner.pendingChanges?.contains(where:{$0.id == id}) == true} ?? false
+        if !Self.fixture,(pendingGoal || pendingRepair) {error="Focused practice is saved on this iPhone. Retry when you’re connected to finish saving.";return}
+        focusedFinished=true;completionPending=false;error=nil
+        onFocusedCompletion?()
     }
     func closeCompletion(){review=completion;completion=nil}
     func closeReview(){review=nil;completionPending=false}

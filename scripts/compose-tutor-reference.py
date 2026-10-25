@@ -5,12 +5,13 @@ from pathlib import Path
 from PIL import Image, ImageCms, ImageDraw
 parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument('attachments',type=Path)
+parser.add_argument('--states',nargs='+',default=['idle','path','preview'])
 parser.add_argument('--output',type=Path,default=Path('docs/native'))
 args=parser.parse_args()
 attachments=[a for test in json.loads((args.attachments/'manifest.json').read_text()) for a in test['attachments']]
 args.output.mkdir(parents=True,exist_ok=True)
 for language in ('en','ar'):
-    for state in ('idle','path','preview'):
+    for state in args.states:
         def find(prefix):
             name=f'{prefix} Tutor {state} {language}_'
             matches=[a for a in attachments if a['suggestedHumanReadableName'].startswith(name) and a['exportedFileName'].endswith('.png')]

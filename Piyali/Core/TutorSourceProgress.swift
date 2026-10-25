@@ -55,6 +55,11 @@ public extension LearnerState {
         var change=PracticeChange(date:now,dayKey:CalendarDay.key(now),target:target,level:lesson.cefrLevel ?? tutorLevel,amount:earned,source:.tutorTurn,contentID:lesson.id)
         var data:JSONValue = .object(["required":.number(Double(required)),"agenda":agenda]);if let quiz{data=data.setting("quiz",quiz).setting("replaceAgenda",.bool(true))};change.tutorData=data;enqueue(change);return change.id
     }
+    /// Ephemeral Goal/repair sessions earn ordinary turn XP without a Tutor-path document.
+    mutating func sourceFocusedTutorTurn(level:String,xp:Int,now:Date=Date()) {
+        let earned=max(3,min(7,xp));addXP(earned,now:now,calendar:.current)
+        enqueue(PracticeChange(date:now,dayKey:CalendarDay.key(now),target:target,level:level,amount:earned,source:.tutorTurn,contentID:nil))
+    }
     /// Completed lessons keep a session agenda, while correct review turns still earn ordinary practice XP.
     mutating func sourceTutorReview(lesson:Lesson,xp:Int,now:Date=Date()) {
         let earned=max(3,min(7,xp));addXP(earned,now:now,calendar:.current)

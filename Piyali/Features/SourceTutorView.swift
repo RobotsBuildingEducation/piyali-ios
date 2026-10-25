@@ -13,24 +13,32 @@ struct SourceTutorView:View {
     @State private var footerOwner=UUID()
     @State private var activePair:Int?
     @StateObject private var narration=RealtimeNarrationService()
-    init(controller:TutorSessionController?=nil){_tutor=StateObject(wrappedValue:controller ?? TutorSessionController())}
+    private let completionPendingChanged:(Bool)->Void
+    private let focusedCompleted:()->Void
+    init(controller:TutorSessionController?=nil,focus:TutorFocus?=nil,onCompletionPending:@escaping(Bool)->Void={_ in},onFocusedCompletion:@escaping()->Void={}) {
+        _tutor=StateObject(wrappedValue:controller ?? TutorSessionController(focus:focus));completionPendingChanged=onCompletionPending;focusedCompleted=onFocusedCompletion
+    }
     private var brand:PiyaliBrand {.init(dark:scheme == .dark)}
     private var latest:JSONValue {tutor.messages.last(where:{$0["role"].string == "assistant"}) ?? .null}
     private var reply:String {!tutor.live.assistantTurnText.isEmpty && tutor.live.connected ? tutor.live.assistantTurnText:latest["textFinal"].string}
-    private var earned:Int {Int(tutor.record(app)["earnedXp"].number)}
+    private var earned:Int {tutor.earnedXP(app)}
     private var percent:Int {min(100,max(0,Int((Double(earned)/Double(max(1,tutor.required))*100).rounded())))}
     private var revision:String {"\(tutor.live.connected)|\(tutor.live.connecting)|\(tutor.live.muted)|\(tutor.paused)|\(tutor.loading)|\(tutor.saving)|\(tutor.completionPending)|\(tutor.id)"}
     private func t(_ key:String)->String {let value=EntryCopy.ui(app.learner.support,key);return value == key ? ["ra_you":"You"][key] ?? key:value}
     var body:some View {
         Group {if TutorSessionController.fixture {surface}else{SubscriptionRequiredView(service:app.subscription,preserveEarnedWork:tutor.completionPending){surface}}}
             .toolbar(.hidden,for:.navigationBar)
-            .task(id:tutor.scope(app)){await tutor.prepare(app)}
+            .task(id:tutor.scope(app)){
+                let account=app.identity.npub,target=app.learner.target,day=CalendarDay.key(Date()),owner=footerOwner,notify=completionPendingChanged
+                tutor.onCompletionPending={[weak app] active in app?.retainEarnedPractice(owner:owner,active:active,account:account,target:target,day:day);notify(active)}
+                tutor.onFocusedCompletion=focusedCompleted;await tutor.prepare(app)
+            }
             .activityFooter(owner:footerOwner,revision:revision,access:app.subscription,fixtureAllowed:TutorSessionController.fixture || tutor.completionPending) {ActivityFooterSurface(hasFeedback:false,feedback:{EmptyView()},actions:{controls})}
             .onChange(of:app.learner.tutorLessons){_,_ in tutor.refresh(app)}
             .onChange(of:narration.error){_,value in if value != nil{tutor.live.setPlaybackDucked(false)}}
             .onChange(of:phase){_,value in if value == .background{stop()}}
             .onChange(of:app.subscription.hasAccess){_,allowed in if !allowed,!tutor.completionPending{stop()}}
-            .onDisappear{if !pathOpen && !historyOpen{stop()}}
+            .onDisappear{if !pathOpen && !historyOpen{app.releaseEarnedPractice(owner:footerOwner);stop()}}
             .fullScreenCover(isPresented:$pathOpen){TutorSourcePathView(tutor:tutor,onClose:{pathOpen=false})}
             .sheet(isPresented:$historyOpen){history.presentationDetents([.large]).presentationDragIndicator(.visible)}
             .overlay {if let data=tutor.completion{TutorSourceCompletion(data:data,copy:{tutor.copy($0,app.learner.support)},onContinue:{tutor.closeCompletion()})}else if let data=tutor.review{TutorSourceReview(data:data,copy:{tutor.copy($0,app.learner.support)},onContinue:{tutor.closeReview()})}}
@@ -85,7 +93,7 @@ struct SourceTutorView:View {
                 control(tutor.paused ? "play.fill":"pause.fill",label:tutor.paused ? "Resume tutor":"Pause tutor",selected:tutor.paused){Task{narration.stopAll();if tutor.paused{await tutor.start(app,resuming:true)}else{await tutor.pause(app)}}}.accessibilityIdentifier("tutorPause")
                 control("phone.down.fill",label:"End tutor session",stop:true){stop()}.accessibilityIdentifier("tutorEnd")
             }.frame(maxWidth:288).frame(maxWidth:.infinity)
-        }else{Button{Task{previewSpeaking=false;await tutor.start(app)}}label:{Label(t(tutor.live.connecting ? "ra_btn_starting":"ra_btn_start"),systemImage:"mic.fill")}.buttonStyle(ActivityPrimaryButtonStyle(tone:"speak")).disabled(tutor.live.connecting || tutor.loading || tutor.id.isEmpty || tutor.completionPending).accessibilityIdentifier("tutorStart")}
+        }else{Button{Task{previewSpeaking=false;await tutor.start(app)}}label:{Label(t(tutor.live.connecting ? "ra_btn_starting":"ra_btn_start"),systemImage:"mic.fill")}.buttonStyle(ActivityPrimaryButtonStyle(tone:"speak")).disabled(tutor.live.connecting || tutor.loading || tutor.id.isEmpty || tutor.completionPending || tutor.focusedFinished).accessibilityIdentifier("tutorStart")}
     }
     private func control(_ icon:String,label:String,selected:Bool=false,stop:Bool=false,action:@escaping()->Void)->some View {Button(action:action){Image(systemName:icon).font(.system(size:17,weight:.semibold)).frame(maxWidth:.infinity,minHeight:40).contentShape(Rectangle()).foregroundStyle(stop ? .white:brand.text).background(stop ? PiyaliBrand.unitColor("b0005b"):selected ? brand.surface.opacity(0.88):.clear,in:RoundedRectangle(cornerRadius:18))}.buttonStyle(.plain).accessibilityLabel(label).accessibilityAddTraits(selected ? .isSelected:[])}
     private func stop(){narration.stopAll();tutor.live.setPlaybackDucked(false);Task{await tutor.stop(app)}}

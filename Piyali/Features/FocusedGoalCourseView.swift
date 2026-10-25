@@ -4,11 +4,13 @@ import SwiftUI
 struct FocusedGoalCourseView:View {
     @EnvironmentObject var app:AppModel
     var onSurface:(ProductMode)->Void = {_ in}
+    var tutorControllerFactory:((TutorFocus)->TutorSessionController)? = nil
     @State private var routed:JSONValue?
     @State private var failure:String?
     @State private var request=UUID()
+    @State private var tutorFinishing=false
     private var next:String? {app.readyGoal.flatMap(GoalPractice.nextMode)}
-    private var preserveEarnedWork:Bool {guard let routed,routed["mode"].string == "lesson",let lesson=try? app.sourceGoalLesson(routed) else{return false};return app.preserveEarnedGoalLesson(lesson)}
+    private var preserveEarnedWork:Bool {if tutorFinishing{return true};guard let routed,routed["mode"].string == "lesson",let lesson=try? app.sourceGoalLesson(routed) else{return false};return app.preserveEarnedGoalLesson(lesson)}
     var body:some View {
         SubscriptionRequiredView(service:app.subscription,preserveEarnedWork:preserveEarnedWork){content}
             .task(id:app.goalPreparationKey+request.uuidString){await prepare()}
@@ -24,10 +26,11 @@ struct FocusedGoalCourseView:View {
         switch blueprint["mode"].string {
         case "lesson":if let lesson=try? app.sourceGoalLesson(blueprint){LessonView(lesson:lesson)}
         case "flashcards":FlashcardsView(goalBlueprint:blueprint)
-        case "phonics":if app.authoredGoalPhonics(blueprint).isEmpty {LiveTutorView(goalBlueprint:blueprint,goalMode:"phonics")}else{PhonicsView(goalBlueprint:blueprint)}
-        default:LiveTutorView(goalBlueprint:blueprint,goalMode:blueprint["mode"].string)
+        case "phonics":if app.authoredGoalPhonics(blueprint).isEmpty {focusedTutor(blueprint)}else{PhonicsView(goalBlueprint:blueprint)}
+        default:focusedTutor(blueprint)
         }
     }
+    private func focusedTutor(_ blueprint:JSONValue)->some View {SourceTutorView(controller:tutorControllerFactory?(.goal(blueprint)),focus:.goal(blueprint),onCompletionPending:{tutorFinishing=$0})}
     private func prepare() async {
         let scope=app.goalCourseScope;failure=nil
         do {
@@ -38,7 +41,9 @@ struct FocusedGoalCourseView:View {
     }
     private func route(_ mode:String) {
         guard let daily=app.readyGoal else{return}
-        let blueprint=daily["blueprint"].setting("mode",.string(mode));routed=blueprint
+        let blueprint=daily["blueprint"].setting("mode",.string(mode))
+        guard routed != blueprint else{return}
+        tutorFinishing=false;routed=blueprint
         onSurface(mode == "lesson" ? .path:mode == "flashcards" ? .cards:mode == "phonics" && !app.authoredGoalPhonics(blueprint).isEmpty ? .phonics:.tutor)
     }
 }

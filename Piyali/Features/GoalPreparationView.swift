@@ -21,10 +21,10 @@ struct GoalPreparationView: View {
                 if !app.goalIsCurrent(blueprint) { Text("This task has changed. Return to today's goal.") }
                 else if artifact["requiresTutor"].boolean {
                     Text("This goal needs a practical conversation. Its words aren't in the authored pronunciation collection.")
-                    NavigationLink("Practice the goal with your tutor") { TutorView(goalBlueprint:blueprint,goalMode:mode) }
+                    NavigationLink("Practice the goal with your tutor") { SourceTutorView(focus:.goal(blueprint.setting("mode",.string(mode)))) }
                 } else if mode == "flashcards", cards.contains(where:{ $0["concept"][app.learner.support == app.learner.target ? "iosCue" : app.learner.support].string.isEmpty }) {
                     Text("These saved preparation cues use your previous support language. Continue this goal with your tutor in your current language.")
-                    NavigationLink("Practice with current language support") { TutorView(goalBlueprint:blueprint,goalMode:mode) }
+                    NavigationLink("Practice with current language support") { SourceTutorView(focus:.goal(blueprint.setting("mode",.string(mode)))) }
                 } else if cards.indices.contains(index) {
                     let card = cards[index]
                     let expected = mode == "phonics" ? card["practiceWord"].string : card["concept"][app.learner.target].string

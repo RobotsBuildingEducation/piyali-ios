@@ -616,3 +616,29 @@ extension LiveAPIIntegrationTests {
         rtc.close();try await Auth.auth().currentUser?.delete();try Auth.auth().signOut();try identity.disconnect()
     }
 }
+
+extension LiveAPIIntegrationTests {
+    func testOriginalFocusedTutorGoalAndRepairJudgesUseNativeProviders()async throws {
+        guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else{throw XCTSkip("Explicit live API opt-in required")}
+        XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))
+        if FirebaseApp.app() == nil{AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure()};XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let identity=IdentityService();try identity.create();try await FirebaseIdentityService.shared.ensure(identity)
+        do {
+            let provider=TutorProvider.native(AIService()),policy=try TutorSourcePolicy(),day=CalendarDay.key(Date())
+            let bp:Piyali.JSONValue = .object(["goalId":.string("public-family"),"goalText":.string("Greet my family in Spanish"),"dayKey":.string(day),"lang":.string("es"),"mode":.string("tutor"),"cefrLevel":.string("Pre-A1"),"objective":.string("Greet my mother and ask how she is"),"scenario":.string("A short family call"),"targetLanguage":.array([.string("Hola, mamá"),.string("¿Cómo estás?")]),"successCriteria":.array([.string("Greet mother in Spanish"),.string("Ask how she is in Spanish")])])
+            for (answer,expected) in [("Hola, mamá. ¿Cómo estás?",true),("I do not know how to say that. Please give me a hint.",false)] {
+                let verdict=try await provider.goal(bp,answer,"The tutor modeled a greeting, then asked the learner to greet mother and ask how she is. Assess only the latest learner response.","en")
+                XCTAssertEqual(verdict.success,expected);XCTAssertFalse(verdict.observation.isEmpty)
+            }
+            let focus:Piyali.JSONValue = .object(["surface":.string("tutor"),"targetLang":.string("es"),"supportLang":.string("en"),"mode":.string("tutor"),"stepIndex":.number(0),"plan":.object(["dayKey":.string(day),"items":.array([.object(["concept":.string("Greet a relative"),"expectedAnswer":.string("Hola"),"cefrLevel":.string("Pre-A1")])]),"memoryIds":.array([.string("public-greeting")])])])
+            let lesson=try policy.run("focusLesson",.object(["focus":focus]))
+            let p:Piyali.JSONValue = .object(["lesson":lesson,"unit":.object(["cefrLevel":.string("Pre-A1")]),"target":.string("es"),"support":.string("en"),"level":.string("Pre-A1"),"repairFocus":focus,"messages":.array([.object(["id":.string("public-prompt"),"role":.string("assistant"),"textFinal":.string("Greet your relative. Say hola.")])])])
+            for (answer,expected) in [("Hola",true),("How do I say hello? Please tell me the answer.",false)] {
+                let parsed=try await provider.judge(try policy.run("judge",p.setting("answer",.string(answer))).string),grade=try policy.run("grade",.object(["parsed":parsed,"attempted":.bool(true)]))
+                XCTAssertEqual(grade["successful"].boolean,expected);XCTAssertEqual(parsed["repairAdvanced"].boolean,expected)
+            }
+            print("LIVE FOCUSED TUTOR: original Goal Responses rubric and Tutor repair semantic gate accept demonstrated target actions and reject help requests through native providers; no learner progress writes")
+        }catch{try? await Auth.auth().currentUser?.delete();try? Auth.auth().signOut();try? identity.disconnect();throw error}
+        try await Auth.auth().currentUser?.delete();try Auth.auth().signOut();try identity.disconnect()
+    }
+}

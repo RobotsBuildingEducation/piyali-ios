@@ -156,12 +156,13 @@ public extension LearnerState {
         guard step.target == target,step.day == day,step.index == count,let plan=repairPlan(day:day),plan["items"].array.indices.contains(count) else{return false}
         return plan["items"].array[count] == step.item && !completed.contains(completionKey(step.id))
     }
-    @discardableResult mutating func completeRepairStep(_ step:RepairStep,summary:JSONValue,observation:String,support:String = "prompted",now:Date = Date())->Bool {
+    @discardableResult mutating func completeRepairStep(_ step:RepairStep,summary:JSONValue,observation:String,support:String = "prompted",success:Bool=true,bonusXP:Int=0,now:Date = Date())->Bool {
         guard repairStepIsCurrent(step,now:now) else{return false}
         completed.insert(completionKey(step.id))
-        enqueue(PracticeChange(date:now,dayKey:step.day,target:target,level:step.item["cefrLevel"].string.isEmpty ? level:step.item["cefrLevel"].string,amount:0,source:.repair,contentID:step.id))
+        if bonusXP>0 {addXP(bonusXP,now:now,calendar:.current)}
+        enqueue(PracticeChange(date:now,dayKey:step.day,target:target,level:step.item["cefrLevel"].string.isEmpty ? level:step.item["cefrLevel"].string,amount:max(0,bonusXP),source:.repair,contentID:step.id))
         for id in step.plan["memoryIds"].array.map(\.string) {reinforceMemory(id:id,now:now)}
-        let event=step.event.setting("success",.bool(true)).setting("observation",.string(observation)).setting("support",.string(support))
+        let event=step.event.setting("success",.bool(success)).setting("observation",.string(observation)).setting("support",.string(support))
         if pendingRepairEvidence == nil {pendingRepairEvidence=[]};pendingRepairEvidence?.append(RepairEvidenceChange(target:target,date:now,event:event))
         let bucket=goalBucket.setting("version",.number(1)).setting("repairSummary",summary);if goalIntelligence == nil {goalIntelligence=[:]};goalIntelligence?[target]=bucket
         return true

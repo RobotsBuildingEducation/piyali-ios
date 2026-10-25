@@ -21,6 +21,12 @@ import SwiftUI
     @Published var syncStatus = "Saved on this iPhone"
     @Published var loadingContent = false
     @Published private(set) var localPracticeRevision=UUID()
+    @Published private var earnedPracticeOwners:[UUID:String]=[:]
+    var preservingEarnedPractice:Bool {earnedPracticeOwners.values.contains([identity.npub,learner.target,CalendarDay.key(Date())].joined(separator:":"))}
+    func retainEarnedPractice(owner:UUID,active:Bool,account:String,target:String,day:String) {
+        if active,!account.isEmpty{earnedPracticeOwners[owner]=[account,target,day].joined(separator:":")}else{earnedPracticeOwners.removeValue(forKey:owner)}
+    }
+    func releaseEarnedPractice(owner:UUID){earnedPracticeOwners.removeValue(forKey:owner)}
     @Published var lessonActivityActive=false
     @Published var activityFooter:ActivityFooterPresentation?
     @Published var activityFooterHeight:CGFloat=0

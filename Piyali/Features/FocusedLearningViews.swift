@@ -7,17 +7,25 @@ struct FocusedGoalView:View {
 }
 struct RepairPracticeView: View {
     @EnvironmentObject var app:AppModel
+    var onSurface:(ProductMode)->Void = {_ in}
+    var tutorControllerFactory:((TutorFocus)->TutorSessionController)? = nil
+    @State private var routed:RepairStep?
+    @State private var tutorFinishing=false
     var body:some View {
-        SubscriptionRequiredView(service:app.subscription) {Group {
-            if let step=app.currentRepairStep {
+        SubscriptionRequiredView(service:app.subscription,preserveEarnedWork:tutorFinishing) {Group {
+            if let step=routed {
                 Group {
                     if step.mode == "lesson",let lesson=app.repairLesson(step) {LessonView(lesson:lesson)}
                     else if step.mode == "flashcards" {FlashcardsView(repairStep:step)}
                     else if step.mode == "phonics",!app.authoredRepairPhonics(step).isEmpty {PhonicsView(repairStep:step)}
-                    else {TutorView(repairStep:step)}
+                    else {SourceTutorView(controller:tutorControllerFactory?(.repair(step)),focus:.repair(step),onCompletionPending:{tutorFinishing=$0},onFocusedCompletion:{route(app.currentRepairStep)})}
                 }.id(step.id)
             } else {ContentUnavailableView(ProductCopy.course(app.learner.support,"repair"),systemImage:"checkmark.circle")}
-        }}.navigationTitle(ProductCopy.course(app.learner.support,"repair"))
+        }}.navigationTitle(ProductCopy.course(app.learner.support,"repair")).task{route(app.currentRepairStep)}.onChange(of:app.currentRepairStep){_,step in if !tutorFinishing{route(step)}}
+    }
+    private func route(_ step:RepairStep?) {
+        routed=step;guard let step else{return}
+        onSurface(step.mode == "lesson" ? .path:step.mode == "flashcards" ? .cards:step.mode == "phonics" && !app.authoredRepairPhonics(step).isEmpty ? .phonics:.tutor)
     }
 }
 struct AchievementsView: View {

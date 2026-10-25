@@ -167,7 +167,7 @@ struct ProductShellView:View {
     }
     @ViewBuilder private var surface:some View {
         if specialCourse == "goal" {FocusedGoalCourseView(onSurface:{mode=$0})}
-        else if specialCourse == "repair" { RepairPracticeView() }
+        else if specialCourse == "repair" { RepairPracticeView(onSurface:{mode=$0}) }
         else { switch mode {
         case .focus: TodayFocusHomeView(now:now,sessionActive:guided != nil,startingPractice:launchID != nil,onStart:startPractice,onPanel:{ panel=$0 },onCompanionContinue:{firstRun.request(scope:firstRunScope,shown:app.learner.gettingStartedModalShown == true,hasPlacement:app.learner.hasFirstRunPlacement)})
         case .path: LessonPathView()

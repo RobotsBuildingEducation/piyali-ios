@@ -121,6 +121,13 @@ extension AppModel {
         guard let summary=try? policy.run("evidence",.object(["summary":learner.goalBucket["repairSummary"],"event":event,"now":.number(now.timeIntervalSince1970*1000)])) else{return}
         if learner.completeRepairStep(step,summary:summary,observation:observation,support:support,now:now){persist()}
     }
+    func completeSourceTutorRepair(_ step:RepairStep,bonus:Int,evidence:JSONValue)->Bool {
+        guard learner.repairStepIsCurrent(step),let policy=companionQuestPolicy else{return false}
+        let event=step.event.setting("success",.bool(evidence["success"].boolean)).setting("support",.string("prompted")).setting("observation",evidence["observation"] == .null ? .string(""):evidence["observation"]),now=Date()
+        guard let summary=try? policy.run("evidence",.object(["summary":learner.goalBucket["repairSummary"],"event":event,"now":.number(now.timeIntervalSince1970*1000)])) else{return false}
+        guard learner.completeRepairStep(step,summary:summary,observation:event["observation"].string,support:"prompted",success:evidence["success"].boolean,bonusXP:bonus,now:now) else{return false}
+        persist();return true
+    }
     func prepareRepairDeck(_ step:RepairStep) async throws {
         guard learner.repairStepIsCurrent(step),learner.repairArtifact(step,mode:"flashcards")["cards"].array.isEmpty,let policy=companionQuestPolicy else{return}
         let account=identity.npub,support=learner.support,scope=learner,performance=try policy.run("performance",.object(["user":learner.companionQuestUser,"targetLang":.string(step.target)])),level=performance["suggestedQuestionLevel"].string

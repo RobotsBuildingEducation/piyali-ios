@@ -4,6 +4,12 @@
       "file": "src/components/Tutor.jsx",
       "sha256": "bbe9dea6279119ecef32cb69a66a8fb40763642ca05717690dec789a72e088c3",
       "declarations": [
+        "buildTutorRepairLessonFromFocus",
+        "buildGoalLesson",
+        "compactUnique",
+        "REPAIR_MAX_ITEMS",
+        "REPAIR_COPY",
+        "TUTOR_REPAIR_LESSON_XP_REQUIRED",
         "tidyPairs",
         "textIncludesPair",
         "normalizePairText",
@@ -22,7 +28,6 @@
         "getLocalTutorTurnSuccessfulForXp",
         "transcriptDemonstratesOpenAIRegularObjective",
         "getOpenAIRegularObjectivePhrases",
-        "compactUnique",
         "isTutorPracticePhraseAllowedForTarget",
         "getBaseLanguageCode",
         "isLikelySpanishSourcePhrase",
@@ -84,7 +89,6 @@
         "DEFAULT_TUTOR_PAUSE_MS",
         "buildMessageTranslationPrompt",
         "getTutorLessonXpRequired",
-        "TUTOR_REPAIR_LESSON_XP_REQUIRED",
         "TUTOR_STARTER_LESSON_XP_REQUIRED",
         "getStableTutorLessonXpRequired",
         "TUTOR_LESSON_XP_REQUIRED_MAX",
@@ -122,7 +126,6 @@
         "getOpenAITutorSignatureExperienceLine",
         "buildOpenAIRepairTurnInstructions",
         "buildTutorRepairAgendaInstruction",
-        "REPAIR_MAX_ITEMS",
         "buildOpenAIRegularTutorAgendaInstruction",
         "buildOpenAITutorTurnVerdictDirective",
         "buildOpenAIQuizTurnInstructions",
@@ -142,6 +145,30 @@
         "getTutorPathCopy",
         "getTutorLessonLaunchMode",
         "getTutorAgendaSnapshot"
+      ]
+    },
+    {
+      "file": "src/utils/learningIntelligenceModel.js",
+      "sha256": "5e6efcd7fea2758af10af1d3617945daa8583f68f0072cc26d5822549ef0a95c",
+      "declarations": [
+        "buildGoalLesson",
+        "goalInstructions",
+        "LESSON_PRACTICE_MODES",
+        "GOAL_MODE_TARGETS"
+      ]
+    },
+    {
+      "file": "src/utils/companionMemory.js",
+      "sha256": "05aeb83111145a419b83877ef3335063d55ace85e5a651f865fbf67d6d84bd91",
+      "declarations": [
+        "REPAIR_MAX_ITEMS"
+      ]
+    },
+    {
+      "file": "src/utils/companionMemoryCopy.js",
+      "sha256": "cdfb764934e9372e83c8e8d471d30ff8b942e50d1c29c8f98b17f96526b22777",
+      "declarations": [
+        "REPAIR_COPY"
       ]
     },
     {
@@ -168,13 +195,6 @@
         "normalizeSupportLanguage",
         "DEFAULT_SUPPORT_LANGUAGE",
         "getLanguagePromptName"
-      ]
-    },
-    {
-      "file": "src/utils/learningIntelligenceModel.js",
-      "sha256": "5e6efcd7fea2758af10af1d3617945daa8583f68f0072cc26d5822549ef0a95c",
-      "declarations": [
-        "goalInstructions"
       ]
     },
     {
@@ -519,13 +539,6 @@
       ]
     },
     {
-      "file": "src/utils/companionMemory.js",
-      "sha256": "05aeb83111145a419b83877ef3335063d55ace85e5a651f865fbf67d6d84bd91",
-      "declarations": [
-        "REPAIR_MAX_ITEMS"
-      ]
-    },
-    {
       "file": "src/utils/tutorPathCopy.js",
       "sha256": "034cc734f75fdb1057d0df1db87ccfa33c0fb8b3a699f4c246fe91ea4ad11ddd",
       "declarations": [
@@ -628,7 +641,7 @@
     "useUserStore"
   ],
   "boundary": "Original pure declarations and prompt builders with explicit learner/lesson/agenda/reconnect snapshots. No React, source stores, Firebase, provider or transport executes. Regular agenda snapshot uses original item and progress helpers without its mount-time ref mutation; Swift owns sequencing and persistence.",
-  "fixtureCount": 451,
+  "fixtureCount": 501,
   "translationAdapter": {
     "resource": "Piyali/Resources/app-copy.json.gz",
     "sha256": "0ea8bc3ce2e566ced7a1f3bb623e912354f714ce849f7f100ed1d8171e215fbe",

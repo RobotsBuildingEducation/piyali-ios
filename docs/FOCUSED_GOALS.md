@@ -31,3 +31,6 @@ The screenshots below compare the actual unmodified web components in iPhone Web
 Focused flashcard and phonics now use their original source controls, copy and separate artifact/reward ordering; see [flashcards](FLASHCARDS.md) and [phonics](PHONICS.md). Their wider complete journeys and live Tutor still need verification. Source Tutor’s turn/XP lifecycle, physical pronunciation/audio behavior, complete modal choreography and cross-device interruption journeys remain open. Broader work remains in [the parity audit](PARITY_AUDIT.md).
 
 The later [flashcard checkpoint](FLASHCARDS.md) replaces the focused recall form with the source deck/dialog and acknowledgment/retry behavior. Phonics and live Tutor parity remain open.
+
+
+Focused Tutor now uses the source temporary lesson, automatic semantic checking, its own local XP target and the shared native voice screen. Goal records prompted production at 25 session XP; repair can finish on one demonstrated response or its 12-XP threshold, with one separate repair bonus/count. Regular Tutor records stay separate. Root-gate preservation and retry/handoff evidence are in [TUTOR.md](TUTOR.md); complete guided celebration and physical speech journeys remain open.

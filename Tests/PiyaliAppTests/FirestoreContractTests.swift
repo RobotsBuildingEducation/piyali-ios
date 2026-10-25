@@ -1013,3 +1013,22 @@ extension FirestoreContractTests {
         XCTAssertEqual(restored.tutorUnlockedLevels?["fr"],"C1");XCTAssertEqual(restored.plateProgress["speakDailyActivity"]["fr"][CalendarDay.key(Date())].number,0)
     }
 }
+
+extension FirestoreContractTests {
+    func testFocusedTutorTurnsGoalCompletionAndRepairBonusNeverWriteTheRegularTutorPath()async throws {
+        let (service,db,npub)=try context();try await seed(db,npub);let user=db.collection("users").document(npub),day=CalendarDay.key(Date()),ordinary=user.collection("tutorLanguageLessons").document("fr_lesson-tutorial-1"),stamp=Timestamp(date:Date(timeIntervalSince1970:1792800000))
+        try await user.updateData(["progress.currentTutorLesson":"lesson-tutorial-1"])
+        try await ordinary.setData(["lessonId":"lesson-tutorial-1","targetLang":"fr","cefrLevel":"Pre-A1","status":"in_progress","earnedXp":9,"foreignDate":stamp,"conversationDraft":["version":1,"messages":[]]])
+        var state=try requireState(await service.load(npub:npub));state.editGoal("Order coffee");let bp:JSONValue = .object(["goalId":state.goalBucket["activeGoal"]["id"],"goalText":.string("Order coffee"),"dayKey":.string(day),"lang":.string("fr"),"mode":.string("tutor"),"modes":.array([.string("tutor"),.string("lesson")]),"modeTargets":.object(["tutor":.number(25),"lesson":.number(20)]),"cefrLevel":.string("A1"),"objective":.string("Order a coffee politely"),"scenario":.string("At a cafe"),"targetLanguage":.array([.string("Un café, s'il vous plaît")]),"supports":.array([.string("A model is available")]),"successCriteria":.array([.string("Ask for a coffee")])])
+        state.applyGoal(GoalChange(action:.blueprint,target:"fr",payload:bp));state=try requireState(await service.save(state,npub:npub))
+        for _ in 0..<5{state.sourceFocusedTutorTurn(level:"A1",xp:5)}
+        state.applyGoal(GoalChange(action:.attempt,target:"fr",payload:.object(["goalId":bp["goalId"],"dayKey":bp["dayKey"],"mode":.string("tutor"),"success":.bool(true),"support":.string("prompted"),"domain":.string("production"),"observation":.string("Completed 25 XP of goal-specific Tutor practice with successful spoken turns.")])))
+        let sent=state;_=try await service.save(sent,npub:npub);_=try await service.save(sent,npub:npub);state=try requireState(await service.load(npub:npub));XCTAssertEqual(state.totalXP,175);XCTAssertEqual(state.goalBucket["dailyGoal"]["modeProgress"]["tutor"].number,25)
+        let item:JSONValue = .object(["memoryId":.string("greeting"),"concept":.string("A greeting"),"expectedAnswer":.string("Bonjour"),"errorType":.string("conversation_flow"),"cefrLevel":.string("A1")]),plan:JSONValue = .object(["targetLang":.string("fr"),"dayKey":.string(day),"items":.array([item]),"memoryIds":.array([.string("greeting")]),"target":.number(1)])
+        try await user.collection("questDays").document("fr_"+day).setData(["repair":plan.foundation],merge:true);state=try requireState(await service.load(npub:npub));let step=RepairStep(index:0,mode:"tutor",item:item,plan:plan,stepCount:1)
+        state.sourceFocusedTutorTurn(level:"A1",xp:5);XCTAssertTrue(state.completeRepairStep(step,summary:.object([:]),observation:"Produced Bonjour",success:true,bonusXP:12));let repair=state
+        _=try await service.save(repair,npub:npub);_=try await service.save(repair,npub:npub);let final=try requireState(await service.load(npub:npub)),record=try await ordinary.getDocument(source:.server).data() ?? [:],documents=try await user.collection("tutorLanguageLessons").getDocuments(source:.server)
+        XCTAssertEqual(final.totalXP,192);XCTAssertEqual(final.plateProgress["repairDailyActivity"]["fr"][day].number,1);XCTAssertEqual(final.plateProgress["speakDailyActivity"]["fr"][day].number,0);XCTAssertEqual(final.plateProgress["lessonDailyActivity"]["fr"][day].number,0);XCTAssertEqual(final.goalBucket["dailyGoal"]["modeProgress"]["tutor"].number,25)
+        XCTAssertEqual(documents.documents.count,1);XCTAssertEqual(record["status"] as? String,"in_progress");XCTAssertEqual(record["earnedXp"] as? Int,9);XCTAssertEqual(record["foreignDate"] as? Timestamp,stamp);XCTAssertNotNil(record["conversationDraft"]);XCTAssertEqual(final.plateProgress["currentTutorLesson"].string,"lesson-tutorial-1")
+    }
+}

@@ -1,4 +1,5 @@
 import XCTest
+import SwiftUI
 @testable import Piyali
 
 @MainActor private final class TutorNoCloud:LearnerProgressService {
@@ -88,10 +89,11 @@ extension TutorSessionTests {
 
 @MainActor private final class TutorAcknowledgment:LearnerProgressService {
     var duringSave:(()->Void)?
+    var fails=false
     func load(npub:String,local:LearnerState?)async throws->LearnerState?{nil}
     func save(_ state:LearnerState,npub:String)async throws->LearnerState?{
-        duringSave?();var acknowledged=state
-        acknowledged.acknowledgedEventIDs=Set((state.pendingChanges ?? []).map(\.id));acknowledged.pendingChanges=[]
+        duringSave?();if fails{throw URLError(.notConnectedToInternet)};var acknowledged=state
+        acknowledged.acknowledgedEventIDs=Set((state.pendingChanges ?? []).map(\.id));acknowledged.pendingChanges=[];acknowledged.pendingGoalChanges=[];acknowledged.pendingRepairEvidence=[];acknowledged.pendingMemoryChanges=[]
         return acknowledged
     }
 }
@@ -145,5 +147,132 @@ extension TutorSessionTests {
         XCTAssertEqual(app.learner.tutorLevel,"A1");XCTAssertEqual(app.tutorLevels.last,"A1");XCTAssertEqual(session.id,"lesson-a1-5-1");XCTAssertEqual(session.unit["cefrLevel"].string,"A1")
         XCTAssertEqual(session.completion?["title"],session.details(app,lesson:lesson,unit:unit)["title"]);XCTAssertEqual(session.completion?["level"].string,"Pre-A1");XCTAssertEqual(session.completion?["xpEarned"].number,Double(required));XCTAssertFalse(session.practicingCompletedLesson)
         session.closeCompletion();XCTAssertEqual(session.review?["title"],session.details(app,lesson:lesson,unit:unit)["title"]);XCTAssertEqual(session.review?["level"].string,"Pre-A1");session.closeReview();await session.stop(app)
+    }
+}
+
+extension TutorSessionTests {
+    private func goal(_ app:AppModel)->JSONValue {
+        app.learner.editGoal("Speak with family");app.learner.pendingGoalChanges=[]
+        let bp:JSONValue = .object(["goalId":app.learner.goalBucket["activeGoal"]["id"],"goalText":.string("Speak with family"),"dayKey":.string(CalendarDay.key(Date())),"lang":.string("es"),"mode":.string("tutor"),"modes":.array([.string("tutor"),.string("flashcards")]),"modeTargets":.object(["tutor":.number(25),"flashcards":.number(3)]),"cefrLevel":.string("Pre-A1"),"objective":.string("Greet a family member"),"scenario":.string("A short family call"),"targetLanguage":.array([.string("Hola"),.string("¿Cómo estás?")]),"supports":.array([.string("One model, then a fresh attempt")]),"successCriteria":.array([.string("Greet a relative and ask how they are")])])
+        app.learner.applyGoal(GoalChange(action:.blueprint,target:"es",payload:bp));app.learner.pendingGoalChanges=[];return bp
+    }
+    private func repair(_ app:AppModel)->RepairStep {
+        let day=CalendarDay.key(Date()),item:JSONValue = .object(["memoryId":.string("greeting"),"concept":.string("Greet a relative"),"originalConcept":.string("Greetings"),"expectedAnswer":.string("Hola"),"errorType":.string("conversation_flow"),"cefrLevel":.string("Pre-A1")])
+        let plan:JSONValue = .object(["targetLang":.string("es"),"dayKey":.string(day),"target":.number(1),"items":.array([item]),"memoryIds":.array([.string("greeting")])])
+        app.learner.importQuestDay(.object(["repair":plan]),target:"es",day:day)
+        app.learner.companionMemory=["es":[MemoryNote(fields:["id":.string("greeting"),"status":.string("captured"),"concept":.string("Greetings"),"createdDayKey":.string(CalendarDay.shift(day,by:-1))])]]
+        return RepairStep(index:0,mode:"tutor",item:item,plan:plan,stepCount:1)
+    }
+    private func focused(_ app:AppModel,_ transport:TutorTransport,focus:TutorFocus,provider:TutorProvider)async->TutorSessionController {
+        let session=TutorSessionController(focus:focus,live:LiveTutorService(permission:{true},transportFactory:{transport}),provider:provider,turnXP:{5});await session.prepare(app);return session
+    }
+    func testGoalTutorUsesOriginalRubricAndOnlyFinishesAt25XPWithoutTutorPathOrBonus()async throws {
+        let cloud=TutorAcknowledgment(),app=try await app(progressService:cloud);defer{try? app.identity.disconnect()};let bp=goal(app),transport=TutorTransport();var correct=false,checks=0,pendingSeen=false
+        var p=provider();p.goal={blueprint,response,context,support in checks+=1;XCTAssertEqual(blueprint,bp);XCTAssertEqual(support,"en");XCTAssertFalse(context.isEmpty);return GoalVerdict(success:correct,support:"prompted",feedback:"Public goal feedback",observation:"Produced the requested family greeting")}
+        let session=await focused(app,transport,focus:.goal(bp),provider:p);XCTAssertTrue(session.lesson["isGoal"].boolean);XCTAssertEqual(session.required,25)
+        app.learner.questProgress=app.learner.plateProgress.setting("currentTutorLesson",.string("lesson-tutorial-1"));await session.start(app);transport.assistant("Greet your relative and ask how they are.")
+        await session.input(input("Please give me a hint"),app:app);XCTAssertEqual(app.learner.totalXP,0);XCTAssertEqual(app.readyGoal?["modeProgress"]["tutor"].number,0)
+        correct=true
+        for i in 0..<4{await session.input(input("Public greeting attempt \(i)"),app:app)}
+        XCTAssertEqual(session.earnedXP(app),20);XCTAssertEqual(app.readyGoal?["modeProgress"]["tutor"].number,0)
+        app.learner.subscriptionXPAdjustment=279;XCTAssertTrue(app.subscription.hasAccess)
+        cloud.duringSave={if session.completionPending {pendingSeen=true;XCTAssertFalse(app.subscription.hasAccess)}}
+        await session.input(input("Public final greeting"),app:app)
+        XCTAssertTrue(pendingSeen);XCTAssertEqual(checks,6);XCTAssertTrue(session.focusedFinished);XCTAssertFalse(session.completionPending);XCTAssertEqual(app.learner.totalXP,25)
+        XCTAssertEqual(app.readyGoal?["modeProgress"]["tutor"].number,25);XCTAssertEqual(GoalPractice.nextMode(try XCTUnwrap(app.readyGoal)),"flashcards")
+        XCTAssertNil(session.completion);XCTAssertNil(session.review);XCTAssertTrue(app.learner.tutorLessons?.isEmpty ?? true);XCTAssertEqual(app.learner.plateProgress["currentTutorLesson"].string,"lesson-tutorial-1");XCTAssertEqual(app.learner.plateProgress["speakDailyActivity"]["es"][CalendarDay.key(Date())].number,0)
+        await session.stop(app)
+    }
+    func testGoalTutorFailedSaveKeepsOneCompletionIntentAndRetryDoesNotAddXP()async throws {
+        let cloud=TutorAcknowledgment();cloud.fails=true;let app=try await app(progressService:cloud);defer{try? app.identity.disconnect()};let bp=goal(app),transport=TutorTransport();var p=provider();p.goal={_,_,_,_ in GoalVerdict(success:true,support:"prompted",feedback:"Good",observation:"Produced the requested goal action")}
+        let session=await focused(app,transport,focus:.goal(bp),provider:p);await session.start(app);transport.assistant("Try the goal.")
+        for i in 0..<5{await session.input(input("Goal action \(i)"),app:app)}
+        XCTAssertTrue(session.completionPending);XCTAssertFalse(session.focusedFinished);XCTAssertNotNil(session.error);XCTAssertEqual(app.readyGoal?["modeProgress"]["tutor"].number,0)
+        await session.complete(app,ready:true);XCTAssertEqual(app.learner.totalXP,25);XCTAssertEqual(app.learner.pendingGoalChanges?.filter{$0.action == .attempt}.count,1)
+        cloud.fails=false;await session.complete(app,ready:true);XCTAssertTrue(session.focusedFinished);XCTAssertEqual(app.readyGoal?["modeProgress"]["tutor"].number,25);XCTAssertEqual(app.learner.totalXP,25);await session.stop(app)
+    }
+    func testRepairTutorOneGoodRepCommitsOneRepairAndBonusWithoutOrdinaryTutorWrites()async throws {
+        let cloud=TutorAcknowledgment();cloud.fails=true;let app=try await app(progressService:cloud);defer{try? app.identity.disconnect()};let step=repair(app),transport=TutorTransport()
+        var p=provider();p.judge={prompt in XCTAssertTrue(prompt.contains("REPAIR WATCH"));XCTAssertTrue(prompt.contains("Hola"));return .object(["successful":.bool(true),"confidence":.number(1),"repairAdvanced":.bool(true)])}
+        let session=await focused(app,transport,focus:.repair(step),provider:p);XCTAssertTrue(session.lesson["isRepair"].boolean);XCTAssertEqual(session.required,12)
+        await session.start(app);transport.assistant("Greet a relative.");await session.input(input("Hola"),app:app)
+        XCTAssertEqual(app.learner.totalXP,17);XCTAssertEqual(session.earnedXP(app),5);XCTAssertTrue(session.completionPending);XCTAssertEqual(app.learner.plateProgress["repairDailyActivity"]["es"][step.day].number,1)
+        XCTAssertEqual(app.learner.pendingRepairEvidence?.first?.event["success"],.bool(true));XCTAssertEqual(app.learner.pendingChanges?.filter{$0.source == .repair}.first?.amount,12)
+        XCTAssertTrue(app.learner.tutorLessons?.isEmpty ?? true);XCTAssertNil(session.completion);XCTAssertEqual(app.learner.companionMemory?["es"]?.first?.text("status"),"reinforced")
+        await session.complete(app,ready:true);XCTAssertEqual(app.learner.totalXP,17);XCTAssertEqual(app.learner.pendingChanges?.filter{$0.source == .repair}.count,1)
+        cloud.fails=false;await session.complete(app,ready:true);XCTAssertTrue(session.focusedFinished);XCTAssertEqual(app.learner.totalXP,17);XCTAssertEqual(app.learner.plateProgress["speakDailyActivity"]["es"][step.day].number,0);await session.stop(app)
+    }
+    func testRepairTutorXPCompletionDoesNotInventDemonstratedRepairEvidence()async throws {
+        let app=try await app();defer{try? app.identity.disconnect()};let step=repair(app),transport=TutorTransport(),session=await focused(app,transport,focus:.repair(step),provider:provider(.object(["successful":.bool(true),"confidence":.number(1),"repairAdvanced":.bool(false)])))
+        await session.start(app);transport.assistant("Practice a related task.");for i in 0..<3{await session.input(input("Related practice \(i)"),app:app)}
+        XCTAssertEqual(app.learner.totalXP,27);XCTAssertEqual(app.learner.plateProgress["repairDailyActivity"]["es"][step.day].number,1);XCTAssertEqual(app.learner.pendingRepairEvidence?.first?.event["success"],.bool(false));XCTAssertTrue(app.learner.tutorLessons?.isEmpty ?? true);await session.stop(app)
+    }
+    func testSkippedRepairKeepsLiveLessonUntilStopThenRestoresOrdinaryTutor()async throws {
+        let app=try await app();defer{try? app.identity.disconnect()};let step=repair(app),transport=TutorTransport(),session=await focused(app,transport,focus:.repair(step),provider:provider())
+        await session.start(app);let id=session.id;await session.skipFocus(app);XCTAssertTrue(session.live.connected);XCTAssertTrue(session.focusSkipped);XCTAssertEqual(session.id,id)
+        await session.stop(app);XCTAssertNil(session.focus);XCTAssertEqual(session.id,"lesson-tutorial-1");XCTAssertEqual(app.learner.totalXP,0);XCTAssertTrue(app.learner.repairStepIsCurrent(step));XCTAssertTrue(app.learner.tutorLessons?.isEmpty ?? true)
+    }
+    func testLateGoalVerdictCannotCompleteAfterTheGoalChanges()async throws {
+        let app=try await app();defer{try? app.identity.disconnect()};let bp=goal(app),transport=TutorTransport();var held:CheckedContinuation<GoalVerdict,Error>?,p=provider()
+        p.goal={_,_,_,_ in try await withCheckedThrowingContinuation{held=$0}}
+        let session=await focused(app,transport,focus:.goal(bp),provider:p);await session.start(app);transport.assistant("Try the goal.")
+        let work=Task{await session.input(input("Public goal action"),app:app)};for _ in 0..<100 where held == nil{await Task.yield()};XCTAssertNotNil(held);app.learner.editGoal("Order in a cafe")
+        held?.resume(returning:GoalVerdict(success:true,support:"prompted",feedback:"Good",observation:"A stale action"));await work.value
+        XCTAssertEqual(app.learner.totalXP,0);XCTAssertEqual(session.earnedXP(app),0);XCTAssertNil(app.learner.gradedByLanguage);await session.stop(app,saveDraft:false)
+    }
+}
+
+@MainActor private final class TutorGateAcknowledgment:LearnerProgressService {
+    var blocked=true
+    var blockPracticeCompletion=false
+    var waiters:[CheckedContinuation<Void,Never>]=[]
+    func load(npub:String,local:LearnerState?)async throws->LearnerState?{nil}
+    func save(_ state:LearnerState,npub:String)async throws->LearnerState? {
+        if blocked,((state.pendingGoalChanges ?? []).contains(where:{$0.action == .attempt}) || blockPracticeCompletion && (state.pendingChanges ?? []).contains(where:{[PracticeSource.speak,.repair].contains($0.source)})) {await withCheckedContinuation{waiters.append($0)}}
+        var acknowledged=state;acknowledged.acknowledgedEventIDs=Set((state.pendingChanges ?? []).map(\.id));acknowledged.pendingChanges=[];acknowledged.pendingGoalChanges=[];return acknowledged
+    }
+    func release(){blocked=false;let pending=waiters;waiters=[];pending.forEach{$0.resume()}}
+}
+extension TutorSessionTests {
+    func testRenderedGoalTutorRetainsEarnedWorkAcrossTrialGateAndRoutesAfterAcknowledgment()async throws {
+        let cloud=TutorGateAcknowledgment(),app=try await app(progressService:cloud);defer{cloud.release();try? app.identity.disconnect()};let bp=goal(app),transport=TutorTransport();var p=provider();p.goal={_,_,_,_ in GoalVerdict(success:true,support:"prompted",feedback:"Good",observation:"Completed the requested goal action")}
+        let session=await focused(app,transport,focus:.goal(bp),provider:p),scene=try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap{$0 as? UIWindowScene}.first),old=scene.windows.first{$0.isKeyWindow},window=UIWindow(windowScene:scene);var surfaces:[ProductMode]=[]
+        let host=UIHostingController(rootView:ProductAccessGate(service:app.subscription){FocusedGoalCourseView(onSurface:{surfaces.append($0)},tutorControllerFactory:{_ in session})}.environmentObject(app));window.rootViewController=host;window.makeKeyAndVisible();host.view.layoutIfNeeded();defer{window.isHidden=true;window.rootViewController=nil;old?.makeKey()}
+        for _ in 0..<80 where app.activityFooter == nil{try await Task.sleep(for:.milliseconds(25))};XCTAssertEqual(surfaces,[.tutor]);XCTAssertNotNil(app.activityFooter)
+        await session.start(app);transport.assistant("Greet your relative.");for i in 0..<4{await session.input(input("Public goal action \(i)"),app:app)}
+        app.learner.subscriptionXPAdjustment=279;let finish=Task{await session.input(input("Final family greeting"),app:app)}
+        for _ in 0..<100 where cloud.waiters.isEmpty{try await Task.sleep(for:.milliseconds(25))};XCTAssertFalse(cloud.waiters.isEmpty);XCTAssertTrue(session.completionPending);XCTAssertFalse(app.subscription.hasAccess);XCTAssertTrue(app.preservingEarnedPractice);XCTAssertEqual(surfaces,[.tutor]);XCTAssertEqual(app.readyGoal?["modeProgress"]["tutor"].number,0)
+        try await Task.sleep(for:.milliseconds(200));let image=XCTAttachment(image:UIGraphicsImageRenderer(bounds:window.bounds).image{_ in window.drawHierarchy(in:window.bounds,afterScreenUpdates:true)});image.name="Native Goal Tutor saving earned work across trial gate";image.lifetime = .keepAlways;add(image)
+        cloud.release();await finish.value
+        for _ in 0..<100 where surfaces.last != .cards{try await Task.sleep(for:.milliseconds(25))};XCTAssertEqual(surfaces,[.tutor,.cards]);XCTAssertEqual(app.readyGoal?["modeProgress"]["tutor"].number,25);XCTAssertEqual(app.learner.totalXP,25);await session.stop(app)
+    }
+}
+
+extension TutorSessionTests {
+    func testRenderedRepairTutorRetainsFailedCompletionUntilRetryAcknowledgesIt()async throws {
+        let cloud=TutorAcknowledgment();cloud.fails=true;let app=try await app(progressService:cloud);defer{try? app.identity.disconnect()};let step=repair(app),transport=TutorTransport(),session=await focused(app,transport,focus:.repair(step),provider:provider(.object(["successful":.bool(true),"confidence":.number(1),"repairAdvanced":.bool(true)])))
+        let scene=try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap{$0 as? UIWindowScene}.first),old=scene.windows.first{$0.isKeyWindow},window=UIWindow(windowScene:scene);var surfaces:[ProductMode]=[]
+        let host=UIHostingController(rootView:ProductAccessGate(service:app.subscription){RepairPracticeView(onSurface:{surfaces.append($0)},tutorControllerFactory:{_ in session})}.environmentObject(app));window.rootViewController=host;window.makeKeyAndVisible();host.view.layoutIfNeeded();defer{window.isHidden=true;window.rootViewController=nil;old?.makeKey()}
+        for _ in 0..<100 where app.activityFooter == nil{try await Task.sleep(for:.milliseconds(25))};XCTAssertEqual(surfaces,[.tutor]);XCTAssertNotNil(app.activityFooter)
+        app.learner.subscriptionXPAdjustment=299;await session.start(app);transport.assistant("Greet a relative.");await session.input(input("Hola"),app:app)
+        XCTAssertTrue(session.completionPending);XCTAssertFalse(session.focusedFinished);XCTAssertFalse(app.subscription.hasAccess);XCTAssertNotNil(session.error);XCTAssertTrue(app.preservingEarnedPractice);XCTAssertEqual(surfaces,[.tutor]);XCTAssertNil(app.currentRepairStep)
+        try await Task.sleep(for:.milliseconds(200));let capture=XCTAttachment(image:UIGraphicsImageRenderer(bounds:window.bounds).image{_ in window.drawHierarchy(in:window.bounds,afterScreenUpdates:true)});capture.name="Native repair Tutor completion retry across trial gate";capture.lifetime = .keepAlways;add(capture)
+        cloud.fails=false;await session.complete(app,ready:true);XCTAssertTrue(session.focusedFinished);XCTAssertFalse(session.completionPending);XCTAssertEqual(app.learner.totalXP,17);XCTAssertNil(app.currentRepairStep);XCTAssertEqual(surfaces,[.tutor]);await session.stop(app)
+    }
+}
+
+extension TutorSessionTests {
+    func testOrdinaryTutorCompletionAndReviewRemainVisibleThroughTheRootTrialGate()async throws {
+        let cloud=TutorGateAcknowledgment();cloud.blockPracticeCompletion=true;let app=try await app(progressService:cloud);defer{cloud.release();try? app.identity.disconnect()};let transport=TutorTransport(),session=await session(app,transport),id=session.id
+        let items=JSONValue.object(Dictionary(uniqueKeysWithValues:session.state["items"].array.map{($0["id"].string,.bool(true))}))
+        app.learner.tutorLessons=[app.learner.tutorKey(id):TutorSourceProgress.importing(.object(["status":.string("in_progress"),"earnedXp":.number(50),"tutorAgendaProgress":.object(["schemaVersion":.number(2),"items":items])]))];app.learner.subscriptionXPAdjustment=299;session.refresh(app)
+        let scene=try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap{$0 as? UIWindowScene}.first),old=scene.windows.first{$0.isKeyWindow},window=UIWindow(windowScene:scene)
+        let host=UIHostingController(rootView:ProductAccessGate(service:app.subscription){SourceTutorView(controller:session)}.environmentObject(app));window.rootViewController=host;window.makeKeyAndVisible();host.view.layoutIfNeeded();defer{window.isHidden=true;window.rootViewController=nil;old?.makeKey()}
+        for _ in 0..<80 where app.activityFooter == nil{try await Task.sleep(for:.milliseconds(25))};XCTAssertNotNil(app.activityFooter)
+        let finish=Task{await session.complete(app,ready:true)};for _ in 0..<100 where cloud.waiters.isEmpty{try await Task.sleep(for:.milliseconds(25))}
+        XCTAssertFalse(cloud.waiters.isEmpty);XCTAssertFalse(app.subscription.hasAccess);XCTAssertTrue(app.preservingEarnedPractice);cloud.release();await finish.value
+        XCTAssertNotNil(session.completion);XCTAssertTrue(session.completionPending);XCTAssertTrue(app.preservingEarnedPractice)
+        try await Task.sleep(for:.milliseconds(200));let image=XCTAttachment(image:UIGraphicsImageRenderer(bounds:window.bounds).image{_ in window.drawHierarchy(in:window.bounds,afterScreenUpdates:true)});image.name="Native ordinary Tutor earned completion through root trial gate";image.lifetime = .keepAlways;add(image)
+        session.closeCompletion();XCTAssertNotNil(session.review);XCTAssertTrue(app.preservingEarnedPractice);session.closeReview();XCTAssertFalse(app.preservingEarnedPractice);XCTAssertFalse(app.subscription.hasAccess);XCTAssertEqual(app.learner.totalXP,50);await session.stop(app)
     }
 }

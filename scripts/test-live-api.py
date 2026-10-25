@@ -4,9 +4,10 @@ import argparse, json, os, subprocess, uuid
 from pathlib import Path
 root = Path(__file__).resolve().parent.parent
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument('--only', choices=['tutor', 'phonics', 'flashcards', 'focused-goal', 'companion-quest', 'headline', 'lesson-content', 'realtime', 'realtime-connection', 'realtime-legacy-gemini', 'landing', 'practice', 'practice-formats', 'services', 'immersion', 'conversation', 'rpg', 'signer', 'stories', 'reading', 'exploration', 'quiz'])
+parser.add_argument('--only', choices=['tutor-focused', 'tutor', 'phonics', 'flashcards', 'focused-goal', 'companion-quest', 'headline', 'lesson-content', 'realtime', 'realtime-connection', 'realtime-legacy-gemini', 'landing', 'practice', 'practice-formats', 'services', 'immersion', 'conversation', 'rpg', 'signer', 'stories', 'reading', 'exploration', 'quiz'])
 selection = parser.parse_args().only
-methods = {'tutor':'testOriginalTutorJudgeWelcomeAndNativeVoiceWithSourceTranscriptionContext',
+methods = {'tutor-focused':'testOriginalFocusedTutorGoalAndRepairJudgesUseNativeProviders',
+           'tutor':'testOriginalTutorJudgeWelcomeAndNativeVoiceWithSourceTranscriptionContext',
            'phonics':'testNativePhonicsJudgeGeneratedDeckAndReceiveOnlyNarration',
            'flashcards':'testOriginalFlashcardJudgeRevealAndDifficultyThroughNativeProviders',
            'focused-goal':'testOriginalFocusedGoalPlannerAndWrittenRubricUseNativeProvider',

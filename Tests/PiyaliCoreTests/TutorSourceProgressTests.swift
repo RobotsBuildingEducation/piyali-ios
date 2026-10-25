@@ -31,3 +31,10 @@ final class TutorSourceProgressTests:XCTestCase {
         XCTAssertEqual(merged.totalXP,10);XCTAssertEqual(merged.tutorProgress(lesson.id).earnedXP,10);XCTAssertEqual(merged.tutorProgress(lesson.id).items,["a","b"]);XCTAssertEqual(merged.tutorProgress(lesson.id).sourceState?["conversationDraft"]["version"],.number(1));XCTAssertEqual(merged.pendingChanges?.count,2)
     }
 }
+
+extension TutorSourceProgressTests {
+    func testCanonicalImportRetainsTheSelectedTutorLessonAcrossFocusedPractice() {
+        let state=WebProgressContract.imported(["progress":["targetLang":"es","currentTutorLesson":"lesson-a1-5-1"]])
+        XCTAssertEqual(state.plateProgress["currentTutorLesson"].string,"lesson-a1-5-1")
+    }
+}
