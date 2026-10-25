@@ -16,12 +16,12 @@ import XCTest
     func testPersonaVoiceSoundPostsThemeAndNamePersistThroughRelaunch(){
         let app=launch();XCTAssertTrue(app.buttons["practiceLanguagePicker"].exists);photo("Native Settings drawer initial product",app)
         let persona=app.textViews["settingsPersona"];reveal(persona,app);persona.tap();persona.typeText(" A patient astronomer");tap("settingsKeyboardDone",app);let text=persona.value as? String;XCTAssertTrue(text?.contains("astronomer") == true)
-        tap("settingsVoice",app);let cedar=app.buttons["Cedar"].firstMatch;XCTAssertTrue(cedar.waitForExistence(timeout:5));cedar.tap();XCTAssertTrue(app.buttons["settingsVoice"].label.contains("Cedar"))
+        tap("settingsVoice",app);let michael=app.buttons["Michael"].firstMatch;XCTAssertTrue(michael.waitForExistence(timeout:5));michael.tap();XCTAssertTrue(app.buttons["settingsVoice"].label.contains("Michael"))
         let sound=app.switches["settingsSound"];reveal(sound,app);XCTAssertEqual(sound.value as? String,"1");sound.tap();let posts=app.switches["settingsPosts"];reveal(posts,app);XCTAssertEqual(posts.value as? String,"0")
         tap("settingsPostsInfo",app);XCTAssertTrue(app.descendants(matching:.any).matching(identifier:"settingsPostsInfoDialog").firstMatch.waitForExistence(timeout:5));photo("Native Settings decentralized identity explanation",app);XCTAssertFalse(app.buttons["settingsTab-account"].exists && app.buttons["settingsTab-account"].isEnabled);tap("settingsPostsInfoClose",app)
         tap("settingsTheme-dark",app);photo("Native Settings theme controls",app);tap("settingsTab-account",app);tap("settingsNameAccordion",app)
         let name=app.textFields["settingsDisplayName"];name.tap();name.typeText(" Updated");let updatedName=name.value as? String;tap("settingsKeyboardDone",app);tap("settingsNameSave",app);tap("productPanelClose",app);app.terminate();app.launch();open(app)
-        reveal(persona,app);XCTAssertEqual(persona.value as? String,text);XCTAssertTrue(app.buttons["settingsVoice"].label.contains("Cedar"));reveal(sound,app);XCTAssertEqual(sound.value as? String,"0");reveal(posts,app);XCTAssertEqual(posts.value as? String,"0");tap("settingsTheme-dark",app);XCTAssertTrue(app.buttons["settingsTheme-dark"].isSelected)
+        reveal(persona,app);XCTAssertEqual(persona.value as? String,text);XCTAssertTrue(app.buttons["settingsVoice"].label.contains("Michael"));reveal(sound,app);XCTAssertEqual(sound.value as? String,"0");reveal(posts,app);XCTAssertEqual(posts.value as? String,"0");tap("settingsTheme-dark",app);XCTAssertTrue(app.buttons["settingsTheme-dark"].isSelected)
         tap("settingsTab-account",app);tap("settingsNameAccordion",app);XCTAssertEqual(name.value as? String,updatedName);photo("Native Settings account name restored",app)
     }
     func testInvalidSwitchKeepsAccountAndSignOutRequiresConfirmation(){

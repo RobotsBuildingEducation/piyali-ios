@@ -112,7 +112,7 @@ import AVFoundation
         if type.hasPrefix("response.") || type.hasPrefix("input_audio_buffer.") || type == "output_audio_buffer.stopped" { lastActivity=Date() }
         let wasLocked=state.assistantLocked
         let turns=state.receive(event);assistantTurnText=state.assistantText;transcript=state.transcript
-        if type == "input_audio_buffer.speech_started" || type == "output_audio_buffer.stopped" { voiceState="listening" }
+        if type == "input_audio_buffer.local_speech_started" || type == "input_audio_buffer.local_speech_active" || type == "input_audio_buffer.speech_started" || type == "output_audio_buffer.stopped" { voiceState="listening" }
         if type == "input_audio_buffer.committed" || type == "input_audio_buffer.speech_stopped" { voiceState="thinking" }
         if type == "output_audio_buffer.started" { voiceState="speaking" }
         if state.assistantLocked != wasLocked { applyMicrophone() }
@@ -162,6 +162,8 @@ import AVFoundation
         do { let previous=instructions;try configureConversation(draft,learner:learner);if instructions != previous { send(.object(["type":.string("session.update"),"session":.object(["type":.string("realtime"),"instructions":.string(instructions)])])) } }
         catch { self.error=error.localizedDescription }
     }
+    func setOutputGain(_ value:Double){transport?.setOutputGain(value)}
+    func updateTutorContext(_ session:JSONValue){guard connected else{return};send(.object(["type":.string("session.update"),"session":session]))}
     func setMuted(_ value:Bool) { muted=value;state.setMuted(value);if value,voiceState != "speaking" {audioLevel=0};applyMicrophone() }
     func setPlaybackDucked(_ value:Bool) { guard playbackDucked != value else { return };playbackDucked=value;if value {audioLevel=0};transport?.setRemoteAudioEnabled(!value);applyMicrophone() }
     private func close() {

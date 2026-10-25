@@ -14,8 +14,9 @@ import WebRTC
     func playbackDrainMilliseconds() async ->Double
     func audioAmplitude(speaking:Bool) async ->Double
     func close()
+    func setOutputGain(_ value:Double)
 }
-extension RealtimeVoiceTransport { func playbackDrainMilliseconds() async ->Double {1000};func audioAmplitude(speaking:Bool) async ->Double { 0 } }
+extension RealtimeVoiceTransport { func setOutputGain(_ value:Double){}; func playbackDrainMilliseconds() async ->Double {1000};func audioAmplitude(speaking:Bool) async ->Double { 0 } }
 
 /// Native WebRTC media and oai-events data channel. Only an SDP offer is sent
 /// through Cloudflare; the standard provider key never enters the app.

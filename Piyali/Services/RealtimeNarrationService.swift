@@ -21,7 +21,7 @@ import Foundation
             let client=factory();self.client=client
             client.onOpen={ [weak self,weak client] in guard let self,self.epoch == token else{return};client?.setMicrophoneEnabled(false);client?.setRemoteAudioEnabled(true)
                 let item:JSONValue = .object(["type":.string("conversation.item.create"),"item":.object(["type":.string("message"),"role":.string("user"),"content":.array([.object(["type":.string("input_text"),"text":.string("[NARRATE THIS TEXT EXACTLY]: "+text)])])])])
-                guard client?.send(item) == true,client?.send(.object(["type":.string("response.create"),"response":.object(["output_modalities":.array([.string("audio")]),"instructions":session["instructions"]])])) == true else{self.fail("send");return}
+                guard (session["provider"].string == "gemini" || client?.send(item) == true),client?.send(.object(["type":.string("response.create"),"response":.object(["output_modalities":.array([.string("audio")]),"instructions":session["provider"].string == "gemini" ? session["previewPrompt"]:session["instructions"]])])) == true else{self.fail("send");return}
             }
             client.onEvent={ [weak self] event in guard let self,self.epoch == token else{return};self.receive(event)}
             client.onFailure={ [weak self] detail in guard let self,self.epoch == token else{return};self.fail("transport: "+detail)}

@@ -34,6 +34,7 @@ struct SourceTutorView:View {
                 tutor.onFocusedCompletion=focusedCompleted;await tutor.prepare(app)
             }
             .activityFooter(owner:footerOwner,revision:revision,access:app.subscription,fixtureAllowed:TutorSessionController.fixture || tutor.completionPending) {ActivityFooterSurface(hasFeedback:false,feedback:{EmptyView()},actions:{controls})}
+            .onChange(of:app.learner.userSettings){_,_ in tutor.live.setOutputGain(app.learner.settingsSnapshot["tutorVolume"] == .null ? 1:app.learner.settingsSnapshot["tutorVolume"].number)}
             .onChange(of:app.learner.tutorLessons){_,_ in tutor.refresh(app)}
             .onChange(of:narration.error){_,value in if value != nil{tutor.live.setPlaybackDucked(false)}}
             .onChange(of:phase){_,value in if value == .background{stop()}}

@@ -104,7 +104,7 @@ enum TutorFocus:Equatable {
     func levels()->JSONValue {if let levelCache{return levelCache};let value=(try? policy?.run("levels")) ?? .null;levelCache=value;return value}
     private func payload(_ app:AppModel)->JSONValue {
         let settings:JSONValue = .object(["practicePronunciation":.bool(app.learner.conversation.pronunciation),"conversationSubjects":.string(app.learner.conversation.interests)]),record=sessionRecord(app)
-        return .object(["completed":.bool(practicingCompletedLesson),"lesson":lesson,"unit":unit,"target":.string(app.learner.target),"support":.string(app.learner.support),"level":.string(focus?.level ?? app.learner.tutorLevel),"goalFocus":{if case .goal?=focus{return focus?.snapshot(app) ?? .null};return JSONValue.null}(),"repairFocus":{if case .repair?=focus,!focusSkipped{return focus?.snapshot(app) ?? .null};return JSONValue.null}(),"user":app.learner.recipeUser,"settings":settings,"progress":record["tutorAgendaProgress"]["items"],"earned":record["earnedXp"],"turn":.number(Double(turn)),"messages":.array(messages),"resume":.array(resume),"pausedMessages":.array(pausedMessages),"voice":app.learner.plateProgress["tutorVoice"] == .null ? .string("marin"):app.learner.plateProgress["tutorVoice"],"persona":.string(SettingsUI.effective(app.learner)["progress"]["tutorVoicePersona"].string),"pause":.number(Double(app.learner.tutorPauseMilliseconds)),"quizLastFeedback":quizFeedback,"quizPreviousAttemptResult":previousQuiz])
+        return .object(["provider":.string(TutorRealtime.provider),"completed":.bool(practicingCompletedLesson),"lesson":lesson,"unit":unit,"target":.string(app.learner.target),"support":.string(app.learner.support),"level":.string(focus?.level ?? app.learner.tutorLevel),"goalFocus":{if case .goal?=focus{return focus?.snapshot(app) ?? .null};return JSONValue.null}(),"repairFocus":{if case .repair?=focus,!focusSkipped{return focus?.snapshot(app) ?? .null};return JSONValue.null}(),"user":app.learner.recipeUser,"settings":settings,"progress":record["tutorAgendaProgress"]["items"],"earned":record["earnedXp"],"turn":.number(Double(turn)),"messages":.array(messages),"resume":.array(resume),"pausedMessages":.array(pausedMessages),"voice":SettingsUI.effective(app.learner)["progress"]["tutorVoice"],"persona":.string(SettingsUI.effective(app.learner)["progress"]["tutorVoicePersona"].string),"pause":.number(Double(app.learner.tutorPauseMilliseconds)),"quizLastFeedback":quizFeedback,"quizPreviousAttemptResult":previousQuiz])
     }
     func refresh(_ app:AppModel) {guard owner == scope(app),!id.isEmpty else{return};content=details(app,lesson:lesson,unit:unit);state=(try? policy?.run("state",payload(app))) ?? .null}
     func prepare(_ app:AppModel) async {
@@ -157,9 +157,13 @@ enum TutorFocus:Equatable {
         if focus == nil,!practicingCompletedLesson {app.learner.storeTutorState(lesson:typedLesson,data:.object(["kind":.string("start"),"agenda":record(app)["tutorAgendaProgress"]["items"]]));app.persist()};refresh(app)
         welcomePending = focus == nil && !resuming && state["starter"].boolean && resume.isEmpty
         do {
-            let session=try policy.run("session",payload(app))
+            if !Self.fixture {try await FirebaseIdentityService.shared.ensure(app.identity)}
+            guard valid(app,token) else{return}
+            let baseSession=try policy.run(TutorRealtime.provider == "gemini" ? "geminiSession":"session",payload(app))
+            let session=TutorRealtime.provider == "gemini" ? baseSession.setting("owner",.string(app.identity.npub)):baseSession
             await live.start(learner:app.learner,instructions:session["instructions"].string,openingPrompt:nil,inactivityTimeout:30,initiallyMuted:resuming && mutedWhenPaused,onInputTurn:{[weak self,weak app] input in guard let self,let app,self.valid(app,token) else{return};Task{await self.input(input,app:app,token:token)}},onAssistantTurn:{[weak self,weak app] response,text in guard let self,let app,self.valid(app,token) else{return};self.assistant(response,text:text,app:app,token:token)},sessionConfiguration:session,externallyControlled:true,previousAssistant:resuming ? messages.last(where:{$0["role"].string == "assistant"})?["textFinal"].string:nil)
             guard valid(app,token),live.connected else{return}
+            live.setOutputGain(app.learner.settingsSnapshot["tutorVolume"] == .null ? 1:app.learner.settingsSnapshot["tutorVolume"].number)
             if resuming,let interrupted=pausedMessages.last(where:{$0["interrupted"].boolean}),!interrupted["textFinal"].string.isEmpty {
                 let event=try policy.run("resumeSpeech",.object(["speech":.object(["text":interrupted["textFinal"]]),"instructions":session["instructions"]]))
                 if event != .null{live.requestResponse(event)}
@@ -257,7 +261,7 @@ enum TutorFocus:Equatable {
             let ready=focus != nil || isQuiz || state["isComplete"].boolean
             if !practicingCompletedLesson,ready,(repairAdvanced || earnedXP(app)>=required){await complete(app,ready:true);return}
             completionPending=false
-            if Self.fixture || app.subscription.hasAccess {let session=try policy.run("session",payload(app));live.updateTranscription(session["audio"]["input"]["transcription"]);try request(app,answer:text,accepted:.array(acceptedIDs),verdict:grade["verdict"].string)}else{await stop(app)}
+            if Self.fixture || app.subscription.hasAccess {let session=try policy.run(TutorRealtime.provider == "gemini" ? "geminiSession":"session",payload(app));if TutorRealtime.provider == "gemini"{live.updateTutorContext(session)}else{live.updateTranscription(session["audio"]["input"]["transcription"])};try request(app,answer:text,accepted:.array(acceptedIDs),verdict:grade["verdict"].string)}else{await stop(app)}
         }catch {if valid(app,token){self.error="This turn could not be checked. Please try again.";grading=false;completionPending=false;live.discardInput(input.id)}}
     }
     private func uniqueMessages(_ values:[JSONValue])->[JSONValue]{var seen:Set<String>=[];return values.filter{seen.insert($0["id"].string).inserted}}

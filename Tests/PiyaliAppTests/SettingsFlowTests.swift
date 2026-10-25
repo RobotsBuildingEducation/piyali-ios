@@ -15,7 +15,7 @@ import WebKit
     func testVoiceAndPauseAreNormalizedAndInvalidSwitchDoesNotReplaceIdentity()async throws {
         let app=try model();defer{try? app.identity.disconnect()};let account=app.identity.npub,xp=app.learner.totalXP
         app.updateSettings(.object(["tutorVoice":.string("ash"),"pauseMs":.number(850)]))
-        XCTAssertEqual(app.learner.settingsSnapshot["progress"]["tutorVoice"],.string("cedar"));XCTAssertEqual(app.learner.tutorPauseMilliseconds,900)
+        XCTAssertEqual(app.learner.settingsSnapshot["progress"]["tutorVoice"],.string("Vindemiatrix"));XCTAssertEqual(app.learner.tutorPauseMilliseconds,900)
         let switched=await app.settingsSwitchAccount("npub1bad");XCTAssertFalse(switched);XCTAssertEqual(app.identity.npub,account);XCTAssertEqual(app.learner.totalXP,xp)
         app.updateSettings(.object(["soundEnabled":.bool(false),"allowPosts":.bool(false)]));XCTAssertFalse(app.learner.soundEffectsEnabled);XCTAssertFalse(app.learner.automaticPostsEnabled)
     }
@@ -44,24 +44,25 @@ extension SettingsFlowTests {
         let app=try model();defer{try? app.identity.disconnect()}
         let scene=try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap{$0 as? UIWindowScene}.first),old=scene.windows.first{$0.isKeyWindow}
         defer{old?.makeKey()}
-        for (lang,theme) in [("en","light"),("ar","dark")] {for tab in ["settings","settings-lower","posts","account","subscription"] {
+        for (lang,theme) in [("en","light"),("ar","dark")] {for tab in ["settings","settings-voice","settings-lower","posts","account","subscription"] {
             let config=WKWebViewConfiguration();config.websiteDataStore = .nonPersistent()
             let web=WKWebView(frame:CGRect(x:0,y:0,width:402,height:874),configuration:config),vc=UIViewController(),window=UIWindow(windowScene:scene);vc.view=web;window.frame=web.frame;window.rootViewController=vc;window.makeKeyAndVisible();web.scrollView.contentInsetAdjustmentBehavior = .never
             defer{web.stopLoading();window.isHidden=true;window.rootViewController=nil}
-            web.load(URLRequest(url:try XCTUnwrap(URL(string:"http://127.0.0.1:5181/__piyali-onboarding?screen=settings&language=\(lang)&theme=\(theme)&tutorRealtime=openai"))))
+            web.load(URLRequest(url:try XCTUnwrap(URL(string:"http://127.0.0.1:5181/__piyali-onboarding?screen=settings&language=\(lang)&theme=\(theme)&tutorRealtime=gemini"))))
             var ready=false;for _ in 0..<400 {ready=(try? await web.evaluateJavaScript("document.fonts.status==='loaded' && document.querySelectorAll('[role=tab]').length===3 && document.querySelectorAll('textarea').length===2")) as? Bool == true;if ready{break};try await Task.sleep(for:.milliseconds(50))}
             XCTAssertTrue(ready,"Source Settings failed");guard ready else{return}
             if ["account","subscription"].contains(tab){_=try await web.evaluateJavaScript("document.querySelectorAll('[role=tab]')[\(tab == "account" ? 1:2)].click()");try await Task.sleep(for:.milliseconds(300))}
             try await Task.sleep(for:.milliseconds(300))
             if tab == "posts"{let label=String(data:try JSONEncoder().encode(EntryCopy.ui(lang,"allow_posts_info_aria")),encoding:.utf8)!;_=try await web.evaluateJavaScript("[...document.querySelectorAll('button')].find(e=>e.getAttribute('aria-label')===\(label)).click()");try await Task.sleep(for:.milliseconds(300))}
+            if tab == "settings-voice"{_=try await web.evaluateJavaScript("for(const panel of document.querySelectorAll('.chakra-modal__body, .chakra-tabs__tab-panels, [role=tabpanel]')){if(panel.scrollHeight>panel.clientHeight){panel.scrollTop=520}}");try await Task.sleep(for:.milliseconds(200))}
             if tab == "settings-lower"{_=try await web.evaluateJavaScript("for(const panel of document.querySelectorAll('.chakra-modal__body, .chakra-tabs__tab-panels, [role=tabpanel]')){panel.scrollTop=panel.scrollHeight}");try await Task.sleep(for:.milliseconds(200))}
             let source=XCTAttachment(image:try await web.takeSnapshot(configuration:nil));source.name="Source Settings \(tab) \(lang)";source.lifetime = .keepAlways;add(source)
             let metrics=try await web.evaluateJavaScript("JSON.stringify([...document.querySelectorAll('.chakra-modal__content,.chakra-modal__body,[role=tab],[role=tabpanel],p,button,textarea')].filter(e=>e.getBoundingClientRect().width>0).map(e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return {text:e.textContent,x:r.x,y:r.y,width:r.width,height:r.height,font:s.font,padding:s.padding,bg:s.backgroundColor,border:s.borderColor,radius:s.borderRadius}}))")
             let geometry=XCTAttachment(data:Data(try XCTUnwrap(metrics as? String).utf8),uniformTypeIdentifier:"public.json");geometry.name="Source Settings \(tab) \(lang) geometry";geometry.lifetime = .keepAlways;add(geometry)
             web.stopLoading();window.isHidden=true;window.rootViewController=nil
             app.learner.support=lang;app.learner.name="Settings Learner";UserDefaults.standard.set(theme,forKey:"piyali.theme");app.learner.userSettings=app.learner.settingsSnapshot.setting("themeMode",.string(theme))
-            let host=UIHostingController(rootView:ZStack{BrandBackground();SettingsDrawerView(onClose:{},onPlacement:{},initialTab:["settings-lower","posts"].contains(tab) ? "settings":tab,initialPostsInfo:tab == "posts")}.environmentObject(app).environment(\.layoutDirection,lang == "ar" ? .rightToLeft:.leftToRight).environment(\.dynamicTypeSize,.large).ignoresSafeArea().preferredColorScheme(theme == "dark" ? .dark:.light));window.rootViewController=host;window.makeKeyAndVisible();host.view.layoutIfNeeded();try await Task.sleep(for:.milliseconds(500))
-            if tab == "settings-lower"{func scrolls(_ view:UIView)->[UIScrollView]{(view as? UIScrollView).map{[$0]} ?? view.subviews.flatMap{scrolls($0)}};if let scroll=scrolls(host.view).first(where:{!($0 is UITextView) && $0.contentSize.height>$0.bounds.height}){scroll.setContentOffset(CGPoint(x:0,y:scroll.contentSize.height-scroll.bounds.height+scroll.adjustedContentInset.bottom),animated:false);try await Task.sleep(for:.milliseconds(200))}}
+            let host=UIHostingController(rootView:ZStack{BrandBackground();SettingsDrawerView(onClose:{},onPlacement:{},initialTab:["settings-voice","settings-lower","posts"].contains(tab) ? "settings":tab,initialPostsInfo:tab == "posts")}.environmentObject(app).environment(\.layoutDirection,lang == "ar" ? .rightToLeft:.leftToRight).environment(\.dynamicTypeSize,.large).ignoresSafeArea().preferredColorScheme(theme == "dark" ? .dark:.light));window.rootViewController=host;window.makeKeyAndVisible();host.view.layoutIfNeeded();try await Task.sleep(for:.milliseconds(500))
+            if ["settings-voice","settings-lower"].contains(tab){func scrolls(_ view:UIView)->[UIScrollView]{(view as? UIScrollView).map{[$0]} ?? view.subviews.flatMap{scrolls($0)}};if let scroll=scrolls(host.view).first(where:{!($0 is UITextView) && $0.contentSize.height>$0.bounds.height}){scroll.setContentOffset(CGPoint(x:0,y:tab == "settings-voice" ? min(520,scroll.contentSize.height-scroll.bounds.height+scroll.adjustedContentInset.bottom):scroll.contentSize.height-scroll.bounds.height+scroll.adjustedContentInset.bottom),animated:false);try await Task.sleep(for:.milliseconds(200))}}
             let native=XCTAttachment(image:UIGraphicsImageRenderer(bounds:window.bounds).image{_ in window.drawHierarchy(in:window.bounds,afterScreenUpdates:true)});native.name="Native Settings \(tab) \(lang)";native.lifetime = .keepAlways;add(native)
             window.isHidden=true;window.rootViewController=nil
         }}

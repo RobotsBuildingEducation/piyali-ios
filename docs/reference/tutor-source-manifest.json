@@ -144,6 +144,14 @@
         "translations",
         "getTutorPathCopy",
         "getTutorLessonLaunchMode",
+        "buildLanguageInstructions",
+        "buildLanguageInstructionsBase",
+        "buildVoicePersonaPolicy",
+        "buildTutorLearnerAudioInstruction",
+        "getTutorStarterAgendaPromptText",
+        "isTutorToolGradingActive",
+        "TUTOR_TOOL_GRADING_ENABLED",
+        "normalizeGeminiLiveVoice",
         "getTutorAgendaSnapshot"
       ]
     },
@@ -556,6 +564,18 @@
       ]
     },
     {
+      "file": "src/utils/geminiLiveVoices.js",
+      "sha256": "4fe47cd8b28b9e8fb85fbe64b7fd45e8b195d87c02734a7554cd43e4baf5a049",
+      "declarations": [
+        "normalizeGeminiLiveVoice",
+        "LEGACY_ALIASES",
+        "GEMINI_LIVE_VOICE_BY_KEY",
+        "GEMINI_LIVE_VOICE_OPTIONS",
+        "GEMINI_LIVE_VOICE_DESCRIPTIONS",
+        "DEFAULT_GEMINI_LIVE_VOICE"
+      ]
+    },
+    {
       "file": "src/utils/tutorAgendaFlow.js",
       "sha256": "f17a32ed88633f068e505063d8b9fc78a37945061ca7eaf62547e8eb43709253",
       "declarations": [
@@ -641,7 +661,7 @@
     "useUserStore"
   ],
   "boundary": "Original pure declarations and prompt builders with explicit learner/lesson/agenda/reconnect snapshots. No React, source stores, Firebase, provider or transport executes. Regular agenda snapshot uses original item and progress helpers without its mount-time ref mutation; Swift owns sequencing and persistence.",
-  "fixtureCount": 501,
+  "fixtureCount": 598,
   "translationAdapter": {
     "resource": "Piyali/Resources/app-copy.json.gz",
     "sha256": "0ea8bc3ce2e566ced7a1f3bb623e912354f714ce849f7f100ed1d8171e215fbe",

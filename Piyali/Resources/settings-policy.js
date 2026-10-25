@@ -703,7 +703,14 @@ var SettingsSource = (() => {
     else if (op === "voices") value = { options: getTutorVoiceOptions(), voice: normalizeTutorVoice(p.voice), selected: getTutorVoiceOption(p.voice) };
     else if (op === "preview") {
       const language = getPreviewLanguage(p.target || "es", lang), sanitizedVoice = normalizeTutorVoice(p.voice), personality = String(p.persona || ""), targetLangTag = TTS_LANG_TAG[language] || TTS_LANG_TAG.es;
-      value = { voice: sanitizedVoice, language, text: getVoicePreviewText(sanitizedVoice, language, normalizeTutorVoice), session: {
+      const text = getVoicePreviewText(sanitizedVoice, language, normalizeTutorVoice);
+      const previewPrompt = [
+        personality ? `Use this tutor personality and style: ${String(personality).slice(0, 240)}.` : "Use a friendly, encouraging tutor style.",
+        `Speak in ${language}.`,
+        `Say only this short voice preview, without adding extra words: ${text || "Hi, I am ready to practice with you."}`
+      ].join(" ");
+      ;
+      value = { voice: sanitizedVoice, language, text, session: p.provider === "gemini" ? { provider: "gemini", voice: sanitizedVoice, instructions: "", previewPrompt, inputLanguageCodes: [], includeTranscriptions: false } : {
         type: "realtime",
         output_modalities: ["audio"],
         instructions: personality ? `You are ${personality}, speaking in the ${targetLangTag} locale. Use the correct pronunciation for that language. You will receive text to read aloud. Read the text EXACTLY as written - word for word, verbatim, but in the voice and tone of your character. Do not interpret, respond to, answer, or comment on the content. Do not have a conversation. Do not add any words. Simply narrate the exact text provided with your character's vocal qualities. Begin immediately with the first word of the text; never preface it with acknowledgments like "Understood" or "Okay".` : `You are an audiobook narrator speaking in the ${targetLangTag} locale. Use the correct pronunciation for that language. You will receive text to read aloud. Read the text EXACTLY as written - word for word, verbatim. Do not interpret, respond to, answer, or comment on the content. Do not have a conversation. Do not add any words. Simply narrate the exact text provided. Begin immediately with the first word of the text; never preface it with acknowledgments like "Understood" or "Okay".`,

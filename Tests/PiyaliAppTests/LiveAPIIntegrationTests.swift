@@ -9,6 +9,41 @@ import NostrSDK
 
 /// Explicit opt-in only. Uses an isolated test identity, bounded prompts and no paid access grant.
 @MainActor final class LiveAPIIntegrationTests: XCTestCase {
+    func testLearnerGeminiTutorUsesFirebaseIdentitySourcePromptAndNativePlayback()async throws {
+        guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else{throw XCTSkip("Explicit live API opt-in required")}
+        XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))
+        if FirebaseApp.app() == nil{AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure()};XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let identity=IdentityService();try identity.create();try await FirebaseIdentityService.shared.ensure(identity)
+        let transport=GeminiTutorTransport(capturesMicrophone:false)
+        do {
+            let policy=try TutorSourcePolicy(),library=try ContentLibrary.load(Piyali.JSONValue.self,name:"tutor-curriculum-es"),unit=try XCTUnwrap(library["Pre-A1"].array.first),lesson=try XCTUnwrap(unit["lessons"].array.first)
+            let args:Piyali.JSONValue = .object(["provider":.string("gemini"),"target":.string("es"),"support":.string("en"),"unit":unit,"lesson":lesson,"voice":.string("Vindemiatrix"),"welcome":.bool(true)])
+            let config=try policy.run("geminiSession",args).setting("owner",.string(identity.npub));var transcript="",events:[String]=[],failure:String?
+            transport.onOpen={transport.setMicrophoneEnabled(false)}
+            transport.onEvent={event in events.append(event["type"].string);if event["type"].string == "response.audio_transcript.delta"{transcript+=event["delta"].string}}
+            transport.onFailure={failure=$0}
+            try await transport.connect(session:config)
+            XCTAssertTrue(transport.send(.object(["type":.string("response.create"),"response":.object(["instructions":try policy.run("response",args)])])))
+            let deadline=Date().addingTimeInterval(55)
+            while !events.contains("response.done"),failure == nil,Date()<deadline{try await Task.sleep(for:.milliseconds(100))}
+            XCTAssertNil(failure);XCTAssertTrue(events.contains("response.done"));XCTAssertFalse(transcript.isEmpty);XCTAssertGreaterThan(transport.receivedAudioBytes,1000);XCTAssertGreaterThan(transport.playedAudioBuffers,0)
+            XCTAssertTrue(events.contains("output_audio_buffer.started"));XCTAssertEqual(events.last,"output_audio_buffer.stopped")
+            print("LIVE GEMINI TUTOR: source welcome, selected voice, learner Firebase/App Check, actual PCM bytes \(transport.receivedAudioBytes), native played buffers \(transport.playedAudioBuffers), transcript length \(transcript.count); no learner progress writes")
+            transport.close()
+            let preview=GeminiTutorTransport(capturesMicrophone:false);defer{preview.close()}
+            let previewConfig=try SettingsSourcePolicy().run("preview",.object(["provider":.string("gemini"),"voice":.string("Charon"),"language":.string("en"),"target":.string("es"),"persona":.string("A calm guide")]))["session"].setting("owner",.string(identity.npub));var previewDone=false,previewFailure:String?
+            preview.onEvent={if $0["type"].string == "response.done"{previewDone=true}};preview.onFailure={previewFailure=$0}
+            try await preview.connect(session:previewConfig)
+            XCTAssertTrue(preview.send(.object(["type":.string("response.create"),"response":.object(["instructions":previewConfig["previewPrompt"]])])))
+            let previewDeadline=Date().addingTimeInterval(35)
+            while !previewDone,previewFailure == nil,Date()<previewDeadline{try await Task.sleep(for:.milliseconds(100))}
+            XCTAssertNil(previewFailure);XCTAssertTrue(previewDone);XCTAssertGreaterThan(preview.playedAudioBuffers,0)
+            print("LIVE GEMINI PREVIEW: original Charon preview prompt played native audio; microphone disabled, no transcription requested")
+
+        }catch{transport.close();try? await Auth.auth().currentUser?.delete();FirebaseIdentityService.shared.clearSession();try? identity.disconnect();throw error}
+        transport.close();try await Auth.auth().currentUser?.delete();FirebaseIdentityService.shared.clearSession();try identity.disconnect()
+    }
+
     func testNativePhonicsJudgeGeneratedDeckAndReceiveOnlyNarration()async throws {
         guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else{throw XCTSkip("Explicit live API opt-in required")}
         XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))

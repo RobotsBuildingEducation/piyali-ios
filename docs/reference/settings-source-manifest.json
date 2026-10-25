@@ -17,6 +17,10 @@
       "sha256": "338c1ca49ed857f513572fcc3a1f04261ed2bc06d6c235c149440984cb797d54"
     },
     {
+      "file": "src/utils/geminiLiveBridge.js",
+      "sha256": "249727e4101d6a6f2d3c8cc48fbc211ecf4f496ed43ca978724d421e145fad8f"
+    },
+    {
       "file": "src/useThemeStore.jsx",
       "sha256": "ff0a591e7e674099e0202c58dfdff3d663fd65297f1a9cde0e6328f9ee5e4b4e"
     },
@@ -25,6 +29,6 @@
       "sha256": "02cb1507cb2ee1b5822ac4dd98cd7faf3e67a5101a13dd6c93826f553201ab32"
     }
   ],
-  "cases": 258,
-  "adapters": "Pure source Settings declarations and normalizer only. Provider selection is an explicit snapshot; React flag components are omitted. No source UI, Firebase, provider, DOM, localStorage, clipboard or learner identity executes. Both source voice profiles are exported; the current native transport uses the source OpenAI profile."
+  "cases": 274,
+  "adapters": "Pure source Settings declarations and normalizer only. Provider selection is an explicit snapshot; React flag components are omitted. No source UI, Firebase, provider, DOM, localStorage, clipboard or learner identity executes. Both source voice profiles and the original Gemini voice-preview prompt are exported; native Tutor defaults to Gemini."
 }

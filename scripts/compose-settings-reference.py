@@ -4,7 +4,7 @@ from pathlib import Path
 from PIL import Image,ImageCms,ImageDraw
 p=argparse.ArgumentParser();p.add_argument('attachments',type=Path);p.add_argument('--products',type=Path);p.add_argument('--output',type=Path,default=Path('docs/native'));a=p.parse_args();a.output.mkdir(parents=True,exist_ok=True);rows=[v for t in json.loads((a.attachments/'manifest.json').read_text()) for v in t['attachments']]
 for lang in ['en','ar']:
- for state in ['settings','settings-lower','posts','account','subscription']:
+ for state in ['settings','settings-voice','settings-lower','posts','account','subscription']:
   imgs=[]
   for prefix in ['Source','Native']:
    matches=[r for r in rows if r['suggestedHumanReadableName'].startswith(f'{prefix} Settings {state} {lang}_') and r['exportedFileName'].endswith('.png')];assert len(matches)==1,(prefix,state,lang,len(matches))

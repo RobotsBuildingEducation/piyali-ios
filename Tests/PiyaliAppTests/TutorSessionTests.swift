@@ -31,7 +31,7 @@ import SwiftUI
     func testOpeningPreviewAndWelcomeAreUngradedThenExactSpeechAdvancesOnce()async throws {
         let app=try await app();defer{try? app.identity.disconnect()};let transport=TutorTransport(),session=await session(app,transport)
         XCTAssertEqual(session.id,"lesson-tutorial-1");XCTAssertEqual(session.state["items"].array.count,7);XCTAssertEqual(app.learner.totalXP,0);XCTAssertTrue(app.learner.tutorLessons?.isEmpty ?? true)
-        await session.start(app);XCTAssertEqual(transport.session["audio"]["output"]["voice"].string,"marin");XCTAssertEqual(transport.session["audio"]["input"]["turn_detection"]["silence_duration_ms"].number,1200);XCTAssertEqual(transport.session["audio"]["input"]["turn_detection"]["create_response"],.bool(false))
+        await session.start(app);XCTAssertEqual(transport.session["provider"].string,"gemini");XCTAssertEqual(transport.session["voice"].string,"Vindemiatrix");XCTAssertFalse(transport.session["inputLanguageCodes"].array.isEmpty);XCTAssertEqual(transport.session["audio"],.null)
         transport.assistant("Welcome! Ready to learn?");await session.input(input("yes","welcome"),app:app);XCTAssertEqual(app.learner.totalXP,0);XCTAssertNil(app.learner.gradedByLanguage)
         transport.assistant("Say hola.",id:"r2");await session.input(input("hola","u1"),app:app)
         let earned=app.learner.totalXP;XCTAssertTrue((3...7).contains(earned));XCTAssertEqual(app.learner.tutorProgress(session.id).items,["hello"]);XCTAssertEqual(app.learner.gradedByLanguage?["es"],1)

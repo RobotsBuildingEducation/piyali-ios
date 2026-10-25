@@ -13,7 +13,7 @@ import Foundation
         #if DEBUG
         if enabled {let script=TutorVoiceScript();return LiveTutorService(capturesMicrophone:false,permission:{true},transportFactory:{TutorScriptTransport(script:script)})}
         #endif
-        return LiveTutorService()
+        return LiveTutorService(transportFactory:{if TutorRealtime.provider == "gemini"{return GeminiTutorTransport()};return RealtimeRTCTransport()})
     }
     static func provider()->TutorProvider {.init(judge:{_ in .object(["successful":.bool(false),"mistake":.bool(false),"confidence":.number(0.9),"reason":.string("Try the lesson phrase.")])},quote:{_,_,_ in .null},translate:{_,text in .object(["translation":.string(text == "Say hola." ? "Di hola.":"Public fixture translation"),"pairs":.array([])])})}
 }
@@ -51,3 +51,5 @@ import Foundation
     func close(){closed=true;microphone=false;emission?.cancel();speech?.cancel();emission=nil;speech=nil}
 }
 #endif
+
+@MainActor enum TutorRealtime {static var provider:String{AppConfiguration().string("TutorRealtimeProvider",default:"gemini") == "openai" ? "openai":"gemini"}}

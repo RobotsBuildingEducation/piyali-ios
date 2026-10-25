@@ -26,7 +26,7 @@ import Foundation
         #if DEBUG
         if enabled{return RealtimeNarrationService(factory:{SettingsPreviewTransport()})}
         #endif
-        return RealtimeNarrationService()
+        return RealtimeNarrationService(factory:{if TutorRealtime.provider == "gemini"{return GeminiTutorTransport(capturesMicrophone:false)};return RealtimeRTCTransport(capturesMicrophone:false,purpose:.narration)})
     }
 }
 #if DEBUG

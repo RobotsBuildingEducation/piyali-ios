@@ -3,8 +3,9 @@ import Foundation
 public struct SettingsChange:Codable,Identifiable,Sendable {
     public var id=UUID()
     public let date:Date
+    public let provider:String?
     public let partial:JSONValue
-    public init(partial:JSONValue,date:Date=Date()){self.partial=partial;self.date=date}
+    public init(partial:JSONValue,date:Date=Date(),provider:String?=nil){self.partial=partial;self.date=date;self.provider=provider}
 }
 public enum LearnerSettings {
     public static let progressKeys:Set<String>=["tutorVoice","tutorVoicePersona","pauseMs","showTranslations","helpRequest","practicePronunciation"]
@@ -32,7 +33,7 @@ public enum LearnerSettings {
     public static func patch(_ change:SettingsChange,fields:JSONValue,policy:SettingsSourcePolicy)throws->JSONValue {
         let partial=change.partial.object.filter{progressKeys.union(rootKeys).contains($0.key)}
         if Set(partial.keys).isSubset(of:directKeys){return .object(partial)}
-        let normalized=try policy.run("normalize",.object(["user":fields,"partial":.object(partial),"provider":.string("openai")]))
+        let normalized=try policy.run("normalize",.object(["user":fields,"partial":.object(partial),"provider":.string(change.provider == "gemini" ? "gemini":"openai")]))
         return .object(["progress":.object(normalized["progress"].object.filter{progressKeys.contains($0.key)}),"themeMode":normalized["themeMode"],"appLanguage":normalized["appLanguage"],"helpRequest":normalized["helpRequest"],"practicePronunciation":normalized["practicePronunciation"]])
     }
 }
@@ -41,10 +42,10 @@ public extension LearnerState {
     var tutorPauseMilliseconds:Int {let n=settingsSnapshot["progress"]["pauseMs"].number;return n.isFinite && n>=200 ? Int(min(4000,n)):1200}
     var soundEffectsEnabled:Bool {settingsSnapshot["soundEnabled"] != .bool(false)}
     var automaticPostsEnabled:Bool {settingsSnapshot["allowPosts"] != .bool(false)}
-    mutating func changeSettings(_ partial:JSONValue,now:Date=Date()) {
+    mutating func changeSettings(_ partial:JSONValue,now:Date=Date(),provider:String?=nil) {
         let known=partial.object.filter{LearnerSettings.progressKeys.union(LearnerSettings.rootKeys).contains($0.key)}
         guard !known.isEmpty else{return}
-        let change=SettingsChange(partial:.object(known),date:now)
+        let change=SettingsChange(partial:.object(known),date:now,provider:provider)
         userSettings=LearnerSettings.applying(change,to:settingsSnapshot)
         if pendingSettingsChanges == nil{pendingSettingsChanges=[]};pendingSettingsChanges?.append(change)
     }

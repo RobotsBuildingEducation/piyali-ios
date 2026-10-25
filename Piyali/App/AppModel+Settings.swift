@@ -8,7 +8,7 @@ import NostrSDK
     static func user(_ learner:LearnerState)->JSONValue {
         learner.settingsSnapshot.setting("progress",learner.settingsSnapshot["progress"].setting("targetLang",.string(learner.target)).setting("supportLang",.string(learner.support)).setting("level",.string(learner.level)))
     }
-    static func effective(_ learner:LearnerState)->JSONValue {run("normalize",.object(["user":user(learner),"theme":.string(UserDefaults.standard.string(forKey:"piyali.theme") ?? "light")]))}
+    static func effective(_ learner:LearnerState)->JSONValue {run("normalize",.object(["user":user(learner),"provider":.string(TutorRealtime.provider),"theme":.string(UserDefaults.standard.string(forKey:"piyali.theme") ?? "light")]))}
 }
 extension AppModel {
     func settingsSwitchAccount(_ key:String)async->Bool {
@@ -37,14 +37,14 @@ extension AppModel {
                 else if key == "soundVolume"{accepted[key] = .number(max(0,min(100,value.number.rounded())))}
             }
         }else {
-            let result=SettingsUI.run("normalize",.object(["user":SettingsUI.user(learner),"partial":partial,"theme":.string(UserDefaults.standard.string(forKey:"piyali.theme") ?? "light")]))
+            let result=SettingsUI.run("normalize",.object(["user":SettingsUI.user(learner),"provider":.string(TutorRealtime.provider),"partial":partial,"theme":.string(UserDefaults.standard.string(forKey:"piyali.theme") ?? "light")]))
             guard result != .null else{error="Settings could not be saved.";return}
             for(key,_)in partial.object {
                 if LearnerSettings.progressKeys.contains(key){accepted[key]=result["progress"][key]}
                 else if key == "themeMode"{accepted[key]=result[key]}
             }
         }
-        guard !accepted.isEmpty else{return};if accepted["allowPosts"] == .bool(false){automaticProgress.cancelPending()};learner.changeSettings(.object(accepted));syncSettingsAppearance();persist()
+        guard !accepted.isEmpty else{return};if accepted["allowPosts"] == .bool(false){automaticProgress.cancelPending()};learner.changeSettings(.object(accepted),provider:TutorRealtime.provider);syncSettingsAppearance();persist()
     }
     func settingsSupportLanguage(_ value:String) {
         guard LearningLanguages.support.contains(value),value != learner.support else{return}

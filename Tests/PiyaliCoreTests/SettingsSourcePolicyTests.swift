@@ -5,7 +5,7 @@ final class SettingsSourcePolicyTests:XCTestCase {
     private var root:URL{URL(fileURLWithPath:#filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()}
     private func policy()throws->SettingsSourcePolicy {try SettingsSourcePolicy(url:root.appendingPathComponent("Piyali/Resources/settings-policy.js"))}
     func testOriginalSettingsNormalizerVoiceProfilesPersonasAndPreviewRequests()throws {
-        let rows=try ContentLibrary.decode([JSONValue].self,url:root.appendingPathComponent("Tests/PiyaliCoreTests/Fixtures/settings-policy.json.gz")),p=try policy();XCTAssertEqual(rows.count,258)
+        let rows=try ContentLibrary.decode([JSONValue].self,url:root.appendingPathComponent("Tests/PiyaliCoreTests/Fixtures/settings-policy.json.gz")),p=try policy();XCTAssertEqual(rows.count,274)
         for row in rows{XCTAssertEqual(try p.run(row["operation"].string,row["input"]),row["expected"],row["operation"].string+" "+row["input"].canonicalJSON)}
     }
     func testSettingsPatchRetainsForeignProgressAndProviderVoiceOnUnrelatedSave()throws {
@@ -23,4 +23,13 @@ final class SettingsSourcePolicyTests:XCTestCase {
         XCTAssertEqual(final.pendingSettingsChanges?.count,1);XCTAssertEqual(final.settingsSnapshot["progress"]["pauseMs"],.number(800));XCTAssertEqual(final.settingsSnapshot["progress"]["tutorVoice"],.string("cedar"));XCTAssertFalse(final.soundEffectsEnabled);XCTAssertEqual(final.totalXP,0)
         let restored=try JSONDecoder().decode(LearnerState.self,from:JSONEncoder().encode(final));XCTAssertEqual(restored.pendingSettingsChanges?.count,1)
     }
+    func testOfflineGeminiVoiceKeepsItsProviderThroughEncodingAndLegacyEntriesRemainReadable()throws {
+        let p=try policy(),fields:JSONValue = .object(["progress":.object(["targetLang":.string("es"),"supportLang":.string("en")])])
+        let change=SettingsChange(partial:.object(["tutorVoice":.string("Charon")]),provider:"gemini"),restored=try JSONDecoder().decode(SettingsChange.self,from:JSONEncoder().encode(change))
+        XCTAssertEqual(restored.provider,"gemini");XCTAssertEqual(try LearnerSettings.patch(restored,fields:fields,policy:p)["progress"]["tutorVoice"],.string("Charon"))
+        var raw=try XCTUnwrap(JSONSerialization.jsonObject(with:JSONEncoder().encode(change)) as? [String:Any]);raw.removeValue(forKey:"provider");let legacyData=try JSONSerialization.data(withJSONObject:raw)
+        let legacy=try JSONDecoder().decode(SettingsChange.self,from:legacyData)
+        XCTAssertNil(legacy.provider);XCTAssertEqual(try LearnerSettings.patch(legacy,fields:fields,policy:p)["progress"]["tutorVoice"],.string("marin"))
+    }
+
 }

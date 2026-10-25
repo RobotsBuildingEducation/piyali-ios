@@ -23,6 +23,8 @@ struct SettingsDrawerView:View {
     @State private var savingName=false
     @State private var pause=1200.0
     @State private var pauseEditing=false
+    @State private var volume=1.0
+    @State private var volumeEditing=false
     @StateObject private var persona=SettingsPersonaController()
     @StateObject private var preview=SettingsFixture.preview()
     @StateObject private var backup=KeyBackupController()
@@ -56,10 +58,10 @@ struct SettingsDrawerView:View {
             if gettingStarted{ZStack{PiyaliBrand.unitColor("020617").opacity(0.82).ignoresSafeArea();GettingStartedView{gettingStarted=false;app.learner.gettingStartedModalShown=true;app.persist()}}}
             if !toast.isEmpty{Text(toast).font(PiyaliBrand.productFont(14)).padding(12).background(surface,in:Capsule()).frame(maxHeight:.infinity,alignment:.top).padding(.top,64).accessibilityIdentifier("settingsToast").allowsHitTesting(false)}
         }.frame(width:g.size.width,height:g.size.height)}.ignoresSafeArea(.container).foregroundStyle(brand.text).buttonStyle(.plain).environment(\.layoutDirection,lang == "ar" ? .rightToLeft:.leftToRight).accessibilityElement(children:.contain).accessibilityIdentifier("settingsDrawer")
-            .onAppear{tab=initialTab;postsInfo=initialPostsInfo;name=app.learner.name;pause=Double(app.learner.tutorPauseMilliseconds);persona.load(app)}
+            .onAppear{tab=initialTab;postsInfo=initialPostsInfo;name=app.learner.name;pause=Double(app.learner.tutorPauseMilliseconds);persona.load(app);volume=app.learner.settingsSnapshot["tutorVolume"] == .null ? 1:app.learner.settingsSnapshot["tutorVolume"].number}
             .onChange(of:backup.state){_,state in if state == .copied{notify(t("toast_secret_copied"))}}
             .onChange(of:personaFocused){_,value in persona.focus(value,app)}
-            .onChange(of:app.learner.userSettings){_,_ in persona.receive(app)}
+            .onChange(of:app.learner.userSettings){_,_ in persona.receive(app);if !volumeEditing{volume=app.learner.settingsSnapshot["tutorVolume"] == .null ? 1:app.learner.settingsSnapshot["tutorVolume"].number}}
             .onChange(of:app.learner.tutorPauseMilliseconds){_,value in if !pauseEditing{pause=Double(value)}}
             .onChange(of:lang){_,_ in persona.receive(app)}
             .onChange(of:scope){_,_ in preview.stopAll();persona.load(app);name=app.learner.name;nsec=""}
@@ -77,13 +79,17 @@ struct SettingsDrawerView:View {
             VStack(alignment:.leading,spacing:16){
                 OnboardingText(text:t("onboarding_section_voice_persona"),size:14,weight:.semibold,lineHeight:21)
                 VStack(alignment:.leading,spacing:4){OnboardingText(text:t("settings_voice") == "settings_voice" ? t("onboarding_voice_title"):t("settings_voice"),size:12,weight:.semibold,lineHeight:18).foregroundStyle(brand.muted)
-                    let voices=SettingsUI.run("voices",.object(["provider":.string("openai"),"voice":data["progress"]["tutorVoice"]])),selected=voices["selected"]
+                    let voices=SettingsUI.run("voices",.object(["provider":.string(TutorRealtime.provider),"voice":data["progress"]["tutorVoice"]])),selected=voices["selected"]
                     Menu{ForEach(voices["options"].array,id:\.canonicalJSON){voice in Button{persona.flush(app);app.updateSettings(.object(["tutorVoice":voice["value"],"tutorVoicePersona":.string(persona.draft)]));playPreview(voice["value"].string)}label:{Label(voiceLabel(voice),systemImage:voice["type"].string == "girl" ? "person.fill":"person.fill")}.accessibilityIdentifier("settingsVoice-"+voice["value"].string)}}label:{HStack(spacing:8){if preview.loading{ProgressView().scaleEffect(0.7)}else{Image(systemName:"person.fill").foregroundStyle(selected["type"].string == "girl" ? Color.pink:Color.cyan)};Text(voiceLabel(selected));Spacer();Image(systemName:"chevron.down").font(.system(size:12))}.font(PiyaliBrand.productFont(14,600)).padding(.horizontal,20).frame(minHeight:42).background(surface,in:Capsule()).overlay{Capsule().stroke(brand.border)}}.accessibilityIdentifier("settingsVoice")
                 }
-                VStack(alignment:.leading,spacing:0){OnboardingText(text:t("ra_persona_label"),size:14,lineHeight:21).padding(.bottom,8);TextEditor(text:Binding(get:{persona.draft},set:{persona.change($0,app)})).font(PiyaliBrand.productFont(16)).scrollContentBackground(.hidden).padding(8).frame(height:84).background(control,in:RoundedRectangle(cornerRadius:6)).overlay{RoundedRectangle(cornerRadius:6).stroke(personaFocused ? .blue:brand.border)}.focused($personaFocused).accessibilityIdentifier("settingsPersona");HStack{Spacer();if persona.saved{Text(app.goalText("saved")).font(PiyaliBrand.productFont(12)).foregroundStyle(brand.muted).accessibilityIdentifier("settingsPersonaSaved")}}.frame(minHeight:18).padding(.top,4)}
+                VStack(alignment:.leading,spacing:0){OnboardingText(text:t("ra_persona_label"),size:14,lineHeight:21).padding(.bottom,8);TextEditor(text:Binding(get:{persona.draft},set:{persona.change($0,app)})).font(PiyaliBrand.productFont(16)).scrollContentBackground(.hidden).padding(8).frame(height:84).background(control,in:RoundedRectangle(cornerRadius:6)).overlay{RoundedRectangle(cornerRadius:6).stroke(personaFocused ? .blue:brand.secondary)}.focused($personaFocused).accessibilityIdentifier("settingsPersona");HStack{Spacer();if persona.saved{Text(app.goalText("saved")).font(PiyaliBrand.productFont(12)).foregroundStyle(brand.muted).accessibilityIdentifier("settingsPersonaSaved")}}.frame(minHeight:18).padding(.top,4)}
                 if let error=preview.error{Text(error).font(PiyaliBrand.productFont(12)).foregroundStyle(.red)}
             }.settingsCard(surface)
+            if TutorRealtime.provider == "openai" {
             VStack(alignment:.leading,spacing:8){HStack(alignment:.top){OnboardingText(text:t("ra_vad_label"),size:14,lineHeight:21);Spacer();Text((pause/1000).formatted(.number.precision(.fractionLength(1)).locale(Locale(identifier:lang)))+" "+SettingsCopy.inline(lang,"seconds")).font(PiyaliBrand.productFont(14)).opacity(0.8).fixedSize()};Slider(value:$pause,in:200...4000,step:100,onEditingChanged:{editing in pauseEditing=editing;if !editing{app.updateSettings(.object(["pauseMs":.number(pause)]))}}).tint(PiyaliBrand.unitColor("3cb371")).accessibilityIdentifier("settingsPause")}.settingsCard(surface)
+            } else {
+                VStack(alignment:.leading,spacing:8){HStack{OnboardingText(text:t("tutor_volume_label"),size:14,lineHeight:21);Spacer();Text(lang == "ar" ? volume.formatted(.number.precision(.fractionLength(1)))+"×":"×"+volume.formatted(.number.precision(.fractionLength(1)))).font(PiyaliBrand.productFont(14)).opacity(0.8)};Slider(value:$volume,in:0...4,step:0.1,onEditingChanged:{editing in volumeEditing=editing;if !editing{app.updateSettings(.object(["tutorVolume":.number(volume)]))}}).tint(PiyaliBrand.unitColor("5dade2")).environment(\.layoutDirection,.leftToRight).accessibilityIdentifier("settingsTutorVolume")}.settingsCard(surface)
+            }
             switchCard(t("sound_effects_label"),detail:t(app.learner.soundEffectsEnabled ? "sound_effects_enabled":"sound_effects_disabled"),value:app.learner.soundEffectsEnabled,id:"settingsSound"){app.updateSettings(.object(["soundEnabled":.bool($0)]))}
             VStack(alignment:.leading,spacing:8){HStack{Text(t("teams_feed_allow_label")).font(PiyaliBrand.productFont(14));Button{dismissKeyboard();postsInfo=true}label:{Image(systemName:"info.circle").font(.system(size:14)).foregroundStyle(brand.muted).frame(width:24,height:24)}.accessibilityLabel(t("allow_posts_info_aria")).accessibilityIdentifier("settingsPostsInfo");Spacer();Toggle("",isOn:Binding(get:{app.learner.automaticPostsEnabled},set:{app.updateSettings(.object(["allowPosts":.bool($0)]))})).labelsHidden().tint(PiyaliBrand.teal).accessibilityLabel(t("teams_feed_allow_label")).accessibilityIdentifier("settingsPosts")};OnboardingText(text:t(app.learner.automaticPostsEnabled ? "teams_feed_allow_enabled":"teams_feed_allow_disabled"),size:12,lineHeight:18).opacity(0.6)}.settingsCard(surface)
             SettingsThemeField(onChange:{personaFocused=false;app.updateSettings(.object(["themeMode":.string($0)]))})
@@ -97,7 +103,7 @@ struct SettingsDrawerView:View {
         }
     }
     private func voiceLabel(_ voice:JSONValue)->String {let key="onboarding_voice_"+voice["value"].string,value=t(key);return !voice["label"].string.isEmpty ? voice["label"].string:value == key ? voice["value"].string.capitalized:value}
-    private func playPreview(_ voice:String){let p=SettingsUI.run("preview",.object(["voice":.string(voice),"language":.string(lang),"persona":.string(persona.draft),"target":.string(app.learner.target),"provider":.string("openai")]));preview.play(p["text"].string,language:p["language"].string,engine:app.companionQuestPolicy,voice:voice,sessionOverride:p["session"],startupMilliseconds:9000)}
+    private func playPreview(_ voice:String){let p=SettingsUI.run("preview",.object(["voice":.string(voice),"language":.string(lang),"persona":.string(persona.draft),"target":.string(app.learner.target),"provider":.string(TutorRealtime.provider)]));preview.play(p["text"].string,language:p["language"].string,engine:app.companionQuestPolicy,voice:voice,sessionOverride:TutorRealtime.provider == "gemini" ? p["session"].setting("owner",.string(app.identity.npub)):p["session"],startupMilliseconds:9000)}
     private func dismissKeyboard(){personaFocused=false;goalFocused=false;accountField=nil;UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder),to:nil,from:nil,for:nil);persona.flush(app);app.flushGoalEditor()}
     private func close(){dismissKeyboard();persona.flush(app);app.flushGoalEditor();preview.stopAll();onClose()}
     private func notify(_ message:String){toast=message;Task{try? await Task.sleep(for:.milliseconds(1400));if toast == message{toast=""}}}

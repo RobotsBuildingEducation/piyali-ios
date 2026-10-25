@@ -65,3 +65,5 @@ The real Firestore SDK contract verifies five focused turns plus one Goal comple
 The real focused provider check passes (11.3s): the original Goal Responses rubric and repair semantic prompt accept observable target production and reject requests for a model/answer. The disposable authentication is deleted, with no learner progress writes. After the root-gate change, the real Tutor product journey passes (55.1s), Phonics wrong/retry/repeat/collect/relaunch passes (45.6s), and Conversation voice/help/mute/pause/history/relaunch passes (81.8s).
 
 The canonical importer now retains `progress.currentTutorLesson`, alongside the already preserved Tutor document/draft. The final Firestore round-trip also checks that stored selection so finishing focused practice cannot silently forget the regular lesson it should resume.
+
+Learner Tutor now defaults to the source Gemini provider, including original system/per-turn prompts, native PCM, language hints, voice/volume and four-turn resets. See [the transport checkpoint](TUTOR_GEMINI.md); Conversations, Reading and ordinary narration keep their separate source providers.
