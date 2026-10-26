@@ -24,7 +24,7 @@ struct ProductAccessGate<Content:View>:View {
     @State private var mounted=false
     let content:Content
     init(service:SubscriptionService,@ViewBuilder content:()->Content){self.service=service;self.content=content()}
-    private var allowed:Bool {service.hasAccess || app.preservingEarnedPractice}
+    private var allowed:Bool {service.hasAccess || app.preservingEarnedPractice || app.preservingScholarship}
     var body:some View {
         ZStack {
             if mounted || allowed {content.opacity(allowed ? 1:0).allowsHitTesting(allowed).accessibilityHidden(!allowed)}

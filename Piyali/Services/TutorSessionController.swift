@@ -50,6 +50,7 @@ enum TutorFocus:Equatable {
     private var levelCache:JSONValue?
     private var liveUpdates:AnyCancellable?
     private var completionLesson:Lesson?,completionChange:UUID?
+    private var scholarshipCompletion:ScholarshipPrompt.Scope?
     private var focusedRecord:JSONValue = .object([:]),repairEvidence:JSONValue = .object([:])
     private var focusedGoalChange:UUID?,focusedRepairChange:UUID?
     private var reviewRecord:JSONValue?
@@ -110,7 +111,7 @@ enum TutorFocus:Equatable {
     func prepare(_ app:AppModel) async {
         if owner == scope(app),!id.isEmpty {refresh(app);return}
         await stop(app,saveDraft:false)
-        completionPending=false;completion=nil;review=nil;saving=false;focusedFinished=false;focusedGoalChange=nil;focusedRepairChange=nil;completionChange=nil;completionLesson=nil;reviewRecord=nil
+        completionPending=false;completion=nil;review=nil;saving=false;focusedFinished=false;focusedGoalChange=nil;focusedRepairChange=nil;completionChange=nil;completionLesson=nil;reviewRecord=nil;scholarshipCompletion=nil
         owner=scope(app);let token=epoch,target=app.learner.target;loading=true;error=nil
         defer {if epoch == token{loading=false}}
         do {
@@ -296,6 +297,7 @@ enum TutorFocus:Equatable {
         }
         await live.stop();paused=false;await app.sync();guard valid(app,token) else{return}
         if !Self.fixture,let change=completionChange,app.learner.pendingChanges?.contains(where:{$0.id == change}) == true {error="Tutor progress is saved on this iPhone. Retry when you’re connected to finish saving.";return}
+        if state["starter"].boolean{scholarshipCompletion = .init(account:app.identity.npub,target:app.learner.target)}
         completion=try? policy.run("completed",payload(app).setting("earned",.number(Double(required))))
         let level=app.learner.tutorLevel
         var next=path(app,level:level,id:id)["next"]
@@ -334,7 +336,7 @@ enum TutorFocus:Equatable {
         onFocusedCompletion?()
     }
     func closeCompletion(){review=completion;completion=nil}
-    func closeReview(){review=nil;completionPending=false}
+    func closeReview(_ app:AppModel?=nil){if let app,scholarshipCompletion == .init(account:app.identity.npub,target:app.learner.target){app.requestScholarship()};scholarshipCompletion=nil;review=nil;completionPending=false}
     private func translate(_ response:String,text:String,app:AppModel,token:UUID) async {
         guard app.learner.target != app.learner.support,app.learner.recipeUser["progress"]["showTranslations"] != .bool(false),let policy else{return}
         do {

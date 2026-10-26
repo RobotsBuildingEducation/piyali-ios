@@ -58,6 +58,7 @@ import SwiftUI
     @Published var goalCheck:GoalCheckPresentation?
     @Published var flashcardSession:FlashcardSessionController?
     @Published var pendingLessonCompletion:LessonCompletionPresentation?
+    @Published var scholarship=ScholarshipPrompt()
     var goalEditorFlush:(id:UUID,flush:()->Void)?
     let progressService:any LearnerProgressService
     let identity = IdentityService()
@@ -159,7 +160,7 @@ import SwiftUI
         automaticTipTask?.task.cancel();automaticTipTask=nil;automaticWallet.cancel(clear:true)
         saveTask?.cancel(); contentTask?.cancel()
         let account = identity.npub
-        lessonActivityActive=false;activityFooter=nil;pendingLessonCompletion=nil
+        lessonActivityActive=false;activityFooter=nil;pendingLessonCompletion=nil;scholarship=ScholarshipPrompt()
         loadLocal()
         if let profile=newProfile {
             learner.name=profile.name;learner.support=LearningLanguages.support.contains(profile.support) ? profile.support : "en"
@@ -187,7 +188,7 @@ import SwiftUI
         flushGoalEditor();goalCheck=nil
         do {
             try writeLocal();automaticProgress.reset();automaticTipTask?.task.cancel();automaticTipTask=nil;automaticWallet.cancel(clear:true);saveTask?.cancel();contentTask?.cancel();nostrSyncTask?.cancel();nostrAchievements.cancel();teams.cancel(clear:true);teamFeed.cancel(clear:true)
-            journeyRecording?.controller.close();journeyRecording=nil;try identity.disconnect();FirebaseIdentityService.shared.clearSession();signedIn=false;lessonActivityActive=false;activityFooter=nil;pendingLessonCompletion=nil;subscription.bind(identity);learner=LearnerState()
+            journeyRecording?.controller.close();journeyRecording=nil;try identity.disconnect();FirebaseIdentityService.shared.clearSession();signedIn=false;lessonActivityActive=false;activityFooter=nil;pendingLessonCompletion=nil;scholarship=ScholarshipPrompt();subscription.bind(identity);learner=LearnerState()
         } catch { self.error=error.localizedDescription }
     }
     func boot() async { guard signedIn else { return };scheduleAutomaticTips(recovering:true); await reloadContent(); await sync(); await subscription.refresh(); scheduleNostrAchievements();scheduleAutomaticTips() }
@@ -545,7 +546,7 @@ import SwiftUI
 extension AppModel {
     func scheduleAutomaticTips(changes:[PracticeChange] = [],recovering:Bool = false) {
         guard signedIn,!identity.hex.isEmpty else { return }
-        do { try automaticWallet.enqueueAutomaticTips(recovering ? learner.pendingChanges ?? [] : changes,identity:identity,resuming:recovering) } catch { return }
+        do { try automaticWallet.adoptSourceSupport(identity:identity,recipient:learner.settingsSnapshot["identity"].string);try automaticWallet.enqueueAutomaticTips(recovering ? learner.pendingChanges ?? [] : changes,identity:identity,resuming:recovering) } catch { return }
         guard automaticTipTask == nil,automaticWallet.hasAutomaticWork(identity:identity) else { return }
         let id=UUID(),account=identity.hex
         let task=Task { [weak self] in
@@ -564,4 +565,11 @@ extension AppModel {
         }
         automaticTipTask=(id,task)
     }
+}
+
+extension AppModel {
+    var preservingScholarship:Bool{let scope=ScholarshipPrompt.Scope(account:identity.npub,target:learner.target);return !scholarshipSeen && (scholarship.pending == scope || scholarship.visible == scope)}
+    var scholarshipSeen:Bool{learner.settingsSnapshot["tutorialBitcoinModalShown"].boolean}
+    func requestScholarship(){scholarship.request(account:identity.npub,target:learner.target,seen:scholarshipSeen)}
+    func dismissScholarship(){guard scholarship.dismiss(account:identity.npub,target:learner.target) else{return};updateSettings(.object(["tutorialBitcoinModalShown":.bool(true)]))}
 }

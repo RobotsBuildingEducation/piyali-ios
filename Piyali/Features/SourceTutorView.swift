@@ -42,7 +42,7 @@ struct SourceTutorView:View {
             .onDisappear{if !pathOpen && !historyOpen{app.releaseTutorReview(owner:footerOwner);app.releaseEarnedPractice(owner:footerOwner);stop()}}
             .fullScreenCover(isPresented:$pathOpen){TutorSourcePathView(tutor:tutor,onClose:{pathOpen=false})}
             .sheet(isPresented:$historyOpen){history.presentationDetents([.large]).presentationDragIndicator(.visible)}
-            .overlay {if let data=tutor.completion{TutorSourceCompletion(data:data,copy:{tutor.copy($0,app.learner.support)},onContinue:{app.deferTutorReview(owner:footerOwner);tutor.closeCompletion()})}else if let data=tutor.review,app.dailyGoalReward == nil{TutorSourceReview(data:data,copy:{tutor.copy($0,app.learner.support)},onContinue:{tutor.closeReview()})}}
+            .overlay {if let data=tutor.completion{TutorSourceCompletion(data:data,copy:{tutor.copy($0,app.learner.support)},onContinue:{app.deferTutorReview(owner:footerOwner);tutor.closeCompletion()})}else if let data=tutor.review,app.dailyGoalReward == nil{TutorSourceReview(data:data,copy:{tutor.copy($0,app.learner.support)},onContinue:{tutor.closeReview(app)})}}
     }
     private var surface:some View {
         ScrollView {

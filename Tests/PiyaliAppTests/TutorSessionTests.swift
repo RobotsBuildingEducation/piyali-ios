@@ -107,7 +107,7 @@ extension TutorSessionTests {
         await session.complete(app,ready:true)
         XCTAssertEqual(app.learner.totalXP,349);XCTAssertEqual(session.completion?["xpEarned"].number,50);XCTAssertEqual(session.id,"lesson-pre-a1-1-1");XCTAssertTrue(app.learner.completed.contains(app.learner.tutorKey(completedID)));XCTAssertTrue(app.learner.pendingChanges?.isEmpty == true)
         session.closeCompletion();XCTAssertNil(session.completion);XCTAssertEqual(session.review?["items"].array.count,7);XCTAssertTrue(session.completionPending)
-        session.closeReview();XCTAssertFalse(session.completionPending);XCTAssertFalse(app.subscription.hasAccess);XCTAssertEqual(app.learner.totalXP,349);await session.stop(app)
+        session.closeReview(app);XCTAssertNotNil(app.scholarship.pending);XCTAssertFalse(session.completionPending);XCTAssertFalse(app.subscription.hasAccess);XCTAssertEqual(app.learner.totalXP,349);await session.stop(app)
     }
 }
 

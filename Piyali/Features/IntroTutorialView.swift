@@ -72,7 +72,7 @@ struct IntroTutorialView:View {
     private func finish(scope:String) {
         guard scope == self.scope,!finishing else { return };finishing=true
         let rewarded=app.learner.completeIntro(lesson);app.persist()
-        if rewarded { app.pendingLessonCompletion = .init(account:app.identity.npub,target:app.learner.target,lesson:lesson,reward:lesson.xpReward,languageXP:app.learner.xp) }
+        if rewarded { app.pendingLessonCompletion = .init(account:app.identity.npub,target:app.learner.target,lesson:lesson,reward:lesson.xpReward,languageXP:app.learner.xp);app.requestScholarship() }
         dismiss()
     }
 }

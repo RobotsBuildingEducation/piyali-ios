@@ -28,7 +28,7 @@ import XCTest
         func openPath() { XCTAssertTrue(app.buttons["productMenu"].waitForExistence(timeout:15));app.buttons["productMenu"].tap();app.buttons["productModeMenu"].tap();app.buttons["productMode-path"].tap() }
         openPath();XCTAssertTrue(app.buttons["introLink"].waitForExistence(timeout:15));app.buttons["introLink"].tap();app.buttons["startLessonFromPreview"].tap()
         for _ in 0..<6 { let next=app.buttons.matching(NSPredicate(format:"identifier IN %@",["skipLessonActivity","skipIntroActivity","realtimeSkip","rpgBack"])).firstMatch;XCTAssertTrue(next.waitForExistence(timeout:10));reveal(next,app);next.tap() }
-        XCTAssertTrue(app.staticTexts["lessonCompletionBonus"].waitForExistence(timeout:10));XCTAssertEqual(app.staticTexts["lessonCompletionBonus"].label,"+50");app.buttons["continueLessonCompletion"].tap()
+        XCTAssertTrue(app.staticTexts["lessonCompletionBonus"].waitForExistence(timeout:10));XCTAssertEqual(app.staticTexts["lessonCompletionBonus"].label,"+50");app.buttons["continueLessonCompletion"].tap();if app.buttons["scholarshipLater"].waitForExistence(timeout:3){app.buttons["scholarshipLater"].tap()}
         let first=app.buttons["lessonNode-lesson-pre-a1-1-1"],second=app.buttons["lessonNode-lesson-pre-a1-1-2"]
         XCTAssertTrue(first.waitForExistence(timeout:5));XCTAssertTrue(first.isEnabled);XCTAssertFalse(second.isEnabled)
         first.tap();XCTAssertTrue(app.staticTexts["+80 XP"].waitForExistence(timeout:5));app.buttons["startLessonFromPreview"].tap()
@@ -44,7 +44,7 @@ import XCTest
         }
         let bonus=app.staticTexts["lessonCompletionBonus"];XCTAssertTrue(bonus.waitForExistence(timeout:10));XCTAssertEqual(bonus.label,"+80");XCTAssertTrue(app.staticTexts["Lesson Complete!"].exists)
         let shot=XCTAttachment(screenshot:app.screenshot());shot.name="Native completed 80 XP curriculum lesson";shot.lifetime = .keepAlways;add(shot)
-        app.buttons["continueLessonCompletion"].tap();XCTAssertTrue(first.waitForExistence(timeout:5));XCTAssertEqual(first.value as? String,"completed");XCTAssertTrue(second.isEnabled)
+        app.buttons["continueLessonCompletion"].tap();if app.buttons["scholarshipLater"].waitForExistence(timeout:3){app.buttons["scholarshipLater"].tap()};XCTAssertTrue(first.waitForExistence(timeout:5));XCTAssertEqual(first.value as? String,"completed");XCTAssertTrue(second.isEnabled)
         app.terminate();app.launch();openPath();XCTAssertTrue(first.waitForExistence(timeout:10));XCTAssertEqual(first.value as? String,"completed");XCTAssertTrue(second.isEnabled);XCTAssertFalse(app.staticTexts["lessonCompletionBonus"].exists)
     }
     func testBinaryQuestionRetriesInPlaceAndCorrectRewardSurvivesRelaunch() {
