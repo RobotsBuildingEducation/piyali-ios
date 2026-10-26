@@ -9,8 +9,8 @@ public struct SettingsChange:Codable,Identifiable,Sendable {
 }
 public enum LearnerSettings {
     public static let progressKeys:Set<String>=["tutorVoice","tutorVoicePersona","pauseMs","showTranslations","helpRequest","practicePronunciation"]
-    public static let rootKeys:Set<String>=["dailyGoalPetName","dailyGoalPetType","tutorialBitcoinModalShown","identity","createdWallet","themeMode","allowPosts","soundEnabled","soundVolume","tutorVolume","rpgMusicEnabled","rpgMusicPreferenceVersion"]
-    public static let directKeys:Set<String>=["dailyGoalPetName","dailyGoalPetType","tutorialBitcoinModalShown","identity","createdWallet","allowPosts","soundEnabled","soundVolume","tutorVolume","rpgMusicEnabled","rpgMusicPreferenceVersion"]
+    public static let rootKeys:Set<String>=["companionUnlocksCelebrated","dailyGoalPetName","dailyGoalPetType","tutorialBitcoinModalShown","identity","createdWallet","themeMode","allowPosts","soundEnabled","soundVolume","tutorVolume","rpgMusicEnabled","rpgMusicPreferenceVersion"]
+    public static let directKeys:Set<String>=["companionUnlocksCelebrated","dailyGoalPetName","dailyGoalPetType","tutorialBitcoinModalShown","identity","createdWallet","allowPosts","soundEnabled","soundVolume","tutorVolume","rpgMusicEnabled","rpgMusicPreferenceVersion"]
     public static func sourceUser(_ fields:[String:Any])->JSONValue {
         let p=(fields["progress"] as? [String:Any] ?? [:]).filter{progressKeys.union(["targetLang","supportLang","level","voice","voicePersona"]).contains($0.key)}
         return PhonicsProgress.document(fields.filter{rootKeys.contains($0.key)}.merging(["progress":p]){_,new in new})
@@ -24,6 +24,7 @@ public enum LearnerSettings {
         var data=original
         for (key,value) in change.partial.object {
             if progressKeys.contains(key){data=data.setting("progress",data["progress"].setting(key,value))}
+            else if key == "companionUnlocksCelebrated"{var map=data[key].object;for(type,flag)in value.object where CompanionTypes.ordered.contains(type)&&NostrAchievementCollection.truthy(flag){map[type] = .bool(true)};data=data.setting(key,.object(map))}
             else if rootKeys.contains(key){data=data.setting(key,value)}
         }
         return data
@@ -31,11 +32,12 @@ public enum LearnerSettings {
     /// The source normalizer reads the latest canonical progress. Only settings
     /// fields are returned, so XP, course counters and unknown values retain their types.
     public static func patch(_ change:SettingsChange,fields:JSONValue,policy:SettingsSourcePolicy)throws->JSONValue {
-        let partial=change.partial.object.filter{progressKeys.union(rootKeys).contains($0.key)}
+        var partial=change.partial.object.filter{progressKeys.union(rootKeys).contains($0.key)}
+        if let flags=partial["companionUnlocksCelebrated"]{let valid=flags.object.filter{CompanionTypes.ordered.contains($0.key)&&NostrAchievementCollection.truthy($0.value)}.mapValues{_ in JSONValue.bool(true)};if valid.isEmpty{partial.removeValue(forKey:"companionUnlocksCelebrated")}else{partial["companionUnlocksCelebrated"] = .object(valid)}}
         if Set(partial.keys).isSubset(of:directKeys){return .object(partial)}
         let normalized=try policy.run("normalize",.object(["user":fields,"partial":.object(partial),"provider":.string(change.provider == "gemini" ? "gemini":"openai")]))
         var patch: [String:JSONValue] = ["progress":.object(normalized["progress"].object.filter{progressKeys.contains($0.key)}),"themeMode":normalized["themeMode"],"appLanguage":normalized["appLanguage"],"helpRequest":normalized["helpRequest"],"practicePronunciation":normalized["practicePronunciation"]]
-        for key in ["dailyGoalPetName","dailyGoalPetType","tutorialBitcoinModalShown","identity","createdWallet"]{if let value=partial[key]{patch[key]=value}}
+        for key in ["companionUnlocksCelebrated","dailyGoalPetName","dailyGoalPetType","tutorialBitcoinModalShown","identity","createdWallet"]{if let value=partial[key]{patch[key]=value}}
         return .object(patch)
     }
 }

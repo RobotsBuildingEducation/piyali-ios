@@ -16,6 +16,9 @@ import Foundation
         #if DEBUG
         if ProcessInfo.processInfo.environment["PIYALI_ACHIEVEMENT_FIXTURE"] == "1"{app.learner.achievementRecords=["piyali_tutor_complete_pre_a1":.object(["unlockedAt":.number(123)]),"tutor_reach_a2":.object(["unlockedAt":.number(124)]),"robots_full_curriculum_v4":.object(["unlockedAt":.number(125)])]}
         #endif
+        #if DEBUG
+        if ProcessInfo.processInfo.environment["PIYALI_COMPANION_UNLOCK_FIXTURE"] == "1"{let now=Date();app.learner.xpByLanguage=[app.learner.target:99];app.learner.dailyGoal=100;app.learner.dailyXP=99;app.learner.dailyKey=CalendarDay.key(now);app.learner.companionProgress = .object(["dailyXp":.number(99),"dailyHasCelebrated":.bool(false),"dailyGoalPetHealth":.number(85),"dailyResetAt":.string(WebProgressContract.iso(now.addingTimeInterval(86400))),"dailyStartedAt":.string(WebProgressContract.iso(now))])}
+        #endif
         UserDefaults.standard.set(true,forKey:key);UserDefaults.standard.set(true,forKey:"piyali.companionBubbleDismissed:"+app.identity.npub+":"+app.learner.target+":"+CalendarDay.key(Date()))
     }
     static func publishProfile(name:String,identity:IdentityService,author:String)async throws {

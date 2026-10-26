@@ -3,7 +3,11 @@ import Combine
 import SwiftUI
 
 @MainActor final class AppModel: ObservableObject {
-    @Published var learner = LearnerState() { didSet {captureDailyGoalReward(previous:oldValue);notifyPracticeObservers();subscription.updatePracticeXP(learner.subscriptionXP);bindAchievementDelivery()} }
+    @Published var learner = LearnerState() { didSet {captureDailyGoalReward(previous:oldValue);captureCompanionUnlock(previous:oldValue);notifyPracticeObservers();subscription.updatePracticeXP(learner.subscriptionXP);bindAchievementDelivery()} }
+    @Published private(set) var companionUnlock:CompanionUnlock?
+    @Published private(set) var companionUnlockRevision=0
+    private var companionDelivery=CompanionUnlockState()
+    var pendingCompanionUnlocks:[CompanionUnlock]{companionDelivery.pending}
     let nostrAchievements=NostrAchievementsService()
     private var nostrSyncTask: Task<Void,Never>?
     @Published var signedIn = false {didSet{bindAchievementDelivery()}}
@@ -141,7 +145,7 @@ import SwiftUI
             Task { @MainActor in guard let self,self.identity.hex == notification.object as? String else { return };self.scheduleAutomaticTips() }
         }
     }
-    private func bindAchievementDelivery(){achievementUnlock.setIdentity(signedIn ? identity.npub:"");achievementUnlock.setLanguage(learner.support)}
+    private func bindAchievementDelivery(){achievementUnlock.setIdentity(signedIn ? identity.npub:"");achievementUnlock.setLanguage(learner.support);bindCompanionDelivery()}
     func receiveConfirmedAchievement(_ event:ConfirmedAchievementDelivery){
         guard signedIn,identity.npub == event.account else{return};bindAchievementDelivery()
         let prior=learner.achievementRecords
@@ -151,6 +155,28 @@ import SwiftUI
         for id in event.ids where NostrAchievementCollection.merging([event.records])[id] != .null{achievementUnlock.enqueue(identity:event.account,id:id,test:NostrAchievementCollection.truthy(event.records[id]["test"]))}
     }
     func dismissAchievement(_ key:Int){achievementUnlock.dismiss(key)}
+    private func publishCompanionDelivery(){if companionUnlockRevision != companionDelivery.revision{companionUnlockRevision=companionDelivery.revision};if companionUnlock != companionDelivery.visible{companionUnlock=companionDelivery.visible}}
+    private func bindCompanionDelivery(){companionDelivery.bind(signedIn ? identity.npub:"");publishCompanionDelivery()}
+    private var celebratedCompanions:Set<String>{Set(CompanionTypes.ordered.filter{NostrAchievementCollection.truthy(learner.settingsSnapshot["companionUnlocksCelebrated"][$0]) || UserDefaults.standard.bool(forKey:"companionUnlockCelebrated:"+identity.npub+":"+$0)})}
+    private func captureCompanionUnlock(previous:LearnerState,acknowledgment:Bool=false){
+        guard (!restoringLearner || acknowledgment),signedIn,learner.onboardingComplete,previous.target == learner.target,learner.xp>previous.xp else{return}
+        bindCompanionDelivery();let types=CompanionUnlockState.newlyUnlocked(previous:previous.companionLevel,next:learner.companionLevel);guard !types.isEmpty else{return}
+        let oldIDs=Set((previous.pendingChanges ?? []).map(\.id)),changes=(learner.pendingChanges ?? []).filter{!oldIDs.contains($0.id)&&$0.amount>0}
+        let expects=changes.contains{[PracticeSource.lesson,.speak,.repair].contains($0.source)} || lessonActivityActive
+        companionDelivery.enqueue(types:types,level:learner.companionLevel,names:CompanionUnlockUI.copy(learner.support)["names"],celebrated:celebratedCompanions,expectsModal:expects);publishCompanionDelivery()
+    }
+    func pollCompanionUnlock(now:Double,blocked:Bool)->CompanionUnlock?{
+        bindCompanionDelivery();guard signedIn else{return nil}
+        let item=companionDelivery.poll(now:now,blocked:blocked,celebrated:celebratedCompanions)
+        if let item{UserDefaults.standard.set(true,forKey:"companionUnlockCelebrated:"+item.account+":"+item.type);learner.changeSettings(.object(["companionUnlocksCelebrated":.object([item.type:.bool(true)])]));persist()}
+        publishCompanionDelivery();return item
+    }
+    func companionUnlockDelay(now:Double)->Double{companionDelivery.delay(now:now)}
+    func finishCompanionUnlock(_ item:CompanionUnlock,equip:Bool){
+        guard signedIn,identity.npub == item.account,companionDelivery.visible?.id == item.id else{return}
+        if equip{learner.companionType=CompanionTypes.effective(item.type,level:learner.companionLevel);persist()}
+        companionDelivery.dismiss(item);publishCompanionDelivery()
+    }
     private var localURL: URL {
         let root = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("Piyali", isDirectory: true)
         try? FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
@@ -209,7 +235,7 @@ import SwiftUI
     func boot() async { guard signedIn else { return };scheduleAutomaticTips(recovering:true); await reloadContent(); await sync(); await subscription.refresh(); scheduleNostrAchievements();scheduleAutomaticTips() }
     func finishOnboarding(_ draft:OnboardingDraft?=nil) {
         if let draft {learner.completeOnboarding(draft)} else {learner.onboardingComplete=true;learner.preferencesModifiedAt=Date()}
-        PlatePracticeFixture.seed(self);MemoryDrawerFixture.seed(self);SettingsFixture.seed(self);persist();Task { await reloadContent() }
+        restoringLearner=true;PlatePracticeFixture.seed(self);MemoryDrawerFixture.seed(self);SettingsFixture.seed(self);restoringLearner=false;persist();Task { await reloadContent() }
     }
     var immersionPreparationKey: String {
         let scope=learner.immersionScope()
@@ -350,7 +376,7 @@ import SwiftUI
         automaticProgress.observe(cloud,identity:identity,locallyAllowed:learner.automaticPostsEnabled)
         let priorGoalModes=readyGoal?["modeProgress"]
         let target = learner.target, support = learner.support, level = learner.level, cardLevel = learner.flashcardLevel, tutorLevel = learner.tutorLevel
-        restoreLearner(LearnerState.rebased(current:learner,sent:sent,acknowledged:cloud));syncSettingsAppearance()
+        let priorLearner=learner;restoreLearner(LearnerState.rebased(current:learner,sent:sent,acknowledged:cloud));captureCompanionUnlock(previous:priorLearner,acknowledgment:true);syncSettingsAppearance()
         for change in learner.pendingRepairEvidence ?? [] {
             let bucket=learner.goalIntelligence?[change.target] ?? .object([:])
             if let summary=try? companionQuestPolicy?.run("evidence",.object(["summary":bucket["repairSummary"],"event":change.event,"now":.number(change.date.timeIntervalSince1970*1000)])) {if learner.goalIntelligence == nil {learner.goalIntelligence=[:]};learner.goalIntelligence?[change.target]=bucket.setting("repairSummary",summary)}

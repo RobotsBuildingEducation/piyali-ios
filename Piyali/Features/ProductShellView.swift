@@ -124,7 +124,7 @@ struct ProductShellView:View {
             .overlay {if let data=practice.visible {PlateCelebrationView(data:data,language:language,onContinue:{practice.continuePractice(app,ephemeralLesson:specialCourse != nil && mode == .path)},onNotes:{practice.continuePractice(app,viewNotes:true,ephemeralLesson:specialCourse != nil && mode == .path)}).environment(\.layoutDirection,language == "ar" ? .rightToLeft:.leftToRight)}}
     }
     private var memoryShell:some View {timedShell.overlay{if panel == .settings{SettingsDrawerView(onClose:{panel=nil},onPlacement:{panel = .placement})}}.overlay{if panel == .memory{MemoryDrawerView(onClose:{panel=nil},initialTab:memoryInitialTab).accessibilityHidden(app.journeyRecording != nil)}}.overlay{if let p=app.journeyRecording,p.account == app.identity.npub,p.target == app.learner.target{JourneyRecordingView(journey:p.controller,milestone:p.milestone,onClose:{app.journeyRecording=nil},onOpenJourney:{app.journeyRecording=nil;memoryInitialTab="journey";panel = .memory})}}}
-    private var journeyCanPresent:Bool {app.signedIn && app.learner.onboardingComplete && !app.loadingContent && panel == nil && !menuOpen && !goalOpen && !timerOpen && timer.session.status != .finished && firstRun.step == nil && app.journeyRecording == nil && app.goalCheck == nil && app.flashcardSession == nil && lessonCompletion == nil && app.pendingLessonCompletion == nil && practice.visible == nil && practice.pending == nil && practice.dailyGoalVisible == nil && app.dailyGoalReward == nil && !app.lessonActivityActive && !app.hasEarnedPractice(excluding:practice.owner) && launchID == nil && app.scholarship.visible == nil}
+    private var journeyCanPresent:Bool {app.companionUnlock == nil && app.signedIn && app.learner.onboardingComplete && !app.loadingContent && panel == nil && !menuOpen && !goalOpen && !timerOpen && timer.session.status != .finished && firstRun.step == nil && app.journeyRecording == nil && app.goalCheck == nil && app.flashcardSession == nil && lessonCompletion == nil && app.pendingLessonCompletion == nil && practice.visible == nil && practice.pending == nil && practice.dailyGoalVisible == nil && app.dailyGoalReward == nil && !app.lessonActivityActive && !app.hasEarnedPractice(excluding:practice.owner) && launchID == nil && app.scholarship.visible == nil}
     private var sessionShell:some View {
         memoryShell
             .background{JourneyMilestoneGateView(canPresent:journeyCanPresent && app.scholarship.pending == nil){controller,n in app.journeyRecording = .init(controller:controller,milestone:n,account:app.identity.npub,target:app.learner.target)}}
@@ -150,8 +150,9 @@ struct ProductShellView:View {
             .onChange(of:timer.session.status){_,status in if status != .finished {presentPendingLessonCompletion();updatePracticePresentation()}}
             .onChange(of:firstRun.step){_,step in if step == nil {presentPendingLessonCompletion();updatePracticePresentation()}}
     }
-    private var scholarshipCanPresent:Bool{app.signedIn && app.learner.onboardingComplete && panel == nil && !menuOpen && !goalOpen && !timerOpen && timer.session.status != .finished && firstRun.step == nil && app.journeyRecording == nil && app.goalCheck == nil && app.flashcardSession == nil && lessonCompletion == nil && app.pendingLessonCompletion == nil && practice.visible == nil && practice.dailyGoalVisible == nil && app.dailyGoalReward == nil && !app.lessonActivityActive && !app.hasEarnedPractice(excluding:practice.owner) && launchID == nil && app.scholarship.visible == nil}
+    private var scholarshipCanPresent:Bool{app.companionUnlock == nil && app.signedIn && app.learner.onboardingComplete && panel == nil && !menuOpen && !goalOpen && !timerOpen && timer.session.status != .finished && firstRun.step == nil && app.journeyRecording == nil && app.goalCheck == nil && app.flashcardSession == nil && lessonCompletion == nil && app.pendingLessonCompletion == nil && practice.visible == nil && practice.dailyGoalVisible == nil && app.dailyGoalReward == nil && !app.lessonActivityActive && !app.hasEarnedPractice(excluding:practice.owner) && launchID == nil && app.scholarship.visible == nil}
     private var scholarshipGateKey:String{[firstRunScope,String(scholarshipCanPresent),String(app.scholarshipSeen),app.scholarship.pending?.account ?? "",app.scholarship.pending?.target ?? ""].joined(separator:":")}
+    private var companionUnlockBlocked:Bool{!app.signedIn || !app.learner.onboardingComplete || !app.subscription.hasAccess || panel != nil || menuOpen || goalOpen || timerOpen || timer.session.status == .finished || firstRun.step != nil || app.journeyRecording != nil || app.goalCheck != nil || app.flashcardSession != nil || lessonCompletion != nil || app.pendingLessonCompletion != nil || practice.visible != nil || practice.pending != nil || practice.dailyGoalVisible != nil || app.dailyGoalReward != nil || app.scholarship.visible != nil || app.scholarship.pending != nil}
     var body:some View {
         goalCoordinatedShell
             .overlay{if app.scholarship.visible != nil{WalletView(scholarship:true,onDismiss:app.dismissScholarship)}}
@@ -160,10 +161,14 @@ struct ProductShellView:View {
                 guard app.scholarship.pending != nil,scholarshipCanPresent else{return}
                 do{try await Task.sleep(for:.milliseconds(160));try Task.checkCancellation();app.scholarship.present(account:app.identity.npub,target:app.learner.target,seen:app.scholarshipSeen,blocked:!scholarshipCanPresent)}catch{}
             }
+            .background{CompanionUnlockGateView(blocked:{companionUnlockBlocked},onShow:{practiceSounds.play("companionUnlock",enabled:app.learner.soundEffectsEnabled,volume:app.learner.settingsSnapshot["soundVolume"] == .null ? 100:app.learner.settingsSnapshot["soundVolume"].number)})}
+            .accessibilityHidden(app.companionUnlock != nil).allowsHitTesting(app.companionUnlock == nil)
+            .overlay{if let item=app.companionUnlock{CompanionUnlockView(item:item,language:language,onEquip:{app.finishCompanionUnlock(item,equip:true)},onKeep:{app.finishCompanionUnlock(item,equip:false)})}}
             // The value publisher replays a footer created while NavigationStack is mounting.
             .onReceive(app.$activityFooter) { footer in activityFooter=footer;if footer == nil,app.achievementUnlock.current == nil {app.activityFooterHeight=0} }
             .onChange(of:app.learner.target) { _,_ in revision=UUID() }
             .onChange(of:app.localPracticeRevision) { _,_ in updatePracticePresentation() }
+            .onChange(of:app.companionUnlock?.id){_,value in updatePracticePresentation();if value == nil{presentPendingLessonCompletion()}}
             .onChange(of:panel) { _,value in if value == nil { memoryInitialTab="repairs";practice.closeNotes(app);presentPendingLessonCompletion();updatePracticePresentation() } }
             .onChange(of:menuOpen) { _,open in if !open { presentPendingLessonCompletion();updatePracticePresentation() } }
             .onChange(of:app.pendingLessonCompletion?.id) { _,_ in presentPendingLessonCompletion() }
@@ -267,8 +272,8 @@ struct ProductShellView:View {
         }
         revision=UUID()
     }
-    private var canPresentPracticeModal:Bool {panel == nil && !menuOpen && !goalOpen && !timerOpen && timer.session.status != .finished && firstRun.step == nil && app.goalCheck == nil && app.flashcardSession == nil && lessonCompletion == nil && practice.visible == nil && app.dailyGoalReward == nil && app.scholarship.visible == nil}
-    private func updatePracticePresentation(){practice.presentationBlocked(panel != nil || menuOpen || goalOpen || timerOpen || timer.session.status == .finished || firstRun.step != nil || lessonCompletion != nil || app.scholarship.visible != nil,app:app)}
+    private var canPresentPracticeModal:Bool {app.companionUnlock == nil && panel == nil && !menuOpen && !goalOpen && !timerOpen && timer.session.status != .finished && firstRun.step == nil && app.goalCheck == nil && app.flashcardSession == nil && lessonCompletion == nil && practice.visible == nil && app.dailyGoalReward == nil && app.scholarship.visible == nil}
+    private func updatePracticePresentation(){practice.presentationBlocked(app.companionUnlock != nil || panel != nil || menuOpen || goalOpen || timerOpen || timer.session.status == .finished || firstRun.step != nil || lessonCompletion != nil || app.scholarship.visible != nil,app:app)}
     private func presentPendingLessonCompletion() {
         guard let pending=app.pendingLessonCompletion else { return }
         guard pending.account == app.identity.npub,pending.target == app.learner.target else { app.pendingLessonCompletion=nil;return }

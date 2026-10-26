@@ -1143,3 +1143,17 @@ extension FirestoreContractTests {
   try await user.updateData(["dailyGoalPetName":"Web after migration"]);_=try await service.save(legacy,npub:npub);let retry=try requireState(await service.load(npub:npub));XCTAssertEqual(retry.companionName,"Web after migration","A lost legacy-migration acknowledgment cannot replay the write under a new receipt")
  }
 }
+
+
+extension FirestoreContractTests {
+ func testCompanionUnlockFlagsUnionAcrossDevicesAndIgnoreClearsAndRepeatedReceipts()async throws{
+  let(service,db,npub)=try context();try await seed(db,npub);let user=db.collection("users").document(npub),date=Timestamp(date:Date(timeIntervalSince1970:1792800000));try await user.setData(["companionUnlocksCelebrated":["alien":true,"futureCompanion":"preserve"],"dailyGoalPetName":"Cielo","dailyGoalPetType":"ghost","foreignTimestamp":date],merge:true)
+  let baseline=try requireState(await service.load(npub:npub));var a=baseline,b=baseline
+  a.changeSettings(.object(["companionUnlocksCelebrated":.object(["robot":.bool(true)])]));b.changeSettings(.object(["companionUnlocksCelebrated":.object(["slime":.bool(true)])]));let sentA=a,sentB=b
+  async let first=service.save(sentA,npub:npub);async let second=service.save(sentB,npub:npub);_=try await[first,second];_=try await service.save(sentA,npub:npub)
+  var restored=try requireState(await service.load(npub:npub));XCTAssertEqual(restored.settingsSnapshot["companionUnlocksCelebrated"],.object(["alien":.bool(true),"robot":.bool(true),"slime":.bool(true),"futureCompanion":.string("preserve")]))
+  restored.changeSettings(.object(["companionUnlocksCelebrated":.object(["alien":.bool(false),"bogus":.bool(true)])]));restored.changeSettings(.object(["companionUnlocksCelebrated":.object([:])]));_=try await service.save(restored,npub:npub)
+  let final=try requireState(await service.load(npub:npub)),fields=try await user.getDocument(source:.server).data() ?? [:]
+  XCTAssertEqual(final.settingsSnapshot["companionUnlocksCelebrated"],restored.settingsSnapshot["companionUnlocksCelebrated"]);XCTAssertTrue(final.pendingSettingsChanges?.isEmpty == true);XCTAssertEqual(final.totalXP,baseline.totalXP);XCTAssertEqual(final.dailyXP,baseline.dailyXP);XCTAssertEqual(final.companionHealth,baseline.companionHealth);XCTAssertEqual(final.companionName,"Cielo");XCTAssertEqual(final.companionType,"ghost");XCTAssertEqual(fields["patreonVerified"] as? Bool,true);XCTAssertEqual(fields["foreignTimestamp"] as? Timestamp,date);XCTAssertEqual(fields["unrelatedWebSetting"] as? String,"preserve")
+ }
+}

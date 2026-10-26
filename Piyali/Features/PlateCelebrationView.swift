@@ -65,8 +65,9 @@ private struct QuestSparkleShape:Shape {
 /// tall modal; corner-to-corner endpoints would change the source colors.
 struct SourceCelebrationGradient:UIViewRepresentable {
     let colors:[Color]
+    var locations:[CGFloat]?=nil
     func makeUIView(context:Context)->SourceGradientLayerView {SourceGradientLayerView()}
-    func updateUIView(_ view:SourceGradientLayerView,context:Context){(view.layer as? CAGradientLayer)?.colors=colors.map{UIColor($0).cgColor}}
+    func updateUIView(_ view:SourceGradientLayerView,context:Context){(view.layer as? CAGradientLayer)?.colors=colors.map{UIColor($0).cgColor};(view.layer as? CAGradientLayer)?.locations=locations?.map{NSNumber(value:Double($0))}}
 }
 final class SourceGradientLayerView:UIView {
     override class var layerClass:AnyClass {CAGradientLayer.self}
