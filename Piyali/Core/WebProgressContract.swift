@@ -47,6 +47,8 @@ public enum WebProgressContract {
         // The original prompt falls back to the old account-wide placement
         // only while the language placement map is entirely absent.
         state.legacyFirstRunPlacement = fields["proficiencyPlacements"] == nil || fields["proficiencyPlacements"] is NSNull ? (fields["proficiencyPlacement"] as? String).flatMap{$0.isEmpty ? nil : $0} : nil
+        let legacy=fields["subscriptionPasscodeVerified"]
+        state.legacySubscriptionPasscodeVerified=(legacy as? String == "true") || (legacy as? String == "1") || (legacy as? NSNumber)?.doubleValue == 1
         let progress = fields["progress"] as? [String:Any] ?? [:]
         state.userSettings=LearnerSettings.snapshot(LearnerSettings.sourceUser(fields))
         state.pendingSettingsChanges=(state.pendingSettingsChanges ?? []).filter{!(state.acknowledgedEventIDs ?? []).contains($0.id)}

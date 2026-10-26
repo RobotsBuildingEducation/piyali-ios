@@ -2,39 +2,6 @@ import SwiftUI
 import StoreKit
 import LocalAuthentication
 
-struct SubscriptionView: View {
-    @ObservedObject var service: SubscriptionService
-    let config = AppConfiguration()
-    var body: some View {
-        List {
-            Section {
-                Text(service.authorized ? "Your subscription is active" : "Unlock Piyali").font(.title2)
-                Text("Access the AI tutor, generated lessons, reading, stories, conversation and listening practice.")
-                if service.webAuthorized { Text("Verified web subscription") }
-                if service.appleAuthorized { Text("Verified Apple subscription") }
-                if service.busy { ProgressView("Checking subscription…") }
-            }
-            Section("Subscribe on iPhone") {
-                ForEach(service.products) { product in Button("\(product.displayName) · \(product.displayPrice)") { Task { await service.buy(product) } }.disabled(service.busy) }
-                if service.products.isEmpty { Text("App Store plans are not available yet. Existing web subscribers can restore access below.") }
-                Button("Restore purchases and web access") { Task { await service.restore() } }.disabled(service.busy)
-                Button("Refresh subscription") { Task { await service.refresh() } }.disabled(service.busy)
-                Button("Manage Apple subscription") { if let url = URL(string: "https://apps.apple.com/account/subscriptions") { UIApplication.shared.open(url) } }
-            }
-            if service.externalPaymentAllowed {
-                Section("Subscribe on the web") {
-                    Link("Open Piyali web subscriptions", destination: config.subscriptionURL)
-                    Text("Use the same Piyali key on the web, connect Patreon there, then return and refresh access. Never put your private key in a URL.").font(.footnote)
-                }
-            }
-            Section {
-                NavigationLink("Subscription terms") { SubscriptionTermsView() }
-                NavigationLink("Privacy") { PrivacyDisclosureView() }
-            }
-            if let error = service.error { Text(error).foregroundStyle(.red) }
-        }.navigationTitle("Subscription")
-    }
-}
 struct NotebookView: View {
     @EnvironmentObject var app: AppModel
     @State private var title = ""

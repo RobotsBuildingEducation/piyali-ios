@@ -18,3 +18,9 @@ final class SubscriptionXPTests:XCTestCase {
         XCTAssertGreaterThanOrEqual(WebProgressContract.imported(["xp":1e100]).subscriptionXP,300)
     }
 }
+
+extension SubscriptionXPTests {
+ func testLegacyPasscodeImportsSourceMigrationHintAcrossLocalEncoding()throws{
+  for value:Any in [true,"true",1,"1"]{let state=WebProgressContract.imported(["subscriptionPasscodeVerified":value,"xp":300]);XCTAssertEqual(state.legacySubscriptionPasscodeVerified,true);XCTAssertEqual(state.subscriptionXP,300);let restored=try JSONDecoder().decode(LearnerState.self,from:JSONEncoder().encode(state));XCTAssertEqual(restored.legacySubscriptionPasscodeVerified,true)}
+ }
+}

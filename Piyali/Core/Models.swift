@@ -227,6 +227,7 @@ public struct LearnerState: Codable, Sendable {
     public var courseCompletion: [String: [String: [String: Int]]]?
     public var gettingStartedModalShown:Bool?
     public var legacyFirstRunPlacement:String?
+    public var legacySubscriptionPasscodeVerified:Bool?
     public var onboardingComplete = false
     public init() {}
     public var xp: Int { xpByLanguage[target, default: 0] }

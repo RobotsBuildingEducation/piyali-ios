@@ -28,7 +28,7 @@ import XCTest
     }
     func testTutorDailyGoalReviewAndCourseCelebrationSurviveRootTrialLimit()async throws{
         let relay=LocalNostrRelay();try await relay.start{frame,connection in if frame.first as? String == "REQ",let sub=frame[1] as? String{relay.send(["EOSE",sub],to:connection)}};defer{relay.stop()};let app=launch("tutor-trial",walletRelay:relay.url);completeTutor(app);tap("guidedContinue",app)
-        XCTAssertTrue(app.buttons["Refresh subscription"].waitForExistence(timeout:15));XCTAssertFalse(app.buttons["tutorStart"].isHittable);photo("Native subscription after earned quest sequence",app)
-        app.terminate();app.launch();XCTAssertTrue(app.buttons["Refresh subscription"].waitForExistence(timeout:15));XCTAssertFalse(app.buttons["guidedContinue"].exists)
+        XCTAssertTrue(app.buttons["subscriptionConnect"].waitForExistence(timeout:15));XCTAssertFalse(app.buttons["tutorStart"].isHittable);photo("Native subscription after earned quest sequence",app)
+        app.terminate();app.launch();XCTAssertTrue(app.buttons["subscriptionConnect"].waitForExistence(timeout:15));XCTAssertFalse(app.buttons["guidedContinue"].exists);tap("subscriptionNativeTools",app);XCTAssertTrue(app.buttons["Refresh subscription"].waitForExistence(timeout:10));XCTAssertTrue(app.links["subscriptionWebLink"].exists || app.buttons["subscriptionWebLink"].exists);photo("Native subscription iPhone purchases and web link",app)
     }
 }
