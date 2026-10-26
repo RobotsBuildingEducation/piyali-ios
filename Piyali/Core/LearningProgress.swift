@@ -24,7 +24,7 @@ public enum CompanionTypes {
     public static let unlocks = ["ghost":1,"alien":2,"robot":5,"slime":10,"dog":20,"axolotl":40]
     public static let ordered = ["ghost","alien","robot","slime","dog","axolotl"]
     public static func available(level: Int) -> [String] { ordered.filter { unlocks[$0,default:1] <= level } }
-    public static func effective(_ type: String, level: Int) -> String { available(level: level).contains(type) ? type : "ghost" }
+    public static func effective(_ type: String, level: Int) -> String { available(level: max(1,level)).contains(type.lowercased()) ? type.lowercased() : "ghost" }
 }
 public struct FocusedPlan: Codable, Sendable {
     public let title: String

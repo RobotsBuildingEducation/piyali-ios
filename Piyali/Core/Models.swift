@@ -179,6 +179,7 @@ public struct LearnerState: Codable, Sendable {
     public var flashcardMastery: Set<String> = []
     public var history: [HistoryEntry] = []
     public var notes: [Note] = []
+    public var companionCustomizationVersion:Int?=1
     public var companionName = ""
     public var companionType = "ghost"
     public var companionProgress: JSONValue?

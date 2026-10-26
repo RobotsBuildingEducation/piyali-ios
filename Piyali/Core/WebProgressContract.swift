@@ -37,7 +37,7 @@ public enum WebProgressContract {
          "masteryStage":value.masteryStage,"lapseCount":value.lapseCount,"reviewCount":value.reviewCount,"successfulReviews":value.successfulReviews,"consecutiveCorrect":value.consecutiveCorrect]
     }
     public static func imported(_ fields: [String:Any], native: LearnerState? = nil, now: Date = Date()) -> LearnerState {
-        var state = native ?? LearnerState()
+        var state = native ?? LearnerState();state.migrateCompanionCustomization()
         state.plateHeadlines=(fields["dailyPlateHeadline"] as? [String:Any] ?? [:]).compactMapValues(PlateHeadline.decode)
         for (target,pending) in state.pendingPlateHeadlines ?? [:] {state.plateHeadlines?[target]=pending}
         state.acknowledgedEventIDs = Set((fields["iosRecentEventIDs"] as? [String] ?? []).compactMap(UUID.init(uuidString:)))
@@ -53,6 +53,7 @@ public enum WebProgressContract {
         state.userSettings=LearnerSettings.snapshot(LearnerSettings.sourceUser(fields))
         state.pendingSettingsChanges=(state.pendingSettingsChanges ?? []).filter{!(state.acknowledgedEventIDs ?? []).contains($0.id)}
         for change in state.pendingSettingsChanges ?? [] {state.userSettings=LearnerSettings.applying(change,to:state.settingsSnapshot)}
+        state.restoreCompanionCustomization()
         state.tutorUnlockedLevels=TutorProgression.merging(state.tutorUnlockedLevels,progress["tutorUnlockedLevels"] as? [String:String])
         let questKeys = Set(DailyPlate.fields.values).union(["dailyQuestFirstSeen","dailyQuestFirstDayKey","plateBonusDailyActivity","currentTutorLesson"])
         state.questProgress = JSONValue.foundation(progress.filter { questKeys.contains($0.key) })
@@ -78,8 +79,6 @@ public enum WebProgressContract {
             let rawGoal=candidates.compactMap{$0 is NSNull ? nil:$0}.first
             let goal=(rawGoal as? NSNumber)?.doubleValue ?? (rawGoal as? String).flatMap{Double($0.trimmingCharacters(in:.whitespacesAndNewlines))} ?? 0
             state.dailyGoal = goal.isFinite && goal>0 ? goal>=Double(Int.max) ? Int.max:max(1,Int(goal)) : 100
-            state.companionName = fields["dailyGoalPetName"] as? String ?? state.companionName
-            state.companionType = fields["dailyGoalPetType"] as? String ?? state.companionType
             state.onboardingComplete = (fields["onboarding"] as? [String:Any])?["completed"] as? Bool ?? state.onboardingComplete
             state.tutorLevels = progress["activeTutorLevels"] as? [String:String] ?? state.tutorLevels
             state.lessonLevels = progress["activeLessonLevels"] as? [String:String] ?? state.lessonLevels

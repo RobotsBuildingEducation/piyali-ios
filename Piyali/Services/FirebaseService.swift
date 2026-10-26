@@ -153,6 +153,7 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
     }
     /// Awards are flushed before the snapshot. A failed/partial flush leaves the local outbox intact; retry receipts prevent repeated credit.
     func save(_ state: LearnerState, npub: String) async throws -> LearnerState? {
+        var state=state;state.migrateCompanionCustomization()
         guard let database else { return nil }
         try requireOwner(npub)
         let user = database.collection("users").document(npub)
@@ -259,7 +260,9 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                     patch["iosPreferencesModifiedAt"] = WebProgressContract.iso(state.preferencesModifiedAt ?? Date())
                     let profile = state.preferencesModifiedAt == nil ? merged : state
                     patch["displayName"] = profile.name; patch["language"] = profile.support; patch["appLanguage"] = profile.support
-                    patch["dailyGoalXp"] = profile.dailyGoal; patch["dailyGoalPetName"] = profile.companionName; patch["dailyGoalPetType"] = profile.effectiveCompanionType
+                    patch["dailyGoalXp"] = profile.dailyGoal
+                    if fields["dailyGoalPetName"] == nil{patch["dailyGoalPetName"]=profile.companionName}
+                    if fields["dailyGoalPetType"] == nil{patch["dailyGoalPetType"]=profile.effectiveCompanionType}
                     patch["onboarding"] = ["completed":profile.onboardingComplete]
                     patch["progress"] = ["targetLang":profile.target,"supportLang":profile.support,"cefrLevel":profile.level,"activeTutorLevels":profile.tutorLevels ?? [profile.target:profile.tutorLevel],"activeLessonLevels":profile.lessonLevels ?? [profile.target:profile.level],"activeFlashcardLevels":profile.flashcardLevels ?? [profile.target:profile.flashcardLevel]]
                 }

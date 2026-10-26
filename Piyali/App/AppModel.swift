@@ -160,7 +160,7 @@ import SwiftUI
     func loadLocal() {
         restoringLearner=true;defer{restoringLearner=false}
         if let data = try? Data(contentsOf: localURL), let state = try? JSONDecoder().decode(LearnerState.self, from: data) { learner = state } else { learner = LearnerState() }
-        learner.rollDay(); syncSettingsAppearance();lastPersisted = learner
+        learner.migrateCompanionCustomization();learner.rollDay(); syncSettingsAppearance();lastPersisted = learner
     }
     func signIn(nsec: String?,name:String? = nil,support:String? = nil) async {
         flushGoalEditor();goalCheck=nil;automaticProgress.reset()
@@ -315,10 +315,12 @@ import SwiftUI
     }
     private func writeLocal() throws {do{try JSONEncoder().encode(learner).write(to:localURL,options:[.atomic,.completeFileProtection]);if localStorageUnavailable{localStorageUnavailable=false}}catch{if !localStorageUnavailable{localStorageUnavailable=true};throw error}}
     func persist() {
+        learner.migrateCompanionCustomization()
+        if learner.companionName != lastPersisted.companionName || learner.companionType != lastPersisted.companionType{learner.customizeCompanion(name:learner.companionName,type:learner.companionType)}
         learner.reconcileTutorUnlock(index:tutorCurriculumIndex[learner.target] ?? [:])
         if learner.onboardingComplete && !learner.goal.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty && (learner.goalBucket["activeGoal"]["id"].string.isEmpty || learner.goal != learner.goalBucket["activeGoal"]["text"].string) { learner.editGoal(learner.goal) }
         if learner.onboardingComplete { learner.preparePlate(user:identity.npub,available:availablePlateKinds); _ = learner.claimPlate(user:identity.npub) }
-        if learner.name != lastPersisted.name || learner.target != lastPersisted.target || learner.support != lastPersisted.support || learner.level != lastPersisted.level || learner.dailyGoal != lastPersisted.dailyGoal || learner.companionName != lastPersisted.companionName || learner.companionType != lastPersisted.companionType || learner.onboardingComplete != lastPersisted.onboardingComplete || learner.flashcardLevels != lastPersisted.flashcardLevels || learner.lessonLevels != lastPersisted.lessonLevels || learner.tutorLevels != lastPersisted.tutorLevels { learner.preferencesModifiedAt = Date() }
+        if learner.name != lastPersisted.name || learner.target != lastPersisted.target || learner.support != lastPersisted.support || learner.level != lastPersisted.level || learner.dailyGoal != lastPersisted.dailyGoal || learner.onboardingComplete != lastPersisted.onboardingComplete || learner.flashcardLevels != lastPersisted.flashcardLevels || learner.lessonLevels != lastPersisted.lessonLevels || learner.tutorLevels != lastPersisted.tutorLevels { learner.preferencesModifiedAt = Date() }
         let prior=Set((lastPersisted.pendingChanges ?? []).map(\.id)),newPractice=(learner.pendingChanges ?? []).filter { !prior.contains($0.id) }
         do { try writeLocal(); lastPersisted = learner }
         catch { self.error = "Could not save progress: \(error.localizedDescription)"; return }

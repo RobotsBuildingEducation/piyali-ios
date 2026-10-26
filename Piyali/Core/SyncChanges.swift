@@ -161,9 +161,9 @@ public extension LearnerState {
             if current.level == sent.level { merged.level = acknowledged.level }
             if current.dailyGoal == sent.dailyGoal { merged.dailyGoal = acknowledged.dailyGoal }
             if current.onboardingComplete == sent.onboardingComplete { merged.onboardingComplete = acknowledged.onboardingComplete }
-            if current.companionName == sent.companionName { merged.companionName = acknowledged.companionName }
-            if current.companionType == sent.companionType { merged.companionType = acknowledged.companionType }
         }
+        if current.companionName == sent.companionName { merged.companionName = acknowledged.companionName }
+        if current.companionType == sent.companionType { merged.companionType = acknowledged.companionType }
         for (language, placement) in acknowledged.placements ?? [:] {
             if current.pendingPlacements?[language] == sent.pendingPlacements?[language] {
                 if merged.placements == nil { merged.placements = [:] }; merged.placements?[language] = placement

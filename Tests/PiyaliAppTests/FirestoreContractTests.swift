@@ -1128,3 +1128,18 @@ extension FirestoreContractTests {
         let docs=try await user.collection("achievements").getDocuments(source:.server);XCTAssertTrue(wanted.allSatisfy{key in docs.documents.contains{$0.documentID == key}})
     }
 }
+
+extension FirestoreContractTests {
+ func testCompanionCustomizationUsesPartialReceiptsKeepsWebPreferencesAndDoesNotReplayOldWrites()async throws{
+  let(service,db,npub)=try context();try await seed(db,npub);let user=db.collection("users").document(npub),date=Timestamp(date:Date(timeIntervalSince1970:1792800000));var state=try requireState(await service.load(npub:npub));let xp=state.totalXP
+  state.customizeCompanion(name:"  Cielo  ",type:"ALIEN");XCTAssertNil(state.preferencesModifiedAt);let pending=state
+  try await user.updateData(["dailyGoalXp":85,"language":"ar","progress.supportLang":"ar","progress.tutorVoice":"Kore","dailyGoalPetName":"Web old","dailyGoalPetType":"ghost","foreignTimestamp":date])
+  _=try await service.save(pending,npub:npub);var restored=try requireState(await service.load(npub:npub)),fields=try await user.getDocument(source:.server).data() ?? [:]
+  XCTAssertEqual(restored.companionName,"Cielo");XCTAssertEqual(restored.companionType,"alien");XCTAssertEqual(restored.dailyGoal,85);XCTAssertEqual(restored.support,"ar");XCTAssertEqual(restored.settingsSnapshot["progress"]["tutorVoice"].string,"Kore");XCTAssertEqual(restored.totalXP,xp);XCTAssertTrue(restored.pendingSettingsChanges?.isEmpty == true);XCTAssertEqual(fields["foreignTimestamp"] as? Timestamp,date);XCTAssertEqual(fields["patreonVerified"] as? Bool,true)
+  try await user.updateData(["dailyGoalPetName":"New web choice","dailyGoalPetType":"ghost"]);_=try await service.save(pending,npub:npub);restored=try requireState(await service.load(npub:npub));XCTAssertEqual(restored.companionName,"New web choice");XCTAssertEqual(restored.companionType,"ghost","A lost acknowledgment retry must not undo a newer web customization")
+  restored.customizeCompanion(name:"",type:"robot");_=try await service.save(restored,npub:npub);fields=try await user.getDocument(source:.server).data() ?? [:];XCTAssertEqual(fields["dailyGoalPetName"] as? String,"");XCTAssertEqual(fields["dailyGoalPetType"] as? String,"ghost","Locked selections fall back to the source starter");XCTAssertEqual(fields["dailyGoalXp"] as? Int,85);XCTAssertEqual(fields["xp"] as? Int,xp)
+  var legacy=restored;legacy.companionCustomizationVersion=nil;legacy.pendingSettingsChanges=[];legacy.preferencesModifiedAt=Date(timeIntervalSince1970:1792800000);legacy.companionName="Legacy offline choice";legacy.companionType="alien"
+  _=try await service.save(legacy,npub:npub);let migrated=try requireState(await service.load(npub:npub));XCTAssertEqual(migrated.companionName,"Legacy offline choice");XCTAssertEqual(migrated.companionCustomizationVersion,1)
+  try await user.updateData(["dailyGoalPetName":"Web after migration"]);_=try await service.save(legacy,npub:npub);let retry=try requireState(await service.load(npub:npub));XCTAssertEqual(retry.companionName,"Web after migration","A lost legacy-migration acknowledgment cannot replay the write under a new receipt")
+ }
+}

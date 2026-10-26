@@ -4,15 +4,16 @@ import SwiftUI
 struct CompanionArtwork:View {
     let type:String
     var health:Int?=nil
+    var animated=true
     @Environment(\.accessibilityReduceMotion) private var reducedMotion
     private static let frames=(try? ContentLibrary.load([String:JSONValue].self,name:"companion-preview")) ?? [:]
     private static let stages=(try? ContentLibrary.load([String:JSONValue].self,name:"companion-stages")) ?? [:]
     private let intervals:[String:Double] = ["ghost":0.17,"alien":0.15,"robot":0.18,"slime":0.14,"dog":0.15,"axolotl":0.2]
     var body:some View {
         let interval=health == nil ? intervals[type] ?? 0.17 : 0.18
-        TimelineView(.animation(minimumInterval:interval,paused:reducedMotion || health == 0)) { time in
+        TimelineView(.animation(minimumInterval:interval,paused:reducedMotion || !animated || health == 0)) { time in
             let frames=health.map { Self.stages[FocusCopy.stage($0)]?[type].array ?? [] } ?? Self.frames[type]?.array ?? []
-            let index=reducedMotion || health == 0 ? 0 : Int(time.date.timeIntervalSinceReferenceDate / interval) % 12
+            let index=reducedMotion || !animated || health == 0 ? 0 : Int(time.date.timeIntervalSinceReferenceDate / interval) % 12
             Canvas { context,size in
                 guard frames.indices.contains(index) else { return }
                 context.scaleBy(x:size.width/48,y:size.height/48)
