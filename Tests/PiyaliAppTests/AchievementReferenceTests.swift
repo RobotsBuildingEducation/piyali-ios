@@ -26,3 +26,35 @@ import SceneKit
   XCTAssertEqual(seen.count,20);XCTAssertEqual(rendered.count,20,"Twenty patterns with the same palette and eyes must produce twenty distinct surfaces")
  }
 }
+
+
+@MainActor private struct AchievementFeedbackComparison:View {
+ let unlock:AchievementUnlock,language:String
+ let dark:Bool
+ var body:some View {
+  ZStack(alignment:.bottom){PiyaliBrand(dark:dark).background.ignoresSafeArea();ZStack(alignment:.bottomLeading){AchievementActionContent(unlock:unlock,language:language,animated:false,onDismiss:{}).padding(12).background{SourceActivityDockBackground(correct:nil,achievement:true)}.padding(.horizontal,8).padding(.bottom,12);SourceActivityMenuGlyph().frame(width:22,height:22).frame(width:44,height:44).padding(.leading,20).padding(.bottom,24)}}.ignoresSafeArea().environment(\.layoutDirection,language == "ar" ? .rightToLeft:.leftToRight).environment(\.dynamicTypeSize,.large).preferredColorScheme(dark ? .dark:.light)
+ }
+}
+extension AchievementReferenceTests {
+ func testOriginalFeedbackFallbackQueueAndActionOwnershipAgainstNative()async throws {
+  let e=ProcessInfo.processInfo.environment;guard e["PIYALI_REFERENCE_PREVIEW_TESTS"] == "1",e["PIYALI_OFFLINE_TESTS"] == "1",UUID(uuidString:e["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Isolated source preview required")}
+  let scene=try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap{$0 as? UIWindowScene}.first),old=scene.windows.first{$0.isKeyWindow};defer{old?.makeKey()}
+  for(language,theme)in[("en","light"),("ar","dark")]{for name in["fallback","active","second","test","preview"]{
+   let window=UIWindow(windowScene:scene);window.frame=CGRect(x:0,y:0,width:402,height:874);let c=WKWebViewConfiguration();c.websiteDataStore = .nonPersistent();let web=WKWebView(frame:window.bounds,configuration:c),vc=UIViewController();vc.view=web;window.rootViewController=vc;window.makeKeyAndVisible();web.scrollView.contentInsetAdjustmentBehavior = .never;defer{web.stopLoading();window.isHidden=true;window.rootViewController=nil}
+   web.load(URLRequest(url:URL(string:"http://127.0.0.1:5181/__piyali-achievements?screen=feedback&state=\(name)&language=\(language)&theme=\(theme)")!));var ready=false;for _ in 0..<400{ready=(try? await web.evaluateJavaScript("document.fonts.status==='loaded' && !!document.querySelector('[data-question-action-area]:not([aria-hidden=true]) [data-achievement-feedback] canvas')"))as?Bool == true;if ready{break};try await Task.sleep(for:.milliseconds(50))};XCTAssertTrue(ready,"Source feedback \(name) \(language)");guard ready else{let a=XCTAttachment(string:(try? await web.evaluateJavaScript("JSON.stringify({text:document.body.innerText,errors:window.achievementErrors})"))as?String ?? "No source state");a.lifetime = .keepAlways;add(a);return};try await Task.sleep(for:.milliseconds(600))
+   let shot=XCTAttachment(image:try await web.takeSnapshot(configuration:nil));shot.name="Source achievement feedback \(name) \(language)";shot.lifetime = .keepAlways;add(shot)
+   let metrics=(try? await web.evaluateJavaScript("JSON.stringify([...document.querySelectorAll('[data-question-action-area]:not([aria-hidden=true]) [data-achievement-feedback],[data-question-action-area]:not([aria-hidden=true]) [data-achievement-feedback] h3,[data-question-action-area]:not([aria-hidden=true]) [data-achievement-feedback] p,[data-question-action-area]:not([aria-hidden=true]) button')].map(e=>{let r=e.getBoundingClientRect(),s=getComputedStyle(e);return {text:e.textContent,x:r.x,y:r.y,w:r.width,h:r.height,font:s.font,lineHeight:s.lineHeight}}))"))as?String ?? "[]";let a=XCTAttachment(string:metrics);a.name="Source feedback metrics \(name) \(language)";a.lifetime = .keepAlways;add(a)
+   let before=(try await web.evaluateJavaScript("JSON.stringify(window.feedbackState())"))as?String;XCTAssertTrue(before?.contains(name == "second" ? "nosabos_tutor_lessons_10":"nosabos_flashcards_completed_5") == true)
+   _=try await web.evaluateJavaScript("window.feedbackDismiss()");try await Task.sleep(for:.milliseconds(80));let advanced=(try await web.evaluateJavaScript("window.feedbackAdvanced"))as?Int;XCTAssertEqual(advanced,0,"Dismissing an award must not advance the exercise")
+   web.stopLoading();window.isHidden=true;window.rootViewController=nil
+   let unlock=AchievementUnlock(id:1,achievementID:name == "second" ? "nosabos_tutor_lessons_10":"nosabos_flashcards_completed_5",test:name == "test",preview:name == "preview");window.rootViewController=UIHostingController(rootView:AchievementFeedbackComparison(unlock:unlock,language:language,dark:theme == "dark"));window.makeKeyAndVisible();try await Task.sleep(for:.milliseconds(350));let capture=UIGraphicsImageRenderer(bounds:window.bounds).image{_ in window.drawHierarchy(in:window.bounds,afterScreenUpdates:true)};if name != "second"{try assertCharacterVisible(capture,window:window)};let native=XCTAttachment(image:capture);native.name="Native achievement feedback \(name) \(language)";native.lifetime = .keepAlways;add(native);window.isHidden=true;window.rootViewController=nil
+  }}
+ }
+}
+
+extension AchievementReferenceTests {
+ private func assertCharacterVisible(_ image:UIImage,window:UIWindow)throws {
+  func find(_ view:UIView)->VoiceOrbHost?{if let host=view as? VoiceOrbHost{return host};return view.subviews.lazy.compactMap{find($0)}.first}
+  let host=try XCTUnwrap(find(window)),rect=host.convert(host.bounds,to:window),scale=image.scale,cg=try XCTUnwrap(image.cgImage?.cropping(to:CGRect(x:rect.minX*scale,y:rect.minY*scale,width:rect.width*scale,height:rect.height*scale)));var bytes=[UInt8](repeating:0,count:cg.width*cg.height*4);let ctx=try XCTUnwrap(CGContext(data:&bytes,width:cg.width,height:cg.height,bitsPerComponent:8,bytesPerRow:cg.width*4,space:CGColorSpaceCreateDeviceRGB(),bitmapInfo:CGImageAlphaInfo.premultipliedLast.rawValue));ctx.draw(cg,in:CGRect(x:0,y:0,width:cg.width,height:cg.height));let blue=stride(from:0,to:bytes.count,by:4).filter{Int(bytes[$0+2])>Int(bytes[$0])+20 && bytes[$0+2]>80}.count;XCTAssertGreaterThan(blue,150,"Reduced Motion must retain a visible static blue character inside the actual feedback rail")
+ }
+}

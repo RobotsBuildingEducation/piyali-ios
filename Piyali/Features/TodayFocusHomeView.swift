@@ -50,7 +50,7 @@ struct TodayFocusHomeView:View {
                 }
                 FocusScoreJourney(now:now,preparingImmersion:preparingImmersion,immersionError:immersionError,onRetry:{Task{await prepareImmersion()}})
             }.padding(.horizontal,12).padding(.top,16).padding(.bottom,24).frame(maxWidth:584).frame(maxWidth:.infinity)
-        }.background(BrandBackground()).task(id:bubbleKey){bubbleDismissed=UserDefaults.standard.bool(forKey:bubbleKey);app.prepareDailyPlate()}.task(id:app.immersionPreparationKey){await prepareImmersion()}
+        }.safeAreaInset(edge:.bottom){if app.achievementUnlock.current != nil{Color.clear.frame(height:app.activityFooterHeight)}}.background(BrandBackground()).task(id:bubbleKey){bubbleDismissed=UserDefaults.standard.bool(forKey:bubbleKey);app.prepareDailyPlate()}.task(id:app.immersionPreparationKey){await prepareImmersion()}
             .task(id:HeadlineLoad(scope:headlineScope,cached:headlineCache,cleared:cleared)) {
                 let scope=headlineScope
                 await headline.load(scope:scope,cached:headlineCache,cleared:cleared,policy:try? PlateHeadlinePolicy(),generate:{onChunk in

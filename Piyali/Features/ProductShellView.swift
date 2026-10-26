@@ -60,14 +60,16 @@ struct ProductShellView:View {
                         .toolbar(mode == .focus || mode == .cards || mode == .phonics || mode == .tutor ? .hidden:.automatic,for:.navigationBar)
                 }.id(revision)
             }.tint(PiyaliBrand.teal).blur(radius:menuOpen ? 6 : 0).allowsHitTesting(!menuOpen)
-                .safeAreaInset(edge:.bottom) { if activityFooter == nil { menuButton(compact:false).padding(.bottom,10) } }
+                .safeAreaInset(edge:.bottom) { if activityFooter == nil,app.achievementUnlock.current == nil { menuButton(compact:false).padding(.bottom,10) } }
                 .overlay(alignment:.bottom) {
-                    if let footer=activityFooter {
+                    if activityFooter != nil || app.achievementUnlock.current != nil {
                         ZStack(alignment:.bottomLeading) {
-                            footer.content.id(footer.owner).padding(12).background{SourceActivityDockBackground(correct:footer.correct)}.padding(.horizontal,8).padding(.bottom,12)
+                            Group{if let unlock=app.achievementUnlock.current{AchievementActionContent(unlock:unlock,language:language,onDismiss:{app.dismissAchievement(unlock.id)})}else if let footer=activityFooter{footer.content.id(footer.owner)}}
+                                .padding(12).background{SourceActivityDockBackground(correct:app.achievementUnlock.current == nil ? activityFooter?.correct:nil,achievement:app.achievementUnlock.current != nil)}.padding(.horizontal,8).padding(.bottom,12)
                             menuButton(compact:true).padding(.leading,20).padding(.bottom,24)
                         }.onGeometryChange(for:CGFloat.self,of:{ $0.size.height }) { app.activityFooterHeight=$0 }
                     }
+
                 }
             if menuOpen { menu }
         }.font(PiyaliBrand.productFont(16)).foregroundStyle(brand.text)
@@ -159,7 +161,7 @@ struct ProductShellView:View {
                 do{try await Task.sleep(for:.milliseconds(160));try Task.checkCancellation();app.scholarship.present(account:app.identity.npub,target:app.learner.target,seen:app.scholarshipSeen,blocked:!scholarshipCanPresent)}catch{}
             }
             // The value publisher replays a footer created while NavigationStack is mounting.
-            .onReceive(app.$activityFooter) { footer in activityFooter=footer;if footer == nil {app.activityFooterHeight=0} }
+            .onReceive(app.$activityFooter) { footer in activityFooter=footer;if footer == nil,app.achievementUnlock.current == nil {app.activityFooterHeight=0} }
             .onChange(of:app.learner.target) { _,_ in revision=UUID() }
             .onChange(of:app.localPracticeRevision) { _,_ in updatePracticePresentation() }
             .onChange(of:panel) { _,value in if value == nil { memoryInitialTab="repairs";practice.closeNotes(app);presentPendingLessonCompletion();updatePracticePresentation() } }
@@ -184,7 +186,7 @@ struct ProductShellView:View {
         } else {firstRun.close()}
     }
     private func menuButton(compact:Bool)->some View {
-        Button { modesOpen=false;menuOpen.toggle() } label:{ Image(systemName:"square.grid.3x3.fill").font(.system(size:compact ? 18 : 20)).foregroundStyle(brand.text).frame(width:compact ? 40 : 58,height:compact ? 40 : 58).background(brand.surface.opacity(0.92),in:RoundedRectangle(cornerRadius:compact ? 14 : 20)).overlay { RoundedRectangle(cornerRadius:compact ? 14 : 20).stroke(brand.border) } }.accessibilityLabel(mode.title(language)).accessibilityIdentifier("productMenu").accessibilityHidden(panel != nil).allowsHitTesting(panel == nil).disabled(panel != nil)
+        Button { modesOpen=false;menuOpen.toggle() } label:{ SourceActivityMenuGlyph().frame(width:compact ? (app.achievementUnlock.current == nil ? 18:22):20,height:compact ? (app.achievementUnlock.current == nil ? 18:22):20).foregroundStyle(brand.text).frame(width:compact ? (app.achievementUnlock.current == nil ? 40:44):58,height:compact ? (app.achievementUnlock.current == nil ? 40:44):58).background(brand.surface.opacity(compact && app.achievementUnlock.current != nil ? 0:0.92),in:RoundedRectangle(cornerRadius:compact ? 14 : 20)).overlay { RoundedRectangle(cornerRadius:compact ? 14 : 20).stroke(brand.border.opacity(compact && app.achievementUnlock.current != nil ? 0:1)) } }.accessibilityLabel(mode.title(language)).accessibilityIdentifier("productMenu").accessibilityHidden(panel != nil).allowsHitTesting(panel == nil).disabled(panel != nil)
     }
     @ViewBuilder private var surface:some View {
         if specialCourse == "goal" {FocusedGoalCourseView(onSurface:{mode=$0})}

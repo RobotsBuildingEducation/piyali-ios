@@ -1109,3 +1109,22 @@ extension FirestoreContractTests {
         XCTAssertEqual(documents.documents.count,1);XCTAssertEqual(record["status"] as? String,"in_progress");XCTAssertEqual(record["earnedXp"] as? Int,9);XCTAssertEqual(record["foreignDate"] as? Timestamp,stamp);XCTAssertNotNil(record["conversationDraft"]);XCTAssertEqual(final.plateProgress["currentTutorLesson"].string,"lesson-tutorial-1")
     }
 }
+
+extension FirestoreContractTests {
+    func testOnlyCommittedFreshAwardsDeliverOnceAcrossConcurrentSavesAndRestorationIsQuiet()async throws{
+        let(service,db,_)=try context(),app=AppModel(progressService:service);try app.identity.create();defer{try? app.identity.disconnect()};let npub=app.identity.npub;app.signedIn=true;try await seed(db,npub)
+        var state=try requireState(await service.load(npub:npub));state=try requireState(await service.save(state,npub:npub));app.learner=state;XCTAssertTrue(app.achievementUnlock.queue.isEmpty,"Initial backfill is silent")
+        var delivered:[String]=[];let observer=AchievementSyncService.shared.delivery.sink{event in if event.account == npub{delivered += event.ids}};defer{observer.cancel()}
+        for i in 1...10{state.review(cardID:"a1-confirmed-\(i)",rating:.good)}
+        async let a=service.save(state,npub:npub);async let b=service.save(state,npub:npub);_=try await(a,b)
+        let wanted=["nosabos_flashcards_completed_5","nosabos_flashcards_completed_10"];XCTAssertEqual(delivered,wanted);XCTAssertEqual(app.achievementUnlock.queue.map(\.achievementID),wanted)
+        for item in app.achievementUnlock.queue{app.dismissAchievement(item.id)};let restored=try requireState(await service.load(npub:npub));_=try await service.save(restored,npub:npub);XCTAssertTrue(app.achievementUnlock.queue.isEmpty);XCTAssertEqual(delivered,wanted)
+        let user=db.collection("users").document(npub),id="nosabos_tutor_lessons_5",record:[String:Any]=["unlockedAt":123,"source":"nosabos","catalogVersion":8]
+        let pending=expectation(description:"SDK emitted an optimistic local award snapshot");pending.assertForOverFulfill=false;let listener=user.collection("achievements").addSnapshotListener(includeMetadataChanges:true){snapshot,_ in if let snapshot,snapshot.metadata.hasPendingWrites,snapshot.documents.contains(where:{$0.documentID == id}){pending.fulfill()}};defer{listener.remove()}
+        try await db.disableNetwork();let write=Task{try await user.collection("achievements").document(id).setData(record)}
+        do{await fulfillment(of:[pending],timeout:8);XCTAssertNil(app.learner.achievementRecords?[id]);XCTAssertTrue(app.achievementUnlock.queue.isEmpty);try await db.enableNetwork();try await write.value}catch{try? await db.enableNetwork();throw error}
+        _=try await service.importAchievements(.object([id:.object(["unlockedAt":.number(123),"source":.string("nosabos")])]),npub:npub)
+        XCTAssertTrue(app.achievementUnlock.queue.isEmpty,"External writes/imports restore the transcript without pretending the local learner just earned them");XCTAssertEqual(delivered,wanted)
+        let docs=try await user.collection("achievements").getDocuments(source:.server);XCTAssertTrue(wanted.allSatisfy{key in docs.documents.contains{$0.documentID == key}})
+    }
+}

@@ -58,6 +58,7 @@ struct ActivityPrimaryButtonStyle:ButtonStyle {
     var tone="primary"
     private var colors:[Color] {
         switch tone {
+        case "achievement":return [PiyaliBrand.unitColor("a97916"),PiyaliBrand.unitColor("785411")]
         case "success":return [.init(red:49/255,green:151/255,blue:149/255),.init(red:35/255,green:78/255,blue:82/255)]
         case "speak":return [.init(red:0,green:181/255,blue:216/255),.init(red:8/255,green:111/255,blue:131/255)]
         case "stop":return [.init(red:176/255,green:0,blue:91/255),.init(red:114/255,green:0,blue:59/255)]
@@ -65,7 +66,7 @@ struct ActivityPrimaryButtonStyle:ButtonStyle {
         }
     }
     func makeBody(configuration:Configuration)->some View {
-        configuration.label.font(PiyaliBrand.productFont(14,700)).multilineTextAlignment(.center).foregroundStyle(.white).padding(.horizontal,12).frame(maxWidth:.infinity,minHeight:40,maxHeight:40).background { RoundedRectangle(cornerRadius:18).fill(colors[0]).shadow(color:enabled ? colors[1] : .clear,radius:0,y:configuration.isPressed ? 0 : 4) }.offset(y:configuration.isPressed ? 4 : 0).opacity(enabled ? 1 : 0.55)
+        configuration.label.font(PiyaliBrand.productFont(14,700)).multilineTextAlignment(.center).foregroundStyle(.white).padding(.horizontal,12).frame(maxWidth:.infinity,minHeight:40,maxHeight:40).background { RoundedRectangle(cornerRadius:18).fill(tone == "achievement" && configuration.isPressed ? PiyaliBrand.unitColor("805810"):colors[0]).shadow(color:enabled ? colors[1] : .clear,radius:0,y:configuration.isPressed ? 0 : 4) }.offset(y:configuration.isPressed ? 4 : 0).opacity(enabled ? 1 : 0.55)
     }
 }
 
@@ -89,13 +90,19 @@ struct ActivityProgressBar:View {
 /// QuestionActionArea's iPhone glass fallback, feedback colors and 40-point radius.
 struct SourceActivityDockBackground:View {
     let correct:Bool?
+    var achievement=false
     @Environment(\.colorScheme) private var scheme
     private var dark:Bool {scheme == .dark}
     private var brand:PiyaliBrand {.init(dark:dark)}
     var body:some View {
-        let accent=correct.map{$0 ? brand.questionSuccess:brand.questionError},base=correct == nil ? PiyaliBrand.unitColor(dark ? "0b1220":"fffcf7").opacity(dark ? 0.12:0.58):PiyaliBrand.unitColor(dark ? "0b1220":"fffcf7").opacity(dark ? 0.66:0.94)
-        RoundedRectangle(cornerRadius:40).fill(base).overlay{if let accent{RoundedRectangle(cornerRadius:40).fill(accent.opacity(dark ? 0.14:0.10))}}.overlay{RoundedRectangle(cornerRadius:40).stroke(accent ?? brand.border)}
-            .shadow(color:correct == nil ? .clear:.black.opacity(0.16),radius:21,y:18)
+        let accent=achievement ? PiyaliBrand.unitColor(dark ? "fbbf24":"b7791f"):correct.map{$0 ? brand.questionSuccess:brand.questionError},base=correct == nil && !achievement ? PiyaliBrand.unitColor(dark ? "0b1220":"fffcf7").opacity(dark ? 0.12:0.58):PiyaliBrand.unitColor(dark ? "0b1220":"fffcf7").opacity(dark ? 0.66:0.94)
+        RoundedRectangle(cornerRadius:40).fill(base).overlay{if let accent{RoundedRectangle(cornerRadius:40).fill((achievement && !dark ? PiyaliBrand.unitColor("d99e23"):accent).opacity(dark ? 0.14:0.10))}}.overlay{RoundedRectangle(cornerRadius:40).stroke(accent ?? brand.border)}
+            .shadow(color:correct == nil && !achievement ? .clear:.black.opacity(0.16),radius:21,y:18)
             .shadow(color:accent?.opacity(dark ? 0.14:0.10) ?? .clear,radius:12)
     }
+}
+
+/// PiDotsNineBold's original 256-unit circle geometry, used by ActivityMenu.
+struct SourceActivityMenuGlyph:Shape {
+ func path(in rect:CGRect)->Path{var path=Path();for y in [60.0,128.0,196.0]{for x in [60.0,128.0,196.0]{path.addEllipse(in:CGRect(x:rect.minX+(x-16)/256*rect.width,y:rect.minY+(y-16)/256*rect.height,width:32/256*rect.width,height:32/256*rect.height))}};return path}
 }

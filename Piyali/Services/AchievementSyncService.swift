@@ -7,6 +7,8 @@ import FirebaseFirestore
 @MainActor final class AchievementSyncService {
     static let shared = AchievementSyncService()
     let updates=PassthroughSubject<(String,[String:JSONValue]),Never>()
+    let delivery=PassthroughSubject<ConfirmedAchievementDelivery,Never>()
+    private lazy var fullCatalog=(try? ContentLibrary.load([JSONValue].self,name:"achievement-protocol")) ?? []
     private let catalog = (try? ContentLibrary.load([AchievementDefinition].self,name:"achievements")) ?? []
     private lazy var phonics = (try? ContentLibrary.load([String:[JSONValue]].self,name:"phonics")) ?? [:]
     private var allowed: Set<String> { Set(catalog.flatMap { [$0.requirement["metric"].string] + $0.requirement["metrics"].array.map(\.string) }.filter { !$0.isEmpty }) }
@@ -223,14 +225,24 @@ import FirebaseFirestore
         for a in catalog where earned.contains(a.id) {
             let known=cache.records[a.id] ?? .null
             if known["unlockedAt"].number > 0 && !NostrAchievementCollection.truthy(known["test"]) { continue }
-            let ref=user.collection("achievements").document(a.id)
+            let before=NostrAchievementCollection.completed(.object(cache.records),catalog:fullCatalog),ref=user.collection("achievements").document(a.id)
             let saved = try await user.firestore.runTransaction { tx,error -> Any? in do {
                 let current=try tx.getDocument(ref).data() ?? [:]
-                if WebProgressContract.number(current["unlockedAt"]) > 0 && !NostrAchievementCollection.truthy(Self.jsonFields(current)["test"]) { return current }
+                if WebProgressContract.number(current["unlockedAt"]) > 0 && !NostrAchievementCollection.truthy(Self.jsonFields(current)["test"]) { return ["created":false,"record":current] }
                 let record:[String:Any]=["unlockedAt":timestamp,"catalogVersion":a.catalogVersion ?? 8,"achievementId":a.id,"source":"nosabos","title":a.title.localized("en"),"description":a.description.localized("en"),"orb":a.orb?.foundation ?? [:],"number":a.number ?? 0,"test":false]
-                tx.setData(record,forDocument:ref);return record
+                tx.setData(record,forDocument:ref);return ["created":true,"record":record]
             } catch let failure { error?.pointee=failure as NSError;return nil } }
-            if let record=saved as? [String:Any] { cache.records[a.id]=value(record) }
+            if let result=saved as? [String:Any],let fields=result["record"] as? [String:Any] {
+                let record=value(fields);cache.records[a.id]=record
+                if !backfill,result["created"] as? Bool == true {
+                    // The final transaction result, not an optimistic listener or
+                    // a retried transaction closure, owns notification delivery.
+                    let after=NostrAchievementCollection.completed(NostrAchievementCollection.merging([before,.object([a.id:record])]),catalog:fullCatalog)
+                    let order=[a.id]+fullCatalog.map{$0["id"].string}.filter{$0 != a.id}
+                    let ids=AchievementUnlockState.notifiable(before:before,after:after,order:order,catalog:Set(order))
+                    if !ids.isEmpty{delivery.send(.init(account:user.documentID,records:after,ids:ids))}
+                }
+            }
         }
         if backfill { try await marker.setData(["source":"nosabos","version":1,"complete":true,"completedAt":timestamp]) }
     }

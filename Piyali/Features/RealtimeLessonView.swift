@@ -34,7 +34,7 @@ struct RealtimeLessonView:View {
                     if let error=service.error ?? live.error ?? inlineError { Text(error).foregroundStyle(.red).font(PiyaliBrand.productFont(13)).accessibilityIdentifier("realtimeError") }
                 }.padding(16)
             }.background(brand.background)
-                .safeAreaInset(edge:.bottom) { controls.padding(16).padding(.bottom,78).background(brand.background) }
+                .safeAreaInset(edge:.bottom) { if app.achievementUnlock.current == nil{controls.padding(16).padding(.bottom,78).background(brand.background)}else{Color.clear.frame(height:app.activityFooterHeight)} }
         }.task(id:app.identity.npub+":"+key+":"+app.learner.support) { active=true;let fresh=startsFresh && !hasAppeared;hasAppeared=true;await service.prepare(app,lesson:lesson,fresh:fresh) }
             .onChange(of:run?.completed) { _,completed in if completed == true { Task { await live.stop() };paused=false } }
             .onChange(of:app.identity.npub) { _,_ in stop() }

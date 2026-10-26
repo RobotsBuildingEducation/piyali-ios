@@ -3,10 +3,11 @@ import Combine
 import SwiftUI
 
 @MainActor final class AppModel: ObservableObject {
-    @Published var learner = LearnerState() { didSet {captureDailyGoalReward(previous:oldValue);notifyPracticeObservers();subscription.updatePracticeXP(learner.subscriptionXP)} }
+    @Published var learner = LearnerState() { didSet {captureDailyGoalReward(previous:oldValue);notifyPracticeObservers();subscription.updatePracticeXP(learner.subscriptionXP);bindAchievementDelivery()} }
     let nostrAchievements=NostrAchievementsService()
     private var nostrSyncTask: Task<Void,Never>?
-    @Published var signedIn = false
+    @Published var signedIn = false {didSet{bindAchievementDelivery()}}
+    @Published private(set) var achievementUnlock=AchievementUnlockState(catalog:Set(((try? ContentLibrary.load([JSONValue].self,name:"achievement-protocol")) ?? []).map{$0["id"].string}))
     @Published var tutorUnits: [LearningUnit] = []
     @Published var units: [LearningUnit] = []
     @Published var introLibrary:IntroLibrary?
@@ -77,6 +78,7 @@ import SwiftUI
     private var goalTasks: [String:Task<Void,Error>] = [:]
     private var goalJudging:[String:Task<GoalVerdict,Error>] = [:]
     private var achievementUpdates: AnyCancellable?
+    private var achievementDeliveries:AnyCancellable?
     private var contentTask: Task<Void, Never>?
     var introLesson:Lesson? { guard introLibrary?.target == learner.target else { return nil };return introLibrary?.units[learner.level]?.lessons.first }
     var selectedLesson: Lesson? { if learner.needsIntro,!learner.completed.contains(learner.completionKey(IntroTutorial.lessonID)),!LessonAccess.throughPlacement(learner.placements?[learner.target]?.level,level:learner.level) { return introLesson };return units.flatMap(\.lessons).first { !learner.completed.contains(learner.completionKey($0.id)) && learner.lessonAccess($0,units:units).canOpen } }
@@ -118,7 +120,7 @@ import SwiftUI
         _ = learner.completeTutor(lesson); persist(); return earned
     }
     init(automaticWallet:WalletService? = nil,progressService:(any LearnerProgressService)? = nil) {
-        self.progressService=progressService ?? FirebaseService.shared
+        self.progressService=progressService ?? AchievementDeliveryUIFixture.progressService() ?? FirebaseService.shared
         self.automaticWallet=automaticWallet ?? WalletService()
         curriculumIndex = (try? ContentLibrary.load([String:[String:[String]]].self, name: "curriculum-index")) ?? [:]
         flashcardIndex = (try? ContentLibrary.load([String:[String]].self, name: "flashcard-index")) ?? [:]
@@ -127,16 +129,28 @@ import SwiftUI
         achievementUpdates=AchievementSyncService.shared.updates.sink { [weak self] npub,records in
             guard let self,self.signedIn,self.identity.npub == npub else { return }
             let previous=self.learner.achievementRecords
-            self.learner.achievementRecords=NostrAchievementCollection.merging([.object(records),self.learner.nostrAchievementRecords ?? .object([:])]).object
+            self.learner.achievementRecords=NostrAchievementCollection.merging([.object(previous ?? [:]),.object(records),self.learner.nostrAchievementRecords ?? .object([:])]).object
             if previous != self.learner.achievementRecords,self.learner.shareNostrAchievements == true { self.scheduleNostrAchievements() }
             try? self.writeLocal()
         }
+        achievementDeliveries=AchievementSyncService.shared.delivery.sink{[weak self] event in self?.receiveConfirmedAchievement(event)}
         signedIn = !identity.npub.isEmpty
         if signedIn { loadLocal(); subscription.bind(identity);subscription.updatePracticeXP(learner.subscriptionXP) }
+        bindAchievementDelivery()
         automaticTipUpdates=NotificationCenter.default.publisher(for:.walletAutomaticTipsChanged).sink { [weak self] notification in
             Task { @MainActor in guard let self,self.identity.hex == notification.object as? String else { return };self.scheduleAutomaticTips() }
         }
     }
+    private func bindAchievementDelivery(){achievementUnlock.setIdentity(signedIn ? identity.npub:"");achievementUnlock.setLanguage(learner.support)}
+    func receiveConfirmedAchievement(_ event:ConfirmedAchievementDelivery){
+        guard signedIn,identity.npub == event.account else{return};bindAchievementDelivery()
+        let prior=learner.achievementRecords
+        learner.achievementRecords=NostrAchievementCollection.merging([.object(prior ?? [:]),event.records]).object
+        if prior != learner.achievementRecords{achievementUnlock.recordsChanged()}
+        try? writeLocal()
+        for id in event.ids where NostrAchievementCollection.merging([event.records])[id] != .null{achievementUnlock.enqueue(identity:event.account,id:id,test:NostrAchievementCollection.truthy(event.records[id]["test"]))}
+    }
+    func dismissAchievement(_ key:Int){achievementUnlock.dismiss(key)}
     private var localURL: URL {
         let root = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("Piyali", isDirectory: true)
         try? FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
@@ -326,6 +340,7 @@ import SwiftUI
             catch { if identity.npub == npub { syncStatus = "Saved on iPhone; cloud sync pending" } }
         }
     }
+    var achievementSyncPending:Bool{synchronizedStatus != "Synced with Firebase" || syncStatus == "Saved on iPhone; cloud sync pending"}
     private var synchronizedStatus: String {
         (learner.pendingChanges ?? []).isEmpty && (learner.pendingImmersionChanges ?? []).isEmpty && (learner.pendingMemoryChanges ?? []).isEmpty && (learner.pendingSettingsChanges ?? []).isEmpty && (learner.pendingPlacements ?? [:]).isEmpty && (learner.pendingGoalChanges ?? []).isEmpty && (learner.pendingPlateHeadlines ?? [:]).isEmpty && (learner.pendingCompanionQuestDays ?? [:]).isEmpty && (learner.pendingRepairEvidence ?? []).isEmpty ? "Synced with Firebase" : "Saved on iPhone; cloud sync pending"
     }

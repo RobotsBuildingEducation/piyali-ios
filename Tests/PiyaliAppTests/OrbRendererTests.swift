@@ -13,6 +13,7 @@ import SceneKit
         var outputs:[[UInt8]]=[]
         for dark in [false,true] {
             host.configure(VoiceOrbView(dark:dark,reducedMotion:true))
+            let still=try XCTUnwrap(host.subviews.compactMap{$0 as? UIImageView}.first?.image);XCTAssertGreaterThanOrEqual(try XCTUnwrap(still.cgImage).width,512);XCTAssertLessThan(try pixels(still)[3],10,"Frozen orb corners stay transparent");XCTAssertTrue(host.sceneView.isHidden,"Do not double-composite the paused renderer below its still frame")
             let image=host.sceneView.snapshot(),bytes=try pixels(image)
             let a=XCTAttachment(image:image);a.name=dark ? "Native orb blue sleepy" : "Native orb mint sleepy";a.lifetime = .keepAlways;add(a)
             XCTAssertGreaterThan(bytes.filter{$0 > 0}.count,5000);XCTAssertLessThan(bytes[3],10)

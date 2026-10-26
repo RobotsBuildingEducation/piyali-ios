@@ -20,6 +20,7 @@ struct VoiceOrbView:UIViewRepresentable {
     var animating=true
     var showShadow=true
     var achievement:JSONValue?
+    var achievementEnergy=0.7
     func makeUIView(context:Context)->VoiceOrbHost { VoiceOrbHost() }
     func updateUIView(_ view:VoiceOrbHost,context:Context) { view.configure(self) }
     static func dismantleUIView(_ view:VoiceOrbHost,coordinator:()) { view.stop() }
@@ -27,6 +28,9 @@ struct VoiceOrbView:UIViewRepresentable {
 
 final class VoiceOrbHost:UIView {
     let sceneView=SCNView(frame:.zero)
+    private let staticPreview=UIImageView()
+    private var staticPreviewKey=""
+    private lazy var stillRenderer:SCNRenderer={let renderer=SCNRenderer(device:nil,options:nil);renderer.scene=scene;renderer.pointOfView=camera;return renderer}()
     private let scene=SCNScene(),character=SCNNode(),bodyMaterial=SCNMaterial(),faceMaterial=SCNMaterial(),camera=SCNNode(),shadow=SCNNode()
     private var dots:[SCNNode]=[],sparks:[SCNNode]=[]
     private var link:CADisplayLink?,options=VoiceOrbView(),lastTime=0.0,time=0.0,phase=0.0,blinkAt=2.4,level=0.0,flowSpeed=0.16,tilt=0.0,pitch=0.0
@@ -38,13 +42,13 @@ final class VoiceOrbHost:UIView {
     override init(frame:CGRect) {
         super.init(frame:frame);backgroundColor = .clear;isUserInteractionEnabled=false
         sceneView.backgroundColor = .clear;sceneView.isOpaque=false;sceneView.scene=scene;sceneView.antialiasingMode = .multisampling4X;sceneView.preferredFramesPerSecond=40;sceneView.isPlaying=false;sceneView.rendersContinuously=false
-        addSubview(sceneView);buildScene()
+        addSubview(sceneView);staticPreview.isHidden=true;staticPreview.isOpaque=false;staticPreview.isUserInteractionEnabled=false;addSubview(staticPreview);buildScene()
         observers=[NotificationCenter.default.addObserver(forName:UIApplication.didEnterBackgroundNotification,object:nil,queue:.main){ [weak self] _ in self?.foreground=false;self?.updateRunning() },NotificationCenter.default.addObserver(forName:UIApplication.didBecomeActiveNotification,object:nil,queue:.main){ [weak self] _ in self?.foreground=true;self?.updateRunning() }]
         render(dt:0)
     }
     required init?(coder:NSCoder) { fatalError("init(coder:) has not been implemented") }
-    override func layoutSubviews() { super.layoutSubviews();sceneView.frame=bounds }
-    override func didMoveToWindow() { super.didMoveToWindow();updateRunning() }
+    override func layoutSubviews() { super.layoutSubviews();let changed=sceneView.frame != bounds;sceneView.frame=bounds;staticPreview.frame=bounds;if changed{render(dt:0)} }
+    override func didMoveToWindow() { super.didMoveToWindow();render(dt:0);updateRunning() }
     func configure(_ options:VoiceOrbView) {
         let changed=self.options.achievement != options.achievement
         self.options=options
@@ -118,13 +122,13 @@ final class VoiceOrbHost:UIView {
     private func render(dt:Double) {
         let data=options.achievement == nil ? OrbVisuals.data:AchievementUI.source.data["visuals"]
         let moving=options.animating && !options.reducedMotion
-        let dt=moving ? dt : 0,amount=moving ? (options.achievement != nil || options.personality == nil ? 0.7 : 1.5) : 0
+        let dt=moving ? dt : 0,amount=moving ? (options.achievement != nil ? OrbVisuals.clamp(options.achievementEnergy,0,1.5):options.personality == nil ? 0.7:1.5) : 0
         time += dt
         let elapsed=max(0,CACurrentMediaTime()-reactionStart),duration=reaction.map { self.duration($0) } ?? 0
         if elapsed >= (reaction == nil ? 3.5 : duration+0.65) { reactionMood=nil;reaction=nil }
         let currentMood=(options.achievement != nil && elapsed >= duration ? nil:reactionMood) ?? options.personality?.mood ?? (options.callActive ? defaultMood : "sleepy"),state=options.personality?.state ?? (options.callActive && ["idle","listening","thinking","speaking"].contains(options.state) ? options.state : "idle")
         if !options.dragging {pointerTurn *= exp(-dt*4.2)}
-        let p=reactionPose(reaction ?? "",elapsed:elapsed,amount:options.achievement == nil ? amount:(moving ? 0.7:0))
+        let p=reactionPose(reaction ?? "",elapsed:elapsed,amount:amount)
         if time > blinkAt+0.18 { blinkAt=time+Double.random(in:2.8...5.5) }
         let blink=moving && time > blinkAt ? sin(OrbVisuals.clamp((time-blinkAt)/0.18) * .pi) : 0
         let voice=options.achievement == nil ? OrbVisuals.clamp(options.audioLevel):(AchievementUI.orbPolicy?.voiceLevel(time) ?? 0)*0.65
@@ -154,6 +158,14 @@ final class VoiceOrbHost:UIView {
         let celebration=reaction == "celebrate" && elapsed < duration,joyful=["excited","love"].contains(currentMood)
         for (i,spark) in sparks.enumerated() { spark.isHidden = !moving || !(celebration || (joyful && i < 3));if spark.isHidden {continue};let angle=Double(i)/10 * .pi*2+time*0.16,distance=celebration ? 1.15+elapsed*0.35 : 1.45;spark.position=SCNVector3(cos(angle)*distance,sin(angle)*distance*0.75+0.35,0.25+sin(Double(i)*2)*0.4);let s=Float((celebration ? 0.08 : 0.055)*(0.7+sin(time*3+Double(i))*0.3)*(celebration ? p.burst : 1));spark.scale=SCNVector3(s,s,s);spark.eulerAngles=SCNVector3(0,time*0.7+Double(i),sin(time+Double(i))*0.25);spark.opacity=celebration ? p.burst : 0.75 }
         sceneView.setNeedsDisplay()
+        // A stopped SceneKit view can miss its first on-screen presentation.
+        // Keep one rendered frame for Reduced Motion; audio-level updates do
+        // not regenerate it unless the visible character or size changes.
+        if !moving,sceneView.bounds.width>0,sceneView.bounds.height>0 {
+            let key="\(bounds.size):\(currentMood):\(state):\(options.dark):\(options.showShadow):\(options.achievement?.json ?? "tutor")"
+            if staticPreviewKey != key {staticPreviewKey=key;let scale=window?.screen.scale ?? UIScreen.main.scale;staticPreview.image=stillRenderer.snapshot(atTime:time,with:CGSize(width:bounds.width*scale,height:bounds.height*scale),antialiasingMode:.multisampling4X)}
+            staticPreview.isHidden=false;sceneView.isHidden=true
+        } else {staticPreview.isHidden=true;sceneView.isHidden=false;staticPreviewKey=""}
         accessibilityLabel="Tutor orb, \(currentMood), \(state)";accessibilityValue=options.dark ? "Blue animated sphere" : "Mint animated sphere"
     }
     private func duration(_ kind:String)->Double{options.achievement == nil ? OrbVisuals.duration(kind):AchievementUI.source.data["visuals"]["durations"][kind].number}

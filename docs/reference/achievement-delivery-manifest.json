@@ -1,0 +1,31 @@
+{
+  "traces": 24,
+  "steps": 384,
+  "deltas": 12,
+  "sources": [
+    {
+      "file": "src/achievements/unlockStore.js",
+      "sha256": "3068b3fdbab5a8a2c3788d80b528727889641be51f8afd2575aba1a0af113681"
+    },
+    {
+      "file": "src/achievements/AchievementFeedback.jsx",
+      "sha256": "778557859c2060abc713ce67f8159cb0bee41542027bd8cd3334775f295a4cfa"
+    },
+    {
+      "file": "src/components/QuestionActionArea.jsx",
+      "sha256": "0f5677340e83ba813deef7bbb6113f4939e08b415d4be639257264ef70c713db"
+    },
+    {
+      "file": "src/components/AchievementUnlockFallback.jsx",
+      "sha256": "0722337e62ff59d8fa1fd246726684ac7855e7e28fa4773921b9dc3292ea9a30"
+    },
+    {
+      "file": "src/components/ActivityActionRow.jsx",
+      "sha256": "3c23b2db2865f64c746005d756e4e101432090a95e86902fc6e55f238befbc2f"
+    },
+    {
+      "file": "src/utils/achievements.js",
+      "sha256": "1f6dadfb4b955513ebc63001eb9c1e382d6def6df16390df205a4fb072802e23"
+    }
+  ]
+}

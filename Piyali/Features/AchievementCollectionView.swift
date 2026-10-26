@@ -10,7 +10,7 @@ struct AchievementsView:View {
     @EnvironmentObject var app:AppModel
     @Environment(\.dismiss) private var dismiss
     var onClose:(()->Void)?
-    var body:some View{AchievementCollectionPanel(language:app.learner.support,records:NostrAchievementCollection.merging([.object(app.learner.achievementRecords ?? [:]),app.learner.nostrAchievementRecords ?? .object([:])]),syncPending:app.nostrAchievements.busy,storageWarning:app.localStorageUnavailable,onClose:{if let onClose{onClose()}else{dismiss()}}).task(id:app.identity.npub){
+    var body:some View{AchievementCollectionPanel(language:app.learner.support,records:NostrAchievementCollection.merging([.object(app.learner.achievementRecords ?? [:]),app.learner.nostrAchievementRecords ?? .object([:])]),syncPending:app.nostrAchievements.busy || app.achievementSyncPending,storageWarning:app.localStorageUnavailable,onClose:{if let onClose{onClose()}else{dismiss()}}).task(id:app.identity.npub){
         #if DEBUG
         if ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"] == "1"{return}
         #endif
@@ -85,16 +85,17 @@ private struct AchievementCardRow:Layout {
     func placeSubviews(in bounds:CGRect,proposal:ProposedViewSize,subviews:Subviews,cache:inout()){let cell=(bounds.width-12)/2;for(i,view)in subviews.enumerated(){view.place(at:CGPoint(x:bounds.minX+CGFloat(i)*(cell+12),y:bounds.minY),anchor:.topLeading,proposal:.init(width:cell,height:bounds.height))}}
 }
 
-private struct AchievementCharacter:View {
+struct AchievementCharacter:View {
     let orb:JSONValue
     var animated=true
+    var energy=0.7
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var reaction:OrbDisplayReaction?
-    var body:some View{VoiceOrbView(callActive:true,personality:.init(mood:orb["mood"].string,state:orb["state"].string,reaction:orb["reaction"].string),displayReaction:reaction,dark:true,reducedMotion:reduceMotion || !animated,achievement:orb).task(id:reduceMotion){guard !reduceMotion,animated else{return};while !Task.isCancelled{reaction = .init(kind:orb["reaction"].string);let duration=AchievementUI.source.data["visuals"]["durations"][orb["reaction"].string].number;do{try await Task.sleep(for:.seconds(duration+3.5))}catch{return}}}.allowsHitTesting(false)}
+    var body:some View{VoiceOrbView(callActive:true,personality:.init(mood:orb["mood"].string,state:orb["state"].string,reaction:orb["reaction"].string),displayReaction:reaction,dark:true,reducedMotion:reduceMotion || !animated,achievement:orb,achievementEnergy:energy).task(id:reduceMotion){guard !reduceMotion,animated else{return};while !Task.isCancelled{reaction = .init(kind:orb["reaction"].string);let duration=AchievementUI.source.data["visuals"]["durations"][orb["reaction"].string].number;do{try await Task.sleep(for:.seconds(duration+3.5))}catch{return}}}.allowsHitTesting(false)}
 }
 
 /// Web paragraphs use greedy wrapping and an explicit document direction.
-private struct AchievementParagraph:UIViewRepresentable {
+struct AchievementParagraph:UIViewRepresentable {
     let text:String,language:String
     var size:CGFloat
     var weight:UIFont.Weight = .regular
