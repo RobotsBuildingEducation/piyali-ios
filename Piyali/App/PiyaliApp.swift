@@ -7,8 +7,9 @@ import SwiftUI
     var body: some Scene {
         WindowGroup {
             RootView().environmentObject(model)
-                .task { await model.boot() }
+                .task { model.subscription.setApplicationActive(scenePhase == .active);await model.boot() }
                 .onChange(of: scenePhase) { _, phase in
+                    model.subscription.setApplicationActive(phase == .active)
                     if phase == .active, model.signedIn {
                         model.learner.rollDay(); model.subscription.checkExpiry()
                         model.scheduleAutomaticTips(recovering:true)
@@ -16,7 +17,7 @@ import SwiftUI
                     }
                 }
                 .onOpenURL { url in
-                    if url.scheme == "piyali", url.host == "subscription" { Task { await model.subscription.refresh() } }
+                    if url.scheme == "piyali", url.host == "subscription" { Task { await model.subscription.refresh(forceWeb:true) } }
                 }
                 .alert("Piyali", isPresented: Binding(get: { model.error != nil }, set: { if !$0 { model.error = nil } })) {
                     Button("OK") { model.error = nil }
