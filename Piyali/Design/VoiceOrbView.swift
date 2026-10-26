@@ -19,6 +19,7 @@ struct VoiceOrbView:UIViewRepresentable {
     var reducedMotion=false
     var animating=true
     var showShadow=true
+    var achievement:JSONValue?
     func makeUIView(context:Context)->VoiceOrbHost { VoiceOrbHost() }
     func updateUIView(_ view:VoiceOrbHost,context:Context) { view.configure(self) }
     static func dismantleUIView(_ view:VoiceOrbHost,coordinator:()) { view.stop() }
@@ -45,17 +46,33 @@ final class VoiceOrbHost:UIView {
     override func layoutSubviews() { super.layoutSubviews();sceneView.frame=bounds }
     override func didMoveToWindow() { super.didMoveToWindow();updateRunning() }
     func configure(_ options:VoiceOrbView) {
+        let changed=self.options.achievement != options.achievement
         self.options=options
-        shadow.isHidden = !options.showShadow;camera.look(at:SCNVector3(0,options.showShadow ? -0.18 : 0,0))
+        if changed {
+            let data=options.achievement == nil ? OrbVisuals.data:AchievementUI.source.data["visuals"]
+            eyes=OrbVisuals.Eyes(mood:options.personality?.mood ?? "sleepy",data:data);lastDark=nil
+            if options.achievement == nil{bodyMaterial.roughness.contents=0.28;bodyMaterial.metalness.contents=0.02;bodyMaterial.clearCoat.contents=0.72}
+            var modifiers=bodyMaterial.shaderModifiers ?? [:]
+            let name=options.achievement == nil ? "orb-surface":"achievement-orb"
+            if let url=Bundle.main.url(forResource:name,withExtension:"shader"),var shader=try? String(contentsOf:url){
+                if let orb=options.achievement,let palette=data["palettes"].array.first(where:{$0["id"] == orb["palette"]}){
+                    for(i,key)in ["orbDeep","orbMid","orbLight"].enumerated(){let channels=Self.channels(palette["colors"].array[i].string);shader=shader.replacingOccurrences(of:key,with:"float3(\(channels[0]),\(channels[1]),\(channels[2]))")}
+                }
+                modifiers[.surface]=shader;bodyMaterial.shaderModifiers=modifiers
+            }
+        }
+        shadow.isHidden = !options.showShadow
+        if options.achievement != nil{camera.position=SCNVector3(0,0.48,5.6);camera.look(at:SCNVector3Zero);shadow.position.y = -1.38}
+        else{camera.position=SCNVector3(0,0,5);camera.look(at:SCNVector3(0,options.showShadow ? -0.18:0,0));shadow.position.y = -1.12}
         if options.dragging {pointerTurn=options.dragTurn}
         let signalID=options.displayReaction?.id ?? options.feedback?.id
         if feedbackID != signalID {
             reactionExpiry?.cancel();feedbackID=signalID;reactionStart=CACurrentMediaTime()
-            if let display=options.displayReaction {reaction=display.kind;reactionMood=display.kind == "boop" ? "love" : nil}
+            if let display=options.displayReaction {reaction=display.kind;reactionMood=(display.kind == "boop" || (options.achievement != nil && display.kind == "heartbeat")) ? "love" : nil}
             else if let feedback=options.feedback { reactionMood=(feedback.correct ? ["joy","love","excited"] : ["curious","sad"]).randomElement();reaction=feedback.correct ? ["wave","bounce","celebrate","spin"].randomElement() : nil }
             else { reaction=nil;reactionMood=nil }
             if let id=feedbackID {
-                let duration=reaction.map {OrbVisuals.duration($0)+0.65} ?? 3.5
+                let duration=reaction.map {self.duration($0)+0.65} ?? 3.5
                 reactionExpiry=Task { [weak self] in
                     do {try await Task.sleep(for:.seconds(duration))} catch {return}
                     guard let self,self.feedbackID == id else {return};self.reaction=nil;self.reactionMood=nil;self.render(dt:0)
@@ -99,17 +116,19 @@ final class VoiceOrbHost:UIView {
         }
     }
     private func render(dt:Double) {
+        let data=options.achievement == nil ? OrbVisuals.data:AchievementUI.source.data["visuals"]
         let moving=options.animating && !options.reducedMotion
-        let dt=moving ? dt : 0,amount=moving ? (options.personality == nil ? 0.7 : 1.5) : 0
+        let dt=moving ? dt : 0,amount=moving ? (options.achievement != nil || options.personality == nil ? 0.7 : 1.5) : 0
         time += dt
-        let elapsed=max(0,CACurrentMediaTime()-reactionStart),duration=reaction.map { OrbVisuals.duration($0) } ?? 0
+        let elapsed=max(0,CACurrentMediaTime()-reactionStart),duration=reaction.map { self.duration($0) } ?? 0
         if elapsed >= (reaction == nil ? 3.5 : duration+0.65) { reactionMood=nil;reaction=nil }
-        let currentMood=reactionMood ?? options.personality?.mood ?? (options.callActive ? defaultMood : "sleepy"),state=options.personality?.state ?? (options.callActive && ["idle","listening","thinking","speaking"].contains(options.state) ? options.state : "idle")
+        let currentMood=(options.achievement != nil && elapsed >= duration ? nil:reactionMood) ?? options.personality?.mood ?? (options.callActive ? defaultMood : "sleepy"),state=options.personality?.state ?? (options.callActive && ["idle","listening","thinking","speaking"].contains(options.state) ? options.state : "idle")
         if !options.dragging {pointerTurn *= exp(-dt*4.2)}
-        let p=OrbVisuals.reaction(reaction ?? "",elapsed:elapsed,amount:amount)
+        let p=reactionPose(reaction ?? "",elapsed:elapsed,amount:options.achievement == nil ? amount:(moving ? 0.7:0))
         if time > blinkAt+0.18 { blinkAt=time+Double.random(in:2.8...5.5) }
         let blink=moving && time > blinkAt ? sin(OrbVisuals.clamp((time-blinkAt)/0.18) * .pi) : 0
-        level += ((["speaking","listening"].contains(state) ? OrbVisuals.clamp(options.audioLevel) : 0)-level)*(1-exp(-dt*16))
+        let voice=options.achievement == nil ? OrbVisuals.clamp(options.audioLevel):(AchievementUI.orbPolicy?.voiceLevel(time) ?? 0)*0.65
+        level += ((["speaking","listening"].contains(state) ? voice:0)-level)*(1-exp(-dt*16))
         eyes.advance(mood:currentMood,state:state,time:time,dt:dt,immediate:!moving)
         if eyes.changed || previousBlink != blink || mood != currentMood { faceMaterial.diffuse.contents=Self.faceImage(eyes.values,blink:blink);mood=currentMood;previousBlink=blink }
         let sleepy=currentMood == "sleepy",a=moving ? 1-exp(-dt*5.5) : 1
@@ -117,23 +136,33 @@ final class VoiceOrbHost:UIView {
         pitch += ((sleepy ? 0.12 : state == "listening" ? -0.06 : 0)-pitch)*a
         let squash=p.squash+(options.dragging ? 0.075*amount : 0)
         let breath=sin(time*(sleepy ? 1.4 : 2.1))*0.018*amount,bounce=currentMood == "excited" ? abs(sin(time*4.7))*0.10*amount : 0,stretch=(state == "speaking" ? level*0.065 : level*0.018)*amount
-        let blend=Float(moving ? 1-exp(-dt*12) : 1),position=SIMD3<Float>(Float(p.x),Float(min(0.14,0.04+sin(time*1.7)*0.045*amount+p.y+bounce)),0),scale=SIMD3<Float>(Float(1.04+squash*0.65-breath*0.4),Float(min(1.12,1-squash+breath+stretch)),Float(1+squash*0.35))
+        let blend=Float(moving ? 1-exp(-dt*12) : 1),position=SIMD3<Float>(Float(p.x),Float(options.achievement == nil ? min(0.14,0.04+sin(time*1.7)*0.045*amount+p.y+bounce):0.04+sin(time*1.7)*0.045*amount+p.y+bounce),0),scale=SIMD3<Float>(Float(1.04+squash*0.65-breath*0.4),Float(options.achievement == nil ? min(1.12,1-squash+breath+stretch):1-squash+breath+stretch),Float(1+squash*0.35))
         character.simdPosition += (position-character.simdPosition)*blend;character.simdScale += (scale-character.simdScale)*blend
         let qx=simd_quatf(angle:Float(pitch+p.pitch),axis:SIMD3(1,0,0)),qy=simd_quatf(angle:Float(p.turn+pointerTurn*amount),axis:SIMD3(0,1,0)),qz=simd_quatf(angle:Float(tilt+p.roll+sin(time*1.15)*0.025*amount),axis:SIMD3(0,0,1));character.simdOrientation=simd_slerp(character.simdOrientation,qx*qy*qz,blend)
-        let flow=OrbVisuals.data["flow"][state],f=moving ? 1-exp(-dt*3) : 1
+        let flow=data["flow"][state],f=moving ? 1-exp(-dt*3) : 1
         flowSpeed += (flow["speed"].number-flowSpeed)*f;phase += dt*flowSpeed
         ripple += (flow["listening"].number-ripple)*f;spiral += (flow["speaking"].number-spiral)*f;warp += (flow["thinking"].number-warp)*f;turbulence += (flow["listening"].number*0.4+flow["thinking"].number*0.65+flow["speaking"].number-turbulence)*f
         for (key,v) in [("orbTime",phase),("orbVoice",level),("orbRipple",ripple),("orbSpiral",spiral),("orbWarp",warp),("orbTurbulence",turbulence)] { bodyMaterial.setValue(NSNumber(value:v),forKey:key) }
-        if lastDark != options.dark { lastDark=options.dark;let palette=OrbVisuals.data["palettes"].array.first{$0["id"].string == (options.dark ? "blue" : "mint")} ?? .null
+        if options.achievement != nil {bodyMaterial.setValue(NSNumber(value:flow["pattern"].number),forKey:"orbPattern")}
+        if lastDark != options.dark { lastDark=options.dark;let palette=data["palettes"].array.first{$0["id"].string == (options.achievement?["palette"].string ?? (options.dark ? "blue" : "mint"))} ?? .null
+            if options.achievement != nil{bodyMaterial.roughness.contents=palette["material"]["roughness"].number;bodyMaterial.metalness.contents=palette["material"]["metalness"].number;bodyMaterial.clearCoat.contents=palette["material"]["clearcoat"].number}
+
             for (i,key) in ["orbDeep","orbMid","orbLight"].enumerated() { let hex=UInt32(palette["colors"].array[i].string.dropFirst(),radix:16) ?? 0;let channels=[(hex>>16)&255,(hex>>8)&255,hex&255].map { v->Float in let s=Double(v)/255;return Float(s <= 0.04045 ? s/12.92 : pow((s+0.055)/1.055,2.4)) };bodyMaterial.setValue(NSValue(scnVector3:SCNVector3(channels[0],channels[1],channels[2])),forKey:key) }
         }
-        shadow.opacity=(options.dark ? 0.48 : 0.9)-p.y*0.4;let s=Float(0.72*(1+Double(character.position.y)*0.22));shadow.scale=SCNVector3(s,s,s)
+        shadow.opacity=(options.dark ? 0.48 : 0.9)-p.y*0.4;let s=Float((options.achievement == nil ? 0.72:1)*(1+Double(character.position.y)*0.22));shadow.scale=SCNVector3(s,s,s)
         for (i,dot) in dots.enumerated() { dot.isHidden=state != "thinking";dot.position.y=Float(1.32+sin(time*4-Double(i)*0.7)*0.065*amount) }
         let celebration=reaction == "celebrate" && elapsed < duration,joyful=["excited","love"].contains(currentMood)
         for (i,spark) in sparks.enumerated() { spark.isHidden = !moving || !(celebration || (joyful && i < 3));if spark.isHidden {continue};let angle=Double(i)/10 * .pi*2+time*0.16,distance=celebration ? 1.15+elapsed*0.35 : 1.45;spark.position=SCNVector3(cos(angle)*distance,sin(angle)*distance*0.75+0.35,0.25+sin(Double(i)*2)*0.4);let s=Float((celebration ? 0.08 : 0.055)*(0.7+sin(time*3+Double(i))*0.3)*(celebration ? p.burst : 1));spark.scale=SCNVector3(s,s,s);spark.eulerAngles=SCNVector3(0,time*0.7+Double(i),sin(time+Double(i))*0.25);spark.opacity=celebration ? p.burst : 0.75 }
         sceneView.setNeedsDisplay()
         accessibilityLabel="Tutor orb, \(currentMood), \(state)";accessibilityValue=options.dark ? "Blue animated sphere" : "Mint animated sphere"
     }
+    private func duration(_ kind:String)->Double{options.achievement == nil ? OrbVisuals.duration(kind):AchievementUI.source.data["visuals"]["durations"][kind].number}
+    private func reactionPose(_ kind:String,elapsed:Double,amount:Double)->OrbVisuals.Pose {
+        guard options.achievement != nil else{return OrbVisuals.reaction(kind,elapsed:elapsed,amount:amount)}
+        let value=(try? AchievementUI.orbPolicy?.pose(kind:kind,elapsed:elapsed,amount:amount)) ?? .null
+        var p=OrbVisuals.Pose();p.x=value["x"].number;p.y=value["y"].number;p.squash=value["squash"].number;p.roll=value["roll"].number;p.pitch=value["pitch"].number;p.turn=value["turn"].number;p.burst=value["burst"].number;return p
+    }
+    private static func channels(_ color:String)->[Float]{let hex=UInt32(color.replacingOccurrences(of:"#",with:""),radix:16) ?? 0;return [(hex>>16)&255,(hex>>8)&255,hex&255].map{v in let s=Double(v)/255;return Float(s<=0.04045 ? s/12.92:pow((s+0.055)/1.055,2.4))}}
     static func mesh(width:Int,height:Int,face:Bool)->SCNGeometry {
         var vertices:[SCNVector3]=[],uv:[CGPoint]=[],indices:[Int32]=[]
         for row in 0...height { for col in 0...width {

@@ -13,6 +13,9 @@ import Foundation
         guard !UserDefaults.standard.bool(forKey:key) else{return}
         app.learner.gettingStartedModalShown=true;app.learner.xpByLanguage=[app.learner.target:20];app.learner.editGoal("Talk with family");app.learner.pendingGoalChanges=[]
         app.learner.userSettings = .object(["allowPosts":.bool(false),"soundEnabled":.bool(true),"themeMode":.string(UserDefaults.standard.string(forKey:"piyali.theme") ?? "light"),"progress":.object(["tutorVoice":.string("marin"),"pauseMs":.number(1200)])])
+        #if DEBUG
+        if ProcessInfo.processInfo.environment["PIYALI_ACHIEVEMENT_FIXTURE"] == "1"{app.learner.achievementRecords=["piyali_tutor_complete_pre_a1":.object(["unlockedAt":.number(123)]),"tutor_reach_a2":.object(["unlockedAt":.number(124)]),"robots_full_curriculum_v4":.object(["unlockedAt":.number(125)])]}
+        #endif
         UserDefaults.standard.set(true,forKey:key);UserDefaults.standard.set(true,forKey:"piyali.companionBubbleDismissed:"+app.identity.npub+":"+app.learner.target+":"+CalendarDay.key(Date()))
     }
     static func publishProfile(name:String,identity:IdentityService,author:String)async throws {

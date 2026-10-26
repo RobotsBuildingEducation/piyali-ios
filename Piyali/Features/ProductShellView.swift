@@ -71,7 +71,7 @@ struct ProductShellView:View {
                 }
             if menuOpen { menu }
         }.font(PiyaliBrand.productFont(16)).foregroundStyle(brand.text)
-            .accessibilityElement(children:.contain).accessibilityHidden(panel == .memory || panel == .settings || panel == .assistant || panel == .teams || app.journeyRecording != nil || app.flashcardSession != nil || app.goalCheck != nil || lessonCompletion != nil || firstRun.step != nil || goalOpen || timerOpen || timer.session.status == .finished || practice.visible != nil || practice.dailyGoalVisible != nil || app.scholarship.visible != nil)
+            .accessibilityElement(children:.contain).accessibilityHidden(panel == .memory || panel == .settings || panel == .assistant || panel == .teams || panel == .achievements || app.journeyRecording != nil || app.flashcardSession != nil || app.goalCheck != nil || lessonCompletion != nil || firstRun.step != nil || goalOpen || timerOpen || timer.session.status == .finished || practice.visible != nil || practice.dailyGoalVisible != nil || app.scholarship.visible != nil)
             .overlay {
                 if let data=lessonCompletion {
                     ZStack {
@@ -114,7 +114,8 @@ struct ProductShellView:View {
             .onChange(of:app.syncStatus){_,value in if value == "Synced with Firebase"{timerAwardRevision=UUID()}}
             .onChange(of:app.identity.npub){_,_ in goalOpen=false;timerOpen=false;timer.load(account:app.identity.npub)}
             .onChange(of:timer.session.status){_,value in if value == .finished{UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder),to:nil,from:nil,for:nil)}}
-            .sheet(item:Binding(get:{panel == .memory || panel == .settings || panel == .assistant || panel == .teams ? nil:panel},set:{panel=$0})) { selected in NavigationStack { panelContent(selected).toolbar { ToolbarItem(placement:.confirmationAction) { Button(EntryCopy.text(language,"back_button")) { panel=nil }.accessibilityIdentifier("productPanelClose") } } }.tint(PiyaliBrand.teal) }
+            .sheet(item:Binding(get:{panel == .memory || panel == .settings || panel == .assistant || panel == .teams || panel == .achievements ? nil:panel},set:{panel=$0})) { selected in NavigationStack { panelContent(selected).toolbar { ToolbarItem(placement:.confirmationAction) { Button(EntryCopy.text(language,"back_button")) { panel=nil }.accessibilityIdentifier("productPanelClose") } } }.tint(PiyaliBrand.teal) }
+            .fullScreenCover(item:Binding(get:{panel == .achievements ? panel:nil},set:{if $0 == nil,panel == .achievements{panel=nil}})){_ in AchievementsView(onClose:{panel=nil}).presentationBackground(.clear)}
             .overlay{if panel == .assistant{HelpChatView(controller:help,onClose:{panel=nil})}}
             .overlay{if panel == .teams{TeamsDrawerView(service:app.teams,onClose:{panel=nil})}}
             .overlay {if let reward=practice.dailyGoalVisible{DailyGoalCelebrationView(reward:reward,onContinue:{practice.closeDailyGoal(app)})}}
@@ -183,7 +184,7 @@ struct ProductShellView:View {
         } else {firstRun.close()}
     }
     private func menuButton(compact:Bool)->some View {
-        Button { modesOpen=false;menuOpen.toggle() } label:{ Image(systemName:"square.grid.3x3.fill").font(.system(size:compact ? 18 : 20)).foregroundStyle(brand.text).frame(width:compact ? 40 : 58,height:compact ? 40 : 58).background(brand.surface.opacity(0.92),in:RoundedRectangle(cornerRadius:compact ? 14 : 20)).overlay { RoundedRectangle(cornerRadius:compact ? 14 : 20).stroke(brand.border) } }.accessibilityLabel(mode.title(language)).accessibilityIdentifier("productMenu")
+        Button { modesOpen=false;menuOpen.toggle() } label:{ Image(systemName:"square.grid.3x3.fill").font(.system(size:compact ? 18 : 20)).foregroundStyle(brand.text).frame(width:compact ? 40 : 58,height:compact ? 40 : 58).background(brand.surface.opacity(0.92),in:RoundedRectangle(cornerRadius:compact ? 14 : 20)).overlay { RoundedRectangle(cornerRadius:compact ? 14 : 20).stroke(brand.border) } }.accessibilityLabel(mode.title(language)).accessibilityIdentifier("productMenu").accessibilityHidden(panel != nil).allowsHitTesting(panel == nil).disabled(panel != nil)
     }
     @ViewBuilder private var surface:some View {
         if specialCourse == "goal" {FocusedGoalCourseView(onSurface:{mode=$0})}

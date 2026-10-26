@@ -28,41 +28,6 @@ struct RepairPracticeView: View {
         onSurface(step.mode == "lesson" ? .path:step.mode == "flashcards" ? .cards:step.mode == "phonics" && !app.authoredRepairPhonics(step).isEmpty ? .phonics:.tutor)
     }
 }
-struct AchievementsView: View {
-    @EnvironmentObject var app: AppModel
-    var body: some View {
-        List {
-            Text("Achievements are confirmed after progress syncs. Earned awards stay in your collection when you change languages or devices. Placement and XP alone do not prove course completion.").font(.footnote)
-            Section("Nostr collection") { NostrAchievementControls(service:app.nostrAchievements) }
-            ForEach(app.achievements) { achievement in
-                let count = progress(achievement)
-                VStack(alignment:.leading) {
-                    HStack {
-                        Text(achievement.title.localized(app.learner.support)).font(.headline)
-                        Spacer()
-                        if count.complete { Image(systemName:"checkmark.seal.fill") }
-                    }
-                    Text(achievement.description.localized(app.learner.support))
-                    if let target = count.target { Text("\(count.value) / \(target)").font(.caption) }
-                }
-            }
-        }.navigationTitle("Achievements")
-    }
-    func progress(_ achievement: AchievementDefinition) -> (value:Int,target:Int?,complete:Bool) {
-        let record=app.learner.achievementRecords?[achievement.id] ?? .null
-        let earned=record["unlockedAt"].number > 0 && !NostrAchievementCollection.truthy(record["test"])
-        let summary=app.learner.achievementEvidence?[app.learner.target] ?? .object([:])
-        let counts=AchievementProgress.counters(summary)
-        var evidence=JSONValue.object(["language":.string(app.learner.target),"counters":counts])
-        evidence=AchievementProgress.snapshot(ledger:app.learner.achievementLedger ?? .object([:]),evidence:evidence)
-        let metric=achievement.requirement["metric"].string
-        let cardCount=(app.learner.achievementLedger?["flashcards_completed:"+app.learner.target].object.count ?? 0)
-        let value=metric == "flashcards_completed" ? max(Int(counts[metric].number),cardCount) : Int(evidence["counters"][metric].number)
-        let target=achievement.requirement["target"] == .null ? nil : Int(achievement.requirement["target"].number)
-        return (value,target,earned)
-    }
-
-}
 struct SubscriptionTermsView: View {
     var body: some View {
         List {

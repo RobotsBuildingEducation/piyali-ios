@@ -42,6 +42,7 @@ struct FocusWaveBar:View {
     var start="43e97b",end="38f9d7"
     var background:Color = .white.opacity(0.05)
     var border:Color = .white.opacity(0.1)
+    var gradientOpacity=0.9,waveOpacity=0.18
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     var body:some View {
         GeometryReader {geometry in
@@ -50,7 +51,7 @@ struct FocusWaveBar:View {
                 background
                 TimelineView(.animation(minimumInterval:1/15,paused:reduceMotion || width == 0)) {time in
                     ZStack {
-                        LinearGradient(colors:[PiyaliBrand.unitColor(start),PiyaliBrand.unitColor(end)],startPoint:.leading,endPoint:.trailing).opacity(0.9)
+                        LinearGradient(colors:[PiyaliBrand.unitColor(start),PiyaliBrand.unitColor(end)],startPoint:.leading,endPoint:.trailing).opacity(gradientOpacity)
                         Canvas {context,size in
                             let phase=reduceMotion ? 0 : (1-cos(time.date.timeIntervalSinceReferenceDate*Double.pi/5))*5
                             context.scaleBy(x:size.width/120,y:size.height/30);context.translateBy(x:-phase,y:0)
@@ -59,7 +60,7 @@ struct FocusWaveBar:View {
                             p.addCurve(to:CGPoint(x:60,y:18),control1:CGPoint(x:40,y:14),control2:CGPoint(x:50,y:14))
                             p.addCurve(to:CGPoint(x:90,y:18),control1:CGPoint(x:70,y:22),control2:CGPoint(x:80,y:22))
                             p.addCurve(to:CGPoint(x:120,y:18),control1:CGPoint(x:100,y:14),control2:CGPoint(x:110,y:14))
-                            p.addLine(to:CGPoint(x:120,y:30));p.addLine(to:CGPoint(x:0,y:30));p.closeSubpath();context.fill(p,with:.color(.white.opacity(0.18)))
+                            p.addLine(to:CGPoint(x:120,y:30));p.addLine(to:CGPoint(x:0,y:30));p.closeSubpath();context.fill(p,with:.color(.white.opacity(waveOpacity)))
                         }
                     }.frame(width:width)
                 }

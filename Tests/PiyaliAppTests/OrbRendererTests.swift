@@ -33,3 +33,15 @@ extension OrbRendererTests {
         await fulfillment(of:[settled],timeout:5)
     }
 }
+
+extension OrbRendererTests {
+    func testReturningFromAwardStyleRestoresTutorCameraAndMaterial()throws{
+        let host=VoiceOrbHost(frame:CGRect(x:0,y:0,width:128,height:128));defer{host.stop()}
+        let orb=try XCTUnwrap(AchievementUI.source.data["items"]["en"].array.first?["orb"])
+        host.configure(VoiceOrbView(callActive:true,personality:.init(mood:orb["mood"].string,state:orb["state"].string,reaction:orb["reaction"].string),dark:true,reducedMotion:true,achievement:orb))
+        XCTAssertEqual(host.sceneView.pointOfView?.position.z ?? 0,5.6,accuracy:0.001)
+        host.configure(VoiceOrbView(reducedMotion:true));XCTAssertEqual(host.sceneView.pointOfView?.position.z,5);XCTAssertEqual(host.sceneView.pointOfView?.position.y,0)
+        var material:SCNMaterial?;host.sceneView.scene?.rootNode.enumerateChildNodes{node,_ in if let m=node.geometry?.firstMaterial,m.lightingModel == .physicallyBased{material=m}}
+        let restored=try XCTUnwrap(material);XCTAssertEqual((restored.roughness.contents as? NSNumber)?.doubleValue ?? 0,0.28,accuracy:0.001);XCTAssertEqual((restored.metalness.contents as? NSNumber)?.doubleValue ?? 0,0.02,accuracy:0.001);XCTAssertEqual((restored.clearCoat.contents as? NSNumber)?.doubleValue ?? 0,0.72,accuracy:0.001)
+    }
+}

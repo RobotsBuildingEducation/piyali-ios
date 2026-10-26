@@ -18,6 +18,7 @@ import SwiftUI
     var tutorCurriculumIndex:[String:[String:[String]]] = [:]
     @Published var achievements: [AchievementDefinition] = []
     @Published var error: String?
+    @Published private(set) var localStorageUnavailable=false
     @Published var syncStatus = "Saved on this iPhone"
     @Published var loadingContent = false
     @Published private(set) var localPracticeRevision=UUID()
@@ -298,7 +299,7 @@ import SwiftUI
         }
         contentTask = task; await task.value
     }
-    private func writeLocal() throws { try JSONEncoder().encode(learner).write(to:localURL,options:[.atomic,.completeFileProtection]) }
+    private func writeLocal() throws {do{try JSONEncoder().encode(learner).write(to:localURL,options:[.atomic,.completeFileProtection]);if localStorageUnavailable{localStorageUnavailable=false}}catch{if !localStorageUnavailable{localStorageUnavailable=true};throw error}}
     func persist() {
         learner.reconcileTutorUnlock(index:tutorCurriculumIndex[learner.target] ?? [:])
         if learner.onboardingComplete && !learner.goal.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty && (learner.goalBucket["activeGoal"]["id"].string.isEmpty || learner.goal != learner.goalBucket["activeGoal"]["text"].string) { learner.editGoal(learner.goal) }

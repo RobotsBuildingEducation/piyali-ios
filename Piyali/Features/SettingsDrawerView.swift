@@ -33,6 +33,7 @@ struct SettingsDrawerView:View {
     @FocusState private var personaFocused:Bool
     @State private var goalFocused=false
     @State private var toast=""
+    @State private var achievementSync=false
     private var lang:String{app.learner.support}
     private var scope:String{app.identity.npub}
     private var brand:PiyaliBrand{.init(dark:scheme == .dark)}
@@ -120,6 +121,7 @@ struct SettingsDrawerView:View {
                 HStack{Button(EntryCopy.text(lang,"login_extension_button")){remote=true}.font(PiyaliBrand.productFont(12));Spacer();Button(t(switching ? "app_switching":"app_switch")){persona.flush(app);app.flushGoalEditor();switching=true;Task{let changed=await app.settingsSwitchAccount(nsec);switching=false;if changed{nsec="";close()}}}.buttonStyle(SettingsActionStyle(color:"319795")).disabled(switching || nsec.isEmpty).accessibilityIdentifier("settingsSwitchAccount")}
             }
             accordion(SettingsCopy.inline(lang,"Bitcoin wallet"),open:$wallet,id:"walletLink"){WalletView(inline:true)}
+            accordion("Nostr · "+AchievementUI.text("sync",lang),open:$achievementSync,id:"settingsAchievementSync"){NostrAchievementControls(service:app.nostrAchievements)}
             VStack(alignment:.leading,spacing:12){OnboardingText(text:t("app_install_title"),size:16,weight:.semibold,lineHeight:24);Button{gettingStarted=true}label:{HStack{Image(systemName:"checkmark.seal");Text(t("app_install_step5"));Spacer();Image(systemName:"chevron.right")}.font(PiyaliBrand.productFont(14)).padding(12).background(scheme == .dark ? PiyaliBrand.unitColor("1f2937"):PiyaliBrand.unitColor("fbf7f0"),in:RoundedRectangle(cornerRadius:6)).overlay{RoundedRectangle(cornerRadius:6).stroke(brand.border)}}.accessibilityIdentifier("accountGettingStarted")}.padding(.top,24)
             HStack{Spacer();Button{signOut=true}label:{Label(t("app_sign_out"),systemImage:"rectangle.portrait.and.arrow.right").font(PiyaliBrand.productFont(14,600)).padding(.horizontal,24).frame(minHeight:48).foregroundStyle(PiyaliBrand.unitColor("e53e3e")).overlay{Capsule().stroke(PiyaliBrand.unitColor("e53e3e"))}}.padding(.top,24).accessibilityIdentifier("settingsSignOut")}
         }
