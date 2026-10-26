@@ -4,9 +4,9 @@ import argparse, json, os, subprocess, uuid
 from pathlib import Path
 root = Path(__file__).resolve().parent.parent
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument('--only', choices=['tutor-gemini', 'tutor-focused', 'tutor', 'phonics', 'flashcards', 'focused-goal', 'companion-quest', 'headline', 'lesson-content', 'realtime', 'realtime-connection', 'realtime-legacy-gemini', 'landing', 'practice', 'practice-formats', 'services', 'immersion', 'conversation', 'rpg', 'rpg-objects', 'help', 'signer', 'stories', 'reading', 'exploration', 'quiz'])
+parser.add_argument('--only', choices=['teams', 'tutor-gemini', 'tutor-focused', 'tutor', 'phonics', 'flashcards', 'focused-goal', 'companion-quest', 'headline', 'lesson-content', 'realtime', 'realtime-connection', 'realtime-legacy-gemini', 'landing', 'practice', 'practice-formats', 'services', 'immersion', 'conversation', 'rpg', 'rpg-objects', 'help', 'signer', 'stories', 'reading', 'exploration', 'quiz'])
 selection = parser.parse_args().only
-methods = {'help':'testNativeHelpChatStreamsSupportLanguageAndAnalyzesTargetMorphemes',
+methods = {'teams':'testDeployedPublicMirrorMembershipRenameAddsAndRevocation','help':'testNativeHelpChatStreamsSupportLanguageAndAnalyzesTargetMorphemes',
            'tutor-gemini':'testLearnerGeminiTutorUsesFirebaseIdentitySourcePromptAndNativePlayback',
            'tutor-focused':'testOriginalFocusedTutorGoalAndRepairJudgesUseNativeProviders',
            'tutor':'testOriginalTutorJudgeWelcomeAndNativeVoiceWithSourceTranscriptionContext',
@@ -40,6 +40,8 @@ env.update(TEST_RUNNER_PIYALI_OFFLINE_TESTS='1', TEST_RUNNER_PIYALI_LIVE_API_TES
 if selection == 'exploration':
     env['TEST_RUNNER_PIYALI_EXPLORATION_DIAGNOSTICS_DIR'] = str(root / '.secrets/exploration-diagnostics')
 test = ('PiyaliTests/RealtimeConnectionTests' if selection in ('realtime','realtime-connection') else 'PiyaliTests/LiveAPIIntegrationTests') + ('/' + methods[selection] if selection else '')
+if selection == 'teams':
+    test = 'PiyaliTests/TeamsMirrorLiveTests/testDeployedPublicMirrorMembershipRenameAddsAndRevocation'
 tests = [test]
 if selection == 'phonics':
     tests.append('PiyaliTests/RealtimeConnectionTests/testDefaultRealtimeModelReturnsDataEventsAndNativeWebRTCAudio')

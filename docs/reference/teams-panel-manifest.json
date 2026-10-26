@@ -1,0 +1,54 @@
+{
+  "sources": [
+    {
+      "file": "src/components/Teams/TeamsDrawer.jsx",
+      "sha256": "c9a5782a41cc39d7dac9fca19bdde0a6d8a3f24a4c463dc611f5d9332cee41fc"
+    },
+    {
+      "file": "src/components/Teams/TeamCreation.jsx",
+      "sha256": "f11087861531d5865539d9c4b3ed041e1cb838ddee578f22335ab8d69566cbe6"
+    },
+    {
+      "file": "src/components/Teams/TeamView.jsx",
+      "sha256": "2facc3dd6abc05f079200ee3e903c30415b71aba8078a3fa9d5691f5b0e482d1"
+    },
+    {
+      "file": "src/components/Teams/TeamFeed.jsx",
+      "sha256": "85aa1826902089bf473bd2c7b3a17bd0398d6204999182d0c5e3eccc1dfb1abc"
+    },
+    {
+      "file": "src/utils/reconcileTeams.js",
+      "sha256": "cd264eafa66720c4700977ef21bb072dafddec1675ad8292a03e8532294a4dce"
+    },
+    {
+      "file": "src/utils/teams.js",
+      "sha256": "8651522562b44812afbb1c2d27248d335cf06151278c75e113303bdcde6f9783"
+    },
+    {
+      "file": "src/utils/learningTeams.js",
+      "sha256": "b3588525bc30dc17fc6ff089fb73bccd3a27c1af59084e1b941e3613a02363af"
+    },
+    {
+      "file": "src/components/Teams/TeamCompanionAvatar.jsx",
+      "sha256": "9a8e8cbaeae84eb416924296d21f801fa51155891a4060a765c0b2eb09a53c9f"
+    },
+    {
+      "file": "src/components/companionDrawing.js",
+      "sha256": "c1821e5a1dac46bd2873358871f55e2cfa1ba74bc288ddccfc1748c76d8ed9a6"
+    },
+    {
+      "file": "src/theme.js",
+      "sha256": "6fe6093ecca51d0debb1314a587d6bd0927e7ac9f8c1ba2c6c744017e3be407e"
+    },
+    {
+      "file": "src/index.css",
+      "sha256": "79a5362dc1b189acd0d2288c0e85ff29c9cc1c8e39b8bb5cabe164ddd1c29030"
+    },
+    {
+      "file": "src/features/stories/storyCharacters.js",
+      "sha256": "fbe1d229c53880b2e57f5ad266a4ef6170dd204c8cb2e8039b4fd6847c06ca9d"
+    }
+  ],
+  "cases": 134,
+  "scope": "Original reconciliation, form invite guards, pending/team presentation, feed filters/metrics/author portrait hashing. Source relay constant is inert; portrait paths refer to the existing native source-art catalog. No Firebase, relay, React or store initialization."
+}

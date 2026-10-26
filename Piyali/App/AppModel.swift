@@ -65,6 +65,7 @@ import SwiftUI
     let companionQuestPolicy=try? CompanionQuestPolicy()
     let subscription = SubscriptionService()
     let teams = NostrTeamsService()
+    let teamFeed = CommunityFeedService()
     let automaticProgress=AutomaticProgressController()
     private let automaticWallet:WalletService
     private var automaticTipTask:(id:UUID,task:Task<Void,Never>)?
@@ -148,7 +149,7 @@ import SwiftUI
     func signIn(nsec: String?,name:String? = nil,support:String? = nil) async {
         flushGoalEditor();goalCheck=nil;automaticProgress.reset()
         nostrSyncTask?.cancel();nostrAchievements.cancel()
-        teams.cancel(clear:true)
+        teams.cancel(clear:true);teamFeed.cancel(clear:true)
         do {
             if let nsec { try identity.importKey(nsec) } else { try identity.create() }
             await activateIdentity(newProfile:nsec == nil && name != nil ? (name!,support ?? "en") : nil)
@@ -177,7 +178,7 @@ import SwiftUI
     }
     func signInRemote(_ token:String,onConnected:@MainActor ()->Void = {}) async -> Bool {
         flushGoalEditor();goalCheck=nil;automaticProgress.reset()
-        nostrSyncTask?.cancel();nostrAchievements.cancel();teams.cancel(clear:true)
+        nostrSyncTask?.cancel();nostrAchievements.cancel();teams.cancel(clear:true);teamFeed.cancel(clear:true)
         do { try await identity.connect(token);try Task.checkCancellation();onConnected();await activateIdentity();return true }
         catch { if !(error is CancellationError) { self.error=error.localizedDescription };return false }
     }
@@ -185,7 +186,7 @@ import SwiftUI
     func disconnectRemote() {
         flushGoalEditor();goalCheck=nil
         do {
-            try writeLocal();automaticProgress.reset();automaticTipTask?.task.cancel();automaticTipTask=nil;automaticWallet.cancel(clear:true);saveTask?.cancel();contentTask?.cancel();nostrSyncTask?.cancel();nostrAchievements.cancel();teams.cancel(clear:true)
+            try writeLocal();automaticProgress.reset();automaticTipTask?.task.cancel();automaticTipTask=nil;automaticWallet.cancel(clear:true);saveTask?.cancel();contentTask?.cancel();nostrSyncTask?.cancel();nostrAchievements.cancel();teams.cancel(clear:true);teamFeed.cancel(clear:true)
             journeyRecording?.controller.close();journeyRecording=nil;try identity.disconnect();FirebaseIdentityService.shared.clearSession();signedIn=false;lessonActivityActive=false;activityFooter=nil;pendingLessonCompletion=nil;subscription.bind(identity);learner=LearnerState()
         } catch { self.error=error.localizedDescription }
     }

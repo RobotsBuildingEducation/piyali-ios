@@ -21,6 +21,16 @@ service cloud.firestore {
         data.teamName is string && data.teamName.size() > 0 && data.teamName.size() <= 80 &&
         data.members is list && data.members.size() <= 256;
     }
+    function publicTeam(data, creator, teamId) {
+      return data.get('nostr', null) is map && data.createdBy == creator &&
+        data.nostr.id == teamId && data.nostr.identifier == 'learning-team:' + teamId &&
+        data.nostr.relays is list && data.nostr.relays.size() <= 8 &&
+        data.teamName is string && data.teamName.size() > 0 && data.teamName.size() <= 80 &&
+        data.members is list && data.members.size() <= 256;
+    }
+    function teamRecord(data, creator, teamId) {
+      return privateTeam(data, creator) || publicTeam(data, creator, teamId);
+    }
     match /users/{userId} {
       allow get: if owns(userId);
       allow list: if false;
@@ -43,9 +53,11 @@ service cloud.firestore {
                 getAfter(invitation).data.status == 'accepted'));
         }
         allow get: if owns(userId) || invited(userId, teamId, false);
-        allow list: if owns(userId);
-        allow create: if owns(userId) && privateTeam(request.resource.data, userId);
-        allow update: if privateTeam(request.resource.data, userId) && (owns(userId) || memberEdit());
+        // A member can subscribe only to a bounded query whose document ID
+        // proves their invitation. Unbounded and unrelated roster lists fail.
+        allow list: if owns(userId) || (signedLearner() && request.query.limit == 1 && invited(userId, teamId, false));
+        allow create: if owns(userId) && teamRecord(request.resource.data, userId, teamId);
+        allow update: if teamRecord(request.resource.data, userId, teamId) && (owns(userId) || memberEdit());
         allow delete: if owns(userId);
         match /progress/{member} {
           function access() {
@@ -65,9 +77,12 @@ service cloud.firestore {
           let data = request.resource.data;
           let team = getAfter(/databases/$(database)/documents/users/$(data.creatorNpub)/teams/$(data.teamId)).data;
           return owns(data.creatorNpub) && data.invitedBy == data.creatorNpub &&
-            inviteId == 'team_' + data.teamId && privateTeam(team, data.creatorNpub) &&
-            data.teamName == team.teamName && data.status == 'pending' &&
-            data.member.npub == userId && data.member.status == 'pending' && data.member in team.members;
+            inviteId == 'team_' + data.teamId && data.teamName == team.teamName &&
+            ((privateTeam(team, data.creatorNpub) && data.status == 'pending' &&
+              data.member.npub == userId && data.member.status == 'pending' && data.member in team.members) ||
+             (publicTeam(team, data.creatorNpub, data.teamId) && data.status == 'accepted' &&
+              data.nostr == team.nostr &&
+              {'npub':userId, 'status':'accepted', 'addedAt':data.createdAt, 'name':''} in team.members));
         }
         allow get: if owns(userId) || creator() || signedLearner() && !exists(/databases/$(database)/documents/users/$(userId)/teamInvites/$(inviteId));
         allow list: if owns(userId) || creator();

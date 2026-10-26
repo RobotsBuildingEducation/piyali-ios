@@ -1,0 +1,94 @@
+{
+  "creator": "npub10xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqpkge6d",
+  "teams": [
+    {
+      "id": "fixture-one",
+      "teamName": "Weekend Study",
+      "createdBy": "npub10xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqpkge6d",
+      "isCreator": true,
+      "creatorName": "Ada",
+      "members": [
+        {
+          "npub": "npub1ccz8l9zpa47k6vz9gphftsrumpw80rjt3nhnefat4symjhrsnmjs38mnyd",
+          "status": "accepted"
+        }
+      ],
+      "nostr": {
+        "id": "fixture-one",
+        "identifier": "learning-team:fixture-one"
+      }
+    }
+  ],
+  "rows": {
+    "fixture-one": [
+      {
+        "npub": "npub10xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqpkge6d",
+        "name": "Ada",
+        "targetLang": "es",
+        "level": "B1",
+        "score": 64,
+        "totalXp": 1250,
+        "progressPercent": 67,
+        "isCreator": true,
+        "companion": {
+          "name": "Coco",
+          "type": "dog",
+          "level": 12,
+          "health": 88
+        }
+      },
+      {
+        "npub": "npub1ccz8l9zpa47k6vz9gphftsrumpw80rjt3nhnefat4symjhrsnmjs38mnyd",
+        "name": "Luis",
+        "targetLang": "en",
+        "level": "A2",
+        "score": 43,
+        "totalXp": 420,
+        "progressPercent": 25,
+        "isCreator": false,
+        "companion": {
+          "name": "Luna",
+          "type": "ghost",
+          "level": 3,
+          "health": 74
+        }
+      }
+    ]
+  },
+  "invites": [
+    {
+      "id": "team_fixture-invite",
+      "teamId": "fixture-invite",
+      "teamName": "Morning Spanish",
+      "creatorNpub": "npub1ccz8l9zpa47k6vz9gphftsrumpw80rjt3nhnefat4symjhrsnmjs38mnyd",
+      "invitedByName": "Luis",
+      "status": "pending"
+    }
+  ],
+  "posts": [
+    {
+      "id": "fixture-post",
+      "npub": "npub10xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqpkge6d",
+      "pubkey": "1111111111111111111111111111111111111111111111111111111111111111",
+      "createdAt": 1700000000,
+      "profile": {
+        "name": "Ada"
+      },
+      "content": "I just reached 1250 XP! #LearnWithNostr",
+      "tags": [
+        [
+          "purpose",
+          "nosaboProgress"
+        ],
+        [
+          "total_xp",
+          "1250"
+        ],
+        [
+          "daily_goal_percent",
+          "67"
+        ]
+      ]
+    }
+  ]
+}

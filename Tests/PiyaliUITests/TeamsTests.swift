@@ -1,49 +1,26 @@
 import XCTest
 
-@MainActor final class TeamsTests: XCTestCase {
-    private func reveal(_ element: XCUIElement, in app: XCUIApplication) {
-        _=element.waitForExistence(timeout:2)
-        for _ in 0..<5 where !element.isHittable { app.swipeUp(velocity:.slow) }
-        for _ in 0..<5 where !element.isHittable { app.swipeDown(velocity:.slow) }
-        XCTAssertTrue(element.waitForExistence(timeout:10))
-        XCTAssertTrue(element.isHittable)
-    }
-    private func enter(_ text: String, field: String, app: XCUIApplication) {
-        let input=app.descendants(matching:.any)[field];reveal(input,in:app);input.tap();input.typeText(text)
-        if app.buttons["Done"].exists { app.buttons["Done"].tap() }
-    }
-    private func openTeams(_ app: XCUIApplication) {
-        app.tabBars.buttons["Account"].tap();let link=app.buttons["Learning teams"];reveal(link,in:app);link.tap()
-        XCTAssertTrue(app.navigationBars["Teams"].waitForExistence(timeout:10))
-    }
-    func testCreateEditRosterAndDeleteUseSignedLocalRelayAndSurviveRelaunch() async throws {
-        let relay=LocalNostrRelay();defer { relay.stop() };var events:[[String:Any]]=[]
-        try await relay.start { frame,connection in
-            if frame.first as? String == "REQ",let sub=frame[1] as? String { for event in events { relay.send(["EVENT",sub,event],to:connection) };relay.send(["EOSE",sub],to:connection) }
-            else if frame.first as? String == "EVENT",let event=frame[1] as? [String:Any],let id=event["id"] as? String { events.append(event);relay.send(["OK",id,true,""],to:connection) }
+@MainActor final class TeamsTests:XCTestCase {
+    private func tap(_ id:String,_ app:XCUIApplication){let e=app.buttons[id];XCTAssertTrue(e.waitForExistence(timeout:15),id);XCTAssertTrue(e.isHittable,id);e.tap()}
+    private func enter(_ value:String,_ id:String,_ app:XCUIApplication){let e=app.textFields[id];XCTAssertTrue(e.waitForExistence(timeout:10));e.tap();e.typeText(value+"\n")}
+    private func open(_ app:XCUIApplication){tap("productMenu",app);tap("productPanel-teams",app);XCTAssertTrue(app.buttons["teamsClose"].waitForExistence(timeout:10))}
+    private func shot(_ name:String,_ app:XCUIApplication){let a=XCTAttachment(screenshot:app.screenshot());a.name=name;a.lifetime = .keepAlways;add(a)}
+    private func reveal(_ id:String,_ app:XCUIApplication)->XCUIElement{let e=app.descendants(matching:.any)[id];for _ in 0..<6 where !e.isHittable{app.swipeUp(velocity:.slow)};XCTAssertTrue(e.isHittable,id);return e}
+    func testCreateEditRosterAndDeleteUseSignedLocalRelayAndSurviveRelaunch()async throws {
+        continueAfterFailure=false
+        let relay=LocalNostrRelay();defer{relay.stop()};var events:[[String:Any]]=[]
+        try await relay.start{frame,connection in
+            if frame.first as? String == "REQ",let sub=frame[1] as? String{for event in events{relay.send(["EVENT",sub,event],to:connection)};relay.send(["EOSE",sub],to:connection)}else if frame.first as? String == "EVENT",let event=frame[1] as? [String:Any],let id=event["id"] as? String{events.append(event);relay.send(["OK",id,true,""],to:connection)}
         }
-        let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString;app.launchEnvironment["PIYALI_TEAM_TEST_RELAY"]=relay.url;app.launch()
-        XCTAssertTrue(app.buttons["createAccount"].waitForExistence(timeout:10));app.buttons["createAccount"].tap()
-        XCTAssertTrue(app.buttons["startLearning"].waitForExistence(timeout:10));app.buttons["startLearning"].tap();openTeams(app)
-        enter("Weekend",field:"teamName",app:app)
-        enter("npub10xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqpkge6d",field:"teamMembers",app:app)
-        let create=app.buttons["teamCreate"];reveal(create,in:app);XCTAssertTrue(create.isEnabled);create.tap()
-        let row=app.buttons.matching(identifier:"learningTeamRow").firstMatch;reveal(row,in:app);XCTAssertTrue(row.label.contains("2 members"));row.tap()
-        XCTAssertTrue(app.navigationBars["Weekend"].waitForExistence(timeout:10))
-        let name=app.descendants(matching:.any)["teamEditName"];reveal(name,in:app);name.tap();name.typeText(String(repeating:XCUIKeyboardKey.delete.rawValue,count:7)+"Evening")
-        app.buttons["Done"].tap();let rename=app.buttons["teamRename"];reveal(rename,in:app);rename.tap()
-        XCTAssertTrue(app.navigationBars["Evening"].waitForExistence(timeout:10))
-        enter("npub1ccz8l9zpa47k6vz9gphftsrumpw80rjt3nhnefat4symjhrsnmjs38mnyd",field:"teamAddInput",app:app)
-        let add=app.buttons["teamAdd"];reveal(add,in:app);add.tap()
-        app.navigationBars.buttons.element(boundBy:0).tap();reveal(row,in:app);XCTAssertTrue(row.label.contains("3 members"))
-        app.terminate();app.launch();openTeams(app);reveal(row,in:app);XCTAssertTrue(row.label.contains("Evening"));XCTAssertTrue(row.label.contains("3 members"));row.tap()
-        let remove=app.buttons["Delete team"];reveal(remove,in:app);remove.tap()
-        XCTAssertTrue(app.sheets.buttons["Delete team"].waitForExistence(timeout:5));app.sheets.buttons["Delete team"].tap()
-        XCTAssertTrue(app.staticTexts["No teams found. Refresh to check your relays."].waitForExistence(timeout:10))
-        app.terminate();app.launch();openTeams(app)
-        XCTAssertTrue(app.staticTexts["No teams found. Refresh to check your relays."].waitForExistence(timeout:10))
-        let published=relay.frames().filter { $0.first as? String == "EVENT" }.compactMap { $0[1] as? [String:Any] }
-        XCTAssertEqual(published.count,4)
-        XCTAssertTrue(published.allSatisfy { ($0["kind"] as? Int) == 30078 && ($0["sig"] as? String)?.count == 128 && ($0["tags"] as? [[String]])?.first?.last?.hasPrefix("learning-team:") == true })
+        let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_TEAM_TEST_RELAY":relay.url,"PIYALI_PRIVATE_TEAMS_TEST_EMULATOR":"1","PIYALI_HEADLINE_FIXTURE":"failure"];app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"];app.launch()
+        let entryName=app.textFields["entryName"];XCTAssertTrue(entryName.waitForExistence(timeout:15));entryName.tap();entryName.typeText("Team Learner");tap("entryKeyboardDone",app);tap("createAccount",app);tap("startLearning",app);tap("companionContinue",app);tap("gettingStartedGotIt",app);tap("placementNew",app)
+        open(app);XCTAssertTrue(app.staticTexts["My teams (0)"].waitForExistence(timeout:10));shot("Native Teams empty product",app);tap("teamsCopyID",app);if app.staticTexts["teamsNotice"].exists{app.staticTexts["teamsNotice"].tap()};tap("teamCreateOpen",app)
+        enter("Weekend","teamName",app);enter("bad","teamMembers",app);XCTAssertTrue(app.staticTexts["teamFormError"].waitForExistence(timeout:5));let member=app.textFields["teamMembers"];member.tap();member.typeText(String(repeating:XCUIKeyboardKey.delete.rawValue,count:3)+"npub10xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqpkge6d\n");XCTAssertTrue(app.staticTexts["Members to Invite (1)"].waitForExistence(timeout:5));shot("Native Teams queued product",app);tap("teamCreate",app)
+        XCTAssertTrue(app.buttons["learningTeamRow"].waitForExistence(timeout:20));XCTAssertTrue(app.buttons["learningTeamRow"].label.contains("Weekend"));XCTAssertTrue(app.staticTexts["Team Learner"].exists);shot("Native Teams single product",app);tap("teamEdit",app);let name=app.textFields["teamEditName"];XCTAssertTrue(name.waitForExistence(timeout:5));name.tap();name.typeText(String(repeating:XCUIKeyboardKey.delete.rawValue,count:7)+"Evening\n");tap("teamRename",app);XCTAssertTrue(app.buttons["learningTeamRow"].waitForExistence(timeout:15));XCTAssertTrue(app.buttons["learningTeamRow"].label.contains("Evening"))
+        tap("teamAddOpen",app);enter("npub1ccz8l9zpa47k6vz9gphftsrumpw80rjt3nhnefat4symjhrsnmjs38mnyd","teamMembers",app);tap("teamAdd",app);XCTAssertTrue(app.buttons["learningTeamRow"].waitForExistence(timeout:15));XCTAssertTrue(app.buttons["learningTeamRow"].label.contains("Evening"))
+        app.terminate();app.launch();open(app);XCTAssertTrue(app.buttons["learningTeamRow"].waitForExistence(timeout:20));XCTAssertTrue(app.buttons["learningTeamRow"].label.contains("Evening"));shot("Native Teams restored product",app)
+        reveal("teamRemove",app).tap();let remove=app.sheets.buttons["Delete team"];XCTAssertTrue(remove.waitForExistence(timeout:5));remove.tap();XCTAssertTrue(app.staticTexts["My teams (0)"].waitForExistence(timeout:20));app.terminate();app.launch();open(app);XCTAssertTrue(app.staticTexts["My teams (0)"].waitForExistence(timeout:20));tap("teamsFeedTab",app);XCTAssertTrue(app.staticTexts["No posts yet. Start the conversation!"].waitForExistence(timeout:10));shot("Native Teams feed product",app)
+        let published=relay.frames().filter{$0.first as? String == "EVENT"}.compactMap{$0[1] as? [String:Any]},rosters=published.filter{($0["tags"] as? [[String]])?.contains(where:{$0.first == "d" && $0.last?.hasPrefix("learning-team:")==true}) == true}
+        XCTAssertEqual(rosters.count,4);XCTAssertTrue(rosters.allSatisfy{($0["kind"] as? Int)==30078 && ($0["sig"] as? String)?.count==128});XCTAssertTrue(published.contains{($0["tags"] as? [[String]])?.contains(["d","learning-progress"])==true})
     }
 }
