@@ -9,8 +9,8 @@ public struct SettingsChange:Codable,Identifiable,Sendable {
 }
 public enum LearnerSettings {
     public static let progressKeys:Set<String>=["tutorVoice","tutorVoicePersona","pauseMs","showTranslations","helpRequest","practicePronunciation"]
-    public static let rootKeys:Set<String>=["themeMode","allowPosts","soundEnabled","soundVolume","tutorVolume","rpgMusicEnabled","rpgMusicPreferenceVersion"]
-    public static let directKeys:Set<String>=["allowPosts","soundEnabled","soundVolume","tutorVolume","rpgMusicEnabled","rpgMusicPreferenceVersion"]
+    public static let rootKeys:Set<String>=["identity","createdWallet","themeMode","allowPosts","soundEnabled","soundVolume","tutorVolume","rpgMusicEnabled","rpgMusicPreferenceVersion"]
+    public static let directKeys:Set<String>=["identity","createdWallet","allowPosts","soundEnabled","soundVolume","tutorVolume","rpgMusicEnabled","rpgMusicPreferenceVersion"]
     public static func sourceUser(_ fields:[String:Any])->JSONValue {
         let p=(fields["progress"] as? [String:Any] ?? [:]).filter{progressKeys.union(["targetLang","supportLang","level","voice","voicePersona"]).contains($0.key)}
         return PhonicsProgress.document(fields.filter{rootKeys.contains($0.key)}.merging(["progress":p]){_,new in new})
@@ -34,7 +34,9 @@ public enum LearnerSettings {
         let partial=change.partial.object.filter{progressKeys.union(rootKeys).contains($0.key)}
         if Set(partial.keys).isSubset(of:directKeys){return .object(partial)}
         let normalized=try policy.run("normalize",.object(["user":fields,"partial":.object(partial),"provider":.string(change.provider == "gemini" ? "gemini":"openai")]))
-        return .object(["progress":.object(normalized["progress"].object.filter{progressKeys.contains($0.key)}),"themeMode":normalized["themeMode"],"appLanguage":normalized["appLanguage"],"helpRequest":normalized["helpRequest"],"practicePronunciation":normalized["practicePronunciation"]])
+        var patch: [String:JSONValue] = ["progress":.object(normalized["progress"].object.filter{progressKeys.contains($0.key)}),"themeMode":normalized["themeMode"],"appLanguage":normalized["appLanguage"],"helpRequest":normalized["helpRequest"],"practicePronunciation":normalized["practicePronunciation"]]
+        for key in ["identity","createdWallet"]{if let value=partial[key]{patch[key]=value}}
+        return .object(patch)
     }
 }
 public extension LearnerState {

@@ -44,3 +44,17 @@ final class SettingsSourcePolicyTests:XCTestCase {
     }
 
 }
+
+extension SettingsSourcePolicyTests {
+    func testWalletRecipientAndCreatedFlagSurviveOfflineRebaseAndMixedSettingsPatch()throws {
+        let value="npub1fixture-recipient",partial:JSONValue = .object(["identity":.string(value),"createdWallet":.bool(true)])
+        var current=LearnerState();current.xpByLanguage=[current.target:150];current.changeSettings(partial);let sent=current,id=try XCTUnwrap(sent.pendingSettingsChanges?.first?.id)
+        XCTAssertEqual(try LearnerSettings.patch(try XCTUnwrap(sent.pendingSettingsChanges?.first),fields:.object(["progress":.object(["xp":.number(150)])]),policy:policy()),partial)
+        current.changeSettings(.object(["identity":.string("newer-recipient")]))
+        let cloud=WebProgressContract.imported(["xp":150,"identity":value,"createdWallet":true,"patreonVerified":true,"iosRecentEventIDs":[id.uuidString]],native:sent)
+        let rebased=LearnerState.rebased(current:current,sent:sent,acknowledged:cloud),restored=try JSONDecoder().decode(LearnerState.self,from:JSONEncoder().encode(rebased))
+        XCTAssertEqual(restored.settingsSnapshot["identity"],.string("newer-recipient"));XCTAssertEqual(restored.settingsSnapshot["createdWallet"],.bool(true));XCTAssertEqual(restored.totalXP,150);XCTAssertEqual(restored.pendingSettingsChanges?.count,1)
+        let mixed=try LearnerSettings.patch(.init(partial:partial.setting("pauseMs",.number(800))),fields:.object(["progress":.object(["xp":.number(150)])]),policy:policy())
+        XCTAssertEqual(mixed["identity"],.string(value));XCTAssertEqual(mixed["createdWallet"],.bool(true));XCTAssertEqual(mixed["progress"]["xp"],.null);XCTAssertEqual(mixed["patreonVerified"],.null)
+    }
+}

@@ -45,6 +45,7 @@ extension AppModel {
                 else if key == "themeMode"{accepted[key]=result[key]}
             }
         }
+        for key in ["identity","createdWallet"] where partial[key] != .null{if key == "createdWallet"{accepted[key] = .bool(partial[key].boolean)}else if WalletCopy.recipients.contains(where:{$0["npub"].string == partial[key].string}){accepted[key]=partial[key]}}
         guard !accepted.isEmpty else{return};if accepted["allowPosts"] == .bool(false){automaticProgress.cancelPending()};learner.changeSettings(.object(accepted),provider:TutorRealtime.provider);syncSettingsAppearance();persist()
     }
     func settingsSupportLanguage(_ value:String) {

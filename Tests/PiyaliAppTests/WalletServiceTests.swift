@@ -241,7 +241,7 @@ import Bolt11
         try await wallet.previewTip(to:receiver.npub,identity:sender);XCTAssertEqual(wallet.tipPreview?.fee,0)
         try await wallet.sendOneSat(to:receiver.npub,maximumFee:0,identity:sender);XCTAssertEqual(wallet.balance,249999)
         let sent=try XCTUnwrap(WalletVault().load(owner:a)?.sentReceipts?.last),receiverKey=try XCTUnwrap(WalletVault().load(owner:b)?.walletPrivateKey)
-        XCTAssertEqual(sent.kind,9321);XCTAssertEqual(sent.tag("p"),b);XCTAssertEqual(sent.tag("u"),WalletContract.defaultMint)
+        XCTAssertEqual(sent.content,WalletCopy.publicNote);XCTAssertEqual(sent.tag("alt"),"This is a nutzap");XCTAssertNotNil(WalletPublicTransaction.parse(sent));XCTAssertEqual(sent.kind,9321);XCTAssertEqual(sent.tag("p"),b);XCTAssertEqual(sent.tag("u"),WalletContract.defaultMint)
         let proof=try WalletProof(JSONDecoder().decode(JSONValue.self,from:Data(sent.tag("proof").utf8)));XCTAssertTrue(proof.locked(to:"02"+Keypair(hex:receiverKey)!.publicKey.hex));XCTAssertFalse(proof.locked(to:"02"+b))
         let forged=proof.wire.setting("C",.string("02"+String(repeating:"1",count:64)))
         try await client.publish(sender.sign(kind:9321,tags:[["proof",forged.json],["p",b],["u",WalletContract.defaultMint],["unit","sat"]],content:"invalid proof fixture"))

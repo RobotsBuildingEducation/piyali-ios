@@ -1,6 +1,6 @@
 # Native wallet implementation
 
-Native wallet creation/restoration, NIP-60 synchronization and Lightning deposits are connected through Account → Wallet. Manual one-sat nutzap sending/receiving is implemented. Optional automatic XP tips are implemented. Browser wallet configuration, key backups, proof-only records and saved deposit quotes can be restored. No real funds have been moved during implementation or verification.
+Native wallet creation/restoration, NIP-60 synchronization and Lightning deposits are connected through Settings → Account’s inline Bitcoin wallet. See [wallet screen correction](WALLET_PARITY.md) for the current source/native content, UI evidence and open parity gaps. Manual one-sat nutzap sending/receiving is implemented. Optional automatic XP tips are implemented. Browser wallet configuration, key backups, proof-only records and saved deposit quotes can be restored. No real funds have been moved during implementation or verification.
 
 ## Dependencies
 
@@ -18,7 +18,7 @@ CashuSwift is pinned to upstream revision `cd95afd419429539e97886a77f8ecb9cc5238
 
 `WalletService` discovers modern wallet configuration and signed encrypted proof records, preserves rollover/deletion tombstones, and uses mint proof-state checks for the displayed spendable balance. A second relay discovery check precedes wallet creation. Existing legacy wallet/deposit records prevent accidental replacement. New wallets generate a separate receiving key and publish encrypted NIP-60 configuration plus public NIP-61 payment information. Configuration publication has a persistent retryable outbox.
 
-`CashuHTTPClient` validates mint keys before requesting payment, including inactive keysets with unsigned 64-bit denominations. Deposit invoices must have a valid BOLT11 signature, exact requested sat amount and usable expiry. The native screen accepts 1–1,000,000 sats, shows a QR code, supports sharing/opening the invoice, polls while open and retains the quote across relaunches.
+`CashuHTTPClient` validates mint keys before requesting payment, including inactive keysets with unsigned 64-bit denominations. Deposit invoices must have a valid BOLT11 signature, exact requested sat amount and usable expiry. The main native section requests the source’s fixed 100 sats after recipient selection, shows a raw-invoice QR and Copy address/Cash App actions, polls while open and retains the quote across relaunches. Secondary payment tools retain the custom 1–1,000,000-sat amount and invoice sharing/opening controls.
 
 A paid quote creates and saves a complete blinded-output batch before submission. A lost response leaves the operation recoverable through NUT-09, without minting again when its signatures are available. Proofs and a stable relay outbox are saved before publication. An acknowledgment failure retries that outbox, preserving the already minted proofs. Per-account in-process leases and a fresh Keychain read prevent concurrent native service instances from overwriting each other's journal.
 

@@ -447,7 +447,7 @@ extension WalletService {
             if operation.purpose == .tip {
                 guard let destination=operation.recipient else { throw WalletContract.Failure.invalidRecipient }
                 let send=Array(proofs.dropFirst(operation.keepCount));guard send.reduce(0,{ $0+$1.amount }) == 1,send.allSatisfy({ $0.locked(to:destination.walletKey) }) else { throw WalletContract.Failure.invalidProof }
-                outbox.append(try await identity.signEvent(kind:9321,tags:send.map { ["proof",$0.wire.json] }+[["amount","1"],["unit","sat"],["u",destination.mint],["p",destination.author]],content:"Piyali",expectedAuthor:owner));try check(identity,version)
+                outbox.append(try await identity.signEvent(kind:9321,tags:send.map { ["proof",$0.wire.json] }+[["alt","This is a nutzap"],["amount","1"],["unit","sat"],["u",destination.mint],["p",destination.author]],content:WalletCopy.publicNote,expectedAuthor:owner));try check(identity,version)
             }
             state?.pending?.outbox=outbox;state?.pending?.phase = .publishing;try save()
         }
