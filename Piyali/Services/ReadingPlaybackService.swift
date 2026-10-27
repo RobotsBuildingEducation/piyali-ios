@@ -12,7 +12,7 @@ import Combine
     func play(_ text:String,language:String,sentence:Int?=nil){
         stop();guard !text.isEmpty else{return};activeSentence=sentence;readingAll=sentence == nil;let token=epoch
         do{guard let policy else{throw PracticeRecipeFailure.unavailable};let plan=try policy.request("reading",.object(["text":.string(text),"language":.string(language)]))
-            narration.play(plan["request"]["text"].string,language:language,engine:nil,sessionOverride:plan["session"],onFailed:{[weak self] in guard self?.epoch == token else{return};self?.stop()},onFinished:{[weak self] in guard self?.epoch == token else{return};self?.stop()})
+            narration.play(plan["request"]["text"].string,language:language,engine:nil,sessionOverride:plan["session"],cacheRequest:plan["request"],onFailed:{[weak self] in guard self?.epoch == token else{return};self?.stop()},onFinished:{[weak self] in guard self?.epoch == token else{return};self?.stop()})
         }catch{stop()}
     }
     func stop(){epoch=UUID();narration.stopAll();readingAll=false;activeSentence=nil}

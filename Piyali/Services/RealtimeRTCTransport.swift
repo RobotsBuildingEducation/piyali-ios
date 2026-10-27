@@ -15,8 +15,9 @@ import WebRTC
     func audioAmplitude(speaking:Bool) async ->Double
     func close()
     func setOutputGain(_ value:Double)
+    func completedNarrationRecording()->NarrationRecording?
 }
-extension RealtimeVoiceTransport { func setOutputGain(_ value:Double){}; func playbackDrainMilliseconds() async ->Double {1000};func audioAmplitude(speaking:Bool) async ->Double { 0 } }
+extension RealtimeVoiceTransport { func completedNarrationRecording()->NarrationRecording?{nil}; func setOutputGain(_ value:Double){}; func playbackDrainMilliseconds() async ->Double {1000};func audioAmplitude(speaking:Bool) async ->Double { 0 } }
 
 /// Native WebRTC media and oai-events data channel. Only an SDP offer is sent
 /// through Cloudflare; the standard provider key never enters the app.
@@ -25,18 +26,20 @@ extension RealtimeVoiceTransport { func setOutputGain(_ value:Double){}; func pl
     var onOpen:(()->Void)?
     var onEvent:((JSONValue)->Void)?
     var onFailure:((String)->Void)?
-    private let factory=RTCPeerConnectionFactory()
+    private let factory:RTCPeerConnectionFactory
+    private let outputDevice:NarrationAudioDevice?
     private let configuration:AppConfiguration
     private var peer:RTCPeerConnection?,channel:RTCDataChannel?,microphone:RTCAudioTrack?,sender:RTCRtpSender?
     private var ownsAudio=false,closed=false
     private let capturesMicrophone:Bool,activatesPlayback:Bool
     private let purpose:Purpose
-    init(configuration:AppConfiguration=AppConfiguration(),capturesMicrophone:Bool=true,activatesPlayback:Bool=true,purpose:Purpose = .conversation) { self.configuration=configuration;self.capturesMicrophone=capturesMicrophone;self.activatesPlayback=activatesPlayback;self.purpose=purpose;super.init() }
+    init(configuration:AppConfiguration=AppConfiguration(),capturesMicrophone:Bool=true,activatesPlayback:Bool=true,purpose:Purpose = .conversation,recordsNarration:Bool=false) { let device=recordsNarration && !capturesMicrophone ? NarrationAudioDevice():nil;self.outputDevice=device;self.factory=device.map{RTCPeerConnectionFactory(encoderFactory:nil,decoderFactory:nil,audioDevice:$0)} ?? RTCPeerConnectionFactory();self.configuration=configuration;self.capturesMicrophone=capturesMicrophone;self.activatesPlayback=activatesPlayback;self.purpose=purpose;super.init() }
     func connect(session:JSONValue) async throws {
         closed=false
         if capturesMicrophone || activatesPlayback {
             let audio=RTCAudioSession.sharedInstance();audio.lockForConfiguration();defer { audio.unlockForConfiguration() }
             let config=RTCAudioSessionConfiguration.webRTC();config.category=AVAudioSession.Category.playAndRecord.rawValue;config.mode=AVAudioSession.Mode.voiceChat.rawValue;config.categoryOptions=[.defaultToSpeaker,.allowBluetoothHFP]
+            if outputDevice != nil{config.category=AVAudioSession.Category.playback.rawValue;config.mode=AVAudioSession.Mode.default.rawValue;config.categoryOptions=[]}
             // WebRTC's voice-processing audio unit uses its standard audio
             // session even for a receive-only track; no input sender is added.
             try audio.setConfiguration(config,active:true);ownsAudio=true
@@ -133,7 +136,10 @@ extension RealtimeVoiceTransport { func setOutputGain(_ value:Double){}; func pl
             continuation.resume(returning:bytes)
         } }
     }
+    func completedNarrationRecording()->NarrationRecording?{outputDevice?.completedRecording()}
+    func setOutputGain(_ value:Double){outputDevice?.setGain(value)}
     func close() {
+        outputDevice?.shutdown()
         closed=true;setMicrophoneEnabled(false);channel?.delegate=nil;channel?.close();channel=nil
         peer?.delegate=nil;peer?.close();peer=nil;sender=nil;microphone=nil
         if ownsAudio { let audio=RTCAudioSession.sharedInstance();audio.lockForConfiguration();try? audio.setActive(false);audio.unlockForConfiguration();ownsAudio=false }

@@ -11,13 +11,30 @@ import Foundation
     private var client:RealtimeVoiceTransport?,epoch=UUID(),work:Task<Void,Never>?,startup:Task<Void,Never>?,hardDeadline:Task<Void,Never>?,drain:Task<Void,Never>?
     private var responseSucceeded=false,bufferStopped=false
     private var started:(()->Void)?,failed:(()->Void)?,finished:(()->Void)?
-    init(factory:(()->RealtimeVoiceTransport)?=nil){self.factory=factory ?? {RealtimeRTCTransport(capturesMicrophone:false,purpose:.narration)}}
-    func play(_ text:String,language:String,engine:CompanionQuestPolicy?,voice:String="ash",sessionOverride:JSONValue?=nil,startupMilliseconds:Int=20000,onStarted:(()->Void)?=nil,onFailed:(()->Void)?=nil,onFinished:(()->Void)?=nil){
+    private let cache:NarrationAudioCache?,makeReplay:()->NarrationReplay
+    private var cachePolicy:NarrationCachePolicy?,cacheKey:String?,replay:NarrationReplay?
+    private(set) var playbackSource:String?,lastCapturedBytes=0
+    init(factory:(()->RealtimeVoiceTransport)?=nil,cache:NarrationAudioCache?=nil,cacheEnabled:Bool=true,replayFactory:(()->NarrationReplay)?=nil){self.factory=factory ?? {RealtimeRTCTransport(capturesMicrophone:false,purpose:.narration,recordsNarration:true)};self.cache=cacheEnabled ? (cache ?? (factory == nil ? .shared:nil)):nil;makeReplay=replayFactory ?? {NarrationReplayPlayer()}}
+    func play(_ text:String,language:String,engine:CompanionQuestPolicy?,voice:String="ash",sessionOverride:JSONValue?=nil,cacheRequest:JSONValue?=nil,startupMilliseconds:Int=20000,onStarted:(()->Void)?=nil,onFailed:(()->Void)?=nil,onFinished:(()->Void)?=nil){
         guard !text.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else{return}
-        Self.owner?.stopAll();stopAll();Self.owner=self;loading=true;error=nil;failureDetail=nil;started=onStarted;failed=onFailed;finished=onFinished;let token=epoch
+        Self.owner?.stopAll();stopAll();Self.owner=self;loading=true;error=nil;failureDetail=nil;playbackSource=nil;lastCapturedBytes=0;started=onStarted;failed=onFailed;finished=onFinished;let token=epoch
         work=Task{do {
             let session:JSONValue
             if let sessionOverride{session=sessionOverride}else{guard let engine else{throw PracticeRecipeFailure.unavailable};session=try engine.run("ph_tts",.object(["language":.string(language),"voice":.string(voice)]))}
+            if let cache{
+                if cachePolicy == nil{cachePolicy=try? NarrationCachePolicy()}
+                cacheKey=try? cachePolicy?.key(text:text,language:language,voice:voice,session:session,request:cacheRequest)
+                if let key=cacheKey,let hit=await cached(cache,key:key){
+                    guard epoch == token,!Task.isCancelled else{return}
+                    do{let player=makeReplay();replay=player
+                        player.onFinished={[weak self] in guard let self,self.epoch == token else{return};let callback=self.finished;self.stopAll();callback?()}
+                        player.onFailed={[weak self] in guard let self,self.epoch == token else{return};Task{await cache.remove(key)};self.fail("cached-playback")}
+                        try player.play(hit.wav);loading=false;playing=true;playbackSource=hit.source;let callback=started;started=nil;callback?();return
+                    }catch{replay?.stop();replay=nil;await cache.remove(key)}
+                }
+                guard epoch == token,!Task.isCancelled else{return}
+            }
+            playbackSource="network"
             let client=factory();self.client=client
             client.onOpen={ [weak self,weak client] in guard let self,self.epoch == token else{return};client?.setMicrophoneEnabled(false);client?.setRemoteAudioEnabled(true)
                 let item:JSONValue = .object(["type":.string("conversation.item.create"),"item":.object(["type":.string("message"),"role":.string("user"),"content":.array([.object(["type":.string("input_text"),"text":.string("[NARRATE THIS TEXT EXACTLY]: "+text)])])])])
@@ -42,8 +59,16 @@ import Foundation
     }
     private func finishAfterDrain(){
         guard responseSucceeded,bufferStopped,drain == nil else{return};let token=epoch
-        drain=Task{let delay=await client?.playbackDrainMilliseconds() ?? 1000;try? await Task.sleep(for:.milliseconds(Int(delay)));guard !Task.isCancelled,epoch == token else{return};let callback=finished;stopAll();callback?()}
+        drain=Task{let delay=await client?.playbackDrainMilliseconds() ?? 1000;try? await Task.sleep(for:.milliseconds(Int(delay)));guard !Task.isCancelled,epoch == token else{return}
+            if let cache,let key=cacheKey,let rules=cachePolicy?.rules,let recording=client?.completedNarrationRecording(){lastCapturedBytes=recording.pcm16.count;await cache.complete(key,recording:recording,rules:rules)}
+            guard epoch == token,!Task.isCancelled else{return};let callback=finished;stopAll();callback?()}
     }
-    func stopAll(){epoch=UUID();work?.cancel();startup?.cancel();hardDeadline?.cancel();drain?.cancel();drain=nil;client?.close();client=nil;loading=false;playing=false;responseSucceeded=false;bufferStopped=false;started=nil;failed=nil;finished=nil;if Self.owner === self {Self.owner=nil}}
+    private func cached(_ cache:NarrationAudioCache,key:String)async->NarrationAudioCache.Hit?{
+        await withCheckedContinuation{continuation in var resumed=false
+            let lookup=Task{let hit=await cache.load(key);guard !resumed else{return};resumed=true;continuation.resume(returning:hit)}
+            Task{try? await Task.sleep(for:.milliseconds(1500));guard !resumed else{return};resumed=true;lookup.cancel();continuation.resume(returning:nil)}
+        }
+    }
+    func stopAll(){epoch=UUID();work?.cancel();startup?.cancel();hardDeadline?.cancel();drain?.cancel();drain=nil;client?.close();client=nil;replay?.stop();replay=nil;cacheKey=nil;loading=false;playing=false;responseSucceeded=false;bufferStopped=false;started=nil;failed=nil;finished=nil;if Self.owner === self {Self.owner=nil}}
     private func fail(_ detail:String){let callback=failed;stopAll();failureDetail=String(detail.prefix(500));error="Narration could not play. Try again.";callback?()}
 }

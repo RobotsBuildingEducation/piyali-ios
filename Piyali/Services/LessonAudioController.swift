@@ -38,6 +38,10 @@ import Combine
         #if DEBUG
         let env=ProcessInfo.processInfo.environment
         if env["PIYALI_OFFLINE_TESTS"] == "1",env["PIYALI_LIVE_API_TESTS"] != "1",env["PIYALI_LESSON_AUDIO_FIXTURE"] == "loading",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil{return RealtimeNarrationService(factory:{LessonLoadingTransport()})}
+        if env["PIYALI_OFFLINE_TESTS"] == "1",env["PIYALI_LIVE_API_TESTS"] != "1",env["PIYALI_LESSON_AUDIO_FIXTURE"] == "cache",let scope=env["PIYALI_TEST_IDENTITY_SCOPE"],UUID(uuidString:scope) != nil {
+            let root=FileManager.default.urls(for:.cachesDirectory,in:.userDomainMask)[0].appendingPathComponent("piyali-lesson-cache-fixture-"+scope,isDirectory:true)
+            return RealtimeNarrationService(factory:{LessonCacheTransport()},cache:NarrationAudioCache(directory:root),replayFactory:{NarrationReplayPlayer(volume:0)})
+        }
         #endif
         return RealtimeNarrationService()
     }
@@ -50,5 +54,19 @@ import Combine
     func setRemoteAudioEnabled(_ enabled:Bool){}
     func setMicrophoneEnabled(_ enabled:Bool){}
     func close(){}
+}
+#endif
+
+#if DEBUG
+@MainActor private final class LessonCacheTransport:RealtimeVoiceTransport {
+    var onOpen:(()->Void)?,onEvent:((JSONValue)->Void)?,onFailure:((String)->Void)?
+    private var work:Task<Void,Never>?
+    func connect(session:JSONValue)async throws{onOpen?()}
+    func send(_ event:JSONValue)->Bool{if event["type"].string == "response.create"{work=Task{try? await Task.sleep(for:.seconds(4));guard !Task.isCancelled else{return};onEvent?(.object(["type":.string("output_audio_buffer.started")]));try? await Task.sleep(for:.seconds(4));guard !Task.isCancelled else{return};onEvent?(.object(["type":.string("response.done"),"response":.object(["status":.string("completed")])]));onEvent?(.object(["type":.string("output_audio_buffer.stopped")]))}};return true}
+    func setMicrophoneEnabled(_ enabled:Bool){}
+    func setRemoteAudioEnabled(_ enabled:Bool){}
+    func playbackDrainMilliseconds()async->Double{0}
+    func completedNarrationRecording()->NarrationRecording?{var data=Data();for i in 0..<96000{let sample:Int16=i>=4800 && i<91200 ? Int16(sin(Double(i)*440*2*Double.pi/24000)*6000):0;var value=sample.littleEndian;withUnsafeBytes(of:&value){data.append(contentsOf:$0)}};return .init(pcm16:data,sampleRate:24000,channels:1)}
+    func close(){work?.cancel();work=nil}
 }
 #endif

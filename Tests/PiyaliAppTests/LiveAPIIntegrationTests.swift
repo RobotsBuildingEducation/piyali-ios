@@ -56,6 +56,25 @@ import Security
         }catch{try? await deleteLiveTestIdentity(app.identity);throw error}
         try await deleteLiveTestIdentity(app.identity)
     }
+    func testCompletedNativeNarrationCapturesPCMAndReplaysFromMemoryAndDisk()async throws{
+        if let token=ProcessInfo.processInfo.environment["TEST_RUNNER_FIRAAppCheckDebugToken"]{setenv("FIRAAppCheckDebugToken",token,1)};FirebaseConfiguration.shared.setLoggerLevel(.error)
+        let env=ProcessInfo.processInfo.environment;guard env["PIYALI_LIVE_API_TESTS"] == "1",env["PIYALI_OFFLINE_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Explicit isolated live opt-in required")}
+        if FirebaseApp.app() == nil{AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure()};XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let identity=IdentityService();try identity.create();let root=FileManager.default.temporaryDirectory.appendingPathComponent("piyali-live-narration-"+UUID().uuidString,isDirectory:true);defer{try? FileManager.default.removeItem(at:root)}
+        do{try await FirebaseIdentityService.shared.ensure(identity);let cache=NarrationAudioCache(directory:root);var connections:[RealtimeRTCTransport]=[],evidence:[[String:Any]]=[]
+            for index in 0..<3{
+                if index==2{await cache.clearMemory()}
+                let narration=RealtimeNarrationService(factory:{let rtc=RealtimeRTCTransport(capturesMicrophone:false,purpose:.narration,recordsNarration:true);rtc.setOutputGain(0);connections.append(rtc);return rtc},cache:cache,replayFactory:{NarrationReplayPlayer(volume:0)}),story=NativeStoryAudio(narration:narration);defer{story.stop()};story.configure(user:.object(["name":.string("Alicia")]))
+                var finished=false,failed=false,started=false;let began=Date()
+                story.play(.init(speaker:"Sheilfer",target:"Hola, Ana. Hoy aprendemos juntos."),language:"es",started:{started=true},finished:{finished=true},failed:{failed=true})
+                for _ in 0..<800 where !finished && !failed{try await Task.sleep(for:.milliseconds(100))}
+                XCTAssertNil(narration.error,narration.failureDetail ?? "No diagnostic");XCTAssertTrue(started);XCTAssertTrue(finished);XCTAssertFalse(failed);XCTAssertEqual(connections.count,1);XCTAssertEqual(narration.playbackSource,index==0 ? "network":index==1 ? "memory":"disk");if index==0{XCTAssertGreaterThan(narration.lastCapturedBytes,512)}
+                evidence.append(["attempt":index+1,"source":narration.playbackSource ?? "none","connections":connections.count,"capturedPCMBytes":narration.lastCapturedBytes,"started":started,"finished":finished,"failed":failed,"seconds":Date().timeIntervalSince(began),"ambientMicrophoneCapture":false,"speakerVolume":0])
+            }
+            let attachment=XCTAttachment(data:try JSONSerialization.data(withJSONObject:evidence,options:[.prettyPrinted,.sortedKeys]),uniformTypeIdentifier:"public.json");attachment.name="Public native narration cache live evidence";attachment.lifetime = .keepAlways;add(attachment)
+        }catch{try? await deleteLiveTestIdentity(identity);throw error}
+        try await deleteLiveTestIdentity(identity)
+    }
     func testReadingAndCharacterStoryNarrationReceiveOriginalVoiceAudio()async throws{
         let env=ProcessInfo.processInfo.environment;guard env["PIYALI_LIVE_API_TESTS"] == "1",env["PIYALI_OFFLINE_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Explicit isolated live opt-in required")}
         if FirebaseApp.app() == nil{AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure()};XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")

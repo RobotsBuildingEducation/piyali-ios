@@ -16,7 +16,7 @@ extension StoryAudioTransport { func configure(user:JSONValue){} }
         stop()
         do{guard let policy else{throw PracticeRecipeFailure.unavailable}
             let plan=try policy.request("story",.object(["language":.string(language),"turn":.object(["speaker":.string(turn.speaker),"target":.string(turn.target)]),"user":user]))
-            narration.play(plan["request"]["text"].string,language:language,engine:nil,sessionOverride:plan["session"],onStarted:started,onFailed:failed,onFinished:finished)
+            narration.play(plan["request"]["text"].string,language:language,engine:nil,sessionOverride:plan["session"],cacheRequest:plan["request"],onStarted:started,onFailed:failed,onFinished:finished)
         }catch{failed()}
     }
     func stop(){narration.stopAll()}

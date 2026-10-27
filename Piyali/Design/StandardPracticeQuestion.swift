@@ -33,7 +33,7 @@ struct StandardPracticeQuestion:View {
     }
     private var header:some View {
         VStack(alignment:.leading,spacing:12){title(copy(q.kind == "mc" ? "vocab_mc_instruction":q.kind == "ma" ? "vocab_ma_instruction":"vocab_btn_fill"))
-            HStack(alignment:.top,spacing:12){StandardQuestionTool(active:synthesizing,action:{focus.wrappedValue=false;listen(q.audioText,nil)}){PracticeSpeakerIcon(loading:synthesizing,size:18)}.accessibilityLabel(copy("vocab_listen_question")).accessibilityIdentifier("typedPracticeListen").accessibilityValue(synthesizing ? copy("generic_loading"):"")
+            HStack(alignment:.top,spacing:12){StandardQuestionTool(active:synthesizing,action:{focus.wrappedValue=false;listen(q.audioText,nil)}){PracticeSpeakerIcon(loading:synthesizing,size:18)}.accessibilityLabel(copy("vocab_listen_question")).accessibilityIdentifier("typedPracticeListen").accessibilityValue(synthesizing ? copy("generic_loading"):playing ? copy("story_playing"):"")
                 if slots{StandardInlineSentence(sentence:q.questionText,values:state.slots.map{$0.flatMap{run.bank.indices.contains($0) ? run.bank[$0]:nil}},placeholder:copy("practice_drag_drop_slot_placeholder"),dark:scheme == .dark,rtl:q.target == "ar",slot:{AnyView(inlineSlot($0))}).frame(maxWidth:.infinity,alignment:.leading)}
                 else{OnboardingText(text:q.questionText,size:18,weight:.medium,lineHeight:29.25).frame(maxWidth:.infinity,alignment:.leading).environment(\.layoutDirection,targetDirection)}
             }

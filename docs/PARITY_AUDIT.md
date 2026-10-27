@@ -52,3 +52,5 @@ Capture the reference at iPhone dimensions, list its visible controls and transi
 The independent Firebase project and Cloudflare worker are provisioned. Apple release signing/App Attest, App Store Connect products, paid-member restoration and physical-device audio remain release/verification requirements, separate from the missing product parity above.
 
 Stories now use the original Realtime transcription options and completed-transcript metadata, with native readiness/cancellation controls and scoped live prerecorded-ASR verification. See [Story speech](STORY_SPEECH.md); physical microphone routes, full feedback/toast/motion design and the wider Story gaps remain open.
+
+Completed native narration now uses original key/quality/trim rules with decoded-output capture, validated local memory/disk replay and unchanged playback/reward gates. See [narration cache](NARRATION_CACHE.md) for actual native/live/product evidence and limits. Edge replay, prepared tickets, warming, long recordings and physical routes remain open.
