@@ -16,8 +16,10 @@ import WebRTC
     func close()
     func setOutputGain(_ value:Double)
     func completedNarrationRecording()->NarrationRecording?
+    var narrationReceiverReady:Bool{get}
+    func activateNarrationOutput()throws
 }
-extension RealtimeVoiceTransport { func completedNarrationRecording()->NarrationRecording?{nil}; func setOutputGain(_ value:Double){}; func playbackDrainMilliseconds() async ->Double {1000};func audioAmplitude(speaking:Bool) async ->Double { 0 } }
+extension RealtimeVoiceTransport { var narrationReceiverReady:Bool{true};func activateNarrationOutput()throws{}; func completedNarrationRecording()->NarrationRecording?{nil}; func setOutputGain(_ value:Double){}; func playbackDrainMilliseconds() async ->Double {1000};func audioAmplitude(speaking:Bool) async ->Double { 0 } }
 
 /// Native WebRTC media and oai-events data channel. Only an SDP offer is sent
 /// through Cloudflare; the standard provider key never enters the app.
@@ -33,17 +35,10 @@ extension RealtimeVoiceTransport { func completedNarrationRecording()->Narration
     private var ownsAudio=false,closed=false
     private let capturesMicrophone:Bool,activatesPlayback:Bool
     private let purpose:Purpose
-    init(configuration:AppConfiguration=AppConfiguration(),capturesMicrophone:Bool=true,activatesPlayback:Bool=true,purpose:Purpose = .conversation,recordsNarration:Bool=false) { let device=recordsNarration && !capturesMicrophone ? NarrationAudioDevice():nil;self.outputDevice=device;self.factory=device.map{RTCPeerConnectionFactory(encoderFactory:nil,decoderFactory:nil,audioDevice:$0)} ?? RTCPeerConnectionFactory();self.configuration=configuration;self.capturesMicrophone=capturesMicrophone;self.activatesPlayback=activatesPlayback;self.purpose=purpose;super.init() }
+    init(configuration:AppConfiguration=AppConfiguration(),capturesMicrophone:Bool=true,activatesPlayback:Bool=true,purpose:Purpose = .conversation,recordsNarration:Bool=false) { let device=recordsNarration && !capturesMicrophone ? NarrationAudioDevice(deferred:!activatesPlayback):nil;self.outputDevice=device;self.factory=device.map{RTCPeerConnectionFactory(encoderFactory:nil,decoderFactory:nil,audioDevice:$0)} ?? RTCPeerConnectionFactory();self.configuration=configuration;self.capturesMicrophone=capturesMicrophone;self.activatesPlayback=activatesPlayback;self.purpose=purpose;super.init() }
     func connect(session:JSONValue) async throws {
         closed=false
-        if capturesMicrophone || activatesPlayback {
-            let audio=RTCAudioSession.sharedInstance();audio.lockForConfiguration();defer { audio.unlockForConfiguration() }
-            let config=RTCAudioSessionConfiguration.webRTC();config.category=AVAudioSession.Category.playAndRecord.rawValue;config.mode=AVAudioSession.Mode.voiceChat.rawValue;config.categoryOptions=[.defaultToSpeaker,.allowBluetoothHFP]
-            if outputDevice != nil{config.category=AVAudioSession.Category.playback.rawValue;config.mode=AVAudioSession.Mode.default.rawValue;config.categoryOptions=[]}
-            // WebRTC's voice-processing audio unit uses its standard audio
-            // session even for a receive-only track; no input sender is added.
-            try audio.setConfiguration(config,active:true);ownsAudio=true
-        }
+        if capturesMicrophone || activatesPlayback {try activateAudioSession()}
         let config=RTCConfiguration();config.sdpSemantics = .unifiedPlan
         let constraints=RTCMediaConstraints(mandatoryConstraints:nil,optionalConstraints:nil)
         guard let peer=factory.peerConnection(with:config,constraints:constraints,delegate:self) else { throw AppError.message("A voice connection could not be created.") }
@@ -73,6 +68,19 @@ extension RealtimeVoiceTransport { func completedNarrationRecording()->Narration
         try await withCheckedThrowingContinuation { (continuation:CheckedContinuation<Void,Error>) in peer.setRemoteDescription(RTCSessionDescription(type:.answer,sdp:answer)) { error in if let error { continuation.resume(throwing:error) } else { continuation.resume() } } }
         try check(peer)
     }
+    private func activateAudioSession()throws{
+            let audio=RTCAudioSession.sharedInstance();audio.lockForConfiguration();defer { audio.unlockForConfiguration() }
+            let config=RTCAudioSessionConfiguration.webRTC();config.category=AVAudioSession.Category.playAndRecord.rawValue;config.mode=AVAudioSession.Mode.voiceChat.rawValue;config.categoryOptions=[.defaultToSpeaker,.allowBluetoothHFP]
+            if outputDevice != nil{config.category=AVAudioSession.Category.playback.rawValue;config.mode=AVAudioSession.Mode.default.rawValue;config.categoryOptions=[]}
+            // WebRTC's voice-processing audio unit uses its standard audio
+            // session even for a receive-only track; no input sender is added.
+            try audio.setConfiguration(config,active:true);ownsAudio=true
+    }
+    var narrationReceiverReady:Bool{peer?.receivers.contains(where:{$0.track?.kind == "audio"}) ?? false}
+    func activateNarrationOutput()throws{
+        guard !closed,channel?.readyState == .open,narrationReceiverReady else{throw AppError.message("The prepared narration connection is no longer ready.")};if !ownsAudio{try activateAudioSession()};guard outputDevice?.activateOutput() ?? true else{throw AppError.message("Narration output could not start.")}
+    }
+    func idleNarrationFrames()->Int{outputDevice?.idleDrainedFrames() ?? 0}
     private func check(_ peer:RTCPeerConnection) throws { if closed || self.peer !== peer || Task.isCancelled { throw CancellationError() } }
     private func exchange(_ sdp:String,session:JSONValue) async throws ->String {
         guard FirebaseService.shared.configured else { throw AppError.message("Configure Piyali's Firebase app before starting live conversation.") }
