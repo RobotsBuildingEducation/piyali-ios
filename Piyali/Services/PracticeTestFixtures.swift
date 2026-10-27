@@ -5,7 +5,7 @@ import Foundation
 enum PracticeTestFixtures {
     static var kind:String? {
         let env=ProcessInfo.processInfo.environment
-        guard env["PIYALI_OFFLINE_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else { return nil }
+        guard env["PIYALI_LIVE_API_TESTS"] != "1",env["PIYALI_OFFLINE_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else { return nil }
         return env["PIYALI_PRACTICE_FIXTURE"]
     }
     /// Finite offered-answer judge used only by explicitly opted-in offline gesture journeys.
@@ -18,14 +18,21 @@ enum PracticeTestFixtures {
         case "sentence_detective":title="Sentence Detective";correct=r["tokenIndex"] == p["incorrectIndex"] && r["replacement"].string == p["answer"].string
         case "dialogue_fork","listen_difference":title=q.variant == "dialogue_fork" ? "Dialogue Fork":"Listen for the Difference";correct=r["selectedIndex"] == p["answerIndex"]
         case "morphology_forge":title="Morphology Forge";correct=run.answerText == p["answerWord"].string
+        case "sentence_shapeshifter","three_clue_mystery","three_word_challenge":
+            title=q.variant == "sentence_shapeshifter" ? "Sentence Shapeshifter":q.variant == "three_clue_mystery" ? "Three-Clue Mystery":"Three-Word Challenge"
+            correct=r["text"].string == p["answer"].string || p["acceptableAnswers"].array.contains(r["text"]) || p["sampleAnswers"].array.contains(r["text"])
         case "word_neighborhoods":title="Word Neighborhoods";correct=p["groups"].array.enumerated().allSatisfy{index,group in group["items"].array.allSatisfy{r["assignments"][$0.string] == .number(Double(index))}}
         default:return nil
         }
-        guard prompt.hasPrefix("Judge a "+title),prompt.contains("Spanish"),!prompt.contains("undefined")else{return nil}
+        guard prompt.hasPrefix("Judge a "+title),(prompt.contains("Spanish") || prompt.contains("Japanese")),!prompt.contains("undefined")else{return nil}
         return correct ? "YES":"NO"
     }
-    @MainActor static func question(module:PracticeRecipeModule,recipes:PracticeRecipes)->PracticeQuestion? {
+    @MainActor static func question(module:PracticeRecipeModule,recipes:PracticeRecipes,target:String="es",support:String="en")->PracticeQuestion? {
         guard let kind else { return nil }
+        if target != "es" || support != "en" {
+            guard ProcessInfo.processInfo.environment["PIYALI_WRITING_FIXTURE"] == "1",["sentence_shapeshifter","three_clue_mystery","three_word_challenge"].contains(String(kind.dropFirst(8))),let fallback=try? recipes.inspect("fallback",parameters:.object(["variant":.string(String(kind.dropFirst(8))),"moduleType":.string(module.rawValue),"targetLang":.string(target),"supportLang":.string(support)]))else{return nil}
+            return try? PracticeQuestion(module:module,kind:kind,payload:fallback,options:.object(["cefrLevel":.string("A1")]),target:target,support:support)
+        }
         let options:JSONValue = .object(["cefrLevel":.string("A1"),"direction":.string("target-to-support"),"isListening":.bool(false)])
         let payload:JSONValue
         switch kind {

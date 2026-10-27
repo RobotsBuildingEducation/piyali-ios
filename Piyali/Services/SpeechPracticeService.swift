@@ -18,6 +18,8 @@ import AVFoundation
     private var completion:((String)->Void)?
     private var silenceMs=2000
     init(transportFactory:(()->RealtimeVoiceTransport)?=nil,permission:(()async->Bool)?=nil){makeTransport=transportFactory ?? {RealtimeRTCTransport()};self.permission=permission ?? {await AVAudioApplication.requestRecordPermission()}}
+    func clearError(){error=nil}
+    func reportError(_ code:String){cancel();error=code}
     func start(target:String,policy:FlashcardPolicy,transcriptionHint:String="",timeoutMs:Int=2000,onResult:@escaping (String)->Void){
         guard !connecting,!recording,!evaluating else{return};cancel();let token=epoch;silenceMs=max(500,timeoutMs);connecting=true;transcript="";error=nil;completion=onResult
         setup=Task {do {

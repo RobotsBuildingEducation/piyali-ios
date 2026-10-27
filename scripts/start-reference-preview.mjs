@@ -4,6 +4,7 @@ import {fileURLToPath} from 'node:url';
 import fs from 'node:fs/promises';
 import {tutorFixture} from './reference-tutor-fixtures.mjs';
 import {rpgFixture} from './reference-rpg-io.mjs';
+import {writingExercisesFixture} from './reference-writing-exercises.mjs';
 import {delightBodiesFixture} from './reference-delight-bodies.mjs';
 import {practiceQuestionFixture} from './reference-practice-question.mjs';
 import {coursePathFixture} from './reference-course-path.mjs';
@@ -63,5 +64,5 @@ const flashcardFixture={name:'piyali-source-flashcard-fixture',enforce:'pre',res
  if(id==='\0piyali-flashcard-memory')return 'export const captureCompanionMemory=async()=>{};';
  if(id==='\0piyali-flashcard-worth')return 'export const assessGeneratedQuestionWorth=async()=>null;';
 }};
-const server=await vite.createServer({...loaded.config,configFile:false,root:reference,envDir:reference,cacheDir:path.join(root,'.reference-preview/cache'),plugins:[await delightBodiesFixture(root,reference),await practiceQuestionFixture(root,reference),await coursePathFixture(root,reference),await gameLoaderFixture(root,reference),companionFixture(root,reference),achievementFixture(root,reference),subscriptionFixture(root,reference),walletFixture(root,reference),teamsFixture(root,reference),helpFixture(root,reference),rpgFixture(root,reference),settingsFixture(root,reference),memoryFixture(root,reference),tutorFixture,phonicsFixture,flashcardFixture,mobileFrame,toolsFixture,onboardingPreview,storyFixtureCompatibility,...flatten(loaded.config.plugins).filter(p=>!String(p.name).includes('pwa') && !String(p.name).includes('visualizer'))],server:{...loaded.config.server,host:'127.0.0.1',port:5181,strictPort:true}});
+const server=await vite.createServer({...loaded.config,configFile:false,root:reference,envDir:reference,cacheDir:path.join(root,'.reference-preview/cache'),plugins:[await writingExercisesFixture(root,reference),await delightBodiesFixture(root,reference),await practiceQuestionFixture(root,reference),await coursePathFixture(root,reference),await gameLoaderFixture(root,reference),companionFixture(root,reference),achievementFixture(root,reference),subscriptionFixture(root,reference),walletFixture(root,reference),teamsFixture(root,reference),helpFixture(root,reference),rpgFixture(root,reference),settingsFixture(root,reference),memoryFixture(root,reference),tutorFixture,phonicsFixture,flashcardFixture,mobileFrame,toolsFixture,onboardingPreview,storyFixtureCompatibility,...flatten(loaded.config.plugins).filter(p=>!String(p.name).includes('pwa') && !String(p.name).includes('visualizer'))],server:{...loaded.config.server,host:'127.0.0.1',port:5181,strictPort:true}});
 await server.listen();console.log('Read-only reference preview: http://127.0.0.1:5181');

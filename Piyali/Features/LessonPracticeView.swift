@@ -7,6 +7,7 @@ struct LessonPracticeView:View {
     @StateObject private var service:PracticeService
     @StateObject private var speech=SpeechService()
     @StateObject private var assistance:PracticeAssistanceController
+    @StateObject private var writing:WritingSpeechController
     @State private var footerOwner=UUID()
     @State private var portrait=PracticeQuestionAppearance.portrait
     let module:PracticeRecipeModule
@@ -14,8 +15,10 @@ struct LessonPracticeView:View {
     var onNext:(()->Void)?=nil
     var startsFresh=false
     var embedded=false
-    init(module:PracticeRecipeModule,lesson:Lesson?,onNext:(()->Void)?=nil,startsFresh:Bool=false,embedded:Bool=false,service:PracticeService?=nil,assistance:PracticeAssistanceController?=nil,feedbackPortrait:Int?=nil) {
-        self.module=module;self.lesson=lesson;self.onNext=onNext;self.startsFresh=startsFresh;self.embedded=embedded;_service=StateObject(wrappedValue:service ?? PracticeService());_assistance=StateObject(wrappedValue:assistance ?? PracticeAssistanceController());_portrait=State(initialValue:feedbackPortrait ?? PracticeQuestionAppearance.portrait)
+    var allowsQuestionAutoFocus=true
+    var writingKeyboardInitiallyOpen=false
+    init(module:PracticeRecipeModule,lesson:Lesson?,onNext:(()->Void)?=nil,startsFresh:Bool=false,embedded:Bool=false,service:PracticeService?=nil,assistance:PracticeAssistanceController?=nil,feedbackPortrait:Int?=nil,writing:WritingSpeechController?=nil,allowsQuestionAutoFocus:Bool=true,writingKeyboardInitiallyOpen:Bool=false) {
+        self.module=module;self.lesson=lesson;self.onNext=onNext;self.startsFresh=startsFresh;self.embedded=embedded;self.allowsQuestionAutoFocus=allowsQuestionAutoFocus;self.writingKeyboardInitiallyOpen=writingKeyboardInitiallyOpen;_writing=StateObject(wrappedValue:writing ?? WritingSpeechController());_service=StateObject(wrappedValue:service ?? PracticeService());_assistance=StateObject(wrappedValue:assistance ?? PracticeAssistanceController());_portrait=State(initialValue:feedbackPortrait ?? PracticeQuestionAppearance.portrait)
     }
     private var quiz:Bool { lesson?.isFinalQuiz == true }
     @State private var showTranscript=false
@@ -45,6 +48,8 @@ struct LessonPracticeView:View {
                         else if !service.preparationFailed,let run {
                             if run.question.variant == "natural_or_weird" {
                                 NaturalOrWeirdQuestion(sentence:run.question.payload["sentence"].string,title:questionCopy(run,"title"),instruction:questionCopy(run,"instruction"),weird:questionCopy(run,"soundsWeird"),natural:questionCopy(run,"soundsNatural"),audioLabel:questionCopy(run,"playAudio"),helpLabel:questionCopy(run,"askForHelp"),selected:run.response["choice"] == .null ? nil:run.response["choice"].boolean,locked:service.busy || run.correct == true || quiz && run.correct != nil,assistantOpen:assistance.assistantOpen,assistantBusy:assistance.assistantBusy,help:{assistance.ask(app,run:run)},listen:{speech.speak(run.question.audioText,language:run.question.audioLanguage)},select:{updateResponse("choice",.bool($0))},showHelp:!quiz)
+                            } else if WritingPracticeQuestion.variants.contains(run.question.variant) {
+                                writingQuestion(run)
                             } else if AdvancedPracticeQuestion.variants.contains(run.question.variant) {
                                 advancedQuestion(run)
                             } else {
@@ -63,8 +68,8 @@ struct LessonPracticeView:View {
             .navigationTitle(embedded ? lesson?.title.localized(app.learner.support) ?? "" : module == .grammar ? "Grammar" : "Vocabulary")
             .toolbar { ToolbarItemGroup(placement:.keyboard) { Spacer();Button("Done") { answering=false }.accessibilityIdentifier("practiceKeyboardDone") } }
             .sheet(isPresented:$showDeck) { PracticeDeckView(cards:app.learner.practiceDecks?[app.learner.practiceDeckKey(module)] ?? [],support:app.learner.support) }
-            .task(id:scope) { questionAudioPlaying=false;speech.stopAll();assistance.clear();showDeck=false;appeared=true;await service.prepare(app,module:module,lesson:lesson,fresh:startsFresh);if let run {assistance.bind(app,run:run)} }
-            .onChange(of:run?.question.id){_,_ in questionAudioPlaying=false;noteSaved=false;noteCreating=false;portrait=PracticeQuestionAppearance.portrait;if let run {assistance.bind(app,run:run)}}
+            .task(id:scope) { questionAudioPlaying=false;answering=false;writing.clear();speech.stopAll();assistance.clear();showDeck=false;appeared=true;await service.prepare(app,module:module,lesson:lesson,fresh:startsFresh);if let run {assistance.bind(app,run:run);writing.bind(app,run:run)} }
+            .onChange(of:run?.question.id){_,_ in questionAudioPlaying=false;noteSaved=false;noteCreating=false;portrait=PracticeQuestionAppearance.portrait;if let run {assistance.bind(app,run:run);writing.bind(app,run:run)}}
             .onChange(of:run?.response){_,_ in assistance.responseChanged()}
             .onAppear { active=true }
             .onChange(of:speech.transcript) { _,text in if active { updateResponse("text",.string(text)) } }
@@ -74,8 +79,14 @@ struct LessonPracticeView:View {
                     if let current=self.run { Task { await service.check(app,run:current,confidence:speech.confidence,audio:speech.audioMetrics) } }
                 }
             }
-            .onChange(of:scenePhase) { _,phase in if phase != .active { questionAudioPlaying=false;service.cancel();assistance.cancel();speech.stopAll() } }
-            .onDisappear { active=false;questionAudioPlaying=false;service.cancel();assistance.cancel();speech.stopAll() }
+            .onChange(of:scenePhase) { _,phase in if phase != .active { questionAudioPlaying=false;writing.clear();service.cancel();assistance.cancel();speech.stopAll() } }
+            .onDisappear { active=false;questionAudioPlaying=false;writing.clear();service.cancel();assistance.cancel();speech.stopAll() }
+    }
+    private func writingQuestion(_ run:PracticeRun)->some View {
+        let capturedScope=scope
+        return WritingPracticeQuestion(question:run.question,text:Binding(get:{self.run?.response["text"].string ?? ""},set:{text in guard scope == capturedScope,self.run?.question.id == run.question.id,let current=self.run else{return};updateResponse(WritingExerciseRules.response(current.response,text:text,variant:run.question.variant))}),locked:service.busy || run.correct == true || quiz && run.correct != nil,canSubmit:service.ready(run),assistantOpen:assistance.assistantOpen,assistantBusy:assistance.assistantBusy,revealedClues:run.revealedClues,recorder:writing.recorder,copy:{questionCopy(run,$0)},help:{assistance.ask(app,run:run)},listen:{speech.speakSeries([run.question.audioText],language:run.question.target,onStarted:{questionAudioPlaying=true},onInterrupted:{questionAudioPlaying=false},onFinished:{questionAudioPlaying=false})},toggleSpeech:{speech.stopAll();questionAudioPlaying=false;assistance.responseChanged();writing.toggle(app,run:run,service:service)},reveal:{
+            guard scope == capturedScope,var current=self.run,current.question.id == run.question.id,current.correct != true,!service.busy else{return};current.revealedClues=WritingExerciseRules.clues(current.question.strings("clues"),revealed:current.revealedClues,locked:false).next;current.assisted=true;app.learner.savePractice(current);app.persist()
+        },submit:{if let current=self.run{submit(current)}},showHelp:!quiz,playing:questionAudioPlaying,allowsAutoFocus:allowsQuestionAutoFocus,keyboardInitiallyOpen:writingKeyboardInitiallyOpen,focus:$answering).id(run.question.id)
     }
     private func advancedQuestion(_ run:PracticeRun)->some View {
         let capturedScope=scope
@@ -102,7 +113,7 @@ struct LessonPracticeView:View {
                 Text(p["prompt"].string).font(PiyaliBrand.productFont(16))
                 Text(p["display"].string.isEmpty ? p["target"].string : p["display"].string).font(PiyaliBrand.productFont(26,500))
             } else if !q.isDelight { Text(q.questionText).font(PiyaliBrand.productFont(18,700)).textSelection(.enabled) }
-            else { delightPrompt(run) }
+
             if !p["translation"].string.isEmpty { Text(p["translation"].string).font(PiyaliBrand.productFont(15)).foregroundStyle(brand.secondary) }
         }.frame(maxWidth:.infinity,alignment:.leading).padding(22).background(brand.surface,in:RoundedRectangle(cornerRadius:24)).overlay { RoundedRectangle(cornerRadius:24).stroke(brand.border) }.accessibilityElement(children:.contain).accessibilityIdentifier("typedQuestionPrompt")
     }
@@ -129,8 +140,7 @@ struct LessonPracticeView:View {
     }
     @ViewBuilder private func controls(_ run:PracticeRun)->some View {
         let q=run.question
-        if q.isDelight { delightControls(run) }
-        else {
+        if !q.isDelight {
             switch q.kind {
             case "mc":choices(run.bank,selected:run.response["indices"].array.map { Int($0.number) }) { i in updateResponse("indices",.array([.number(Double(i))])) }
             case "ma":wordBank(run,field:"indices",words:run.bank)
@@ -177,24 +187,6 @@ struct LessonPracticeView:View {
             }.padding(16).background(brand.surface,in:RoundedRectangle(cornerRadius:18)).overlay { RoundedRectangle(cornerRadius:18).stroke(brand.border) }
         } }
     }
-    @ViewBuilder private func delightPrompt(_ run:PracticeRun)->some View {
-        let q=run.question,p=q.payload
-        switch q.variant {
-        case "sentence_shapeshifter":Text(p["source"].string).font(PiyaliBrand.productFont(24,500));Text(p["constraint"].string).font(PiyaliBrand.productFont(16,600)).foregroundStyle(PiyaliBrand.teal)
-        case "three_word_challenge":PracticeFlowLayout(spacing:8) { ForEach(q.strings("cues"),id:\.self) { Text($0).font(PiyaliBrand.productFont(20,600)).padding(10).background(PiyaliBrand.teal.opacity(0.1),in:RoundedRectangle(cornerRadius:12)) } }
-        case "three_clue_mystery":ForEach(Array(q.strings("clues").prefix(run.revealedClues).enumerated()),id:\.offset) { index,clue in Text("\(index+1). "+clue).font(PiyaliBrand.productFont(18)) }
-        default:EmptyView()
-        }
-    }
-    @ViewBuilder private func delightControls(_ run:PracticeRun)->some View {
-        let q=run.question,p=q.payload,r=run.response
-        switch q.variant {
-        case "three_clue_mystery":
-            if run.revealedClues < q.strings("clues").count { Button(questionCopy(run,"revealNext")) { guard var current=self.run else { return };current.revealedClues += 1;current.assisted=true;app.learner.savePractice(current);app.persist() }.buttonStyle(.bordered).tint(brand.questionChoice) }
-            answerField(run)
-        default:answerField(run)
-        }
-    }
     private func questionTools(_ run:PracticeRun)->some View {
         HStack(spacing:16) {
             if !run.question.audioText.isEmpty {PracticeToolButton(action:{speech.speak(run.question.audioText,language:run.question.audioLanguage)}){PracticeIcon(name:"FiVolume2")}.accessibilityLabel(copy("vocab_listen_question"))}
@@ -228,8 +220,8 @@ struct LessonPracticeView:View {
             } else {ProgressView().frame(maxWidth:.infinity,minHeight:40)}
         }).foregroundStyle(palette.text)
     }
-    private func submit(_ run:PracticeRun){answering=false;speech.stop();Task{await service.check(app,run:run,confidence:speech.confidence,audio:speech.audioMetrics)}}
-    private func nextQuestion(_ run:PracticeRun){speech.stopAll();assistance.cancel();showTranscript=false;noteSaved=false;if let onNext{onNext()}else{Task{await service.prepare(app,module:module,lesson:lesson,fresh:true);if let run=self.run{assistance.bind(app,run:run)}}}}
+    private func submit(_ run:PracticeRun){answering=false;writing.clear();speech.stop();Task{await service.check(app,run:run,confidence:speech.confidence,audio:speech.audioMetrics)}}
+    private func nextQuestion(_ run:PracticeRun){writing.clear();speech.stopAll();assistance.cancel();showTranscript=false;noteSaved=false;if let onNext{onNext()}else{Task{await service.prepare(app,module:module,lesson:lesson,fresh:true);if let run=self.run{assistance.bind(app,run:run)}}}}
     private func createNote(_ run:PracticeRun){guard !noteCreating,!noteSaved else{return};noteCreating=true;let capturedScope=scope;Task{defer{if scope == capturedScope,self.run?.question.id == run.question.id{noteCreating=false}};if (try? await app.createStudyNote(run:run,lesson:lesson)) == true,scope == capturedScope,self.run?.question.id == run.question.id{noteSaved=true}}}
     private func updateResponse(_ field:String,_ value:JSONValue) { guard let run else { return };updateResponse(run.response.setting(field,value)) }
     private func updateResponse(_ response:JSONValue) { guard var run,run.correct != true,(!quiz || run.correct == nil),!service.busy else { return };run.response=response;run.correct=nil;app.learner.savePractice(run);app.persist() }

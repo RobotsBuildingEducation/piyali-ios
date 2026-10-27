@@ -8,7 +8,8 @@ import Foundation
     @Published var help=""
     private var generation=UUID()
     private var engine:PracticeRecipes?
-    init(recipes:PracticeRecipes?=nil){engine=recipes}
+    private let injectedJudge:((String)async throws->String)?
+    init(recipes:PracticeRecipes?=nil,judge:((String)async throws->String)?=nil){engine=recipes;injectedJudge=judge}
     private func recipes() throws ->PracticeRecipes { if let engine { return engine };let value=try PracticeRecipes();engine=value;return value }
     func cancel() { generation=UUID();busy=false;preparing=false;preparationFailed=false;error=nil }
     func ensureQuiz(_ app:AppModel,lesson:Lesson,restart:Bool=false) throws ->FinalQuizRun {
@@ -33,7 +34,7 @@ import Foundation
         do {
             let recipes=try recipes(),user=state.recipeUser
             #if DEBUG
-            if state.target == "es",state.support == "en",var question=PracticeTestFixtures.question(module:module,recipes:recipes) {
+            if var question=PracticeTestFixtures.question(module:module,recipes:recipes,target:state.target,support:state.support) {
                 if quiz != nil { question=try PracticeQuestion(module:module,kind:question.kind,payload:question.payload,options:question.options.setting("isFinalQuiz",.bool(true)).setting("cefrLevel",.string(quiz!.level)),target:state.target,support:state.support) }
                 question.worth=try GeneratedQuestionWorth.fallback(level:question.level,learner:state,recipes:recipes)
                 let response=question.isDelight ? try recipes.inspect("initialResponse",parameters:.object(["question":question.payload])) : .object([:])
@@ -97,6 +98,7 @@ import Foundation
         do {
             let recipes=try recipes(),q=run.question
             let result=try await verdict(run:run,recipes:recipes,confidence:confidence,audio:audio,judge:{ prompt in
+                if let injectedJudge=self.injectedJudge{return try await injectedJudge(prompt)}
                 #if DEBUG
                 if let result=PracticeTestFixtures.verdict(run:run,prompt:prompt){return result}
                 #endif
