@@ -5,6 +5,7 @@ import WebKit
 @testable import Piyali
 
 @MainActor private final class ObjectPreviewNoCloud:LearnerProgressService {
+    func saveCompanionCustomization(_ change:SettingsChange,npub:String)async throws->Bool{false}
     func load(npub:String,local:LearnerState?)async throws->LearnerState?{nil}
     func save(_ state:LearnerState,npub:String)async throws->LearnerState?{throw URLError(.notConnectedToInternet)}
 }

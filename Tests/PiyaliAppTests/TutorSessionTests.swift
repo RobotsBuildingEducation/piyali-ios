@@ -3,6 +3,7 @@ import SwiftUI
 @testable import Piyali
 
 @MainActor private final class TutorNoCloud:LearnerProgressService {
+    func saveCompanionCustomization(_ change:SettingsChange,npub:String)async throws->Bool{false}
     func load(npub:String,local:LearnerState?)async throws->LearnerState?{nil}
     func save(_ state:LearnerState,npub:String)async throws->LearnerState?{throw URLError(.notConnectedToInternet)}
 }
@@ -88,6 +89,7 @@ extension TutorSessionTests {
 }
 
 @MainActor private final class TutorAcknowledgment:LearnerProgressService {
+    func saveCompanionCustomization(_ change:SettingsChange,npub:String)async throws->Bool{false}
     var duringSave:(()->Void)?
     var fails=false
     func load(npub:String,local:LearnerState?)async throws->LearnerState?{nil}
@@ -223,6 +225,7 @@ extension TutorSessionTests {
 }
 
 @MainActor private final class TutorGateAcknowledgment:LearnerProgressService {
+    func saveCompanionCustomization(_ change:SettingsChange,npub:String)async throws->Bool{false}
     var blocked=true
     var blockPracticeCompletion=false
     var waiters:[CheckedContinuation<Void,Never>]=[]

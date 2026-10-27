@@ -9,7 +9,7 @@ struct RootView: View {
         else {
             ProductAccessView(service:app.subscription).id(app.identity.npub)
         }
-        }.background(SignerAuthorizationPresenter(identity:app.identity))
+        }.background(SignerAuthorizationPresenter(identity:app.identity)).background(CompanionSaveNoticePresenter())
     }
 }
 private struct ProductAccessView:View {

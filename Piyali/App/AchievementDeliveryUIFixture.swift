@@ -49,6 +49,7 @@ private final class AchievementDemoCheckFactory:NSObject,AppCheckProviderFactory
         };seeds[npub]=task;try await task.value
     }
     func load(npub:String,local:LearnerState?)async throws->LearnerState?{guard let local,local.onboardingComplete else{return nil};try await seed(local,npub:npub);return try await service.load(npub:npub,local:local)}
+    func saveCompanionCustomization(_ change:SettingsChange,npub:String)async throws->Bool{try await service.saveCompanionCustomization(change,npub:npub)}
     func save(_ state:LearnerState,npub:String)async throws->LearnerState?{guard state.onboardingComplete else{return nil};try await seed(state,npub:npub);return try await service.save(state,npub:npub)}
 }
 #endif

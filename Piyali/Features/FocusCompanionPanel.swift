@@ -122,7 +122,7 @@ struct FocusCompanionCustomizeView:View {
             .accessibilityLabel(copy[pet].string+", "+(enabled ? "":copy["locked"].string+", ")+levelLabel)
             .accessibilityAddTraits(selected ? .isSelected:[]).accessibilityIdentifier("companionOption-"+pet)
     }
-    private func save(){app.learner.companionName=CompanionCustomization.name(name);app.learner.companionType=CompanionTypes.effective(type,level:app.learner.companionLevel);app.persist();dismiss()}
+    private func save(){app.customizeCompanion(name:name,type:type);dismiss()}
 }
 private struct CompanionOptionStyle:ButtonStyle {
     func makeBody(configuration:Configuration)->some View{configuration.label.opacity(configuration.isPressed ? 0.85:1)}

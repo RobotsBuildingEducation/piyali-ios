@@ -1157,3 +1157,32 @@ extension FirestoreContractTests {
   XCTAssertEqual(final.settingsSnapshot["companionUnlocksCelebrated"],restored.settingsSnapshot["companionUnlocksCelebrated"]);XCTAssertTrue(final.pendingSettingsChanges?.isEmpty == true);XCTAssertEqual(final.totalXP,baseline.totalXP);XCTAssertEqual(final.dailyXP,baseline.dailyXP);XCTAssertEqual(final.companionHealth,baseline.companionHealth);XCTAssertEqual(final.companionName,"Cielo");XCTAssertEqual(final.companionType,"ghost");XCTAssertEqual(fields["patreonVerified"] as? Bool,true);XCTAssertEqual(fields["foreignTimestamp"] as? Timestamp,date);XCTAssertEqual(fields["unrelatedWebSetting"] as? String,"preserve")
  }
 }
+
+extension FirestoreContractTests {
+ func testImmediateCompanionReceiptWritesOnlyItsFieldsAndDurableRetryCannotUndoNewWebChoice()async throws{
+  let(service,db,npub)=try context();try await seed(db,npub);let user=db.collection("users").document(npub),stamp=Timestamp(date:Date(timeIntervalSince1970:1792800000));try await user.setData(["dailyGoalPetName":"Web before","dailyGoalPetType":"ghost","foreignTimestamp":stamp],merge:true)
+  var state=try requireState(await service.load(npub:npub));let date=Date(timeIntervalSince1970:1793000000);state.customizeCompanion(name:"Cielo",type:"alien",now:date);let intent=try XCTUnwrap(state.pendingSettingsChanges?.last),saved=try await service.saveCompanionCustomization(intent,npub:npub);XCTAssertTrue(saved)
+  var fields=try await user.getDocument(source:.server).data() ?? [:];XCTAssertEqual(fields["dailyGoalPetName"] as? String,"Cielo");XCTAssertEqual(fields["dailyGoalPetType"] as? String,"alien");XCTAssertEqual(fields["updatedAt"] as? String,WebProgressContract.iso(date));XCTAssertNil(fields["iosStateJSON"],"The direct write cannot flush unrelated snapshot or practice work");XCTAssertEqual(fields["xp"] as? Int,150);XCTAssertEqual(fields["patreonVerified"] as? Bool,true);XCTAssertEqual(fields["foreignTimestamp"] as? Timestamp,stamp)
+  try await user.updateData(["dailyGoalPetName":"Newer web choice","updatedAt":"newer-web-time"]);_=try await service.saveCompanionCustomization(intent,npub:npub);_=try await service.save(state,npub:npub);fields=try await user.getDocument(source:.server).data() ?? [:];XCTAssertEqual(fields["dailyGoalPetName"] as? String,"Newer web choice");XCTAssertEqual(fields["updatedAt"] as? String,"newer-web-time");let restored=try requireState(await service.load(npub:npub));XCTAssertTrue(restored.pendingSettingsChanges?.isEmpty == true);XCTAssertEqual(restored.companionName,"Newer web choice");XCTAssertEqual(fields["unrelatedWebSetting"] as? String,"preserve")
+  do{_=try await service.saveCompanionCustomization(.init(partial:.object(["soundEnabled":.bool(false)])),npub:npub);XCTFail("Companion transport accepted unrelated settings")}catch{XCTAssertEqual(error.localizedDescription,"Invalid companion customization fields.")}
+ }
+}
+
+extension FirestoreContractTests {
+ func testRapidCompanionSavesPreserveIntentOrderAcrossDelayedDirectWriteAndOldSnapshotRetry()async throws{
+  let(service,db,_)=try context(),store=CompanionRaceStore(service:service),app=AppModel(progressService:store);try app.identity.create();defer{try? app.identity.disconnect()};let npub=app.identity.npub,user=db.collection("users").document(npub);try await seed(db,npub);app.signedIn=true;app.learner=try requireState(await service.load(npub:npub));app.learner.changeSettings(.object(["allowPosts":.bool(false)]));app.customizeCompanion(name:"First intent",type:"alien");let earlier=app.learner
+  for _ in 0..<250 where store.resume == nil{try await Task.sleep(for:.milliseconds(20))};XCTAssertNotNil(store.resume)
+  app.customizeCompanion(name:"Second intent",type:"ghost");var secondSaved=false
+  for _ in 0..<250{let fields=try await user.getDocument(source:.server).data() ?? [:];if fields["dailyGoalPetName"] as? String == "Second intent"{secondSaved=true;break};try await Task.sleep(for:.milliseconds(20))};XCTAssertTrue(secondSaved);store.resume?.resume();store.resume=nil
+  for _ in 0..<250 where !store.firstFinished{try await Task.sleep(for:.milliseconds(20))};XCTAssertTrue(store.firstFinished);_=try await service.save(earlier,npub:npub)
+  let fields=try await user.getDocument(source:.server).data() ?? [:];XCTAssertEqual(fields["dailyGoalPetName"] as? String,"Second intent");XCTAssertEqual(fields["dailyGoalPetType"] as? String,"ghost");XCTAssertEqual(fields["xp"] as? Int,150);XCTAssertEqual(fields["patreonVerified"] as? Bool,true)
+ }
+}
+@MainActor private final class CompanionRaceStore:LearnerProgressService {
+ let service:FirebaseService
+ var first=true,firstFinished=false,resume:CheckedContinuation<Void,Never>?
+ init(service:FirebaseService){self.service=service}
+ func load(npub:String,local:LearnerState?)async throws->LearnerState?{try await service.load(npub:npub,local:local)}
+ func save(_ state:LearnerState,npub:String)async throws->LearnerState?{try await service.save(state,npub:npub)}
+ func saveCompanionCustomization(_ change:SettingsChange,npub:String)async throws->Bool{let isFirst=first;if isFirst{first=false;await withCheckedContinuation{resume=$0}};defer{if isFirst{firstFinished=true}};return try await service.saveCompanionCustomization(change,npub:npub)}
+}

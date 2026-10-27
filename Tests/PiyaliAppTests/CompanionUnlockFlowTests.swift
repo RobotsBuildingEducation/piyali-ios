@@ -34,6 +34,7 @@ import XCTest
 }
 
 @MainActor private final class CompanionUnlockProgressDouble:LearnerProgressService {
+    func saveCompanionCustomization(_ change:SettingsChange,npub:String)async throws->Bool{false}
  var next:LearnerState?
  func load(npub:String,local:LearnerState?)async throws->LearnerState?{next}
  func save(_ state:LearnerState,npub:String)async throws->LearnerState?{next}

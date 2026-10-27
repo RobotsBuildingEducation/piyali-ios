@@ -110,6 +110,6 @@ struct FocusPrimaryButtonStyle:ButtonStyle {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.isEnabled) private var enabled
     func makeBody(configuration:Configuration)->some View {
-        configuration.label.font(PiyaliBrand.productFont(18,600)).frame(maxWidth:.infinity,minHeight:48).foregroundStyle(scheme == .dark ? PiyaliBrand.unitColor("1a202c") : .white).background(PiyaliBrand.unitColor(scheme == .dark ? "81e6d9" : "319795"),in:EntryCornerShape()).shadow(color:PiyaliBrand.unitColor("214f54"),radius:0,y:enabled && !configuration.isPressed ? 4 : 0).offset(y:enabled && configuration.isPressed ? 4 : 0).opacity(enabled ? configuration.isPressed ? 0.8 : 1 : 0.6)
+        configuration.label.font(PiyaliBrand.productFont(18,600)).frame(maxWidth:.infinity,minHeight:48).foregroundStyle(scheme == .dark ? PiyaliBrand.unitColor("1a202c") : .white).background{EntryCornerShape().fill(PiyaliBrand.unitColor(scheme == .dark ? "81e6d9" : "319795")).shadow(color:PiyaliBrand.unitColor("214f54"),radius:0,y:enabled && !configuration.isPressed ? 4 : 0)}.offset(y:enabled && configuration.isPressed ? 4 : 0).opacity(enabled ? configuration.isPressed ? 0.8 : 1 : 0.6)
     }
 }

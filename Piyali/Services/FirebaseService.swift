@@ -151,6 +151,11 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
         guard let database else { return nil };try requireOwner(npub)
         return try await AchievementSyncService.shared.importRecords(records,user:database.collection("users").document(npub))
     }
+    func saveCompanionCustomization(_ change:SettingsChange,npub:String)async throws->Bool {
+        guard Set(change.partial.object.keys) == Set(["dailyGoalPetName","dailyGoalPetType"]) else{throw AppError.message("Invalid companion customization fields.")}
+        guard let database else{return false};try requireOwner(npub)
+        try await applySettings(change,user:database.collection("users").document(npub),database:database);return true
+    }
     /// Awards are flushed before the snapshot. A failed/partial flush leaves the local outbox intact; retry receipts prevent repeated credit.
     func save(_ state: LearnerState, npub: String) async throws -> LearnerState? {
         var state=state;state.migrateCompanionCustomization()
@@ -552,7 +557,7 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
             let recorded=try tx.getDocument(receipt),snapshot=try tx.getDocument(user),fields=snapshot.data() ?? [:]
             if recorded.exists{Self.acknowledge(change.id,user:user,fields:fields,transaction:tx);return false}
             let policy=try SettingsSourcePolicy(source:source),patch=try LearnerSettings.patch(change,fields:LearnerSettings.sourceUser(Self.normalized(fields)),policy:policy)
-            var values=patch.foundation;values["local_npub"]=user.documentID;values["iosRecentEventIDs"]=Self.recentIDs(fields,adding:change.id)
+            var values=patch.foundation;if patch["dailyGoalPetName"] != .null || patch["dailyGoalPetType"] != .null{values["updatedAt"]=WebProgressContract.iso(change.date)};values["local_npub"]=user.documentID;values["iosRecentEventIDs"]=Self.recentIDs(fields,adding:change.id)
             tx.setData(values,forDocument:user,merge:true)
             tx.setData(["eventID":change.id.uuidString,"source":"settings","savedAt":FieldValue.serverTimestamp()],forDocument:receipt);return true
         }catch let failure{error?.pointee=failure as NSError;return nil}}

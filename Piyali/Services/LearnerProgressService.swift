@@ -2,6 +2,8 @@ import Foundation
 
 @MainActor protocol LearnerProgressService {
     func load(npub:String,local:LearnerState?) async throws -> LearnerState?
+    /// Independent companion write; the same receipt remains in the durable outbox.
+    func saveCompanionCustomization(_ change:SettingsChange,npub:String) async throws -> Bool
     func save(_ state:LearnerState,npub:String) async throws -> LearnerState?
 }
 extension LearnerProgressService {

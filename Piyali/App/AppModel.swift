@@ -8,6 +8,10 @@ import SwiftUI
     @Published private(set) var companionUnlockRevision=0
     private var companionDelivery=CompanionUnlockState()
     var pendingCompanionUnlocks:[CompanionUnlock]{companionDelivery.pending}
+    @Published private(set) var companionSaveNotices:[CompanionSaveNotice]=[]
+    private var companionSaveAccount=""
+    private var companionSaveTasks:[UUID:Task<Void,Never>]=[:]
+    private var companionNoticeTasks:[UUID:Task<Void,Never>]=[:]
     let nostrAchievements=NostrAchievementsService()
     private var nostrSyncTask: Task<Void,Never>?
     @Published var signedIn = false {didSet{bindAchievementDelivery()}}
@@ -124,7 +128,7 @@ import SwiftUI
         _ = learner.completeTutor(lesson); persist(); return earned
     }
     init(automaticWallet:WalletService? = nil,progressService:(any LearnerProgressService)? = nil) {
-        self.progressService=progressService ?? AchievementDeliveryUIFixture.progressService() ?? FirebaseService.shared
+        self.progressService=progressService ?? CompanionSaveUIFixture.progressService() ?? AchievementDeliveryUIFixture.progressService() ?? FirebaseService.shared
         self.automaticWallet=automaticWallet ?? WalletService()
         curriculumIndex = (try? ContentLibrary.load([String:[String:[String]]].self, name: "curriculum-index")) ?? [:]
         flashcardIndex = (try? ContentLibrary.load([String:[String]].self, name: "flashcard-index")) ?? [:]
@@ -156,7 +160,33 @@ import SwiftUI
     }
     func dismissAchievement(_ key:Int){achievementUnlock.dismiss(key)}
     private func publishCompanionDelivery(){if companionUnlockRevision != companionDelivery.revision{companionUnlockRevision=companionDelivery.revision};if companionUnlock != companionDelivery.visible{companionUnlock=companionDelivery.visible}}
-    private func bindCompanionDelivery(){companionDelivery.bind(signedIn ? identity.npub:"");publishCompanionDelivery()}
+    private func bindCompanionDelivery(){let account=signedIn ? identity.npub:"";companionDelivery.bind(account);bindCompanionSave(account:account);publishCompanionDelivery()}
+    private func bindCompanionSave(account:String){
+        guard companionSaveAccount != account else{return};companionSaveAccount=account
+        companionSaveTasks.values.forEach{$0.cancel()};companionSaveTasks=[:];companionNoticeTasks.values.forEach{$0.cancel()};companionNoticeTasks=[:];companionSaveNotices=[]
+    }
+    func customizeCompanion(name:String,type:String){
+        bindCompanionDelivery();learner.customizeCompanion(name:name,type:type)
+        guard let change=learner.pendingSettingsChanges?.last else{return};persist()
+        guard signedIn,!identity.npub.isEmpty else{return}
+        let account=identity.npub,title=CompanionUnlockUI.copy(learner.support)["saveFailed"].string
+        // Every fast write carries its unacknowledged predecessors. A newer
+        // receipt therefore cannot commit before the older companion intent,
+        // even when an earlier direct request or snapshot resumes late.
+        let changes=(learner.pendingSettingsChanges ?? []).filter{Set($0.partial.object.keys) == Set(["dailyGoalPetName","dailyGoalPetType"])}
+        companionSaveTasks[change.id]=Task{[weak self] in
+            guard let self else{return};defer{self.companionSaveTasks.removeValue(forKey:change.id)}
+            do{try await FirebaseIdentityService.shared.ensure(identity);try Task.checkCancellation();guard signedIn,identity.npub == account else{return};for queued in changes{try Task.checkCancellation();guard signedIn,identity.npub == account else{return};guard try await progressService.saveCompanionCustomization(queued,npub:account) else{return}}}
+            catch is CancellationError{}
+            catch{guard !Task.isCancelled,signedIn,identity.npub == account,companionSaveAccount == account else{return};showCompanionSaveNotice(.init(account:account,title:title,description:error.localizedDescription))}
+        }
+    }
+    private func showCompanionSaveNotice(_ notice:CompanionSaveNotice){
+        companionSaveNotices.append(notice);UIAccessibility.post(notification:.announcement,argument:notice.title+". "+notice.description)
+        companionNoticeTasks[notice.id]=Task{[weak self] in do{try await Task.sleep(for:.seconds(5));try Task.checkCancellation();self?.dismissCompanionSaveNotice(notice.id)}catch{}}
+    }
+    func dismissCompanionSaveNotice(_ id:UUID){companionSaveNotices.removeAll{$0.id == id};companionNoticeTasks.removeValue(forKey:id)?.cancel()}
+
     private var celebratedCompanions:Set<String>{Set(CompanionTypes.ordered.filter{NostrAchievementCollection.truthy(learner.settingsSnapshot["companionUnlocksCelebrated"][$0]) || UserDefaults.standard.bool(forKey:"companionUnlockCelebrated:"+identity.npub+":"+$0)})}
     private func captureCompanionUnlock(previous:LearnerState,acknowledgment:Bool=false){
         guard (!restoringLearner || acknowledgment),signedIn,learner.onboardingComplete,previous.target == learner.target,learner.xp>previous.xp else{return}
@@ -174,7 +204,7 @@ import SwiftUI
     func companionUnlockDelay(now:Double)->Double{companionDelivery.delay(now:now)}
     func finishCompanionUnlock(_ item:CompanionUnlock,equip:Bool){
         guard signedIn,identity.npub == item.account,companionDelivery.visible?.id == item.id else{return}
-        if equip{learner.companionType=CompanionTypes.effective(item.type,level:learner.companionLevel);persist()}
+        if equip{customizeCompanion(name:learner.companionName,type:item.type)}
         companionDelivery.dismiss(item);publishCompanionDelivery()
     }
     private var localURL: URL {
@@ -342,7 +372,10 @@ import SwiftUI
     private func writeLocal() throws {do{try JSONEncoder().encode(learner).write(to:localURL,options:[.atomic,.completeFileProtection]);if localStorageUnavailable{localStorageUnavailable=false}}catch{if !localStorageUnavailable{localStorageUnavailable=true};throw error}}
     func persist() {
         learner.migrateCompanionCustomization()
-        if learner.companionName != lastPersisted.companionName || learner.companionType != lastPersisted.companionType{learner.customizeCompanion(name:learner.companionName,type:learner.companionType)}
+        if learner.companionName != lastPersisted.companionName || learner.companionType != lastPersisted.companionType{
+            let partial=CompanionCustomization.partial(name:learner.companionName,type:learner.companionType,level:learner.companionLevel),last=(learner.pendingSettingsChanges ?? []).last{$0.partial["dailyGoalPetName"] != .null || $0.partial["dailyGoalPetType"] != .null}
+            if last?.partial != partial{learner.customizeCompanion(name:learner.companionName,type:learner.companionType)}
+        }
         learner.reconcileTutorUnlock(index:tutorCurriculumIndex[learner.target] ?? [:])
         if learner.onboardingComplete && !learner.goal.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty && (learner.goalBucket["activeGoal"]["id"].string.isEmpty || learner.goal != learner.goalBucket["activeGoal"]["text"].string) { learner.editGoal(learner.goal) }
         if learner.onboardingComplete { learner.preparePlate(user:identity.npub,available:availablePlateKinds); _ = learner.claimPlate(user:identity.npub) }
