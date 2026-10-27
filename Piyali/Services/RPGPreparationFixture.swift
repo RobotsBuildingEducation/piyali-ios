@@ -8,8 +8,9 @@ enum RPGPreparationFixture {
         guard e["PIYALI_OFFLINE_TESTS"] == "1",e["PIYALI_LIVE_API_TESTS"] != "1",UUID(uuidString:e["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil,["prepared","cache-only"].contains(e["PIYALI_RPG_PREPARED_FIXTURE"] ?? "")else{return nil}
         return e["PIYALI_RPG_PREPARED_FIXTURE"]
     }
-    static func preparedResponse()throws->String?{
+    static func preparedResponse()async throws->String?{
         guard let mode else{return nil};guard mode == "prepared"else{throw URLError(.notConnectedToInternet)}
+        if let ms=Int(ProcessInfo.processInfo.environment["PIYALI_RPG_PREPARED_DELAY_MS"] ?? ""),(0...15000).contains(ms){try await Task.sleep(for:.milliseconds(ms))}
         guard let url=Bundle.main.url(forResource:"rpg-prepared-fixture",withExtension:"json")else{throw URLError(.fileDoesNotExist)};return try String(contentsOf:url,encoding:.utf8)
     }
     static func speechResponse()async throws->String?{

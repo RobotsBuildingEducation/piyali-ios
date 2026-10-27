@@ -13,6 +13,8 @@ struct LessonPreviewView:View {
     let request:LessonPreviewRequest
     let onStart:()->Void
     @State private var expanded=false
+    @State private var gameLoading=false
+    @StateObject private var gamePreparation=GamePreparationController()
     private static let appearance=(try? ContentLibrary.load(JSONValue.self,name:"lesson-appearance")) ?? .null
     private var brand:PiyaliBrand { .init(dark:scheme == .dark) }
     private var lesson:Lesson { request.lesson }
@@ -29,6 +31,22 @@ struct LessonPreviewView:View {
     }
     private func copy(_ key:String)->String { EntryCopy.ui(app.learner.support,key) }
     var body:some View {
+        preparedContent
+            .fullScreenCover(isPresented:$gameLoading,onDismiss:finishGamePreparation){gameLoader}
+
+    }
+    private var gameLoader:some View {GamePreparationView(preparation:gamePreparation,support:app.learner.support,pet:app.learner.effectiveCompanionType,onCancel:cancelGamePreparation).environmentObject(app)}
+    private func cancelGamePreparation(){gamePreparation.cancel();gameLoading=false}
+    private var preparationScope:String{[app.identity.npub,app.learner.target,app.learner.support,app.learner.level].joined(separator:":")}
+    private var preparedContent:some View {
+        previewContent
+            .onChange(of:gamePreparation.cancelled){_,cancelled in if cancelled{gameLoading=false}}
+            .onChange(of:app.subscription.hasAccess){_,allowed in if !allowed,gameLoading{gamePreparation.cancel();gameLoading=false}}
+            .onChange(of:gamePreparation.ready){_,ready in if ready{gameLoading=false}}
+            .onChange(of:gamePreparation.error){_,error in if error != nil{gameLoading=false}}
+            .onChange(of:preparationScope){_,_ in if gameLoading{gamePreparation.cancel();gameLoading=false}}
+    }
+    private var previewContent:some View {
         ScrollView {
             VStack(alignment:.leading,spacing:0) {
                 HStack(alignment:.top,spacing:14) {
@@ -79,11 +97,14 @@ struct LessonPreviewView:View {
                         Spacer(minLength:4)
                         Text(goal).font(PiyaliBrand.productFont(tutorial ? 12 : 20,700)).multilineTextAlignment(.trailing).frame(maxWidth:150,alignment:.trailing)
                     }.padding(20).overlay { RoundedRectangle(cornerRadius:14).stroke(goalColor.opacity(0.7)) }.shadow(color:goalColor.opacity(0.12),radius:10,y:3)
-                    Button(action:onStart) { Text(copy("skill_tree_start_lesson")).font(PiyaliBrand.productFont(18,700)).foregroundStyle(.white).frame(maxWidth:.infinity,minHeight:60).background(LinearGradient(colors:[color,color.opacity(0.87)],startPoint:.topLeading,endPoint:.bottomTrailing),in:RoundedRectangle(cornerRadius:14)) }.buttonStyle(.plain).shadow(color:color.opacity(0.25),radius:12,y:6).accessibilityIdentifier("startLessonFromPreview")
+                    Button(action:start) { Text(copy("skill_tree_start_lesson")).font(PiyaliBrand.productFont(18,700)).foregroundStyle(.white).frame(maxWidth:.infinity,minHeight:60).background(LinearGradient(colors:[color,color.opacity(0.87)],startPoint:.topLeading,endPoint:.bottomTrailing),in:RoundedRectangle(cornerRadius:14)) }.buttonStyle(.plain).shadow(color:color.opacity(0.25),radius:12,y:6).accessibilityIdentifier("startLessonFromPreview")
                 }.padding(26)
             }
         }.background(brand.background.overlay(alignment:.top) { LinearGradient(colors:[color.opacity(0.09),.clear],startPoint:.topLeading,endPoint:.bottomTrailing).frame(height:200).allowsHitTesting(false) }).foregroundStyle(brand.text).presentationDetents([.large]).presentationCornerRadius(28)
+
     }
+    private func start(){if game{gameLoading=true;gamePreparation.start(app,lesson:lesson)}else{onStart()}}
+    private func finishGamePreparation(){if gamePreparation.ready,gamePreparation.commit(app){onStart()}else if gamePreparation.error == nil{dismiss()}}
     private var goal:String {
         if tutorial { return copy("skill_tree_tutorial_activities") }
         if lesson.isFinalQuiz == true { let rules=QuizRules(lesson.quizConfig ?? .null);return "\(Int((Double(rules.passingScore)/Double(max(1,rules.questionsRequired))*100).rounded()))%" }

@@ -1,0 +1,25 @@
+import fs from'node:fs/promises';import path from'node:path';import{createRequire}from'node:module';
+export async function gameLoaderFixture(root,reference){
+ const require=createRequire(path.join(reference,'package.json')),{parse}=require('@babel/parser'),traverse=require('@babel/traverse').default,source=await fs.readFile(path.join(reference,'src/components/SkillTree.jsx'),'utf8');let header;
+ traverse(parse(source,{sourceType:'module',plugins:['jsx']}),{ConditionalExpression(p){if(p.node.test.type==='Identifier'&&p.node.test.name==='gameLoading'&&source.slice(p.node.consequent.start,p.node.consequent.end).includes('<LoadingMiniGame '))header=source.slice(p.node.consequent.start,p.node.consequent.end)}});
+ if(!header)throw Error('Original preparation header moved');
+ const entry=path.join(root,'scripts/__piyali-game-loader.jsx');
+ return{name:'piyali-game-loader-fixture',enforce:'pre',resolveId(id,importer){
+  if(id==='/__piyali-game-loader.jsx')return entry;
+  if(importer?.endsWith('/LoadingMiniGame.jsx')){if(id.endsWith('/useUserStore'))return '\0loader-user';if(id.endsWith('/useSoundSettings'))return '\0loader-sound';if(id==='tone')return '\0loader-tone'}
+ },load(id){
+  if(id==='\0loader-user')return 'const q=new URLSearchParams(location.search),state={user:{dailyGoalPetType:q.get("pet")||"ghost"}};export default f=>f(state);';
+  if(id==='\0loader-sound')return 'export default()=>({playSound:async()=>{},warmupAudio:async()=>{}});';
+  if(id==='\0loader-tone')return 'export const start=async()=>{};';
+  if(id!==entry)return;
+  return 'import React,{Suspense}from"react";import{createRoot}from"react-dom/client";import{Box,Text,Flex,Button,ChakraProvider}from"@chakra-ui/react";import{theme}from"/src/theme";import"/src/index.css";import{useThemeStore}from"/src/useThemeStore";import LoadingMiniGame from"/src/components/LoadingMiniGame.jsx";import{GAME_LOADING_MESSAGES}from"/src/utils/gameLoadingMessages";import{translations}from"/src/utils/translation";const q=new URLSearchParams(location.search),supportLang=q.get("language")||"en",isLightTheme=q.get("theme")!=="dark",loadingMsgIdx=0,loadingMessages=GAME_LOADING_MESSAGES[supportLang]||GAME_LOADING_MESSAGES.en,t=k=>translations[supportLang]?.[k]||translations.en[k]||k,handleCancelGameLoading=()=>window.__piyaliLoaderCancelled=true;useThemeStore.getState().syncThemeMode(isLightTheme?"light":"dark");createRoot(document.getElementById("root")).render(<ChakraProvider theme={theme}><Box h="100dvh" position="relative">'+header+'</Box></ChakraProvider>);';
+ },transform(code,id){
+  if(id.split('?')[0]!==path.join(reference,'src/components/LoadingMiniGame.jsx'))return null;
+  const seed='generateWorld(Date.now())',marker='  // Keyboard',frame='      s.frame++;';
+  if(!code.includes(seed)||!code.includes(marker)||!code.includes(frame))throw Error('Original mini-map fixture bridge moved');
+  const clock='  window.__piyaliLoaderNow??=1000000;window.__piyaliLoaderTimers??=new Map();window.__piyaliLoaderTimerID??=0;const Date={now:()=>window.__piyaliLoaderNow},setTimeout=(f,ms)=>{const id=++window.__piyaliLoaderTimerID;window.__piyaliLoaderTimers.set(id,{f,due:Date.now()+ms});return id},clearTimeout=id=>window.__piyaliLoaderTimers.delete(id);\n';
+  return code.replace('  const canvasRef',clock+'  const canvasRef').replace(seed,'generateWorld(Number(new URLSearchParams(location.search).get("seed")||7))')
+   .replace(marker,'  window.__piyaliLoader={state:()=>({...stateRef.current,keysDown:[...stateRef.current.keysDown]}),world,select:handleTileSelection,move:tryMove,clock:now=>{window.__piyaliLoaderNow=now;for(const[id,t]of window.__piyaliLoaderTimers)if(t.due<=now){window.__piyaliLoaderTimers.delete(id);t.f()}}};\n'+marker)
+   .replace(frame,'      s.frame=Number(new URLSearchParams(location.search).get("frame")||0)||s.frame+1;');
+ },configureServer(server){server.middlewares.use('/__piyali-game-loader',async(req,res,next)=>{if((req.originalUrl||req.url).split('?')[0].endsWith('.jsx'))return next();const html=await server.transformIndexHtml('/__piyali-game-loader','<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>html,body,#root{margin:0;width:100%;height:100%;overflow:hidden}</style></head><body><div id="root"></div><script>window.__piyaliLoaderErrors=[];window.addEventListener("error",e=>window.__piyaliLoaderErrors.push(e.message));window.addEventListener("unhandledrejection",e=>window.__piyaliLoaderErrors.push(String(e.reason)));const originalFetch=window.fetch.bind(window);window.fetch=(input,...args)=>{const u=new URL(typeof input==="string"?input:input.url,location.href);if(u.hostname!=="127.0.0.1")return Promise.reject(Error("External I/O disabled"));return originalFetch(input,...args)};const OriginalSocket=window.WebSocket;window.WebSocket=class extends OriginalSocket{constructor(url,...args){if(new URL(url,location.href).hostname!=="127.0.0.1")throw Error("External I/O disabled");super(url,...args)}};</script><script type="module" src="/__piyali-game-loader.jsx"></script></body></html>');res.setHeader('Content-Type','text/html');res.end(html)})}};
+}
