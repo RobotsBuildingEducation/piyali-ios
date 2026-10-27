@@ -19,6 +19,7 @@ struct LessonPracticeView:View {
     }
     private var quiz:Bool { lesson?.isFinalQuiz == true }
     @State private var showTranscript=false
+    @State private var questionAudioPlaying=false
     @State private var noteSaved=false
     @State private var noteCreating=false
     @State private var showDeck=false
@@ -44,6 +45,8 @@ struct LessonPracticeView:View {
                         else if !service.preparationFailed,let run {
                             if run.question.variant == "natural_or_weird" {
                                 NaturalOrWeirdQuestion(sentence:run.question.payload["sentence"].string,title:questionCopy(run,"title"),instruction:questionCopy(run,"instruction"),weird:questionCopy(run,"soundsWeird"),natural:questionCopy(run,"soundsNatural"),audioLabel:questionCopy(run,"playAudio"),helpLabel:questionCopy(run,"askForHelp"),selected:run.response["choice"] == .null ? nil:run.response["choice"].boolean,locked:service.busy || run.correct == true || quiz && run.correct != nil,assistantOpen:assistance.assistantOpen,assistantBusy:assistance.assistantBusy,help:{assistance.ask(app,run:run)},listen:{speech.speak(run.question.audioText,language:run.question.audioLanguage)},select:{updateResponse("choice",.bool($0))},showHelp:!quiz)
+                            } else if AdvancedPracticeQuestion.variants.contains(run.question.variant) {
+                                advancedQuestion(run)
                             } else {
                                 question(run)
                                 controls(run).disabled(service.busy || run.correct == true || quiz && run.correct != nil)
@@ -60,8 +63,8 @@ struct LessonPracticeView:View {
             .navigationTitle(embedded ? lesson?.title.localized(app.learner.support) ?? "" : module == .grammar ? "Grammar" : "Vocabulary")
             .toolbar { ToolbarItemGroup(placement:.keyboard) { Spacer();Button("Done") { answering=false }.accessibilityIdentifier("practiceKeyboardDone") } }
             .sheet(isPresented:$showDeck) { PracticeDeckView(cards:app.learner.practiceDecks?[app.learner.practiceDeckKey(module)] ?? [],support:app.learner.support) }
-            .task(id:scope) { speech.stopAll();assistance.clear();showDeck=false;appeared=true;await service.prepare(app,module:module,lesson:lesson,fresh:startsFresh);if let run {assistance.bind(app,run:run)} }
-            .onChange(of:run?.question.id){_,_ in noteSaved=false;noteCreating=false;portrait=PracticeQuestionAppearance.portrait;if let run {assistance.bind(app,run:run)}}
+            .task(id:scope) { questionAudioPlaying=false;speech.stopAll();assistance.clear();showDeck=false;appeared=true;await service.prepare(app,module:module,lesson:lesson,fresh:startsFresh);if let run {assistance.bind(app,run:run)} }
+            .onChange(of:run?.question.id){_,_ in questionAudioPlaying=false;noteSaved=false;noteCreating=false;portrait=PracticeQuestionAppearance.portrait;if let run {assistance.bind(app,run:run)}}
             .onChange(of:run?.response){_,_ in assistance.responseChanged()}
             .onAppear { active=true }
             .onChange(of:speech.transcript) { _,text in if active { updateResponse("text",.string(text)) } }
@@ -71,8 +74,15 @@ struct LessonPracticeView:View {
                     if let current=self.run { Task { await service.check(app,run:current,confidence:speech.confidence,audio:speech.audioMetrics) } }
                 }
             }
-            .onChange(of:scenePhase) { _,phase in if phase != .active { service.cancel();assistance.cancel();speech.stopAll() } }
-            .onDisappear { active=false;service.cancel();assistance.cancel();speech.stopAll() }
+            .onChange(of:scenePhase) { _,phase in if phase != .active { questionAudioPlaying=false;service.cancel();assistance.cancel();speech.stopAll() } }
+            .onDisappear { active=false;questionAudioPlaying=false;service.cancel();assistance.cancel();speech.stopAll() }
+    }
+    private func advancedQuestion(_ run:PracticeRun)->some View {
+        let capturedScope=scope
+        return AdvancedPracticeQuestion(question:run.question,response:run.response,locked:service.busy || run.correct == true || quiz && run.correct != nil,assistantOpen:assistance.assistantOpen,assistantBusy:assistance.assistantBusy,copy:{questionCopy(run,$0)},help:{assistance.ask(app,run:run)},listen:{
+            let id=run.question.id
+            speech.speakSeries([run.question.audioText],language:run.question.target,onStarted:{if self.run?.question.id == id{questionAudioPlaying=true}},onInterrupted:{questionAudioPlaying=false},onFinished:{questionAudioPlaying=false})
+        },change:{response in guard scope == capturedScope,self.run?.question.id == run.question.id else{return};updateResponse(response)},showHelp:!quiz,playing:questionAudioPlaying).id(run.question.id)
     }
     @ViewBuilder private func question(_ run:PracticeRun)->some View {
         let q=run.question,p=q.payload
@@ -170,34 +180,15 @@ struct LessonPracticeView:View {
     @ViewBuilder private func delightPrompt(_ run:PracticeRun)->some View {
         let q=run.question,p=q.payload
         switch q.variant {
-        case "dialogue_fork":Text(p["speaker"].string).font(PiyaliBrand.productFont(13,600)).foregroundStyle(brand.secondary);Text(p["line"].string).font(PiyaliBrand.productFont(24,500))
         case "sentence_shapeshifter":Text(p["source"].string).font(PiyaliBrand.productFont(24,500));Text(p["constraint"].string).font(PiyaliBrand.productFont(16,600)).foregroundStyle(PiyaliBrand.teal)
-        case "morphology_forge","natural_or_weird":Text(p["sentence"].string).font(PiyaliBrand.productFont(24,500))
         case "three_word_challenge":PracticeFlowLayout(spacing:8) { ForEach(q.strings("cues"),id:\.self) { Text($0).font(PiyaliBrand.productFont(20,600)).padding(10).background(PiyaliBrand.teal.opacity(0.1),in:RoundedRectangle(cornerRadius:12)) } }
         case "three_clue_mystery":ForEach(Array(q.strings("clues").prefix(run.revealedClues).enumerated()),id:\.offset) { index,clue in Text("\(index+1). "+clue).font(PiyaliBrand.productFont(18)) }
-        case "listen_difference":Button { speech.speak(q.audioText,language:q.target) } label:{ Image(systemName:"speaker.wave.2.fill").font(.system(size:30)).frame(maxWidth:.infinity,minHeight:90) }.buttonStyle(.plain).foregroundStyle(PiyaliBrand.teal).accessibilityLabel(copy("vocab_listen_question"))
         default:EmptyView()
         }
     }
     @ViewBuilder private func delightControls(_ run:PracticeRun)->some View {
         let q=run.question,p=q.payload,r=run.response
         switch q.variant {
-        case "sentence_detective":
-            PracticeFlowLayout(spacing:8) { ForEach(Array(q.strings("tokens").enumerated()),id:\.offset) { index,word in
-                chip(word,selected:r["tokenIndex"] == .number(Double(index))) {
-                    if index == Int(p["incorrectIndex"].number) { updateResponse(.object(["tokenIndex":.number(Double(index)),"replacement":.string(""),"rejectedTokenIndices":.array([])])) }
-                    else { let rejected=Array(Set(r["rejectedTokenIndices"].array.map { Int($0.number) }+[index])).sorted();updateResponse(.object(["tokenIndex":.null,"replacement":.string(""),"rejectedTokenIndices":.array(rejected.map { .number(Double($0)) })])) }
-                }.foregroundStyle(r["rejectedTokenIndices"].array.contains(.number(Double(index))) ? .orange : brand.text)
-            } }
-            if r["tokenIndex"] != .null { choices(q.strings("replacements"),selected:q.strings("replacements").indices.filter { q.strings("replacements")[$0] == r["replacement"].string }) { updateResponse("replacement",.string(q.strings("replacements")[$0])) } }
-        case "dialogue_fork","listen_difference":choices(q.strings("options"),selected:r["selectedIndex"] == .null ? [] : [Int(r["selectedIndex"].number)]) { updateResponse("selectedIndex",.number(Double($0))) }
-        case "morphology_forge":wordBank(run,field:"pieceIndices",words:q.strings("pieces"))
-        case "word_neighborhoods":
-            let groups=p["groups"].array,words=groups.flatMap { $0["items"].array.map(\.string) }.sorted()
-            ForEach(words,id:\.self) { word in
-                HStack { Text(word).font(PiyaliBrand.productFont(18,500));Spacer();Picker(word,selection:Binding(get:{ r["assignments"][word] == .null ? -1 : Int(r["assignments"][word].number) },set:{ index in var assignments=r["assignments"].object;if index < 0 { assignments.removeValue(forKey:word) } else { assignments[word] = .number(Double(index)) };updateResponse("assignments",.object(assignments)) })) { Text("…").tag(-1);ForEach(Array(groups.enumerated()),id:\.offset) { index,group in Text(group["label"].string).tag(index) } }.tint(PiyaliBrand.teal) }.padding(16).background(brand.surface,in:RoundedRectangle(cornerRadius:18))
-            }
-        case "natural_or_weird":choices([questionCopy(run,"soundsWeird"),questionCopy(run,"soundsNatural")],selected:r["choice"] == .null ? [] : [r["choice"].boolean ? 1 : 0]) { updateResponse("choice",.bool($0 == 1)) }
         case "three_clue_mystery":
             if run.revealedClues < q.strings("clues").count { Button(questionCopy(run,"revealNext")) { guard var current=self.run else { return };current.revealedClues += 1;current.assisted=true;app.learner.savePractice(current);app.persist() }.buttonStyle(.bordered).tint(brand.questionChoice) }
             answerField(run)

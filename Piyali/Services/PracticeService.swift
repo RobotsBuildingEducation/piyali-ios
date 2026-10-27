@@ -96,7 +96,12 @@ import Foundation
         let token=generation,account=app.identity.npub;busy=true;error=nil;defer { if token == generation { busy=false } }
         do {
             let recipes=try recipes(),q=run.question
-            let result=try await verdict(run:run,recipes:recipes,confidence:confidence,audio:audio,judge:{ try await app.ai.responsesText($0) })
+            let result=try await verdict(run:run,recipes:recipes,confidence:confidence,audio:audio,judge:{ prompt in
+                #if DEBUG
+                if let result=PracticeTestFixtures.verdict(run:run,prompt:prompt){return result}
+                #endif
+                return try await app.ai.responsesText(prompt)
+            })
             let reward:Int
             if q.isDelight { reward=Int(try recipes.inspect("xp",parameters:.object(["question":q.payload,"response":run.response,"options":.object(["revealedClues":.number(Double(run.revealedClues))])])).number) }
             else { reward=result.reward ?? q.standardReward }

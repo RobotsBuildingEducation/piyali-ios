@@ -2,6 +2,14 @@ import XCTest
 @testable import Piyali
 
 @MainActor final class PracticeJudgingTests:XCTestCase {
+    func testNativeDragItemsRejectOtherQuestionsInvalidIndicesLocksAndMultipleItems() {
+        let id=UUID(),item=PracticeDragItem(questionID:id,index:1)
+        XCTAssertEqual(PracticeDragItem.matchingIndex([item],questionID:id,count:3,locked:false),1)
+        XCTAssertNil(PracticeDragItem.matchingIndex([item],questionID:UUID(),count:3,locked:false))
+        XCTAssertNil(PracticeDragItem.matchingIndex([item],questionID:id,count:1,locked:false))
+        XCTAssertNil(PracticeDragItem.matchingIndex([item],questionID:id,count:3,locked:true))
+        XCTAssertNil(PracticeDragItem.matchingIndex([item,item],questionID:id,count:3,locked:false))
+    }
     private let options:JSONValue = .object(["cefrLevel":.string("A1"),"direction":.string("target-to-support")])
     func testVocabularyFillUsesItsActualSentenceContractAndAcceptsModelAlternatives() async throws {
         let engine=try PracticeRecipes(),service=PracticeService()

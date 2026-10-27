@@ -9,6 +9,33 @@ import NostrSDK
 
 /// Explicit opt-in only. Uses an isolated test identity, bounded prompts and no paid access grant.
 @MainActor final class LiveAPIIntegrationTests: XCTestCase {
+    func testFiveExerciseBodiesUseOriginalSemanticJudgesIncludingAlternativeReplies()async throws {
+        guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else{throw XCTSkip("Explicit live API opt-in required")}
+        XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))
+        if FirebaseApp.app() == nil{AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure()};XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let identity=IdentityService();try identity.create();try await FirebaseIdentityService.shared.ensure(identity)
+        do {
+            let url=try XCTUnwrap(Bundle(for:Self.self).url(forResource:"delight-bodies",withExtension:"json")),samples=try JSONDecoder().decode(Piyali.JSONValue.self,from:Data(contentsOf:url)),recipes=try PracticeRecipes(),service=PracticeService(),ai=AIService()
+            for variant in AdvancedPracticeQuestion.variants.sorted() {
+                let sample=samples[variant],payload=sample["question"],question=try PracticeQuestion(module:.grammar,kind:"delight:"+variant,payload:payload,options:.object(["cefrLevel":.string("A1")]),target:"es",support:"en")
+                var wrong=sample["responses"]["filled"]
+                switch variant {
+                case "sentence_detective":wrong=wrong.setting("replacement",payload["replacements"].array[1])
+                case "dialogue_fork","listen_difference":wrong=wrong.setting("selectedIndex",.number(Double(1-Int(payload["answerIndex"].number))))
+                case "morphology_forge":wrong=wrong.setting("pieceIndices",.array([.number(2),.number(3)]))
+                default:let word=payload["groups"].array[0]["items"].array[0].string;wrong=wrong.setting("assignments",wrong["assignments"].setting(word,.number(1)))
+                }
+                for (response,expected) in [(sample["responses"]["filled"],true),(wrong,false)] {
+                    let run=PracticeRun(question:question,lessonID:nil,lessonLevel:"A1",response:response)
+                    let verdict=try await service.verdict(run:run,recipes:recipes,judge:{try await ai.responsesText($0)});XCTAssertEqual(verdict.correct,expected,variant)
+                }
+            }
+            let original=samples["dialogue_fork"]["question"],alternative=original.setting("options",.array([.string("Una sopa, por favor."),original["options"].array[1],original["options"].array[2],original["options"].array[3]])),question=try PracticeQuestion(module:.grammar,kind:"delight:dialogue_fork",payload:alternative,options:.object(["cefrLevel":.string("A1")]),target:"es",support:"en"),run=PracticeRun(question:question,lessonID:nil,lessonLevel:"A1",response:.object(["selectedIndex":.number(0)]))
+            let verdict=try await service.verdict(run:run,recipes:recipes,judge:{try await ai.responsesText($0)});XCTAssertTrue(verdict.correct,"The source accepts a defensible offered alternative beyond its generated key")
+            print("LIVE EXERCISE BODIES: all five original semantic judges accept reference responses and reject invalid responses; Dialogue Fork also accepts a valid nonreference reply. No learner progress or public relay writes")
+        }catch{try? await Auth.auth().currentUser?.delete();FirebaseIdentityService.shared.clearSession();try? identity.disconnect();throw error}
+        try await Auth.auth().currentUser?.delete();FirebaseIdentityService.shared.clearSession();try identity.disconnect()
+    }
     func testOriginalQuestionAssistanceStreamsAndExplainsThroughLearnerFirebase()async throws {
         guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else{throw XCTSkip("Explicit live API opt-in required")}
         XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))

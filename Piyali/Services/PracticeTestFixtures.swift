@@ -8,6 +8,22 @@ enum PracticeTestFixtures {
         guard env["PIYALI_OFFLINE_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else { return nil }
         return env["PIYALI_PRACTICE_FIXTURE"]
     }
+    /// Finite offered-answer judge used only by explicitly opted-in offline gesture journeys.
+    /// Production retains the source semantic provider and its alternative-answer rules.
+    static func verdict(run:PracticeRun,prompt:String)->String? {
+        let env=ProcessInfo.processInfo.environment
+        guard env["PIYALI_LIVE_API_TESTS"] != "1",env["PIYALI_PRACTICE_JUDGE_FIXTURE"] == "offered-reference",let kind,kind == run.question.kind else{return nil}
+        let q=run.question,p=q.payload,r=run.response,correct:Bool,title:String
+        switch q.variant {
+        case "sentence_detective":title="Sentence Detective";correct=r["tokenIndex"] == p["incorrectIndex"] && r["replacement"].string == p["answer"].string
+        case "dialogue_fork","listen_difference":title=q.variant == "dialogue_fork" ? "Dialogue Fork":"Listen for the Difference";correct=r["selectedIndex"] == p["answerIndex"]
+        case "morphology_forge":title="Morphology Forge";correct=run.answerText == p["answerWord"].string
+        case "word_neighborhoods":title="Word Neighborhoods";correct=p["groups"].array.enumerated().allSatisfy{index,group in group["items"].array.allSatisfy{r["assignments"][$0.string] == .number(Double(index))}}
+        default:return nil
+        }
+        guard prompt.hasPrefix("Judge a "+title),prompt.contains("Spanish"),!prompt.contains("undefined")else{return nil}
+        return correct ? "YES":"NO"
+    }
     @MainActor static func question(module:PracticeRecipeModule,recipes:PracticeRecipes)->PracticeQuestion? {
         guard let kind else { return nil }
         let options:JSONValue = .object(["cefrLevel":.string("A1"),"direction":.string("target-to-support"),"isListening":.bool(false)])
