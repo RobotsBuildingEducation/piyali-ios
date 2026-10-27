@@ -45,8 +45,9 @@ struct PracticeFeedbackMarkdown:View {
     let text:String
     var assistant=false
     @Environment(\.colorScheme) private var scheme
-    private var content:AttributedString {
-        var value=(try? AttributedString(markdown:text,options:.init(interpretedSyntax:.inlineOnlyPreservingWhitespace))) ?? AttributedString(text)
+    @Environment(\.layoutDirection)private var direction
+    private func content(_ original:AttributedString)->AttributedString {
+        var value=original
         if assistant {
             for run in value.runs where run.inlinePresentationIntent?.contains(.stronglyEmphasized) == true {
                 value[run.range].foregroundColor=PiyaliBrand.unitColor(scheme == .dark ? "e0f2fe":"1e3a8a")
@@ -54,5 +55,11 @@ struct PracticeFeedbackMarkdown:View {
         }
         return value
     }
-    var body:some View {Text(content).font(PiyaliBrand.productFont(14)).lineSpacing(5).textSelection(.enabled)}
+    private var lineGap:CGFloat{max(0,22.4-UIFont.systemFont(ofSize:14).lineHeight)}
+    private func row(_ block:PracticeFeedbackDocument.Block)->some View{Text(content(block.text)).font(block.code ? .system(size:14,design:.monospaced):PiyaliBrand.productFont(14)).lineSpacing(lineGap).padding(.vertical,lineGap/2).frame(maxWidth:.infinity,alignment:.leading).textSelection(.enabled).overlay(alignment:.topLeading){if assistant,direction == .leftToRight,let marker=block.marker{Text(marker).font(PiyaliBrand.productFont(14)).padding(.vertical,lineGap/2).frame(width:16,alignment:.leading).offset(x:-16).accessibilityHidden(true)}}}
+    var body:some View{let groups=PracticeFeedbackDocument.groups(text)
+        VStack(alignment:.leading,spacing:assistant ? 8:0){ForEach(Array(groups.enumerated()),id:\.element.id){index,group in
+            VStack(alignment:.leading,spacing:assistant && group.listID != nil ? 4:0){ForEach(group.blocks){row($0)}}.padding(direction == .rightToLeft ? .trailing:.leading,assistant ? CGFloat(group.listDepth)*16:0).padding(.bottom,assistant && group.listID != nil ? (index == groups.count-1 ? 12:4):0)
+        }}.accessibilityElement(children:.combine).accessibilityAddTraits(.isStaticText)
+    }
 }
