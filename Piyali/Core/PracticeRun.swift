@@ -33,7 +33,7 @@ public struct PracticeRun:Codable,Sendable {
         case "speak":item=item.setting("prompt",p["prompt"]).setting("target",p["target"])
         case "match":item=item.setting("left",p["left"]).setting("right",p["right"])
         case "translate","repeat":item=item.setting("prompt",p["sentence"]).setting("wordBank",.array(bank.map(JSONValue.string))).setting("answer",p["correctWords"])
-        case "flashcard":return .object(["concept":p["concept"],"answer":p["answer"],"task":.string("Recall the flashcard answer")])
+        case "flashcard":return .object(["concept":p["concept"],"answer":p["answer"],"task":.string("Translate the concept into the target language")])
         default:break
         }
         return item

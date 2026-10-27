@@ -1,0 +1,75 @@
+{
+  "speak-repeat": {
+    "kind": "speak",
+    "target": "es",
+    "question": {
+      "target": "Hola, soy Ana.",
+      "display": "Hola, soy Ana.",
+      "prompt": "Say the requested sentence.",
+      "variant": "repeat",
+      "stimulus": "Hello, I am Ana.",
+      "hint": "Use the first person.",
+      "translation": "Hello, I am Ana."
+    },
+    "options": {
+      "cefrLevel": "A1",
+      "speakVariant": "repeat"
+    }
+  },
+  "speak-translate": {
+    "kind": "speak",
+    "target": "es",
+    "question": {
+      "target": "Hola, soy Ana.",
+      "display": "Hola, soy Ana.",
+      "prompt": "Say the requested sentence.",
+      "variant": "translate",
+      "stimulus": "Hello, I am Ana.",
+      "hint": "Use the first person.",
+      "translation": "Hello, I am Ana."
+    },
+    "options": {
+      "cefrLevel": "A1",
+      "speakVariant": "translate"
+    }
+  },
+  "speak-complete": {
+    "kind": "speak",
+    "target": "es",
+    "question": {
+      "target": "Hola, soy Ana.",
+      "display": "Hola, soy Ana.",
+      "prompt": "Say the requested sentence.",
+      "variant": "complete",
+      "stimulus": "Hello, I am Ana.",
+      "hint": "Use the first person.",
+      "translation": "Hello, I am Ana."
+    },
+    "options": {
+      "cefrLevel": "A1",
+      "speakVariant": "complete"
+    }
+  },
+  "flashcard": {
+    "kind": "flashcard",
+    "target": "es",
+    "question": {
+      "concept": "Hello",
+      "answer": "Hola"
+    },
+    "options": {
+      "cefrLevel": "A1"
+    }
+  },
+  "flashcard-ja": {
+    "kind": "flashcard",
+    "target": "ja",
+    "question": {
+      "concept": "Hello",
+      "answer": "こんにちは"
+    },
+    "options": {
+      "cefrLevel": "A1"
+    }
+  }
+}

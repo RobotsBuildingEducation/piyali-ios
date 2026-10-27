@@ -9,7 +9,8 @@ import Foundation
     private var generation=UUID()
     private var engine:PracticeRecipes?
     private let injectedJudge:((String)async throws->String)?
-    init(recipes:PracticeRecipes?=nil,judge:((String)async throws->String)?=nil){engine=recipes;injectedJudge=judge}
+    private let injectedGenerator:((String)async throws->String)?
+    init(recipes:PracticeRecipes?=nil,judge:((String)async throws->String)?=nil,generator:((String)async throws->String)?=nil){engine=recipes;injectedJudge=judge;injectedGenerator=generator}
     private func recipes() throws ->PracticeRecipes { if let engine { return engine };let value=try PracticeRecipes();engine=value;return value }
     func cancel() { generation=UUID();busy=false;preparing=false;preparationFailed=false;error=nil }
     func ensureQuiz(_ app:AppModel,lesson:Lesson,restart:Bool=false) throws ->FinalQuizRun {
@@ -56,13 +57,13 @@ import Foundation
             else { options=try recipes.select(module:module,context:context).setting("isFinalQuiz",.bool(false)) }
             let kind=options["exerciseType"].string
             let recent=Array(state.history.filter { $0.target == state.target && $0.mode.lowercased() == module.rawValue && $0.correct }.prefix(5)).map { JSONValue.string($0.question) }
-            let parameters=options.setting("targetLang",.string(state.target)).setting("supportLang",.string(state.support)).setting("appUILang",.string(state.support)).setting("showTranslations",.bool(true)).setting("lessonContent",PracticeCurriculum.content(lesson,mode:module.rawValue,context:curriculum)).setting("user",user).setting("recentGood",.array(recent)).setting("recentQuestions",.array(recent))
+            let parameters=options.setting("collectedConcepts",.array((state.practiceDecks?[state.practiceDeckKey(module)] ?? []).map{.string($0.concept)})).setting("targetLang",.string(state.target)).setting("supportLang",.string(state.support)).setting("appUILang",.string(state.support)).setting("showTranslations",.bool(true)).setting("lessonContent",PracticeCurriculum.content(lesson,mode:module.rawValue,context:curriculum)).setting("user",user).setting("recentGood",.array(recent)).setting("recentQuestions",.array(recent))
             let prompt=StandardChoiceRepair.prompt(try recipes.build(module:module,kind:kind,parameters:parameters))
             var question:PracticeQuestion?
             var lastError:Error=PracticeQuestionFailure.malformed
             for attempt in 0..<2 {
                 do {
-                    let output=try await (attempt == 0 ? app.ai.text(prompt,json:kind.hasPrefix("delight:")) : app.ai.responsesText(prompt,json:kind.hasPrefix("delight:")));try Task.checkCancellation()
+                    let output:String;if let injectedGenerator{output=try await injectedGenerator(prompt)}else{output=try await (attempt == 0 ? app.ai.text(prompt,json:kind.hasPrefix("delight:")) : app.ai.responsesText(prompt,json:kind.hasPrefix("delight:")))};try Task.checkCancellation()
                     if kind.hasPrefix("delight:") {
                         let raw=try GenerationObjects.parse(output).first ?? .null
                         let normalized=try recipes.inspect("normalize",parameters:parameters.setting("variant",.string(String(kind.dropFirst(8)))).setting("raw",raw))

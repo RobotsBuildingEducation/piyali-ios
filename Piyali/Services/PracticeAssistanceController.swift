@@ -43,8 +43,10 @@ import FirebaseAILogic
         guard let current=app.learner.practiceRuns?[run.key]else{return false}
         return current.response == response || (["translate","repeat"].contains(run.question.kind) && run.lastMissedAnswer != nil && current.lastMissedAnswer == run.lastMissedAnswer && current.correct == false)
     }
+    private var oralPolicy:OralAssistancePolicy?
     private var wordBankPolicy:WordBankAssistancePolicy?
     private func prompt(_ operation:String,run:PracticeRun,level:String="beginner")throws->JSONValue {
+        if ["speak","flashcard"].contains(run.question.kind){if oralPolicy == nil{oralPolicy=try OralAssistancePolicy()};return try oralPolicy!.build(operation,run:run,level:level)}
         if ["translate","repeat"].contains(run.question.kind){if wordBankPolicy == nil{wordBankPolicy=try WordBankAssistancePolicy()};return try wordBankPolicy!.build(operation,run:run,level:level)}
         if run.question.isDelight {if policy == nil{policy=try PracticeAssistancePolicy()};return try policy!.build(operation,run:run)}
         // Legacy formats retain their data context; direct help follows the source assistance contract.

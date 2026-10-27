@@ -85,10 +85,10 @@ struct StandardPracticeQuestion:View {
     }
 }
 struct StandardQuestionTool<Label:View>:View {
-    var active=false,size:CGFloat=32
+    var active=false,size:CGFloat=32,cornerRadius:CGFloat=100
     let action:()->Void
     @ViewBuilder let label:()->Label
     @Environment(\.colorScheme)private var scheme
-    var body:some View{let brand=PiyaliBrand(dark:scheme == .dark);Button(action:action){label().foregroundStyle(brand.questionTool).frame(width:size,height:size).background(active ? brand.questionTool.opacity(0.08):brand.surface,in:Circle()).overlay{Circle().stroke(brand.questionTool.opacity(active ? 0.7:0.22))}.shadow(color:.black.opacity(0.06),radius:6,y:4)}.buttonStyle(.plain)}
+    var body:some View{let brand=PiyaliBrand(dark:scheme == .dark);Button(action:action){label().foregroundStyle(brand.questionTool).frame(width:size,height:size).background(active ? brand.questionTool.opacity(0.08):brand.surface,in:RoundedRectangle(cornerRadius:cornerRadius)).overlay{RoundedRectangle(cornerRadius:cornerRadius).stroke(brand.questionTool.opacity(active ? 0.7:0.22))}.shadow(color:.black.opacity(0.06),radius:6,y:4)}.buttonStyle(.plain)}
 }
 private struct StandardButtonStyle:ButtonStyle{func makeBody(configuration:Configuration)->some View{configuration.label}}

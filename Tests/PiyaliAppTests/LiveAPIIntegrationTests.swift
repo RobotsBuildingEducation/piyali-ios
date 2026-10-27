@@ -5,10 +5,68 @@ import FirebaseAuth
 import FirebaseFirestore
 import FirebaseAILogic
 import NostrSDK
+import Security
 @testable import Piyali
 
 /// Explicit opt-in only. Uses an isolated test identity, bounded prompts and no paid access grant.
 @MainActor final class LiveAPIIntegrationTests: XCTestCase {
+    /// Recovery is restricted to a recently created QA identity whose key still exists
+    /// in this simulator's explicitly isolated test namespace. No key is logged.
+    func testCleanupExpiredIsolatedLiveIdentityWithFreshAuthentication()async throws {
+        let env=ProcessInfo.processInfo.environment
+        guard env["PIYALI_LIVE_API_TESTS"] == "1",env["PIYALI_OFFLINE_TESTS"] == "1",env["PIYALI_RECOVER_EXPIRED_TEST_IDENTITY"] == "1",let original=env["PIYALI_TEST_IDENTITY_SCOPE"],UUID(uuidString:original) != nil else{throw XCTSkip("Explicit isolated recovery required")}
+        if FirebaseApp.app() == nil{AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure()};XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let user=try XCTUnwrap(Auth.auth().currentUser),created=try XCTUnwrap(user.metadata.creationDate)
+        XCTAssertGreaterThan(created,Date().addingTimeInterval(-7200));guard created>Date().addingTimeInterval(-7200)else{return}
+        var result:CFTypeRef?;let query:[String:Any]=[kSecClass as String:kSecClassGenericPassword,kSecAttrAccount as String:"identity",kSecReturnAttributes as String:true,kSecReturnData as String:true,kSecMatchLimit as String:kSecMatchLimitAll]
+        XCTAssertEqual(SecItemCopyMatching(query as CFDictionary,&result),errSecSuccess)
+        let matches=(result as? [[String:Any]] ?? []).compactMap{item->String? in
+            guard let service=item[kSecAttrService as String]as?String,service.hasPrefix("app.piyali.ios.nostr.ui-test."),let scope=service.components(separatedBy:".ui-test.").last,UUID(uuidString:scope) != nil,let data=item[kSecValueData as String]as?Data,let key=String(data:data,encoding:.utf8),Keypair(nsec:key)?.publicKey.npub == user.uid else{return nil};return scope
+        }
+        XCTAssertEqual(matches.count,1);let scope=try XCTUnwrap(matches.first)
+        setenv("PIYALI_TEST_IDENTITY_SCOPE",scope,1);defer{setenv("PIYALI_TEST_IDENTITY_SCOPE",original,1)}
+        let identity=IdentityService();XCTAssertEqual(identity.npub,user.uid);guard identity.npub == user.uid else{return}
+        try await deleteOralLiveIdentity(identity);XCTAssertNil(Auth.auth().currentUser);XCTAssertTrue(identity.npub.isEmpty)
+        print("LIVE ORAL CLEANUP: restored only the matching recent isolated QA identity, obtained a fresh signed Firebase session, deleted Auth identity and removed its local key.")
+    }
+    private func deleteOralLiveIdentity(_ identity:IdentityService)async throws {
+        // Streaming checks may exceed Firebase's recent-login window.
+        FirebaseIdentityService.shared.clearSession();try await FirebaseIdentityService.shared.ensure(identity)
+        try await Auth.auth().currentUser?.delete();FirebaseIdentityService.shared.clearSession();try identity.disconnect()
+    }
+    func testOriginalOralGenerationFlashcardJudgesAndAssistanceUseNativeProviders()async throws {
+        let env=ProcessInfo.processInfo.environment
+        guard env["PIYALI_LIVE_API_TESTS"] == "1" else{throw XCTSkip("Explicit live API opt-in required")}
+        XCTAssertEqual(env["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))
+        if FirebaseApp.app() == nil{AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure()};XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let identity=IdentityService();try identity.create();try await FirebaseIdentityService.shared.ensure(identity);var stage="authenticate"
+        do {
+            let url=try XCTUnwrap(Bundle.main.url(forResource:"oral-practice-fixture",withExtension:"json")),samples=try JSONDecoder().decode(Piyali.JSONValue.self,from:Data(contentsOf:url)),recipes=try PracticeRecipes(),service=PracticeService(),ai=AIService(),policy=try OralAssistancePolicy()
+            for module in [PracticeRecipeModule.vocabulary,.grammar]{for kind in ["speak","flashcard"]{
+                stage="generate \(module.rawValue) \(kind)";print("ORAL LIVE STAGE: \(stage)")
+                let options:Piyali.JSONValue = .object(["cefrLevel":.string("A1"),"speakVariant":.string("repeat")]),parameters=options.setting("targetLang",.string("es")).setting("supportLang",.string("en")).setting("appUILang",.string("en")).setting("showTranslations",.bool(true)).setting("recentGood",.array([])).setting("recentQuestions",.array([])).setting("collectedConcepts",.array([.string("Hello")])).setting("lessonContent",.object(["topic":.string("family"),"cefrLevel":.string("A1")]))
+                let prompt=try recipes.build(module:module,kind:kind,parameters:parameters);var prepared:PracticeQuestion?,failure:Error=PracticeQuestionFailure.malformed
+                for attempt in 0..<2{do{let raw=try await(attempt == 0 ? ai.text(prompt):ai.responsesText(prompt));prepared=try PracticeQuestion.parse(raw,module:module,kind:kind,options:options,target:"es",support:"en");break}catch{failure=error}}
+                let q=try XCTUnwrap(prepared,"\(failure)"),answer=q.payload[kind == "speak" ? "target":"answer"].string;XCTAssertFalse(answer.isEmpty)
+                for (text,expected) in [(answer,true),("WRONG_FIXTURE",false)]{
+                    let run=PracticeRun(question:q,lessonID:nil,lessonLevel:"A1",response:.object(["text":.string(text)])),verdict=try await service.verdict(run:run,recipes:recipes,confidence:0.9,judge:{try await ai.responsesText($0)})
+                    XCTAssertEqual(verdict.correct,expected,"\(stage) \(text)");if kind == "flashcard",expected{XCTAssertTrue((4...7).contains(verdict.reward ?? 0))}
+                }
+            }}
+            for language in ["en","ar"]{for kind in ["speak","flashcard"]{
+                let sample=samples[kind == "speak" ? "speak-translate":"flashcard"],q=try PracticeQuestion(module:.vocabulary,kind:kind,payload:sample["question"],options:sample["options"],target:"es",support:language)
+                var run=PracticeRun(question:q,lessonID:nil,lessonLevel:"A1",response:.object(["text":.string("WRONG_FIXTURE")]));run.correct=false;run.lastMissedAnswer=run.answerText
+                for operation in kind == "speak" ? ["assistant","explanation"]:["explanation"]{
+                    stage="\(kind) \(operation) \(language)";print("ORAL LIVE STAGE: \(stage)");let request=try policy.build(operation,run:run);var chunks=0
+                    let output=try await ai.practiceAssistanceText(request["prompt"].string,onText:{_ in chunks+=1});XCTAssertFalse(output.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty);XCTAssertGreaterThan(chunks,0)
+                    if language == "ar"{XCTAssertTrue(output.unicodeScalars.contains{(0x0600...0x06ff).contains($0.value)})}
+                    let attachment=XCTAttachment(data:Data(output.prefix(10000).utf8),uniformTypeIdentifier:"public.plain-text");attachment.name="Live oral \(stage)";attachment.lifetime = .keepAlways;add(attachment)
+                }
+            }}
+            print("LIVE ORAL: four original generation contracts parsed and accepted reference/rejected invalid responses; flashcard semantic judges used authenticated providers; speaking used source strict speech evaluation at confidence 0.9; six original English/Arabic assistance requests streamed. No microphone capture, learner progress or public relay writes.")
+        }catch{try? await deleteOralLiveIdentity(identity);throw NSError(domain:"OralLiveStage",code:1,userInfo:[NSLocalizedDescriptionKey:"\(stage): \(error)"])}
+        try await deleteOralLiveIdentity(identity)
+    }
     func testTranslationAndRepeatUseOriginalDirectionsAndNativeJudges()async throws {
         guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else{throw XCTSkip("Explicit live API opt-in required")}
         XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))

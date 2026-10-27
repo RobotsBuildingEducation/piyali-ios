@@ -2,7 +2,7 @@ import XCTest
 
 @MainActor final class TypedPracticeTests:XCTestCase {
     private func launch(kind:String,enterPractice:Bool=true,theme:String="light")->XCUIApplication {
-        let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString;app.launchEnvironment["PIYALI_PRACTICE_FIXTURE"]=kind
+        let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString;app.launchEnvironment["PIYALI_PRACTICE_FIXTURE"]=kind;if kind.hasPrefix("oral:"){app.launchEnvironment["PIYALI_PRACTICE_JUDGE_FIXTURE"]="offered-reference"}
         app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme",theme];app.launch()
         let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Practice Learner");if app.buttons["entryKeyboardDone"].exists { app.buttons["entryKeyboardDone"].tap() }
         app.buttons["createAccount"].tap();XCTAssertTrue(app.buttons["startLearning"].waitForExistence(timeout:20));chooseEnglishSpanishOnboarding(app);app.buttons["startLearning"].tap();if enterPractice { openPractice(app) };return app
@@ -66,12 +66,9 @@ import XCTest
         app.terminate();app.launch();openPractice(app);XCTAssertTrue(app.buttons["typedSelected-4"].exists)
         let check=app.buttons["checkTypedAnswer"];reveal(check,app);check.tap();XCTAssertTrue(app.buttons["nextTypedQuestion"].waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts["practiceVerdict"].label.contains("+6 XP"))
     }
-    func testLessonFlashcardFlipsCollectsAndReviewsItsAnswerWithoutPracticeCredit() {
-        continueAfterFailure=false;let app=launch(kind:"flashcard")
-        let card=app.buttons["flipLessonFlashcard"];XCTAssertTrue(card.label.contains("Hello"));card.tap();XCTAssertTrue(card.label.contains("Hola"));XCTAssertTrue(app.buttons["listenLessonFlashcard"].exists)
-        app.buttons["collectLessonFlashcard"].tap();XCTAssertFalse(app.buttons["collectLessonFlashcard"].isEnabled);app.buttons["openLessonFlashcardDeck"].tap()
-        XCTAssertTrue(app.navigationBars["Deck Review"].waitForExistence(timeout:5));let review=app.buttons["reviewLessonFlashcard"];XCTAssertTrue(review.label.contains("Hello"));review.tap();XCTAssertTrue(review.label.contains("Hola"))
-        let shot=XCTAttachment(screenshot:app.screenshot());shot.name="Native collected lesson flashcard deck";shot.lifetime = .keepAlways;add(shot)
-        app.buttons["Close"].tap();XCTAssertFalse(app.staticTexts["practiceVerdict"].exists);XCTAssertFalse(app.buttons["nextTypedQuestion"].exists)
+    func testLessonFlashcardFlipDoesNotAwardAndCorrectAnswerCollectsOnce() {
+        continueAfterFailure=false;let app=launch(kind:"oral:flashcard")
+        app.buttons["flipLessonFlashcard"].tap();XCTAssertTrue(app.buttons["listenLessonFlashcard"].exists);XCTAssertFalse(app.buttons["collectLessonFlashcard"].exists);XCTAssertFalse(app.staticTexts["practiceVerdict"].exists)
+        let field=app.textFields["typedPracticeAnswer"];field.tap();field.typeText("Hola");if app.buttons["practiceKeyboardDone"].exists{app.buttons["practiceKeyboardDone"].tap()};app.buttons["checkTypedAnswer"].tap();XCTAssertTrue(app.buttons["nextTypedQuestion"].waitForExistence(timeout:10));XCTAssertTrue(app.staticTexts["practiceVerdict"].label.contains("+6 XP"));app.buttons["openLessonFlashcardDeck"].tap();let review=app.buttons["reviewLessonFlashcard"];XCTAssertTrue(review.waitForExistence(timeout:10));review.tap();XCTAssertTrue(review.label.contains("Hola"));app.buttons["closeLessonFlashcardDeck"].tap();XCTAssertTrue(app.buttons["nextTypedQuestion"].exists)
     }
 }

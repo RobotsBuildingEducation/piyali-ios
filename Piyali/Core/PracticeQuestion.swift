@@ -38,6 +38,7 @@ public struct PracticeQuestion:Codable,Equatable,Identifiable,Sendable {
     }
     public var audioLanguage:String { ["translate","repeat"].contains(kind) ? sourceLanguage : target }
     public var questionText:String {
+        if kind == "speak"{return payload["prompt"].string.isEmpty ? payload["target"].string:payload["prompt"].string}
         if variant == "listen_difference" { return payload["audioText"].string }
         if variant == "sentence_detective" { return strings("tokens").joined(separator:payload["joiner"].string) }
         if variant == "three_clue_mystery" { return strings("clues").joined(separator:"\n") }
@@ -60,7 +61,7 @@ public struct PracticeQuestion:Codable,Equatable,Identifiable,Sendable {
         case "fill":valid = !payload["question"].string.isEmpty && payload["question"].string.contains("___")
         case "mc":valid = !payload["question"].string.isEmpty && Self.validWords(payload["choices"],range:2...8) && !payload["answer"].string.isEmpty
         case "ma":valid = !payload["question"].string.isEmpty && Self.validWords(payload["choices"],range:2...12) && Self.validWords(payload["answers"],range:1...6)
-        case "speak":valid = !payload["target"].string.isEmpty && !payload["prompt"].string.isEmpty
+        case "speak":valid = !payload["target"].string.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty
         case "match":
             let left=payload["left"].array,right=payload["right"].array,map=payload["map"].array
             valid = Self.validWords(payload["left"],range:2...8) && Self.validWords(payload["right"],range:2...8) && Set(left.map(\.string)).count == left.count && Set(right.map(\.string)).count == right.count && left.count == right.count && (module == .vocabulary || map.count == left.count && map.allSatisfy { if case .number(let n)=$0 { return n.isFinite && n.rounded() == n && n >= 0 && n < Double(right.count) };return false } && Set(map.map { Int($0.number) }) == Set(right.indices))
@@ -82,6 +83,7 @@ public struct PracticeQuestion:Codable,Equatable,Identifiable,Sendable {
             merged.merge(part.object) { _,new in new }
         }
         var payload=StandardChoiceRepair.repair(kind:kind,payload:.object(merged))
+        if kind == "speak"{payload=OralQuestionRules.normalize(payload,module:module)}
         if ["translate","repeat"].contains(kind),payload["distractors"].array.isEmpty{let answerLanguage=options["direction"].string == "target-to-support" ? support:target;payload=payload.setting("distractors",.array(WordBankPracticeInteraction.fallbackDistractors(words:payload["correctWords"].array.map(\.string),answerLanguage:answerLanguage).map(JSONValue.string)))}
         return try .init(module:module,kind:kind,payload:payload,options:options,target:target,support:support)
     }

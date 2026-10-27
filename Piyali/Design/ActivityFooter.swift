@@ -42,6 +42,7 @@ struct ActivityFooterSurface<Feedback:View,Actions:View>:View {
     var feedbackLimit:CGFloat?=nil
     var preserveEmptyFeedback=false
     var actionHeight:CGFloat=40
+    var showsActions=true
     let hasFeedback:Bool
     @ViewBuilder let feedback:()->Feedback
     @ViewBuilder let actions:()->Actions
@@ -55,7 +56,7 @@ struct ActivityFooterSurface<Feedback:View,Actions:View>:View {
                     .accessibilityIdentifier("activityFeedbackScroll")
             }
             if !hasFeedback,preserveEmptyFeedback { Color.clear.frame(height:0) }
-            HStack(spacing:8) { actions() }.padding(.leading,52).frame(minHeight:actionHeight)
+            if showsActions { HStack(spacing:8) { actions() }.padding(.leading,52).frame(minHeight:actionHeight) }
         }
     }
 }
