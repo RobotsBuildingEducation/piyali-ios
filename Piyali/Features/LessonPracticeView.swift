@@ -73,13 +73,13 @@ struct LessonPracticeView:View {
                 }
                 Color.clear.frame(height:app.activityFooterHeight)
             }.background(brand.background).foregroundStyle(brand.text)
-        }.activityFooter(owner:footerOwner,revision:footerRevision,access:app.subscription,enabled:!(service.preparingKind == "flashcard" && (service.preparing || service.preparationFailed)),correct:assistance.assistantOpen || service.busy || service.preparationFailed ? nil:run?.correct,tone:assistance.assistantOpen ? "assistant":nil){questionFooter}
+        }.overlay(alignment:.top){if !assistance.clipboardNotice.isEmpty{PracticeCopyNotice(text:assistance.clipboardNotice,closeLabel:copy("app_close"),dismiss:assistance.dismissClipboardNotice).padding(.top,8)}}.activityFooter(owner:footerOwner,revision:footerRevision,access:app.subscription,enabled:!(service.preparingKind == "flashcard" && (service.preparing || service.preparationFailed)),correct:assistance.assistantOpen || service.busy || service.preparationFailed ? nil:run?.correct,tone:assistance.assistantOpen ? "assistant":nil){questionFooter}
             .navigationTitle(embedded ? lesson?.title.localized(app.learner.support) ?? "" : module == .grammar ? "Grammar" : "Vocabulary")
             .toolbar { ToolbarItemGroup(placement:.keyboard) { Spacer();Button("Done") { answering=false }.accessibilityIdentifier("practiceKeyboardDone") } }
             .fullScreenCover(isPresented:$showDeck) { PracticeDeckView(cards:app.learner.practiceDecks?[app.learner.practiceDeckKey(module)] ?? [],support:app.learner.support,target:app.learner.target).presentationBackground(.clear) }
             .task(id:scope) { if deckOwner == scope{deckOwner=nil;return};deckOwner=nil;questionAudioPlaying=false;answering=false;showStandardKeyboard=false;writing.clear();oral.clear();speech.stopAll();assistance.clear();showDeck=false;appeared=true;startPreparation(fresh:startsFresh);await preparationTask?.value }
             .onChange(of:run?.question.id){_,_ in questionAudioPlaying=false;noteSaved=false;noteCreating=false;portrait=PracticeQuestionAppearance.portrait;if let run {assistance.bind(app,run:run);writing.bind(app,run:run);oral.bind(app,run:run)}}
-            .onChange(of:run?.response){_,_ in if let run,!WordBankPracticeQuestion.variants.contains(run.question.kind){assistance.responseChanged()}}
+            .onChange(of:run?.response){_,_ in if let run,!WordBankPracticeQuestion.variants.contains(run.question.kind),!StandardPracticeQuestion.variants.contains(run.question.kind){assistance.responseChanged()}}
             .onAppear { active=true }
             .onChange(of:scenePhase) { _,phase in if phase != .active { preparationTask?.cancel();preparationTask=nil;questionAudioPlaying=false;writing.clear();oral.clear();service.cancel();assistance.cancel();speech.stopAll() } }
             .onDisappear {active=false;questionAudioPlaying=false;if showDeck{oral.recorder.cancel();speech.stopAll()}else{preparationTask?.cancel();preparationTask=nil;writing.clear();oral.clear();service.cancel();assistance.cancel();speech.stopAll()}}
@@ -147,7 +147,7 @@ struct LessonPracticeView:View {
             } else {ProgressView().frame(maxWidth:.infinity,minHeight:40)}
         }).foregroundStyle(palette.text)
     }
-    private func submit(_ run:PracticeRun){if WordBankPracticeQuestion.variants.contains(run.question.kind){assistance.closeAssistant();assistance.responseChanged()};answering=false;writing.clear();oral.clear();speech.stop();Task{await service.check(app,run:run,confidence:speech.confidence,audio:speech.audioMetrics)}}
+    private func submit(_ run:PracticeRun){if WordBankPracticeQuestion.variants.contains(run.question.kind) || StandardPracticeQuestion.variants.contains(run.question.kind){assistance.closeAssistant();assistance.responseChanged()};answering=false;writing.clear();oral.clear();speech.stop();Task{await service.check(app,run:run,confidence:speech.confidence,audio:speech.audioMetrics)}}
     private func nextQuestion(_ run:PracticeRun){oral.clear();writing.clear();speech.stopAll();assistance.cancel();noteSaved=false;if let onNext{onNext()}else{startPreparation(fresh:true)}}
     private func createNote(_ run:PracticeRun){guard !noteCreating,!noteSaved else{return};noteCreating=true;let capturedScope=scope;Task{defer{if scope == capturedScope,self.run?.question.id == run.question.id{noteCreating=false}};if (try? await app.createStudyNote(run:run,lesson:lesson)) == true,scope == capturedScope,self.run?.question.id == run.question.id{noteSaved=true}}}
     private func updateStandardResponse(_ response:JSONValue){
@@ -156,7 +156,7 @@ struct LessonPracticeView:View {
         switch kind{
         case "fill":clear = !response["text"].string.isEmpty && response["text"] != previous["text"]
         case "mc","ma":clear = !response["indices"].array.isEmpty && response["indices"] != previous["indices"]
-        default:clear = !response["pairs"].object.isEmpty && response["pairs"] != previous["pairs"]
+        default:clear = current.question.module == .vocabulary && !response["pairs"].object.isEmpty && response["pairs"] != previous["pairs"]
         }
         current.response=response;if clear{current.correct=nil};app.learner.savePractice(current);app.persist()
     }

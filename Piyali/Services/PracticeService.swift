@@ -61,7 +61,7 @@ import Foundation
             else { options=try recipes.select(module:module,context:context).setting("isFinalQuiz",.bool(false)) }
             let kind=options["exerciseType"].string;preparingKind=kind
             let recent=Array(state.history.filter { $0.target == state.target && $0.mode.lowercased() == module.rawValue && $0.correct }.prefix(5)).map { JSONValue.string($0.question) }
-            let parameters=options.setting("collectedConcepts",.array((state.practiceDecks?[state.practiceDeckKey(module)] ?? []).map{.string($0.concept)})).setting("targetLang",.string(state.target)).setting("supportLang",.string(state.support)).setting("appUILang",.string(state.support)).setting("showTranslations",.bool(true)).setting("lessonContent",PracticeCurriculum.content(lesson,mode:module.rawValue,context:curriculum)).setting("user",user).setting("recentGood",.array(recent)).setting("recentQuestions",.array(recent))
+            let parameters=options.setting("collectedConcepts",.array((state.practiceDecks?[state.practiceDeckKey(module)] ?? []).map{.string($0.concept)})).setting("targetLang",.string(state.target)).setting("supportLang",.string(state.support)).setting("appUILang",.string(state.support)).setting("showTranslations",.bool(state.settingsSnapshot["progress"]["showTranslations"] != .bool(false))).setting("lessonContent",PracticeCurriculum.content(lesson,mode:module.rawValue,context:curriculum)).setting("user",user).setting("recentGood",.array(recent)).setting("recentQuestions",.array(recent))
             let prompt=StandardChoiceRepair.prompt(try recipes.build(module:module,kind:kind,parameters:parameters))
             var question:PracticeQuestion?
             var lastError:Error=PracticeQuestionFailure.malformed

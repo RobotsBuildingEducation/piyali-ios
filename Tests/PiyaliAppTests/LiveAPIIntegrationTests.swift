@@ -26,13 +26,28 @@ import Security
         XCTAssertEqual(matches.count,1);let scope=try XCTUnwrap(matches.first)
         setenv("PIYALI_TEST_IDENTITY_SCOPE",scope,1);defer{setenv("PIYALI_TEST_IDENTITY_SCOPE",original,1)}
         let identity=IdentityService();XCTAssertEqual(identity.npub,user.uid);guard identity.npub == user.uid else{return}
-        try await deleteOralLiveIdentity(identity);XCTAssertNil(Auth.auth().currentUser);XCTAssertTrue(identity.npub.isEmpty)
+        try await deleteLiveTestIdentity(identity);XCTAssertNil(Auth.auth().currentUser);XCTAssertTrue(identity.npub.isEmpty)
         print("LIVE ORAL CLEANUP: restored only the matching recent isolated QA identity, obtained a fresh signed Firebase session, deleted Auth identity and removed its local key.")
     }
-    private func deleteOralLiveIdentity(_ identity:IdentityService)async throws {
+    private func deleteLiveTestIdentity(_ identity:IdentityService)async throws {
         // Streaming checks may exceed Firebase's recent-login window.
         FirebaseIdentityService.shared.clearSession();try await FirebaseIdentityService.shared.ensure(identity)
         try await Auth.auth().currentUser?.delete();FirebaseIdentityService.shared.clearSession();try identity.disconnect()
+    }
+    func testOriginalStandardAssistanceStreamsSubmittedAttemptsAndLanguages()async throws {
+        let env=ProcessInfo.processInfo.environment;guard env["PIYALI_LIVE_API_TESTS"] == "1",env["PIYALI_OFFLINE_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Explicit isolated live opt-in required")}
+        if FirebaseApp.app() == nil{AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure()};XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let identity=IdentityService();try identity.create();try await FirebaseIdentityService.shared.ensure(identity);var stage="authenticate"
+        do{let url=try XCTUnwrap(Bundle(for:Self.self).url(forResource:"standard-bodies",withExtension:"json")),samples=try JSONDecoder().decode(Piyali.JSONValue.self,from:Data(contentsOf:url)),policy=try StandardAssistancePolicy(),ai=AIService()
+            for(module,variant,operation,language)in [(PracticeRecipeModule.grammar,"fill","assistant","en"),(.vocabulary,"ma-buttons","explanation","en"),(.grammar,"match","assistant","ar"),(.vocabulary,"mc-buttons","explanation","ar")]{
+                stage="\(module.rawValue) \(variant) \(operation) \(language)";print("STANDARD HELP LIVE STAGE: \(stage)");let sample=samples[module.rawValue][variant],q=try PracticeQuestion(module:module,kind:sample["kind"].string,payload:sample["question"],options:.object(["cefrLevel":.string("A1")]),target:"es",support:language)
+                var run=PracticeRun(question:q,lessonID:nil,lessonLevel:"A1",response:sample["responses"]["partial"]);run.correct=false;run.lastMissedAnswer=run.answerText;run.lastMissedResponse=run.response
+                let request=try policy.build(operation,run:run);var chunks=0;let output=try await ai.practiceAssistanceText(request["prompt"].string,onText:{_ in chunks+=1});XCTAssertFalse(output.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty);XCTAssertGreaterThan(chunks,0);if language == "ar"{XCTAssertTrue(output.unicodeScalars.contains{(0x0600...0x06ff).contains($0.value)})}
+                let attachment=XCTAttachment(data:Data(output.prefix(10000).utf8),uniformTypeIdentifier:"public.plain-text");attachment.name="Live standard help \(stage)";attachment.lifetime = .keepAlways;add(attachment)
+            }
+            print("LIVE STANDARD HELP: original Fill help, multiple-answer explanation, Arabic matching help and Arabic single-choice explanation streamed through native authenticated providers; no learner progress or public relay writes.")
+        }catch{try? await deleteLiveTestIdentity(identity);throw NSError(domain:"StandardHelpLiveStage",code:1,userInfo:[NSLocalizedDescriptionKey:"\(stage): \(error)"])}
+        try await deleteLiveTestIdentity(identity)
     }
     func testOriginalOralGenerationFlashcardJudgesAndAssistanceUseNativeProviders()async throws {
         let env=ProcessInfo.processInfo.environment
@@ -64,8 +79,8 @@ import Security
                 }
             }}
             print("LIVE ORAL: four original generation contracts parsed and accepted reference/rejected invalid responses; flashcard semantic judges used authenticated providers; speaking used source strict speech evaluation at confidence 0.9; six original English/Arabic assistance requests streamed. No microphone capture, learner progress or public relay writes.")
-        }catch{try? await deleteOralLiveIdentity(identity);throw NSError(domain:"OralLiveStage",code:1,userInfo:[NSLocalizedDescriptionKey:"\(stage): \(error)"])}
-        try await deleteOralLiveIdentity(identity)
+        }catch{try? await deleteLiveTestIdentity(identity);throw NSError(domain:"OralLiveStage",code:1,userInfo:[NSLocalizedDescriptionKey:"\(stage): \(error)"])}
+        try await deleteLiveTestIdentity(identity)
     }
     func testTranslationAndRepeatUseOriginalDirectionsAndNativeJudges()async throws {
         guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else{throw XCTSkip("Explicit live API opt-in required")}

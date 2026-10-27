@@ -27,3 +27,5 @@ See `VALIDATION.md` for final run results and `native/question-*` for retained c
 ![Arabic source/native correct feedback](native/question-correct-ar.png)
 
 [Actual product help](native/question-product-help-stream.png), [fresh entry with retained XP](native/question-product-fresh-entry.png) and [the separate 80-XP completion reward](native/question-product-complete-80xp.png) come from Final9. The full comparison set and source geometry use the later Visual11 centering correction.
+
+Fill/choice Copy All, localized matching help and submitted-attempt explanations now execute the original parent builders. See [standard assistance](STANDARD_ASSISTANCE.md), including the source distinction between Grammar and Vocabulary matching feedback during edits.

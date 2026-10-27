@@ -5,13 +5,28 @@ import XCTest
     private func tap(_ id:String,_ app:XCUIApplication){let e=element(id,app);XCTAssertTrue(e.waitForExistence(timeout:10));reveal(e,app);e.tap()}
     private func shot(_ name:String,_ app:XCUIApplication){let a=XCTAttachment(screenshot:app.screenshot());a.name=name;a.lifetime = .keepAlways;add(a)}
     private func launch(_ variant:String)->XCUIApplication {
-        let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_HEADLINE_FIXTURE":"failure","PIYALI_PRACTICE_JUDGE_FIXTURE":"offered-reference","PIYALI_PRACTICE_FIXTURE":"standard:"+variant];app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"];app.launch()
+        let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_HEADLINE_FIXTURE":"failure","PIYALI_PRACTICE_JUDGE_FIXTURE":"offered-reference","PIYALI_PRACTICE_FIXTURE":"standard:"+variant,"PIYALI_QUESTION_HELP_FIXTURE":"stream"];app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"];app.launch()
         let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Standard Learner");tap("entryKeyboardDone",app);tap("createAccount",app);chooseEnglishSpanishOnboarding(app);tap("startLearning",app);tap("companionContinue",app);tap("gettingStartedGotIt",app);chooseA1Placement(app);open(app);return app
     }
     private func open(_ app:XCUIApplication){tap("productMenu",app);tap("productModeMenu",app);tap("productMode-path",app);if !app.buttons["lessonNode-lesson-pre-a1-1-1"].exists{tap("lessonPreviousLevel",app)};tap("lessonNode-lesson-pre-a1-1-1",app);tap("startLessonFromPreview",app);XCTAssertTrue(element("typedQuestionPrompt",app).waitForExistence(timeout:10))}
     private func checkWrong(_ app:XCUIApplication){tap("checkTypedAnswer",app);XCTAssertTrue(app.staticTexts["practiceVerdict"].waitForExistence(timeout:10));XCTAssertTrue(app.staticTexts["practiceVerdict"].label.contains("Try again"))}
     private func correct(_ xp:Int,_ app:XCUIApplication){tap("checkTypedAnswer",app);XCTAssertTrue(app.buttons["nextTypedQuestion"].waitForExistence(timeout:10));XCTAssertTrue(app.staticTexts["practiceVerdict"].label.contains("+\(xp) XP"))}
     private func drag(_ source:String,to target:String,_ app:XCUIApplication){let a=element(source,app),b=element(target,app);XCTAssertTrue(a.waitForExistence(timeout:10));XCTAssertTrue(b.waitForExistence(timeout:10));reveal(a,app);a.press(forDuration:1,thenDragTo:b)}
+    func testOriginalHelpExplanationAndSourceEditFeedbackAcrossFourFormats() {
+        continueAfterFailure=false
+        for variant in ["fill","mc-buttons","ma-buttons","match"]{let app=launch(variant);tap("typedPracticeHelp",app);XCTAssertTrue(app.staticTexts["typedAssistantText"].waitForExistence(timeout:10));XCTAssertFalse(app.staticTexts["practiceVerdict"].exists);shot("Native original standard help \(variant)",app);tap("closeTypedAssistantAction",app)
+            switch variant{case "fill":let f=app.textFields["typedPracticeAnswer"];f.tap();f.typeText("WRONG_FIXTURE");tap("practiceKeyboardDone",app)
+            case "match":tap("standardMatchBank-1",app);tap("standardMatchBank-0",app);tap("standardMatchBank-2",app)
+            default:tap("typedChoice-1",app)}
+            checkWrong(app);tap("explainTypedAnswer",app);XCTAssertTrue(app.staticTexts["typedExplanation"].waitForExistence(timeout:10))
+            switch variant{case "fill":let f=app.textFields["typedPracticeAnswer"];f.tap();f.typeText(String(repeating:XCUIKeyboardKey.delete.rawValue,count:13)+"pan");tap("practiceKeyboardDone",app)
+            case "match":drag("standardMatchPlaced-1",to:"standardSlot-0",app)
+            default:tap("typedChoice-0",app)}
+            XCTAssertFalse(app.staticTexts["practiceVerdict"].exists);XCTAssertFalse(app.staticTexts["typedExplanation"].exists);shot("Native source feedback clears after edit \(variant)",app);correct(["fill","mc-buttons"].contains(variant) ? 5:6,app);XCTAssertFalse(app.staticTexts["typedExplanation"].exists)
+            if variant == "match"{tap("nextTypedQuestion",app);tap("standardMatchBank-0",app);tap("standardMatchBank-2",app);tap("standardMatchBank-1",app);checkWrong(app);tap("explainTypedAnswer",app);XCTAssertTrue(app.staticTexts["typedExplanation"].waitForExistence(timeout:10));let explanation=app.staticTexts["typedExplanation"].label;drag("standardMatchPlaced-2",to:"standardSlot-0",app);XCTAssertTrue(app.staticTexts["practiceVerdict"].exists);XCTAssertEqual(app.staticTexts["typedExplanation"].label,explanation);shot("Native Grammar matching keeps submitted explanation while editing",app);correct(6,app)}
+            app.terminate()
+        }
+    }
     func testMatchingTapNativeDragReturnSwapRetryAndFreshReentry() {
         continueAfterFailure=false;let app=launch("match");XCTAssertFalse(app.buttons["checkTypedAnswer"].isEnabled)
         drag("standardMatchBank-0",to:"standardSlot-0",app);XCTAssertTrue(app.buttons["standardMatchPlaced-0"].waitForExistence(timeout:5));drag("standardMatchPlaced-0",to:"standardBank",app);XCTAssertTrue(app.buttons["standardMatchBank-0"].waitForExistence(timeout:5))

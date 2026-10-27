@@ -10,6 +10,7 @@ public struct PracticeRun:Codable,Sendable {
     public var response:JSONValue = .object([:])
     public var correct:Bool?
     public var lastMissedAnswer:String?
+    public var lastMissedResponse:JSONValue?
     public var earnedXP=0
     public var assisted=false
     public var showAnswer:Bool?
@@ -78,6 +79,7 @@ public extension LearnerState {
         }
         if !correct,run.lastMissedAnswer == run.answerText { return false }
         run.lastMissedAnswer=correct ? nil : run.answerText
+        run.lastMissedResponse=correct ? nil : run.response
         run.correct=correct;run.earnedXP=correct && !run.question.options["isFinalQuiz"].boolean ? max(0,min(10,reward)) : 0;run.updatedAt=now
         let q=run.question
         assess(correct:correct,independent:q.options["isFinalQuiz"].boolean || !run.assisted,now:now,questionLevel:q.level,worth:q.worth,concept:correct && !q.options["isFinalQuiz"].boolean ? nil : q.questionText,mode:q.module.rawValue)
