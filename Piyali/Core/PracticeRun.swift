@@ -60,6 +60,7 @@ public struct PracticeRun:Codable,Sendable {
         if question.variant == "natural_or_weird" { return question.payload["correction"].string.isEmpty ? question.payload["sentence"].string : question.payload["correction"].string }
         if ["dialogue_fork","listen_difference"].contains(question.variant) { let choices=question.strings("options"),index=Int(question.payload["answerIndex"].number);return choices.indices.contains(index) ? choices[index] : "" }
         if question.kind == "match" { return question.strings("left").enumerated().map { i,left in let right=question.module == .vocabulary ? i : Int(question.payload["map"].array[i].number);return left+" → "+question.strings("right")[right] }.joined(separator:"\n") }
+        if question.kind == "fill",question.payload["answer"].string.isEmpty{return question.payload["hint"].string}
         if !question.payload["answer"].string.isEmpty { return question.payload["answer"].string }
         return question.payload["explanation"].string
     }

@@ -81,7 +81,7 @@ public struct PracticeQuestion:Codable,Equatable,Identifiable,Sendable {
             guard allowed else { throw PracticeQuestionFailure.malformed }
             merged.merge(part.object) { _,new in new }
         }
-        return try .init(module:module,kind:kind,payload:.object(merged),options:options,target:target,support:support)
+        return try .init(module:module,kind:kind,payload:StandardChoiceRepair.repair(kind:kind,payload:.object(merged)),options:options,target:target,support:support)
     }
     public func ready(_ response:JSONValue)->Bool {
         let bankCount=["translate","repeat"].contains(kind) ? strings("correctWords").count+strings("distractors").count : strings("choices").count
@@ -91,7 +91,8 @@ public struct PracticeQuestion:Codable,Equatable,Identifiable,Sendable {
         switch kind {
         case "fill","flashcard","speak":return !response["text"].string.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty
         case "mc":return validIndices && indices.count == 1
-        case "ma","translate","repeat":return validIndices && !indices.isEmpty
+        case "ma":return validIndices && !indices.isEmpty && (!StandardPracticeInteraction.usesSlots(self) || indices.count == StandardPracticeInteraction.blankCount(questionText))
+        case "translate","repeat":return validIndices && !indices.isEmpty
         case "match":
             let pairs=response["pairs"].object,count=strings("left").count
             return Set(pairs.keys) == Set((0..<count).map(String.init)) && Set(pairs.values.compactMap { if case .number(let n)=$0,n.rounded() == n,n >= 0,n < Double(count) { return Int(n) };return nil }) == Set(0..<count)

@@ -36,5 +36,18 @@
 		<string>DMSans-600.ttf</string>
 		<string>DMSans-700.ttf</string>
 	</array>
+	<key>UTImportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.data</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Piyali practice tile</string>
+			<key>UTTypeIdentifier</key>
+			<string>app.piyali.practice-token</string>
+		</dict>
+	</array>
 </dict>
 </plist>

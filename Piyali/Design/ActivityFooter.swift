@@ -40,6 +40,8 @@ private struct FeedbackHeight:PreferenceKey {
 }
 struct ActivityFooterSurface<Feedback:View,Actions:View>:View {
     var feedbackLimit:CGFloat?=nil
+    var preserveEmptyFeedback=false
+    var actionHeight:CGFloat=40
     let hasFeedback:Bool
     @ViewBuilder let feedback:()->Feedback
     @ViewBuilder let actions:()->Actions
@@ -52,7 +54,8 @@ struct ActivityFooterSurface<Feedback:View,Actions:View>:View {
                     .onPreferenceChange(FeedbackHeight.self) { feedbackHeight=$0 }
                     .accessibilityIdentifier("activityFeedbackScroll")
             }
-            HStack(spacing:8) { actions() }.padding(.leading,52).frame(minHeight:40)
+            if !hasFeedback,preserveEmptyFeedback { Color.clear.frame(height:0) }
+            HStack(spacing:8) { actions() }.padding(.leading,52).frame(minHeight:actionHeight)
         }
     }
 }

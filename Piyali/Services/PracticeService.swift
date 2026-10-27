@@ -57,7 +57,7 @@ import Foundation
             let kind=options["exerciseType"].string
             let recent=Array(state.history.filter { $0.target == state.target && $0.mode.lowercased() == module.rawValue && $0.correct }.prefix(5)).map { JSONValue.string($0.question) }
             let parameters=options.setting("targetLang",.string(state.target)).setting("supportLang",.string(state.support)).setting("appUILang",.string(state.support)).setting("showTranslations",.bool(true)).setting("lessonContent",PracticeCurriculum.content(lesson,mode:module.rawValue,context:curriculum)).setting("user",user).setting("recentGood",.array(recent)).setting("recentQuestions",.array(recent))
-            let prompt=try recipes.build(module:module,kind:kind,parameters:parameters)
+            let prompt=StandardChoiceRepair.prompt(try recipes.build(module:module,kind:kind,parameters:parameters))
             var question:PracticeQuestion?
             var lastError:Error=PracticeQuestionFailure.malformed
             for attempt in 0..<2 {
@@ -125,10 +125,10 @@ import Foundation
             switch q.kind {
             case "fill":kind="judgeFill";parameters=parameters.setting("question",p["question"]).setting("sentence",p["question"]).setting("level",.string(q.level)).setting("userAnswer",r["text"])
             case "mc":
-                if normalized(words.first ?? "") == normalized(p["answer"].string) { return(true,nil) }
+                if (words.first ?? "") == p["answer"].string { return(true,nil) }
                 kind="judgeMC";parameters=parameters.setting("stem",p["question"]).setting("choices",p["choices"]).setting("userChoice",.string(words.first ?? ""))
             case "ma":
-                if Set(words.map(normalized)) == Set(q.strings("answers").map(normalized)) { return(true,nil) }
+                if Set(words) == Set(q.strings("answers")) { return(true,nil) }
                 kind="judgeMA";parameters=parameters.setting("stem",p["question"]).setting("choices",p["choices"]).setting("userSelections",.array(words.map(JSONValue.string)))
             case "match":
                 let pairs=q.strings("left").indices.map { [$0,Int(r["pairs"][String($0)].number)] }

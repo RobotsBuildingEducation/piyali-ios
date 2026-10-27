@@ -4,9 +4,9 @@ import argparse, json, os, subprocess, uuid
 from pathlib import Path
 root = Path(__file__).resolve().parent.parent
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument('--only', choices=['writing', 'teams', 'tutor-gemini', 'tutor-focused', 'tutor', 'phonics', 'flashcards', 'focused-goal', 'companion-quest', 'headline', 'lesson-content', 'realtime', 'realtime-connection', 'realtime-legacy-gemini', 'landing', 'practice', 'question-help', 'exercise-interactions', 'practice-formats', 'services', 'immersion', 'conversation', 'rpg', 'rpg-objects', 'help', 'signer', 'stories', 'reading', 'exploration', 'quiz'])
+parser.add_argument('--only', choices=['standard', 'writing', 'teams', 'tutor-gemini', 'tutor-focused', 'tutor', 'phonics', 'flashcards', 'focused-goal', 'companion-quest', 'headline', 'lesson-content', 'realtime', 'realtime-connection', 'realtime-legacy-gemini', 'landing', 'practice', 'question-help', 'exercise-interactions', 'practice-formats', 'services', 'immersion', 'conversation', 'rpg', 'rpg-objects', 'help', 'signer', 'stories', 'reading', 'exploration', 'quiz'])
 selection = parser.parse_args().only
-methods = {'writing':'testWritingExercisesUseOriginalSemanticJudges','exercise-interactions':'testFiveExerciseBodiesUseOriginalSemanticJudgesIncludingAlternativeReplies','question-help':'testOriginalQuestionAssistanceStreamsAndExplainsThroughLearnerFirebase','teams':'testDeployedPublicMirrorMembershipRenameAddsAndRevocation','help':'testNativeHelpChatStreamsSupportLanguageAndAnalyzesTargetMorphemes',
+methods = {'standard':'testStandardChoiceFillAndMatchingUseOriginalNativeJudges','writing':'testWritingExercisesUseOriginalSemanticJudges','exercise-interactions':'testFiveExerciseBodiesUseOriginalSemanticJudgesIncludingAlternativeReplies','question-help':'testOriginalQuestionAssistanceStreamsAndExplainsThroughLearnerFirebase','teams':'testDeployedPublicMirrorMembershipRenameAddsAndRevocation','help':'testNativeHelpChatStreamsSupportLanguageAndAnalyzesTargetMorphemes',
            'tutor-gemini':'testLearnerGeminiTutorUsesFirebaseIdentitySourcePromptAndNativePlayback',
            'tutor-focused':'testOriginalFocusedTutorGoalAndRepairJudgesUseNativeProviders',
            'tutor':'testOriginalTutorJudgeWelcomeAndNativeVoiceWithSourceTranscriptionContext',

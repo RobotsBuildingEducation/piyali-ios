@@ -80,6 +80,10 @@ targets:
         UIAppFonts: [DMSans-400.ttf, DMSans-500.ttf, DMSans-600.ttf, DMSans-700.ttf]
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        UTImportedTypeDeclarations:
+          - UTTypeIdentifier: app.piyali.practice-token
+            UTTypeDescription: Piyali practice tile
+            UTTypeConformsTo: [public.data]
         CFBundleURLTypes:
           - CFBundleURLName: app.piyali.subscription
             CFBundleURLSchemes: [piyali]

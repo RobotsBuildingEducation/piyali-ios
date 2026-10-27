@@ -9,6 +9,46 @@ import NostrSDK
 
 /// Explicit opt-in only. Uses an isolated test identity, bounded prompts and no paid access grant.
 @MainActor final class LiveAPIIntegrationTests: XCTestCase {
+    func testStandardChoiceFillAndMatchingUseOriginalNativeJudges()async throws {
+        guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else{throw XCTSkip("Explicit live API opt-in required")}
+        XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))
+        if FirebaseApp.app() == nil{AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure()};XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let identity=IdentityService();try identity.create();try await FirebaseIdentityService.shared.ensure(identity)
+        var stage="authenticate"
+        do {
+            let url=try XCTUnwrap(Bundle(for:Self.self).url(forResource:"standard-bodies",withExtension:"json")),samples=try JSONDecoder().decode(Piyali.JSONValue.self,from:Data(contentsOf:url)),recipes=try PracticeRecipes(),service=PracticeService(),ai=AIService()
+            for module in [PracticeRecipeModule.vocabulary,.grammar]{for variant in ["fill","mc-drag","ma-drag","match"]{
+                let sample=samples[module.rawValue][variant],q=try PracticeQuestion(module:module,kind:sample["kind"].string,payload:sample["question"],options:.object(["cefrLevel":.string("A1")]),target:"es",support:"en");var wrong=sample["responses"]["filled"]
+                switch q.kind{
+                case "fill":wrong=wrong.setting("text",.string("WRONG_FIXTURE"))
+                case "mc":wrong=wrong.setting("indices",.array([.number(1)]))
+                case "ma":wrong=wrong.setting("indices",.array([.number(2),.number(3)]))
+                default:let first=q.payload["map"].array[0],second=q.payload["map"].array[1];wrong=wrong.setting("pairs",wrong["pairs"].setting("0",second).setting("1",first))
+                }
+                stage="grade \(module.rawValue) \(variant)";print("STANDARD LIVE STAGE: \(stage)")
+                for(response,expected)in[(sample["responses"]["filled"],true),(wrong,false)]{
+                    let run=PracticeRun(question:q,lessonID:nil,lessonLevel:"A1",response:response),verdict=try await service.verdict(run:run,recipes:recipes,judge:{prompt in let raw=try await ai.responsesText(prompt);let prefix=raw.trimmingCharacters(in:.whitespacesAndNewlines).uppercased();if !prefix.hasPrefix("YES"),!prefix.hasPrefix("NO"){let artifact=XCTAttachment(data:Data(raw.prefix(20000).utf8),uniformTypeIdentifier:"public.plain-text");artifact.name="Standard malformed judge \(stage)";artifact.lifetime = .keepAlways;add(artifact)};return raw});XCTAssertEqual(verdict.correct,expected,"\(module.rawValue) \(variant)")
+                }
+            }}
+            for module in [PracticeRecipeModule.vocabulary,.grammar]{for kind in ["mc","ma"]{
+                let options:Piyali.JSONValue = .object(["cefrLevel":.string("A1")]),parameters=options.setting("targetLang",.string("es")).setting("supportLang",.string("en")).setting("appUILang",.string("en")).setting("showTranslations",.bool(true)).setting("recentGood",.array([])).setting("recentQuestions",.array([])).setting("lessonContent",.object(["topic":.string("family"),"focusPoints":.array([.string("family members and eating together")]),"cefrLevel":.string("A1")]))
+                stage="generate \(module.rawValue) \(kind)";print("STANDARD LIVE STAGE: \(stage)")
+                let prompt=StandardChoiceRepair.prompt(try recipes.build(module:module,kind:kind,parameters:parameters))
+                var prepared:PracticeQuestion?,failure:Error=PracticeQuestionFailure.malformed
+                for attempt in 0..<2 {
+                    let raw=try await (attempt == 0 ? ai.text(prompt):ai.responsesText(prompt))
+                    do{prepared=try PracticeQuestion.parse(raw,module:module,kind:kind,options:options,target:"es",support:"en");break}
+                    catch{failure=error;let artifact=XCTAttachment(data:Data(raw.prefix(20000).utf8),uniformTypeIdentifier:"public.plain-text");artifact.name="Standard generated parse failure \(module.rawValue) \(kind) attempt \(attempt)";artifact.lifetime = .keepAlways;add(artifact)}
+                }
+                guard let question=prepared else{throw failure}
+                let answers=kind == "mc" ? [question.payload["answer"].string]:question.strings("answers")
+                let indices=answers.compactMap{answer in question.strings("choices").firstIndex(of:answer)};XCTAssertEqual(indices.count,answers.count)
+                let run=PracticeRun(question:question,lessonID:nil,lessonLevel:"A1",response:.object(["indices":.array(indices.map{.number(Double($0))})])),verdict=try await service.verdict(run:run,recipes:recipes,judge:{prompt in let raw=try await ai.responsesText(prompt);let prefix=raw.trimmingCharacters(in:.whitespacesAndNewlines).uppercased();if !prefix.hasPrefix("YES"),!prefix.hasPrefix("NO"){let artifact=XCTAttachment(data:Data(raw.prefix(20000).utf8),uniformTypeIdentifier:"public.plain-text");artifact.name="Standard malformed judge \(stage)";artifact.lifetime = .keepAlways;add(artifact)};return raw});XCTAssertTrue(verdict.correct)
+            }}
+            print("LIVE STANDARD: both modules accepted valid and rejected invalid fill, choice, multi-answer and match responses through their original native judge paths; four live generated choice questions retained all offered reference answers; no learner progress or public relay writes")
+        }catch{try? await Auth.auth().currentUser?.delete();FirebaseIdentityService.shared.clearSession();try? identity.disconnect();throw NSError(domain:"StandardLiveStage",code:1,userInfo:[NSLocalizedDescriptionKey:"\(stage): \(error)"])}
+        try await Auth.auth().currentUser?.delete();FirebaseIdentityService.shared.clearSession();try identity.disconnect()
+    }
     func testWritingExercisesUseOriginalSemanticJudges()async throws {
         guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else{throw XCTSkip("Explicit live API opt-in required")}
         XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))

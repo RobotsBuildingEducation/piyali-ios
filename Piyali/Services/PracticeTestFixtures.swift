@@ -8,11 +8,26 @@ enum PracticeTestFixtures {
         guard env["PIYALI_LIVE_API_TESTS"] != "1",env["PIYALI_OFFLINE_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else { return nil }
         return env["PIYALI_PRACTICE_FIXTURE"]
     }
+    private static var standardSamples:JSONValue{guard let url=Bundle.main.url(forResource:"standard-practice-fixture",withExtension:"json"),let data=try? Data(contentsOf:url),let value=try? JSONDecoder().decode(JSONValue.self,from:data)else{return .null};return value}
     /// Finite offered-answer judge used only by explicitly opted-in offline gesture journeys.
     /// Production retains the source semantic provider and its alternative-answer rules.
     static func verdict(run:PracticeRun,prompt:String)->String? {
         let env=ProcessInfo.processInfo.environment
-        guard env["PIYALI_LIVE_API_TESTS"] != "1",env["PIYALI_PRACTICE_JUDGE_FIXTURE"] == "offered-reference",let kind,kind == run.question.kind else{return nil}
+        guard env["PIYALI_LIVE_API_TESTS"] != "1",env["PIYALI_PRACTICE_JUDGE_FIXTURE"] == "offered-reference",let kind else{return nil}
+        if kind.hasPrefix("standard:") {
+            let q=run.question,p=q.payload,r=run.response,choices=run.bank,words=r["indices"].array.compactMap{value->String? in let i=Int(value.number);return choices.indices.contains(i) ? choices[i]:nil}
+            guard standardSamples[q.module.rawValue][String(kind.dropFirst(9))]["kind"].string == q.kind,!prompt.isEmpty,!prompt.contains("undefined")else{return nil}
+            let correct:Bool
+            switch q.kind{
+            case "fill":correct=r["text"].string == p["answer"].string
+            case "mc":correct=words == [p["answer"].string]
+            case "ma":correct=Set(words)==Set(q.strings("answers"))
+            case "match":correct=q.strings("left").indices.allSatisfy{i in let expected=q.module == .grammar ? Int(p["map"].array[i].number):i;return r["pairs"][String(i)] == .number(Double(expected))}
+            default:return nil
+            }
+            return correct ? "YES":"NO"
+        }
+        guard kind == run.question.kind else{return nil}
         let q=run.question,p=q.payload,r=run.response,correct:Bool,title:String
         switch q.variant {
         case "sentence_detective":title="Sentence Detective";correct=r["tokenIndex"] == p["incorrectIndex"] && r["replacement"].string == p["answer"].string
@@ -32,6 +47,11 @@ enum PracticeTestFixtures {
         if target != "es" || support != "en" {
             guard ProcessInfo.processInfo.environment["PIYALI_WRITING_FIXTURE"] == "1",["sentence_shapeshifter","three_clue_mystery","three_word_challenge"].contains(String(kind.dropFirst(8))),let fallback=try? recipes.inspect("fallback",parameters:.object(["variant":.string(String(kind.dropFirst(8))),"moduleType":.string(module.rawValue),"targetLang":.string(target),"supportLang":.string(support)]))else{return nil}
             return try? PracticeQuestion(module:module,kind:kind,payload:fallback,options:.object(["cefrLevel":.string("A1")]),target:target,support:support)
+        }
+        if kind.hasPrefix("standard:") {
+            let sample=standardSamples[module.rawValue][String(kind.dropFirst(9))]
+            guard sample != .null else{return nil}
+            return try? PracticeQuestion(module:module,kind:sample["kind"].string,payload:sample["question"],options:.object(["cefrLevel":.string("A1")]),target:target,support:support)
         }
         let options:JSONValue = .object(["cefrLevel":.string("A1"),"direction":.string("target-to-support"),"isListening":.bool(false)])
         let payload:JSONValue

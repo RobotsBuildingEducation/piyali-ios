@@ -1,4 +1,4 @@
-Course path icons and Practice-* assets are derived from the original reference react-icons SVGs. Practice-FaMicrophone uses Font Awesome 5; Practice-MdKeyboard, Practice-MdClose, Practice-MdBackspace and Practice-MdSpaceBar use Material Design icons. The original icon names/providers are recorded in docs/reference/course-path-manifest.json.
+Course path icons and Practice-* assets are derived from the original reference react-icons SVGs. Practice-PiSpeakerHighDuotone uses Phosphor Icons. Practice-FaMicrophone uses Font Awesome 5; Practice-MdKeyboard, Practice-MdClose, Practice-MdBackspace and Practice-MdSpaceBar use Material Design icons. The original icon names/providers are recorded in docs/reference/course-path-manifest.json.
 
 Copyright 2018 kamijin_fanta <kamijin@live.jp>
 

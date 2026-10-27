@@ -117,7 +117,7 @@ struct PracticeDragItem:Codable,Transferable {
     static var transferRepresentation:some TransferRepresentation{CodableRepresentation(contentType:UTType(importedAs:"app.piyali.practice-token",conformingTo:.data))}
     static func matchingIndex(_ items:[Self],questionID:UUID,count:Int,locked:Bool)->Int?{guard !locked,items.count == 1,items[0].questionID == questionID,(0..<count).contains(items[0].index)else{return nil};return items[0].index}
 }
-private struct PracticeScopedDrag:ViewModifier {
+struct PracticeScopedDrag:ViewModifier {
     let item:PracticeDragItem,enabled:Bool
     @ViewBuilder func body(content:Content)->some View{if enabled{content.draggable(item)}else{content}}
 }
