@@ -39,20 +39,20 @@ import XCTest
     func testConnectingCaptureCanBeCancelledByBackgroundThenRetriedWithoutCredit() {
         let app=start("speaking",narration:true,speechDelay:true);tap("storyRecord",app);XCTAssertFalse(app.buttons["storyRecord"].isEnabled);XCTAssertEqual(app.buttons["storyRecord"].value as? String,"Connecting");photo("Native Story microphone connecting",app)
         XCUIDevice.shared.press(.home);app.activate();XCTAssertTrue(app.buttons["storyRecord"].waitForExistence(timeout:10));XCTAssertTrue(app.buttons["storyRecord"].isEnabled);XCTAssertFalse(app.staticTexts["storySpeechFeedback"].exists);xp(0,app)
-        tap("storyRecord",app);let ready=XCTNSPredicateExpectation(predicate:NSPredicate(format:"enabled == true"),object:app.buttons["storyRecord"]);XCTAssertEqual(XCTWaiter.wait(for:[ready],timeout:6),.completed);tap("storyRecord",app);XCTAssertTrue(app.staticTexts["storySpeechFeedback"].waitForExistence(timeout:5),app.debugDescription);XCTAssertTrue(app.staticTexts["storySpeechFeedback"].label.contains("Try again"));xp(0,app)
+        tap("storyRecord",app);let ready=XCTNSPredicateExpectation(predicate:NSPredicate(format:"enabled == true"),object:app.buttons["storyRecord"]);XCTAssertEqual(XCTWaiter.wait(for:[ready],timeout:6),.completed);tap("storyRecord",app);XCTAssertTrue(app.staticTexts["storySpeechFeedback"].waitForExistence(timeout:5),app.debugDescription);XCTAssertTrue(app.staticTexts["storySpeechFeedback"].label.contains("Almost"));xp(0,app)
     }
     func testDeniedMicrophoneHasOriginalGuidanceAndNoResultOrReward() {
         let app=start("speaking",narration:true,denied:true);tap("storyRecord",app);XCTAssertTrue(app.staticTexts["storyRecordingError"].waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts["storyRecordingError"].label.contains("Allow microphone access"));XCTAssertFalse(app.staticTexts["storySpeechFeedback"].exists);XCTAssertTrue(app.buttons["storyRecord"].isEnabled);xp(0,app);photo("Native Story denied microphone",app)
     }
     func testCompletedTranscriptionAutomaticallyGradesWithoutAnExtraStopTap() {
-        let app=start("speaking",narration:true,auto:true);tap("storyRecord",app);XCTAssertTrue(app.staticTexts["storySpeechXP"].waitForExistence(timeout:8));XCTAssertEqual(app.staticTexts["storySpeechXP"].label,"+2 XP");XCTAssertFalse(app.buttons["storyRecord"].exists);xp(2,app);photo("Native Story automatic completed-transcript grade",app)
+        let app=start("speaking",narration:true,auto:true);tap("storyRecord",app);XCTAssertTrue(app.staticTexts["storySpeechFeedback"].waitForExistence(timeout:8));XCTAssertEqual(app.staticTexts["storySpeechFeedback"].value as? String,"+2 XP");XCTAssertFalse(app.buttons["storyRecord"].exists);XCTAssertTrue(app.staticTexts["storySpeechFeedback"].label.contains("Well done!"));XCTAssertTrue(app.staticTexts["storySpeechScore"].exists);XCTAssertFalse(app.descendants(matching:.any).matching(identifier:"storyFeedbackExplanation").firstMatch.exists);xp(2,app);photo("Native Story automatic completed-transcript grade",app)
     }
     func testBackgroundedGenerationRestartsAndReturnsToExplicitRecording() {
         let app=start("speaking",delay:true)
         XCTAssertTrue(app.staticTexts["storyLoading"].waitForExistence(timeout:3))
         XCUIDevice.shared.press(.home);app.activate()
         XCTAssertTrue(app.staticTexts["storyProgress"].waitForExistence(timeout:20))
-        XCTAssertTrue(app.buttons["storyRecord"].isHittable);XCTAssertFalse(app.staticTexts["storySpeechXP"].exists)
+        XCTAssertTrue(app.buttons["storyRecord"].isHittable);XCTAssertFalse(app.staticTexts["storySpeechFeedback"].exists)
         photo("Native story generation resumes after backgrounding",app)
     }
     func testRadioFailureRetryOneAttemptResumeAutoPlaybackAndOneSixXPCompletion() {
@@ -70,10 +70,10 @@ import XCTest
     }
     func testSpeakingUsesRecordRetryAndResumesEachTwoXPLineBeforeHandoff() {
         let app=start("speaking",narration:true);XCTAssertTrue(app.staticTexts["storyTarget"].exists);XCTAssertTrue(app.buttons["storyRecord"].isHittable);photo("Native source speaking story before recording",app)
-        record(app);XCTAssertTrue(app.staticTexts["storySpeechFeedback"].label.contains("Try again"));XCTAssertFalse(app.buttons["storyNext"].exists)
-        record(app);XCTAssertTrue(app.staticTexts["storySpeechXP"].waitForExistence(timeout:5));XCTAssertEqual(app.staticTexts["storySpeechXP"].label,"+2 XP");XCTAssertFalse(app.buttons["storyRecord"].exists)
-        app.terminate();app.launchEnvironment["PIYALI_STORY_SPEECH_RESULTS"]="pass";app.launch();open(app);XCTAssertTrue(app.staticTexts["storySpeechXP"].waitForExistence(timeout:5));XCTAssertEqual(app.staticTexts["storySpeechXP"].label,"+2 XP");xp(2,app);tap("storyNext",app)
-        record(app);XCTAssertEqual(app.staticTexts["storySpeechXP"].label,"+2 XP");photo("Native speaking result with one saved line reward",app);tap("storyNext",app)
+        record(app);XCTAssertTrue(app.staticTexts["storySpeechFeedback"].label.contains("Almost"));XCTAssertFalse(app.buttons["storyNext"].exists);XCTAssertTrue(app.staticTexts.matching(NSPredicate(format:"label CONTAINS %@","Match the wording")).firstMatch.exists);photo("Native Story original incorrect tips and progress",app)
+        record(app);XCTAssertTrue(app.staticTexts["storySpeechFeedback"].waitForExistence(timeout:5));XCTAssertEqual(app.staticTexts["storySpeechFeedback"].value as? String,"+2 XP");XCTAssertFalse(app.buttons["storyRecord"].exists);XCTAssertTrue(app.staticTexts["storySpeechFeedback"].label.contains("Well done!"));XCTAssertTrue(app.staticTexts["storySpeechScore"].exists);XCTAssertFalse(app.descendants(matching:.any).matching(identifier:"storyFeedbackExplanation").firstMatch.exists)
+        app.terminate();app.launchEnvironment["PIYALI_STORY_SPEECH_RESULTS"]="pass";app.launch();open(app);XCTAssertTrue(app.staticTexts["storySpeechFeedback"].waitForExistence(timeout:5));XCTAssertEqual(app.staticTexts["storySpeechFeedback"].value as? String,"+2 XP");xp(2,app);tap("storyNext",app)
+        record(app);XCTAssertEqual(app.staticTexts["storySpeechFeedback"].value as? String,"+2 XP");photo("Native speaking result with one saved line reward",app);tap("storyNext",app)
         XCTAssertTrue(app.staticTexts["realtimeGoal"].waitForExistence(timeout:10));xp(4,app)
         app.terminate();app.launch();open(app,expectStory:false);XCTAssertTrue(app.staticTexts["realtimeGoal"].waitForExistence(timeout:10));xp(4,app)
     }

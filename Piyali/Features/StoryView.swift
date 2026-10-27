@@ -19,6 +19,7 @@ struct StoryView:View {
     @State private var footerOwner=UUID()
     @State private var translations=Set<String>()
     @State private var translating=Set<String>()
+    @State private var feedbackPortrait=PracticeQuestionAppearance.portrait
     @State private var roleResult:StorySpeechResult?
     private var hasAccess:Bool { app.subscription.hasAccess || StoryService.fixtureMode != nil }
     @State private var active=false
@@ -50,6 +51,7 @@ struct StoryView:View {
                 else if let run { autoplaySentence(run) }
             }
             .onAppear { active=true }
+            .onChange(of:feedbackCorrect){_,correct in if correct == true{feedbackPortrait=PracticeQuestionAppearance.portrait}}
             .onChange(of:hasAccess){_,access in if !access{stop()}}
             .onChange(of:phase) { _,value in if value == .background { stop();service.cancel() } else if value == .active,active,service.activeRunID == nil { refresh += 1 } }
             .onDisappear { active=false;stop();service.cancel() }
@@ -187,20 +189,20 @@ struct StoryView:View {
         panel { VStack(alignment:.leading,spacing:12) { Text(t("complete")).font(PiyaliBrand.productFont(20,700)).accessibilityIdentifier("storyCompleted");Text("\(run.earnedXP) \(t("xp"))");Button(t("back")) { newStory() }.buttonStyle(ActivityPrimaryButtonStyle(tone:"success")) } }
     }
     private var feedbackCorrect:Bool? { (run?.mode == .speaking ? run?.speechResult : roleResult)?.pass ?? run?.result }
-    private var footerRevision:String { [scope,String(describing:phase),String(active),run?.id.uuidString ?? "",String(run?.index ?? 0),String(describing:run?.result),String(describing:run?.speechResult),String(describing:roleResult),String(run?.completed ?? false),run?.answers[String(run?.index ?? 0)]?.description ?? "",String(run?.heard.contains(run?.index ?? 0) ?? false),audio.phase.rawValue,String(audio.previewError),String(audio.roleIndex ?? -1),String(recordingNow),String(speech.recorder.connecting),String(speech.recorder.evaluating),speech.recorder.error ?? "",String(service.busy),service.error ?? ""].joined(separator:"|") }
+    private var footerRevision:String { [scope,String(describing:phase),String(active),String(feedbackPortrait),run?.id.uuidString ?? "",String(run?.index ?? 0),String(describing:run?.result),String(describing:run?.speechResult),String(describing:roleResult),String(run?.completed ?? false),run?.answers[String(run?.index ?? 0)]?.description ?? "",String(run?.heard.contains(run?.index ?? 0) ?? false),audio.phase.rawValue,String(audio.previewError),String(audio.roleIndex ?? -1),String(recordingNow),String(speech.recorder.connecting),String(speech.recorder.evaluating),speech.recorder.error ?? "",String(service.busy),service.error ?? ""].joined(separator:"|") }
     private var footer:some View {
         let result=run?.mode == .speaking ? run?.speechResult : roleResult
         return ActivityFooterSurface(hasFeedback:result != nil || run?.result != nil,feedback:{
             if let run {
-                VStack(alignment:.leading,spacing:12) {
-                    if let result { Text(result.pass ? t("correct") : t("speechIncorrect")).font(PiyaliBrand.productFont(16,700)).foregroundStyle(brand.text).accessibilityIdentifier("storySpeechFeedback");if result.pass,run.mode == .speaking { Text("+2 XP").font(PiyaliBrand.productFont(14,600)).foregroundStyle(brand.questionSuccess).accessibilityIdentifier("storySpeechXP") };if !run.lastWords.isEmpty { Text(run.lastWords).font(PiyaliBrand.productFont(14)).foregroundStyle(brand.secondary) } }
-                    else if let correct=run.result,let question=run.currentSegment?.question { Text(t(correct ? "correct" : "incorrect")).font(PiyaliBrand.productFont(16,700)).foregroundStyle(brand.text).accessibilityIdentifier("storyFeedback");if !correct { Text(question.answer.map { question.options[$0] }.joined(separator:question.type == "order_words" ? " " : " · ")).font(PiyaliBrand.productFont(14,600)) };Text(question.explanation).font(PiyaliBrand.productFont(14)).foregroundStyle(brand.secondary) }
-                    let percent=Int((Double(run.index)+(result?.pass == true && run.mode != .speaking ? 0.5 : run.result == true || result?.pass == true ? 1 : 0))/Double(max(1,run.count))*100.0+0.5)
-                    VStack(spacing:8) {
-                        HStack { Text(ui("story_progress"));Spacer();Text("\(percent)%") }.font(PiyaliBrand.productFont(12,600)).foregroundStyle(brand.secondary)
-                        ActivityProgressBar(value:percent,label:ui("story_progress"))
-                    }
-                }.padding(.vertical,6)
+                if let result {
+                    let percent=Int((Double(run.index)+(result.pass ? (run.mode == .speaking ? 1:0.5):0))/Double(max(1,run.count))*100.0+0.5)
+                    let tips=(try? StoryFeedbackPolicy.shared?.tips(result.reasons,language:run.support,targetLabel:ui("language_"+run.target))) ?? []
+                    StoryFeedbackView(correct:result.pass,label:run.mode == .speaking ? ui(result.pass ? "story_well_done":"story_almost"):t(result.pass ? "correct":"speechIncorrect"),subtext:run.mode == .speaking && result.pass ? ui("story_score")+": \(result.score)%":"",explanation:result.pass ? "":tips.joined(separator:run.mode == .speaking ? " ":"\n\n"),progress:percent,progressLabel:ui("story_progress"),xp:run.mode == .speaking && result.pass ? 2:0,portrait:feedbackPortrait,speaking:true)
+                } else if let correct=run.result,let question=run.currentSegment?.question {
+                    let answer=question.answer.map{question.options[$0]}.joined(separator:question.type == "order_words" ? " ":" · ")
+                    let percent=Int(Double(run.index+(correct ? 1:0))/Double(max(1,run.count))*100.0+0.5)
+                    StoryFeedbackView(correct:correct,label:t(correct ? "correct":"incorrect"),subtext:"",explanation:correct ? "":answer+"\n\n"+question.explanation,progress:percent,progressLabel:ui("story_progress"),portrait:feedbackPortrait)
+                }
             }
         },actions:{
             if let run,!service.busy { primary(run) }
@@ -216,9 +218,9 @@ struct StoryView:View {
             skip
             Button { update { $0.speechResult=nil;$0.lastWords="" };record(run) } label:{ StoryRecordLabel(recorder:speech.recorder,speaking:true,record:t("record"),connecting:t("connectingMic")) }.buttonStyle(ActivityPrimaryButtonStyle(tone:"stop")).disabled(speech.recorder.connecting || speech.recorder.evaluating).accessibilityLabel(t("record")).accessibilityIdentifier("storyRecord")
         } else if let verdict=run.mode == .speaking ? run.speechResult : roleResult {
-            Button(run.mode == .speaking && verdict.pass ? ui(run.index == run.count-1 ? "stories_finish" : "stories_next_sentence") : t(verdict.pass ? "next" : "retry")) { if verdict.pass { if run.mode == .speaking { advance(run) } else { roleResult=nil;audio.continueSpeech() } } else { if run.mode == .speaking { update { $0.speechResult=nil;$0.lastWords="" } } else { roleResult=nil } } }.buttonStyle(ActivityPrimaryButtonStyle(tone:verdict.pass ? "success" : "stop")).accessibilityIdentifier(verdict.pass ? "storyNext" : "storySpeechRetry")
+            Button { if verdict.pass { if run.mode == .speaking { advance(run) } else { roleResult=nil;audio.continueSpeech() } } else { if run.mode == .speaking { update { $0.speechResult=nil;$0.lastWords="" } } else { roleResult=nil } } } label:{ HStack(spacing:8){Text(run.mode == .speaking && verdict.pass ? ui(run.index == run.count-1 ? "stories_finish":"stories_next_sentence"):t(verdict.pass ? "next":"retry"));PracticeIcon(name:"FiArrowRight",size:14)} }.buttonStyle(ActivityPrimaryButtonStyle(tone:verdict.pass ? "success" : "stop")).accessibilityIdentifier(verdict.pass ? "storyNext" : "storySpeechRetry")
         } else if run.result != nil {
-            Button(t(run.index == run.count-1 ? "finish" : "next")) { advance(run) }.buttonStyle(ActivityPrimaryButtonStyle(tone:run.result == true ? "success" : "stop")).accessibilityIdentifier("storyNext")
+            Button { advance(run) } label:{ HStack(spacing:8){Text(t(run.index == run.count-1 ? "finish":"next"));PracticeIcon(name:"FiArrowRight",size:14)} }.buttonStyle(ActivityPrimaryButtonStyle(tone:run.result == true ? "success" : "stop")).accessibilityIdentifier("storyNext")
         } else if run.completed {
             Button(t("back")) { newStory() }.buttonStyle(ActivityPrimaryButtonStyle()).accessibilityIdentifier("storyNew")
         } else {

@@ -16,6 +16,10 @@ import XCTest
     func close(){closed=true}
 }
 @MainActor final class StorySpeechControllerTests:XCTestCase{
+    func testOriginalStoryReasonTipsAndLanguageNormalization()throws{
+        let policy=try StoryFeedbackPolicy(),url=try XCTUnwrap(Bundle(for:Self.self).url(forResource:"story-feedback-policy",withExtension:"json")),cases=try JSONDecoder().decode([JSONValue].self,from:Data(contentsOf:url));XCTAssertEqual(cases.count,208)
+        for row in cases{let p=row["input"];XCTAssertEqual(try policy.tips(p["reasons"].array.map(\.string),language:p["language"].string,targetLabel:p["targetLabel"].string),row["output"].array.map(\.string),String(describing:p))}
+    }
     private func app()throws->AppModel{let e=ProcessInfo.processInfo.environment;guard e["PIYALI_OFFLINE_TESTS"] == "1",UUID(uuidString:e["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Isolated offline identity required")};let app=AppModel(progressService:StorySpeechNoCloud());try app.identity.create();app.signedIn=true;app.learner=LearnerState();app.learner.name="Alicia";app.learner.target="es";app.learner.support="en";app.learner.level="A1";return app}
     private func run(_ app:AppModel,mode:StoryMode)throws->StoryRun{
         var payload=try ContentLibrary.load(JSONValue.self,name:"story-test-episode")

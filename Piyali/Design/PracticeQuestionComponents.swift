@@ -44,6 +44,8 @@ private struct PracticeChoicePressStyle:ButtonStyle {func makeBody(configuration
 struct PracticeFeedbackMarkdown:View {
     let text:String
     var assistant=false
+    var paragraphBottom:CGFloat=0
+    var plainTextDirection=false
     @Environment(\.colorScheme) private var scheme
     @Environment(\.layoutDirection)private var direction
     private func content(_ original:AttributedString)->AttributedString {
@@ -55,11 +57,12 @@ struct PracticeFeedbackMarkdown:View {
         }
         return value
     }
+    private func paragraphDirection(_ text:AttributedString)->LayoutDirection{guard plainTextDirection else{return direction};let scalar=String(text.characters).unicodeScalars.first{CharacterSet.letters.contains($0)};guard let scalar else{return .leftToRight};return (0x0590...0x08ff).contains(scalar.value) || (0xfb1d...0xfdff).contains(scalar.value) || (0xfe70...0xfefc).contains(scalar.value) ? .rightToLeft:.leftToRight}
     private var lineGap:CGFloat{max(0,22.4-UIFont.systemFont(ofSize:14).lineHeight)}
-    private func row(_ block:PracticeFeedbackDocument.Block)->some View{Text(content(block.text)).font(block.code ? .system(size:14,design:.monospaced):PiyaliBrand.productFont(14)).lineSpacing(lineGap).padding(.vertical,lineGap/2).frame(maxWidth:.infinity,alignment:.leading).textSelection(.enabled).overlay(alignment:.topLeading){if assistant,direction == .leftToRight,let marker=block.marker{Text(marker).font(PiyaliBrand.productFont(14)).padding(.vertical,lineGap/2).frame(width:16,alignment:.leading).offset(x:-16).accessibilityHidden(true)}}}
+    private func row(_ block:PracticeFeedbackDocument.Block)->some View{Text(content(block.text)).font(block.code ? .system(size:14,design:.monospaced):PiyaliBrand.productFont(14)).lineSpacing(lineGap).padding(.vertical,lineGap/2).frame(maxWidth:.infinity,alignment:.leading).textSelection(.enabled).environment(\.layoutDirection,paragraphDirection(block.text)).overlay(alignment:.topLeading){if assistant,direction == .leftToRight,let marker=block.marker{Text(marker).font(PiyaliBrand.productFont(14)).padding(.vertical,lineGap/2).frame(width:16,alignment:.leading).offset(x:-16).accessibilityHidden(true)}}}
     var body:some View{let groups=PracticeFeedbackDocument.groups(text)
         VStack(alignment:.leading,spacing:assistant ? 8:0){ForEach(Array(groups.enumerated()),id:\.element.id){index,group in
-            VStack(alignment:.leading,spacing:assistant && group.listID != nil ? 4:0){ForEach(group.blocks){row($0)}}.padding(direction == .rightToLeft ? .trailing:.leading,assistant ? CGFloat(group.listDepth)*16:0).padding(.bottom,assistant && group.listID != nil ? (index == groups.count-1 ? 12:4):0)
+            VStack(alignment:.leading,spacing:assistant && group.listID != nil ? 4:0){ForEach(group.blocks){row($0)}}.padding(direction == .rightToLeft ? .trailing:.leading,assistant ? CGFloat(group.listDepth)*16:0).padding(.bottom,assistant && group.listID != nil ? (index == groups.count-1 ? 12:4):(!assistant && group.listID == nil ? paragraphBottom:0))
         }}.accessibilityElement(children:.combine).accessibilityAddTraits(.isStaticText)
     }
 }
