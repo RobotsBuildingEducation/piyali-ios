@@ -22,7 +22,7 @@ final class RPGTests:XCTestCase {
         let fixture=try JSONDecoder().decode(JSONValue.self,from:Data(contentsOf:URL(fileURLWithPath:#filePath).deletingLastPathComponent().appendingPathComponent("Fixtures/rpg.json")))
         for sample in fixture["stories"].array {
             let base=try JSONDecoder().decode(RPGScenario.self,from:JSONEncoder().encode(sample["base"]))
-            let actual=RPGStory.preparing(base,raw:sample["raw"],target:sample["target"].string,support:sample["support"].string)
+            let actual=RPGStory.preparing(base,raw:sample["raw"],target:sample["target"].string,support:sample["support"].string,policy:try RPGPreparationPolicy(url:root.appendingPathComponent("Piyali/Resources/rpg-preparation-policy.js")))
             if sample["expected"] == .null { XCTAssertNil(actual,sample["mode"].string) }
             else { let expected=try JSONDecoder().decode(RPGScenario.self,from:JSONEncoder().encode(sample["expected"]));XCTAssertEqual(actual?.npcs,expected.npcs,sample["mode"].string);XCTAssertEqual(actual?.quest.storySeed,expected.quest.storySeed,sample["mode"].string);XCTAssertEqual(actual?.quest.intro,expected.quest.intro);XCTAssertEqual(actual?.storyTitle,expected.storyTitle);XCTAssertEqual(actual?.storyIntro,expected.storyIntro);XCTAssertEqual(actual?.storyEpilogue,expected.storyEpilogue);for (a,e) in zip(actual?.quest.steps ?? [],expected.quest.steps) { XCTAssertEqual(a,e,sample["mode"].string) } }
         }

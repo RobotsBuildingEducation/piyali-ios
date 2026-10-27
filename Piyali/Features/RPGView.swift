@@ -46,7 +46,9 @@ struct RPGView:View {
     @StateObject private var help=HelpChatController()
     @AppStorage("piyali.rpgCompanion") private var selectedPet=""
     @State private var dialogueContentHeight:CGFloat=0
+    @State private var displayedRunID:UUID?
     @State private var talking=false
+    @State private var speechReplyToken=UUID()
     @State private var typedReply=false
     @State private var showExample=false
     @State private var translating=false
@@ -55,7 +57,7 @@ struct RPGView:View {
     @State private var panel=""
     @State private var translation:[String]=[]
     @FocusState private var focused:Bool
-    private var run:RPGRun?{guard let value=app.learner.rpgRuns?[app.learner.target],value.support == app.learner.support,(value.tutor == true) == tutor,value.lessonID == lesson?.id,episode == nil || value.scenario.authoredEpisode.id == episode else{return nil};return value}
+    private var run:RPGRun?{guard let value=app.learner.rpgRuns?[app.learner.target],value.support == app.learner.support,(value.tutor == true) == tutor,value.lessonID == lesson?.id,episode == nil || value.scenario.authoredEpisode.id == episode,!(value.completed && value.claimed && value.id != displayedRunID) else{return nil};return value}
     private var scope:String{[app.identity.npub,app.learner.target,app.learner.support,tutor ? app.learner.tutorLevel:app.learner.level].joined(separator:":")}
     private var chromeInset:CGFloat{embedded ? 0:(UIApplication.shared.connectedScenes.compactMap{$0 as? UIWindowScene}.flatMap(\.windows).first{$0.isKeyWindow}?.safeAreaInsets.top ?? 0)}
     private var bottomInset:CGFloat{embedded ? 0:(UIApplication.shared.connectedScenes.compactMap{$0 as? UIWindowScene}.flatMap(\.windows).first{$0.isKeyWindow}?.safeAreaInsets.bottom ?? 0)}
@@ -66,10 +68,10 @@ struct RPGView:View {
     private var pet:String{CompanionTypes.effective(selectedPet.isEmpty ? app.learner.effectiveCompanionType:selectedPet,level:app.learner.companionLevel)}
     private func t(_ key:String)->String{RPGArt.shared.copy(key,lang:app.learner.support)}
     var body:some View {
-        Group{if Self.fixture{surface}else{SubscriptionRequiredView(service:app.subscription,preserveEarnedWork:run?.completed == true){surface}}}.accessibilityHidden(panel == "help")
+        SubscriptionRequiredView(service:app.subscription,preserveEarnedWork:run?.completed == true){surface}.accessibilityHidden(panel == "help")
             .toolbar(.hidden,for:.navigationBar).statusBarHidden(!embedded).ignoresSafeArea(.container)
-            .task(id:scope){stop();panel=initialPanel;talking=false;await service.prepare(app,lesson:lesson,episode:episode,tutor:tutor);configureObjects();startMusic()}
-            .onChange(of:run?.id){_,_ in configureObjects()}
+            .task(id:scope){stop();displayedRunID=nil;panel=initialPanel;talking=false;await service.prepare(app,lesson:lesson,episode:episode,tutor:tutor);displayedRunID=run?.id;configureObjects();startMusic()}
+            .onChange(of:run?.id){_,value in if let value{displayedRunID=value};configureObjects()}
             .onChange(of:run?.completed){_,completed in if completed == true{music.stop()}}
             .onChange(of:speech.transcript){_,text in answer=text}
             .onChange(of:speech.recording){old,value in if old && !value,speechArmed,talking,!answer.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty{sendSpeech()}}
@@ -127,18 +129,24 @@ struct RPGView:View {
 
     private func dialogue(_ run:RPGRun,node:RPGNode,heightLimit:CGFloat)->some View {
         VStack(spacing:0){
-            HStack(spacing:8){RPGArt.shared.image(run.npc?.appearance ?? "RPGNPC-0-0").interpolation(.none).resizable().scaledToFit().frame(width:30,height:36);Text(run.npc?.name ?? "").font(PiyaliBrand.productFont(14,700));if run.resolved{Image(systemName:"checkmark.circle.fill").foregroundStyle(.green)}else if run.attempts>0{Image(systemName:"exclamationmark.circle.fill").foregroundStyle(.orange)};Spacer();Button{closeDialogue()}label:{Image(systemName:"xmark").font(.system(size:10,weight:.semibold)).frame(width:26,height:26)}.accessibilityLabel(t("closeDialogue")).accessibilityIdentifier("rpgCloseDialogue")}.padding(.horizontal,8).background(PiyaliBrand.unitColor("f9f0dd")).overlay(alignment:.bottom){Rectangle().fill(border.opacity(0.45)).frame(height:1)}
+            HStack(spacing:8){dialoguePortrait(run.npc);Text(run.npc?.name ?? "").font(PiyaliBrand.productFont(14,700));if run.resolved{Image(systemName:"checkmark.circle.fill").foregroundStyle(PiyaliBrand.unitColor("48bb78"))}else if run.attempts>0{Image(systemName:"exclamationmark.circle.fill").foregroundStyle(PiyaliBrand.unitColor("ed8936"))};Spacer()}.padding(.leading,8).padding(.trailing,32).frame(height:100).background(light ? PiyaliBrand.unitColor("f9f0dd").opacity(0.94):PiyaliBrand.unitColor("fffaf0")).overlay(alignment:.bottom){Rectangle().fill(border.opacity(0.45)).frame(height:1)}.overlay(alignment:.topTrailing){Button{closeDialogue()}label:{Image(systemName:"xmark").font(.system(size:10,weight:.semibold)).foregroundStyle(PiyaliBrand.unitColor(light ? "8a745c":"4a5568")).frame(width:24,height:24)}.accessibilityLabel(t("closeDialogue")).accessibilityIdentifier("rpgCloseDialogue").padding(8)}
             ScrollView {VStack(alignment:.leading,spacing:8){
-                HStack{Spacer();Button{translate(run,node:node)}label:{if translating{ProgressView().scaleEffect(0.7)}else{Image(systemName:translation.isEmpty ? "person.crop.circle.badge.questionmark":"arrow.uturn.backward").font(.system(size:14)).frame(width:24,height:24).background(.white,in:RoundedRectangle(cornerRadius:5))}}.accessibilityLabel(t(translation.isEmpty ? "translateText":"undoTranslation")).accessibilityIdentifier("rpgTranslation")}
+                HStack{Spacer();Button{translate(run,node:node)}label:{if translating{ProgressView().scaleEffect(0.7)}else{Group{if translation.isEmpty{RPGArt.shared.image("RPGIconHelp").renderingMode(.template).resizable().frame(width:14,height:14)}else{Image(systemName:"arrow.uturn.backward").font(.system(size:14))}}.foregroundStyle(PiyaliBrand.unitColor(translation.isEmpty ? (light ? "466f9a":"2b6cb0"):(light ? "9b5d2d":"c05621"))).frame(width:24,height:24).background(.white,in:RoundedRectangle(cornerRadius:6))}}.accessibilityLabel(t(translation.isEmpty ? "translateText":"undoTranslation")).accessibilityIdentifier("rpgTranslation")}
                 let text=run.feedback.isEmpty ? node.npcLine:run.feedback
+                let caption=run.feedbackScene?.isEmpty == false ? run.feedbackScene!:(run.feedback.isEmpty ? node.sceneLine ?? RPGDialogue.split(node.npcLine).scene:RPGDialogue.split(run.feedback).scene)
+                if !caption.isEmpty{Text(caption).font(PiyaliBrand.productFont(12)).italic().foregroundStyle(PiyaliBrand.unitColor(light ? "8a745c":"4a5568")).frame(maxWidth:.infinity,alignment:run.support == "ar" ? .trailing:.leading).environment(\.layoutDirection,run.support == "ar" ? .rightToLeft:.leftToRight).fixedSize(horizontal:false,vertical:true).accessibilityIdentifier("rpgSceneCaption")}
                 Text(RPGDialogue.split(text).spoken).font(PiyaliBrand.productFont(run.feedback.isEmpty ? 16:14,run.feedback.isEmpty ? 700:400)).foregroundStyle(run.feedback.isEmpty ? ink:PiyaliBrand.unitColor("9b5d2d")).fixedSize(horizontal:false,vertical:true).accessibilityIdentifier(run.feedback.isEmpty ? "rpgPrompt":"rpgFeedback")
                 if let first=translation.first,!first.isEmpty{Text(first).font(PiyaliBrand.productFont(14)).italic().foregroundStyle(PiyaliBrand.unitColor("466f9a"))}
                 if !run.tip.isEmpty{Text(run.tip).font(PiyaliBrand.productFont(13)).italic()}
-                if !run.resolved, node.responseMode == "choice" {ForEach(Array(node.choices.enumerated()),id:\.offset){index,choice in Button{narration.stopAll();speech.stopAll();change{$0.choose(index)};translation=[];if let value=self.run{play(value.feedback,target:value.target)}}label:{VStack(alignment:.leading,spacing:2){Text(String(UnicodeScalar(65+index)!)+". "+choice.text).font(PiyaliBrand.productFont(14));if translation.indices.contains(index+1){Text(translation[index+1]).font(PiyaliBrand.productFont(12)).italic().foregroundStyle(PiyaliBrand.unitColor("466f9a"))}}.frame(maxWidth:.infinity,alignment:.leading).padding(.horizontal,12).padding(.vertical,8).background(PiyaliBrand.unitColor("fffdf9"),in:RoundedRectangle(cornerRadius:6)).overlay{RoundedRectangle(cornerRadius:6).stroke(PiyaliBrand.unitColor("c8ad88"))}.shadow(color:PiyaliBrand.unitColor("d2c1a9"),radius:0,y:3)}.accessibilityIdentifier("rpgChoice-\(index)")}}
+                if !run.resolved, node.responseMode == "choice" {ForEach(Array(node.choices.enumerated()),id:\.offset){index,choice in Button{narration.stopAll();speech.stopAll();change{$0.choose(index)};translation=[];if let value=self.run{play(value.feedback,target:value.target)}}label:{VStack(alignment:.leading,spacing:2){Text(String(UnicodeScalar(65+index)!)+". "+choice.text).font(PiyaliBrand.productFont(14));if translation.indices.contains(index+1){Text(translation[index+1]).font(PiyaliBrand.productFont(12)).italic().foregroundStyle(PiyaliBrand.unitColor("466f9a"))}}.frame(maxWidth:.infinity,alignment:.leading).padding(.horizontal,12).padding(.vertical,8).padding(1)}.buttonStyle(RPGDialogueChoiceStyle(light:light)).accessibilityIdentifier("rpgChoice-\(index)")}}
                 if !run.resolved,node.responseMode == "speech"{speechControls(run,node:node)}
-                if run.resolved{Button(t("continue")){narration.stopAll();speech.stopAll();change{$0.advance()};closeDialogue()}.font(PiyaliBrand.productFont(14,600)).frame(maxWidth:.infinity).padding(.vertical,8).overlay{RoundedRectangle(cornerRadius:6).stroke(border)}.accessibilityIdentifier("rpgContinue")}
-            }.padding(.horizontal,12).padding(.top,4).padding(.bottom,12).environment(\.layoutDirection,run.target == "ar" ? .rightToLeft:.leftToRight).background{GeometryReader{geometry in Color.clear.preference(key:RPGDialogueHeight.self,value:geometry.size.height)}}}.frame(height:min(max(44,dialogueContentHeight),max(44,heightLimit-36))).onPreferenceChange(RPGDialogueHeight.self){value in if abs(value-dialogueContentHeight)>0.5{dialogueContentHeight=value}}.scrollIndicators(.hidden)
+                if run.resolved{Button(t("continue")){narration.stopAll();speech.stopAll();change{$0.advance()};closeDialogue()}.font(PiyaliBrand.productFont(14,600)).frame(maxWidth:.infinity).padding(.vertical,8).overlay{Capsule().stroke(border)}.accessibilityIdentifier("rpgContinue")}
+            }.padding(.horizontal,12).padding(.top,4).padding(.bottom,12).environment(\.layoutDirection,run.target == "ar" ? .rightToLeft:.leftToRight).background{GeometryReader{geometry in Color.clear.preference(key:RPGDialogueHeight.self,value:geometry.size.height)}}}.frame(height:min(max(44,dialogueContentHeight),max(44,heightLimit-100))).onPreferenceChange(RPGDialogueHeight.self){value in if abs(value-dialogueContentHeight)>0.5{dialogueContentHeight=value}}.scrollIndicators(.hidden)
         }.background(paper,in:RoundedRectangle(cornerRadius:12)).clipShape(RoundedRectangle(cornerRadius:12)).overlay{RoundedRectangle(cornerRadius:12).stroke(border,lineWidth:2)}.shadow(color:.black.opacity(0.25),radius:18,y:12)
+    }
+    @ViewBuilder private func dialoguePortrait(_ npc:RPGNPC?)->some View {
+        let id=npc?.dialoguePortrait ?? StoryCharacterAvatar.appearance.portraitPool(npc?.characterKind ?? npc?.name ?? "frog").first ?? "35",file=StoryCharacterAvatar.appearance.portraitFile(id)
+        if let url=Bundle.main.url(forResource:file,withExtension:nil),let image=UIImage(contentsOfFile:url.path){Image(uiImage:image).resizable().interpolation(.none).scaledToFit().frame(width:36,height:36)}else{RPGArt.shared.image(npc?.appearance ?? "RPGNPC-0-0").resizable().interpolation(.none).scaledToFit().frame(width:36,height:36)}
     }
     private func speechControls(_ run:RPGRun,node:RPGNode)->some View {
         VStack(alignment:.leading,spacing:8){
@@ -185,9 +193,9 @@ struct RPGView:View {
     }
     private func tile(_ point:RPGPoint){guard let run,!talking,!run.completed,!service.busy,panel.isEmpty else{return};if let object=observations.hit(point){observations.examine(object);return};if let index=run.scenario.npcs.firstIndex(where:{$0.tx == point.x && $0.ty == point.y}){guard index == run.step?.npcIdx else{return};if abs(run.position.x-point.x)+abs(run.position.y-point.y)<=1{talking=true;translation=[];answer="";play(run.node?.npcLine ?? "",target:run.target);return}};let movement=RPGSpatial.step(from:run.position,toward:point,world:run.world,npcs:run.scenario.npcs);if movement.moved{change{$0.position=movement.position;$0.updatedAt=Date()}}}
     private func change(_ action:(inout RPGRun)->Void){guard !service.busy,var value=run else{return};action(&value);app.learner.saveRPG(value);app.persist()}
-    private func closeDialogue(){speechArmed=false;narration.stopAll();speech.stopAll();talking=false;dialogueContentHeight=0;typedReply=false;answer="";translation=[];focused=false;showExample=false}
+    private func closeDialogue(){speechReplyToken=UUID();service.cancelSpeech();speechArmed=false;narration.stopAll();speech.stopAll();talking=false;dialogueContentHeight=0;typedReply=false;answer="";translation=[];focused=false;showExample=false}
     private func fresh(){closeDialogue();Task{await service.prepare(app,lesson:lesson,episode:episode,fresh:true,tutor:tutor)}}
-    private func sendSpeech(){let text=answer.trimmingCharacters(in:.whitespacesAndNewlines);guard !text.isEmpty,!service.busy else{return};speechArmed=false;speech.stopAll();narration.stopAll();focused=false;Task{await service.speak(text,app:app);if let value=run{play(value.feedback,target:value.target)}}}
+    private func sendSpeech(){let text=answer.trimmingCharacters(in:.whitespacesAndNewlines);guard !text.isEmpty,!service.busy,let current=run else{return};let token=UUID();speechReplyToken=token;speechArmed=false;speech.stopAll();narration.stopAll();focused=false;Task{await service.speak(text,app:app);if speechReplyToken == token,talking,let value=run,value.id == current.id,value.stepIndex == current.stepIndex,value.resolved{play(value.feedback,target:value.target)}}}
     private func play(_ text:String,target:String){guard !Self.fixture else{return};let character=RPGArt.shared.data["voices"][run?.npc?.characterKind ?? "frog"],voice=character["voice"].string.isEmpty ? "ash":character["voice"].string;let session=try? app.companionQuestPolicy?.run("ph_tts",.object(["language":.string(target),"voice":.string(voice),"personality":character["personality"]]));narration.play(RPGDialogue.split(text).spoken,language:target,engine:app.companionQuestPolicy,voice:voice,sessionOverride:session)}
     private func translate(_ run:RPGRun,node:RPGNode){if !translation.isEmpty{translation=[];return};guard !translating else{return};translating=true;let id=run.id,step=run.stepIndex,scope=self.scope;Task{let result=await service.translate(run:run,app:app);guard self.scope == scope,self.run?.id == id,self.run?.stepIndex == step,talking else{translating=false;return};translation=result ?? [];translating=false}}
     private func configureObjects(){
@@ -210,7 +218,7 @@ struct RPGView:View {
         if snapshot["rpgMusicPreferenceVersion"] != .number(2) || !validFlag{app.updateSettings(.object(["rpgMusicEnabled":.bool(false),"rpgMusicPreferenceVersion":.number(2)]))}
         music.apply(app.learner.settingsSnapshot["rpgMusicEnabled"].boolean)
     }
-    private func stop(clearObservations:Bool=true){if clearObservations{observations.cancel()};speechArmed=false;service.cancel();speech.stopAll();narration.stopAll();music.stop();focused=false}
+    private func stop(clearObservations:Bool=true){speechReplyToken=UUID();if clearObservations{observations.cancel()};speechArmed=false;service.cancel();speech.stopAll();narration.stopAll();music.stop();focused=false}
     private static var fixture:Bool {
         #if DEBUG
         let env=ProcessInfo.processInfo.environment;return env["PIYALI_OFFLINE_TESTS"] == "1" && UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil
@@ -222,3 +230,10 @@ struct RPGView:View {
 
 private struct RPGDialogueHeight:PreferenceKey {static var defaultValue:CGFloat=0;static func reduce(value:inout CGFloat,nextValue:()->CGFloat){value=max(value,nextValue())}}
 private struct RPGPetChoiceStyle:ButtonStyle {func makeBody(configuration:Configuration)->some View{configuration.label.opacity(configuration.isPressed ? 0.85:1)}}
+
+private struct RPGDialogueChoiceStyle:ButtonStyle {
+    let light:Bool
+    func makeBody(configuration:Configuration)->some View{
+        configuration.label.background{Capsule().fill(PiyaliBrand.unitColor(light ? "fffdf9":"ffffff").opacity(light ? 0.98:0.92)).shadow(color:PiyaliBrand.unitColor(light ? "d2c1a9":"a9a18c"),radius:0,y:configuration.isPressed ? (light ? 1:2):(light ? 3:4))}.overlay{Capsule().stroke(light ? PiyaliBrand.unitColor("c8ad88").opacity(0.86):Color.black.opacity(0.16))}.offset(y:configuration.isPressed ? 2:0)
+    }
+}

@@ -1,0 +1,144 @@
+{
+  "title": "La ayuda",
+  "intro": {
+    "target": "Una amiga necesita ayuda.",
+    "support": "A friend needs help."
+  },
+  "personas": [
+    "Friendly vendor",
+    "Quiet customer",
+    "Curious neighbor"
+  ],
+  "beats": [
+    {
+      "mode": "choice",
+      "npcLine": "¡Hola! ¿Cómo te llamas?",
+      "sceneLine": "A friendly person greets you.",
+      "coverage": "Introduce yourself",
+      "options": [
+        "Hola",
+        "Adiós",
+        "Gracias"
+      ],
+      "correctIndex": 0,
+      "speechExample": "Hola, soy Ana.",
+      "speechGoal": "Introduce yourself",
+      "concept": "Greetings",
+      "expectedAnswer": "Hola",
+      "right": "*smiles* ¡Muy bien!",
+      "wrong": "[looks puzzled] Hola, por favor."
+    },
+    {
+      "mode": "choice",
+      "npcLine": "¡Hola! ¿Cómo te llamas?",
+      "sceneLine": "A friendly person greets you.",
+      "coverage": "Introduce yourself",
+      "options": [
+        "Hola",
+        "Adiós",
+        "Gracias"
+      ],
+      "correctIndex": 0,
+      "speechExample": "Hola, soy Ana.",
+      "speechGoal": "Introduce yourself",
+      "concept": "Greetings",
+      "expectedAnswer": "Hola",
+      "right": "*smiles* ¡Muy bien!",
+      "wrong": "[looks puzzled] Hola, por favor."
+    },
+    {
+      "mode": "speech",
+      "npcLine": "¡Hola! ¿Cómo te llamas?",
+      "sceneLine": "A friendly person greets you.",
+      "coverage": "Introduce yourself",
+      "options": [
+        "Hola",
+        "Adiós",
+        "Gracias"
+      ],
+      "correctIndex": 0,
+      "speechExample": "Hola, soy Ana.",
+      "speechGoal": "Introduce yourself",
+      "concept": "Greetings",
+      "expectedAnswer": "Hola",
+      "right": "*smiles* ¡Muy bien!",
+      "wrong": "[looks puzzled] Hola, por favor."
+    },
+    {
+      "mode": "choice",
+      "npcLine": "¡Hola! ¿Cómo te llamas?",
+      "sceneLine": "A friendly person greets you.",
+      "coverage": "Introduce yourself",
+      "options": [
+        "Hola",
+        "Adiós",
+        "Gracias"
+      ],
+      "correctIndex": 0,
+      "speechExample": "Hola, soy Ana.",
+      "speechGoal": "Introduce yourself",
+      "concept": "Greetings",
+      "expectedAnswer": "Hola",
+      "right": "*smiles* ¡Muy bien!",
+      "wrong": "[looks puzzled] Hola, por favor."
+    },
+    {
+      "mode": "choice",
+      "npcLine": "¡Hola! ¿Cómo te llamas?",
+      "sceneLine": "A friendly person greets you.",
+      "coverage": "Introduce yourself",
+      "options": [
+        "Hola",
+        "Adiós",
+        "Gracias"
+      ],
+      "correctIndex": 0,
+      "speechExample": "Hola, soy Ana.",
+      "speechGoal": "Introduce yourself",
+      "concept": "Greetings",
+      "expectedAnswer": "Hola",
+      "right": "*smiles* ¡Muy bien!",
+      "wrong": "[looks puzzled] Hola, por favor."
+    },
+    {
+      "mode": "choice",
+      "npcLine": "¡Hola! ¿Cómo te llamas?",
+      "sceneLine": "A friendly person greets you.",
+      "coverage": "Introduce yourself",
+      "options": [
+        "Hola",
+        "Adiós",
+        "Gracias"
+      ],
+      "correctIndex": 0,
+      "speechExample": "Hola, soy Ana.",
+      "speechGoal": "Introduce yourself",
+      "concept": "Greetings",
+      "expectedAnswer": "Hola",
+      "right": "*smiles* ¡Muy bien!",
+      "wrong": "[looks puzzled] Hola, por favor."
+    },
+    {
+      "mode": "speech",
+      "npcLine": "¡Hola! ¿Cómo te llamas?",
+      "sceneLine": "A friendly person greets you.",
+      "coverage": "Introduce yourself",
+      "options": [
+        "Hola",
+        "Adiós",
+        "Gracias"
+      ],
+      "correctIndex": 0,
+      "speechExample": "Hola, soy Ana.",
+      "speechGoal": "Introduce yourself",
+      "concept": "Greetings",
+      "expectedAnswer": "Hola",
+      "right": "*smiles* ¡Muy bien!",
+      "wrong": "[looks puzzled] Hola, por favor."
+    }
+  ],
+  "epilogue": {
+    "target": "Gracias por tu ayuda.",
+    "support": "Thank you for helping."
+  }
+}

@@ -17,7 +17,7 @@ public struct RPGWorld: Codable, Equatable, Sendable {
         return nil
     }
 }
-public struct RPGNPC: Codable, Equatable, Sendable { public var name:String;public let role:String;public var personality:String;public let tx:Int;public let ty:Int;public var appearance:String?;public var characterKind:String? }
+public struct RPGNPC: Codable, Equatable, Sendable { public var name:String;public let role:String;public var personality:String;public let tx:Int;public let ty:Int;public var appearance:String?;public var characterKind:String?;public var dialoguePortrait:String? }
 public struct RPGChoice: Codable, Equatable, Sendable { public var text:String;public var correct:Bool;public var npcReply:String?;public var sceneLine:String? }
 public struct RPGNode: Codable, Equatable, Sendable {
     public var id:String;public var responseMode:String;public var npcLine:String;public var supportLine:String;public var choices:[RPGChoice];public var weight:Int;public var conceptLabel:String;public var expectedAnswer:String;public var primitive:String
@@ -41,7 +41,7 @@ public struct RPGRun: Codable, Equatable, Identifiable, Sendable {
     public var id=UUID();public let target:String;public let support:String;public let lessonID:String?;public let xpReward:Int;public var scenario:RPGScenario;public let world:RPGWorld
     public var tutorial:Bool?
     public var tutor:Bool?
-    public var position:RPGPoint;public var stepIndex=0;public var attempts=0;public var score=0;public var resolved=false;public var feedback="";public var tip="";public var misses:[RPGMiss]=[];public var dialogue:[String]=[];public var updatedAt=Date();public var claimed=false
+    public var position:RPGPoint;public var stepIndex=0;public var attempts=0;public var score=0;public var resolved=false;public var feedback="";public var feedbackScene:String?;public var tip="";public var misses:[RPGMiss]=[];public var dialogue:[String]=[];public var updatedAt=Date();public var claimed=false
     public init(target:String,support:String,lessonID:String?,xpReward:Int,scenario:RPGScenario,world:RPGWorld,tutorial:Bool = false,tutor:Bool = false) { self.tutor=tutor;self.tutorial=tutorial;self.target=target;self.support=support;self.lessonID=lessonID;self.xpReward=xpReward;self.scenario=scenario;self.world=world;self.position=RPGSpatial.start(world:world,npcs:scenario.npcs,center:true) }
     public var completed:Bool { stepIndex >= scenario.quest.steps.count && !scenario.quest.steps.isEmpty }
     public var step:RPGStep? { completed || !scenario.quest.steps.indices.contains(stepIndex) ? nil : scenario.quest.steps[stepIndex] }
@@ -56,7 +56,7 @@ public struct RPGRun: Codable, Equatable, Identifiable, Sendable {
     public mutating func choose(_ index:Int) {
         guard !resolved,let node,node.responseMode == "choice",node.choices.indices.contains(index) else { return }
         let choice=node.choices[index]
-        feedback=choice.npcReply ?? "";tip="";log("Player: "+choice.text)
+        feedback=choice.npcReply ?? "";feedbackScene=choice.sceneLine;tip="";log("Player: "+choice.text)
         if choice.correct { score += [100,50,25][min(attempts,2)]*node.weight;attempts=0;resolved=true }
         else { attempts += 1;miss(choice.text);if attempts >= 3 { feedback += " "+node.expectedAnswer;resolved=true } }
         log((npc?.name ?? "NPC")+": "+feedback)
@@ -64,9 +64,9 @@ public struct RPGRun: Codable, Equatable, Identifiable, Sendable {
     public mutating func speak(_ answer:String,turn:RPGSpeechTurn) {
         guard !resolved,let node,node.responseMode == "speech",!answer.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty,["full","partial","miss"].contains(turn.grade) else { return }
         score += (turn.grade == "full" ? 100 : turn.grade == "partial" ? 50 : 25)*node.weight
-        if turn.grade != "full" { miss(answer) };attempts=0;resolved=true;feedback=turn.reply;tip=turn.tip;log("Player: "+answer);log((npc?.name ?? "NPC")+": "+turn.reply)
+        if turn.grade != "full" { miss(answer) };attempts=0;resolved=true;feedback=turn.reply;feedbackScene=nil;tip=turn.tip;log("Player: "+answer);log((npc?.name ?? "NPC")+": "+turn.reply)
     }
-    public mutating func advance() { guard resolved,!completed else { return };stepIndex += 1;attempts=0;resolved=false;feedback="";tip="";updatedAt=Date() }
+    public mutating func advance() { guard resolved,!completed else { return };stepIndex += 1;attempts=0;resolved=false;feedback="";feedbackScene=nil;tip="";updatedAt=Date() }
 }
 public enum RPGScoring {
     public static func stars(_ score:Int) -> Int { score >= 720 ? 3 : score >= 560 ? 2 : 1 }

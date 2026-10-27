@@ -523,13 +523,13 @@ import NostrSDK
         let identity=IdentityService();try identity.create();try await FirebaseIdentityService.shared.ensure(identity)
         do {
             let library=try ContentLibrary.load(RPGLibrary.self,name:"rpg-es"),review=try XCTUnwrap(library.reviews["unit-pre-a1-people-game"]),base=try XCTUnwrap(review.bySupport["en"]),ai=AIService()
-            let raw=try await ai.rpgStory(scenario:base,context:review.context,target:"es",support:"en"),story=try XCTUnwrap(RPGStory.preparing(base,raw:raw,target:"es",support:"en"))
+            let policy=try RPGPreparationPolicy(),request=try policy.request(scenario:base,lesson:.object(["id":.string("unit-pre-a1-people-game"),"gameReviewContext":review.context]),target:"es",support:"en"),raw=try await ai.rpgPreparedResponse(request.prompt),story=try XCTUnwrap(policy.prepare(response:raw,request:request)?.scenario)
             XCTAssertEqual(story.quest.steps.count,7);XCTAssertTrue((2...3).contains(story.quest.steps.filter { $0.nodes[0].responseMode == "speech" }.count));XCTAssertFalse(story.storyIntro?["target"].string.isEmpty ?? true)
             var run=RPGRun(target:"es",support:"en",lessonID:"unit-pre-a1-people-game",xpReward:30,scenario:story,world:try XCTUnwrap(library.worlds[base.worldKey]))
             run.stepIndex=try XCTUnwrap(story.quest.steps.firstIndex { $0.nodes[0].responseMode == "speech" })
-            let example=try XCTUnwrap(run.node?.speechExample),success=try await ai.rpgSpeech(run:run,answer:example)
+            let example=try XCTUnwrap(run.node?.speechExample),successRaw=try await ai.rpgSpeechResponse(policy.speechPrompt(run:run,answer:example)),success=try XCTUnwrap(policy.speechResult(successRaw))
             XCTAssertEqual(success.grade,"full");XCTAssertFalse(success.reply.isEmpty)
-            let wrong=try await ai.rpgSpeech(run:run,answer:"I only speak English and refuse to answer this unrelated question.")
+            let wrongRaw=try await ai.rpgSpeechResponse(policy.speechPrompt(run:run,answer:"I only speak English and refuse to answer this unrelated question.")),wrong=try XCTUnwrap(policy.speechResult(wrongRaw))
             XCTAssertEqual(wrong.grade,"miss");XCTAssertFalse(wrong.reply.isEmpty);XCTAssertFalse(wrong.tip.isEmpty)
             print("LIVE NATIVE: Authored RPG chapter story, full speech and wrong-language NPC roleplay passed")
         } catch { try? await Auth.auth().currentUser?.delete();try? Auth.auth().signOut();throw error }
