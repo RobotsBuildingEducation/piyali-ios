@@ -3,6 +3,7 @@ import SwiftUI
 struct WordBankPracticeQuestion:View {
     static let variants:Set<String>=["translate","repeat"]
     let run:PracticeRun,locked:Bool,assistantOpen:Bool,assistantBusy:Bool,playing:Bool
+    var synthesizing=false
     let help:()->Void,listen:()->Void,change:(JSONValue)->Void
     @Environment(\.colorScheme)private var scheme
     @State private var target:Bool?
@@ -18,8 +19,8 @@ struct WordBankPracticeQuestion:View {
                 HStack(spacing:8){OnboardingText(text:copy(repeatBody ? "repeat_hear_heading":"translate_sentence_heading"),size:20,weight:.bold,lineHeight:30).frame(maxWidth:.infinity,alignment:.leading)
                     if !q.options["isFinalQuiz"].boolean{StandardQuestionTool(active:assistantOpen,action:help){PracticeIcon(name:"MdOutlineSupportAgent",size:18)}.disabled(assistantBusy).accessibilityIdentifier("typedPracticeHelp").accessibilityLabel(copy("vocab_ask_assistant"))}
                 }
-                if repeatBody{HStack{Spacer();StandardQuestionTool(active:playing,size:48,action:listen){PracticeIcon(name:"PiSpeakerHighDuotone",size:24)}.accessibilityIdentifier("typedPracticeListen").accessibilityLabel(copy("vocab_listen_question"));Spacer()}.padding(.vertical,8);answerArea}
-                else{HStack(alignment:.top,spacing:8){StandardQuestionTool(active:playing,action:listen){PracticeIcon(name:"PiSpeakerHighDuotone",size:18)}.accessibilityIdentifier("typedPracticeListen").accessibilityLabel(copy("vocab_listen_question"));OnboardingText(text:q.payload["sentence"].string,size:18,weight:.medium,lineHeight:29.25).frame(maxWidth:.infinity,alignment:.leading).environment(\.layoutDirection,q.sourceLanguage == "ar" ? .rightToLeft:.leftToRight)}.padding(17).background(base,in:RoundedRectangle(cornerRadius:12)).overlay{RoundedRectangle(cornerRadius:12).stroke(brand.border)}}
+                if repeatBody{HStack{Spacer();StandardQuestionTool(active:synthesizing,size:48,action:listen){PracticeSpeakerIcon(loading:synthesizing,size:24)}.accessibilityIdentifier("typedPracticeListen").accessibilityValue(synthesizing ? copy("generic_loading"):"").accessibilityLabel(copy("vocab_listen_question"));Spacer()}.padding(.vertical,8);answerArea}
+                else{HStack(alignment:.top,spacing:8){StandardQuestionTool(active:synthesizing,action:listen){PracticeSpeakerIcon(loading:synthesizing,size:18)}.accessibilityIdentifier("typedPracticeListen").accessibilityValue(synthesizing ? copy("generic_loading"):"").accessibilityLabel(copy("vocab_listen_question"));OnboardingText(text:q.payload["sentence"].string,size:18,weight:.medium,lineHeight:29.25).frame(maxWidth:.infinity,alignment:.leading).environment(\.layoutDirection,q.sourceLanguage == "ar" ? .rightToLeft:.leftToRight)}.padding(17).background(base,in:RoundedRectangle(cornerRadius:12)).overlay{RoundedRectangle(cornerRadius:12).stroke(brand.border)}}
             }.padding(21).background(brand.surface,in:RoundedRectangle(cornerRadius:8)).overlay{RoundedRectangle(cornerRadius:8).stroke(brand.border)}.compositingGroup().shadow(color:.black.opacity(scheme == .dark ? 0.12:0.04),radius:9,y:8)
             if !repeatBody{answerArea}
             Rectangle().fill(brand.border).frame(height:1)

@@ -12,7 +12,7 @@ The read-only preview mounts the actual TranslateSentence/RepeatWhatYouHear comp
 
 English/light and Arabic/dark comparisons include idle, wrong, assembled and locked states. The capture adapter also supplies the parent explanation/note callbacks so those feedback controls match the actual lesson. RTL answer words retain the original reversed sequence grouped at the physical left; the available bank stays centered. The final run results and image provenance are recorded in `VALIDATION.md`.
 
-Speaking and lesson-flashcard bodies now have their own [correction checkpoint](ORAL_EXERCISES.md). Remaining work includes source question TTS/voices/effects and active-audio motion, broader locale/device/accessibility/interruptions and physical iPhone checks. Small font, shadow-strength, stroke, menu and feedback geometry differences remain. These exercise checks do not establish full product parity.
+Speaking and lesson-flashcard bodies now have their own [correction checkpoint](ORAL_EXERCISES.md). Main lesson playback now uses the [original narration voice, source-language override and loading control](LESSON_AUDIO.md). Remaining work includes prepared/cached audio, sound effects and exact active-audio motion, broader locale/device/accessibility/interruptions and physical iPhone checks. Small font, shadow-strength, stroke, menu and feedback geometry differences remain. These exercise checks do not establish full product parity.
 
 ![Source and native translation](native/word-bank-vocabulary-translate-target-filled-en.png)
 

@@ -34,6 +34,22 @@ import Security
         FirebaseIdentityService.shared.clearSession();try await FirebaseIdentityService.shared.ensure(identity)
         try await Auth.auth().currentUser?.delete();FirebaseIdentityService.shared.clearSession();try identity.disconnect()
     }
+    func testLessonNarrationUsesOriginalVoiceAndReceivesSpanishAndArabicAudio()async throws{
+        let env=ProcessInfo.processInfo.environment;guard env["PIYALI_LIVE_API_TESTS"] == "1",env["PIYALI_OFFLINE_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Explicit isolated live opt-in required")}
+        if FirebaseApp.app() == nil{AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure()};XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let identity=IdentityService();try identity.create();try await FirebaseIdentityService.shared.ensure(identity)
+        do{let engine=try CompanionQuestPolicy();var evidence:[[String:Any]]=[]
+            for(language,text)in[("es","Yo ___ pan."),("ar","مرحباً، كيف حالك؟")]{
+                let rtc=RealtimeRTCTransport(capturesMicrophone:false,purpose:.narration),audio=LessonAudioController(narration:RealtimeNarrationService(factory:{rtc}));defer{audio.clear()}
+                let owner="public-lesson-"+language;audio.bind(owner);audio.play(text,language:language,owner:owner,engine:engine);var bytes=0,peak=0.0
+                for _ in 0..<550{bytes=max(bytes,await rtc.receivedAudioBytes());peak=max(peak,await rtc.audioAmplitude(speaking:true));if !audio.loading && !audio.playing{break};try await Task.sleep(for:.milliseconds(100))}
+                XCTAssertNil(audio.narration.error,audio.narration.failureDetail ?? "No diagnostic");XCTAssertFalse(audio.loading);XCTAssertFalse(audio.playing);XCTAssertGreaterThan(bytes,0);XCTAssertGreaterThan(peak,0)
+                evidence.append(["language":language,"text":text,"voice":"ash","receivedBytes":bytes,"positiveAmplitude":peak>0,"finished":!audio.loading && !audio.playing,"error":audio.narration.error as Any? ?? NSNull()])
+            }
+            let attachment=XCTAttachment(data:try JSONSerialization.data(withJSONObject:evidence,options:[.prettyPrinted,.sortedKeys]),uniformTypeIdentifier:"public.json");attachment.name="Public lesson narration live evidence";attachment.lifetime = .keepAlways;add(attachment)
+        }catch{try? await deleteLiveTestIdentity(identity);throw error}
+        try await deleteLiveTestIdentity(identity)
+    }
     func testOriginalStandardAssistanceStreamsSubmittedAttemptsAndLanguages()async throws {
         let env=ProcessInfo.processInfo.environment;guard env["PIYALI_LIVE_API_TESTS"] == "1",env["PIYALI_OFFLINE_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Explicit isolated live opt-in required")}
         if FirebaseApp.app() == nil{AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure()};XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")

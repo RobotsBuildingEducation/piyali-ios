@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SpokenPracticeQuestion:View {
     let question:PracticeQuestion,assistantOpen:Bool,assistantBusy:Bool,playing:Bool
+    var synthesizing=false
     let help:()->Void,listen:()->Void
     @Environment(\.colorScheme)private var scheme
     private var brand:PiyaliBrand{.init(dark:scheme == .dark)}
@@ -9,7 +10,7 @@ struct SpokenPracticeQuestion:View {
     var body:some View {
         VStack(spacing:16){
             HStack(spacing:8){OnboardingText(text:copy("vocab_say_it_aloud"),size:20,weight:.bold,lineHeight:30).frame(maxWidth:.infinity,alignment:.leading)
-                HStack(spacing:8){StandardQuestionTool(active:playing,action:listen){PracticeIcon(name:"PiSpeakerHighDuotone",size:18)}.accessibilityLabel(copy("vocab_listen_question")).accessibilityIdentifier("typedPracticeListen")
+                HStack(spacing:8){StandardQuestionTool(active:synthesizing,action:listen){PracticeSpeakerIcon(loading:synthesizing,size:18)}.accessibilityLabel(copy("vocab_listen_question")).accessibilityIdentifier("typedPracticeListen").accessibilityValue(synthesizing ? copy("generic_loading"):"")
                     if !question.options["isFinalQuiz"].boolean,(question.module == .grammar || ["translate","complete"].contains(question.payload["variant"].string)){StandardQuestionTool(active:assistantOpen,cornerRadius:12,action:help){PracticeIcon(name:"MdOutlineSupportAgent",size:18)}.disabled(assistantBusy).accessibilityLabel(copy("vocab_ask_assistant")).accessibilityIdentifier("typedPracticeHelp")}
                 }
             }

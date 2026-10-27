@@ -5,7 +5,7 @@ struct LessonPracticeView:View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var service:PracticeService
-    @StateObject private var speech=SpeechService()
+    @StateObject private var audio:LessonAudioController
     @StateObject private var assistance:PracticeAssistanceController
     @StateObject private var oral:LessonSpeechController
     @StateObject private var writing:WritingSpeechController
@@ -18,12 +18,13 @@ struct LessonPracticeView:View {
     var embedded=false
     var allowsQuestionAutoFocus=true
     var writingKeyboardInitiallyOpen=false
-    init(module:PracticeRecipeModule,lesson:Lesson?,onNext:(()->Void)?=nil,startsFresh:Bool=false,embedded:Bool=false,service:PracticeService?=nil,assistance:PracticeAssistanceController?=nil,feedbackPortrait:Int?=nil,writing:WritingSpeechController?=nil,oral:LessonSpeechController?=nil,allowsQuestionAutoFocus:Bool=true,writingKeyboardInitiallyOpen:Bool=false) {
-        self.module=module;self.lesson=lesson;self.onNext=onNext;self.startsFresh=startsFresh;self.embedded=embedded;self.allowsQuestionAutoFocus=allowsQuestionAutoFocus;self.writingKeyboardInitiallyOpen=writingKeyboardInitiallyOpen;_writing=StateObject(wrappedValue:writing ?? WritingSpeechController());_oral=StateObject(wrappedValue:oral ?? LessonSpeechController());_service=StateObject(wrappedValue:service ?? PracticeService());_assistance=StateObject(wrappedValue:assistance ?? PracticeAssistanceController());_portrait=State(initialValue:feedbackPortrait ?? PracticeQuestionAppearance.portrait)
+    init(module:PracticeRecipeModule,lesson:Lesson?,onNext:(()->Void)?=nil,startsFresh:Bool=false,embedded:Bool=false,service:PracticeService?=nil,assistance:PracticeAssistanceController?=nil,feedbackPortrait:Int?=nil,writing:WritingSpeechController?=nil,oral:LessonSpeechController?=nil,allowsQuestionAutoFocus:Bool=true,writingKeyboardInitiallyOpen:Bool=false,audio:LessonAudioController?=nil) {
+        _audio=StateObject(wrappedValue:audio ?? LessonAudioController());self.module=module;self.lesson=lesson;self.onNext=onNext;self.startsFresh=startsFresh;self.embedded=embedded;self.allowsQuestionAutoFocus=allowsQuestionAutoFocus;self.writingKeyboardInitiallyOpen=writingKeyboardInitiallyOpen;_writing=StateObject(wrappedValue:writing ?? WritingSpeechController());_oral=StateObject(wrappedValue:oral ?? LessonSpeechController());_service=StateObject(wrappedValue:service ?? PracticeService());_assistance=StateObject(wrappedValue:assistance ?? PracticeAssistanceController());_portrait=State(initialValue:feedbackPortrait ?? PracticeQuestionAppearance.portrait)
     }
     private var quiz:Bool { lesson?.isFinalQuiz == true }
     @State private var showStandardKeyboard=false
-    @State private var questionAudioPlaying=false
+    private var questionAudioPlaying:Bool { audio.playing || audio.loading && run?.question.kind == "speak" }
+    private var audioOwner:String { scope+":"+(run?.question.id.uuidString ?? "") }
     @State private var noteSaved=false
     @State private var noteCreating=false
     @State private var showDeck=false
@@ -51,7 +52,7 @@ struct LessonPracticeView:View {
                         else if service.preparing {ProgressView().frame(maxWidth:.infinity,minHeight:240).accessibilityIdentifier("typedPracticeBusy")}
                         else if !service.preparationFailed,let run {
                             if run.question.variant == "natural_or_weird" {
-                                NaturalOrWeirdQuestion(sentence:run.question.payload["sentence"].string,title:questionCopy(run,"title"),instruction:questionCopy(run,"instruction"),weird:questionCopy(run,"soundsWeird"),natural:questionCopy(run,"soundsNatural"),audioLabel:questionCopy(run,"playAudio"),helpLabel:questionCopy(run,"askForHelp"),selected:run.response["choice"] == .null ? nil:run.response["choice"].boolean,locked:service.busy || run.correct == true || quiz && run.correct != nil,assistantOpen:assistance.assistantOpen,assistantBusy:assistance.assistantBusy,help:{assistance.ask(app,run:run)},listen:{speech.speak(run.question.audioText,language:run.question.audioLanguage)},select:{updateResponse("choice",.bool($0))},showHelp:!quiz)
+                                NaturalOrWeirdQuestion(sentence:run.question.payload["sentence"].string,title:questionCopy(run,"title"),instruction:questionCopy(run,"instruction"),weird:questionCopy(run,"soundsWeird"),natural:questionCopy(run,"soundsNatural"),audioLabel:questionCopy(run,"playAudio"),helpLabel:questionCopy(run,"askForHelp"),selected:run.response["choice"] == .null ? nil:run.response["choice"].boolean,locked:service.busy || run.correct == true || quiz && run.correct != nil,assistantOpen:assistance.assistantOpen,assistantBusy:assistance.assistantBusy,help:{assistance.ask(app,run:run)},listen:{playAudio(run)},select:{updateResponse("choice",.bool($0))},showHelp:!quiz)
                             } else if WritingPracticeQuestion.variants.contains(run.question.variant) {
                                 writingQuestion(run)
                             } else if AdvancedPracticeQuestion.variants.contains(run.question.variant) {
@@ -61,14 +62,14 @@ struct LessonPracticeView:View {
                             } else if WordBankPracticeQuestion.variants.contains(run.question.kind) {
                                 wordBankQuestion(run)
                             } else if run.question.kind == "speak" {
-                                SpokenPracticeQuestion(question:run.question,assistantOpen:assistance.assistantOpen,assistantBusy:assistance.assistantBusy,playing:questionAudioPlaying,help:{assistance.ask(app,run:run)},listen:{playOralAudio(run,answer:false)})
+                                SpokenPracticeQuestion(question:run.question,assistantOpen:assistance.assistantOpen,assistantBusy:assistance.assistantBusy,playing:questionAudioPlaying,synthesizing:audio.loading,help:{assistance.ask(app,run:run)},listen:{playOralAudio(run,answer:false)})
                             } else if run.question.kind == "flashcard" {
                                 lessonFlashcard(run)
                             }
                         }
                         if let error=service.error {Text(error).foregroundStyle(brand.questionError);Button(copy("try_again")){Task{if let run,!service.preparing,!service.preparationFailed{await service.check(app,run:run)}else{startPreparation(fresh:true)}}}.disabled(service.busy)}
                         if let error=oral.recorder.error {Text(oralError(error)).font(PiyaliBrand.productFont(14)).foregroundStyle(brand.questionError).accessibilityIdentifier("lessonSpeechError");if error == "mic-denied"{Link(copy("settings"),destination:URL(string:UIApplication.openSettingsURLString)!).accessibilityIdentifier("lessonSpeechSettings")}}
-                        if let error=speech.error {Text(error).font(PiyaliBrand.productFont(13)).foregroundStyle(brand.questionError)}
+
                     }.padding(.horizontal,8).padding(.top,22).padding(.bottom,24).frame(maxWidth:720).frame(maxWidth:.infinity)
                 }
                 Color.clear.frame(height:app.activityFooterHeight)
@@ -77,46 +78,51 @@ struct LessonPracticeView:View {
             .navigationTitle(embedded ? lesson?.title.localized(app.learner.support) ?? "" : module == .grammar ? "Grammar" : "Vocabulary")
             .toolbar { ToolbarItemGroup(placement:.keyboard) { Spacer();Button("Done") { answering=false }.accessibilityIdentifier("practiceKeyboardDone") } }
             .fullScreenCover(isPresented:$showDeck) { PracticeDeckView(cards:app.learner.practiceDecks?[app.learner.practiceDeckKey(module)] ?? [],support:app.learner.support,target:app.learner.target).presentationBackground(.clear) }
-            .task(id:scope) { if deckOwner == scope{deckOwner=nil;return};deckOwner=nil;questionAudioPlaying=false;answering=false;showStandardKeyboard=false;writing.clear();oral.clear();speech.stopAll();assistance.clear();showDeck=false;appeared=true;startPreparation(fresh:startsFresh);await preparationTask?.value }
-            .onChange(of:run?.question.id){_,_ in questionAudioPlaying=false;noteSaved=false;noteCreating=false;portrait=PracticeQuestionAppearance.portrait;if let run {assistance.bind(app,run:run);writing.bind(app,run:run);oral.bind(app,run:run)}}
+            .task(id:scope) { if deckOwner == scope{deckOwner=nil;return};deckOwner=nil;answering=false;showStandardKeyboard=false;writing.clear();oral.clear();audio.clear();assistance.clear();showDeck=false;appeared=true;startPreparation(fresh:startsFresh);await preparationTask?.value }
+            .onChange(of:run?.question.id){_,_ in audio.bind(audioOwner);noteSaved=false;noteCreating=false;portrait=PracticeQuestionAppearance.portrait;if let run {assistance.bind(app,run:run);writing.bind(app,run:run);oral.bind(app,run:run)}}
             .onChange(of:run?.response){_,_ in if let run,!WordBankPracticeQuestion.variants.contains(run.question.kind),!StandardPracticeQuestion.variants.contains(run.question.kind){assistance.responseChanged()}}
             .onAppear { active=true }
-            .onChange(of:scenePhase) { _,phase in if phase != .active { preparationTask?.cancel();preparationTask=nil;questionAudioPlaying=false;writing.clear();oral.clear();service.cancel();assistance.cancel();speech.stopAll() } }
-            .onDisappear {active=false;questionAudioPlaying=false;if showDeck{oral.recorder.cancel();speech.stopAll()}else{preparationTask?.cancel();preparationTask=nil;writing.clear();oral.clear();service.cancel();assistance.cancel();speech.stopAll()}}
+            .onChange(of:app.subscription.hasAccess){_,access in if !access{audio.clear()}}
+            .onChange(of:scenePhase) { _,phase in if phase != .active { preparationTask?.cancel();preparationTask=nil;writing.clear();oral.clear();service.cancel();assistance.cancel();audio.clear() } }
+            .onDisappear {active=false;if showDeck{oral.recorder.cancel();audio.clear()}else{preparationTask?.cancel();preparationTask=nil;writing.clear();oral.clear();service.cancel();assistance.cancel();audio.clear()}}
     }
     private func wordBankQuestion(_ run:PracticeRun)->some View {
         let capturedScope=scope
-        return WordBankPracticeQuestion(run:run,locked:service.busy || run.correct == true || quiz && run.correct != nil,assistantOpen:assistance.assistantOpen,assistantBusy:assistance.assistantBusy,playing:questionAudioPlaying,help:{assistance.ask(app,run:run)},listen:{let id=run.question.id;speech.speakSeries([run.question.audioText],language:run.question.audioLanguage,onStarted:{if self.run?.question.id == id{questionAudioPlaying=true}},onInterrupted:{questionAudioPlaying=false},onFinished:{questionAudioPlaying=false})},change:{response in
+        return WordBankPracticeQuestion(run:run,locked:service.busy || run.correct == true || quiz && run.correct != nil,assistantOpen:assistance.assistantOpen,assistantBusy:assistance.assistantBusy,playing:questionAudioPlaying,synthesizing:audio.loading,help:{assistance.ask(app,run:run)},listen:{playAudio(run)},change:{response in
             guard scope == capturedScope,var current=self.run,current.question.id == run.question.id,current.correct != true,(!quiz || current.correct == nil),!service.busy else{return};current.response=response;app.learner.savePractice(current);app.persist()
         }).id(run.question.id)
     }
     private func standardQuestion(_ run:PracticeRun)->some View {
         let capturedScope=scope
-        return StandardPracticeQuestion(run:run,locked:service.busy || run.correct == true || quiz && run.correct != nil,assistantOpen:assistance.assistantOpen,assistantBusy:assistance.assistantBusy,playing:questionAudioPlaying,help:{assistance.ask(app,run:run)},listen:{text,index in
-            let id=run.question.id;speech.speakSeries([text],language:run.question.target,onStarted:{if self.run?.question.id == id{questionAudioPlaying=true}},onInterrupted:{questionAudioPlaying=false},onFinished:{questionAudioPlaying=false})
+        return StandardPracticeQuestion(run:run,locked:service.busy || run.correct == true || quiz && run.correct != nil,assistantOpen:assistance.assistantOpen,assistantBusy:assistance.assistantBusy,playing:questionAudioPlaying,synthesizing:audio.loading,synthesizingWord:audio.wordIndex,help:{assistance.ask(app,run:run)},listen:{text,index in
+            playAudio(run,text:text,index:index)
         },change:{response in guard scope == capturedScope,self.run?.question.id == run.question.id else{return};updateStandardResponse(response)},keyboardOpen:$showStandardKeyboard,focus:$answering).id(run.question.id)
     }
     private func writingQuestion(_ run:PracticeRun)->some View {
         let capturedScope=scope
-        return WritingPracticeQuestion(question:run.question,text:Binding(get:{self.run?.response["text"].string ?? ""},set:{text in guard scope == capturedScope,self.run?.question.id == run.question.id,let current=self.run else{return};updateResponse(WritingExerciseRules.response(current.response,text:text,variant:run.question.variant))}),locked:service.busy || run.correct == true || quiz && run.correct != nil,canSubmit:service.ready(run),assistantOpen:assistance.assistantOpen,assistantBusy:assistance.assistantBusy,revealedClues:run.revealedClues,recorder:writing.recorder,copy:{questionCopy(run,$0)},help:{assistance.ask(app,run:run)},listen:{speech.speakSeries([run.question.audioText],language:run.question.target,onStarted:{questionAudioPlaying=true},onInterrupted:{questionAudioPlaying=false},onFinished:{questionAudioPlaying=false})},toggleSpeech:{speech.stopAll();questionAudioPlaying=false;assistance.responseChanged();writing.toggle(app,run:run,service:service)},reveal:{
+        return WritingPracticeQuestion(question:run.question,text:Binding(get:{self.run?.response["text"].string ?? ""},set:{text in guard scope == capturedScope,self.run?.question.id == run.question.id,let current=self.run else{return};updateResponse(WritingExerciseRules.response(current.response,text:text,variant:run.question.variant))}),locked:service.busy || run.correct == true || quiz && run.correct != nil,canSubmit:service.ready(run),assistantOpen:assistance.assistantOpen,assistantBusy:assistance.assistantBusy,revealedClues:run.revealedClues,recorder:writing.recorder,copy:{questionCopy(run,$0)},help:{assistance.ask(app,run:run)},listen:{playAudio(run)},toggleSpeech:{audio.clear();assistance.responseChanged();writing.toggle(app,run:run,service:service)},reveal:{
             guard scope == capturedScope,var current=self.run,current.question.id == run.question.id,current.correct != true,!service.busy else{return};current.revealedClues=WritingExerciseRules.clues(current.question.strings("clues"),revealed:current.revealedClues,locked:false).next;current.assisted=true;app.learner.savePractice(current);app.persist()
         },submit:{if let current=self.run{submit(current)}},showHelp:!quiz,playing:questionAudioPlaying,allowsAutoFocus:allowsQuestionAutoFocus,keyboardInitiallyOpen:writingKeyboardInitiallyOpen,focus:$answering).id(run.question.id)
     }
     private func advancedQuestion(_ run:PracticeRun)->some View {
         let capturedScope=scope
         return AdvancedPracticeQuestion(question:run.question,response:run.response,locked:service.busy || run.correct == true || quiz && run.correct != nil,assistantOpen:assistance.assistantOpen,assistantBusy:assistance.assistantBusy,copy:{questionCopy(run,$0)},help:{assistance.ask(app,run:run)},listen:{
-            let id=run.question.id
-            speech.speakSeries([run.question.audioText],language:run.question.target,onStarted:{if self.run?.question.id == id{questionAudioPlaying=true}},onInterrupted:{questionAudioPlaying=false},onFinished:{questionAudioPlaying=false})
+            playAudio(run)
         },change:{response in guard scope == capturedScope,self.run?.question.id == run.question.id else{return};updateResponse(response)},showHelp:!quiz,playing:questionAudioPlaying).id(run.question.id)
     }
-    private func playOralAudio(_ run:PracticeRun,answer:Bool){let id=run.question.id;let text=answer ? run.question.payload["answer"].string:run.question.audioText;speech.speakSeries([text],language:run.question.target,onStarted:{if self.run?.question.id == id{questionAudioPlaying=true}},onInterrupted:{questionAudioPlaying=false},onFinished:{questionAudioPlaying=false})}
+    private func playAudio(_ run:PracticeRun,text:String?=nil,index:Int?=nil,answer:Bool=false){
+        guard active,self.run?.question.id == run.question.id else{return}
+        let owner=audioOwner;audio.bind(owner);writing.recorder.cancel();oral.recorder.cancel()
+        audio.play(text ?? (answer ? run.question.payload["answer"].string:run.question.audioText),language:run.question.audioLanguage,owner:owner,wordIndex:index,spokenCard:["speak","flashcard"].contains(run.question.kind),ignoreWhileLoading:run.question.kind == "flashcard",engine:app.companionQuestPolicy)
+    }
+    private func playOralAudio(_ run:PracticeRun,answer:Bool){playAudio(run,answer:answer)}
     private func lessonFlashcard(_ run:PracticeRun)->some View {
         let capturedScope=scope
-        return LessonFlashcardQuestion(run:run,busy:service.busy,playing:questionAudioPlaying,recorder:oral.recorder,change:{text in guard scope == capturedScope,let current=self.run,current.question.id == run.question.id,current.correct == nil,!service.busy else{return};updateResponse(current.response.setting("text",.string(text)).setting("typedText",.string(text)).setting("inputSource",.string("text")))},flip:{guard scope == capturedScope,var current=self.run,current.question.id == run.question.id else{return};current.showAnswer = !(current.showAnswer ?? false);app.learner.savePractice(current);app.persist()},listen:{playOralAudio(run,answer:true)},record:{toggleOral(run)},submit:{if let current=self.run{submit(current)}},focus:$answering,keyboardInitiallyOpen:writingKeyboardInitiallyOpen).id(run.question.id)
+        return LessonFlashcardQuestion(run:run,busy:service.busy,playing:questionAudioPlaying,recorder:oral.recorder,synthesizing:audio.loading,change:{text in guard scope == capturedScope,let current=self.run,current.question.id == run.question.id,current.correct == nil,!service.busy else{return};updateResponse(current.response.setting("text",.string(text)).setting("typedText",.string(text)).setting("inputSource",.string("text")))},flip:{guard scope == capturedScope,var current=self.run,current.question.id == run.question.id else{return};current.showAnswer = !(current.showAnswer ?? false);app.learner.savePractice(current);app.persist()},listen:{playOralAudio(run,answer:true)},record:{toggleOral(run)},submit:{if let current=self.run{submit(current)}},focus:$answering,keyboardInitiallyOpen:writingKeyboardInitiallyOpen).id(run.question.id)
     }
-    private func openDeck(){speech.stopAll();oral.recorder.cancel();deckOwner=scope;showDeck=true}
-    private func startPreparation(fresh:Bool){preparationTask?.cancel();preparationTask=Task{await service.prepare(app,module:module,lesson:lesson,fresh:fresh);guard !Task.isCancelled,let run=self.run else{return};assistance.bind(app,run:run);writing.bind(app,run:run);oral.bind(app,run:run)}}
-    private func toggleOral(_ run:PracticeRun){answering=false;speech.stopAll();questionAudioPlaying=false;assistance.responseChanged();oral.toggle(app,run:run,service:service)}
+    private func openDeck(){audio.clear();oral.recorder.cancel();deckOwner=scope;showDeck=true}
+    private func startPreparation(fresh:Bool){audio.clear();preparationTask?.cancel();preparationTask=Task{await service.prepare(app,module:module,lesson:lesson,fresh:fresh);guard !Task.isCancelled,let run=self.run else{return};assistance.bind(app,run:run);writing.bind(app,run:run);oral.bind(app,run:run)}}
+    private func toggleOral(_ run:PracticeRun){answering=false;audio.clear();assistance.responseChanged();oral.toggle(app,run:run,service:service)}
     private func oralError(_ code:String)->String{if code == "mic-denied"{return copy("flashcard_mic_denied_title")+" "+copy("flashcard_mic_denied_desc")};let kind=code == "no-speech" ? "no_speech":code.hasPrefix("connection-") ? "connection":code == "transcription-failed" ? "transcription":"recording";return copy("speech_"+kind+"_error_title")+" "+copy("speech_"+kind+"_error_desc")}
     private func retryLessonCard(){guard var current=run,current.question.kind == "flashcard",current.correct == false,!service.busy else{return};oral.clear();assistance.responseChanged();current.correct=nil;current.lastMissedAnswer=nil;current.response=LessonCardRules.retry(current.response);app.learner.savePractice(current);app.persist()}
     private var footerRevision:String {[scope,run?.question.id.uuidString ?? "",run?.response.canonicalJSON ?? "",String(describing:run?.correct),String(run?.earnedXP ?? 0),String(service.busy),String(service.preparing),service.preparingKind ?? "",String(service.preparationFailed),assistance.assistantText,assistance.explanationText,String(assistance.assistantOpen),String(assistance.assistantBusy),String(assistance.explanationBusy),String(noteSaved),String(noteCreating),String(showStandardKeyboard),String(oral.recorder.connecting),String(oral.recorder.recording),String(oral.recorder.evaluating),oral.recorder.error ?? "",String(lessonEarned)].joined(separator:"|")}
@@ -147,8 +153,8 @@ struct LessonPracticeView:View {
             } else {ProgressView().frame(maxWidth:.infinity,minHeight:40)}
         }).foregroundStyle(palette.text)
     }
-    private func submit(_ run:PracticeRun){if WordBankPracticeQuestion.variants.contains(run.question.kind) || StandardPracticeQuestion.variants.contains(run.question.kind){assistance.closeAssistant();assistance.responseChanged()};answering=false;writing.clear();oral.clear();speech.stop();Task{await service.check(app,run:run,confidence:speech.confidence,audio:speech.audioMetrics)}}
-    private func nextQuestion(_ run:PracticeRun){oral.clear();writing.clear();speech.stopAll();assistance.cancel();noteSaved=false;if let onNext{onNext()}else{startPreparation(fresh:true)}}
+    private func submit(_ run:PracticeRun){if WordBankPracticeQuestion.variants.contains(run.question.kind) || StandardPracticeQuestion.variants.contains(run.question.kind){assistance.closeAssistant();assistance.responseChanged()};answering=false;writing.clear();oral.clear();audio.clear();Task{await service.check(app,run:run)}}
+    private func nextQuestion(_ run:PracticeRun){oral.clear();writing.clear();audio.clear();assistance.cancel();noteSaved=false;if let onNext{onNext()}else{startPreparation(fresh:true)}}
     private func createNote(_ run:PracticeRun){guard !noteCreating,!noteSaved else{return};noteCreating=true;let capturedScope=scope;Task{defer{if scope == capturedScope,self.run?.question.id == run.question.id{noteCreating=false}};if (try? await app.createStudyNote(run:run,lesson:lesson)) == true,scope == capturedScope,self.run?.question.id == run.question.id{noteSaved=true}}}
     private func updateStandardResponse(_ response:JSONValue){
         guard var current=run,current.correct != true,(!quiz || current.correct == nil),!service.busy else{return}

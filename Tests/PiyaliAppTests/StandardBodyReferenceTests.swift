@@ -19,6 +19,18 @@ import WebKit
             try await compare(name:"\(module.rawValue) \(variant) \(state) \(language)",query:"module=\(module.rawValue)&variant=\(variant)&state=\(state)&language=\(language)",language:language,root:AnyView(StandardReferenceHost(module:module,lesson:lesson).environmentObject(app)))
         }}}}
     }
+    func testOriginalQuestionAndMatchingAudioLoadingControls()async throws {
+        let env=ProcessInfo.processInfo.environment;guard env["PIYALI_OFFLINE_TESTS"] == "1",env["PIYALI_REFERENCE_PREVIEW_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Isolated source preview required")}
+        let url=try XCTUnwrap(Bundle(for:Self.self).url(forResource:"standard-bodies",withExtension:"json")),samples=try JSONDecoder().decode(Piyali.JSONValue.self,from:Data(contentsOf:url)),app=AppModel(progressService:StandardReferenceNoCloud());try app.identity.create();defer{try? app.identity.disconnect()};app.signedIn=true;app.subscription.bind(app.identity)
+        let curriculum=try ContentLibrary.load([String:[LearningUnit]].self,name:"curriculum-es"),lesson=try XCTUnwrap(curriculum["Pre-A1"]?.first?.lessons.first)
+        for(variant,language)in[("fill","en"),("match","ar")]{
+            app.learner=LearnerState();app.learner.target="es";app.learner.support=language;app.learner.onboardingComplete=true;app.activityFooter=nil;app.activityFooterHeight=0
+            let sample=samples["grammar"][variant],q=try PracticeQuestion(module:.grammar,kind:sample["kind"].string,payload:sample["question"],options:.object(["cefrLevel":.string("A1")]),target:"es",support:language);var run=PracticeRun(question:q,lessonID:lesson.id,lessonLevel:"Pre-A1",response:sample["responses"]["idle"]);if variant == "match"{run.rightOrder=[2,0,1]};app.learner.savePractice(run)
+            let transport=LessonNarrationTransport(),audio=LessonAudioController(narration:RealtimeNarrationService(factory:{transport}));defer{audio.clear()}
+            try await compare(name:"grammar \(variant) audio-loading \(language)",query:"module=grammar&variant=\(variant)&state=loading&language=\(language)",language:language,root:AnyView(StandardReferenceHost(module:.grammar,lesson:lesson,audio:audio).environmentObject(app)))
+            XCTAssertTrue(audio.loading);XCTAssertEqual(transport.microphone,[false])
+        }
+    }
     func testOriginalStandardAssistanceRailsAndCopyNotice()async throws {
         let env=ProcessInfo.processInfo.environment;guard env["PIYALI_OFFLINE_TESTS"] == "1",env["PIYALI_REFERENCE_PREVIEW_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Isolated source preview required")}
         let url=try XCTUnwrap(Bundle(for:Self.self).url(forResource:"standard-bodies",withExtension:"json")),samples=try JSONDecoder().decode(Piyali.JSONValue.self,from:Data(contentsOf:url)),app=AppModel(progressService:StandardReferenceNoCloud());try app.identity.create();defer{try? app.identity.disconnect()};app.signedIn=true;app.subscription.bind(app.identity)
@@ -50,5 +62,6 @@ private struct StandardReferenceHost:View {
     @EnvironmentObject var app:AppModel
     let module:PracticeRecipeModule,lesson:Lesson
     var assistance:PracticeAssistanceController?=nil
-    var body:some View{LessonPracticeView(module:module,lesson:lesson,embedded:true,assistance:assistance,feedbackPortrait:7,allowsQuestionAutoFocus:false).overlay(alignment:.bottom){if let footer=app.activityFooter{ZStack(alignment:.bottomLeading){footer.content.padding(12).background{SourceActivityDockBackground(correct:footer.correct,tone:footer.tone)}.padding(.horizontal,8).padding(.bottom,12);HStack{SourceActivityMenuGlyph().frame(width:18,height:18).frame(width:40,height:40);Spacer(minLength:0)}.frame(height:40).padding(.leading,20).padding(.bottom,24).environment(\.layoutDirection,.leftToRight)}.onGeometryChange(for:CGFloat.self,of:{$0.size.height}){app.activityFooterHeight=$0}}}}
+    var audio:LessonAudioController?=nil
+    var body:some View{LessonPracticeView(module:module,lesson:lesson,embedded:true,assistance:assistance,feedbackPortrait:7,allowsQuestionAutoFocus:false,audio:audio).task{if let audio{try? await Task.sleep(for:.milliseconds(250));audio.bind("source-capture");audio.play("hola",language:"es",owner:"source-capture",wordIndex:module == .grammar ? 0:nil,engine:app.companionQuestPolicy)}}.overlay(alignment:.bottom){if let footer=app.activityFooter{ZStack(alignment:.bottomLeading){footer.content.padding(12).background{SourceActivityDockBackground(correct:footer.correct,tone:footer.tone)}.padding(.horizontal,8).padding(.bottom,12);HStack{SourceActivityMenuGlyph().frame(width:18,height:18).frame(width:40,height:40);Spacer(minLength:0)}.frame(height:40).padding(.leading,20).padding(.bottom,24).environment(\.layoutDirection,.leftToRight)}.onGeometryChange(for:CGFloat.self,of:{$0.size.height}){app.activityFooterHeight=$0}}}}
 }

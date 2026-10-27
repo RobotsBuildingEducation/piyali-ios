@@ -4,6 +4,8 @@ struct StandardPracticeQuestion:View {
     static let variants:Set<String>=["fill","mc","ma","match"]
     static let keyboard=(try? WritingKeyboard()) ?? WritingKeyboard(data:.null)
     let run:PracticeRun,locked:Bool,assistantOpen:Bool,assistantBusy:Bool,playing:Bool
+    var synthesizing=false
+    var synthesizingWord:Int?=nil
     let help:()->Void,listen:(String,Int?)->Void,change:(JSONValue)->Void
     @Binding var keyboardOpen:Bool
     var focus:FocusState<Bool>.Binding
@@ -31,7 +33,7 @@ struct StandardPracticeQuestion:View {
     }
     private var header:some View {
         VStack(alignment:.leading,spacing:12){title(copy(q.kind == "mc" ? "vocab_mc_instruction":q.kind == "ma" ? "vocab_ma_instruction":"vocab_btn_fill"))
-            HStack(alignment:.top,spacing:12){StandardQuestionTool(active:playing,action:{focus.wrappedValue=false;listen(q.audioText,nil)}){PracticeIcon(name:"PiSpeakerHighDuotone",size:18)}.accessibilityLabel(copy("vocab_listen_question")).accessibilityIdentifier("typedPracticeListen")
+            HStack(alignment:.top,spacing:12){StandardQuestionTool(active:synthesizing,action:{focus.wrappedValue=false;listen(q.audioText,nil)}){PracticeSpeakerIcon(loading:synthesizing,size:18)}.accessibilityLabel(copy("vocab_listen_question")).accessibilityIdentifier("typedPracticeListen").accessibilityValue(synthesizing ? copy("generic_loading"):"")
                 if slots{StandardInlineSentence(sentence:q.questionText,values:state.slots.map{$0.flatMap{run.bank.indices.contains($0) ? run.bank[$0]:nil}},placeholder:copy("practice_drag_drop_slot_placeholder"),dark:scheme == .dark,rtl:q.target == "ar",slot:{AnyView(inlineSlot($0))}).frame(maxWidth:.infinity,alignment:.leading)}
                 else{OnboardingText(text:q.questionText,size:18,weight:.medium,lineHeight:29.25).frame(maxWidth:.infinity,alignment:.leading).environment(\.layoutDirection,targetDirection)}
             }
@@ -60,7 +62,7 @@ struct StandardPracticeQuestion:View {
     private var matching:some View {
         VStack(alignment:.leading,spacing:0){title(copy("vocab_match_instruction")).padding(.bottom,8)
             VStack(spacing:12){ForEach(Array(q.strings("left").enumerated()),id:\.offset){index,word in
-                HStack(spacing:12){HStack(alignment:.top,spacing:4){StandardQuestionTool(size:24,action:{listen(word,index)}){PracticeIcon(name:"PiSpeakerHighDuotone",size:16)}.accessibilityLabel(copy("vocab_listen_word")).accessibilityIdentifier("standardWordAudio-\(index)");OnboardingText(text:word,size:16,weight:.semibold,lineHeight:24).frame(maxWidth:.infinity,alignment:.leading)}.frame(width:120,alignment:.leading)
+                HStack(spacing:12){HStack(alignment:.top,spacing:4){StandardQuestionTool(active:synthesizing && synthesizingWord == index,size:24,action:{listen(word,index)}){PracticeSpeakerIcon(loading:synthesizing && synthesizingWord == index,size:16)}.accessibilityLabel(copy("vocab_listen_word")).accessibilityIdentifier("standardWordAudio-\(index)").accessibilityValue(synthesizing && synthesizingWord == index ? copy("generic_loading"):"");OnboardingText(text:word,size:16,weight:.semibold,lineHeight:24).frame(maxWidth:.infinity,alignment:.leading)}.frame(width:120,alignment:.leading)
                     Text("→").font(PiyaliBrand.productFont(18)).foregroundStyle(brand.muted)
                     matchSlot(index)
                 }.padding(.horizontal,13).padding(.vertical,9).background(base,in:RoundedRectangle(cornerRadius:12)).overlay{RoundedRectangle(cornerRadius:12).stroke(brand.border)}

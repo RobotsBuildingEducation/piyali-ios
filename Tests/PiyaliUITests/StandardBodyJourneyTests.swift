@@ -4,8 +4,8 @@ import XCTest
     private func reveal(_ e:XCUIElement,_ app:XCUIApplication){for _ in 0..<12 where !e.isHittable{if e.exists,e.frame.midY<app.frame.midY{app.swipeDown(velocity:.slow)}else{app.swipeUp(velocity:.slow)}};if !e.isHittable{shot("Missing standard interaction",app)};XCTAssertTrue(e.isHittable)}
     private func tap(_ id:String,_ app:XCUIApplication){let e=element(id,app);XCTAssertTrue(e.waitForExistence(timeout:10));reveal(e,app);e.tap()}
     private func shot(_ name:String,_ app:XCUIApplication){let a=XCTAttachment(screenshot:app.screenshot());a.name=name;a.lifetime = .keepAlways;add(a)}
-    private func launch(_ variant:String)->XCUIApplication {
-        let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_HEADLINE_FIXTURE":"failure","PIYALI_PRACTICE_JUDGE_FIXTURE":"offered-reference","PIYALI_PRACTICE_FIXTURE":"standard:"+variant,"PIYALI_QUESTION_HELP_FIXTURE":"stream"];app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"];app.launch()
+    private func launch(_ variant:String,audio:Bool=false)->XCUIApplication {
+        let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_HEADLINE_FIXTURE":"failure","PIYALI_PRACTICE_JUDGE_FIXTURE":"offered-reference","PIYALI_PRACTICE_FIXTURE":"standard:"+variant,"PIYALI_QUESTION_HELP_FIXTURE":"stream"];if audio{app.launchEnvironment["PIYALI_LESSON_AUDIO_FIXTURE"]="loading"};app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"];app.launch()
         let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Standard Learner");tap("entryKeyboardDone",app);tap("createAccount",app);chooseEnglishSpanishOnboarding(app);tap("startLearning",app);tap("companionContinue",app);tap("gettingStartedGotIt",app);chooseA1Placement(app);open(app);return app
     }
     private func open(_ app:XCUIApplication){tap("productMenu",app);tap("productModeMenu",app);tap("productMode-path",app);if !app.buttons["lessonNode-lesson-pre-a1-1-1"].exists{tap("lessonPreviousLevel",app)};tap("lessonNode-lesson-pre-a1-1-1",app);tap("startLessonFromPreview",app);XCTAssertTrue(element("typedQuestionPrompt",app).waitForExistence(timeout:10))}
@@ -49,6 +49,14 @@ import XCTest
     func testMultipleInlineBlanksRequireEverySlotAndPreserveHolesThroughRetry() {
         continueAfterFailure=false;let app=launch("ma-drag");tap("typedWord-0",app);XCTAssertFalse(app.buttons["checkTypedAnswer"].isEnabled);tap("typedWord-1",app);XCTAssertTrue(app.buttons["checkTypedAnswer"].isEnabled);tap("typedSelected-0",app);XCTAssertFalse(app.buttons["checkTypedAnswer"].isEnabled);XCTAssertEqual(app.buttons["typedSelected-1"].label,"padre")
         drag("typedWord-2",to:"standardSlot-0",app);checkWrong(app);drag("typedWord-0",to:"standardSlot-0",app);XCTAssertEqual(app.buttons["typedSelected-0"].label,"madre");XCTAssertEqual(app.buttons["typedSelected-1"].label,"padre");correct(6,app);shot("Native multiple inline blank repair",app)
+    }
+    private func waitForAudioLoading(_ button:XCUIElement)->Bool{XCTWaiter.wait(for:[XCTNSPredicateExpectation(predicate:NSPredicate(format:"value == %@","Loading..."),object:button)],timeout:5) == .completed}
+    func testQuestionNarrationLoadingCancelsOnSkipAndMatchingWordToggle() {
+        continueAfterFailure=false
+        for variant in ["fill","match"]{let app=launch(variant,audio:true),listen=variant == "match" ? "standardWordAudio-0":"typedPracticeListen";tap(listen,app);XCTAssertTrue(waitForAudioLoading(app.buttons[listen]));shot("Native lesson narration loading \(variant)",app)
+            if variant == "match"{tap(listen,app);XCTAssertNotEqual(app.buttons[listen].value as? String,"Loading...");tap("standardWordAudio-1",app);XCTAssertTrue(waitForAudioLoading(app.buttons["standardWordAudio-1"]))}
+            tap("skipLessonActivity",app);XCTAssertTrue(element("typedQuestionPrompt",app).waitForExistence(timeout:10));XCTAssertNotEqual(app.buttons[listen].value as? String,"Loading...");app.terminate()
+        }
     }
     func testFillUsesOriginalInputHelpAudioAndTypedRetry() {
         continueAfterFailure=false;let app=launch("fill"),field=app.textFields["typedPracticeAnswer"];XCTAssertFalse(app.buttons["typedPracticeMicrophone"].exists);XCTAssertTrue(app.buttons["typedPracticeListen"].exists);XCTAssertTrue(app.buttons["typedPracticeHelp"].exists);field.tap();field.typeText("WRONG_FIXTURE");tap("practiceKeyboardDone",app);checkWrong(app);field.tap();field.typeText(String(repeating:XCUIKeyboardKey.delete.rawValue,count:13)+"pan");tap("practiceKeyboardDone",app);correct(5,app);XCTAssertFalse(field.isEnabled);shot("Native standard fill correct input",app)

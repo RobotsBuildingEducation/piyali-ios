@@ -10,6 +10,7 @@ methods = {'standard-help':'testOriginalStandardAssistanceStreamsSubmittedAttemp
            'tutor-gemini':'testLearnerGeminiTutorUsesFirebaseIdentitySourcePromptAndNativePlayback',
            'tutor-focused':'testOriginalFocusedTutorGoalAndRepairJudgesUseNativeProviders',
            'tutor':'testOriginalTutorJudgeWelcomeAndNativeVoiceWithSourceTranscriptionContext',
+           'lesson-audio':'testLessonNarrationUsesOriginalVoiceAndReceivesSpanishAndArabicAudio',
            'phonics':'testNativePhonicsJudgeGeneratedDeckAndReceiveOnlyNarration',
            'flashcards':'testOriginalFlashcardJudgeRevealAndDifficultyThroughNativeProviders',
            'focused-goal':'testOriginalFocusedGoalPlannerAndWrittenRubricUseNativeProvider',

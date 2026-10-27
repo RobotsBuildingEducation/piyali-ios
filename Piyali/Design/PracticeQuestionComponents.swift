@@ -63,3 +63,17 @@ struct PracticeFeedbackMarkdown:View {
         }}.accessibilityElement(children:.combine).accessibilityAddTraits(.isStaticText)
     }
 }
+
+struct PracticeSpeakerIcon:View {
+    var loading=false
+    var name="PiSpeakerHighDuotone"
+    var size:CGFloat=18
+    var body:some View{Group{if loading{PracticeAudioSpinner()}else{PracticeIcon(name:name,size:size)}}.frame(width:size,height:size)}
+}
+
+/// Original Chakra xs spinner: 12-point outer diameter, two-point half ring, 0.45-second turn.
+struct PracticeAudioSpinner:View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var rotating=false
+    var body:some View{Circle().trim(from:0,to:0.5).stroke(style:StrokeStyle(lineWidth:2,lineCap:.butt)).frame(width:10,height:10).rotationEffect(.degrees(rotating ? 360:0)).frame(width:12,height:12).animation(reduceMotion ? nil:.linear(duration:0.45).repeatForever(autoreverses:false),value:rotating).onAppear{rotating = !reduceMotion}.onChange(of:reduceMotion){_,reduced in rotating = !reduced}.accessibilityHidden(true)}
+}
