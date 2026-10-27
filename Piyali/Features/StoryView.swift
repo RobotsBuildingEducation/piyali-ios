@@ -8,7 +8,7 @@ struct StoryView:View {
     @Environment(\.scenePhase) private var phase
     @StateObject private var service=StoryService()
     @StateObject private var audio=StoryPlaybackService()
-    @StateObject private var speech=SpeechService()
+    @StateObject private var speech=StorySpeechController()
     let lesson:Lesson?
     var onComplete:(()->Void)? = nil
     var embedded=false
@@ -20,9 +20,6 @@ struct StoryView:View {
     @State private var translations=Set<String>()
     @State private var translating=Set<String>()
     @State private var roleResult:StorySpeechResult?
-    @State private var recording:StoryRecordingContext?
-    @State private var fixtureRecording=false
-    @State private var fixtureAttempt=0
     private var hasAccess:Bool { app.subscription.hasAccess || StoryService.fixtureMode != nil }
     @State private var active=false
     @State private var autoplayKey:String?
@@ -33,7 +30,7 @@ struct StoryView:View {
     private var mode:StoryMode? { StoryService.fixtureMode ?? (content["topic"].string == "tutorial" ? .speaking : StoryMode(rawValue:content["storyMode"].string)) ?? chosen ?? saved?.mode }
     private var run:StoryRun? { guard let saved,saved.mode == mode,saved.id == service.activeRunID else { return nil };return saved }
     private var scope:String { [app.identity.npub,app.learner.target,app.learner.support,app.learner.level,lesson?.id ?? "free",(try? StoryService.contextID(lesson,learnerLevel:app.learner.level)) ?? "invalid",mode?.rawValue ?? "pending",String(refresh)].joined(separator:"|") }
-    private var recordingNow:Bool { fixtureRecording || speech.recording }
+    private var recordingNow:Bool { speech.recorder.recording }
     private func t(_ key:String)->String { appearance.text(key,language:app.learner.support) }
     private var narrationUser:JSONValue { app.learner.settingsSnapshot.setting("name",.string(app.learner.name)) }
     private func ui(_ key:String)->String { EntryCopy.ui(app.learner.support,key) }
@@ -53,7 +50,7 @@ struct StoryView:View {
                 else if let run { autoplaySentence(run) }
             }
             .onAppear { active=true }
-            .onChange(of:speech.recording) { previous,value in if active,phase == .active,previous,!value { evaluateRecording(words:speech.transcript,confidence:speech.confidence,metrics:speech.audioMetrics) } }
+            .onChange(of:hasAccess){_,access in if !access{stop()}}
             .onChange(of:phase) { _,value in if value == .background { stop();service.cancel() } else if value == .active,active,service.activeRunID == nil { refresh += 1 } }
             .onDisappear { active=false;stop();service.cancel() }
     }
@@ -75,7 +72,7 @@ struct StoryView:View {
                             if audio.phase == .failed || audio.previewError { Text(t("audioError")).font(PiyaliBrand.productFont(14)).foregroundStyle(brand.questionError).accessibilityIdentifier("storyAudioError") }
                         } else { VStack(spacing:14) { ProgressView();Text(t("loading")).accessibilityIdentifier("storyLoading");Text(t("loadingSub")).font(PiyaliBrand.productFont(13)).foregroundStyle(brand.muted) }.frame(maxWidth:.infinity,minHeight:260) }
                         if let error=service.error { Text(error).font(PiyaliBrand.productFont(14)).foregroundStyle(brand.questionError) }
-                        if let error=speech.error { Text(error).font(PiyaliBrand.productFont(14)).foregroundStyle(brand.questionError) }
+                        if let error=speech.recorder.error { Text(speechError(error)).font(PiyaliBrand.productFont(14)).foregroundStyle(brand.questionError).accessibilityIdentifier("storyRecordingError") }
                     }.padding(.horizontal,12).padding(.vertical,8).padding(.bottom,18).frame(maxWidth:760).frame(maxWidth:.infinity)
                 }.onChange(of:run?.index) { _,_ in withAnimation { reader.scrollTo("story-current",anchor:.top) };if let run { autoplaySentence(run) } }
                 Color.clear.frame(height:app.activityFooterHeight)
@@ -190,7 +187,7 @@ struct StoryView:View {
         panel { VStack(alignment:.leading,spacing:12) { Text(t("complete")).font(PiyaliBrand.productFont(20,700)).accessibilityIdentifier("storyCompleted");Text("\(run.earnedXP) \(t("xp"))");Button(t("back")) { newStory() }.buttonStyle(ActivityPrimaryButtonStyle(tone:"success")) } }
     }
     private var feedbackCorrect:Bool? { (run?.mode == .speaking ? run?.speechResult : roleResult)?.pass ?? run?.result }
-    private var footerRevision:String { [scope,run?.id.uuidString ?? "",String(run?.index ?? 0),String(describing:run?.result),String(describing:run?.speechResult),String(describing:roleResult),String(run?.completed ?? false),run?.answers[String(run?.index ?? 0)]?.description ?? "",String(run?.heard.contains(run?.index ?? 0) ?? false),audio.phase.rawValue,String(audio.previewError),String(audio.roleIndex ?? -1),String(recordingNow),String(service.busy),service.error ?? ""].joined(separator:"|") }
+    private var footerRevision:String { [scope,String(describing:phase),String(active),run?.id.uuidString ?? "",String(run?.index ?? 0),String(describing:run?.result),String(describing:run?.speechResult),String(describing:roleResult),String(run?.completed ?? false),run?.answers[String(run?.index ?? 0)]?.description ?? "",String(run?.heard.contains(run?.index ?? 0) ?? false),audio.phase.rawValue,String(audio.previewError),String(audio.roleIndex ?? -1),String(recordingNow),String(speech.recorder.connecting),String(speech.recorder.evaluating),speech.recorder.error ?? "",String(service.busy),service.error ?? ""].joined(separator:"|") }
     private var footer:some View {
         let result=run?.mode == .speaking ? run?.speechResult : roleResult
         return ActivityFooterSurface(hasFeedback:result != nil || run?.result != nil,feedback:{
@@ -217,7 +214,7 @@ struct StoryView:View {
     @ViewBuilder private func primary(_ run:StoryRun)->some View {
         if run.mode == .speaking,run.speechResult?.pass == false {
             skip
-            Button { update { $0.speechResult=nil;$0.lastWords="" };record(run) } label:{ Label(t("record"),systemImage:"mic.fill") }.buttonStyle(ActivityPrimaryButtonStyle(tone:"stop")).accessibilityIdentifier("storyRecord")
+            Button { update { $0.speechResult=nil;$0.lastWords="" };record(run) } label:{ StoryRecordLabel(recorder:speech.recorder,speaking:true,record:t("record"),connecting:t("connectingMic")) }.buttonStyle(ActivityPrimaryButtonStyle(tone:"stop")).disabled(speech.recorder.connecting || speech.recorder.evaluating).accessibilityLabel(t("record")).accessibilityIdentifier("storyRecord")
         } else if let verdict=run.mode == .speaking ? run.speechResult : roleResult {
             Button(run.mode == .speaking && verdict.pass ? ui(run.index == run.count-1 ? "stories_finish" : "stories_next_sentence") : t(verdict.pass ? "next" : "retry")) { if verdict.pass { if run.mode == .speaking { advance(run) } else { roleResult=nil;audio.continueSpeech() } } else { if run.mode == .speaking { update { $0.speechResult=nil;$0.lastWords="" } } else { roleResult=nil } } }.buttonStyle(ActivityPrimaryButtonStyle(tone:verdict.pass ? "success" : "stop")).accessibilityIdentifier(verdict.pass ? "storyNext" : "storySpeechRetry")
         } else if run.result != nil {
@@ -227,7 +224,7 @@ struct StoryView:View {
         } else {
             skip
             if run.mode == .speaking || audio.phase == .awaitingSpeech {
-                Button { record(run) } label:{ if recordingNow { Image(systemName:"waveform").accessibilityLabel(t("stopRecording")) } else { Label(t("record"),systemImage:"mic.fill") } }.buttonStyle(ActivityPrimaryButtonStyle(tone:"speak")).accessibilityIdentifier("storyRecord")
+                Button { record(run) } label:{ StoryRecordLabel(recorder:speech.recorder,speaking:run.mode == .speaking,record:t("record"),connecting:t("connectingMic")) }.buttonStyle(ActivityPrimaryButtonStyle(tone:"speak")).disabled(speech.recorder.connecting || speech.recorder.evaluating).accessibilityLabel(t("record")).accessibilityValue(speech.recorder.connecting ? t("connectingMic"):recordingNow ? t("stopRecording"):"").accessibilityIdentifier("storyRecord")
             } else if run.heard.contains(run.index) {
                 Button(t("check")) { audio.cancel();update { $0.check() } }.buttonStyle(ActivityPrimaryButtonStyle()).disabled(!run.readyToCheck).accessibilityIdentifier("storyCheck")
             } else {
@@ -245,7 +242,7 @@ struct StoryView:View {
     }
     private func startPlayback(_ run:StoryRun,replay:Bool=false) {
         guard hasAccess else { return }
-        recording=nil;fixtureRecording=false;speech.stopAll();roleResult=nil
+        speech.cancel();roleResult=nil
         guard let segment=run.currentSegment else { return };let account=app.identity.npub
         audio.start(segment.turns,language:run.target,learnerName:app.learner.name,replay:replay,user:narrationUser) {
             guard app.identity.npub == account,app.learner.story?.id == run.id,app.learner.story?.index == run.index else { return };update { $0.heard.insert(run.index) }
@@ -259,29 +256,20 @@ struct StoryView:View {
     }
     private func finish() { guard hasAccess else { stop();return };stop();_=app.learner.finishStory();app.persist();if let onComplete { onComplete();if !embedded { dismiss() } } else { newStory() } }
     private func newStory() { stop();chosen=(mode ?? .speaking).next(content:content,random:Double.random(in:0..<1));refresh += 1 }
-    private func record(_ run:StoryRun) {
-        guard hasAccess else { stop();return }
-        if recordingNow {
-            if fixtureRecording {
-                fixtureRecording=false
-                let entries=ProcessInfo.processInfo.environment["PIYALI_STORY_SPEECH_RESULTS"]?.split(separator:",").map(String.init) ?? []
-                let sequence=entries.isEmpty ? ["pass"] : entries
-                let passed=sequence[min(fixtureAttempt,sequence.count-1)] != "miss";fixtureAttempt += 1
-                evaluateRecording(words:passed ? recording?.target ?? "" : "wrong phrase",confidence:0.9,metrics:nil)
-            } else { speech.stop() }
-            return
+    private func record(_ run:StoryRun){
+        guard hasAccess else{stop();return}
+        if recordingNow{speech.stop();return};guard !speech.recorder.connecting,!speech.recorder.evaluating else{return}
+        let role=run.mode == .speaking ? nil:audio.roleIndex,target=run.mode == .speaking ? run.currentSentence?.target:audio.currentTurn?.target
+        guard let target,!target.isEmpty else{return};audio.stopPreview();roleResult=nil
+        speech.start(app,run:run,target:target,role:role,allowed:{active && phase == .active && hasAccess && (run.mode == .speaking || audio.phase == .awaitingSpeech && audio.roleIndex == role)}){metadata in
+            if run.mode == .speaking{_=app.learner.practiceStoryLine(words:metadata["recognizedText"].string,confidence:metadata["confidence"].number,audio:nil);app.persist()}
+            else{roleResult=StorySpeech.evaluate(recognized:metadata["recognizedText"].string,target:target,lang:run.target,confidence:metadata["confidence"].number,audio:nil)}
         }
-        let target=run.mode == .speaking ? run.currentSentence?.target : audio.currentTurn?.target
-        guard let target,!target.isEmpty else { return };audio.stopPreview()
-        recording = .init(runID:run.id,index:run.index,role:run.mode == .speaking ? nil : audio.roleIndex,target:target)
-        if StoryService.fixtureMode != nil { fixtureRecording=true }
-        else { Task { await speech.start(language:run.target) } }
     }
-    private func evaluateRecording(words:String,confidence:Double,metrics:SpeechAudioMetrics?) {
-        guard hasAccess,let context=recording,let run,context.runID == run.id,context.index == run.index,active,phase == .active else { return };recording=nil
-        guard !words.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else { return }
-        if run.mode == .speaking { _=app.learner.practiceStoryLine(words:words,confidence:confidence,audio:metrics);app.persist() }
-        else if audio.phase == .awaitingSpeech,audio.roleIndex == context.role { roleResult=StorySpeech.evaluate(recognized:words,target:context.target,lang:run.target,confidence:confidence,audio:metrics) }
+    private func speechError(_ code:String)->String{
+        if code == "mic-denied"{return t("micDenied")}
+        let kind=code == "no-speech" ? "no_speech":code.hasPrefix("connection-") ? "connection":code == "transcription-failed" ? "transcription":"recording"
+        return ui("speech_"+kind+"_error_desc")
     }
     private func translate(_ turn:StoryTurn,run:StoryRun,key:String) {
         guard hasAccess else { return }
@@ -290,9 +278,8 @@ struct StoryView:View {
         translating.insert(key);let account=app.identity.npub
         Task { defer { translating.remove(key) };do { let value=try await app.ai.conversationTranslation(turn.target,support:run.support);guard app.identity.npub == account,app.learner.story?.id == run.id else { return };update { $0.translations[key]=value } } catch { service.error=error.localizedDescription } }
     }
-    private func stop() { recording=nil;fixtureRecording=false;speech.stopAll();audio.cancel() }
+    private func stop() { speech.cancel();audio.cancel() }
 }
-private struct StoryRecordingContext { let runID:UUID;let index:Int;let role:Int?;let target:String }
 private struct StoryRadioSignal:View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     var active:Bool

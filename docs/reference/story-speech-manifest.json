@@ -1,0 +1,34 @@
+{
+  "sources": [
+    {
+      "file": "src/components/Stories.jsx",
+      "sha256": "98a951b5e2de6f075b89da93dc99c4c8bfeee5fecd4cb365df2906be4302238c"
+    },
+    {
+      "file": "src/features/stories/StoryComprehension.jsx",
+      "sha256": "05a735aa10caaf25c8e1ea9fad02f29e23d912148e58c6e1a9bed4c2efeff328"
+    },
+    {
+      "file": "src/hooks/useSpeechPractice.js",
+      "sha256": "22b8562a05705b4c1df72f4ed5c2e466c947d95385dfe74c5a803af37ceb8099"
+    },
+    {
+      "file": "src/App.jsx",
+      "sha256": "eb7e06e1422cac6d205059dc92d68370bec40c1009c1a316f0c2d3eb5f325fd6"
+    }
+  ],
+  "cases": 275,
+  "speakingOptions": "{targetText: currentSentence?.tgt || \"\",targetLang,timeoutMs: pauseMs}",
+  "conversationOptions": "{targetText: awaitingSpeech ? currentTurn?.target : \"\",transcriptionHint: awaitingSpeech ? currentTurn?.target : \"\",targetLang}",
+  "rootPause": "user?.progress?.pauseMs ?? DEFAULT_VOICE_PAUSE_MS",
+  "hookDefaults": {
+    "targetLang": "\"es\"",
+    "transcriptionHint": "\"\"",
+    "timeoutMs": "15000",
+    "maxConnectionMs": "10000",
+    "vadSilenceDurationMs": "null",
+    "speechStopDelayMs": "1500",
+    "responseDoneDelayMs": "500"
+  },
+  "adapters": "Original useSpeech/useSpeechPractice caller option expressions, App StoryMode pause expression/default and hook completion report object. Only onResult closures are excluded; explicit mode/turn/user/language inputs replace component state. Hooks, providers, microphone and learner stores never execute."
+}

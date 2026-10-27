@@ -9,13 +9,13 @@ import XCTest
             if element.exists,element.isHittable,!covered { break }
             if element.exists,element.frame.minY < app.frame.minY+90 { app.swipeDown(velocity:.slow) } else { app.swipeUp(velocity:.slow) }
         }
-        XCTAssertTrue(element.waitForExistence(timeout:10));XCTAssertTrue(element.isHittable)
+        XCTAssertTrue(element.waitForExistence(timeout:10));XCTAssertTrue(element.isHittable,app.debugDescription)
     }
     private func tap(_ id:String,_ app:XCUIApplication) { let button=app.buttons[id];reveal(button,app);button.tap() }
-    private func start(_ mode:String,role:Bool=false,failure:Bool=false,theme:String="light",delay:Bool=false,narration:Bool=false)->XCUIApplication {
+    private func start(_ mode:String,role:Bool=false,failure:Bool=false,theme:String="light",delay:Bool=false,narration:Bool=false,speechDelay:Bool=false,denied:Bool=false,auto:Bool=false)->XCUIApplication {
         continueAfterFailure=false
         let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString;app.launchEnvironment["PIYALI_STORY_FIXTURE"]=mode;app.launchEnvironment["PIYALI_PRACTICE_FIXTURE"]="delight:natural_or_weird";app.launchEnvironment["PIYALI_READING_FIXTURE"]="1";app.launchEnvironment["PIYALI_STORY_SPEECH_RESULTS"]="miss,pass,pass,pass"
-        if narration{app.launchEnvironment["PIYALI_STORY_NARRATION_FIXTURE"]="1" };if delay { app.launchEnvironment["PIYALI_STORY_GENERATION_DELAY_MS"]="8000" }
+        if narration{app.launchEnvironment["PIYALI_STORY_NARRATION_FIXTURE"]="1" };if speechDelay{app.launchEnvironment["PIYALI_STORY_SPEECH_OPEN_DELAY_MS"]="2000"};if denied{app.launchEnvironment["PIYALI_STORY_SPEECH_DENIED"]="1"};if auto{app.launchEnvironment["PIYALI_STORY_SPEECH_AUTOFINISH"]="1";app.launchEnvironment["PIYALI_STORY_SPEECH_RESULTS"]="pass"};if delay { app.launchEnvironment["PIYALI_STORY_GENERATION_DELAY_MS"]="8000" }
         if role { app.launchEnvironment["PIYALI_STORY_LEARNER_CAST"]="1" };if failure { app.launchEnvironment["PIYALI_STORY_AUDIO_FAIL_FIRST"]="1" }
         app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme",theme];app.launch()
         let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Story Learner");if app.buttons["entryKeyboardDone"].exists { app.buttons["entryKeyboardDone"].tap() };app.buttons["createAccount"].tap()
@@ -35,6 +35,17 @@ import XCTest
         // The current source header therefore exposes their exact awarded XP as a percent.
         let status=app.descendants(matching:.any).matching(identifier:"dailyXPStatus").firstMatch
         XCTAssertTrue(status.waitForExistence(timeout:5));XCTAssertEqual(status.value as? String,"\(amount)%")
+    }
+    func testConnectingCaptureCanBeCancelledByBackgroundThenRetriedWithoutCredit() {
+        let app=start("speaking",narration:true,speechDelay:true);tap("storyRecord",app);XCTAssertFalse(app.buttons["storyRecord"].isEnabled);XCTAssertEqual(app.buttons["storyRecord"].value as? String,"Connecting");photo("Native Story microphone connecting",app)
+        XCUIDevice.shared.press(.home);app.activate();XCTAssertTrue(app.buttons["storyRecord"].waitForExistence(timeout:10));XCTAssertTrue(app.buttons["storyRecord"].isEnabled);XCTAssertFalse(app.staticTexts["storySpeechFeedback"].exists);xp(0,app)
+        tap("storyRecord",app);let ready=XCTNSPredicateExpectation(predicate:NSPredicate(format:"enabled == true"),object:app.buttons["storyRecord"]);XCTAssertEqual(XCTWaiter.wait(for:[ready],timeout:6),.completed);tap("storyRecord",app);XCTAssertTrue(app.staticTexts["storySpeechFeedback"].waitForExistence(timeout:5),app.debugDescription);XCTAssertTrue(app.staticTexts["storySpeechFeedback"].label.contains("Try again"));xp(0,app)
+    }
+    func testDeniedMicrophoneHasOriginalGuidanceAndNoResultOrReward() {
+        let app=start("speaking",narration:true,denied:true);tap("storyRecord",app);XCTAssertTrue(app.staticTexts["storyRecordingError"].waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts["storyRecordingError"].label.contains("Allow microphone access"));XCTAssertFalse(app.staticTexts["storySpeechFeedback"].exists);XCTAssertTrue(app.buttons["storyRecord"].isEnabled);xp(0,app);photo("Native Story denied microphone",app)
+    }
+    func testCompletedTranscriptionAutomaticallyGradesWithoutAnExtraStopTap() {
+        let app=start("speaking",narration:true,auto:true);tap("storyRecord",app);XCTAssertTrue(app.staticTexts["storySpeechXP"].waitForExistence(timeout:8));XCTAssertEqual(app.staticTexts["storySpeechXP"].label,"+2 XP");XCTAssertFalse(app.buttons["storyRecord"].exists);xp(2,app);photo("Native Story automatic completed-transcript grade",app)
     }
     func testBackgroundedGenerationRestartsAndReturnsToExplicitRecording() {
         let app=start("speaking",delay:true)

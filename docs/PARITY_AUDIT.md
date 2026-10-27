@@ -50,3 +50,5 @@ Capture the reference at iPhone dimensions, list its visible controls and transi
 ## External release setup
 
 The independent Firebase project and Cloudflare worker are provisioned. Apple release signing/App Attest, App Store Connect products, paid-member restoration and physical-device audio remain release/verification requirements, separate from the missing product parity above.
+
+Stories now use the original Realtime transcription options and completed-transcript metadata, with native readiness/cancellation controls and scoped live prerecorded-ASR verification. See [Story speech](STORY_SPEECH.md); physical microphone routes, full feedback/toast/motion design and the wider Story gaps remain open.

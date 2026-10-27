@@ -73,7 +73,8 @@ struct PracticeSpeakerIcon:View {
 
 /// Original Chakra xs spinner: 12-point outer diameter, two-point half ring, 0.45-second turn.
 struct PracticeAudioSpinner:View {
+    var size:CGFloat=12
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var rotating=false
-    var body:some View{Circle().trim(from:0,to:0.5).stroke(style:StrokeStyle(lineWidth:2,lineCap:.butt)).frame(width:10,height:10).rotationEffect(.degrees(rotating ? 360:0)).frame(width:12,height:12).animation(reduceMotion ? nil:.linear(duration:0.45).repeatForever(autoreverses:false),value:rotating).onAppear{rotating = !reduceMotion}.onChange(of:reduceMotion){_,reduced in rotating = !reduced}.accessibilityHidden(true)}
+    var body:some View{Circle().trim(from:0,to:0.5).stroke(style:StrokeStyle(lineWidth:2,lineCap:.butt)).frame(width:size-2,height:size-2).rotationEffect(.degrees(rotating ? 360:0)).frame(width:size,height:size).animation(reduceMotion ? nil:.linear(duration:0.45).repeatForever(autoreverses:false),value:rotating).onAppear{rotating = !reduceMotion}.onChange(of:reduceMotion){_,reduced in rotating = !reduced}.accessibilityHidden(true)}
 }

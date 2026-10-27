@@ -13,6 +13,7 @@ import Security
     /// Recovery is restricted to a recently created QA identity whose key still exists
     /// in this simulator's explicitly isolated test namespace. No key is logged.
     func testCleanupExpiredIsolatedLiveIdentityWithFreshAuthentication()async throws {
+        if let token=ProcessInfo.processInfo.environment["TEST_RUNNER_FIRAAppCheckDebugToken"]{setenv("FIRAAppCheckDebugToken",token,1)};FirebaseConfiguration.shared.setLoggerLevel(.error)
         let env=ProcessInfo.processInfo.environment
         guard env["PIYALI_LIVE_API_TESTS"] == "1",env["PIYALI_OFFLINE_TESTS"] == "1",env["PIYALI_RECOVER_EXPIRED_TEST_IDENTITY"] == "1",let original=env["PIYALI_TEST_IDENTITY_SCOPE"],UUID(uuidString:original) != nil else{throw XCTSkip("Explicit isolated recovery required")}
         if FirebaseApp.app() == nil{AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure()};XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
@@ -27,12 +28,33 @@ import Security
         setenv("PIYALI_TEST_IDENTITY_SCOPE",scope,1);defer{setenv("PIYALI_TEST_IDENTITY_SCOPE",original,1)}
         let identity=IdentityService();XCTAssertEqual(identity.npub,user.uid);guard identity.npub == user.uid else{return}
         try await deleteLiveTestIdentity(identity);XCTAssertNil(Auth.auth().currentUser);XCTAssertTrue(identity.npub.isEmpty)
-        print("LIVE ORAL CLEANUP: restored only the matching recent isolated QA identity, obtained a fresh signed Firebase session, deleted Auth identity and removed its local key.")
+        print("LIVE ISOLATED CLEANUP: restored only the matching recent isolated QA identity, obtained a fresh signed Firebase session, deleted Auth identity and removed its local key.")
     }
     private func deleteLiveTestIdentity(_ identity:IdentityService)async throws {
         // Streaming checks may exceed Firebase's recent-login window.
         FirebaseIdentityService.shared.clearSession();try await FirebaseIdentityService.shared.ensure(identity)
         try await Auth.auth().currentUser?.delete();FirebaseIdentityService.shared.clearSession();try identity.disconnect()
+    }
+    func testStoryCaptureTranscribesAPublicRecordingWithoutMicrophoneInput()async throws{
+        if let token=ProcessInfo.processInfo.environment["TEST_RUNNER_FIRAAppCheckDebugToken"]{setenv("FIRAAppCheckDebugToken",token,1)};FirebaseConfiguration.shared.setLoggerLevel(.error)
+        let env=ProcessInfo.processInfo.environment;guard env["PIYALI_LIVE_API_TESTS"] == "1",env["PIYALI_OFFLINE_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Explicit isolated live opt-in required")}
+        if FirebaseApp.app() == nil{AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure()};XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let app=AppModel(progressService:StorySpeechNoCloud());try app.identity.create();app.signedIn=true;app.learner=LearnerState();app.learner.name="Alicia";app.learner.target="es";app.learner.support="en";app.learner.level="A1"
+        do{try await FirebaseIdentityService.shared.ensure(app.identity);let url=try XCTUnwrap(Bundle(for:Self.self).url(forResource:"story-speech-spanish",withExtension:"wav")),wav=try Data(contentsOf:url),target="Me llamo Ana y vivo con mi familia.";var evidence:[[String:Any]]=[]
+            for mode in[StoryMode.speaking,.conversation]{let transport=try PrerecordedStoryTransport(wav:wav),controller=StorySpeechController(recorder:SpeechPracticeService(transportFactory:{transport},permission:{true}));defer{controller.cancel()}
+                let payload:Piyali.JSONValue
+                if mode == .speaking{payload = .object(["title":.string("Public transcription check"),"sentences":.array([.object(["speaker":.string("Ana"),"target":.string(target)]),.object(["speaker":.string("Luis"),"target":.string("Hola, Ana.")])])])}
+                else{var episode=try ContentLibrary.load(Piyali.JSONValue.self,name:"story-test-episode");episode=episode.setting("segments",.array(episode["segments"].array.map{segment in segment.setting("turns",.array(segment["turns"].array.map{$0["speaker"].string == "Luis" ? $0.setting("speaker",.string("You")).setting("target",.string(target)):$0}))}));payload=episode}
+                let run=try StoryRun(payload:payload,mode:mode,target:"es",support:"en",level:"A1",lessonID:nil,worth:ConversationPractice.worth(rating:0,level:"A1"),tutorial:true);app.learner.saveStory(run);let role=mode == .speaking ? nil:run.currentSegment?.turns.firstIndex(where:{$0.speaker == "You"});var metadata:Piyali.JSONValue?
+                controller.start(app,run:run,target:target,role:role,allowed:{true}){metadata=$0}
+                for _ in 0..<380 where metadata == nil && controller.recorder.error == nil{try await Task.sleep(for:.milliseconds(100))}
+                XCTAssertNil(controller.recorder.error,"Events: \(transport.eventTypes.suffix(12)); codes: \(transport.errorCodes)");let result=try XCTUnwrap(metadata),verdict=StorySpeech.evaluate(recognized:result["recognizedText"].string,target:target,lang:"es",confidence:result["confidence"].number,audio:nil)
+                XCTAssertTrue(verdict.pass,result["recognizedText"].string);XCTAssertEqual(result["confidence"].number,0.9);XCTAssertEqual(result["audioMetrics"],.null);XCTAssertGreaterThan(transport.sentAudioBytes,0);XCTAssertEqual(app.learner.totalXP,0)
+                evidence.append(["mode":mode.rawValue,"target":target,"transcript":result["recognizedText"].string,"confidence":result["confidence"].number,"pass":verdict.pass,"sentAudioBytes":transport.sentAudioBytes,"events":transport.eventTypes,"errorCodes":transport.errorCodes,"ambientMicrophoneCapture":false])
+            }
+            let attachment=XCTAttachment(data:try JSONSerialization.data(withJSONObject:evidence,options:[.prettyPrinted,.sortedKeys]),uniformTypeIdentifier:"public.json");attachment.name="Public Story prerecorded transcription evidence";attachment.lifetime = .keepAlways;add(attachment)
+        }catch{try? await deleteLiveTestIdentity(app.identity);throw error}
+        try await deleteLiveTestIdentity(app.identity)
     }
     func testReadingAndCharacterStoryNarrationReceiveOriginalVoiceAudio()async throws{
         let env=ProcessInfo.processInfo.environment;guard env["PIYALI_LIVE_API_TESTS"] == "1",env["PIYALI_OFFLINE_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Explicit isolated live opt-in required")}
