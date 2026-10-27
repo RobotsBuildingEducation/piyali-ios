@@ -516,6 +516,24 @@ import NostrSDK
         }catch{try? await Auth.auth().currentUser?.delete();FirebaseIdentityService.shared.clearSession();try? identity.disconnect();throw error}
         try await Auth.auth().currentUser?.delete();FirebaseIdentityService.shared.clearSession();try identity.disconnect()
     }
+    func testOriginalRPGTranslationStreamsSentenceAndChoiceLinesThroughFirebase()async throws{
+        let env=ProcessInfo.processInfo.environment;guard env["PIYALI_LIVE_API_TESTS"] == "1"else{throw XCTSkip("Explicit live opt-in required")};XCTAssertEqual(env["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))
+        if FirebaseApp.app() == nil{AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure()};XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let identity=IdentityService();try identity.create();try await FirebaseIdentityService.shared.ensure(identity)
+        do{
+            let library=try ContentLibrary.load(RPGLibrary.self,name:"rpg-es"),review=try XCTUnwrap(library.reviews["unit-pre-a1-people-game"]);var scenario=try XCTUnwrap(review.bySupport["ar"])
+            scenario.quest.steps[0].nodes[0].npcLine="Mi hermana vive aquí. Mi hermano vive allí.";scenario.quest.steps[0].nodes[0].choices=[RPGChoice(text:"hermana",correct:true),RPGChoice(text:"hermano",correct:false),RPGChoice(text:"amiga",correct:false)]
+            let run=RPGRun(target:"es",support:"ar",lessonID:"unit-pre-a1-people-game",xpReward:30,scenario:scenario,world:try XCTUnwrap(library.worlds[scenario.worldKey])),controller=RPGTranslationController(),ai=AIService();var chunks=0
+            controller.configure(key:identity.npub+":live",parameters:try RPGDialoguePolicy.parameters(run,continueLabel:"Continue"),isCurrent:{true})
+            controller.toggle(provider:.init(stream:{prompt,update in try await ai.rpgTranslationStream(prompt){chunk in chunks+=1;update(chunk)}}))
+            for _ in 0..<800 where controller.busy{try await Task.sleep(for:.milliseconds(100))}
+            XCTAssertFalse(controller.busy);XCTAssertGreaterThan(chunks,0);XCTAssertEqual(controller.lines?.count,2);XCTAssertEqual(controller.choices?.count,3)
+            XCTAssertTrue(controller.plan?.prompt.contains("Egyptian Arabic") == true);XCTAssertTrue(FirebaseService.shared.configured)
+            for text in (controller.lines ?? [])+(controller.choices ?? []){XCTAssertFalse(text.isEmpty);XCTAssertNotNil(text.range(of:"[\\u0600-\\u06ff]",options:.regularExpression),text)}
+            XCTAssertTrue(controller.active);controller.reset();print("LIVE RPG TRANSLATION: original prompt and Firebase stream filled two Arabic sentence and three choice slots; no progress or rewards written")
+        }catch{try? await Auth.auth().currentUser?.delete();FirebaseIdentityService.shared.clearSession();try? identity.disconnect();throw error}
+        try await Auth.auth().currentUser?.delete();FirebaseIdentityService.shared.clearSession();try identity.disconnect()
+    }
     func testNativeRPGStoryAndRoleplayUseTheAuthoredChapter() async throws {
         guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else { throw XCTSkip("Explicit live API opt-in required.") }
         XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))

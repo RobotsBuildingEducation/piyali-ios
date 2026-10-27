@@ -38,12 +38,17 @@ struct RPGView:View {
     var onTutorialComplete:(()->Void)?=nil,onTutorComplete:(()->Void)?=nil,onReviewComplete:(()->Void)?=nil
     var tutor=false,embedded=false
     var initialPanel=""
+    var translationProvider:RPGTranslationProvider?
     @StateObject private var service=RPGService()
     @StateObject private var speech=SpeechService()
     @StateObject private var narration=RealtimeNarrationService()
     @StateObject private var music=RPGMusicPlayer()
     @StateObject private var observations=RPGObjectController()
     @StateObject private var help=HelpChatController()
+    @StateObject private var translations=RPGTranslationController()
+    init(lesson:Lesson?,episode:String?,onTutorialComplete:(()->Void)?=nil,onTutorComplete:(()->Void)?=nil,onReviewComplete:(()->Void)?=nil,tutor:Bool=false,embedded:Bool=false,initialPanel:String="",translationController:RPGTranslationController?=nil,translationProvider:RPGTranslationProvider?=nil){
+        self.lesson=lesson;self.episode=episode;self.onTutorialComplete=onTutorialComplete;self.onTutorComplete=onTutorComplete;self.onReviewComplete=onReviewComplete;self.tutor=tutor;self.embedded=embedded;self.initialPanel=initialPanel;self.translationProvider=translationProvider;_translations=StateObject(wrappedValue:translationController ?? RPGTranslationController())
+    }
     @AppStorage("piyali.rpgCompanion") private var selectedPet=""
     @State private var dialogueContentHeight:CGFloat=0
     @State private var displayedRunID:UUID?
@@ -51,11 +56,9 @@ struct RPGView:View {
     @State private var speechReplyToken=UUID()
     @State private var typedReply=false
     @State private var showExample=false
-    @State private var translating=false
     @State private var speechArmed=false
     @State private var answer=""
     @State private var panel=""
-    @State private var translation:[String]=[]
     @FocusState private var focused:Bool
     private var run:RPGRun?{guard let value=app.learner.rpgRuns?[app.learner.target],value.support == app.learner.support,(value.tutor == true) == tutor,value.lessonID == lesson?.id,episode == nil || value.scenario.authoredEpisode.id == episode,!(value.completed && value.claimed && value.id != displayedRunID) else{return nil};return value}
     private var scope:String{[app.identity.npub,app.learner.target,app.learner.support,tutor ? app.learner.tutorLevel:app.learner.level].joined(separator:":")}
@@ -72,11 +75,12 @@ struct RPGView:View {
             .toolbar(.hidden,for:.navigationBar).statusBarHidden(!embedded).ignoresSafeArea(.container)
             .task(id:scope){stop();displayedRunID=nil;panel=initialPanel;talking=false;await service.prepare(app,lesson:lesson,episode:episode,tutor:tutor);displayedRunID=run?.id;configureObjects();startMusic()}
             .onChange(of:run?.id){_,value in if let value{displayedRunID=value};configureObjects()}
+            .onChange(of:dialogueKey){_,_ in configureDialogue()}
             .onChange(of:run?.completed){_,completed in if completed == true{music.stop()}}
             .onChange(of:speech.transcript){_,text in answer=text}
             .onChange(of:speech.recording){old,value in if old && !value,speechArmed,talking,!answer.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty{sendSpeech()}}
-            .onChange(of:phase){_,value in if value != .active{stop(clearObservations:false)}else{configureObjects();startMusic()}}
-            .onChange(of:app.subscription.hasAccess){_,allowed in if !allowed{stop()}else{configureObjects();startMusic()}}
+            .onChange(of:phase){_,value in if value != .active{stop(clearObservations:false)}else{configureObjects();configureDialogue();startMusic()}}
+            .onChange(of:app.subscription.hasAccess){_,allowed in if !allowed{stop()}else{configureObjects();configureDialogue();startMusic()}}
             .onDisappear{stop()}
             .toolbar{ToolbarItemGroup(placement:.keyboard){Spacer();Button("Done"){focused=false}.accessibilityIdentifier("rpgKeyboardDone")}}
             .overlay{if panel == "help"{HelpChatView(controller:help,progress:.object(["targetLang":.string(app.learner.target),"supportLang":.string(app.learner.support)]),onClose:{panel=""})}}
@@ -131,17 +135,25 @@ struct RPGView:View {
         VStack(spacing:0){
             HStack(spacing:8){dialoguePortrait(run.npc);Text(run.npc?.name ?? "").font(PiyaliBrand.productFont(14,700));if run.resolved{Image(systemName:"checkmark.circle.fill").foregroundStyle(PiyaliBrand.unitColor("48bb78"))}else if run.attempts>0{Image(systemName:"exclamationmark.circle.fill").foregroundStyle(PiyaliBrand.unitColor("ed8936"))};Spacer()}.padding(.leading,8).padding(.trailing,32).frame(height:100).background(light ? PiyaliBrand.unitColor("f9f0dd").opacity(0.94):PiyaliBrand.unitColor("fffaf0")).overlay(alignment:.bottom){Rectangle().fill(border.opacity(0.45)).frame(height:1)}.overlay(alignment:.topTrailing){Button{closeDialogue()}label:{Image(systemName:"xmark").font(.system(size:10,weight:.semibold)).foregroundStyle(PiyaliBrand.unitColor(light ? "8a745c":"4a5568")).frame(width:24,height:24)}.accessibilityLabel(t("closeDialogue")).accessibilityIdentifier("rpgCloseDialogue").padding(8)}
             ScrollView {VStack(alignment:.leading,spacing:8){
-                HStack{Spacer();Button{translate(run,node:node)}label:{if translating{ProgressView().scaleEffect(0.7)}else{Group{if translation.isEmpty{RPGArt.shared.image("RPGIconHelp").renderingMode(.template).resizable().frame(width:14,height:14)}else{Image(systemName:"arrow.uturn.backward").font(.system(size:14))}}.foregroundStyle(PiyaliBrand.unitColor(translation.isEmpty ? (light ? "466f9a":"2b6cb0"):(light ? "9b5d2d":"c05621"))).frame(width:24,height:24).background(.white,in:RoundedRectangle(cornerRadius:6))}}.accessibilityLabel(t(translation.isEmpty ? "translateText":"undoTranslation")).accessibilityIdentifier("rpgTranslation")}
-                let text=run.feedback.isEmpty ? node.npcLine:run.feedback
-                let caption=run.feedbackScene?.isEmpty == false ? run.feedbackScene!:(run.feedback.isEmpty ? node.sceneLine ?? RPGDialogue.split(node.npcLine).scene:RPGDialogue.split(run.feedback).scene)
-                if !caption.isEmpty{Text(caption).font(PiyaliBrand.productFont(12)).italic().foregroundStyle(PiyaliBrand.unitColor(light ? "8a745c":"4a5568")).frame(maxWidth:.infinity,alignment:run.support == "ar" ? .trailing:.leading).environment(\.layoutDirection,run.support == "ar" ? .rightToLeft:.leftToRight).fixedSize(horizontal:false,vertical:true).accessibilityIdentifier("rpgSceneCaption")}
-                Text(RPGDialogue.split(text).spoken).font(PiyaliBrand.productFont(run.feedback.isEmpty ? 16:14,run.feedback.isEmpty ? 700:400)).foregroundStyle(run.feedback.isEmpty ? ink:PiyaliBrand.unitColor("9b5d2d")).fixedSize(horizontal:false,vertical:true).accessibilityIdentifier(run.feedback.isEmpty ? "rpgPrompt":"rpgFeedback")
-                if let first=translation.first,!first.isEmpty{Text(first).font(PiyaliBrand.productFont(14)).italic().foregroundStyle(PiyaliBrand.unitColor("466f9a"))}
-                if !run.tip.isEmpty{Text(run.tip).font(PiyaliBrand.productFont(13)).italic()}
-                if !run.resolved, node.responseMode == "choice" {ForEach(Array(node.choices.enumerated()),id:\.offset){index,choice in Button{narration.stopAll();speech.stopAll();change{$0.choose(index)};translation=[];if let value=self.run{play(value.feedback,target:value.target)}}label:{VStack(alignment:.leading,spacing:2){Text(String(UnicodeScalar(65+index)!)+". "+choice.text).font(PiyaliBrand.productFont(14));if translation.indices.contains(index+1){Text(translation[index+1]).font(PiyaliBrand.productFont(12)).italic().foregroundStyle(PiyaliBrand.unitColor("466f9a"))}}.frame(maxWidth:.infinity,alignment:.leading).padding(.horizontal,12).padding(.vertical,8).padding(1)}.buttonStyle(RPGDialogueChoiceStyle(light:light)).accessibilityIdentifier("rpgChoice-\(index)")}}
+                HStack{Spacer();Button{translations.toggle(provider:translationProvider ?? .native(app.ai))}label:{if translations.busy{ProgressView().scaleEffect(0.7).frame(width:24,height:24).background(.white,in:RoundedRectangle(cornerRadius:6))}else{Group{if !translations.active{RPGArt.shared.image("RPGIconHelp").renderingMode(.template).resizable().frame(width:14,height:14)}else{RPGArt.shared.image("RPGIconUndo").renderingMode(.template).resizable().frame(width:14,height:14)}}.foregroundStyle(PiyaliBrand.unitColor(!translations.active ? (light ? "466f9a":"2b6cb0"):(light ? "9b5d2d":"c05621"))).frame(width:24,height:24).background(.white,in:RoundedRectangle(cornerRadius:6))}}.disabled(translations.busy).accessibilityLabel(t(translations.active ? "undoTranslation":"translateText")).accessibilityIdentifier("rpgTranslation")}
+                let presentation=translations.presentation
+                if let translated=translations.lines,let plan=translations.plan{
+                    VStack(alignment:.leading,spacing:4){ForEach(Array(plan.lines.enumerated()),id:\.offset){index,line in
+                        VStack(alignment:.leading,spacing:0){if presentation?.isReply == true{replyText(line)}else{RPGDialogueText(text:line,language:run.target,color:ink)}
+                            if translated.indices.contains(index),!translated[index].isEmpty{RPGDialogueText(text:translated[index],language:run.support,color:PiyaliBrand.unitColor(light ? "466f9a":"2b6cb0"),size:14,bold:false,italic:true).accessibilityIdentifier("rpgLineTranslation-\(index)")}
+                        }
+                    }}
+                }else{
+                    let caption=presentation?.caption ?? node.sceneLine ?? ""
+                    if !caption.isEmpty{RPGDialogueText(text:caption,language:run.support,color:PiyaliBrand.unitColor(light ? "8a745c":"4a5568"),size:12,bold:false,italic:true).accessibilityIdentifier("rpgSceneCaption")}
+                    if presentation?.isReply == true{replyText(presentation?.reply ?? run.feedback).accessibilityIdentifier("rpgFeedback")}
+                    else{RPGDialogueText(text:presentation?.prompt ?? node.npcLine,language:run.target,color:ink,animated:true).accessibilityIdentifier("rpgPrompt")}
+                }
+                if node.responseMode == "speech",run.resolved,!answer.isEmpty{RPGDialogueText(text:t("heardYou")+": "+answer,language:run.support,color:PiyaliBrand.unitColor(light ? "2f7e77":"285e61"),size:12,bold:false).accessibilityIdentifier("rpgHeardSpeech")}
+                if !run.resolved, node.responseMode == "choice" {ForEach(Array(node.choices.enumerated()),id:\.offset){index,choice in Button{narration.stopAll();speech.stopAll();change{$0.choose(index)};configureDialogue();if let value=self.run{play(value.feedback,target:value.target)}}label:{VStack(alignment:.leading,spacing:0){RPGDialogueText(text:String(UnicodeScalar(65+index)!)+". "+choice.text,language:run.target,color:light ? ink:PiyaliBrand.unitColor("1a202c"),size:14,bold:false,lineHeight:16.8,weight:600);if let translated=translations.choices,translated.indices.contains(index),!translated[index].isEmpty{RPGDialogueText(text:translated[index],language:run.support,color:PiyaliBrand.unitColor(light ? "466f9a":"2b6cb0"),size:12,bold:false,italic:true,lineHeight:14.4,weight:600).accessibilityIdentifier("rpgChoiceTranslation-\(index)")}}.frame(maxWidth:.infinity,alignment:.leading).padding(.horizontal,12).padding(.vertical,8).padding(1)}.buttonStyle(RPGDialogueChoiceStyle(light:light)).accessibilityIdentifier("rpgChoice-\(index)")}}
                 if !run.resolved,node.responseMode == "speech"{speechControls(run,node:node)}
                 if run.resolved{Button(t("continue")){narration.stopAll();speech.stopAll();change{$0.advance()};closeDialogue()}.font(PiyaliBrand.productFont(14,600)).frame(maxWidth:.infinity).padding(.vertical,8).overlay{Capsule().stroke(border)}.accessibilityIdentifier("rpgContinue")}
-            }.padding(.horizontal,12).padding(.top,4).padding(.bottom,12).environment(\.layoutDirection,run.target == "ar" ? .rightToLeft:.leftToRight).background{GeometryReader{geometry in Color.clear.preference(key:RPGDialogueHeight.self,value:geometry.size.height)}}}.frame(height:min(max(44,dialogueContentHeight),max(44,heightLimit-100))).onPreferenceChange(RPGDialogueHeight.self){value in if abs(value-dialogueContentHeight)>0.5{dialogueContentHeight=value}}.scrollIndicators(.hidden)
+            }.padding(.horizontal,12).padding(.top,4).padding(.bottom,12).environment(\.layoutDirection,run.target == "ar" ? .rightToLeft:.leftToRight).background{GeometryReader{geometry in Color.clear.preference(key:RPGDialogueHeight.self,value:geometry.size.height)}}}.frame(height:min(max(44,dialogueContentHeight),max(44,heightLimit-100))).onPreferenceChange(RPGDialogueHeight.self){value in if abs(value-dialogueContentHeight)>0.5{dialogueContentHeight=value}}.scrollIndicators(.hidden).accessibilityIdentifier("rpgDialogueScroll")
         }.background(paper,in:RoundedRectangle(cornerRadius:12)).clipShape(RoundedRectangle(cornerRadius:12)).overlay{RoundedRectangle(cornerRadius:12).stroke(border,lineWidth:2)}.shadow(color:.black.opacity(0.25),radius:18,y:12)
     }
     @ViewBuilder private func dialoguePortrait(_ npc:RPGNPC?)->some View {
@@ -191,13 +203,27 @@ struct RPGView:View {
                 .padding(.horizontal,companion ? 16:9)
         }.environment(\.layoutDirection,.leftToRight)
     }
-    private func tile(_ point:RPGPoint){guard let run,!talking,!run.completed,!service.busy,panel.isEmpty else{return};if let object=observations.hit(point){observations.examine(object);return};if let index=run.scenario.npcs.firstIndex(where:{$0.tx == point.x && $0.ty == point.y}){guard index == run.step?.npcIdx else{return};if abs(run.position.x-point.x)+abs(run.position.y-point.y)<=1{talking=true;translation=[];answer="";play(run.node?.npcLine ?? "",target:run.target);return}};let movement=RPGSpatial.step(from:run.position,toward:point,world:run.world,npcs:run.scenario.npcs);if movement.moved{change{$0.position=movement.position;$0.updatedAt=Date()}}}
+    private func tile(_ point:RPGPoint){guard let run,!talking,!run.completed,!service.busy,panel.isEmpty else{return};if let object=observations.hit(point){observations.examine(object);return};if let index=run.scenario.npcs.firstIndex(where:{$0.tx == point.x && $0.ty == point.y}){guard index == run.step?.npcIdx else{return};if abs(run.position.x-point.x)+abs(run.position.y-point.y)<=1{talking=true;configureDialogue(run);answer="";play(run.node?.npcLine ?? "",target:run.target);return}};let movement=RPGSpatial.step(from:run.position,toward:point,world:run.world,npcs:run.scenario.npcs);if movement.moved{change{$0.position=movement.position;$0.updatedAt=Date()}}}
     private func change(_ action:(inout RPGRun)->Void){guard !service.busy,var value=run else{return};action(&value);app.learner.saveRPG(value);app.persist()}
-    private func closeDialogue(){speechReplyToken=UUID();service.cancelSpeech();speechArmed=false;narration.stopAll();speech.stopAll();talking=false;dialogueContentHeight=0;typedReply=false;answer="";translation=[];focused=false;showExample=false}
+    private func closeDialogue(){translations.reset();speechReplyToken=UUID();service.cancelSpeech();speechArmed=false;narration.stopAll();speech.stopAll();talking=false;dialogueContentHeight=0;typedReply=false;answer="";focused=false;showExample=false}
     private func fresh(){closeDialogue();Task{await service.prepare(app,lesson:lesson,episode:episode,fresh:true,tutor:tutor)}}
-    private func sendSpeech(){let text=answer.trimmingCharacters(in:.whitespacesAndNewlines);guard !text.isEmpty,!service.busy,let current=run else{return};let token=UUID();speechReplyToken=token;speechArmed=false;speech.stopAll();narration.stopAll();focused=false;Task{await service.speak(text,app:app);if speechReplyToken == token,talking,let value=run,value.id == current.id,value.stepIndex == current.stepIndex,value.resolved{play(value.feedback,target:value.target)}}}
+    private func sendSpeech(){let text=answer.trimmingCharacters(in:.whitespacesAndNewlines);guard !text.isEmpty,!service.busy,let current=run else{return};let token=UUID();speechReplyToken=token;speechArmed=false;speech.stopAll();narration.stopAll();focused=false;Task{await service.speak(text,app:app);if speechReplyToken == token,talking,let value=run,value.id == current.id,value.stepIndex == current.stepIndex,value.resolved{configureDialogue();play(value.feedback,target:value.target)}}}
     private func play(_ text:String,target:String){guard !Self.fixture else{return};let character=RPGArt.shared.data["voices"][run?.npc?.characterKind ?? "frog"],voice=character["voice"].string.isEmpty ? "ash":character["voice"].string;let session=try? app.companionQuestPolicy?.run("ph_tts",.object(["language":.string(target),"voice":.string(voice),"personality":character["personality"]]));narration.play(RPGDialogue.split(text).spoken,language:target,engine:app.companionQuestPolicy,voice:voice,sessionOverride:session)}
-    private func translate(_ run:RPGRun,node:RPGNode){if !translation.isEmpty{translation=[];return};guard !translating else{return};translating=true;let id=run.id,step=run.stepIndex,scope=self.scope;Task{let result=await service.translate(run:run,app:app);guard self.scope == scope,self.run?.id == id,self.run?.stepIndex == step,talking else{translating=false;return};translation=result ?? [];translating=false}}
+    private var dialogueKey:String{
+        guard talking,let run,let input=try? RPGDialoguePolicy.parameters(run,continueLabel:t("continue"))else{return ""}
+        return JSONValue.array([.string(scope),.string(run.id.uuidString),input]).canonicalJSON
+    }
+    private func configureDialogue(_ value:RPGRun?=nil){
+        guard talking,let current=value ?? run,let input=try? RPGDialoguePolicy.parameters(current,continueLabel:t("continue"))else{translations.reset();return}
+        let account=app.identity.npub,target=current.target,support=current.support,id=current.id,level=tutor ? app.learner.tutorLevel:app.learner.level,isTutor=tutor,label=t("continue"),key=JSONValue.array([.string(scope),.string(id.uuidString),input]).canonicalJSON
+        translations.configure(key:key,parameters:input){[weak app] in
+            guard let app,app.subscription.hasAccess,app.identity.npub == account,app.learner.target == target,app.learner.support == support,(isTutor ? app.learner.tutorLevel:app.learner.level) == level,let latest=app.learner.rpgRuns?[target],latest.id == id,let next=try? RPGDialoguePolicy.parameters(latest,continueLabel:label)else{return false};return next == input
+        }
+    }
+    private func replyText(_ text:String)->some View{
+        let leading=max(0,21-(UIFont(name:"DMSans-Regular",size:14)?.lineHeight ?? 17))
+        return Text((try? AttributedString(markdown:text,options:.init(interpretedSyntax:.inlineOnlyPreservingWhitespace))) ?? AttributedString(text)).font(PiyaliBrand.productFont(14)).lineSpacing(leading).padding(.vertical,leading/2).foregroundStyle(PiyaliBrand.unitColor(light ? "9b5d2d":"c05621")).frame(maxWidth:.infinity,alignment:.leading).fixedSize(horizontal:false,vertical:true)
+    }
     private func configureObjects(){
         guard let run,let policy=try? RPGObjectPolicy() else{return}
         let review:JSONValue
@@ -218,7 +244,7 @@ struct RPGView:View {
         if snapshot["rpgMusicPreferenceVersion"] != .number(2) || !validFlag{app.updateSettings(.object(["rpgMusicEnabled":.bool(false),"rpgMusicPreferenceVersion":.number(2)]))}
         music.apply(app.learner.settingsSnapshot["rpgMusicEnabled"].boolean)
     }
-    private func stop(clearObservations:Bool=true){speechReplyToken=UUID();if clearObservations{observations.cancel()};speechArmed=false;service.cancel();speech.stopAll();narration.stopAll();music.stop();focused=false}
+    private func stop(clearObservations:Bool=true){speechReplyToken=UUID();translations.reset();if clearObservations{observations.cancel()};speechArmed=false;service.cancel();speech.stopAll();narration.stopAll();music.stop();focused=false}
     private static var fixture:Bool {
         #if DEBUG
         let env=ProcessInfo.processInfo.environment;return env["PIYALI_OFFLINE_TESTS"] == "1" && UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil

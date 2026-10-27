@@ -86,14 +86,3 @@ extension AIService {
         return try await responsesText(prompt,json:true,outputProfile:"rpg_speech")
     }
 }
-
-extension RPGService {
-    /// Same plain-line translation contract as the source dialogue toggle.
-    func translate(run:RPGRun,app:AppModel)async->[String]? {
-        guard let node=run.node else{return nil};let token=generation,account=app.identity.npub
-        let spoken=RPGDialogue.split(run.feedback.isEmpty ? node.npcLine:run.feedback).spoken,entries=[spoken]+(node.responseMode == "choice" ? node.choices.map(\.text):[])
-        var seen:Set<String>=[];let names=run.scenario.npcs.map(\.name).filter{seen.insert($0).inserted},roster=["Assigned character roster: \(names.joined(separator:", ")).","Only use those exact names when referring to people in this scene.","Do not invent, translate, swap, or mention any other person names.","Prefer pronouns or second-person phrasing unless a roster name is truly necessary."].joined(separator:"\n")
-        let prompt=["Translate each entry below into \(LearningLanguages.names[run.support] ?? run.support).",roster,"Preserve every character name exactly as written.","Output plain text only.","Return exactly \(entries.count) line\(entries.count>1 ? "s":"").","Each line must be only the translation for the matching entry index.","No numbering, labels, markdown, or commentary.","","Entries:"]+entries.enumerated().map{"\($0.offset+1). \($0.element)"}
-        do{let raw=try await app.ai.text(prompt.joined(separator:"\n"));guard valid(app,account:account,target:run.target,support:run.support,token:token)else{return nil};return Array(raw.components(separatedBy:.newlines).map{$0.replacingOccurrences(of:"^\\s*\\d+[).:-]\\s*",with:"",options:.regularExpression).trimmingCharacters(in:.whitespacesAndNewlines)}.filter{!$0.isEmpty}.prefix(entries.count))}catch{return nil}
-    }
-}
