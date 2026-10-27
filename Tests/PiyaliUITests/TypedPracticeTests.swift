@@ -66,9 +66,9 @@ import XCTest
         app.terminate();app.launch();openPractice(app);XCTAssertTrue(app.buttons["typedSelected-4"].exists)
         let check=app.buttons["checkTypedAnswer"];reveal(check,app);check.tap();XCTAssertTrue(app.buttons["nextTypedQuestion"].waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts["practiceVerdict"].label.contains("+6 XP"))
     }
-    func testLessonFlashcardFlipDoesNotAwardAndCorrectAnswerCollectsOnce() {
+    func testLessonFlashcardRevealDoesNotAwardAndCorrectAnswerLocksOnce() {
         continueAfterFailure=false;let app=launch(kind:"oral:flashcard")
         app.buttons["flipLessonFlashcard"].tap();XCTAssertTrue(app.buttons["listenLessonFlashcard"].exists);XCTAssertFalse(app.buttons["collectLessonFlashcard"].exists);XCTAssertFalse(app.staticTexts["practiceVerdict"].exists)
-        let field=app.textFields["typedPracticeAnswer"];field.tap();field.typeText("Hola");if app.buttons["practiceKeyboardDone"].exists{app.buttons["practiceKeyboardDone"].tap()};app.buttons["checkTypedAnswer"].tap();XCTAssertTrue(app.buttons["nextTypedQuestion"].waitForExistence(timeout:10));XCTAssertTrue(app.staticTexts["practiceVerdict"].label.contains("+6 XP"));app.buttons["openLessonFlashcardDeck"].tap();let review=app.buttons["reviewLessonFlashcard"];XCTAssertTrue(review.waitForExistence(timeout:10));review.tap();XCTAssertTrue(review.label.contains("Hola"));app.buttons["closeLessonFlashcardDeck"].tap();XCTAssertTrue(app.buttons["nextTypedQuestion"].exists)
+        let field=app.textFields["typedPracticeAnswer"];field.tap();field.typeText("Hola");if app.buttons["practiceKeyboardDone"].exists{app.buttons["practiceKeyboardDone"].tap()};app.buttons["checkTypedAnswer"].tap();XCTAssertTrue(app.buttons["nextTypedQuestion"].waitForExistence(timeout:10));XCTAssertTrue(app.staticTexts["practiceVerdict"].label.contains("+6 XP"));XCTAssertFalse(app.buttons["openLessonFlashcardDeck"].exists);XCTAssertTrue(app.buttons["nextTypedQuestion"].exists)
     }
 }

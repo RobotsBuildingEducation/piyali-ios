@@ -8,6 +8,10 @@ enum PracticeTestFixtures {
         guard env["PIYALI_LIVE_API_TESTS"] != "1",env["PIYALI_OFFLINE_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else { return nil }
         return env["PIYALI_PRACTICE_FIXTURE"]
     }
+    static func waitForFlashcardPreparation()async throws {
+        guard let kind,kind.hasPrefix("oral:"),let ms=Int(ProcessInfo.processInfo.environment["PIYALI_FLASHCARD_PREPARATION_DELAY_MS"] ?? ""),(1...15000).contains(ms)else{return}
+        try await Task.sleep(for:.milliseconds(ms))
+    }
     private static var standardSamples:JSONValue{guard let url=Bundle.main.url(forResource:"standard-practice-fixture",withExtension:"json"),let data=try? Data(contentsOf:url),let value=try? JSONDecoder().decode(JSONValue.self,from:data)else{return .null};return value}
     private static var wordBankSamples:JSONValue{guard let url=Bundle.main.url(forResource:"word-bank-practice-fixture",withExtension:"json"),let data=try? Data(contentsOf:url),let value=try? JSONDecoder().decode(JSONValue.self,from:data)else{return .null};return value}
     static var bank:[String]?{guard let kind,kind.hasPrefix("wordbank:"),wordBankSamples[String(kind.dropFirst(9))] != .null else{return nil};return wordBankSamples[String(kind.dropFirst(9))]["bank"].array.map(\.string)}

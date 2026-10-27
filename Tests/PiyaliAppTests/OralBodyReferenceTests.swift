@@ -34,6 +34,19 @@ import WebKit
             }
         }}}
     }
+    func testOriginalFlashcardLoadingEmptyAndCollectedPlacement()async throws {
+        let env=ProcessInfo.processInfo.environment;guard env["PIYALI_OFFLINE_TESTS"] == "1",env["PIYALI_REFERENCE_PREVIEW_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Isolated source preview required")}
+        let app=AppModel(progressService:OralReferenceNoCloud());try app.identity.create();defer{try? app.identity.disconnect()};app.signedIn=true;app.subscription.bind(app.identity)
+        let curriculum=try ContentLibrary.load([String:[LearningUnit]].self,name:"curriculum-es"),lesson=try XCTUnwrap(curriculum["Pre-A1"]?.first?.lessons.first)
+        for module in [PracticeRecipeModule.vocabulary,.grammar]{for language in ["en","ar"]{for state in ["loading","loading-no-deck","empty","locked"]{
+            app.learner=LearnerState();app.learner.target="es";app.learner.support=language;app.learner.onboardingComplete=true;app.activityFooter=nil;app.activityFooterHeight=0
+            let root:AnyView
+            if state == "locked"{let q=try PracticeQuestion(module:module,kind:"flashcard",payload:.object(["concept":.string("Hello"),"answer":.string("Hola")]),options:.object(["cefrLevel":.string("A1")]),target:"es",support:language);var run=PracticeRun(question:q,lessonID:lesson.id,lessonLevel:"Pre-A1");run.correct=true;run.earnedXP=6;app.learner.lessonWork=[app.learner.completionKey(lesson.id):.init(earnedXP:6)];app.learner.collectPracticeCard(run);app.learner.savePractice(run)
+                root=AnyView(OralReferenceHost(module:module,lesson:lesson,service:PracticeService(),oral:LessonSpeechController(),keyboard:false).environmentObject(app))
+            }else{root=AnyView(VStack{LessonFlashcardPreparation(loading:state.hasPrefix("loading"),deckCount:state == "loading-no-deck" ? 0:3,support:language,openDeck:{});Spacer(minLength:0)}.padding(.horizontal,8).padding(.top,22).background(PiyaliBrand(dark:language == "ar").background))}
+            try await compare(name:"\(module.rawValue) flashcard \(state) \(language)",query:"module=\(module.rawValue)&variant=flashcard&state=\(state)&language=\(language)",language:language,root:root)
+        }}}
+    }
     private func compare(name:String,query:String,language:String,root:AnyView)async throws {
         let scene=try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap{$0 as? UIWindowScene}.first),old=scene.windows.first{$0.isKeyWindow};defer{old?.makeKey()};let theme=language == "ar" ? "dark":"light",background=language == "ar" ? "#0b1220":"#f7f1e7"
         let configuration=WKWebViewConfiguration();configuration.websiteDataStore = .nonPersistent();configuration.userContentController.addUserScript(WKUserScript(source:"window.__oralErrors=[];window.addEventListener('error',e=>window.__oralErrors.push(e.message));",injectionTime:.atDocumentStart,forMainFrameOnly:true));let web=WKWebView(frame:CGRect(x:0,y:0,width:402,height:874),configuration:configuration),window=UIWindow(windowScene:scene),vc=UIViewController();window.frame=web.frame;vc.view=web;window.rootViewController=vc;web.scrollView.contentInsetAdjustmentBehavior = .never;window.makeKeyAndVisible();defer{web.stopLoading();window.isHidden=true;window.rootViewController=nil}

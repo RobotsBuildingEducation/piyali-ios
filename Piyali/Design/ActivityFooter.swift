@@ -13,6 +13,7 @@ private struct ActivityFooterPublisher:ViewModifier {
     @Environment(\.colorScheme) private var colorScheme
     @ObservedObject var access:SubscriptionService
     let fixtureAllowed:Bool
+    let enabled:Bool
     let correct:Bool?
     let tone:String?
     let owner:UUID
@@ -20,9 +21,9 @@ private struct ActivityFooterPublisher:ViewModifier {
     let footer:AnyView
     private var scope:String { app.identity.npub+":"+app.learner.target+":"+app.learner.support }
     func body(content:Content)->some View {
-        content.task(id:scope+":"+revision+":"+(colorScheme == .dark ? "dark":"light")+":"+String(access.hasAccess || fixtureAllowed)) {
+        content.task(id:scope+":"+revision+":"+(colorScheme == .dark ? "dark":"light")+":"+String(access.hasAccess || fixtureAllowed)+":"+String(enabled)) {
             guard !Task.isCancelled else { return }
-            guard app.signedIn,access.hasAccess || fixtureAllowed else {
+            guard enabled,app.signedIn,access.hasAccess || fixtureAllowed else {
                 if app.activityFooter?.owner == owner { app.activityFooter=nil };return
             }
             app.activityFooter = .init(owner:owner,content:footer,correct:correct,tone:tone)
@@ -30,8 +31,8 @@ private struct ActivityFooterPublisher:ViewModifier {
     }
 }
 extension View {
-    func activityFooter<Footer:View>(owner:UUID,revision:String,access:SubscriptionService,fixtureAllowed:Bool=false,correct:Bool?=nil,tone:String?=nil,@ViewBuilder footer:()->Footer)->some View {
-        modifier(ActivityFooterPublisher(access:access,fixtureAllowed:fixtureAllowed,correct:correct,tone:tone,owner:owner,revision:revision,footer:AnyView(footer())))
+    func activityFooter<Footer:View>(owner:UUID,revision:String,access:SubscriptionService,fixtureAllowed:Bool=false,enabled:Bool=true,correct:Bool?=nil,tone:String?=nil,@ViewBuilder footer:()->Footer)->some View {
+        modifier(ActivityFooterPublisher(access:access,fixtureAllowed:fixtureAllowed,enabled:enabled,correct:correct,tone:tone,owner:owner,revision:revision,footer:AnyView(footer())))
     }
 }
 private struct FeedbackHeight:PreferenceKey {

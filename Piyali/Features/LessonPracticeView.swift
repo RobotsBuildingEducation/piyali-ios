@@ -28,6 +28,7 @@ struct LessonPracticeView:View {
     @State private var noteCreating=false
     @State private var showDeck=false
     @State private var deckOwner:String?
+    @State private var preparationTask:Task<Void,Never>?
     @State private var active=false
     @State private var appeared=false
     @FocusState private var answering:Bool
@@ -46,7 +47,8 @@ struct LessonPracticeView:View {
             VStack(spacing:0) {
                 ScrollView {
                     VStack(alignment:.leading,spacing:16) {
-                        if service.preparing {ProgressView().frame(maxWidth:.infinity,minHeight:240).accessibilityIdentifier("typedPracticeBusy")}
+                        if service.preparingKind == "flashcard",service.preparing || service.preparationFailed {LessonFlashcardPreparation(loading:service.preparing,deckCount:(app.learner.practiceDecks?[app.learner.practiceDeckKey(module)] ?? []).count,support:app.learner.support,openDeck:openDeck)}
+                        else if service.preparing {ProgressView().frame(maxWidth:.infinity,minHeight:240).accessibilityIdentifier("typedPracticeBusy")}
                         else if !service.preparationFailed,let run {
                             if run.question.variant == "natural_or_weird" {
                                 NaturalOrWeirdQuestion(sentence:run.question.payload["sentence"].string,title:questionCopy(run,"title"),instruction:questionCopy(run,"instruction"),weird:questionCopy(run,"soundsWeird"),natural:questionCopy(run,"soundsNatural"),audioLabel:questionCopy(run,"playAudio"),helpLabel:questionCopy(run,"askForHelp"),selected:run.response["choice"] == .null ? nil:run.response["choice"].boolean,locked:service.busy || run.correct == true || quiz && run.correct != nil,assistantOpen:assistance.assistantOpen,assistantBusy:assistance.assistantBusy,help:{assistance.ask(app,run:run)},listen:{speech.speak(run.question.audioText,language:run.question.audioLanguage)},select:{updateResponse("choice",.bool($0))},showHelp:!quiz)
@@ -64,23 +66,23 @@ struct LessonPracticeView:View {
                                 lessonFlashcard(run)
                             }
                         }
-                        if let error=service.error {Text(error).foregroundStyle(brand.questionError);Button(copy("try_again")){Task{if let run,!service.preparing,!service.preparationFailed{await service.check(app,run:run)}else{await service.prepare(app,module:module,lesson:lesson,fresh:true)}}}.disabled(service.busy)}
+                        if let error=service.error {Text(error).foregroundStyle(brand.questionError);Button(copy("try_again")){Task{if let run,!service.preparing,!service.preparationFailed{await service.check(app,run:run)}else{startPreparation(fresh:true)}}}.disabled(service.busy)}
                         if let error=oral.recorder.error {Text(oralError(error)).font(PiyaliBrand.productFont(14)).foregroundStyle(brand.questionError).accessibilityIdentifier("lessonSpeechError");if error == "mic-denied"{Link(copy("settings"),destination:URL(string:UIApplication.openSettingsURLString)!).accessibilityIdentifier("lessonSpeechSettings")}}
                         if let error=speech.error {Text(error).font(PiyaliBrand.productFont(13)).foregroundStyle(brand.questionError)}
                     }.padding(.horizontal,8).padding(.top,22).padding(.bottom,24).frame(maxWidth:720).frame(maxWidth:.infinity)
                 }
                 Color.clear.frame(height:app.activityFooterHeight)
             }.background(brand.background).foregroundStyle(brand.text)
-        }.activityFooter(owner:footerOwner,revision:footerRevision,access:app.subscription,correct:assistance.assistantOpen || service.busy || service.preparationFailed ? nil:run?.correct,tone:assistance.assistantOpen ? "assistant":nil){questionFooter}
+        }.activityFooter(owner:footerOwner,revision:footerRevision,access:app.subscription,enabled:!(service.preparingKind == "flashcard" && (service.preparing || service.preparationFailed)),correct:assistance.assistantOpen || service.busy || service.preparationFailed ? nil:run?.correct,tone:assistance.assistantOpen ? "assistant":nil){questionFooter}
             .navigationTitle(embedded ? lesson?.title.localized(app.learner.support) ?? "" : module == .grammar ? "Grammar" : "Vocabulary")
             .toolbar { ToolbarItemGroup(placement:.keyboard) { Spacer();Button("Done") { answering=false }.accessibilityIdentifier("practiceKeyboardDone") } }
             .fullScreenCover(isPresented:$showDeck) { PracticeDeckView(cards:app.learner.practiceDecks?[app.learner.practiceDeckKey(module)] ?? [],support:app.learner.support,target:app.learner.target).presentationBackground(.clear) }
-            .task(id:scope) { if deckOwner == scope{deckOwner=nil;return};deckOwner=nil;questionAudioPlaying=false;answering=false;showStandardKeyboard=false;writing.clear();oral.clear();speech.stopAll();assistance.clear();showDeck=false;appeared=true;await service.prepare(app,module:module,lesson:lesson,fresh:startsFresh);if let run {assistance.bind(app,run:run);writing.bind(app,run:run);oral.bind(app,run:run)} }
+            .task(id:scope) { if deckOwner == scope{deckOwner=nil;return};deckOwner=nil;questionAudioPlaying=false;answering=false;showStandardKeyboard=false;writing.clear();oral.clear();speech.stopAll();assistance.clear();showDeck=false;appeared=true;startPreparation(fresh:startsFresh);await preparationTask?.value }
             .onChange(of:run?.question.id){_,_ in questionAudioPlaying=false;noteSaved=false;noteCreating=false;portrait=PracticeQuestionAppearance.portrait;if let run {assistance.bind(app,run:run);writing.bind(app,run:run);oral.bind(app,run:run)}}
             .onChange(of:run?.response){_,_ in if let run,!WordBankPracticeQuestion.variants.contains(run.question.kind){assistance.responseChanged()}}
             .onAppear { active=true }
-            .onChange(of:scenePhase) { _,phase in if phase != .active { questionAudioPlaying=false;writing.clear();oral.clear();service.cancel();assistance.cancel();speech.stopAll() } }
-            .onDisappear {active=false;questionAudioPlaying=false;if showDeck{oral.recorder.cancel();speech.stopAll()}else{writing.clear();oral.clear();service.cancel();assistance.cancel();speech.stopAll()}}
+            .onChange(of:scenePhase) { _,phase in if phase != .active { preparationTask?.cancel();preparationTask=nil;questionAudioPlaying=false;writing.clear();oral.clear();service.cancel();assistance.cancel();speech.stopAll() } }
+            .onDisappear {active=false;questionAudioPlaying=false;if showDeck{oral.recorder.cancel();speech.stopAll()}else{preparationTask?.cancel();preparationTask=nil;writing.clear();oral.clear();service.cancel();assistance.cancel();speech.stopAll()}}
     }
     private func wordBankQuestion(_ run:PracticeRun)->some View {
         let capturedScope=scope
@@ -110,12 +112,14 @@ struct LessonPracticeView:View {
     private func playOralAudio(_ run:PracticeRun,answer:Bool){let id=run.question.id;let text=answer ? run.question.payload["answer"].string:run.question.audioText;speech.speakSeries([text],language:run.question.target,onStarted:{if self.run?.question.id == id{questionAudioPlaying=true}},onInterrupted:{questionAudioPlaying=false},onFinished:{questionAudioPlaying=false})}
     private func lessonFlashcard(_ run:PracticeRun)->some View {
         let capturedScope=scope
-        return LessonFlashcardQuestion(run:run,busy:service.busy,deckCount:(app.learner.practiceDecks?[app.learner.practiceDeckKey(module)] ?? []).count,playing:questionAudioPlaying,recorder:oral.recorder,change:{text in guard scope == capturedScope,let current=self.run,current.question.id == run.question.id,current.correct == nil,!service.busy else{return};updateResponse(current.response.setting("text",.string(text)).setting("typedText",.string(text)).setting("inputSource",.string("text")))},flip:{guard scope == capturedScope,var current=self.run,current.question.id == run.question.id else{return};current.showAnswer = !(current.showAnswer ?? false);app.learner.savePractice(current);app.persist()},listen:{playOralAudio(run,answer:true)},record:{toggleOral(run)},deck:{speech.stopAll();if !service.busy{oral.clear()}else{oral.recorder.cancel()};deckOwner=scope;showDeck=true},submit:{if let current=self.run{submit(current)}},focus:$answering,keyboardInitiallyOpen:writingKeyboardInitiallyOpen).id(run.question.id)
+        return LessonFlashcardQuestion(run:run,busy:service.busy,playing:questionAudioPlaying,recorder:oral.recorder,change:{text in guard scope == capturedScope,let current=self.run,current.question.id == run.question.id,current.correct == nil,!service.busy else{return};updateResponse(current.response.setting("text",.string(text)).setting("typedText",.string(text)).setting("inputSource",.string("text")))},flip:{guard scope == capturedScope,var current=self.run,current.question.id == run.question.id else{return};current.showAnswer = !(current.showAnswer ?? false);app.learner.savePractice(current);app.persist()},listen:{playOralAudio(run,answer:true)},record:{toggleOral(run)},submit:{if let current=self.run{submit(current)}},focus:$answering,keyboardInitiallyOpen:writingKeyboardInitiallyOpen).id(run.question.id)
     }
+    private func openDeck(){speech.stopAll();oral.recorder.cancel();deckOwner=scope;showDeck=true}
+    private func startPreparation(fresh:Bool){preparationTask?.cancel();preparationTask=Task{await service.prepare(app,module:module,lesson:lesson,fresh:fresh);guard !Task.isCancelled,let run=self.run else{return};assistance.bind(app,run:run);writing.bind(app,run:run);oral.bind(app,run:run)}}
     private func toggleOral(_ run:PracticeRun){answering=false;speech.stopAll();questionAudioPlaying=false;assistance.responseChanged();oral.toggle(app,run:run,service:service)}
     private func oralError(_ code:String)->String{if code == "mic-denied"{return copy("flashcard_mic_denied_title")+" "+copy("flashcard_mic_denied_desc")};let kind=code == "no-speech" ? "no_speech":code.hasPrefix("connection-") ? "connection":code == "transcription-failed" ? "transcription":"recording";return copy("speech_"+kind+"_error_title")+" "+copy("speech_"+kind+"_error_desc")}
     private func retryLessonCard(){guard var current=run,current.question.kind == "flashcard",current.correct == false,!service.busy else{return};oral.clear();assistance.responseChanged();current.correct=nil;current.lastMissedAnswer=nil;current.response=LessonCardRules.retry(current.response);app.learner.savePractice(current);app.persist()}
-    private var footerRevision:String {[scope,run?.question.id.uuidString ?? "",run?.response.canonicalJSON ?? "",String(describing:run?.correct),String(run?.earnedXP ?? 0),String(service.busy),String(service.preparing),String(service.preparationFailed),assistance.assistantText,assistance.explanationText,String(assistance.assistantOpen),String(assistance.assistantBusy),String(assistance.explanationBusy),String(noteSaved),String(noteCreating),String(showStandardKeyboard),String(oral.recorder.connecting),String(oral.recorder.recording),String(oral.recorder.evaluating),oral.recorder.error ?? "",String(lessonEarned)].joined(separator:"|")}
+    private var footerRevision:String {[scope,run?.question.id.uuidString ?? "",run?.response.canonicalJSON ?? "",String(describing:run?.correct),String(run?.earnedXP ?? 0),String(service.busy),String(service.preparing),service.preparingKind ?? "",String(service.preparationFailed),assistance.assistantText,assistance.explanationText,String(assistance.assistantOpen),String(assistance.assistantBusy),String(assistance.explanationBusy),String(noteSaved),String(noteCreating),String(showStandardKeyboard),String(oral.recorder.connecting),String(oral.recorder.recording),String(oral.recorder.evaluating),oral.recorder.error ?? "",String(lessonEarned)].joined(separator:"|")}
     private var lessonEarned:Int {if lesson?.isGoal == true{return Int(GoalLessonProgress.earned(app.learner.goalBucket))};return lesson.flatMap{app.learner.lessonWork?[app.learner.completionKey($0.id)]?.earnedXP} ?? 0}
     private var lessonPercent:Int? {guard let lesson,lesson.id != IntroTutorial.lessonID,!quiz,lesson.xpReward>0 else{return nil};return Int(floor(min(100,Double(lessonEarned)/Double(lesson.xpReward)*100)+0.5))}
     private var questionFooter:some View {
@@ -132,7 +136,7 @@ struct LessonPracticeView:View {
                 }.padding(.horizontal,4).padding(.top,8).padding(.bottom,4)
             }
         },actions:{
-            if service.preparationFailed {Button(copy("try_again")){Task{await service.prepare(app,module:module,lesson:lesson,fresh:true)}}.buttonStyle(ActivityPrimaryButtonStyle()).accessibilityIdentifier("retryTypedPreparation")}
+            if service.preparationFailed {Button(copy("try_again")){startPreparation(fresh:true)}.buttonStyle(ActivityPrimaryButtonStyle()).accessibilityIdentifier("retryTypedPreparation")}
             else if service.preparing {ProgressView().frame(maxWidth:.infinity,minHeight:40)}
             else if assistance.assistantOpen {Button(copy("app_close")){assistance.closeAssistant()}.buttonStyle(ActivityPrimaryButtonStyle(tone:"assistant")).accessibilityIdentifier("closeTypedAssistantAction")}
             else if let run {
@@ -144,7 +148,7 @@ struct LessonPracticeView:View {
         }).foregroundStyle(palette.text)
     }
     private func submit(_ run:PracticeRun){if WordBankPracticeQuestion.variants.contains(run.question.kind){assistance.closeAssistant();assistance.responseChanged()};answering=false;writing.clear();oral.clear();speech.stop();Task{await service.check(app,run:run,confidence:speech.confidence,audio:speech.audioMetrics)}}
-    private func nextQuestion(_ run:PracticeRun){oral.clear();writing.clear();speech.stopAll();assistance.cancel();noteSaved=false;if let onNext{onNext()}else{Task{await service.prepare(app,module:module,lesson:lesson,fresh:true);if let run=self.run{assistance.bind(app,run:run)}}}}
+    private func nextQuestion(_ run:PracticeRun){oral.clear();writing.clear();speech.stopAll();assistance.cancel();noteSaved=false;if let onNext{onNext()}else{startPreparation(fresh:true)}}
     private func createNote(_ run:PracticeRun){guard !noteCreating,!noteSaved else{return};noteCreating=true;let capturedScope=scope;Task{defer{if scope == capturedScope,self.run?.question.id == run.question.id{noteCreating=false}};if (try? await app.createStudyNote(run:run,lesson:lesson)) == true,scope == capturedScope,self.run?.question.id == run.question.id{noteSaved=true}}}
     private func updateStandardResponse(_ response:JSONValue){
         guard var current=run,current.correct != true,(!quiz || current.correct == nil),!service.busy else{return}

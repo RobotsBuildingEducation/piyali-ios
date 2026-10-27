@@ -1,9 +1,9 @@
 import SwiftUI
 
 struct LessonFlashcardQuestion:View {
-    let run:PracticeRun,busy:Bool,deckCount:Int,playing:Bool
+    let run:PracticeRun,busy:Bool,playing:Bool
     @ObservedObject var recorder:SpeechPracticeService
-    let change:(String)->Void,flip:()->Void,listen:()->Void,record:()->Void,deck:()->Void,submit:()->Void
+    let change:(String)->Void,flip:()->Void,listen:()->Void,record:()->Void,submit:()->Void
     var focus:FocusState<Bool>.Binding
     var keyboardInitiallyOpen=false
     @Environment(\.colorScheme)private var scheme
@@ -19,7 +19,6 @@ struct LessonFlashcardQuestion:View {
     private var input:String{run.response["typedText"] == .null ? (run.response["inputSource"].string == "speech" ? "":run.response["text"].string):run.response["typedText"].string}
     var body:some View {
         VStack(spacing:12){
-            if deckCount>0{Button(action:deck){HStack(spacing:8){Image("Practice-RiStackLine").renderingMode(.template).resizable().frame(width:16,height:16);Text(copy("deck_label")).font(PiyaliBrand.productFont(14,500));Spacer();HStack(spacing:4){ForEach(0..<min(8,deckCount),id:\.self){i in RoundedRectangle(cornerRadius:2).fill(PiyaliBrand.unitColor("4299e1").opacity(0.5+Double(i)/Double(min(8,deckCount))*0.5)).frame(width:6,height:8)};Text("\(deckCount)").font(PiyaliBrand.productFont(12)).foregroundStyle(brand.muted).padding(.leading,4)}}.foregroundStyle(PiyaliBrand.unitColor("90cdf4")).padding(13).background(brand.surface,in:RoundedRectangle(cornerRadius:12)).overlay{RoundedRectangle(cornerRadius:12).stroke(brand.border)}}.buttonStyle(.plain).accessibilityIdentifier("openLessonFlashcardDeck")}
             VStack(spacing:8){
                 ZStack{
                     VStack(spacing:4){Text(copy("translate_to").replacingOccurrences(of:"{language}",with:EntryCopy.ui(q.support,"language_"+q.target))).font(PiyaliBrand.productFont(12,500)).frame(minHeight:18).foregroundStyle(dark ? .white.opacity(0.8):brand.secondary);OnboardingText(text:q.payload["concept"].string,size:20,weight:.black,lineHeight:30).foregroundStyle(dark ? .white:brand.text).multilineTextAlignment(.center).environment(\.layoutDirection,q.support == "ar" ? .rightToLeft:.leftToRight)}.offset(y:2).frame(maxWidth:.infinity,maxHeight:.infinity).padding(.horizontal,12).opacity(flipped ? 0:1).accessibilityHidden(flipped)

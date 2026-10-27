@@ -3,6 +3,7 @@ import Foundation
 @MainActor final class PracticeService:ObservableObject {
     @Published var busy=false
     @Published private(set) var preparing=false
+    @Published private(set) var preparingKind:String?
     @Published private(set) var preparationFailed=false
     @Published var error:String?
     @Published var help=""
@@ -12,7 +13,7 @@ import Foundation
     private let injectedGenerator:((String)async throws->String)?
     init(recipes:PracticeRecipes?=nil,judge:((String)async throws->String)?=nil,generator:((String)async throws->String)?=nil){engine=recipes;injectedJudge=judge;injectedGenerator=generator}
     private func recipes() throws ->PracticeRecipes { if let engine { return engine };let value=try PracticeRecipes();engine=value;return value }
-    func cancel() { generation=UUID();busy=false;preparing=false;preparationFailed=false;error=nil }
+    func cancel() { generation=UUID();busy=false;preparing=false;preparingKind=nil;preparationFailed=false;error=nil }
     func ensureQuiz(_ app:AppModel,lesson:Lesson,restart:Bool=false) throws ->FinalQuizRun {
         var run=app.learner.quizRuns?[app.learner.quizKey(lesson.id)] ?? FinalQuizRun(lesson:lesson,learner:app.learner)
         if restart || !run.matches(lesson,app.learner) { run=FinalQuizRun(lesson:lesson,learner:app.learner) }
@@ -31,11 +32,14 @@ import Foundation
         if quiz?.outcome.completed == true { return }
         if !fresh,let run=state.practiceRuns?[key],run.question.support == state.support,(quiz == nil || run.quizRunID == quiz?.id && run.question.id == quiz?.typedQuestionID) { return }
         guard app.subscription.hasAccess else { return }
-        let token=UUID();generation=token;busy=true;preparing=true;preparationFailed=false;error=nil;help="";defer { if token == generation { busy=false;preparing=false } }
+        let token=UUID();generation=token;busy=true;preparing=true;preparingKind=nil;preparationFailed=false;error=nil;help="";defer { if token == generation { busy=false;preparing=false } }
         do {
             let recipes=try recipes(),user=state.recipeUser
             #if DEBUG
             if var question=PracticeTestFixtures.question(module:module,recipes:recipes,target:state.target,support:state.support) {
+                preparingKind=question.kind
+                if question.kind == "flashcard",!(state.practiceDecks?[state.practiceDeckKey(module)] ?? []).isEmpty {try await PracticeTestFixtures.waitForFlashcardPreparation()}
+                try Task.checkCancellation();guard generation == token,app.identity.npub == account,app.learner.target == state.target,app.learner.support == state.support else{return}
                 if quiz != nil { question=try PracticeQuestion(module:module,kind:question.kind,payload:question.payload,options:question.options.setting("isFinalQuiz",.bool(true)).setting("cefrLevel",.string(quiz!.level)),target:state.target,support:state.support) }
                 question.worth=try GeneratedQuestionWorth.fallback(level:question.level,learner:state,recipes:recipes)
                 let response=question.isDelight ? try recipes.inspect("initialResponse",parameters:.object(["question":question.payload])) : .object([:])
@@ -55,7 +59,7 @@ import Foundation
             let options:JSONValue
             if let quiz,let planned=quiz.typedOptions,planned.indices.contains(quiz.answers.count) { options=planned[quiz.answers.count] }
             else { options=try recipes.select(module:module,context:context).setting("isFinalQuiz",.bool(false)) }
-            let kind=options["exerciseType"].string
+            let kind=options["exerciseType"].string;preparingKind=kind
             let recent=Array(state.history.filter { $0.target == state.target && $0.mode.lowercased() == module.rawValue && $0.correct }.prefix(5)).map { JSONValue.string($0.question) }
             let parameters=options.setting("collectedConcepts",.array((state.practiceDecks?[state.practiceDeckKey(module)] ?? []).map{.string($0.concept)})).setting("targetLang",.string(state.target)).setting("supportLang",.string(state.support)).setting("appUILang",.string(state.support)).setting("showTranslations",.bool(true)).setting("lessonContent",PracticeCurriculum.content(lesson,mode:module.rawValue,context:curriculum)).setting("user",user).setting("recentGood",.array(recent)).setting("recentQuestions",.array(recent))
             let prompt=StandardChoiceRepair.prompt(try recipes.build(module:module,kind:kind,parameters:parameters))
