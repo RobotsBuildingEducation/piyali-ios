@@ -12,7 +12,7 @@ Feedback visibility follows the source effects: nonempty changed Fill/choice res
 
 Exact Core, controller, product, visual and live-service results are recorded in [validation](VALIDATION.md). Full product parity remains in progress: source TTS/voices/effects, exact motion/typography/feedback geometry, broader locale/device/accessibility and interruption recovery, plus the other feature audit items still need work. Clipboard-notice presentation is separately compared; the four live assistance requests do not verify physical microphone or audio behavior.
 
-Four final paired views and source geometry use Final4. Nine product captures use Help2, before the banner calibration and preference wiring; the final controller checks cover that wiring. The source toast is held open only in the comparison adapter.
+Four final paired views and source geometry use Content5, with actual Live1 exercise-specific replies in three cases and an appropriate public Arabic Fill hint. Final4 retains the final controller/preference checks. Nine product captures use Help2, before the banner calibration and preference wiring; the final controller checks cover that wiring. The source toast is held open only in the comparison adapter.
 
 ![Original source and native Copy All notice and help](native/standard-help-grammar-fill-assistant-en.png)
 
