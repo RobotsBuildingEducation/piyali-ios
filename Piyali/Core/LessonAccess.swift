@@ -22,7 +22,8 @@ public enum LessonAccess {
     }
     public static func throughPlacement(_ placement:String?,level:String)->Bool {
         guard let placement,let placed=LearningLanguages.levels.firstIndex(of:placement),let requested=LearningLanguages.levels.firstIndex(of:level) else { return false }
-        return requested <= placed
+        // A completely new learner keeps the introductory sequential path.
+        return placed > 0 && requested <= placed
     }
 }
 public extension LearnerState {

@@ -57,7 +57,7 @@ struct ProductShellView:View {
                 ProductTopBar(timer:timer,onGoal:{goalOpen=true},onTimer:{timer.load(account:app.identity.npub);timerOpen=true})
                 NavigationStack {
                     surface.navigationBarTitleDisplayMode(.inline)
-                        .toolbar(mode == .focus || mode == .cards || mode == .phonics || mode == .tutor ? .hidden:.automatic,for:.navigationBar)
+                        .toolbar(mode == .path || mode == .focus || mode == .cards || mode == .phonics || mode == .tutor ? .hidden:.automatic,for:.navigationBar)
                 }.id(revision)
             }.tint(PiyaliBrand.teal).blur(radius:menuOpen ? 6 : 0).allowsHitTesting(!menuOpen)
                 .safeAreaInset(edge:.bottom) { if activityFooter == nil,app.achievementUnlock.current == nil { menuButton(compact:false).padding(.bottom,10) } }

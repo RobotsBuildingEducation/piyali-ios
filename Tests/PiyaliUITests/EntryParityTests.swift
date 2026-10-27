@@ -66,7 +66,7 @@ import XCTest
         app.buttons["productMenu"].tap();XCTAssertTrue(app.buttons["productPanel-settings"].waitForExistence(timeout:5));XCTAssertTrue(app.buttons["productPanel-teams"].exists);XCTAssertTrue(app.buttons["productPanel-assistant"].exists);XCTAssertTrue(app.buttons["productPanel-memory"].exists)
         app.buttons["productModeMenu"].tap();XCTAssertTrue(app.buttons["productMode-path"].exists);XCTAssertTrue(app.buttons["productMode-cards"].exists);XCTAssertTrue(app.buttons["productMode-phonics"].exists);XCTAssertTrue(app.buttons["productMode-conversation"].exists)
         let menuShot=XCTAttachment(screenshot:app.screenshot());menuShot.name="Native activity mode menu";menuShot.lifetime = .keepAlways;add(menuShot)
-        app.buttons["productMode-path"].tap();XCTAssertTrue(app.navigationBars["Lessons"].waitForExistence(timeout:10));XCTAssertTrue(app.buttons["introLink"].exists)
+        app.buttons["productMode-path"].tap();XCTAssertTrue(app.staticTexts["lessonCourseLevel"].waitForExistence(timeout:10));XCTAssertTrue(app.buttons["introLink"].exists)
         XCTAssertEqual(app.buttons.matching(NSPredicate(format:"identifier BEGINSWITH 'lessonNode-' AND enabled == true")).count,0,"Tutorial completion gates the first normal node")
         app.buttons["productMenu"].tap();app.buttons["productModeMenu"].tap();app.buttons["productMode-focus"].tap();XCTAssertTrue(app.staticTexts["todayFocusTitle"].waitForExistence(timeout:5))
         let continueButton=app.buttons["companionContinue"]
