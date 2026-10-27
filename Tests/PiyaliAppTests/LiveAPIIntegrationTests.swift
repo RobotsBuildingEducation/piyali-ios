@@ -9,6 +9,30 @@ import NostrSDK
 
 /// Explicit opt-in only. Uses an isolated test identity, bounded prompts and no paid access grant.
 @MainActor final class LiveAPIIntegrationTests: XCTestCase {
+    func testOriginalQuestionAssistanceStreamsAndExplainsThroughLearnerFirebase()async throws {
+        guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else{throw XCTSkip("Explicit live API opt-in required")}
+        XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))
+        if FirebaseApp.app() == nil{AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure()};XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let identity=IdentityService();try identity.create();try await FirebaseIdentityService.shared.ensure(identity)
+        do {
+            let ai=AIService(),recipes=try PracticeRecipes(),policy=try PracticeAssistancePolicy()
+            XCTAssertEqual(ai.configuration.string("AIProvider"),"gemini");XCTAssertTrue(FirebaseService.shared.configured)
+            for support in ["en","ar"] {
+                let payload=try recipes.inspect("fallback",parameters:.object(["variant":.string("natural_or_weird"),"targetLang":.string("es"),"supportLang":.string(support),"moduleType":.string("grammar")])),question=try PracticeQuestion(module:.grammar,kind:"delight:natural_or_weird",payload:payload,options:.object(["cefrLevel":.string("A1")]),target:"es",support:support)
+                var run=PracticeRun(question:question,lessonID:nil,lessonLevel:"A1",response:try recipes.inspect("initialResponse",parameters:.object(["question":payload])))
+                let help=try policy.build("assistant",run:run);var chunks=0
+                let text=try await ai.practiceAssistanceText(help["prompt"].string){_ in chunks+=1}
+                XCTAssertFalse(text.isEmpty);XCTAssertGreaterThan(chunks,0)
+                if support == "ar"{XCTAssertNotNil(text.range(of:"\\p{Arabic}",options:.regularExpression))}
+                else{XCTAssertTrue(text.localizedCaseInsensitiveContains("weird") || text.localizedCaseInsensitiveContains("natural"))}
+                run.correct=false;run.response = .object(["choice":.bool(!payload["isNatural"].boolean)])
+                let explanation=try policy.build("explanation",run:run),result=try await ai.practiceAssistanceText(explanation["prompt"].string){_ in}
+                XCTAssertFalse(result.isEmpty);if support == "ar"{XCTAssertNotNil(result.range(of:"\\p{Arabic}",options:.regularExpression))}
+            }
+            print("LIVE QUESTION HELP: original English/Arabic direct assistance and wrong-answer prompts returned native learner Firebase/App Check streams; no grading, progress writes or Nostr publication")
+        }catch{try? await Auth.auth().currentUser?.delete();FirebaseIdentityService.shared.clearSession();try? identity.disconnect();throw error}
+        try await Auth.auth().currentUser?.delete();FirebaseIdentityService.shared.clearSession();try identity.disconnect()
+    }
     func testLearnerGeminiTutorUsesFirebaseIdentitySourcePromptAndNativePlayback()async throws {
         guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else{throw XCTSkip("Explicit live API opt-in required")}
         XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))

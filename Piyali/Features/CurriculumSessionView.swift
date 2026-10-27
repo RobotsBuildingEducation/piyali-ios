@@ -10,7 +10,7 @@ struct CurriculumSessionView:View {
     @State private var mode=""
     @State private var gamePresented=false
     @State private var revision=UUID()
-    @State private var fresh=false
+    @State private var fresh=true
     @State private var finishing=false
     @State private var appeared=false
     @State private var startedCompleted=false
@@ -22,17 +22,6 @@ struct CurriculumSessionView:View {
     var body:some View {
         VStack(spacing:0) {
             if lesson.isGoal == true,let bp=lesson.goalBlueprint {GoalFocusBanner(blueprint:bp)}
-            if lesson.isFinalQuiz != true,!lesson.modes.contains("game") { VStack(spacing:10) {
-                if lesson.isFinalQuiz != true {
-                    HStack { Text(lesson.title.localized(app.learner.support)).font(PiyaliBrand.productFont(16,700));Spacer();Text("\(work?.earnedXP ?? 0) / \(lesson.xpReward) XP").font(PiyaliBrand.productFont(13,600)).accessibilityIdentifier("activeLessonXP") }
-                    ProgressView(value:work?.fraction(goal:lesson.xpReward) ?? 0).tint(brand.questionChoice)
-                }
-                if lesson.isFinalQuiz != true,!lesson.modes.contains("game") {
-                    ScrollView(.horizontal,showsIndicators:false) { HStack(spacing:10) { ForEach(lesson.modes,id:\.self) { item in
-                        Button { fresh=false;mode=item;revision=UUID() } label:{ Label(LessonSessionCopy.module(item,language:app.learner.support),systemImage:LessonPreviewView.icon(item)).font(PiyaliBrand.productFont(13,600)).padding(.horizontal,12).padding(.vertical,10).foregroundStyle(item == mode ? brand.questionChoice : brand.secondary).background(item == mode ? brand.questionChoiceBackground : brand.surface,in:RoundedRectangle(cornerRadius:12)).overlay { RoundedRectangle(cornerRadius:12).stroke(item == mode ? brand.questionChoice : brand.border) } }.buttonStyle(.plain).accessibilityIdentifier("lessonMode-"+item)
-                    } } }
-                }
-            }.padding(18).background(brand.background) }
             if let goalCompletionError {
                 VStack(spacing:16){Text(goalCompletionError).multilineTextAlignment(.center).accessibilityIdentifier("goalLessonSaveError");Button(app.goalCompletionText("retry")){finishGoalLesson()}.buttonStyle(EntryButtonStyle()).accessibilityIdentifier("retryGoalLessonSave")}.padding(24)
             } else if finishing,lesson.isGoal == true,!complete {ProgressView(app.goalCompletionText("saving")).padding(24).accessibilityIdentifier("savingGoalLesson")}

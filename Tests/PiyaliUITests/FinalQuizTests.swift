@@ -2,7 +2,7 @@ import XCTest
 
 @MainActor final class FinalQuizPlayTests:XCTestCase {
     private let node="lessonNode-lesson-a1-5-quiz"
-    private func reveal(_ element:XCUIElement,in app:XCUIApplication) { for _ in 0..<12 where !element.isHittable { app.swipeUp(velocity:.slow) };XCTAssertTrue(element.waitForExistence(timeout:5));XCTAssertTrue(element.isHittable) }
+    private func reveal(_ element:XCUIElement,in app:XCUIApplication) { for _ in 0..<12 where !element.isHittable { app.swipeUp(velocity:.slow) };XCTAssertTrue(element.waitForExistence(timeout:5));if !element.isHittable {let shot=XCTAttachment(screenshot:app.screenshot());shot.name="Missing quiz interaction";shot.lifetime = .keepAlways;add(shot)};XCTAssertTrue(element.isHittable) }
     private func tap(_ id:String,_ app:XCUIApplication) { let element=app.buttons[id];reveal(element,in:app);element.tap() }
     private func path(_ app:XCUIApplication) { tap("productMenu",app);tap("productModeMenu",app);tap("productMode-path",app) }
     private func open(_ app:XCUIApplication) { path(app);tap(node,app);tap("startLessonFromPreview",app);XCTAssertTrue(app.staticTexts["quizProgress"].waitForExistence(timeout:10)) }
@@ -27,7 +27,7 @@ import XCTest
         for count in 4...8 { answer(true,app);if count < 8 { tap("nextTypedQuestion",app) } }
         XCTAssertTrue(app.staticTexts["quizResult"].waitForExistence(timeout:5));XCTAssertEqual(app.staticTexts["quizResult"].label,"Quiz Passed!")
         let passed=XCTAttachment(screenshot:app.screenshot());passed.name="Native typed quiz early pass";passed.lifetime = .keepAlways;add(passed)
-        tap("quizExit",app);XCTAssertTrue(app.staticTexts["lessonCompletionBonus"].waitForExistence(timeout:10));XCTAssertEqual(app.staticTexts["lessonCompletionBonus"].label,"+60");tap("continueLessonCompletion",app)
+        tap("quizExit",app);XCTAssertTrue(app.staticTexts["lessonCompletionBonus"].waitForExistence(timeout:10));XCTAssertEqual(app.staticTexts["lessonCompletionBonus"].label,"+60");tap("continueLessonCompletion",app);continueLessonFollowups(app)
         tap(node,app);tap("startLessonFromPreview",app);XCTAssertTrue(app.staticTexts["quizProgress"].waitForExistence(timeout:10));XCTAssertEqual(app.staticTexts["quizProgress"].label,"0/10")
         for count in 1...8 { answer(true,app);if count < 8 { tap("nextTypedQuestion",app) } }
         tap("quizExit",app);XCTAssertTrue(app.buttons[node].waitForExistence(timeout:10));XCTAssertFalse(app.staticTexts["lessonCompletionBonus"].exists)

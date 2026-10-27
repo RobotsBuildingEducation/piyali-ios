@@ -65,8 +65,8 @@ struct ProductShellView:View {
                     if activityFooter != nil || app.achievementUnlock.current != nil {
                         ZStack(alignment:.bottomLeading) {
                             Group{if let unlock=app.achievementUnlock.current{AchievementActionContent(unlock:unlock,language:language,onDismiss:{app.dismissAchievement(unlock.id)})}else if let footer=activityFooter{footer.content.id(footer.owner)}}
-                                .padding(12).background{SourceActivityDockBackground(correct:app.achievementUnlock.current == nil ? activityFooter?.correct:nil,achievement:app.achievementUnlock.current != nil)}.padding(.horizontal,8).padding(.bottom,12)
-                            menuButton(compact:true).padding(.leading,20).padding(.bottom,24)
+                                .padding(12).background{SourceActivityDockBackground(correct:app.achievementUnlock.current == nil ? activityFooter?.correct:nil,achievement:app.achievementUnlock.current != nil,tone:app.achievementUnlock.current == nil ? activityFooter?.tone:nil)}.padding(.horizontal,8).padding(.bottom,12)
+                            HStack{menuButton(compact:true);Spacer(minLength:0)}.frame(height:app.achievementUnlock.current == nil ? 40:44).padding(.leading,20).padding(.bottom,24).environment(\.layoutDirection,.leftToRight)
                         }.onGeometryChange(for:CGFloat.self,of:{ $0.size.height }) { app.activityFooterHeight=$0 }
                     }
 

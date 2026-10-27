@@ -6,29 +6,32 @@ struct ActivityFooterPresentation {
     let owner:UUID
     let content:AnyView
     var correct:Bool?=nil
+    var tone:String?=nil
 }
 private struct ActivityFooterPublisher:ViewModifier {
     @EnvironmentObject var app:AppModel
+    @Environment(\.colorScheme) private var colorScheme
     @ObservedObject var access:SubscriptionService
     let fixtureAllowed:Bool
     let correct:Bool?
+    let tone:String?
     let owner:UUID
     let revision:String
     let footer:AnyView
     private var scope:String { app.identity.npub+":"+app.learner.target+":"+app.learner.support }
     func body(content:Content)->some View {
-        content.task(id:scope+":"+revision+":"+String(access.hasAccess || fixtureAllowed)) {
+        content.task(id:scope+":"+revision+":"+(colorScheme == .dark ? "dark":"light")+":"+String(access.hasAccess || fixtureAllowed)) {
             guard !Task.isCancelled else { return }
             guard app.signedIn,access.hasAccess || fixtureAllowed else {
                 if app.activityFooter?.owner == owner { app.activityFooter=nil };return
             }
-            app.activityFooter = .init(owner:owner,content:footer,correct:correct)
+            app.activityFooter = .init(owner:owner,content:footer,correct:correct,tone:tone)
         }.onDisappear { if app.activityFooter?.owner == owner { app.activityFooter=nil } }
     }
 }
 extension View {
-    func activityFooter<Footer:View>(owner:UUID,revision:String,access:SubscriptionService,fixtureAllowed:Bool=false,correct:Bool?=nil,@ViewBuilder footer:()->Footer)->some View {
-        modifier(ActivityFooterPublisher(access:access,fixtureAllowed:fixtureAllowed,correct:correct,owner:owner,revision:revision,footer:AnyView(footer())))
+    func activityFooter<Footer:View>(owner:UUID,revision:String,access:SubscriptionService,fixtureAllowed:Bool=false,correct:Bool?=nil,tone:String?=nil,@ViewBuilder footer:()->Footer)->some View {
+        modifier(ActivityFooterPublisher(access:access,fixtureAllowed:fixtureAllowed,correct:correct,tone:tone,owner:owner,revision:revision,footer:AnyView(footer())))
     }
 }
 private struct FeedbackHeight:PreferenceKey {
@@ -58,6 +61,7 @@ struct ActivityPrimaryButtonStyle:ButtonStyle {
     var tone="primary"
     private var colors:[Color] {
         switch tone {
+        case "assistant":return [PiyaliBrand.unitColor("3182ce"),PiyaliBrand.unitColor("2b6cb0")]
         case "achievement":return [PiyaliBrand.unitColor("a97916"),PiyaliBrand.unitColor("785411")]
         case "success":return [.init(red:49/255,green:151/255,blue:149/255),.init(red:35/255,green:78/255,blue:82/255)]
         case "speak":return [.init(red:0,green:181/255,blue:216/255),.init(red:8/255,green:111/255,blue:131/255)]
@@ -91,13 +95,14 @@ struct ActivityProgressBar:View {
 struct SourceActivityDockBackground:View {
     let correct:Bool?
     var achievement=false
+    var tone:String?=nil
     @Environment(\.colorScheme) private var scheme
     private var dark:Bool {scheme == .dark}
     private var brand:PiyaliBrand {.init(dark:dark)}
     var body:some View {
-        let accent=achievement ? PiyaliBrand.unitColor(dark ? "fbbf24":"b7791f"):correct.map{$0 ? brand.questionSuccess:brand.questionError},base=correct == nil && !achievement ? PiyaliBrand.unitColor(dark ? "0b1220":"fffcf7").opacity(dark ? 0.12:0.58):PiyaliBrand.unitColor(dark ? "0b1220":"fffcf7").opacity(dark ? 0.66:0.94)
+        let accent=tone == "assistant" ? PiyaliBrand.unitColor(dark ? "7dd3fc":"2563eb"):achievement ? PiyaliBrand.unitColor(dark ? "fbbf24":"b7791f"):correct.map{$0 ? brand.questionSuccess:brand.questionError},base=correct == nil && !achievement && tone != "assistant" ? PiyaliBrand.unitColor(dark ? "0b1220":"fffcf7").opacity(dark ? 0.12:0.58):PiyaliBrand.unitColor(dark ? "0b1220":"fffcf7").opacity(dark ? 0.66:0.94)
         RoundedRectangle(cornerRadius:40).fill(base).overlay{if let accent{RoundedRectangle(cornerRadius:40).fill((achievement && !dark ? PiyaliBrand.unitColor("d99e23"):accent).opacity(dark ? 0.14:0.10))}}.overlay{RoundedRectangle(cornerRadius:40).stroke(accent ?? brand.border)}
-            .shadow(color:correct == nil && !achievement ? .clear:.black.opacity(0.16),radius:21,y:18)
+            .shadow(color:correct == nil && !achievement && tone != "assistant" ? .clear:.black.opacity(0.16),radius:21,y:18)
             .shadow(color:accent?.opacity(dark ? 0.14:0.10) ?? .clear,radius:12)
     }
 }
