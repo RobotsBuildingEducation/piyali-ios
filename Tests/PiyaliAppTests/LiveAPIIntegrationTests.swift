@@ -9,6 +9,36 @@ import NostrSDK
 
 /// Explicit opt-in only. Uses an isolated test identity, bounded prompts and no paid access grant.
 @MainActor final class LiveAPIIntegrationTests: XCTestCase {
+    func testTranslationAndRepeatUseOriginalDirectionsAndNativeJudges()async throws {
+        guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else{throw XCTSkip("Explicit live API opt-in required")}
+        XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))
+        if FirebaseApp.app() == nil{AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure()};XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let identity=IdentityService();try identity.create();try await FirebaseIdentityService.shared.ensure(identity);var stage="authenticate"
+        do {
+            let url=try XCTUnwrap(Bundle(for:Self.self).url(forResource:"word-bank-bodies",withExtension:"json")),samples=try JSONDecoder().decode(Piyali.JSONValue.self,from:Data(contentsOf:url)),recipes=try PracticeRecipes(),service=PracticeService(),ai=AIService()
+            for module in [PracticeRecipeModule.vocabulary,.grammar]{for variant in ["translate-target","translate-support","repeat-target","repeat-support","repeat-listening"]{
+                let sample=samples[variant],q=try PracticeQuestion(module:module,kind:sample["kind"].string,payload:sample["question"],options:sample["options"],target:"es",support:"en")
+                stage="grade \(module.rawValue) \(variant)";print("WORD BANK LIVE STAGE: \(stage)")
+                for(response,expected)in[(sample["responses"]["filled"],true),(.object(["indices":.array([.number(6)])]),false)]{
+                    let run=PracticeRun(question:q,lessonID:nil,lessonLevel:"A1",response:response,bank:sample["bank"].array.map(\.string)),verdict=try await service.verdict(run:run,recipes:recipes,judge:{try await ai.responsesText($0)});XCTAssertEqual(verdict.correct,expected,"\(module.rawValue) \(variant)")
+                }
+            }}
+            for module in [PracticeRecipeModule.vocabulary,.grammar]{for kind in ["translate","repeat"]{
+                let options:Piyali.JSONValue = .object(["cefrLevel":.string("A1"),"direction":.string("support-to-target"),"isListening":.bool(kind == "repeat"),"repeatMode":.string("listening-target")]),parameters=options.setting("targetLang",.string("es")).setting("supportLang",.string("en")).setting("appUILang",.string("en")).setting("showTranslations",.bool(true)).setting("recentGood",.array([])).setting("recentQuestions",.array([])).setting("lessonContent",.object(["topic":.string("family"),"cefrLevel":.string("A1")]))
+                stage="generate \(module.rawValue) \(kind)";print("WORD BANK LIVE STAGE: \(stage)")
+                let prompt=try recipes.build(module:module,kind:kind,parameters:parameters);var prepared:PracticeQuestion?,failure:Error=PracticeQuestionFailure.malformed
+                for attempt in 0..<2{do{let raw=try await(attempt == 0 ? ai.text(prompt):ai.responsesText(prompt));do{prepared=try PracticeQuestion.parse(raw,module:module,kind:kind,options:options,target:"es",support:"en");break}catch{let attachment=XCTAttachment(data:Data(raw.prefix(20000).utf8),uniformTypeIdentifier:"public.plain-text");attachment.name="Word-bank generation parse failure \(stage) attempt \(attempt)";attachment.lifetime = .keepAlways;add(attachment);throw error}}catch{failure=error}}
+                let q=try XCTUnwrap(prepared,"\(failure)"),words=q.strings("correctWords");XCTAssertFalse(words.isEmpty);let run=PracticeRun(question:q,lessonID:nil,lessonLevel:"A1",response:.object(["indices":.array(words.indices.map{.number(Double($0))})]),bank:words+q.strings("distractors")),verdict=try await service.verdict(run:run,recipes:recipes,judge:{try await ai.responsesText($0)});XCTAssertTrue(verdict.correct);if kind == "repeat"{XCTAssertEqual(q.audioText,words.joined(separator:" "));XCTAssertEqual(q.audioLanguage,"es")}
+            }}
+            for module in [PracticeRecipeModule.vocabulary,.grammar]{let sample=samples["translate-target"],payload=sample["question"].setting("distractors",.array((sample["question"]["distractors"].array)+[.string("don't")])),q=try PracticeQuestion(module:module,kind:"translate",payload:payload,options:sample["options"],target:"es",support:"en"),run=PracticeRun(question:q,lessonID:nil,lessonLevel:"A1",response:.object(["indices":.array([0,7,3,4].map{.number(Double($0))})]),bank:sample["bank"].array.map(\.string)+["don't"]);stage="alternate contraction \(module.rawValue)";let verdict=try await service.verdict(run:run,recipes:recipes,judge:{try await ai.responsesText($0)});XCTAssertTrue(verdict.correct)}
+            let assistancePolicy=try WordBankAssistancePolicy()
+            for language in ["en","ar"]{let sample=samples["translate-target"],q=try PracticeQuestion(module:.vocabulary,kind:"translate",payload:sample["question"],options:sample["options"],target:"es",support:language);var run=PracticeRun(question:q,lessonID:nil,lessonLevel:"A1",response:sample["responses"]["partial"],bank:sample["bank"].array.map(\.string));run.correct=false;run.lastMissedAnswer=run.answerText
+                for operation in ["assistant","explanation"]{stage="\(operation) \(language)";print("WORD BANK LIVE STAGE: \(stage)");let request=try assistancePolicy.build(operation,run:run);var chunks=0;let output=try await ai.practiceAssistanceText(request["prompt"].string,onText:{_ in chunks+=1});XCTAssertFalse(output.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty);XCTAssertGreaterThan(chunks,0);if language == "ar"{XCTAssertTrue(output.unicodeScalars.contains{(0x0600...0x06ff).contains($0.value)})};let attachment=XCTAttachment(data:Data(output.prefix(10000).utf8),uniformTypeIdentifier:"public.plain-text");attachment.name="Live word-bank \(stage)";attachment.lifetime = .keepAlways;add(attachment)}
+            }
+            print("LIVE WORD BANK: both modules accepted references and rejected wrong bank answers in all five direction/repeat modes; four actual generated questions parsed and graded; original help/explanation streamed in English and Arabic; no learner progress or public relay writes")
+        }catch{try? await Auth.auth().currentUser?.delete();FirebaseIdentityService.shared.clearSession();try? identity.disconnect();throw NSError(domain:"WordBankLiveStage",code:1,userInfo:[NSLocalizedDescriptionKey:"\(stage): \(error)"])}
+        try await Auth.auth().currentUser?.delete();FirebaseIdentityService.shared.clearSession();try identity.disconnect()
+    }
     func testStandardChoiceFillAndMatchingUseOriginalNativeJudges()async throws {
         guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else{throw XCTSkip("Explicit live API opt-in required")}
         XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))

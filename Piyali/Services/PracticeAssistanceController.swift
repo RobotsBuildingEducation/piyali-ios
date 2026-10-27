@@ -25,7 +25,7 @@ import FirebaseAILogic
         if assistantOpen{assistantOpen=false;return};assistantOpen=true;guard !assistantBusy,assistantText.isEmpty else{return}
         let token=revision;assistantBusy=true;var fallback=""
         assistantTask=Task{defer{if owned(app,run,token){assistantBusy=false;assistantTask=nil}}
-            do {let request=try prompt("assistant",run:run);let prefix=request["prefix"].string;fallback=prefix.trimmingCharacters(in:.whitespacesAndNewlines)
+            do {let request=try prompt("assistant",run:run,level:app.learner.settingsSnapshot["progress"]["level"].string);let prefix=request["prefix"].string;fallback=prefix.trimmingCharacters(in:.whitespacesAndNewlines)
                 @MainActor func update(_ text:String){guard owned(app,run,token),!Task.isCancelled else{return};assistantText=prefix+text;if !assistantText.isEmpty,var current=app.learner.practiceRuns?[run.key]{if !current.assisted {current.assisted=true;app.learner.savePractice(current);app.persist()}}}
                 update("");let output=try await write(app,request["prompt"].string,update:update);guard owned(app,run,token),!Task.isCancelled else{return};update(output.isEmpty ? EntryCopy.ui(run.question.support,"vocab_assistant_error"):output)
             }catch is CancellationError{}catch{guard owned(app,run,token),!Task.isCancelled else{return};assistantText=fallback.isEmpty ? EntryCopy.ui(run.question.support,"vocab_assistant_error"):fallback;if var current=app.learner.practiceRuns?[run.key]{if !current.assisted {current.assisted=true;app.learner.savePractice(current);app.persist()}}}
@@ -35,11 +35,17 @@ import FirebaseAILogic
         guard !run.question.options["isFinalQuiz"].boolean,run.correct == false,!explanationBusy,explanationText.isEmpty,app.subscription.hasAccess,app.learner.target == run.question.target,app.learner.support == run.question.support,app.learner.practiceRuns?[run.key]?.question.id == run.question.id else{return};bind(app,run:run);let token=revision,request=UUID();explanationRevision=request;explanationBusy=true
         let response=run.response
         explanationTask=Task{defer{if owned(app,run,token),explanationRevision == request{explanationBusy=false;explanationTask=nil}}
-            do{let draft=try prompt("explanation",run:run),text=try await write(app,draft["prompt"].string,update:{_ in});guard owned(app,run,token),explanationRevision == request,app.learner.practiceRuns?[run.key]?.response == response,!Task.isCancelled else{return};explanationText=text.isEmpty ? EntryCopy.ui(run.question.support,"vocab_explanation_error"):text}
-            catch is CancellationError{}catch{guard owned(app,run,token),explanationRevision == request,app.learner.practiceRuns?[run.key]?.response == response,!Task.isCancelled else{return};explanationText=EntryCopy.ui(run.question.support,"vocab_explanation_error")}
+            do{let draft=try prompt("explanation",run:run,level:app.learner.settingsSnapshot["progress"]["level"].string),text=try await write(app,draft["prompt"].string,update:{_ in});guard owned(app,run,token),explanationRevision == request,explanationResponseOwned(app,run:run,response:response),!Task.isCancelled else{return};explanationText=text.isEmpty ? EntryCopy.ui(run.question.support,"vocab_explanation_error"):text}
+            catch is CancellationError{}catch{guard owned(app,run,token),explanationRevision == request,explanationResponseOwned(app,run:run,response:response),!Task.isCancelled else{return};explanationText=EntryCopy.ui(run.question.support,"vocab_explanation_error")}
         }
     }
-    private func prompt(_ operation:String,run:PracticeRun)throws->JSONValue {
+    private func explanationResponseOwned(_ app:AppModel,run:PracticeRun,response:JSONValue)->Bool {
+        guard let current=app.learner.practiceRuns?[run.key]else{return false}
+        return current.response == response || (["translate","repeat"].contains(run.question.kind) && run.lastMissedAnswer != nil && current.lastMissedAnswer == run.lastMissedAnswer && current.correct == false)
+    }
+    private var wordBankPolicy:WordBankAssistancePolicy?
+    private func prompt(_ operation:String,run:PracticeRun,level:String="beginner")throws->JSONValue {
+        if ["translate","repeat"].contains(run.question.kind){if wordBankPolicy == nil{wordBankPolicy=try WordBankAssistancePolicy()};return try wordBankPolicy!.build(operation,run:run,level:level)}
         if run.question.isDelight {if policy == nil{policy=try PracticeAssistancePolicy()};return try policy!.build(operation,run:run)}
         // Legacy formats retain their data context; direct help follows the source assistance contract.
         let q=run.question,target=EntryCopy.ui(q.support,"language_"+q.target),support=EntryCopy.names[q.support] ?? q.support,data:JSONValue = .object(["question":q.payload,"response":run.response,"bank":.array(run.bank.map(JSONValue.string)),"expected":.string(run.expected)])

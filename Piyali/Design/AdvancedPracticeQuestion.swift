@@ -122,10 +122,10 @@ struct PracticeScopedDrag:ViewModifier {
     @ViewBuilder func body(content:Content)->some View{if enabled{content.draggable(item)}else{content}}
 }
 struct DelightWrapLayout:Layout {
-    var spacing:CGFloat=8,centered=false,rtl=false
+    var spacing:CGFloat=8,centered=false,rtl=false,endAligned=false
     private func rows(_ subviews:Subviews,width:CGFloat)->[[Int]]{var rows:[[Int]]=[[]],used:CGFloat=0;for index in subviews.indices{let w=subviews[index].sizeThatFits(.unspecified).width;if !rows[rows.count-1].isEmpty,used+spacing+w>width{rows.append([]);used=0};if !rows[rows.count-1].isEmpty{used+=spacing};rows[rows.count-1].append(index);used+=w};return rows}
     func sizeThatFits(proposal:ProposedViewSize,subviews:Subviews,cache:inout())->CGSize{let width=proposal.width ?? 320,groups=rows(subviews,width:width),height=groups.map{$0.map{subviews[$0].sizeThatFits(.unspecified).height}.max() ?? 0}.reduce(0,+)+CGFloat(max(0,groups.count-1))*spacing;return CGSize(width:width,height:height)}
-    func placeSubviews(in bounds:CGRect,proposal:ProposedViewSize,subviews:Subviews,cache:inout()){var y=bounds.minY;for row in rows(subviews,width:bounds.width){let sizes=row.map{subviews[$0].sizeThatFits(.unspecified)},width=sizes.map(\.width).reduce(0,+)+CGFloat(max(0,row.count-1))*spacing,height=sizes.map(\.height).max() ?? 0;var x=centered ? max(0,(bounds.width-width)/2):0;for(index,size)in zip(row,sizes){subviews[index].place(at:CGPoint(x:bounds.minX+(rtl ? bounds.width-x-size.width:x),y:y),proposal:ProposedViewSize(width:size.width,height:size.height));x+=size.width+spacing};y+=height+spacing}}
+    func placeSubviews(in bounds:CGRect,proposal:ProposedViewSize,subviews:Subviews,cache:inout()){var y=bounds.minY;for row in rows(subviews,width:bounds.width){let sizes=row.map{subviews[$0].sizeThatFits(.unspecified)},width=sizes.map(\.width).reduce(0,+)+CGFloat(max(0,row.count-1))*spacing,height=sizes.map(\.height).max() ?? 0;var x=centered ? max(0,(bounds.width-width)/2):endAligned ? max(0,bounds.width-width):0;for(index,size)in zip(row,sizes){subviews[index].place(at:CGPoint(x:bounds.minX+(rtl ? bounds.width-x-size.width:x),y:y),proposal:ProposedViewSize(width:size.width,height:size.height));x+=size.width+spacing};y+=height+spacing}}
 }
 
 /// An inline attachment preserves the web's padded, underlined live word inside a wrapping sentence.

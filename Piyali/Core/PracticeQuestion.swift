@@ -81,7 +81,9 @@ public struct PracticeQuestion:Codable,Equatable,Identifiable,Sendable {
             guard allowed else { throw PracticeQuestionFailure.malformed }
             merged.merge(part.object) { _,new in new }
         }
-        return try .init(module:module,kind:kind,payload:StandardChoiceRepair.repair(kind:kind,payload:.object(merged)),options:options,target:target,support:support)
+        var payload=StandardChoiceRepair.repair(kind:kind,payload:.object(merged))
+        if ["translate","repeat"].contains(kind),payload["distractors"].array.isEmpty{let answerLanguage=options["direction"].string == "target-to-support" ? support:target;payload=payload.setting("distractors",.array(WordBankPracticeInteraction.fallbackDistractors(words:payload["correctWords"].array.map(\.string),answerLanguage:answerLanguage).map(JSONValue.string)))}
+        return try .init(module:module,kind:kind,payload:payload,options:options,target:target,support:support)
     }
     public func ready(_ response:JSONValue)->Bool {
         let bankCount=["translate","repeat"].contains(kind) ? strings("correctWords").count+strings("distractors").count : strings("choices").count

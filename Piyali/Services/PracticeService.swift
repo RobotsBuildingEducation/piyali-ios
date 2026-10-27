@@ -38,7 +38,7 @@ import Foundation
                 if quiz != nil { question=try PracticeQuestion(module:module,kind:question.kind,payload:question.payload,options:question.options.setting("isFinalQuiz",.bool(true)).setting("cefrLevel",.string(quiz!.level)),target:state.target,support:state.support) }
                 question.worth=try GeneratedQuestionWorth.fallback(level:question.level,learner:state,recipes:recipes)
                 let response=question.isDelight ? try recipes.inspect("initialResponse",parameters:.object(["question":question.payload])) : .object([:])
-                var run=PracticeRun(question:question,lessonID:lesson?.id,lessonLevel:lesson?.cefrLevel ?? state.level,response:response);run.quizRunID=quiz?.id
+                var run=PracticeRun(question:question,lessonID:lesson?.id,lessonLevel:lesson?.cefrLevel ?? state.level,response:response,bank:PracticeTestFixtures.bank);run.quizRunID=quiz?.id
                 if let quiz,!app.learner.prepareTypedQuizQuestion(question,lessonID:quiz.lessonID,runID:quiz.id) { return }
                 app.learner.savePractice(run);app.persist();return
             }
@@ -135,7 +135,7 @@ import Foundation
                 if q.module == .grammar { return(pairs.allSatisfy { $0[1] == Int(p["map"].array[$0[0]].number) },nil) }
                 kind="judgeMatch";parameters=parameters.setting("stem",p["stem"]).setting("left",p["left"]).setting("right",p["right"]).setting("userPairs",.array(pairs.map { .array($0.map { .number(Double($0)) }) }))
             case "translate","repeat":
-                if words.map(normalized) == q.strings("correctWords").map(normalized) { return(true,nil) }
+                if words == q.strings("correctWords") { return(true,nil) }
                 kind="judgeTranslate";parameters=parameters.setting("sourceLang",.string(q.sourceLanguage)).setting("answerLang",.string(q.answerLanguage)).setting("sentence",.string(q.kind == "repeat" && q.options["isListening"].boolean ? q.audioText : p["sentence"].string)).setting("correctWords",p["correctWords"]).setting("userWords",.array(words.map(JSONValue.string)))
             case "speak":return(StorySpeech.evaluate(recognized:r["text"].string,target:p["target"].string,lang:q.target,confidence:confidence,audio:audio).pass,nil)
             case "flashcard":kind="judgeFlashcard";parameters=parameters.setting("concept",p["concept"]).setting("userAnswer",r["text"])
@@ -151,7 +151,6 @@ import Foundation
         }
         return(output.hasPrefix("YES"),q.kind == "flashcard" ? amount.flatMap { (4...7).contains($0) ? $0 : nil } ?? 5 : nil)
     }
-    private func normalized(_ text:String)->String { text.folding(options:[.diacriticInsensitive,.caseInsensitive],locale:Locale(identifier:"en_US_POSIX")).components(separatedBy:CharacterSet.alphanumerics.union(.whitespaces).union(CharacterSet(charactersIn:"'")).inverted).joined().split(whereSeparator:{$0.isWhitespace}).joined(separator:" ") }
 
 }
 extension LearnerState {

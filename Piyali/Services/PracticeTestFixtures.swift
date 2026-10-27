@@ -9,11 +9,14 @@ enum PracticeTestFixtures {
         return env["PIYALI_PRACTICE_FIXTURE"]
     }
     private static var standardSamples:JSONValue{guard let url=Bundle.main.url(forResource:"standard-practice-fixture",withExtension:"json"),let data=try? Data(contentsOf:url),let value=try? JSONDecoder().decode(JSONValue.self,from:data)else{return .null};return value}
+    private static var wordBankSamples:JSONValue{guard let url=Bundle.main.url(forResource:"word-bank-practice-fixture",withExtension:"json"),let data=try? Data(contentsOf:url),let value=try? JSONDecoder().decode(JSONValue.self,from:data)else{return .null};return value}
+    static var bank:[String]?{guard let kind,kind.hasPrefix("wordbank:"),wordBankSamples[String(kind.dropFirst(9))] != .null else{return nil};return wordBankSamples[String(kind.dropFirst(9))]["bank"].array.map(\.string)}
     /// Finite offered-answer judge used only by explicitly opted-in offline gesture journeys.
     /// Production retains the source semantic provider and its alternative-answer rules.
     static func verdict(run:PracticeRun,prompt:String)->String? {
         let env=ProcessInfo.processInfo.environment
         guard env["PIYALI_LIVE_API_TESTS"] != "1",env["PIYALI_PRACTICE_JUDGE_FIXTURE"] == "offered-reference",let kind else{return nil}
+        if kind.hasPrefix("wordbank:") {guard wordBankSamples[String(kind.dropFirst(9))]["kind"].string == run.question.kind,!prompt.isEmpty else{return nil};return run.answerText == run.question.strings("correctWords").joined(separator:" ") ? "YES":"NO"}
         if kind.hasPrefix("standard:") {
             let q=run.question,p=q.payload,r=run.response,choices=run.bank,words=r["indices"].array.compactMap{value->String? in let i=Int(value.number);return choices.indices.contains(i) ? choices[i]:nil}
             guard standardSamples[q.module.rawValue][String(kind.dropFirst(9))]["kind"].string == q.kind,!prompt.isEmpty,!prompt.contains("undefined")else{return nil}
@@ -48,6 +51,7 @@ enum PracticeTestFixtures {
             guard ProcessInfo.processInfo.environment["PIYALI_WRITING_FIXTURE"] == "1",["sentence_shapeshifter","three_clue_mystery","three_word_challenge"].contains(String(kind.dropFirst(8))),let fallback=try? recipes.inspect("fallback",parameters:.object(["variant":.string(String(kind.dropFirst(8))),"moduleType":.string(module.rawValue),"targetLang":.string(target),"supportLang":.string(support)]))else{return nil}
             return try? PracticeQuestion(module:module,kind:kind,payload:fallback,options:.object(["cefrLevel":.string("A1")]),target:target,support:support)
         }
+        if kind.hasPrefix("wordbank:") {let sample=wordBankSamples[String(kind.dropFirst(9))];guard sample != .null else{return nil};return try? PracticeQuestion(module:module,kind:sample["kind"].string,payload:sample["question"],options:sample["options"],target:target,support:support)}
         if kind.hasPrefix("standard:") {
             let sample=standardSamples[module.rawValue][String(kind.dropFirst(9))]
             guard sample != .null else{return nil}

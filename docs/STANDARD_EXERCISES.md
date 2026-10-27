@@ -1,6 +1,6 @@
 # Standard question bodies
 
-Fill, Multiple Choice, Multiple Answer and Match now have their own native source bodies. Translation, listening repetition, speech and lesson flashcards still need their individual source presentation and input work. This checkpoint does not complete the full product parity goal.
+Fill, Multiple Choice, Multiple Answer and Match now have their own native source bodies. Translation and repetition now have their own source bodies and native gestures in [Word-bank exercises](WORD_BANK_EXERCISES.md). Speaking and lesson flashcards still need their individual source presentation and input work. This checkpoint does not complete the full product parity goal.
 
 | Format | Restored source behavior |
 |---|---|
@@ -17,7 +17,7 @@ The original UTF-16 hash chooses button/slot variants. Grammar additionally reje
 
 The read-only preview extracts each actual JSX branch and its header/inline renderer helpers from `GrammarBook.jsx` and `Vocabulary.jsx`. Provider and persistence callbacks are inert in controlled comparison states; the real callbacks are tested separately through their exported contracts. Each comparison uses fresh WebKit storage, asserts its requested theme and captures source geometry. Public controlled content fixes the question and bank order. The original parent stack supplies spacing around the extracted branches. Global navigation bars are outside these component comparisons.
 
-Exact runs, superseded comparisons and retained captures are recorded in `VALIDATION.md`. Remaining work includes the other four standard bodies, source help/explanation prompts on legacy formats, source TTS/voices and sound effects, active audio indicators, source-compatible post-grade editing without repeat awards, all target-language/keyboard and interruption states, precise font/corner/menu geometry, wider accessibility/device checks and physical iPhone testing.
+Exact runs, superseded comparisons and retained captures are recorded in `VALIDATION.md`. Remaining work includes speaking/lesson-flashcard bodies, source help/explanation prompts on other legacy formats, source TTS/voices and sound effects, active audio indicators, source-compatible post-grade editing without repeat awards, all target-language/keyboard and interruption states, precise font/corner/menu geometry, wider accessibility/device checks and physical iPhone testing.
 
 The shared action surface preserves the legacy empty-feedback gap and 44-point action row for these four formats while keeping other activities’ defaults. Source “Next question” copy is retained. Correct fill input clears visually while its submitted response remains in private history and note data. Original feedback-reset rules distinguish a changed answer from a moved bank or emptied response.
 

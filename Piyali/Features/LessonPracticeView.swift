@@ -22,7 +22,6 @@ struct LessonPracticeView:View {
     }
     private var quiz:Bool { lesson?.isFinalQuiz == true }
     @State private var showStandardKeyboard=false
-    @State private var showTranscript=false
     @State private var questionAudioPlaying=false
     @State private var noteSaved=false
     @State private var noteCreating=false
@@ -55,6 +54,8 @@ struct LessonPracticeView:View {
                                 advancedQuestion(run)
                             } else if StandardPracticeQuestion.variants.contains(run.question.kind) {
                                 standardQuestion(run)
+                            } else if WordBankPracticeQuestion.variants.contains(run.question.kind) {
+                                wordBankQuestion(run)
                             } else {
                                 question(run)
                                 controls(run).disabled(service.busy || run.correct == true || quiz && run.correct != nil)
@@ -73,7 +74,7 @@ struct LessonPracticeView:View {
             .sheet(isPresented:$showDeck) { PracticeDeckView(cards:app.learner.practiceDecks?[app.learner.practiceDeckKey(module)] ?? [],support:app.learner.support) }
             .task(id:scope) { questionAudioPlaying=false;answering=false;showStandardKeyboard=false;writing.clear();speech.stopAll();assistance.clear();showDeck=false;appeared=true;await service.prepare(app,module:module,lesson:lesson,fresh:startsFresh);if let run {assistance.bind(app,run:run);writing.bind(app,run:run)} }
             .onChange(of:run?.question.id){_,_ in questionAudioPlaying=false;noteSaved=false;noteCreating=false;portrait=PracticeQuestionAppearance.portrait;if let run {assistance.bind(app,run:run);writing.bind(app,run:run)}}
-            .onChange(of:run?.response){_,_ in assistance.responseChanged()}
+            .onChange(of:run?.response){_,_ in if let run,!WordBankPracticeQuestion.variants.contains(run.question.kind){assistance.responseChanged()}}
             .onAppear { active=true }
             .onChange(of:speech.transcript) { _,text in if active { updateResponse("text",.string(text)) } }
             .onChange(of:speech.recording) { wasRecording,recording in
@@ -84,6 +85,12 @@ struct LessonPracticeView:View {
             }
             .onChange(of:scenePhase) { _,phase in if phase != .active { questionAudioPlaying=false;writing.clear();service.cancel();assistance.cancel();speech.stopAll() } }
             .onDisappear { active=false;questionAudioPlaying=false;writing.clear();service.cancel();assistance.cancel();speech.stopAll() }
+    }
+    private func wordBankQuestion(_ run:PracticeRun)->some View {
+        let capturedScope=scope
+        return WordBankPracticeQuestion(run:run,locked:service.busy || run.correct == true || quiz && run.correct != nil,assistantOpen:assistance.assistantOpen,assistantBusy:assistance.assistantBusy,playing:questionAudioPlaying,help:{assistance.ask(app,run:run)},listen:{let id=run.question.id;speech.speakSeries([run.question.audioText],language:run.question.audioLanguage,onStarted:{if self.run?.question.id == id{questionAudioPlaying=true}},onInterrupted:{questionAudioPlaying=false},onFinished:{questionAudioPlaying=false})},change:{response in
+            guard scope == capturedScope,var current=self.run,current.question.id == run.question.id,current.correct != true,(!quiz || current.correct == nil),!service.busy else{return};current.response=response;app.learner.savePractice(current);app.persist()
+        }).id(run.question.id)
     }
     private func standardQuestion(_ run:PracticeRun)->some View {
         let capturedScope=scope
@@ -115,9 +122,6 @@ struct LessonPracticeView:View {
             }
             if q.kind == "flashcard" {
                 flashcard(run)
-            } else if q.kind == "repeat",q.options["isListening"].boolean {
-                Button { speech.speak(q.audioText,language:q.audioLanguage) } label:{ Image(systemName:"speaker.wave.2.fill").font(.system(size:30)).frame(maxWidth:.infinity,minHeight:100) }.buttonStyle(.plain).foregroundStyle(PiyaliBrand.teal).accessibilityLabel(copy("vocab_listen_question"))
-                if showTranscript { Text(q.audioText).font(PiyaliBrand.productFont(24,500)) }
             } else if q.kind == "speak" {
                 Text(p["prompt"].string).font(PiyaliBrand.productFont(16))
                 Text(p["display"].string.isEmpty ? p["target"].string : p["display"].string).font(PiyaliBrand.productFont(26,500))
@@ -151,7 +155,6 @@ struct LessonPracticeView:View {
         let q=run.question
         if !q.isDelight {
             switch q.kind {
-            case "translate","repeat":wordBank(run,field:"indices",words:run.bank)
             default:answerField(run)
             }
         }
@@ -162,28 +165,10 @@ struct LessonPracticeView:View {
             Button { if speech.recording { speech.stop() } else { Task { await speech.start(language:run.question.answerLanguage) } } } label:{ Label(copy(speech.recording ? "vocab_speak_stop" : "vocab_speak_record"),systemImage:speech.recording ? "stop.circle.fill" : "mic.fill") }.buttonStyle(.bordered).tint(PiyaliBrand.teal).accessibilityIdentifier("typedPracticeMicrophone")
         }
     }
-    private func wordBank(_ run:PracticeRun,field:String,words:[String])->some View {
-        let chosen=run.response[field].array.map { Int($0.number) }
-        return VStack(alignment:.leading,spacing:18) {
-            PracticeFlowLayout(spacing:8) {
-                ForEach(Array(chosen.enumerated()),id:\.offset) { position,index in
-                    if words.indices.contains(index) { chip(words[index],selected:true) { var next=chosen;next.remove(at:position);updateResponse(field,.array(next.map { .number(Double($0)) })) }.accessibilityIdentifier("typedSelected-"+String(position)) }
-                }
-                if chosen.isEmpty { Text("…").font(PiyaliBrand.productFont(22)).frame(minWidth:50,minHeight:40).foregroundStyle(brand.muted) }
-            }.frame(minHeight:70,alignment:.leading).frame(maxWidth:.infinity,alignment:.leading).padding(14).background(brand.surface,in:RoundedRectangle(cornerRadius:18)).overlay { RoundedRectangle(cornerRadius:18).stroke(brand.border,style:StrokeStyle(lineWidth:1,dash:[5])) }
-            PracticeFlowLayout(spacing:8) { ForEach(Array(words.enumerated()),id:\.offset) { index,text in
-                chip(text,selected:false) { updateResponse(field,.array((chosen+[index]).map { .number(Double($0)) })) }.opacity(chosen.contains(index) ? 0.3 : 1).disabled(chosen.contains(index)).accessibilityIdentifier("typedWord-"+String(index))
-            } }
-        }
-    }
-    private func chip(_ text:String,selected:Bool,action:@escaping()->Void)->some View {
-        Button(action:action) { Text(text).font(PiyaliBrand.productFont(17,500)).padding(.horizontal,15).padding(.vertical,12).background(selected ? brand.questionChipBackground : brand.surface,in:RoundedRectangle(cornerRadius:14)).overlay { RoundedRectangle(cornerRadius:14).stroke(selected ? brand.questionChip : brand.border,lineWidth:1.5) } }.buttonStyle(.plain)
-    }
     private func questionTools(_ run:PracticeRun)->some View {
         HStack(spacing:16) {
             if !run.question.audioText.isEmpty {PracticeToolButton(action:{speech.speak(run.question.audioText,language:run.question.audioLanguage)}){PracticeIcon(name:"FiVolume2")}.accessibilityLabel(copy("vocab_listen_question"))}
             if !quiz {PracticeToolButton(active:assistance.assistantOpen,action:{assistance.ask(app,run:run)}){PracticeIcon(name:"MdOutlineSupportAgent")}.disabled(assistance.assistantBusy).accessibilityLabel(questionCopy(run,"askForHelp",fallback:copy("vocab_ask_assistant"))).accessibilityIdentifier("typedPracticeHelp")}
-            if run.question.kind == "repeat",run.question.options["isListening"].boolean {Button(showTranscript ? "Hide transcript":"Show transcript"){showTranscript.toggle()}.font(PiyaliBrand.productFont(13)).foregroundStyle(brand.secondary)}
         }
     }
     private var footerRevision:String {[scope,run?.question.id.uuidString ?? "",run?.response.canonicalJSON ?? "",String(describing:run?.correct),String(run?.earnedXP ?? 0),String(service.busy),String(service.preparing),String(service.preparationFailed),assistance.assistantText,assistance.explanationText,String(assistance.assistantOpen),String(assistance.assistantBusy),String(assistance.explanationBusy),String(noteSaved),String(noteCreating),String(showStandardKeyboard),String(lessonEarned)].joined(separator:"|")}
@@ -191,7 +176,7 @@ struct LessonPracticeView:View {
     private var lessonPercent:Int? {guard let lesson,lesson.id != IntroTutorial.lessonID,!quiz,lesson.xpReward>0 else{return nil};return Int(floor(min(100,Double(lessonEarned)/Double(lesson.xpReward)*100)+0.5))}
     private var questionFooter:some View {
         let palette=brand,dark=scheme == .dark
-        return ActivityFooterSurface(feedbackLimit:assistance.assistantOpen ? min(UIScreen.main.bounds.height*0.34,260):nil,preserveEmptyFeedback:run.map{StandardPracticeQuestion.variants.contains($0.question.kind)} ?? false,actionHeight:run.map{StandardPracticeQuestion.variants.contains($0.question.kind)} == true ? 44:40,hasFeedback:!service.preparing && !service.preparationFailed && (assistance.assistantOpen || service.busy || run?.correct != nil),feedback:{
+        return ActivityFooterSurface(feedbackLimit:assistance.assistantOpen ? min(UIScreen.main.bounds.height*0.34,260):nil,preserveEmptyFeedback:run.map{["fill","mc","ma","match","translate","repeat"].contains($0.question.kind)} ?? false,actionHeight:run.map{["fill","mc","ma","match","translate","repeat"].contains($0.question.kind)} == true ? 44:40,hasFeedback:!service.preparing && !service.preparationFailed && (assistance.assistantOpen || service.busy || run?.correct != nil),feedback:{
             if !service.preparing,!service.preparationFailed,assistance.assistantOpen {
                 VStack(alignment:.leading,spacing:8){HStack(spacing:10){PracticeIcon(name:"MdOutlineSupportAgent",size:22).foregroundStyle(palette.questionTool);Text(copy("vocab_assistant")).font(PiyaliBrand.productFont(16,700)).foregroundStyle(PiyaliBrand.unitColor(dark ? "e0f2fe":"1e3a8a"));Spacer();Button{assistance.closeAssistant()}label:{PracticeIcon(name:"FiX")}.frame(width:32,height:32).accessibilityLabel(copy("app_close")).accessibilityIdentifier("closeTypedAssistant")};if assistance.assistantBusy,assistance.assistantText.isEmpty{FocusHeadlineDots().frame(maxWidth:.infinity,alignment:.leading)}else{PracticeFeedbackMarkdown(text:assistance.assistantText,assistant:true).accessibilityIdentifier("typedAssistantText")}}.padding(.horizontal,4).padding(.top,8).padding(.bottom,4)
             } else if service.busy,!service.preparing {HStack(spacing:8){VoiceOrbView(state:"thinking",dark:dark,showShadow:false).frame(width:52,height:52);Text(copy("proficiency_thinking")).font(PiyaliBrand.productFont(16,700));FocusHeadlineDots().frame(width:23)}.frame(maxWidth:.infinity,minHeight:52).padding(.vertical,8)
@@ -207,13 +192,13 @@ struct LessonPracticeView:View {
             else if service.preparing {ProgressView().frame(maxWidth:.infinity,minHeight:40)}
             else if assistance.assistantOpen {Button(copy("app_close")){assistance.closeAssistant()}.buttonStyle(ActivityPrimaryButtonStyle(tone:"assistant")).accessibilityIdentifier("closeTypedAssistantAction")}
             else if let run {
-                if run.correct == true || quiz && run.correct != nil {Button{nextQuestion(run)}label:{HStack{Text((StandardPracticeQuestion.variants.contains(run.question.kind) ? copy("practice_next_question"):questionCopy(run,"nextQuestion",fallback:copy("grammar_next"))).replacingOccurrences(of:#"\s*→\s*$"#,with:"",options:.regularExpression));PracticeIcon(name:"FiArrowRight",size:16)}}.buttonStyle(ActivityPrimaryButtonStyle(tone:run.correct == true ? "success":"stop")).disabled(service.busy).accessibilityIdentifier("nextTypedQuestion")}
-                else {if run.question.kind == "fill",StandardPracticeQuestion.keyboard.supported(run.question.target){Button{answering=false;showStandardKeyboard.toggle()}label:{PracticeIcon(name:"MdKeyboard",size:18)}.frame(width:40,height:40).disabled(service.busy).accessibilityLabel(copy(showStandardKeyboard ? "history_keyboard_close":"history_keyboard_open")).accessibilityIdentifier("standardKeyboardToggle")};if !quiz{Button(PracticeCopy.text(variant:run.question.isDelight ? run.question.variant:"flashcard",language:app.learner.support,key:"skip")){nextQuestion(run)}.font(PiyaliBrand.productFont(14,600)).foregroundStyle(palette.text).disabled(service.busy).frame(minWidth:48,minHeight:40).accessibilityIdentifier("skipLessonActivity")};Button(questionCopy(run,"submit",fallback:copy(module == .grammar ? "grammar_submit":"vocab_submit"))){submit(run)}.buttonStyle(ActivityPrimaryButtonStyle()).disabled(service.busy || !service.ready(run)).accessibilityIdentifier("checkTypedAnswer")}
+                if run.correct == true || quiz && run.correct != nil {Button{nextQuestion(run)}label:{HStack{Text((["fill","mc","ma","match","translate","repeat"].contains(run.question.kind) ? copy("practice_next_question"):questionCopy(run,"nextQuestion",fallback:copy("grammar_next"))).replacingOccurrences(of:#"\s*→\s*$"#,with:"",options:.regularExpression));PracticeIcon(name:"FiArrowRight",size:16)}}.buttonStyle(ActivityPrimaryButtonStyle(tone:run.correct == true ? "success":"stop")).disabled(service.busy).accessibilityIdentifier("nextTypedQuestion")}
+                else {if run.question.kind == "fill",StandardPracticeQuestion.keyboard.supported(run.question.target){Button{answering=false;showStandardKeyboard.toggle()}label:{PracticeIcon(name:"MdKeyboard",size:18)}.frame(width:40,height:40).disabled(service.busy).accessibilityLabel(copy(showStandardKeyboard ? "history_keyboard_close":"history_keyboard_open")).accessibilityIdentifier("standardKeyboardToggle")};if !quiz{Button(PracticeCopy.text(variant:run.question.isDelight ? run.question.variant:"flashcard",language:app.learner.support,key:"skip")){nextQuestion(run)}.font(PiyaliBrand.productFont(14,600)).foregroundStyle(palette.text).disabled(service.busy).frame(minWidth:48,minHeight:40).accessibilityIdentifier("skipLessonActivity")};Button(WordBankPracticeQuestion.variants.contains(run.question.kind) ? copy("quiz_submit"):questionCopy(run,"submit",fallback:copy(module == .grammar ? "grammar_submit":"vocab_submit"))){submit(run)}.buttonStyle(ActivityPrimaryButtonStyle()).disabled(service.busy || !service.ready(run)).accessibilityIdentifier("checkTypedAnswer")}
             } else {ProgressView().frame(maxWidth:.infinity,minHeight:40)}
         }).foregroundStyle(palette.text)
     }
-    private func submit(_ run:PracticeRun){answering=false;writing.clear();speech.stop();Task{await service.check(app,run:run,confidence:speech.confidence,audio:speech.audioMetrics)}}
-    private func nextQuestion(_ run:PracticeRun){writing.clear();speech.stopAll();assistance.cancel();showTranscript=false;noteSaved=false;if let onNext{onNext()}else{Task{await service.prepare(app,module:module,lesson:lesson,fresh:true);if let run=self.run{assistance.bind(app,run:run)}}}}
+    private func submit(_ run:PracticeRun){if WordBankPracticeQuestion.variants.contains(run.question.kind){assistance.closeAssistant();assistance.responseChanged()};answering=false;writing.clear();speech.stop();Task{await service.check(app,run:run,confidence:speech.confidence,audio:speech.audioMetrics)}}
+    private func nextQuestion(_ run:PracticeRun){writing.clear();speech.stopAll();assistance.cancel();noteSaved=false;if let onNext{onNext()}else{Task{await service.prepare(app,module:module,lesson:lesson,fresh:true);if let run=self.run{assistance.bind(app,run:run)}}}}
     private func createNote(_ run:PracticeRun){guard !noteCreating,!noteSaved else{return};noteCreating=true;let capturedScope=scope;Task{defer{if scope == capturedScope,self.run?.question.id == run.question.id{noteCreating=false}};if (try? await app.createStudyNote(run:run,lesson:lesson)) == true,scope == capturedScope,self.run?.question.id == run.question.id{noteSaved=true}}}
     private func updateStandardResponse(_ response:JSONValue){
         guard var current=run,current.correct != true,(!quiz || current.correct == nil),!service.busy else{return}
