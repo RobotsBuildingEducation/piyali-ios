@@ -34,6 +34,23 @@ import Security
         FirebaseIdentityService.shared.clearSession();try await FirebaseIdentityService.shared.ensure(identity)
         try await Auth.auth().currentUser?.delete();FirebaseIdentityService.shared.clearSession();try identity.disconnect()
     }
+    func testReadingAndCharacterStoryNarrationReceiveOriginalVoiceAudio()async throws{
+        let env=ProcessInfo.processInfo.environment;guard env["PIYALI_LIVE_API_TESTS"] == "1",env["PIYALI_OFFLINE_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Explicit isolated live opt-in required")}
+        if FirebaseApp.app() == nil{AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure()};XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let identity=IdentityService();try identity.create()
+        do{try await FirebaseIdentityService.shared.ensure(identity);var evidence:[[String:Any]]=[]
+            for(mode,speaker,language,text,voice)in[("reading","","es","Mi cuaderno está junto a la ventana. Hoy leo con mi familia.","ash"),("story","Sheilfer","es","Hola, qué gusto verte.","echo"),("story","You","ar","مرحباً، كيف حالك؟","marin")]{
+                let rtc=RealtimeRTCTransport(capturesMicrophone:false,purpose:.narration),narration=RealtimeNarrationService(factory:{rtc});var reader:ReadingPlaybackService?,story:NativeStoryAudio?,finished=false,failed=false;defer{reader?.stop();story?.stop()}
+                if mode == "reading"{reader=ReadingPlaybackService(narration:narration);reader?.play(text,language:language)}else{story=NativeStoryAudio(narration:narration);story?.configure(user:.object(["name":.string("Alicia"),"progress":.object(["voice":.string("marin")])]));story?.play(.init(speaker:speaker,target:text),language:language,started:{},finished:{finished=true},failed:{failed=true})}
+                var bytes=0,peak=0.0
+                for _ in 0..<700{bytes=max(bytes,await rtc.receivedAudioBytes());peak=max(peak,await rtc.audioAmplitude(speaking:true));if mode == "reading",reader?.readingAll == false,!narration.loading{finished=narration.error == nil};if finished || failed || narration.error != nil{break};try await Task.sleep(for:.milliseconds(100))}
+                XCTAssertNil(narration.error,narration.failureDetail ?? "No diagnostic");XCTAssertTrue(finished);XCTAssertFalse(failed);XCTAssertGreaterThan(bytes,0);XCTAssertGreaterThan(peak,0)
+                evidence.append(["mode":mode,"speaker":speaker,"language":language,"text":text,"voice":voice,"receivedBytes":bytes,"positiveAmplitude":peak>0,"finished":finished,"failed":failed,"error":narration.error as Any? ?? NSNull()])
+            }
+            let attachment=XCTAttachment(data:try JSONSerialization.data(withJSONObject:evidence,options:[.prettyPrinted,.sortedKeys]),uniformTypeIdentifier:"public.json");attachment.name="Public Reading Stories live narration";attachment.lifetime = .keepAlways;add(attachment)
+        }catch{try? await deleteLiveTestIdentity(identity);throw error}
+        try await deleteLiveTestIdentity(identity)
+    }
     func testLessonNarrationUsesOriginalVoiceAndReceivesSpanishAndArabicAudio()async throws{
         let env=ProcessInfo.processInfo.environment;guard env["PIYALI_LIVE_API_TESTS"] == "1",env["PIYALI_OFFLINE_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Explicit isolated live opt-in required")}
         if FirebaseApp.app() == nil{AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure()};XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")

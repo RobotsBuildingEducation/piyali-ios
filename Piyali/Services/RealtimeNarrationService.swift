@@ -10,11 +10,11 @@ import Foundation
     private let factory:()->RealtimeVoiceTransport
     private var client:RealtimeVoiceTransport?,epoch=UUID(),work:Task<Void,Never>?,startup:Task<Void,Never>?,hardDeadline:Task<Void,Never>?,drain:Task<Void,Never>?
     private var responseSucceeded=false,bufferStopped=false
-    private var finished:(()->Void)?
+    private var started:(()->Void)?,failed:(()->Void)?,finished:(()->Void)?
     init(factory:(()->RealtimeVoiceTransport)?=nil){self.factory=factory ?? {RealtimeRTCTransport(capturesMicrophone:false,purpose:.narration)}}
-    func play(_ text:String,language:String,engine:CompanionQuestPolicy?,voice:String="ash",sessionOverride:JSONValue?=nil,startupMilliseconds:Int=20000,onFinished:(()->Void)?=nil){
+    func play(_ text:String,language:String,engine:CompanionQuestPolicy?,voice:String="ash",sessionOverride:JSONValue?=nil,startupMilliseconds:Int=20000,onStarted:(()->Void)?=nil,onFailed:(()->Void)?=nil,onFinished:(()->Void)?=nil){
         guard !text.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else{return}
-        Self.owner?.stopAll();stopAll();Self.owner=self;loading=true;error=nil;failureDetail=nil;finished=onFinished;let token=epoch
+        Self.owner?.stopAll();stopAll();Self.owner=self;loading=true;error=nil;failureDetail=nil;started=onStarted;failed=onFailed;finished=onFinished;let token=epoch
         work=Task{do {
             let session:JSONValue
             if let sessionOverride{session=sessionOverride}else{guard let engine else{throw PracticeRecipeFailure.unavailable};session=try engine.run("ph_tts",.object(["language":.string(language),"voice":.string(voice)]))}
@@ -32,7 +32,7 @@ import Foundation
     }
     func receive(_ event:JSONValue){
         switch event["type"].string {
-        case "output_audio_buffer.started":startup?.cancel();loading=false;playing=true
+        case "output_audio_buffer.started":startup?.cancel();loading=false;playing=true;let callback=started;started=nil;callback?()
         case "response.done":guard event["response"]["status"].string == "completed" else{fail("response: "+event["response"]["status"].string);return};startup?.cancel();responseSucceeded=true;finishAfterDrain()
         case "output_audio_buffer.stopped":bufferStopped=true;finishAfterDrain()
         case "error":fail("provider: "+event["error"]["code"].string+" "+event["error"]["message"].string)
@@ -44,6 +44,6 @@ import Foundation
         guard responseSucceeded,bufferStopped,drain == nil else{return};let token=epoch
         drain=Task{let delay=await client?.playbackDrainMilliseconds() ?? 1000;try? await Task.sleep(for:.milliseconds(Int(delay)));guard !Task.isCancelled,epoch == token else{return};let callback=finished;stopAll();callback?()}
     }
-    func stopAll(){epoch=UUID();work?.cancel();startup?.cancel();hardDeadline?.cancel();drain?.cancel();drain=nil;client?.close();client=nil;loading=false;playing=false;responseSucceeded=false;bufferStopped=false;finished=nil;if Self.owner === self {Self.owner=nil}}
-    private func fail(_ detail:String){stopAll();failureDetail=String(detail.prefix(500));error="Narration could not play. Try again."}
+    func stopAll(){epoch=UUID();work?.cancel();startup?.cancel();hardDeadline?.cancel();drain?.cancel();drain=nil;client?.close();client=nil;loading=false;playing=false;responseSucceeded=false;bufferStopped=false;started=nil;failed=nil;finished=nil;if Self.owner === self {Self.owner=nil}}
+    private func fail(_ detail:String){let callback=failed;stopAll();failureDetail=String(detail.prefix(500));error="Narration could not play. Try again.";callback?()}
 }

@@ -35,11 +35,14 @@ struct StoryView:View {
     private var scope:String { [app.identity.npub,app.learner.target,app.learner.support,app.learner.level,lesson?.id ?? "free",(try? StoryService.contextID(lesson,learnerLevel:app.learner.level)) ?? "invalid",mode?.rawValue ?? "pending",String(refresh)].joined(separator:"|") }
     private var recordingNow:Bool { fixtureRecording || speech.recording }
     private func t(_ key:String)->String { appearance.text(key,language:app.learner.support) }
+    private var narrationUser:JSONValue { app.learner.settingsSnapshot.setting("name",.string(app.learner.name)) }
     private func ui(_ key:String)->String { EntryCopy.ui(app.learner.support,key) }
     var body:some View {
         Group { if StoryService.fixtureMode != nil { activity } else { SubscriptionRequiredView(service:app.subscription,preserveEarnedWork:app.preserveEarnedGoalLesson(lesson)) { activity } } }
             .navigationTitle(embedded ? lesson?.title.localized(app.learner.support) ?? t("story") : t("story"))
             .activityFooter(owner:footerOwner,revision:footerRevision,access:app.subscription,fixtureAllowed:StoryService.fixtureMode != nil,correct:feedbackCorrect) { footer }
+            .onChange(of:app.learner.settingsSnapshot["progress"]["voice"]){_,_ in stop()}
+            .onChange(of:app.learner.name){_,_ in stop()}
             .task(id:scope) {
                 stop();autoplayKey=nil;translations=[];translating=[];roleResult=nil
                 guard let mode else { chosen=StoryMode.choose(content:content,random:Double.random(in:0..<1));return }
@@ -142,7 +145,7 @@ struct StoryView:View {
         }.frame(maxWidth:max(200,(UIScreen.main.bounds.width-72)*0.85))
     }
     private func linePlay(_ turn:StoryTurn,run:StoryRun,accent:Color)->some View {
-        Button { audio.preview(turn,language:run.target) } label:{ Image(systemName:"speaker.wave.2").font(.system(size:13)).foregroundStyle(brand.text).frame(width:25,height:25).overlay { RoundedRectangle(cornerRadius:6).stroke(accent) } }.buttonStyle(.plain).padding(.top,4).accessibilityLabel(t("play")+": "+turn.speaker)
+        Button { audio.preview(turn,language:run.target,user:narrationUser) } label:{ Image(systemName:"speaker.wave.2").font(.system(size:13)).foregroundStyle(brand.text).frame(width:25,height:25).overlay { RoundedRectangle(cornerRadius:6).stroke(accent) } }.buttonStyle(.plain).padding(.top,4).accessibilityLabel(t("play")+": "+turn.speaker)
     }
     private func bubble(_ turn:StoryTurn,run:StoryRun,key:String,right:Bool,identifier:String?=nil)->some View {
         HStack(alignment:.top,spacing:12) {
@@ -151,7 +154,7 @@ struct StoryView:View {
                 HStack {
                     Text(StoryAppearance.isUser(turn.speaker,learnerName:app.learner.name) ? t("you") : turn.speaker).font(PiyaliBrand.productFont(12,700)).foregroundStyle(brand.secondary)
                     Spacer()
-                    Button { audio.preview(turn,language:run.target) } label:{ Image(systemName:"speaker.wave.2").frame(width:28,height:28) }.buttonStyle(.plain).disabled(audio.active && !run.heard.contains(run.index)).accessibilityLabel(t("play")+": "+turn.speaker)
+                    Button { audio.preview(turn,language:run.target,user:narrationUser) } label:{ Image(systemName:"speaker.wave.2").frame(width:28,height:28) }.buttonStyle(.plain).disabled(audio.active && !run.heard.contains(run.index)).accessibilityLabel(t("play")+": "+turn.speaker)
                     Button { translate(turn,run:run,key:key) } label:{ if translating.contains(key) { ProgressView() } else { Image(systemName:"character.bubble").frame(width:28,height:28) } }.buttonStyle(.plain).foregroundStyle(translations.contains(key) ? PiyaliBrand.teal : brand.secondary).accessibilityLabel(t(translations.contains(key) ? "hideTranslation" : "translation")).accessibilityIdentifier("storyTranslate-"+key)
                 }
                 Text(turn.target).font(PiyaliBrand.productFont(18,500)).lineSpacing(6).frame(maxWidth:.infinity,alignment:.leading).environment(\.layoutDirection,run.target == "ar" ? .rightToLeft : .leftToRight).accessibilityIdentifier(run.mode == .speaking && key == "sentence-\(run.index)" ? "storyTarget" : "storyDialogue-"+key)
@@ -164,7 +167,7 @@ struct StoryView:View {
         Button { startPlayback(run,replay:run.heard.contains(run.index)) } label:{ Label(t("replay"),systemImage:"arrow.counterclockwise") }.font(PiyaliBrand.productFont(14,600)).buttonStyle(.plain).disabled(audio.active).accessibilityIdentifier("storyReplay")
     }
     private func userTurn(_ run:StoryRun,turn:StoryTurn)->some View {
-        panel { VStack(alignment:.leading,spacing:12) { HStack { Text(t("yourTurn")+":").font(PiyaliBrand.productFont(16,700));Spacer();Button { audio.preview(turn,language:run.target) } label:{ Image(systemName:"speaker.wave.2") }.accessibilityLabel(t("play"));Button { translate(turn,run:run,key:"role-\(run.index)") } label:{ Image(systemName:"character.bubble") }.accessibilityLabel(t("translation")) };Text(turn.target).font(PiyaliBrand.productFont(18,500)).accessibilityIdentifier("storyRoleTarget");if translations.contains("role-\(run.index)"),let text=run.translations["role-\(run.index)"] ?? turn.support { Text(text).font(PiyaliBrand.productFont(14)).foregroundStyle(brand.secondary) } } }
+        panel { VStack(alignment:.leading,spacing:12) { HStack { Text(t("yourTurn")+":").font(PiyaliBrand.productFont(16,700));Spacer();Button { audio.preview(turn,language:run.target,user:narrationUser) } label:{ Image(systemName:"speaker.wave.2") }.accessibilityLabel(t("play"));Button { translate(turn,run:run,key:"role-\(run.index)") } label:{ Image(systemName:"character.bubble") }.accessibilityLabel(t("translation")) };Text(turn.target).font(PiyaliBrand.productFont(18,500)).accessibilityIdentifier("storyRoleTarget");if translations.contains("role-\(run.index)"),let text=run.translations["role-\(run.index)"] ?? turn.support { Text(text).font(PiyaliBrand.productFont(14)).foregroundStyle(brand.secondary) } } }
     }
     private func checkpoint(_ run:StoryRun,question:StoryQuestion)->some View {
         let chosen=run.answers[String(run.index)] ?? [],listening=["select_words","order_words"].contains(question.type)
@@ -238,13 +241,13 @@ struct StoryView:View {
         guard active,hasAccess,run.mode == .speaking,!recordingNow,run.speechResult?.pass != true,let turn=run.currentSentence else { return }
         let key=run.id.uuidString+":"+String(run.index)
         guard autoplayKey != key else { return };autoplayKey=key
-        audio.preview(turn,language:run.target)
+        audio.preview(turn,language:run.target,user:narrationUser)
     }
     private func startPlayback(_ run:StoryRun,replay:Bool=false) {
         guard hasAccess else { return }
         recording=nil;fixtureRecording=false;speech.stopAll();roleResult=nil
         guard let segment=run.currentSegment else { return };let account=app.identity.npub
-        audio.start(segment.turns,language:run.target,learnerName:app.learner.name,replay:replay) {
+        audio.start(segment.turns,language:run.target,learnerName:app.learner.name,replay:replay,user:narrationUser) {
             guard app.identity.npub == account,app.learner.story?.id == run.id,app.learner.story?.index == run.index else { return };update { $0.heard.insert(run.index) }
         }
     }

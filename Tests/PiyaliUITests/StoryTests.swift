@@ -12,10 +12,10 @@ import XCTest
         XCTAssertTrue(element.waitForExistence(timeout:10));XCTAssertTrue(element.isHittable)
     }
     private func tap(_ id:String,_ app:XCUIApplication) { let button=app.buttons[id];reveal(button,app);button.tap() }
-    private func start(_ mode:String,role:Bool=false,failure:Bool=false,theme:String="light",delay:Bool=false)->XCUIApplication {
+    private func start(_ mode:String,role:Bool=false,failure:Bool=false,theme:String="light",delay:Bool=false,narration:Bool=false)->XCUIApplication {
         continueAfterFailure=false
         let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString;app.launchEnvironment["PIYALI_STORY_FIXTURE"]=mode;app.launchEnvironment["PIYALI_PRACTICE_FIXTURE"]="delight:natural_or_weird";app.launchEnvironment["PIYALI_READING_FIXTURE"]="1";app.launchEnvironment["PIYALI_STORY_SPEECH_RESULTS"]="miss,pass,pass,pass"
-        if delay { app.launchEnvironment["PIYALI_STORY_GENERATION_DELAY_MS"]="8000" }
+        if narration{app.launchEnvironment["PIYALI_STORY_NARRATION_FIXTURE"]="1" };if delay { app.launchEnvironment["PIYALI_STORY_GENERATION_DELAY_MS"]="8000" }
         if role { app.launchEnvironment["PIYALI_STORY_LEARNER_CAST"]="1" };if failure { app.launchEnvironment["PIYALI_STORY_AUDIO_FAIL_FIRST"]="1" }
         app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme",theme];app.launch()
         let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Story Learner");if app.buttons["entryKeyboardDone"].exists { app.buttons["entryKeyboardDone"].tap() };app.buttons["createAccount"].tap()
@@ -31,8 +31,10 @@ import XCTest
     private func option(_ word:String,_ app:XCUIApplication) { let button=app.buttons.matching(NSPredicate(format:"identifier BEGINSWITH 'storyOption-' AND label == %@",word)).firstMatch;reveal(button,app);button.tap();if !button.isSelected { XCTFail("A visible word or answer tap must select it: "+app.debugDescription) } }
     private func record(_ app:XCUIApplication) { tap("storyRecord",app);tap("storyRecord",app);XCTAssertTrue(app.staticTexts["storySpeechFeedback"].waitForExistence(timeout:5)) }
     private func xp(_ amount:Int,_ app:XCUIApplication) {
-        tap("productMenu",app);tap("productPanel-settings",app)
-        let total=app.staticTexts.matching(NSPredicate(format:"label BEGINSWITH %@","\(amount) total XP")).firstMatch;reveal(total,app);XCTAssertTrue(total.label.hasPrefix("\(amount) total XP"));tap("productPanelClose",app)
+        // Fresh UUID-scoped learners have a 100-XP goal and all claims occur today.
+        // The current source header therefore exposes their exact awarded XP as a percent.
+        let status=app.descendants(matching:.any).matching(identifier:"dailyXPStatus").firstMatch
+        XCTAssertTrue(status.waitForExistence(timeout:5));XCTAssertEqual(status.value as? String,"\(amount)%")
     }
     func testBackgroundedGenerationRestartsAndReturnsToExplicitRecording() {
         let app=start("speaking",delay:true)
@@ -43,7 +45,7 @@ import XCTest
         photo("Native story generation resumes after backgrounding",app)
     }
     func testRadioFailureRetryOneAttemptResumeAutoPlaybackAndOneSixXPCompletion() {
-        let app=start("radio",failure:true)
+        let app=start("radio",failure:true,narration:true)
         XCTAssertTrue(app.buttons["storyPlay"].isHittable,"The primary action is fixed in the viewport");XCTAssertFalse(app.staticTexts["storyQuestion"].exists);photo("Native source radio ready with fixed action footer",app)
         tap("storyPlay",app);XCTAssertTrue(app.staticTexts["storyAudioError"].waitForExistence(timeout:5));XCTAssertFalse(app.staticTexts["storyQuestion"].exists)
         tap("storyPlay",app);XCTAssertTrue(app.staticTexts["storyQuestion"].waitForExistence(timeout:5));option("His friend",app);tap("storyCheck",app)
@@ -56,7 +58,7 @@ import XCTest
         app.terminate();app.launch();open(app,expectStory:false);XCTAssertTrue(app.staticTexts["realtimeGoal"].waitForExistence(timeout:10));xp(6,app)
     }
     func testSpeakingUsesRecordRetryAndResumesEachTwoXPLineBeforeHandoff() {
-        let app=start("speaking");XCTAssertTrue(app.staticTexts["storyTarget"].exists);XCTAssertTrue(app.buttons["storyRecord"].isHittable);photo("Native source speaking story before recording",app)
+        let app=start("speaking",narration:true);XCTAssertTrue(app.staticTexts["storyTarget"].exists);XCTAssertTrue(app.buttons["storyRecord"].isHittable);photo("Native source speaking story before recording",app)
         record(app);XCTAssertTrue(app.staticTexts["storySpeechFeedback"].label.contains("Try again"));XCTAssertFalse(app.buttons["storyNext"].exists)
         record(app);XCTAssertTrue(app.staticTexts["storySpeechXP"].waitForExistence(timeout:5));XCTAssertEqual(app.staticTexts["storySpeechXP"].label,"+2 XP");XCTAssertFalse(app.buttons["storyRecord"].exists)
         app.terminate();app.launchEnvironment["PIYALI_STORY_SPEECH_RESULTS"]="pass";app.launch();open(app);XCTAssertTrue(app.staticTexts["storySpeechXP"].waitForExistence(timeout:5));XCTAssertEqual(app.staticTexts["storySpeechXP"].label,"+2 XP");xp(2,app);tap("storyNext",app)
@@ -65,7 +67,7 @@ import XCTest
         app.terminate();app.launch();open(app,expectStory:false);XCTAssertTrue(app.staticTexts["realtimeGoal"].waitForExistence(timeout:10));xp(4,app)
     }
     func testConversationKeepsEarlierPairsAndRequiresUserSpeechWithoutTurnXP() {
-        let app=start("conversation",role:true,theme:"dark")
+        let app=start("conversation",role:true,theme:"dark",narration:true)
         tap("storyTranslate-0-0",app);XCTAssertTrue(app.staticTexts["I have red flowers."].exists);XCTAssertFalse(app.staticTexts["storyQuestion"].exists)
         tap("storyPlay",app);XCTAssertTrue(app.staticTexts["storyRoleTarget"].waitForExistence(timeout:5));XCTAssertFalse(app.staticTexts["storyQuestion"].exists);photo("Native source conversation waits for the learner",app)
         record(app);XCTAssertFalse(app.staticTexts["storyQuestion"].exists);tap("storySpeechRetry",app);record(app);XCTAssertTrue(app.buttons["storyNext"].waitForExistence(timeout:5));tap("storyNext",app)

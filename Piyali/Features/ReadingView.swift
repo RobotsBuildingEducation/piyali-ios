@@ -7,7 +7,7 @@ struct ReadingView:View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.scenePhase) private var phase
     @StateObject private var service=ReadingService()
-    @StateObject private var speech=SpeechService()
+    @StateObject private var audio=ReadingPlaybackService()
     @StateObject private var recorder=ReadingSpeechRecorder()
     let lesson:Lesson?
     var onComplete:(()->Void)? = nil
@@ -18,8 +18,8 @@ struct ReadingView:View {
     @State private var refresh=0
     @State private var answer=""
     @State private var showTranslation=false
-    @State private var activeSentence:Int?
-    @State private var readingAll=false
+    private var activeSentence:Int? { audio.activeSentence }
+    private var readingAll:Bool { audio.readingAll }
     @State private var recordingScope:String?
     @State private var active=false
     @FocusState private var answering:Bool
@@ -52,10 +52,7 @@ struct ReadingView:View {
                     if let run {
                         VStack(alignment:.leading,spacing:18) {
                             Text(run.title).font(PiyaliBrand.productFont(19,700)).frame(maxWidth:.infinity,alignment:.leading)
-                            HStack(spacing:30) {
-                                audioTool(t("history_read_all"),symbol:"bolt.fill",id:"readingListen") { stop();readingAll=true;speech.speakSeries([run.text],language:run.target) { readingAll=false } }
-                                audioTool(t("history_stop"),symbol:"stop.fill",id:"readingStop") { stop() }.disabled(!readingAll && activeSentence == nil)
-                            }.frame(maxWidth:.infinity)
+                            ReadingAudioControls(support:app.learner.support,loading:audio.readingAll && audio.loading,stopActive:readingAll,read:{stop();audio.play(run.text,language:run.target)},stop:stop)
                             passage(run)
                             Divider().opacity(0.3)
                             if run.method == "question" { question(run) }
@@ -67,24 +64,20 @@ struct ReadingView:View {
                         }.padding(16).frame(maxWidth:.infinity,alignment:.leading).background(brand.surface.opacity(0.68),in:RoundedRectangle(cornerRadius:16)).overlay { RoundedRectangle(cornerRadius:16).stroke(brand.border) }
                     } else if service.busy { ProgressView(t("reading_generating")).frame(maxWidth:.infinity,minHeight:280) }
                     if let error=service.error { Text(error).foregroundStyle(brand.questionError);Button(t("try_again")) { refresh += 1 }.disabled(service.busy) }
-                    if let error=speech.error { Text(error).font(PiyaliBrand.productFont(13)).foregroundStyle(brand.questionError) }
                 }.padding(.horizontal,12).padding(.top,8).padding(.bottom,30).frame(maxWidth:640).frame(maxWidth:.infinity)
             }
             Color.clear.frame(height:app.activityFooterHeight)
         }.font(PiyaliBrand.productFont(16)).foregroundStyle(brand.text).background(brand.background)
     }
-    private func audioTool(_ label:String,symbol:String,id:String,action:@escaping()->Void)->some View {
-        Button(action:action) { VStack(spacing:6) { Image(systemName:symbol).font(.system(size:18)).frame(width:40,height:32);Text(label).font(PiyaliBrand.productFont(12)).foregroundStyle(brand.muted) } }.buttonStyle(.plain).foregroundStyle(PiyaliBrand.teal).accessibilityIdentifier(id)
-    }
     private func passage(_ run:ReadingRun)->some View {
         let sentences=Reading.displaySentences(run.text)
         return VStack(alignment:.leading,spacing:14) {
             if !showTranslation {
-                ReadingSentenceText(sentences:sentences,active:activeSentence,dark:scheme == .dark,onSelect:{ index in stop();activeSentence=index;speech.speakSeries([sentences[index]],language:run.target) { activeSentence=nil } }).accessibilityIdentifier("readingPassage").environment(\.layoutDirection,run.target == "ar" ? .rightToLeft : .leftToRight)
+                ReadingSentenceText(sentences:sentences,active:activeSentence,dark:scheme == .dark,onSelect:{ index in stop();audio.play(sentences[index],language:run.target,sentence:index) }).accessibilityIdentifier("readingPassage").environment(\.layoutDirection,run.target == "ar" ? .rightToLeft : .leftToRight)
             } else { VStack(alignment:.leading,spacing:12) {
                 ForEach(Array(sentences.enumerated()),id:\.offset) { index,sentence in
                     VStack(alignment:.leading,spacing:7) {
-                        Button { stop();activeSentence=index;speech.speakSeries([sentence],language:run.target) { activeSentence=nil } } label:{
+                        Button { stop();audio.play(sentence,language:run.target,sentence:index) } label:{
                             Text(sentence).font(PiyaliBrand.productFont(16)).lineSpacing(6).multilineTextAlignment(.leading).padding(.horizontal,5).padding(.vertical,4).foregroundStyle(brand.text).background(sentenceColor(index).opacity(activeSentence == index ? 0.35 : 0.12),in:RoundedRectangle(cornerRadius:5)).overlay { RoundedRectangle(cornerRadius:5).stroke(sentenceColor(index).opacity(0.2)) }
                         }.buttonStyle(.plain).accessibilityIdentifier("readingSentence-\(index)")
                         if showTranslation,let lines=run.lineTranslations,lines.indices.contains(index) { Text(lines[index]).font(PiyaliBrand.productFont(14)).italic().foregroundStyle(brand.secondary).frame(maxWidth:.infinity,alignment:.leading).accessibilityIdentifier("readingTranslation-\(index)").environment(\.layoutDirection,run.support == "ar" ? .rightToLeft : .leftToRight) }
@@ -156,7 +149,7 @@ struct ReadingView:View {
         }
     }
     private func saveTranscript() { guard let run,run.method == "speech",!run.awarded,recordingScope == app.identity.npub+":"+run.id.uuidString else { return };let words=ReadingSpeechCapture.boundedTranscript(recorder.transcript);guard words != run.answer else { return };update { $0.answer=words } }
-    private func stop() { saveTranscript();recordingScope=nil;recorder.cancel();speech.stopAll();readingAll=false;activeSentence=nil }
+    private func stop() { saveTranscript();recordingScope=nil;recorder.cancel();audio.stop() }
     private func update(_ action:(inout ReadingRun)->Void) { guard var current=app.learner.reading,current.id == run?.id else { return };action(&current);app.learner.saveReading(current);app.persist() }
 }
 

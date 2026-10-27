@@ -3,11 +3,23 @@ import Foundation
 @MainActor protocol StoryAudioTransport:AnyObject {
     func play(_ turn:StoryTurn,language:String,started:@escaping()->Void,finished:@escaping()->Void,failed:@escaping()->Void)
     func stop()
+    func configure(user:JSONValue)
 }
-@MainActor private final class NativeStoryAudio:StoryAudioTransport {
-    private let speech=SpeechService()
-    func play(_ turn:StoryTurn,language:String,started:@escaping()->Void,finished:@escaping()->Void,failed:@escaping()->Void) { speech.speakSeries([turn.target],language:language,onStarted:started,onInterrupted:failed,onFinished:finished) }
-    func stop() { speech.stopAll() }
+extension StoryAudioTransport { func configure(user:JSONValue){} }
+@MainActor final class NativeStoryAudio:StoryAudioTransport {
+    let narration:RealtimeNarrationService
+    private let policy:ReadingStoryNarrationPolicy?
+    private var user:JSONValue = .null
+    init(narration:RealtimeNarrationService?=nil){self.narration=narration ?? RealtimeNarrationService();policy=try? ReadingStoryNarrationPolicy()}
+    func configure(user:JSONValue){self.user=user}
+    func play(_ turn:StoryTurn,language:String,started:@escaping()->Void,finished:@escaping()->Void,failed:@escaping()->Void){
+        stop()
+        do{guard let policy else{throw PracticeRecipeFailure.unavailable}
+            let plan=try policy.request("story",.object(["language":.string(language),"turn":.object(["speaker":.string(turn.speaker),"target":.string(turn.target)]),"user":user]))
+            narration.play(plan["request"]["text"].string,language:language,engine:nil,sessionOverride:plan["session"],onStarted:started,onFailed:failed,onFinished:finished)
+        }catch{failed()}
+    }
+    func stop(){narration.stopAll()}
 }
 #if DEBUG
 /// Same playback controls and callbacks, with an isolated, bounded local player.
@@ -40,6 +52,7 @@ import Foundation
     init(player:StoryAudioTransport?=nil,previewPlayer:StoryAudioTransport?=nil) {
         func make()->StoryAudioTransport {
             #if DEBUG
+            if let fixture=ReadingStoryAudioFixture.story(){return fixture}
             if StoryService.fixtureMode != nil { return FixtureStoryAudio() }
             #endif
             return NativeStoryAudio()
@@ -47,8 +60,8 @@ import Foundation
         self.player=player ?? make();self.previewPlayer=previewPlayer ?? make()
     }
     var active:Bool { phase == .loading || phase == .playing }
-    func start(_ values:[StoryTurn],language:String,learnerName:String,replay:Bool=false,completed:@escaping()->Void) {
-        cancel();hasPlayed=true;self.turns=values;self.language=language;self.learnerName=learnerName;replaying=replay;completion=completed;cursor=0;next()
+    func start(_ values:[StoryTurn],language:String,learnerName:String,replay:Bool=false,user:JSONValue = .null,completed:@escaping()->Void) {
+        cancel();player.configure(user:user);previewPlayer.configure(user:user);hasPlayed=true;self.turns=values;self.language=language;self.learnerName=learnerName;replaying=replay;completion=completed;cursor=0;next()
     }
     func continueSpeech() { guard phase == .awaitingSpeech else { return };roleIndex=nil;cursor += 1;next() }
     func cancel(reset:Bool=false) {
@@ -56,10 +69,10 @@ import Foundation
         stopPreview();previewError=false;if reset { hasPlayed=false }
     }
     func stopPreview() { previewGeneration=UUID();previewDeadline?.cancel();previewDeadline=nil;previewPlayer.stop();previewPlaying=false;previewTurn=nil }
-    func preview(_ turn:StoryTurn,language:String) {
+    func preview(_ turn:StoryTurn,language:String,user:JSONValue = .null) {
         // A preview cannot finish the main queue or satisfy a pending user line.
         if active { generation=UUID();deadline?.cancel();deadline=nil;completion=nil;player.stop();phase = .idle;currentTurn=nil }
-        stopPreview();previewError=false;let token=previewGeneration;previewTurn=turn;previewPlaying=true
+        stopPreview();previewPlayer.configure(user:user);previewError=false;let token=previewGeneration;previewTurn=turn;previewPlaying=true
         previewDeadline=Task { [weak self] in try? await Task.sleep(for:.seconds(90));guard !Task.isCancelled,self?.previewGeneration == token else { return };self?.stopPreview();self?.previewError=true }
         previewPlayer.play(turn,language:language,started:{},finished:{ [weak self] in guard self?.previewGeneration == token else { return };self?.stopPreview() },failed:{ [weak self] in guard self?.previewGeneration == token else { return };self?.stopPreview();self?.previewError=true })
     }

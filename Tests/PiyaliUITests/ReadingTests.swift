@@ -67,12 +67,18 @@ import XCTest
     }
     func testWrongAnswerRetryResumeAndOneReward() {
         continueAfterFailure=false
-        let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString;app.launchEnvironment["PIYALI_READING_FIXTURE"]="1";app.launchEnvironment["PIYALI_PRACTICE_FIXTURE"]="delight:natural_or_weird"
+        let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString;app.launchEnvironment["PIYALI_READING_FIXTURE"]="1";app.launchEnvironment["PIYALI_READING_AUDIO_FIXTURE"]="1";app.launchEnvironment["PIYALI_PRACTICE_FIXTURE"]="delight:natural_or_weird"
         app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"];app.launch()
         let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Reading Learner");if app.buttons["entryKeyboardDone"].exists { app.buttons["entryKeyboardDone"].tap() };app.buttons["createAccount"].tap()
         XCTAssertTrue(app.buttons["startLearning"].waitForExistence(timeout:20));app.buttons["startLearning"].tap();open(app)
+        tap("readingListen",app);XCTAssertEqual(app.buttons["readingListen"].frame.width,32,accuracy:1);XCTAssertEqual(app.buttons["readingListen"].frame.height,32,accuracy:1);XCTAssertEqual(app.buttons["readingListen"].value as? String,"Loading...");XCTAssertTrue(app.buttons["readingStop"].isEnabled)
+        let audioShot=XCTAttachment(screenshot:app.screenshot());audioShot.name="Native Reading source loading and Stop controls";audioShot.lifetime = .keepAlways;add(audioShot)
+        tap("readingStop",app);XCTAssertNotEqual(app.buttons["readingListen"].value as? String,"Loading...");XCTAssertFalse(app.buttons["readingStop"].isEnabled)
         let initial=XCTAttachment(screenshot:app.screenshot());initial.name="Native reading passage and sentence audio";initial.lifetime = .keepAlways;add(initial)
         tap("readingTranslate",app);let line=app.staticTexts["readingTranslation-0"];reveal(line,in:app);XCTAssertEqual(line.label,"My green notebook is near the window.")
+        tap("readingSentence-0",app);XCTAssertNotEqual(app.buttons["readingListen"].value as? String,"Loading...");XCTAssertFalse(app.buttons["readingStop"].isEnabled)
+        let sentenceShot=XCTAttachment(screenshot:app.screenshot());sentenceShot.name="Native Reading sentence highlight without whole-passage spinner";sentenceShot.lifetime = .keepAlways;add(sentenceShot)
+        tap("readingListen",app);XCTAssertTrue(app.buttons["readingStop"].isEnabled);tap("readingStop",app);XCTAssertFalse(app.buttons["readingStop"].isEnabled)
         tap("readingOption-1",app);tap("readingCheck",app);let feedback=app.staticTexts["readingFeedback"];reveal(feedback,in:app);XCTAssertEqual(feedback.label,"Not quite.");tap("readingExplain",app);let explanation=app.staticTexts["readingExplanation"];reveal(explanation,in:app);XCTAssertTrue(explanation.label.contains("remember the plan"))
         app.terminate();app.launch();open(app);tap("readingTranslate",app);reveal(line,in:app);XCTAssertEqual(line.label,"My green notebook is near the window.")
         tap("readingOption-0",app);tap("readingCheck",app);let completed=app.staticTexts["readingCompleted"];reveal(completed,in:app);let saved=completed.label;XCTAssertTrue(saved.contains("XP awarded:"))

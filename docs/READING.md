@@ -1,6 +1,6 @@
 # Native reading
 
-Reading from lessons, Practice and Getting Started opens a native passage screen. Gemini generates single-author target-language prose, three support-language takeaways and a grounded text, fill-in or four-choice question. Cloudflare Responses remains the authenticated fallback. Listening uses iOS speech synthesis, and aligned translation is available.
+Reading from lessons, Practice and Getting Started opens a native passage screen. Gemini generates single-author target-language prose, three support-language takeaways and a grounded text, fill-in or four-choice question. Cloudflare Responses remains the authenticated fallback. Listening now uses the [original narration session and native receive-only RTC](READING_STORY_AUDIO.md), with source Read all/Stop controls and sentence selection. Aligned translation is available.
 
 The bundled curriculum already contains authored reading subjects and required document scopes. Native selection follows the reference's CEFR format eligibility, authored subject order and least-recent format/angle/structure rotation. Required menus, schedules and other documents take precedence over random formats. The tutorial asks for the source's four introductory meanings, including Piyali's name. Generation retries up to three times after missing fields, invalid questions, dialogue scripts, reaction chains, wrong target scripts or recent-passage repeats. Quality checks preserve document headings rather than stripping them into ordinary paragraphs.
 
