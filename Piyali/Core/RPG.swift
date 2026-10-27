@@ -42,7 +42,7 @@ public struct RPGRun: Codable, Equatable, Identifiable, Sendable {
     public var tutorial:Bool?
     public var tutor:Bool?
     public var position:RPGPoint;public var stepIndex=0;public var attempts=0;public var score=0;public var resolved=false;public var feedback="";public var tip="";public var misses:[RPGMiss]=[];public var dialogue:[String]=[];public var updatedAt=Date();public var claimed=false
-    public init(target:String,support:String,lessonID:String?,xpReward:Int,scenario:RPGScenario,world:RPGWorld,tutorial:Bool = false,tutor:Bool = false) { self.tutor=tutor;self.tutorial=tutorial;self.target=target;self.support=support;self.lessonID=lessonID;self.xpReward=xpReward;self.scenario=scenario;self.world=world;self.position=RPGSpatial.start(world:world,npcs:scenario.npcs,center:lessonID != nil) }
+    public init(target:String,support:String,lessonID:String?,xpReward:Int,scenario:RPGScenario,world:RPGWorld,tutorial:Bool = false,tutor:Bool = false) { self.tutor=tutor;self.tutorial=tutorial;self.target=target;self.support=support;self.lessonID=lessonID;self.xpReward=xpReward;self.scenario=scenario;self.world=world;self.position=RPGSpatial.start(world:world,npcs:scenario.npcs,center:true) }
     public var completed:Bool { stepIndex >= scenario.quest.steps.count && !scenario.quest.steps.isEmpty }
     public var step:RPGStep? { completed || !scenario.quest.steps.indices.contains(stepIndex) ? nil : scenario.quest.steps[stepIndex] }
     public var node:RPGNode? { step?.nodes.first }
