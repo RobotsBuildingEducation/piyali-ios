@@ -12,8 +12,12 @@ import SwiftUI
     private var companionSaveAccount=""
     private var companionSaveTasks:[UUID:Task<Void,Never>]=[:]
     private var companionNoticeTasks:[UUID:Task<Void,Never>]=[:]
-    let nostrAchievements=NostrAchievementsService()
-    private var nostrSyncTask: Task<Void,Never>?
+    let nostrAchievements:NostrAchievementsService
+    let achievementRetries:AchievementRetryController
+    private let automaticAchievementRecovery:Bool
+    private var achievementRetryUpdates:AnyCancellable?
+    private var importedAchievementSnapshots:[String:JSONValue]=[:]
+    private var achievementApplicationActive=true
     @Published var signedIn = false {didSet{bindAchievementDelivery()}}
     @Published private(set) var achievementUnlock=AchievementUnlockState(catalog:Set(((try? ContentLibrary.load([JSONValue].self,name:"achievement-protocol")) ?? []).map{$0["id"].string}))
     @Published var tutorUnits: [LearningUnit] = []
@@ -127,7 +131,11 @@ import SwiftUI
         }
         _ = learner.completeTutor(lesson); persist(); return earned
     }
-    init(automaticWallet:WalletService? = nil,progressService:(any LearnerProgressService)? = nil) {
+    init(automaticWallet:WalletService? = nil,progressService:(any LearnerProgressService)? = nil,nostrAchievements:NostrAchievementsService?=nil,achievementRetries:AchievementRetryController?=nil) {
+        let recoveryFixture=AchievementDeliveryUIFixture.retryServices()
+        self.nostrAchievements=nostrAchievements ?? recoveryFixture?.1 ?? NostrAchievementsService();self.achievementRetries=achievementRetries ?? recoveryFixture?.0 ?? AchievementRetryController()
+        let env=ProcessInfo.processInfo.environment
+        automaticAchievementRecovery=achievementRetries != nil || recoveryFixture != nil || (env["PIYALI_OFFLINE_TESTS"] != "1" && env["PIYALI_FIRESTORE_EMULATOR_TESTS"] != "1")
         self.progressService=progressService ?? CompanionSaveUIFixture.progressService() ?? AchievementDeliveryUIFixture.progressService() ?? FirebaseService.shared
         self.automaticWallet=automaticWallet ?? WalletService()
         curriculumIndex = (try? ContentLibrary.load([String:[String:[String]]].self, name: "curriculum-index")) ?? [:]
@@ -141,6 +149,8 @@ import SwiftUI
             if previous != self.learner.achievementRecords,self.learner.shareNostrAchievements == true { self.scheduleNostrAchievements() }
             try? self.writeLocal()
         }
+        self.achievementRetries.configure(cloud:{[weak self] account in guard let self,self.signedIn,self.identity.npub==account else{throw CancellationError()};try await self.performAchievementCloudSync(account:account)},relay:{[weak self] account in guard let self,self.signedIn,self.identity.npub==account else{throw CancellationError()};try await self.performNostrAchievements(publish:self.learner.shareNostrAchievements == true)})
+        achievementRetryUpdates=self.achievementRetries.objectWillChange.sink{[weak self] _ in self?.objectWillChange.send()}
         achievementDeliveries=AchievementSyncService.shared.delivery.sink{[weak self] event in self?.receiveConfirmedAchievement(event)}
         signedIn = !identity.npub.isEmpty
         if signedIn { loadLocal(); subscription.bind(identity);subscription.updatePracticeXP(learner.subscriptionXP) }
@@ -149,7 +159,7 @@ import SwiftUI
             Task { @MainActor in guard let self,self.identity.hex == notification.object as? String else { return };self.scheduleAutomaticTips() }
         }
     }
-    private func bindAchievementDelivery(){achievementUnlock.setIdentity(signedIn ? identity.npub:"");achievementUnlock.setLanguage(learner.support);bindCompanionDelivery()}
+    private func bindAchievementDelivery(){achievementRetries.setAccount(signedIn ? identity.npub:"");achievementUnlock.setIdentity(signedIn ? identity.npub:"");achievementUnlock.setLanguage(learner.support);bindCompanionDelivery()}
     func receiveConfirmedAchievement(_ event:ConfirmedAchievementDelivery){
         guard signedIn,identity.npub == event.account else{return};bindAchievementDelivery()
         let prior=learner.achievementRecords
@@ -220,12 +230,12 @@ import SwiftUI
     }
     func signIn(nsec: String?,name:String? = nil,support:String? = nil) async {
         flushGoalEditor();goalCheck=nil;automaticProgress.reset()
-        nostrSyncTask?.cancel();nostrAchievements.cancel()
+        achievementRetries.pause();nostrAchievements.cancel()
         teams.cancel(clear:true);teamFeed.cancel(clear:true)
         do {
             if let nsec { try identity.importKey(nsec) } else { try identity.create() }
             await activateIdentity(newProfile:nsec == nil && name != nil ? (name!,support ?? "en") : nil)
-        } catch { self.error = error.localizedDescription }
+        } catch { self.error = error.localizedDescription;resumeAchievementSync() }
     }
     private func activateIdentity(newProfile:(name:String,support:String)? = nil) async {
         automaticTipTask?.task.cancel();automaticTipTask=nil;automaticWallet.cancel(clear:true)
@@ -246,23 +256,23 @@ import SwiftUI
                 restoreLearner(cloud); syncSettingsAppearance();automaticProgress.observe(cloud,identity:identity,locallyAllowed:learner.automaticPostsEnabled); lastPersisted = learner; try writeLocal()
             }
         } catch { syncStatus = "Saved on iPhone; cloud sync pending" }
-        await reloadContent(); await subscription.refresh(); scheduleNostrAchievements()
+        await reloadContent(); await subscription.refresh();resumeAchievementSync()
     }
     func signInRemote(_ token:String,onConnected:@MainActor ()->Void = {}) async -> Bool {
         flushGoalEditor();goalCheck=nil;automaticProgress.reset()
-        nostrSyncTask?.cancel();nostrAchievements.cancel();teams.cancel(clear:true);teamFeed.cancel(clear:true)
+        achievementRetries.pause();nostrAchievements.cancel();teams.cancel(clear:true);teamFeed.cancel(clear:true)
         do { try await identity.connect(token);try Task.checkCancellation();onConnected();await activateIdentity();return true }
-        catch { if !(error is CancellationError) { self.error=error.localizedDescription };return false }
+        catch { if !(error is CancellationError) { self.error=error.localizedDescription };resumeAchievementSync();return false }
     }
     func signOut(){disconnectRemote()}
     func disconnectRemote() {
         flushGoalEditor();goalCheck=nil
         do {
-            try writeLocal();automaticProgress.reset();automaticTipTask?.task.cancel();automaticTipTask=nil;automaticWallet.cancel(clear:true);saveTask?.cancel();contentTask?.cancel();nostrSyncTask?.cancel();nostrAchievements.cancel();teams.cancel(clear:true);teamFeed.cancel(clear:true)
+            try writeLocal();automaticProgress.reset();automaticTipTask?.task.cancel();automaticTipTask=nil;automaticWallet.cancel(clear:true);saveTask?.cancel();contentTask?.cancel();achievementRetries.pause();nostrAchievements.cancel();teams.cancel(clear:true);teamFeed.cancel(clear:true)
             journeyRecording?.controller.close();journeyRecording=nil;try identity.disconnect();FirebaseIdentityService.shared.clearSession();signedIn=false;lessonActivityActive=false;activityFooter=nil;pendingLessonCompletion=nil;scholarship=ScholarshipPrompt();subscription.bind(identity);learner=LearnerState()
         } catch { self.error=error.localizedDescription }
     }
-    func boot() async { guard signedIn else { return };scheduleAutomaticTips(recovering:true); await reloadContent(); await sync(); await subscription.refresh(); scheduleNostrAchievements();scheduleAutomaticTips() }
+    func boot() async { guard signedIn else { return };scheduleAutomaticTips(recovering:true); await reloadContent();resumeAchievementSync(); await sync(); await subscription.refresh();scheduleAutomaticTips() }
     func finishOnboarding(_ draft:OnboardingDraft?=nil) {
         if let draft {learner.completeOnboarding(draft)} else {learner.onboardingComplete=true;learner.preferencesModifiedAt=Date()}
         restoringLearner=true;PlatePracticeFixture.seed(self);MemoryDrawerFixture.seed(self);SettingsFixture.seed(self);restoringLearner=false;persist();Task { await reloadContent() }
@@ -306,41 +316,51 @@ import SwiftUI
         try Task.checkCancellation();guard identity.npub == account,learner.immersionScope() == scope else { throw CancellationError() }
         learner.applyImmersion(.init(target:state.target,action:.batch,payload:payload));persist()
     }
-    func setNostrAchievementSharing(_ enabled: Bool) {
+    func setAchievementApplicationActive(_ active:Bool){achievementApplicationActive=active;if active{resumeAchievementSync()}else{achievementRetries.pause();nostrAchievements.cancel()}}
+    func resumeAchievementSync(){guard automaticAchievementRecovery,signedIn,achievementApplicationActive else{return};achievementRetries.setAccount(identity.npub);importedAchievementSnapshots.removeValue(forKey:identity.npub);achievementRetries.resume()}
+    func setNostrAchievementSharing(_ enabled:Bool){
         learner.shareNostrAchievements=enabled
-        try? writeLocal()
-        if enabled { scheduleNostrAchievements() } else { nostrSyncTask?.cancel();nostrAchievements.cancel() }
+        do{try writeLocal()}catch{self.error="Could not save progress: \(error.localizedDescription)"}
+        nostrAchievements.cancel();scheduleNostrAchievements()
     }
-    private func scheduleNostrAchievements() {
-        #if DEBUG
-        if ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"] == "1" || ProcessInfo.processInfo.environment["PIYALI_FIRESTORE_EMULATOR_TESTS"] == "1" { return }
-        #endif
-        guard signedIn else { return }
-        nostrSyncTask?.cancel()
-        let account=identity.npub
-        nostrSyncTask=Task { @MainActor [weak self] in
-            do { try await Task.sleep(for:.milliseconds(500));guard let self,self.identity.npub == account else { return };try await self.syncNostrAchievements(publish:self.learner.shareNostrAchievements == true) } catch { }
-        }
+    private func scheduleNostrAchievements(){guard automaticAchievementRecovery,signedIn,achievementApplicationActive else{return};achievementRetries.setAccount(identity.npub);achievementRetries.schedule(.relay)}
+    func syncNostrAchievements(publish:Bool)async throws{
+        if automaticAchievementRecovery{
+            achievementRetries.setAccount(identity.npub)
+            try await achievementRetries.runNow(.relay,operation:{[weak self] account in guard let self,self.signedIn,self.identity.npub==account else{throw CancellationError()};try await self.performNostrAchievements(publish:publish)})
+        }else{try await performNostrAchievements(publish:publish)}
     }
-    func syncNostrAchievements(publish: Bool) async throws {
+    private func performNostrAchievements(publish:Bool)async throws{
         let account=identity.npub
-        _ = try await nostrAchievements.synchronize(identity:identity,publish:publish,current:{ [weak self] in
-            guard let self,self.identity.npub == account else { return .object([:]) }
+        _ = try await nostrAchievements.synchronize(identity:identity,publish:publish,current:{[weak self] in
+            guard let self,self.signedIn,self.identity.npub==account else{return .object([:])}
             return NostrAchievementCollection.merging([self.learner.nostrAchievementRecords ?? .object([:]),.object(self.learner.achievementRecords ?? [:])])
-        },persist:{ [weak self] records in
-            guard let self,self.identity.npub == account else { throw CancellationError() }
+        },persist:{[weak self] records in
+            try Task.checkCancellation();guard let self,self.signedIn,self.identity.npub==account else{throw CancellationError()}
             self.learner.nostrAchievementRecords=records
             self.learner.achievementRecords=NostrAchievementCollection.merging([.object(self.learner.achievementRecords ?? [:]),records]).object
-            try self.writeLocal()
-            if FirebaseService.shared.configured {
-                try await FirebaseIdentityService.shared.ensure(self.identity)
-                guard self.identity.npub == account else { throw CancellationError() }
-                if let saved=try await FirebaseService.shared.importAchievements(records,npub:account) {
-                    guard self.identity.npub == account else { throw CancellationError() }
-                    self.learner.achievementRecords=NostrAchievementCollection.merging([.object(saved),records]).object;try self.writeLocal()
-                }
-            }
+            // Keep the memory copy and the visible storage warning if the local
+            // profile is full; an authorized remote copy is still recoverable.
+            do{try self.writeLocal()}catch{}
+            // A cloud outage cannot block an independently authorized relay write.
+            if self.automaticAchievementRecovery,!records.object.isEmpty,self.importedAchievementSnapshots[account] != records{self.achievementRetries.schedule(.cloud)}
         })
+    }
+    private func performAchievementCloudSync(account:String)async throws{
+        do{
+            try await FirebaseIdentityService.shared.ensure(identity);try Task.checkCancellation();guard signedIn,identity.npub==account else{throw CancellationError()}
+            let records=learner.nostrAchievementRecords ?? .object([:])
+            if !records.object.isEmpty,importedAchievementSnapshots[account] != records{
+                guard let saved=try await progressService.importAchievements(records,npub:account)else{throw AppError.message("Achievement cloud import is pending.")}
+                try Task.checkCancellation();guard signedIn,identity.npub==account else{throw CancellationError()}
+                learner.achievementRecords=NostrAchievementCollection.merging([.object(learner.achievementRecords ?? [:]),.object(saved),records]).object
+                do{try writeLocal()}catch{};importedAchievementSnapshots[account]=records
+            }
+            let sent=learner
+            guard let cloud=try await progressService.save(sent,npub:account)else{throw AppError.message("Cloud progress is pending.")}
+            try Task.checkCancellation();guard signedIn,identity.npub==account else{throw CancellationError()}
+            try applyAcknowledgment(cloud,sent:sent);syncStatus=synchronizedStatus
+        }catch{if signedIn,identity.npub==account,!(error is CancellationError){syncStatus="Saved on iPhone; cloud sync pending"};throw error}
     }
     func reloadContent() async {
         contentTask?.cancel()
@@ -397,7 +417,8 @@ import SwiftUI
         saveTask = Task {
             do {
                 try await Task.sleep(for:.milliseconds(500))
-                guard !Task.isCancelled else { return }
+                guard !Task.isCancelled,identity.npub == npub else { return }
+                if automaticAchievementRecovery{await sync();return}
                 try await FirebaseIdentityService.shared.ensure(identity)
                 guard identity.npub == npub, !Task.isCancelled else { return }
                 let acknowledged = try await progressService.save(state,npub:npub)
@@ -408,7 +429,7 @@ import SwiftUI
             catch { if identity.npub == npub { syncStatus = "Saved on iPhone; cloud sync pending" } }
         }
     }
-    var achievementSyncPending:Bool{synchronizedStatus != "Synced with Firebase" || syncStatus == "Saved on iPhone; cloud sync pending"}
+    var achievementSyncPending:Bool{achievementRetries.pending || synchronizedStatus != "Synced with Firebase" || syncStatus == "Saved on iPhone; cloud sync pending"}
     private var synchronizedStatus: String {
         (learner.pendingChanges ?? []).isEmpty && (learner.pendingImmersionChanges ?? []).isEmpty && (learner.pendingMemoryChanges ?? []).isEmpty && (learner.pendingSettingsChanges ?? []).isEmpty && (learner.pendingPlacements ?? [:]).isEmpty && (learner.pendingGoalChanges ?? []).isEmpty && (learner.pendingPlateHeadlines ?? [:]).isEmpty && (learner.pendingCompanionQuestDays ?? [:]).isEmpty && (learner.pendingRepairEvidence ?? []).isEmpty ? "Synced with Firebase" : "Saved on iPhone; cloud sync pending"
     }
@@ -430,13 +451,15 @@ import SwiftUI
     func sync() async {
         let state = learner, npub = identity.npub
         do {
+            if automaticAchievementRecovery{achievementRetries.setAccount(npub);try await achievementRetries.runNow(.cloud);return}
             try await FirebaseIdentityService.shared.ensure(identity)
             guard identity.npub == npub else { return }
             if let cloud = try await progressService.save(state,npub:npub) {
                 guard identity.npub == npub else { return }
                 try applyAcknowledgment(cloud,sent:state); syncStatus = synchronizedStatus
             } else { syncStatus = "Saved on this iPhone" }
-        } catch { if identity.npub == npub { syncStatus = "Saved on iPhone; cloud sync pending" } }
+        } catch is CancellationError {}
+        catch { if identity.npub == npub { syncStatus = "Saved on iPhone; cloud sync pending" } }
     }
     func reviewFlashcard(_ card: Flashcard, rating: ReviewRating, correct: Bool?, answer: String = "", now: Date = Date()) {
         if let correct { learner.assess(correct:correct,independent:true,now:now,questionLevel:card.cefrLevel) }
