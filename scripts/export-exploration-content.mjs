@@ -2,7 +2,8 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import zlib from 'node:zlib';
-const reference=path.resolve(process.argv[2] || '../nosabos/nosabos'),esbuild=await import(path.join(reference,'node_modules/esbuild/lib/main.js'));
+import {createHash} from 'node:crypto';
+const reference=path.resolve(process.argv.slice(2).find(arg=>!arg.startsWith('--')) || '../nosabos/nosabos'),esbuild=await import(path.join(reference,'node_modules/esbuild/lib/main.js'));
 const file=path.join(reference,'src/components/RPGGame/scenarios.js'),source=await fs.readFile(file,'utf8');
 const built=await esbuild.build({stdin:{contents:source+'\nexport {fallbackScenario,normalizeQuest,buildPrompt}; export {WORLD_BLUEPRINTS} from "./worldGen.js";',resolveDir:path.dirname(file)},bundle:true,platform:'node',format:'esm',write:false,logLevel:'error',plugins:[{name:'no-network',setup(build){
   build.onResolve({filter:/utils\/llm$/},()=>({path:'llm',namespace:'mock'}));
@@ -11,10 +12,10 @@ const built=await esbuild.build({stdin:{contents:source+'\nexport {fallbackScena
 const web=await import('data:text/javascript;base64,'+Buffer.from(built.outputFiles[0].text).toString('base64'));
 const levels=['Pre-A1','A1','A2','B1','B2','C1','C2'],themes=Object.fromEntries(web.WORLD_BLUEPRINTS.map(b=>[b.id,b.keywords.slice(0,4)]));
 function serialize(s,theme,level,lang) {
- const maps=s.maps.map(m=>({id:m.id,name:m.name,world:{width:m.mapWidth,height:m.mapHeight,start:m.playerStart,tiles:m.generate(),solidTiles:Object.entries(m.tiles).filter(([,v])=>v.solid).map(([key])=>Number(key)),objects:m.objects.map(o=>({type:o.type,tx:o.tx,ty:o.ty}))},portals:m.portals}));
- return {id:s.id,theme,level,baseLanguage:lang,name:s.name,startMapId:s.startMapId,maps,npcs:s.npcs,quest:s.quest,gatherPlacements:s.gatherPlacements};
+ const maps=s.maps.map(m=>{const world={width:m.mapWidth,height:m.mapHeight,start:m.playerStart,tiles:m.generate(),solidTiles:Object.entries(m.tiles).filter(([,v])=>v.solid).map(([key])=>Number(key)),objects:m.objects.map(o=>({type:o.type,tx:o.tx,ty:o.ty}))},worldKey=createHash('sha256').update(JSON.stringify(world)).digest('hex').slice(0,24);scenes.push({...m,objects:world.objects,mapData:world.tiles,world,worldKey});return {id:m.id,name:m.name,world,worldKey,portals:m.portals};});
+ const record={id:s.id,theme,level,baseLanguage:lang,name:s.name,startMapId:s.startMapId,maps,npcs:s.npcs,quest:s.quest,gatherPlacements:s.gatherPlacements};originalQuestions.set(JSON.stringify(record.quest),s.questions);return record;
 }
-const originalRandom=Math.random,templates=[];
+const originalRandom=Math.random,templates=[],scenes=[],originalQuestions=new Map();
 try {
  for(const lang of ['es','en']) for(const level of levels) for(const [theme,terms] of Object.entries(themes)) {
   // Two source variants guarantee both a conversation-only path and a gathering path.
@@ -28,7 +29,10 @@ try {
   templates.push(...variants);console.log('Exported exploration '+lang+'/'+level+'/'+theme+': '+variants.length+' source variants');
  }
 } finally { Math.random=originalRandom; }
+await fs.mkdir(new URL('../.reference-preview/',import.meta.url),{recursive:true});await fs.writeFile(new URL('../.reference-preview/exploration-scenes.json',import.meta.url),JSON.stringify([...new Map(scenes.filter(m=>templates.some(t=>t.maps.some(a=>a.worldKey===m.worldKey))).map(m=>[m.worldKey,m])).values()]));
 const sample=templates.find(s=>s.baseLanguage==='es'&&s.level==='A2'&&s.quest.steps.some(step=>step.nodes.some(n=>n.responseMode==='gather')));
+await fs.writeFile(new URL('../.reference-preview/exploration-reference.json',import.meta.url),JSON.stringify({template:sample,questions:originalQuestions.get(JSON.stringify(sample.quest)),maps:scenes.filter(m=>sample.maps.some(a=>a.worldKey===m.worldKey))}));
+if(process.argv.includes('--reference-only')){console.log('Prepared original legacy scenario/unused question table for renderer fixture');process.exit(0);}
 await fs.writeFile(new URL('../Tests/PiyaliCoreTests/Fixtures/exploration.json',import.meta.url),JSON.stringify(sample,null,2)+'\n');
 const client=await fs.readFile(path.join(reference,'src/components/RPGGame/index.jsx'),'utf8');
 const copyStart=client.indexOf('function humanizeObjectType('),copyEnd=client.indexOf('function getRpgItemPrimaryLabel(',copyStart);

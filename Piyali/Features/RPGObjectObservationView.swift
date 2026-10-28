@@ -2,11 +2,13 @@ import SwiftUI
 
 struct RPGObjectObservationView:View {
     let observation:RPGObjectController.Observation,target:String,support:String
+    var lootText=""
     @Environment(\.colorScheme) private var scheme
     private var light:Bool{scheme != .dark}
     private var text:JSONValue{observation.fields}
     var body:some View {
         VStack(alignment:.leading,spacing:4){
+            if !lootText.isEmpty{ObjectObservationText(text:lootText,size:12,lineHeight:16.2).foregroundStyle(PiyaliBrand.unitColor(light ? "9b5d2d":"c05621"))}
             if !text["name"].string.isEmpty || !text["supportName"].string.isEmpty{
                 ObjectObservationText(text:text["name"].string+(text["supportName"].string.isEmpty ? "":" (\u{2068}"+text["supportName"].string+"\u{2069})"),size:14,weight:.semibold,lineHeight:18.9).accessibilityIdentifier("rpgObjectName")
             }
