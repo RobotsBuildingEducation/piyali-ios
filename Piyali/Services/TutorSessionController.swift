@@ -290,16 +290,23 @@ enum TutorFocus:Equatable {
     func selectPreparedGame(_ app:AppModel,lesson:JSONValue,unit:JSONValue)->Lesson?{
         select(app,lesson:lesson,unit:unit)
         guard let typed=typedLesson else{return nil}
-        if !practicingCompletedLesson{app.learner.storeTutorState(lesson:typed,data:.object(["kind":.string("start"),"agenda":record(app)["tutorAgendaProgress"]["items"]]));app.persist();refresh(app)}
+        if !practicingCompletedLesson{app.learner.storeTutorState(lesson:typed,data:.object(["kind":.string("start"),"agenda":record(app)["tutorAgendaProgress"]["items"]]))}
+        else{app.learner.questProgress=app.learner.plateProgress.setting("currentTutorLesson",.string(typed.id))}
+        app.persist();refresh(app)
         return typed
     }
     /// Keep the finished game and its retry action mounted until the canonical
     /// Tutor receipt is acknowledged. Replaying a completed game stays practice.
     func completeGame(_ app:AppModel)async->Bool{
         guard focus == nil,owner == scope(app),!saving else{return false}
-        if practicingCompletedLesson{return true}
-        await complete(app,ready:true,gameCompleted:true)
-        return completion != nil && completionChange == nil && error == nil
+        let lessonID=id,runID=app.learner.rpgRuns?[app.learner.target]?.id
+        // A restored local completion can still own an unacknowledged bonus.
+        // Reuse its durable receipt before treating the lesson as practice.
+        if completionChange == nil,let pending=app.learner.pendingChanges?.first(where:{$0.source == .speak && $0.target == app.learner.target && $0.contentID == lessonID && ($0.tutorData?["required"].number ?? 0)>0}){completionChange=pending.id;completionLesson=typedLesson;reviewRecord=nil}
+        if !practicingCompletedLesson{await complete(app,ready:true,gameCompleted:true)}
+        guard practicingCompletedLesson || (completion != nil && completionChange == nil && error == nil)else{return false}
+        if var run=app.learner.rpgRuns?[app.learner.target],run.id == runID,run.lessonID == lessonID,run.tutor == true,run.completed{run.claimed=true;app.learner.saveRPG(run);app.persist()}
+        return true
     }
     func complete(_ app:AppModel,ready:Bool,gameCompleted:Bool=false) async {
         if let focus {await completeFocus(app,focus:focus,ready:ready);return}

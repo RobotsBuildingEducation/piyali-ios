@@ -18,9 +18,9 @@ import WebKit
         app.learner.award(100,source:.speak,contentID:"lesson-tutorial-1")
         XCTAssertNotNil(app.dailyGoalReward);XCTAssertNil(controller.dailyGoalVisible);XCTAssertNotNil(controller.pending);XCTAssertEqual(routes,["speak"])
         tick(controller,app,clock,0.5);XCTAssertNil(controller.visible)
-        app.deferTutorReview(owner:tutor);XCTAssertNotNil(controller.dailyGoalVisible);XCTAssertNil(controller.visible)
-        controller.closeDailyGoal(app);XCTAssertNil(controller.dailyGoalVisible);XCTAssertNil(app.dailyGoalReward);tick(controller,app,clock,1);XCTAssertNil(controller.visible,"Tutor review still owns its modal")
-        app.releaseTutorReview(owner:tutor);app.releaseEarnedPractice(owner:tutor);tick(controller,app,clock,0.25);tick(controller,app,clock,0.25)
+        tick(controller,app,clock,1);XCTAssertNil(controller.dailyGoalVisible,"Completion and review still own the Tutor modal")
+        app.releaseEarnedPractice(owner:tutor);XCTAssertNotNil(controller.dailyGoalVisible);XCTAssertNil(controller.visible)
+        controller.closeDailyGoal(app);XCTAssertNil(controller.dailyGoalVisible);XCTAssertNil(app.dailyGoalReward);tick(controller,app,clock,0.25);tick(controller,app,clock,0.25)
         XCTAssertEqual(controller.visible?["completed"].string,"speak");XCTAssertEqual(sounds,["questComplete"]);XCTAssertEqual(routes,["speak"])
         controller.continuePractice(app);XCTAssertEqual(routes,["speak","learn"]);XCTAssertNil(controller.visible);XCTAssertEqual(controller.guided?.current,"learn")
     }
@@ -66,15 +66,24 @@ import WebKit
         guard ProcessInfo.processInfo.environment["PIYALI_REFERENCE_PREVIEW_TESTS"] == "1" else{throw XCTSkip("Source preview required")}
         let app=try model();defer{try? app.identity.disconnect()};let scene=try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap{$0 as? UIWindowScene}.first),old=scene.windows.first{$0.isKeyWindow}
         for (lang,theme) in [("en","light"),("ar","dark")] {for kind in ["course","cleared","daily"] {
-            let config=WKWebViewConfiguration();config.websiteDataStore = .nonPersistent();let web=WKWebView(frame:CGRect(x:0,y:0,width:402,height:874),configuration:config),controller=UIViewController(),window=UIWindow(windowScene:scene);controller.view=web;window.frame=web.frame;window.rootViewController=controller;window.makeKeyAndVisible();web.scrollView.contentInsetAdjustmentBehavior = .never
+            let config=WKWebViewConfiguration();config.websiteDataStore = .nonPersistent();config.userContentController.addUserScript(WKUserScript(source:"window.__piyaliPreviewErrors=[];window.addEventListener('error',e=>window.__piyaliPreviewErrors.push(e.message));window.addEventListener('unhandledrejection',e=>window.__piyaliPreviewErrors.push(String(e.reason)));",injectionTime:.atDocumentStart,forMainFrameOnly:true));let web=WKWebView(frame:CGRect(x:0,y:0,width:402,height:874),configuration:config),controller=UIViewController(),window=UIWindow(windowScene:scene);controller.view=web;window.frame=web.frame;window.rootViewController=controller;window.makeKeyAndVisible();web.scrollView.contentInsetAdjustmentBehavior = .never
             let screen=kind == "daily" ? "daily-goal-completion":"plate-completion"
             web.load(URLRequest(url:try XCTUnwrap(URL(string:"http://127.0.0.1:5181/__piyali-onboarding?screen=\(screen)&kind=\(kind)&language=\(lang)&theme=\(theme)&details=1"))))
-            var ready=false;for _ in 0..<400{ready=(try? await web.evaluateJavaScript("document.fonts.status==='loaded' && Boolean(document.querySelector('.chakra-modal__content button'))")) as? Bool == true;if ready{break};try await Task.sleep(for:.milliseconds(50))};XCTAssertTrue(ready,"Source \(kind) failed to load");guard ready else{return}
+            var ready=false;for _ in 0..<400{ready=(try? await web.evaluateJavaScript("document.fonts.status==='loaded' && Boolean(document.querySelector('.chakra-modal__content button'))")) as? Bool == true;if ready{break};try await Task.sleep(for:.milliseconds(50))};let errors=(try? await web.evaluateJavaScript("JSON.stringify(window.__piyaliPreviewErrors)+document.body.innerText"))as?String ?? "";XCTAssertTrue(ready,"Source \(kind) failed to load \(errors)");guard ready else{return}
             try await Task.sleep(for:.milliseconds(2700));let source=XCTAttachment(image:try await web.takeSnapshot(configuration:nil));source.name="Source completion \(kind) \(lang)";source.lifetime = .keepAlways;add(source)
             let raw=try await web.evaluateJavaScript("JSON.stringify([...document.querySelectorAll('.chakra-modal__content,.chakra-modal__body,p,button,img')].map(e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return {text:e.textContent,x:r.x,y:r.y,width:r.width,height:r.height,font:s.font,padding:s.padding}}))");let metrics=XCTAttachment(data:Data(try XCTUnwrap(raw as? String).utf8),uniformTypeIdentifier:"public.json");metrics.name="Source completion \(kind) \(lang) geometry";metrics.lifetime = .keepAlways;add(metrics);web.stopLoading();window.isHidden=true;window.rootViewController=nil
             app.learner.support=lang;let data:JSONValue = .object(["type":.string(kind),"completed":.string("speak"),"next":.string("learn"),"details":.object(["what":.string("Greet a relative"),"why":.string("A short family call")])])
             let content:AnyView=kind == "daily" ? AnyView(DailyGoalCelebrationView(reward:.init(account:app.identity.npub,day:CalendarDay.key(Date()),goal:100,health:100),onContinue:{})):AnyView(PlateCelebrationView(data:data,language:lang,onContinue:{},onNotes:{}))
             let host=UIHostingController(rootView:content.environmentObject(app).environment(\.layoutDirection,lang == "ar" ? .rightToLeft:.leftToRight).environment(\.dynamicTypeSize,.large).ignoresSafeArea().preferredColorScheme(theme == "dark" ? .dark:.light));window.rootViewController=host;window.makeKeyAndVisible();host.view.layoutIfNeeded();try await Task.sleep(for:.milliseconds(2700));let native=XCTAttachment(image:UIGraphicsImageRenderer(bounds:window.bounds).image{_ in window.drawHierarchy(in:window.bounds,afterScreenUpdates:true)});native.name="Native completion \(kind) \(lang)";native.lifetime = .keepAlways;add(native);window.isHidden=true;window.rootViewController=nil
         }};old?.makeKey()
+    }
+}
+
+extension GuidedPracticeControllerTests {
+    func testTutorPathAllowsReleasedDailyGoalButKeepsTaskAcknowledgmentQueued()throws{
+        let app=try model();defer{try? app.identity.disconnect()};let clock=PlateClock(),controller=PlatePracticeController(clock:{clock.now}),owner=UUID();controller.bind(app);defer{controller.unbind()};tick(controller,app,clock,2.1);app.tutorPath = .init(owner:owner,account:app.identity.npub,target:app.learner.target,tutor:TutorSessionController());app.retainEarnedPractice(owner:owner,active:true,account:app.identity.npub,target:app.learner.target,day:CalendarDay.key(clock.now));app.learner.award(100,source:.speak,contentID:"lesson-tutorial-1");tick(controller,app,clock,3)
+        XCTAssertNil(controller.dailyGoalVisible);XCTAssertNil(controller.visible);XCTAssertNotNil(controller.pending)
+        app.releaseEarnedPractice(owner:owner);XCTAssertNotNil(controller.dailyGoalVisible);XCTAssertNil(controller.visible);controller.closeDailyGoal(app);tick(controller,app,clock,1);XCTAssertNil(controller.visible,"Returned Tutor path remains a source modal blocker")
+        app.tutorPath=nil;tick(controller,app,clock,0.25);tick(controller,app,clock,0.25);XCTAssertEqual(controller.visible?["completed"].string,"speak");XCTAssertEqual(app.learner.totalXP,100)
     }
 }

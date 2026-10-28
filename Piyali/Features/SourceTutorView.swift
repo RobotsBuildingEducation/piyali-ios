@@ -7,7 +7,7 @@ struct SourceTutorView:View {
     @Environment(\.scenePhase) private var phase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @StateObject private var tutor:TutorSessionController
-    @State private var pathOpen=false
+    private var pathOpen:Bool{app.tutorPath?.owner == footerOwner}
     @State private var historyOpen=false
     @State private var previewSpeaking=false
     @State private var footerOwner=UUID()
@@ -30,7 +30,8 @@ struct SourceTutorView:View {
             .toolbar(.hidden,for:.navigationBar)
             .task(id:tutor.scope(app)){
                 let account=app.identity.npub,target=app.learner.target,day=CalendarDay.key(Date()),owner=footerOwner,notify=completionPendingChanged
-                tutor.onCompletionPending={[weak app] active in if !active{app?.releaseTutorReview(owner:owner)};app?.retainEarnedPractice(owner:owner,active:active,account:account,target:target,day:day);notify(active)}
+                if let path=app.tutorPath,path.owner == footerOwner,(path.account != account || path.target != target){app.tutorPath=nil}
+                tutor.onCompletionPending={[weak app] active in app?.retainEarnedPractice(owner:owner,active:active,account:account,target:target,day:day);notify(active)}
                 tutor.onFocusedCompletion=focusedCompleted;await tutor.prepare(app)
             }
             .activityFooter(owner:footerOwner,revision:revision,access:app.subscription,fixtureAllowed:TutorSessionController.fixture || tutor.completionPending) {ActivityFooterSurface(hasFeedback:false,feedback:{EmptyView()},actions:{controls})}
@@ -39,10 +40,9 @@ struct SourceTutorView:View {
             .onChange(of:narration.error){_,value in if value != nil{tutor.live.setPlaybackDucked(false)}}
             .onChange(of:phase){_,value in if value == .background{stop()}}
             .onChange(of:app.subscription.hasAccess){_,allowed in if !allowed,!tutor.completionPending{stop()}}
-            .onDisappear{if !pathOpen && !historyOpen{app.releaseTutorReview(owner:footerOwner);app.releaseEarnedPractice(owner:footerOwner);stop()}}
-            .fullScreenCover(isPresented:$pathOpen){TutorSourcePathView(tutor:tutor,onClose:{pathOpen=false})}
+            .onDisappear{if pathOpen{app.tutorPath=nil};if !historyOpen{app.releaseEarnedPractice(owner:footerOwner);stop()}}
             .sheet(isPresented:$historyOpen){history.presentationDetents([.large]).presentationDragIndicator(.visible)}
-            .overlay {if let data=tutor.completion{TutorSourceCompletion(data:data,copy:{tutor.copy($0,app.learner.support)},onContinue:{app.deferTutorReview(owner:footerOwner);tutor.closeCompletion()})}else if let data=tutor.review,app.dailyGoalReward == nil{TutorSourceReview(data:data,copy:{tutor.copy($0,app.learner.support)},onContinue:{tutor.closeReview(app)})}}
+            .overlay {if !pathOpen{TutorCompletionFlow(tutor:tutor)}}
     }
     private var surface:some View {
         ScrollView {
@@ -62,7 +62,7 @@ struct SourceTutorView:View {
     }
     private var header:some View {
         VStack(spacing:12){
-            HStack{Button{pathOpen=true}label:{Label(t("app_mode_path"),systemImage:"map").font(PiyaliBrand.productFont(12,500))}.padding(.horizontal,8).frame(height:24).background(scheme == .dark ? .clear:brand.surface.opacity(0.6),in:Capsule()).overlay{Capsule().stroke(scheme == .dark ? .clear:brand.border)}.opacity(0.8).disabled(tutor.completionPending).accessibilityIdentifier("tutorLessons");Spacer();Button{historyOpen=true}label:{Image(systemName:"ellipsis.message").font(.system(size:14)).frame(width:24,height:24).contentShape(Rectangle()).overlay{Circle().stroke(brand.border)}}.disabled(tutor.messages.isEmpty).opacity(tutor.messages.isEmpty ? 0.35:0.7).accessibilityLabel(t("ra_chat_log")).accessibilityIdentifier("tutorHistory")}.frame(height:24)
+            HStack{Button{app.tutorPath = .init(owner:footerOwner,account:app.identity.npub,target:app.learner.target,tutor:tutor)}label:{Label(t("app_mode_path"),systemImage:"map").font(PiyaliBrand.productFont(12,500))}.padding(.horizontal,8).frame(height:24).background(scheme == .dark ? .clear:brand.surface.opacity(0.6),in:Capsule()).overlay{Capsule().stroke(scheme == .dark ? .clear:brand.border)}.opacity(0.8).disabled(tutor.completionPending).accessibilityIdentifier("tutorLessons");Spacer();Button{historyOpen=true}label:{Image(systemName:"ellipsis.message").font(.system(size:14)).frame(width:24,height:24).contentShape(Rectangle()).overlay{Circle().stroke(brand.border)}}.disabled(tutor.messages.isEmpty).opacity(tutor.messages.isEmpty ? 0.35:0.7).accessibilityLabel(t("ra_chat_log")).accessibilityIdentifier("tutorHistory")}.frame(height:24)
             if tutor.loading {ProgressView().frame(height:20)}else{Text(tutor.content["title"].string).font(PiyaliBrand.productFont(16,700)).multilineTextAlignment(.center).frame(maxWidth:.infinity,minHeight:24).accessibilityIdentifier("tutorLessonTitle")}
             VStack(spacing:6){HStack{Text(tutor.copy("Lesson progress",app.learner.support)).font(PiyaliBrand.productFont(12));Spacer();Text("\(percent)%").font(PiyaliBrand.productFont(10)).frame(minWidth:38,minHeight:24).foregroundStyle(scheme == .dark ? PiyaliBrand.unitColor("81e6d9"):PiyaliBrand.unitColor("234e52")).background(brand.surface,in:RoundedRectangle(cornerRadius:4)).overlay{RoundedRectangle(cornerRadius:4).stroke(brand.border)}};FocusWaveBar(percent:Double(percent),height:14,start:"4aa8ff",end:"75f8ff",background:scheme == .dark ? .white.opacity(0.8):.white.opacity(0.9),border:brand.border.opacity(0.35)).accessibilityLabel(tutor.copy("Lesson progress",app.learner.support)).accessibilityValue("\(percent)%").accessibilityIdentifier("tutorLessonProgress")}
         }.buttonStyle(.plain).padding(8).frame(maxWidth:400).background{TutorPaperPanel(textured:true)}.overlay{RoundedRectangle(cornerRadius:16).stroke(scheme == .dark ? .white.opacity(0.06):brand.border)}
@@ -130,16 +130,58 @@ struct TutorPaperPanel:View {
 
 struct TutorSourceCompletion:View {
     @EnvironmentObject var app:AppModel
-    let data:JSONValue
-    let copy:(String)->String
-    let onContinue:()->Void
-    var body:some View {ZStack{Color.black.opacity(0.72).ignoresSafeArea();VStack(spacing:20){BrandArtwork(name:"story-portrait-27.webp").frame(width:160,height:160).padding(12).background(.white.opacity(0.2),in:Circle()).overlay{Circle().stroke(.white.opacity(0.3),lineWidth:2)};VStack(spacing:4){Text(copy("Lesson Complete!")).font(PiyaliBrand.productFont(30,700));Text(data["title"].string).font(PiyaliBrand.productFont(18))};VStack(spacing:6){Text(copy("XP Gained")).font(PiyaliBrand.productFont(14)).textCase(.uppercase).opacity(0.8);Text("\(Int(data["xpEarned"].number))").font(PiyaliBrand.productFont(48,700)).foregroundStyle(PiyaliBrand.unitColor("faf089")).accessibilityIdentifier("tutorCompletionXP");HStack{Text(EntryCopy.ui(app.learner.support,"ra_label_level")+" \(app.learner.companionLevel)");Spacer();Text("XP \(app.learner.xp)")}.font(PiyaliBrand.productFont(12));ActivityProgressBar(value:app.learner.xp%100,label:"XP")}.padding(20).background(.white.opacity(0.2),in:RoundedRectangle(cornerRadius:12)).overlay{RoundedRectangle(cornerRadius:12).stroke(.white.opacity(0.4),lineWidth:2)};Button(copy("Continue"),action:onContinue).font(PiyaliBrand.productFont(16,700)).foregroundStyle(PiyaliBrand.unitColor("553c9a")).frame(maxWidth:.infinity,minHeight:48).background(.white,in:RoundedRectangle(cornerRadius:12)).accessibilityIdentifier("tutorCompletionContinue")}.padding(24).foregroundStyle(.white).background(LinearGradient(colors:[PiyaliBrand.unitColor("667eea"),PiyaliBrand.unitColor("764ba2")],startPoint:.topLeading,endPoint:.bottomTrailing),in:RoundedRectangle(cornerRadius:16)).padding(12)}.accessibilityElement(children:.contain).accessibilityIdentifier("tutorCompletionDialog")}
-}
-struct TutorSourceReview:View {
     @Environment(\.colorScheme) private var scheme
     let data:JSONValue
     let copy:(String)->String
     let onContinue:()->Void
+    var body:some View {GeometryReader{geometry in
+        let roomy=geometry.size.width>=400 && geometry.size.height>=740,padding:CGFloat=28,portrait:CGFloat=roomy ? 96:80
+        ZStack{
+            TutorDialogBackdrop(onClose:onContinue)
+            VStack(spacing:0){
+                VStack(spacing:roomy ? 20:16){
+                    BrandArtwork(name:"story-portrait-27.webp").frame(width:portrait,height:portrait).padding(roomy ? 12:8).padding(2).background(.white.opacity(0.2),in:Circle()).overlay{Circle().stroke(.white.opacity(0.3),lineWidth:2)}.shadow(color:.black.opacity(0.18),radius:20,y:20)
+                    VStack(spacing:4){OnboardingText(text:copy("Lesson Complete!"),size:roomy ? 30:24,weight:.bold,lineHeight:roomy ? 34.5:27.6);OnboardingText(text:data["title"].string,size:roomy ? 18:16,lineHeight:roomy ? 27:24).opacity(0.9)}
+                    VStack(spacing:4){
+                        OnboardingText(text:copy("XP Gained"),size:14,lineHeight:21).textCase(.uppercase).opacity(0.8)
+                        Text("\(Int(data["xpEarned"].number))").font(PiyaliBrand.productFont(roomy ? 48:36,700)).foregroundStyle(PiyaliBrand.unitColor("faf089")).accessibilityIdentifier("tutorCompletionXP")
+                        VStack(spacing:4){HStack{Text(EntryCopy.ui(app.learner.support,"ra_label_level")+" \(app.learner.companionLevel)").font(PiyaliBrand.productFont(14,700));Spacer();Text(EntryCopy.ui(app.learner.support,"ra_label_xp")+" \(app.learner.xp)").font(PiyaliBrand.productFont(12,800)).tracking(0.24).padding(.horizontal,10).padding(.vertical,4).foregroundStyle(PiyaliBrand.unitColor(scheme == .dark ? "dbe6f3":"6f5a47")).background(PiyaliBrand.unitColor(scheme == .dark ? "111827":"fffdf9").opacity(0.94),in:RoundedRectangle(cornerRadius:6)).overlay{RoundedRectangle(cornerRadius:6).stroke(PiyaliBrand.unitColor(scheme == .dark ? "94a3b8":"604d38").opacity(0.16))}};FocusWaveBar(percent:Double(app.learner.xp%100),height:14,background:.white.opacity(0.8),border:.white.opacity(0.35),insetBorder:true)}.padding(.top,12)
+                    }.padding(.horizontal,roomy ? 28:20).padding(.vertical,roomy ? 20:16).padding(2).frame(maxWidth:.infinity).background(.white.opacity(0.2),in:RoundedRectangle(cornerRadius:12)).overlay{RoundedRectangle(cornerRadius:12).stroke(.white.opacity(0.4),lineWidth:2)}
+                }.padding(.horizontal,padding).padding(.top,padding).padding(.bottom,12)
+                Button(copy("Continue"),action:onContinue).font(PiyaliBrand.productFont(roomy ? 18:16,700)).foregroundStyle(PiyaliBrand.unitColor("6b46c1")).frame(maxWidth:.infinity,minHeight:roomy ? 58:50).background{Capsule().fill(.white).shadow(color:PiyaliBrand.unitColor("3182ce"),radius:0,y:4)}.buttonStyle(.plain).accessibilityIdentifier("tutorCompletionContinue").padding(.horizontal,padding).padding(.bottom,padding)
+            }.multilineTextAlignment(.center).foregroundStyle(.white).background(LinearGradient(colors:[PiyaliBrand.unitColor("667eea"),PiyaliBrand.unitColor("764ba2")],startPoint:.topLeading,endPoint:.bottomTrailing),in:RoundedRectangle(cornerRadius:48)).overlay{RoundedRectangle(cornerRadius:48).stroke(PiyaliBrand.unitColor(scheme == .dark ? "94a3b8":"604d38").opacity(scheme == .dark ? 0.42:0.3),lineWidth:3)}.shadow(color:.black.opacity(0.25),radius:25,y:25).frame(maxWidth:min(geometry.size.width-24,geometry.size.width>=480 ? 448:geometry.size.width-24)).frame(maxWidth:.infinity,maxHeight:.infinity)
+        }
+    }.environment(\.layoutDirection,.leftToRight).accessibilityElement(children:.contain).accessibilityAddTraits(.isModal).accessibilityIdentifier("tutorCompletionDialog")}
+}
+struct TutorDialogBackdrop:View {
+    @Environment(\.colorScheme) private var scheme
+    var onClose:()->Void
+    var body:some View {(scheme == .dark ? PiyaliBrand.unitColor("020617").opacity(0.92):PiyaliBrand.unitColor("1c140c").opacity(0.82)).ignoresSafeArea().contentShape(Rectangle()).onTapGesture(perform:onClose)}
+}
+struct TutorSourceReview:View {
+    @Environment(\.colorScheme) private var scheme
+    @State private var contentHeight:CGFloat=700
+    let data:JSONValue
+    let copy:(String)->String
+    let onContinue:()->Void
     private var brand:PiyaliBrand{.init(dark:scheme == .dark)}
-    var body:some View {ZStack{Color.black.opacity(0.72).ignoresSafeArea();VStack(alignment:.leading,spacing:16){HStack{Text(copy("Lesson Review")).font(PiyaliBrand.productFont(20,700));Spacer();Button(action:onContinue){Image(systemName:"xmark")}.accessibilityLabel("Close")};Text(data["title"].string).font(PiyaliBrand.productFont(16,700));Text(data["subtitle"].string).font(PiyaliBrand.productFont(14)).foregroundStyle(brand.secondary);ScrollView{VStack(alignment:.leading,spacing:14){ForEach(Array(data["items"].array.enumerated()),id:\.offset){_,item in HStack(alignment:.top,spacing:12){Image(systemName:"checkmark.circle.fill").foregroundStyle(.teal);VStack(alignment:.leading,spacing:3){Text(item["task"].string).font(PiyaliBrand.productFont(14));if !item["phrase"].string.isEmpty{Text(item["phrase"].string).font(PiyaliBrand.productFont(16,600))};if !item["meaning"].string.isEmpty{Text(item["meaning"].string).font(PiyaliBrand.productFont(12)).foregroundStyle(brand.secondary)}}}}}}.frame(maxHeight:330);Button(copy("Continue"),action:onContinue).buttonStyle(QuestionPrimaryButtonStyle()).accessibilityIdentifier("tutorReviewContinue")}.padding(20).foregroundStyle(brand.text).background{TutorPaperPanel()}.overlay{RoundedRectangle(cornerRadius:16).stroke(brand.border)}.padding(12)}.accessibilityElement(children:.contain).accessibilityIdentifier("tutorReviewDialog")}
+    var body:some View {GeometryReader{geometry in
+        ZStack{
+            TutorDialogBackdrop(onClose:onContinue)
+            VStack(spacing:0){
+                VStack(alignment:.leading,spacing:8){OnboardingText(text:copy("Lesson Review"),size:24,weight:.bold,lineHeight:26.4);OnboardingText(text:data["title"].string,size:16,weight:.semibold,lineHeight:24).foregroundStyle(scheme == .dark ? PiyaliBrand.unitColor("b7c5d8"):brand.secondary)}.frame(maxWidth:.infinity,alignment:.leading).padding(.horizontal,32).padding(.top,28).padding(.bottom,28)
+                ScrollView{VStack(spacing:12){ForEach(Array(data["items"].array.enumerated()),id:\.offset){_,item in HStack(alignment:.top,spacing:12){CoursePathIcon(name:"RiCheckLine").frame(width:14,height:14).foregroundStyle(item["completed"].boolean ? .white:PiyaliBrand.unitColor(scheme == .dark ? "d1d5db":"718096")).frame(width:22,height:22).background(item["completed"].boolean ? PiyaliBrand.unitColor(scheme == .dark ? "38b2ac":"319795"):(scheme == .dark ? .white.opacity(0.16):PiyaliBrand.unitColor("f7fafc")),in:Circle());VStack(alignment:.leading,spacing:4){OnboardingText(text:item["task"].string.capitalized,size:12,weight:.bold,lineHeight:18).foregroundStyle(scheme == .dark ? PiyaliBrand.unitColor("a3b4c9"):brand.secondary);OnboardingText(text:item["phrase"].string,size:16,weight:.heavy,lineHeight:24).frame(maxWidth:.infinity,alignment:.leading).foregroundStyle(scheme == .dark ? .white:brand.text);if !item["meaning"].string.isEmpty,item["meaning"].string != item["phrase"].string{OnboardingText(text:item["meaning"].string,size:12,lineHeight:18).foregroundStyle(scheme == .dark ? PiyaliBrand.unitColor("b7c5d8"):brand.secondary)}}.frame(maxWidth:.infinity,alignment:.leading)}.padding(.vertical,8).padding(.horizontal,4)}}.padding(17).background(scheme == .dark ? PiyaliBrand.unitColor("0f172a").opacity(0.68):.white.opacity(0.62),in:RoundedRectangle(cornerRadius:16)).overlay{RoundedRectangle(cornerRadius:16).stroke(PiyaliBrand.unitColor(scheme == .dark ? "ffffff":"785e3d").opacity(scheme == .dark ? 0.08:0.14))}.padding(.horizontal,28).padding(.top,28).padding(.bottom,20).onGeometryChange(for:CGFloat.self,of:{$0.size.height}){contentHeight=$0}}
+                    .frame(height:min(contentHeight,max(100,geometry.size.height-48-114.4-84)))
+                Button(copy("Continue"),action:onContinue).font(PiyaliBrand.productFont(18,900)).foregroundStyle(.white).frame(maxWidth:.infinity,minHeight:48).background{RoundedRectangle(cornerRadius:12).fill(PiyaliBrand.unitColor("319795")).shadow(color:PiyaliBrand.unitColor("008080"),radius:0,y:4)}.buttonStyle(.plain).accessibilityIdentifier("tutorReviewContinue").padding(.horizontal,28).padding(.top,8).padding(.bottom,28)
+            }.foregroundStyle(brand.text).background(LinearGradient(colors:scheme == .dark ? [PiyaliBrand.unitColor("0c1220").opacity(0.98),PiyaliBrand.unitColor("040812").opacity(0.98)]:[PiyaliBrand.unitColor("fffbf5").opacity(0.98),PiyaliBrand.unitColor("f8efe2").opacity(0.98)],startPoint:.top,endPoint:.bottom),in:RoundedRectangle(cornerRadius:48)).overlay{RoundedRectangle(cornerRadius:48).stroke(PiyaliBrand.unitColor(scheme == .dark ? "94a3b8":"604d38").opacity(scheme == .dark ? 0.42:0.3),lineWidth:3)}.shadow(color:.black.opacity(scheme == .dark ? 0.45:0.22),radius:30,y:24).padding(.horizontal,12).frame(maxWidth:576).frame(maxWidth:.infinity,maxHeight:.infinity)
+        }
+    }.environment(\.layoutDirection,.leftToRight).accessibilityElement(children:.contain).accessibilityAddTraits(.isModal).accessibilityIdentifier("tutorReviewDialog")}
+}
+
+/// Completion and review remain above either the voice lesson or its path.
+/// Earned-practice ownership blocks the daily-goal modal until review closes.
+struct TutorCompletionFlow:View {
+    @EnvironmentObject var app:AppModel
+    @ObservedObject var tutor:TutorSessionController
+    var body:some View {Group{if let data=tutor.completion{TutorSourceCompletion(data:data,copy:{tutor.copy($0,app.learner.support)},onContinue:tutor.closeCompletion)}else if let data=tutor.review{TutorSourceReview(data:data,copy:{tutor.copy($0,app.learner.support)},onContinue:{tutor.closeReview(app)})}}}
 }

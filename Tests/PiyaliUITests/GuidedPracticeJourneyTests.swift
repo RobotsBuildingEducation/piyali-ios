@@ -10,8 +10,9 @@ import XCTest
     private func completeTutor(_ app:XCUIApplication){
         tap("startDailyPractice",app);photo("Native daily practice route",app);XCTAssertTrue(app.staticTexts["tutorLessonTitle"].waitForExistence(timeout:15));tap("tutorStart",app)
         XCTAssertTrue(app.buttons["tutorCompletionContinue"].waitForExistence(timeout:40));photo("Native guided Tutor result",app);tap("tutorCompletionContinue",app)
-        XCTAssertTrue(app.buttons["dailyGoalRewardContinue"].waitForExistence(timeout:10));photo("Native guided daily goal reward",app);XCTAssertFalse(app.buttons["tutorReviewContinue"].isHittable);tap("dailyGoalRewardContinue",app)
-        tap("tutorReviewContinue",app);XCTAssertTrue(app.buttons["scholarshipLater"].waitForExistence(timeout:10));photo("Native scholarship after Tutor celebrations",app);tap("scholarshipLater",app);XCTAssertTrue(app.buttons["guidedContinue"].waitForExistence(timeout:10));photo("Native guided Tutor quest complete",app)
+        XCTAssertTrue(app.buttons["tutorReviewContinue"].waitForExistence(timeout:10));XCTAssertFalse(app.buttons["dailyGoalRewardContinue"].exists);photo("Native guided Tutor review before daily goal",app);tap("tutorReviewContinue",app)
+        XCTAssertTrue(app.buttons["dailyGoalRewardContinue"].waitForExistence(timeout:10));photo("Native guided daily goal reward",app);tap("dailyGoalRewardContinue",app)
+        XCTAssertTrue(app.buttons["scholarshipLater"].waitForExistence(timeout:10));photo("Native scholarship after Tutor celebrations",app);tap("scholarshipLater",app);XCTAssertTrue(app.buttons["guidedContinue"].waitForExistence(timeout:10));photo("Native guided Tutor quest complete",app)
     }
     func testDailyPracticeCompletesTutorLessonAndFinalReviewThenNotesAndRelaunch()async throws{
         let relay=LocalNostrRelay();try await relay.start{frame,connection in if frame.first as? String == "REQ",let sub=frame[1] as? String{relay.send(["EOSE",sub],to:connection)}};defer{relay.stop()};let app=launch("full",walletRelay:relay.url);completeTutor(app);tap("guidedContinue",app)

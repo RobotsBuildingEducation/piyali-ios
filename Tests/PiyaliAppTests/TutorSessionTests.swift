@@ -298,3 +298,25 @@ extension TutorSessionTests {
         let restored=try JSONDecoder().decode(LearnerState.self,from:JSONEncoder().encode(app.learner));app.learner=restored;let reload=await self.session(app,TutorTransport());XCTAssertEqual(reload.id,typed.id);XCTAssertEqual(app.learner.totalXP,before);await session.stop(app,saveDraft:false);await reload.stop(app,saveDraft:false)
     }
 }
+
+extension TutorSessionTests {
+    func testTutorGameRetiresOnlyAfterAcknowledgmentAndCompletedReplayStartsFresh()async throws{
+        let cloud=TutorAcknowledgment();cloud.fails=true;let app=try await app(progressService:cloud);defer{try? app.identity.disconnect()};let session=await session(app,TutorTransport()),lesson=session.lesson,unit=session.unit,typed=try XCTUnwrap(TutorSessionController.decodeLesson(lesson)),service=RPGService(writer:{_ in ""})
+        await service.prepare(app,lesson:typed,episode:nil,tutor:true);var first=try XCTUnwrap(app.learner.rpgRuns?[app.learner.target]);first.stepIndex=first.scenario.quest.steps.count;app.learner.saveRPG(first)
+        let failed=await session.completeGame(app);XCTAssertFalse(failed);XCTAssertEqual(app.learner.rpgRuns?[app.learner.target]?.claimed,false);XCTAssertEqual(app.learner.totalXP,50)
+        cloud.fails=false;let saved=await session.completeGame(app);XCTAssertTrue(saved);XCTAssertEqual(app.learner.rpgRuns?[app.learner.target]?.claimed,true);XCTAssertEqual(app.learner.totalXP,50)
+        session.closeCompletion();session.closeReview(app);XCTAssertNotNil(session.selectPreparedGame(app,lesson:lesson,unit:unit));XCTAssertEqual(app.learner.plateProgress["currentTutorLesson"].string,typed.id);XCTAssertTrue(session.practicingCompletedLesson);await service.prepare(app,lesson:typed,episode:nil,tutor:true);var replay=try XCTUnwrap(app.learner.rpgRuns?[app.learner.target]);XCTAssertNotEqual(replay.id,first.id);XCTAssertFalse(replay.completed);XCTAssertEqual(replay.stepIndex,0);XCTAssertEqual(app.learner.totalXP,50)
+        replay.stepIndex=replay.scenario.quest.steps.count;app.learner.saveRPG(replay);let completed=await session.completeGame(app);XCTAssertTrue(completed);XCTAssertTrue(app.learner.rpgRuns?[app.learner.target]?.claimed == true);XCTAssertNil(session.completion);XCTAssertEqual(app.learner.totalXP,50);await session.stop(app,saveDraft:false)
+    }
+}
+
+extension TutorSessionTests {
+    func testRestoredTutorGameRetriesDurableBonusAndMigratesLegacyFinishedRun()async throws{
+        let cloud=TutorAcknowledgment();cloud.fails=true;let app=try await app(progressService:cloud);defer{try? app.identity.disconnect()};let session=await session(app,TutorTransport()),lesson=session.lesson,unit=session.unit,typed=try XCTUnwrap(TutorSessionController.decodeLesson(lesson)),service=RPGService(writer:{_ in ""})
+        await service.prepare(app,lesson:typed,episode:nil,tutor:true);var run=try XCTUnwrap(app.learner.rpgRuns?[app.learner.target]);run.stepIndex=run.scenario.quest.steps.count;app.learner.saveRPG(run);let first=await session.completeGame(app);XCTAssertFalse(first);let receipt=try XCTUnwrap(app.learner.pendingChanges?.first{$0.source == .speak}?.id);await session.stop(app,saveDraft:false)
+        app.learner=try JSONDecoder().decode(LearnerState.self,from:JSONEncoder().encode(app.learner));let restored=await self.session(app,TutorTransport());XCTAssertNotNil(restored.selectPreparedGame(app,lesson:lesson,unit:unit));XCTAssertTrue(restored.practicingCompletedLesson);await service.prepare(app,lesson:typed,episode:nil,tutor:true);XCTAssertEqual(app.learner.rpgRuns?[app.learner.target]?.id,run.id)
+        let retry=await restored.completeGame(app);XCTAssertFalse(retry);XCTAssertEqual(app.learner.totalXP,50);XCTAssertEqual(app.learner.pendingChanges?.filter{$0.source == .speak}.map(\.id),[receipt]);XCTAssertFalse(app.learner.rpgRuns?[app.learner.target]?.claimed ?? true)
+        cloud.fails=false;let acknowledged=await restored.completeGame(app);XCTAssertTrue(acknowledged);XCTAssertEqual(app.learner.totalXP,50);XCTAssertTrue(app.learner.pendingChanges?.isEmpty ?? true);XCTAssertTrue(app.learner.rpgRuns?[app.learner.target]?.claimed == true)
+        restored.closeCompletion();restored.closeReview(app);XCTAssertNotNil(restored.selectPreparedGame(app,lesson:lesson,unit:unit));run.claimed=false;app.learner.saveRPG(run);await service.prepare(app,lesson:typed,episode:nil,tutor:true);let practice=try XCTUnwrap(app.learner.rpgRuns?[app.learner.target]);XCTAssertNotEqual(practice.id,run.id);XCTAssertEqual(practice.stepIndex,0);XCTAssertFalse(practice.completed);XCTAssertEqual(app.learner.totalXP,50);await restored.stop(app,saveDraft:false)
+    }
+}

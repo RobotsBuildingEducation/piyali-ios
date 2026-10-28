@@ -43,13 +43,8 @@ import SwiftUI
     @Published var journeyRecording:JourneyRecordingPresentation?
     @Published var plateCourseCompletion:PlateCourseCompletion?
     @Published var dailyGoalReward:DailyGoalReward?
-    private var deferredTutorReviews:Set<UUID>=[]
-    func deferTutorReview(owner:UUID){deferredTutorReviews.insert(owner);notifyPracticeObservers()}
-    func releaseTutorReview(owner:UUID){deferredTutorReviews.remove(owner);notifyPracticeObservers()}
-    func dailyGoalBlocked(excluding owner:UUID)->Bool {
-        let scope=[identity.npub,learner.target,CalendarDay.key(Date())].joined(separator:":")
-        return earnedPracticeOwners.contains{$0.key != owner && $0.value == scope && !deferredTutorReviews.contains($0.key)}
-    }
+    @Published var tutorPath:TutorPathPresentation?
+    func dailyGoalBlocked(excluding owner:UUID)->Bool {hasEarnedPractice(excluding:owner)}
     private func captureDailyGoalReward(previous:LearnerState){
         guard !restoringLearner,signedIn,learner.onboardingComplete,learner.companionProgress?["dailyHasCelebrated"].boolean == true,previous.companionProgress?["dailyHasCelebrated"].boolean != true else{return}
         let oldIDs=Set((previous.pendingChanges ?? []).map(\.id))
@@ -241,7 +236,7 @@ import SwiftUI
         automaticTipTask?.task.cancel();automaticTipTask=nil;automaticWallet.cancel(clear:true)
         saveTask?.cancel(); contentTask?.cancel()
         let account = identity.npub
-        lessonActivityActive=false;activityFooter=nil;pendingLessonCompletion=nil;scholarship=ScholarshipPrompt()
+        lessonActivityActive=false;activityFooter=nil;pendingLessonCompletion=nil;scholarship=ScholarshipPrompt();tutorPath=nil
         loadLocal()
         if let profile=newProfile {
             learner.name=profile.name;learner.support=LearningLanguages.support.contains(profile.support) ? profile.support : "en"
@@ -269,7 +264,7 @@ import SwiftUI
         flushGoalEditor();goalCheck=nil
         do {
             try writeLocal();automaticProgress.reset();automaticTipTask?.task.cancel();automaticTipTask=nil;automaticWallet.cancel(clear:true);saveTask?.cancel();contentTask?.cancel();achievementRetries.pause();nostrAchievements.cancel();teams.cancel(clear:true);teamFeed.cancel(clear:true)
-            journeyRecording?.controller.close();journeyRecording=nil;try identity.disconnect();FirebaseIdentityService.shared.clearSession();signedIn=false;lessonActivityActive=false;activityFooter=nil;pendingLessonCompletion=nil;scholarship=ScholarshipPrompt();subscription.bind(identity);learner=LearnerState()
+            journeyRecording?.controller.close();journeyRecording=nil;try identity.disconnect();FirebaseIdentityService.shared.clearSession();signedIn=false;lessonActivityActive=false;activityFooter=nil;pendingLessonCompletion=nil;scholarship=ScholarshipPrompt();tutorPath=nil;subscription.bind(identity);learner=LearnerState()
         } catch { self.error=error.localizedDescription }
     }
     func boot() async { guard signedIn else { return };scheduleAutomaticTips(recovering:true); await reloadContent();resumeAchievementSync(); await sync(); await subscription.refresh();scheduleAutomaticTips() }

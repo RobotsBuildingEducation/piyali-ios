@@ -1,5 +1,7 @@
 import SwiftUI
 
+struct TutorPathPresentation {let owner:UUID,account:String,target:String;let tutor:TutorSessionController}
+
 struct TutorSourcePathView:View {
     @EnvironmentObject var app:AppModel
     @Environment(\.colorScheme) private var scheme
@@ -32,13 +34,15 @@ struct TutorSourcePathView:View {
             }.allowsHitTesting(preview == nil).accessibilityHidden(preview != nil).background(scheme == .dark ? PiyaliBrand.unitColor("030712"):brand.surface).foregroundStyle(brand.text)
             if let preview{previewDialog(preview).zIndex(1)}
         }.task{level=app.learner.tutorLevel}.task(id:revision){guard !level.isEmpty else{return};statuses=tutor.path(app,level:level)["statuses"]}
+            .onChange(of:app.learner.tutorLevel){_,value in if tutor.completionPending,preview == nil{level=value}}
             .onChange(of:gamePreparation.ready){_,ready in if ready{finishGamePreparation()}}
             .onChange(of:gamePreparation.error){_,error in if let error,gameLoading{tutor.error=error;gameLoading=false;starting=false;gamePreparation.cancel()}}
             .onChange(of:gameScope){_,_ in if gameLoading{cancelGamePreparation()}}
             .onChange(of:app.subscription.hasAccess){_,allowed in if !allowed,gameLoading{cancelGamePreparation()}}
             .onDisappear{if game == nil{gamePreparation.cancel();gameLaunchID=UUID()}}
-            .fullScreenCover(item:$game){lesson in NavigationStack{RPGView(lesson:lesson,episode:nil,onTutorComplete:{Task{guard app.learner.rpgRuns?[app.learner.target]?.completed == true else{return};if await tutor.completeGame(app){game=nil;onClose()}}},tutor:true,completionError:tutor.error,completing:tutor.saving).toolbar{ToolbarItem(placement:.cancellationAction){Button(tutor.pathCopy("close",support)){game=nil}}}}}
-            .accessibilityElement(children:.contain).accessibilityIdentifier("tutorPath")
+            .fullScreenCover(item:$game){lesson in NavigationStack{RPGView(lesson:lesson,episode:nil,onTutorComplete:{Task{guard app.learner.rpgRuns?[app.learner.target]?.completed == true else{return};if await tutor.completeGame(app){game=nil}}},tutor:true,completionError:tutor.error,completing:tutor.saving).toolbar{ToolbarItem(placement:.cancellationAction){Button(tutor.pathCopy("close",support)){game=nil}}}}}
+            .accessibilityElement(children:.contain).accessibilityHidden(tutor.completion != nil || tutor.review != nil).accessibilityIdentifier("tutorPath")
+            .overlay{if game == nil{TutorCompletionFlow(tutor:tutor)}}
     }
     private var levelHeader:some View {
         VStack(spacing:16){VStack(spacing:0){Text(info["label"].string).font(PiyaliBrand.productFont(16,900)).frame(minWidth:58,minHeight:44).background(scheme == .dark ? PiyaliBrand.unitColor(info["color"].string):brand.surface,in:RoundedRectangle(cornerRadius:16)).overlay{RoundedRectangle(cornerRadius:16).stroke(PiyaliBrand.unitColor(info["color"].string).opacity(0.6),lineWidth:2)};Text(info["name"].localized(support)).font(PiyaliBrand.productFont(16,700)).frame(minHeight:24);Text(info["description"].localized(support)).font(PiyaliBrand.productFont(12)).frame(minHeight:18).foregroundStyle(brand.secondary)}
