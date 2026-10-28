@@ -42,6 +42,12 @@ for(const [file,name] of Object.entries(iconFiles)){
   await fs.writeFile(new URL('Contents.json',destination),JSON.stringify({images:[{filename:'icon.svg',idiom:'universal'}],info:{author:'xcode',version:1},properties:{'preserves-vector-representation':true,'template-rendering-intent':'template'}}));
  }
 }
+// Original home-panel glyph and Chakra's actual light-mode badge tokens.
+// The app's independent dark theme does not set Chakra's color-mode selector.
+const panelIcon=require('react-icons/tb').TbDeviceGamepad3,panelFolder=new URL('../Piyali/Resources/BrandAssets.xcassets/Focus-pet-gamepad.imageset/',import.meta.url);
+await fs.mkdir(panelFolder,{recursive:true});await fs.writeFile(new URL('icon.svg',panelFolder),renderToStaticMarkup(React.createElement(panelIcon,{size:24,color:'#000000'})));await fs.writeFile(new URL('Contents.json',panelFolder),JSON.stringify({images:[{filename:'icon.svg',idiom:'universal'}],info:{author:'xcode',version:1},properties:{'preserves-vector-representation':true,'template-rendering-intent':'template'}}));
+const chakraTheme=require('@chakra-ui/react').theme,appGray=Function(await declaration('theme.js','appGray')+';return appGray;')(),themeColors={...chakraTheme.colors,gray:appGray};
+const panelBadges=Object.fromEntries(['green','teal','yellow','orange','red','gray'].map(scheme=>{const style=chakraTheme.components.Badge.variants.subtle({theme:chakraTheme,colorScheme:scheme,colorMode:'light'}),token=key=>{const [,group,shade]=style[key].split('.');return themeColors[group][shade]};return [scheme,{background:token('--badge-bg'),color:token('--badge-color')}]}));
 const drawing=await import(path.join(reference,'src/components/companionDrawing.js'));
 const {PET_TYPES}=await import(path.join(reference,'src/utils/petTypes.js'));
 const stages={},frames={};
@@ -55,7 +61,8 @@ for(const health of [0,24,49,74,99,100]){
   drawing.drawCompanionCharacter(ctx,frame,stage,type);frames[stage.key][type].push(rectangles);
  }}
 }
-for(const [name,value] of Object.entries({'focus-ui':{copy:ui,stages},'companion-stages':frames}))await fs.writeFile(new URL(`../Piyali/Resources/${name}.json.gz`,import.meta.url),gzipSync(JSON.stringify(value),{level:9}));
-for(const file of ['components/immersionCopy.js','components/companionCustomizeCopy.js','achievements/copy.js','utils/petTypes.js','components/companionDrawing.js','components/CompanionQuestBubble.jsx','components/ImmersionTasksContent.jsx','components/DailyPlateHome.jsx','theme.js','index.css'])sources[file]??=await fs.readFile(path.join(reference,'src',file),'utf8');
+for(const [name,value] of Object.entries({'focus-ui':{copy:ui,stages,panelBadges},'companion-stages':frames}))await fs.writeFile(new URL(`../Piyali/Resources/${name}.json.gz`,import.meta.url),gzipSync(JSON.stringify(value),{level:9}));
+for(const file of ['components/immersionCopy.js','components/companionCustomizeCopy.js','achievements/copy.js','utils/petTypes.js','components/companionDrawing.js','components/CompanionQuestBubble.jsx','components/ImmersionTasksContent.jsx','components/DailyPlateHome.jsx','theme.js','useThemeStore.jsx','index.css'])sources[file]??=await fs.readFile(path.join(reference,'src',file),'utf8');
+sources['../package-lock.json']=await fs.readFile(path.join(reference,'package-lock.json'),'utf8');
 await fs.writeFile(new URL('../docs/reference/focus-source-manifest.json',import.meta.url),JSON.stringify(Object.fromEntries(Object.entries(sources).map(([file,source])=>[file,createHash('sha256').update(source).digest('hex')])),null,2)+'\n');
 console.log(`Exported ${locales.length} focus locales and ${Object.keys(stages).length} health stages × ${PET_TYPES.length} companions × 12 frames.`);

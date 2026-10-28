@@ -5,6 +5,7 @@ import UIKit
 final class FocusBundleTests:XCTestCase {
     func testHomeArtworkAndAllHealthAnimationsSurviveIPhoneBundling() throws {
         let frames=try ContentLibrary.load(JSONValue.self,name:"companion-stages"),ui=try ContentLibrary.load(JSONValue.self,name:"focus-ui")
+        XCTAssertNotNil(UIImage(named:"Focus-pet-gamepad"));for scheme in ["green","teal","yellow","orange","red","gray"]{for key in ["background","color"]{XCTAssertTrue(ui["panelBadges"][scheme][key].string.hasPrefix("#"))}}
         let states=["happy","healthy","unhappy","stressed","unhealthy","dead"]
         for stage in states {
             XCTAssertFalse(ui["stages"][stage]["light"]["background"].string.isEmpty)

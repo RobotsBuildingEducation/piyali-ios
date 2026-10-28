@@ -2,6 +2,7 @@
   "components/PlatePetPanel.jsx": "4b06f3cd701d2ea1b0766af46010b88726149b97fb2573966fa952b1b449ed21",
   "components/PlateScoreJourney.jsx": "7020bda698e2722a8b2e977eb0559074d706af6ab822024ebe307f6353493860",
   "utils/dailyPlateCopy.js": "94346c92686705f12853e960856372efb0f0abfe74a94cd75311df7c8b5b9298",
+  "theme.js": "6fe6093ecca51d0debb1314a587d6bd0927e7ac9f8c1ba2c6c744017e3be407e",
   "components/immersionCopy.js": "434e853d5e80ea309f3c8d9e308e52875327a801d51a6a4d982986c9af215095",
   "components/companionCustomizeCopy.js": "c19a19833729f12bba84998c8258df86643b0d450be598aadd9e388b2f5d536a",
   "achievements/copy.js": "8d033d29320c4a90dfea7381576c6702a8db7a5da94e5012bd25f9b17cc8bf40",
@@ -10,6 +11,7 @@
   "components/CompanionQuestBubble.jsx": "48de323ad43b64a4dc681275d1a1dd7028572bd491e7d46583544abf1ab31252",
   "components/ImmersionTasksContent.jsx": "96936d14013e5d219e321dca9a5f997fce28f91a70a62f666499588390eddb01",
   "components/DailyPlateHome.jsx": "92310a11263430a66a3e11a6cfe9046432606670e22ab079f682736dc5683cf7",
-  "theme.js": "6fe6093ecca51d0debb1314a587d6bd0927e7ac9f8c1ba2c6c744017e3be407e",
-  "index.css": "79a5362dc1b189acd0d2288c0e85ff29c9cc1c8e39b8bb5cabe164ddd1c29030"
+  "useThemeStore.jsx": "ff0a591e7e674099e0202c58dfdff3d663fd65297f1a9cde0e6328f9ee5e4b4e",
+  "index.css": "79a5362dc1b189acd0d2288c0e85ff29c9cc1c8e39b8bb5cabe164ddd1c29030",
+  "../package-lock.json": "31f6529cc18def2c75e5fa279bcdafcc1305e18ce25ee79e373dbfebc224c863"
 }

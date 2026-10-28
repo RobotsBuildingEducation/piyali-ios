@@ -43,17 +43,20 @@ struct FocusWaveBar:View {
     var background:Color = .white.opacity(0.05)
     var border:Color = .white.opacity(0.1)
     var gradientOpacity=0.9,waveOpacity=0.18
+    var animateFill=false,insetBorder=false
+    @State private var fillStartedAt=Date()
+    @State private var fillFrom:Double=0
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     var body:some View {
         GeometryReader {geometry in
-            let width=geometry.size.width*max(0,min(100,percent))/100
-            ZStack(alignment:.leading) {
-                background
-                TimelineView(.animation(minimumInterval:1/15,paused:reduceMotion || width == 0)) {time in
+            TimelineView(.animation(minimumInterval:animateFill ? 1/30:1/15,paused:reduceMotion || (percent<=0 && fillFrom==0))) {clock in
+                let inset:CGFloat=insetBorder ? 1:0,width=max(0,geometry.size.width-2*inset)*fill(at:clock.date,to:percent)/100
+                ZStack(alignment:.leading) {
+                    background
                     ZStack {
                         LinearGradient(colors:[PiyaliBrand.unitColor(start),PiyaliBrand.unitColor(end)],startPoint:.leading,endPoint:.trailing).opacity(gradientOpacity)
                         Canvas {context,size in
-                            let phase=reduceMotion ? 0 : (1-cos(time.date.timeIntervalSinceReferenceDate*Double.pi/5))*5
+                            let phase=reduceMotion ? 0 : (1-cos(clock.date.timeIntervalSinceReferenceDate*Double.pi/5))*5
                             context.scaleBy(x:size.width/120,y:size.height/30);context.translateBy(x:-phase,y:0)
                             var p=Path();p.move(to:CGPoint(x:0,y:18))
                             p.addCurve(to:CGPoint(x:30,y:18),control1:CGPoint(x:10,y:14),control2:CGPoint(x:20,y:22))
@@ -62,10 +65,21 @@ struct FocusWaveBar:View {
                             p.addCurve(to:CGPoint(x:120,y:18),control1:CGPoint(x:100,y:14),control2:CGPoint(x:110,y:14))
                             p.addLine(to:CGPoint(x:120,y:30));p.addLine(to:CGPoint(x:0,y:30));p.closeSubpath();context.fill(p,with:.color(.white.opacity(waveOpacity)))
                         }
-                    }.frame(width:width)
-                }
-            }.clipShape(Capsule()).overlay{Capsule().strokeBorder(border,lineWidth:1)}
+                    }.frame(width:width,height:max(0,height-2*inset)).offset(x:inset)
+                }.clipShape(Capsule()).overlay{Capsule().strokeBorder(border,lineWidth:1)}
+            }
         }.frame(height:height).environment(\.layoutDirection,.leftToRight).accessibilityHidden(true)
+            .onChange(of:percent){old,_ in let now=Date();fillFrom=fill(at:now,to:old);fillStartedAt=now}
+    }
+    private func fill(at time:Date,to target:Double)->Double{
+        let target=max(0,min(100,target))
+        guard animateFill && !reduceMotion else{return target}
+        let progress=max(0,min(1,time.timeIntervalSince(fillStartedAt)/0.8))
+        // Invert the source's cubic-bezier x to evaluate y: [0.22, 1, 0.36, 1].
+        var low=0.0,high=1.0
+        for _ in 0..<18{let t=(low+high)/2,x=3*(1-t)*(1-t)*t*0.22+3*(1-t)*t*t*0.36+t*t*t;if x<progress{low=t}else{high=t}}
+        let t=(low+high)/2,eased=1-pow(1-t,3)
+        return fillFrom+(target-fillFrom)*eased
     }
 }
 

@@ -13,49 +13,84 @@ struct FocusCompanionPanel:View {
     private var brand:PiyaliBrand {PiyaliBrand(dark:scheme == .dark)}
     private var copy:JSONValue {FocusCopy.data(app.learner.support)}
     private var stage:JSONValue {FocusCopy.appearance(app.learner.companionHealth,dark:scheme == .dark)}
+    private var dailyPercent:Double{app.learner.dailyGoal>0 ? Double(max(0,app.learner.dailyXP))/Double(app.learner.dailyGoal)*100:0}
     private var level:String {copy["level"].string+" \(app.learner.companionLevel)"}
     var body:some View {
         VStack(spacing:12) {
             HStack(alignment:.top,spacing:12) {
                 VStack(spacing:6) {
-                    CompanionArtwork(type:app.learner.effectiveCompanionType,health:app.learner.companionHealth).frame(width:96,height:96).background(FocusCopy.background(stage["background"].string),in:EntryCornerShape(radius:20)).overlay{EntryCornerShape(radius:20).stroke(scheme == .dark ? .white.opacity(0.24) : brand.secondary.opacity(0.12))}
+                    CompanionArtwork(type:app.learner.effectiveCompanionType,health:app.learner.companionHealth).padding(1).frame(width:96,height:96).background(FocusCopy.background(stage["background"].string),in:RoundedRectangle(cornerRadius:20)).overlay{RoundedRectangle(cornerRadius:20).strokeBorder(scheme == .dark ? .white.opacity(0.16) : brand.secondary.opacity(0.12))}
                         .overlay(alignment:.topLeading) {
                             if let bubble {FocusQuestBubble(text:bubble,introductory:introductory,tailOnRight:app.learner.support == "ar",onContinue:onContinue).fixedSize(horizontal:false,vertical:true).onGeometryChange(for:CGFloat.self,of:{$0.size.height}){bubbleHeight=$0}.offset(x:app.learner.support == "ar" ? -124-bubbleX : bubbleX,y:(app.learner.effectiveCompanionType == "dog" ? -5.76 : app.learner.effectiveCompanionType == "alien" ? 4.24 : 10.24)-bubbleHeight)}
                         }.environment(\.layoutDirection,.leftToRight).zIndex(bubble == nil ? 0 : 30)
-                    Text(copy["pet"][FocusCopy.stage(app.learner.companionHealth)].string.uppercased()).font(PiyaliBrand.productFont(9.92,700)).padding(.horizontal,8).padding(.vertical,1.4).background(badgeColor.opacity(0.14),in:RoundedRectangle(cornerRadius:6)).foregroundStyle(badgeColor).accessibilityIdentifier("focusCompanionStatus")
+                    Text(copy["pet"][FocusCopy.stage(app.learner.companionHealth)].string.uppercased()).font(PiyaliBrand.productFont(9.92,700)).frame(height:11.88).padding(.horizontal,8).padding(.vertical,1.4).background(badgeBackground,in:RoundedRectangle(cornerRadius:6)).foregroundStyle(badgeColor).accessibilityIdentifier("focusCompanionStatus")
                 }
                 VStack(alignment:.leading,spacing:12) {
                     VStack(alignment:.leading,spacing:2) {
-                        ViewThatFits(in:.horizontal) {
-                            HStack(spacing:4) {edit;name;Text("|").foregroundStyle(brand.secondary);Text(level).foregroundStyle(brand.secondary)}
-                            VStack(alignment:.leading,spacing:4) {HStack(spacing:4){edit;name};Text(level).foregroundStyle(brand.secondary)}
-                        }.font(PiyaliBrand.productFont(14,700))
-                        OnboardingText(text:copy["pet"]["subtitle"].string,size:10,lineHeight:13.5).foregroundStyle(brand.secondary)
+                        CompanionTitleLayout() {
+                            edit
+                            name
+                            HStack(spacing:4){Text("|").font(PiyaliBrand.productFont(14,600));Text(level).font(PiyaliBrand.productFont(14,700))}.frame(height:15.4).foregroundStyle(scheme == .dark ? .white.opacity(0.8):brand.secondary)
+                        }
+                        OnboardingText(text:copy["pet"]["subtitle"].string,size:10,lineHeight:13.5).foregroundStyle(scheme == .dark ? brand.text.opacity(0.9):brand.secondary)
                     }.padding(.bottom,-4)
-                    meter(copy["pet"]["health"].string,symbol:"heart",color:scheme == .dark ? "fbb6ce" : "ce7a8c",label:"\(app.learner.companionHealth)%",percent:Double(app.learner.companionHealth),start:"60a5fa",end:"38bdf8")
-                    meter(copy["pet"]["dailyXp"].string,symbol:"chart.line.uptrend.xyaxis",color:scheme == .dark ? "fef08a" : "b7791f",label:"\(Int((Double(app.learner.dailyXP)/Double(max(1,app.learner.dailyGoal))*100).rounded()))%",percent:Double(app.learner.dailyXP)/Double(max(1,app.learner.dailyGoal))*100,start:"fbbf24",end:"f59e0b")
-                    meter(level,symbol:"gamecontroller",color:scheme == .dark ? "bfdbfe" : "2563eb",label:"XP \(app.learner.xp)",percent:Double(app.learner.xp%100),start:"43e97b",end:"38f9d7")
+                    meter(copy["pet"]["health"].string,icon:"FiHeart",color:scheme == .dark ? "fbd38d" : "ce7a8c",label:"\(app.learner.companionHealth)%",percent:Double(app.learner.companionHealth),start:"60a5fa",end:"38bdf8")
+                    meter(copy["pet"]["dailyXp"].string,icon:"MdShowChart",color:scheme == .dark ? "faf089" : "b7791f",label:"\(Int(dailyPercent.rounded()))%",percent:dailyPercent,start:"fbbf24",end:"f59e0b")
+                    meter(level,icon:"gamepad",color:scheme == .dark ? "90cdf4" : "2563eb",label:"XP \(app.learner.xp)",percent:Double(app.learner.xp%100),start:"43e97b",end:"38f9d7",iconSize:16,valueSize:11)
                 }.frame(maxWidth:.infinity,alignment:.leading)
             }
             HStack(spacing:12) {Button(copy["activity"].string,action:onActivity).accessibilityIdentifier("focusActivityOpen");Button(copy["achievements"].string,action:onAchievements).accessibilityIdentifier("focusAchievements")}.buttonStyle(FocusOutlineButtonStyle()).padding(.top,0)
-        }.padding(13).background(FocusCopy.background(stage["background"].string),in:EntryCornerShape(radius:28)).overlay{EntryCornerShape(radius:28).stroke(scheme == .dark ? .clear : brand.border)}.zIndex(bubble == nil ? 0 : 30)
+        }.padding(13).background(FocusCopy.background(stage["background"].string),in:RoundedRectangle(cornerRadius:28)).overlay{RoundedRectangle(cornerRadius:28).strokeBorder(scheme == .dark ? .clear : brand.border)}.foregroundStyle(brand.text).zIndex(bubble == nil ? 0 : 30)
             .fullScreenCover(isPresented:$customizing){FocusCompanionCustomizeView().presentationBackground(.clear)}
     }
     private var bubbleX:CGFloat {app.learner.effectiveCompanionType == "dog" ? 7.84 : app.learner.effectiveCompanionType == "alien" ? -2.16 : 1.84}
-    private var name:some View {Text(app.learner.companionName.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty ? copy["pet"]["title"].string : app.learner.companionName).lineLimit(2)}
-    private var edit:some View {Button {customizing=true} label:{CompanionEditorIcon(name:"TbEdit",size:14).frame(width:20,height:20).contentShape(RoundedRectangle(cornerRadius:6))}.buttonStyle(.plain).foregroundStyle(brand.secondary).disabled(bubble != nil).accessibilityLabel(copy["customize"]["edit"].string).accessibilityIdentifier("focusCustomizeCompanion")}
-    private var badgeColor:Color {if scheme == .light {return FocusCopy.color(stage["badgeColor"].string)};return PiyaliBrand.unitColor(["happy":"9ae6b4","healthy":"81e6d9","unhappy":"faf089","stressed":"fbd38d","unhealthy":"feb2b2","dead":"e2e8f0"][FocusCopy.stage(app.learner.companionHealth)] ?? "9ae6b4")}
-    private func meter(_ title:String,symbol:String,color:String,label:String,percent:Double,start:String,end:String)->some View {
+    private var name:some View {Text(app.learner.companionName.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty ? copy["pet"]["title"].string : app.learner.companionName).font(PiyaliBrand.productFont(14,700)).lineLimit(2)}
+    private var edit:some View {Button {customizing=true} label:{CompanionEditorIcon(name:"TbEdit",size:14).offset(y:-0.5).frame(width:20,height:20).contentShape(RoundedRectangle(cornerRadius:6))}.buttonStyle(.plain).foregroundStyle(scheme == .dark ? .white.opacity(0.8):brand.secondary).disabled(bubble != nil).accessibilityLabel(copy["customize"]["edit"].string).accessibilityIdentifier("focusCustomizeCompanion")}
+    private var darkBadge:JSONValue{FocusCopy.source["panelBadges"][stage["colorScheme"].string]}
+    private var badgeColor:Color{FocusCopy.color((scheme == .dark ? darkBadge["color"]:stage["badgeColor"]).string)}
+    private var badgeBackground:Color{FocusCopy.color((scheme == .dark ? darkBadge["background"]:stage["badgeBg"]).string)}
+    private func meter(_ title:String,icon:String,color:String,label:String,percent:Double,start:String,end:String,iconSize:CGFloat=14,valueSize:CGFloat=12)->some View {
         VStack(spacing:6) {
-            HStack(spacing:8) {Image(systemName:symbol).font(.system(size:14)).foregroundStyle(PiyaliBrand.unitColor(color));Text(title).font(PiyaliBrand.productFont(12,600));Spacer(minLength:4);Text(label).font(PiyaliBrand.productFont(12,700))}.frame(minHeight:18)
-            FocusWaveBar(percent:percent,start:start,end:end,background:.white.opacity(scheme == .dark ? 0.22 : 0.58),border:scheme == .dark ? .white.opacity(0.14) : brand.secondary.opacity(0.1))
+            HStack(spacing:8) {
+                HStack(spacing:8){Image(icon == "gamepad" ? "Focus-pet-gamepad":"Session-"+icon).renderingMode(.template).resizable().scaledToFit().frame(width:iconSize,height:iconSize).foregroundStyle(PiyaliBrand.unitColor(color));Text(app.learner.support == "ar" ? "\u{202B}"+title+"\u{202C}":title).font(PiyaliBrand.productFont(12,600))}
+                Spacer(minLength:4);Text(label).font(PiyaliBrand.productFont(valueSize,700))
+            }.frame(minHeight:18)
+            FocusWaveBar(percent:percent,start:start,end:end,background:.white.opacity(scheme == .dark ? 0.22 : 0.58),border:scheme == .dark ? .white.opacity(0.14) : brand.secondary.opacity(0.1),animateFill:true,insetBorder:true)
         }
     }
 }
 
 struct FocusOutlineButtonStyle:ButtonStyle {
     @Environment(\.colorScheme) private var scheme
-    func makeBody(configuration:Configuration)->some View {configuration.label.font(PiyaliBrand.productFont(14,600)).padding(.horizontal,12).frame(height:32).foregroundStyle(scheme == .dark ? .white : .black).overlay{EntryCornerShape(radius:16).stroke(PiyaliBrand.unitColor(scheme == .dark ? "81e6d9" : "2c7a7b"))}.contentShape(Rectangle()).opacity(configuration.isPressed ? 0.7 : 1)}
+    func makeBody(configuration:Configuration)->some View {configuration.label.font(PiyaliBrand.productFont(14,600)).padding(.horizontal,13).frame(height:32).foregroundStyle(scheme == .dark ? .white : .black).overlay{Capsule().strokeBorder(PiyaliBrand.unitColor(scheme == .dark ? "81e6d9" : "2c7a7b"))}.contentShape(Rectangle()).opacity(configuration.isPressed ? 0.7 : 1)}
+}
+
+/// Three flex items from the source: edit, two-line name, and indivisible | level.
+/// Wrapping keeps the separator. SwiftUI mirrors placed coordinates in RTL.
+struct CompanionTitleLayout:Layout {
+    private func plan(_ width:CGFloat,_ views:Subviews)->(CGSize,[CGRect]){
+        var rows:[[(Int,CGSize)]]=[[]],used:CGFloat=0
+        for (index,view) in views.enumerated(){
+            let ideal=view.sizeThatFits(.unspecified),size=view.sizeThatFits(.init(width:min(width,ideal.width),height:nil))
+            if used>0 && used+4+size.width>width+0.01{rows.append([]);used=0}
+            rows[rows.count-1].append((index,size));used += (used>0 ? 4:0)+size.width
+        }
+        var frames=Array(repeating:CGRect.zero,count:views.count),y:CGFloat=0
+        for row in rows where !row.isEmpty{
+            let height=row.map{$0.1.height}.max() ?? 0;var x:CGFloat=0
+            for(index,size)in row{frames[index]=CGRect(x:x,y:y+(height-size.height)/2,width:size.width,height:size.height);x += size.width+4}
+            y += height+4
+        }
+        return (CGSize(width:width,height:max(0,y-4)),frames)
+    }
+    func sizeThatFits(proposal:ProposedViewSize,subviews:Subviews,cache:inout ())->CGSize{
+        let intrinsic=subviews.reduce(CGFloat(0)){$0+$1.sizeThatFits(.unspecified).width+4},width=proposal.width.flatMap{$0.isFinite ? max(0,$0):nil} ?? intrinsic
+        return plan(width,subviews).0
+    }
+    func placeSubviews(in bounds:CGRect,proposal:ProposedViewSize,subviews:Subviews,cache:inout ()){
+        let frames=plan(bounds.width,subviews).1
+        for(index,view)in subviews.enumerated(){let frame=frames[index];view.place(at:CGPoint(x:bounds.minX+frame.minX,y:bounds.minY+frame.minY),anchor:.topLeading,proposal:.init(frame.size))}
+    }
 }
 
 enum CompanionCustomizeHost {case plate,goal}

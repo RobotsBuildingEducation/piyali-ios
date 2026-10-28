@@ -1,0 +1,83 @@
+[
+  {
+    "bundle": "PiyaliCompanionPanelBefore1.xcresult",
+    "result": "Passed",
+    "passedTests": 1,
+    "failedTests": 0,
+    "skippedTests": 0,
+    "testFailures": []
+  },
+  {
+    "bundle": "PiyaliCompanionPanelPaint1.xcresult",
+    "result": "Passed",
+    "passedTests": 2,
+    "failedTests": 0,
+    "skippedTests": 0,
+    "testFailures": []
+  },
+  {
+    "bundle": "PiyaliCompanionPanelPaint2.xcresult",
+    "result": "Passed",
+    "passedTests": 2,
+    "failedTests": 0,
+    "skippedTests": 0,
+    "testFailures": []
+  },
+  {
+    "bundle": "PiyaliCompanionPanelPaint3.xcresult",
+    "result": "Passed",
+    "passedTests": 2,
+    "failedTests": 0,
+    "skippedTests": 0,
+    "testFailures": []
+  },
+  {
+    "bundle": "PiyaliCompanionPanelPaint4.xcresult",
+    "result": "Passed",
+    "passedTests": 2,
+    "failedTests": 0,
+    "skippedTests": 0,
+    "testFailures": []
+  },
+  {
+    "bundle": "PiyaliCompanionPanelJourneys1.xcresult",
+    "result": "Failed",
+    "passedTests": 0,
+    "failedTests": 3,
+    "skippedTests": 0,
+    "testFailures": [
+      {
+        "failureText": "XCTAssertTrue failed",
+        "targetName": "PiyaliUITests",
+        "testIdentifier": 3,
+        "testIdentifierString": "XPActivityJourneyTests/testActivityHistoryCompanionAchievementsAndRelaunchInEnglishAndArabic()",
+        "testIdentifierURL": "test://com.apple.xcode/Piyali/PiyaliUITests/XPActivityJourneyTests/testActivityHistoryCompanionAchievementsAndRelaunchInEnglishAndArabic",
+        "testName": "testActivityHistoryCompanionAchievementsAndRelaunchInEnglishAndArabic()"
+      },
+      {
+        "failureText": "Failed to get matching snapshot: No matches found for Elements matching predicate '\"companionContinue\" IN identifiers' from input {(\n    Button, identifier: 'openDailyGoal', label: 'Open daily goal',\n    Button, identifier: 'openSessionTimer', label: 'Open timer',\n    Button, identifier: 'productMenu', label: '\u062a\u0631\u0643\u064a\u0632 \u0627\u0644\u064a\u0648\u0645',\n    Button, identifier: 'startDailyPractice', label: '\u0627\u0628\u062f\u0623 \u0627\u0644\u0645\u0647\u0627\u0645', Disabled,\n    Button, identifier: 'focusCompanionPanel', label: 'Continue',\n    Button, identifier: 'focusCompanionPanel', label: '\u062e\u0635\u0635 \u0635\u0627\u062d\u0628\u0643', Disabled,\n    Button, identifier: 'focusCompanionPanel', label: '\u0639\u0631\u0636 \u0627\u0644\u0646\u0634\u0627\u0637',\n    Button, identifier: 'focusCompanionPanel', label: '\u0627\u0644\u0625\u0646\u062c\u0627\u0632\u0627\u062a'\n)}",
+        "targetName": "PiyaliUITests",
+        "testIdentifier": 1,
+        "testIdentifierString": "FocusHomeJourneyTests/testArabicDarkCompanionAndScoreUseSourceCopyAndRemainInteractive()",
+        "testIdentifierURL": "test://com.apple.xcode/Piyali/PiyaliUITests/FocusHomeJourneyTests/testArabicDarkCompanionAndScoreUseSourceCopyAndRemainInteractive",
+        "testName": "testArabicDarkCompanionAndScoreUseSourceCopyAndRemainInteractive()"
+      },
+      {
+        "failureText": "Failed to get matching snapshot: No matches found for Elements matching predicate '\"focusCustomizeCompanion\" IN identifiers' from input {(\n    Button, identifier: 'openDailyGoal', label: 'Open daily goal',\n    Button, identifier: 'openSessionTimer', label: 'Open timer',\n    Button, identifier: 'productMenu', label: 'Today\u2019s Focus',\n    Button, identifier: 'startDailyPractice', label: 'Start tasks', Disabled,\n    Button, identifier: 'focusCompanionPanel', label: 'Continue',\n    Button, identifier: 'focusCompanionPanel', label: 'Customize companion', Disabled,\n    Button, identifier: 'focusCompanionPanel', label: 'Activity',\n    Button, identifier: 'focusCompanionPanel', label: 'Achievements'\n)}",
+        "targetName": "PiyaliUITests",
+        "testIdentifier": 2,
+        "testIdentifierString": "FocusHomeJourneyTests/testWelcomeGeometryCustomizeCancelSaveAndImmersionRewardSurviveRelaunch()",
+        "testIdentifierURL": "test://com.apple.xcode/Piyali/PiyaliUITests/FocusHomeJourneyTests/testWelcomeGeometryCustomizeCancelSaveAndImmersionRewardSurviveRelaunch",
+        "testName": "testWelcomeGeometryCustomizeCancelSaveAndImmersionRewardSurviveRelaunch()"
+      }
+    ]
+  },
+  {
+    "bundle": "PiyaliCompanionPanelJourneys2.xcresult",
+    "result": "Passed",
+    "passedTests": 3,
+    "failedTests": 0,
+    "skippedTests": 0,
+    "testFailures": []
+  }
+]

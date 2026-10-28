@@ -42,11 +42,15 @@ The UI checks assert 64-point task rows and 10-point spacing, balloon placement 
 
 The existing regular simulator receives the same built application without erasing its learner data. The QA screenshots above are from isolated first-session test identities.
 
+## Later panel correction
+
+The [home companion panel checkpoint](COMPANION_PANEL.md) supersedes this original pass's panel corners, icons, badge guesses, title wrapping and action-button outlines. It compares the actual source at 375/402 points with short/long names, English/light and Arabic/dark states. The original table above retains the earlier whole-home snapshots and their scoped journey evidence.
+
 ## Still open
 
 - Both Gemini and Responses recovery now stream headlines through the original task/prompt policy, canonical caching, offline retry and scope fences; see [HEADLINES.md](HEADLINES.md). Real recovery returns 17 updates. An iPhone WebKit baseline closely matches the English/Arabic subtitle; title width, other locales and device sizes remain calibration work.
-- Returning-day companion messages still require the web's ready blueprint preference, cleared repair recap and full repair/goal-memory comparisons. The first deterministic welcome is the journey covered here.
-- Native activity history is interactive but its full heatmap, year legend/loading/error and transitions still require a source comparison. The companion/activity and achievements buttons now use source copy.
+- Returning-day ready blueprint preference and cleared-repair conditions now follow the original policy with scoped native, Firebase and source comparison checks in [Companion quests](COMPANION_QUESTS.md). The first deterministic welcome is the product journey covered by this original Focus checkpoint; wider repair/goal-memory journeys remain open.
+- Activity now uses the original complete heatmap, saved goal semantics, offline history and source transitions with bilingual component and actual product checks in [Activity](XP_ACTIVITY.md). [Shared calendar checks](CALENDAR_DAYS.md) cover new keys and queries under non-Gregorian device preferences; wider Activity presentations remain open.
 - The native queued/offline immersion receipt model remains in place. Source reward-claim failure/retry presentation, the complete reward particle/sound choreography and live generated-task quality need separate verification.
 - The signed-in header, Goal Manager and session timer now follow the current manual source flow; see [SESSION_TOOLS.md](SESSION_TOOLS.md). Source search finds no active automatic post-intro goal/timer launch. Complete guided-session journeys, remaining modes/panels and physical-device audio/auth remain broader goal work.
 - Rounded control/typography calibration across more device widths, Dynamic Type, all locales and long companion names remains. This pass verifies representative English/light and Arabic/dark journeys, not every rendering combination.
