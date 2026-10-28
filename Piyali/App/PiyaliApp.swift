@@ -3,7 +3,7 @@ import SwiftUI
 @main struct PiyaliApp: App {
     @StateObject private var model: AppModel
     @Environment(\.scenePhase) private var scenePhase
-    init() {EntryFixture.configurePreferences();FirebaseService.configure(); _model = StateObject(wrappedValue: AppModel()) }
+    init() {EntryFixture.configurePreferences();FirebaseService.configure();CalendarParityFixture.record(); _model = StateObject(wrappedValue: AppModel()) }
     var body: some Scene {
         WindowGroup {
             RootView().environmentObject(model)

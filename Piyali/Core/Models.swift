@@ -261,7 +261,7 @@ public struct LearnerState: Codable, Sendable {
         dailyKey = CalendarDay.normalize(dailyKey)
         let key = CalendarDay.key(now,calendar:calendar)
         if dailyKey != key {
-            let yesterday = calendar.date(byAdding: .day, value: -1, to: now)!
+            let yesterday = CalendarDay.gregorian(calendar).date(byAdding: .day, value: -1, to: now)!
             if dailyKey != CalendarDay.key(yesterday,calendar:calendar) || dailyXP < dailyGoal { streak = 0 }
             dailyKey = key; dailyXP = 0
         }

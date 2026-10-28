@@ -33,7 +33,7 @@ struct TodayFocusHomeView:View {
             VStack(spacing:12) {
                 VStack(spacing:2) {
                     OnboardingText(text:ProductCopy.text(language,"PLATE_TITLE_COPY"),size:24,weight:.black,lineHeight:28.8).accessibilityIdentifier("todayFocusTitle")
-                    OnboardingText(text:now.formatted(Date.FormatStyle().weekday(.wide).month(.wide).day().locale(Locale(identifier:language))),size:14,lineHeight:21).foregroundStyle(brand.muted)
+                    OnboardingText(text:now.formatted(Date.FormatStyle(calendar:CalendarDay.gregorian()).weekday(.wide).month(.wide).day().locale(Locale(identifier:language))),size:14,lineHeight:21).foregroundStyle(brand.muted)
                 }.frame(maxWidth:.infinity)
                 if cleared {
                     Text(ProductCopy.text(language,"PLATE_CLEARED_COPY")).font(PiyaliBrand.productFont(16,700)).frame(maxWidth:.infinity).padding(.horizontal,16).padding(.vertical,12).foregroundStyle(PiyaliBrand.unitColor(scheme == .dark ? "faf089" : "975a16")).background(PiyaliBrand.unitColor(scheme == .dark ? "facc15" : "b7791f").opacity(0.14),in:EntryCornerShape(radius:28)).overlay{EntryCornerShape(radius:28).stroke(PiyaliBrand.unitColor(scheme == .dark ? "facc15" : "b7791f").opacity(0.5))}

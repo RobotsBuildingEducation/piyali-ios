@@ -61,12 +61,12 @@ struct DailyGoalYearHeatmap:View {
     private var year:Int{calendar.component(.year,from:now)}
     private var key:String{"piyali.xpHistory."+app.identity.npub+".\(year)"}
     private func text(_ key:String)->String{EntryCopy.ui(app.learner.support,"daily_goal_activity_"+key)}
-    private var calendar:Calendar{var c=Calendar(identifier:.gregorian);c.timeZone = .current;return c}
+    private var calendar:Calendar{CalendarDay.gregorian()}
     private var start:Date{calendar.date(from:DateComponents(year:year,month:1,day:1))!}
     private var padding:Int{calendar.component(.weekday,from:start)-1}
     private var days:Int{calendar.range(of:.day,in:.year,for:start)!.count}
     private var weeks:Int{Int(ceil(Double(padding+days)/7))}
-    private var formatter:DateFormatter{let f=DateFormatter();f.locale=Locale(identifier:app.learner.support);f.setLocalizedDateFormatFromTemplate("MMM");return f}
+    private var formatter:DateFormatter{let f=DateFormatter();f.locale=Locale(identifier:app.learner.support);f.calendar=CalendarDay.gregorian();f.setLocalizedDateFormatFromTemplate("MMM");return f}
     var body:some View {
         VStack(alignment:.leading,spacing:12){
             HStack{OnboardingText(text:text("title").uppercased(),size:12,weight:.bold,lineHeight:18).tracking(0.96);Spacer();OnboardingText(text:text("subtitle"),size:12,lineHeight:18).foregroundStyle(scheme == .dark ? PiyaliBrand.unitColor("879bb4"):brand.muted)}

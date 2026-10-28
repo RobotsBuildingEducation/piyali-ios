@@ -6,7 +6,7 @@ struct XPActivityPlan {
     static let ui=(try? ContentLibrary.load(JSONValue.self,name:"xp-activity-ui")) ?? .null
     let weeks:[Week]
     init(history:JSONValue,language:String,dark:Bool,now:Date=Date(),calendar supplied:Calendar = .current){
-        var calendar=Calendar(identifier:.gregorian);calendar.timeZone=supplied.timeZone
+        let calendar=CalendarDay.gregorian(supplied)
         let today=calendar.startOfDay(for:now),year=calendar.component(.year,from:today),start=calendar.date(from:DateComponents(year:year,month:1,day:1))!,count=calendar.range(of:.day,in:.year,for:start)!.count,padding=calendar.component(.weekday,from:start)-1,done=Set(history["goalDays"].array.map(\.string)),locale=Self.ui["locales"][language] == .null ? Self.ui["locales"]["en"]:Self.ui["locales"][language]
         weeks=(0..<Int(ceil(Double(padding+count)/7))).map{week in
             var month=""

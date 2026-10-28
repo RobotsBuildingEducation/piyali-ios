@@ -1,0 +1,6144 @@
+{
+  "cases": [
+    {
+      "zone": "UTC",
+      "iso": "2026-10-28T05:59:59Z",
+      "day": "2026-10-28",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-14"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-27"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-10-28"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-10-29"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-11"
+        }
+      ]
+    },
+    {
+      "zone": "UTC",
+      "iso": "2026-10-28T06:00:00Z",
+      "day": "2026-10-28",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-14"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-27"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-10-28"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-10-29"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-11"
+        }
+      ]
+    },
+    {
+      "zone": "UTC",
+      "iso": "2026-01-01T00:30:00Z",
+      "day": "2026-01-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2025-12-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2025-12-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-01-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-01-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-01-15"
+        }
+      ]
+    },
+    {
+      "zone": "UTC",
+      "iso": "2026-12-31T23:30:00Z",
+      "day": "2026-12-31",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-12-17"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-12-30"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-12-31"
+        },
+        {
+          "amount": 1,
+          "expected": "2027-01-01"
+        },
+        {
+          "amount": 14,
+          "expected": "2027-01-14"
+        }
+      ]
+    },
+    {
+      "zone": "UTC",
+      "iso": "2024-02-28T23:30:00Z",
+      "day": "2024-02-28",
+      "year": 2024,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2024-02-14"
+        },
+        {
+          "amount": -1,
+          "expected": "2024-02-27"
+        },
+        {
+          "amount": 0,
+          "expected": "2024-02-28"
+        },
+        {
+          "amount": 1,
+          "expected": "2024-02-29"
+        },
+        {
+          "amount": 14,
+          "expected": "2024-03-13"
+        }
+      ]
+    },
+    {
+      "zone": "UTC",
+      "iso": "2024-02-29T12:00:00Z",
+      "day": "2024-02-29",
+      "year": 2024,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2024-02-15"
+        },
+        {
+          "amount": -1,
+          "expected": "2024-02-28"
+        },
+        {
+          "amount": 0,
+          "expected": "2024-02-29"
+        },
+        {
+          "amount": 1,
+          "expected": "2024-03-01"
+        },
+        {
+          "amount": 14,
+          "expected": "2024-03-14"
+        }
+      ]
+    },
+    {
+      "zone": "UTC",
+      "iso": "2026-03-01T00:01:00Z",
+      "day": "2026-03-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-02-15"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-02-28"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-03-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-03-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-03-15"
+        }
+      ]
+    },
+    {
+      "zone": "UTC",
+      "iso": "2026-03-08T09:59:59Z",
+      "day": "2026-03-08",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-02-22"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-03-07"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-03-08"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-03-09"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-03-22"
+        }
+      ]
+    },
+    {
+      "zone": "UTC",
+      "iso": "2026-03-08T10:00:00Z",
+      "day": "2026-03-08",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-02-22"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-03-07"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-03-08"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-03-09"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-03-22"
+        }
+      ]
+    },
+    {
+      "zone": "UTC",
+      "iso": "2026-11-01T08:59:59Z",
+      "day": "2026-11-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-11-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-11-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-15"
+        }
+      ]
+    },
+    {
+      "zone": "UTC",
+      "iso": "2026-11-01T09:00:00Z",
+      "day": "2026-11-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-11-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-11-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-15"
+        }
+      ]
+    },
+    {
+      "zone": "UTC",
+      "iso": "2026-11-01T09:59:59Z",
+      "day": "2026-11-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-11-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-11-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-15"
+        }
+      ]
+    },
+    {
+      "zone": "UTC",
+      "iso": "2026-11-01T10:00:00Z",
+      "day": "2026-11-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-11-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-11-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-15"
+        }
+      ]
+    },
+    {
+      "zone": "UTC",
+      "iso": "2011-12-29T12:00:00Z",
+      "day": "2011-12-29",
+      "year": 2011,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2011-12-15"
+        },
+        {
+          "amount": -1,
+          "expected": "2011-12-28"
+        },
+        {
+          "amount": 0,
+          "expected": "2011-12-29"
+        },
+        {
+          "amount": 1,
+          "expected": "2011-12-30"
+        },
+        {
+          "amount": 14,
+          "expected": "2012-01-12"
+        }
+      ]
+    },
+    {
+      "zone": "UTC",
+      "iso": "2011-12-31T12:00:00Z",
+      "day": "2011-12-31",
+      "year": 2011,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2011-12-17"
+        },
+        {
+          "amount": -1,
+          "expected": "2011-12-30"
+        },
+        {
+          "amount": 0,
+          "expected": "2011-12-31"
+        },
+        {
+          "amount": 1,
+          "expected": "2012-01-01"
+        },
+        {
+          "amount": 14,
+          "expected": "2012-01-14"
+        }
+      ]
+    },
+    {
+      "zone": "UTC",
+      "iso": "2032-02-29T23:00:00Z",
+      "day": "2032-02-29",
+      "year": 2032,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2032-02-15"
+        },
+        {
+          "amount": -1,
+          "expected": "2032-02-28"
+        },
+        {
+          "amount": 0,
+          "expected": "2032-02-29"
+        },
+        {
+          "amount": 1,
+          "expected": "2032-03-01"
+        },
+        {
+          "amount": 14,
+          "expected": "2032-03-14"
+        }
+      ]
+    },
+    {
+      "zone": "America/Mexico_City",
+      "iso": "2026-10-28T05:59:59Z",
+      "day": "2026-10-27",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-13"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-26"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-10-27"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-10-28"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-10"
+        }
+      ]
+    },
+    {
+      "zone": "America/Mexico_City",
+      "iso": "2026-10-28T06:00:00Z",
+      "day": "2026-10-28",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-14"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-27"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-10-28"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-10-29"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-11"
+        }
+      ]
+    },
+    {
+      "zone": "America/Mexico_City",
+      "iso": "2026-01-01T00:30:00Z",
+      "day": "2025-12-31",
+      "year": 2025,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2025-12-17"
+        },
+        {
+          "amount": -1,
+          "expected": "2025-12-30"
+        },
+        {
+          "amount": 0,
+          "expected": "2025-12-31"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-01-01"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-01-14"
+        }
+      ]
+    },
+    {
+      "zone": "America/Mexico_City",
+      "iso": "2026-12-31T23:30:00Z",
+      "day": "2026-12-31",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-12-17"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-12-30"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-12-31"
+        },
+        {
+          "amount": 1,
+          "expected": "2027-01-01"
+        },
+        {
+          "amount": 14,
+          "expected": "2027-01-14"
+        }
+      ]
+    },
+    {
+      "zone": "America/Mexico_City",
+      "iso": "2024-02-28T23:30:00Z",
+      "day": "2024-02-28",
+      "year": 2024,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2024-02-14"
+        },
+        {
+          "amount": -1,
+          "expected": "2024-02-27"
+        },
+        {
+          "amount": 0,
+          "expected": "2024-02-28"
+        },
+        {
+          "amount": 1,
+          "expected": "2024-02-29"
+        },
+        {
+          "amount": 14,
+          "expected": "2024-03-13"
+        }
+      ]
+    },
+    {
+      "zone": "America/Mexico_City",
+      "iso": "2024-02-29T12:00:00Z",
+      "day": "2024-02-29",
+      "year": 2024,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2024-02-15"
+        },
+        {
+          "amount": -1,
+          "expected": "2024-02-28"
+        },
+        {
+          "amount": 0,
+          "expected": "2024-02-29"
+        },
+        {
+          "amount": 1,
+          "expected": "2024-03-01"
+        },
+        {
+          "amount": 14,
+          "expected": "2024-03-14"
+        }
+      ]
+    },
+    {
+      "zone": "America/Mexico_City",
+      "iso": "2026-03-01T00:01:00Z",
+      "day": "2026-02-28",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-02-14"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-02-27"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-02-28"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-03-01"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-03-14"
+        }
+      ]
+    },
+    {
+      "zone": "America/Mexico_City",
+      "iso": "2026-03-08T09:59:59Z",
+      "day": "2026-03-08",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-02-22"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-03-07"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-03-08"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-03-09"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-03-22"
+        }
+      ]
+    },
+    {
+      "zone": "America/Mexico_City",
+      "iso": "2026-03-08T10:00:00Z",
+      "day": "2026-03-08",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-02-22"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-03-07"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-03-08"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-03-09"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-03-22"
+        }
+      ]
+    },
+    {
+      "zone": "America/Mexico_City",
+      "iso": "2026-11-01T08:59:59Z",
+      "day": "2026-11-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-11-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-11-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-15"
+        }
+      ]
+    },
+    {
+      "zone": "America/Mexico_City",
+      "iso": "2026-11-01T09:00:00Z",
+      "day": "2026-11-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-11-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-11-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-15"
+        }
+      ]
+    },
+    {
+      "zone": "America/Mexico_City",
+      "iso": "2026-11-01T09:59:59Z",
+      "day": "2026-11-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-11-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-11-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-15"
+        }
+      ]
+    },
+    {
+      "zone": "America/Mexico_City",
+      "iso": "2026-11-01T10:00:00Z",
+      "day": "2026-11-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-11-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-11-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-15"
+        }
+      ]
+    },
+    {
+      "zone": "America/Mexico_City",
+      "iso": "2011-12-29T12:00:00Z",
+      "day": "2011-12-29",
+      "year": 2011,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2011-12-15"
+        },
+        {
+          "amount": -1,
+          "expected": "2011-12-28"
+        },
+        {
+          "amount": 0,
+          "expected": "2011-12-29"
+        },
+        {
+          "amount": 1,
+          "expected": "2011-12-30"
+        },
+        {
+          "amount": 14,
+          "expected": "2012-01-12"
+        }
+      ]
+    },
+    {
+      "zone": "America/Mexico_City",
+      "iso": "2011-12-31T12:00:00Z",
+      "day": "2011-12-31",
+      "year": 2011,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2011-12-17"
+        },
+        {
+          "amount": -1,
+          "expected": "2011-12-30"
+        },
+        {
+          "amount": 0,
+          "expected": "2011-12-31"
+        },
+        {
+          "amount": 1,
+          "expected": "2012-01-01"
+        },
+        {
+          "amount": 14,
+          "expected": "2012-01-14"
+        }
+      ]
+    },
+    {
+      "zone": "America/Mexico_City",
+      "iso": "2032-02-29T23:00:00Z",
+      "day": "2032-02-29",
+      "year": 2032,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2032-02-15"
+        },
+        {
+          "amount": -1,
+          "expected": "2032-02-28"
+        },
+        {
+          "amount": 0,
+          "expected": "2032-02-29"
+        },
+        {
+          "amount": 1,
+          "expected": "2032-03-01"
+        },
+        {
+          "amount": 14,
+          "expected": "2032-03-14"
+        }
+      ]
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "iso": "2026-10-28T05:59:59Z",
+      "day": "2026-10-27",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-13"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-26"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-10-27"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-10-28"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-10"
+        }
+      ]
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "iso": "2026-10-28T06:00:00Z",
+      "day": "2026-10-27",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-13"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-26"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-10-27"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-10-28"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-10"
+        }
+      ]
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "iso": "2026-01-01T00:30:00Z",
+      "day": "2025-12-31",
+      "year": 2025,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2025-12-17"
+        },
+        {
+          "amount": -1,
+          "expected": "2025-12-30"
+        },
+        {
+          "amount": 0,
+          "expected": "2025-12-31"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-01-01"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-01-14"
+        }
+      ]
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "iso": "2026-12-31T23:30:00Z",
+      "day": "2026-12-31",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-12-17"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-12-30"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-12-31"
+        },
+        {
+          "amount": 1,
+          "expected": "2027-01-01"
+        },
+        {
+          "amount": 14,
+          "expected": "2027-01-14"
+        }
+      ]
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "iso": "2024-02-28T23:30:00Z",
+      "day": "2024-02-28",
+      "year": 2024,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2024-02-14"
+        },
+        {
+          "amount": -1,
+          "expected": "2024-02-27"
+        },
+        {
+          "amount": 0,
+          "expected": "2024-02-28"
+        },
+        {
+          "amount": 1,
+          "expected": "2024-02-29"
+        },
+        {
+          "amount": 14,
+          "expected": "2024-03-13"
+        }
+      ]
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "iso": "2024-02-29T12:00:00Z",
+      "day": "2024-02-29",
+      "year": 2024,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2024-02-15"
+        },
+        {
+          "amount": -1,
+          "expected": "2024-02-28"
+        },
+        {
+          "amount": 0,
+          "expected": "2024-02-29"
+        },
+        {
+          "amount": 1,
+          "expected": "2024-03-01"
+        },
+        {
+          "amount": 14,
+          "expected": "2024-03-14"
+        }
+      ]
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "iso": "2026-03-01T00:01:00Z",
+      "day": "2026-02-28",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-02-14"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-02-27"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-02-28"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-03-01"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-03-14"
+        }
+      ]
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "iso": "2026-03-08T09:59:59Z",
+      "day": "2026-03-08",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-02-22"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-03-07"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-03-08"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-03-09"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-03-22"
+        }
+      ]
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "iso": "2026-03-08T10:00:00Z",
+      "day": "2026-03-08",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-02-22"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-03-07"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-03-08"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-03-09"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-03-22"
+        }
+      ]
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "iso": "2026-11-01T08:59:59Z",
+      "day": "2026-11-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-11-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-11-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-15"
+        }
+      ]
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "iso": "2026-11-01T09:00:00Z",
+      "day": "2026-11-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-11-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-11-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-15"
+        }
+      ]
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "iso": "2026-11-01T09:59:59Z",
+      "day": "2026-11-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-11-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-11-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-15"
+        }
+      ]
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "iso": "2026-11-01T10:00:00Z",
+      "day": "2026-11-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-11-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-11-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-15"
+        }
+      ]
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "iso": "2011-12-29T12:00:00Z",
+      "day": "2011-12-29",
+      "year": 2011,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2011-12-15"
+        },
+        {
+          "amount": -1,
+          "expected": "2011-12-28"
+        },
+        {
+          "amount": 0,
+          "expected": "2011-12-29"
+        },
+        {
+          "amount": 1,
+          "expected": "2011-12-30"
+        },
+        {
+          "amount": 14,
+          "expected": "2012-01-12"
+        }
+      ]
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "iso": "2011-12-31T12:00:00Z",
+      "day": "2011-12-31",
+      "year": 2011,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2011-12-17"
+        },
+        {
+          "amount": -1,
+          "expected": "2011-12-30"
+        },
+        {
+          "amount": 0,
+          "expected": "2011-12-31"
+        },
+        {
+          "amount": 1,
+          "expected": "2012-01-01"
+        },
+        {
+          "amount": 14,
+          "expected": "2012-01-14"
+        }
+      ]
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "iso": "2032-02-29T23:00:00Z",
+      "day": "2032-02-29",
+      "year": 2032,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2032-02-15"
+        },
+        {
+          "amount": -1,
+          "expected": "2032-02-28"
+        },
+        {
+          "amount": 0,
+          "expected": "2032-02-29"
+        },
+        {
+          "amount": 1,
+          "expected": "2032-03-01"
+        },
+        {
+          "amount": 14,
+          "expected": "2032-03-14"
+        }
+      ]
+    },
+    {
+      "zone": "America/New_York",
+      "iso": "2026-10-28T05:59:59Z",
+      "day": "2026-10-28",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-14"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-27"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-10-28"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-10-29"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-11"
+        }
+      ]
+    },
+    {
+      "zone": "America/New_York",
+      "iso": "2026-10-28T06:00:00Z",
+      "day": "2026-10-28",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-14"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-27"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-10-28"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-10-29"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-11"
+        }
+      ]
+    },
+    {
+      "zone": "America/New_York",
+      "iso": "2026-01-01T00:30:00Z",
+      "day": "2025-12-31",
+      "year": 2025,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2025-12-17"
+        },
+        {
+          "amount": -1,
+          "expected": "2025-12-30"
+        },
+        {
+          "amount": 0,
+          "expected": "2025-12-31"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-01-01"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-01-14"
+        }
+      ]
+    },
+    {
+      "zone": "America/New_York",
+      "iso": "2026-12-31T23:30:00Z",
+      "day": "2026-12-31",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-12-17"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-12-30"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-12-31"
+        },
+        {
+          "amount": 1,
+          "expected": "2027-01-01"
+        },
+        {
+          "amount": 14,
+          "expected": "2027-01-14"
+        }
+      ]
+    },
+    {
+      "zone": "America/New_York",
+      "iso": "2024-02-28T23:30:00Z",
+      "day": "2024-02-28",
+      "year": 2024,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2024-02-14"
+        },
+        {
+          "amount": -1,
+          "expected": "2024-02-27"
+        },
+        {
+          "amount": 0,
+          "expected": "2024-02-28"
+        },
+        {
+          "amount": 1,
+          "expected": "2024-02-29"
+        },
+        {
+          "amount": 14,
+          "expected": "2024-03-13"
+        }
+      ]
+    },
+    {
+      "zone": "America/New_York",
+      "iso": "2024-02-29T12:00:00Z",
+      "day": "2024-02-29",
+      "year": 2024,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2024-02-15"
+        },
+        {
+          "amount": -1,
+          "expected": "2024-02-28"
+        },
+        {
+          "amount": 0,
+          "expected": "2024-02-29"
+        },
+        {
+          "amount": 1,
+          "expected": "2024-03-01"
+        },
+        {
+          "amount": 14,
+          "expected": "2024-03-14"
+        }
+      ]
+    },
+    {
+      "zone": "America/New_York",
+      "iso": "2026-03-01T00:01:00Z",
+      "day": "2026-02-28",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-02-14"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-02-27"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-02-28"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-03-01"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-03-14"
+        }
+      ]
+    },
+    {
+      "zone": "America/New_York",
+      "iso": "2026-03-08T09:59:59Z",
+      "day": "2026-03-08",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-02-22"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-03-07"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-03-08"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-03-09"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-03-22"
+        }
+      ]
+    },
+    {
+      "zone": "America/New_York",
+      "iso": "2026-03-08T10:00:00Z",
+      "day": "2026-03-08",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-02-22"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-03-07"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-03-08"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-03-09"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-03-22"
+        }
+      ]
+    },
+    {
+      "zone": "America/New_York",
+      "iso": "2026-11-01T08:59:59Z",
+      "day": "2026-11-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-11-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-11-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-15"
+        }
+      ]
+    },
+    {
+      "zone": "America/New_York",
+      "iso": "2026-11-01T09:00:00Z",
+      "day": "2026-11-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-11-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-11-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-15"
+        }
+      ]
+    },
+    {
+      "zone": "America/New_York",
+      "iso": "2026-11-01T09:59:59Z",
+      "day": "2026-11-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-11-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-11-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-15"
+        }
+      ]
+    },
+    {
+      "zone": "America/New_York",
+      "iso": "2026-11-01T10:00:00Z",
+      "day": "2026-11-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-11-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-11-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-15"
+        }
+      ]
+    },
+    {
+      "zone": "America/New_York",
+      "iso": "2011-12-29T12:00:00Z",
+      "day": "2011-12-29",
+      "year": 2011,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2011-12-15"
+        },
+        {
+          "amount": -1,
+          "expected": "2011-12-28"
+        },
+        {
+          "amount": 0,
+          "expected": "2011-12-29"
+        },
+        {
+          "amount": 1,
+          "expected": "2011-12-30"
+        },
+        {
+          "amount": 14,
+          "expected": "2012-01-12"
+        }
+      ]
+    },
+    {
+      "zone": "America/New_York",
+      "iso": "2011-12-31T12:00:00Z",
+      "day": "2011-12-31",
+      "year": 2011,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2011-12-17"
+        },
+        {
+          "amount": -1,
+          "expected": "2011-12-30"
+        },
+        {
+          "amount": 0,
+          "expected": "2011-12-31"
+        },
+        {
+          "amount": 1,
+          "expected": "2012-01-01"
+        },
+        {
+          "amount": 14,
+          "expected": "2012-01-14"
+        }
+      ]
+    },
+    {
+      "zone": "America/New_York",
+      "iso": "2032-02-29T23:00:00Z",
+      "day": "2032-02-29",
+      "year": 2032,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2032-02-15"
+        },
+        {
+          "amount": -1,
+          "expected": "2032-02-28"
+        },
+        {
+          "amount": 0,
+          "expected": "2032-02-29"
+        },
+        {
+          "amount": 1,
+          "expected": "2032-03-01"
+        },
+        {
+          "amount": 14,
+          "expected": "2032-03-14"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "iso": "2026-10-28T05:59:59Z",
+      "day": "2026-10-28",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-14"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-27"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-10-28"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-10-29"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-11"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "iso": "2026-10-28T06:00:00Z",
+      "day": "2026-10-28",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-14"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-27"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-10-28"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-10-29"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-11"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "iso": "2026-01-01T00:30:00Z",
+      "day": "2026-01-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2025-12-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2025-12-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-01-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-01-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-01-15"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "iso": "2026-12-31T23:30:00Z",
+      "day": "2027-01-01",
+      "year": 2027,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-12-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-12-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2027-01-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2027-01-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2027-01-15"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "iso": "2024-02-28T23:30:00Z",
+      "day": "2024-02-29",
+      "year": 2024,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2024-02-15"
+        },
+        {
+          "amount": -1,
+          "expected": "2024-02-28"
+        },
+        {
+          "amount": 0,
+          "expected": "2024-02-29"
+        },
+        {
+          "amount": 1,
+          "expected": "2024-03-01"
+        },
+        {
+          "amount": 14,
+          "expected": "2024-03-14"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "iso": "2024-02-29T12:00:00Z",
+      "day": "2024-02-29",
+      "year": 2024,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2024-02-15"
+        },
+        {
+          "amount": -1,
+          "expected": "2024-02-28"
+        },
+        {
+          "amount": 0,
+          "expected": "2024-02-29"
+        },
+        {
+          "amount": 1,
+          "expected": "2024-03-01"
+        },
+        {
+          "amount": 14,
+          "expected": "2024-03-14"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "iso": "2026-03-01T00:01:00Z",
+      "day": "2026-03-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-02-15"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-02-28"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-03-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-03-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-03-15"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "iso": "2026-03-08T09:59:59Z",
+      "day": "2026-03-08",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-02-22"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-03-07"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-03-08"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-03-09"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-03-22"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "iso": "2026-03-08T10:00:00Z",
+      "day": "2026-03-08",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-02-22"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-03-07"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-03-08"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-03-09"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-03-22"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "iso": "2026-11-01T08:59:59Z",
+      "day": "2026-11-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-11-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-11-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-15"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "iso": "2026-11-01T09:00:00Z",
+      "day": "2026-11-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-11-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-11-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-15"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "iso": "2026-11-01T09:59:59Z",
+      "day": "2026-11-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-11-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-11-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-15"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "iso": "2026-11-01T10:00:00Z",
+      "day": "2026-11-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-11-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-11-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-15"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "iso": "2011-12-29T12:00:00Z",
+      "day": "2011-12-29",
+      "year": 2011,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2011-12-15"
+        },
+        {
+          "amount": -1,
+          "expected": "2011-12-28"
+        },
+        {
+          "amount": 0,
+          "expected": "2011-12-29"
+        },
+        {
+          "amount": 1,
+          "expected": "2011-12-30"
+        },
+        {
+          "amount": 14,
+          "expected": "2012-01-12"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "iso": "2011-12-31T12:00:00Z",
+      "day": "2011-12-31",
+      "year": 2011,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2011-12-17"
+        },
+        {
+          "amount": -1,
+          "expected": "2011-12-30"
+        },
+        {
+          "amount": 0,
+          "expected": "2011-12-31"
+        },
+        {
+          "amount": 1,
+          "expected": "2012-01-01"
+        },
+        {
+          "amount": 14,
+          "expected": "2012-01-14"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "iso": "2032-02-29T23:00:00Z",
+      "day": "2032-03-01",
+      "year": 2032,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2032-02-16"
+        },
+        {
+          "amount": -1,
+          "expected": "2032-02-29"
+        },
+        {
+          "amount": 0,
+          "expected": "2032-03-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2032-03-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2032-03-15"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "iso": "2026-10-28T05:59:59Z",
+      "day": "2026-10-28",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-14"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-27"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-10-28"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-10-29"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-11"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "iso": "2026-10-28T06:00:00Z",
+      "day": "2026-10-28",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-14"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-27"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-10-28"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-10-29"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-11"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "iso": "2026-01-01T00:30:00Z",
+      "day": "2026-01-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2025-12-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2025-12-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-01-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-01-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-01-15"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "iso": "2026-12-31T23:30:00Z",
+      "day": "2027-01-01",
+      "year": 2027,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-12-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-12-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2027-01-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2027-01-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2027-01-15"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "iso": "2024-02-28T23:30:00Z",
+      "day": "2024-02-29",
+      "year": 2024,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2024-02-15"
+        },
+        {
+          "amount": -1,
+          "expected": "2024-02-28"
+        },
+        {
+          "amount": 0,
+          "expected": "2024-02-29"
+        },
+        {
+          "amount": 1,
+          "expected": "2024-03-01"
+        },
+        {
+          "amount": 14,
+          "expected": "2024-03-14"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "iso": "2024-02-29T12:00:00Z",
+      "day": "2024-02-29",
+      "year": 2024,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2024-02-15"
+        },
+        {
+          "amount": -1,
+          "expected": "2024-02-28"
+        },
+        {
+          "amount": 0,
+          "expected": "2024-02-29"
+        },
+        {
+          "amount": 1,
+          "expected": "2024-03-01"
+        },
+        {
+          "amount": 14,
+          "expected": "2024-03-14"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "iso": "2026-03-01T00:01:00Z",
+      "day": "2026-03-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-02-15"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-02-28"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-03-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-03-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-03-15"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "iso": "2026-03-08T09:59:59Z",
+      "day": "2026-03-08",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-02-22"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-03-07"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-03-08"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-03-09"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-03-22"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "iso": "2026-03-08T10:00:00Z",
+      "day": "2026-03-08",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-02-22"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-03-07"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-03-08"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-03-09"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-03-22"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "iso": "2026-11-01T08:59:59Z",
+      "day": "2026-11-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-11-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-11-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-15"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "iso": "2026-11-01T09:00:00Z",
+      "day": "2026-11-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-11-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-11-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-15"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "iso": "2026-11-01T09:59:59Z",
+      "day": "2026-11-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-11-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-11-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-15"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "iso": "2026-11-01T10:00:00Z",
+      "day": "2026-11-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-11-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-11-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-15"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "iso": "2011-12-29T12:00:00Z",
+      "day": "2011-12-29",
+      "year": 2011,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2011-12-15"
+        },
+        {
+          "amount": -1,
+          "expected": "2011-12-28"
+        },
+        {
+          "amount": 0,
+          "expected": "2011-12-29"
+        },
+        {
+          "amount": 1,
+          "expected": "2011-12-30"
+        },
+        {
+          "amount": 14,
+          "expected": "2012-01-12"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "iso": "2011-12-31T12:00:00Z",
+      "day": "2011-12-31",
+      "year": 2011,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2011-12-17"
+        },
+        {
+          "amount": -1,
+          "expected": "2011-12-30"
+        },
+        {
+          "amount": 0,
+          "expected": "2011-12-31"
+        },
+        {
+          "amount": 1,
+          "expected": "2012-01-01"
+        },
+        {
+          "amount": 14,
+          "expected": "2012-01-14"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "iso": "2032-02-29T23:00:00Z",
+      "day": "2032-03-01",
+      "year": 2032,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2032-02-16"
+        },
+        {
+          "amount": -1,
+          "expected": "2032-02-29"
+        },
+        {
+          "amount": 0,
+          "expected": "2032-03-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2032-03-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2032-03-15"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "iso": "2026-10-28T05:59:59Z",
+      "day": "2026-10-28",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-14"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-27"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-10-28"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-10-29"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-11"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "iso": "2026-10-28T06:00:00Z",
+      "day": "2026-10-28",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-14"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-27"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-10-28"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-10-29"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-11"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "iso": "2026-01-01T00:30:00Z",
+      "day": "2026-01-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2025-12-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2025-12-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-01-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-01-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-01-15"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "iso": "2026-12-31T23:30:00Z",
+      "day": "2027-01-01",
+      "year": 2027,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-12-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-12-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2027-01-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2027-01-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2027-01-15"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "iso": "2024-02-28T23:30:00Z",
+      "day": "2024-02-29",
+      "year": 2024,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2024-02-15"
+        },
+        {
+          "amount": -1,
+          "expected": "2024-02-28"
+        },
+        {
+          "amount": 0,
+          "expected": "2024-02-29"
+        },
+        {
+          "amount": 1,
+          "expected": "2024-03-01"
+        },
+        {
+          "amount": 14,
+          "expected": "2024-03-14"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "iso": "2024-02-29T12:00:00Z",
+      "day": "2024-02-29",
+      "year": 2024,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2024-02-15"
+        },
+        {
+          "amount": -1,
+          "expected": "2024-02-28"
+        },
+        {
+          "amount": 0,
+          "expected": "2024-02-29"
+        },
+        {
+          "amount": 1,
+          "expected": "2024-03-01"
+        },
+        {
+          "amount": 14,
+          "expected": "2024-03-14"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "iso": "2026-03-01T00:01:00Z",
+      "day": "2026-03-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-02-15"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-02-28"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-03-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-03-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-03-15"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "iso": "2026-03-08T09:59:59Z",
+      "day": "2026-03-08",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-02-22"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-03-07"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-03-08"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-03-09"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-03-22"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "iso": "2026-03-08T10:00:00Z",
+      "day": "2026-03-08",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-02-22"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-03-07"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-03-08"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-03-09"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-03-22"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "iso": "2026-11-01T08:59:59Z",
+      "day": "2026-11-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-11-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-11-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-15"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "iso": "2026-11-01T09:00:00Z",
+      "day": "2026-11-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-11-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-11-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-15"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "iso": "2026-11-01T09:59:59Z",
+      "day": "2026-11-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-11-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-11-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-15"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "iso": "2026-11-01T10:00:00Z",
+      "day": "2026-11-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-11-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-11-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-15"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "iso": "2011-12-29T12:00:00Z",
+      "day": "2011-12-29",
+      "year": 2011,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2011-12-15"
+        },
+        {
+          "amount": -1,
+          "expected": "2011-12-28"
+        },
+        {
+          "amount": 0,
+          "expected": "2011-12-29"
+        },
+        {
+          "amount": 1,
+          "expected": "2011-12-30"
+        },
+        {
+          "amount": 14,
+          "expected": "2012-01-12"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "iso": "2011-12-31T12:00:00Z",
+      "day": "2011-12-31",
+      "year": 2011,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2011-12-17"
+        },
+        {
+          "amount": -1,
+          "expected": "2011-12-30"
+        },
+        {
+          "amount": 0,
+          "expected": "2011-12-31"
+        },
+        {
+          "amount": 1,
+          "expected": "2012-01-01"
+        },
+        {
+          "amount": 14,
+          "expected": "2012-01-14"
+        }
+      ]
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "iso": "2032-02-29T23:00:00Z",
+      "day": "2032-03-01",
+      "year": 2032,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2032-02-16"
+        },
+        {
+          "amount": -1,
+          "expected": "2032-02-29"
+        },
+        {
+          "amount": 0,
+          "expected": "2032-03-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2032-03-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2032-03-15"
+        }
+      ]
+    },
+    {
+      "zone": "Pacific/Apia",
+      "iso": "2026-10-28T05:59:59Z",
+      "day": "2026-10-28",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-14"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-27"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-10-28"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-10-29"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-11"
+        }
+      ]
+    },
+    {
+      "zone": "Pacific/Apia",
+      "iso": "2026-10-28T06:00:00Z",
+      "day": "2026-10-28",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-14"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-27"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-10-28"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-10-29"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-11"
+        }
+      ]
+    },
+    {
+      "zone": "Pacific/Apia",
+      "iso": "2026-01-01T00:30:00Z",
+      "day": "2026-01-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2025-12-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2025-12-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-01-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-01-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-01-15"
+        }
+      ]
+    },
+    {
+      "zone": "Pacific/Apia",
+      "iso": "2026-12-31T23:30:00Z",
+      "day": "2027-01-01",
+      "year": 2027,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-12-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-12-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2027-01-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2027-01-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2027-01-15"
+        }
+      ]
+    },
+    {
+      "zone": "Pacific/Apia",
+      "iso": "2024-02-28T23:30:00Z",
+      "day": "2024-02-29",
+      "year": 2024,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2024-02-15"
+        },
+        {
+          "amount": -1,
+          "expected": "2024-02-28"
+        },
+        {
+          "amount": 0,
+          "expected": "2024-02-29"
+        },
+        {
+          "amount": 1,
+          "expected": "2024-03-01"
+        },
+        {
+          "amount": 14,
+          "expected": "2024-03-14"
+        }
+      ]
+    },
+    {
+      "zone": "Pacific/Apia",
+      "iso": "2024-02-29T12:00:00Z",
+      "day": "2024-03-01",
+      "year": 2024,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2024-02-16"
+        },
+        {
+          "amount": -1,
+          "expected": "2024-02-29"
+        },
+        {
+          "amount": 0,
+          "expected": "2024-03-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2024-03-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2024-03-15"
+        }
+      ]
+    },
+    {
+      "zone": "Pacific/Apia",
+      "iso": "2026-03-01T00:01:00Z",
+      "day": "2026-03-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-02-15"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-02-28"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-03-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-03-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-03-15"
+        }
+      ]
+    },
+    {
+      "zone": "Pacific/Apia",
+      "iso": "2026-03-08T09:59:59Z",
+      "day": "2026-03-08",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-02-22"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-03-07"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-03-08"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-03-09"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-03-22"
+        }
+      ]
+    },
+    {
+      "zone": "Pacific/Apia",
+      "iso": "2026-03-08T10:00:00Z",
+      "day": "2026-03-08",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-02-22"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-03-07"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-03-08"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-03-09"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-03-22"
+        }
+      ]
+    },
+    {
+      "zone": "Pacific/Apia",
+      "iso": "2026-11-01T08:59:59Z",
+      "day": "2026-11-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-11-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-11-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-15"
+        }
+      ]
+    },
+    {
+      "zone": "Pacific/Apia",
+      "iso": "2026-11-01T09:00:00Z",
+      "day": "2026-11-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-11-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-11-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-15"
+        }
+      ]
+    },
+    {
+      "zone": "Pacific/Apia",
+      "iso": "2026-11-01T09:59:59Z",
+      "day": "2026-11-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-11-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-11-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-15"
+        }
+      ]
+    },
+    {
+      "zone": "Pacific/Apia",
+      "iso": "2026-11-01T10:00:00Z",
+      "day": "2026-11-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-11-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-11-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-15"
+        }
+      ]
+    },
+    {
+      "zone": "Pacific/Apia",
+      "iso": "2011-12-29T12:00:00Z",
+      "day": "2011-12-29",
+      "year": 2011,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2011-12-15"
+        },
+        {
+          "amount": -1,
+          "expected": "2011-12-28"
+        },
+        {
+          "amount": 0,
+          "expected": "2011-12-29"
+        },
+        {
+          "amount": 1,
+          "expected": "2011-12-31"
+        },
+        {
+          "amount": 14,
+          "expected": "2012-01-12"
+        }
+      ]
+    },
+    {
+      "zone": "Pacific/Apia",
+      "iso": "2011-12-31T12:00:00Z",
+      "day": "2012-01-01",
+      "year": 2012,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2011-12-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2011-12-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2012-01-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2012-01-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2012-01-15"
+        }
+      ]
+    },
+    {
+      "zone": "Pacific/Apia",
+      "iso": "2032-02-29T23:00:00Z",
+      "day": "2032-03-01",
+      "year": 2032,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2032-02-16"
+        },
+        {
+          "amount": -1,
+          "expected": "2032-02-29"
+        },
+        {
+          "amount": 0,
+          "expected": "2032-03-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2032-03-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2032-03-15"
+        }
+      ]
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "iso": "2026-10-28T05:59:59Z",
+      "day": "2026-10-28",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-14"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-27"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-10-28"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-10-29"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-11"
+        }
+      ]
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "iso": "2026-10-28T06:00:00Z",
+      "day": "2026-10-28",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-14"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-27"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-10-28"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-10-29"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-11"
+        }
+      ]
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "iso": "2026-01-01T00:30:00Z",
+      "day": "2026-01-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2025-12-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2025-12-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-01-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-01-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-01-15"
+        }
+      ]
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "iso": "2026-12-31T23:30:00Z",
+      "day": "2027-01-01",
+      "year": 2027,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-12-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-12-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2027-01-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2027-01-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2027-01-15"
+        }
+      ]
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "iso": "2024-02-28T23:30:00Z",
+      "day": "2024-02-29",
+      "year": 2024,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2024-02-15"
+        },
+        {
+          "amount": -1,
+          "expected": "2024-02-28"
+        },
+        {
+          "amount": 0,
+          "expected": "2024-02-29"
+        },
+        {
+          "amount": 1,
+          "expected": "2024-03-01"
+        },
+        {
+          "amount": 14,
+          "expected": "2024-03-14"
+        }
+      ]
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "iso": "2024-02-29T12:00:00Z",
+      "day": "2024-03-01",
+      "year": 2024,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2024-02-16"
+        },
+        {
+          "amount": -1,
+          "expected": "2024-02-29"
+        },
+        {
+          "amount": 0,
+          "expected": "2024-03-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2024-03-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2024-03-15"
+        }
+      ]
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "iso": "2026-03-01T00:01:00Z",
+      "day": "2026-03-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-02-15"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-02-28"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-03-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-03-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-03-15"
+        }
+      ]
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "iso": "2026-03-08T09:59:59Z",
+      "day": "2026-03-08",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-02-22"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-03-07"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-03-08"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-03-09"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-03-22"
+        }
+      ]
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "iso": "2026-03-08T10:00:00Z",
+      "day": "2026-03-09",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-02-23"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-03-08"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-03-09"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-03-10"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-03-23"
+        }
+      ]
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "iso": "2026-11-01T08:59:59Z",
+      "day": "2026-11-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-11-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-11-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-15"
+        }
+      ]
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "iso": "2026-11-01T09:00:00Z",
+      "day": "2026-11-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-11-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-11-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-15"
+        }
+      ]
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "iso": "2026-11-01T09:59:59Z",
+      "day": "2026-11-01",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-10-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-11-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-11-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-15"
+        }
+      ]
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "iso": "2026-11-01T10:00:00Z",
+      "day": "2026-11-02",
+      "year": 2026,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2026-10-19"
+        },
+        {
+          "amount": -1,
+          "expected": "2026-11-01"
+        },
+        {
+          "amount": 0,
+          "expected": "2026-11-02"
+        },
+        {
+          "amount": 1,
+          "expected": "2026-11-03"
+        },
+        {
+          "amount": 14,
+          "expected": "2026-11-16"
+        }
+      ]
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "iso": "2011-12-29T12:00:00Z",
+      "day": "2011-12-30",
+      "year": 2011,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2011-12-16"
+        },
+        {
+          "amount": -1,
+          "expected": "2011-12-29"
+        },
+        {
+          "amount": 0,
+          "expected": "2011-12-30"
+        },
+        {
+          "amount": 1,
+          "expected": "2011-12-31"
+        },
+        {
+          "amount": 14,
+          "expected": "2012-01-13"
+        }
+      ]
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "iso": "2011-12-31T12:00:00Z",
+      "day": "2012-01-01",
+      "year": 2012,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2011-12-18"
+        },
+        {
+          "amount": -1,
+          "expected": "2011-12-31"
+        },
+        {
+          "amount": 0,
+          "expected": "2012-01-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2012-01-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2012-01-15"
+        }
+      ]
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "iso": "2032-02-29T23:00:00Z",
+      "day": "2032-03-01",
+      "year": 2032,
+      "shifts": [
+        {
+          "amount": -14,
+          "expected": "2032-02-16"
+        },
+        {
+          "amount": -1,
+          "expected": "2032-02-29"
+        },
+        {
+          "amount": 0,
+          "expected": "2032-03-01"
+        },
+        {
+          "amount": 1,
+          "expected": "2032-03-02"
+        },
+        {
+          "amount": 14,
+          "expected": "2032-03-15"
+        }
+      ]
+    }
+  ],
+  "edge": [
+    {
+      "zone": "UTC",
+      "day": "2026-02-30",
+      "amount": -1,
+      "expected": "2026-03-01"
+    },
+    {
+      "zone": "UTC",
+      "day": "2026-02-30",
+      "amount": 0,
+      "expected": "2026-03-02"
+    },
+    {
+      "zone": "UTC",
+      "day": "2026-02-30",
+      "amount": 1,
+      "expected": "2026-03-03"
+    },
+    {
+      "zone": "UTC",
+      "day": "2026-13-01",
+      "amount": -1,
+      "expected": "2026-12-31"
+    },
+    {
+      "zone": "UTC",
+      "day": "2026-13-01",
+      "amount": 0,
+      "expected": "2027-01-01"
+    },
+    {
+      "zone": "UTC",
+      "day": "2026-13-01",
+      "amount": 1,
+      "expected": "2027-01-02"
+    },
+    {
+      "zone": "UTC",
+      "day": "2026-00-00",
+      "amount": -1,
+      "expected": "2025-11-29"
+    },
+    {
+      "zone": "UTC",
+      "day": "2026-00-00",
+      "amount": 0,
+      "expected": "2025-11-30"
+    },
+    {
+      "zone": "UTC",
+      "day": "2026-00-00",
+      "amount": 1,
+      "expected": "2025-12-01"
+    },
+    {
+      "zone": "UTC",
+      "day": "2026-01-00",
+      "amount": -1,
+      "expected": "2025-12-30"
+    },
+    {
+      "zone": "UTC",
+      "day": "2026-01-00",
+      "amount": 0,
+      "expected": "2025-12-31"
+    },
+    {
+      "zone": "UTC",
+      "day": "2026-01-00",
+      "amount": 1,
+      "expected": "2026-01-01"
+    },
+    {
+      "zone": "UTC",
+      "day": "0088-01-02",
+      "amount": -1,
+      "expected": "1988-01-01"
+    },
+    {
+      "zone": "UTC",
+      "day": "0088-01-02",
+      "amount": 0,
+      "expected": "1988-01-02"
+    },
+    {
+      "zone": "UTC",
+      "day": "0088-01-02",
+      "amount": 1,
+      "expected": "1988-01-03"
+    },
+    {
+      "zone": "UTC",
+      "day": "2011-12-29",
+      "amount": -1,
+      "expected": "2011-12-28"
+    },
+    {
+      "zone": "UTC",
+      "day": "2011-12-29",
+      "amount": 0,
+      "expected": "2011-12-29"
+    },
+    {
+      "zone": "UTC",
+      "day": "2011-12-29",
+      "amount": 1,
+      "expected": "2011-12-30"
+    },
+    {
+      "zone": "UTC",
+      "day": "2011-12-30",
+      "amount": -1,
+      "expected": "2011-12-29"
+    },
+    {
+      "zone": "UTC",
+      "day": "2011-12-30",
+      "amount": 0,
+      "expected": "2011-12-30"
+    },
+    {
+      "zone": "UTC",
+      "day": "2011-12-30",
+      "amount": 1,
+      "expected": "2011-12-31"
+    },
+    {
+      "zone": "UTC",
+      "day": "2011-12-31",
+      "amount": -1,
+      "expected": "2011-12-30"
+    },
+    {
+      "zone": "UTC",
+      "day": "2011-12-31",
+      "amount": 0,
+      "expected": "2011-12-31"
+    },
+    {
+      "zone": "UTC",
+      "day": "2011-12-31",
+      "amount": 1,
+      "expected": "2012-01-01"
+    },
+    {
+      "zone": "UTC",
+      "day": "2026-01-01\n",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "UTC",
+      "day": "2026-01-01\n",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "UTC",
+      "day": "2026-01-01\n",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "UTC",
+      "day": "٢٠٢٦-٠١-٠١",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "UTC",
+      "day": "٢٠٢٦-٠١-٠١",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "UTC",
+      "day": "٢٠٢٦-٠١-٠١",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "UTC",
+      "day": "bad",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "UTC",
+      "day": "bad",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "UTC",
+      "day": "bad",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "UTC",
+      "day": "2026-2-3",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "UTC",
+      "day": "2026-2-3",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "UTC",
+      "day": "2026-2-3",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "UTC",
+      "day": "2026-01-01suffix",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "UTC",
+      "day": "2026-01-01suffix",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "UTC",
+      "day": "2026-01-01suffix",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "America/Mexico_City",
+      "day": "2026-02-30",
+      "amount": -1,
+      "expected": "2026-03-01"
+    },
+    {
+      "zone": "America/Mexico_City",
+      "day": "2026-02-30",
+      "amount": 0,
+      "expected": "2026-03-02"
+    },
+    {
+      "zone": "America/Mexico_City",
+      "day": "2026-02-30",
+      "amount": 1,
+      "expected": "2026-03-03"
+    },
+    {
+      "zone": "America/Mexico_City",
+      "day": "2026-13-01",
+      "amount": -1,
+      "expected": "2026-12-31"
+    },
+    {
+      "zone": "America/Mexico_City",
+      "day": "2026-13-01",
+      "amount": 0,
+      "expected": "2027-01-01"
+    },
+    {
+      "zone": "America/Mexico_City",
+      "day": "2026-13-01",
+      "amount": 1,
+      "expected": "2027-01-02"
+    },
+    {
+      "zone": "America/Mexico_City",
+      "day": "2026-00-00",
+      "amount": -1,
+      "expected": "2025-11-29"
+    },
+    {
+      "zone": "America/Mexico_City",
+      "day": "2026-00-00",
+      "amount": 0,
+      "expected": "2025-11-30"
+    },
+    {
+      "zone": "America/Mexico_City",
+      "day": "2026-00-00",
+      "amount": 1,
+      "expected": "2025-12-01"
+    },
+    {
+      "zone": "America/Mexico_City",
+      "day": "2026-01-00",
+      "amount": -1,
+      "expected": "2025-12-30"
+    },
+    {
+      "zone": "America/Mexico_City",
+      "day": "2026-01-00",
+      "amount": 0,
+      "expected": "2025-12-31"
+    },
+    {
+      "zone": "America/Mexico_City",
+      "day": "2026-01-00",
+      "amount": 1,
+      "expected": "2026-01-01"
+    },
+    {
+      "zone": "America/Mexico_City",
+      "day": "0088-01-02",
+      "amount": -1,
+      "expected": "1988-01-01"
+    },
+    {
+      "zone": "America/Mexico_City",
+      "day": "0088-01-02",
+      "amount": 0,
+      "expected": "1988-01-02"
+    },
+    {
+      "zone": "America/Mexico_City",
+      "day": "0088-01-02",
+      "amount": 1,
+      "expected": "1988-01-03"
+    },
+    {
+      "zone": "America/Mexico_City",
+      "day": "2011-12-29",
+      "amount": -1,
+      "expected": "2011-12-28"
+    },
+    {
+      "zone": "America/Mexico_City",
+      "day": "2011-12-29",
+      "amount": 0,
+      "expected": "2011-12-29"
+    },
+    {
+      "zone": "America/Mexico_City",
+      "day": "2011-12-29",
+      "amount": 1,
+      "expected": "2011-12-30"
+    },
+    {
+      "zone": "America/Mexico_City",
+      "day": "2011-12-30",
+      "amount": -1,
+      "expected": "2011-12-29"
+    },
+    {
+      "zone": "America/Mexico_City",
+      "day": "2011-12-30",
+      "amount": 0,
+      "expected": "2011-12-30"
+    },
+    {
+      "zone": "America/Mexico_City",
+      "day": "2011-12-30",
+      "amount": 1,
+      "expected": "2011-12-31"
+    },
+    {
+      "zone": "America/Mexico_City",
+      "day": "2011-12-31",
+      "amount": -1,
+      "expected": "2011-12-30"
+    },
+    {
+      "zone": "America/Mexico_City",
+      "day": "2011-12-31",
+      "amount": 0,
+      "expected": "2011-12-31"
+    },
+    {
+      "zone": "America/Mexico_City",
+      "day": "2011-12-31",
+      "amount": 1,
+      "expected": "2012-01-01"
+    },
+    {
+      "zone": "America/Mexico_City",
+      "day": "2026-01-01\n",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "America/Mexico_City",
+      "day": "2026-01-01\n",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "America/Mexico_City",
+      "day": "2026-01-01\n",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "America/Mexico_City",
+      "day": "٢٠٢٦-٠١-٠١",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "America/Mexico_City",
+      "day": "٢٠٢٦-٠١-٠١",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "America/Mexico_City",
+      "day": "٢٠٢٦-٠١-٠١",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "America/Mexico_City",
+      "day": "bad",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "America/Mexico_City",
+      "day": "bad",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "America/Mexico_City",
+      "day": "bad",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "America/Mexico_City",
+      "day": "2026-2-3",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "America/Mexico_City",
+      "day": "2026-2-3",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "America/Mexico_City",
+      "day": "2026-2-3",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "America/Mexico_City",
+      "day": "2026-01-01suffix",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "America/Mexico_City",
+      "day": "2026-01-01suffix",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "America/Mexico_City",
+      "day": "2026-01-01suffix",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "day": "2026-02-30",
+      "amount": -1,
+      "expected": "2026-03-01"
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "day": "2026-02-30",
+      "amount": 0,
+      "expected": "2026-03-02"
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "day": "2026-02-30",
+      "amount": 1,
+      "expected": "2026-03-03"
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "day": "2026-13-01",
+      "amount": -1,
+      "expected": "2026-12-31"
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "day": "2026-13-01",
+      "amount": 0,
+      "expected": "2027-01-01"
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "day": "2026-13-01",
+      "amount": 1,
+      "expected": "2027-01-02"
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "day": "2026-00-00",
+      "amount": -1,
+      "expected": "2025-11-29"
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "day": "2026-00-00",
+      "amount": 0,
+      "expected": "2025-11-30"
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "day": "2026-00-00",
+      "amount": 1,
+      "expected": "2025-12-01"
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "day": "2026-01-00",
+      "amount": -1,
+      "expected": "2025-12-30"
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "day": "2026-01-00",
+      "amount": 0,
+      "expected": "2025-12-31"
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "day": "2026-01-00",
+      "amount": 1,
+      "expected": "2026-01-01"
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "day": "0088-01-02",
+      "amount": -1,
+      "expected": "1988-01-01"
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "day": "0088-01-02",
+      "amount": 0,
+      "expected": "1988-01-02"
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "day": "0088-01-02",
+      "amount": 1,
+      "expected": "1988-01-03"
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "day": "2011-12-29",
+      "amount": -1,
+      "expected": "2011-12-28"
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "day": "2011-12-29",
+      "amount": 0,
+      "expected": "2011-12-29"
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "day": "2011-12-29",
+      "amount": 1,
+      "expected": "2011-12-30"
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "day": "2011-12-30",
+      "amount": -1,
+      "expected": "2011-12-29"
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "day": "2011-12-30",
+      "amount": 0,
+      "expected": "2011-12-30"
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "day": "2011-12-30",
+      "amount": 1,
+      "expected": "2011-12-31"
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "day": "2011-12-31",
+      "amount": -1,
+      "expected": "2011-12-30"
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "day": "2011-12-31",
+      "amount": 0,
+      "expected": "2011-12-31"
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "day": "2011-12-31",
+      "amount": 1,
+      "expected": "2012-01-01"
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "day": "2026-01-01\n",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "day": "2026-01-01\n",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "day": "2026-01-01\n",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "day": "٢٠٢٦-٠١-٠١",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "day": "٢٠٢٦-٠١-٠١",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "day": "٢٠٢٦-٠١-٠١",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "day": "bad",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "day": "bad",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "day": "bad",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "day": "2026-2-3",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "day": "2026-2-3",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "day": "2026-2-3",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "day": "2026-01-01suffix",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "day": "2026-01-01suffix",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "America/Los_Angeles",
+      "day": "2026-01-01suffix",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "America/New_York",
+      "day": "2026-02-30",
+      "amount": -1,
+      "expected": "2026-03-01"
+    },
+    {
+      "zone": "America/New_York",
+      "day": "2026-02-30",
+      "amount": 0,
+      "expected": "2026-03-02"
+    },
+    {
+      "zone": "America/New_York",
+      "day": "2026-02-30",
+      "amount": 1,
+      "expected": "2026-03-03"
+    },
+    {
+      "zone": "America/New_York",
+      "day": "2026-13-01",
+      "amount": -1,
+      "expected": "2026-12-31"
+    },
+    {
+      "zone": "America/New_York",
+      "day": "2026-13-01",
+      "amount": 0,
+      "expected": "2027-01-01"
+    },
+    {
+      "zone": "America/New_York",
+      "day": "2026-13-01",
+      "amount": 1,
+      "expected": "2027-01-02"
+    },
+    {
+      "zone": "America/New_York",
+      "day": "2026-00-00",
+      "amount": -1,
+      "expected": "2025-11-29"
+    },
+    {
+      "zone": "America/New_York",
+      "day": "2026-00-00",
+      "amount": 0,
+      "expected": "2025-11-30"
+    },
+    {
+      "zone": "America/New_York",
+      "day": "2026-00-00",
+      "amount": 1,
+      "expected": "2025-12-01"
+    },
+    {
+      "zone": "America/New_York",
+      "day": "2026-01-00",
+      "amount": -1,
+      "expected": "2025-12-30"
+    },
+    {
+      "zone": "America/New_York",
+      "day": "2026-01-00",
+      "amount": 0,
+      "expected": "2025-12-31"
+    },
+    {
+      "zone": "America/New_York",
+      "day": "2026-01-00",
+      "amount": 1,
+      "expected": "2026-01-01"
+    },
+    {
+      "zone": "America/New_York",
+      "day": "0088-01-02",
+      "amount": -1,
+      "expected": "1988-01-01"
+    },
+    {
+      "zone": "America/New_York",
+      "day": "0088-01-02",
+      "amount": 0,
+      "expected": "1988-01-02"
+    },
+    {
+      "zone": "America/New_York",
+      "day": "0088-01-02",
+      "amount": 1,
+      "expected": "1988-01-03"
+    },
+    {
+      "zone": "America/New_York",
+      "day": "2011-12-29",
+      "amount": -1,
+      "expected": "2011-12-28"
+    },
+    {
+      "zone": "America/New_York",
+      "day": "2011-12-29",
+      "amount": 0,
+      "expected": "2011-12-29"
+    },
+    {
+      "zone": "America/New_York",
+      "day": "2011-12-29",
+      "amount": 1,
+      "expected": "2011-12-30"
+    },
+    {
+      "zone": "America/New_York",
+      "day": "2011-12-30",
+      "amount": -1,
+      "expected": "2011-12-29"
+    },
+    {
+      "zone": "America/New_York",
+      "day": "2011-12-30",
+      "amount": 0,
+      "expected": "2011-12-30"
+    },
+    {
+      "zone": "America/New_York",
+      "day": "2011-12-30",
+      "amount": 1,
+      "expected": "2011-12-31"
+    },
+    {
+      "zone": "America/New_York",
+      "day": "2011-12-31",
+      "amount": -1,
+      "expected": "2011-12-30"
+    },
+    {
+      "zone": "America/New_York",
+      "day": "2011-12-31",
+      "amount": 0,
+      "expected": "2011-12-31"
+    },
+    {
+      "zone": "America/New_York",
+      "day": "2011-12-31",
+      "amount": 1,
+      "expected": "2012-01-01"
+    },
+    {
+      "zone": "America/New_York",
+      "day": "2026-01-01\n",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "America/New_York",
+      "day": "2026-01-01\n",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "America/New_York",
+      "day": "2026-01-01\n",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "America/New_York",
+      "day": "٢٠٢٦-٠١-٠١",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "America/New_York",
+      "day": "٢٠٢٦-٠١-٠١",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "America/New_York",
+      "day": "٢٠٢٦-٠١-٠١",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "America/New_York",
+      "day": "bad",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "America/New_York",
+      "day": "bad",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "America/New_York",
+      "day": "bad",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "America/New_York",
+      "day": "2026-2-3",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "America/New_York",
+      "day": "2026-2-3",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "America/New_York",
+      "day": "2026-2-3",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "America/New_York",
+      "day": "2026-01-01suffix",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "America/New_York",
+      "day": "2026-01-01suffix",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "America/New_York",
+      "day": "2026-01-01suffix",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "day": "2026-02-30",
+      "amount": -1,
+      "expected": "2026-03-01"
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "day": "2026-02-30",
+      "amount": 0,
+      "expected": "2026-03-02"
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "day": "2026-02-30",
+      "amount": 1,
+      "expected": "2026-03-03"
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "day": "2026-13-01",
+      "amount": -1,
+      "expected": "2026-12-31"
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "day": "2026-13-01",
+      "amount": 0,
+      "expected": "2027-01-01"
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "day": "2026-13-01",
+      "amount": 1,
+      "expected": "2027-01-02"
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "day": "2026-00-00",
+      "amount": -1,
+      "expected": "2025-11-29"
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "day": "2026-00-00",
+      "amount": 0,
+      "expected": "2025-11-30"
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "day": "2026-00-00",
+      "amount": 1,
+      "expected": "2025-12-01"
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "day": "2026-01-00",
+      "amount": -1,
+      "expected": "2025-12-30"
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "day": "2026-01-00",
+      "amount": 0,
+      "expected": "2025-12-31"
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "day": "2026-01-00",
+      "amount": 1,
+      "expected": "2026-01-01"
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "day": "0088-01-02",
+      "amount": -1,
+      "expected": "1988-01-01"
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "day": "0088-01-02",
+      "amount": 0,
+      "expected": "1988-01-02"
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "day": "0088-01-02",
+      "amount": 1,
+      "expected": "1988-01-03"
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "day": "2011-12-29",
+      "amount": -1,
+      "expected": "2011-12-28"
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "day": "2011-12-29",
+      "amount": 0,
+      "expected": "2011-12-29"
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "day": "2011-12-29",
+      "amount": 1,
+      "expected": "2011-12-30"
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "day": "2011-12-30",
+      "amount": -1,
+      "expected": "2011-12-29"
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "day": "2011-12-30",
+      "amount": 0,
+      "expected": "2011-12-30"
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "day": "2011-12-30",
+      "amount": 1,
+      "expected": "2011-12-31"
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "day": "2011-12-31",
+      "amount": -1,
+      "expected": "2011-12-30"
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "day": "2011-12-31",
+      "amount": 0,
+      "expected": "2011-12-31"
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "day": "2011-12-31",
+      "amount": 1,
+      "expected": "2012-01-01"
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "day": "2026-01-01\n",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "day": "2026-01-01\n",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "day": "2026-01-01\n",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "day": "٢٠٢٦-٠١-٠١",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "day": "٢٠٢٦-٠١-٠١",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "day": "٢٠٢٦-٠١-٠١",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "day": "bad",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "day": "bad",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "day": "bad",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "day": "2026-2-3",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "day": "2026-2-3",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "day": "2026-2-3",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "day": "2026-01-01suffix",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "day": "2026-01-01suffix",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Kolkata",
+      "day": "2026-01-01suffix",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "day": "2026-02-30",
+      "amount": -1,
+      "expected": "2026-03-01"
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "day": "2026-02-30",
+      "amount": 0,
+      "expected": "2026-03-02"
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "day": "2026-02-30",
+      "amount": 1,
+      "expected": "2026-03-03"
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "day": "2026-13-01",
+      "amount": -1,
+      "expected": "2026-12-31"
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "day": "2026-13-01",
+      "amount": 0,
+      "expected": "2027-01-01"
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "day": "2026-13-01",
+      "amount": 1,
+      "expected": "2027-01-02"
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "day": "2026-00-00",
+      "amount": -1,
+      "expected": "2025-11-29"
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "day": "2026-00-00",
+      "amount": 0,
+      "expected": "2025-11-30"
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "day": "2026-00-00",
+      "amount": 1,
+      "expected": "2025-12-01"
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "day": "2026-01-00",
+      "amount": -1,
+      "expected": "2025-12-30"
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "day": "2026-01-00",
+      "amount": 0,
+      "expected": "2025-12-31"
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "day": "2026-01-00",
+      "amount": 1,
+      "expected": "2026-01-01"
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "day": "0088-01-02",
+      "amount": -1,
+      "expected": "1988-01-01"
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "day": "0088-01-02",
+      "amount": 0,
+      "expected": "1988-01-02"
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "day": "0088-01-02",
+      "amount": 1,
+      "expected": "1988-01-03"
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "day": "2011-12-29",
+      "amount": -1,
+      "expected": "2011-12-28"
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "day": "2011-12-29",
+      "amount": 0,
+      "expected": "2011-12-29"
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "day": "2011-12-29",
+      "amount": 1,
+      "expected": "2011-12-30"
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "day": "2011-12-30",
+      "amount": -1,
+      "expected": "2011-12-29"
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "day": "2011-12-30",
+      "amount": 0,
+      "expected": "2011-12-30"
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "day": "2011-12-30",
+      "amount": 1,
+      "expected": "2011-12-31"
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "day": "2011-12-31",
+      "amount": -1,
+      "expected": "2011-12-30"
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "day": "2011-12-31",
+      "amount": 0,
+      "expected": "2011-12-31"
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "day": "2011-12-31",
+      "amount": 1,
+      "expected": "2012-01-01"
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "day": "2026-01-01\n",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "day": "2026-01-01\n",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "day": "2026-01-01\n",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "day": "٢٠٢٦-٠١-٠١",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "day": "٢٠٢٦-٠١-٠١",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "day": "٢٠٢٦-٠١-٠١",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "day": "bad",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "day": "bad",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "day": "bad",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "day": "2026-2-3",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "day": "2026-2-3",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "day": "2026-2-3",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "day": "2026-01-01suffix",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "day": "2026-01-01suffix",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Kathmandu",
+      "day": "2026-01-01suffix",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "day": "2026-02-30",
+      "amount": -1,
+      "expected": "2026-03-01"
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "day": "2026-02-30",
+      "amount": 0,
+      "expected": "2026-03-02"
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "day": "2026-02-30",
+      "amount": 1,
+      "expected": "2026-03-03"
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "day": "2026-13-01",
+      "amount": -1,
+      "expected": "2026-12-31"
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "day": "2026-13-01",
+      "amount": 0,
+      "expected": "2027-01-01"
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "day": "2026-13-01",
+      "amount": 1,
+      "expected": "2027-01-02"
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "day": "2026-00-00",
+      "amount": -1,
+      "expected": "2025-11-29"
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "day": "2026-00-00",
+      "amount": 0,
+      "expected": "2025-11-30"
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "day": "2026-00-00",
+      "amount": 1,
+      "expected": "2025-12-01"
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "day": "2026-01-00",
+      "amount": -1,
+      "expected": "2025-12-30"
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "day": "2026-01-00",
+      "amount": 0,
+      "expected": "2025-12-31"
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "day": "2026-01-00",
+      "amount": 1,
+      "expected": "2026-01-01"
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "day": "0088-01-02",
+      "amount": -1,
+      "expected": "1988-01-01"
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "day": "0088-01-02",
+      "amount": 0,
+      "expected": "1988-01-02"
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "day": "0088-01-02",
+      "amount": 1,
+      "expected": "1988-01-03"
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "day": "2011-12-29",
+      "amount": -1,
+      "expected": "2011-12-28"
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "day": "2011-12-29",
+      "amount": 0,
+      "expected": "2011-12-29"
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "day": "2011-12-29",
+      "amount": 1,
+      "expected": "2011-12-30"
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "day": "2011-12-30",
+      "amount": -1,
+      "expected": "2011-12-29"
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "day": "2011-12-30",
+      "amount": 0,
+      "expected": "2011-12-30"
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "day": "2011-12-30",
+      "amount": 1,
+      "expected": "2011-12-31"
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "day": "2011-12-31",
+      "amount": -1,
+      "expected": "2011-12-30"
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "day": "2011-12-31",
+      "amount": 0,
+      "expected": "2011-12-31"
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "day": "2011-12-31",
+      "amount": 1,
+      "expected": "2012-01-01"
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "day": "2026-01-01\n",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "day": "2026-01-01\n",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "day": "2026-01-01\n",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "day": "٢٠٢٦-٠١-٠١",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "day": "٢٠٢٦-٠١-٠١",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "day": "٢٠٢٦-٠١-٠١",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "day": "bad",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "day": "bad",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "day": "bad",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "day": "2026-2-3",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "day": "2026-2-3",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "day": "2026-2-3",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "day": "2026-01-01suffix",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "day": "2026-01-01suffix",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "Asia/Bangkok",
+      "day": "2026-01-01suffix",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "Pacific/Apia",
+      "day": "2026-02-30",
+      "amount": -1,
+      "expected": "2026-03-01"
+    },
+    {
+      "zone": "Pacific/Apia",
+      "day": "2026-02-30",
+      "amount": 0,
+      "expected": "2026-03-02"
+    },
+    {
+      "zone": "Pacific/Apia",
+      "day": "2026-02-30",
+      "amount": 1,
+      "expected": "2026-03-03"
+    },
+    {
+      "zone": "Pacific/Apia",
+      "day": "2026-13-01",
+      "amount": -1,
+      "expected": "2026-12-31"
+    },
+    {
+      "zone": "Pacific/Apia",
+      "day": "2026-13-01",
+      "amount": 0,
+      "expected": "2027-01-01"
+    },
+    {
+      "zone": "Pacific/Apia",
+      "day": "2026-13-01",
+      "amount": 1,
+      "expected": "2027-01-02"
+    },
+    {
+      "zone": "Pacific/Apia",
+      "day": "2026-00-00",
+      "amount": -1,
+      "expected": "2025-11-29"
+    },
+    {
+      "zone": "Pacific/Apia",
+      "day": "2026-00-00",
+      "amount": 0,
+      "expected": "2025-11-30"
+    },
+    {
+      "zone": "Pacific/Apia",
+      "day": "2026-00-00",
+      "amount": 1,
+      "expected": "2025-12-01"
+    },
+    {
+      "zone": "Pacific/Apia",
+      "day": "2026-01-00",
+      "amount": -1,
+      "expected": "2025-12-30"
+    },
+    {
+      "zone": "Pacific/Apia",
+      "day": "2026-01-00",
+      "amount": 0,
+      "expected": "2025-12-31"
+    },
+    {
+      "zone": "Pacific/Apia",
+      "day": "2026-01-00",
+      "amount": 1,
+      "expected": "2026-01-01"
+    },
+    {
+      "zone": "Pacific/Apia",
+      "day": "0088-01-02",
+      "amount": -1,
+      "expected": "1988-01-01"
+    },
+    {
+      "zone": "Pacific/Apia",
+      "day": "0088-01-02",
+      "amount": 0,
+      "expected": "1988-01-02"
+    },
+    {
+      "zone": "Pacific/Apia",
+      "day": "0088-01-02",
+      "amount": 1,
+      "expected": "1988-01-03"
+    },
+    {
+      "zone": "Pacific/Apia",
+      "day": "2011-12-29",
+      "amount": -1,
+      "expected": "2011-12-28"
+    },
+    {
+      "zone": "Pacific/Apia",
+      "day": "2011-12-29",
+      "amount": 0,
+      "expected": "2011-12-29"
+    },
+    {
+      "zone": "Pacific/Apia",
+      "day": "2011-12-29",
+      "amount": 1,
+      "expected": "2011-12-31"
+    },
+    {
+      "zone": "Pacific/Apia",
+      "day": "2011-12-30",
+      "amount": -1,
+      "expected": "2011-12-29"
+    },
+    {
+      "zone": "Pacific/Apia",
+      "day": "2011-12-30",
+      "amount": 0,
+      "expected": "2011-12-31"
+    },
+    {
+      "zone": "Pacific/Apia",
+      "day": "2011-12-30",
+      "amount": 1,
+      "expected": "2011-12-31"
+    },
+    {
+      "zone": "Pacific/Apia",
+      "day": "2011-12-31",
+      "amount": -1,
+      "expected": "2011-12-31"
+    },
+    {
+      "zone": "Pacific/Apia",
+      "day": "2011-12-31",
+      "amount": 0,
+      "expected": "2011-12-31"
+    },
+    {
+      "zone": "Pacific/Apia",
+      "day": "2011-12-31",
+      "amount": 1,
+      "expected": "2012-01-01"
+    },
+    {
+      "zone": "Pacific/Apia",
+      "day": "2026-01-01\n",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "Pacific/Apia",
+      "day": "2026-01-01\n",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "Pacific/Apia",
+      "day": "2026-01-01\n",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "Pacific/Apia",
+      "day": "٢٠٢٦-٠١-٠١",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "Pacific/Apia",
+      "day": "٢٠٢٦-٠١-٠١",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "Pacific/Apia",
+      "day": "٢٠٢٦-٠١-٠١",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "Pacific/Apia",
+      "day": "bad",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "Pacific/Apia",
+      "day": "bad",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "Pacific/Apia",
+      "day": "bad",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "Pacific/Apia",
+      "day": "2026-2-3",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "Pacific/Apia",
+      "day": "2026-2-3",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "Pacific/Apia",
+      "day": "2026-2-3",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "Pacific/Apia",
+      "day": "2026-01-01suffix",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "Pacific/Apia",
+      "day": "2026-01-01suffix",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "Pacific/Apia",
+      "day": "2026-01-01suffix",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "day": "2026-02-30",
+      "amount": -1,
+      "expected": "2026-03-01"
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "day": "2026-02-30",
+      "amount": 0,
+      "expected": "2026-03-02"
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "day": "2026-02-30",
+      "amount": 1,
+      "expected": "2026-03-03"
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "day": "2026-13-01",
+      "amount": -1,
+      "expected": "2026-12-31"
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "day": "2026-13-01",
+      "amount": 0,
+      "expected": "2027-01-01"
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "day": "2026-13-01",
+      "amount": 1,
+      "expected": "2027-01-02"
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "day": "2026-00-00",
+      "amount": -1,
+      "expected": "2025-11-29"
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "day": "2026-00-00",
+      "amount": 0,
+      "expected": "2025-11-30"
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "day": "2026-00-00",
+      "amount": 1,
+      "expected": "2025-12-01"
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "day": "2026-01-00",
+      "amount": -1,
+      "expected": "2025-12-30"
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "day": "2026-01-00",
+      "amount": 0,
+      "expected": "2025-12-31"
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "day": "2026-01-00",
+      "amount": 1,
+      "expected": "2026-01-01"
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "day": "0088-01-02",
+      "amount": -1,
+      "expected": "1988-01-01"
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "day": "0088-01-02",
+      "amount": 0,
+      "expected": "1988-01-02"
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "day": "0088-01-02",
+      "amount": 1,
+      "expected": "1988-01-03"
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "day": "2011-12-29",
+      "amount": -1,
+      "expected": "2011-12-28"
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "day": "2011-12-29",
+      "amount": 0,
+      "expected": "2011-12-29"
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "day": "2011-12-29",
+      "amount": 1,
+      "expected": "2011-12-30"
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "day": "2011-12-30",
+      "amount": -1,
+      "expected": "2011-12-29"
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "day": "2011-12-30",
+      "amount": 0,
+      "expected": "2011-12-30"
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "day": "2011-12-30",
+      "amount": 1,
+      "expected": "2011-12-31"
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "day": "2011-12-31",
+      "amount": -1,
+      "expected": "2011-12-30"
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "day": "2011-12-31",
+      "amount": 0,
+      "expected": "2011-12-31"
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "day": "2011-12-31",
+      "amount": 1,
+      "expected": "2012-01-01"
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "day": "2026-01-01\n",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "day": "2026-01-01\n",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "day": "2026-01-01\n",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "day": "٢٠٢٦-٠١-٠١",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "day": "٢٠٢٦-٠١-٠١",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "day": "٢٠٢٦-٠١-٠١",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "day": "bad",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "day": "bad",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "day": "bad",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "day": "2026-2-3",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "day": "2026-2-3",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "day": "2026-2-3",
+      "amount": 1,
+      "expected": ""
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "day": "2026-01-01suffix",
+      "amount": -1,
+      "expected": ""
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "day": "2026-01-01suffix",
+      "amount": 0,
+      "expected": ""
+    },
+    {
+      "zone": "Pacific/Kiritimati",
+      "day": "2026-01-01suffix",
+      "amount": 1,
+      "expected": ""
+    }
+  ]
+}

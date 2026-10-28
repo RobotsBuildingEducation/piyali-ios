@@ -11,7 +11,7 @@ struct DailyActivityView:View {
     private var dark:Bool{scheme == .dark}
     private var language:String{app.learner.support}
     private var brand:PiyaliBrand{PiyaliBrand(dark:dark)}
-    private var year:Int{Calendar.current.component(.year,from:now)}
+    private var year:Int{CalendarDay.year(now)}
     private var copy:JSONValue{XPActivityPlan.ui["copy"][language] == .null ? XPActivityPlan.ui["copy"]["en"]:XPActivityPlan.ui["copy"][language]}
     private var history:JSONValue{XPActivityPlan.effective(historyOverride ?? XPActivityPlan.merge(app.learner.activityLegacy,controller.history),dailyXP:app.learner.dailyKey==CalendarDay.key(now) ? app.learner.dailyXP:0,goal:app.learner.dailyGoal,now:now)}
     var body:some View {

@@ -1,0 +1,23 @@
+{
+  "sources": [
+    {
+      "file": "src/utils/userDataSchema.js",
+      "sha256": "128298da9601794909e9970029871ebbf98cec59fab38bd643d373f9fa4e9597"
+    }
+  ],
+  "cases": 144,
+  "shifts": 720,
+  "edge": 351,
+  "zones": [
+    "UTC",
+    "America/Mexico_City",
+    "America/Los_Angeles",
+    "America/New_York",
+    "Asia/Kolkata",
+    "Asia/Kathmandu",
+    "Asia/Bangkok",
+    "Pacific/Apia",
+    "Pacific/Kiritimati"
+  ],
+  "scope": "Actual getLocalCalendarDayKey and shiftDayKey from the reference. Node TZ is explicit per case; no Firebase/user I/O or reference writes."
+}

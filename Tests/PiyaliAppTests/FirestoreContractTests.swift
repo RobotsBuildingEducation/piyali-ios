@@ -15,8 +15,17 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
     func createProvider(with app: FirebaseApp) -> AppCheckProvider? { EmulatorAppCheckProvider() }
 }
 @MainActor final class FirestoreContractTests: XCTestCase {
+    func testGregorianDayWritesHistoryGoalHealthAndRetryUnderActualSystemCalendar()async throws{
+        let expected=ProcessInfo.processInfo.environment["PIYALI_EXPECTED_SYSTEM_CALENDAR"];if let expected{XCTAssertEqual(String(describing:Calendar.current.identifier),expected)}
+        let(service,db,npub)=try context();try await seed(db,npub);let now=Date(),today=CalendarDay.key(now),yesterday=CalendarDay.shift(today,by:-1),year=CalendarDay.year(now),user=db.collection("users").document(npub)
+        XCTAssertEqual(year,Calendar(identifier:.gregorian).component(.year,from:now));XCTAssertTrue(today.hasPrefix(String(year)))
+        try await user.setData(["dailyGoalPetHealth":85,"dailyGoalPetTrackedDay":today,"dailyGoalPetStartedFull":true,"dailyGoalPetLastAccountedDay":yesterday,"lastGoalDayKey":yesterday,"goalStreakCount":2,"membership":["active":true]],merge:true)
+        var state=try requireState(await service.load(npub:npub));XCTAssertEqual(state.dailyXP,5);state.award(45,now:now);let pending=state;XCTAssertEqual(pending.pendingChanges?.last?.dayKey,today);_=try await service.save(pending,npub:npub);_=try await service.save(pending,npub:npub)
+        let restored=try requireState(await service.load(npub:npub)),fields=try await user.getDocument(source:.server).data() ?? [:],history=try await service.activityHistory(npub:npub,year:year)
+        XCTAssertEqual(restored.dailyXP,50);XCTAssertEqual(restored.totalXP,195);XCTAssertEqual(restored.companionHealth,100);XCTAssertEqual(fields["lastGoalDayKey"]as?String,today);XCTAssertEqual(fields["goalStreakCount"]as?Int,3);XCTAssertEqual(history["days"][today].number,50);XCTAssertTrue(history["goalDays"].array.contains(.string(today)));XCTAssertTrue((fields["dailyGoalPetReachedDates"]as?[String] ?? []).contains(today));XCTAssertEqual(fields["patreonVerified"]as?Bool,true);XCTAssertEqual((fields["membership"]as?[String:Any])?["active"]as?Bool,true)
+    }
     func testXPActivityMonthlyReadLegacyImportAndSnapshotSeparation()async throws{
-        let(service,db,npub)=try context();try await seed(db,npub);let year=Calendar.current.component(.year,from:Date())-1,today=CalendarDay.key(Date()),user=db.collection("users").document(npub)
+        let(service,db,npub)=try context();try await seed(db,npub);let year=Calendar(identifier:.gregorian).component(.year,from:Date())-1,today=CalendarDay.key(Date()),user=db.collection("users").document(npub)
         try await user.setData(["dailyXpRecent":[today:5,"\(year)-01-02":12],"completedGoalDates":["\(year)-01-04"]],merge:true)
         try await user.collection("xpHistory").document("\(year)-01").setData(["days":["\(year)-01-01":250,"\(year)-01-02":30],"goalDays":["\(year)-01-01","\(year)-01-03"]])
         try await user.collection("xpHistory").document("\(year)-02").setData(["days":["\(year)-02-01":50],"goalDays":["\(year)-01-01"]])

@@ -47,20 +47,32 @@ public struct PracticeChange: Codable, Identifiable, Sendable {
     }
 }
 public enum CalendarDay {
-    public static func key(_ date: Date, calendar: Calendar = .current) -> String {
-        let p = calendar.dateComponents([.year,.month,.day],from:date)
-        return String(format:"%04d-%02d-%02d",p.year ?? 0,p.month ?? 0,p.day ?? 0)
+    /// JavaScript Date uses Gregorian civil dates. Keep the selected local time
+    /// zone, while ignoring the device's alternative calendar/numbering system.
+    public static func gregorian(_ supplied:Calendar = .current)->Calendar{
+        var calendar=Calendar(identifier:.gregorian);calendar.timeZone=supplied.timeZone;calendar.locale=Locale(identifier:"en_US_POSIX");return calendar
     }
-    public static func shift(_ day: String, by amount: Int, calendar: Calendar = .current) -> String {
-        let parts = day.split(separator:"-").compactMap { Int($0) }
-        guard parts.count == 3, let date = calendar.date(from:DateComponents(year:parts[0],month:parts[1],day:parts[2],hour:12)), let shifted = calendar.date(byAdding:.day,value:amount,to:date) else { return "" }
-        return key(shifted,calendar:calendar)
+    public static func year(_ date:Date,calendar:Calendar = .current)->Int{gregorian(calendar).component(.year,from:date)}
+    public static func key(_ date:Date,calendar:Calendar = .current)->String{
+        let p=gregorian(calendar).dateComponents([.year,.month,.day],from:date)
+        return String(format:"%04d-%02d-%02d",locale:Locale(identifier:"en_US_POSIX"),p.year ?? 0,p.month ?? 0,p.day ?? 0)
     }
-    public static func normalize(_ day: String) -> String {
-        let p = day.split(separator:"-").compactMap { Int($0) }
-        guard p.count == 3 else { return "" }; return String(format:"%04d-%02d-%02d",p[0],p[1],p[2])
+    public static func shift(_ day:String,by amount:Int,calendar supplied:Calendar = .current)->String{
+        guard day.range(of:"^\\d{4}-\\d{2}-\\d{2}$",options:.regularExpression) != nil else{return ""}
+        let parts=day.split(separator:"-").compactMap{Int($0.trimmingCharacters(in:.whitespacesAndNewlines))},calendar=gregorian(supplied)
+        guard parts.count==3 else{return ""}
+        // The source constructs Date(year, month, day + amount, 12), including
+        // its 0...99 -> 1900...1999 year rule and overflow normalization.
+        let year=parts[0] < 100 ? parts[0]+1900:parts[0]
+        guard let date=calendar.date(from:DateComponents(year:year,month:parts[1],day:parts[2]+amount,hour:12))else{return ""}
+        return key(date,calendar:calendar)
+    }
+    public static func normalize(_ day:String)->String{
+        let p=day.split(separator:"-").compactMap{Int($0)}
+        guard p.count==3 else{return ""};return String(format:"%04d-%02d-%02d",locale:Locale(identifier:"en_US_POSIX"),p[0],p[1],p[2])
     }
 }
+
 public extension LearnerState {
     mutating func enqueue(_ change: PracticeChange) { applySourceTutor(change);applyPhonics(change);applyGoalLessonWork(change);applyLessonWork(change);questProgress = DailyPlate.recorded(change,progress:plateProgress); if pendingChanges == nil { pendingChanges = [] }; pendingChanges?.append(change) }
     mutating func review(cardID: String, rating: ReviewRating, xp:Int? = nil, patch:FlashcardReview? = nil, now: Date = Date(), calendar: Calendar = .current) {
