@@ -169,6 +169,7 @@ public struct LearnerState: Codable, Sendable {
     public var subscriptionXPAdjustment:Int?
     public var dailyXP = 0
     public var dailyKey = ""
+    public var xpActivity:JSONValue?
     public var streak = 0
     public var completed: Set<String> = []
     public var practicedModes: Set<String> = []
@@ -254,6 +255,7 @@ public struct LearnerState: Codable, Sendable {
     public func completionKey(_ lesson: String) -> String { "\(target):\(lesson)" }
     public func modeKey(_ lesson: String, _ mode: String) -> String { "\(target):\(lesson):\(mode)" }
     public mutating func rollDay(now: Date = Date(), calendar: Calendar = .current) {
+        rememberActivity()
         reconcileCompanion(now:now,calendar:calendar)
         dailyKey = CalendarDay.normalize(dailyKey)
         let key = CalendarDay.key(now,calendar:calendar)
@@ -276,6 +278,7 @@ public struct LearnerState: Codable, Sendable {
         rewardCompanion(amount,now:now,calendar:calendar)
         let reachedBefore = dailyXP >= dailyGoal
         dailyXP += max(0,amount); xpByLanguage[target,default:0] += max(0,amount)
+        rememberActivity()
         if !reachedBefore && dailyXP >= dailyGoal { streak += 1 }
     }
     public mutating func complete(_ lesson: Lesson) -> Bool {

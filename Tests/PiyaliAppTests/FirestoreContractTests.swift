@@ -15,6 +15,17 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
     func createProvider(with app: FirebaseApp) -> AppCheckProvider? { EmulatorAppCheckProvider() }
 }
 @MainActor final class FirestoreContractTests: XCTestCase {
+    func testXPActivityMonthlyReadLegacyImportAndSnapshotSeparation()async throws{
+        let(service,db,npub)=try context();try await seed(db,npub);let year=Calendar.current.component(.year,from:Date())-1,today=CalendarDay.key(Date()),user=db.collection("users").document(npub)
+        try await user.setData(["dailyXpRecent":[today:5,"\(year)-01-02":12],"completedGoalDates":["\(year)-01-04"]],merge:true)
+        try await user.collection("xpHistory").document("\(year)-01").setData(["days":["\(year)-01-01":250,"\(year)-01-02":30],"goalDays":["\(year)-01-01","\(year)-01-03"]])
+        try await user.collection("xpHistory").document("\(year)-02").setData(["days":["\(year)-02-01":50],"goalDays":["\(year)-01-01"]])
+        try await user.collection("xpHistory").document("\(year+2)-01").setData(["days":["\(year+2)-01-01":999],"goalDays":["\(year+2)-01-01"]])
+        let loaded=try await service.activityHistory(npub:npub,year:year);XCTAssertEqual(loaded["days"].object.count,3);XCTAssertEqual(loaded["goalDays"].array.count,2);XCTAssertEqual(loaded["days"]["\(year)-01-02"].number,30);XCTAssertEqual(loaded["days"]["\(year+2)-01-01"],.null)
+        var state=try requireState(await service.load(npub:npub));XCTAssertEqual(state.activityLegacy["days"]["\(year)-01-02"].number,12);let merged=XPActivityPlan.merge(state.activityLegacy,loaded);XCTAssertEqual(merged["days"]["\(year)-01-02"].number,30);XCTAssertTrue(merged["goalDays"].array.contains(.string("\(year)-01-04")))
+        state.award(5);_=try await service.save(state,npub:npub);let fields=try await user.getDocument(source:.server).data() ?? [:],snapshot=try JSONDecoder().decode(LearnerState.self,from:Data(try XCTUnwrap(fields["iosStateJSON"]as?String).utf8));XCTAssertNil(snapshot.xpActivity);XCTAssertEqual(fields["xp"]as?Int,155);XCTAssertEqual(fields["patreonVerified"]as?Bool,true)
+        let restored=try requireState(await service.load(npub:npub));XCTAssertEqual(restored.dailyXP,10);let after=try await service.activityHistory(npub:npub,year:year+1);XCTAssertEqual(after["days"][today].number,10)
+    }
     func testCompanionBlueprintLeaseCanonicalMirrorsAndRepairEvidenceSurviveRetries() async throws {
         let (service,db,npub)=try context();try await seed(db,npub)
         var state=try requireState(await service.load(npub:npub));let target=state.target,day=CalendarDay.key(Date()),key=CompanionQuestDay.key(target,day),reference=db.collection("users").document(npub).collection("questDays").document(key)
@@ -315,7 +326,9 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
             FirebaseApp.configure(name:name,options:options)
             let database = Firestore.firestore(app:FirebaseApp.app(name:name)!)
             // Set the local host before disabling SSL: Firestore rejects SSL=false on its default production host.
-            database.useEmulator(withHost:"127.0.0.1",port:8180)
+            let port=Int(ProcessInfo.processInfo.environment["PIYALI_FIRESTORE_EMULATOR_PORT"] ?? "8180") ?? 8180
+            guard (1024...65535).contains(port)else{throw AppError.message("Invalid local emulator port.")}
+            database.useEmulator(withHost:"127.0.0.1",port:port)
             let settings = database.settings; settings.cacheSettings = MemoryCacheSettings(); settings.isSSLEnabled = false; database.settings = settings
         }
         let database = Firestore.firestore(app:FirebaseApp.app(name:name)!)

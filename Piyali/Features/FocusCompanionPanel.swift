@@ -37,7 +37,7 @@ struct FocusCompanionPanel:View {
                     meter(level,symbol:"gamecontroller",color:scheme == .dark ? "bfdbfe" : "2563eb",label:"XP \(app.learner.xp)",percent:Double(app.learner.xp%100),start:"43e97b",end:"38f9d7")
                 }.frame(maxWidth:.infinity,alignment:.leading)
             }
-            HStack(spacing:12) {Button(copy["activity"].string,action:onActivity);Button(copy["achievements"].string,action:onAchievements).accessibilityIdentifier("focusAchievements")}.buttonStyle(FocusOutlineButtonStyle()).padding(.top,0)
+            HStack(spacing:12) {Button(copy["activity"].string,action:onActivity).accessibilityIdentifier("focusActivityOpen");Button(copy["achievements"].string,action:onAchievements).accessibilityIdentifier("focusAchievements")}.buttonStyle(FocusOutlineButtonStyle()).padding(.top,0)
         }.padding(13).background(FocusCopy.background(stage["background"].string),in:EntryCornerShape(radius:28)).overlay{EntryCornerShape(radius:28).stroke(scheme == .dark ? .clear : brand.border)}.zIndex(bubble == nil ? 0 : 30)
             .fullScreenCover(isPresented:$customizing){FocusCompanionCustomizeView().presentationBackground(.clear)}
     }

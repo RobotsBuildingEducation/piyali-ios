@@ -1,0 +1,100 @@
+[
+  {
+    "path": "docs/native/xp-activity-history-ar.png",
+    "label": "Native activity history-ar",
+    "sha256": "b909355877e7bb36b07f990bd3c569ec7a42c4ef6f307fad6cbc7f9b402d8f59",
+    "bundle": "PiyaliXPActivityFinal2.xcresult",
+    "test": "XPActivityReferenceTests/testActualSourceActivityAndNativeAtIPhoneSize()"
+  },
+  {
+    "path": "docs/reference/xp-activity-history-ar.png",
+    "label": "Source activity history-ar",
+    "sha256": "c8fa2d206b60d438ac42d31d52ab2d6253d56318b8b3af9dc651387a89b265c2",
+    "bundle": "PiyaliXPActivityFinal2.xcresult",
+    "test": "XPActivityReferenceTests/testActualSourceActivityAndNativeAtIPhoneSize()"
+  },
+  {
+    "path": "docs/native/xp-activity-empty-ar.png",
+    "label": "Native activity empty-ar",
+    "sha256": "d4fbdede1c8a05db8bd0cb25f8cead27d012243a881e8b2326fea502ebbe4c0f",
+    "bundle": "PiyaliXPActivityFinal2.xcresult",
+    "test": "XPActivityReferenceTests/testActualSourceActivityAndNativeAtIPhoneSize()"
+  },
+  {
+    "path": "docs/reference/xp-activity-empty-ar.png",
+    "label": "Source activity empty-ar",
+    "sha256": "4b30a10992a144f0195922755ad4322d576c45a6e156fdca302b0e19f494be9d",
+    "bundle": "PiyaliXPActivityFinal2.xcresult",
+    "test": "XPActivityReferenceTests/testActualSourceActivityAndNativeAtIPhoneSize()"
+  },
+  {
+    "path": "docs/native/xp-activity-history-en.png",
+    "label": "Native activity history-en",
+    "sha256": "8e85661280ed89e1d4b24e0900751405ee01708b75f25294ea0081442e5db762",
+    "bundle": "PiyaliXPActivityFinal2.xcresult",
+    "test": "XPActivityReferenceTests/testActualSourceActivityAndNativeAtIPhoneSize()"
+  },
+  {
+    "path": "docs/reference/xp-activity-history-en.png",
+    "label": "Source activity history-en",
+    "sha256": "d8750ce2d215093bb88410ed5ee9ceb987a480f2fc3c3aa997303d6b361f678a",
+    "bundle": "PiyaliXPActivityFinal2.xcresult",
+    "test": "XPActivityReferenceTests/testActualSourceActivityAndNativeAtIPhoneSize()"
+  },
+  {
+    "path": "docs/native/xp-activity-empty-en.png",
+    "label": "Native activity empty-en",
+    "sha256": "b8afaa7ffe6fc4123cfa455ce47e36db9f448b1afb58fc80bf6e6049e4e2aaf2",
+    "bundle": "PiyaliXPActivityFinal2.xcresult",
+    "test": "XPActivityReferenceTests/testActualSourceActivityAndNativeAtIPhoneSize()"
+  },
+  {
+    "path": "docs/reference/xp-activity-empty-en.png",
+    "label": "Source activity empty-en",
+    "sha256": "b1b255a48cda536fc6b3592d48257b27a3d765ecc8f9c2ad03a1f604c1e40568",
+    "bundle": "PiyaliXPActivityFinal2.xcresult",
+    "test": "XPActivityReferenceTests/testActualSourceActivityAndNativeAtIPhoneSize()"
+  },
+  {
+    "path": "docs/native/xp-activity-product-restored-after-relaunch-ar.png",
+    "label": "Native Activity restored after relaunch ar",
+    "sha256": "677e84d953c50cd5bb249ab084932af37deda8d3a4bd771b2b6f6e3eaea3c8e0",
+    "bundle": "PiyaliXPActivityFinal2.xcresult",
+    "test": "XPActivityJourneyTests/testActivityHistoryCompanionAchievementsAndRelaunchInEnglishAndArabic()"
+  },
+  {
+    "path": "docs/native/xp-activity-product-later-months-ar.png",
+    "label": "Native Activity later months ar",
+    "sha256": "c23952f9e1003f425f6b32f7cbb63213cdef1925c463f1a3aab153b5fc956487",
+    "bundle": "PiyaliXPActivityFinal2.xcresult",
+    "test": "XPActivityJourneyTests/testActivityHistoryCompanionAchievementsAndRelaunchInEnglishAndArabic()"
+  },
+  {
+    "path": "docs/native/xp-activity-product-historical-goals-ar.png",
+    "label": "Native Activity historical goals ar",
+    "sha256": "e5fa40520ad854962bec62b8b4c5e3dd0026ec76c44b078a7eadaa4c593712f8",
+    "bundle": "PiyaliXPActivityFinal2.xcresult",
+    "test": "XPActivityJourneyTests/testActivityHistoryCompanionAchievementsAndRelaunchInEnglishAndArabic()"
+  },
+  {
+    "path": "docs/native/xp-activity-product-restored-after-relaunch-en.png",
+    "label": "Native Activity restored after relaunch en",
+    "sha256": "6af6cc41fc938b4decd7947bc9782fd7e7c74d4607d65ba4420537a05512748d",
+    "bundle": "PiyaliXPActivityFinal2.xcresult",
+    "test": "XPActivityJourneyTests/testActivityHistoryCompanionAchievementsAndRelaunchInEnglishAndArabic()"
+  },
+  {
+    "path": "docs/native/xp-activity-product-later-months-en.png",
+    "label": "Native Activity later months en",
+    "sha256": "277d3ffb28ff718e4677812cb9e924962e1d315debc16601f9af30007b5803c1",
+    "bundle": "PiyaliXPActivityFinal2.xcresult",
+    "test": "XPActivityJourneyTests/testActivityHistoryCompanionAchievementsAndRelaunchInEnglishAndArabic()"
+  },
+  {
+    "path": "docs/native/xp-activity-product-historical-goals-en.png",
+    "label": "Native Activity historical goals en",
+    "sha256": "ef0b9e2a5fdf845051f435d6a79a5ec9684b78ae1ea2bc61e04373d6066ae7d0",
+    "bundle": "PiyaliXPActivityFinal2.xcresult",
+    "test": "XPActivityJourneyTests/testActivityHistoryCompanionAchievementsAndRelaunchInEnglishAndArabic()"
+  }
+]

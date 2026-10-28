@@ -245,6 +245,8 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                 let selectedTarget=merged.target;merged.target=uploaded.target
                 merged.reconcileTutorUnlock(index:tutorIndex);merged.target=selectedTarget
                 merged.phonicsRecords=nil;merged.pendingRepairEvidence=[];merged.companionQuestDays=nil;merged.pendingCompanionQuestDays=[:];merged.plateHeadlines=nil;merged.pendingPlateHeadlines=[:];merged.immersionBatch=nil;merged.immersionHistory=nil;merged.immersionRewardReceipts=nil;merged.immersionPlacementAt=nil;merged.pendingImmersionChanges=[]
+                // Historical months are canonical; the activity fallback stays on this device.
+                merged.xpActivity=nil
                 // Companion memory has its own shared web document, not a second snapshot authority.
                 merged.shareNostrAchievements = nil; merged.achievementRecords = nil; merged.achievementEvidence = nil; merged.achievementLedger = nil; merged.companionProgress = nil; merged.companionMemory = nil; merged.pendingMemoryChanges = []; merged.userSettings=nil;merged.pendingSettingsChanges=[]; merged.goalIntelligence = nil; merged.goalArtifacts = nil; merged.pendingGoalChanges = []; merged.questProgress = nil; merged.journeyQuestCounts = nil; merged.tutorLessons = nil; merged.acknowledgedEventIDs = nil
                 var patch: [String:Any] = ["local_npub":npub,"iosStateJSON":String(decoding:try JSONEncoder().encode(merged),as:UTF8.self),"iosStateVersion":2,"iosUpdatedAt":FieldValue.serverTimestamp()]

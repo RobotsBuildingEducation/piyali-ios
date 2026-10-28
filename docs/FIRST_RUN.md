@@ -1,3 +1,5 @@
+Current reference change: commit `5c8f8f05` adds a paper-and-pencil suggestion before the setup/install and placement chain, with `paperPencilModalShown` persistence and a shared backdrop. The native chain described below predates that addition and still needs that step. See the [active audit](PARITY_AUDIT.md).
+
 # Companion Continue and account setup
 
 The companion’s Continue action now opens the setup guide before starting-level selection. Got it and tapping outside the guide both acknowledge it and continue to placement if needed. The same native overlay stays mounted during that handoff; the home/menu controls are covered and hidden from accessibility while the dialog is open. Closing placement returns to the current home. The guide can be opened again from Account.

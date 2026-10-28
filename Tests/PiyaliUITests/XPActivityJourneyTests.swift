@@ -1,0 +1,18 @@
+import XCTest
+
+@MainActor final class XPActivityJourneyTests:XCTestCase {
+    private func element(_ id:String,_ app:XCUIApplication)->XCUIElement{app.descendants(matching:.any).matching(identifier:id).firstMatch}
+    private func reveal(_ e:XCUIElement,_ app:XCUIApplication){for _ in 0..<8 where !e.isHittable{app.swipeUp(velocity:.slow)};XCTAssertTrue(e.isHittable)}
+    private func tap(_ id:String,_ app:XCUIApplication){let e=element(id,app);XCTAssertTrue(e.waitForExistence(timeout:10));reveal(e,app);e.tap()}
+    private func shot(_ name:String,_ app:XCUIApplication){let a=XCTAttachment(screenshot:app.screenshot());a.name=name;a.lifetime = .keepAlways;add(a)}
+    func testActivityHistoryCompanionAchievementsAndRelaunchInEnglishAndArabic(){
+        continueAfterFailure=false
+        for language in ["en","ar"]{
+            let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_ENTRY_INITIAL_LANGUAGE":language,"PIYALI_ENTRY_INITIAL_THEME":language == "ar" ? "dark":"light","PIYALI_XP_ACTIVITY_FIXTURE":"history","PIYALI_HEADLINE_FIXTURE":"failure"];app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US"];app.launch()
+            let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Activity Learner");tap("entryKeyboardDone",app);tap("createAccount",app);tap("startLearning",app);tap("companionContinue",app);tap("gettingStartedGotIt",app);tap("placementNew",app)
+            let open=app.buttons["focusActivityOpen"];reveal(open,app);let companionY=open.frame.midY;tap("focusActivityOpen",app);let activity=element("focusActivity",app);XCTAssertTrue(activity.waitForExistence(timeout:8));XCTAssertFalse(open.isHittable);let back=app.buttons["activityCompanion"];XCTAssertEqual(back.frame.midY,companionY,accuracy:3);XCTAssertTrue(element("activityLegend-goal",app).exists)
+            let year=Calendar.current.component(.year,from:Date()),first=element("activityDay-\(year)-01-01",app),partial=element("activityDay-\(year)-01-02",app),zero=element("activityDay-\(year)-01-03",app);XCTAssertTrue(first.exists);XCTAssertTrue(first.label.contains("250 XP"));XCTAssertTrue(partial.label.contains("15 XP"));XCTAssertTrue(zero.label.contains("0 XP"));XCTAssertEqual(first.value as?String,zero.value as?String);XCTAssertNotEqual(first.value as?String,partial.value as?String);shot("Native Activity historical goals "+language,app)
+            let grid=app.scrollViews["activityGrid"];if language == "ar"{grid.swipeRight();grid.swipeRight()}else{grid.swipeLeft();grid.swipeLeft()};let last=element("activityDay-\(year)-12-31",app);XCTAssertGreaterThanOrEqual(last.frame.minX,grid.frame.minX-1);XCTAssertLessThanOrEqual(last.frame.maxX,grid.frame.maxX+1);shot("Native Activity later months "+language,app);tap("activityCompanion",app);XCTAssertEqual(XCTWaiter.wait(for:[XCTNSPredicateExpectation(predicate:NSPredicate(format:"hittable == true"),object:open)],timeout:4),.completed);tap("focusActivityOpen",app);tap("activityAchievements",app);XCTAssertTrue(app.buttons["achievementCollectionClose"].waitForExistence(timeout:8));tap("achievementCollectionClose",app);XCTAssertTrue(back.waitForExistence(timeout:8));app.terminate();app.launch();XCTAssertTrue(app.staticTexts["todayFocusTitle"].waitForExistence(timeout:15));reveal(open,app);tap("focusActivityOpen",app);XCTAssertTrue(first.label.contains("250 XP"));XCTAssertEqual(element("dailyXPStatus",app).value as?String,"0%");shot("Native Activity restored after relaunch "+language,app);app.terminate()
+        }
+    }
+}

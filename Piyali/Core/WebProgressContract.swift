@@ -106,6 +106,7 @@ public enum WebProgressContract {
         state.subscriptionXPAdjustment=accountXP.map { Int(min($0,Double(Int32.max)))-state.totalXP } ?? 0
         let today = CalendarDay.key(now)
         let recent = fields["dailyXpRecent"] as? [String:Any] ?? fields["dailyXpHistory"] as? [String:Any] ?? [:]
+        state.xpActivity=XPActivityPlan.merge(state.xpActivity ?? .object([:]),JSONValue.foundation(["days":recent,"goalDays":fields["completedGoalDates"] as? [String] ?? []]))
         state.dailyKey = today
         state.dailyXP = integer(recent[today],default:date(fields["dailyStartedAt"]).map { CalendarDay.key($0) == today } == true ? integer(fields["dailyXp"]) : 0)
         let lastGoal = fields["lastGoalDayKey"] as? String ?? ""

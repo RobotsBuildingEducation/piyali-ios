@@ -4,6 +4,7 @@ struct TodayFocusHomeView:View {
     var now=Date()
     @EnvironmentObject var app:AppModel
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let sessionActive:Bool
     var startingPractice=false
     let onStart:()->Void
@@ -12,6 +13,7 @@ struct TodayFocusHomeView:View {
     @StateObject private var headline=PlateHeadlineController()
     @State private var bubbleDismissed=false
     @State private var showActivity=false
+    @State private var companionHeight:CGFloat=260
     @State private var immersionError:String?
     @State private var preparingImmersion=false
     @State private var immersionRequest:UUID?
@@ -44,10 +46,12 @@ struct TodayFocusHomeView:View {
                 if !cleared {
                     Button(action:onStart){HStack(spacing:8){Image(systemName:"play");Text(ProductCopy.text(language,sessionActive || courses.contains{$0.count > 0} ? "continue" : "start"))}.opacity(startingPractice ? 0:1).overlay{if startingPractice{ProgressView().tint(.white)}}}.buttonStyle(FocusPrimaryButtonStyle()).disabled(showBubble || app.loadingContent || startingPractice).accessibilityIdentifier("startDailyPractice")
                 }
-                if showActivity {DailyActivityView(onBack:{showActivity=false},onAchievements:{onPanel(.achievements)}).zIndex(showBubble ? 30 : 0)}
-                else {
-                    FocusCompanionPanel(bubble:showBubble ? bubble : nil,introductory:app.learner.introductoryQuest(day:CalendarDay.key(now)),onContinue:{bubbleDismissed=true;UserDefaults.standard.set(true,forKey:bubbleKey);onCompanionContinue()},onActivity:{showActivity=true},onAchievements:{onPanel(.achievements)}).zIndex(showBubble ? 30 : 0)
-                }
+                ZStack(alignment:.top){
+                    FocusCompanionPanel(bubble:showBubble ? bubble : nil,introductory:app.learner.introductoryQuest(day:CalendarDay.key(now)),onContinue:{bubbleDismissed=true;UserDefaults.standard.set(true,forKey:bubbleKey);onCompanionContinue()},onActivity:{showActivity=true},onAchievements:{onPanel(.achievements)})
+                        .onGeometryChange(for:CGFloat.self,of:{$0.size.height}){companionHeight=$0}
+                        .opacity(showActivity ? 0:1).allowsHitTesting(!showActivity).accessibilityHidden(showActivity)
+                    DailyActivityView(onBack:{showActivity=false},onAchievements:{onPanel(.achievements)},now:now).frame(height:companionHeight).opacity(showActivity ? 1:0).allowsHitTesting(showActivity).accessibilityHidden(!showActivity)
+                }.animation(.easeInOut(duration:reduceMotion ? 0.01:0.24),value:showActivity).zIndex(showBubble ? 30 : 0)
                 FocusScoreJourney(now:now,preparingImmersion:preparingImmersion,immersionError:immersionError,onRetry:{Task{await prepareImmersion()}})
             }.padding(.horizontal,12).padding(.top,16).padding(.bottom,24).frame(maxWidth:584).frame(maxWidth:.infinity)
         }.safeAreaInset(edge:.bottom){if app.achievementUnlock.current != nil{Color.clear.frame(height:app.activityFooterHeight)}}.background(BrandBackground()).task(id:bubbleKey){bubbleDismissed=UserDefaults.standard.bool(forKey:bubbleKey);app.prepareDailyPlate()}.task(id:app.immersionPreparationKey){await prepareImmersion()}
