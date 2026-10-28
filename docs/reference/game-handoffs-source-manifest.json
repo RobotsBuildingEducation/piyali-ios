@@ -1,0 +1,21 @@
+{
+  "sources": [
+    {
+      "file": "src/App.jsx",
+      "sha256": "5fd4a87bd5db004c1fc049ff7e8c7e266e6d65d7c42201ef75e923044c4a7dc8"
+    },
+    {
+      "file": "src/components/Tutor.jsx",
+      "sha256": "bbe9dea6279119ecef32cb69a66a8fb40763642ca05717690dec789a72e088c3"
+    },
+    {
+      "file": "src/utils/tutorialGameLoader.js",
+      "sha256": "c8bc246c612dc99f45af6441d5fa8345fad5b044ba0e35482146cb97a8905e41"
+    },
+    {
+      "file": "src/utils/gameLoaderTiming.js",
+      "sha256": "b1b45f44b881510e435fc15616c858b8fffc89bb83e99df678bbf23682cd262f"
+    }
+  ],
+  "scope": "Original tutorial and Tutor loading components, with eager preloaded map client, explicit fixture seed/frame, anonymous user/sound I/O, and unrendered Suspense/Skip dependencies. Native tests compare header/map; product journeys separately exercise Skip and Cancel."
+}

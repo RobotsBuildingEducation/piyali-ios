@@ -51,4 +51,31 @@ import XCTest
         let service=RPGService(cache:RPGPreparationCache(directory:directory),writer:{_ in calls+=1;return response});await service.prepare(app,lesson:lesson,episode:nil)
         let controller=GamePreparationController(service:service,wait:{_ in await withCheckedContinuation{release=$0}});controller.start(app,lesson:lesson);try await wait{release != nil};app.learner.rpgRuns?["es"]?.attempts=2;let latest=app.learner.rpgRuns?["es"];release?.resume();release=nil;try await wait{controller.ready};XCTAssertTrue(controller.commit(app));XCTAssertEqual(app.learner.rpgRuns?["es"],latest);XCTAssertEqual(calls,1);controller.cancel()
     }
+    func testTutorialWarmsBeforeGameStepAndOnlyThenStartsExploration()async throws{
+        let app=try app();app.introLibrary=try ContentLibrary.load(IntroLibrary.self,name:"intro-es");let lesson=try XCTUnwrap(app.introLesson),directory=FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString);defer{try? app.identity.disconnect();try? FileManager.default.removeItem(at:directory)}
+        var calls=0,delays=0,release:CheckedContinuation<Void,Never>?
+        let service=RPGService(cache:RPGPreparationCache(directory:directory),writer:{_ in calls+=1;throw URLError(.notConnectedToInternet)}),controller=GamePreparationController(service:service,wait:{_ in delays+=1;await withCheckedContinuation{release=$0}})
+        controller.start(app,lesson:lesson,deferReveal:true);try await wait{controller.prepared};XCTAssertEqual(calls,1);XCTAssertEqual(delays,0);XCTAssertFalse(controller.exploring);XCTAssertFalse(controller.ready);XCTAssertNil(app.learner.rpgRuns?["es"]);XCTAssertTrue(app.learner.introSession.visited.isEmpty);XCTAssertEqual(app.learner.totalXP,0)
+        controller.reveal();controller.reveal();try await wait{release != nil};XCTAssertEqual(delays,1);XCTAssertFalse(controller.commit(app));release?.resume();release=nil;try await wait{controller.ready};XCTAssertTrue(controller.commit(app));XCTAssertEqual(app.learner.rpgRuns?["es"]?.tutorial,true);XCTAssertEqual(app.learner.totalXP,0);controller.cancel()
+    }
+    func testTutorialSkipBeforePreparationFinishesCannotCommitOrStartDelay()async throws{
+        let app=try app();app.introLibrary=try ContentLibrary.load(IntroLibrary.self,name:"intro-es");let lesson=try XCTUnwrap(app.introLesson),response=try response(),directory=FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString);defer{try? app.identity.disconnect();try? FileManager.default.removeItem(at:directory)}
+        var release:CheckedContinuation<String,Never>?,delays=0
+        let service=RPGService(cache:RPGPreparationCache(directory:directory),writer:{_ in await withCheckedContinuation{release=$0}}),controller=GamePreparationController(service:service,wait:{_ in delays+=1})
+        controller.start(app,lesson:lesson,deferReveal:true);try await wait{release != nil};controller.reveal();controller.cancel();release?.resume(returning:response);release=nil;try await Task.sleep(for:.milliseconds(50));XCTAssertFalse(controller.prepared);XCTAssertFalse(controller.ready);XCTAssertEqual(delays,0);XCTAssertFalse(controller.commit(app));XCTAssertNil(app.learner.rpgRuns?["es"])
+    }
+    func testTutorStagingUsesItsTrackAndDoesNotMutateLessonOrTutorWork()async throws{
+        let app=try app();app.introLibrary=try ContentLibrary.load(IntroLibrary.self,name:"intro-es");let catalog=try ContentLibrary.load(JSONValue.self,name:"tutor-curriculum-es"),raw=try XCTUnwrap(catalog["Pre-A1"].array.first?["lessons"].array.first),lesson=try XCTUnwrap(TutorSessionController.decodeLesson(raw)),directory=FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString);defer{try? app.identity.disconnect();try? FileManager.default.removeItem(at:directory)}
+        let before=app.learner;var release:CheckedContinuation<Void,Never>?
+        let service=RPGService(cache:RPGPreparationCache(directory:directory),writer:{_ in throw URLError(.notConnectedToInternet)}),controller=GamePreparationController(service:service,wait:{_ in await withCheckedContinuation{release=$0}})
+        controller.start(app,lesson:lesson,tutor:true);try await wait{release != nil};XCTAssertNil(app.learner.rpgRuns?["es"]);XCTAssertEqual(app.learner.tutorLessons,before.tutorLessons);XCTAssertEqual(app.learner.lessonWork,before.lessonWork);XCTAssertEqual(app.learner.totalXP,0);release?.resume();release=nil;try await wait{controller.ready};XCTAssertTrue(controller.commit(app));XCTAssertEqual(app.learner.rpgRuns?["es"]?.tutor,true);XCTAssertEqual(app.learner.lessonWork,before.lessonWork);XCTAssertEqual(app.learner.totalXP,0);controller.cancel()
+    }
+
+    func testChangedRunHandoffCanRetryAndResumeItsNewerProgress()async throws{
+        let app=try app(),lesson=try lesson(),response=try response(),directory=FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString);defer{try? app.identity.disconnect();try? FileManager.default.removeItem(at:directory)};var release:CheckedContinuation<Void,Never>?,calls=0
+        let service=RPGService(cache:RPGPreparationCache(directory:directory),writer:{_ in calls+=1;return response}),controller=GamePreparationController(service:service,wait:{_ in await withCheckedContinuation{release=$0}})
+        controller.start(app,lesson:lesson);try await wait{release != nil};var newer=try XCTUnwrap(service.stagedRun);newer.id=UUID();newer.attempts=2;app.learner.saveRPG(newer);release?.resume();release=nil;try await wait{controller.ready};XCTAssertFalse(controller.commit(app));XCTAssertNotNil(controller.error);XCTAssertFalse(controller.ready);XCTAssertEqual(app.learner.rpgRuns?["es"],newer)
+        controller.start(app,lesson:lesson);try await wait{release != nil};release?.resume();release=nil;try await wait{controller.ready};XCTAssertTrue(controller.commit(app));XCTAssertEqual(app.learner.rpgRuns?["es"],newer);XCTAssertEqual(calls,1);XCTAssertEqual(app.learner.totalXP,0);controller.cancel()
+    }
+
 }

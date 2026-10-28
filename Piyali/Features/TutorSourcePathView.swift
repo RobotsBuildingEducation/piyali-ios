@@ -11,6 +11,10 @@ struct TutorSourcePathView:View {
     @State private var objectives=false
     @State private var starting=false
     @State private var game:Lesson?
+    @StateObject private var gamePreparation=GamePreparationController()
+    @State private var gameLoading=false
+    @State private var gameLaunchID=UUID()
+    @State private var stagedSelection:JSONValue?
     init(tutor:TutorSessionController,onClose:@escaping()->Void,initialPreview:JSONValue?=nil){self.tutor=tutor;self.onClose=onClose;_preview=State(initialValue:initialPreview)}
     private var brand:PiyaliBrand{.init(dark:scheme == .dark)}
     private var units:[JSONValue]{tutor.catalog[level].array}
@@ -18,6 +22,7 @@ struct TutorSourcePathView:View {
     private var levels:JSONValue{tutor.levels()}
     private var info:JSONValue{levels[level]}
     private var progress:Int{app.learner.tutorCompletion(level:level,index:app.tutorCurriculumIndex[app.learner.target] ?? [:]).progress}
+    private var gameScope:String{app.identity.npub+":"+app.learner.target+":"+app.learner.support+":"+app.learner.tutorLevel+":"+level}
     private var revision:String{level+":"+String(app.learner.pendingChanges?.count ?? 0)+":"+String(app.learner.completed.count)}
     var body:some View {
         ZStack{
@@ -27,7 +32,12 @@ struct TutorSourcePathView:View {
             }.allowsHitTesting(preview == nil).accessibilityHidden(preview != nil).background(scheme == .dark ? PiyaliBrand.unitColor("030712"):brand.surface).foregroundStyle(brand.text)
             if let preview{previewDialog(preview).zIndex(1)}
         }.task{level=app.learner.tutorLevel}.task(id:revision){guard !level.isEmpty else{return};statuses=tutor.path(app,level:level)["statuses"]}
-            .fullScreenCover(item:$game){lesson in NavigationStack{RPGView(lesson:lesson,episode:nil,onTutorComplete:{Task{guard app.learner.rpgRuns?[app.learner.target]?.completed == true else{return};await tutor.complete(app,ready:true,gameCompleted:true);game=nil;onClose()}},tutor:true).toolbar{ToolbarItem(placement:.cancellationAction){Button(tutor.pathCopy("close",support)){game=nil}}}}}
+            .onChange(of:gamePreparation.ready){_,ready in if ready{finishGamePreparation()}}
+            .onChange(of:gamePreparation.error){_,error in if let error,gameLoading{tutor.error=error;gameLoading=false;starting=false;gamePreparation.cancel()}}
+            .onChange(of:gameScope){_,_ in if gameLoading{cancelGamePreparation()}}
+            .onChange(of:app.subscription.hasAccess){_,allowed in if !allowed,gameLoading{cancelGamePreparation()}}
+            .onDisappear{if game == nil{gamePreparation.cancel();gameLaunchID=UUID()}}
+            .fullScreenCover(item:$game){lesson in NavigationStack{RPGView(lesson:lesson,episode:nil,onTutorComplete:{Task{guard app.learner.rpgRuns?[app.learner.target]?.completed == true else{return};if await tutor.completeGame(app){game=nil;onClose()}}},tutor:true,completionError:tutor.error,completing:tutor.saving).toolbar{ToolbarItem(placement:.cancellationAction){Button(tutor.pathCopy("close",support)){game=nil}}}}}
             .accessibilityElement(children:.contain).accessibilityIdentifier("tutorPath")
     }
     private var levelHeader:some View {
@@ -61,12 +71,24 @@ struct TutorSourcePathView:View {
                 HStack(spacing:0){Image(systemName:lesson["isTutorial"].boolean ? "trophy":"chart.bar.xaxis").font(.system(size:18)).foregroundStyle(lesson["isTutorial"].boolean ? .white:Color.orange).frame(width:36,height:36).background(lesson["isTutorial"].boolean ? color:Color.orange.opacity(0.14),in:RoundedRectangle(cornerRadius:8)).padding(.trailing,12);Text(tutor.copy("XP required to complete",support)).font(PiyaliBrand.productFont(14,800));Spacer(minLength:12);Text("\(tutor.xpRequired(lesson)) XP").font(PiyaliBrand.productFont(16,900)).fixedSize()}.padding(16).background(brand.surface.opacity(0.72),in:RoundedRectangle(cornerRadius:12)).overlay{RoundedRectangle(cornerRadius:12).stroke(brand.border).allowsHitTesting(false)}
             }.padding(.horizontal,25).padding(.vertical,20)}.fixedSize(horizontal:false,vertical:true)
             Button{launch(selected,content:content)}label:{HStack{if starting{ProgressView().tint(.white)};Text(tutor.copy(content["launch"].string == "rpg_game" ? "Start game":"Start lesson",support))}.font(PiyaliBrand.productFont(18,900)).foregroundStyle(.white).frame(maxWidth:.infinity,minHeight:48).background(locked ? brand.muted.opacity(0.4):color,in:RoundedRectangle(cornerRadius:12)).shadow(color:locked ? .clear:color.opacity(0.6),radius:0,y:4)}.buttonStyle(.plain).disabled(locked || starting).padding(.horizontal,25).padding(.top,8).padding(.bottom,24).accessibilityIdentifier("tutorPreviewStart")
-        }.padding(3).background{TutorPaperPanel(radius:48)}.overlay{RoundedRectangle(cornerRadius:48).stroke(brand.border,lineWidth:3).allowsHitTesting(false)}.compositingGroup().shadow(color:.black.opacity(0.24),radius:30,y:24).padding(.horizontal,12).padding(.vertical,16).frame(maxWidth:512)}.accessibilityElement(children:.contain).accessibilityIdentifier("tutorPreviewDialog")
+        }.padding(3).background{TutorPaperPanel(radius:48)}.overlay{RoundedRectangle(cornerRadius:48).stroke(brand.border,lineWidth:3).allowsHitTesting(false)}.compositingGroup().shadow(color:.black.opacity(0.24),radius:30,y:24).allowsHitTesting(!gameLoading).accessibilityHidden(gameLoading).opacity(gameLoading ? 0:1).overlay{if gameLoading{GamePreparationView(preparation:gamePreparation,support:support,pet:app.learner.effectiveCompanionType,embedded:true,onCancel:cancelGamePreparation).environmentObject(app).clipShape(RoundedRectangle(cornerRadius:16))}}.padding(.horizontal,12).padding(.vertical,16).frame(maxWidth:512)}.accessibilityElement(children:.contain).accessibilityIdentifier("tutorPreviewDialog")
     }
     private func launch(_ selected:JSONValue,content:JSONValue){
-        starting=true;Task{await tutor.stop(app);if app.learner.tutorLevel != level{app.setTutorLevel(level)};tutor.adoptLevel(app);tutor.select(app,lesson:selected["lesson"],unit:selected["unit"]);starting=false;preview=nil
-            if content["launch"].string == "rpg_game"{game=tutor.typedLesson}else{onClose();await tutor.start(app)}
+        starting=true
+        if content["launch"].string == "rpg_game"{
+            gamePreparation.cancel();gameLaunchID=UUID();let token=gameLaunchID,scope=gameScope
+            stagedSelection=selected;gameLoading=true;tutor.error=nil
+            Task{await tutor.stop(app);guard token == gameLaunchID,gameLoading,scope == gameScope else{return};guard let lesson=TutorSessionController.decodeLesson(selected["lesson"])else{cancelGamePreparation();return};gamePreparation.start(app,lesson:lesson,tutor:true)}
+        }else{
+            Task{await tutor.stop(app);if app.learner.tutorLevel != level{app.setTutorLevel(level)};tutor.adoptLevel(app);tutor.select(app,lesson:selected["lesson"],unit:selected["unit"]);starting=false;preview=nil;onClose();await tutor.start(app)}
         }
+    }
+    private func cancelGamePreparation(){gameLaunchID=UUID();gameLoading=false;starting=false;stagedSelection=nil;gamePreparation.cancel();preview=nil}
+    private func finishGamePreparation(){
+        guard gameLoading,let selected=stagedSelection,gamePreparation.commit(app)else{return}
+        gameLoading=false;starting=false;stagedSelection=nil
+        if app.learner.tutorLevel != level{app.setTutorLevel(level)}
+        tutor.adoptLevel(app);preview=nil;game=tutor.selectPreparedGame(app,lesson:selected["lesson"],unit:selected["unit"])
     }
 }
 private struct TutorSourceNode:View {

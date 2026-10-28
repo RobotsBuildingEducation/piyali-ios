@@ -279,3 +279,22 @@ extension TutorSessionTests {
         session.closeCompletion();XCTAssertNotNil(session.review);XCTAssertTrue(app.preservingEarnedPractice);session.closeReview();XCTAssertFalse(app.preservingEarnedPractice);XCTAssertFalse(app.subscription.hasAccess);XCTAssertEqual(app.learner.totalXP,50);await session.stop(app)
     }
 }
+
+
+extension TutorSessionTests {
+    func testGameHandoffWaitsForAcknowledgmentAndReplayCannotAwardAgain()async throws{
+        let cloud=TutorAcknowledgment();cloud.fails=true;let app=try await app(progressService:cloud);defer{try? app.identity.disconnect()};let transport=TutorTransport(),session=await session(app,transport),lesson=session.lesson,unit=session.unit
+        let first=await session.completeGame(app);XCTAssertFalse(first);XCTAssertTrue(session.completionPending);XCTAssertNotNil(session.error);XCTAssertEqual(app.learner.totalXP,50);XCTAssertEqual(app.learner.pendingChanges?.filter{$0.source == .speak}.count,1);XCTAssertEqual(app.learner.pendingChanges?.filter{$0.source == .lesson}.count,0)
+        cloud.fails=false;let second=await session.completeGame(app);XCTAssertTrue(second);XCTAssertNotNil(session.completion);XCTAssertEqual(app.learner.totalXP,50);XCTAssertTrue(app.learner.pendingChanges?.isEmpty ?? true)
+        session.closeCompletion();session.closeReview(app);session.select(app,lesson:lesson,unit:unit);XCTAssertTrue(session.practicingCompletedLesson);let replay=await session.completeGame(app);XCTAssertTrue(replay);XCTAssertEqual(app.learner.totalXP,50);XCTAssertNil(session.completion);try app.identity.disconnect();try app.identity.create();let stale=await session.completeGame(app);XCTAssertFalse(stale);XCTAssertEqual(app.learner.totalXP,50);await session.stop(app,saveDraft:false)
+    }
+}
+
+
+extension TutorSessionTests {
+    func testPreparedGameSelectionStartsOnlyTutorProgressAndSurvivesReload()async throws{
+        let app=try await app();defer{try? app.identity.disconnect()};let transport=TutorTransport(),session=await session(app,transport),lesson=session.lesson,unit=session.unit
+        let before=app.learner.totalXP,typed=try XCTUnwrap(session.selectPreparedGame(app,lesson:lesson,unit:unit));XCTAssertEqual(typed.id,lesson["id"].string);XCTAssertEqual(app.learner.plateProgress["currentTutorLesson"].string,typed.id);XCTAssertEqual(app.learner.tutorProgress(typed.id).sourceState?["status"].string,"in_progress");let start=try XCTUnwrap(app.learner.pendingChanges?.first{$0.source == .tutorState && $0.contentID == typed.id && $0.tutorData?["kind"].string == "start"});XCTAssertEqual(start.amount,0);XCTAssertEqual(app.learner.totalXP,before);XCTAssertNil(app.learner.lessonWork)
+        let restored=try JSONDecoder().decode(LearnerState.self,from:JSONEncoder().encode(app.learner));app.learner=restored;let reload=await self.session(app,TutorTransport());XCTAssertEqual(reload.id,typed.id);XCTAssertEqual(app.learner.totalXP,before);await session.stop(app,saveDraft:false);await reload.stop(app,saveDraft:false)
+    }
+}

@@ -67,10 +67,11 @@ enum TutorFocus:Equatable {
     func earnedXP(_ app:AppModel)->Int {Int(sessionRecord(app)["earnedXp"].number)}
     private func focusIsCurrent(_ app:AppModel)->Bool {focus?.isCurrent(app) ?? true}
     private func valid(_ app:AppModel,_ token:UUID)->Bool {epoch == token && owner == scope(app) && !Task.isCancelled}
-    var typedLesson:Lesson? {
+    var typedLesson:Lesson? {Self.decodeLesson(lesson)}
+    static func decodeLesson(_ source:JSONValue)->Lesson? {
         // The source ephemeral builder omits curriculum-only fields. Supply
         // neutral decoder defaults here; prompts keep using its untouched JSON.
-        var raw=lesson
+        var raw=source
         if raw["agenda"] == .null{raw=raw.setting("agenda",.object([:]))}
         if raw["xpReward"] == .null{raw=raw.setting("xpReward",.number(0))}
         if raw["modes"] == .null{raw=raw.setting("modes",.array([.string("realtime")]))}
@@ -286,6 +287,20 @@ enum TutorFocus:Equatable {
         if focusSkipped {focus=nil;focusSkipped=false;owner="";await prepare(app)}
     }
     func skipFocus(_ app:AppModel)async {focusSkipped=true;if !live.connected && !live.connecting{await stop(app)}}
+    func selectPreparedGame(_ app:AppModel,lesson:JSONValue,unit:JSONValue)->Lesson?{
+        select(app,lesson:lesson,unit:unit)
+        guard let typed=typedLesson else{return nil}
+        if !practicingCompletedLesson{app.learner.storeTutorState(lesson:typed,data:.object(["kind":.string("start"),"agenda":record(app)["tutorAgendaProgress"]["items"]]));app.persist();refresh(app)}
+        return typed
+    }
+    /// Keep the finished game and its retry action mounted until the canonical
+    /// Tutor receipt is acknowledged. Replaying a completed game stays practice.
+    func completeGame(_ app:AppModel)async->Bool{
+        guard focus == nil,owner == scope(app),!saving else{return false}
+        if practicingCompletedLesson{return true}
+        await complete(app,ready:true,gameCompleted:true)
+        return completion != nil && completionChange == nil && error == nil
+    }
     func complete(_ app:AppModel,ready:Bool,gameCompleted:Bool=false) async {
         if let focus {await completeFocus(app,focus:focus,ready:ready);return}
         guard !practicingCompletedLesson,let typedLesson,let policy,!saving else{return}

@@ -67,3 +67,6 @@ The real focused provider check passes (11.3s): the original Goal Responses rubr
 The canonical importer now retains `progress.currentTutorLesson`, alongside the already preserved Tutor document/draft. The final Firestore round-trip also checks that stored selection so finishing focused practice cannot silently forget the regular lesson it should resume.
 
 Learner Tutor now defaults to the source Gemini provider, including original system/per-turn prompts, native PCM, language hints, voice/volume and four-turn resets. See [the transport checkpoint](TUTOR_GEMINI.md); Conversations, Reading and ordinary narration keep their separate source providers.
+
+
+Tutor game preparation now stops voice before generation, keeps the original playable loader and Cancel inside the preview, commits selection and a zero-XP start only on valid handoff, and retains completed games through failed bonus acknowledgments. Back on the introductory Tutor game returns to its path; completed practice cannot receive another bonus. See [game handoffs and remaining path-presentation work](GAME_HANDOFFS.md).

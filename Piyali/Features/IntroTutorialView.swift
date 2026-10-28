@@ -11,6 +11,8 @@ struct IntroTutorialView:View {
     private var scope:String { app.identity.npub+":"+app.learner.target+":"+app.learner.support+":"+app.learner.level }
     private var mode:String { app.learner.introSession.next ?? "game" }
     private var brand:PiyaliBrand { .init(dark:scheme == .dark) }
+    @StateObject private var gamePreparation=GamePreparationController()
+    @State private var gameFooterOwner=UUID()
     @State private var gamePresented=false
     @State private var finishGameOnDismiss=false
     @State private var finishing=false
@@ -20,21 +22,24 @@ struct IntroTutorialView:View {
     var body:some View {
         let capturedScope=scope
         VStack(spacing:0) {
-            if mode != "game" { stepper.padding(.horizontal,12).padding(.vertical,16) }
+            if mode != "game" || !gamePresented { stepper.padding(.horizontal,12).padding(.vertical,16) }
             engine(scope:capturedScope).id(capturedScope+":"+mode)
         }.background(brand.background).navigationTitle(lesson.title.localized(app.learner.support)).navigationBarTitleDisplayMode(.inline)
             .disabled(app.loadingContent || app.introLibrary?.target != app.learner.target || finishing)
             .fullScreenCover(isPresented:$gamePresented,onDismiss:{if finishGameOnDismiss{finishGameOnDismiss=false;advance("game",scope:capturedScope)}else{dismiss()}}){NavigationStack{RPGView(lesson:lesson,episode:nil,onTutorialComplete:{finishGameOnDismiss=true;gamePresented=false})}}
-            .onChange(of:mode){_,value in if value == "game",!finishing{gamePresented=true}}
+            .onChange(of:mode){_,value in if value == "game",!finishing{gamePreparation.reveal()}}
+            .onChange(of:gamePreparation.ready){_,ready in if ready,!gamePresented,mode == "game",scope == capturedScope,gamePreparation.commit(app){gamePresented=true}}
+            .task(id:scope){gamePreparation.cancel();gamePreparation.start(app,lesson:lesson,deferReveal:true);if mode == "game"{gamePreparation.reveal()}}
+            .onChange(of:app.subscription.hasAccess){_,allowed in if !allowed,!gamePresented{gamePreparation.cancel()}}
             .onAppear {
                 app.lessonActivityActive=true
                 guard !appeared else { return };appeared=true
                 reviewing=app.learner.completed.contains(app.learner.completionKey(IntroTutorial.lessonID))
                 if reviewing,app.learner.introSession.ready { app.learner.restartIntroReview();app.persist() }
                 else if app.learner.introSession.ready { finish(scope:capturedScope) }
-                else if mode == "game",!finishing{gamePresented=true}
+                else if mode == "game",!finishing{gamePreparation.reveal()}
             }
-            .onDisappear { if !gamePresented{app.lessonActivityActive=false} }
+            .onDisappear { if !gamePresented{gamePreparation.cancel();app.lessonActivityActive=false} }
             .popover(item:$descriptionMode) { selected in let item=selected.id;VStack(alignment:.leading,spacing:12) { Text(LessonSessionCopy.module(item,language:app.learner.support)).font(.headline);Text(item == mode ? lesson.content[item]["tutorialDescription"].localized(app.learner.support) : LessonSessionCopy.module(item,language:app.learner.support,key:"description")) }.padding(24).presentationCompactAdaptation(.popover) }
     }
     private var stepper:some View {
@@ -60,7 +65,13 @@ struct IntroTutorialView:View {
         case "reading":ReadingView(lesson:lesson,onComplete:{ advance("reading",scope:scope) },embedded:true)
         case "stories":StoryView(lesson:lesson,onComplete:{ advance("stories",scope:scope) },embedded:true)
         case "realtime":RealtimeLessonView(lesson:lesson,onNext:{ advance("realtime",scope:scope) },startsFresh:reviewing)
-        case "game":Color.clear
+        case "game":GeometryReader{geometry in
+            VStack(spacing:12){
+                GamePreparationView(preparation:gamePreparation,support:app.learner.support,pet:app.learner.effectiveCompanionType,embedded:true,showsCancel:false,onCancel:{}).environmentObject(app).frame(height:max(300,min(UIScreen.main.bounds.height*0.62,geometry.size.height-70))).clipShape(RoundedRectangle(cornerRadius:12)).padding(.horizontal,12).accessibilityElement(children:.contain).accessibilityIdentifier("introGamePreparation")
+                if let error=gamePreparation.error{Text(error).font(PiyaliBrand.productFont(13)).foregroundStyle(.red);Button(EntryCopy.ui(app.learner.support,"practice_retry")){gamePreparation.cancel();gamePreparation.start(app,lesson:lesson);gamePreparation.reveal()}.accessibilityIdentifier("retryIntroGamePreparation")}
+                Spacer(minLength:0)
+            }
+        }.activityFooter(owner:gameFooterOwner,revision:scope+":"+String(gamePresented),access:app.subscription,enabled:!gamePresented){ActivityFooterSurface(hasFeedback:false,feedback:{EmptyView()},actions:{Button(EntryCopy.ui(app.learner.support,"ra_btn_skip")){gamePreparation.cancel();advance("game",scope:scope)}.font(PiyaliBrand.productFont(14,600)).padding(.horizontal,8).frame(height:40).buttonStyle(.plain).accessibilityIdentifier("skipIntroActivity");Spacer(minLength:0)})}
         default:EmptyView()
         }
     }

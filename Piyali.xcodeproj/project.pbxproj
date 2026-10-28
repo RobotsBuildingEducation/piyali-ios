@@ -1870,6 +1870,7 @@
 		E64CC64574065CC6510A8F8B /* RPGGround-d9339d803f3d6de31e57bbb9.png in Resources */ = {isa = PBXBuildFile; fileRef = 3C2FB2F2C93525F77D483682 /* RPGGround-d9339d803f3d6de31e57bbb9.png */; };
 		E65F295B9CBCC088EC4C2C4C /* RPGGround-c3d282ddd0f69181378984c8.png in Resources */ = {isa = PBXBuildFile; fileRef = 42D4964EEFB29DF16E03E43C /* RPGGround-c3d282ddd0f69181378984c8.png */; };
 		E6693DFB9E153CA0BAFDB9E7 /* SpeechPracticeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B40990BD139EA7E0CFA6B7D /* SpeechPracticeService.swift */; };
+		E67517D55D98A94775FB83F4 /* GameHandoffJourneyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CE56AEB6A1F50262209D108 /* GameHandoffJourneyTests.swift */; };
 		E68585417AFEB0C3FA396931 /* story-portrait-33.webp in Resources */ = {isa = PBXBuildFile; fileRef = 9E4EE1FE8E7E92F3423DB662 /* story-portrait-33.webp */; };
 		E688D839FBD36435C177DFD0 /* RPGGround-a2824f36528376bcde0509c9.png in Resources */ = {isa = PBXBuildFile; fileRef = 1F3BF1C399DAD69CFDA83611 /* RPGGround-a2824f36528376bcde0509c9.png */; };
 		E68EB81789864386C6E50663 /* GeminiLiveTutorService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 388908E421131C96BE8C5437 /* GeminiLiveTutorService.swift */; };
@@ -2695,6 +2696,7 @@
 		4C75A6AB9358A536237C5DA3 /* NarrationReplayPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NarrationReplayPlayer.swift; sourceTree = "<group>"; };
 		4C7E08E31214281559840991 /* PracticeQuestionComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PracticeQuestionComponents.swift; sourceTree = "<group>"; };
 		4CBF66CF71251DCBC5D1EFB5 /* RPGPet-robot-down-0.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGPet-robot-down-0.png"; sourceTree = "<group>"; };
+		4CE56AEB6A1F50262209D108 /* GameHandoffJourneyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameHandoffJourneyTests.swift; sourceTree = "<group>"; };
 		4D109806E5066C84AFBF982C /* course-RiCakeLine@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "course-RiCakeLine@3x.png"; sourceTree = "<group>"; };
 		4D25420488FB059C97DBF0D5 /* OrbRendererTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrbRendererTests.swift; sourceTree = "<group>"; };
 		4D2C723987F5E41A3509DC96 /* RPGPet-alien-down-2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGPet-alien-down-2.png"; sourceTree = "<group>"; };
@@ -4904,6 +4906,7 @@
 				2E16EDB98CD5683A1763BCD6 /* FlashcardParityTests.swift */,
 				AA007FC620368A00F0E7628D /* FocusedGoalSettingsJourneyTests.swift */,
 				72D9450A8E1F928FB8CAE9AC /* FocusHomeJourneyTests.swift */,
+				4CE56AEB6A1F50262209D108 /* GameHandoffJourneyTests.swift */,
 				5B78EFABB92CDEBAD8647F4C /* GamePreparationPlayTests.swift */,
 				D4D57E873DE02A66A5CBFC15 /* GuidedPracticeJourneyTests.swift */,
 				72E9028C81AB7079DE2C6E7B /* HelpChatJourneyTests.swift */,
@@ -8187,6 +8190,7 @@
 				A879D0B9C3E79FBC26D2922A /* FlashcardParityTests.swift in Sources */,
 				61E68F3A717382B18F2E1B05 /* FocusHomeJourneyTests.swift in Sources */,
 				3EDDB4E3408F97A3A23B5238 /* FocusedGoalSettingsJourneyTests.swift in Sources */,
+				E67517D55D98A94775FB83F4 /* GameHandoffJourneyTests.swift in Sources */,
 				9F7F39577015D858931A9CAA /* GamePreparationPlayTests.swift in Sources */,
 				C8AA6E519F60BFCE4DFA2AD7 /* GuidedPracticeJourneyTests.swift in Sources */,
 				3E9931D7FAD34C94CCD72CEF /* HelpChatJourneyTests.swift in Sources */,
