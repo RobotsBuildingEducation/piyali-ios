@@ -426,3 +426,13 @@ The complete Core suite passed **285 tests** and the backend suite passed **25 t
 - `PiyaliRPGPreparationLive.xcresult` passes the **actual source chapter prompt, preparation validation and both full / wrong-language NPC speech requests** through the separate Piyali Firebase identity, registered App Check token and Cloudflare Responses boundary in **29.580 seconds**. No provider fixture is enabled. The isolated Auth identity is deleted afterward; no learner-progress writes, earned XP or public relay publications are used.
 
 [Implementation, four paired states, product captures and remaining limits](RPG_PREPARATION.md) records account/support cache scoping, original shorter offline decks, speech cancellation and the remaining legacy generation/loader, progressive dialogue/translation, wider history recovery and physical-audio work. The reference checkout and deployed backend/rules remain unchanged.
+
+
+## Silent native narration preparation — October 28
+
+- `PiyaliNarrationWarmCore3.xcresult` passes 23 checks: nine source/ownership/deadline/voice/refill/release checks and fourteen existing cache/lesson/Reading/Story checks. Four actual source-pool traces and ten literal GA voice events agree. All four source exports reproduce byte for byte.
+- `PiyaliNarrationWarmLive1.xcresult` passes (14.827s): silent receive-only preparation leaves the audio session unchanged, hands off ash → echo, captures 524,288 real decoded PCM bytes, completes and replays from memory with one total connection. No microphone or idle speech request occurs.
+- `PiyaliNarrationWarmRefillLive1.xcresult` passes (14.382s): the first actual narration completes while a second native connection prepares and drains silence without requesting a response. Both live checks use muted output, isolated Firebase identities and refreshed-auth deletion; no learner progress or public relay writes occur.
+- `PiyaliNarrationWarmUI1.xcresult` passes the real entry/onboarding/placement/course journey (77.253s), idle silence, prompt on-demand playback and Skip cancellation with zero XP. Its four-second transport is UUID-scoped and synthetic; the actual controller and pool are used. The regular simulator is excluded from all fixtures.
+
+[Implementation, public metrics, product captures and failed/superseded attempts](NARRATION_WARMING.md) retain the limits. Shared edge caching, prepared-audio tickets/content prefetch, broader preparation triggers, other-mode synthesis/sounds, physical routes and complete product/design parity remain open. No backend or rules deployment is required.

@@ -3,7 +3,7 @@
 import argparse, json, os, subprocess, uuid
 from pathlib import Path
 root = Path(__file__).resolve().parent.parent
-methods = {'narration-cache':'testCompletedNativeNarrationCapturesPCMAndReplaysFromMemoryAndDisk','standard-help':'testOriginalStandardAssistanceStreamsSubmittedAttemptsAndLanguages','oral':'testOriginalOralGenerationFlashcardJudgesAndAssistanceUseNativeProviders','word-bank':'testTranslationAndRepeatUseOriginalDirectionsAndNativeJudges','standard':'testStandardChoiceFillAndMatchingUseOriginalNativeJudges','writing':'testWritingExercisesUseOriginalSemanticJudges','exercise-interactions':'testFiveExerciseBodiesUseOriginalSemanticJudgesIncludingAlternativeReplies','question-help':'testOriginalQuestionAssistanceStreamsAndExplainsThroughLearnerFirebase','teams':'testDeployedPublicMirrorMembershipRenameAddsAndRevocation','help':'testNativeHelpChatStreamsSupportLanguageAndAnalyzesTargetMorphemes',
+methods = {'narration-warm-refill':'testSilentNarrationRefillPreservesAnActiveNativePlayback','narration-warm':'testSilentPreparedNarrationHandsOffOneConnectionAndChangesVoiceBeforeSpeech','narration-cache':'testCompletedNativeNarrationCapturesPCMAndReplaysFromMemoryAndDisk','standard-help':'testOriginalStandardAssistanceStreamsSubmittedAttemptsAndLanguages','oral':'testOriginalOralGenerationFlashcardJudgesAndAssistanceUseNativeProviders','word-bank':'testTranslationAndRepeatUseOriginalDirectionsAndNativeJudges','standard':'testStandardChoiceFillAndMatchingUseOriginalNativeJudges','writing':'testWritingExercisesUseOriginalSemanticJudges','exercise-interactions':'testFiveExerciseBodiesUseOriginalSemanticJudgesIncludingAlternativeReplies','question-help':'testOriginalQuestionAssistanceStreamsAndExplainsThroughLearnerFirebase','teams':'testDeployedPublicMirrorMembershipRenameAddsAndRevocation','help':'testNativeHelpChatStreamsSupportLanguageAndAnalyzesTargetMorphemes',
            'tutor-gemini':'testLearnerGeminiTutorUsesFirebaseIdentitySourcePromptAndNativePlayback',
            'tutor-focused':'testOriginalFocusedTutorGoalAndRepairJudgesUseNativeProviders',
            'tutor':'testOriginalTutorJudgeWelcomeAndNativeVoiceWithSourceTranscriptionContext',
@@ -34,7 +34,9 @@ methods = {'narration-cache':'testCompletedNativeNarrationCapturesPCMAndReplaysF
            'signer': 'testNativeRemoteSignerAuthenticatesWithActualUserAndWebRestoreDeniesUnlinkedAccount'}
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--only", choices=sorted(methods))
-selection = parser.parse_args().only
+parser.add_argument("--result-bundle", type=Path)
+arguments = parser.parse_args()
+selection = arguments.only
 
 with (root / '.secrets/app-check-debug.json').open() as f:
     token = json.load(f)['token']
@@ -49,5 +51,6 @@ if selection == 'teams':
 tests = [test]
 if selection == 'phonics':
     tests.append('PiyaliTests/RealtimeConnectionTests/testDefaultRealtimeModelReturnsDataEventsAndNativeWebRTCAudio')
-subprocess.run([str(root / 'scripts/test-ios.sh'), *['-only-testing:' + item for item in tests]],
+subprocess.run([str(root / 'scripts/test-ios.sh'), *['-only-testing:' + item for item in tests],
+                *(['-resultBundlePath',str(arguments.result_bundle)] if arguments.result_bundle else [])],
                cwd=root, env=env, check=True)

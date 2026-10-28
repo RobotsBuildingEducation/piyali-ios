@@ -73,5 +73,5 @@ private final class SilentNarrationDrain {
             while true{lock.lock();let stop=cancelled;lock.unlock();if stop{break};let okay=autoreleasepool{pull(sampleTime)};if !okay{break};sampleTime+=480;Thread.sleep(forTimeInterval:0.01)}
         };thread.name="Piyali silent narration receiver";thread.qualityOfService = .userInitiated;self.thread=thread;thread.start()
     }
-    func stop()->Bool{lock.lock();cancelled=true;let current=thread;lock.unlock();guard let current else{return true};guard current !== Thread.current else{return false};let done=finished.wait(timeout:.now()+0.5)==.success;if done{lock.lock();thread=nil;lock.unlock()};return done}
+    func stop()->Bool{lock.lock();cancelled=true;let current=thread;lock.unlock();guard let current else{return true};guard current !== Thread.current else{return false};let done=finished.wait(timeout:.now()+0.5) == .success;if done{lock.lock();thread=nil;lock.unlock()};return done}
 }

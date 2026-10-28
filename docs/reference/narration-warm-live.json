@@ -1,0 +1,22 @@
+{
+  "ambientMicrophoneCapture" : false,
+  "cachedReplayFinished" : true,
+  "capturedPCMBytes" : 524288,
+  "eventOrder" : [
+    "session.update",
+    "conversation.item.create",
+    "response.create"
+  ],
+  "handshakes" : 1,
+  "idleCategoryUnchanged" : true,
+  "idleDrainedFrames" : 17760,
+  "idleModeUnchanged" : true,
+  "idleSpeechRequests" : 0,
+  "playSeconds" : 5.7279660701751709,
+  "speakerVolume" : 0,
+  "voiceUpdates" : [
+    "ash",
+    "echo"
+  ],
+  "warmSeconds" : 1.3588470220565796
+}

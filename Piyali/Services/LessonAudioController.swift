@@ -38,6 +38,12 @@ import Combine
         #if DEBUG
         let env=ProcessInfo.processInfo.environment
         if env["PIYALI_OFFLINE_TESTS"] == "1",env["PIYALI_LIVE_API_TESTS"] != "1",env["PIYALI_LESSON_AUDIO_FIXTURE"] == "loading",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil{return RealtimeNarrationService(factory:{LessonLoadingTransport()})}
+        if env["PIYALI_OFFLINE_TESTS"] == "1",env["PIYALI_LIVE_API_TESTS"] != "1",env["PIYALI_LESSON_AUDIO_FIXTURE"] == "warm",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil {
+            let pool=NarrationConnectionPool(factory:{LessonPreparedTransport()},authorized:{_ in true});pool.configure(account:env["PIYALI_TEST_IDENTITY_SCOPE"]!,active:true)
+            let narration=RealtimeNarrationService(factory:{LessonPreparedTransport()},cacheEnabled:false,pool:pool)
+            Task{_=await narration.warm(language:"es",engine:try? CompanionQuestPolicy())}
+            return narration
+        }
         if env["PIYALI_OFFLINE_TESTS"] == "1",env["PIYALI_LIVE_API_TESTS"] != "1",env["PIYALI_LESSON_AUDIO_FIXTURE"] == "cache",let scope=env["PIYALI_TEST_IDENTITY_SCOPE"],UUID(uuidString:scope) != nil {
             let root=FileManager.default.urls(for:.cachesDirectory,in:.userDomainMask)[0].appendingPathComponent("piyali-lesson-cache-fixture-"+scope,isDirectory:true)
             return RealtimeNarrationService(factory:{LessonCacheTransport()},cache:NarrationAudioCache(directory:root),replayFactory:{NarrationReplayPlayer(volume:0)})
@@ -58,6 +64,16 @@ import Combine
 #endif
 
 #if DEBUG
+@MainActor private final class LessonPreparedTransport:RealtimeVoiceTransport {
+    var onOpen:(()->Void)?,onEvent:((JSONValue)->Void)?,onFailure:((String)->Void)?
+    private var work:Task<Void,Never>?
+    func connect(session:JSONValue)async throws{try await Task.sleep(for:.seconds(4));try Task.checkCancellation();onOpen?()}
+    func send(_ event:JSONValue)->Bool{if event["type"].string == "response.create"{onEvent?(.object(["type":.string("output_audio_buffer.started")]));work=Task{try? await Task.sleep(for:.seconds(4));guard !Task.isCancelled else{return};onEvent?(.object(["type":.string("response.done"),"response":.object(["status":.string("completed")])]));onEvent?(.object(["type":.string("output_audio_buffer.stopped")]))}};return true}
+    func setMicrophoneEnabled(_ enabled:Bool){}
+    func setRemoteAudioEnabled(_ enabled:Bool){}
+    func playbackDrainMilliseconds()async->Double{0}
+    func close(){work?.cancel();work=nil}
+}
 @MainActor private final class LessonCacheTransport:RealtimeVoiceTransport {
     var onOpen:(()->Void)?,onEvent:((JSONValue)->Void)?,onFailure:((String)->Void)?
     private var work:Task<Void,Never>?

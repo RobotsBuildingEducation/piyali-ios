@@ -1,4 +1,5 @@
 import XCTest
+import AVFoundation
 import FirebaseCore
 import FirebaseAppCheck
 import FirebaseAuth
@@ -55,6 +56,42 @@ import Security
             let attachment=XCTAttachment(data:try JSONSerialization.data(withJSONObject:evidence,options:[.prettyPrinted,.sortedKeys]),uniformTypeIdentifier:"public.json");attachment.name="Public Story prerecorded transcription evidence";attachment.lifetime = .keepAlways;add(attachment)
         }catch{try? await deleteLiveTestIdentity(app.identity);throw error}
         try await deleteLiveTestIdentity(app.identity)
+    }
+    func testSilentPreparedNarrationHandsOffOneConnectionAndChangesVoiceBeforeSpeech()async throws{
+        if let token=ProcessInfo.processInfo.environment["TEST_RUNNER_FIRAAppCheckDebugToken"]{setenv("FIRAAppCheckDebugToken",token,1)};FirebaseConfiguration.shared.setLoggerLevel(.error)
+        let env=ProcessInfo.processInfo.environment;guard env["PIYALI_LIVE_API_TESTS"] == "1",env["PIYALI_OFFLINE_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Explicit isolated live opt-in required")}
+        if FirebaseApp.app() == nil{AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure()};XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let identity=IdentityService();try identity.create();let root=FileManager.default.temporaryDirectory.appendingPathComponent("piyali-live-warm-"+UUID().uuidString,isDirectory:true);defer{try? FileManager.default.removeItem(at:root)}
+        do{try await FirebaseIdentityService.shared.ensure(identity);let engine=try CompanionQuestPolicy(),warmSession=try engine.run("ph_tts",.object(["language":.string("es"),"voice":.string("ash")]));var connections:[NarrationWarmLiveTransport]=[]
+            let audio=AVAudioSession.sharedInstance();try audio.setCategory(.ambient,mode:.default);try audio.setActive(false);let category=audio.category.rawValue,mode=audio.mode.rawValue
+            let pool=NarrationConnectionPool(factory:{let client=NarrationWarmLiveTransport(deferred:true);connections.append(client);return client});pool.configure(account:identity.npub,active:true);defer{pool.configure(account:"",active:false)}
+            let warmBegan=Date(),prepared=await pool.warm(session:warmSession),warmSeconds=Date().timeIntervalSince(warmBegan);XCTAssertTrue(prepared);let again=await pool.warm(session:warmSession);XCTAssertTrue(again);XCTAssertEqual(connections.count,1)
+            try await Task.sleep(for:.milliseconds(250));let idleFrames=connections[0].rtc.idleNarrationFrames();XCTAssertGreaterThan(idleFrames,0);XCTAssertTrue(connections[0].sends.isEmpty);XCTAssertEqual(connections[0].responses,0);XCTAssertEqual(audio.category.rawValue,category);XCTAssertEqual(audio.mode.rawValue,mode)
+            let cache=NarrationAudioCache(directory:root),narration=RealtimeNarrationService(factory:{let client=NarrationWarmLiveTransport(deferred:false);connections.append(client);return client},cache:cache,replayFactory:{NarrationReplayPlayer(volume:0)},pool:pool),story=NativeStoryAudio(narration:narration);defer{story.stop()};story.configure(user:.object(["name":.string("Alicia")]))
+            var finished=false,failed=false;let began=Date();story.play(.init(speaker:"Sheilfer",target:"Hola, Ana. Vamos a practicar juntos."),language:"es",started:{},finished:{finished=true},failed:{failed=true})
+            for _ in 0..<800 where !finished && !failed{try await Task.sleep(for:.milliseconds(100))};XCTAssertNil(narration.error,narration.failureDetail ?? "No diagnostic");XCTAssertTrue(finished);XCTAssertFalse(failed);XCTAssertTrue(narration.usedPreparedConnection);XCTAssertEqual(connections.count,1);XCTAssertGreaterThan(narration.lastCapturedBytes,512);XCTAssertEqual(Array(connections[0].sends.prefix(3)),["session.update","conversation.item.create","response.create"]);XCTAssertTrue(connections[0].voices.contains("echo"));XCTAssertFalse(connections[0].microphone.contains(true))
+            let captured=narration.lastCapturedBytes,playSeconds=Date().timeIntervalSince(began);finished=false;story.play(.init(speaker:"Sheilfer",target:"Hola, Ana. Vamos a practicar juntos."),language:"es",started:{},finished:{finished=true},failed:{failed=true});for _ in 0..<300 where !finished && !failed{try await Task.sleep(for:.milliseconds(100))};XCTAssertTrue(finished);XCTAssertEqual(narration.playbackSource,"memory");XCTAssertEqual(connections.count,1)
+            let metrics:[String:Any]=["warmSeconds":warmSeconds,"playSeconds":playSeconds,"idleDrainedFrames":idleFrames,"handshakes":connections.count,"capturedPCMBytes":captured,"voiceUpdates":connections[0].voices,"eventOrder":connections[0].sends,"idleCategoryUnchanged":true,"idleModeUnchanged":true,"idleSpeechRequests":0,"ambientMicrophoneCapture":false,"speakerVolume":0,"cachedReplayFinished":finished]
+            let attachment=XCTAttachment(data:try JSONSerialization.data(withJSONObject:metrics,options:[.prettyPrinted,.sortedKeys]),uniformTypeIdentifier:"public.json");attachment.name="Public silent narration preparation evidence";attachment.lifetime = .keepAlways;add(attachment)
+        }catch{try? await deleteLiveTestIdentity(identity);throw error};try await deleteLiveTestIdentity(identity)
+    }
+    func testSilentNarrationRefillPreservesAnActiveNativePlayback()async throws{
+        if let token=ProcessInfo.processInfo.environment["TEST_RUNNER_FIRAAppCheckDebugToken"]{setenv("FIRAAppCheckDebugToken",token,1)};FirebaseConfiguration.shared.setLoggerLevel(.error)
+        let env=ProcessInfo.processInfo.environment;guard env["PIYALI_LIVE_API_TESTS"] == "1",env["PIYALI_OFFLINE_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Explicit isolated live opt-in required")}
+        if FirebaseApp.app() == nil{AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure()};XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let identity=IdentityService();try identity.create();let root=FileManager.default.temporaryDirectory.appendingPathComponent("piyali-live-refill-"+UUID().uuidString,isDirectory:true);defer{try? FileManager.default.removeItem(at:root)}
+        do{try await FirebaseIdentityService.shared.ensure(identity);let engine=try CompanionQuestPolicy(),session=try engine.run("ph_tts",.object(["language":.string("es"),"voice":.string("ash")]));var clients:[NarrationWarmLiveTransport]=[]
+            let pool=NarrationConnectionPool(factory:{let client=NarrationWarmLiveTransport(deferred:true);clients.append(client);return client});pool.configure(account:identity.npub,active:true);pool.automaticRefill=true;defer{pool.configure(account:"",active:false)}
+            let prepared=await pool.warm(session:session);XCTAssertTrue(prepared)
+            let narration=RealtimeNarrationService(factory:{let client=NarrationWarmLiveTransport(deferred:false);clients.append(client);return client},cache:NarrationAudioCache(directory:root),pool:pool);defer{narration.stopAll()};var finished=false,failed=false
+            narration.play("Hola, Ana. Hoy vamos a practicar juntos. Primero, abre tu cuaderno. Después, escribe una frase sobre tu familia.",language:"es",engine:engine,onFailed:{failed=true},onFinished:{finished=true})
+            for _ in 0..<500 where !(pool.prepared && narration.playing) && !finished && !failed{try await Task.sleep(for:.milliseconds(100))}
+            let unused=try XCTUnwrap(clients.dropFirst().first);XCTAssertEqual(clients.count,2);XCTAssertTrue(pool.prepared);XCTAssertTrue(narration.playing);XCTAssertFalse(finished);XCTAssertEqual(AVAudioSession.sharedInstance().category,.playback);XCTAssertTrue(unused.sends.isEmpty);XCTAssertEqual(unused.responses,0);XCTAssertGreaterThan(unused.rtc.idleNarrationFrames(),0)
+            for _ in 0..<900 where !finished && !failed{try await Task.sleep(for:.milliseconds(100))};XCTAssertNil(narration.error,narration.failureDetail ?? "No diagnostic");XCTAssertTrue(finished);XCTAssertFalse(failed);XCTAssertTrue(narration.usedPreparedConnection);XCTAssertEqual(clients.count,2);XCTAssertEqual(clients[0].responses,1);XCTAssertEqual(unused.responses,0);XCTAssertFalse(clients.flatMap(\.microphone).contains(true))
+            XCTAssertGreaterThan(narration.lastCapturedBytes,512)
+            let metrics:[String:Any]=["handshakes":clients.count,"activeResponses":clients[0].responses,"capturedPCMBytes":narration.lastCapturedBytes,"unusedResponses":unused.responses,"unusedEventSends":unused.sends,"unusedIdleDrainedFrames":unused.rtc.idleNarrationFrames(),"activePlaybackSurvivedRefill":finished,"microphoneCapture":false,"speakerVolume":0]
+            let attachment=XCTAttachment(data:try JSONSerialization.data(withJSONObject:metrics,options:[.prettyPrinted,.sortedKeys]),uniformTypeIdentifier:"public.json");attachment.name="Public simultaneous native narration refill evidence";attachment.lifetime = .keepAlways;add(attachment)
+        }catch{try? await deleteLiveTestIdentity(identity);throw error};try await deleteLiveTestIdentity(identity)
     }
     func testCompletedNativeNarrationCapturesPCMAndReplaysFromMemoryAndDisk()async throws{
         if let token=ProcessInfo.processInfo.environment["TEST_RUNNER_FIRAAppCheckDebugToken"]{setenv("FIRAAppCheckDebugToken",token,1)};FirebaseConfiguration.shared.setLoggerLevel(.error)

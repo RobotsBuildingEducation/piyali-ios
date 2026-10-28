@@ -1,0 +1,16 @@
+[
+  {
+    "capture": "docs/native/narration-warm-product-skip.png",
+    "label": "Native prepared narration stops on Skip without awarding XP",
+    "sha256": "cb415ea155b8331c4ba6e8fb8684fe83f65c83bcaa814d3eb30422c905c3e3fc",
+    "bundle": "PiyaliNarrationWarmUI1.xcresult",
+    "test": "StandardBodyJourneyTests/testPreparedQuestionNarrationStartsWithoutAnotherHandshakeAndSkipStopsPlayback()"
+  },
+  {
+    "capture": "docs/native/narration-warm-product-playing.png",
+    "label": "Native prepared question narration starts on demand",
+    "sha256": "7a3715c55fcd34ea134447a106603ed054cf525655a9d120e3f62ca3c148e49a",
+    "bundle": "PiyaliNarrationWarmUI1.xcresult",
+    "test": "StandardBodyJourneyTests/testPreparedQuestionNarrationStartsWithoutAnotherHandshakeAndSkipStopsPlayback()"
+  }
+]
