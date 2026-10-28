@@ -1,0 +1,124 @@
+{
+  "sources": [
+    {
+      "file": "src/components/PaperPencilModal.jsx",
+      "sha256": "70e7c58a94a6db3263f30797ffc5bf839fb518e79084ea60acabee5f29763b3d"
+    },
+    {
+      "file": "src/utils/paperPencilModalTranslations.js",
+      "sha256": "85bb54d68f363e52a7fd536bf9cddf29d47215f2a6d5839b8a2c99d7b3fc6229"
+    },
+    {
+      "file": "src/utils/translation.jsx",
+      "sha256": "010eb38be8f55e0509b99c209ae4042833057f3e28e0d925636dec42d7fb6fb6"
+    },
+    {
+      "file": "src/utils/translationArStatic.js",
+      "sha256": "1de18d1a33d0fd75344507b06799c9d60d1584ee72facab3cbff19293d5c5bc1"
+    },
+    {
+      "file": "src/utils/SoundManager.js",
+      "sha256": "74b0ae85c6ea2b8a077af4176d6ad5df6f5715ecc7d0bcdf65789a4875fc7471"
+    },
+    {
+      "file": "src/utils/modalMotion.js",
+      "sha256": "6a761b545b8bda646d8ea1783326ed27ac2d8fa61f3061a0c46de28abf702527"
+    },
+    {
+      "file": "src/theme.js",
+      "sha256": "6fe6093ecca51d0debb1314a587d6bd0927e7ac9f8c1ba2c6c744017e3be407e"
+    },
+    {
+      "file": "src/index.css",
+      "sha256": "79a5362dc1b189acd0d2288c0e85ff29c9cc1c8e39b8bb5cabe164ddd1c29030"
+    }
+  ],
+  "locales": [
+    "en",
+    "es",
+    "pt",
+    "it",
+    "fr",
+    "de",
+    "ja",
+    "hi",
+    "ar",
+    "zh",
+    "ru"
+  ],
+  "animations": [
+    {
+      "kind": "pencilFloat",
+      "origin": [
+        210,
+        92
+      ],
+      "duration": 3.4,
+      "delay": 0
+    },
+    {
+      "kind": "sparklePulse",
+      "origin": [
+        68,
+        42
+      ],
+      "duration": 2.6,
+      "delay": 0
+    },
+    {
+      "kind": "sparklePulse",
+      "origin": [
+        282,
+        68
+      ],
+      "duration": 3.1,
+      "delay": 0.8
+    }
+  ],
+  "audio": {
+    "notes": [
+      {
+        "note": "C5",
+        "duration": "32n",
+        "at": 0,
+        "envelope": {
+          "type": "sine",
+          "attack": 0.005,
+          "decay": 0.09,
+          "sustain": 0,
+          "release": 0.08
+        },
+        "volume": -12
+      },
+      {
+        "note": "E5",
+        "duration": "32n",
+        "at": 0.04,
+        "envelope": {
+          "type": "sine",
+          "attack": 0.005,
+          "decay": 0.09,
+          "sustain": 0,
+          "release": 0.08
+        },
+        "volume": -12
+      },
+      {
+        "note": "G5",
+        "duration": "32n",
+        "at": 0.08,
+        "envelope": {
+          "type": "sine",
+          "attack": 0.005,
+          "decay": 0.09,
+          "sustain": 0,
+          "release": 0.08
+        },
+        "volume": -12
+      }
+    ],
+    "seconds": 0.2225170068027211,
+    "rendering": "Original source pitches/timing/gain; PCM approximates Tone sine envelopes at 120 BPM."
+  },
+  "scope": "Actual modal copy resolver and animation descriptors. Authored SVG layers are separately serialized and rasterized by iPhone WebKit with no learner/provider I/O."
+}

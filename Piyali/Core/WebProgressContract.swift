@@ -44,6 +44,7 @@ public enum WebProgressContract {
         state.completedConversationGoals=(state.completedConversationGoals ?? []).union(fields["iosCompletedConversationGoalIDs"] as? [String] ?? [])
         state.companionProgress = JSONValue.foundation(fields.filter { CompanionHealth.keys.contains($0.key) }.merging(CompanionHealth.reconcileFields(fields,now:now)) { _,new in new })
         state.gettingStartedModalShown = state.gettingStartedModalShown == true || fields["gettingStartedModalShown"] as? Bool == true ? true : state.gettingStartedModalShown
+        state.paperPencilModalShown = state.paperPencilModalShown == true || fields["paperPencilModalShown"] as? Bool == true ? true : state.paperPencilModalShown
         // The original prompt falls back to the old account-wide placement
         // only while the language placement map is entirely absent.
         state.legacyFirstRunPlacement = fields["proficiencyPlacements"] == nil || fields["proficiencyPlacements"] is NSNull ? (fields["proficiencyPlacement"] as? String).flatMap{$0.isEmpty ? nil : $0} : nil

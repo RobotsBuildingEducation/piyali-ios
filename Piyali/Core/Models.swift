@@ -228,6 +228,7 @@ public struct LearnerState: Codable, Sendable {
     public var courseSummaries: [String:JSONValue]?
     public var courseCompletion: [String: [String: [String: Int]]]?
     public var gettingStartedModalShown:Bool?
+    public var paperPencilModalShown:Bool?
     public var legacyFirstRunPlacement:String?
     public var legacySubscriptionPasscodeVerified:Bool?
     public var onboardingComplete = false

@@ -9,7 +9,7 @@ import XCTest
     }
     private func shot(_ app:XCUIApplication,_ name:String){let attachment=XCTAttachment(screenshot:app.screenshot());attachment.name=name;attachment.lifetime = .keepAlways;add(attachment)}
     private func reveal(_ app:XCUIApplication,_ element:XCUIElement){for _ in 0..<8 where !element.exists || !element.isHittable {app.swipeUp(velocity:.slow)};XCTAssertTrue(element.isHittable)}
-    private func dismissWelcome(_ app:XCUIApplication){let next=app.buttons["companionContinue"];reveal(app,next);next.tap();XCTAssertTrue(app.buttons["gettingStartedGotIt"].waitForExistence(timeout:5));app.buttons["gettingStartedGotIt"].tap();XCTAssertTrue(app.buttons["placementNew"].waitForExistence(timeout:5));app.buttons["placementNew"].tap()}
+    private func dismissWelcome(_ app:XCUIApplication){let next=app.buttons["companionContinue"];reveal(app,next);next.tap();acknowledgePaperPencil(app);XCTAssertTrue(app.buttons["gettingStartedGotIt"].waitForExistence(timeout:5));app.buttons["gettingStartedGotIt"].tap();XCTAssertTrue(app.buttons["placementNew"].waitForExistence(timeout:5));app.buttons["placementNew"].tap()}
     func testWelcomeGeometryCustomizeCancelSaveAndImmersionRewardSurviveRelaunch() {
         continueAfterFailure=false;let app=launch();enter(app)
         XCTAssertFalse(app.buttons["startDailyPractice"].isEnabled);XCTAssertFalse(app.buttons["focusCustomizeCompanion"].isEnabled);XCTAssertLessThanOrEqual(app.buttons["companionContinue"].frame.maxY,app.buttons["focusCustomizeCompanion"].frame.minY+1,"The balloon must float above the pet, rather than cover its meters.")

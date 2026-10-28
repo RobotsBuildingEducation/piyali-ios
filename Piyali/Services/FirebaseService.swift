@@ -84,6 +84,10 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
         for month in months.documents { let values=Self.normalized(month.data());days.merge(values["days"] as? [String:Any] ?? [:]) { _,new in new };goals.formUnion(values["goalDays"] as? [String] ?? []) }
         return JSONValue.foundation(["days":days,"goalDays":goals.sorted()])
     }
+    func saveFirstRunAcknowledgment(_ acknowledgment:FirstRunAcknowledgment,npub:String)async throws{
+        guard let database else{throw AppError.message("Sync your account to save this acknowledgment.")};try requireOwner(npub)
+        try await database.collection("users").document(npub).setData([acknowledgment.rawValue:true,"updatedAt":WebProgressContract.iso(Date())],merge:true)
+    }
     func load(npub: String, local: LearnerState? = nil) async throws -> LearnerState? {
         guard let database else { return nil }
         try requireOwner(npub)
@@ -261,6 +265,7 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                 // Acknowledging guidance is monotonic and independent of
                 // preference timestamps, so a stale device cannot unsee it.
                 if state.gettingStartedModalShown == true {patch["gettingStartedModalShown"]=true}
+                if state.paperPencilModalShown == true {patch["paperPencilModalShown"]=true}
                 patch.merge(petPatch) { _,new in new }
                 if fields["createdAt"] == nil { patch["createdAt"] = WebProgressContract.iso(Date()) }
                 if state.preferencesModifiedAt.map({ $0 > (WebProgressContract.date(Self.normalized(fields)["iosPreferencesModifiedAt"]) ?? .distantPast) }) == true || fields["iosStateJSON"] == nil || !snapshot.exists {

@@ -12,7 +12,7 @@ import XCTest
         let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString;app.launchEnvironment["PIYALI_PRACTICE_FIXTURE"]="delight:natural_or_weird"
         app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"];app.launch()
         let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Quiz Learner");if app.buttons["entryKeyboardDone"].exists { app.buttons["entryKeyboardDone"].tap() };tap("createAccount",app);tap("startLearning",app)
-        tap("companionContinue",app);tap("gettingStartedGotIt",app)
+        tap("companionContinue",app);acknowledgePaperPencil(app);tap("gettingStartedGotIt",app)
         tap("placementFindLevel",app);let common=app.buttons["placementOption-common_words"];XCTAssertTrue(common.waitForExistence(timeout:5));common.tap();XCTAssertEqual(common.value as? String,"Selected");tap("placementNext",app);tap("placementNext",app);tap("placementStart",app)
         open(app)
         for count in 1...3 {

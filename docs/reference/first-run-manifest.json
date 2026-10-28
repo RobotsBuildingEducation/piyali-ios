@@ -6,11 +6,15 @@
   "sources": [
     {
       "file": "src/App.jsx",
-      "sha256": "eb7e06e1422cac6d205059dc92d68370bec40c1009c1a316f0c2d3eb5f325fd6"
+      "sha256": "5fd4a87bd5db004c1fc049ff7e8c7e266e6d65d7c42201ef75e923044c4a7dc8"
     },
     {
       "file": "src/components/GettingStartedModal.jsx",
       "sha256": "77013aa8090df95b9a8af96c8cbfa0d0f3a16f38426deb0c08d12c2a5857d75f"
+    },
+    {
+      "file": "src/components/PaperPencilModal.jsx",
+      "sha256": "70e7c58a94a6db3263f30797ffc5bf839fb518e79084ea60acabee5f29763b3d"
     },
     {
       "file": "src/components/ProficiencyTestModal.jsx",
@@ -37,5 +41,5 @@
       "sha256": "607f7c208ed11ee9f47738e1b73e1171933e7a53d858726e225ef7e5a1d1f083"
     }
   ],
-  "scope": "Actual companion Continue, proficiency guard and GettingStarted Skip callbacks executed directly for 72 combinations, with identity/storage/render/sound/network effects replaced by inert fixture setters. Flag writing is stubbed; native Firestore behavior is checked separately. Native app-installed acknowledgement and authenticated expiring/local-only key copying are platform adaptations. The five original browser installation steps remain available."
+  "scope": "Actual companion Continue, proficiency guard and GettingStarted Skip callbacks executed directly for 288 combinations, with identity/storage/render/sound/network effects replaced by inert fixture setters. Flag writing is stubbed; native Firestore behavior is checked separately. Native app-installed acknowledgement and authenticated expiring/local-only key copying are platform adaptations. The five original browser installation steps remain available."
 }

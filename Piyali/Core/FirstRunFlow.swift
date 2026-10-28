@@ -1,18 +1,25 @@
 import Foundation
 
-/// Companion Continue → install/key guidance → starting-level choice. The
+public enum FirstRunAcknowledgment:String,Sendable {case paperPencil="paperPencilModalShown",gettingStarted="gettingStartedModalShown"}
+
+/// Companion Continue → paper/pencil suggestion → install/key guidance → starting-level choice. The
 /// guidance flag belongs to the account; placement prompting is once per
 /// account/language in this mounted app session, as in the source ref.
 public struct FirstRunFlow:Equatable,Sendable {
-    public enum Step:String,Sendable {case gettingStarted,placement}
+    public enum Step:String,Sendable {case paperPencil,gettingStarted,placement}
     public private(set) var step:Step?
     public private(set) var scope:String?
     public private(set) var promptedPlacement:String?
     public init() {}
-    public mutating func request(scope:String,shown:Bool,hasPlacement:Bool) {
+    public mutating func request(scope:String,shown:Bool,paperShown:Bool,hasPlacement:Bool) {
         guard step == nil else{return}
         self.scope=scope
-        if !shown {step = .gettingStarted} else {openPlacement(scope:scope,hasPlacement:hasPlacement)}
+        if !paperShown && !shown {step = .paperPencil}
+        else if !shown {step = .gettingStarted} else {openPlacement(scope:scope,hasPlacement:hasPlacement)}
+    }
+    @discardableResult public mutating func acknowledgePaper(scope:String,shown:Bool,hasPlacement:Bool)->Bool {
+        guard self.scope == scope,step == .paperPencil else{return false}
+        step=nil;if !shown{step = .gettingStarted}else{openPlacement(scope:scope,hasPlacement:hasPlacement)};return true
     }
     @discardableResult public mutating func acknowledge(scope:String,hasPlacement:Bool)->Bool {
         guard self.scope == scope,step == .gettingStarted else{return false}

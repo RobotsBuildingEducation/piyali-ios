@@ -370,6 +370,13 @@ import SwiftUI
         contentTask = task; await task.value
     }
     private func writeLocal() throws {do{try JSONEncoder().encode(learner).write(to:localURL,options:[.atomic,.completeFileProtection]);if localStorageUnavailable{localStorageUnavailable=false}}catch{if !localStorageUnavailable{localStorageUnavailable=true};throw error}}
+    func acknowledgeFirstRun(_ acknowledgment:FirstRunAcknowledgment){
+        guard signedIn,!identity.npub.isEmpty else{return};let account=identity.npub
+        switch acknowledgment{case .paperPencil:learner.paperPencilModalShown=true;case .gettingStarted:learner.gettingStartedModalShown=true}
+        // Acknowledgment never prepares/claims a plate, awards XP or flushes unrelated work.
+        do{try writeLocal()}catch{self.error="Could not save progress: \(error.localizedDescription)"}
+        Task{[weak self] in guard let self else{return};do{try await FirebaseIdentityService.shared.ensure(identity);guard signedIn,identity.npub == account else{return};try await progressService.saveFirstRunAcknowledgment(acknowledgment,npub:account)}catch{guard signedIn,identity.npub == account else{return};syncStatus="Saved on iPhone; cloud sync pending"}}
+    }
     func persist() {
         learner.migrateCompanionCustomization()
         if learner.companionName != lastPersisted.companionName || learner.companionType != lastPersisted.companionType{

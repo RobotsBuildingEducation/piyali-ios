@@ -71,7 +71,7 @@ import XCTest
         app.buttons["productMenu"].tap();app.buttons["productModeMenu"].tap();app.buttons["productMode-focus"].tap();XCTAssertTrue(app.staticTexts["todayFocusTitle"].waitForExistence(timeout:5))
         let continueButton=app.buttons["companionContinue"]
         for _ in 0..<6 where !continueButton.isHittable { app.swipeUp(velocity:.slow) }
-        continueButton.tap();XCTAssertTrue(app.buttons["gettingStartedGotIt"].waitForExistence(timeout:5));app.buttons["gettingStartedGotIt"].tap();XCTAssertTrue(app.buttons["placementNew"].waitForExistence(timeout:5));XCTAssertTrue(app.buttons["placementFindLevel"].exists);app.buttons["placementNew"].tap()
+        continueButton.tap();acknowledgePaperPencil(app);XCTAssertTrue(app.buttons["gettingStartedGotIt"].waitForExistence(timeout:5));app.buttons["gettingStartedGotIt"].tap();XCTAssertTrue(app.buttons["placementNew"].waitForExistence(timeout:5));XCTAssertTrue(app.buttons["placementFindLevel"].exists);app.buttons["placementNew"].tap()
         let start=app.buttons["startDailyPractice"];for _ in 0..<6 where !start.isHittable { app.swipeDown(velocity:.slow) }
         XCTAssertTrue(NSPredicate(format:"enabled == true").evaluate(with:start) || XCTWaiter.wait(for:[XCTNSPredicateExpectation(predicate:NSPredicate(format:"enabled == true"),object:start)],timeout:10) == .completed);start.tap();XCTAssertTrue(app.navigationBars["Tutor"].waitForExistence(timeout:10));XCTAssertFalse(app.buttons["Start voice session"].exists,"Starting a daily task chooses the mode, not a lesson or microphone session")
     }

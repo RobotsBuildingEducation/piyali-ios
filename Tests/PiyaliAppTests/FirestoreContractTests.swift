@@ -743,6 +743,18 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
         XCTAssertEqual(restored.goalIntelligence?["es"]?["activeGoal"]["text"].string,"Talk with family");XCTAssertEqual(restored.goalIntelligence?["it"]?["activeGoal"]["id"].string,"untouched");XCTAssertNil(restored.goalIntelligence?["en"])
         XCTAssertEqual(restored.totalXP,0);XCTAssertNil(restored.placements);XCTAssertEqual((fields["membership"] as? [String:Any])?["active"] as? Bool,true)
     }
+    func testPaperAndSetupPartialAcknowledgmentsPreserveForeignFieldsAndConvergeWithStaleDevice()async throws{
+        let(service,db,npub)=try context();try await seed(db,npub);let user=db.collection("users").document(npub)
+        try await user.setData(["membership":["active":true],"proficiencyPlacements":["fr":"A1"],"foreignWriter":"preserve"],merge:true)
+        let stale=try requireState(await service.load(npub:npub)),before=try await user.getDocument(source:.server).data() ?? [:]
+        try await service.saveFirstRunAcknowledgment(.paperPencil,npub:npub);try await service.saveFirstRunAcknowledgment(.gettingStarted,npub:npub)
+        let partial=try await user.getDocument(source:.server).data() ?? [:]
+        XCTAssertEqual(partial["paperPencilModalShown"]as?Bool,true);XCTAssertEqual(partial["gettingStartedModalShown"]as?Bool,true);XCTAssertEqual(partial["xp"]as?Int,before["xp"]as?Int);XCTAssertEqual(partial["iosStateJSON"]as?String,before["iosStateJSON"]as?String);XCTAssertNotNil(partial["updatedAt"]as?String)
+        _=try await service.save(stale,npub:npub);let restored=try requireState(await service.load(npub:npub)),fields=try await user.getDocument(source:.server).data() ?? [:]
+        XCTAssertTrue(restored.paperPencilModalShown == true);XCTAssertTrue(restored.gettingStartedModalShown == true);XCTAssertEqual(restored.totalXP,stale.totalXP);XCTAssertEqual(restored.placements?["fr"]?.level,"A1");XCTAssertEqual(fields["foreignWriter"]as?String,"preserve");XCTAssertEqual(fields["patreonVerified"]as?Bool,true);XCTAssertEqual((fields["membership"]as?[String:Any])?["active"]as?Bool,true)
+        // An offline acknowledgment also uploads through the ordinary durable save path.
+        let(_,_,other)=try context();var offline=LearnerState();offline.paperPencilModalShown=true;_=try await service.save(offline,npub:other);let retried=try requireState(await service.load(npub:other));XCTAssertTrue(retried.paperPencilModalShown == true)
+    }
     func testGettingStartedAcknowledgmentSurvivesStaleDeviceAndKeepsPlacementMembershipAndXP() async throws {
         let (service,db,npub)=try context();try await seed(db,npub)
         let user=db.collection("users").document(npub)

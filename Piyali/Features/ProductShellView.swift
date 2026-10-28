@@ -86,7 +86,8 @@ struct ProductShellView:View {
                 if let step=firstRun.step {
                     ZStack {
                         (scheme == .dark ? Color(red:2/255,green:6/255,blue:23/255).opacity(0.92) : Color(red:28/255,green:20/255,blue:12/255).opacity(0.82)).ignoresSafeArea().onTapGesture {closeFirstRun()}
-                        if step == .gettingStarted {GettingStartedView(onClose:closeFirstRun)}
+                        if step == .paperPencil {PaperPencilView(onClose:closeFirstRun)}
+                        else if step == .gettingStarted {GettingStartedView(onClose:closeFirstRun)}
                         else {PlacementView(overlay:true,onClose:{firstRun.close()})}
                     }.accessibilityElement(children:.contain).accessibilityIdentifier("firstRunDialog")
                 }
@@ -186,8 +187,10 @@ struct ProductShellView:View {
         }
     }
     private func closeFirstRun() {
-        if firstRun.step == .gettingStarted {
-            if firstRun.acknowledge(scope:firstRunScope,hasPlacement:app.learner.hasFirstRunPlacement) {app.learner.gettingStartedModalShown=true;app.persist()}
+        if firstRun.step == .paperPencil {
+            if firstRun.acknowledgePaper(scope:firstRunScope,shown:app.learner.gettingStartedModalShown == true,hasPlacement:app.learner.hasFirstRunPlacement){app.acknowledgeFirstRun(.paperPencil);let account=app.identity.npub;Task{try? await Task.sleep(for:.milliseconds(32));guard app.signedIn,app.identity.npub == account,scenePhase == .active else{return};if app.learner.soundEffectsEnabled{UIImpactFeedbackGenerator(style:.light).impactOccurred()};practiceSounds.play("submitAction",enabled:app.learner.soundEffectsEnabled,volume:app.learner.settingsSnapshot["soundVolume"] == .null ? 100:app.learner.settingsSnapshot["soundVolume"].number)}}
+        } else if firstRun.step == .gettingStarted {
+            if firstRun.acknowledge(scope:firstRunScope,hasPlacement:app.learner.hasFirstRunPlacement) {app.acknowledgeFirstRun(.gettingStarted)}
         } else {firstRun.close()}
     }
     private func menuButton(compact:Bool)->some View {
@@ -197,7 +200,7 @@ struct ProductShellView:View {
         if specialCourse == "goal" {FocusedGoalCourseView(onSurface:{mode=$0})}
         else if specialCourse == "repair" { RepairPracticeView(onSurface:{mode=$0}) }
         else { switch mode {
-        case .focus: TodayFocusHomeView(now:now,sessionActive:practice.guided != nil,startingPractice:launchID != nil,onStart:startPractice,onPanel:{ panel=$0 },onCompanionContinue:{firstRun.request(scope:firstRunScope,shown:app.learner.gettingStartedModalShown == true,hasPlacement:app.learner.hasFirstRunPlacement)})
+        case .focus: TodayFocusHomeView(now:now,sessionActive:practice.guided != nil,startingPractice:launchID != nil,onStart:startPractice,onPanel:{ panel=$0 },onCompanionContinue:{firstRun.request(scope:firstRunScope,shown:app.learner.gettingStartedModalShown == true,paperShown:app.learner.paperPencilModalShown == true,hasPlacement:app.learner.hasFirstRunPlacement)})
         case .path: LessonPathView()
         case .cards: FlashcardsView()
         case .phonics: PhonicsView()
