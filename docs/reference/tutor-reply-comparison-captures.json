@@ -1,0 +1,186 @@
+{
+  "result": "/tmp/PiyaliTutorReply7.xcresult",
+  "scope": "Original source AlignedBubble and native TutorReplyView at 375x667 and 402x874, English/light and Arabic/dark support, short/long/hidden translations, repeated/overlapping visible phrases and excluded absent pairs. Original replay callback and phrase click execute. Native panel width/height compared to original computed bounds. Shared neutral backdrop; no whole-product, motion, physical-audio or provider-quality claim.",
+  "records": [
+    {
+      "file": "docs/reference/tutor-reply-en-375-short.png",
+      "sha256": "cebfa70dadcdab14b6ca7c8e833d597cd4a1f7a5b4cc513bd0eac468f254c54c",
+      "attachment": "Source Tutor reply en 375 short_0_FB1F8E11-235C-4A37-8CE0-BED434CB17DD.png"
+    },
+    {
+      "file": "docs/native/tutor-reply-en-375-short.png",
+      "sha256": "b4c6ded4439905e41d530f45d4a8657f54e0b38dd80871c6cf22cc46537cc323",
+      "attachment": "Native Tutor reply en 375 short_0_96730E08-4E8C-4B53-8735-4077B61D7C27.png"
+    },
+    {
+      "file": "docs/reference/tutor-reply-en-375-short-metrics.json",
+      "sha256": "05be0ee92d2d3e546cb364e55c64f845a68a3e6c9a52af8bad5c702c9df7339e",
+      "attachment": "Source Tutor reply en 375 short metrics_0_2DCECB97-78AC-4523-8886-9A324647591D.json"
+    },
+    {
+      "file": "docs/reference/tutor-reply-en-375-long.png",
+      "sha256": "60bd589db24fbd4332b1d6f61093e45386e503ed1d02d30cf82064651e6ba377",
+      "attachment": "Source Tutor reply en 375 long_0_170BE9C9-5E5E-4DEE-AE5B-1EB8CCF481BE.png"
+    },
+    {
+      "file": "docs/native/tutor-reply-en-375-long.png",
+      "sha256": "8d78e8a948e1957cc5f7298e35206fdf3e1763e2093c7a9621931507031c549a",
+      "attachment": "Native Tutor reply en 375 long_0_E00B35A6-C299-43AD-919D-9EF1BC2DC54F.png"
+    },
+    {
+      "file": "docs/reference/tutor-reply-en-375-long-metrics.json",
+      "sha256": "b2f98ec67e7478366bc09a2d2cf37f1d3edb928bab0dd32dce61e742ade7dc5e",
+      "attachment": "Source Tutor reply en 375 long metrics_0_8B3E4FEA-D9B4-4719-9723-673D448D8FE0.json"
+    },
+    {
+      "file": "docs/reference/tutor-reply-en-375-hidden.png",
+      "sha256": "0124830a8b998d48ac8cdacda4da8d1e9f2d56be888f66a6392b3f505b34a9b2",
+      "attachment": "Source Tutor reply en 375 hidden_0_A879D5BC-DF2F-4F98-A290-5A7B4B2BAAC0.png"
+    },
+    {
+      "file": "docs/native/tutor-reply-en-375-hidden.png",
+      "sha256": "0cae3b0c3835c4888617074dbf4d7d731c4b2659dac3d2cd5718afe8d90adca8",
+      "attachment": "Native Tutor reply en 375 hidden_0_B4301FE6-485A-4F15-9EDD-4C4869582BD5.png"
+    },
+    {
+      "file": "docs/reference/tutor-reply-en-375-hidden-metrics.json",
+      "sha256": "4091fc1d0db2405348e2ff451ce0043a506c790d8422da16d63a6ed3cd622315",
+      "attachment": "Source Tutor reply en 375 hidden metrics_0_16158E1E-6382-4710-B5B2-B129508174CE.json"
+    },
+    {
+      "file": "docs/reference/tutor-reply-ar-375-short.png",
+      "sha256": "c81bab6a9462d3a8cbc79a4f9c973f1b8f19e17f4df22173abc2dc5380f56040",
+      "attachment": "Source Tutor reply ar 375 short_0_2664C86D-0989-4D4C-96CD-8430792FE793.png"
+    },
+    {
+      "file": "docs/native/tutor-reply-ar-375-short.png",
+      "sha256": "7359b5deac6b9bdfd48347a67df8e7c4247e07a891b51c3f7b91f288ee6d825d",
+      "attachment": "Native Tutor reply ar 375 short_0_5EF8FB7D-A3A0-4926-A5F3-27A231A890FA.png"
+    },
+    {
+      "file": "docs/reference/tutor-reply-ar-375-short-metrics.json",
+      "sha256": "048440681146da41c2f5be4c9f1a18d3dd0a50a12294b42a77c43cf0f964bad5",
+      "attachment": "Source Tutor reply ar 375 short metrics_0_728A8C66-E90B-42FD-B327-78744C9D1FBB.json"
+    },
+    {
+      "file": "docs/reference/tutor-reply-ar-375-long.png",
+      "sha256": "b0ace4f77b3fa674b07a50bb9052c51d76a2437068b042b7ab161a2f8bef1eca",
+      "attachment": "Source Tutor reply ar 375 long_0_A49AF227-FFB5-42A1-8CD0-B231EB224ABF.png"
+    },
+    {
+      "file": "docs/native/tutor-reply-ar-375-long.png",
+      "sha256": "540fdb01b1f93d4df0c522c938491c9787385f5a5f8846eb6e126752a4ae2973",
+      "attachment": "Native Tutor reply ar 375 long_0_639C754C-1FD7-4FCA-9BE6-1F5206C6778D.png"
+    },
+    {
+      "file": "docs/reference/tutor-reply-ar-375-long-metrics.json",
+      "sha256": "7a97e9cca42572efaccb3f92c616d541b22d715d9bc4c3c843880ec5bf67ffe5",
+      "attachment": "Source Tutor reply ar 375 long metrics_0_DDB82BCF-7436-4019-98FB-610F503563D4.json"
+    },
+    {
+      "file": "docs/reference/tutor-reply-ar-375-hidden.png",
+      "sha256": "094701caacdf31b252f61b34f4683e67fd2644a2ef64d8e06e88825412500a1f",
+      "attachment": "Source Tutor reply ar 375 hidden_0_253B7379-34E1-4C3C-B7DA-F3D98B9CBD66.png"
+    },
+    {
+      "file": "docs/native/tutor-reply-ar-375-hidden.png",
+      "sha256": "fdf9564825e5f2ef9898142679d6ceb6452b166b0cae3d886fc1fbc226117dc2",
+      "attachment": "Native Tutor reply ar 375 hidden_0_FB12F1BD-9B5D-49E6-966C-EF72DE91D79E.png"
+    },
+    {
+      "file": "docs/reference/tutor-reply-ar-375-hidden-metrics.json",
+      "sha256": "cbbd51a69179f4bfa702914a000ce074788fd3d1b71fc949785627adaad8eeb6",
+      "attachment": "Source Tutor reply ar 375 hidden metrics_0_123AA856-7E2D-4DEC-9A81-7DD9C9A611ED.json"
+    },
+    {
+      "file": "docs/reference/tutor-reply-en-402-short.png",
+      "sha256": "9a16e4b30418dccfcad705a5d02435c52a5895e8d8bd43604192a6459c1cab2b",
+      "attachment": "Source Tutor reply en 402 short_0_B0721659-92D5-473E-8B20-0E631CA4576F.png"
+    },
+    {
+      "file": "docs/native/tutor-reply-en-402-short.png",
+      "sha256": "5ac8227783e10830fd6f8188245fd8c70ec000ef9a6dc6104a45c913493ceecc",
+      "attachment": "Native Tutor reply en 402 short_0_D744BBE8-9B9B-457E-AB39-B3455DA8162B.png"
+    },
+    {
+      "file": "docs/reference/tutor-reply-en-402-short-metrics.json",
+      "sha256": "fa50def00badee66fcbcb37cecbda9399fec4a9082075438237bf955f9f19a0e",
+      "attachment": "Source Tutor reply en 402 short metrics_0_F9D55B47-2EEF-4768-AC2C-801ADBF2956F.json"
+    },
+    {
+      "file": "docs/reference/tutor-reply-en-402-long.png",
+      "sha256": "e7e8a4e2fe5a158bf8db6ccfd4b2976e65587114394c4f3e229c89db3299c74b",
+      "attachment": "Source Tutor reply en 402 long_0_56A13500-DEF0-40F9-906A-6B2CCE2E8E16.png"
+    },
+    {
+      "file": "docs/native/tutor-reply-en-402-long.png",
+      "sha256": "50bc8d729578da40fd7742cb2b65a2f1d0d84a6f6e93971e647a1fdef3ef9f64",
+      "attachment": "Native Tutor reply en 402 long_0_CA530886-19C4-4614-B7B8-F6E87465BE31.png"
+    },
+    {
+      "file": "docs/reference/tutor-reply-en-402-long-metrics.json",
+      "sha256": "63f8c41377ac131e9cfd0b029fbd022904fe152e09f2c8d0978ec9b7409421ac",
+      "attachment": "Source Tutor reply en 402 long metrics_0_D944CD7E-A132-4897-9D7D-0EC9BD3239F6.json"
+    },
+    {
+      "file": "docs/reference/tutor-reply-en-402-hidden.png",
+      "sha256": "3edbd8a235abe4679e5ac064a80d6d5a9155dec891662318ca1d364adf952443",
+      "attachment": "Source Tutor reply en 402 hidden_0_83EEC522-4BD0-4CD3-9A49-567E0ABF934C.png"
+    },
+    {
+      "file": "docs/native/tutor-reply-en-402-hidden.png",
+      "sha256": "f1d681ddcaad0f092d183780cc76557ae24dbe0b8bebfbbb6ad74704eedb5de7",
+      "attachment": "Native Tutor reply en 402 hidden_0_DAD2B8E0-D261-452D-A7D8-1B74AECC416D.png"
+    },
+    {
+      "file": "docs/reference/tutor-reply-en-402-hidden-metrics.json",
+      "sha256": "8509b2ed1ac76c3f3fb74bdfce2b5a0deec09e8ab1e2f7edd45c41db024fa00b",
+      "attachment": "Source Tutor reply en 402 hidden metrics_0_91897A96-756B-4C4B-8E62-72740ED929C7.json"
+    },
+    {
+      "file": "docs/reference/tutor-reply-ar-402-short.png",
+      "sha256": "38d67e542fa44b4df3e0f9952dff1f34d29bf10a65ad3f918e04d3d16de86d37",
+      "attachment": "Source Tutor reply ar 402 short_0_EBF24A5F-5413-4ED9-BE24-FABDB565B5EC.png"
+    },
+    {
+      "file": "docs/native/tutor-reply-ar-402-short.png",
+      "sha256": "aaf45719a8b8d59a285911bc9bbfeae20cef05ac805b6ae7b89da7d1aa49bbfc",
+      "attachment": "Native Tutor reply ar 402 short_0_FF47910F-460B-465D-B942-FE0674A05BC5.png"
+    },
+    {
+      "file": "docs/reference/tutor-reply-ar-402-short-metrics.json",
+      "sha256": "92aa9f1c9f44589846ff3a11a07b0f505e558d0dd6a0746ce25e2e6caea8a257",
+      "attachment": "Source Tutor reply ar 402 short metrics_0_2D0AC545-BA26-4CF2-9397-C74EC0B0448A.json"
+    },
+    {
+      "file": "docs/reference/tutor-reply-ar-402-long.png",
+      "sha256": "77b8f67f8fcac46c47c4a681addc65a6e831a69c75796bbde12e621d24bcb5c7",
+      "attachment": "Source Tutor reply ar 402 long_0_D5B7DB49-759E-49B4-BF6A-7E20AC0765D4.png"
+    },
+    {
+      "file": "docs/native/tutor-reply-ar-402-long.png",
+      "sha256": "34c1511bc7cfeb34b68f51143f762772ff067b3c4204b10e96d2fdae424777f4",
+      "attachment": "Native Tutor reply ar 402 long_0_55E52B76-9670-4CC5-B453-27DEBE5AA3C8.png"
+    },
+    {
+      "file": "docs/reference/tutor-reply-ar-402-long-metrics.json",
+      "sha256": "3ca3603cadce05a050110d34f58cf516fbe6f6d82a159134d121481e2312d989",
+      "attachment": "Source Tutor reply ar 402 long metrics_0_AD3FBD0A-885D-46A4-A004-B47621931723.json"
+    },
+    {
+      "file": "docs/reference/tutor-reply-ar-402-hidden.png",
+      "sha256": "f3f2fcb4c128da009938b91b7c878da460d8eae0be0bccdec203156de0b4ca45",
+      "attachment": "Source Tutor reply ar 402 hidden_0_F8A59469-63AC-437E-B6B3-90B20D6A040A.png"
+    },
+    {
+      "file": "docs/native/tutor-reply-ar-402-hidden.png",
+      "sha256": "f2a0a778342480a8f36d73b8d9f8a18fee1fcdf1664383487f3ff3163cbcdae4",
+      "attachment": "Native Tutor reply ar 402 hidden_0_C08B6698-D836-4531-ABC6-954EC9B4301D.png"
+    },
+    {
+      "file": "docs/reference/tutor-reply-ar-402-hidden-metrics.json",
+      "sha256": "fddd7c7959f856bc5b50b6aa85ec01178b78634bb88b04cae6598e9b6ca29bf5",
+      "attachment": "Source Tutor reply ar 402 hidden metrics_0_E4B52949-E1C5-426A-A808-09EF15F30037.json"
+    }
+  ]
+}

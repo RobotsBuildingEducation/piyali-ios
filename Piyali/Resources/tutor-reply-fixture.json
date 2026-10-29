@@ -1,0 +1,45 @@
+{
+  "primary": "Hola, mamá. ¿Cómo estás? Hoy vamos al mercado y después volvemos a casa. Hola, mamá. Practica una frase completa y luego pregunta cómo está tu familia.",
+  "en": {
+    "translation": "Hello, mom. How are you? Today we go to the market and then return home. Hello, mom.",
+    "pairs": [
+      {
+        "lhs": "Hola, mamá",
+        "rhs": "Hello, mom"
+      },
+      {
+        "lhs": "¿Cómo estás?",
+        "rhs": "How are you?"
+      },
+      {
+        "lhs": "al mercado",
+        "rhs": "to the market"
+      },
+      {
+        "lhs": "a casa",
+        "rhs": "home"
+      }
+    ]
+  },
+  "ar": {
+    "translation": "مرحباً يا أمي. كيف حالك؟ نذهب اليوم إلى السوق ثم نعود إلى البيت. مرحباً يا أمي.",
+    "pairs": [
+      {
+        "lhs": "Hola, mamá",
+        "rhs": "مرحباً يا أمي"
+      },
+      {
+        "lhs": "¿Cómo estás?",
+        "rhs": "كيف حالك؟"
+      },
+      {
+        "lhs": "al mercado",
+        "rhs": "إلى السوق"
+      },
+      {
+        "lhs": "a casa",
+        "rhs": "إلى البيت"
+      }
+    ]
+  }
+}

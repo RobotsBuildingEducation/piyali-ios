@@ -15,7 +15,8 @@ import Foundation
         #endif
         return LiveTutorService(transportFactory:{if TutorRealtime.provider == "gemini"{return GeminiTutorTransport()};return RealtimeRTCTransport()})
     }
-    static func provider()->TutorProvider {.init(judge:{_ in .object(["successful":.bool(false),"mistake":.bool(false),"confidence":.number(0.9),"reason":.string("Try the lesson phrase.")])},quote:{_,_,_ in .null},translate:{_,text in .object(["translation":.string(text == "Say hola." ? "Di hola.":"Public fixture translation"),"pairs":.array([])])})}
+    static var replySample:JSONValue {guard enabled,ProcessInfo.processInfo.environment["PIYALI_TUTOR_REPLY_FIXTURE"] == "1" else{return .null};guard let url=Bundle.main.url(forResource:"tutor-reply-fixture",withExtension:"json")else{return .null};return (try? ContentLibrary.decode(JSONValue.self,url:url)) ?? .null}
+    static func provider(support:String="en")->TutorProvider {.init(judge:{_ in .object(["successful":.bool(false),"mistake":.bool(false),"confidence":.number(0.9),"reason":.string("Try the lesson phrase.")])},quote:{_,_,_ in .null},translate:{_,text in if replySample != .null,text == replySample["primary"].string{return replySample[support] == .null ? replySample["en"]:replySample[support]};return .object(["translation":.string(text == "Say hola." ? "Di hola.":"Public fixture translation"),"pairs":.array([])])})}
 }
 #if DEBUG
 @MainActor private final class TutorVoiceScript {var response=0,input=0}
@@ -34,7 +35,7 @@ import Foundation
             emission?.cancel();responsePending=true
             let index=script.response;script.response += 1
             emission=Task{try? await Task.sleep(for:.milliseconds(200));guard !Task.isCancelled,!closed else{return}
-                let id=prefix+"-r\(index)",text=index == 0 && script.input == 0 ? "Welcome! Ready to learn Spanish?":"Say hola."
+                let id=prefix+"-r\(index)",text=index == 0 && script.input == 0 ? "Welcome! Ready to learn Spanish?":TutorVoiceFixture.replySample != .null ? TutorVoiceFixture.replySample["primary"].string:"Say hola."
                 emit(["type":.string("response.created"),"response":.object(["id":.string(id)])]);emit(["type":.string("output_audio_buffer.started")]);emit(["type":.string("response.output_audio_transcript.done"),"response_id":.string(id),"transcript":.string(text)]);emit(["type":.string("response.done"),"response":.object(["id":.string(id),"status":.string("completed"),"output":.array([.object(["content":.array([.object(["transcript":.string(text)])])])])])]);responsePending=false;emit(["type":.string("output_audio_buffer.stopped")]);scheduleInput()
             }
         }
@@ -42,7 +43,7 @@ import Foundation
     }
     func setRemoteAudioEnabled(_ enabled:Bool){}
     func setMicrophoneEnabled(_ enabled:Bool){microphone=enabled;if !enabled{speech?.cancel();speech=nil}else{scheduleInput()}}
-    private func scheduleInput(){guard microphone,!closed,!responsePending,script.response>0,speech == nil,script.input<3 else{return}
+    private func scheduleInput(){guard microphone,!closed,!responsePending,script.response>0,speech == nil,script.input<(TutorVoiceFixture.replySample == .null ? 3:1) else{return}
         speech=Task{try? await Task.sleep(for:.seconds(script.input == 0 ? 3:5));guard !Task.isCancelled,!closed,microphone,!responsePending else{speech=nil;return};let index=script.input;script.input += 1;speech=nil;let id=prefix+"-u\(index)",text=index == 0 ? "yes":index == 1 ? "I do not know":"hola"
             emit(["type":.string("input_audio_buffer.speech_started")]);emit(["type":.string("input_audio_buffer.speech_stopped")]);emit(["type":.string("input_audio_buffer.committed"),"item_id":.string(id)]);emit(["type":.string("conversation.item.input_audio_transcription.completed"),"item_id":.string(id),"transcript":.string(text)])
         }

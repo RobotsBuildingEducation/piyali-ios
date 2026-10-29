@@ -101,6 +101,10 @@ enum TutorFocus:Equatable {
         let small:JSONValue = .object(["id":lesson["id"],"isGoal":lesson["isGoal"],"isRepair":lesson["isRepair"],"xpRequired":lesson["xpRequired"]]),key=small.canonicalJSON
         if let cached=xpCache[key]{return cached};let value=Int((try? policy?.run("xp",.object(["lesson":small])))?.number ?? 0);xpCache[key]=value;return value
     }
+    func statusLabel(_ support:String)->String {
+        let state=["speaking","thinking"].contains(live.voiceState) ? live.voiceState:"listening"
+        return (try? policy?.run("status",.object(["state":.string(state),"support":.string(support)])))?.string ?? ""
+    }
     func copy(_ text:String,_ support:String)->String {let key=support+":"+text;if let cached=copyCache[key]{return cached};let value=(try? policy?.run("copy",.object(["text":.string(text),"support":.string(support)])))?.string ?? text;copyCache[key]=value;return value}
     func pathCopy(_ key:String,_ support:String)->String {let cacheKey=support+":"+key;if let cached=pathCopyCache[cacheKey]{return cached};let value=(try? policy?.run("pathCopy",.object(["key":.string(key),"support":.string(support)])))?.string ?? key;pathCopyCache[cacheKey]=value;return value}
     func levels()->JSONValue {if let levelCache{return levelCache};let value=(try? policy?.run("levels")) ?? .null;levelCache=value;return value}
@@ -118,7 +122,7 @@ enum TutorFocus:Equatable {
         do {
             catalog=try await Task.detached {try ContentLibrary.load(JSONValue.self,name:"tutor-curriculum-"+target)}.value
             guard valid(app,token) else{return}
-            if provider == nil {provider=Self.fixture ? TutorVoiceFixture.provider():.native(app.ai)}
+            if provider == nil {provider=Self.fixture ? TutorVoiceFixture.provider(support:app.learner.support):.native(app.ai)}
             guard policy != nil else{throw PracticeRecipeFailure.unavailable}
             if let focus {
                 guard focus.isCurrent(app) else{throw AppError.message("Return to today's current focused task.")}

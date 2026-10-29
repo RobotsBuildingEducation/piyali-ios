@@ -11,7 +11,6 @@ struct SourceTutorView:View {
     @State private var historyOpen=false
     @State private var previewSpeaking=false
     @State private var footerOwner=UUID()
-    @State private var activePair:Int?
     @StateObject private var narration=RealtimeNarrationService()
     private let completionPendingChanged:(Bool)->Void
     private let focusedCompleted:()->Void
@@ -52,6 +51,8 @@ struct SourceTutorView:View {
                     VoiceOrbView(state:previewSpeaking ? "speaking":tutor.live.voiceState,callActive:tutor.live.connected || previewSpeaking,feedback:tutor.feedback,audioLevel:tutor.live.audioLevel,dark:scheme == .dark,reducedMotion:reduceMotion,animating:phase == .active && !pathOpen && !historyOpen).frame(width:64,height:64).opacity(0.95).frame(width:112).contentShape(Rectangle()).onTapGesture{guard !tutor.live.connected else{return};previewSpeaking.toggle();if previewSpeaking{Task{try? await Task.sleep(for:.milliseconds(4500));previewSpeaking=false}}}.accessibilityElement(children:.ignore).accessibilityLabel("Tutor orb").accessibilityIdentifier("tutorOrb")
                     if tutor.paused || tutor.live.muted {
                         Text(tutor.paused ? "Paused":"Muted").font(PiyaliBrand.productFont(12,600)).tracking(0.8).textCase(.uppercase).padding(.horizontal,10).padding(.vertical,2).background((tutor.paused ? Color.yellow:Color.red).opacity(0.12),in:Capsule()).accessibilityIdentifier("tutorVoiceStatus")
+                    }else if tutor.live.connected {
+                        Text(tutor.statusLabel(app.learner.support)).font(PiyaliBrand.productFont(12)).foregroundStyle(scheme == .dark ? .white.opacity(0.8):brand.secondary).accessibilityIdentifier("tutorLiveStatus")
                     }
                 }
                 if !reply.isEmpty {bubble.padding(.horizontal,16).padding(.top,6)}
@@ -68,23 +69,10 @@ struct SourceTutorView:View {
         }.buttonStyle(.plain).padding(8).frame(maxWidth:400).background{TutorPaperPanel(textured:true)}.overlay{RoundedRectangle(cornerRadius:16).stroke(scheme == .dark ? .white.opacity(0.06):brand.border)}
     }
     private var bubble:some View {
-        VStack(alignment:.leading,spacing:4){
-            HStack(alignment:.top,spacing:8){
-                Button{
-                    tutor.live.setPlaybackDucked(true)
-                    narration.play(reply,language:latest["lang"].string.isEmpty ? app.learner.target:latest["lang"].string,engine:app.companionQuestPolicy,voice:"marin",onFinished:{tutor.live.setPlaybackDucked(false)})
-                }label:{Group{if narration.playing || narration.loading{ProgressView().controlSize(.mini)}else{Image(systemName:"speaker.wave.2").font(.system(size:14))}}.frame(width:24,height:24)}
-                    .buttonStyle(.plain).disabled(narration.playing || narration.loading).opacity(0.7).padding(.top,2).accessibilityLabel(t("ra_btn_replay")).accessibilityIdentifier("tutorReplay")
-                Text(aligned(reply,side:"lhs")).font(PiyaliBrand.productFont(16)).lineSpacing(6).fixedSize(horizontal:false,vertical:true).frame(maxWidth:.infinity,alignment:.leading).textSelection(.enabled).accessibilityIdentifier("tutorLatestReply")
-            }
-            if latest["textFinal"].string == reply,!latest["translation"].string.isEmpty {Text(aligned(latest["translation"].string,side:"rhs")).font(PiyaliBrand.productFont(12)).lineSpacing(4.5).foregroundStyle(brand.secondary).accessibilityIdentifier("tutorTranslation")}
-        }.padding(12).frame(maxWidth:.infinity,alignment:.topLeading).background(scheme == .dark ? Color.clear:PiyaliBrand.unitColor("f1e4d3").opacity(0.98),in:RoundedRectangle(cornerRadius:28)).overlay{RoundedRectangle(cornerRadius:28).stroke(scheme == .dark ? .white.opacity(0.06):PiyaliBrand.unitColor("8e714f").opacity(0.26))}.shadow(color:.black.opacity(scheme == .dark ? 0.35:0.06),radius:14,y:scheme == .dark ? 14:8).frame(minHeight:150,alignment:.top)
-            .environment(\.openURL,OpenURLAction{url in if url.scheme == "tutor-token",let i=Int(url.host ?? ""){activePair=activePair == i ? nil:i;return .handled};return .systemAction})
-    }
-    private func aligned(_ text:String,side:String)->AttributedString {
-        var result=AttributedString(text)
-        for (i,pair) in latest["pairs"].array.enumerated(){let phrase=pair[side].string;guard !phrase.isEmpty,let range=result.range(of:phrase,options:.caseInsensitive) else{continue};result[range].link=URL(string:"tutor-token://\(i)");result[range].foregroundColor=brand.text;result[range].underlineStyle=activePair == i ? .single:[];if activePair == i{result[range].backgroundColor=Color.cyan.opacity(0.14)}}
-        return result
+        TutorReplyView(primary:reply,secondary:latest["textFinal"].string == reply ? latest["translation"].string:"",target:latest["lang"].string.isEmpty ? app.learner.target:latest["lang"].string,support:app.learner.support,pairs:latest["textFinal"].string == reply ? latest["pairs"]:.array([]),showSecondary:app.learner.recipeUser["progress"]["showTranslations"] != .bool(false),replaying:narration.playing || narration.loading,onReplay:{
+            tutor.live.setPlaybackDucked(true)
+            narration.play(reply,language:latest["lang"].string.isEmpty ? app.learner.target:latest["lang"].string,engine:app.companionQuestPolicy,voice:"marin",onFinished:{tutor.live.setPlaybackDucked(false)})
+        }).frame(minHeight:150,alignment:.top)
     }
     @ViewBuilder private var controls:some View {
         if tutor.saving {ProgressView(tutor.copy("Saving Tutor progress...",app.learner.support)).frame(maxWidth:.infinity).font(PiyaliBrand.productFont(12))}
@@ -98,7 +86,10 @@ struct SourceTutorView:View {
     }
     private func control(_ icon:String,label:String,selected:Bool=false,stop:Bool=false,action:@escaping()->Void)->some View {Button(action:action){Image(systemName:icon).font(.system(size:17,weight:.semibold)).frame(maxWidth:.infinity,minHeight:40).contentShape(Rectangle()).foregroundStyle(stop ? .white:brand.text).background(stop ? PiyaliBrand.unitColor("b0005b"):selected ? brand.surface.opacity(0.88):.clear,in:RoundedRectangle(cornerRadius:18))}.buttonStyle(.plain).accessibilityLabel(label).accessibilityAddTraits(selected ? .isSelected:[])}
     private func stop(){narration.stopAll();tutor.live.setPlaybackDucked(false);Task{await tutor.stop(app)}}
-    private var history:some View {NavigationStack{ScrollView{LazyVStack(alignment:.leading,spacing:12){ForEach(Array(tutor.messages.enumerated()),id:\.offset){_,message in HStack{if message["role"].string == "user"{Spacer(minLength:36)};VStack(alignment:.leading,spacing:8){Text(message["role"].string == "user" ? t("ra_you"):"Piyali").font(PiyaliBrand.productFont(11,600)).foregroundStyle(brand.secondary);Text(message["textFinal"].string).font(PiyaliBrand.productFont(16)).textSelection(.enabled);if !message["translation"].string.isEmpty{Text(message["translation"].string).font(PiyaliBrand.productFont(13)).foregroundStyle(brand.secondary)}}.padding(14).background(message["role"].string == "user" ? Color.cyan.opacity(0.1):brand.surface,in:RoundedRectangle(cornerRadius:16));if message["role"].string != "user"{Spacer(minLength:24)}}}}.padding(16)}.background(brand.background).foregroundStyle(brand.text).navigationTitle(t("ra_chat_log")).navigationBarTitleDisplayMode(.inline).toolbar{ToolbarItem(placement:.confirmationAction){Button(tutor.pathCopy("close",app.learner.support)){historyOpen=false}}}}}
+    private func historyReply(_ message:JSONValue)->some View {
+        TutorReplyView(primary:message["textFinal"].string,secondary:message["translation"].string,target:message["lang"].string.isEmpty ? app.learner.target:message["lang"].string,support:app.learner.support,pairs:message["pairs"],showSecondary:app.learner.recipeUser["progress"]["showTranslations"] != .bool(false),replaying:narration.playing || narration.loading,onReplay:{tutor.live.setPlaybackDucked(true);narration.play(message["textFinal"].string,language:message["lang"].string.isEmpty ? app.learner.target:message["lang"].string,engine:app.companionQuestPolicy,voice:"marin",onFinished:{tutor.live.setPlaybackDucked(false)})})
+    }
+    private var history:some View {NavigationStack{ScrollView{LazyVStack(alignment:.leading,spacing:12){ForEach(Array(tutor.messages.enumerated()),id:\.offset){_,message in HStack{if message["role"].string == "user"{Spacer(minLength:36)};VStack(alignment:.leading,spacing:8){if message["role"].string == "assistant"{historyReply(message)}else{Text(message["role"].string == "user" ? t("ra_you"):"Piyali").font(PiyaliBrand.productFont(11,600)).foregroundStyle(brand.secondary);Text(message["textFinal"].string).font(PiyaliBrand.productFont(16)).textSelection(.enabled);if !message["translation"].string.isEmpty{Text(message["translation"].string).font(PiyaliBrand.productFont(13)).foregroundStyle(brand.secondary)}}}.padding(14).background(message["role"].string == "user" ? Color.cyan.opacity(0.1):brand.surface,in:RoundedRectangle(cornerRadius:16));if message["role"].string != "user"{Spacer(minLength:24)}}}}.padding(16)}.background(brand.background).foregroundStyle(brand.text).navigationTitle(t("ra_chat_log")).navigationBarTitleDisplayMode(.inline).toolbar{ToolbarItem(placement:.confirmationAction){Button(tutor.pathCopy("close",app.learner.support)){historyOpen=false}.accessibilityIdentifier("tutorHistoryClose")}}}}
 }
 
 struct TutorPaperPanel:View {
