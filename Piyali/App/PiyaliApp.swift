@@ -7,10 +7,10 @@ import SwiftUI
     var body: some Scene {
         WindowGroup {
             RootView().environmentObject(model)
-                .task { model.subscription.setApplicationActive(scenePhase == .active);model.setAchievementApplicationActive(scenePhase == .active);await model.boot() }
+                .task { model.subscription.setApplicationActive(scenePhase == .active);model.setAchievementApplicationActive(scenePhase == .active);model.upcomingGameReviews.setApplicationActive(scenePhase == .active);await model.boot() }
                 .task(id:narrationPreparationScope) { await prepareNarration() }
                 .onChange(of: scenePhase) { _, phase in
-                    model.subscription.setApplicationActive(phase == .active);model.setAchievementApplicationActive(phase == .active)
+                    model.subscription.setApplicationActive(phase == .active);model.setAchievementApplicationActive(phase == .active);model.upcomingGameReviews.setApplicationActive(phase == .active)
                     if phase == .active, model.signedIn {
                         model.learner.rollDay(); model.subscription.checkExpiry()
                         model.scheduleAutomaticTips(recovering:true)

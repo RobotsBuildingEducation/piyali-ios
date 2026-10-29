@@ -18,7 +18,7 @@ import SwiftUI
     private var achievementRetryUpdates:AnyCancellable?
     private var importedAchievementSnapshots:[String:JSONValue]=[:]
     private var achievementApplicationActive=true
-    @Published var signedIn = false {didSet{bindAchievementDelivery()}}
+    @Published var signedIn = false {didSet{bindAchievementDelivery();upcomingGameReviews.revalidate()}}
     @Published private(set) var achievementUnlock=AchievementUnlockState(catalog:Set(((try? ContentLibrary.load([JSONValue].self,name:"achievement-protocol")) ?? []).map{$0["id"].string}))
     @Published var tutorUnits: [LearningUnit] = []
     @Published var units: [LearningUnit] = []
@@ -72,6 +72,8 @@ import SwiftUI
     let progressService:any LearnerProgressService
     let identity = IdentityService()
     let ai = AIService()
+    let gamePreparation:RPGPreparationPool
+    let upcomingGameReviews:UpcomingGameReviewController
     let companionQuestPolicy=try? CompanionQuestPolicy()
     let subscription = SubscriptionService()
     let teams = NostrTeamsService()
@@ -126,7 +128,8 @@ import SwiftUI
         }
         _ = learner.completeTutor(lesson); persist(); return earned
     }
-    init(automaticWallet:WalletService? = nil,progressService:(any LearnerProgressService)? = nil,nostrAchievements:NostrAchievementsService?=nil,achievementRetries:AchievementRetryController?=nil) {
+    init(automaticWallet:WalletService? = nil,progressService:(any LearnerProgressService)? = nil,nostrAchievements:NostrAchievementsService?=nil,achievementRetries:AchievementRetryController?=nil,gamePreparation:RPGPreparationPool?=nil,gameReviewWriter:((RPGPreparationPolicy.Request)async throws->String)?=nil) {
+        let preparation=gamePreparation ?? RPGPreparationPool();self.gamePreparation=preparation;self.upcomingGameReviews=UpcomingGameReviewController(service:RPGService(pool:preparation,writer:gameReviewWriter))
         let recoveryFixture=AchievementDeliveryUIFixture.retryServices()
         self.nostrAchievements=nostrAchievements ?? recoveryFixture?.1 ?? NostrAchievementsService();self.achievementRetries=achievementRetries ?? recoveryFixture?.0 ?? AchievementRetryController()
         let env=ProcessInfo.processInfo.environment
@@ -233,6 +236,7 @@ import SwiftUI
         } catch { self.error = error.localizedDescription;resumeAchievementSync() }
     }
     private func activateIdentity(newProfile:(name:String,support:String)? = nil) async {
+        upcomingGameReviews.cancel()
         automaticTipTask?.task.cancel();automaticTipTask=nil;automaticWallet.cancel(clear:true)
         saveTask?.cancel(); contentTask?.cancel()
         let account = identity.npub
@@ -261,7 +265,7 @@ import SwiftUI
     }
     func signOut(){disconnectRemote()}
     func disconnectRemote() {
-        flushGoalEditor();goalCheck=nil
+        upcomingGameReviews.cancel();flushGoalEditor();goalCheck=nil
         do {
             try writeLocal();automaticProgress.reset();automaticTipTask?.task.cancel();automaticTipTask=nil;automaticWallet.cancel(clear:true);saveTask?.cancel();contentTask?.cancel();achievementRetries.pause();nostrAchievements.cancel();teams.cancel(clear:true);teamFeed.cancel(clear:true)
             journeyRecording?.controller.close();journeyRecording=nil;try identity.disconnect();FirebaseIdentityService.shared.clearSession();signedIn=false;lessonActivityActive=false;activityFooter=nil;pendingLessonCompletion=nil;scholarship=ScholarshipPrompt();tutorPath=nil;subscription.bind(identity);learner=LearnerState()
@@ -636,7 +640,7 @@ import SwiftUI
         if lesson.isRepair == true {
             guard let step=currentRepairStep,lesson.id == step.id else{return}
             finishRepair(step,observation:"Completed a short mixed lesson on: "+step.item["originalConcept"].string)
-        } else { _ = learner.complete(lesson); persist() }
+        } else { let accepted=learner.complete(lesson);persist();if accepted{upcomingGameReviews.completed(lesson,app:self)} }
     }
     static func modes(for lesson: Lesson) -> [PracticeMode] {
         let map: [String: PracticeMode] = ["vocabulary":.vocabulary,"flashcards":.vocabulary,"grammar":.grammar,"reading":.reading,"listening":.listening,"repeat":.listening,"speaking":.speaking,"speak":.speaking,"stories":.stories,"story":.stories,"conversation":.conversation,"conversations":.conversation,"tutor":.conversation,"realtime":.conversation,"game":.game,"translate":.vocabulary]

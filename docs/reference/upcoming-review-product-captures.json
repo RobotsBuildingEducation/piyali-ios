@@ -1,0 +1,40 @@
+{
+  "result": "PiyaliUpcoming4.xcresult",
+  "viewport": {
+    "width": 402,
+    "height": 874
+  },
+  "scope": "Actual native product entry/onboarding/self-reported A1 -> beginner quiz -> quiz acknowledgment -> unstarted review -> process relaunch with prepared provider disabled -> cached seven-beat review -> Back/relaunch/saved run. Public provider content only; no prefilled learner progress or alternate UI. Both game entries wait for their map frame to fill the complete phone display. No new UI surfaces are introduced by warming; source parity evidence is the original completion predicate/selector and all 8,750 source cases. Prior source/native loader/map comparisons retain their original scope.",
+  "records": [
+    {
+      "file": "docs/native/upcoming-review-quiz.png",
+      "sha256": "ff8e98fda0608b88164589961bd9371f5766212191bc187ff3ac12e78ee9e5ed",
+      "attachment": "Native upcoming review quiz passed_0_AB3D9755-A190-46EC-81BE-3451C07C37EA.png"
+    },
+    {
+      "file": "docs/native/upcoming-review-completion.png",
+      "sha256": "d4db8e1c3f07925466844d4dfbd5c978e654f0ff73b00c8ab55824144727feb3",
+      "attachment": "Native upcoming review warms behind quiz acknowledgment_0_E8E20D6C-3261-40AD-B430-A5B2850BF883.png"
+    },
+    {
+      "file": "docs/native/upcoming-review-path.png",
+      "sha256": "1687f4ad017bd8fa768a0763be3b9f629663295dafa7e77feffb47c0d6bd0005",
+      "attachment": "Native upcoming review remains unstarted on path_0_8B63718D-75A9-4055-893C-C8C821C9AC40.png"
+    },
+    {
+      "file": "docs/native/upcoming-review-preparation.png",
+      "sha256": "c606f58d93a2986224daa1b565dba40e225846f6d587ea25ea47a8d1f5468867",
+      "attachment": "Native warmed review keeps source exploration window_0_97E06CB5-DCA6-44E3-8CFF-B6F0A4333922.png"
+    },
+    {
+      "file": "docs/native/upcoming-review-game.png",
+      "sha256": "83f02e00c4884555a26b5b930eacc24e5b6d5de9851264bd3bd328d5bcf12df1",
+      "attachment": "Native warmed review opens seven beats without provider_0_C8E7925C-02FF-4EA1-8731-9D73347D663D.png"
+    },
+    {
+      "file": "docs/native/upcoming-review-resume.png",
+      "sha256": "83f02e00c4884555a26b5b930eacc24e5b6d5de9851264bd3bd328d5bcf12df1",
+      "attachment": "Native warmed review saved run resumes after relaunch_0_F030EF2B-C188-43C8-B91A-DC1188BD9198.png"
+    }
+  ]
+}

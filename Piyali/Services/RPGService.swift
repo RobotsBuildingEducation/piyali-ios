@@ -8,9 +8,9 @@ import Foundation
     private var loadedTarget="",pendingKey=""
     private var generation=UUID(),speechGeneration=UUID(),libraryLoadID=UUID()
     private var pending:Task<Void,Never>?,speechRequest:Task<Void,Never>?
-    private let policy:RPGPreparationPolicy?,cache:RPGPreparationCache
+    private let policy:RPGPreparationPolicy?,preparations:RPGPreparationPool?
     private let writer:((RPGPreparationPolicy.Request)async throws->String)?,speaker:((String)async throws->String)?
-    init(policy:RPGPreparationPolicy?=try? RPGPreparationPolicy(),cache:RPGPreparationCache?=nil,writer:((RPGPreparationPolicy.Request)async throws->String)?=nil,speaker:((String)async throws->String)?=nil){self.policy=policy;self.cache=cache ?? RPGPreparationCache();self.writer=writer;self.speaker=speaker}
+    init(policy:RPGPreparationPolicy?=try? RPGPreparationPolicy(),cache:RPGPreparationCache?=nil,pool:RPGPreparationPool?=nil,writer:((RPGPreparationPolicy.Request)async throws->String)?=nil,speaker:((String)async throws->String)?=nil){self.policy=policy;self.preparations=pool ?? ((cache != nil || writer != nil) ? RPGPreparationPool(cache:cache):nil);self.writer=writer;self.speaker=speaker}
     func cancelSpeech(){speechGeneration=UUID();speechRequest?.cancel();speechRequest=nil;if pending == nil{busy=false}}
     func cancel(){stagedRun=nil;generation=UUID();pending?.cancel();pending=nil;pendingKey="";cancelSpeech();busy=false;error=nil}
     func load(target:String)async {
@@ -45,12 +45,9 @@ import Foundation
             do{
                 let sourceLesson=(try lesson.map{try RPGPreparationPolicy.value($0)} ?? .object(["id":.string("native-library-"+courseLevel),"content":.object(["game":.object(["cefrLevel":.string(courseLevel)])])])).setting("gameReviewContext",review?.context ?? .object([:]))
                 let request=try policy.request(scenario:original,lesson:sourceLesson,target:target,support:support)
-                if let value=cache.load(account:account,key:request.cacheKey,support:support),let prepared=try? policy.cached(value,request:request){scenario=prepared.scenario}
-                else{
-                    let response:String;if let writer{response=try await writer(request)}else{response=try await app.ai.rpgPreparedResponse(request.prompt)}
-                    guard current(),app.subscription.hasAccess else{return}
-                    if let prepared=try policy.prepare(response:response,request:request){scenario=prepared.scenario;cache.save(prepared.cacheValue,account:account,key:request.cacheKey,support:support)}
-                }
+                let pool=preparations ?? app.gamePreparation
+                let prepared=await pool.prepared(request:request,policy:policy,account:account,support:support,valid:{[weak self,weak app] in guard let self,let app else{return false};return self.valid(app,account:account,target:target,support:support,token:token) && self.level(app,lesson:lesson,tutor:tutor) == courseLevel && app.subscription.hasAccess},produce:{[weak app] in if let writer=self.writer{return try await writer(request)};guard let app else{throw CancellationError()};return try await app.ai.rpgPreparedResponse(request.prompt)})
+                guard current(),app.subscription.hasAccess else{return};if let prepared{scenario=prepared.scenario}
             }catch{/* Source preparation failures keep the authored local deck. */}
         }
         guard current() else{return}

@@ -30,6 +30,8 @@ The first prepared product run reached its recap and 30-XP reward but checked re
 
 The [course preparation map](GAME_PREPARATION.md), [introduction/Tutor handoffs](GAME_HANDOFFS.md), and [progressive dialogue/aligned translations](RPG_DIALOGUE.md) have separate verification.
 
-Remaining work includes the legacy exploration/generation/search flow, opportunistic next-review warming, broader transient dialogue/history recovery, game sound effects, wider device/locale layouts and physical microphone/playback checks. This is one correction within the active [product parity audit](PARITY_AUDIT.md).
+Remaining work includes the legacy exploration/generation/search flow, broader transient dialogue/history recovery, game sound effects, wider device/locale layouts and physical microphone/playback checks. This is one correction within the active [product parity audit](PARITY_AUDIT.md).
 
 Source/native examples: [prompt in English](native/rpg-prepared-prompt-en.png), [reply in English](native/rpg-prepared-reply-en.png), [prompt with Arabic support](native/rpg-prepared-prompt-ar.png), [reply with Arabic support](native/rpg-prepared-reply-ar.png). Product evidence: [speech cancellation](native/rpg-prepared-cancellation-product.png), [restored task](native/rpg-prepared-restored-product.png), [recap](native/rpg-prepared-recap-product.png) and [cached replay](native/rpg-prepared-cached-replay-product.png).
+
+Completion-time next-review warming and shared foreground requests now have a separate [checkpoint](UPCOMING_GAME_REVIEWS.md). Its source selection and cache/product evidence do not close the other boundaries above.

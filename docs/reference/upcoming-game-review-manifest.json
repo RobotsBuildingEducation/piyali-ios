@@ -1,0 +1,20 @@
+{
+  "sourceCommit": "5c8f8f0595f31a0d6532d660cad73135e8223cc2",
+  "sources": [
+    {
+      "file": "src/App.jsx",
+      "sha256": "5fd4a87bd5db004c1fc049ff7e8c7e266e6d65d7c42201ef75e923044c4a7dc8"
+    },
+    {
+      "file": "src/utils/gameReviewContext.js",
+      "sha256": "2dd6d2516790e17e51c533b97f89e6d9c8678f108517fe0ed7adfba1f08135df"
+    },
+    {
+      "file": "src/data/skillTreeData.js",
+      "sha256": "7bee0b9be328a4078913fb9c1e00e2ed8af348417ca4d9b8189de23fb596f729"
+    }
+  ],
+  "cases": 8750,
+  "eligible": 1204,
+  "adapters": "Original completion call-site predicate and exact level/unit/immediate-next selection. Only async curriculum loading is replaced with supplied original units; existing native preparation uses the original exported review context and story policy. No source mutation, UI, provider, identity or progress I/O."
+}
