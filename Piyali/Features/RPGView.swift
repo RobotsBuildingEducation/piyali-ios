@@ -54,6 +54,7 @@ struct RPGView:View {
     @AppStorage("piyali.rpgCompanion") private var selectedPet=""
     @State private var dialogueContentHeight:CGFloat=0
     @State private var displayedRunID:UUID?
+    @State private var automaticIntroRun:UUID?
     @State private var talking=false
     @State private var speechReplyToken=UUID()
     @State private var typedReply=false
@@ -63,7 +64,7 @@ struct RPGView:View {
     @State private var panel=""
     @FocusState private var focused:Bool
     private var runLevel:String{let authored=lesson?.content["game"]["cefrLevel"].string ?? "";return authored.isEmpty ? (tutor ? lesson?.cefrLevel ?? app.learner.tutorLevel:app.learner.level):authored}
-    private var run:RPGRun?{guard let value=app.learner.rpgRuns?[app.learner.target],value.support == app.learner.support,(value.tutor == true) == tutor,value.lessonID == lesson?.id,value.scenario.authoredEpisode.level == runLevel,episode == nil || value.scenario.authoredEpisode.id == episode,!(value.completed && value.claimed && value.id != displayedRunID) else{return nil};return value}
+    private var run:RPGRun?{guard let value=app.learner.rpgRuns?[app.learner.target],value.support == app.learner.support,(value.tutor == true) == tutor,value.lessonID == lesson?.id,value.scenario.authoredEpisode.level == runLevel,episode == nil || value.scenario.authoredEpisode.id == episode,!(value.completed && (value.claimed || (!tutor && value.tutorial == true && app.learner.completed.contains(app.learner.completionKey(IntroTutorial.lessonID)))) && value.id != displayedRunID) else{return nil};return value}
     private var scope:String{[app.identity.npub,app.learner.target,app.learner.support,tutor ? app.learner.tutorLevel:app.learner.level].joined(separator:":")}
     private var chromeInset:CGFloat{embedded ? 0:(UIApplication.shared.connectedScenes.compactMap{$0 as? UIWindowScene}.flatMap(\.windows).first{$0.isKeyWindow}?.safeAreaInsets.top ?? 0)}
     private var bottomInset:CGFloat{embedded ? 0:(UIApplication.shared.connectedScenes.compactMap{$0 as? UIWindowScene}.flatMap(\.windows).first{$0.isKeyWindow}?.safeAreaInsets.bottom ?? 0)}
@@ -76,10 +77,10 @@ struct RPGView:View {
     var body:some View {
         SubscriptionRequiredView(service:app.subscription,preserveEarnedWork:run?.completed == true){surface}.accessibilityHidden(panel == "help")
             .toolbar(.hidden,for:.navigationBar).statusBarHidden(!embedded).ignoresSafeArea(.container)
-            .task(id:scope){stop();displayedRunID=nil;panel=initialPanel;talking=false;if run == nil{await service.prepare(app,lesson:lesson,episode:episode,tutor:tutor)};displayedRunID=run?.id;configureObjects();startMusic()}
+            .task(id:scope){stop();displayedRunID=nil;panel=initialPanel;talking=false;if run == nil{await service.prepare(app,lesson:lesson,episode:episode,tutor:tutor)};displayedRunID=run?.id;configureObjects();startMusic();finishAutomaticIntro()}
             .onChange(of:run?.id){_,value in if let value{displayedRunID=value};configureObjects()}
             .onChange(of:dialogueKey){_,_ in configureDialogue()}
-            .onChange(of:run?.completed){_,completed in if completed == true{music.stop()}}
+            .onChange(of:run?.completed){_,completed in if completed == true{music.stop();finishAutomaticIntro()}}
             .onChange(of:speech.transcript){_,text in answer=text}
             .onChange(of:speech.recording){old,value in if old && !value,speechArmed,talking,!answer.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty{sendSpeech()}}
             .onChange(of:phase){_,value in if value != .active{stop(clearObservations:false)}else{configureObjects();configureDialogue();startMusic()}}
@@ -172,9 +173,9 @@ struct RPGView:View {
             if typedReply{TextField(t("response"),text:$answer).font(PiyaliBrand.productFont(16)).textFieldStyle(.roundedBorder).focused($focused).submitLabel(.send).onSubmit{sendSpeech()}.accessibilityIdentifier("rpgReply");Button(t("continue")){sendSpeech()}.disabled(answer.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty || service.busy).accessibilityIdentifier("rpgSend")}
         }
     }
-    private func completion(_ run:RPGRun)->some View {ZStack{(light ? PiyaliBrand.unitColor("4c3c28").opacity(0.24):Color.black.opacity(0.8));VStack(spacing:16){Text(run.scenario.storyTitle ?? "Congratulations! You've completed the review.").font(PiyaliBrand.productFont(20,700));if let epilogue=run.scenario.storyEpilogue{Text(epilogue["target"].string).font(PiyaliBrand.productFont(14));Text(epilogue["support"].string).font(PiyaliBrand.productFont(12)).italic()};Text(String(repeating:"★",count:run.stars)).font(.system(size:30)).foregroundStyle(.yellow);Text("\(Int((Double(run.score)/800*100).rounded()))%").font(PiyaliBrand.productFont(18,700));FocusWaveBar(percent:Double(run.score)/8,height:12)
-        if let completionError{Text(completionError).font(PiyaliBrand.productFont(13)).foregroundStyle(.red).accessibilityIdentifier("rpgCompletionSaveError")};if tutor || run.tutorial == true || run.lessonID != nil{Button(t("continue")){if tutor{onTutorComplete?()}else if run.tutorial == true{onTutorialComplete?()}else{_=app.learner.completeRPG(run);app.persist();if let onReviewComplete{onReviewComplete()}else{dismiss()}}}.font(PiyaliBrand.productFont(14,600)).padding(.horizontal,20).padding(.vertical,10).overlay{RoundedRectangle(cornerRadius:6).stroke(ink)}.accessibilityIdentifier(tutor ? "tutorGameComplete":"rpgComplete").disabled(run.claimed || completing)}else{HStack{Button(t("playAgain")){fresh()};Button(t("newWorld")){dismiss()}}}
-    }.padding(32).frame(maxWidth:400).foregroundStyle(light ? ink:.white).background(light ? paper:PiyaliBrand.unitColor("0b1220"),in:RoundedRectangle(cornerRadius:12)).overlay{RoundedRectangle(cornerRadius:12).stroke(light ? border:PiyaliBrand.unitColor("ecc94b"),lineWidth:3)}.padding(16).multilineTextAlignment(.center)}}
+    private var automaticallyCompletesIntro:Bool {!tutor && onTutorialComplete != nil && (lesson?.isTutorial == true || lesson?.id == IntroTutorial.lessonID) && lesson?.content["game"]["topic"].string == "tutorial"}
+    private func finishAutomaticIntro(){guard automaticallyCompletesIntro,let run,run.completed,automaticIntroRun != run.id else{return};automaticIntroRun=run.id;onTutorialComplete?()}
+    private func completion(_ run:RPGRun)->some View {RPGCompletionView(run:run,tutor:tutor,automaticExit:automaticallyCompletesIntro,completing:completing,completionError:completionError,onContinue:{if tutor{onTutorComplete?()}else if run.tutorial == true{onTutorialComplete?()}else{app.completeGameReview(run,lesson:lesson);if let onReviewComplete{onReviewComplete()}else{dismiss()}}},onPlayAgain:fresh,onNewWorld:{dismiss()})}
     private var replyInk:Color{PiyaliBrand.unitColor(light ? "9b5d2d":"c05621")}
     private var panelFrame:Color{PiyaliBrand.unitColor(light ? "604d38":"94a3b8").opacity(light ? 0.3:0.42)}
     private func customize(_ key:String)->String{RPGArt.shared.data["customize"][app.learner.support][key].string}

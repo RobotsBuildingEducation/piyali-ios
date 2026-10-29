@@ -58,3 +58,5 @@ Ambient comparison examples: [market at 0 seconds](native/rpg-environment-market
 Introduction/Tutor preparation, voice shutdown, preview cancellation, staged selection, saved-game Back/resume and completion acknowledgment now have a separate [handoff checkpoint](GAME_HANDOFFS.md). The subsequent [completion checkpoint](TUTOR_COMPLETION.md) aligns post-completion path/reward sequencing and fresh/durable replay. Wider interruptions and presentation calibration remain open.
 
 Normal lesson completion now warms only its immediate next same-unit Game Review, using the original selector and a shared optional content request. [Upcoming review evidence and ownership](UPCOMING_GAME_REVIEWS.md) covers cancellation and provider-disabled relaunch without starting or awarding the game.
+
+The subsequent [authored completion checkpoint](RPG_COMPLETION.md) aligns the shared recap with the original completion JSX, verifies the ordinary prepared review through a complete offline cached replay, and removes the extra Continue step from the inline introductory adventure. Existing preparation/rendering evidence keeps its original scope; whole-product parity remains open.

@@ -29,7 +29,11 @@ struct RPGPlayFixture:Decodable {
         while cursor<queue.count{let p=queue[cursor];cursor+=1;if adjacent(p){end=p;break};for delta in [RPGPlayPoint(x:1,y:0),RPGPlayPoint(x:-1,y:0),RPGPlayPoint(x:0,y:1),RPGPlayPoint(x:0,y:-1)]{let n=RPGPlayPoint(x:p.x+delta.x,y:p.y+delta.y);if n.x>=0,n.y>=0,n.x<fixture.world.width,n.y<fixture.world.height,!solid.contains(fixture.world.tiles[n.y*fixture.world.width+n.x]),!occupied.contains(n),visited.insert(n).inserted{parents[n]=p;queue.append(n)}}}
         var route:[RPGPlayPoint]=[],next=try XCTUnwrap(end);while next != start{route.insert(next,at:0);next=try XCTUnwrap(parents[next])}
         func touch(_ point:RPGPlayPoint)throws{let p=try position(surface),frame=surface.frame,tile=frame.height/10;surface.coordinate(withNormalizedOffset:.zero).withOffset(CGVector(dx:frame.width/2+CGFloat(point.x-p.x)*tile,dy:frame.height/2+(CGFloat(point.y-p.y)+0.12)*tile)).tap()}
-        for next in route{try touch(next);let wait=XCTNSPredicateExpectation(predicate:NSPredicate(format:"value == %@","\(next.x),\(next.y)"),object:surface);XCTAssertEqual(XCTWaiter.wait(for:[wait],timeout:5),.completed)}
+        for next in route{
+            try touch(next);let wait=XCTNSPredicateExpectation(predicate:NSPredicate(format:"value == %@","\(next.x),\(next.y)"),object:surface),result=XCTWaiter.wait(for:[wait],timeout:5)
+            if result != .completed{let shot=XCTAttachment(screenshot:app.screenshot());shot.name="RPG map movement timeout";shot.lifetime = .keepAlways;add(shot);let hierarchy=XCTAttachment(string:app.debugDescription);hierarchy.name="RPG movement timeout hierarchy";hierarchy.lifetime = .keepAlways;add(hierarchy)}
+            XCTAssertEqual(result,.completed,"Expected \(next.x),\(next.y); actual \(surface.value as? String ?? "missing")")
+        }
         try touch(target);XCTAssertTrue(app.buttons["rpgCloseDialogue"].waitForExistence(timeout:5))
     }
 }

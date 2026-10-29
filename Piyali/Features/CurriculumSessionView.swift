@@ -64,7 +64,9 @@ struct CurriculumSessionView:View {
     }
     private func presentCompletion(reward:Int) { finishing=true;publishCompletion(reward:reward) }
     private func publishCompletion(reward:Int) {
-        app.pendingLessonCompletion = .init(account:app.identity.npub,target:app.learner.target,lesson:lesson,reward:reward,languageXP:app.learner.xp)
+        if app.pendingLessonCompletion?.account != app.identity.npub || app.pendingLessonCompletion?.target != app.learner.target || app.pendingLessonCompletion?.lessonID != lesson.id {
+            app.pendingLessonCompletion = .init(account:app.identity.npub,target:app.learner.target,lesson:lesson,reward:reward,languageXP:app.learner.xp)
+        }
         dismiss()
     }
 }

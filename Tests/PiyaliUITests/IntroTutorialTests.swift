@@ -37,6 +37,6 @@ import XCTest
             else { app.buttons["rpgMicrophone"].press(forDuration:1);app.buttons["Response"].tap();let field=app.descendants(matching:.any)["rpgReply"];reveal(field,in:app);field.tap();field.typeText(step.example+"\n");XCTAssertTrue(app.buttons["rpgContinue"].waitForExistence(timeout:10)) }
             tap("rpgContinue")
         }
-        tap("rpgComplete");XCTAssertTrue(app.staticTexts["lessonCompletionBonus"].waitForExistence(timeout:10));XCTAssertEqual(app.staticTexts["lessonCompletionBonus"].label,"+50")
+        XCTAssertTrue(app.staticTexts["lessonCompletionBonus"].waitForExistence(timeout:10));XCTAssertFalse(app.buttons["rpgComplete"].exists,"The original Intro advances automatically after its last game task");XCTAssertEqual(app.staticTexts["lessonCompletionBonus"].label,"+50")
     }
 }

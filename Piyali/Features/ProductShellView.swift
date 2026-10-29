@@ -276,7 +276,7 @@ struct ProductShellView:View {
         }
         revision=UUID()
     }
-    private var canPresentPracticeModal:Bool {app.companionUnlock == nil && panel == nil && !menuOpen && !goalOpen && !timerOpen && timer.session.status != .finished && firstRun.step == nil && app.goalCheck == nil && app.flashcardSession == nil && lessonCompletion == nil && practice.visible == nil && app.dailyGoalReward == nil && app.scholarship.visible == nil}
+    private var canPresentPracticeModal:Bool {app.companionUnlock == nil && panel == nil && !menuOpen && !goalOpen && !timerOpen && timer.session.status != .finished && firstRun.step == nil && app.goalCheck == nil && app.flashcardSession == nil && lessonCompletion == nil && practice.visible == nil && practice.dailyGoalVisible == nil && (app.dailyGoalReward == nil || app.pendingLessonCompletion != nil) && app.scholarship.visible == nil}
     private func updatePracticePresentation(){practice.presentationBlocked(app.companionUnlock != nil || panel != nil || menuOpen || goalOpen || timerOpen || timer.session.status == .finished || firstRun.step != nil || lessonCompletion != nil || app.scholarship.visible != nil,app:app)}
     private func presentPendingLessonCompletion() {
         guard let pending=app.pendingLessonCompletion else { return }

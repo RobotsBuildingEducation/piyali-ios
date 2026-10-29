@@ -70,7 +70,7 @@ struct PlateCourseCompletion:Identifiable {let id=UUID();let kind:String}
         task?.cancel()
         if let reward=app.dailyGoalReward {
             if reward.account != app.identity.npub || reward.day != CalendarDay.key(clock()){app.dailyGoalReward=nil;dailyGoalVisible=nil}
-            else if !blocked && !app.dailyGoalBlocked(excluding:owner) && app.flashcardSession == nil && app.goalCheck == nil && visible == nil {dailyGoalVisible=reward}
+            else if app.pendingLessonCompletion == nil && !blocked && !app.dailyGoalBlocked(excluding:owner) && app.flashcardSession == nil && app.goalCheck == nil && visible == nil {dailyGoalVisible=reward}
         }else{dailyGoalVisible=nil}
         let awarded=DailyPlate.bonusAwarded(progress:app.learner.plateProgress,target:app.learner.target,day:CalendarDay.key(clock())),justClaimed=awarded && !bonusSeen;bonusSeen=awarded
         let result=try? policy.run("step",input(app).setting("bonusJustClaimed",.bool(justClaimed)))

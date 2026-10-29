@@ -35,9 +35,10 @@ import Foundation
         func current()->Bool{valid(app,account:account,target:target,support:support,token:token) && level(app,lesson:lesson,tutor:tutor) == courseLevel}
         await load(target:target);guard current(),loadedTarget == target,let library else{return}
         let authoredLevel=lesson?.content["game"]["cefrLevel"].string.isEmpty == false ? lesson!.content["game"]["cefrLevel"].string:courseLevel
-        let acknowledgedTutorCompletion=tutor && lesson.map{app.learner.tutorProgress($0.id).sourceState?["status"].string == "completed" && !(app.learner.pendingChanges ?? []).contains(where:{$0.source == .speak && $0.target == target && $0.contentID == lesson?.id && ($0.tutorData?["required"].number ?? 0)>0})} == true
-        if !fresh,let saved=app.learner.rpgRuns?[target],saved.support == support,!(saved.completed && (saved.claimed || acknowledgedTutorCompletion)),(saved.tutor == true) == tutor,saved.lessonID == lesson?.id,(episode == nil || saved.scenario.authoredEpisode.id == episode),saved.scenario.authoredEpisode.level == authoredLevel{stagedRun=saved;return}
         let tutorial=lesson?.id == IntroTutorial.lessonID || lesson?.isTutorial == true
+        let acknowledgedIntroCompletion = !tutor && tutorial && app.learner.completed.contains(app.learner.completionKey(IntroTutorial.lessonID))
+        let acknowledgedTutorCompletion=tutor && lesson.map{app.learner.tutorProgress($0.id).sourceState?["status"].string == "completed" && !(app.learner.pendingChanges ?? []).contains(where:{$0.source == .speak && $0.target == target && $0.contentID == lesson?.id && ($0.tutorData?["required"].number ?? 0)>0})} == true
+        if !fresh,let saved=app.learner.rpgRuns?[target],saved.support == support,!(saved.completed && (saved.claimed || acknowledgedTutorCompletion || acknowledgedIntroCompletion)),(saved.tutor == true) == tutor,saved.lessonID == lesson?.id,(episode == nil || saved.scenario.authoredEpisode.id == episode),saved.scenario.authoredEpisode.level == authoredLevel{stagedRun=saved;return}
         let review=tutorial ? app.introLibrary.flatMap{$0.target == target ? $0.games[courseLevel]:nil}:lesson.flatMap{library.reviews[$0.id]}
         guard let original=review?.bySupport[support] ?? library.scenarios(level:courseLevel,support:support).first(where:{$0.authoredEpisode.id == episode}),let world=(tutorial ? app.introLibrary?.worlds[original.worldKey]:library.worlds[original.worldKey])else{error="This episode is not available for the selected language and level.";return}
         busy=true;var scenario=original

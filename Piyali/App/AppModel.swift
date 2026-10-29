@@ -67,6 +67,17 @@ import SwiftUI
     @Published var goalCheck:GoalCheckPresentation?
     @Published var flashcardSession:FlashcardSessionController?
     @Published var pendingLessonCompletion:LessonCompletionPresentation?
+    /// Publish the completion owner before XP observers can release a daily-goal celebration.
+    /// Validate on a value copy so rejected/replayed claims cannot queue a second reward.
+    func completeGameReview(_ run:RPGRun,lesson:Lesson?) {
+        var next=learner
+        let reward=next.completeRPG(run)
+        if reward>0,let lesson,lesson.id == run.lessonID {
+            pendingLessonCompletion = .init(account:identity.npub,target:next.target,lesson:lesson,reward:reward,languageXP:next.xp)
+        }
+        learner=next;persist()
+    }
+
     @Published var scholarship=ScholarshipPrompt()
     var goalEditorFlush:(id:UUID,flush:()->Void)?
     let progressService:any LearnerProgressService

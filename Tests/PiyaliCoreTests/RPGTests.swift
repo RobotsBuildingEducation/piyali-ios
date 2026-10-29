@@ -95,7 +95,9 @@ final class RPGTests:XCTestCase {
         var run=try makeRun(),state=LearnerState();finish(&run);state.saveRPG(run)
         XCTAssertEqual(run.score,800);XCTAssertEqual(run.stars,3);XCTAssertEqual(state.completeRPG(run),30);XCTAssertEqual(state.completeRPG(run),0)
         XCTAssertEqual(state.totalXP,30);XCTAssertEqual(state.pendingChanges?.count,1);XCTAssertEqual(state.pendingChanges?.first?.gameResult?["score"].number,800);XCTAssertTrue(state.completed.contains("es:unit-game"));XCTAssertEqual(state.rating,800)
-        var replay=try self.makeRun();finish(&replay);state.saveRPG(replay);XCTAssertEqual(state.completeRPG(replay),0)
+        let encoder=JSONEncoder();encoder.outputFormatting = .sortedKeys;let originalReceipt=try encoder.encode(state.pendingChanges)
+        var replay=try self.makeRun();finish(&replay);replay.score=700;XCTAssertEqual(replay.stars,2);XCTAssertEqual(replay.reward,22);state.saveRPG(replay);XCTAssertEqual(state.completeRPG(replay),0)
+        state=try JSONDecoder().decode(LearnerState.self,from:encoder.encode(state));XCTAssertEqual(state.totalXP,30);XCTAssertEqual(try encoder.encode(state.pendingChanges),originalReceipt);XCTAssertEqual(state.rpgRuns?["es"]?.score,700);XCTAssertEqual(state.rpgRuns?["es"]?.claimed,true)
         var free=try self.makeRun(lesson:nil);finish(&free);state.saveRPG(free);XCTAssertEqual(state.completeRPG(free),0);XCTAssertEqual(state.totalXP,30)
     }
     func testMapCollisionPathfindingAndSavedRunSurvivePersistence() throws {
