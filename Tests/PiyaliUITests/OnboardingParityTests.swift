@@ -2,8 +2,8 @@ import XCTest
 
 @MainActor final class OnboardingParityTests:XCTestCase {
     private func launch(language:String="en",theme:String="light")->XCUIApplication {
-        continueAfterFailure=false;let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString;app.launchEnvironment["PIYALI_ENTRY_INITIAL_LANGUAGE"]=language;app.launchEnvironment["PIYALI_ENTRY_INITIAL_THEME"]=theme;app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US"];app.launch()
-        let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Welcome Learner");app.buttons["entryKeyboardDone"].tap();app.buttons["createAccount"].tap();XCTAssertTrue(app.staticTexts["onboardingTitle"].waitForExistence(timeout:20));return app
+        continueAfterFailure=false;let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString;app.launchEnvironment["PIYALI_ENTRY_INITIAL_LANGUAGE"]=language;app.launchEnvironment["PIYALI_ENTRY_INITIAL_THEME"]=theme;app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US"];app.launch();handleInitialPaperPencil(app)
+        let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Welcome Learner");app.buttons["entryKeyboardDone"].tap();app.buttons["createAccount"].tap();handleInitialPaperPencil(app);XCTAssertTrue(app.staticTexts["onboardingTitle"].waitForExistence(timeout:20));return app
     }
     private func shot(_ name:String,_ app:XCUIApplication) {let capture=XCTAttachment(screenshot:app.screenshot());capture.name=name;capture.lifetime = .keepAlways;add(capture)}
     private func choose(_ app:XCUIApplication,support:Bool,code:String) {let menu=app.buttons[support ? "onboardingSupport" : "onboardingPractice"];for _ in 0..<3 where !menu.isHittable {app.swipeDown()};menu.tap();let option=app.buttons["onboardingOption-"+(support ? "support-" : "practice-")+code];XCTAssertTrue(option.waitForExistence(timeout:5));option.tap()}
@@ -19,7 +19,7 @@ import XCTest
         choose(app,support:false,code:"es");XCTAssertEqual(editor.value as? String,"Talk with family")
         choose(app,support:false,code:"ja");XCTAssertTrue(app.buttons["onboardingPractice"].label.contains("beta"));XCTAssertEqual(editor.value as? String,"")
         choose(app,support:false,code:"fr");XCTAssertEqual(editor.value as? String,"Order in a cafe");shot("Native source onboarding French retained goal",app)
-        app.buttons["startLearning"].tap();XCTAssertTrue(app.staticTexts["todayFocusTitle"].waitForExistence(timeout:15));app.terminate();app.launch();XCTAssertTrue(app.staticTexts["todayFocusTitle"].waitForExistence(timeout:15));XCTAssertFalse(app.staticTexts["onboardingTitle"].exists)
+        app.buttons["startLearning"].tap();XCTAssertTrue(app.staticTexts["todayFocusTitle"].waitForExistence(timeout:15));app.terminate();app.launch();handleInitialPaperPencil(app);XCTAssertTrue(app.staticTexts["todayFocusTitle"].waitForExistence(timeout:15));XCTAssertFalse(app.staticTexts["onboardingTitle"].exists)
     }
     func testArabicDarkDrawerScrollAndOptionalBlankGoal() {
         let app=launch(language:"ar",theme:"dark");XCTAssertTrue(app.buttons["onboardingSupport"].isHittable);XCTAssertTrue(app.buttons["onboardingPractice"].isHittable);shot("Native source onboarding Arabic dark",app)

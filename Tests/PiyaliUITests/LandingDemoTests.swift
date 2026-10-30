@@ -2,7 +2,7 @@ import XCTest
 
 @MainActor final class LandingDemoPlayTests:XCTestCase {
     private func launch(_ mode:String)->XCUIApplication {
-        continueAfterFailure=false;let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString;app.launchEnvironment["PIYALI_LANDING_DEMO_FIXTURE"]=mode;app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"];app.launch()
+        continueAfterFailure=false;let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString;app.launchEnvironment["PIYALI_LANDING_DEMO_FIXTURE"]=mode;app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"];app.launch();handleInitialPaperPencil(app)
         let start=app.buttons["landingDemoStart"];for _ in 0..<15 where !start.isHittable {app.swipeUp(velocity:.slow)};XCTAssertTrue(start.waitForExistence(timeout:10))
         // The production default also depends on timezone/browser language.
         // Select the same Spanish lesson as the scripted provider explicitly.

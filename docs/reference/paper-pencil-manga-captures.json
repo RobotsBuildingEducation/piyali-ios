@@ -1,0 +1,171 @@
+{
+  "result": "PiyaliMangaPaper6.xcresult",
+  "artwork": {
+    "resource": "Piyali/Resources/paper-pencil-manga.webp",
+    "sha256": "2f20b755410041cb598301f25719d641188b667a0311355a6015ed49a6b492a3",
+    "bytes": 38332
+  },
+  "scope": "Current original modal in iPhone WebKit and native SwiftUI, English/light and Arabic/dark at 320x568, 375x667, 402x874 and 874x402. Original body-click/Understood callbacks execute; provider/identity/sound I/O disabled. Earlier SVG/motion files are historical and no longer describe the current artwork.",
+  "records": [
+    {
+      "file": "docs/reference/paper-pencil/current-en-320x568.png",
+      "sha256": "0d4b717c9922c50d27c92c437a853559ee66a163a6739ce5131b30f0ab491452",
+      "attachment": "Source manga Paper modal en 320x568_0_E197FE20-2A73-4096-BF60-63B7C7815D30.png"
+    },
+    {
+      "file": "docs/reference/paper-pencil/current-en-320x568.json",
+      "sha256": "6a85383b37ef3982f0ae31ac2f6f4d7ec77729300f3f7c578850f312930041e6",
+      "attachment": "Source manga Paper geometry en 320x568_0_21217F83-F6BA-4D08-A788-1E69068BDD17.txt"
+    },
+    {
+      "file": "docs/native/paper-pencil-current-en-320x568.png",
+      "sha256": "cda2e548af852403437d38ff52ec30a98da3868b6829999bb018594f9bd96ada",
+      "attachment": "Native manga Paper modal en 320x568_0_ECEA417C-1CFB-4995-884A-6B1910F2B65F.png"
+    },
+    {
+      "file": "docs/native/paper-pencil-current-en-320x568.json",
+      "sha256": "21f929aa38d7aa339956e428609dcb2ee6e6157b773df4df645ef337bc5e900e",
+      "attachment": "Native manga Paper geometry en 320x568_0_95513DF4-CF06-4824-882E-48FD0FCDF84B.txt"
+    },
+    {
+      "file": "docs/reference/paper-pencil/current-ar-320x568.png",
+      "sha256": "61629485219208ad58f5720604da7bd22e365a57d9a375da4f4462431305d141",
+      "attachment": "Source manga Paper modal ar 320x568_0_85833AAD-74DA-48F0-A65A-61132CE29B45.png"
+    },
+    {
+      "file": "docs/reference/paper-pencil/current-ar-320x568.json",
+      "sha256": "cd2baa2908a1f33496b9e5e71d17f3dd22e6455e99816969f36f3da20ee2da94",
+      "attachment": "Source manga Paper geometry ar 320x568_0_BCF84508-B85E-4B27-AB27-E2D75BC059CB.txt"
+    },
+    {
+      "file": "docs/native/paper-pencil-current-ar-320x568.png",
+      "sha256": "6e855d87a88c36ed93c5ed3368df533ff472e84e326b863720d019749582450b",
+      "attachment": "Native manga Paper modal ar 320x568_0_84DDA166-950E-4848-9A55-DCE765572A07.png"
+    },
+    {
+      "file": "docs/native/paper-pencil-current-ar-320x568.json",
+      "sha256": "8a03e5ad84cd15562d2c779605ae1af168a960f9ad89457af45aeedf37e713bc",
+      "attachment": "Native manga Paper geometry ar 320x568_0_A76E0A67-5E7B-4C5C-962F-9230304C95DF.txt"
+    },
+    {
+      "file": "docs/reference/paper-pencil/current-en-375x667.png",
+      "sha256": "a6071a74ded880ab41f42a425dec5726cf75efab8d87de7e16c3feeece5040cb",
+      "attachment": "Source manga Paper modal en 375x667_0_5A7C7BB2-E56D-48F5-AB7F-8F6AEBE1B42E.png"
+    },
+    {
+      "file": "docs/reference/paper-pencil/current-en-375x667.json",
+      "sha256": "dc449147dbdeb9c1bd94b60ac0ede63ec546aabefb59ef379cf78726d6db9d89",
+      "attachment": "Source manga Paper geometry en 375x667_0_73446FDA-CEB9-4CCF-B5D7-35CEC32638F4.txt"
+    },
+    {
+      "file": "docs/native/paper-pencil-current-en-375x667.png",
+      "sha256": "90d04d675840af9b3c63bc2047506d77ccc347795c7774d09e400f1e3807ac5f",
+      "attachment": "Native manga Paper modal en 375x667_0_700AA03E-393C-4AAA-A619-AC46927075CC.png"
+    },
+    {
+      "file": "docs/native/paper-pencil-current-en-375x667.json",
+      "sha256": "deeef9b3fe5c43817d3071faebaec44e705e54ba6df1614ca08fcfb5d40df1f4",
+      "attachment": "Native manga Paper geometry en 375x667_0_A5A5BF8A-F344-48F2-8116-39B55EA013E5.txt"
+    },
+    {
+      "file": "docs/reference/paper-pencil/current-ar-375x667.png",
+      "sha256": "95b802c6ec38dfae845ac01f5af59c0669f789b5057b3c4c8c2a1e42e4a5368e",
+      "attachment": "Source manga Paper modal ar 375x667_0_2B103908-448D-437D-B943-1D1323CD80C9.png"
+    },
+    {
+      "file": "docs/reference/paper-pencil/current-ar-375x667.json",
+      "sha256": "d39f04e81406ac1cb2188e4ca0db50412f47006d1696e9324b21d5c46a4ca1fc",
+      "attachment": "Source manga Paper geometry ar 375x667_0_C3802F1E-FA72-4024-B1C7-2CCD40D578BD.txt"
+    },
+    {
+      "file": "docs/native/paper-pencil-current-ar-375x667.png",
+      "sha256": "235828df67704f14eb5bf38d6d0a5f077017c8ca947347860ee26e533cbf6dc6",
+      "attachment": "Native manga Paper modal ar 375x667_0_E2AC9FA3-DC90-4B66-AEA6-6F0F7A243671.png"
+    },
+    {
+      "file": "docs/native/paper-pencil-current-ar-375x667.json",
+      "sha256": "18c7d10d663d8ae0f2e98cf39939d15bd1cd3aa3c3fc117b4aafa733d38cbd65",
+      "attachment": "Native manga Paper geometry ar 375x667_0_5B35C8BD-6252-4618-9B08-7027C8AFFB94.txt"
+    },
+    {
+      "file": "docs/reference/paper-pencil/current-en-402x874.png",
+      "sha256": "bdd7da2efb2846da5268607fa82166626ab318cc2fbb83524805d209c5ec3bd1",
+      "attachment": "Source manga Paper modal en 402x874_0_73463E66-F94B-45C8-8076-D9C11991A96C.png"
+    },
+    {
+      "file": "docs/reference/paper-pencil/current-en-402x874.json",
+      "sha256": "cee2b1d894944a111847e3ae9ecfa388ea97b30aa9bbfab12499b7d1f09d5b9d",
+      "attachment": "Source manga Paper geometry en 402x874_0_3F56393C-A502-4ED2-B581-E03042122DE0.txt"
+    },
+    {
+      "file": "docs/native/paper-pencil-current-en-402x874.png",
+      "sha256": "7ba88df005f5696e4a9bd20014debbc0185212a5ae30a86f7eea3a27e1364bbc",
+      "attachment": "Native manga Paper modal en 402x874_0_40C5C545-7403-425F-8F90-FF643DC2AB14.png"
+    },
+    {
+      "file": "docs/native/paper-pencil-current-en-402x874.json",
+      "sha256": "0ae5ded401214993d175e7a6f0b691e7fd9df5460cb7e430942f4227f68b53b2",
+      "attachment": "Native manga Paper geometry en 402x874_0_59527F9D-B370-4049-B4A0-90D048B46C6E.txt"
+    },
+    {
+      "file": "docs/reference/paper-pencil/current-ar-402x874.png",
+      "sha256": "d7213ba784ffffd047c1c00ea8e80225288363b14f4308993cd8049818a566f8",
+      "attachment": "Source manga Paper modal ar 402x874_0_CE66152C-E2E1-4CA8-AD74-DBEA00A03AC7.png"
+    },
+    {
+      "file": "docs/reference/paper-pencil/current-ar-402x874.json",
+      "sha256": "a55b30a16cf778ac86018004c4ee7d1ec8983b4fbb6c733ac2ac647ed0066125",
+      "attachment": "Source manga Paper geometry ar 402x874_0_1782A097-220A-4F8B-A4EE-A07CEFED5290.txt"
+    },
+    {
+      "file": "docs/native/paper-pencil-current-ar-402x874.png",
+      "sha256": "5839ebbff1ba214c31acfeae164195f3c454ca48d4fd0fced0da09d06a200463",
+      "attachment": "Native manga Paper modal ar 402x874_0_0ABB8010-429A-4183-AA97-545FCD8D6061.png"
+    },
+    {
+      "file": "docs/native/paper-pencil-current-ar-402x874.json",
+      "sha256": "0f42e9f96a2037e26814b8c08f300b0bdc3049665abd1e18f1ae0a85568e7667",
+      "attachment": "Native manga Paper geometry ar 402x874_0_54A5E577-20DA-4F63-9E30-D56C240198C9.txt"
+    },
+    {
+      "file": "docs/reference/paper-pencil/current-en-874x402.png",
+      "sha256": "7734ea6fa5d648ce180e426e5ec531f3bab7d33f9e95fb857d609b9f49a2e49f",
+      "attachment": "Source manga Paper modal en 874x402_0_0C0D95F9-6C0D-438C-8C39-6853DE7DE66E.png"
+    },
+    {
+      "file": "docs/reference/paper-pencil/current-en-874x402.json",
+      "sha256": "7690a55cadea24fa52281a253243895661cb6c48a30f9b7156fb921937c0110e",
+      "attachment": "Source manga Paper geometry en 874x402_0_E6AEFD8B-8AD6-4077-9850-E9BD1CDDBD03.txt"
+    },
+    {
+      "file": "docs/native/paper-pencil-current-en-874x402.png",
+      "sha256": "d982f84819a76e9212f4c04f5e61175bb4742fcfafc3090c07a8e5ce2a2081fa",
+      "attachment": "Native manga Paper modal en 874x402_0_74897C0F-9A5D-4C16-9688-9CEB0A2E235A.png"
+    },
+    {
+      "file": "docs/native/paper-pencil-current-en-874x402.json",
+      "sha256": "2fbce4c0fa4a79a62c2b7fbe74940bc4ed4784979c791ec6099a1f747b8b58e0",
+      "attachment": "Native manga Paper geometry en 874x402_0_5C1F3B17-48DE-47AF-9886-70E21815C6A4.txt"
+    },
+    {
+      "file": "docs/reference/paper-pencil/current-ar-874x402.png",
+      "sha256": "3740ab02010ffb3b9da4de12d5b4772ac150ab8bb291078d8cd70ccb7e9583b1",
+      "attachment": "Source manga Paper modal ar 874x402_0_92A90341-F166-4A6F-8881-6AF6FEFC6142.png"
+    },
+    {
+      "file": "docs/reference/paper-pencil/current-ar-874x402.json",
+      "sha256": "a007eed2a737e7cf32f3555d5190682080e63fddf289f45f6ecabe54def24cf8",
+      "attachment": "Source manga Paper geometry ar 874x402_0_8907835C-D62A-4256-9E00-F0703A2BAC3C.txt"
+    },
+    {
+      "file": "docs/native/paper-pencil-current-ar-874x402.png",
+      "sha256": "3a2770b3f021b60a38bebde5679d20a9e613aee82358c76903e85083b374746d",
+      "attachment": "Native manga Paper modal ar 874x402_0_DBA5D7A5-2E75-4681-A09D-AE8ECAA6D542.png"
+    },
+    {
+      "file": "docs/native/paper-pencil-current-ar-874x402.json",
+      "sha256": "2fbce4c0fa4a79a62c2b7fbe74940bc4ed4784979c791ec6099a1f747b8b58e0",
+      "attachment": "Native manga Paper geometry ar 874x402_0_596F4133-69E9-4063-9B0A-52D6B9D58E56.txt"
+    }
+  ]
+}

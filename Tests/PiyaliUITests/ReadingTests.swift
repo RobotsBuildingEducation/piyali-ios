@@ -19,8 +19,8 @@ import XCTest
         if failure { app.launchEnvironment["PIYALI_READING_SPEECH_FAILURE"]="1" }
         if noEnd { app.launchEnvironment["PIYALI_READING_CAPTURE_NO_END"]="1" }
         if denied { app.launchEnvironment["PIYALI_READING_CAPTURE_DENIED"]="1" }
-        app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"];app.launch()
-        let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Speech Reader");if app.buttons["entryKeyboardDone"].exists { app.buttons["entryKeyboardDone"].tap() };app.buttons["createAccount"].tap()
+        app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"];app.launch();handleInitialPaperPencil(app)
+        let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Speech Reader");if app.buttons["entryKeyboardDone"].exists { app.buttons["entryKeyboardDone"].tap() };app.buttons["createAccount"].tap();handleInitialPaperPencil(app)
         XCTAssertTrue(app.buttons["startLearning"].waitForExistence(timeout:20));app.buttons["startLearning"].tap();open(app);return app
     }
     private func spokenFragment(_ app:XCUIApplication) {
@@ -30,7 +30,7 @@ import XCTest
     func testSpeechTranscriptResumeStartOverSixCardsAndSingleRewardHandoff() {
         let app=speechApp();spokenFragment(app)
         let transcript=app.staticTexts["readingSpeechTranscript"].label
-        app.terminate();app.launch();open(app);XCTAssertEqual(app.staticTexts["readingSpeechTranscript"].label,transcript)
+        app.terminate();app.launch();handleInitialPaperPencil(app);open(app);XCTAssertEqual(app.staticTexts["readingSpeechTranscript"].label,transcript)
         tap("readingSpeechStartOver",app);XCTAssertFalse(app.staticTexts["readingSpeechTranscript"].exists);spokenFragment(app)
         tap("readingMicrophone",app);let completed=app.staticTexts["readingCompleted"];XCTAssertTrue(completed.waitForExistence(timeout:10));let reward=completed.value as? String
         XCTAssertEqual(app.staticTexts["readingSpeechTotal"].label,"29/60");XCTAssertTrue(app.staticTexts["readingSpeechSummary"].label.contains("remaining sentences"))
@@ -39,14 +39,14 @@ import XCTest
         let last=app.staticTexts["Try the rest of the paragraph to show more understanding."],scroll=app.scrollViews["activityFeedbackScroll"]
         for _ in 0..<8 { if last.isHittable { break };scroll.swipeUp(velocity:.slow) };XCTAssertTrue(last.isHittable)
         let bottom=XCTAttachment(screenshot:app.screenshot());bottom.name="Native reading six speech criteria";bottom.lifetime = .keepAlways;add(bottom)
-        app.terminate();var arguments=app.launchArguments;if let index=arguments.firstIndex(of:"-piyali.theme") { arguments[index+1]="dark" };app.launchArguments=arguments;app.launch();open(app);XCTAssertEqual(app.staticTexts["readingSpeechTotal"].label,"29/60");XCTAssertEqual(completed.value as? String,reward);XCTAssertFalse(app.buttons["readingMicrophone"].exists)
+        app.terminate();var arguments=app.launchArguments;if let index=arguments.firstIndex(of:"-piyali.theme") { arguments[index+1]="dark" };app.launchArguments=arguments;app.launch();handleInitialPaperPencil(app);open(app);XCTAssertEqual(app.staticTexts["readingSpeechTotal"].label,"29/60");XCTAssertEqual(completed.value as? String,reward);XCTAssertFalse(app.buttons["readingMicrophone"].exists)
         let dark=XCTAttachment(screenshot:app.screenshot());dark.name="Native reading speech feedback dark";dark.lifetime = .keepAlways;add(dark)
         tap("readingContinue",app);XCTAssertEqual(app.buttons["introStep-stories"].value as? String,"Current")
     }
     func testSpeechReviewOutageStillCompletesPracticeWithoutScoreCards() {
         let app=speechApp(failure:true);spokenFragment(app);tap("readingMicrophone",app)
         XCTAssertTrue(app.staticTexts["readingCompleted"].waitForExistence(timeout:10));XCTAssertEqual(app.staticTexts["readingSpeechSummary"].label,"Could not generate feedback. Keep practicing!");XCTAssertFalse(app.staticTexts["readingSpeechTotal"].exists)
-        app.terminate();app.launch();open(app);XCTAssertTrue(app.staticTexts["readingCompleted"].exists);XCTAssertFalse(app.buttons["readingMicrophone"].exists);tap("readingContinue",app)
+        app.terminate();app.launch();handleInitialPaperPencil(app);open(app);XCTAssertTrue(app.staticTexts["readingCompleted"].exists);XCTAssertFalse(app.buttons["readingMicrophone"].exists);tap("readingContinue",app)
         XCTAssertEqual(app.buttons["introStep-stories"].value as? String,"Current")
     }
     func testMissingCaptureEndRecoversAndBackgroundingKeepsPartialWithoutGrading() {
@@ -56,20 +56,20 @@ import XCTest
         XCTAssertTrue(app.buttons["readingMicrophone"].waitForExistence(timeout:10));XCTAssertEqual(app.buttons["readingMicrophone"].value as? String,"idle");XCTAssertFalse(app.staticTexts["readingCompleted"].exists)
         let partial=app.staticTexts["readingSpeechTranscript"].label;XCTAssertTrue(partial.contains("Mi libreta verde"))
         reveal(app.staticTexts["readingSpeechTranscript"],in:app);let retained=XCTAttachment(screenshot:app.screenshot());retained.name="Native reading retained partial after background";retained.lifetime = .keepAlways;add(retained)
-        app.terminate();app.launch();open(app);XCTAssertEqual(app.staticTexts["readingSpeechTranscript"].label,partial);XCTAssertEqual(app.buttons["readingMicrophone"].value as? String,"idle")
+        app.terminate();app.launch();handleInitialPaperPencil(app);open(app);XCTAssertEqual(app.staticTexts["readingSpeechTranscript"].label,partial);XCTAssertEqual(app.buttons["readingMicrophone"].value as? String,"idle")
     }
     func testCapturePermissionFailureShowsRecordingFeedbackAndCanRetry() {
         let app=speechApp(denied:true);tap("readingMicrophone",app)
         let error=app.staticTexts["readingRecordingError"];XCTAssertTrue(error.waitForExistence(timeout:5));XCTAssertFalse(error.label.isEmpty);XCTAssertFalse(error.label.lowercased().contains("connection"));XCTAssertFalse(app.staticTexts["readingCompleted"].exists)
         reveal(error,in:app);let denied=XCTAttachment(screenshot:app.screenshot());denied.name="Native reading capture permission error";denied.lifetime = .keepAlways;add(denied)
-        app.terminate();app.launchEnvironment.removeValue(forKey:"PIYALI_READING_CAPTURE_DENIED");app.launch();open(app);spokenFragment(app)
+        app.terminate();app.launchEnvironment.removeValue(forKey:"PIYALI_READING_CAPTURE_DENIED");app.launch();handleInitialPaperPencil(app);open(app);spokenFragment(app)
         XCTAssertFalse(error.exists);XCTAssertFalse(app.staticTexts["readingCompleted"].exists)
     }
     func testWrongAnswerRetryResumeAndOneReward() {
         continueAfterFailure=false
         let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString;app.launchEnvironment["PIYALI_READING_FIXTURE"]="1";app.launchEnvironment["PIYALI_READING_AUDIO_FIXTURE"]="1";app.launchEnvironment["PIYALI_PRACTICE_FIXTURE"]="delight:natural_or_weird"
-        app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"];app.launch()
-        let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Reading Learner");if app.buttons["entryKeyboardDone"].exists { app.buttons["entryKeyboardDone"].tap() };app.buttons["createAccount"].tap()
+        app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"];app.launch();handleInitialPaperPencil(app)
+        let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Reading Learner");if app.buttons["entryKeyboardDone"].exists { app.buttons["entryKeyboardDone"].tap() };app.buttons["createAccount"].tap();handleInitialPaperPencil(app)
         XCTAssertTrue(app.buttons["startLearning"].waitForExistence(timeout:20));app.buttons["startLearning"].tap();open(app)
         tap("readingListen",app);XCTAssertEqual(app.buttons["readingListen"].frame.width,32,accuracy:1);XCTAssertEqual(app.buttons["readingListen"].frame.height,32,accuracy:1);XCTAssertEqual(app.buttons["readingListen"].value as? String,"Loading...");XCTAssertTrue(app.buttons["readingStop"].isEnabled)
         let audioShot=XCTAttachment(screenshot:app.screenshot());audioShot.name="Native Reading source loading and Stop controls";audioShot.lifetime = .keepAlways;add(audioShot)
@@ -80,10 +80,10 @@ import XCTest
         let sentenceShot=XCTAttachment(screenshot:app.screenshot());sentenceShot.name="Native Reading sentence highlight without whole-passage spinner";sentenceShot.lifetime = .keepAlways;add(sentenceShot)
         tap("readingListen",app);XCTAssertTrue(app.buttons["readingStop"].isEnabled);tap("readingStop",app);XCTAssertFalse(app.buttons["readingStop"].isEnabled)
         tap("readingOption-1",app);tap("readingCheck",app);let feedback=app.staticTexts["readingFeedback"];reveal(feedback,in:app);XCTAssertEqual(feedback.label,"Not quite.");tap("readingExplain",app);let explanation=app.staticTexts["readingExplanation"];reveal(explanation,in:app);XCTAssertTrue(explanation.label.contains("remember the plan"))
-        app.terminate();app.launch();open(app);tap("readingTranslate",app);reveal(line,in:app);XCTAssertEqual(line.label,"My green notebook is near the window.")
+        app.terminate();app.launch();handleInitialPaperPencil(app);open(app);tap("readingTranslate",app);reveal(line,in:app);XCTAssertEqual(line.label,"My green notebook is near the window.")
         tap("readingOption-0",app);tap("readingCheck",app);let completed=app.staticTexts["readingCompleted"];reveal(completed,in:app);let saved=completed.label;XCTAssertTrue(saved.contains("XP awarded:"))
         let result=XCTAttachment(screenshot:app.screenshot());result.name="Native reading correct answer and handoff";result.lifetime = .keepAlways;add(result)
-        app.terminate();app.launch();open(app);reveal(completed,in:app);XCTAssertEqual(completed.label,saved);XCTAssertFalse(app.buttons["readingCheck"].exists)
+        app.terminate();app.launch();handleInitialPaperPencil(app);open(app);reveal(completed,in:app);XCTAssertEqual(completed.label,saved);XCTAssertFalse(app.buttons["readingCheck"].exists)
         tap("readingContinue",app);XCTAssertEqual(app.buttons["introStep-stories"].value as? String,"Current")
     }
 }

@@ -341,6 +341,7 @@
 		18CD44DB0A952AEB1024E5D6 /* LocalRemoteSigner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FAEEF555D382DA290350DB9 /* LocalRemoteSigner.swift */; };
 		18CEE9D5AF50E92FD4988EFB /* RPGPet-dog-left-4.png in Resources */ = {isa = PBXBuildFile; fileRef = 7750D32A88BB50DC17C02342 /* RPGPet-dog-left-4.png */; };
 		18F1287A569866F4B1C02105 /* course-RiGroupLine@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 101345F3CC9EB161B164FCFE /* course-RiGroupLine@3x.png */; };
+		18F275F1FF035ABCCDE3CFC1 /* paper-pencil-manga.webp in Resources */ = {isa = PBXBuildFile; fileRef = 026AFFE6654759543B33622B /* paper-pencil-manga.webp */; };
 		19098A56B9F54FA0B98D4B2F /* RPGProp-table-710.png in Resources */ = {isa = PBXBuildFile; fileRef = 4D313CC9A4CA5AA3382917E7 /* RPGProp-table-710.png */; };
 		1914020BB16A58AF9697E9C2 /* RPGGround-20774074c21b9b7c8fa1ce34.png in Resources */ = {isa = PBXBuildFile; fileRef = B06B6ADF4CCE73C3DCDC66FB /* RPGGround-20774074c21b9b7c8fa1ce34.png */; };
 		1933B6ECD7D7E8E3C585DB97 /* TeamsPanelControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F3D3D4BAE8DBE8DB8A028A2 /* TeamsPanelControllerTests.swift */; };
@@ -3363,6 +3364,7 @@
 		E9DBB8BBE52B625602DE65BB /* RPGGround-594da6e645d175e28f129586.png in Resources */ = {isa = PBXBuildFile; fileRef = 4C1E907C70789DEBAA848869 /* RPGGround-594da6e645d175e28f129586.png */; };
 		EA070E8700291E1B3EF92285 /* RPGProp-freezer-274.png in Resources */ = {isa = PBXBuildFile; fileRef = 78CE81D0429DDA31604239DC /* RPGProp-freezer-274.png */; };
 		EA0C726627050987891AD25F /* RPGProp-plant-720.png in Resources */ = {isa = PBXBuildFile; fileRef = 1E27E18845911128B14ABD55 /* RPGProp-plant-720.png */; };
+		EA1B09110008E5F7AC92070E /* paper-pencil-entry.json in Resources */ = {isa = PBXBuildFile; fileRef = C60CB1F7767441E9D3CA6709 /* paper-pencil-entry.json */; };
 		EA25F1778B09C6141F1FA656 /* course-RiMusicLine@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 8A70208E4E69C8486F31E036 /* course-RiMusicLine@3x.png */; };
 		EA59C43EA044F5C0EA42F4ED /* SettingsPersonaController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D216E90359E48AB44412841F /* SettingsPersonaController.swift */; };
 		EA65B01A88CCEDD2B206E9C6 /* RPGProp-register-1774.png in Resources */ = {isa = PBXBuildFile; fileRef = 350FCB3E0A66E2EA950BC6E5 /* RPGProp-register-1774.png */; };
@@ -3727,6 +3729,7 @@
 		01DF676A327D28D292B24F11 /* RPGGround-f487cba68cc3a13e53c850fa.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGGround-f487cba68cc3a13e53c850fa.png"; sourceTree = "<group>"; };
 		024BCF524F54CAAD3D2BF438 /* RPGProp-plant-344.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGProp-plant-344.png"; sourceTree = "<group>"; };
 		0250508D362907F7F0C8E060 /* SyncChanges.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncChanges.swift; sourceTree = "<group>"; };
+		026AFFE6654759543B33622B /* paper-pencil-manga.webp */ = {isa = PBXFileReference; path = "paper-pencil-manga.webp"; sourceTree = "<group>"; };
 		026D3E8717165FF5A2DD91B2 /* ExplorationText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExplorationText.swift; sourceTree = "<group>"; };
 		02A4DA0112D8DF131939F13F /* RPGProp-bookshelf-257.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGProp-bookshelf-257.png"; sourceTree = "<group>"; };
 		02C557BC028E3E37286E8242 /* delight-bodies.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "delight-bodies.json"; sourceTree = "<group>"; };
@@ -6528,6 +6531,7 @@
 		C599A16F7C346E5B225CC90E /* RPGPet-robot-up-5.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGPet-robot-up-5.png"; sourceTree = "<group>"; };
 		C5C5E349012649278195BCB9 /* RPGIconInventory.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = RPGIconInventory.png; sourceTree = "<group>"; };
 		C5E64C926D37924B8A0A0B52 /* LessonPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LessonPreviewView.swift; sourceTree = "<group>"; };
+		C60CB1F7767441E9D3CA6709 /* paper-pencil-entry.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "paper-pencil-entry.json"; sourceTree = "<group>"; };
 		C61DB93D0D7C972CA2D0AB00 /* CommunityFeedTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityFeedTests.swift; sourceTree = "<group>"; };
 		C621C5510E9875D265E84268 /* rpg-prepared-play.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "rpg-prepared-play.json"; sourceTree = "<group>"; };
 		C64D6A712C60733E5C765F1B /* RPGPet-axolotl-right-0.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGPet-axolotl-right-0.png"; sourceTree = "<group>"; };
@@ -7653,6 +7657,7 @@
 				E786789E927ABE39910D20D0 /* orb-surface.shader */,
 				78E6A69853A4C549F096C6DF /* orb-tone.shader */,
 				6375DD0B5E84249BF05ADE96 /* orb-visuals.json.gz */,
+				026AFFE6654759543B33622B /* paper-pencil-manga.webp */,
 				E5D69CD8F3307F5BE30CF3A7 /* paper-pencil-ui.json.gz */,
 				E25BCE6BED55E74389F1F771 /* phonics.json.gz */,
 				3764D7C0BB0F262218B7D433 /* placement-copy.json.gz */,
@@ -11139,6 +11144,7 @@
 				415A46D47AAECC8D5C4D577F /* narration-warm.json */,
 				E0E5B05F0F497330FA1B43E9 /* oral-bodies.json */,
 				242658B3ADB47A0687979726 /* paper-pencil-art.js */,
+				C60CB1F7767441E9D3CA6709 /* paper-pencil-entry.json */,
 				2162DFF8EEF4FFC387AE3AB1 /* paper-pencil-motion.json */,
 				93F9EA3918C75E4A8605DF8B /* PiyaliSubscriptions.storekit */,
 				BB0CFD9E801E5079F26E5AF0 /* reading-story-narration.json */,
@@ -11348,6 +11354,7 @@
 				E0E27DA9C2FCE76A26A679C4 /* narration-warm.json in Resources */,
 				2EFFFDBA0147935025DE34E2 /* oral-bodies.json in Resources */,
 				399781D39431BE546274D758 /* paper-pencil-art.js in Resources */,
+				EA1B09110008E5F7AC92070E /* paper-pencil-entry.json in Resources */,
 				A6B26E924DCE0DD7E561EEE7 /* paper-pencil-motion.json in Resources */,
 				E334C51CA79E4558A8733394 /* reading-story-narration.json in Resources */,
 				506A4773A4616F7F2D8AAB64 /* rpg-dialogue-traces.json in Resources */,
@@ -14369,6 +14376,7 @@
 				0949C32C41AD8D0E4185EC13 /* orb-surface.shader in Resources */,
 				C7A6DF95C2279D56E3F01C39 /* orb-tone.shader in Resources */,
 				7585CA03A5F1A0627F7A2836 /* orb-visuals.json.gz in Resources */,
+				18F275F1FF035ABCCDE3CFC1 /* paper-pencil-manga.webp in Resources */,
 				85D8878EFD88B7FDD829EA4B /* paper-pencil-ui.json.gz in Resources */,
 				8CF7D8A00419A9CC9B6805BA /* phonics.json.gz in Resources */,
 				276515C6BE780F29AD271E0C /* piyali-orb.png in Resources */,

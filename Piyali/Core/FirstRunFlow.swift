@@ -11,6 +11,7 @@ public struct FirstRunFlow:Equatable,Sendable {
     public private(set) var scope:String?
     public private(set) var promptedPlacement:String?
     public init() {}
+    public mutating func presentInitialPaper(scope:String){self.scope=scope;step = .paperPencil}
     public mutating func request(scope:String,shown:Bool,paperShown:Bool,hasPlacement:Bool) {
         guard step == nil else{return}
         self.scope=scope

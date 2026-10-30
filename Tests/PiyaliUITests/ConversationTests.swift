@@ -5,8 +5,8 @@ import XCTest
     private func open(_ app:XCUIApplication) { tap("productMenu",app);tap("productModeMenu",app);tap("productMode-conversation",app);XCTAssertTrue(app.staticTexts["conversationGoal"].waitForExistence(timeout:15)) }
     private func start(theme:String="light")->XCUIApplication {
         continueAfterFailure=false
-        let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString;app.launchEnvironment["PIYALI_CONVERSATION_FIXTURE"]="1";app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme",theme];app.launch()
-        let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Conversation Learner");if app.buttons["entryKeyboardDone"].exists { app.buttons["entryKeyboardDone"].tap() };tap("createAccount",app);tap("startLearning",app);open(app);return app
+        let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString;app.launchEnvironment["PIYALI_CONVERSATION_FIXTURE"]="1";app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme",theme];app.launch();handleInitialPaperPencil(app)
+        let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Conversation Learner");if app.buttons["entryKeyboardDone"].exists { app.buttons["entryKeyboardDone"].tap() };tap("createAccount",app);handleInitialPaperPencil(app);tap("startLearning",app);open(app);return app
     }
     private func photo(_ name:String,_ app:XCUIApplication) { let capture=XCTAttachment(screenshot:app.screenshot());capture.name=name;capture.lifetime = .keepAlways;add(capture) }
     func testVoiceFirstScreenHelpMutePauseResumeSummaryLogAndRelaunch() {
@@ -28,7 +28,7 @@ import XCTest
         tap("conversationStart",app);tap("conversationEnd",app);XCTAssertTrue(app.staticTexts["conversationSummaryXP"].waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts["conversationSummaryXP"].label.contains("+0"));tap("conversationSummaryDone",app)
         tap("conversationHistory",app);XCTAssertTrue(app.staticTexts["wrong topic"].waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts["Hola, me llamo Ana."].exists);photo("Native conversation private history",app)
         tap("conversationSave",app);app.buttons["Done"].tap()
-        app.terminate();app.launch();open(app);XCTAssertTrue(app.buttons["conversationStart"].exists);XCTAssertEqual(app.staticTexts["conversationLatestReply"].label,"¡Hola, Ana! ¿Qué te gusta hacer?")
+        app.terminate();app.launch();handleInitialPaperPencil(app);open(app);XCTAssertTrue(app.buttons["conversationStart"].exists);XCTAssertEqual(app.staticTexts["conversationLatestReply"].label,"¡Hola, Ana! ¿Qué te gusta hacer?")
         let xp=app.descendants(matching:.any).matching(identifier:"dailyXPStatus").firstMatch;XCTAssertTrue(xp.waitForExistence(timeout:5));XCTAssertEqual(xp.value as? String,"5%")
     }
     func testSourceSettingsPersistAcrossDismissalAndDarkRelaunchWithoutStartingAudio() {
@@ -38,7 +38,7 @@ import XCTest
         let toggle=app.switches["conversationPronunciation"];XCTAssertTrue(toggle.exists);toggle.tap()
         let topics=app.textViews["conversationTopics"].exists ? app.textViews["conversationTopics"] : app.textFields["conversationTopics"];topics.tap();topics.typeText("Travel at the cafe");app.buttons["Close"].tap()
         XCTAssertTrue(app.staticTexts["conversationGoal"].waitForExistence(timeout:10));XCTAssertFalse(app.staticTexts["conversationVoiceStatus"].exists)
-        app.terminate();var args=app.launchArguments;if let index=args.firstIndex(of:"-piyali.theme") { args[index+1]="dark" };app.launchArguments=args;app.launch();open(app);XCTAssertEqual(app.otherElements["conversationOrb"].value as? String,"Blue animated sphere");photo("Native conversation initial dark",app);tap("conversationSettings",app)
+        app.terminate();var args=app.launchArguments;if let index=args.firstIndex(of:"-piyali.theme") { args[index+1]="dark" };app.launchArguments=args;app.launch();handleInitialPaperPencil(app);open(app);XCTAssertEqual(app.otherElements["conversationOrb"].value as? String,"Blue animated sphere");photo("Native conversation initial dark",app);tap("conversationSettings",app)
         XCTAssertTrue(app.buttons["conversationLevel"].label.contains("A2"));XCTAssertEqual(app.switches["conversationPronunciation"].value as? String,"1");let saved=app.textViews["conversationTopics"].exists ? app.textViews["conversationTopics"] : app.textFields["conversationTopics"];XCTAssertEqual(saved.value as? String,"Travel at the cafe");photo("Native conversation source settings dark",app)
     }
 }
@@ -61,7 +61,7 @@ extension ConversationPlayTests {
         tap("conversationTranslate",app);XCTAssertTrue(app.staticTexts["conversationTranslation"].waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts["conversationTranslation"].label.contains("Bonjour Ana"));photo("Native conversation French support",app)
         changeSupport("Espagnol",app);XCTAssertEqual(app.staticTexts["conversationGoal"].label,"Di algo que te guste");XCTAssertFalse(app.staticTexts["conversationStarterPhrase"].exists);XCTAssertFalse(app.staticTexts["conversationTranslation"].exists)
         tap("conversationTranslate",app);XCTAssertEqual(app.staticTexts["conversationTranslation"].label,app.staticTexts["conversationLatestReply"].label)
-        app.terminate();app.launch();open(app);XCTAssertEqual(app.staticTexts["conversationGoal"].label,"Di algo que te guste");XCTAssertEqual(app.staticTexts["conversationTranslation"].label,"¡Hola, Ana! ¿Qué te gusta hacer?");photo("Native conversation Spanish support restored",app)
+        app.terminate();app.launch();handleInitialPaperPencil(app);open(app);XCTAssertEqual(app.staticTexts["conversationGoal"].label,"Di algo que te guste");XCTAssertEqual(app.staticTexts["conversationTranslation"].label,"¡Hola, Ana! ¿Qué te gusta hacer?");photo("Native conversation Spanish support restored",app)
         let xp=app.descendants(matching:.any).matching(identifier:"dailyXPStatus").firstMatch;XCTAssertTrue(xp.waitForExistence(timeout:5));XCTAssertEqual(xp.value as? String,"5%")
     }
 }

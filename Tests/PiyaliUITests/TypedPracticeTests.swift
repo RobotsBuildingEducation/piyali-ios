@@ -3,9 +3,9 @@ import XCTest
 @MainActor final class TypedPracticeTests:XCTestCase {
     private func launch(kind:String,enterPractice:Bool=true,theme:String="light")->XCUIApplication {
         let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString;app.launchEnvironment["PIYALI_PRACTICE_FIXTURE"]=kind;if kind.hasPrefix("oral:"){app.launchEnvironment["PIYALI_PRACTICE_JUDGE_FIXTURE"]="offered-reference"}
-        app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme",theme];app.launch()
+        app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme",theme];app.launch();handleInitialPaperPencil(app)
         let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Practice Learner");if app.buttons["entryKeyboardDone"].exists { app.buttons["entryKeyboardDone"].tap() }
-        app.buttons["createAccount"].tap();XCTAssertTrue(app.buttons["startLearning"].waitForExistence(timeout:20));chooseEnglishSpanishOnboarding(app);app.buttons["startLearning"].tap();if enterPractice { openPractice(app) };return app
+        app.buttons["createAccount"].tap();handleInitialPaperPencil(app);XCTAssertTrue(app.buttons["startLearning"].waitForExistence(timeout:20));chooseEnglishSpanishOnboarding(app);app.buttons["startLearning"].tap();if enterPractice { openPractice(app) };return app
     }
     private func openPractice(_ app:XCUIApplication) {
         XCTAssertTrue(app.buttons["productMenu"].waitForExistence(timeout:15));app.buttons["productMenu"].tap();app.buttons["productModeMenu"].tap();app.buttons["productMode-path"].tap()
@@ -47,7 +47,7 @@ import XCTest
         let shot=XCTAttachment(screenshot:app.screenshot());shot.name="Native completed 80 XP curriculum lesson";shot.lifetime = .keepAlways;add(shot)
         app.buttons["continueLessonCompletion"].tap();followups();XCTAssertTrue(first.waitForExistence(timeout:5));XCTAssertEqual(first.value as? String,"completed");XCTAssertTrue(second.isEnabled)
         XCTAssertEqual(dialogs.filter{$0 == "dailyGoalRewardContinue"}.count,1);XCTAssertEqual(dialogs.filter{$0 == "companionUnlockKeep"}.count,1)
-        app.terminate();app.launch();openPath();XCTAssertTrue(first.waitForExistence(timeout:10));XCTAssertEqual(first.value as? String,"completed");XCTAssertTrue(second.isEnabled);XCTAssertFalse(app.staticTexts["lessonCompletionBonus"].exists)
+        app.terminate();app.launch();handleInitialPaperPencil(app);openPath();XCTAssertTrue(first.waitForExistence(timeout:10));XCTAssertEqual(first.value as? String,"completed");XCTAssertTrue(second.isEnabled);XCTAssertFalse(app.staticTexts["lessonCompletionBonus"].exists)
     }
     func testBinaryQuestionRetriesInPlaceAndCorrectRewardSurvivesRelaunch() {
         continueAfterFailure=false;let app=launch(kind:"delight:natural_or_weird")
@@ -55,7 +55,7 @@ import XCTest
         XCTAssertTrue(app.staticTexts["practiceVerdict"].waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts["practiceVerdict"].label.contains("Try again"));XCTAssertFalse(app.buttons["nextTypedQuestion"].exists)
         app.buttons["typedChoice-0"].tap();check.tap();XCTAssertTrue(app.buttons["nextTypedQuestion"].waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts["practiceVerdict"].label.contains("+6 XP"));XCTAssertFalse(app.buttons["typedChoice-1"].isEnabled)
         let shot=XCTAttachment(screenshot:app.screenshot());shot.name="Native typed binary question after retry";shot.lifetime = .keepAlways;add(shot)
-        app.terminate();app.launch();openPractice(app);XCTAssertTrue(app.buttons["nextTypedQuestion"].waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts["practiceVerdict"].label.contains("+6 XP"))
+        app.terminate();app.launch();handleInitialPaperPencil(app);openPractice(app);XCTAssertTrue(app.buttons["nextTypedQuestion"].waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts["practiceVerdict"].label.contains("+6 XP"))
     }
     func testWordBankKeepsDuplicatePositionsAndResumesBeforeAnswering() {
         continueAfterFailure=false;let app=launch(kind:"translate")
@@ -63,7 +63,7 @@ import XCTest
         word("I").tap();word("I").tap();XCTAssertTrue(app.buttons["typedSelected-1"].exists);app.buttons["typedSelected-1"].tap()
         for text in ["do","not","say","no"] { word(text).tap() }
         let shot=XCTAttachment(screenshot:app.screenshot());shot.name="Native translation bank before checking";shot.lifetime = .keepAlways;add(shot)
-        app.terminate();app.launch();openPractice(app);XCTAssertTrue(app.buttons["typedSelected-4"].exists)
+        app.terminate();app.launch();handleInitialPaperPencil(app);openPractice(app);XCTAssertTrue(app.buttons["typedSelected-4"].exists)
         let check=app.buttons["checkTypedAnswer"];reveal(check,app);check.tap();XCTAssertTrue(app.buttons["nextTypedQuestion"].waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts["practiceVerdict"].label.contains("+6 XP"))
     }
     func testLessonFlashcardRevealDoesNotAwardAndCorrectAnswerLocksOnce() {

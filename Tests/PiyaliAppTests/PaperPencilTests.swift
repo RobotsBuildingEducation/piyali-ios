@@ -1,17 +1,24 @@
 import XCTest
 import UIKit
+import CryptoKit
 @testable import Piyali
 
 @MainActor final class PaperPencilTests:XCTestCase {
-    func testOriginalWebKitAnimationMatricesAndDelayedOpacity()throws{
-        let url=try XCTUnwrap(Bundle(for:Self.self).url(forResource:"paper-pencil-motion",withExtension:"json")),rows=try JSONDecoder().decode([JSONValue].self,from:Data(contentsOf:url))
-        for row in rows{let time=row["time"].number;for layer in 0..<3{let style=row["styles"].array[layer],p=PaperPencilMotion.pulse(time,layer:layer),matrix=style["transform"].string.replacingOccurrences(of:"matrix(",with:"").replacingOccurrences(of:")",with:"").split(separator:",").compactMap{Double($0.trimmingCharacters(in:.whitespaces))}
-            if layer==0{XCTAssertEqual(matrix.count,6);XCTAssertEqual(matrix[4],-2*p,accuracy:0.00002);XCTAssertEqual(matrix[5],-3.5*p,accuracy:0.00002);XCTAssertEqual(matrix[0],cos(-1.2*p*Double.pi/180),accuracy:0.000002);XCTAssertEqual(matrix[1],sin(-1.2*p*Double.pi/180),accuracy:0.000002)}else{XCTAssertEqual(PaperPencilMotion.sparkleOpacity(time,layer:layer),style["opacity"].number,accuracy:0.00002);if !matrix.isEmpty{XCTAssertEqual(matrix[0],1-0.18*p,accuracy:0.00002)}}
-        }}
-    }
-    func testAllAuthoredArtCopyAndActionSoundAreBundled()throws{
+    func testCurrentMangaCopyAndActionSoundAreBundled()throws{
         XCTAssertEqual(PaperPencilCopy.source["copy"].object.count,11);for(_,copy)in PaperPencilCopy.source["copy"].object{for key in ["title","subtitle","message","tip","understood"]{XCTAssertFalse(copy["paper_pencil_"+key].string.isEmpty)}}
-        XCTAssertEqual(PaperPencilCopy.text("unknown","title"),PaperPencilCopy.text("en","title"));XCTAssertNotNil(UIImage(named:"PaperPencil-header"));for theme in ["light","dark"]{for name in ["base","pencil","sparkle-left","sparkle-right","tail"]{XCTAssertNotNil(UIImage(named:"PaperPencil-"+theme+"-"+name))}}
+        XCTAssertEqual(PaperPencilCopy.text("unknown","title"),PaperPencilCopy.text("en","title"));XCTAssertTrue(PaperPencilCopy.source["animations"].array.isEmpty)
+        let url=try XCTUnwrap(Bundle.main.url(forResource:"paper-pencil-manga",withExtension:"webp")),data=try Data(contentsOf:url),image=try XCTUnwrap(UIImage(contentsOfFile:url.path));XCTAssertEqual(image.size,CGSize(width:960,height:448));XCTAssertEqual(SHA256.hash(data:data).map{String(format:"%02x",$0)}.joined(),PaperPencilCopy.source["illustration"]["sha256"].string)
         let audio=try Data(contentsOf:try XCTUnwrap(Bundle.main.url(forResource:"submitAction",withExtension:"wav")));XCTAssertEqual(String(data:audio.prefix(4),encoding:.ascii),"RIFF");XCTAssertGreaterThan(audio.count,18000)
+    }
+    func testOriginalAppEntryCallbacksAcrossAcknowledgmentAndPlacementFlags()throws{
+        let url=try XCTUnwrap(Bundle(for:Self.self).url(forResource:"paper-pencil-entry",withExtension:"json")),cases=try JSONDecoder().decode([JSONValue].self,from:Data(contentsOf:url));XCTAssertEqual(cases.count,8)
+        func expected(_ events:JSONValue)->FirstRunFlow.Step?{for row in events.array.reversed(){switch row.array.first?.string{case "paper" where row.array.last?.boolean == true:return .paperPencil;case "guidance":return .gettingStarted;case "placement":return .placement;default:break}};return nil}
+        for row in cases{let p=row["input"];XCTAssertTrue(row["initialOpen"].boolean);XCTAssertEqual(row["onboardingClose"],.array([.array([.string("paper"),.bool(false)])]));var flow=FirstRunFlow();flow.request(scope:"public-account:es",shown:p["shown"].boolean,paperShown:p["paperShown"].boolean,hasPlacement:p["hasPlacement"].boolean);XCTAssertEqual(flow.step,expected(row["request"]));flow.presentInitialPaper(scope:"public-account:es");XCTAssertTrue(flow.acknowledgePaper(scope:"public-account:es",shown:p["shown"].boolean,hasPlacement:p["hasPlacement"].boolean));XCTAssertEqual(flow.step,expected(row["close"]))}
+    }
+    func testInitialPaperIgnoresPriorAcknowledgmentButUsesExistingProductContinuation(){
+        var flow=FirstRunFlow();flow.presentInitialPaper(scope:"account:es");XCTAssertEqual(flow.step,.paperPencil)
+        XCTAssertTrue(flow.acknowledgePaper(scope:"account:es",shown:true,hasPlacement:true));XCTAssertNil(flow.step)
+        flow.presentInitialPaper(scope:"account:es");XCTAssertTrue(flow.acknowledgePaper(scope:"account:es",shown:false,hasPlacement:false));XCTAssertEqual(flow.step,.gettingStarted)
+        XCTAssertFalse(flow.acknowledge(scope:"other:es",hasPlacement:false));XCTAssertEqual(flow.step,.gettingStarted)
     }
 }

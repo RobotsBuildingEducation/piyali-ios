@@ -3,7 +3,7 @@ import XCTest
 @MainActor final class EntryParityTests:XCTestCase {
     private func launch() -> XCUIApplication {
         let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString
-        app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"];app.launch();return app
+        app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"];app.launch();handleInitialPaperPencil(app);return app
     }
     func testLandingHasNamedSignupAndDedicatedKeyLoginWithBackAndErrors() {
         continueAfterFailure=false;let app=launch()
@@ -30,7 +30,7 @@ import XCTest
     func testCreationCarriesNameIntoActualThreeFieldOnboardingWithoutPlacementControls() {
         continueAfterFailure=false;let app=launch()
         let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Parity Learner");if app.buttons["entryKeyboardDone"].exists { app.buttons["entryKeyboardDone"].tap() }
-        app.buttons["createAccount"].tap();XCTAssertTrue(app.staticTexts["onboardingTitle"].waitForExistence(timeout:20))
+        app.buttons["createAccount"].tap();handleInitialPaperPencil(app);XCTAssertTrue(app.staticTexts["onboardingTitle"].waitForExistence(timeout:20))
         XCTAssertTrue(app.buttons["onboardingSupport"].exists);XCTAssertTrue(app.buttons["onboardingPractice"].exists);XCTAssertTrue(app.textViews["onboardingGoal"].exists)
         XCTAssertFalse(app.pickers["onboardingLevelPicker"].exists);XCTAssertFalse(app.steppers.firstMatch.exists)
         let done=app.buttons["startLearning"];XCTAssertEqual(done.label,"Start session")
@@ -60,7 +60,7 @@ import XCTest
     func testOnboardingEntersTodayFocusAndModeMenuOpensLibrariesWithoutAutoStartingLessons() {
         continueAfterFailure=false;let app=launch()
         let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Flow Learner");if app.buttons["entryKeyboardDone"].exists { app.buttons["entryKeyboardDone"].tap() }
-        app.buttons["createAccount"].tap();let finish=app.buttons["startLearning"];XCTAssertTrue(finish.waitForExistence(timeout:20));finish.tap()
+        app.buttons["createAccount"].tap();handleInitialPaperPencil(app);let finish=app.buttons["startLearning"];XCTAssertTrue(finish.waitForExistence(timeout:20));finish.tap()
         XCTAssertTrue(app.staticTexts["todayFocusTitle"].waitForExistence(timeout:15));XCTAssertEqual(app.tabBars.count,0)
         let snapshot=XCTAttachment(screenshot:app.screenshot());snapshot.name="Native Today Focus after onboarding";snapshot.lifetime = .keepAlways;add(snapshot)
         app.buttons["productMenu"].tap();XCTAssertTrue(app.buttons["productPanel-settings"].waitForExistence(timeout:5));XCTAssertTrue(app.buttons["productPanel-teams"].exists);XCTAssertTrue(app.buttons["productPanel-assistant"].exists);XCTAssertTrue(app.buttons["productPanel-memory"].exists)

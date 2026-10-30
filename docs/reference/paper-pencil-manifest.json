@@ -2,7 +2,7 @@
   "sources": [
     {
       "file": "src/components/PaperPencilModal.jsx",
-      "sha256": "70e7c58a94a6db3263f30797ffc5bf839fb518e79084ea60acabee5f29763b3d"
+      "sha256": "fdea477f6863eaf6bbb427fc93fe7c57983f57d10d038be9af2d443358de61ae"
     },
     {
       "file": "src/utils/paperPencilModalTranslations.js",
@@ -46,35 +46,7 @@
     "zh",
     "ru"
   ],
-  "animations": [
-    {
-      "kind": "pencilFloat",
-      "origin": [
-        210,
-        92
-      ],
-      "duration": 3.4,
-      "delay": 0
-    },
-    {
-      "kind": "sparklePulse",
-      "origin": [
-        68,
-        42
-      ],
-      "duration": 2.6,
-      "delay": 0
-    },
-    {
-      "kind": "sparklePulse",
-      "origin": [
-        282,
-        68
-      ],
-      "duration": 3.1,
-      "delay": 0.8
-    }
-  ],
+  "animations": [],
   "audio": {
     "notes": [
       {
@@ -120,5 +92,9 @@
     "seconds": 0.2225170068027211,
     "rendering": "Original source pitches/timing/gain; PCM approximates Tone sine envelopes at 120 BPM."
   },
-  "scope": "Actual modal copy resolver and animation descriptors. Authored SVG layers are separately serialized and rasterized by iPhone WebKit with no learner/provider I/O."
+  "illustration": {
+    "source": "src/assets/paper_pencil_manga.webp",
+    "sha256": "2f20b755410041cb598301f25719d641188b667a0311355a6015ed49a6b492a3"
+  },
+  "scope": "Current original modal copy and static manga artwork; no animated illustration layers remain. Source modal geometry, initial App state, onboarding close and product acknowledgment are verified separately with only external I/O stubbed."
 }

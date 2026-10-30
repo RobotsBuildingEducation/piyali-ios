@@ -18,6 +18,7 @@ struct ProductCopy {
 
 struct ProductShellView:View {
     var now=Date()
+    @Binding private var initialPaperOpen:Bool
     @EnvironmentObject var app:AppModel
     @Environment(\.colorScheme) private var scheme
     @Environment(\.scenePhase) private var scenePhase
@@ -45,7 +46,7 @@ struct ProductShellView:View {
     @State private var presentedLessonCompletionID:UUID?
     private var language:String { app.learner.support }
     private var brand:PiyaliBrand { PiyaliBrand(dark:scheme == .dark) }
-    init(now:Date=Date(),practice:PlatePracticeController?=nil){self.now=now;_practice=StateObject(wrappedValue:practice ?? PlatePracticeController())}
+    init(now:Date=Date(),practice:PlatePracticeController?=nil,initialPaperOpen:Binding<Bool> = .constant(false)){self.now=now;_initialPaperOpen=initialPaperOpen;_practice=StateObject(wrappedValue:practice ?? PlatePracticeController())}
     private var presentationKey:String { [String(app.journeyRecording != nil),String(panel != nil),String(menuOpen),String(goalOpen),String(timerOpen),String(timer.session.status == .finished),String(firstRun.step != nil),String(app.goalCheck != nil),String(app.flashcardSession != nil),String(lessonCompletion != nil),String(app.scholarship.visible != nil),String(app.scholarship.pending != nil),String(app.tutorPath != nil)].joined(separator:":") }
     private var firstRunScope:String {app.identity.npub+":"+app.learner.target}
     private var contextKey:String { app.identity.npub+":"+app.learner.target+":"+CalendarDay.key(now) }
@@ -84,12 +85,11 @@ struct ProductShellView:View {
             }
             .overlay {
                 if let step=firstRun.step {
-                    ZStack {
+                    Group{if step == .paperPencil {PaperPencilDialog(onClose:closeFirstRun)}else{ZStack {
                         (scheme == .dark ? Color(red:2/255,green:6/255,blue:23/255).opacity(0.92) : Color(red:28/255,green:20/255,blue:12/255).opacity(0.82)).ignoresSafeArea().onTapGesture {closeFirstRun()}
-                        if step == .paperPencil {PaperPencilView(onClose:closeFirstRun)}
-                        else if step == .gettingStarted {GettingStartedView(onClose:closeFirstRun)}
+                        if step == .gettingStarted {GettingStartedView(onClose:closeFirstRun)}
                         else {PlacementView(overlay:true,onClose:{firstRun.close()})}
-                    }.accessibilityElement(children:.contain).accessibilityIdentifier("firstRunDialog")
+                    }}}.accessibilityElement(children:.contain).accessibilityIdentifier("firstRunDialog")
                 }
             }
             .onChange(of:firstRunScope) {_,scope in firstRun.reconcile(scope:scope);if let p=app.journeyRecording,p.account+":"+p.target != scope{p.controller.close();app.journeyRecording=nil}}
@@ -97,7 +97,7 @@ struct ProductShellView:View {
             .environment(\.layoutDirection,language == "ar" ? .rightToLeft : .leftToRight)
     }
     private var presentedShell:some View {
-        shell
+        shell.onAppear{if initialPaperOpen{firstRun.presentInitialPaper(scope:firstRunScope)}}
             .overlay{if let path=app.tutorPath,path.account == app.identity.npub,path.target == app.learner.target{TutorSourcePathView(tutor:path.tutor,onClose:{app.tutorPath=nil}).accessibilityHidden(practice.dailyGoalVisible != nil || practice.visible != nil || app.scholarship.visible != nil)}}
             .overlay{if let session=app.flashcardSession{FlashcardPracticeDialog(session:session)}}
             .overlay{if let goalCheck=app.goalCheck {GoalCheckDialog(presentation:goalCheck)}}
@@ -189,7 +189,8 @@ struct ProductShellView:View {
     }
     private func closeFirstRun() {
         if firstRun.step == .paperPencil {
-            if firstRun.acknowledgePaper(scope:firstRunScope,shown:app.learner.gettingStartedModalShown == true,hasPlacement:app.learner.hasFirstRunPlacement){app.acknowledgeFirstRun(.paperPencil);let account=app.identity.npub;Task{try? await Task.sleep(for:.milliseconds(32));guard app.signedIn,app.identity.npub == account,scenePhase == .active else{return};if app.learner.soundEffectsEnabled{UIImpactFeedbackGenerator(style:.light).impactOccurred()};practiceSounds.play("submitAction",enabled:app.learner.soundEffectsEnabled,volume:app.learner.settingsSnapshot["soundVolume"] == .null ? 100:app.learner.settingsSnapshot["soundVolume"].number)}}
+            initialPaperOpen=false
+            if firstRun.acknowledgePaper(scope:firstRunScope,shown:app.learner.gettingStartedModalShown == true,hasPlacement:app.learner.hasFirstRunPlacement){app.acknowledgeFirstRun(.paperPencil)}
         } else if firstRun.step == .gettingStarted {
             if firstRun.acknowledge(scope:firstRunScope,hasPlacement:app.learner.hasFirstRunPlacement) {app.acknowledgeFirstRun(.gettingStarted)}
         } else {firstRun.close()}

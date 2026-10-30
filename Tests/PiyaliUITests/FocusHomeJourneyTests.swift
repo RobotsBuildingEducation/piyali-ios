@@ -2,10 +2,10 @@ import XCTest
 
 @MainActor final class FocusHomeJourneyTests:XCTestCase {
     private func launch(_ language:String="en",theme:String="light")->XCUIApplication {
-        let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString;app.launchEnvironment["PIYALI_ENTRY_INITIAL_LANGUAGE"]=language;app.launchEnvironment["PIYALI_ENTRY_INITIAL_THEME"]=theme;app.launchEnvironment["PIYALI_IMMERSION_FIXTURE"]="1";app.launch();return app
+        let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString;app.launchEnvironment["PIYALI_ENTRY_INITIAL_LANGUAGE"]=language;app.launchEnvironment["PIYALI_ENTRY_INITIAL_THEME"]=theme;app.launchEnvironment["PIYALI_IMMERSION_FIXTURE"]="1";app.launch();handleInitialPaperPencil(app);return app
     }
     private func enter(_ app:XCUIApplication) {
-        let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Focus Learner");if app.buttons["entryKeyboardDone"].exists {app.buttons["entryKeyboardDone"].tap()};app.buttons["createAccount"].tap();XCTAssertTrue(app.buttons["startLearning"].waitForExistence(timeout:15));app.buttons["startLearning"].tap();XCTAssertTrue(app.staticTexts["todayFocusTitle"].waitForExistence(timeout:15))
+        let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Focus Learner");if app.buttons["entryKeyboardDone"].exists {app.buttons["entryKeyboardDone"].tap()};app.buttons["createAccount"].tap();handleInitialPaperPencil(app);XCTAssertTrue(app.buttons["startLearning"].waitForExistence(timeout:15));app.buttons["startLearning"].tap();XCTAssertTrue(app.staticTexts["todayFocusTitle"].waitForExistence(timeout:15))
     }
     private func shot(_ app:XCUIApplication,_ name:String){let attachment=XCTAttachment(screenshot:app.screenshot());attachment.name=name;attachment.lifetime = .keepAlways;add(attachment)}
     private func reveal(_ app:XCUIApplication,_ element:XCUIElement){for _ in 0..<8 where !element.exists || !element.isHittable {app.swipeUp(velocity:.slow)};XCTAssertTrue(element.isHittable)}
@@ -26,7 +26,7 @@ import XCTest
         let task=app.buttons["immersionTask-0"];reveal(app,task);XCTAssertTrue(task.waitForExistence(timeout:10));shot(app,"Focus score and immersion light")
         for index in 0..<3 {let row=app.buttons["immersionTask-\(index)"];reveal(app,row);row.tap()}
         let reward=app.descendants(matching:.any).matching(identifier:"immersionReward").firstMatch;reveal(app,reward);XCTAssertTrue(reward.exists);XCTAssertFalse(app.buttons["immersionTask-2"].isEnabled);shot(app,"Focus immersion reward light")
-        app.terminate();app.launch();XCTAssertTrue(app.staticTexts["todayFocusTitle"].waitForExistence(timeout:15));XCTAssertFalse(app.buttons["companionContinue"].exists);reveal(app,app.buttons["focusCustomizeCompanion"]);XCTAssertTrue(app.staticTexts["Cielo"].exists);reveal(app,reward);XCTAssertTrue(reward.exists);XCTAssertFalse(app.buttons["immersionTask-0"].isEnabled)
+        app.terminate();app.launch();handleInitialPaperPencil(app);XCTAssertTrue(app.staticTexts["todayFocusTitle"].waitForExistence(timeout:15));XCTAssertFalse(app.buttons["companionContinue"].exists);reveal(app,app.buttons["focusCustomizeCompanion"]);XCTAssertTrue(app.staticTexts["Cielo"].exists);reveal(app,reward);XCTAssertTrue(reward.exists);XCTAssertFalse(app.buttons["immersionTask-0"].isEnabled)
     }
     func testArabicDarkCompanionAndScoreUseSourceCopyAndRemainInteractive() {
         continueAfterFailure=false;let app=launch("ar",theme:"dark");enter(app);XCTAssertLessThanOrEqual(app.buttons["companionContinue"].frame.maxY,app.buttons["focusCustomizeCompanion"].frame.minY+1);XCTAssertLessThanOrEqual(app.buttons["companionContinue"].frame.maxX,app.frame.maxX-12);XCTAssertGreaterThanOrEqual(app.buttons["companionContinue"].frame.minX,12);shot(app,"Focus welcome Arabic dark");dismissWelcome(app)
