@@ -2,6 +2,9 @@ import Foundation
 import AVFoundation
 
 @MainActor final class LiveTutorService:ObservableObject {
+    @Published private(set) var assistantResponseID=""
+    private var onAssistantInterrupted:((String,String)->Void)?
+    private var onResponseRecording:((String,NarrationRecording)->Void)?
     @Published private(set) var connected=false
 @Published private(set) var connecting=false
 @Published private(set) var muted=false
@@ -45,8 +48,9 @@ import AVFoundation
         instructions=try recipes.conversation("instructions",parameters:parameters)
         responseEvent=try JSONDecoder().decode(JSONValue.self,from:Data(recipes.conversation("response",parameters:parameters).utf8))
     }
-    func start(learner:LearnerState,goalBlueprint:JSONValue?=nil,tutorLesson:Lesson?=nil,onLearnerTurn:((String)->Void)?=nil,conversationDraft:ConversationDraft?=nil,onConversationTurn:((String,String,String)->Void)?=nil,instructions:String?=nil,openingPrompt:String?=LiveTutorService.openingPrompt,inactivityTimeout:TimeInterval?=nil,initiallyMuted:Bool=false,onInputTurn:((RealtimeVoiceState.InputTurn)->Void)?=nil,onAssistantTurn:((String,String)->Void)?=nil,sessionConfiguration:JSONValue?=nil,externallyControlled:Bool=false,previousAssistant:String?=nil,onEvent:((JSONValue)->Void)?=nil) async {
+    func start(learner:LearnerState,goalBlueprint:JSONValue?=nil,tutorLesson:Lesson?=nil,onLearnerTurn:((String)->Void)?=nil,conversationDraft:ConversationDraft?=nil,onConversationTurn:((String,String,String)->Void)?=nil,instructions:String?=nil,openingPrompt:String?=LiveTutorService.openingPrompt,inactivityTimeout:TimeInterval?=nil,initiallyMuted:Bool=false,onInputTurn:((RealtimeVoiceState.InputTurn)->Void)?=nil,onAssistantTurn:((String,String)->Void)?=nil,sessionConfiguration:JSONValue?=nil,externallyControlled:Bool=false,previousAssistant:String?=nil,onEvent:((JSONValue)->Void)?=nil,onResponseRecording:((String,NarrationRecording)->Void)?=nil,onAssistantInterrupted:((String,String)->Void)?=nil) async {
         guard !connecting && !connected else { return }
+        assistantResponseID="";self.onResponseRecording=onResponseRecording;self.onAssistantInterrupted=onAssistantInterrupted
         connecting=true;autoStopped=false;muted=initiallyMuted;voiceState="thinking";error=nil;transcript="";learnerTranscript="";assistantTurnText="";completedLearnerTurn="";committed=[];speaking=false;notifiedInputs=[];notifiedResponses=[];playbackDucked=false
         let run=UUID();generation=run
         self.onLearnerTurn=onLearnerTurn;self.onConversationTurn=onConversationTurn
@@ -104,6 +108,8 @@ import AVFoundation
     private func receive(_ event:JSONValue) {
         eventObserver?(event)
         let type=event["type"].string
+        if type == "response.created"{assistantResponseID=event["response"]["id"].string}
+        if ["response.done","response.completed","response.canceled","response.cancelled"].contains(type){captureReply(event["response"]["id"].string)}
         if type == "response.created" || type == "output_audio_buffer.started"{outputPending=true}
         if ["output_audio_buffer.stopped","output_audio_buffer.cleared"].contains(type){outputPending=false}
         if type == "error" { error="Live conversation could not continue. Try connecting again.";close();return }
@@ -122,6 +128,7 @@ import AVFoundation
         if type == "conversation.item.input_audio_transcription.completed",let input=state.inputTurn(itemID),notifiedInputs.insert(itemID).inserted { onInputTurn?(input) }
         let responseID=event["response"]["id"].string
         if ["response.done","response.completed"].contains(type),let text=state.completedAssistant(responseID),notifiedResponses.insert(responseID).inserted { onAssistantTurn?(responseID,text) }
+        if ["response.canceled","response.cancelled"].contains(type),let text=state.completedAssistant(responseID),notifiedResponses.insert(responseID).inserted {onAssistantInterrupted?(responseID,text)}
         if manualResponse,type == "input_audio_buffer.committed" {
             let id=event["item_id"].string
             if !id.isEmpty,committed.insert(id).inserted,let responseEvent { send(responseEvent) }
@@ -168,7 +175,10 @@ import AVFoundation
     func updateTutorContext(_ session:JSONValue){guard connected else{return};send(.object(["type":.string("session.update"),"session":session]))}
     func setMuted(_ value:Bool) { muted=value;state.setMuted(value);if value,voiceState != "speaking" {audioLevel=0};applyMicrophone() }
     func setPlaybackDucked(_ value:Bool) { guard playbackDucked != value else { return };playbackDucked=value;if value {audioLevel=0};transport?.setRemoteAudioEnabled(!value);applyMicrophone() }
+    func captureCurrentReply(){captureReply(assistantResponseID)}
+    private func captureReply(_ id:String){if let recording=transport?.takeResponseRecording(id){onResponseRecording?(id,recording)}}
     private func close() {
+        captureCurrentReply();onResponseRecording=nil;onAssistantInterrupted=nil
         generation=UUID();eventObserver=nil;audioMeter?.cancel();audioMeter=nil;audioLevel=0;idleMonitor?.cancel();idleMonitor=nil;transport?.close();transport=nil;connected=false;connecting=false;muted=false;voiceState="idle";outputPending=false;onLearnerTurn=nil;onConversationTurn=nil;onInputTurn=nil;onAssistantTurn=nil
     }
     func stop(clearTranscript:Bool=false) async {

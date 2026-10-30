@@ -15,6 +15,7 @@ import AVFoundation
     private let audioLease=UUID()
     private var config:JSONValue = .null,epoch=UUID(),closed=false,tapped=false,ownsAudio=false,playing=false,remoteEnabled=true
     private var inputIndex=0,inputID="",inputLevel=0.0,levels:[(Int,Double)]=[],sendCount=0
+    private var responseAudio=TutorResponseAudio()
     private(set) var receivedAudioBytes=0,playedAudioBuffers=0
     init(capturesAudio:Bool=true,capturesMicrophone:Bool=true,factory:Factory?=nil){self.capturesAudio=capturesAudio;self.capturesMicrophone=capturesMicrophone;self.factory=factory ?? {try await FirebaseGeminiTutorSocket.connect($0)}}
     func connect(session:JSONValue)async throws {
@@ -66,6 +67,7 @@ import AVFoundation
         // Tool grading is disabled in the actual Tutor. Never allow an unsolicited
         // provider tool to grant progress; finish the tool request explicitly.
         if type == "tool.call"{let responses=raw["functionCalls"].array.map{call in call.setting("args",.null).setting("response",.object(["allowed":.bool(false),"reason":.string("Lesson progress is checked by the app.")]))};enqueue(.object(["toolResponse":.object(["functionResponses":.array(responses)])]));return}
+        if type == "response.created"{responseAudio.begin(event["response"]["id"].string)}
         if type == "response.done"{event=event.setting("response",event["response"].setting("status",.string("completed")))}
         onEvent?(event)
         if ["response.done","response.canceled"].contains(type){playing=false;onEvent?(.object(["type":.string("output_audio_buffer.stopped")]))}
@@ -83,10 +85,11 @@ import AVFoundation
     func setMicrophoneEnabled(_ enabled:Bool){bridge.setInputEnabled(enabled && capturesMicrophone);if !enabled{inputLevel=0}}
     func setRemoteAudioEnabled(_ enabled:Bool){remoteEnabled=enabled;player.volume=enabled ? Float(bridge.outputGain):0}
     func setOutputGain(_ value:Double){bridge.setOutputGain(value);player.volume=remoteEnabled ? Float(bridge.outputGain):0}
+    func takeResponseRecording(_ id:String)->NarrationRecording?{responseAudio.take(id)}
     func playbackDrainMilliseconds()async->Double{0}
     func audioAmplitude(speaking:Bool)async->Double{guard !closed else{return 0};return speaking ? levels.first?.1 ?? 0:inputLevel}
     private func setupAudio()throws {
-        try GeminiTutorAudioLease.acquire(audioLease);ownsAudio=true
+        try NativeVoiceAudioLease.acquire(audioLease);ownsAudio=true
         engine.attach(player);engine.connect(player,to:engine.mainMixerNode,format:format)
         if !capturesMicrophone{bridge.setInputEnabled(false);engine.prepare();try engine.start();player.play();return}
         let input=engine.inputNode;try input.setVoiceProcessingEnabled(true);let source=input.outputFormat(forBus:0)
@@ -102,28 +105,34 @@ import AVFoundation
     }
     private func play(_ bytes:Data,ticket:Int){
         receivedAudioBytes+=bytes.count
-        guard capturesAudio else{bridge.played(ticket);return}
+        let response=responseAudio.responseID,gain=remoteEnabled ? bridge.outputGain:0
+        guard capturesAudio else{responseAudio.played(bytes,response:response,gain:gain);bridge.played(ticket);return}
         let count=bytes.count/2;guard count>0,let buffer=AVAudioPCMBuffer(pcmFormat:format,frameCapacity:AVAudioFrameCount(count)),let samples=buffer.floatChannelData?[0]else{bridge.played(ticket);return}
         buffer.frameLength=AVAudioFrameCount(count)
         bytes.withUnsafeBytes{raw in for i in 0..<count{samples[i]=Float(Int16(littleEndian:raw.loadUnaligned(fromByteOffset:i*2,as:Int16.self)))/32768}}
         levels.append((ticket,GeminiTutorBridge.rms(bytes)));if !playing{playing=true;onEvent?(.object(["type":.string("output_audio_buffer.started")]))}
-        player.scheduleBuffer(buffer,completionCallbackType:.dataPlayedBack){[weak self] _ in Task{@MainActor in guard let self,!self.closed,self.levels.contains(where:{$0.0 == ticket}) else{return};self.levels.removeAll{$0.0 == ticket};self.playedAudioBuffers+=1;self.bridge.played(ticket)}}
+        player.scheduleBuffer(buffer,completionCallbackType:.dataPlayedBack){[weak self] _ in Task{@MainActor in guard let self,!self.closed,self.levels.contains(where:{$0.0 == ticket}) else{return};self.levels.removeAll{$0.0 == ticket};self.playedAudioBuffers+=1;self.responseAudio.played(bytes,response:response,gain:gain);self.bridge.played(ticket)}}
     }
     private func stopAudio(){levels=[];if capturesAudio{player.stop();if !closed{player.play()}};if playing{playing=false;if !closed{onEvent?(.object(["type":.string("output_audio_buffer.cleared")]))}}}
     private func fail(){guard !closed else{return};close();onFailure?("Tutor disconnected. Try connecting again.")}
     func close(){
         guard !closed else{return};closed=true;epoch=UUID();bridge.close();socket?.close();socket=nil;receiveTask?.cancel();sendTask?.cancel();resetTask?.cancel();captureTask?.cancel();deadlines.values.forEach{$0.cancel()};deadlines=[:];continuation?.finish();continuation=nil
         engine.stop();player.stop();if tapped{engine.inputNode.removeTap(onBus:0);tapped=false};levels=[];inputLevel=0
-        if ownsAudio{GeminiTutorAudioLease.release(audioLease);ownsAudio=false}
+        if ownsAudio{NativeVoiceAudioLease.release(audioLease);ownsAudio=false}
     }
 }
 
 /// Tutor and Settings previews can overlap. Closing a short preview must not
 /// deactivate the audio session still held by a learner's live Tutor.
-@MainActor private enum GeminiTutorAudioLease {
+@MainActor enum NativeVoiceAudioLease {
     private static var owners:Set<UUID>=[]
-    static func acquire(_ id:UUID)throws {
-        if owners.isEmpty{let audio=AVAudioSession.sharedInstance();try audio.setCategory(.playAndRecord,mode:.voiceChat,options:[.defaultToSpeaker,.allowBluetoothHFP]);try audio.setActive(true)}
+    static var hasOwners:Bool{!owners.isEmpty}
+    static func acquire(_ id:UUID,playbackOnly:Bool=false)throws {
+        let audio=AVAudioSession.sharedInstance()
+        if owners.isEmpty || (!playbackOnly && audio.category != .playAndRecord){
+            if playbackOnly{try audio.setCategory(.playback,mode:.default)}else{try audio.setCategory(.playAndRecord,mode:.voiceChat,options:[.defaultToSpeaker,.allowBluetoothHFP])}
+            try audio.setActive(true)
+        }
         owners.insert(id)
     }
     static func release(_ id:UUID){guard owners.remove(id) != nil,owners.isEmpty else{return};try? AVAudioSession.sharedInstance().setActive(false,options:.notifyOthersOnDeactivation)}

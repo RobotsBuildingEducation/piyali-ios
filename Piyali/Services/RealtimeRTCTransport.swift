@@ -15,11 +15,12 @@ import WebRTC
     func audioAmplitude(speaking:Bool) async ->Double
     func close()
     func setOutputGain(_ value:Double)
+    func takeResponseRecording(_ id:String)->NarrationRecording?
     func completedNarrationRecording()->NarrationRecording?
     var narrationReceiverReady:Bool{get}
     func activateNarrationOutput()throws
 }
-extension RealtimeVoiceTransport { var narrationReceiverReady:Bool{true};func activateNarrationOutput()throws{}; func completedNarrationRecording()->NarrationRecording?{nil}; func setOutputGain(_ value:Double){}; func playbackDrainMilliseconds() async ->Double {1000};func audioAmplitude(speaking:Bool) async ->Double { 0 } }
+extension RealtimeVoiceTransport { func takeResponseRecording(_ id:String)->NarrationRecording?{nil}; var narrationReceiverReady:Bool{true};func activateNarrationOutput()throws{}; func completedNarrationRecording()->NarrationRecording?{nil}; func setOutputGain(_ value:Double){}; func playbackDrainMilliseconds() async ->Double {1000};func audioAmplitude(speaking:Bool) async ->Double { 0 } }
 
 /// Native WebRTC media and oai-events data channel. Only an SDP offer is sent
 /// through Cloudflare; the standard provider key never enters the app.
@@ -32,6 +33,8 @@ extension RealtimeVoiceTransport { var narrationReceiverReady:Bool{true};func ac
     private let outputDevice:NarrationAudioDevice?
     private let configuration:AppConfiguration
     private var peer:RTCPeerConnection?,channel:RTCDataChannel?,microphone:RTCAudioTrack?,sender:RTCRtpSender?
+    private let audioLease=UUID()
+    private var ownsNativeAudio=false
     private var ownsAudio=false,closed=false
     private let capturesMicrophone:Bool,activatesPlayback:Bool
     private let purpose:Purpose
@@ -69,6 +72,7 @@ extension RealtimeVoiceTransport { var narrationReceiverReady:Bool{true};func ac
         try check(peer)
     }
     private func activateAudioSession()throws{
+            if outputDevice != nil{try NativeVoiceAudioLease.acquire(audioLease,playbackOnly:true);ownsNativeAudio=true;return}
             let audio=RTCAudioSession.sharedInstance();audio.lockForConfiguration();defer { audio.unlockForConfiguration() }
             let config=RTCAudioSessionConfiguration.webRTC();config.category=AVAudioSession.Category.playAndRecord.rawValue;config.mode=AVAudioSession.Mode.voiceChat.rawValue;config.categoryOptions=[.defaultToSpeaker,.allowBluetoothHFP]
             if outputDevice != nil{config.category=AVAudioSession.Category.playback.rawValue;config.mode=AVAudioSession.Mode.default.rawValue;config.categoryOptions=[]}
@@ -78,7 +82,7 @@ extension RealtimeVoiceTransport { var narrationReceiverReady:Bool{true};func ac
     }
     var narrationReceiverReady:Bool{peer?.receivers.contains(where:{$0.track?.kind == "audio"}) ?? false}
     func activateNarrationOutput()throws{
-        guard !closed,channel?.readyState == .open,narrationReceiverReady else{throw AppError.message("The prepared narration connection is no longer ready.")};if !ownsAudio{try activateAudioSession()};guard outputDevice?.activateOutput() ?? true else{throw AppError.message("Narration output could not start.")}
+        guard !closed,channel?.readyState == .open,narrationReceiverReady else{throw AppError.message("The prepared narration connection is no longer ready.")};if !ownsAudio && !ownsNativeAudio{try activateAudioSession()};guard outputDevice?.activateOutput() ?? true else{throw AppError.message("Narration output could not start.")}
     }
     func idleNarrationFrames()->Int{outputDevice?.idleDrainedFrames() ?? 0}
     private func check(_ peer:RTCPeerConnection) throws { if closed || self.peer !== peer || Task.isCancelled { throw CancellationError() } }
@@ -150,6 +154,7 @@ extension RealtimeVoiceTransport { var narrationReceiverReady:Bool{true};func ac
         outputDevice?.shutdown()
         closed=true;setMicrophoneEnabled(false);channel?.delegate=nil;channel?.close();channel=nil
         peer?.delegate=nil;peer?.close();peer=nil;sender=nil;microphone=nil
+        if ownsNativeAudio{NativeVoiceAudioLease.release(audioLease);ownsNativeAudio=false}
         if ownsAudio { let audio=RTCAudioSession.sharedInstance();audio.lockForConfiguration();try? audio.setActive(false);audio.unlockForConfiguration();ownsAudio=false }
     }
 }

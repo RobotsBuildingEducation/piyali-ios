@@ -9,6 +9,8 @@ import SwiftUI
 }
 @MainActor private final class TutorTransport:RealtimeVoiceTransport {
     var onOpen:(()->Void)?,onEvent:((JSONValue)->Void)?,onFailure:((String)->Void)?
+    var recordings:[String:NarrationRecording]=[:]
+    func takeResponseRecording(_ id:String)->NarrationRecording?{recordings.removeValue(forKey:id)}
     var session:JSONValue = .null,events:[JSONValue]=[],closed=false,microphone=false
     func connect(session:JSONValue)async throws{self.session=session;closed=false;onOpen?()}
     func send(_ event:JSONValue)->Bool{events.append(event);return !closed}
@@ -29,6 +31,25 @@ import SwiftUI
     private func provider(_ grade:JSONValue = .object(["successful":.bool(false),"confidence":.number(0.1)]))->TutorProvider{.init(judge:{_ in grade},quote:{_,_,_ in .null})}
     private func session(_ app:AppModel,_ transport:TutorTransport,provider:TutorProvider?=nil)async->TutorSessionController{let session=TutorSessionController(live:LiveTutorService(permission:{true},transportFactory:{transport}),provider:provider ?? self.provider());await session.prepare(app);return session}
     private func input(_ text:String,_ id:String=UUID().uuidString)->RealtimeVoiceState.InputTurn{.init(id:id,text:text,answered:"Say hola.",responseID:nil)}
+    func testPauseKeepsInterruptedResponseIDAndPlayedClipWithoutAwardingProgress()async throws {
+        let app=try await app();defer{try? app.identity.disconnect()};let root=FileManager.default.temporaryDirectory.appendingPathComponent("piyali-pause-clip-"+UUID().uuidString);defer{try? FileManager.default.removeItem(at:root)}
+        let clips=TutorAudioClips(directory:root),transport=TutorTransport(),session=TutorSessionController(live:LiveTutorService(permission:{true},transportFactory:{transport}),clips:clips,provider:provider());await session.prepare(app);await session.start(app)
+        let id="interrupted-response",pcm=Data(repeating:3,count:1200);transport.recordings[id] = .init(pcm16:pcm,sampleRate:24000,channels:1)
+        transport.onEvent?(.object(["type":.string("response.created"),"response":.object(["id":.string(id)])]));transport.onEvent?(.object(["type":.string("output_audio_buffer.started")]));transport.onEvent?(.object(["type":.string("response.output_audio_transcript.delta"),"response_id":.string(id),"delta":.string("Welcome! A partial reply.")]))
+        XCTAssertEqual(session.live.assistantResponseID,id);XCTAssertFalse(session.live.assistantTurnText.isEmpty);let xp=app.learner.totalXP;await session.pause(app)
+        XCTAssertTrue(session.paused);XCTAssertEqual(session.messages.last?["id"].string,id);XCTAssertEqual(session.messages.last?["lang"].string,"en");XCTAssertEqual(app.learner.totalXP,xp)
+        var wav:Data?;for _ in 0..<100{wav=await clips.load(id,scope:session.clipScope(app));if wav != nil{break};await Task.yield()};XCTAssertEqual(wav?.dropFirst(44),pcm)
+        await session.stop(app);XCTAssertEqual(app.learner.totalXP,xp)
+    }
+    func testEndingMidReplyKeepsVisibleTextAndClipForPrivateHistory()async throws {
+        let app=try await app();defer{try? app.identity.disconnect()};let root=FileManager.default.temporaryDirectory.appendingPathComponent("piyali-stop-clip-"+UUID().uuidString);defer{try? FileManager.default.removeItem(at:root)}
+        let clips=TutorAudioClips(directory:root),transport=TutorTransport(),session=TutorSessionController(live:LiveTutorService(permission:{true},transportFactory:{transport}),clips:clips,provider:provider());await session.prepare(app);await session.start(app)
+        let id="stopped-response",pcm=Data(repeating:4,count:1200);transport.recordings[id] = .init(pcm16:pcm,sampleRate:24000,channels:1)
+        transport.onEvent?(.object(["type":.string("response.created"),"response":.object(["id":.string(id)])]));transport.onEvent?(.object(["type":.string("output_audio_buffer.started")]));transport.onEvent?(.object(["type":.string("response.output_audio_transcript.delta"),"response_id":.string(id),"delta":.string("Welcome! Stopped during speech.")]))
+        let xp=app.learner.totalXP;await session.stop(app);XCTAssertEqual(session.messages.last?["id"].string,id);XCTAssertEqual(session.messages.last?["textFinal"].string,"Welcome! Stopped during speech.");XCTAssertEqual(app.learner.totalXP,xp)
+        var wav:Data?;for _ in 0..<100{wav=await clips.load(id,scope:session.clipScope(app));if wav != nil{break};await Task.yield()};XCTAssertEqual(wav?.dropFirst(44),pcm)
+        await session.start(app);XCTAssertTrue(session.messages.isEmpty);await session.stop(app)
+    }
     func testOpeningPreviewAndWelcomeAreUngradedThenExactSpeechAdvancesOnce()async throws {
         let app=try await app();defer{try? app.identity.disconnect()};let transport=TutorTransport(),session=await session(app,transport)
         XCTAssertEqual(session.id,"lesson-tutorial-1");XCTAssertEqual(session.state["items"].array.count,7);XCTAssertEqual(app.learner.totalXP,0);XCTAssertTrue(app.learner.tutorLessons?.isEmpty ?? true)

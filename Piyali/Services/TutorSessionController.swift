@@ -36,6 +36,7 @@ enum TutorFocus:Equatable {
     @Published var completion:JSONValue?
     @Published var review:JSONValue?
     @Published private(set) var feedback:OrbFeedback?
+    let clips:TutorAudioClips
     let live:LiveTutorService
     private(set) var policy:TutorSourcePolicy?
     private var provider:TutorProvider?
@@ -56,7 +57,7 @@ enum TutorFocus:Equatable {
     private var reviewRecord:JSONValue?
     var practicingCompletedLesson:Bool { reviewRecord != nil }
     private func sessionRecord(_ app:AppModel)->JSONValue { focus != nil ? focusedRecord:reviewRecord ?? record(app) }
-    init(focus:TutorFocus?=nil,live:LiveTutorService?=nil,provider:TutorProvider?=nil,turnXP:@escaping()->Int={PlatePracticeFixture.turnXP()}){self.turnXP=turnXP;self.focus=focus;self.live=live ?? TutorVoiceFixture.service();self.provider=provider;policy=try? TutorSourcePolicy();liveUpdates=self.live.objectWillChange.sink{[weak self] _ in self?.objectWillChange.send()}}
+    init(focus:TutorFocus?=nil,live:LiveTutorService?=nil,clips:TutorAudioClips = .shared,provider:TutorProvider?=nil,turnXP:@escaping()->Int={PlatePracticeFixture.turnXP()}){self.clips=clips;self.turnXP=turnXP;self.focus=focus;self.live=live ?? TutorVoiceFixture.service();self.provider=provider;policy=try? TutorSourcePolicy();liveUpdates=self.live.objectWillChange.sink{[weak self] _ in self?.objectWillChange.send()}}
     static var fixture:Bool {TutorVoiceFixture.enabled}
     var id:String {lesson["id"].string}
     var required:Int {Int(state["required"].number)}
@@ -64,6 +65,9 @@ enum TutorFocus:Equatable {
         let course=focus.map{focus in let day=CalendarDay.key(Date());if case .goal=focus{return focus.key+":"+day+":"+app.goalCourseScope.goalID};return focus.key+":"+day} ?? app.learner.tutorLevel
         return [app.identity.npub,app.learner.target,app.learner.support,course].joined(separator:":")
     }
+    func clipScope(_ app:AppModel)->TutorAudioClips.Scope{.init(account:app.identity.npub,target:app.learner.target,support:app.learner.support)}
+    func replayVoice(_ app:AppModel)->String{(try? policy?.run("voice",payload(app)))?.string ?? ""}
+    var currentReplyLanguage:String{welcomePending ? "support":"target"}
     func earnedXP(_ app:AppModel)->Int {Int(sessionRecord(app)["earnedXp"].number)}
     private func focusIsCurrent(_ app:AppModel)->Bool {focus?.isCurrent(app) ?? true}
     private func valid(_ app:AppModel,_ token:UUID)->Bool {epoch == token && owner == scope(app) && !Task.isCancelled}
@@ -167,7 +171,12 @@ enum TutorFocus:Equatable {
             guard valid(app,token) else{return}
             let baseSession=try policy.run(TutorRealtime.provider == "gemini" ? "geminiSession":"session",payload(app))
             let session=TutorRealtime.provider == "gemini" ? baseSession.setting("owner",.string(app.identity.npub)):baseSession
-            await live.start(learner:app.learner,instructions:session["instructions"].string,openingPrompt:nil,inactivityTimeout:30,initiallyMuted:resuming && mutedWhenPaused,onInputTurn:{[weak self,weak app] input in guard let self,let app,self.valid(app,token) else{return};Task{await self.input(input,app:app,token:token)}},onAssistantTurn:{[weak self,weak app] response,text in guard let self,let app,self.valid(app,token) else{return};self.assistant(response,text:text,app:app,token:token)},sessionConfiguration:session,externallyControlled:true,previousAssistant:resuming ? messages.last(where:{$0["role"].string == "assistant"})?["textFinal"].string:nil)
+            await live.start(learner:app.learner,instructions:session["instructions"].string,openingPrompt:nil,inactivityTimeout:30,initiallyMuted:resuming && mutedWhenPaused,onInputTurn:{[weak self,weak app] input in guard let self,let app,self.valid(app,token) else{return};Task{await self.input(input,app:app,token:token)}},onAssistantTurn:{[weak self,weak app] response,text in guard let self,let app,self.valid(app,token) else{return};self.assistant(response,text:text,app:app,token:token)},sessionConfiguration:session,externallyControlled:true,previousAssistant:resuming ? messages.last(where:{$0["role"].string == "assistant"})?["textFinal"].string:nil,onResponseRecording:{[weak self,weak app] response,recording in
+                guard let self,let app,self.valid(app,token)else{return};let scope=self.clipScope(app),clips=self.clips
+                Task{await clips.store(recording,response:response,scope:scope)}
+            },onAssistantInterrupted:{[weak self,weak app] response,text in
+                guard let self,let app,self.valid(app,token)else{return};self.assistant(response,text:text,app:app,token:token,canceled:true)
+            })
             guard valid(app,token),live.connected else{return}
             live.setOutputGain(app.learner.settingsSnapshot["tutorVolume"] == .null ? 1:app.learner.settingsSnapshot["tutorVolume"].number)
             if resuming,let interrupted=pausedMessages.last(where:{$0["interrupted"].boolean}),!interrupted["textFinal"].string.isEmpty {
@@ -181,13 +190,13 @@ enum TutorFocus:Equatable {
         let p=payload(app).setting("welcome",.bool(welcome)).setting("kickoff",.bool(kickoff)).setting("answer",.string(answer)).setting("accepted",accepted).setting("verdict",.string(verdict))
         live.requestResponse(.object(["type":.string("response.create"),"response":.object(["output_modalities":.array([.string("audio")]),"instructions":try policy.run("response",p)])]))
     }
-    private func assistant(_ response:String,text:String,app:AppModel,token:UUID){
+    private func assistant(_ response:String,text:String,app:AppModel,token:UUID,canceled:Bool=false){
         guard seenResponses.insert(response).inserted,!text.isEmpty else{return}
         let text=(try? policy?.run("sanitize",.object(["text":.string(text)])))?.string ?? text
         let message:JSONValue = .object(["id":.string(response),"role":.string("assistant"),"textFinal":.string(text),"done":.bool(true),"welcome":.bool(welcomePending),"lang":.string(welcomePending ? app.learner.support:app.learner.target),"ts":.number(Date().timeIntervalSince1970*1000),"questionLevel":state["level"]])
         messages.append(message);scheduleDraft(app)
         let p=provider,learner=app.learner,level=state["level"].string,question:JSONValue = .object(["tutorPrompt":.string(text),"lesson":lesson["title"]])
-        if !welcomePending {worth[response]=Task{try? await p?.quote(question,level,learner)}}
+        if !welcomePending && !canceled {worth[response]=Task{try? await p?.quote(question,level,learner)}}
         Task{await translate(response,text:text,app:app,token:token)}
     }
     func input(_ input:RealtimeVoiceState.InputTurn,app:AppModel,token:UUID?=nil) async {
@@ -282,12 +291,16 @@ enum TutorFocus:Equatable {
         var snapshot=messages
         if live.outputPending,!live.assistantTurnText.isEmpty {
             if let index=snapshot.lastIndex(where:{$0["role"].string == "assistant" && $0["textFinal"].string == live.assistantTurnText}){snapshot[index]=snapshot[index].setting("interrupted",.bool(true))}
-            else{snapshot.append(.object(["id":.string("interrupted-"+UUID().uuidString),"role":.string("assistant"),"textFinal":.string(live.assistantTurnText),"done":.bool(false)]))}
+            else{snapshot.append(.object(["id":.string(live.assistantResponseID.isEmpty ? "interrupted-"+UUID().uuidString:live.assistantResponseID),"role":.string("assistant"),"textFinal":.string(live.assistantTurnText),"lang":.string(welcomePending ? app.learner.support:app.learner.target),"done":.bool(false)]))}
         }
+        live.captureCurrentReply()
         pausedMessages=(try? policy?.run("snapshotMessages",.object(["messages":.array(snapshot)])))?.array ?? snapshot;messages=pausedMessages;epoch=UUID();grading=false;flushDraft(app);await live.stop()
     }
     func stop(_ app:AppModel,saveDraft:Bool=true) async {
-        if saveDraft{flushDraft(app)};epoch=UUID();draftTask?.cancel();worth.values.forEach{$0.cancel()};worth=[:];paused=false;grading=false;await live.stop()
+        if live.outputPending,!live.assistantTurnText.isEmpty,!live.assistantResponseID.isEmpty,!messages.contains(where:{$0["id"].string == live.assistantResponseID}){
+            messages.append(.object(["id":.string(live.assistantResponseID),"role":.string("assistant"),"textFinal":.string(live.assistantTurnText),"lang":.string(welcomePending ? app.learner.support:app.learner.target),"done":.bool(false),"interrupted":.bool(true)]))
+        }
+        live.captureCurrentReply();if saveDraft{flushDraft(app)};epoch=UUID();draftTask?.cancel();worth.values.forEach{$0.cancel()};worth=[:];paused=false;grading=false;await live.stop()
         if focusSkipped {focus=nil;focusSkipped=false;owner="";await prepare(app)}
     }
     func skipFocus(_ app:AppModel)async {focusSkipped=true;if !live.connected && !live.connecting{await stop(app)}}

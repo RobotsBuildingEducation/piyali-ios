@@ -27,6 +27,16 @@ import Foundation
     private let script:TutorVoiceScript
     private var closed=false,microphone=false,responsePending=false,emission:Task<Void,Never>?,speech:Task<Void,Never>?
     private let prefix=UUID().uuidString
+    private var recordings:[String:NarrationRecording]=[:]
+    func takeResponseRecording(_ id:String)->NarrationRecording?{recordings.removeValue(forKey:id)}
+    private func captureFixture(_ id:String){
+        guard TutorVoiceFixture.enabled,ProcessInfo.processInfo.environment["PIYALI_TUTOR_REPLAY_FIXTURE"] == "1" else{return}
+        // Public synthetic tone exercises the real disk/player path in UI QA;
+        // provider-generated spoken reply capture is verified separately.
+        var pcm=Data(capacity:24000*2*6)
+        for i in 0..<24000*6{var value=Int16(sin(Double(i)*330*2*Double.pi/24000)*1000).littleEndian;withUnsafeBytes(of:&value){pcm.append(contentsOf:$0)}}
+        recordings[id] = .init(pcm16:pcm,sampleRate:24000,channels:1)
+    }
     init(script:TutorVoiceScript){self.script=script}
     func connect(session:JSONValue)async throws{closed=false;onOpen?()}
     func send(_ event:JSONValue)->Bool {
@@ -36,6 +46,7 @@ import Foundation
             let index=script.response;script.response += 1
             emission=Task{try? await Task.sleep(for:.milliseconds(200));guard !Task.isCancelled,!closed else{return}
                 let id=prefix+"-r\(index)",text=index == 0 && script.input == 0 ? "Welcome! Ready to learn Spanish?":TutorVoiceFixture.replySample != .null ? TutorVoiceFixture.replySample["primary"].string:"Say hola."
+                captureFixture(id)
                 emit(["type":.string("response.created"),"response":.object(["id":.string(id)])]);emit(["type":.string("output_audio_buffer.started")]);emit(["type":.string("response.output_audio_transcript.done"),"response_id":.string(id),"transcript":.string(text)]);emit(["type":.string("response.done"),"response":.object(["id":.string(id),"status":.string("completed"),"output":.array([.object(["content":.array([.object(["transcript":.string(text)])])])])])]);responsePending=false;emit(["type":.string("output_audio_buffer.stopped")]);scheduleInput()
             }
         }

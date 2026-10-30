@@ -341,9 +341,9 @@ import Security
         do {
             let policy=try TutorSourcePolicy(),library=try ContentLibrary.load(Piyali.JSONValue.self,name:"tutor-curriculum-es"),unit=try XCTUnwrap(library["Pre-A1"].array.first),lesson=try XCTUnwrap(unit["lessons"].array.first)
             let args:Piyali.JSONValue = .object(["provider":.string("gemini"),"target":.string("es"),"support":.string("en"),"unit":unit,"lesson":lesson,"voice":.string("Vindemiatrix"),"welcome":.bool(true)])
-            let config=try policy.run("geminiSession",args).setting("owner",.string(identity.npub));var transcript="",events:[String]=[],failure:String?
+            let config=try policy.run("geminiSession",args).setting("owner",.string(identity.npub));var transcript="",events:[String]=[],failure:String?,replyID=""
             transport.onOpen={transport.setMicrophoneEnabled(false)}
-            transport.onEvent={event in events.append(event["type"].string);if event["type"].string == "response.audio_transcript.delta"{transcript+=event["delta"].string}}
+            transport.onEvent={event in events.append(event["type"].string);if event["type"].string == "response.created"{replyID=event["response"]["id"].string};if event["type"].string == "response.audio_transcript.delta"{transcript+=event["delta"].string}}
             transport.onFailure={failure=$0}
             try await transport.connect(session:config)
             XCTAssertTrue(transport.send(.object(["type":.string("response.create"),"response":.object(["instructions":try policy.run("response",args)])])))
@@ -352,7 +352,14 @@ import Security
             XCTAssertNil(failure);XCTAssertTrue(events.contains("response.done"));XCTAssertFalse(transcript.isEmpty);XCTAssertGreaterThan(transport.receivedAudioBytes,1000);XCTAssertGreaterThan(transport.playedAudioBuffers,0)
             XCTAssertTrue(events.contains("output_audio_buffer.started"));XCTAssertEqual(events.last,"output_audio_buffer.stopped")
             print("LIVE GEMINI TUTOR: source welcome, selected voice, learner Firebase/App Check, actual PCM bytes \(transport.receivedAudioBytes), native played buffers \(transport.playedAudioBuffers), transcript length \(transcript.count); no learner progress writes")
+            let recording=try XCTUnwrap(transport.takeResponseRecording(replyID));XCTAssertEqual(recording.pcm16.count,transport.receivedAudioBytes);XCTAssertEqual(recording.sampleRate,24000)
+            let clipDirectory=FileManager.default.temporaryDirectory.appendingPathComponent("piyali-live-tutor-clip-"+UUID().uuidString);defer{try? FileManager.default.removeItem(at:clipDirectory)}
+            let clipScope=TutorAudioClips.Scope(account:identity.npub,target:"es",support:"en"),clips=TutorAudioClips(directory:clipDirectory)
+            await clips.store(recording,response:replyID,scope:clipScope);let restored=TutorAudioClips(directory:clipDirectory),loaded=await restored.load(replyID,scope:clipScope),wav=try XCTUnwrap(loaded);XCTAssertEqual(wav.dropFirst(44),recording.pcm16)
             transport.close()
+            var replayFinished=false;let replay=NarrationReplayPlayer(volume:0);defer{replay.stop()};replay.onFinished={replayFinished=true};try replay.play(wav)
+            let replayDeadline=Date().addingTimeInterval(35);while !replayFinished,Date()<replayDeadline{try await Task.sleep(for:.milliseconds(50))};XCTAssertTrue(replayFinished);replay.stop()
+            print("LIVE TUTOR REPLAY: played original reply PCM, restored lossless WAV from private disk cache, completed native replay without another speech request or progress writes")
             let preview=GeminiTutorTransport(capturesMicrophone:false);defer{preview.close()}
             let previewConfig=try SettingsSourcePolicy().run("preview",.object(["provider":.string("gemini"),"voice":.string("Charon"),"language":.string("en"),"target":.string("es"),"persona":.string("A calm guide")]))["session"].setting("owner",.string(identity.npub));var previewDone=false,previewFailure:String?
             preview.onEvent={if $0["type"].string == "response.done"{previewDone=true}};preview.onFailure={previewFailure=$0}

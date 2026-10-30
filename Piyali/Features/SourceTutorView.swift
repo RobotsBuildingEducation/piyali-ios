@@ -11,7 +11,7 @@ struct SourceTutorView:View {
     @State private var historyOpen=false
     @State private var previewSpeaking=false
     @State private var footerOwner=UUID()
-    @StateObject private var narration=RealtimeNarrationService()
+    @StateObject private var replay=TutorReplayController()
     private let completionPendingChanged:(Bool)->Void
     private let focusedCompleted:()->Void
     init(controller:TutorSessionController?=nil,focus:TutorFocus?=nil,onCompletionPending:@escaping(Bool)->Void={_ in},onFocusedCompletion:@escaping()->Void={}) {
@@ -20,6 +20,11 @@ struct SourceTutorView:View {
     private var brand:PiyaliBrand {.init(dark:scheme == .dark)}
     private var latest:JSONValue {tutor.messages.last(where:{$0["role"].string == "assistant"}) ?? .null}
     private var reply:String {!tutor.live.assistantTurnText.isEmpty && tutor.live.connected ? tutor.live.assistantTurnText:latest["textFinal"].string}
+    private var visibleReply:JSONValue {
+        guard tutor.live.connected,!tutor.live.assistantTurnText.isEmpty,!tutor.live.assistantResponseID.isEmpty else{return latest}
+        if latest["id"].string == tutor.live.assistantResponseID{return latest}
+        return .object(["id":.string(tutor.live.assistantResponseID),"role":.string("assistant"),"textFinal":.string(reply),"lang":.string(tutor.currentReplyLanguage == "support" ? app.learner.support:app.learner.target)])
+    }
     private var earned:Int {tutor.earnedXP(app)}
     private var percent:Int {min(100,max(0,Int((Double(earned)/Double(max(1,tutor.required))*100).rounded())))}
     private var revision:String {"\(tutor.live.connected)|\(tutor.live.connecting)|\(tutor.live.muted)|\(tutor.paused)|\(tutor.loading)|\(tutor.saving)|\(tutor.completionPending)|\(tutor.id)"}
@@ -28,6 +33,7 @@ struct SourceTutorView:View {
         Group {if TutorSessionController.fixture {surface}else{SubscriptionRequiredView(service:app.subscription,preserveEarnedWork:tutor.completionPending){surface}}}
             .toolbar(.hidden,for:.navigationBar)
             .task(id:tutor.scope(app)){
+                replay.stop()
                 let account=app.identity.npub,target=app.learner.target,day=CalendarDay.key(Date()),owner=footerOwner,notify=completionPendingChanged
                 if let path=app.tutorPath,path.owner == footerOwner,(path.account != account || path.target != target){app.tutorPath=nil}
                 tutor.onCompletionPending={[weak app] active in app?.retainEarnedPractice(owner:owner,active:active,account:account,target:target,day:day);notify(active)}
@@ -36,7 +42,6 @@ struct SourceTutorView:View {
             .activityFooter(owner:footerOwner,revision:revision,access:app.subscription,fixtureAllowed:TutorSessionController.fixture || tutor.completionPending) {ActivityFooterSurface(hasFeedback:false,feedback:{EmptyView()},actions:{controls})}
             .onChange(of:app.learner.userSettings){_,_ in tutor.live.setOutputGain(app.learner.settingsSnapshot["tutorVolume"] == .null ? 1:app.learner.settingsSnapshot["tutorVolume"].number)}
             .onChange(of:app.learner.tutorLessons){_,_ in tutor.refresh(app)}
-            .onChange(of:narration.error){_,value in if value != nil{tutor.live.setPlaybackDucked(false)}}
             .onChange(of:phase){_,value in if value == .background{stop()}}
             .onChange(of:app.subscription.hasAccess){_,allowed in if !allowed,!tutor.completionPending{stop()}}
             .onDisappear{if pathOpen{app.tutorPath=nil};if !historyOpen{app.releaseEarnedPractice(owner:footerOwner);stop()}}
@@ -56,7 +61,7 @@ struct SourceTutorView:View {
                     }
                 }
                 if !reply.isEmpty {bubble.padding(.horizontal,16).padding(.top,6)}
-                if let error=tutor.error ?? tutor.live.error ?? narration.error {VStack(alignment:.leading,spacing:12){Text(error).font(PiyaliBrand.productFont(13));if tutor.completionPending {Button("Retry saving"){Task{await tutor.complete(app,ready:true)}}.accessibilityIdentifier("tutorRetrySaving")}}.padding(12).frame(maxWidth:.infinity,alignment:.leading).foregroundStyle(scheme == .dark ? PiyaliBrand.unitColor("fee2e2"):PiyaliBrand.unitColor("9b1c1c")).background(Color.red.opacity(0.08),in:RoundedRectangle(cornerRadius:8)).overlay{RoundedRectangle(cornerRadius:8).stroke(Color.red.opacity(0.38))}.padding(.horizontal,16).accessibilityIdentifier("tutorError")}
+                if let error=tutor.error ?? tutor.live.error ?? replay.error {VStack(alignment:.leading,spacing:12){Text(error).font(PiyaliBrand.productFont(13));if tutor.completionPending {Button("Retry saving"){Task{await tutor.complete(app,ready:true)}}.accessibilityIdentifier("tutorRetrySaving")}}.padding(12).frame(maxWidth:.infinity,alignment:.leading).foregroundStyle(scheme == .dark ? PiyaliBrand.unitColor("fee2e2"):PiyaliBrand.unitColor("9b1c1c")).background(Color.red.opacity(0.08),in:RoundedRectangle(cornerRadius:8)).overlay{RoundedRectangle(cornerRadius:8).stroke(Color.red.opacity(0.38))}.padding(.horizontal,16).accessibilityIdentifier("tutorError")}
                 Color.clear.frame(height:app.activityFooterHeight+12)
             }.padding(.bottom,16).frame(maxWidth:672).frame(maxWidth:.infinity)
         }.background(brand.background).foregroundStyle(brand.text).accessibilityIdentifier("tutorSurface")
@@ -69,26 +74,27 @@ struct SourceTutorView:View {
         }.buttonStyle(.plain).padding(8).frame(maxWidth:400).background{TutorPaperPanel(textured:true)}.overlay{RoundedRectangle(cornerRadius:16).stroke(scheme == .dark ? .white.opacity(0.06):brand.border)}
     }
     private var bubble:some View {
-        TutorReplyView(primary:reply,secondary:latest["textFinal"].string == reply ? latest["translation"].string:"",target:latest["lang"].string.isEmpty ? app.learner.target:latest["lang"].string,support:app.learner.support,pairs:latest["textFinal"].string == reply ? latest["pairs"]:.array([]),showSecondary:app.learner.recipeUser["progress"]["showTranslations"] != .bool(false),replaying:narration.playing || narration.loading,onReplay:{
-            tutor.live.setPlaybackDucked(true)
-            narration.play(reply,language:latest["lang"].string.isEmpty ? app.learner.target:latest["lang"].string,engine:app.companionQuestPolicy,voice:"marin",onFinished:{tutor.live.setPlaybackDucked(false)})
-        }).frame(minHeight:150,alignment:.top)
+        replyView(visibleReply).frame(minHeight:150,alignment:.top)
+    }
+    private func replyView(_ message:JSONValue)->some View {
+        TutorReplyView(primary:message["textFinal"].string,secondary:message["translation"].string,target:message["lang"].string.isEmpty ? app.learner.target:message["lang"].string,support:app.learner.support,pairs:message["pairs"],showSecondary:app.learner.recipeUser["progress"]["showTranslations"] != .bool(false),replaying:replay.activeID == message["id"].string,onReplay:{
+            let messages=tutor.messages.contains(where:{$0["id"] == message["id"]}) ? tutor.messages:tutor.messages+[message]
+            replay.play(message["id"].string,messages:messages,target:app.learner.target,voice:tutor.replayVoice(app),scope:tutor.clipScope(app),clips:tutor.clips,engine:app.companionQuestPolicy,live:tutor.live.connected,duck:{tutor.live.setPlaybackDucked($0)})
+        })
     }
     @ViewBuilder private var controls:some View {
         if tutor.saving {ProgressView(tutor.copy("Saving Tutor progress...",app.learner.support)).frame(maxWidth:.infinity).font(PiyaliBrand.productFont(12))}
         else if tutor.live.connected || tutor.paused {
             HStack(spacing:12){
                 control(tutor.live.muted ? "mic.slash.fill":"mic.fill",label:tutor.live.muted ? "Unmute microphone":"Mute microphone",selected:tutor.live.muted){tutor.live.setMuted(!tutor.live.muted)}.disabled(tutor.paused || !tutor.live.connected).accessibilityIdentifier("tutorMute")
-                control(tutor.paused ? "play.fill":"pause.fill",label:tutor.paused ? "Resume tutor":"Pause tutor",selected:tutor.paused){Task{narration.stopAll();if tutor.paused{await tutor.start(app,resuming:true)}else{await tutor.pause(app)}}}.accessibilityIdentifier("tutorPause")
+                control(tutor.paused ? "play.fill":"pause.fill",label:tutor.paused ? "Resume tutor":"Pause tutor",selected:tutor.paused){Task{replay.stop();if tutor.paused{await tutor.start(app,resuming:true)}else{await tutor.pause(app)}}}.accessibilityIdentifier("tutorPause")
                 control("phone.down.fill",label:"End tutor session",stop:true){stop()}.accessibilityIdentifier("tutorEnd")
             }.frame(maxWidth:288).frame(maxWidth:.infinity)
         }else{Button{Task{previewSpeaking=false;await tutor.start(app)}}label:{Label(t(tutor.live.connecting ? "ra_btn_starting":"ra_btn_start"),systemImage:"mic.fill")}.buttonStyle(ActivityPrimaryButtonStyle(tone:"speak")).disabled(tutor.live.connecting || tutor.loading || tutor.id.isEmpty || tutor.completionPending || tutor.focusedFinished).accessibilityIdentifier("tutorStart")}
     }
     private func control(_ icon:String,label:String,selected:Bool=false,stop:Bool=false,action:@escaping()->Void)->some View {Button(action:action){Image(systemName:icon).font(.system(size:17,weight:.semibold)).frame(maxWidth:.infinity,minHeight:40).contentShape(Rectangle()).foregroundStyle(stop ? .white:brand.text).background(stop ? PiyaliBrand.unitColor("b0005b"):selected ? brand.surface.opacity(0.88):.clear,in:RoundedRectangle(cornerRadius:18))}.buttonStyle(.plain).accessibilityLabel(label).accessibilityAddTraits(selected ? .isSelected:[])}
-    private func stop(){narration.stopAll();tutor.live.setPlaybackDucked(false);Task{await tutor.stop(app)}}
-    private func historyReply(_ message:JSONValue)->some View {
-        TutorReplyView(primary:message["textFinal"].string,secondary:message["translation"].string,target:message["lang"].string.isEmpty ? app.learner.target:message["lang"].string,support:app.learner.support,pairs:message["pairs"],showSecondary:app.learner.recipeUser["progress"]["showTranslations"] != .bool(false),replaying:narration.playing || narration.loading,onReplay:{tutor.live.setPlaybackDucked(true);narration.play(message["textFinal"].string,language:message["lang"].string.isEmpty ? app.learner.target:message["lang"].string,engine:app.companionQuestPolicy,voice:"marin",onFinished:{tutor.live.setPlaybackDucked(false)})})
-    }
+    private func stop(){replay.stop();tutor.live.setPlaybackDucked(false);Task{await tutor.stop(app)}}
+    private func historyReply(_ message:JSONValue)->some View {replyView(message)}
     private var history:some View {NavigationStack{ScrollView{LazyVStack(alignment:.leading,spacing:12){ForEach(Array(tutor.messages.enumerated()),id:\.offset){_,message in HStack{if message["role"].string == "user"{Spacer(minLength:36)};VStack(alignment:.leading,spacing:8){if message["role"].string == "assistant"{historyReply(message)}else{Text(message["role"].string == "user" ? t("ra_you"):"Piyali").font(PiyaliBrand.productFont(11,600)).foregroundStyle(brand.secondary);Text(message["textFinal"].string).font(PiyaliBrand.productFont(16)).textSelection(.enabled);if !message["translation"].string.isEmpty{Text(message["translation"].string).font(PiyaliBrand.productFont(13)).foregroundStyle(brand.secondary)}}}.padding(14).background(message["role"].string == "user" ? Color.cyan.opacity(0.1):brand.surface,in:RoundedRectangle(cornerRadius:16));if message["role"].string != "user"{Spacer(minLength:24)}}}}.padding(16)}.background(brand.background).foregroundStyle(brand.text).navigationTitle(t("ra_chat_log")).navigationBarTitleDisplayMode(.inline).toolbar{ToolbarItem(placement:.confirmationAction){Button(tutor.pathCopy("close",app.learner.support)){historyOpen=false}.accessibilityIdentifier("tutorHistoryClose")}}}}
 }
 

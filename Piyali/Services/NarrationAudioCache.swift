@@ -5,6 +5,17 @@ import AVFoundation
 struct PreparedNarrationAudio:Sendable {
     let wav:Data
     private init(_ wav:Data){self.wav=wav}
+    /// Wrap the original PCM losslessly; reply clips must retain their original
+    /// voice, pauses and prosody instead of using the TTS cache's trim/resample.
+    static func original(_ recording:NarrationRecording)->Self?{
+        let pcm=recording.pcm16,channels=recording.channels,rate=recording.sampleRate
+        guard (1...2).contains(channels),(8000...192000).contains(rate),!pcm.isEmpty,pcm.count<=16*1024*1024,pcm.count%(channels*2)==0 else{return nil}
+        var wav=Data()
+        func tag(_ text:String){wav.append(contentsOf:text.utf8)}
+        func word<T:FixedWidthInteger>(_ value:T){var value=value.littleEndian;withUnsafeBytes(of:&value){wav.append(contentsOf:$0)}}
+        tag("RIFF");word(UInt32(36+pcm.count));tag("WAVEfmt ");word(UInt32(16));word(UInt16(1));word(UInt16(channels));word(UInt32(rate));word(UInt32(rate*channels*2));word(UInt16(channels*2));word(UInt16(16));tag("data");word(UInt32(pcm.count));wav.append(pcm)
+        return .init(wav)
+    }
     static func prepare(_ recording:NarrationRecording,rules:NarrationPCM.Rules)throws->Self?{
         guard (1...2).contains(recording.channels),(8000...192000).contains(recording.sampleRate),!recording.pcm16.isEmpty,recording.pcm16.count<=20*1024*1024,recording.pcm16.count%(recording.channels*2)==0 else{return nil}
         let frames=recording.pcm16.count/(recording.channels*2)

@@ -11,13 +11,14 @@ import Foundation
     private var client:RealtimeVoiceTransport?,epoch=UUID(),work:Task<Void,Never>?,startup:Task<Void,Never>?,hardDeadline:Task<Void,Never>?,drain:Task<Void,Never>?
     private var responseSucceeded=false,bufferStopped=false
     private var started:(()->Void)?,failed:(()->Void)?,finished:(()->Void)?
-    private let cache:NarrationAudioCache?,makeReplay:()->NarrationReplay
+    var onStopped:(()->Void)?
+    private let cache:NarrationAudioCache?,makeReplay:(Bool)->NarrationReplay
     private let pool:NarrationConnectionPool?
     private var warmPolicy:NarrationWarmPolicy?
     private(set) var usedPreparedConnection=false
     private var cachePolicy:NarrationCachePolicy?,cacheKey:String?,replay:NarrationReplay?
     private(set) var playbackSource:String?,lastCapturedBytes=0
-    init(factory:(()->RealtimeVoiceTransport)?=nil,cache:NarrationAudioCache?=nil,cacheEnabled:Bool=true,replayFactory:(()->NarrationReplay)?=nil,pool:NarrationConnectionPool?=nil){self.pool=pool ?? (factory == nil ? .shared:nil);self.factory=factory ?? {RealtimeRTCTransport(capturesMicrophone:false,purpose:.narration,recordsNarration:true)};self.cache=cacheEnabled ? (cache ?? (factory == nil ? .shared:nil)):nil;makeReplay=replayFactory ?? {NarrationReplayPlayer()}}
+    init(factory:(()->RealtimeVoiceTransport)?=nil,cache:NarrationAudioCache?=nil,cacheEnabled:Bool=true,replayFactory:(()->NarrationReplay)?=nil,pool:NarrationConnectionPool?=nil){self.pool=pool ?? (factory == nil ? .shared:nil);self.factory=factory ?? {RealtimeRTCTransport(capturesMicrophone:false,purpose:.narration,recordsNarration:true)};self.cache=cacheEnabled ? (cache ?? (factory == nil ? .shared:nil)):nil;makeReplay={preserve in replayFactory?() ?? NarrationReplayPlayer(managesAudioSession:!preserve && !NativeVoiceAudioLease.hasOwners)}}
     func play(_ text:String,language:String,engine:CompanionQuestPolicy?,voice:String="ash",sessionOverride:JSONValue?=nil,cacheRequest:JSONValue?=nil,startupMilliseconds:Int=20000,onStarted:(()->Void)?=nil,onFailed:(()->Void)?=nil,onFinished:(()->Void)?=nil){
         guard !text.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else{return}
         Self.owner?.stopAll();stopAll();Self.owner=self;loading=true;error=nil;failureDetail=nil;playbackSource=nil;usedPreparedConnection=false;lastCapturedBytes=0;started=onStarted;failed=onFailed;finished=onFinished;let token=epoch
@@ -29,7 +30,7 @@ import Foundation
                 cacheKey=try? cachePolicy?.key(text:text,language:language,voice:voice,session:session,request:cacheRequest)
                 if let key=cacheKey,let hit=await cached(cache,key:key){
                     guard epoch == token,!Task.isCancelled else{return}
-                    do{let player=makeReplay();replay=player
+                    do{let player=makeReplay(false);replay=player
                         player.onFinished={[weak self] in guard let self,self.epoch == token else{return};let callback=self.finished;self.stopAll();callback?()}
                         player.onFailed={[weak self] in guard let self,self.epoch == token else{return};Task{await cache.remove(key)};self.fail("cached-playback")}
                         try player.play(hit.wav);loading=false;playing=true;playbackSource=hit.source;let callback=started;started=nil;callback?();return
@@ -51,6 +52,17 @@ import Foundation
             if lease != nil{try client.activateNarrationOutput();client.onOpen?()}else{try await client.connect(session:session)};try Task.checkCancellation()
             if let pool,pool.automaticRefill{Task{_=await pool.warm(session:session)}}
         }catch is CancellationError{}catch{if epoch == token{fail("connection: "+error.localizedDescription)}}}
+    }
+    func reserve(onStopped:@escaping()->Void){Self.owner?.stopAll();stopAll();Self.owner=self;self.onStopped=onStopped}
+    /// Recorded Tutor replies share narration ownership, but keep a live Tutor's
+    /// play-and-record audio session active while its microphone is ducked.
+    func playRecording(_ wav:Data,preservingAudioSession:Bool,onFinished:(()->Void)?=nil,onFailed:(()->Void)?=nil){
+        Self.owner?.stopAll();stopAll();Self.owner=self;error=nil;failureDetail=nil;loading=true;playbackSource="recorded";finished=onFinished;failed=onFailed;let token=epoch
+        do{let player=makeReplay(preservingAudioSession);replay=player
+            player.onFinished={[weak self] in guard let self,self.epoch == token else{return};let callback=self.finished;self.stopAll();callback?()}
+            player.onFailed={[weak self] in guard let self,self.epoch == token else{return};self.fail("recorded-playback")}
+            try player.play(wav);loading=false;playing=true
+        }catch{fail("recorded-playback")}
     }
     func warm(language:String,engine:CompanionQuestPolicy?)async->Bool{guard let pool,let engine,let session=try? engine.run("ph_tts",.object(["language":.string(language),"voice":.string("ash")]))else{return false};return await pool.warm(session:session)}
     func receive(_ event:JSONValue){
@@ -75,6 +87,6 @@ import Foundation
             Task{try? await Task.sleep(for:.milliseconds(1500));guard !resumed else{return};resumed=true;lookup.cancel();continuation.resume(returning:nil)}
         }
     }
-    func stopAll(){epoch=UUID();work?.cancel();startup?.cancel();hardDeadline?.cancel();drain?.cancel();drain=nil;client?.close();client=nil;replay?.stop();replay=nil;cacheKey=nil;loading=false;playing=false;responseSucceeded=false;bufferStopped=false;started=nil;failed=nil;finished=nil;if Self.owner === self {Self.owner=nil}}
-    private func fail(_ detail:String){let callback=failed;stopAll();failureDetail=String(detail.prefix(500));error="Narration could not play. Try again.";callback?()}
+    func stopAll(){let stopped=onStopped;onStopped=nil;epoch=UUID();work?.cancel();startup?.cancel();hardDeadline?.cancel();drain?.cancel();drain=nil;client?.close();client=nil;replay?.stop();replay=nil;cacheKey=nil;loading=false;playing=false;responseSucceeded=false;bufferStopped=false;started=nil;failed=nil;finished=nil;if Self.owner === self {Self.owner=nil};stopped?()}
+    private func fail(_ detail:String){let callback=failed;onStopped=nil;stopAll();failureDetail=String(detail.prefix(500));error="Narration could not play. Try again.";callback?()}
 }

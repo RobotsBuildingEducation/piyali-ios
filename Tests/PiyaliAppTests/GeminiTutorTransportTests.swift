@@ -1,4 +1,5 @@
 import XCTest
+import AVFoundation
 @testable import Piyali
 
 @MainActor private final class TutorSocketFixture:GeminiTutorSocket {
@@ -29,6 +30,39 @@ import XCTest
         let socket=try XCTUnwrap(sockets.last);socket.feed(.object(["serverContent":.object(["inputTranscription":.object(["text":.string(" hola ")]),"turnComplete":.bool(true)])]));await settle()
         XCTAssertEqual(inputs.count,1);XCTAssertFalse(inputs[0].id.isEmpty);XCTAssertEqual(inputs[0].text,"hola");XCTAssertEqual(inputs[0].answered,"Reply 4")
         live.discardInput(inputs[0].id);await live.stop();XCTAssertTrue(socket.closed);XCTAssertFalse(live.connected)
+    }
+    func testPlayedReplyRecordingKeepsResponseIdentityAcrossResetAndStop()async throws {
+        var sockets:[TutorSocketFixture]=[]
+        let transport=GeminiTutorTransport(capturesAudio:false,factory:{_ in let socket=TutorSocketFixture();sockets.append(socket);return socket}),live=LiveTutorService(permission:{true},transportFactory:{transport});var recordings:[(String,NarrationRecording)]=[]
+        await live.start(learner:LearnerState(),openingPrompt:nil,inactivityTimeout:0,sessionConfiguration:.object(["provider":.string("gemini")]),externallyControlled:true,onResponseRecording:{recordings.append(($0,$1))})
+        for index in 0..<5{
+            live.requestResponse(request("Turn \(index)"));await settle();let socket=try XCTUnwrap(sockets.last),pcm=Data(repeating:UInt8(index+1),count:1200)
+            socket.feed(.object(["serverContent":.object(["modelTurn":.object(["parts":.array([.object(["inlineData":.object(["mimeType":.string("audio/pcm;rate=24000"),"data":.string(pcm.base64EncodedString())])])])]),"outputTranscription":.object(["text":.string("Reply \(index)")]),"turnComplete":.bool(true)])]));await settle()
+            XCTAssertEqual(recordings.count,index+1);XCTAssertEqual(recordings.last?.1.pcm16,pcm);XCTAssertEqual(recordings.last?.0,live.assistantResponseID)
+        }
+        XCTAssertEqual(sockets.count,2);XCTAssertEqual(Set(recordings.map{$0.0}).count,5);await live.stop();XCTAssertEqual(recordings.count,5)
+    }
+    func testCanceledReplyKeepsItsPlayedPrefixAndVisibleTextOnce()async throws {
+        let socket=TutorSocketFixture(),transport=GeminiTutorTransport(capturesAudio:false,factory:{_ in socket}),live=LiveTutorService(permission:{true},transportFactory:{transport});var recordings:[NarrationRecording]=[],canceled:[String]=[],completed=0
+        await live.start(learner:LearnerState(),openingPrompt:nil,inactivityTimeout:0,onAssistantTurn:{_,_ in completed+=1},sessionConfiguration:.object(["provider":.string("gemini")]),externallyControlled:true,onResponseRecording:{_,recording in recordings.append(recording)},onAssistantInterrupted:{id,text in canceled.append(id+":"+text)})
+        live.requestResponse(request("Turn"));await settle();let pcm=Data(repeating:3,count:1200)
+        socket.feed(.object(["serverContent":.object(["modelTurn":.object(["parts":.array([.object(["inlineData":.object(["mimeType":.string("audio/pcm;rate=24000"),"data":.string(pcm.base64EncodedString())])])])]),"outputTranscription":.object(["text":.string("A partial reply")])])]));await settle();let id=live.assistantResponseID
+        XCTAssertFalse(id.isEmpty);XCTAssertTrue(transport.send(.object(["type":.string("response.cancel")])));await settle();XCTAssertEqual(recordings.count,1);XCTAssertEqual(recordings.first?.pcm16,pcm);XCTAssertEqual(canceled,[id+":A partial reply"]);XCTAssertEqual(completed,0);XCTAssertFalse(live.outputPending);await live.stop();XCTAssertEqual(recordings.count,1)
+    }
+    func testRecordedReplayKeepsLiveAudioSessionAndNextTutorBufferPlayable()async throws {
+        let socket=TutorSocketFixture(),transport=GeminiTutorTransport(capturesMicrophone:false,factory:{_ in socket});try await transport.connect(session:.null);defer{transport.close()}
+        let pcm=Data(repeating:0,count:12000),wav=try XCTUnwrap(PreparedNarrationAudio.original(.init(pcm16:pcm,sampleRate:24000,channels:1))).wav,service=RealtimeNarrationService();var finished=false
+        service.playRecording(wav,preservingAudioSession:true,onFinished:{finished=true});defer{service.stopAll()}
+        let deadline=Date().addingTimeInterval(5);while !finished,Date()<deadline{try await Task.sleep(for:.milliseconds(20))};XCTAssertTrue(finished);XCTAssertEqual(AVAudioSession.sharedInstance().category,.playAndRecord)
+        var done=false;transport.onEvent={if $0["type"].string == "response.done"{done=true}};XCTAssertTrue(transport.send(request("Play after replay")));await settle()
+        socket.feed(.object(["serverContent":.object(["modelTurn":.object(["parts":.array([.object(["inlineData":.object(["mimeType":.string("audio/pcm;rate=24000"),"data":.string(pcm.base64EncodedString())])])])]),"turnComplete":.bool(true)])]))
+        let secondDeadline=Date().addingTimeInterval(5);while !done,Date()<secondDeadline{try await Task.sleep(for:.milliseconds(20))};XCTAssertTrue(done);XCTAssertEqual(transport.playedAudioBuffers,1);XCTAssertFalse(socket.closed)
+    }
+    func testClosingLiveTutorCannotDeactivateAnAlreadyPlayingRecordedReply()async throws {
+        let socket=TutorSocketFixture(),transport=GeminiTutorTransport(capturesMicrophone:false,factory:{_ in socket});try await transport.connect(session:.null)
+        let pcm=Data(repeating:0,count:24000),wav=try XCTUnwrap(PreparedNarrationAudio.original(.init(pcm16:pcm,sampleRate:24000,channels:1))).wav,replay=NarrationReplayPlayer(volume:0,managesAudioSession:false);var finished=false,failed=false;defer{replay.stop();transport.close()}
+        replay.onFinished={finished=true};replay.onFailed={failed=true};try replay.play(wav);transport.close();XCTAssertTrue(NativeVoiceAudioLease.hasOwners);XCTAssertEqual(AVAudioSession.sharedInstance().category,.playAndRecord)
+        let deadline=Date().addingTimeInterval(5);while !finished && !failed,Date()<deadline{try await Task.sleep(for:.milliseconds(20))};XCTAssertTrue(finished);XCTAssertFalse(failed);replay.stop();XCTAssertFalse(NativeVoiceAudioLease.hasOwners)
     }
     func testCloseWhileInitialConnectPendingClosesLateSocketAndNeverOpens()async throws {
         var held:CheckedContinuation<GeminiTutorSocket,Error>?,opened=0
