@@ -28,6 +28,15 @@ export function verifyChallenge(record, event, now = Date.now()) {
 let signingKey;
 let signingPEM;
 export async function customToken(npub, env, now = Date.now()) {
+  return signedToken(npub,{nostr_pubkey:publicIdentity(npub)},env,now,3600);
+}
+export const LANDING_DEMO_UID = 'piyali-landing-demo';
+export async function landingDemoToken(env,now = Date.now()) {
+  // This service identity never has a Nostr claim. Existing Firestore and
+  // Responses authorization reject it, including its own /users document.
+  return signedToken(LANDING_DEMO_UID,{piyali_public_demo:true},env,now,300);
+}
+async function signedToken(uid,claims,env,now,lifetime) {
   if (!env.FIREBASE_CLIENT_EMAIL?.endsWith(`@${env.FIREBASE_PROJECT_ID}.iam.gserviceaccount.com`) || !env.FIREBASE_PRIVATE_KEY) {
     throw new HTTPError(503,'Firebase sign-in is not configured.');
   }
@@ -35,10 +44,10 @@ export async function customToken(npub, env, now = Date.now()) {
     signingPEM = env.FIREBASE_PRIVATE_KEY;
     signingKey = importPKCS8(signingPEM,'RS256');
   }
-  return new SignJWT({uid:npub,claims:{nostr_pubkey:publicIdentity(npub)}})
+  return new SignJWT({uid,claims})
     .setProtectedHeader({alg:'RS256',typ:'JWT'})
     .setIssuer(env.FIREBASE_CLIENT_EMAIL).setSubject(env.FIREBASE_CLIENT_EMAIL)
     .setAudience('https://identitytoolkit.googleapis.com/google.identity.identitytoolkit.v1.IdentityToolkit')
-    .setIssuedAt(Math.floor(now/1000)).setExpirationTime(Math.floor(now/1000)+3600)
+    .setIssuedAt(Math.floor(now/1000)).setExpirationTime(Math.floor(now/1000)+lifetime)
     .sign(await signingKey);
 }

@@ -1,0 +1,14 @@
+[
+  {
+    "bundle": "PiyaliStoryFeedbackFinal2.xcresult",
+    "result": "Passed",
+    "passedTests": 11,
+    "failedTests": 0
+  },
+  {
+    "bundle": "PiyaliStoryFeedbackFinal3.xcresult",
+    "result": "Passed",
+    "passedTests": 4,
+    "failedTests": 0
+  }
+]

@@ -12,7 +12,7 @@ public struct MemoryNote: Codable, Identifiable, Equatable, Sendable {
     public init(fields: [String:JSONValue]) { self.fields = fields }
 }
 public struct MemoryChange: Codable, Identifiable, Sendable {
-    public enum Action: String, Codable, Sendable { case capture, reinforce }
+    public enum Action: String, Codable, Sendable { case capture, reinforce, usedInQuest, localize }
     public var id = UUID()
     public let action: Action
     public let target: String
@@ -45,11 +45,20 @@ public enum MemoryContract {
     }
     public static func applying(_ change: MemoryChange, to original: [MemoryNote], today: String) -> [MemoryNote] {
         var notes = original
-        if change.action == .reinforce {
+        if change.action == .localize {
+            if let index=notes.firstIndex(where:{$0.id == change.note.id && $0.createdAt == change.note.createdAt}) {
+                for key in ["mistake","correction","tip","supportLang","enriched","concept","iosMemoryEnrichedSupport"] {if let value=change.note.fields[key]{notes[index].fields[key]=value}}
+            }
+        } else if change.action == .reinforce {
             if let index = notes.firstIndex(where: { $0.id == change.note.id }) {
                 notes[index].fields["status"] = .string("reinforced")
                 if notes[index].text("usedInQuestDayKey").isEmpty { notes[index].fields["usedInQuestDayKey"] = .string(change.dayKey) }
                 notes[index].fields["iosReinforcedAt"] = .number(change.date.timeIntervalSince1970*1000)
+            }
+        } else if change.action == .usedInQuest {
+            if let index=notes.firstIndex(where:{$0.id == change.note.id}),notes[index].text("status") != "reinforced" {
+                notes[index].fields["status"] = .string("used_in_quest")
+                notes[index].fields["usedInQuestDayKey"] = .string(change.dayKey)
             }
         } else {
             func key(_ text: String) -> String { text.lowercased().split(whereSeparator: { $0.isWhitespace }).joined(separator:" ") }
@@ -72,14 +81,26 @@ public enum MemoryContract {
 }
 public extension LearnerState {
     var activeMemories: [MemoryNote] { (companionMemory?[target] ?? []).filter { $0.active(on:CalendarDay.key(Date())) }.sorted { $0.severity == $1.severity ? $0.createdAt > $1.createdAt : $0.severity > $1.severity } }
-    mutating func captureMemory(mode: String, concept: String, answer: String, expected: String, feedback: String, context: String = "", now: Date = Date()) {
+    mutating func captureMemory(mode: String, concept: String, answer: String, expected: String, feedback: String, context: String = "", now: Date = Date(), questionLevel:String? = nil,sourceContext:JSONValue? = nil) {
         guard !concept.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else { return }
-        let note = MemoryContract.capture(target:target,support:support,level:level,mode:mode,concept:concept,answer:answer,expected:expected,feedback:feedback,context:context,now:now)
+        var note = MemoryContract.capture(target:target,support:support,level:questionLevel ?? level,mode:mode,concept:concept,answer:answer,expected:expected,feedback:feedback,context:context,now:now)
+        if let sourceContext{note.fields["sourceContext"]=sourceContext}
         applyMemory(MemoryChange(action:.capture,target:target,date:now,dayKey:CalendarDay.key(now),note:note))
+    }
+    mutating func localizeMemory(_ original:MemoryNote,fields:JSONValue,support:String,now:Date = Date()) {
+        guard let current=companionMemory?[target]?.first(where:{$0.id == original.id}),current.createdAt == original.createdAt else{return}
+        var note=original
+        for key in ["mistake","correction","tip","concept"] {if fields[key] != .null{note.fields[key]=fields[key]}}
+        note.fields["supportLang"] = .string(support);note.fields["enriched"] = .bool(true);note.fields["iosMemoryEnrichedSupport"] = .string(support)
+        applyMemory(MemoryChange(action:.localize,target:target,date:now,dayKey:CalendarDay.key(now),note:note))
     }
     mutating func reinforceMemory(id: String, now: Date = Date()) {
         guard let note = companionMemory?[target]?.first(where: { $0.id == id }) else { return }
         applyMemory(MemoryChange(action:.reinforce,target:target,date:now,dayKey:CalendarDay.key(now),note:note))
+    }
+    mutating func markMemoryUsed(id:String,target:String,day:String,now:Date = Date()) {
+        guard let note=companionMemory?[target]?.first(where:{$0.id == id}),note.text("status") != "reinforced",note.text("usedInQuestDayKey") != day else{return}
+        applyMemory(MemoryChange(action:.usedInQuest,target:target,date:now,dayKey:day,note:note))
     }
     private mutating func applyMemory(_ change: MemoryChange) {
         if companionMemory == nil { companionMemory = [:] }

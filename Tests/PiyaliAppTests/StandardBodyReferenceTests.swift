@@ -1,0 +1,67 @@
+import XCTest
+import SwiftUI
+import WebKit
+@testable import Piyali
+@MainActor private final class StandardReferenceNoCloud:LearnerProgressService {
+    func saveCompanionCustomization(_ change:SettingsChange,npub:String)async throws->Bool{false}
+    func load(npub:String,local:LearnerState?)async throws->LearnerState?{nil}
+    func save(_ state:LearnerState,npub:String)async throws->LearnerState?{throw URLError(.notConnectedToInternet)}
+}
+@MainActor final class StandardBodyReferenceTests:XCTestCase {
+    func testOriginalStandardBodiesForBothModulesInEnglishAndArabic()async throws {
+        let env=ProcessInfo.processInfo.environment;guard env["PIYALI_OFFLINE_TESTS"] == "1",env["PIYALI_REFERENCE_PREVIEW_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Isolated source preview required")}
+        let url=try XCTUnwrap(Bundle(for:Self.self).url(forResource:"standard-bodies",withExtension:"json")),samples=try JSONDecoder().decode(Piyali.JSONValue.self,from:Data(contentsOf:url)),app=AppModel(progressService:StandardReferenceNoCloud());try app.identity.create();defer{try? app.identity.disconnect()};app.signedIn=true;app.subscription.bind(app.identity)
+        let curriculum=try ContentLibrary.load([String:[LearningUnit]].self,name:"curriculum-es"),lesson=try XCTUnwrap(curriculum["Pre-A1"]?.first?.lessons.first),selected=Set((env["PIYALI_STANDARD_BODY_VARIANTS"] ?? "fill,mc-buttons,mc-drag,ma-buttons,ma-drag,match").split(separator:",").map(String.init))
+        for module in [PracticeRecipeModule.vocabulary,.grammar]{for language in ["en","ar"]{for variant in selected.sorted(){for state in ["idle","partial","filled","locked"]{
+            app.learner=LearnerState();app.learner.target="es";app.learner.support=language;app.learner.onboardingComplete=true;app.activityFooter=nil;app.activityFooterHeight=0
+            let sample=samples[module.rawValue][variant],question=try PracticeQuestion(module:module,kind:sample["kind"].string,payload:sample["question"],options:.object(["cefrLevel":.string("A1")]),target:"es",support:language);var run=PracticeRun(question:question,lessonID:lesson.id,lessonLevel:"Pre-A1",response:sample["responses"][state]);if question.kind == "match"{run.rightOrder=[2,0,1]}
+            if state == "locked"{run.correct=true;run.earnedXP=question.standardReward;app.learner.lessonWork=[app.learner.completionKey(lesson.id):.init(earnedXP:run.earnedXP)]};app.learner.savePractice(run)
+            try await compare(name:"\(module.rawValue) \(variant) \(state) \(language)",query:"module=\(module.rawValue)&variant=\(variant)&state=\(state)&language=\(language)",language:language,root:AnyView(StandardReferenceHost(module:module,lesson:lesson).environmentObject(app)))
+        }}}}
+    }
+    func testOriginalQuestionAndMatchingAudioLoadingControls()async throws {
+        let env=ProcessInfo.processInfo.environment;guard env["PIYALI_OFFLINE_TESTS"] == "1",env["PIYALI_REFERENCE_PREVIEW_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Isolated source preview required")}
+        let url=try XCTUnwrap(Bundle(for:Self.self).url(forResource:"standard-bodies",withExtension:"json")),samples=try JSONDecoder().decode(Piyali.JSONValue.self,from:Data(contentsOf:url)),app=AppModel(progressService:StandardReferenceNoCloud());try app.identity.create();defer{try? app.identity.disconnect()};app.signedIn=true;app.subscription.bind(app.identity)
+        let curriculum=try ContentLibrary.load([String:[LearningUnit]].self,name:"curriculum-es"),lesson=try XCTUnwrap(curriculum["Pre-A1"]?.first?.lessons.first)
+        for(variant,language)in[("fill","en"),("match","ar")]{
+            app.learner=LearnerState();app.learner.target="es";app.learner.support=language;app.learner.onboardingComplete=true;app.activityFooter=nil;app.activityFooterHeight=0
+            let sample=samples["grammar"][variant],q=try PracticeQuestion(module:.grammar,kind:sample["kind"].string,payload:sample["question"],options:.object(["cefrLevel":.string("A1")]),target:"es",support:language);var run=PracticeRun(question:q,lessonID:lesson.id,lessonLevel:"Pre-A1",response:sample["responses"]["idle"]);if variant == "match"{run.rightOrder=[2,0,1]};app.learner.savePractice(run)
+            let transport=LessonNarrationTransport(),audio=LessonAudioController(narration:RealtimeNarrationService(factory:{transport}));defer{audio.clear()}
+            try await compare(name:"grammar \(variant) audio-loading \(language)",query:"module=grammar&variant=\(variant)&state=loading&language=\(language)",language:language,root:AnyView(StandardReferenceHost(module:.grammar,lesson:lesson,audio:audio).environmentObject(app)))
+            XCTAssertTrue(audio.loading);XCTAssertEqual(transport.microphone,[false])
+        }
+    }
+    func testOriginalStandardAssistanceRailsAndCopyNotice()async throws {
+        let env=ProcessInfo.processInfo.environment;guard env["PIYALI_OFFLINE_TESTS"] == "1",env["PIYALI_REFERENCE_PREVIEW_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Isolated source preview required")}
+        let url=try XCTUnwrap(Bundle(for:Self.self).url(forResource:"standard-bodies",withExtension:"json")),samples=try JSONDecoder().decode(Piyali.JSONValue.self,from:Data(contentsOf:url)),app=AppModel(progressService:StandardReferenceNoCloud());try app.identity.create();defer{try? app.identity.disconnect()};app.signedIn=true;app.subscription.bind(app.identity)
+        let curriculum=try ContentLibrary.load([String:[LearningUnit]].self,name:"curriculum-es"),lesson=try XCTUnwrap(curriculum["Pre-A1"]?.first?.lessons.first)
+        let liveURL=try XCTUnwrap(Bundle(for:Self.self).url(forResource:"standard-help-live",withExtension:"json")),live=try JSONDecoder().decode(Piyali.JSONValue.self,from:Data(contentsOf:liveURL))
+        for(module,variant,state,language)in [(PracticeRecipeModule.grammar,"fill","assistant","en"),(.vocabulary,"fill","assistant","ar"),(.grammar,"match","assistant","ar"),(.vocabulary,"ma-buttons","explanation","en")]{
+            app.learner=LearnerState();app.learner.target="es";app.learner.support=language;app.learner.onboardingComplete=true;app.activityFooter=nil;app.activityFooterHeight=0
+            let key=module.rawValue+" "+variant+" "+state+" "+language,text=live["outputs"][key].string.isEmpty ? "استخدم **pan** لإكمال الجملة.":live["outputs"][key].string,sample=samples[module.rawValue][variant],q=try PracticeQuestion(module:module,kind:sample["kind"].string,payload:sample["question"],options:.object(["cefrLevel":.string("A1")]),target:"es",support:language);var run=PracticeRun(question:q,lessonID:lesson.id,lessonLevel:"Pre-A1",response:sample["responses"]["partial"]);if q.kind == "match"{run.rightOrder=[2,0,1]};if state == "explanation"{run.correct=false;run.lastMissedAnswer=run.answerText;run.lastMissedResponse=run.response};app.learner.savePractice(run)
+            let helper=PracticeAssistanceController(writer:{_,_ in text}),encoded=try XCTUnwrap(text.addingPercentEncoding(withAllowedCharacters:.urlQueryAllowed.subtracting(CharacterSet(charactersIn:"&+"))));try await compare(name:"\(module.rawValue) \(variant) \(state) \(language)",query:"module=\(module.rawValue)&variant=\(variant)&state=\(state)&language=\(language)&text=\(encoded)&toast=\(state == "assistant" && q.kind != "match" ? "1":"0")",language:language,root:AnyView(StandardReferenceHost(module:module,lesson:lesson,assistance:helper).environmentObject(app).task{try? await Task.sleep(for:.milliseconds(150));if state == "assistant"{helper.ask(app,run:run)}else{helper.explain(app,run:run)}}));helper.clear()
+        }
+    }
+    private func compare(name:String,query:String,language:String,root:AnyView)async throws {
+        let scene=try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap{$0 as? UIWindowScene}.first),old=scene.windows.first{$0.isKeyWindow};defer{old?.makeKey()};let theme=language == "ar" ? "dark":"light",background=language == "ar" ? "#0b1220":"#f7f1e7"
+        let configuration=WKWebViewConfiguration();configuration.websiteDataStore = .nonPersistent();configuration.userContentController.addUserScript(WKUserScript(source:"window.__standardErrors=[];window.addEventListener('error',e=>window.__standardErrors.push(e.message));",injectionTime:.atDocumentStart,forMainFrameOnly:true));let web=WKWebView(frame:CGRect(x:0,y:0,width:402,height:874),configuration:configuration),window=UIWindow(windowScene:scene),vc=UIViewController();window.frame=web.frame;vc.view=web;window.rootViewController=vc;web.scrollView.contentInsetAdjustmentBehavior = .never;window.makeKeyAndVisible();defer{web.stopLoading();window.isHidden=true;window.rootViewController=nil}
+        web.load(URLRequest(url:URL(string:"http://127.0.0.1:5181/__piyali-standard-bodies?\(query)&theme=\(theme)")!));var ready=false
+        for _ in 0..<400{if let errors=try? await web.evaluateJavaScript("(window.__standardErrors||[]).join(' | ')")as?String,!errors.isEmpty{throw NSError(domain:"StandardSourcePreview",code:2,userInfo:[NSLocalizedDescriptionKey:errors])};ready=(try? await web.evaluateJavaScript("document.fonts.status==='loaded' && !!document.querySelector('[data-standard-fixture]') && getComputedStyle(document.documentElement).getPropertyValue('--app-page-bg').trim()===\(quote(background))"))as?Bool == true;if ready{break};try await Task.sleep(for:.milliseconds(50))}
+        guard ready else{let message=(try? await web.evaluateJavaScript("document.body.innerText"))as?String ?? "Source unavailable";throw NSError(domain:"StandardSourcePreview",code:1,userInfo:[NSLocalizedDescriptionKey:message])};try await Task.sleep(for:.milliseconds(500));var painted:UIImage?
+        for _ in 0..<4{let candidate=try await web.takeSnapshot(configuration:nil);if hasPaint(candidate){painted=candidate;break};try await Task.sleep(for:.milliseconds(300))}
+        let source=XCTAttachment(image:try XCTUnwrap(painted,"WebKit returned an unpainted source snapshot"));source.name="Source standard \(name)";source.lifetime = .keepAlways;add(source)
+        let geometry=try await web.evaluateJavaScript("JSON.stringify([...document.querySelectorAll('button,input,p,[role=alert],[data-rfd-droppable-id],[data-activity-action-row]')].map(e=>{let r=e.getBoundingClientRect(),s=getComputedStyle(e);return{text:e.textContent,value:e.value,disabled:e.disabled,aria:e.getAttribute('aria-label'),x:r.x,y:r.y,w:r.width,h:r.height,color:s.color,bg:s.backgroundColor,radius:s.borderRadius,fontSize:s.fontSize,fontFamily:s.fontFamily,weight:s.fontWeight,line:s.lineHeight}}))"),metrics=XCTAttachment(data:Data((geometry as? String ?? "").utf8),uniformTypeIdentifier:"public.json");metrics.name="Source standard geometry \(name)";metrics.lifetime = .keepAlways;add(metrics)
+        let native=UIWindow(windowScene:scene);native.frame=web.frame;let host=UIHostingController(rootView:root.environment(\.layoutDirection,language == "ar" ? .rightToLeft:.leftToRight).environment(\.dynamicTypeSize,.large).preferredColorScheme(theme == "dark" ? .dark:.light).ignoresSafeArea());native.rootViewController=host;native.makeKeyAndVisible();host.view.layoutIfNeeded();try await Task.sleep(for:.milliseconds(700));let capture=XCTAttachment(image:UIGraphicsImageRenderer(bounds:native.bounds).image{_ in native.drawHierarchy(in:native.bounds,afterScreenUpdates:true)});capture.name="Native standard \(name)";capture.lifetime = .keepAlways;add(capture);native.isHidden=true;native.rootViewController=nil
+    }
+    private func hasPaint(_ image:UIImage)->Bool{
+        guard let cg=image.cgImage,let context=CGContext(data:nil,width:32,height:32,bitsPerComponent:8,bytesPerRow:128,space:CGColorSpaceCreateDeviceRGB(),bitmapInfo:CGImageAlphaInfo.premultipliedLast.rawValue)else{return false};context.draw(cg,in:CGRect(x:0,y:0,width:32,height:32));guard let data=context.data else{return false};let pixels=data.bindMemory(to:UInt32.self,capacity:1024);return Set((0..<1024).map{pixels[$0]}).count>2
+    }
+    private func quote(_ value:String)->String{String(decoding:try! JSONEncoder().encode(value),as:UTF8.self)}
+}
+private struct StandardReferenceHost:View {
+    @EnvironmentObject var app:AppModel
+    let module:PracticeRecipeModule,lesson:Lesson
+    var assistance:PracticeAssistanceController?=nil
+    var audio:LessonAudioController?=nil
+    var body:some View{LessonPracticeView(module:module,lesson:lesson,embedded:true,assistance:assistance,feedbackPortrait:7,allowsQuestionAutoFocus:false,audio:audio).task{if let audio{try? await Task.sleep(for:.milliseconds(250));audio.bind("source-capture");audio.play("hola",language:"es",owner:"source-capture",wordIndex:module == .grammar ? 0:nil,engine:app.companionQuestPolicy)}}.overlay(alignment:.bottom){if let footer=app.activityFooter{ZStack(alignment:.bottomLeading){footer.content.padding(12).background{SourceActivityDockBackground(correct:footer.correct,tone:footer.tone)}.padding(.horizontal,8).padding(.bottom,12);HStack{SourceActivityMenuGlyph().frame(width:18,height:18).frame(width:40,height:40);Spacer(minLength:0)}.frame(height:40).padding(.leading,20).padding(.bottom,24).environment(\.layoutDirection,.leftToRight)}.onGeometryChange(for:CGFloat.self,of:{$0.size.height}){app.activityFooterHeight=$0}}}}
+}

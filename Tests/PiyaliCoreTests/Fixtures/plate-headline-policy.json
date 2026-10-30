@@ -1,0 +1,3308 @@
+[
+  {
+    "operation": "summary",
+    "input": {
+      "courses": [
+        {
+          "kind": "repair",
+          "count": 0,
+          "target": 1
+        },
+        {
+          "kind": "goal",
+          "count": 1,
+          "target": 2
+        },
+        {
+          "kind": "speak",
+          "count": 2,
+          "target": 3
+        },
+        {
+          "kind": "learn",
+          "count": 0,
+          "target": 1
+        },
+        {
+          "kind": "review",
+          "count": 1,
+          "target": 2
+        },
+        {
+          "kind": "conversation",
+          "count": 2,
+          "target": 3
+        },
+        {
+          "kind": "phonics",
+          "count": 0,
+          "target": 1
+        },
+        {
+          "kind": "other",
+          "count": 1,
+          "target": 2
+        }
+      ],
+      "user": {},
+      "targetLang": "es",
+      "levelUnits": []
+    },
+    "expected": [
+      {
+        "kind": "speak",
+        "topic": "Tutor conversation practice",
+        "count": 2,
+        "target": 3,
+        "progress": "2/3",
+        "done": false
+      },
+      {
+        "kind": "learn",
+        "topic": "Lesson",
+        "count": 0,
+        "target": 1,
+        "progress": "0/1",
+        "done": false
+      },
+      {
+        "kind": "review",
+        "topic": "Vocabulary flashcard review",
+        "count": 1,
+        "target": 2,
+        "progress": "1/2",
+        "done": false
+      },
+      {
+        "kind": "conversation",
+        "topic": "Interactive conversation",
+        "count": 2,
+        "target": 3,
+        "progress": "2/3",
+        "done": false
+      },
+      {
+        "kind": "phonics",
+        "topic": "Phonics and pronunciation practice",
+        "count": 0,
+        "target": 1,
+        "progress": "0/1",
+        "done": false
+      },
+      {
+        "kind": "other",
+        "topic": "other practice",
+        "count": 1,
+        "target": 2,
+        "progress": "1/2",
+        "done": false
+      }
+    ]
+  },
+  {
+    "operation": "summary",
+    "input": {
+      "courses": [
+        {
+          "kind": "repair",
+          "count": 0,
+          "target": 1
+        },
+        {
+          "kind": "goal",
+          "count": 1,
+          "target": 2
+        },
+        {
+          "kind": "speak",
+          "count": 2,
+          "target": 3
+        },
+        {
+          "kind": "learn",
+          "count": 0,
+          "target": 1
+        },
+        {
+          "kind": "review",
+          "count": 1,
+          "target": 2
+        },
+        {
+          "kind": "conversation",
+          "count": 2,
+          "target": 3
+        },
+        {
+          "kind": "phonics",
+          "count": 0,
+          "target": 1
+        },
+        {
+          "kind": "other",
+          "count": 1,
+          "target": 2
+        }
+      ],
+      "user": {},
+      "targetLang": "es",
+      "levelUnits": [
+        {
+          "id": "one",
+          "title": {
+            "en": "First unit"
+          },
+          "lessons": [
+            {
+              "id": "done",
+              "title": {
+                "en": "Completed lesson"
+              }
+            },
+            {
+              "id": "next",
+              "title": {
+                "en": "Asking for directions",
+                "fr": "Demander son chemin"
+              }
+            }
+          ]
+        },
+        {
+          "id": "two",
+          "lessons": [
+            {
+              "id": "later",
+              "title": "Later lesson"
+            }
+          ]
+        }
+      ]
+    },
+    "expected": [
+      {
+        "kind": "speak",
+        "topic": "Tutor conversation practice",
+        "count": 2,
+        "target": 3,
+        "progress": "2/3",
+        "done": false
+      },
+      {
+        "kind": "learn",
+        "topic": "Completed lesson",
+        "count": 0,
+        "target": 1,
+        "progress": "0/1",
+        "done": false
+      },
+      {
+        "kind": "review",
+        "topic": "Vocabulary flashcard review",
+        "count": 1,
+        "target": 2,
+        "progress": "1/2",
+        "done": false
+      },
+      {
+        "kind": "conversation",
+        "topic": "Interactive conversation",
+        "count": 2,
+        "target": 3,
+        "progress": "2/3",
+        "done": false
+      },
+      {
+        "kind": "phonics",
+        "topic": "Phonics and pronunciation practice",
+        "count": 0,
+        "target": 1,
+        "progress": "0/1",
+        "done": false
+      },
+      {
+        "kind": "other",
+        "topic": "other practice",
+        "count": 1,
+        "target": 2,
+        "progress": "1/2",
+        "done": false
+      }
+    ]
+  },
+  {
+    "operation": "summary",
+    "input": {
+      "courses": [
+        {
+          "kind": "repair",
+          "count": 0,
+          "target": 1
+        },
+        {
+          "kind": "goal",
+          "count": 1,
+          "target": 2
+        },
+        {
+          "kind": "speak",
+          "count": 2,
+          "target": 3
+        },
+        {
+          "kind": "learn",
+          "count": 0,
+          "target": 1
+        },
+        {
+          "kind": "review",
+          "count": 1,
+          "target": 2
+        },
+        {
+          "kind": "conversation",
+          "count": 2,
+          "target": 3
+        },
+        {
+          "kind": "phonics",
+          "count": 0,
+          "target": 1
+        },
+        {
+          "kind": "other",
+          "count": 1,
+          "target": 2
+        }
+      ],
+      "user": {
+        "progress": {
+          "lessons": {
+            "done": {
+              "completed": true
+            }
+          }
+        }
+      },
+      "targetLang": "es",
+      "levelUnits": []
+    },
+    "expected": [
+      {
+        "kind": "speak",
+        "topic": "Tutor conversation practice",
+        "count": 2,
+        "target": 3,
+        "progress": "2/3",
+        "done": false
+      },
+      {
+        "kind": "learn",
+        "topic": "Lesson",
+        "count": 0,
+        "target": 1,
+        "progress": "0/1",
+        "done": false
+      },
+      {
+        "kind": "review",
+        "topic": "Vocabulary flashcard review",
+        "count": 1,
+        "target": 2,
+        "progress": "1/2",
+        "done": false
+      },
+      {
+        "kind": "conversation",
+        "topic": "Interactive conversation",
+        "count": 2,
+        "target": 3,
+        "progress": "2/3",
+        "done": false
+      },
+      {
+        "kind": "phonics",
+        "topic": "Phonics and pronunciation practice",
+        "count": 0,
+        "target": 1,
+        "progress": "0/1",
+        "done": false
+      },
+      {
+        "kind": "other",
+        "topic": "other practice",
+        "count": 1,
+        "target": 2,
+        "progress": "1/2",
+        "done": false
+      }
+    ]
+  },
+  {
+    "operation": "summary",
+    "input": {
+      "courses": [
+        {
+          "kind": "repair",
+          "count": 0,
+          "target": 1
+        },
+        {
+          "kind": "goal",
+          "count": 1,
+          "target": 2
+        },
+        {
+          "kind": "speak",
+          "count": 2,
+          "target": 3
+        },
+        {
+          "kind": "learn",
+          "count": 0,
+          "target": 1
+        },
+        {
+          "kind": "review",
+          "count": 1,
+          "target": 2
+        },
+        {
+          "kind": "conversation",
+          "count": 2,
+          "target": 3
+        },
+        {
+          "kind": "phonics",
+          "count": 0,
+          "target": 1
+        },
+        {
+          "kind": "other",
+          "count": 1,
+          "target": 2
+        }
+      ],
+      "user": {
+        "progress": {
+          "lessons": {
+            "done": {
+              "completed": true
+            }
+          }
+        }
+      },
+      "targetLang": "es",
+      "levelUnits": [
+        {
+          "id": "one",
+          "title": {
+            "en": "First unit"
+          },
+          "lessons": [
+            {
+              "id": "done",
+              "title": {
+                "en": "Completed lesson"
+              }
+            },
+            {
+              "id": "next",
+              "title": {
+                "en": "Asking for directions",
+                "fr": "Demander son chemin"
+              }
+            }
+          ]
+        },
+        {
+          "id": "two",
+          "lessons": [
+            {
+              "id": "later",
+              "title": "Later lesson"
+            }
+          ]
+        }
+      ]
+    },
+    "expected": [
+      {
+        "kind": "speak",
+        "topic": "Tutor conversation practice",
+        "count": 2,
+        "target": 3,
+        "progress": "2/3",
+        "done": false
+      },
+      {
+        "kind": "learn",
+        "topic": "Asking for directions",
+        "count": 0,
+        "target": 1,
+        "progress": "0/1",
+        "done": false
+      },
+      {
+        "kind": "review",
+        "topic": "Vocabulary flashcard review",
+        "count": 1,
+        "target": 2,
+        "progress": "1/2",
+        "done": false
+      },
+      {
+        "kind": "conversation",
+        "topic": "Interactive conversation",
+        "count": 2,
+        "target": 3,
+        "progress": "2/3",
+        "done": false
+      },
+      {
+        "kind": "phonics",
+        "topic": "Phonics and pronunciation practice",
+        "count": 0,
+        "target": 1,
+        "progress": "0/1",
+        "done": false
+      },
+      {
+        "kind": "other",
+        "topic": "other practice",
+        "count": 1,
+        "target": 2,
+        "progress": "1/2",
+        "done": false
+      }
+    ]
+  },
+  {
+    "operation": "summary",
+    "input": {
+      "courses": [
+        {
+          "kind": "repair",
+          "count": 0,
+          "target": 1
+        },
+        {
+          "kind": "goal",
+          "count": 1,
+          "target": 2
+        },
+        {
+          "kind": "speak",
+          "count": 2,
+          "target": 3
+        },
+        {
+          "kind": "learn",
+          "count": 0,
+          "target": 1
+        },
+        {
+          "kind": "review",
+          "count": 1,
+          "target": 2
+        },
+        {
+          "kind": "conversation",
+          "count": 2,
+          "target": 3
+        },
+        {
+          "kind": "phonics",
+          "count": 0,
+          "target": 1
+        },
+        {
+          "kind": "other",
+          "count": 1,
+          "target": 2
+        }
+      ],
+      "user": {
+        "progress": {
+          "languageLessons": {
+            "es": {
+              "done": {
+                "isCompleted": true
+              },
+              "next": {
+                "completed": true
+              }
+            }
+          }
+        }
+      },
+      "targetLang": "es",
+      "levelUnits": []
+    },
+    "expected": [
+      {
+        "kind": "speak",
+        "topic": "Tutor conversation practice",
+        "count": 2,
+        "target": 3,
+        "progress": "2/3",
+        "done": false
+      },
+      {
+        "kind": "learn",
+        "topic": "Lesson",
+        "count": 0,
+        "target": 1,
+        "progress": "0/1",
+        "done": false
+      },
+      {
+        "kind": "review",
+        "topic": "Vocabulary flashcard review",
+        "count": 1,
+        "target": 2,
+        "progress": "1/2",
+        "done": false
+      },
+      {
+        "kind": "conversation",
+        "topic": "Interactive conversation",
+        "count": 2,
+        "target": 3,
+        "progress": "2/3",
+        "done": false
+      },
+      {
+        "kind": "phonics",
+        "topic": "Phonics and pronunciation practice",
+        "count": 0,
+        "target": 1,
+        "progress": "0/1",
+        "done": false
+      },
+      {
+        "kind": "other",
+        "topic": "other practice",
+        "count": 1,
+        "target": 2,
+        "progress": "1/2",
+        "done": false
+      }
+    ]
+  },
+  {
+    "operation": "summary",
+    "input": {
+      "courses": [
+        {
+          "kind": "repair",
+          "count": 0,
+          "target": 1
+        },
+        {
+          "kind": "goal",
+          "count": 1,
+          "target": 2
+        },
+        {
+          "kind": "speak",
+          "count": 2,
+          "target": 3
+        },
+        {
+          "kind": "learn",
+          "count": 0,
+          "target": 1
+        },
+        {
+          "kind": "review",
+          "count": 1,
+          "target": 2
+        },
+        {
+          "kind": "conversation",
+          "count": 2,
+          "target": 3
+        },
+        {
+          "kind": "phonics",
+          "count": 0,
+          "target": 1
+        },
+        {
+          "kind": "other",
+          "count": 1,
+          "target": 2
+        }
+      ],
+      "user": {
+        "progress": {
+          "languageLessons": {
+            "es": {
+              "done": {
+                "isCompleted": true
+              },
+              "next": {
+                "completed": true
+              }
+            }
+          }
+        }
+      },
+      "targetLang": "es",
+      "levelUnits": [
+        {
+          "id": "one",
+          "title": {
+            "en": "First unit"
+          },
+          "lessons": [
+            {
+              "id": "done",
+              "title": {
+                "en": "Completed lesson"
+              }
+            },
+            {
+              "id": "next",
+              "title": {
+                "en": "Asking for directions",
+                "fr": "Demander son chemin"
+              }
+            }
+          ]
+        },
+        {
+          "id": "two",
+          "lessons": [
+            {
+              "id": "later",
+              "title": "Later lesson"
+            }
+          ]
+        }
+      ]
+    },
+    "expected": [
+      {
+        "kind": "speak",
+        "topic": "Tutor conversation practice",
+        "count": 2,
+        "target": 3,
+        "progress": "2/3",
+        "done": false
+      },
+      {
+        "kind": "learn",
+        "topic": "Later lesson",
+        "count": 0,
+        "target": 1,
+        "progress": "0/1",
+        "done": false
+      },
+      {
+        "kind": "review",
+        "topic": "Vocabulary flashcard review",
+        "count": 1,
+        "target": 2,
+        "progress": "1/2",
+        "done": false
+      },
+      {
+        "kind": "conversation",
+        "topic": "Interactive conversation",
+        "count": 2,
+        "target": 3,
+        "progress": "2/3",
+        "done": false
+      },
+      {
+        "kind": "phonics",
+        "topic": "Phonics and pronunciation practice",
+        "count": 0,
+        "target": 1,
+        "progress": "0/1",
+        "done": false
+      },
+      {
+        "kind": "other",
+        "topic": "other practice",
+        "count": 1,
+        "target": 2,
+        "progress": "1/2",
+        "done": false
+      }
+    ]
+  },
+  {
+    "operation": "prompt",
+    "input": {
+      "targetLang": "es",
+      "appLanguage": "en",
+      "taskSummary": [
+        {
+          "kind": "speak",
+          "topic": "Tutor conversation practice",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "learn",
+          "topic": "Asking for directions",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "review",
+          "topic": "Vocabulary flashcard review",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        },
+        {
+          "kind": "conversation",
+          "topic": "Interactive conversation",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "phonics",
+          "topic": "Phonics and pronunciation practice",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "other",
+          "topic": "other practice",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        }
+      ]
+    },
+    "expected": "You are generating the single-sentence subtitle for \"Today's Focus\" in a language learning app.\nCourse: Learning Spanish.\nOUTPUT LANGUAGE REQUIREMENT: You MUST write the sentence strictly in English.\n\nToday's scheduled learning tasks:\n- speak: Tutor conversation practice (2/3 completed)\n- learn: Asking for directions (0/1 completed)\n- review: Vocabulary flashcard review (1/2 completed)\n- conversation: Interactive conversation (2/3 completed)\n- phonics: Phonics and pronunciation practice (0/1 completed)\n- other: other practice (1/2 completed)\n\nWrite ONE crisp, inspiring sentence (maximum 12 words) in English stating the real-world communication skill, moment, or capability we will cover today.\nCRITICAL RULES:\n- The entire sentence MUST be written in English.\n- Do NOT write in Spanish unless English is Spanish.\n- Do NOT mention XP, points, levels, tasks, exercises, or homework.\n- Do NOT mention repairs, mistakes, or errors.\n- Frame it as a human outcome (e.g. \"Handle your first café order, including a follow-up question\" or \"Ask about someone's weekend plans with confidence\").\n- Return ONLY the plain sentence in English, without quotes or markdown."
+  },
+  {
+    "operation": "prompt",
+    "input": {
+      "targetLang": "es",
+      "appLanguage": "es",
+      "taskSummary": [
+        {
+          "kind": "speak",
+          "topic": "Tutor conversation practice",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "learn",
+          "topic": "Asking for directions",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "review",
+          "topic": "Vocabulary flashcard review",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        },
+        {
+          "kind": "conversation",
+          "topic": "Interactive conversation",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "phonics",
+          "topic": "Phonics and pronunciation practice",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "other",
+          "topic": "other practice",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        }
+      ]
+    },
+    "expected": "You are generating the single-sentence subtitle for \"Today's Focus\" in a language learning app.\nCourse: Learning Spanish.\nOUTPUT LANGUAGE REQUIREMENT: You MUST write the sentence strictly in Spanish.\n\nToday's scheduled learning tasks:\n- speak: Tutor conversation practice (2/3 completed)\n- learn: Asking for directions (0/1 completed)\n- review: Vocabulary flashcard review (1/2 completed)\n- conversation: Interactive conversation (2/3 completed)\n- phonics: Phonics and pronunciation practice (0/1 completed)\n- other: other practice (1/2 completed)\n\nWrite ONE crisp, inspiring sentence (maximum 12 words) in Spanish stating the real-world communication skill, moment, or capability we will cover today.\nCRITICAL RULES:\n- The entire sentence MUST be written in Spanish.\n- Do NOT write in Spanish unless Spanish is Spanish.\n- Do NOT mention XP, points, levels, tasks, exercises, or homework.\n- Do NOT mention repairs, mistakes, or errors.\n- Frame it as a human outcome (e.g. \"Handle your first café order, including a follow-up question\" or \"Ask about someone's weekend plans with confidence\").\n- Return ONLY the plain sentence in Spanish, without quotes or markdown."
+  },
+  {
+    "operation": "prompt",
+    "input": {
+      "targetLang": "es",
+      "appLanguage": "fr",
+      "taskSummary": [
+        {
+          "kind": "speak",
+          "topic": "Tutor conversation practice",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "learn",
+          "topic": "Asking for directions",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "review",
+          "topic": "Vocabulary flashcard review",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        },
+        {
+          "kind": "conversation",
+          "topic": "Interactive conversation",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "phonics",
+          "topic": "Phonics and pronunciation practice",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "other",
+          "topic": "other practice",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        }
+      ]
+    },
+    "expected": "You are generating the single-sentence subtitle for \"Today's Focus\" in a language learning app.\nCourse: Learning Spanish.\nOUTPUT LANGUAGE REQUIREMENT: You MUST write the sentence strictly in French.\n\nToday's scheduled learning tasks:\n- speak: Tutor conversation practice (2/3 completed)\n- learn: Asking for directions (0/1 completed)\n- review: Vocabulary flashcard review (1/2 completed)\n- conversation: Interactive conversation (2/3 completed)\n- phonics: Phonics and pronunciation practice (0/1 completed)\n- other: other practice (1/2 completed)\n\nWrite ONE crisp, inspiring sentence (maximum 12 words) in French stating the real-world communication skill, moment, or capability we will cover today.\nCRITICAL RULES:\n- The entire sentence MUST be written in French.\n- Do NOT write in Spanish unless French is Spanish.\n- Do NOT mention XP, points, levels, tasks, exercises, or homework.\n- Do NOT mention repairs, mistakes, or errors.\n- Frame it as a human outcome (e.g. \"Handle your first café order, including a follow-up question\" or \"Ask about someone's weekend plans with confidence\").\n- Return ONLY the plain sentence in French, without quotes or markdown."
+  },
+  {
+    "operation": "prompt",
+    "input": {
+      "targetLang": "es",
+      "appLanguage": "ar",
+      "taskSummary": [
+        {
+          "kind": "speak",
+          "topic": "Tutor conversation practice",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "learn",
+          "topic": "Asking for directions",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "review",
+          "topic": "Vocabulary flashcard review",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        },
+        {
+          "kind": "conversation",
+          "topic": "Interactive conversation",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "phonics",
+          "topic": "Phonics and pronunciation practice",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "other",
+          "topic": "other practice",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        }
+      ]
+    },
+    "expected": "You are generating the single-sentence subtitle for \"Today's Focus\" in a language learning app.\nCourse: Learning Spanish.\nOUTPUT LANGUAGE REQUIREMENT: You MUST write the sentence strictly in Arabic.\n\nToday's scheduled learning tasks:\n- speak: Tutor conversation practice (2/3 completed)\n- learn: Asking for directions (0/1 completed)\n- review: Vocabulary flashcard review (1/2 completed)\n- conversation: Interactive conversation (2/3 completed)\n- phonics: Phonics and pronunciation practice (0/1 completed)\n- other: other practice (1/2 completed)\n\nWrite ONE crisp, inspiring sentence (maximum 12 words) in Arabic stating the real-world communication skill, moment, or capability we will cover today.\nCRITICAL RULES:\n- The entire sentence MUST be written in Arabic.\n- Do NOT write in Spanish unless Arabic is Spanish.\n- Do NOT mention XP, points, levels, tasks, exercises, or homework.\n- Do NOT mention repairs, mistakes, or errors.\n- Frame it as a human outcome (e.g. \"Handle your first café order, including a follow-up question\" or \"Ask about someone's weekend plans with confidence\").\n- Return ONLY the plain sentence in Arabic, without quotes or markdown."
+  },
+  {
+    "operation": "prompt",
+    "input": {
+      "targetLang": "es",
+      "appLanguage": "ja",
+      "taskSummary": [
+        {
+          "kind": "speak",
+          "topic": "Tutor conversation practice",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "learn",
+          "topic": "Asking for directions",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "review",
+          "topic": "Vocabulary flashcard review",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        },
+        {
+          "kind": "conversation",
+          "topic": "Interactive conversation",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "phonics",
+          "topic": "Phonics and pronunciation practice",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "other",
+          "topic": "other practice",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        }
+      ]
+    },
+    "expected": "You are generating the single-sentence subtitle for \"Today's Focus\" in a language learning app.\nCourse: Learning Spanish.\nOUTPUT LANGUAGE REQUIREMENT: You MUST write the sentence strictly in Japanese.\n\nToday's scheduled learning tasks:\n- speak: Tutor conversation practice (2/3 completed)\n- learn: Asking for directions (0/1 completed)\n- review: Vocabulary flashcard review (1/2 completed)\n- conversation: Interactive conversation (2/3 completed)\n- phonics: Phonics and pronunciation practice (0/1 completed)\n- other: other practice (1/2 completed)\n\nWrite ONE crisp, inspiring sentence (maximum 12 words) in Japanese stating the real-world communication skill, moment, or capability we will cover today.\nCRITICAL RULES:\n- The entire sentence MUST be written in Japanese.\n- Do NOT write in Spanish unless Japanese is Spanish.\n- Do NOT mention XP, points, levels, tasks, exercises, or homework.\n- Do NOT mention repairs, mistakes, or errors.\n- Frame it as a human outcome (e.g. \"Handle your first café order, including a follow-up question\" or \"Ask about someone's weekend plans with confidence\").\n- Return ONLY the plain sentence in Japanese, without quotes or markdown."
+  },
+  {
+    "operation": "prompt",
+    "input": {
+      "targetLang": "es",
+      "appLanguage": "zh",
+      "taskSummary": [
+        {
+          "kind": "speak",
+          "topic": "Tutor conversation practice",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "learn",
+          "topic": "Asking for directions",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "review",
+          "topic": "Vocabulary flashcard review",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        },
+        {
+          "kind": "conversation",
+          "topic": "Interactive conversation",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "phonics",
+          "topic": "Phonics and pronunciation practice",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "other",
+          "topic": "other practice",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        }
+      ]
+    },
+    "expected": "You are generating the single-sentence subtitle for \"Today's Focus\" in a language learning app.\nCourse: Learning Spanish.\nOUTPUT LANGUAGE REQUIREMENT: You MUST write the sentence strictly in Mandarin Chinese.\n\nToday's scheduled learning tasks:\n- speak: Tutor conversation practice (2/3 completed)\n- learn: Asking for directions (0/1 completed)\n- review: Vocabulary flashcard review (1/2 completed)\n- conversation: Interactive conversation (2/3 completed)\n- phonics: Phonics and pronunciation practice (0/1 completed)\n- other: other practice (1/2 completed)\n\nWrite ONE crisp, inspiring sentence (maximum 12 words) in Mandarin Chinese stating the real-world communication skill, moment, or capability we will cover today.\nCRITICAL RULES:\n- The entire sentence MUST be written in Mandarin Chinese.\n- Do NOT write in Spanish unless Mandarin Chinese is Spanish.\n- Do NOT mention XP, points, levels, tasks, exercises, or homework.\n- Do NOT mention repairs, mistakes, or errors.\n- Frame it as a human outcome (e.g. \"Handle your first café order, including a follow-up question\" or \"Ask about someone's weekend plans with confidence\").\n- Return ONLY the plain sentence in Mandarin Chinese, without quotes or markdown."
+  },
+  {
+    "operation": "prompt",
+    "input": {
+      "targetLang": "es",
+      "appLanguage": "",
+      "taskSummary": [
+        {
+          "kind": "speak",
+          "topic": "Tutor conversation practice",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "learn",
+          "topic": "Asking for directions",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "review",
+          "topic": "Vocabulary flashcard review",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        },
+        {
+          "kind": "conversation",
+          "topic": "Interactive conversation",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "phonics",
+          "topic": "Phonics and pronunciation practice",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "other",
+          "topic": "other practice",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        }
+      ]
+    },
+    "expected": "You are generating the single-sentence subtitle for \"Today's Focus\" in a language learning app.\nCourse: Learning Spanish.\nOUTPUT LANGUAGE REQUIREMENT: You MUST write the sentence strictly in English.\n\nToday's scheduled learning tasks:\n- speak: Tutor conversation practice (2/3 completed)\n- learn: Asking for directions (0/1 completed)\n- review: Vocabulary flashcard review (1/2 completed)\n- conversation: Interactive conversation (2/3 completed)\n- phonics: Phonics and pronunciation practice (0/1 completed)\n- other: other practice (1/2 completed)\n\nWrite ONE crisp, inspiring sentence (maximum 12 words) in English stating the real-world communication skill, moment, or capability we will cover today.\nCRITICAL RULES:\n- The entire sentence MUST be written in English.\n- Do NOT write in Spanish unless English is Spanish.\n- Do NOT mention XP, points, levels, tasks, exercises, or homework.\n- Do NOT mention repairs, mistakes, or errors.\n- Frame it as a human outcome (e.g. \"Handle your first café order, including a follow-up question\" or \"Ask about someone's weekend plans with confidence\").\n- Return ONLY the plain sentence in English, without quotes or markdown."
+  },
+  {
+    "operation": "prompt",
+    "input": {
+      "targetLang": "en",
+      "appLanguage": "en",
+      "taskSummary": [
+        {
+          "kind": "speak",
+          "topic": "Tutor conversation practice",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "learn",
+          "topic": "Asking for directions",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "review",
+          "topic": "Vocabulary flashcard review",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        },
+        {
+          "kind": "conversation",
+          "topic": "Interactive conversation",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "phonics",
+          "topic": "Phonics and pronunciation practice",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "other",
+          "topic": "other practice",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        }
+      ]
+    },
+    "expected": "You are generating the single-sentence subtitle for \"Today's Focus\" in a language learning app.\nCourse: Learning English.\nOUTPUT LANGUAGE REQUIREMENT: You MUST write the sentence strictly in English.\n\nToday's scheduled learning tasks:\n- speak: Tutor conversation practice (2/3 completed)\n- learn: Asking for directions (0/1 completed)\n- review: Vocabulary flashcard review (1/2 completed)\n- conversation: Interactive conversation (2/3 completed)\n- phonics: Phonics and pronunciation practice (0/1 completed)\n- other: other practice (1/2 completed)\n\nWrite ONE crisp, inspiring sentence (maximum 12 words) in English stating the real-world communication skill, moment, or capability we will cover today.\nCRITICAL RULES:\n- The entire sentence MUST be written in English.\n- Do NOT write in English unless English is English.\n- Do NOT mention XP, points, levels, tasks, exercises, or homework.\n- Do NOT mention repairs, mistakes, or errors.\n- Frame it as a human outcome (e.g. \"Handle your first café order, including a follow-up question\" or \"Ask about someone's weekend plans with confidence\").\n- Return ONLY the plain sentence in English, without quotes or markdown."
+  },
+  {
+    "operation": "prompt",
+    "input": {
+      "targetLang": "en",
+      "appLanguage": "es",
+      "taskSummary": [
+        {
+          "kind": "speak",
+          "topic": "Tutor conversation practice",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "learn",
+          "topic": "Asking for directions",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "review",
+          "topic": "Vocabulary flashcard review",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        },
+        {
+          "kind": "conversation",
+          "topic": "Interactive conversation",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "phonics",
+          "topic": "Phonics and pronunciation practice",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "other",
+          "topic": "other practice",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        }
+      ]
+    },
+    "expected": "You are generating the single-sentence subtitle for \"Today's Focus\" in a language learning app.\nCourse: Learning English.\nOUTPUT LANGUAGE REQUIREMENT: You MUST write the sentence strictly in Spanish.\n\nToday's scheduled learning tasks:\n- speak: Tutor conversation practice (2/3 completed)\n- learn: Asking for directions (0/1 completed)\n- review: Vocabulary flashcard review (1/2 completed)\n- conversation: Interactive conversation (2/3 completed)\n- phonics: Phonics and pronunciation practice (0/1 completed)\n- other: other practice (1/2 completed)\n\nWrite ONE crisp, inspiring sentence (maximum 12 words) in Spanish stating the real-world communication skill, moment, or capability we will cover today.\nCRITICAL RULES:\n- The entire sentence MUST be written in Spanish.\n- Do NOT write in English unless Spanish is English.\n- Do NOT mention XP, points, levels, tasks, exercises, or homework.\n- Do NOT mention repairs, mistakes, or errors.\n- Frame it as a human outcome (e.g. \"Handle your first café order, including a follow-up question\" or \"Ask about someone's weekend plans with confidence\").\n- Return ONLY the plain sentence in Spanish, without quotes or markdown."
+  },
+  {
+    "operation": "prompt",
+    "input": {
+      "targetLang": "en",
+      "appLanguage": "fr",
+      "taskSummary": [
+        {
+          "kind": "speak",
+          "topic": "Tutor conversation practice",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "learn",
+          "topic": "Asking for directions",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "review",
+          "topic": "Vocabulary flashcard review",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        },
+        {
+          "kind": "conversation",
+          "topic": "Interactive conversation",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "phonics",
+          "topic": "Phonics and pronunciation practice",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "other",
+          "topic": "other practice",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        }
+      ]
+    },
+    "expected": "You are generating the single-sentence subtitle for \"Today's Focus\" in a language learning app.\nCourse: Learning English.\nOUTPUT LANGUAGE REQUIREMENT: You MUST write the sentence strictly in French.\n\nToday's scheduled learning tasks:\n- speak: Tutor conversation practice (2/3 completed)\n- learn: Asking for directions (0/1 completed)\n- review: Vocabulary flashcard review (1/2 completed)\n- conversation: Interactive conversation (2/3 completed)\n- phonics: Phonics and pronunciation practice (0/1 completed)\n- other: other practice (1/2 completed)\n\nWrite ONE crisp, inspiring sentence (maximum 12 words) in French stating the real-world communication skill, moment, or capability we will cover today.\nCRITICAL RULES:\n- The entire sentence MUST be written in French.\n- Do NOT write in English unless French is English.\n- Do NOT mention XP, points, levels, tasks, exercises, or homework.\n- Do NOT mention repairs, mistakes, or errors.\n- Frame it as a human outcome (e.g. \"Handle your first café order, including a follow-up question\" or \"Ask about someone's weekend plans with confidence\").\n- Return ONLY the plain sentence in French, without quotes or markdown."
+  },
+  {
+    "operation": "prompt",
+    "input": {
+      "targetLang": "en",
+      "appLanguage": "ar",
+      "taskSummary": [
+        {
+          "kind": "speak",
+          "topic": "Tutor conversation practice",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "learn",
+          "topic": "Asking for directions",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "review",
+          "topic": "Vocabulary flashcard review",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        },
+        {
+          "kind": "conversation",
+          "topic": "Interactive conversation",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "phonics",
+          "topic": "Phonics and pronunciation practice",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "other",
+          "topic": "other practice",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        }
+      ]
+    },
+    "expected": "You are generating the single-sentence subtitle for \"Today's Focus\" in a language learning app.\nCourse: Learning English.\nOUTPUT LANGUAGE REQUIREMENT: You MUST write the sentence strictly in Arabic.\n\nToday's scheduled learning tasks:\n- speak: Tutor conversation practice (2/3 completed)\n- learn: Asking for directions (0/1 completed)\n- review: Vocabulary flashcard review (1/2 completed)\n- conversation: Interactive conversation (2/3 completed)\n- phonics: Phonics and pronunciation practice (0/1 completed)\n- other: other practice (1/2 completed)\n\nWrite ONE crisp, inspiring sentence (maximum 12 words) in Arabic stating the real-world communication skill, moment, or capability we will cover today.\nCRITICAL RULES:\n- The entire sentence MUST be written in Arabic.\n- Do NOT write in English unless Arabic is English.\n- Do NOT mention XP, points, levels, tasks, exercises, or homework.\n- Do NOT mention repairs, mistakes, or errors.\n- Frame it as a human outcome (e.g. \"Handle your first café order, including a follow-up question\" or \"Ask about someone's weekend plans with confidence\").\n- Return ONLY the plain sentence in Arabic, without quotes or markdown."
+  },
+  {
+    "operation": "prompt",
+    "input": {
+      "targetLang": "en",
+      "appLanguage": "ja",
+      "taskSummary": [
+        {
+          "kind": "speak",
+          "topic": "Tutor conversation practice",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "learn",
+          "topic": "Asking for directions",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "review",
+          "topic": "Vocabulary flashcard review",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        },
+        {
+          "kind": "conversation",
+          "topic": "Interactive conversation",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "phonics",
+          "topic": "Phonics and pronunciation practice",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "other",
+          "topic": "other practice",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        }
+      ]
+    },
+    "expected": "You are generating the single-sentence subtitle for \"Today's Focus\" in a language learning app.\nCourse: Learning English.\nOUTPUT LANGUAGE REQUIREMENT: You MUST write the sentence strictly in Japanese.\n\nToday's scheduled learning tasks:\n- speak: Tutor conversation practice (2/3 completed)\n- learn: Asking for directions (0/1 completed)\n- review: Vocabulary flashcard review (1/2 completed)\n- conversation: Interactive conversation (2/3 completed)\n- phonics: Phonics and pronunciation practice (0/1 completed)\n- other: other practice (1/2 completed)\n\nWrite ONE crisp, inspiring sentence (maximum 12 words) in Japanese stating the real-world communication skill, moment, or capability we will cover today.\nCRITICAL RULES:\n- The entire sentence MUST be written in Japanese.\n- Do NOT write in English unless Japanese is English.\n- Do NOT mention XP, points, levels, tasks, exercises, or homework.\n- Do NOT mention repairs, mistakes, or errors.\n- Frame it as a human outcome (e.g. \"Handle your first café order, including a follow-up question\" or \"Ask about someone's weekend plans with confidence\").\n- Return ONLY the plain sentence in Japanese, without quotes or markdown."
+  },
+  {
+    "operation": "prompt",
+    "input": {
+      "targetLang": "en",
+      "appLanguage": "zh",
+      "taskSummary": [
+        {
+          "kind": "speak",
+          "topic": "Tutor conversation practice",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "learn",
+          "topic": "Asking for directions",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "review",
+          "topic": "Vocabulary flashcard review",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        },
+        {
+          "kind": "conversation",
+          "topic": "Interactive conversation",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "phonics",
+          "topic": "Phonics and pronunciation practice",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "other",
+          "topic": "other practice",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        }
+      ]
+    },
+    "expected": "You are generating the single-sentence subtitle for \"Today's Focus\" in a language learning app.\nCourse: Learning English.\nOUTPUT LANGUAGE REQUIREMENT: You MUST write the sentence strictly in Mandarin Chinese.\n\nToday's scheduled learning tasks:\n- speak: Tutor conversation practice (2/3 completed)\n- learn: Asking for directions (0/1 completed)\n- review: Vocabulary flashcard review (1/2 completed)\n- conversation: Interactive conversation (2/3 completed)\n- phonics: Phonics and pronunciation practice (0/1 completed)\n- other: other practice (1/2 completed)\n\nWrite ONE crisp, inspiring sentence (maximum 12 words) in Mandarin Chinese stating the real-world communication skill, moment, or capability we will cover today.\nCRITICAL RULES:\n- The entire sentence MUST be written in Mandarin Chinese.\n- Do NOT write in English unless Mandarin Chinese is English.\n- Do NOT mention XP, points, levels, tasks, exercises, or homework.\n- Do NOT mention repairs, mistakes, or errors.\n- Frame it as a human outcome (e.g. \"Handle your first café order, including a follow-up question\" or \"Ask about someone's weekend plans with confidence\").\n- Return ONLY the plain sentence in Mandarin Chinese, without quotes or markdown."
+  },
+  {
+    "operation": "prompt",
+    "input": {
+      "targetLang": "en",
+      "appLanguage": "",
+      "taskSummary": [
+        {
+          "kind": "speak",
+          "topic": "Tutor conversation practice",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "learn",
+          "topic": "Asking for directions",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "review",
+          "topic": "Vocabulary flashcard review",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        },
+        {
+          "kind": "conversation",
+          "topic": "Interactive conversation",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "phonics",
+          "topic": "Phonics and pronunciation practice",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "other",
+          "topic": "other practice",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        }
+      ]
+    },
+    "expected": "You are generating the single-sentence subtitle for \"Today's Focus\" in a language learning app.\nCourse: Learning English.\nOUTPUT LANGUAGE REQUIREMENT: You MUST write the sentence strictly in English.\n\nToday's scheduled learning tasks:\n- speak: Tutor conversation practice (2/3 completed)\n- learn: Asking for directions (0/1 completed)\n- review: Vocabulary flashcard review (1/2 completed)\n- conversation: Interactive conversation (2/3 completed)\n- phonics: Phonics and pronunciation practice (0/1 completed)\n- other: other practice (1/2 completed)\n\nWrite ONE crisp, inspiring sentence (maximum 12 words) in English stating the real-world communication skill, moment, or capability we will cover today.\nCRITICAL RULES:\n- The entire sentence MUST be written in English.\n- Do NOT write in English unless English is English.\n- Do NOT mention XP, points, levels, tasks, exercises, or homework.\n- Do NOT mention repairs, mistakes, or errors.\n- Frame it as a human outcome (e.g. \"Handle your first café order, including a follow-up question\" or \"Ask about someone's weekend plans with confidence\").\n- Return ONLY the plain sentence in English, without quotes or markdown."
+  },
+  {
+    "operation": "prompt",
+    "input": {
+      "targetLang": "ja",
+      "appLanguage": "en",
+      "taskSummary": [
+        {
+          "kind": "speak",
+          "topic": "Tutor conversation practice",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "learn",
+          "topic": "Asking for directions",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "review",
+          "topic": "Vocabulary flashcard review",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        },
+        {
+          "kind": "conversation",
+          "topic": "Interactive conversation",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "phonics",
+          "topic": "Phonics and pronunciation practice",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "other",
+          "topic": "other practice",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        }
+      ]
+    },
+    "expected": "You are generating the single-sentence subtitle for \"Today's Focus\" in a language learning app.\nCourse: Learning Japanese.\nOUTPUT LANGUAGE REQUIREMENT: You MUST write the sentence strictly in English.\n\nToday's scheduled learning tasks:\n- speak: Tutor conversation practice (2/3 completed)\n- learn: Asking for directions (0/1 completed)\n- review: Vocabulary flashcard review (1/2 completed)\n- conversation: Interactive conversation (2/3 completed)\n- phonics: Phonics and pronunciation practice (0/1 completed)\n- other: other practice (1/2 completed)\n\nWrite ONE crisp, inspiring sentence (maximum 12 words) in English stating the real-world communication skill, moment, or capability we will cover today.\nCRITICAL RULES:\n- The entire sentence MUST be written in English.\n- Do NOT write in Japanese unless English is Japanese.\n- Do NOT mention XP, points, levels, tasks, exercises, or homework.\n- Do NOT mention repairs, mistakes, or errors.\n- Frame it as a human outcome (e.g. \"Handle your first café order, including a follow-up question\" or \"Ask about someone's weekend plans with confidence\").\n- Return ONLY the plain sentence in English, without quotes or markdown."
+  },
+  {
+    "operation": "prompt",
+    "input": {
+      "targetLang": "ja",
+      "appLanguage": "es",
+      "taskSummary": [
+        {
+          "kind": "speak",
+          "topic": "Tutor conversation practice",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "learn",
+          "topic": "Asking for directions",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "review",
+          "topic": "Vocabulary flashcard review",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        },
+        {
+          "kind": "conversation",
+          "topic": "Interactive conversation",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "phonics",
+          "topic": "Phonics and pronunciation practice",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "other",
+          "topic": "other practice",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        }
+      ]
+    },
+    "expected": "You are generating the single-sentence subtitle for \"Today's Focus\" in a language learning app.\nCourse: Learning Japanese.\nOUTPUT LANGUAGE REQUIREMENT: You MUST write the sentence strictly in Spanish.\n\nToday's scheduled learning tasks:\n- speak: Tutor conversation practice (2/3 completed)\n- learn: Asking for directions (0/1 completed)\n- review: Vocabulary flashcard review (1/2 completed)\n- conversation: Interactive conversation (2/3 completed)\n- phonics: Phonics and pronunciation practice (0/1 completed)\n- other: other practice (1/2 completed)\n\nWrite ONE crisp, inspiring sentence (maximum 12 words) in Spanish stating the real-world communication skill, moment, or capability we will cover today.\nCRITICAL RULES:\n- The entire sentence MUST be written in Spanish.\n- Do NOT write in Japanese unless Spanish is Japanese.\n- Do NOT mention XP, points, levels, tasks, exercises, or homework.\n- Do NOT mention repairs, mistakes, or errors.\n- Frame it as a human outcome (e.g. \"Handle your first café order, including a follow-up question\" or \"Ask about someone's weekend plans with confidence\").\n- Return ONLY the plain sentence in Spanish, without quotes or markdown."
+  },
+  {
+    "operation": "prompt",
+    "input": {
+      "targetLang": "ja",
+      "appLanguage": "fr",
+      "taskSummary": [
+        {
+          "kind": "speak",
+          "topic": "Tutor conversation practice",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "learn",
+          "topic": "Asking for directions",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "review",
+          "topic": "Vocabulary flashcard review",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        },
+        {
+          "kind": "conversation",
+          "topic": "Interactive conversation",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "phonics",
+          "topic": "Phonics and pronunciation practice",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "other",
+          "topic": "other practice",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        }
+      ]
+    },
+    "expected": "You are generating the single-sentence subtitle for \"Today's Focus\" in a language learning app.\nCourse: Learning Japanese.\nOUTPUT LANGUAGE REQUIREMENT: You MUST write the sentence strictly in French.\n\nToday's scheduled learning tasks:\n- speak: Tutor conversation practice (2/3 completed)\n- learn: Asking for directions (0/1 completed)\n- review: Vocabulary flashcard review (1/2 completed)\n- conversation: Interactive conversation (2/3 completed)\n- phonics: Phonics and pronunciation practice (0/1 completed)\n- other: other practice (1/2 completed)\n\nWrite ONE crisp, inspiring sentence (maximum 12 words) in French stating the real-world communication skill, moment, or capability we will cover today.\nCRITICAL RULES:\n- The entire sentence MUST be written in French.\n- Do NOT write in Japanese unless French is Japanese.\n- Do NOT mention XP, points, levels, tasks, exercises, or homework.\n- Do NOT mention repairs, mistakes, or errors.\n- Frame it as a human outcome (e.g. \"Handle your first café order, including a follow-up question\" or \"Ask about someone's weekend plans with confidence\").\n- Return ONLY the plain sentence in French, without quotes or markdown."
+  },
+  {
+    "operation": "prompt",
+    "input": {
+      "targetLang": "ja",
+      "appLanguage": "ar",
+      "taskSummary": [
+        {
+          "kind": "speak",
+          "topic": "Tutor conversation practice",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "learn",
+          "topic": "Asking for directions",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "review",
+          "topic": "Vocabulary flashcard review",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        },
+        {
+          "kind": "conversation",
+          "topic": "Interactive conversation",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "phonics",
+          "topic": "Phonics and pronunciation practice",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "other",
+          "topic": "other practice",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        }
+      ]
+    },
+    "expected": "You are generating the single-sentence subtitle for \"Today's Focus\" in a language learning app.\nCourse: Learning Japanese.\nOUTPUT LANGUAGE REQUIREMENT: You MUST write the sentence strictly in Arabic.\n\nToday's scheduled learning tasks:\n- speak: Tutor conversation practice (2/3 completed)\n- learn: Asking for directions (0/1 completed)\n- review: Vocabulary flashcard review (1/2 completed)\n- conversation: Interactive conversation (2/3 completed)\n- phonics: Phonics and pronunciation practice (0/1 completed)\n- other: other practice (1/2 completed)\n\nWrite ONE crisp, inspiring sentence (maximum 12 words) in Arabic stating the real-world communication skill, moment, or capability we will cover today.\nCRITICAL RULES:\n- The entire sentence MUST be written in Arabic.\n- Do NOT write in Japanese unless Arabic is Japanese.\n- Do NOT mention XP, points, levels, tasks, exercises, or homework.\n- Do NOT mention repairs, mistakes, or errors.\n- Frame it as a human outcome (e.g. \"Handle your first café order, including a follow-up question\" or \"Ask about someone's weekend plans with confidence\").\n- Return ONLY the plain sentence in Arabic, without quotes or markdown."
+  },
+  {
+    "operation": "prompt",
+    "input": {
+      "targetLang": "ja",
+      "appLanguage": "ja",
+      "taskSummary": [
+        {
+          "kind": "speak",
+          "topic": "Tutor conversation practice",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "learn",
+          "topic": "Asking for directions",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "review",
+          "topic": "Vocabulary flashcard review",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        },
+        {
+          "kind": "conversation",
+          "topic": "Interactive conversation",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "phonics",
+          "topic": "Phonics and pronunciation practice",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "other",
+          "topic": "other practice",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        }
+      ]
+    },
+    "expected": "You are generating the single-sentence subtitle for \"Today's Focus\" in a language learning app.\nCourse: Learning Japanese.\nOUTPUT LANGUAGE REQUIREMENT: You MUST write the sentence strictly in Japanese.\n\nToday's scheduled learning tasks:\n- speak: Tutor conversation practice (2/3 completed)\n- learn: Asking for directions (0/1 completed)\n- review: Vocabulary flashcard review (1/2 completed)\n- conversation: Interactive conversation (2/3 completed)\n- phonics: Phonics and pronunciation practice (0/1 completed)\n- other: other practice (1/2 completed)\n\nWrite ONE crisp, inspiring sentence (maximum 12 words) in Japanese stating the real-world communication skill, moment, or capability we will cover today.\nCRITICAL RULES:\n- The entire sentence MUST be written in Japanese.\n- Do NOT write in Japanese unless Japanese is Japanese.\n- Do NOT mention XP, points, levels, tasks, exercises, or homework.\n- Do NOT mention repairs, mistakes, or errors.\n- Frame it as a human outcome (e.g. \"Handle your first café order, including a follow-up question\" or \"Ask about someone's weekend plans with confidence\").\n- Return ONLY the plain sentence in Japanese, without quotes or markdown."
+  },
+  {
+    "operation": "prompt",
+    "input": {
+      "targetLang": "ja",
+      "appLanguage": "zh",
+      "taskSummary": [
+        {
+          "kind": "speak",
+          "topic": "Tutor conversation practice",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "learn",
+          "topic": "Asking for directions",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "review",
+          "topic": "Vocabulary flashcard review",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        },
+        {
+          "kind": "conversation",
+          "topic": "Interactive conversation",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "phonics",
+          "topic": "Phonics and pronunciation practice",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "other",
+          "topic": "other practice",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        }
+      ]
+    },
+    "expected": "You are generating the single-sentence subtitle for \"Today's Focus\" in a language learning app.\nCourse: Learning Japanese.\nOUTPUT LANGUAGE REQUIREMENT: You MUST write the sentence strictly in Mandarin Chinese.\n\nToday's scheduled learning tasks:\n- speak: Tutor conversation practice (2/3 completed)\n- learn: Asking for directions (0/1 completed)\n- review: Vocabulary flashcard review (1/2 completed)\n- conversation: Interactive conversation (2/3 completed)\n- phonics: Phonics and pronunciation practice (0/1 completed)\n- other: other practice (1/2 completed)\n\nWrite ONE crisp, inspiring sentence (maximum 12 words) in Mandarin Chinese stating the real-world communication skill, moment, or capability we will cover today.\nCRITICAL RULES:\n- The entire sentence MUST be written in Mandarin Chinese.\n- Do NOT write in Japanese unless Mandarin Chinese is Japanese.\n- Do NOT mention XP, points, levels, tasks, exercises, or homework.\n- Do NOT mention repairs, mistakes, or errors.\n- Frame it as a human outcome (e.g. \"Handle your first café order, including a follow-up question\" or \"Ask about someone's weekend plans with confidence\").\n- Return ONLY the plain sentence in Mandarin Chinese, without quotes or markdown."
+  },
+  {
+    "operation": "prompt",
+    "input": {
+      "targetLang": "ja",
+      "appLanguage": "",
+      "taskSummary": [
+        {
+          "kind": "speak",
+          "topic": "Tutor conversation practice",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "learn",
+          "topic": "Asking for directions",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "review",
+          "topic": "Vocabulary flashcard review",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        },
+        {
+          "kind": "conversation",
+          "topic": "Interactive conversation",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "phonics",
+          "topic": "Phonics and pronunciation practice",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "other",
+          "topic": "other practice",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        }
+      ]
+    },
+    "expected": "You are generating the single-sentence subtitle for \"Today's Focus\" in a language learning app.\nCourse: Learning Japanese.\nOUTPUT LANGUAGE REQUIREMENT: You MUST write the sentence strictly in English.\n\nToday's scheduled learning tasks:\n- speak: Tutor conversation practice (2/3 completed)\n- learn: Asking for directions (0/1 completed)\n- review: Vocabulary flashcard review (1/2 completed)\n- conversation: Interactive conversation (2/3 completed)\n- phonics: Phonics and pronunciation practice (0/1 completed)\n- other: other practice (1/2 completed)\n\nWrite ONE crisp, inspiring sentence (maximum 12 words) in English stating the real-world communication skill, moment, or capability we will cover today.\nCRITICAL RULES:\n- The entire sentence MUST be written in English.\n- Do NOT write in Japanese unless English is Japanese.\n- Do NOT mention XP, points, levels, tasks, exercises, or homework.\n- Do NOT mention repairs, mistakes, or errors.\n- Frame it as a human outcome (e.g. \"Handle your first café order, including a follow-up question\" or \"Ask about someone's weekend plans with confidence\").\n- Return ONLY the plain sentence in English, without quotes or markdown."
+  },
+  {
+    "operation": "prompt",
+    "input": {
+      "targetLang": "zh",
+      "appLanguage": "en",
+      "taskSummary": [
+        {
+          "kind": "speak",
+          "topic": "Tutor conversation practice",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "learn",
+          "topic": "Asking for directions",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "review",
+          "topic": "Vocabulary flashcard review",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        },
+        {
+          "kind": "conversation",
+          "topic": "Interactive conversation",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "phonics",
+          "topic": "Phonics and pronunciation practice",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "other",
+          "topic": "other practice",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        }
+      ]
+    },
+    "expected": "You are generating the single-sentence subtitle for \"Today's Focus\" in a language learning app.\nCourse: Learning Mandarin Chinese.\nOUTPUT LANGUAGE REQUIREMENT: You MUST write the sentence strictly in English.\n\nToday's scheduled learning tasks:\n- speak: Tutor conversation practice (2/3 completed)\n- learn: Asking for directions (0/1 completed)\n- review: Vocabulary flashcard review (1/2 completed)\n- conversation: Interactive conversation (2/3 completed)\n- phonics: Phonics and pronunciation practice (0/1 completed)\n- other: other practice (1/2 completed)\n\nWrite ONE crisp, inspiring sentence (maximum 12 words) in English stating the real-world communication skill, moment, or capability we will cover today.\nCRITICAL RULES:\n- The entire sentence MUST be written in English.\n- Do NOT write in Mandarin Chinese unless English is Mandarin Chinese.\n- Do NOT mention XP, points, levels, tasks, exercises, or homework.\n- Do NOT mention repairs, mistakes, or errors.\n- Frame it as a human outcome (e.g. \"Handle your first café order, including a follow-up question\" or \"Ask about someone's weekend plans with confidence\").\n- Return ONLY the plain sentence in English, without quotes or markdown."
+  },
+  {
+    "operation": "prompt",
+    "input": {
+      "targetLang": "zh",
+      "appLanguage": "es",
+      "taskSummary": [
+        {
+          "kind": "speak",
+          "topic": "Tutor conversation practice",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "learn",
+          "topic": "Asking for directions",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "review",
+          "topic": "Vocabulary flashcard review",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        },
+        {
+          "kind": "conversation",
+          "topic": "Interactive conversation",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "phonics",
+          "topic": "Phonics and pronunciation practice",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "other",
+          "topic": "other practice",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        }
+      ]
+    },
+    "expected": "You are generating the single-sentence subtitle for \"Today's Focus\" in a language learning app.\nCourse: Learning Mandarin Chinese.\nOUTPUT LANGUAGE REQUIREMENT: You MUST write the sentence strictly in Spanish.\n\nToday's scheduled learning tasks:\n- speak: Tutor conversation practice (2/3 completed)\n- learn: Asking for directions (0/1 completed)\n- review: Vocabulary flashcard review (1/2 completed)\n- conversation: Interactive conversation (2/3 completed)\n- phonics: Phonics and pronunciation practice (0/1 completed)\n- other: other practice (1/2 completed)\n\nWrite ONE crisp, inspiring sentence (maximum 12 words) in Spanish stating the real-world communication skill, moment, or capability we will cover today.\nCRITICAL RULES:\n- The entire sentence MUST be written in Spanish.\n- Do NOT write in Mandarin Chinese unless Spanish is Mandarin Chinese.\n- Do NOT mention XP, points, levels, tasks, exercises, or homework.\n- Do NOT mention repairs, mistakes, or errors.\n- Frame it as a human outcome (e.g. \"Handle your first café order, including a follow-up question\" or \"Ask about someone's weekend plans with confidence\").\n- Return ONLY the plain sentence in Spanish, without quotes or markdown."
+  },
+  {
+    "operation": "prompt",
+    "input": {
+      "targetLang": "zh",
+      "appLanguage": "fr",
+      "taskSummary": [
+        {
+          "kind": "speak",
+          "topic": "Tutor conversation practice",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "learn",
+          "topic": "Asking for directions",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "review",
+          "topic": "Vocabulary flashcard review",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        },
+        {
+          "kind": "conversation",
+          "topic": "Interactive conversation",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "phonics",
+          "topic": "Phonics and pronunciation practice",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "other",
+          "topic": "other practice",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        }
+      ]
+    },
+    "expected": "You are generating the single-sentence subtitle for \"Today's Focus\" in a language learning app.\nCourse: Learning Mandarin Chinese.\nOUTPUT LANGUAGE REQUIREMENT: You MUST write the sentence strictly in French.\n\nToday's scheduled learning tasks:\n- speak: Tutor conversation practice (2/3 completed)\n- learn: Asking for directions (0/1 completed)\n- review: Vocabulary flashcard review (1/2 completed)\n- conversation: Interactive conversation (2/3 completed)\n- phonics: Phonics and pronunciation practice (0/1 completed)\n- other: other practice (1/2 completed)\n\nWrite ONE crisp, inspiring sentence (maximum 12 words) in French stating the real-world communication skill, moment, or capability we will cover today.\nCRITICAL RULES:\n- The entire sentence MUST be written in French.\n- Do NOT write in Mandarin Chinese unless French is Mandarin Chinese.\n- Do NOT mention XP, points, levels, tasks, exercises, or homework.\n- Do NOT mention repairs, mistakes, or errors.\n- Frame it as a human outcome (e.g. \"Handle your first café order, including a follow-up question\" or \"Ask about someone's weekend plans with confidence\").\n- Return ONLY the plain sentence in French, without quotes or markdown."
+  },
+  {
+    "operation": "prompt",
+    "input": {
+      "targetLang": "zh",
+      "appLanguage": "ar",
+      "taskSummary": [
+        {
+          "kind": "speak",
+          "topic": "Tutor conversation practice",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "learn",
+          "topic": "Asking for directions",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "review",
+          "topic": "Vocabulary flashcard review",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        },
+        {
+          "kind": "conversation",
+          "topic": "Interactive conversation",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "phonics",
+          "topic": "Phonics and pronunciation practice",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "other",
+          "topic": "other practice",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        }
+      ]
+    },
+    "expected": "You are generating the single-sentence subtitle for \"Today's Focus\" in a language learning app.\nCourse: Learning Mandarin Chinese.\nOUTPUT LANGUAGE REQUIREMENT: You MUST write the sentence strictly in Arabic.\n\nToday's scheduled learning tasks:\n- speak: Tutor conversation practice (2/3 completed)\n- learn: Asking for directions (0/1 completed)\n- review: Vocabulary flashcard review (1/2 completed)\n- conversation: Interactive conversation (2/3 completed)\n- phonics: Phonics and pronunciation practice (0/1 completed)\n- other: other practice (1/2 completed)\n\nWrite ONE crisp, inspiring sentence (maximum 12 words) in Arabic stating the real-world communication skill, moment, or capability we will cover today.\nCRITICAL RULES:\n- The entire sentence MUST be written in Arabic.\n- Do NOT write in Mandarin Chinese unless Arabic is Mandarin Chinese.\n- Do NOT mention XP, points, levels, tasks, exercises, or homework.\n- Do NOT mention repairs, mistakes, or errors.\n- Frame it as a human outcome (e.g. \"Handle your first café order, including a follow-up question\" or \"Ask about someone's weekend plans with confidence\").\n- Return ONLY the plain sentence in Arabic, without quotes or markdown."
+  },
+  {
+    "operation": "prompt",
+    "input": {
+      "targetLang": "zh",
+      "appLanguage": "ja",
+      "taskSummary": [
+        {
+          "kind": "speak",
+          "topic": "Tutor conversation practice",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "learn",
+          "topic": "Asking for directions",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "review",
+          "topic": "Vocabulary flashcard review",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        },
+        {
+          "kind": "conversation",
+          "topic": "Interactive conversation",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "phonics",
+          "topic": "Phonics and pronunciation practice",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "other",
+          "topic": "other practice",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        }
+      ]
+    },
+    "expected": "You are generating the single-sentence subtitle for \"Today's Focus\" in a language learning app.\nCourse: Learning Mandarin Chinese.\nOUTPUT LANGUAGE REQUIREMENT: You MUST write the sentence strictly in Japanese.\n\nToday's scheduled learning tasks:\n- speak: Tutor conversation practice (2/3 completed)\n- learn: Asking for directions (0/1 completed)\n- review: Vocabulary flashcard review (1/2 completed)\n- conversation: Interactive conversation (2/3 completed)\n- phonics: Phonics and pronunciation practice (0/1 completed)\n- other: other practice (1/2 completed)\n\nWrite ONE crisp, inspiring sentence (maximum 12 words) in Japanese stating the real-world communication skill, moment, or capability we will cover today.\nCRITICAL RULES:\n- The entire sentence MUST be written in Japanese.\n- Do NOT write in Mandarin Chinese unless Japanese is Mandarin Chinese.\n- Do NOT mention XP, points, levels, tasks, exercises, or homework.\n- Do NOT mention repairs, mistakes, or errors.\n- Frame it as a human outcome (e.g. \"Handle your first café order, including a follow-up question\" or \"Ask about someone's weekend plans with confidence\").\n- Return ONLY the plain sentence in Japanese, without quotes or markdown."
+  },
+  {
+    "operation": "prompt",
+    "input": {
+      "targetLang": "zh",
+      "appLanguage": "zh",
+      "taskSummary": [
+        {
+          "kind": "speak",
+          "topic": "Tutor conversation practice",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "learn",
+          "topic": "Asking for directions",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "review",
+          "topic": "Vocabulary flashcard review",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        },
+        {
+          "kind": "conversation",
+          "topic": "Interactive conversation",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "phonics",
+          "topic": "Phonics and pronunciation practice",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "other",
+          "topic": "other practice",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        }
+      ]
+    },
+    "expected": "You are generating the single-sentence subtitle for \"Today's Focus\" in a language learning app.\nCourse: Learning Mandarin Chinese.\nOUTPUT LANGUAGE REQUIREMENT: You MUST write the sentence strictly in Mandarin Chinese.\n\nToday's scheduled learning tasks:\n- speak: Tutor conversation practice (2/3 completed)\n- learn: Asking for directions (0/1 completed)\n- review: Vocabulary flashcard review (1/2 completed)\n- conversation: Interactive conversation (2/3 completed)\n- phonics: Phonics and pronunciation practice (0/1 completed)\n- other: other practice (1/2 completed)\n\nWrite ONE crisp, inspiring sentence (maximum 12 words) in Mandarin Chinese stating the real-world communication skill, moment, or capability we will cover today.\nCRITICAL RULES:\n- The entire sentence MUST be written in Mandarin Chinese.\n- Do NOT write in Mandarin Chinese unless Mandarin Chinese is Mandarin Chinese.\n- Do NOT mention XP, points, levels, tasks, exercises, or homework.\n- Do NOT mention repairs, mistakes, or errors.\n- Frame it as a human outcome (e.g. \"Handle your first café order, including a follow-up question\" or \"Ask about someone's weekend plans with confidence\").\n- Return ONLY the plain sentence in Mandarin Chinese, without quotes or markdown."
+  },
+  {
+    "operation": "prompt",
+    "input": {
+      "targetLang": "zh",
+      "appLanguage": "",
+      "taskSummary": [
+        {
+          "kind": "speak",
+          "topic": "Tutor conversation practice",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "learn",
+          "topic": "Asking for directions",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "review",
+          "topic": "Vocabulary flashcard review",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        },
+        {
+          "kind": "conversation",
+          "topic": "Interactive conversation",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "phonics",
+          "topic": "Phonics and pronunciation practice",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "other",
+          "topic": "other practice",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        }
+      ]
+    },
+    "expected": "You are generating the single-sentence subtitle for \"Today's Focus\" in a language learning app.\nCourse: Learning Mandarin Chinese.\nOUTPUT LANGUAGE REQUIREMENT: You MUST write the sentence strictly in English.\n\nToday's scheduled learning tasks:\n- speak: Tutor conversation practice (2/3 completed)\n- learn: Asking for directions (0/1 completed)\n- review: Vocabulary flashcard review (1/2 completed)\n- conversation: Interactive conversation (2/3 completed)\n- phonics: Phonics and pronunciation practice (0/1 completed)\n- other: other practice (1/2 completed)\n\nWrite ONE crisp, inspiring sentence (maximum 12 words) in English stating the real-world communication skill, moment, or capability we will cover today.\nCRITICAL RULES:\n- The entire sentence MUST be written in English.\n- Do NOT write in Mandarin Chinese unless English is Mandarin Chinese.\n- Do NOT mention XP, points, levels, tasks, exercises, or homework.\n- Do NOT mention repairs, mistakes, or errors.\n- Frame it as a human outcome (e.g. \"Handle your first café order, including a follow-up question\" or \"Ask about someone's weekend plans with confidence\").\n- Return ONLY the plain sentence in English, without quotes or markdown."
+  },
+  {
+    "operation": "prompt",
+    "input": {
+      "targetLang": "nah",
+      "appLanguage": "en",
+      "taskSummary": [
+        {
+          "kind": "speak",
+          "topic": "Tutor conversation practice",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "learn",
+          "topic": "Asking for directions",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "review",
+          "topic": "Vocabulary flashcard review",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        },
+        {
+          "kind": "conversation",
+          "topic": "Interactive conversation",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "phonics",
+          "topic": "Phonics and pronunciation practice",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "other",
+          "topic": "other practice",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        }
+      ]
+    },
+    "expected": "You are generating the single-sentence subtitle for \"Today's Focus\" in a language learning app.\nCourse: Learning Eastern Huasteca Nahuatl.\nOUTPUT LANGUAGE REQUIREMENT: You MUST write the sentence strictly in English.\n\nToday's scheduled learning tasks:\n- speak: Tutor conversation practice (2/3 completed)\n- learn: Asking for directions (0/1 completed)\n- review: Vocabulary flashcard review (1/2 completed)\n- conversation: Interactive conversation (2/3 completed)\n- phonics: Phonics and pronunciation practice (0/1 completed)\n- other: other practice (1/2 completed)\n\nWrite ONE crisp, inspiring sentence (maximum 12 words) in English stating the real-world communication skill, moment, or capability we will cover today.\nCRITICAL RULES:\n- The entire sentence MUST be written in English.\n- Do NOT write in Eastern Huasteca Nahuatl unless English is Eastern Huasteca Nahuatl.\n- Do NOT mention XP, points, levels, tasks, exercises, or homework.\n- Do NOT mention repairs, mistakes, or errors.\n- Frame it as a human outcome (e.g. \"Handle your first café order, including a follow-up question\" or \"Ask about someone's weekend plans with confidence\").\n- Return ONLY the plain sentence in English, without quotes or markdown."
+  },
+  {
+    "operation": "prompt",
+    "input": {
+      "targetLang": "nah",
+      "appLanguage": "es",
+      "taskSummary": [
+        {
+          "kind": "speak",
+          "topic": "Tutor conversation practice",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "learn",
+          "topic": "Asking for directions",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "review",
+          "topic": "Vocabulary flashcard review",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        },
+        {
+          "kind": "conversation",
+          "topic": "Interactive conversation",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "phonics",
+          "topic": "Phonics and pronunciation practice",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "other",
+          "topic": "other practice",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        }
+      ]
+    },
+    "expected": "You are generating the single-sentence subtitle for \"Today's Focus\" in a language learning app.\nCourse: Learning Eastern Huasteca Nahuatl.\nOUTPUT LANGUAGE REQUIREMENT: You MUST write the sentence strictly in Spanish.\n\nToday's scheduled learning tasks:\n- speak: Tutor conversation practice (2/3 completed)\n- learn: Asking for directions (0/1 completed)\n- review: Vocabulary flashcard review (1/2 completed)\n- conversation: Interactive conversation (2/3 completed)\n- phonics: Phonics and pronunciation practice (0/1 completed)\n- other: other practice (1/2 completed)\n\nWrite ONE crisp, inspiring sentence (maximum 12 words) in Spanish stating the real-world communication skill, moment, or capability we will cover today.\nCRITICAL RULES:\n- The entire sentence MUST be written in Spanish.\n- Do NOT write in Eastern Huasteca Nahuatl unless Spanish is Eastern Huasteca Nahuatl.\n- Do NOT mention XP, points, levels, tasks, exercises, or homework.\n- Do NOT mention repairs, mistakes, or errors.\n- Frame it as a human outcome (e.g. \"Handle your first café order, including a follow-up question\" or \"Ask about someone's weekend plans with confidence\").\n- Return ONLY the plain sentence in Spanish, without quotes or markdown."
+  },
+  {
+    "operation": "prompt",
+    "input": {
+      "targetLang": "nah",
+      "appLanguage": "fr",
+      "taskSummary": [
+        {
+          "kind": "speak",
+          "topic": "Tutor conversation practice",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "learn",
+          "topic": "Asking for directions",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "review",
+          "topic": "Vocabulary flashcard review",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        },
+        {
+          "kind": "conversation",
+          "topic": "Interactive conversation",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "phonics",
+          "topic": "Phonics and pronunciation practice",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "other",
+          "topic": "other practice",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        }
+      ]
+    },
+    "expected": "You are generating the single-sentence subtitle for \"Today's Focus\" in a language learning app.\nCourse: Learning Eastern Huasteca Nahuatl.\nOUTPUT LANGUAGE REQUIREMENT: You MUST write the sentence strictly in French.\n\nToday's scheduled learning tasks:\n- speak: Tutor conversation practice (2/3 completed)\n- learn: Asking for directions (0/1 completed)\n- review: Vocabulary flashcard review (1/2 completed)\n- conversation: Interactive conversation (2/3 completed)\n- phonics: Phonics and pronunciation practice (0/1 completed)\n- other: other practice (1/2 completed)\n\nWrite ONE crisp, inspiring sentence (maximum 12 words) in French stating the real-world communication skill, moment, or capability we will cover today.\nCRITICAL RULES:\n- The entire sentence MUST be written in French.\n- Do NOT write in Eastern Huasteca Nahuatl unless French is Eastern Huasteca Nahuatl.\n- Do NOT mention XP, points, levels, tasks, exercises, or homework.\n- Do NOT mention repairs, mistakes, or errors.\n- Frame it as a human outcome (e.g. \"Handle your first café order, including a follow-up question\" or \"Ask about someone's weekend plans with confidence\").\n- Return ONLY the plain sentence in French, without quotes or markdown."
+  },
+  {
+    "operation": "prompt",
+    "input": {
+      "targetLang": "nah",
+      "appLanguage": "ar",
+      "taskSummary": [
+        {
+          "kind": "speak",
+          "topic": "Tutor conversation practice",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "learn",
+          "topic": "Asking for directions",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "review",
+          "topic": "Vocabulary flashcard review",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        },
+        {
+          "kind": "conversation",
+          "topic": "Interactive conversation",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "phonics",
+          "topic": "Phonics and pronunciation practice",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "other",
+          "topic": "other practice",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        }
+      ]
+    },
+    "expected": "You are generating the single-sentence subtitle for \"Today's Focus\" in a language learning app.\nCourse: Learning Eastern Huasteca Nahuatl.\nOUTPUT LANGUAGE REQUIREMENT: You MUST write the sentence strictly in Arabic.\n\nToday's scheduled learning tasks:\n- speak: Tutor conversation practice (2/3 completed)\n- learn: Asking for directions (0/1 completed)\n- review: Vocabulary flashcard review (1/2 completed)\n- conversation: Interactive conversation (2/3 completed)\n- phonics: Phonics and pronunciation practice (0/1 completed)\n- other: other practice (1/2 completed)\n\nWrite ONE crisp, inspiring sentence (maximum 12 words) in Arabic stating the real-world communication skill, moment, or capability we will cover today.\nCRITICAL RULES:\n- The entire sentence MUST be written in Arabic.\n- Do NOT write in Eastern Huasteca Nahuatl unless Arabic is Eastern Huasteca Nahuatl.\n- Do NOT mention XP, points, levels, tasks, exercises, or homework.\n- Do NOT mention repairs, mistakes, or errors.\n- Frame it as a human outcome (e.g. \"Handle your first café order, including a follow-up question\" or \"Ask about someone's weekend plans with confidence\").\n- Return ONLY the plain sentence in Arabic, without quotes or markdown."
+  },
+  {
+    "operation": "prompt",
+    "input": {
+      "targetLang": "nah",
+      "appLanguage": "ja",
+      "taskSummary": [
+        {
+          "kind": "speak",
+          "topic": "Tutor conversation practice",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "learn",
+          "topic": "Asking for directions",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "review",
+          "topic": "Vocabulary flashcard review",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        },
+        {
+          "kind": "conversation",
+          "topic": "Interactive conversation",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "phonics",
+          "topic": "Phonics and pronunciation practice",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "other",
+          "topic": "other practice",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        }
+      ]
+    },
+    "expected": "You are generating the single-sentence subtitle for \"Today's Focus\" in a language learning app.\nCourse: Learning Eastern Huasteca Nahuatl.\nOUTPUT LANGUAGE REQUIREMENT: You MUST write the sentence strictly in Japanese.\n\nToday's scheduled learning tasks:\n- speak: Tutor conversation practice (2/3 completed)\n- learn: Asking for directions (0/1 completed)\n- review: Vocabulary flashcard review (1/2 completed)\n- conversation: Interactive conversation (2/3 completed)\n- phonics: Phonics and pronunciation practice (0/1 completed)\n- other: other practice (1/2 completed)\n\nWrite ONE crisp, inspiring sentence (maximum 12 words) in Japanese stating the real-world communication skill, moment, or capability we will cover today.\nCRITICAL RULES:\n- The entire sentence MUST be written in Japanese.\n- Do NOT write in Eastern Huasteca Nahuatl unless Japanese is Eastern Huasteca Nahuatl.\n- Do NOT mention XP, points, levels, tasks, exercises, or homework.\n- Do NOT mention repairs, mistakes, or errors.\n- Frame it as a human outcome (e.g. \"Handle your first café order, including a follow-up question\" or \"Ask about someone's weekend plans with confidence\").\n- Return ONLY the plain sentence in Japanese, without quotes or markdown."
+  },
+  {
+    "operation": "prompt",
+    "input": {
+      "targetLang": "nah",
+      "appLanguage": "zh",
+      "taskSummary": [
+        {
+          "kind": "speak",
+          "topic": "Tutor conversation practice",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "learn",
+          "topic": "Asking for directions",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "review",
+          "topic": "Vocabulary flashcard review",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        },
+        {
+          "kind": "conversation",
+          "topic": "Interactive conversation",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "phonics",
+          "topic": "Phonics and pronunciation practice",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "other",
+          "topic": "other practice",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        }
+      ]
+    },
+    "expected": "You are generating the single-sentence subtitle for \"Today's Focus\" in a language learning app.\nCourse: Learning Eastern Huasteca Nahuatl.\nOUTPUT LANGUAGE REQUIREMENT: You MUST write the sentence strictly in Mandarin Chinese.\n\nToday's scheduled learning tasks:\n- speak: Tutor conversation practice (2/3 completed)\n- learn: Asking for directions (0/1 completed)\n- review: Vocabulary flashcard review (1/2 completed)\n- conversation: Interactive conversation (2/3 completed)\n- phonics: Phonics and pronunciation practice (0/1 completed)\n- other: other practice (1/2 completed)\n\nWrite ONE crisp, inspiring sentence (maximum 12 words) in Mandarin Chinese stating the real-world communication skill, moment, or capability we will cover today.\nCRITICAL RULES:\n- The entire sentence MUST be written in Mandarin Chinese.\n- Do NOT write in Eastern Huasteca Nahuatl unless Mandarin Chinese is Eastern Huasteca Nahuatl.\n- Do NOT mention XP, points, levels, tasks, exercises, or homework.\n- Do NOT mention repairs, mistakes, or errors.\n- Frame it as a human outcome (e.g. \"Handle your first café order, including a follow-up question\" or \"Ask about someone's weekend plans with confidence\").\n- Return ONLY the plain sentence in Mandarin Chinese, without quotes or markdown."
+  },
+  {
+    "operation": "prompt",
+    "input": {
+      "targetLang": "nah",
+      "appLanguage": "",
+      "taskSummary": [
+        {
+          "kind": "speak",
+          "topic": "Tutor conversation practice",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "learn",
+          "topic": "Asking for directions",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "review",
+          "topic": "Vocabulary flashcard review",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        },
+        {
+          "kind": "conversation",
+          "topic": "Interactive conversation",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "phonics",
+          "topic": "Phonics and pronunciation practice",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "other",
+          "topic": "other practice",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        }
+      ]
+    },
+    "expected": "You are generating the single-sentence subtitle for \"Today's Focus\" in a language learning app.\nCourse: Learning Eastern Huasteca Nahuatl.\nOUTPUT LANGUAGE REQUIREMENT: You MUST write the sentence strictly in English.\n\nToday's scheduled learning tasks:\n- speak: Tutor conversation practice (2/3 completed)\n- learn: Asking for directions (0/1 completed)\n- review: Vocabulary flashcard review (1/2 completed)\n- conversation: Interactive conversation (2/3 completed)\n- phonics: Phonics and pronunciation practice (0/1 completed)\n- other: other practice (1/2 completed)\n\nWrite ONE crisp, inspiring sentence (maximum 12 words) in English stating the real-world communication skill, moment, or capability we will cover today.\nCRITICAL RULES:\n- The entire sentence MUST be written in English.\n- Do NOT write in Eastern Huasteca Nahuatl unless English is Eastern Huasteca Nahuatl.\n- Do NOT mention XP, points, levels, tasks, exercises, or homework.\n- Do NOT mention repairs, mistakes, or errors.\n- Frame it as a human outcome (e.g. \"Handle your first café order, including a follow-up question\" or \"Ask about someone's weekend plans with confidence\").\n- Return ONLY the plain sentence in English, without quotes or markdown."
+  },
+  {
+    "operation": "prompt",
+    "input": {
+      "targetLang": " xx ",
+      "appLanguage": "en",
+      "taskSummary": [
+        {
+          "kind": "speak",
+          "topic": "Tutor conversation practice",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "learn",
+          "topic": "Asking for directions",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "review",
+          "topic": "Vocabulary flashcard review",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        },
+        {
+          "kind": "conversation",
+          "topic": "Interactive conversation",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "phonics",
+          "topic": "Phonics and pronunciation practice",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "other",
+          "topic": "other practice",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        }
+      ]
+    },
+    "expected": "You are generating the single-sentence subtitle for \"Today's Focus\" in a language learning app.\nCourse: Learning XX.\nOUTPUT LANGUAGE REQUIREMENT: You MUST write the sentence strictly in English.\n\nToday's scheduled learning tasks:\n- speak: Tutor conversation practice (2/3 completed)\n- learn: Asking for directions (0/1 completed)\n- review: Vocabulary flashcard review (1/2 completed)\n- conversation: Interactive conversation (2/3 completed)\n- phonics: Phonics and pronunciation practice (0/1 completed)\n- other: other practice (1/2 completed)\n\nWrite ONE crisp, inspiring sentence (maximum 12 words) in English stating the real-world communication skill, moment, or capability we will cover today.\nCRITICAL RULES:\n- The entire sentence MUST be written in English.\n- Do NOT write in XX unless English is XX.\n- Do NOT mention XP, points, levels, tasks, exercises, or homework.\n- Do NOT mention repairs, mistakes, or errors.\n- Frame it as a human outcome (e.g. \"Handle your first café order, including a follow-up question\" or \"Ask about someone's weekend plans with confidence\").\n- Return ONLY the plain sentence in English, without quotes or markdown."
+  },
+  {
+    "operation": "prompt",
+    "input": {
+      "targetLang": " xx ",
+      "appLanguage": "es",
+      "taskSummary": [
+        {
+          "kind": "speak",
+          "topic": "Tutor conversation practice",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "learn",
+          "topic": "Asking for directions",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "review",
+          "topic": "Vocabulary flashcard review",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        },
+        {
+          "kind": "conversation",
+          "topic": "Interactive conversation",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "phonics",
+          "topic": "Phonics and pronunciation practice",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "other",
+          "topic": "other practice",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        }
+      ]
+    },
+    "expected": "You are generating the single-sentence subtitle for \"Today's Focus\" in a language learning app.\nCourse: Learning XX.\nOUTPUT LANGUAGE REQUIREMENT: You MUST write the sentence strictly in Spanish.\n\nToday's scheduled learning tasks:\n- speak: Tutor conversation practice (2/3 completed)\n- learn: Asking for directions (0/1 completed)\n- review: Vocabulary flashcard review (1/2 completed)\n- conversation: Interactive conversation (2/3 completed)\n- phonics: Phonics and pronunciation practice (0/1 completed)\n- other: other practice (1/2 completed)\n\nWrite ONE crisp, inspiring sentence (maximum 12 words) in Spanish stating the real-world communication skill, moment, or capability we will cover today.\nCRITICAL RULES:\n- The entire sentence MUST be written in Spanish.\n- Do NOT write in XX unless Spanish is XX.\n- Do NOT mention XP, points, levels, tasks, exercises, or homework.\n- Do NOT mention repairs, mistakes, or errors.\n- Frame it as a human outcome (e.g. \"Handle your first café order, including a follow-up question\" or \"Ask about someone's weekend plans with confidence\").\n- Return ONLY the plain sentence in Spanish, without quotes or markdown."
+  },
+  {
+    "operation": "prompt",
+    "input": {
+      "targetLang": " xx ",
+      "appLanguage": "fr",
+      "taskSummary": [
+        {
+          "kind": "speak",
+          "topic": "Tutor conversation practice",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "learn",
+          "topic": "Asking for directions",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "review",
+          "topic": "Vocabulary flashcard review",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        },
+        {
+          "kind": "conversation",
+          "topic": "Interactive conversation",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "phonics",
+          "topic": "Phonics and pronunciation practice",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "other",
+          "topic": "other practice",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        }
+      ]
+    },
+    "expected": "You are generating the single-sentence subtitle for \"Today's Focus\" in a language learning app.\nCourse: Learning XX.\nOUTPUT LANGUAGE REQUIREMENT: You MUST write the sentence strictly in French.\n\nToday's scheduled learning tasks:\n- speak: Tutor conversation practice (2/3 completed)\n- learn: Asking for directions (0/1 completed)\n- review: Vocabulary flashcard review (1/2 completed)\n- conversation: Interactive conversation (2/3 completed)\n- phonics: Phonics and pronunciation practice (0/1 completed)\n- other: other practice (1/2 completed)\n\nWrite ONE crisp, inspiring sentence (maximum 12 words) in French stating the real-world communication skill, moment, or capability we will cover today.\nCRITICAL RULES:\n- The entire sentence MUST be written in French.\n- Do NOT write in XX unless French is XX.\n- Do NOT mention XP, points, levels, tasks, exercises, or homework.\n- Do NOT mention repairs, mistakes, or errors.\n- Frame it as a human outcome (e.g. \"Handle your first café order, including a follow-up question\" or \"Ask about someone's weekend plans with confidence\").\n- Return ONLY the plain sentence in French, without quotes or markdown."
+  },
+  {
+    "operation": "prompt",
+    "input": {
+      "targetLang": " xx ",
+      "appLanguage": "ar",
+      "taskSummary": [
+        {
+          "kind": "speak",
+          "topic": "Tutor conversation practice",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "learn",
+          "topic": "Asking for directions",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "review",
+          "topic": "Vocabulary flashcard review",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        },
+        {
+          "kind": "conversation",
+          "topic": "Interactive conversation",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "phonics",
+          "topic": "Phonics and pronunciation practice",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "other",
+          "topic": "other practice",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        }
+      ]
+    },
+    "expected": "You are generating the single-sentence subtitle for \"Today's Focus\" in a language learning app.\nCourse: Learning XX.\nOUTPUT LANGUAGE REQUIREMENT: You MUST write the sentence strictly in Arabic.\n\nToday's scheduled learning tasks:\n- speak: Tutor conversation practice (2/3 completed)\n- learn: Asking for directions (0/1 completed)\n- review: Vocabulary flashcard review (1/2 completed)\n- conversation: Interactive conversation (2/3 completed)\n- phonics: Phonics and pronunciation practice (0/1 completed)\n- other: other practice (1/2 completed)\n\nWrite ONE crisp, inspiring sentence (maximum 12 words) in Arabic stating the real-world communication skill, moment, or capability we will cover today.\nCRITICAL RULES:\n- The entire sentence MUST be written in Arabic.\n- Do NOT write in XX unless Arabic is XX.\n- Do NOT mention XP, points, levels, tasks, exercises, or homework.\n- Do NOT mention repairs, mistakes, or errors.\n- Frame it as a human outcome (e.g. \"Handle your first café order, including a follow-up question\" or \"Ask about someone's weekend plans with confidence\").\n- Return ONLY the plain sentence in Arabic, without quotes or markdown."
+  },
+  {
+    "operation": "prompt",
+    "input": {
+      "targetLang": " xx ",
+      "appLanguage": "ja",
+      "taskSummary": [
+        {
+          "kind": "speak",
+          "topic": "Tutor conversation practice",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "learn",
+          "topic": "Asking for directions",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "review",
+          "topic": "Vocabulary flashcard review",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        },
+        {
+          "kind": "conversation",
+          "topic": "Interactive conversation",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "phonics",
+          "topic": "Phonics and pronunciation practice",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "other",
+          "topic": "other practice",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        }
+      ]
+    },
+    "expected": "You are generating the single-sentence subtitle for \"Today's Focus\" in a language learning app.\nCourse: Learning XX.\nOUTPUT LANGUAGE REQUIREMENT: You MUST write the sentence strictly in Japanese.\n\nToday's scheduled learning tasks:\n- speak: Tutor conversation practice (2/3 completed)\n- learn: Asking for directions (0/1 completed)\n- review: Vocabulary flashcard review (1/2 completed)\n- conversation: Interactive conversation (2/3 completed)\n- phonics: Phonics and pronunciation practice (0/1 completed)\n- other: other practice (1/2 completed)\n\nWrite ONE crisp, inspiring sentence (maximum 12 words) in Japanese stating the real-world communication skill, moment, or capability we will cover today.\nCRITICAL RULES:\n- The entire sentence MUST be written in Japanese.\n- Do NOT write in XX unless Japanese is XX.\n- Do NOT mention XP, points, levels, tasks, exercises, or homework.\n- Do NOT mention repairs, mistakes, or errors.\n- Frame it as a human outcome (e.g. \"Handle your first café order, including a follow-up question\" or \"Ask about someone's weekend plans with confidence\").\n- Return ONLY the plain sentence in Japanese, without quotes or markdown."
+  },
+  {
+    "operation": "prompt",
+    "input": {
+      "targetLang": " xx ",
+      "appLanguage": "zh",
+      "taskSummary": [
+        {
+          "kind": "speak",
+          "topic": "Tutor conversation practice",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "learn",
+          "topic": "Asking for directions",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "review",
+          "topic": "Vocabulary flashcard review",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        },
+        {
+          "kind": "conversation",
+          "topic": "Interactive conversation",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "phonics",
+          "topic": "Phonics and pronunciation practice",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "other",
+          "topic": "other practice",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        }
+      ]
+    },
+    "expected": "You are generating the single-sentence subtitle for \"Today's Focus\" in a language learning app.\nCourse: Learning XX.\nOUTPUT LANGUAGE REQUIREMENT: You MUST write the sentence strictly in Mandarin Chinese.\n\nToday's scheduled learning tasks:\n- speak: Tutor conversation practice (2/3 completed)\n- learn: Asking for directions (0/1 completed)\n- review: Vocabulary flashcard review (1/2 completed)\n- conversation: Interactive conversation (2/3 completed)\n- phonics: Phonics and pronunciation practice (0/1 completed)\n- other: other practice (1/2 completed)\n\nWrite ONE crisp, inspiring sentence (maximum 12 words) in Mandarin Chinese stating the real-world communication skill, moment, or capability we will cover today.\nCRITICAL RULES:\n- The entire sentence MUST be written in Mandarin Chinese.\n- Do NOT write in XX unless Mandarin Chinese is XX.\n- Do NOT mention XP, points, levels, tasks, exercises, or homework.\n- Do NOT mention repairs, mistakes, or errors.\n- Frame it as a human outcome (e.g. \"Handle your first café order, including a follow-up question\" or \"Ask about someone's weekend plans with confidence\").\n- Return ONLY the plain sentence in Mandarin Chinese, without quotes or markdown."
+  },
+  {
+    "operation": "prompt",
+    "input": {
+      "targetLang": " xx ",
+      "appLanguage": "",
+      "taskSummary": [
+        {
+          "kind": "speak",
+          "topic": "Tutor conversation practice",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "learn",
+          "topic": "Asking for directions",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "review",
+          "topic": "Vocabulary flashcard review",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        },
+        {
+          "kind": "conversation",
+          "topic": "Interactive conversation",
+          "count": 2,
+          "target": 3,
+          "progress": "2/3",
+          "done": false
+        },
+        {
+          "kind": "phonics",
+          "topic": "Phonics and pronunciation practice",
+          "count": 0,
+          "target": 1,
+          "progress": "0/1",
+          "done": false
+        },
+        {
+          "kind": "other",
+          "topic": "other practice",
+          "count": 1,
+          "target": 2,
+          "progress": "1/2",
+          "done": false
+        }
+      ]
+    },
+    "expected": "You are generating the single-sentence subtitle for \"Today's Focus\" in a language learning app.\nCourse: Learning XX.\nOUTPUT LANGUAGE REQUIREMENT: You MUST write the sentence strictly in English.\n\nToday's scheduled learning tasks:\n- speak: Tutor conversation practice (2/3 completed)\n- learn: Asking for directions (0/1 completed)\n- review: Vocabulary flashcard review (1/2 completed)\n- conversation: Interactive conversation (2/3 completed)\n- phonics: Phonics and pronunciation practice (0/1 completed)\n- other: other practice (1/2 completed)\n\nWrite ONE crisp, inspiring sentence (maximum 12 words) in English stating the real-world communication skill, moment, or capability we will cover today.\nCRITICAL RULES:\n- The entire sentence MUST be written in English.\n- Do NOT write in XX unless English is XX.\n- Do NOT mention XP, points, levels, tasks, exercises, or homework.\n- Do NOT mention repairs, mistakes, or errors.\n- Frame it as a human outcome (e.g. \"Handle your first café order, including a follow-up question\" or \"Ask about someone's weekend plans with confidence\").\n- Return ONLY the plain sentence in English, without quotes or markdown."
+  },
+  {
+    "operation": "clean",
+    "input": {
+      "text": ""
+    },
+    "expected": ""
+  },
+  {
+    "operation": "clean",
+    "input": {
+      "text": null
+    },
+    "expected": ""
+  },
+  {
+    "operation": "clean",
+    "input": {
+      "text": "  \"Ask for directions.\"\nIgnored second line. "
+    },
+    "expected": "Ask for directions."
+  },
+  {
+    "operation": "clean",
+    "input": {
+      "text": "```text\n‘Habla con confianza.’\n```"
+    },
+    "expected": "Habla con confianza."
+  },
+  {
+    "operation": "clean",
+    "input": {
+      "text": "```json\n\"今日の予定を話そう。\"\n```"
+    },
+    "expected": "今日の予定を話そう。"
+  },
+  {
+    "operation": "clean",
+    "input": {
+      "text": "'''one'''"
+    },
+    "expected": "one"
+  },
+  {
+    "operation": "clean",
+    "input": {
+      "text": "\n\n“First line”\r\nNext line"
+    },
+    "expected": "First line"
+  },
+  {
+    "operation": "stored",
+    "input": {
+      "user": {
+        "dailyPlateHeadline": {
+          "es": null
+        }
+      },
+      "targetLang": "ES",
+      "dayKey": "2026-10-23",
+      "appLanguage": "en"
+    },
+    "expected": null
+  },
+  {
+    "operation": "stored",
+    "input": {
+      "user": {
+        "dailyPlateHeadline": {
+          "es": {
+            "dayKey": "2026-10-23",
+            "appLanguage": "en",
+            "text": "  A clear next step. "
+          }
+        }
+      },
+      "targetLang": "ES",
+      "dayKey": "2026-10-23",
+      "appLanguage": "en"
+    },
+    "expected": "A clear next step."
+  },
+  {
+    "operation": "stored",
+    "input": {
+      "user": {
+        "dailyPlateHeadline": {
+          "es": {
+            "dayKey": "2026-10-22",
+            "appLanguage": "en",
+            "text": "Old day"
+          }
+        }
+      },
+      "targetLang": "ES",
+      "dayKey": "2026-10-23",
+      "appLanguage": "en"
+    },
+    "expected": null
+  },
+  {
+    "operation": "stored",
+    "input": {
+      "user": {
+        "dailyPlateHeadline": {
+          "es": {
+            "dayKey": "2026-10-23",
+            "appLanguage": "ar",
+            "text": "Other language"
+          }
+        }
+      },
+      "targetLang": "ES",
+      "dayKey": "2026-10-23",
+      "appLanguage": "en"
+    },
+    "expected": null
+  },
+  {
+    "operation": "stored",
+    "input": {
+      "user": {
+        "dailyPlateHeadline": {
+          "es": {
+            "dayKey": "2026-10-23",
+            "appLanguage": "en",
+            "text": "   "
+          }
+        }
+      },
+      "targetLang": "ES",
+      "dayKey": "2026-10-23",
+      "appLanguage": "en"
+    },
+    "expected": null
+  }
+]

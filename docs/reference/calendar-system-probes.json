@@ -1,0 +1,42 @@
+[
+  {
+    "calendar": "buddhist",
+    "dayKey": "2026-10-28",
+    "locale": "en_TH@calendar=buddhist",
+    "queryYear": 2026,
+    "systemYear": 2569,
+    "timeZone": "America/Mexico_City",
+    "accountStartedWith": "buddhist",
+    "afterCalendarSwitch": false
+  },
+  {
+    "calendar": "gregorian",
+    "dayKey": "2026-10-28",
+    "locale": "en_US@calendar=gregorian",
+    "queryYear": 2026,
+    "systemYear": 2026,
+    "timeZone": "America/Mexico_City",
+    "accountStartedWith": "buddhist",
+    "afterCalendarSwitch": true
+  },
+  {
+    "calendar": "islamic-umalqura",
+    "dayKey": "2026-10-28",
+    "locale": "en_SA@calendar=islamic-umalqura",
+    "queryYear": 2026,
+    "systemYear": 1448,
+    "timeZone": "America/Mexico_City",
+    "accountStartedWith": "islamic-umalqura",
+    "afterCalendarSwitch": false
+  },
+  {
+    "calendar": "gregorian",
+    "dayKey": "2026-10-28",
+    "locale": "en_US@calendar=gregorian",
+    "queryYear": 2026,
+    "systemYear": 2026,
+    "timeZone": "America/Mexico_City",
+    "accountStartedWith": "islamic-umalqura",
+    "afterCalendarSwitch": true
+  }
+]

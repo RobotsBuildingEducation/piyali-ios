@@ -1,0 +1,62 @@
+[
+  {
+    "bundle": "PiyaliXPActivityCore1.xcresult",
+    "result": "Build failed before tests",
+    "passedTests": 0,
+    "failedTests": 0,
+    "failures": []
+  },
+  {
+    "bundle": "PiyaliXPActivityFinal1.xcresult",
+    "result": "Failed",
+    "passedTests": 5,
+    "failedTests": 1,
+    "failures": [
+      {
+        "failureText": "XCTAssertTrue failed",
+        "targetName": "PiyaliUITests",
+        "testIdentifier": 6,
+        "testIdentifierString": "XPActivityJourneyTests/testActivityHistoryCompanionAchievementsAndRelaunchInEnglishAndArabic()",
+        "testIdentifierURL": "test://com.apple.xcode/Piyali/PiyaliUITests/XPActivityJourneyTests/testActivityHistoryCompanionAchievementsAndRelaunchInEnglishAndArabic",
+        "testName": "testActivityHistoryCompanionAchievementsAndRelaunchInEnglishAndArabic()"
+      }
+    ]
+  },
+  {
+    "bundle": "PiyaliXPActivityFinal2.xcresult",
+    "result": "Passed",
+    "passedTests": 6,
+    "failedTests": 0,
+    "failures": []
+  },
+  {
+    "bundle": "PiyaliXPActivitySDK1.xcresult",
+    "result": "Interrupted: unresponsive old emulator",
+    "passedTests": 1,
+    "failedTests": 1,
+    "failures": [
+      {
+        "failureText": "Testing was canceled",
+        "targetName": "PiyaliTests",
+        "testIdentifier": 2,
+        "testIdentifierString": "FirestoreContractTests/testNativeAwardsVisibleToWebAndRetriesDoNotRepeatXP()",
+        "testIdentifierURL": "test://com.apple.xcode/Piyali/PiyaliTests/FirestoreContractTests/testNativeAwardsVisibleToWebAndRetriesDoNotRepeatXP",
+        "testName": "testNativeAwardsVisibleToWebAndRetriesDoNotRepeatXP()"
+      }
+    ]
+  },
+  {
+    "bundle": "PiyaliXPActivitySDK2.xcresult",
+    "result": "Passed",
+    "passedTests": 4,
+    "failedTests": 0,
+    "failures": []
+  },
+  {
+    "runner": "swift test --filter ProgressTests|LearningProgressTests|CompanionHealthTests|DailyPlateTests",
+    "result": "Passed",
+    "passedTests": 45,
+    "failedTests": 0,
+    "seconds": 31.419
+  }
+]

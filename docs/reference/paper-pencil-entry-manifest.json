@@ -1,0 +1,13 @@
+{
+  "source": "src/App.jsx",
+  "sha256": "896d5a76890ba0c65155454897aa9ae65973f0de46366952cbaaf8b845c8f72d",
+  "initialOpen": true,
+  "onboardingClose": "() => setPaperPencilOpen(false)",
+  "handlers": [
+    "openProficiencyPromptIfNeeded",
+    "handleCompanionContinue",
+    "handlePaperPencilUnderstood"
+  ],
+  "cases": 8,
+  "scope": "Executes original App callbacks with public account/flags and synchronous paint/persistence adapters. Initial onboarding dismissal only hides the modal; product dismissal records the acknowledgment and follows original guidance/placement gates. No service or learner I/O."
+}

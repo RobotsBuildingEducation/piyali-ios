@@ -1,130 +1,32 @@
 import SwiftUI
 import CryptoKit
 
-struct FocusedGoalView: View {
-    @EnvironmentObject var app: AppModel
-    @State private var draft = ""
-    @State private var busy = false
-    @State private var error: String?
-    var body: some View {
-        SubscriptionRequiredView(service:app.subscription) {
-            Form {
-                Section("Your goal") {
-                    TextField("What would you like to do?",text:$draft,axis:.vertical)
-                    Button("Save goal") { app.learner.editGoal(draft); app.persist(); prepare() }.disabled(busy || draft.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty)
-                    if !app.learner.goalBucket["activeGoal"]["id"].string.isEmpty {
-                        let status = app.learner.goalBucket["activeGoal"]["status"].string
-                        Text("Status: " + status)
-                        Button(status == "active" ? "Pause goal" : "Resume goal") { app.setGoalStatus(status == "active" ? "paused" : "active"); if status != "active" { prepare() } }
-                        Button("Mark personal goal achieved") { app.setGoalStatus("achieved") }
-                        Button("Remove goal",role:.destructive) { app.learner.editGoal(""); draft = ""; app.persist() }
-                    }
-                }
-                if let daily = app.readyGoal {
-                    let blueprint = daily["blueprint"]
-                    Section("Today's focus") {
-                        Text(blueprint["objective"].string).font(.headline)
-                        Text(blueprint["scenario"].string)
-                        ForEach(GoalPractice.list(blueprint["successCriteria"]),id:\.self) { Text($0) }
-                        Text(blueprint["rationale"].string).font(.footnote)
-                    }
-                    Section(daily["completed"].boolean ? "Today's bundle completed" : "Practice bundle") {
-                        ForEach(GoalPractice.list(blueprint["modes"],max:4),id:\.self) { mode in
-                            NavigationLink {
-                                if mode == "lesson" { LessonView(lesson:GoalPractice.lesson(blueprint)) }
-                                else if mode == "tutor" { TutorView(goalBlueprint:blueprint) }
-                                else { GoalPreparationView(mode:mode,blueprint:blueprint) }
-                            } label: {
-                                HStack {
-                                    Text(mode.capitalized); Spacer()
-                                    if daily["modeProgress"][mode].number >= Double(GoalPractice.targets[mode] ?? 1) { Image(systemName:"checkmark.circle.fill") }
-                                    else if GoalPractice.nextMode(daily) == mode { Text("Next").foregroundStyle(.secondary) }
-                                }
-                            }
-                        }
-                        Text("Recall and modeled pronunciation are preparation. Task checks use what you demonstrate against today's criteria.").font(.footnote)
-                    }
-                    if !app.learner.goalBucket["goalProgress"]["prose"].string.isEmpty {
-                        Section("Progress evidence") { Text(app.learner.goalBucket["goalProgress"]["prose"].string) }
-                    }
-                } else if app.learner.goalBucket["activeGoal"]["status"].string == "active" {
-                    Button("Prepare today's practice") { prepare() }.disabled(busy)
-                }
-                if busy { ProgressView("Preparing today's goal…") }
-                if let error { Text(error).foregroundStyle(.red) }
-            }
-        }.navigationTitle("Focused goal")
-            .onAppear { draft = app.learner.goal }
-            .task(id:app.goalPreparationKey) { guard !busy else { return }; busy = true; defer { busy = false }; do { try await app.prepareGoal() } catch { self.error = error.localizedDescription } }
-    }
-    func prepare() {
-        busy = true; error = nil
-        Task { defer { busy = false }; do { try await app.prepareGoal() } catch { self.error = error.localizedDescription } }
-    }
+struct FocusedGoalView:View {
+    @EnvironmentObject var app:AppModel
+    var body:some View {ScrollView{LearningGoalEditorView().padding(16)}.background(BrandBackground()).navigationTitle(app.goalText("label"))}
 }
 struct RepairPracticeView: View {
-    @EnvironmentObject var app: AppModel
-    var mistakes: [HistoryEntry] { Array(app.learner.history.filter { !$0.correct && $0.repairInMemory == nil && $0.target == app.learner.target }.prefix(30)) }
-    var body: some View {
-        List {
-            if mistakes.isEmpty && app.learner.activeMemories.isEmpty { Text("Useful mistakes will appear here with focused practice. Answer reveals do not count as mistakes.") }
-            ForEach(app.learner.activeMemories) { note in
-                let mode = MemoryContract.practiceMode(note)
-                let brief = JSONValue.object(note.fields)
-                let lesson = Lesson(id:"repair-memory-" + note.id,title:.string(note.text("concept")),description:.string(note.text("mistake")),xpReward:20,modes:[mode == .speaking ? "speaking" : mode == .conversation ? "conversation" : mode.rawValue.lowercased()],agenda:brief,content:brief)
-                Section(note.text("concept")) {
-                    MemoryNoteDetails(note:note)
-                    NavigationLink("Practice this concept") { ExerciseView(mode:mode,lesson:lesson,concept:note.text("concept")) }
-                    Button("Complete repair (+20 XP)") { app.complete(lesson) }
-                        .disabled(!app.canComplete(lesson) || app.learner.completed.contains(app.learner.completionKey(lesson.id)))
-                }
-            }
-            ForEach(mistakes) { entry in
-                let lesson = Lesson(id:"repair-\(entry.id.uuidString)",title:.string("Repair practice"),description:.string(entry.feedback),xpReward:20,modes:["grammar"],agenda:.object(["originalQuestion":.string(entry.question),"studentAnswer":.string(entry.answer),"feedback":.string(entry.feedback)]),content:.object(["grammar":.string("Practice the specific concept behind this error with a fresh example.")]))
-                Section(entry.mode) {
-                    Text(entry.question); Text(entry.feedback)
-                    NavigationLink("Practice this concept") { ExerciseView(mode:.grammar,lesson:lesson) }
-                    Button("Mark repair complete (+20 XP)") { app.complete(lesson) }
-                        .disabled(!app.canComplete(lesson) || app.learner.completed.contains(app.learner.completionKey(lesson.id)))
-                }
-            }
-        }.navigationTitle("Repair mistakes")
+    @EnvironmentObject var app:AppModel
+    var onSurface:(ProductMode)->Void = {_ in}
+    var tutorControllerFactory:((TutorFocus)->TutorSessionController)? = nil
+    @State private var routed:RepairStep?
+    @State private var tutorFinishing=false
+    var body:some View {
+        SubscriptionRequiredView(service:app.subscription,preserveEarnedWork:tutorFinishing) {Group {
+            if let step=routed {
+                Group {
+                    if step.mode == "lesson",let lesson=app.repairLesson(step) {LessonView(lesson:lesson)}
+                    else if step.mode == "flashcards" {FlashcardsView(repairStep:step)}
+                    else if step.mode == "phonics",!app.authoredRepairPhonics(step).isEmpty {PhonicsView(repairStep:step)}
+                    else {SourceTutorView(controller:tutorControllerFactory?(.repair(step)),focus:.repair(step),onCompletionPending:{tutorFinishing=$0},onFocusedCompletion:{route(app.currentRepairStep)})}
+                }.id(step.id)
+            } else {ContentUnavailableView(ProductCopy.course(app.learner.support,"repair"),systemImage:"checkmark.circle")}
+        }}.navigationTitle(ProductCopy.course(app.learner.support,"repair")).task{route(app.currentRepairStep)}.onChange(of:app.currentRepairStep){_,step in if !tutorFinishing{route(step)}}
     }
-}
-struct AchievementsView: View {
-    @EnvironmentObject var app: AppModel
-    var body: some View {
-        List {
-            Text("Achievements are confirmed after progress syncs. Earned awards stay in your collection when you change languages or devices. Placement and XP alone do not prove course completion.").font(.footnote)
-            Section("Nostr collection") { NostrAchievementControls(service:app.nostrAchievements) }
-            ForEach(app.achievements) { achievement in
-                let count = progress(achievement)
-                VStack(alignment:.leading) {
-                    HStack {
-                        Text(achievement.title.localized(app.learner.support)).font(.headline)
-                        Spacer()
-                        if count.complete { Image(systemName:"checkmark.seal.fill") }
-                    }
-                    Text(achievement.description.localized(app.learner.support))
-                    if let target = count.target { Text("\(count.value) / \(target)").font(.caption) }
-                }
-            }
-        }.navigationTitle("Achievements")
+    private func route(_ step:RepairStep?) {
+        routed=step;guard let step else{return}
+        onSurface(step.mode == "lesson" ? .path:step.mode == "flashcards" ? .cards:step.mode == "phonics" && !app.authoredRepairPhonics(step).isEmpty ? .phonics:.tutor)
     }
-    func progress(_ achievement: AchievementDefinition) -> (value:Int,target:Int?,complete:Bool) {
-        let record=app.learner.achievementRecords?[achievement.id] ?? .null
-        let earned=record["unlockedAt"].number > 0 && !NostrAchievementCollection.truthy(record["test"])
-        let summary=app.learner.achievementEvidence?[app.learner.target] ?? .object([:])
-        let counts=AchievementProgress.counters(summary)
-        var evidence=JSONValue.object(["language":.string(app.learner.target),"counters":counts])
-        evidence=AchievementProgress.snapshot(ledger:app.learner.achievementLedger ?? .object([:]),evidence:evidence)
-        let metric=achievement.requirement["metric"].string
-        let cardCount=(app.learner.achievementLedger?["flashcards_completed:"+app.learner.target].object.count ?? 0)
-        let value=metric == "flashcards_completed" ? max(Int(counts[metric].number),cardCount) : Int(evidence["counters"][metric].number)
-        let target=achievement.requirement["target"] == .null ? nil : Int(achievement.requirement["target"].number)
-        return (value,target,earned)
-    }
-
 }
 struct SubscriptionTermsView: View {
     var body: some View {

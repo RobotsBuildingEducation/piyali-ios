@@ -1,0 +1,725 @@
+[
+  {
+    "file": "src/components/GrammarBook.jsx",
+    "sha256": "0d0407a8a19c14e1cc111958b162c5ca8762f785627c33baea2dd18cdf058b82",
+    "bindings": [
+      "DEFAULT_SUPPORT_LANGUAGE",
+      "LANG_NAME",
+      "buildCurriculumPromptContext",
+      "buildFillJudgePrompt",
+      "buildFillStreamPrompt",
+      "buildMAJudgePrompt",
+      "buildMAStreamPrompt",
+      "buildMCJudgePrompt",
+      "buildMCStreamPrompt",
+      "buildMatchStreamPrompt",
+      "buildSpeakGrammarStreamPrompt",
+      "buildTranslateJudgePrompt",
+      "buildTranslateStreamPrompt",
+      "difficultyHint",
+      "focusedLessonPrompt",
+      "generationPerformanceContextFor",
+      "getCEFRPromptHint",
+      "normalizeSupportLanguage",
+      "resolveSupportLang",
+      "useUserStore"
+    ]
+  },
+  {
+    "file": "src/components/Vocabulary.jsx",
+    "sha256": "9aa9d5f74d62ac8fd7b3adb1026bbf0bef3bd48a826053b4c94f6045b1a3431c",
+    "bindings": [
+      "DEFAULT_SUPPORT_LANGUAGE",
+      "LANG_NAME",
+      "buildCurriculumPromptContext",
+      "buildFillVocabJudgePrompt",
+      "buildFillVocabStreamPrompt",
+      "buildMAVocabJudgePrompt",
+      "buildMAVocabStreamPrompt",
+      "buildMCVocabJudgePrompt",
+      "buildMCVocabStreamPrompt",
+      "buildMatchVocabJudgePrompt",
+      "buildMatchVocabStreamPrompt",
+      "buildSpeakVocabStreamPrompt",
+      "buildVarietyLines",
+      "buildVocabTranslateJudgePrompt",
+      "buildVocabTranslateStreamPrompt",
+      "buildVocabularyMatchPrompt",
+      "focusedLessonPrompt",
+      "generationPerformanceContextFor",
+      "getCEFRPromptHint",
+      "normalizeSupportLanguage",
+      "resolveSupportLang",
+      "useUserStore",
+      "vocabDifficulty"
+    ]
+  },
+  {
+    "file": "src/components/LessonFlashcard.jsx",
+    "sha256": "c8e4fc88a560a74121c4adb8c9d3aefa17be46f759fd526829f8924d5cac01a6",
+    "bindings": [
+      "LANG_NAME",
+      "buildCurriculumPromptContext",
+      "buildFlashcardJudgePrompt",
+      "buildLessonFlashcardPrompt",
+      "translations"
+    ]
+  },
+  {
+    "file": "src/utils/delightQuestionVariants.js",
+    "sha256": "d262885a2b875cb6781bc07c211ede9a16b498096a2ff12c1bba6f1954c5759f",
+    "bindings": [
+      "COPIED_META_INSTRUCTION_PATTERN",
+      "DELIGHT_VARIANTS",
+      "DELIGHT_VARIANT_IDS",
+      "FALLBACK_SUPPORT_COPY",
+      "LANGUAGE_NAMES",
+      "OBVIOUS_ENGLISH_INSTRUCTION_PATTERN",
+      "SCHEMAS",
+      "TARGET_FALLBACK_DATA",
+      "TARGET_SCRIPT_RULES",
+      "TUTOR_STARTER_AGENDA_IDS",
+      "VARIANT_RULES",
+      "buildCurriculumPromptContext",
+      "buildDelightQuestionPrompt",
+      "buildDelightResponseJudgePrompt",
+      "buildDialogueForkJudgePrompt",
+      "buildListenDifferenceJudgePrompt",
+      "buildMorphologyForgeJudgePrompt",
+      "buildNaturalOrWeirdJudgePrompt",
+      "buildSentenceDetectiveJudgePrompt",
+      "buildSentenceDetectivePrompt",
+      "buildSentenceShapeshifterJudgePrompt",
+      "buildThreeClueMysteryJudgePrompt",
+      "buildThreeWordJudgePrompt",
+      "buildWordNeighborhoodsJudgePrompt",
+      "calculateDelightQuestionXp",
+      "cleanTargetScriptValue",
+      "getDelightFallbackQuestion",
+      "getDelightLanguageName",
+      "getInitialDelightResponse",
+      "getLessonScope",
+      "getLessonTargetInventory",
+      "getQuestionLanguageFields",
+      "getTutorStarterTargetExamples",
+      "gradeDelightResponse",
+      "isDelightQuestionLanguageConsistent",
+      "isDelightResponseReady",
+      "isSingleDelightCueWord",
+      "isTargetScriptValueCompatible",
+      "normalizeDelightQuestion",
+      "normalizeDelightText",
+      "parseDelightJudgeVerdict",
+      "parseDelightQuestion",
+      "stringList",
+      "uniqueStringList",
+      "validateMorphologyForgeQuestion"
+    ]
+  },
+  {
+    "file": "src/features/lessonPreparation/options.js",
+    "sha256": "ffec9f3fb27fffbe864fb4da73f6e89b9e8e4a188e2dbdb20709190d6173b3a5",
+    "bindings": [
+      "DELIGHT_VARIANT_IDS",
+      "chooseStoryMode",
+      "createQuestionOptionSelector",
+      "eloForUser",
+      "extractCEFRLevel",
+      "practiceLevelForElo"
+    ]
+  },
+  {
+    "file": "src/hooks/useUserStore.js",
+    "sha256": "e273dbd9f906701a3d9fb65d19282a10f467e8108522e1009974c73d57f818c7",
+    "bindings": [
+      "default",
+      "provide"
+    ],
+    "nativeAdapter": "Read-only user supplied as a Swift recipe argument; no web store or effects."
+  },
+  {
+    "file": "src/utils/lessonCurriculum.js",
+    "sha256": "87f94db6ecfb9fddf198f3b51fca83017e48586230c0c02eff7f49a5d49a8ad9",
+    "bindings": [
+      "AGENDA_TARGET_ROLES",
+      "CONCRETE_LABEL_MODES",
+      "CURRICULUM_GROUNDING_STOP_WORDS",
+      "ENGLISH_CURRICULUM_CONNECTORS",
+      "ENGLISH_CURRICULUM_SCAFFOLDING",
+      "EVIDENCE_BY_MODE",
+      "EXACT_FORM_MODES",
+      "INSTRUCTIONAL_OBJECTIVE_PATTERN",
+      "INVALID_OBJECTIVE_LABELS",
+      "MODE_KIND",
+      "MODE_LABELS",
+      "REVIEW_LESSON_ID_PARTS",
+      "SPANISH_TARGET_SIGNAL",
+      "SUPPORT_GRAMMAR_TERMS",
+      "UNLOCALIZED_CONTEXT_PATTERN",
+      "buildCurriculumPromptContext",
+      "buildLessonAgenda",
+      "buildObjectiveLabel",
+      "buildUnitCurriculumSnapshot",
+      "buildUnitQuizBlueprint",
+      "cleanText",
+      "collectTextValues",
+      "createAgendaItem",
+      "extractItemText",
+      "extractTargetLanguageDetail",
+      "getAgendaGoal",
+      "getAgendaTargetForms",
+      "getAgendaTargetRole",
+      "getConcreteModeObjectives",
+      "getDisplayText",
+      "getGroundingTerms",
+      "getLessonAgenda",
+      "getManualA1AgendaItems",
+      "getManualB1B2AgendaItems",
+      "getManualB1B2FoundationFormItems",
+      "getManualC1C2AgendaItems",
+      "getManualC1C2FoundationFormItems",
+      "getManualPreA1AgendaItems",
+      "getManualSpanishAgendaItems",
+      "getManualSpanishFoundationFormItems",
+      "getStructuralGroundingTerms",
+      "hasEnglishCurriculumScaffolding",
+      "hasUsableLocalizedContext",
+      "isCurriculumPayloadGrounded",
+      "isInstructionalLessonObjective",
+      "isInvalidLessonObjective",
+      "isReviewLesson",
+      "localizeEmbeddedGrammarTerms",
+      "normalizeAgendaItemSemantics",
+      "normalizeObjectiveKey",
+      "normalizeTextList",
+      "slugify",
+      "uniqueText"
+    ]
+  },
+  {
+    "file": "src/utils/gameReviewContext.js",
+    "sha256": "2dd6d2516790e17e51c533b97f89e6d9c8678f108517fe0ed7adfba1f08135df",
+    "bindings": [
+      "buildGameReviewContext",
+      "buildReviewLesson",
+      "buildUnitCurriculumSnapshot",
+      "buildUnitQuizBlueprint",
+      "cleanString",
+      "collectModeObjectives",
+      "collectModeTerms",
+      "collectRelevantLessons",
+      "getLessonAgenda",
+      "getLocalizedText",
+      "inferCefrLevelFromLessonId",
+      "isReviewLesson",
+      "uniqueStrings"
+    ]
+  },
+  {
+    "file": "src/utils/questionDifficultyAssessment.js",
+    "sha256": "8d0c4393281a30bb3ee6c3ca7926a73fa993e3d6e1251732a9a301614a1cefc5",
+    "bindings": [
+      "buildQuestionDifficultyPrompt",
+      "parseQuestionDifficulty"
+    ]
+  },
+  {
+    "file": "src/utils/performanceEloModel.js",
+    "sha256": "1c6caa8c52f76576e8fe507d2698c4a65736d5492e49a19d937db8f16e1894a1",
+    "bindings": [
+      "ELO_LEVELS",
+      "ELO_PER_SCORE",
+      "ELO_SUPPORT_WEIGHTS",
+      "K_FACTOR",
+      "LEGACY_SCORE_POINTS",
+      "MAX_RATING",
+      "MAX_SCORE",
+      "MIN_RATING",
+      "MIN_SCORE",
+      "QUESTION_DIFFICULTY",
+      "SCORE_LEVEL_BANDS",
+      "SCORE_LEVEL_DEFAULTS",
+      "SCORE_SCALE_VERSION",
+      "applyGradedOutcome",
+      "calculateFlashcardCompletion",
+      "calculateLessonCompletion",
+      "clean",
+      "curriculumLevelsForUser",
+      "eloDelta",
+      "eloForUser",
+      "eloToScore",
+      "generationPerformanceContextFor",
+      "higherLevel",
+      "initialEloLevelForUser",
+      "initialEloRating",
+      "internalEloForUser",
+      "migrateLegacyEloRating",
+      "migrateScoreV2",
+      "normalizeEloLevel",
+      "performanceContextFor",
+      "practiceLevelForElo",
+      "questionWorthForUser",
+      "quotedEloDelta",
+      "scoreToElo",
+      "storedRating"
+    ]
+  },
+  {
+    "file": "src/components/Conversations.jsx",
+    "sha256": "85010736ae62a383795b88c192e0190b7f9b02a0d51cfa080d9b5eac8f19525d",
+    "bindings": [
+      "DEFAULT_SUPPORT_LANGUAGE",
+      "buildConversationResponseCreateEvent",
+      "buildConversationTurnDetection",
+      "buildRealtimeResumeContext",
+      "buildVoicePersonaPolicy",
+      "eloForUser",
+      "foundationGoalRules",
+      "generationPerformanceContextFor",
+      "getAdultBeginnerToneRule",
+      "getLanguagePromptName",
+      "isFoundationConversationLevel",
+      "isFoundationStarterLevel",
+      "normalizeSupportLanguage",
+      "practiceLevelForElo"
+    ]
+  },
+  {
+    "file": "src/components/RealTimeTest.jsx",
+    "sha256": "9c45b94d47afed3c84f776f7ca23b49dfc2da721cda52365bbf8402405a432a6",
+    "bindings": [
+      "buildCurriculumPromptContext",
+      "buildLessonPreparationRecipe",
+      "buildRealtimeResumeContext",
+      "focusedLessonPrompt",
+      "generationPerformanceContextFor",
+      "getAdultBeginnerToneRule",
+      "getCEFRPromptHint",
+      "getLanguagePromptName",
+      "useUserStore"
+    ]
+  },
+  {
+    "file": "src/components/History.jsx",
+    "sha256": "ceca67f29b27ebc41c300c29e6ea92240bda1020fb23c3e505a06b65842832a9",
+    "bindings": [
+      "LANG_NAME",
+      "buildCurriculumPromptContext",
+      "buildStreamingPrompt",
+      "difficultyHint",
+      "focusedLessonPrompt",
+      "generationPerformanceContextFor",
+      "getCEFRPromptHint",
+      "getReadingLevelSpecs",
+      "streamingReviewQuestionProtocol",
+      "tutorialReadingDirective",
+      "useUserStore"
+    ]
+  },
+  {
+    "file": "src/features/stories/storyDiversity.js",
+    "sha256": "90deafa440f87d87720a43dc232670e9f88008a6ce6cdb8867423a574cb7f070",
+    "bindings": [
+      "buildCurriculumPromptContext",
+      "buildStoryDiversityPrompt",
+      "createStoryPlan",
+      "directions",
+      "getReadingQualityIssues",
+      "getStoryHistory",
+      "getStoryNoveltyIssues",
+      "pick",
+      "readHistory"
+    ],
+    "nativeHistoryAdapter": "History supplied explicitly from native private state; original pure selection, prompts and quality policies retained."
+  },
+  {
+    "file": "src/features/stories/storyPrompts.js",
+    "sha256": "5287a94fcf66512e3681fbb829ba4435d4f713535191db3772866bef33b7d1c1",
+    "bindings": [
+      "buildSpeakingStoryPrompt",
+      "buildStoryWritingBrief",
+      "getStoryDifficulty",
+      "normalizeCEFRLevel"
+    ]
+  },
+  {
+    "file": "src/features/stories/storySession.js",
+    "sha256": "f05815923df5191d4be7c63fffe95b897d5bcc056c3c6634ba31dc5ed891e22d",
+    "bindings": [
+      "STORY_MODES",
+      "TARGET_SCRIPT_PATTERNS",
+      "applyStoryStreamLine",
+      "buildStorySessionPrompt",
+      "buildStorySessionStreamPrompt",
+      "buildStoryWordTiles",
+      "buildStoryWritingBrief",
+      "chooseStoryMode",
+      "getStoryTargetScriptCoverage",
+      "isStoryTargetCollectionCompatible",
+      "isStoryTargetTextCompatible",
+      "normalize",
+      "usesUnspacedWords"
+    ]
+  },
+  {
+    "file": "src/features/stories/practiceStoryGeneration.js",
+    "sha256": "e1ab1b6ab589a3bfc704ea8ea4b356101be80628da564239219bea50f429f078",
+    "bindings": [
+      "isStoryTargetCollectionCompatible",
+      "parsePracticeStory",
+      "roster"
+    ]
+  },
+  {
+    "file": "src/utils/activityQualityReview.js",
+    "sha256": "0c9b0cbc3eea77f09364850bc8da32203f035e0c04e1c4b57b084a2f7f7ab9d9",
+    "bindings": [
+      "buildActivityReviewRequest",
+      "parseReview"
+    ]
+  },
+  {
+    "file": "src/utils/activityGeneration.js",
+    "sha256": "32e20d154618b3ae09e87077a75a70e0947cd5be5d96d9524441a38f7b18f8ec",
+    "bindings": [
+      "isExactActivityRepeat",
+      "normalize"
+    ]
+  },
+  {
+    "file": "src/utils/learningIntelligenceModel.js",
+    "sha256": "5e6efcd7fea2758af10af1d3617945daa8583f68f0072cc26d5822549ef0a95c",
+    "bindings": [
+      "focusedLessonPrompt"
+    ]
+  },
+  {
+    "file": "src/utils/voicePersonaPrompt.js",
+    "sha256": "b34f89fff23bdedc5a0b1e71110a65c6dd8261e616ba67cfc5814e8215395641",
+    "bindings": [
+      "MAX_VOICE_PERSONA_LENGTH",
+      "buildVoicePersonaPolicy",
+      "buildVoicePersonaReminder",
+      "normalizeVoicePersona"
+    ]
+  },
+  {
+    "file": "src/utils/adultBeginnerTone.js",
+    "sha256": "c86551509f0ce4b911787dbe9f4e897af56816eaf8af26e2224ff0deaa4b6e90",
+    "bindings": [
+      "EARLY_BEGINNER_LEVELS",
+      "getAdultBeginnerToneRule",
+      "isEarlyBeginnerLevel"
+    ]
+  },
+  {
+    "file": "src/constants/languages.js",
+    "sha256": "02cb1507cb2ee1b5822ac4dd98cd7faf3e67a5101a13dd6c93826f553201ab32",
+    "bindings": [
+      "CANONICAL_SUPPORT_LANGUAGE_CODES",
+      "DEFAULT_SUPPORT_LANGUAGE",
+      "LANGUAGE_FALLBACK_LABELS",
+      "LANGUAGE_META",
+      "LANGUAGE_PROMPT_LABELS",
+      "SUPPORTED_LANGUAGE_CODES_SET",
+      "SUPPORT_LANGUAGE_CODES_BASE",
+      "SUPPORT_LANGUAGE_CODES_SET",
+      "brazilianFlag",
+      "chineseFlag",
+      "egyptianFlag",
+      "frenchFlag",
+      "germanFlag",
+      "getLanguagePromptName",
+      "greekFlag",
+      "indianFlag",
+      "irishFlag",
+      "italianFlag",
+      "japaneseFlag",
+      "mexicanFlag",
+      "netherlandsFlag",
+      "normalizeCode",
+      "normalizeSupportLanguage",
+      "normalizeSupportedCode",
+      "polishFlag",
+      "russianFlag",
+      "usaFlag"
+    ]
+  },
+  {
+    "file": "src/utils/conversationRealtimePolicy.js",
+    "sha256": "c157da4881b14926cd9c8b85c3ed60a447a04888de1a36469913aa64cc184bbd",
+    "bindings": [
+      "buildConversationResponseCreateEvent",
+      "buildConversationResponseInstructions",
+      "buildConversationTurnDetection",
+      "buildVoicePersonaReminder"
+    ]
+  },
+  {
+    "file": "src/utils/realtimeSessionControls.js",
+    "sha256": "355b82624878e4efdb951308d2ef9b87389001a35b3bb641c6fcd9fdae87b006",
+    "bindings": [
+      "buildRealtimeResumeContext"
+    ]
+  },
+  {
+    "file": "src/utils/cefrUtils.js",
+    "sha256": "1728261507ff4b90e05e0ccfa0717f4e1b758fc1f908fffb9c5ea3d101ab91b7",
+    "bindings": [
+      "CEFR_DESCRIPTIONS",
+      "extractCEFRLevel",
+      "getCEFRDescription",
+      "getCEFRPromptHint",
+      "normalizeCEFRLevel"
+    ]
+  },
+  {
+    "file": "src/utils/vocabularyMatchGeneration.js",
+    "sha256": "f2891a4fa5f0885362c89e9fac377c9e7fcf20e8b2a801076836fd066d179be3",
+    "bindings": [
+      "buildCurriculumPromptContext",
+      "buildVocabularyMatchPrompt",
+      "getTutorStarterVocabularyPairs",
+      "isTutorialVocabularyLesson"
+    ]
+  },
+  {
+    "file": "src/utils/readingHistoryStore.js",
+    "sha256": "bf3c1ca2844f5a49f9ff2adfbafbfdaccfd69bfa67fc88d6592cd3f6bc4f5c39",
+    "bindings": [
+      "META_PREAMBLE_PATTERNS",
+      "getReadingLevelSpecs",
+      "stripMetaNarratorPreamble"
+    ]
+  },
+  {
+    "file": "src/utils/readingGeneration.js",
+    "sha256": "755b36927bdfcc3ee29c63489c4d54349b6de6341afcbfcc183b2e8c1070d1d9",
+    "bindings": [
+      "getReadingQualityIssues",
+      "isReactionLedSentence",
+      "normalize",
+      "reactionStructure",
+      "sameSentenceSkeleton",
+      "sentences",
+      "shingles",
+      "stripMetaNarratorPreamble",
+      "words"
+    ]
+  },
+  {
+    "file": "src/utils/translation.jsx",
+    "sha256": "10c6705379ed869d84ece0ec7a829193bb3c9522d742683701de56cb194666b9",
+    "bindings": [
+      "translations"
+    ],
+    "nativeAdapter": "Original language-name strings only; no JSX UI."
+  },
+  {
+    "file": "src/utils/tutorStarterAgenda.js",
+    "sha256": "2ddcfa8b7e91698986ba80c726286f0fae6c4d8e85ea47837f24fe45bfd052c3",
+    "bindings": [
+      "SUPPORT_LABELS",
+      "TARGET_EXAMPLES",
+      "TUTOR_STARTER_AGENDA_IDS",
+      "getBaseLanguageCode",
+      "getTutorStarterTargetExamples",
+      "getTutorStarterVocabularyPairs"
+    ]
+  },
+  {
+    "file": "src/utils/starterPhrase.js",
+    "sha256": "2646aeb8aa96f2be46c4f963b435fd3653039f449b609289f2f81656cda5602b",
+    "bindings": [
+      "isFoundationStarterLevel"
+    ]
+  },
+  {
+    "file": "src/utils/cefrProgress.js",
+    "sha256": "6681ba74b8d2d4c2e142f6c310274ecbe075c7ed5fb61a2817605c1583e41c85",
+    "bindings": [
+      "CEFR_LEVEL_COUNTS",
+      "LESSON_COUNTS",
+      "calculateFlashcardCompletion",
+      "calculateLessonCompletion",
+      "getLessonLevelFromId"
+    ]
+  },
+  {
+    "file": "src/data/manualPreA1Agendas.js",
+    "sha256": "d3a963315ddc4cb876713ec1150aebb8a19ceaf90fba0ea46a28a3ab5e920ddf",
+    "bindings": [
+      "FORM_LABEL_PREFIXES",
+      "MANUAL_APPLICATION_LABELS",
+      "MANUAL_PRE_A1_AGENDAS",
+      "agenda",
+      "buildAgenda",
+      "capabilityItem",
+      "formItem",
+      "getManualPreA1AgendaItems"
+    ]
+  },
+  {
+    "file": "src/data/manualA1Agendas.js",
+    "sha256": "c83487a99119180cc20e5f690e4e5a07f3b80209c34f7d72de158fcb908abfcc",
+    "bindings": [
+      "FORM_LABEL_PREFIXES",
+      "MANUAL_A1_AGENDAS",
+      "agenda",
+      "applicationItem",
+      "buildAgenda",
+      "formItem",
+      "getManualA1AgendaItems"
+    ]
+  },
+  {
+    "file": "src/data/manualB1B2Agendas.js",
+    "sha256": "5803258e0d154f309b98076f558dfa2066b9d89385e3a738997a9f953d610b1a",
+    "bindings": [
+      "APPLICATION_LABEL_PREFIXES",
+      "B1_B2_FOUNDATION_FORMS",
+      "FORM_LABEL_PREFIXES",
+      "MANUAL_B1_B2_AGENDAS",
+      "agenda",
+      "applicationItem",
+      "buildAgenda",
+      "formItem",
+      "getManualB1B2AgendaItems",
+      "getManualB1B2FoundationFormItems"
+    ]
+  },
+  {
+    "file": "src/data/manualC1C2Agendas.js",
+    "sha256": "296264b175d3d5425e0a3b2899b8dba27db12acea8e362778f1a17b72b915300",
+    "bindings": [
+      "APPLICATION_LABEL_PREFIXES",
+      "C1_C2_FOUNDATION_FORMS",
+      "FORM_LABEL_PREFIXES",
+      "MANUAL_C1_C2_AGENDAS",
+      "agenda",
+      "applicationItem",
+      "buildAgenda",
+      "formItem",
+      "getManualC1C2AgendaItems",
+      "getManualC1C2FoundationFormItems"
+    ]
+  },
+  {
+    "file": "src/constants/supportLanguages.js",
+    "sha256": "d8e8dc17f353a5106bdc984f2cce9696669bc7216be10e006738cb0a04b40b5a",
+    "bindings": [
+      "SUPPORT_LANGUAGE_CODES"
+    ]
+  },
+  {
+    "file": "src/components/flagsIcons/flags.jsx",
+    "sha256": "2f1101d10f316c803cd6a97b795152472ca1cad561b059aebc2bbd68309fb1f0",
+    "bindings": [
+      "brazilianFlag",
+      "chineseFlag",
+      "egyptianFlag",
+      "frenchFlag",
+      "germanFlag",
+      "greekFlag",
+      "indianFlag",
+      "irishFlag",
+      "italianFlag",
+      "japaneseFlag",
+      "mexicanFlag",
+      "netherlandsFlag",
+      "polishFlag",
+      "russianFlag",
+      "usaFlag"
+    ],
+    "nativeAdapter": "Flag renderers omitted from text-only language metadata."
+  },
+  {
+    "file": "src/data/flashcards/common.js",
+    "sha256": "e4110d661b925ecb53e3cf33c02227ea51ac0b67db9cb02a91ee71e14724a2c4",
+    "bindings": [
+      "CEFR_LEVEL_COUNTS"
+    ]
+  },
+  {
+    "file": "src/utils/starterPhrase.js",
+    "sha256": "2646aeb8aa96f2be46c4f963b435fd3653039f449b609289f2f81656cda5602b",
+    "bindings": [
+      "generateStarterPhrase:prompt",
+      "parseStarterPhrase"
+    ],
+    "nativeAdapter": "Original starter prompt/parser; native text provider and playback."
+  },
+  {
+    "file": "src/components/Conversations.jsx",
+    "sha256": "85010736ae62a383795b88c192e0190b7f9b02a0d51cfa080d9b5eac8f19525d",
+    "bindings": [
+      "buildLanguageInstructionsBase",
+      "generateConversationTopic:prompt",
+      "generateContextualGoal:prompt",
+      "evaluateGoalCompletion:prompt"
+    ],
+    "nativeAdapter": "Original conversation instruction, initial/contextual goal and judge expressions receive explicit private refs; audio, UI and network stay native."
+  },
+  {
+    "file": "src/components/RealTimeTest.jsx",
+    "sha256": "9c45b94d47afed3c84f776f7ca23b49dfc2da721cda52365bbf8402405a432a6",
+    "bindings": [
+      "computeXpDelta",
+      "goalTitleForTarget",
+      "goalRubricForTarget",
+      "buildLanguageInstructionsBase",
+      "buildTutorialGoal",
+      "evaluateAndMaybeAdvanceGoal:judgePrompt"
+    ],
+    "nativeAdapter": "Pure lexical functions receive explicit JSON refs. Audio, network, React effects and account credentials omitted."
+  },
+  {
+    "file": "src/features/stories/practiceStoryGeneration.js",
+    "sha256": "e1ab1b6ab589a3bfc704ea8ea4b356101be80628da564239219bea50f429f078",
+    "bindings": [
+      "buildRevisionPrompt"
+    ],
+    "nativeAdapter": "Original validation/style revision expressions; generation coordinator and deadlines remain native."
+  },
+  {
+    "file": "src/features/stories/storyGeneration.js",
+    "sha256": "67dcd7dd288a4976b69c50f1d5f8da2ebb1599f260622bb8088f136c2e6ba616",
+    "bindings": [
+      "buildRevisionPrompt"
+    ],
+    "nativeAdapter": "Original validation/style revision expressions; generation coordinator and deadlines remain native."
+  },
+  {
+    "file": "src/utils/questionDifficultyAssessment.js",
+    "sha256": "8d0c4393281a30bb3ee6c3ca7926a73fa993e3d6e1251732a9a301614a1cefc5",
+    "bindings": [
+      "assessGeneratedQuestionWorths:prompt",
+      "assessGeneratedQuestionWorths:validation"
+    ],
+    "nativeAdapter": "Original batch prompt and score-array validation; provider request stays native."
+  },
+  {
+    "file": "src/components/Stories.jsx",
+    "sha256": "98a951b5e2de6f075b89da93dc99c4c8bfeee5fecd4cb365df2906be4302238c",
+    "bindings": [
+      "buildStoryDiversityPrompt",
+      "createStoryPlan",
+      "buildSpeakingStoryPrompt",
+      "getStoryDifficulty",
+      "focusedLessonPrompt",
+      "generationPerformanceContextFor"
+    ],
+    "nativeAdapter": "Original speaking preparation branch; history explicitly supplied, dynamic React import omitted."
+  },
+  {
+    "file": "src/components/History.jsx",
+    "sha256": "ceca67f29b27ebc41c300c29e6ea92240bda1020fb23c3e505a06b65842832a9",
+    "bindings": [
+      "checkReviewAnswer:prompt",
+      "explainReviewAnswer:prompt",
+      "translateLectureLines:prompt",
+      "gradeSpeechAttempt:prompt"
+    ],
+    "nativeAdapter": "Only original prompt expressions receive explicit JSON reading data. Native UI, audio and network remain outside the interpreter."
+  }
+]

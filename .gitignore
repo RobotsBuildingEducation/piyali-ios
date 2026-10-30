@@ -20,3 +20,6 @@ Backend/node_modules/
 Backend/.wrangler/
 .secrets/
 .firebase/
+
+.reference-preview/
+PiyaliExploration*.xcresult/

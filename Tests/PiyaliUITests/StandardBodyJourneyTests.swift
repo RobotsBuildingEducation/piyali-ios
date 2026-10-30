@@ -1,0 +1,79 @@
+import XCTest
+@MainActor final class StandardBodyJourneyTests:XCTestCase {
+    private func element(_ id:String,_ app:XCUIApplication)->XCUIElement{app.descendants(matching:.any).matching(identifier:id).firstMatch}
+    private func reveal(_ e:XCUIElement,_ app:XCUIApplication){for _ in 0..<12 where !e.isHittable{if e.exists,e.frame.midY<app.frame.midY{app.swipeDown(velocity:.slow)}else{app.swipeUp(velocity:.slow)}};if !e.isHittable{shot("Missing standard interaction",app)};XCTAssertTrue(e.isHittable)}
+    private func tap(_ id:String,_ app:XCUIApplication){let e=element(id,app);XCTAssertTrue(e.waitForExistence(timeout:10));reveal(e,app);e.tap()}
+    private func shot(_ name:String,_ app:XCUIApplication){let a=XCTAttachment(screenshot:app.screenshot());a.name=name;a.lifetime = .keepAlways;add(a)}
+    private func launch(_ variant:String,audio:Bool=false,cache:Bool=false,warm:Bool=false)->XCUIApplication {
+        let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_HEADLINE_FIXTURE":"failure","PIYALI_PRACTICE_JUDGE_FIXTURE":"offered-reference","PIYALI_PRACTICE_FIXTURE":"standard:"+variant,"PIYALI_QUESTION_HELP_FIXTURE":"stream"];if audio{app.launchEnvironment["PIYALI_LESSON_AUDIO_FIXTURE"]="loading"};if cache{app.launchEnvironment["PIYALI_LESSON_AUDIO_FIXTURE"]="cache"};if warm{app.launchEnvironment["PIYALI_LESSON_AUDIO_FIXTURE"]="warm"};app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"];app.launch();handleInitialPaperPencil(app)
+        let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Standard Learner");tap("entryKeyboardDone",app);tap("createAccount",app);handleInitialPaperPencil(app);chooseEnglishSpanishOnboarding(app);tap("startLearning",app);tap("companionContinue",app);acknowledgePaperPencil(app);tap("gettingStartedGotIt",app);chooseA1Placement(app);open(app);return app
+    }
+    private func open(_ app:XCUIApplication){tap("productMenu",app);tap("productModeMenu",app);tap("productMode-path",app);if !app.buttons["lessonNode-lesson-pre-a1-1-1"].exists{tap("lessonPreviousLevel",app)};tap("lessonNode-lesson-pre-a1-1-1",app);tap("startLessonFromPreview",app);XCTAssertTrue(element("typedQuestionPrompt",app).waitForExistence(timeout:10))}
+    private func checkWrong(_ app:XCUIApplication){tap("checkTypedAnswer",app);XCTAssertTrue(app.staticTexts["practiceVerdict"].waitForExistence(timeout:10));XCTAssertTrue(app.staticTexts["practiceVerdict"].label.contains("Try again"))}
+    private func correct(_ xp:Int,_ app:XCUIApplication){tap("checkTypedAnswer",app);XCTAssertTrue(app.buttons["nextTypedQuestion"].waitForExistence(timeout:10));XCTAssertTrue(app.staticTexts["practiceVerdict"].label.contains("+\(xp) XP"))}
+    private func drag(_ source:String,to target:String,_ app:XCUIApplication){let a=element(source,app),b=element(target,app);XCTAssertTrue(a.waitForExistence(timeout:10));XCTAssertTrue(b.waitForExistence(timeout:10));reveal(a,app);a.press(forDuration:1,thenDragTo:b)}
+    func testOriginalHelpExplanationAndSourceEditFeedbackAcrossFourFormats() {
+        continueAfterFailure=false
+        for variant in ["fill","mc-buttons","ma-buttons","match"]{let app=launch(variant);tap("typedPracticeHelp",app);XCTAssertTrue(app.staticTexts["typedAssistantText"].waitForExistence(timeout:10));XCTAssertFalse(app.staticTexts["practiceVerdict"].exists);shot("Native original standard help \(variant)",app);tap("closeTypedAssistantAction",app)
+            switch variant{case "fill":let f=app.textFields["typedPracticeAnswer"];f.tap();f.typeText("WRONG_FIXTURE");tap("practiceKeyboardDone",app)
+            case "match":tap("standardMatchBank-1",app);tap("standardMatchBank-0",app);tap("standardMatchBank-2",app)
+            default:tap("typedChoice-1",app)}
+            checkWrong(app);tap("explainTypedAnswer",app);XCTAssertTrue(app.staticTexts["typedExplanation"].waitForExistence(timeout:10))
+            switch variant{case "fill":let f=app.textFields["typedPracticeAnswer"];f.tap();f.typeText(String(repeating:XCUIKeyboardKey.delete.rawValue,count:13)+"pan");tap("practiceKeyboardDone",app)
+            case "match":drag("standardMatchPlaced-1",to:"standardSlot-0",app)
+            default:tap("typedChoice-0",app)}
+            XCTAssertFalse(app.staticTexts["practiceVerdict"].exists);XCTAssertFalse(app.staticTexts["typedExplanation"].exists);shot("Native source feedback clears after edit \(variant)",app);correct(["fill","mc-buttons"].contains(variant) ? 5:6,app);XCTAssertFalse(app.staticTexts["typedExplanation"].exists)
+            if variant == "match"{tap("nextTypedQuestion",app);tap("standardMatchBank-0",app);tap("standardMatchBank-2",app);tap("standardMatchBank-1",app);checkWrong(app);tap("explainTypedAnswer",app);XCTAssertTrue(app.staticTexts["typedExplanation"].waitForExistence(timeout:10));let explanation=app.staticTexts["typedExplanation"].label;drag("standardMatchPlaced-2",to:"standardSlot-0",app);XCTAssertTrue(app.staticTexts["practiceVerdict"].exists);XCTAssertEqual(app.staticTexts["typedExplanation"].label,explanation);shot("Native Grammar matching keeps submitted explanation while editing",app);correct(6,app)}
+            app.terminate()
+        }
+    }
+    func testMatchingTapNativeDragReturnSwapRetryAndFreshReentry() {
+        continueAfterFailure=false;let app=launch("match");XCTAssertFalse(app.buttons["checkTypedAnswer"].isEnabled)
+        drag("standardMatchBank-0",to:"standardSlot-0",app);XCTAssertTrue(app.buttons["standardMatchPlaced-0"].waitForExistence(timeout:5));drag("standardMatchPlaced-0",to:"standardBank",app);XCTAssertTrue(app.buttons["standardMatchBank-0"].waitForExistence(timeout:5))
+        tap("standardMatchBank-1",app);tap("standardMatchBank-0",app);tap("standardMatchBank-2",app);checkWrong(app);shot("Native standard matching incorrect pairs",app)
+        drag("standardMatchPlaced-1",to:"standardSlot-0",app);XCTAssertEqual(app.buttons["standardMatchPlaced-0"].label,"hello");XCTAssertEqual(app.buttons["standardMatchPlaced-1"].label,"goodbye");correct(6,app);XCTAssertFalse(app.buttons["standardMatchPlaced-0"].isEnabled);shot("Native standard matching swapped correct pairs",app)
+        app.terminate();app.launch();handleInitialPaperPencil(app);open(app);XCTAssertTrue(app.buttons["standardMatchBank-0"].waitForExistence(timeout:10));XCTAssertFalse(app.buttons["standardMatchPlaced-0"].exists);XCTAssertFalse(app.staticTexts["practiceVerdict"].exists);XCTAssertFalse(app.buttons["checkTypedAnswer"].isEnabled)
+    }
+    func testSingleAndMultipleChoiceCardsSelectToggleRetryAndLock() {
+        continueAfterFailure=false
+        for variant in ["mc-buttons","ma-buttons"]{let app=launch(variant);XCTAssertFalse(app.buttons["checkTypedAnswer"].isEnabled);tap("typedChoice-1",app);checkWrong(app)
+            if variant == "ma-buttons"{tap("typedChoice-1",app);XCTAssertFalse(app.buttons["checkTypedAnswer"].isEnabled);tap("typedChoice-0",app);XCTAssertTrue(app.buttons["checkTypedAnswer"].isEnabled);tap("typedChoice-1",app)}else{tap("typedChoice-0",app)}
+            correct(variant == "mc-buttons" ? 5:6,app);XCTAssertFalse(app.buttons["typedChoice-0"].isEnabled);shot("Native standard \(variant) correct cards",app);app.terminate()
+        }
+    }
+    func testInlineSingleChoiceTapReplaceNativeDragAndReturnBeforeRetry() {
+        continueAfterFailure=false;let app=launch("mc-drag");tap("typedWord-1",app);XCTAssertTrue(app.buttons["typedSelected-0"].waitForExistence(timeout:5));tap("typedSelected-0",app);XCTAssertTrue(app.buttons["typedWord-1"].waitForExistence(timeout:5))
+        drag("typedWord-0",to:"standardSlot-0",app);XCTAssertTrue(app.buttons["typedSelected-0"].waitForExistence(timeout:5));drag("typedSelected-0",to:"standardBank",app);XCTAssertTrue(app.buttons["typedWord-0"].waitForExistence(timeout:5));XCTAssertFalse(app.buttons["checkTypedAnswer"].isEnabled)
+        tap("typedWord-1",app);checkWrong(app);tap("typedWord-0",app);XCTAssertEqual(app.buttons["typedSelected-0"].label,"como");correct(5,app);shot("Native inline single-choice answer",app)
+    }
+    func testMultipleInlineBlanksRequireEverySlotAndPreserveHolesThroughRetry() {
+        continueAfterFailure=false;let app=launch("ma-drag");tap("typedWord-0",app);XCTAssertFalse(app.buttons["checkTypedAnswer"].isEnabled);tap("typedWord-1",app);XCTAssertTrue(app.buttons["checkTypedAnswer"].isEnabled);tap("typedSelected-0",app);XCTAssertFalse(app.buttons["checkTypedAnswer"].isEnabled);XCTAssertEqual(app.buttons["typedSelected-1"].label,"padre")
+        drag("typedWord-2",to:"standardSlot-0",app);checkWrong(app);drag("typedWord-0",to:"standardSlot-0",app);XCTAssertEqual(app.buttons["typedSelected-0"].label,"madre");XCTAssertEqual(app.buttons["typedSelected-1"].label,"padre");correct(6,app);shot("Native multiple inline blank repair",app)
+    }
+    private func waitForAudioLoading(_ button:XCUIElement)->Bool{XCTWaiter.wait(for:[XCTNSPredicateExpectation(predicate:NSPredicate(format:"value == %@","Loading..."),object:button)],timeout:5) == .completed}
+    func testPreparedQuestionNarrationStartsWithoutAnotherHandshakeAndSkipStopsPlayback() {
+        continueAfterFailure=false;let app=launch("fill",warm:true),button=app.buttons["typedPracticeListen"]
+        let silent=XCTNSPredicateExpectation(predicate:NSPredicate(format:"value == %@","Playing…"),object:button);silent.isInverted=true;XCTAssertEqual(XCTWaiter.wait(for:[silent],timeout:5),.completed)
+        tap("typedPracticeListen",app);let playing=XCTNSPredicateExpectation(predicate:NSPredicate(format:"value == %@","Playing…"),object:button);XCTAssertEqual(XCTWaiter.wait(for:[playing],timeout:2),.completed);XCTAssertNotEqual(button.value as? String,"Loading...");shot("Native prepared question narration starts on demand",app)
+        tap("skipLessonActivity",app);XCTAssertTrue(element("typedQuestionPrompt",app).waitForExistence(timeout:10));XCTAssertNotEqual(button.value as? String,"Playing…");XCTAssertEqual(element("dailyXPStatus",app).value as? String,"0%");shot("Native prepared narration stops on Skip without awarding XP",app)
+    }
+    func testQuestionNarrationLoadingCancelsOnSkipAndMatchingWordToggle() {
+        continueAfterFailure=false
+        for variant in ["fill","match"]{let app=launch(variant,audio:true),listen=variant == "match" ? "standardWordAudio-0":"typedPracticeListen";tap(listen,app);XCTAssertTrue(waitForAudioLoading(app.buttons[listen]));shot("Native lesson narration loading \(variant)",app)
+            if variant == "match"{tap(listen,app);XCTAssertNotEqual(app.buttons[listen].value as? String,"Loading...");tap("standardWordAudio-1",app);XCTAssertTrue(waitForAudioLoading(app.buttons["standardWordAudio-1"]))}
+            tap("skipLessonActivity",app);XCTAssertTrue(element("typedQuestionPrompt",app).waitForExistence(timeout:10));XCTAssertNotEqual(app.buttons[listen].value as? String,"Loading...");app.terminate()
+        }
+    }
+    func testCompletedQuestionNarrationReplaysWithoutLoadingAfterRelaunchAndSkipCancelsIt() {
+        continueAfterFailure=false
+        let app=launch("fill",cache:true),button=app.buttons["typedPracticeListen"]
+        func value(_ expected:String,_ timeout:TimeInterval){let wait=XCTNSPredicateExpectation(predicate:NSPredicate(format:"value == %@",expected),object:button);XCTAssertEqual(XCTWaiter.wait(for:[wait],timeout:timeout),.completed)}
+        tap("typedPracticeListen",app);value("Loading...",5);shot("Native first narration connects before reusable completion",app);value("Playing…",8);value("",10)
+        tap("typedPracticeListen",app);value("Playing…",3);XCTAssertNotEqual(button.value as? String,"Loading...");shot("Native completed narration replays from memory",app);value("",8)
+        app.terminate();app.launch();handleInitialPaperPencil(app);open(app);tap("typedPracticeListen",app);value("Playing…",3);XCTAssertNotEqual(button.value as? String,"Loading...");shot("Native completed narration replays after relaunch",app)
+        tap("skipLessonActivity",app);XCTAssertTrue(element("typedQuestionPrompt",app).waitForExistence(timeout:10));XCTAssertNotEqual(button.value as? String,"Playing…");let xp=element("dailyXPStatus",app);XCTAssertEqual(xp.value as? String,"0%")
+    }
+    func testFillUsesOriginalInputHelpAudioAndTypedRetry() {
+        continueAfterFailure=false;let app=launch("fill"),field=app.textFields["typedPracticeAnswer"];XCTAssertFalse(app.buttons["typedPracticeMicrophone"].exists);XCTAssertTrue(app.buttons["typedPracticeListen"].exists);XCTAssertTrue(app.buttons["typedPracticeHelp"].exists);field.tap();field.typeText("WRONG_FIXTURE");tap("practiceKeyboardDone",app);checkWrong(app);field.tap();field.typeText(String(repeating:XCUIKeyboardKey.delete.rawValue,count:13)+"pan");tap("practiceKeyboardDone",app);correct(5,app);XCTAssertFalse(field.isEnabled);shot("Native standard fill correct input",app)
+    }
+}

@@ -1,0 +1,46 @@
+{
+  "result": "PiyaliMangaPaper6.xcresult",
+  "scope": "Actual isolated signup; initial modal before onboarding with blocked underlying controls and session-only close; companion-triggered acknowledgment/setup/placement; settings reopening; returning process mounts and per-language placement. Public offline QA accounts, no prefilled acknowledgment/XP or external service writes.",
+  "records": [
+    {
+      "file": "docs/native/paper-pencil-initial-en-product.png",
+      "sha256": "9d3a4793c5e33c8b1149111c848871042795231cfc767a7a7af1e62c3baabde5",
+      "attachment": "Native manga initial onboarding paper en_0_8FFEA829-AF5B-403F-A3AD-A1D6EBCA47B2.png"
+    },
+    {
+      "file": "docs/native/paper-pencil-companion-en-product.png",
+      "sha256": "ab3f66c0620edc9ba6d02c86692ae4fd421c47703812ac85a712061cfdc1da38",
+      "attachment": "Native manga companion paper en_0_EBEE97FF-9E4C-48C6-A635-7ADA2B94E8E9.png"
+    },
+    {
+      "file": "docs/native/paper-pencil-setup-en-product.png",
+      "sha256": "c693af469b5dbd3951d13c940e0f824022908f0bc246dd8b49796460a8e7724b",
+      "attachment": "Native manga paper to original setup en_0_2B183F2B-2CBF-471C-AB8F-A0CEB854C190.png"
+    },
+    {
+      "file": "docs/native/paper-pencil-returning-en-product.png",
+      "sha256": "ab3f66c0620edc9ba6d02c86692ae4fd421c47703812ac85a712061cfdc1da38",
+      "attachment": "Native manga returning initial paper en_0_48722E80-D137-406C-8940-76FEA587B79B.png"
+    },
+    {
+      "file": "docs/native/paper-pencil-initial-ar-product.png",
+      "sha256": "2196aaf22de55021b944a7d5a0613291365f241ff301a8d3d2ba9cacfae99572",
+      "attachment": "Native manga initial onboarding paper ar_0_E1479228-8C11-4026-9A00-37E31EDA4A51.png"
+    },
+    {
+      "file": "docs/native/paper-pencil-companion-ar-product.png",
+      "sha256": "5a791dec3578558ec45a53c7bfe48f3acd77eac70b27b979a3fd6299447f5747",
+      "attachment": "Native manga companion paper ar_0_78808A0E-E109-4E40-83F5-63FA54F169D8.png"
+    },
+    {
+      "file": "docs/native/paper-pencil-setup-ar-product.png",
+      "sha256": "d0c20ecb43bb65a31c660f10b052765d5c9711d27428fe82135d92154c5b8b2c",
+      "attachment": "Native manga paper to original setup ar_0_B5553F93-1334-4096-AC9A-090308E121E0.png"
+    },
+    {
+      "file": "docs/native/paper-pencil-returning-ar-product.png",
+      "sha256": "5a791dec3578558ec45a53c7bfe48f3acd77eac70b27b979a3fd6299447f5747",
+      "attachment": "Native manga returning initial paper ar_0_5B8CEBB5-E18F-4811-A21B-4C6640D55371.png"
+    }
+  ]
+}

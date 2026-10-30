@@ -1,0 +1,6 @@
+{
+  "source": "src/components/RPGGame/index.jsx",
+  "sha256": "f597e8f7a9296ff3f72fad4e6f24ca4a1a313fddbc87ba3cf2d128c1d6ea95a2",
+  "cases": 1176,
+  "adapters": "Actual source spawn and single-step tap helpers execute with explicit map/NPC snapshots. Sound, hints, player texture refs and portal effects are inert. These authored maps have no room portals. Movement ordering, collisions and center selection remain original."
+}

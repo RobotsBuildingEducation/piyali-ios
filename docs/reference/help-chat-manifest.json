@@ -1,0 +1,26 @@
+{
+  "sources": [
+    {
+      "file": "src/components/HelpChatFab.jsx",
+      "sha256": "536f9e889f54ac1bd2c06556315505026ee207163b4276b6d652c4f0f9c444f4"
+    },
+    {
+      "file": "src/utils/helpChatMorpheme.js",
+      "sha256": "5565ec27d155385e5ba0f4086974a6139649ce0c08816e0bfd6bfdacd9901419"
+    },
+    {
+      "file": "src/utils/assistantLanguagePolicy.js",
+      "sha256": "4b5e2b255f6ac057c6145ff9700ce76df3263d28690719761b580d6d6baaa807"
+    },
+    {
+      "file": "src/constants/languages.js",
+      "sha256": "02cb1507cb2ee1b5822ac4dd98cd7faf3e67a5101a13dd6c93826f553201ab32"
+    },
+    {
+      "file": "src/utils/germanCopy.js",
+      "sha256": "c5d8071bc25c6907cf33693b8e6ae274d3796d7f72b80b21a2056946ebba4307"
+    }
+  ],
+  "cases": 746,
+  "scope": "Original Help text/history/voice prompts, session literal and event deadlines, UI copy, morpheme planning/parser/breakdown and message order/split. No React, provider, localStorage or store initialization."
+}

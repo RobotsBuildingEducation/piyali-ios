@@ -1,0 +1,448 @@
+[
+  {
+    "input": {
+      "support": "en",
+      "names": [
+        "Neko",
+        "Ana"
+      ],
+      "inventory": [],
+      "dialogue": {
+        "node": {
+          "id": "node",
+          "responseMode": "choice",
+          "npcLine": "Hello. How are you?",
+          "choices": [
+            {
+              "text": "Sí"
+            },
+            {
+              "text": "No"
+            },
+            {
+              "text": "Tal vez"
+            }
+          ]
+        },
+        "npcReply": ""
+      },
+      "chunks": [
+        "1. Ho",
+        "la\r",
+        "\n2) ¿Cómo estás?\n3. Sí\n4: No\n5- Quizá"
+      ]
+    },
+    "expected": {
+      "prompt": "Translate each entry below into English.\nAssigned character roster: Neko, Ana.\nOnly use those exact names when referring to people in this scene.\nDo not invent, translate, swap, or mention any other person names.\nPrefer pronouns or second-person phrasing unless a roster name is truly necessary.\nPreserve every character name exactly as written.\nOutput plain text only.\nReturn exactly 5 lines.\nEach line must be only the translation for the matching entry index.\nNo numbering, labels, markdown, or commentary.\n\nEntries:\n1. Hello.\n2. How are you?\n3. Sí\n4. No\n5. Tal vez",
+      "snapshots": [
+        {
+          "lineTranslations": [
+            "",
+            ""
+          ],
+          "choiceTranslations": [
+            "",
+            "",
+            ""
+          ],
+          "actionTranslations": null,
+          "busy": true
+        },
+        {
+          "lineTranslations": [
+            "",
+            ""
+          ],
+          "choiceTranslations": [
+            "",
+            "",
+            ""
+          ],
+          "actionTranslations": null,
+          "busy": true
+        },
+        {
+          "lineTranslations": [
+            "Hola",
+            "¿Cómo estás?"
+          ],
+          "choiceTranslations": [
+            "Sí",
+            "No",
+            ""
+          ],
+          "actionTranslations": null,
+          "busy": true
+        }
+      ],
+      "final": {
+        "lineTranslations": [
+          "Hola",
+          "¿Cómo estás?"
+        ],
+        "choiceTranslations": [
+          "Sí",
+          "No",
+          "Quizá"
+        ],
+        "actionTranslations": null,
+        "busy": false
+      }
+    }
+  },
+  {
+    "input": {
+      "support": "en",
+      "names": [
+        "Neko",
+        "Ana"
+      ],
+      "inventory": [],
+      "dialogue": {
+        "node": {
+          "id": "node",
+          "responseMode": "choice",
+          "npcLine": "Hello. How are you?",
+          "choices": [
+            {
+              "text": "Sí"
+            },
+            {
+              "text": "No"
+            },
+            {
+              "text": "Tal vez"
+            }
+          ]
+        },
+        "npcReply": ""
+      },
+      "chunks": [
+        "\n",
+        "1) Hola\n\n2) Bien\n3) Sí\n4) No\n5) Quizá\n6) EXTRA\n"
+      ]
+    },
+    "expected": {
+      "prompt": "Translate each entry below into English.\nAssigned character roster: Neko, Ana.\nOnly use those exact names when referring to people in this scene.\nDo not invent, translate, swap, or mention any other person names.\nPrefer pronouns or second-person phrasing unless a roster name is truly necessary.\nPreserve every character name exactly as written.\nOutput plain text only.\nReturn exactly 5 lines.\nEach line must be only the translation for the matching entry index.\nNo numbering, labels, markdown, or commentary.\n\nEntries:\n1. Hello.\n2. How are you?\n3. Sí\n4. No\n5. Tal vez",
+      "snapshots": [
+        {
+          "lineTranslations": [
+            "",
+            ""
+          ],
+          "choiceTranslations": [
+            "",
+            "",
+            ""
+          ],
+          "actionTranslations": null,
+          "busy": true
+        },
+        {
+          "lineTranslations": [
+            "Hola",
+            "Bien"
+          ],
+          "choiceTranslations": [
+            "Sí",
+            "No",
+            "Quizá"
+          ],
+          "actionTranslations": null,
+          "busy": true
+        }
+      ],
+      "final": {
+        "lineTranslations": [
+          "Hola",
+          "Bien"
+        ],
+        "choiceTranslations": [
+          "Sí",
+          "No",
+          "Quizá"
+        ],
+        "actionTranslations": null,
+        "busy": false
+      }
+    }
+  },
+  {
+    "input": {
+      "support": "en",
+      "names": [
+        "Neko",
+        "Ana"
+      ],
+      "inventory": [],
+      "dialogue": {
+        "node": {
+          "id": "node",
+          "responseMode": "choice",
+          "npcLine": "Hello. How are you?",
+          "choices": [
+            {
+              "text": "Sí"
+            },
+            {
+              "text": "No"
+            },
+            {
+              "text": "Tal vez"
+            }
+          ]
+        },
+        "npcReply": ""
+      },
+      "chunks": [
+        "Only one line"
+      ]
+    },
+    "expected": {
+      "prompt": "Translate each entry below into English.\nAssigned character roster: Neko, Ana.\nOnly use those exact names when referring to people in this scene.\nDo not invent, translate, swap, or mention any other person names.\nPrefer pronouns or second-person phrasing unless a roster name is truly necessary.\nPreserve every character name exactly as written.\nOutput plain text only.\nReturn exactly 5 lines.\nEach line must be only the translation for the matching entry index.\nNo numbering, labels, markdown, or commentary.\n\nEntries:\n1. Hello.\n2. How are you?\n3. Sí\n4. No\n5. Tal vez",
+      "snapshots": [
+        {
+          "lineTranslations": [
+            "",
+            ""
+          ],
+          "choiceTranslations": [
+            "",
+            "",
+            ""
+          ],
+          "actionTranslations": null,
+          "busy": true
+        }
+      ],
+      "final": {
+        "lineTranslations": [
+          "Only one line",
+          ""
+        ],
+        "choiceTranslations": [
+          "",
+          "",
+          ""
+        ],
+        "actionTranslations": null,
+        "busy": false
+      }
+    }
+  },
+  {
+    "input": {
+      "support": "en",
+      "names": [
+        "Neko",
+        "Ana"
+      ],
+      "inventory": [],
+      "dialogue": {
+        "node": {
+          "id": "node",
+          "responseMode": "choice",
+          "npcLine": "Hello. How are you?",
+          "choices": [
+            {
+              "text": "Sí"
+            },
+            {
+              "text": "No"
+            },
+            {
+              "text": "Tal vez"
+            }
+          ]
+        },
+        "npcReply": ""
+      },
+      "chunks": [
+        ""
+      ]
+    },
+    "expected": {
+      "prompt": "Translate each entry below into English.\nAssigned character roster: Neko, Ana.\nOnly use those exact names when referring to people in this scene.\nDo not invent, translate, swap, or mention any other person names.\nPrefer pronouns or second-person phrasing unless a roster name is truly necessary.\nPreserve every character name exactly as written.\nOutput plain text only.\nReturn exactly 5 lines.\nEach line must be only the translation for the matching entry index.\nNo numbering, labels, markdown, or commentary.\n\nEntries:\n1. Hello.\n2. How are you?\n3. Sí\n4. No\n5. Tal vez",
+      "snapshots": [
+        {
+          "lineTranslations": [
+            "",
+            ""
+          ],
+          "choiceTranslations": [
+            "",
+            "",
+            ""
+          ],
+          "actionTranslations": null,
+          "busy": true
+        }
+      ],
+      "final": {
+        "lineTranslations": [
+          "",
+          ""
+        ],
+        "choiceTranslations": [
+          "",
+          "",
+          ""
+        ],
+        "actionTranslations": null,
+        "busy": false
+      }
+    }
+  },
+  {
+    "input": {
+      "support": "en",
+      "names": [
+        "Neko",
+        "Ana"
+      ],
+      "inventory": [],
+      "dialogue": {
+        "node": {
+          "id": "node",
+          "responseMode": "choice",
+          "npcLine": "Hello. How are you?",
+          "choices": [
+            {
+              "text": "Sí"
+            },
+            {
+              "text": "No"
+            },
+            {
+              "text": "Tal vez"
+            }
+          ]
+        },
+        "npcReply": ""
+      },
+      "chunks": [
+        "1) Hola\n",
+        "2) Bien\n"
+      ],
+      "failAfter": 0
+    },
+    "expected": {
+      "prompt": "Translate each entry below into English.\nAssigned character roster: Neko, Ana.\nOnly use those exact names when referring to people in this scene.\nDo not invent, translate, swap, or mention any other person names.\nPrefer pronouns or second-person phrasing unless a roster name is truly necessary.\nPreserve every character name exactly as written.\nOutput plain text only.\nReturn exactly 5 lines.\nEach line must be only the translation for the matching entry index.\nNo numbering, labels, markdown, or commentary.\n\nEntries:\n1. Hello.\n2. How are you?\n3. Sí\n4. No\n5. Tal vez",
+      "snapshots": [
+        {
+          "lineTranslations": [
+            "Hola",
+            ""
+          ],
+          "choiceTranslations": [
+            "",
+            "",
+            ""
+          ],
+          "actionTranslations": null,
+          "busy": true
+        }
+      ],
+      "final": {
+        "lineTranslations": null,
+        "choiceTranslations": null,
+        "actionTranslations": null,
+        "busy": false
+      }
+    }
+  },
+  {
+    "input": {
+      "support": "en",
+      "names": [
+        "Neko",
+        "Ana"
+      ],
+      "inventory": [],
+      "dialogue": {
+        "node": {
+          "id": "node",
+          "responseMode": "choice",
+          "npcLine": "Hello. How are you?",
+          "choices": [
+            {
+              "text": "Sí"
+            },
+            {
+              "text": "No"
+            },
+            {
+              "text": "Tal vez"
+            }
+          ]
+        },
+        "npcReply": ""
+      },
+      "chunks": [
+        "1) Hola\n2) Bien\n3) Sí\n4) No\n5) Quizá"
+      ],
+      "responses": true
+    },
+    "expected": {
+      "prompt": "Translate each entry below into English.\nAssigned character roster: Neko, Ana.\nOnly use those exact names when referring to people in this scene.\nDo not invent, translate, swap, or mention any other person names.\nPrefer pronouns or second-person phrasing unless a roster name is truly necessary.\nPreserve every character name exactly as written.\nOutput plain text only.\nReturn exactly 5 lines.\nEach line must be only the translation for the matching entry index.\nNo numbering, labels, markdown, or commentary.\n\nEntries:\n1. Hello.\n2. How are you?\n3. Sí\n4. No\n5. Tal vez",
+      "snapshots": [],
+      "final": {
+        "lineTranslations": [
+          "Hola",
+          "Bien"
+        ],
+        "choiceTranslations": [
+          "Sí",
+          "No",
+          "Quizá"
+        ],
+        "actionTranslations": null,
+        "busy": false
+      }
+    }
+  },
+  {
+    "input": {
+      "support": "en",
+      "names": [
+        "Neko",
+        "Ana"
+      ],
+      "inventory": [],
+      "dialogue": {
+        "node": {
+          "id": "node",
+          "responseMode": "choice",
+          "npcLine": "Hello. How are you?",
+          "choices": [
+            {
+              "text": "Sí"
+            },
+            {
+              "text": "No"
+            },
+            {
+              "text": "Tal vez"
+            }
+          ]
+        },
+        "npcReply": ""
+      },
+      "chunks": [
+        ""
+      ],
+      "responses": true,
+      "failAfter": 0
+    },
+    "expected": {
+      "prompt": "Translate each entry below into English.\nAssigned character roster: Neko, Ana.\nOnly use those exact names when referring to people in this scene.\nDo not invent, translate, swap, or mention any other person names.\nPrefer pronouns or second-person phrasing unless a roster name is truly necessary.\nPreserve every character name exactly as written.\nOutput plain text only.\nReturn exactly 5 lines.\nEach line must be only the translation for the matching entry index.\nNo numbering, labels, markdown, or commentary.\n\nEntries:\n1. Hello.\n2. How are you?\n3. Sí\n4. No\n5. Tal vez",
+      "snapshots": [],
+      "final": {
+        "lineTranslations": null,
+        "choiceTranslations": null,
+        "actionTranslations": null,
+        "busy": false
+      }
+    }
+  }
+]

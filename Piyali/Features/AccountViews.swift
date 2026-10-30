@@ -2,39 +2,6 @@ import SwiftUI
 import StoreKit
 import LocalAuthentication
 
-struct SubscriptionView: View {
-    @ObservedObject var service: SubscriptionService
-    let config = AppConfiguration()
-    var body: some View {
-        List {
-            Section {
-                Text(service.authorized ? "Your subscription is active" : "Unlock Piyali").font(.title2)
-                Text("Access the AI tutor, generated lessons, reading, stories, conversation and listening practice.")
-                if service.webAuthorized { Text("Verified web subscription") }
-                if service.appleAuthorized { Text("Verified Apple subscription") }
-                if service.busy { ProgressView("Checking subscription…") }
-            }
-            Section("Subscribe on iPhone") {
-                ForEach(service.products) { product in Button("\(product.displayName) · \(product.displayPrice)") { Task { await service.buy(product) } }.disabled(service.busy) }
-                if service.products.isEmpty { Text("App Store plans are not available yet. Existing web subscribers can restore access below.") }
-                Button("Restore purchases and web access") { Task { await service.restore() } }.disabled(service.busy)
-                Button("Refresh subscription") { Task { await service.refresh() } }.disabled(service.busy)
-                Button("Manage Apple subscription") { if let url = URL(string: "https://apps.apple.com/account/subscriptions") { UIApplication.shared.open(url) } }
-            }
-            if service.externalPaymentAllowed {
-                Section("Subscribe on the web") {
-                    Link("Open Piyali web subscriptions", destination: config.subscriptionURL)
-                    Text("Use the same Piyali key on the web, connect Patreon there, then return and refresh access. Never put your private key in a URL.").font(.footnote)
-                }
-            }
-            Section {
-                NavigationLink("Subscription terms") { SubscriptionTermsView() }
-                NavigationLink("Privacy") { PrivacyDisclosureView() }
-            }
-            if let error = service.error { Text(error).foregroundStyle(.red) }
-        }.navigationTitle("Subscription")
-    }
-}
 struct NotebookView: View {
     @EnvironmentObject var app: AppModel
     @State private var title = ""
@@ -85,20 +52,22 @@ struct AccountView: View {
     @State private var backup: String?
     @State private var importKey = ""
     @State private var importConfirmation = false
-    @FocusState private var goalFocused: Bool
+    @State private var gettingStarted=false
+    @State private var dailyGoalOpen=false
     var body: some View {
         Form {
             Section("Learning preferences") {
                 TextField("Name", text: $app.learner.name)
                 LanguagePicker(title: "Practice language", selection: Binding(get:{ app.learner.target },set:{ app.setPracticeLanguage($0) }), codes: LearningLanguages.practice).accessibilityIdentifier("practiceLanguagePicker")
-                LanguagePicker(title: "Support language", selection: $app.learner.support, codes: LearningLanguages.support)
-                TextField("Learning goal", text: $app.learner.goal, axis: .vertical).accessibilityIdentifier("learningGoalField").focused($goalFocused)
-                Stepper("Daily goal: \(app.learner.dailyGoal) XP", value: $app.learner.dailyGoal, in: 10...300, step: 10)
+                LanguagePicker(title: "Support language", selection: $app.learner.support, codes: LearningLanguages.support).accessibilityIdentifier("supportLanguagePicker")
+                LearningGoalEditorView().listRowInsets(EdgeInsets(top:8,leading:0,bottom:8,trailing:0)).listRowBackground(Color.clear)
+                Button(EntryCopy.ui(app.learner.support,"daily_goal_title")){dailyGoalOpen=true}.accessibilityIdentifier("accountDailyGoal")
                 TextField("Companion name", text: $app.learner.companionName)
                 Picker("Companion", selection: $app.learner.companionType) { ForEach(CompanionTypes.available(level: app.learner.companionLevel), id: \.self) { Text($0.capitalized).tag($0) } }
-                Button("Save preferences") { app.persist(); Task { await app.reloadContent() } }
+                Button("Save preferences") {app.flushGoalEditor();app.persist(); Task { await app.reloadContent() } }
             }
             Section("Your Nostr identity") {
+                Button(FirstRunCopy.text(app.learner.support,0)) {gettingStarted=true}.accessibilityIdentifier("accountGettingStarted")
                 Text(app.identity.npub).font(.caption).textSelection(.enabled)
                 if app.identity.isRemote {
                     Text("Connected through your remote signer. Your main private key stays with that signer.").font(.footnote)
@@ -124,7 +93,7 @@ struct AccountView: View {
         }.navigationTitle("Account")
             .toolbar {
                 ToolbarItem(placement:.topBarTrailing) {
-                    Button("Save") { goalFocused = false; app.persist(); Task { await app.reloadContent() } }.accessibilityIdentifier("saveLearningPreferences")
+                    Button("Save") { app.flushGoalEditor();UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder),to:nil,from:nil,for:nil);app.persist(); Task { await app.reloadContent() } }.accessibilityIdentifier("saveLearningPreferences")
                 }
             }
             .onChange(of: app.learner.support) { _, _ in app.persist(); Task { await app.reloadContent() } }
@@ -136,6 +105,13 @@ struct AccountView: View {
                     }.padding().navigationTitle("Private key backup").toolbar { Button("Done") { backup = nil } }
                 }
             }
+            .fullScreenCover(isPresented:$gettingStarted) {
+                ZStack {
+                    Color.black.opacity(0.82).ignoresSafeArea().onTapGesture {gettingStarted=false;app.learner.gettingStartedModalShown=true;app.persist()}
+                    GettingStartedView {gettingStarted=false;app.learner.gettingStartedModalShown=true;app.persist()}
+                }.presentationBackground(.clear).environment(\.layoutDirection,app.learner.support == "ar" ? .rightToLeft : .leftToRight)
+            }
+            .fullScreenCover(isPresented:$dailyGoalOpen){DailyGoalManagerView(onClose:{dailyGoalOpen=false}).presentationBackground(.clear).environment(\.layoutDirection,app.learner.support == "ar" ? .rightToLeft : .leftToRight)}
             .confirmationDialog("Switch to another account? Your current progress is saved on this iPhone.", isPresented: $importConfirmation) {
                 Button("Switch account") { Task { await app.signIn(nsec: importKey); importKey = "" } }
             }
@@ -148,105 +124,8 @@ struct AccountView: View {
         }
     }
 }
-struct TeamsView: View {
-    @EnvironmentObject var app: AppModel
-    @ObservedObject var service: NostrTeamsService
-    @State private var name=""
-    @State private var members=""
-    @State private var busy=false
-    @State private var consent=false
-    @FocusState private var focusedField: String?
-    var body: some View {
-        List {
-            Section("Community") {
-                NavigationLink("Community feed") { CommunityFeedView() }.accessibilityIdentifier("communityFeedLink")
-            }
-            Section("Private teams") {
-                NavigationLink("Private teams and invitations") { PrivateTeamsView() }.accessibilityIdentifier("privateTeamsLink")
-                Text("Private teams use Firebase. Membership and shared progress are visible to invited teammates, without publishing a Nostr roster.").font(.footnote)
-            }
-            Section("Nostr teams") {
-                Text("Team names and membership are public on Nostr. Sharing learning progress publishes your name, language, XP, daily goal, streak and companion status publicly.").font(.footnote)
-                Text("Your ID: "+app.identity.npub).font(.caption).textSelection(.enabled)
-                Toggle("Share my learning progress publicly",isOn:$consent)
-                Button("Publish progress") { perform { try await service.publishProgress(app.learner,identity:app.identity) } }.disabled(!consent || busy || service.busy)
-                Button("Refresh teams") { Task { await service.refresh(identity:app.identity) } }.disabled(service.busy || busy)
-            }
-            Section("Create a public team") {
-                TextField("Team name",text:$name).focused($focusedField,equals:"name").accessibilityIdentifier("teamName")
-                TextField("Teammate npubs, comma-separated",text:$members,axis:.vertical).focused($focusedField,equals:"members").accessibilityIdentifier("teamMembers").textInputAutocapitalization(.never).autocorrectionDisabled()
-                Button("Create team") { perform { try await service.create(name:name,members:members,identity:app.identity);name="";members="" } }.accessibilityIdentifier("teamCreate").disabled(busy || service.busy || name.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty || members.isEmpty)
-            }
-            Section("Your teams") {
-                ForEach(service.teams) { team in
-                    NavigationLink { LearningTeamView(service:service,id:team.id) } label: { VStack(alignment:.leading) { Text(team.name);Text("\(team.members.count) members"+(team.creator == app.identity.hex ? " · You are the creator" : "")).font(.caption) } }.accessibilityIdentifier("learningTeamRow")
-                }
-                if service.teams.isEmpty,!service.busy { Text("No teams found. Refresh to check your relays.") }
-            }
-            if service.busy || busy { ProgressView("Connecting to relays…") }
-            if let error=service.error { Text(error).foregroundStyle(.red) }
-        }.navigationTitle("Teams").toolbar { ToolbarItemGroup(placement:.keyboard) { Spacer();Button("Done") { focusedField=nil } } }.task(id:app.identity.npub) { await service.refresh(identity:app.identity) }
-    }
-    private func perform(_ action: @escaping () async throws -> Void) {
-        focusedField=nil;busy=true;let account=app.identity.npub
-        Task { defer { busy=false };do { try await action() } catch { if app.identity.npub == account,!(error is CancellationError) { service.error=error.localizedDescription } } }
-    }
-}
-struct LearningTeamView: View {
-    @EnvironmentObject var app: AppModel
+struct TeamsView:View {
     @Environment(\.dismiss) private var dismiss
-    @ObservedObject var service: NostrTeamsService
-    let id: String
-    @State private var name=""
-    @State private var members=""
-    @State private var busy=false
-    @State private var removal=false
-    @FocusState private var focusedField: String?
-    var team: LearningTeam? { service.teams.first { $0.id == id } }
-    var body: some View {
-        List {
-            if let team {
-                Section("Members") {
-                    ForEach(team.members,id:\.self) { member in
-                        let row=service.row(member:member,team:team,learner:app.learner,viewer:app.identity.hex)
-                        VStack(alignment:.leading,spacing:6) {
-                            Text(row["name"].string.isEmpty ? String(row["npub"].string.prefix(20))+"…" : row["name"].string).font(.headline)
-                            Text(row["npub"].string).font(.caption).textSelection(.enabled)
-                            if row["isCreator"].boolean { Text("Creator").font(.caption) }
-                            if !row["targetLang"].string.isEmpty {
-                                Text("\(LearningLanguages.names[row["targetLang"].string] ?? row["targetLang"].string) · Course \(row["level"].string)")
-                                if case .number(let score)=row["score"] { Text("Score: \(score.formatted())/100 · \(row["scoreLevel"].string)") }
-                                Text("\(row["totalXp"].number.formatted()) total XP · \(row["streak"].number.formatted()) day streak")
-                                ProgressView(value:max(0,min(100,row["progressPercent"].number)),total:100)
-                                Text("\(row["dailyXp"].number.formatted()) / \(row["dailyGoalXp"].number.formatted()) daily XP")
-                                let pet=row["companion"]
-                                Text("\(pet["name"].string.isEmpty ? pet["type"].string.capitalized : pet["name"].string) · Level \(pet["level"].number.formatted()) · \(pet["health"].number.formatted())% health").font(.footnote)
-                            } else { Text("No shared learning progress yet.").font(.footnote) }
-                        }
-                    }
-                }
-                if team.creator == app.identity.hex {
-                    Section("Manage team") {
-                        TextField("Team name",text:$name).focused($focusedField,equals:"name").accessibilityIdentifier("teamEditName")
-                        Button("Save team name") { perform { try await service.rename(team,name:name,identity:app.identity) } }.accessibilityIdentifier("teamRename").disabled(busy || service.busy || name.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty)
-                        TextField("New teammate npubs",text:$members,axis:.vertical).focused($focusedField,equals:"members").accessibilityIdentifier("teamAddInput").textInputAutocapitalization(.never).autocorrectionDisabled()
-                        Button("Add members") { perform { try await service.addMembers(team,members:members,identity:app.identity);members="" } }.accessibilityIdentifier("teamAdd").disabled(busy || service.busy || members.isEmpty)
-                        Text("Roster changes and names are public. Teammates added here can see the team in either app.").font(.footnote)
-                    }
-                }
-                Button(team.creator == app.identity.hex ? "Delete team" : "Leave team",role:.destructive) { removal=true }.disabled(busy || service.busy)
-            } else { Text("This team is no longer in your roster.");Button("Back to teams") { dismiss() } }
-            Button("Refresh team") { Task { await service.refresh(identity:app.identity) } }.disabled(service.busy || busy)
-            if service.busy || busy { ProgressView("Updating team…") }
-            if let error=service.error { Text(error).foregroundStyle(.red) }
-        }.navigationTitle(team?.name ?? "Team").toolbar { ToolbarItemGroup(placement:.keyboard) { Spacer();Button("Done") { focusedField=nil } } }
-            .onAppear { name=team?.name ?? "" }
-            .confirmationDialog(team?.creator == app.identity.hex ? "Delete this team for every member?" : "Leave this team?",isPresented:$removal,titleVisibility:.visible) {
-                if let team { Button(team.creator == app.identity.hex ? "Delete team" : "Leave team",role:.destructive) { perform { try await service.leave(team,identity:app.identity);dismiss() } } }
-            }
-    }
-    private func perform(_ action: @escaping () async throws -> Void) {
-        focusedField=nil;busy=true;let account=app.identity.npub
-        Task { defer { busy=false };do { try await action() } catch { if app.identity.npub == account,!(error is CancellationError) { service.error=error.localizedDescription } } }
-    }
+    let service:NostrTeamsService
+    var body:some View{TeamsDrawerView(service:service,onClose:{dismiss()}).toolbar(.hidden,for:.navigationBar)}
 }

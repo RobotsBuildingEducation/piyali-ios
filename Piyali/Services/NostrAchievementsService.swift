@@ -68,6 +68,6 @@ import Foundation
             return records
         }
         pending=task;busy=true;error=nil
-        do { return try await task.value } catch { if generation == version,!busy,!(error is CancellationError) { self.error=error.localizedDescription };throw error }
+        do { return try await withTaskCancellationHandler{try await task.value}onCancel:{task.cancel()} } catch { if generation == version,!busy,!(error is CancellationError) { self.error=error.localizedDescription };throw error }
     }
 }

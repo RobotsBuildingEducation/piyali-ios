@@ -1,7 +1,7 @@
 import Foundation
 
 public enum PracticeSource: String, Codable, Sendable {
-    case practice, assessment, lesson, review, phonics, goal, goalMode, repair, immersion, speak, tutorTurn, conversation, readingTurn, readingSpeech, storyTurn, storyCompletion, questStart, plateBonus
+    case tutorState, phonicsAttempt, phonicsDeck, practice, repairPractice, assessment, lessonStart, lesson, review, phonics, goal, goalMode, repair, immersion, speak, tutorTurn, conversation, readingTurn, readingSpeech, storyTurn, storyCompletion, questStart, plateBonus
     public var activityField: String? {
         switch self { case .lesson:"lessonDailyActivity"; case .review:"flashcardDailyActivity"; case .phonics:"phonicsDailyActivity"; case .goal:"goalDailyActivity"; case .repair:"repairDailyActivity"; case .speak:"speakDailyActivity"; case .conversation:"conversationDailyActivity"; default:nil }
     }
@@ -15,15 +15,26 @@ public struct PracticeChange: Codable, Identifiable, Sendable {
     public var amount: Int
     public var source: PracticeSource
     public var contentID: String?
+    public var skillTreeLessonID:String?
+    public var skillTreeLessonLevel:String?
     public var tutorAgendaItemID: String?
+    public var tutorData:JSONValue?
+    public var questYesterdayComplete:Bool?
     public var questCarry: [String]?
     public var questIntro: Bool?
     public var questKinds: [String]?
     public var reviewRating: ReviewRating?
+    public var reviewPatch: FlashcardReview?
+    public var phonicsData:JSONValue?
+    public var activityDayKey:String {reviewPatch?.lastReviewedAt.map{CalendarDay.key($0)} ?? dayKey}
     public var correct: Bool?
     public var independent: Bool?
     public var conversationGoalID: String?
     public var conversationBonus: Int?
+    public var gradedWorth:JSONValue?
+    public var gradedConcept:String?
+    public var gradedSupport:String?
+    public var gradedMode:String?
     public var conversationWorth: JSONValue?
     public var conversationGoalText: JSONValue?
     public var gameResult: JSONValue?
@@ -36,23 +47,35 @@ public struct PracticeChange: Codable, Identifiable, Sendable {
     }
 }
 public enum CalendarDay {
-    public static func key(_ date: Date, calendar: Calendar = .current) -> String {
-        let p = calendar.dateComponents([.year,.month,.day],from:date)
-        return String(format:"%04d-%02d-%02d",p.year ?? 0,p.month ?? 0,p.day ?? 0)
+    /// JavaScript Date uses Gregorian civil dates. Keep the selected local time
+    /// zone, while ignoring the device's alternative calendar/numbering system.
+    public static func gregorian(_ supplied:Calendar = .current)->Calendar{
+        var calendar=Calendar(identifier:.gregorian);calendar.timeZone=supplied.timeZone;calendar.locale=Locale(identifier:"en_US_POSIX");return calendar
     }
-    public static func shift(_ day: String, by amount: Int, calendar: Calendar = .current) -> String {
-        let parts = day.split(separator:"-").compactMap { Int($0) }
-        guard parts.count == 3, let date = calendar.date(from:DateComponents(year:parts[0],month:parts[1],day:parts[2],hour:12)), let shifted = calendar.date(byAdding:.day,value:amount,to:date) else { return "" }
-        return key(shifted,calendar:calendar)
+    public static func year(_ date:Date,calendar:Calendar = .current)->Int{gregorian(calendar).component(.year,from:date)}
+    public static func key(_ date:Date,calendar:Calendar = .current)->String{
+        let p=gregorian(calendar).dateComponents([.year,.month,.day],from:date)
+        return String(format:"%04d-%02d-%02d",locale:Locale(identifier:"en_US_POSIX"),p.year ?? 0,p.month ?? 0,p.day ?? 0)
     }
-    public static func normalize(_ day: String) -> String {
-        let p = day.split(separator:"-").compactMap { Int($0) }
-        guard p.count == 3 else { return "" }; return String(format:"%04d-%02d-%02d",p[0],p[1],p[2])
+    public static func shift(_ day:String,by amount:Int,calendar supplied:Calendar = .current)->String{
+        guard day.range(of:"^\\d{4}-\\d{2}-\\d{2}$",options:.regularExpression) != nil else{return ""}
+        let parts=day.split(separator:"-").compactMap{Int($0.trimmingCharacters(in:.whitespacesAndNewlines))},calendar=gregorian(supplied)
+        guard parts.count==3 else{return ""}
+        // The source constructs Date(year, month, day + amount, 12), including
+        // its 0...99 -> 1900...1999 year rule and overflow normalization.
+        let year=parts[0] < 100 ? parts[0]+1900:parts[0]
+        guard let date=calendar.date(from:DateComponents(year:year,month:parts[1],day:parts[2]+amount,hour:12))else{return ""}
+        return key(date,calendar:calendar)
+    }
+    public static func normalize(_ day:String)->String{
+        let p=day.split(separator:"-").compactMap{Int($0)}
+        guard p.count==3 else{return ""};return String(format:"%04d-%02d-%02d",locale:Locale(identifier:"en_US_POSIX"),p[0],p[1],p[2])
     }
 }
+
 public extension LearnerState {
-    mutating func enqueue(_ change: PracticeChange) { questProgress = DailyPlate.recorded(change,progress:plateProgress); if pendingChanges == nil { pendingChanges = [] }; pendingChanges?.append(change) }
-    mutating func review(cardID: String, rating: ReviewRating, now: Date = Date(), calendar: Calendar = .current) {
+    mutating func enqueue(_ change: PracticeChange) { applySourceTutor(change);applyPhonics(change);applyGoalLessonWork(change);applyLessonWork(change);questProgress = DailyPlate.recorded(change,progress:plateProgress); if pendingChanges == nil { pendingChanges = [] }; pendingChanges?.append(change) }
+    mutating func review(cardID: String, rating: ReviewRating, xp:Int? = nil, patch:FlashcardReview? = nil, now: Date = Date(), calendar: Calendar = .current) {
         rollDay(now:now,calendar:calendar)
         let key = completionKey(cardID)
         var review = cardReviews?[key] ?? FlashcardReview()
@@ -60,19 +83,32 @@ public extension LearnerState {
             // Preserve completion when importing a v1 native account with no scheduler record.
             review.completed = true; review.schedulerState = .review; review.intervalDays = 1
         }
-        let next = review.applying(rating,now:now)
+        let next = patch ?? review.applying(rating,now:now)
         if cardReviews == nil { cardReviews = [:] }; cardReviews?[key] = next
         if next.completed { flashcardMastery.insert(key) }
-        let amount = rating == .again ? 0 : rating == .hard ? 4 : rating == .easy ? 7 : 5
+        let amount = max(0,min(7,xp ?? (rating == .again ? 0 : rating == .hard ? 4 : rating == .easy ? 7 : 5)))
         addXP(amount,now:now,calendar:calendar)
-        enqueue(PracticeChange(date:now,dayKey:dailyKey,target:target,level:flashcardLevel,amount:amount,source:.review,contentID:cardID,reviewRating:rating))
+        var change=PracticeChange(date:now,dayKey:dailyKey,target:target,level:flashcardLevel,amount:amount,source:.review,contentID:cardID,reviewRating:rating)
+        change.reviewPatch=next;enqueue(change)
     }
     // Merge a completed sync without losing practice performed while the network request was in flight.
     static func rebased(current: LearnerState, sent: LearnerState, acknowledged: LearnerState) -> LearnerState {
         var merged = current
+        let sentRepair=Set((sent.pendingRepairEvidence ?? []).map(\.id))
+        merged.pendingRepairEvidence=(current.pendingRepairEvidence ?? []).filter{!sentRepair.contains($0.id)}
+        let pendingQuest=(current.pendingCompanionQuestDays ?? [:]).filter {sent.pendingCompanionQuestDays?[$0.key] != $0.value}
+        merged.pendingCompanionQuestDays=pendingQuest
+        for (key,value) in acknowledged.companionQuestDays ?? [:] {if merged.companionQuestDays == nil {merged.companionQuestDays=[:]};merged.companionQuestDays?[key]=value}
+        for (key,value) in pendingQuest {if merged.companionQuestDays == nil {merged.companionQuestDays=[:]};let existing=merged.companionQuestDays?[key] ?? .object([:]);merged.companionQuestDays?[key]=CompanionQuestDay.merging(value,into:existing)}
+        let pendingHeadlines=(current.pendingPlateHeadlines ?? [:]).filter {sent.pendingPlateHeadlines?[$0.key] != $0.value}
+        merged.plateHeadlines=acknowledged.plateHeadlines
+        merged.pendingPlateHeadlines=pendingHeadlines
+        for (target,value) in pendingHeadlines {if merged.plateHeadlines == nil {merged.plateHeadlines=[:]};merged.plateHeadlines?[target]=value}
         let sentIDs = Set((sent.pendingChanges ?? []).map(\.id))
         let newer = (current.pendingChanges ?? []).filter { !sentIDs.contains($0.id) && !(acknowledged.acknowledgedEventIDs ?? []).contains($0.id) }
         merged.pendingChanges = newer
+        merged.phonicsRecords=acknowledged.phonicsRecords
+        for change in newer.sorted(by:{$0.date < $1.date}){merged.applyPhonics(change)}
         merged.questProgress = acknowledged.questProgress
         for change in newer { merged.questProgress = DailyPlate.recorded(change,progress:merged.plateProgress) }
         for (target,plan) in acknowledged.questPlans ?? [:] {
@@ -82,12 +118,21 @@ public extension LearnerState {
         }
         merged.journeyQuestCounts = acknowledged.journeyQuestCounts
         merged.tutorLessons = acknowledged.tutorLessons
-        for change in newer where change.source == .tutorTurn {
+        merged.lessonWork=acknowledged.lessonWork
+        for change in newer { merged.applyLessonWork(change) }
+        for change in newer.sorted(by:{$0.date < $1.date}) where [.tutorTurn,.tutorState,.speak].contains(change.source) {
             let key = "\(change.target):tutor:\(change.contentID ?? "")"
             if merged.tutorLessons == nil { merged.tutorLessons = [:] }
-            let progress = TutorCourse.applying(change,to:merged.tutorLessons?[key] ?? TutorLessonProgress())
+            let progress = TutorSourceProgress.applying(change,to:merged.tutorLessons?[key] ?? TutorLessonProgress())
             merged.tutorLessons?[key] = progress
+            if change.tutorData != nil {
+                if change.source == .tutorState,change.tutorData?["kind"].string == "start"{merged.questProgress=merged.plateProgress.setting("currentTutorLesson",.string(change.contentID ?? ""))}
+                if change.source == .speak{merged.questProgress=merged.plateProgress.setting("currentTutorLesson",.null)}
+            }
         }
+        merged.userSettings=acknowledged.userSettings
+        merged.pendingSettingsChanges=(current.pendingSettingsChanges ?? []).filter{!(acknowledged.acknowledgedEventIDs ?? []).contains($0.id)}
+        for change in merged.pendingSettingsChanges ?? []{merged.userSettings=LearnerSettings.applying(change,to:merged.settingsSnapshot)}
         let sentMemoryIDs = Set((sent.pendingMemoryChanges ?? []).map(\.id))
         let newMemory = (current.pendingMemoryChanges ?? []).filter { !sentMemoryIDs.contains($0.id) && !(acknowledged.acknowledgedEventIDs ?? []).contains($0.id) }
         merged.pendingMemoryChanges = newMemory
@@ -116,6 +161,10 @@ public extension LearnerState {
             }
             newGoalRewards.append((change,reward))
         }
+        for change in newer.sorted(by:{$0.date < $1.date}) {merged.applyGoalLessonWork(change)}
+        merged.legacyFirstRunPlacement = (current.pendingPlacements ?? [:]).isEmpty ? acknowledged.legacyFirstRunPlacement : nil
+        merged.gettingStartedModalShown = current.gettingStartedModalShown == true || acknowledged.gettingStartedModalShown == true ? true : acknowledged.gettingStartedModalShown
+        merged.paperPencilModalShown = current.paperPencilModalShown == true || acknowledged.paperPencilModalShown == true ? true : acknowledged.paperPencilModalShown
         if current.goal == sent.goal && newGoals.isEmpty { merged.goal = acknowledged.goal }
         if current.preferencesModifiedAt == sent.preferencesModifiedAt {
             merged.preferencesModifiedAt = nil
@@ -125,9 +174,9 @@ public extension LearnerState {
             if current.level == sent.level { merged.level = acknowledged.level }
             if current.dailyGoal == sent.dailyGoal { merged.dailyGoal = acknowledged.dailyGoal }
             if current.onboardingComplete == sent.onboardingComplete { merged.onboardingComplete = acknowledged.onboardingComplete }
-            if current.companionName == sent.companionName { merged.companionName = acknowledged.companionName }
-            if current.companionType == sent.companionType { merged.companionType = acknowledged.companionType }
         }
+        if current.companionName == sent.companionName { merged.companionName = acknowledged.companionName }
+        if current.companionType == sent.companionType { merged.companionType = acknowledged.companionType }
         for (language, placement) in acknowledged.placements ?? [:] {
             if current.pendingPlacements?[language] == sent.pendingPlacements?[language] {
                 if merged.placements == nil { merged.placements = [:] }; merged.placements?[language] = placement
@@ -135,6 +184,8 @@ public extension LearnerState {
             }
         }
         merged.courseCompletion = acknowledged.courseCompletion
+        merged.courseSummaries = acknowledged.courseSummaries
+        merged.tutorUnlockedLevels=TutorProgression.merging(current.tutorUnlockedLevels,acknowledged.tutorUnlockedLevels)
         let sentImmersionIDs=Set((sent.pendingImmersionChanges ?? []).map(\.id))
         let newImmersion=(current.pendingImmersionChanges ?? []).filter { !sentImmersionIDs.contains($0.id) && !(acknowledged.acknowledgedEventIDs ?? []).contains($0.id) }
         merged.pendingImmersionChanges=newImmersion;merged.immersionBatch=acknowledged.immersionBatch;merged.immersionHistory=acknowledged.immersionHistory;merged.immersionRewardReceipts=acknowledged.immersionRewardReceipts;merged.immersionPlacementAt=acknowledged.immersionPlacementAt
@@ -161,6 +212,13 @@ public extension LearnerState {
         for (key, review) in acknowledged.cardReviews ?? [:] {
             if (merged.cardReviews?[key]?.updatedAt ?? .distantPast) <= (review.updatedAt ?? .distantPast) {
                 if merged.cardReviews == nil { merged.cardReviews = [:] }; merged.cardReviews?[key] = review
+            }
+        }
+        // A chosen source patch is frozen when the card opens. Replay unsent choices
+        // after the acknowledged snapshot even if that open timestamp is older.
+        for change in newer.sorted(by:{$0.date < $1.date}) where change.source == .review {
+            if let patch=change.reviewPatch,let id=change.contentID {
+                if merged.cardReviews == nil {merged.cardReviews=[:]};merged.cardReviews?["\(change.target):\(id)"]=patch
             }
         }
         merged.achievementRecords = NostrAchievementCollection.merging([.object(current.achievementRecords ?? [:]),.object(acknowledged.achievementRecords ?? [:]),current.nostrAchievementRecords ?? .object([:])]).object; merged.achievementEvidence = acknowledged.achievementEvidence; merged.achievementLedger = acknowledged.achievementLedger

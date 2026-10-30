@@ -9,6 +9,8 @@ public struct ConversationGoal: Codable, Identifiable, Equatable, Sendable {
     public var misses=0
     public var guidance=""
     public var starter: String?
+    public var starterSupport:String?
+    public var supportLang:String?
     public init(text: JSONValue, questionLevel: String, worth: JSONValue) { self.text=text;self.questionLevel=questionLevel;self.worth=worth }
 }
 public struct ConversationVerdict: Codable, Equatable, Sendable {
@@ -22,7 +24,10 @@ public struct ConversationMessage: Codable, Identifiable, Equatable, Sendable {
     public let role: String
     public var text: String
     public var translation: String?
-    public init(role: String, text: String) { self.role=role;self.text=String(text.prefix(2000)) }
+    public var translationLang:String?
+    public var providerID:String?
+    public init(role: String, text: String,providerID:String?=nil) { self.role=role;self.text=String(text.prefix(2000));self.providerID=providerID }
+    public func translation(for support:String)->String? { guard translationLang == support,let translation,!translation.isEmpty else { return nil };return translation }
 }
 public struct ConversationDraft: Codable, Equatable, Sendable {
     public var id=UUID()
@@ -37,8 +42,20 @@ public struct ConversationDraft: Codable, Equatable, Sendable {
     public var earnedXP=0
     public var seenTurnIDs: [UUID]=[]
     public init() {}
-    public mutating func append(_ message: ConversationMessage) {
-        messages.append(message);messages=Array(messages.suffix(40))
+    /// Preserve the private log and learning receipts; only the goal/starter
+    /// belongs to the previous support language. Adopt safe older goals once.
+    public mutating func refreshSupport(_ support:String) {
+        guard let current=goal,current.supportLang != support else { return }
+        // Source initial topics also alias localized text under "en". Multiple
+        // untagged keys therefore cannot prove which language was requested.
+        if current.supportLang == nil,current.text.object.count == 1,!current.text[support].string.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty {
+            goal?.supportLang=support;goal?.starter=nil;goal?.starterSupport=nil
+        } else { goal=nil }
+    }
+    public mutating func append(_ message: ConversationMessage,beforeProviderID:String?=nil) {
+        if let id=message.providerID,messages.contains(where:{$0.providerID == id}) { return }
+        if let beforeProviderID,let index=messages.firstIndex(where:{$0.providerID == beforeProviderID}) { messages.insert(message,at:index) } else { messages.append(message) }
+        messages=Array(messages.suffix(40))
         while messages.count > 1,(try? JSONEncoder().encode(self).count) ?? 0 > 24_000 { messages.removeFirst() }
     }
     public var transcript: String { messages.map { ($0.role == "user" ? "You: " : "Piyali: ")+$0.text }.joined(separator:"\n") }

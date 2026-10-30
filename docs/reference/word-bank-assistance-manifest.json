@@ -1,0 +1,36 @@
+{
+  "sources": [
+    {
+      "file": "src/components/TranslateSentence.jsx",
+      "sha256": "ce334a0c8f7533bc5d2febb16e52485c403fc7d10c73ea661b6b0d68ce07ea17"
+    },
+    {
+      "file": "src/components/RepeatWhatYouHear.jsx",
+      "sha256": "b456e9e30f8d2855b3419569408ec8e8c6e8c4eafdf21201f713fe144eea6d9b"
+    },
+    {
+      "file": "src/components/Vocabulary.jsx",
+      "sha256": "9aa9d5f74d62ac8fd7b3adb1026bbf0bef3bd48a826053b4c94f6045b1a3431c"
+    },
+    {
+      "file": "src/components/GrammarBook.jsx",
+      "sha256": "0d0407a8a19c14e1cc111958b162c5ca8762f785627c33baea2dd18cdf058b82"
+    }
+  ],
+  "bundled": [
+    {
+      "file": "src/utils/assistantLanguagePolicy.js",
+      "sha256": "4b5e2b255f6ac057c6145ff9700ce76df3263d28690719761b580d6d6baaa807"
+    },
+    {
+      "file": "src/constants/supportLanguages.js",
+      "sha256": "d8e8dc17f353a5106bdc984f2cce9696669bc7216be10e006738cb0a04b40b5a"
+    },
+    {
+      "file": "src/constants/languages.js",
+      "sha256": "02cb1507cb2ee1b5822ac4dd98cd7faf3e67a5101a13dd6c93826f553201ab32"
+    }
+  ],
+  "cases": 80,
+  "adapters": "Original word-bank help callbacks and Grammar/Vocabulary prompt-building statements before provider I/O. Public copy, inert flags and controlled exercise context; no React, persistence or provider code executes."
+}

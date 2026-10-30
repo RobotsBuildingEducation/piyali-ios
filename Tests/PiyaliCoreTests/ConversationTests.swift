@@ -98,3 +98,74 @@ final class ConversationTests: XCTestCase {
         XCTAssertEqual(context.finish().answered,"Encantada. ¿Qué te gusta?")
     }
 }
+
+final class ConversationTranscriptOrderTests:XCTestCase {
+    func testLateSpeechIsInsertedBeforeItsAlreadySavedReplyAndProviderReplayDoesNotDuplicate() throws {
+        var draft=ConversationDraft();draft.append(.init(role:"assistant",text:"¿Cómo te llamas?",providerID:"r0"));draft.append(.init(role:"assistant",text:"Hola, Ana.",providerID:"r1"))
+        draft.append(.init(role:"user",text:"Me llamo Ana.",providerID:"u1"),beforeProviderID:"r1")
+        draft.append(.init(role:"user",text:"Me llamo Ana.",providerID:"u1"),beforeProviderID:"r1")
+        XCTAssertEqual(draft.messages.map(\.role),["assistant","user","assistant"]);XCTAssertEqual(draft.messages.map(\.text),["¿Cómo te llamas?","Me llamo Ana.","Hola, Ana."])
+        let restored=try JSONDecoder().decode(ConversationDraft.self,from:JSONEncoder().encode(draft));XCTAssertEqual(restored,draft);XCTAssertEqual(restored.messages[1].providerID,"u1")
+    }
+    func testOlderPrivateMessagesDecodeWithoutProviderIDs() throws {
+        let old=#"{"id":"DB57F28E-6A01-4FA8-8D2C-8B038D746D6A","role":"user","text":"Hola"}"#
+        let value=try JSONDecoder().decode(ConversationMessage.self,from:Data(old.utf8));XCTAssertNil(value.providerID);XCTAssertEqual(value.text,"Hola")
+    }
+}
+
+final class ConversationSourcePromptTests:XCTestCase {
+    @MainActor func testOriginalInitialContextualAndJudgingPromptsUseActualGoalAndAnsweredLine() throws {
+        let root=URL(fileURLWithPath:#filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent(),recipes=try PracticeRecipes(source:root.appendingPathComponent("Piyali/Resources/practice-recipes.js"))
+        let p:JSONValue = .object(["targetLang":.string("es"),"supportLang":.string("en"),"interests":.string("travel"),"topics":.array([.string("Food and cooking")]),"goal":.object(["text":.object(["en":.string("Say hello and your name")])]),"messages":.array([.object(["role":.string("user"),"textFinal":.string("Hola, soy Ana.")]),.object(["role":.string("assistant"),"textFinal":.string("¿Qué te gusta cocinar?")])]),"utterance":.string("Hola, soy Ana."),"answered":.string("¡Hola! ¿Cómo te llamas?")])
+        let initial=try recipes.conversation("goal",parameters:p)
+        for text in ["You are creating a conversation practice topic","Pre-A1","Food and cooking","travel","Maximum 10-15 words","Respond with ONLY the topic text in English"] { XCTAssertTrue(initial.contains(text),text) }
+        let next=try recipes.conversation("contextualGoal",parameters:p.setting("abandoned",.bool(true)))
+        for text in ["¿Qué te gusta cocinar?","User: Hola, soy Ana.","The learner did NOT complete it","Never create a goal that ignores or competes","Previous goal was: \"Say hello and your name\""] { XCTAssertTrue(next.contains(text),text) }
+        let judge=try recipes.conversation("judge",parameters:p)
+        for text in ["Learner's reply (judge THIS): \"Hola, soy Ana.\"","the tutor's line they answered): \"¡Hola! ¿Cómo te llamas?\"","Target language: Spanish","goalStillFits","On a close call, give credit."] { XCTAssertTrue(judge.contains(text),text) }
+        for value in [initial,next,judge] { XCTAssertFalse(value.contains("undefined")) }
+    }
+}
+
+extension ConversationSourcePromptTests {
+    @MainActor func testOriginalStarterKeepsOnePersonalBlankAndItsSupportTranslation() throws {
+        let root=URL(fileURLWithPath:#filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent(),recipes=try PracticeRecipes(source:root.appendingPathComponent("Piyali/Resources/practice-recipes.js"))
+        let p:JSONValue = .object(["targetLang":.string("es"),"supportLang":.string("en"),"goal":.object(["text":.object(["en":.string("Say hello and your name")])]),"messages":.array([.object(["role":.string("assistant"),"textFinal":.string("¿Cómo te llamas?")])])])
+        let prompt=try recipes.conversation("starter",parameters:p)
+        for text in ["Pre-A1 beginner","spoken Spanish","¿Cómo te llamas?","at most one blank","English translation"] { XCTAssertTrue(prompt.contains(text),text) }
+        let parsed=try JSONDecoder().decode(JSONValue.self,from:Data(recipes.conversation("parseStarter",parameters:.object(["raw":.string("```json\n{\"target\":\"Hola, me llamo ___.\",\"support\":\"Hello, my name is ___.\"}\n```")])).utf8))
+        XCTAssertEqual(parsed["target"].string,"Hola, me llamo ___.");XCTAssertEqual(parsed["support"].string,"Hello, my name is ___.")
+    }
+}
+
+final class ConversationLanguageTests:XCTestCase {
+    func testSupportChangeReplacesOnlyGoalWhileKeepingHistoryAndLearningReceipts() throws {
+        var draft=ConversationDraft();var goal=ConversationGoal(text:.object(["en":.string("Ask a name")]),questionLevel:"Pre-A1",worth:.null);goal.supportLang="en";goal.starter="¿Cómo te llamas?";goal.starterSupport="What is your name?";draft.goal=goal
+        draft.turns=2;draft.goalsCompleted=1;draft.earnedXP=5;draft.seenTurnIDs=[UUID()];draft.append(.init(role:"assistant",text:"¡Hola!",providerID:"r1"))
+        let id=draft.id,messages=draft.messages,receipts=draft.seenTurnIDs
+        draft.refreshSupport("fr")
+        XCTAssertNil(draft.goal);XCTAssertEqual(draft.id,id);XCTAssertEqual(draft.messages,messages);XCTAssertEqual(draft.seenTurnIDs,receipts);XCTAssertEqual(draft.turns,2);XCTAssertEqual(draft.goalsCompleted,1);XCTAssertEqual(draft.earnedXP,5)
+        let restored=try JSONDecoder().decode(ConversationDraft.self,from:JSONEncoder().encode(draft));XCTAssertEqual(restored,draft)
+    }
+    func testSafeLegacyGoalIsAdoptedOnceAndUnknownStarterLanguageIsCleared() throws {
+        var draft=ConversationDraft();draft.goal=ConversationGoal(text:.object(["en":.string("Say hello")]),questionLevel:"Pre-A1",worth:.null);draft.goal?.starter="Hola";draft.goal?.starterSupport="Unlabelled translation"
+        let id=draft.goal?.id;draft.refreshSupport("en")
+        XCTAssertEqual(draft.goal?.id,id);XCTAssertEqual(draft.goal?.supportLang,"en");XCTAssertNil(draft.goal?.starter);XCTAssertNil(draft.goal?.starterSupport)
+        draft.goal?.starter="Hola";draft.goal?.starterSupport="Hello";draft.refreshSupport("en");XCTAssertEqual(draft.goal?.starterSupport,"Hello")
+        draft.refreshSupport("es");XCTAssertNil(draft.goal)
+    }
+    func testTranslationIsVisibleOnlyForItsTaggedLanguageAndOldMessagesStillDecode() throws {
+        var message=ConversationMessage(role:"assistant",text:"Hola");message.translation="Hello";message.translationLang="en"
+        XCTAssertEqual(message.translation(for:"en"),"Hello");XCTAssertNil(message.translation(for:"fr"));XCTAssertEqual(message.translation,"Hello")
+        let data=try JSONEncoder().encode(message),restored=try JSONDecoder().decode(ConversationMessage.self,from:data);XCTAssertEqual(restored.translation(for:"en"),"Hello")
+        let old=#"{"id":"DB57F28E-6A01-4FA8-8D2C-8B038D746D6A","role":"assistant","text":"Hola","translation":"Unlabelled"}"#
+        let legacy=try JSONDecoder().decode(ConversationMessage.self,from:Data(old.utf8));XCTAssertNil(legacy.translationLang);XCTAssertNil(legacy.translation(for:"en"));XCTAssertEqual(legacy.translation,"Unlabelled")
+    }
+}
+
+extension ConversationLanguageTests {
+    func testOldLocalizedEnAliasDoesNotMasqueradeAsAnEnglishGoal() {
+        var draft=ConversationDraft();draft.goal=ConversationGoal(text:.object(["en":.string("Saluda y di tu nombre"),"es":.string("Saluda y di tu nombre")]),questionLevel:"Pre-A1",worth:.null)
+        draft.refreshSupport("en");XCTAssertNil(draft.goal)
+    }
+}

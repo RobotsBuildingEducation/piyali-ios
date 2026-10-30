@@ -51,13 +51,21 @@ struct CommunityPost:Identifiable {
             } catch { if version == self.generation,!(error is CancellationError) { self.error=error.localizedDescription } }
         };pending=request;await request.value
     }
-    func publish(_ state:LearnerState,identity:IdentityService,expectedAuthor:String) async throws {
+    func publishProfile(name:String,identity:IdentityService,expectedAuthor:String)async throws {
+        guard !expectedAuthor.isEmpty,identity.hex == expectedAuthor else{throw CancellationError()}
+        let version=generation,content=JSONValue.object(["name":.string(name),"about":.string("A student onboarded with Robots Building Education")]).canonicalJSON
+        let event=try await identity.signEvent(kind:0,tags:[],content:content,expectedAuthor:expectedAuthor)
+        guard identity.hex == expectedAuthor,version == generation,!Task.isCancelled else{throw CancellationError()}
+        try await client.publish(event,authenticate:{relay,challenge in try await identity.signEvent(kind:22242,tags:[["relay",relay],["challenge",challenge]],content:"",expectedAuthor:expectedAuthor)})
+        guard identity.hex == expectedAuthor,version == generation,!Task.isCancelled else{throw CancellationError()}
+    }
+    func publish(_ state:LearnerState,identity:IdentityService,expectedAuthor:String,totalXP:Int?=nil,languageLabel:String?=nil,refreshAfter:Bool=true) async throws {
         guard !expectedAuthor.isEmpty,identity.hex == expectedAuthor else { throw CancellationError() }
-        let author=expectedAuthor,version=generation,post=CommunityMilestone.progress(state)
+        let author=expectedAuthor,version=generation,post=CommunityMilestone.progress(state,totalXP:totalXP,languageLabel:languageLabel)
         let event=try await identity.signEvent(kind:1,tags:post.tags,content:post.content,expectedAuthor:author)
         guard identity.hex == author,version == generation else { throw CancellationError() }
         try await client.publish(event,authenticate:{ relay,challenge in try await identity.signEvent(kind:22242,tags:[["relay",relay],["challenge",challenge]],content:"",expectedAuthor:author) })
         guard identity.hex == author,version == generation else { throw CancellationError() }
-        await refresh(account:identity.npub,force:true)
+        if refreshAfter{await refresh(account:identity.npub,force:true)}
     }
 }

@@ -1,0 +1,76 @@
+[
+  {
+    "bundle": "PiyaliNarrationWarmCompile1.xcresult",
+    "result": "Build failed before tests",
+    "passedTests": 0,
+    "failedTests": 0,
+    "failures": [],
+    "buildDiagnostics": {
+      "status": "failed",
+      "errorCount": 5,
+      "errors": [
+        "Testing cancelled because the build failed.",
+        "Main actor-isolated property 'onOpen' can not be mutated from a nonisolated context",
+        "Main actor-isolated property 'onEvent' can not be mutated from a nonisolated context",
+        "Main actor-isolated property 'onFailure' can not be mutated from a nonisolated context",
+        "Call to main actor-isolated instance method 'close()' in a synchronous nonisolated context"
+      ]
+    }
+  },
+  {
+    "bundle": "PiyaliNarrationWarmCore1.xcresult",
+    "result": "Passed",
+    "passedTests": 22,
+    "failedTests": 0,
+    "failures": []
+  },
+  {
+    "bundle": "PiyaliNarrationWarmCore2.xcresult",
+    "result": "Build failed before tests",
+    "passedTests": 0,
+    "failedTests": 0,
+    "failures": [],
+    "buildDiagnostics": {
+      "status": "failed",
+      "errorCount": 8,
+      "errors": [
+        "Testing cancelled because the build failed.",
+        "Cannot find type 'NarrationWarmLiveTransport' in scope",
+        "Cannot find 'NarrationWarmLiveTransport' in scope",
+        "Cannot find 'NarrationWarmLiveTransport' in scope",
+        "Cannot infer contextual base in reference to member 'object'",
+        "Type 'Any' has no member 'string'",
+        "Cannot infer contextual base in reference to member 'init'",
+        "Cannot infer contextual base in reference to member 'init'"
+      ]
+    }
+  },
+  {
+    "bundle": "PiyaliNarrationWarmCore3.xcresult",
+    "result": "Passed",
+    "passedTests": 23,
+    "failedTests": 0,
+    "failures": []
+  },
+  {
+    "bundle": "PiyaliNarrationWarmLive1.xcresult",
+    "result": "Passed",
+    "passedTests": 1,
+    "failedTests": 0,
+    "failures": []
+  },
+  {
+    "bundle": "PiyaliNarrationWarmUI1.xcresult",
+    "result": "Passed",
+    "passedTests": 1,
+    "failedTests": 0,
+    "failures": []
+  },
+  {
+    "bundle": "PiyaliNarrationWarmRefillLive1.xcresult",
+    "result": "Passed",
+    "passedTests": 1,
+    "failedTests": 0,
+    "failures": []
+  }
+]

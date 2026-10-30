@@ -1,0 +1,502 @@
+{
+  "modules": [
+    {
+      "file": "src/utils/companionMemory.js",
+      "sha256": "05aeb83111145a419b83877ef3335063d55ace85e5a651f865fbf67d6d84bd91",
+      "declarations": [
+        "getTodaysCapturedNotes",
+        "getCompanionDayKey",
+        "getLocalDayKey",
+        "getCompanionNotes",
+        "readBucket",
+        "normalizePlateLang",
+        "getReusableMemory",
+        "getYesterdayKey",
+        "DAY_MS",
+        "MEMORY_STATUS",
+        "rankReusableNotes",
+        "REPAIR_MAX_ITEMS",
+        "normalizeConceptKey",
+        "buildRepairPlan",
+        "repairItemsFromNotes",
+        "repairModeForError",
+        "ERROR_TYPE_TO_REPAIR_MODE",
+        "getStoredRepairPlan",
+        "getStoredQuestExplanation",
+        "getStoredBlueprint",
+        "shouldRunDailyBatch",
+        "questDayDocumentId",
+        "BLUEPRINT_STALE_MS",
+        "buildDeterministicBlueprint",
+        "buildQuestBubble",
+        "appendGoalToMessage",
+        "GOAL_MESSAGE_SUFFIX",
+        "buildBatchInput",
+        "langName",
+        "getLanguagePromptName",
+        "BATCH_LANG_NAMES",
+        "displayCEFRLevel",
+        "normalizeCEFRLevel",
+        "repairLessonLevelGuard",
+        "repairSummaryFor",
+        "useUserStore",
+        "REPAIR_MODES",
+        "parseBlueprintJson",
+        "assembleAiBlueprint",
+        "normalizeRepairMode",
+        "getRepairSteps",
+        "REPAIR_STEP_FALLBACK_MODES",
+        "getNextRepairStep",
+        "buildEphemeralRepairLesson",
+        "performanceContextFor",
+        "isFoundationCEFRLevel",
+        "REPAIR_LESSON_MODES",
+        "REPAIR_COPY",
+        "generationPerformanceContextFor",
+        "buildRepairCard",
+        "generateRepairDeckEntries"
+      ]
+    },
+    {
+      "file": "src/utils/companionMemoryCopy.js",
+      "sha256": "cdfb764934e9372e83c8e8d471d30ff8b942e50d1c29c8f98b17f96526b22777",
+      "declarations": [
+        "buildQuestBubble",
+        "memoryCopy",
+        "normalizeSupportLanguage",
+        "DEFAULT_SUPPORT_LANGUAGE",
+        "getGermanCopy",
+        "BUBBLE_CLEARED",
+        "BUBBLE_WELCOME",
+        "BUBBLE_WELCOME_GOAL",
+        "BUBBLE_LEAD_REPAIR",
+        "BUBBLE_LEAD_REPAIR_MULTI",
+        "BUBBLE_LEAD_FRESH",
+        "fill",
+        "BUBBLE_PLAN_LABEL",
+        "REPAIR_COPY",
+        "companionMemorySummary",
+        "SAVED_FOR_TOMORROW"
+      ]
+    },
+    {
+      "file": "src/utils/learningIntelligenceModel.js",
+      "sha256": "5e6efcd7fea2758af10af1d3617945daa8583f68f0072cc26d5822549ef0a95c",
+      "declarations": [
+        "compactSummary",
+        "INTELLIGENCE_VERSION",
+        "capWords",
+        "words",
+        "text",
+        "SUPPORT_LEVELS",
+        "GOAL_MODES",
+        "list",
+        "languageKey",
+        "activeGoalFor",
+        "mergeEvidence",
+        "normalizeGoalBlueprint",
+        "selectGoalModes",
+        "seededGoalRandom",
+        "goalModeTarget",
+        "GOAL_MODE_TARGETS",
+        "goalModesFor",
+        "nextGoalMode",
+        "buildGoalLesson",
+        "goalInstructions",
+        "LESSON_PRACTICE_MODES"
+      ]
+    },
+    {
+      "file": "src/utils/flashcardReview.js",
+      "sha256": "7223f0a31f1e739452e0b83524ea49cc1ea2a0d373324b2c393d6ed94ab3043b",
+      "declarations": [
+        "getLocalDayKey",
+        "coerceDate",
+        "getLocalCalendarDayKey",
+        "getFlashcardReviewSnapshot",
+        "normalizeSchedulerState",
+        "FLASHCARD_SCHEDULER_STATES",
+        "normalizeIntervalDays",
+        "clamp",
+        "FLASHCARD_ANKI_PRESET",
+        "FLASHCARD_REVIEW_STATES",
+        "deriveMasteryStage",
+        "getSchedulerRatingOptions",
+        "buildFlashcardReviewUpdate",
+        "buildLearningDelayMinutes",
+        "roundMinutes",
+        "isoAfterDays",
+        "DAY_MS",
+        "HOUR_MS",
+        "MINUTE_MS",
+        "isoAfterMinutes",
+        "formatShortDelay",
+        "mapXpToReviewOutcome",
+        "formatAbsoluteReviewTime",
+        "normalizeSupportLanguage",
+        "DEFAULT_SUPPORT_LANGUAGE",
+        "getLanguageLocale",
+        "isSameLocalDay"
+      ]
+    },
+    {
+      "file": "src/utils/userDataSchema.js",
+      "sha256": "128298da9601794909e9970029871ebbf98cec59fab38bd643d373f9fa4e9597",
+      "declarations": [
+        "getLocalCalendarDayKey",
+        "questDayDocumentId"
+      ]
+    },
+    {
+      "file": "src/utils/dailyPlate.js",
+      "sha256": "a3f4fdc3c618cadc880008646d827812cfe63376252f11af6163883e2a5e6649",
+      "declarations": [
+        "normalizePlateLang"
+      ]
+    },
+    {
+      "file": "src/constants/languages.js",
+      "sha256": "02cb1507cb2ee1b5822ac4dd98cd7faf3e67a5101a13dd6c93826f553201ab32",
+      "declarations": [
+        "normalizeSupportLanguage",
+        "DEFAULT_SUPPORT_LANGUAGE",
+        "normalizeSupportedCode",
+        "normalizeCode",
+        "SUPPORTED_LANGUAGE_CODES_SET",
+        "LANGUAGE_META",
+        "egyptianFlag",
+        "netherlandsFlag",
+        "usaFlag",
+        "frenchFlag",
+        "germanFlag",
+        "italianFlag",
+        "indianFlag",
+        "chineseFlag",
+        "brazilianFlag",
+        "mexicanFlag",
+        "greekFlag",
+        "japaneseFlag",
+        "russianFlag",
+        "polishFlag",
+        "irishFlag",
+        "SUPPORT_LANGUAGE_CODES_SET",
+        "SUPPORT_LANGUAGE_CODES_BASE",
+        "CANONICAL_SUPPORT_LANGUAGE_CODES",
+        "getLanguagePromptName",
+        "LANGUAGE_PROMPT_LABELS",
+        "LANGUAGE_FALLBACK_LABELS",
+        "getLanguageLocale",
+        "LANGUAGE_LOCALES"
+      ]
+    },
+    {
+      "file": "src/constants/supportLanguages.js",
+      "sha256": "d8e8dc17f353a5106bdc984f2cce9696669bc7216be10e006738cb0a04b40b5a",
+      "declarations": [
+        "SUPPORT_LANGUAGE_CODES"
+      ]
+    },
+    {
+      "file": "src/utils/germanCopy.js",
+      "sha256": "c5d8071bc25c6907cf33693b8e6ae274d3796d7f72b80b21a2056946ebba4307",
+      "declarations": [
+        "getGermanCopy",
+        "GERMAN_COPY"
+      ]
+    },
+    {
+      "file": "src/utils/cefrUtils.js",
+      "sha256": "1728261507ff4b90e05e0ccfa0717f4e1b758fc1f908fffb9c5ea3d101ab91b7",
+      "declarations": [
+        "normalizeCEFRLevel"
+      ]
+    },
+    {
+      "file": "src/utils/learningIntelligence.js",
+      "sha256": "224601a49ac60a341fb2b654de2284facb5da9f2c5053ff1ad400ab2a24aa66d",
+      "declarations": [
+        "repairSummaryFor",
+        "compactSummary",
+        "languageKey"
+      ]
+    },
+    {
+      "file": "src/utils/performanceEloModel.js",
+      "sha256": "1c6caa8c52f76576e8fe507d2698c4a65736d5492e49a19d937db8f16e1894a1",
+      "declarations": [
+        "performanceContextFor",
+        "internalEloForUser",
+        "storedRating",
+        "MIN_RATING",
+        "SCORE_SCALE_VERSION",
+        "MAX_RATING",
+        "scoreToElo",
+        "MIN_SCORE",
+        "MAX_SCORE",
+        "ELO_PER_SCORE",
+        "migrateScoreV2",
+        "SCORE_LEVEL_BANDS",
+        "ELO_LEVELS",
+        "migrateLegacyEloRating",
+        "LEGACY_SCORE_POINTS",
+        "initialEloRating",
+        "SCORE_LEVEL_DEFAULTS",
+        "normalizeEloLevel",
+        "initialEloLevelForUser",
+        "curriculumLevelsForUser",
+        "higherLevel",
+        "calculateLessonCompletion",
+        "calculateFlashcardCompletion",
+        "eloToScore",
+        "practiceLevelForElo",
+        "generationPerformanceContextFor"
+      ]
+    },
+    {
+      "file": "src/utils/cefrProgress.js",
+      "sha256": "6681ba74b8d2d4c2e142f6c310274ecbe075c7ed5fb61a2817605c1583e41c85",
+      "declarations": [
+        "calculateLessonCompletion",
+        "LESSON_COUNTS",
+        "getLessonLevelFromId",
+        "calculateFlashcardCompletion",
+        "CEFR_LEVEL_COUNTS"
+      ]
+    },
+    {
+      "file": "src/data/flashcards/common.js",
+      "sha256": "e4110d661b925ecb53e3cf33c02227ea51ac0b67db9cb02a91ee71e14724a2c4",
+      "declarations": [
+        "CEFR_LEVEL_COUNTS",
+        "CEFR_COLORS"
+      ]
+    },
+    {
+      "file": "src/data/phonics/index.js",
+      "sha256": "7877d9aeb179f0252d259976c9b94ecb51402f4d62d5ea62b8b4389e93a47cbc",
+      "declarations": [
+        "getAuthoredPhonicsFocusCards",
+        "initialPhonicsLevel",
+        "PHONICS_LEVELS",
+        "getAuthoredPhonicsDeck",
+        "PHONICS_CONTROLS",
+        "partitionPhonicsProgress",
+        "PHONICS_TARGETS",
+        "PHONICS_SUPPORTS"
+      ]
+    },
+    {
+      "file": "src/utils/lessonProgress.js",
+      "sha256": "920511022ee6347096173d8e7bc34135304b1ae1ad6645a5db3a77233c5e099c",
+      "declarations": [
+        "getGoalPreparationXp",
+        "getLessonEarnedXp",
+        "nextGoalPreparationXp",
+        "isGoalLessonReady",
+        "hasCompletedLessonXp"
+      ]
+    },
+    {
+      "file": "src/utils/learningGoalCopy.js",
+      "sha256": "0c92fed98622bf1a3db70f3a83778a26ecced8788c92b859a36aa76c9e347833",
+      "declarations": [
+        "goalCopy",
+        "keys",
+        "rows",
+        "goalLessonCompletionCopy",
+        "completionRows"
+      ]
+    },
+    {
+      "file": "src/components/FlashcardPractice.jsx",
+      "sha256": "b1da353b8d9d095030637a8e57f100d80184f69bb1e5b5f6a4c37ac3cb756a14",
+      "declarations": [
+        "buildFlashcardJudgePrompt",
+        "LANG_NAME",
+        "getAppLanguage",
+        "translations",
+        "getFlashcardModalTrimTheme",
+        "FLASHCARD_REVIEW_STATES",
+        "APP_BORDER",
+        "getTranslation",
+        "getEffectiveCardLanguage",
+        "normalizeSupportLanguage",
+        "APP_CARD_RADIUS",
+        "APP_SQUIRCLE_SHAPE",
+        "APP_SURFACE",
+        "APP_SURFACE_ELEVATED",
+        "APP_SURFACE_MUTED",
+        "APP_BORDER_STRONG",
+        "APP_TEXT_PRIMARY",
+        "APP_TEXT_SECONDARY",
+        "APP_TEXT_MUTED",
+        "APP_SHADOW"
+      ]
+    },
+    {
+      "file": "src/components/FlashcardSkillTree.jsx",
+      "sha256": "953b1553e067d2cd7dfec1cb87e20798336c6a9ec78eaed0136efbbd4c1b644f",
+      "declarations": [
+        "getCardDecor",
+        "APP_SURFACE_ELEVATED",
+        "APP_BORDER",
+        "getWeaknessScore",
+        "FLASHCARD_REVIEW_STATES",
+        "isWeakCardSnapshot",
+        "buildFallbackActivityMap",
+        "getLocalDayKey",
+        "APP_TEXT_PRIMARY"
+      ]
+    },
+    {
+      "file": "src/hooks/useSpeechPractice.js",
+      "sha256": "22b8562a05705b4c1df72f4ed5c2e466c947d95385dfe74c5a803af37ceb8099",
+      "declarations": [
+        "buildRealtimeSpeechSession",
+        "BCP47_TO_WHISPER"
+      ]
+    },
+    {
+      "file": "src/utils/noteGeneration.js",
+      "sha256": "84b74e70390456b31b6d11b779acf79d4d321f2eadbf461776f573f38e082825",
+      "declarations": [
+        "LANG_NAME",
+        "getLanguagePromptName"
+      ]
+    },
+    {
+      "file": "src/utils/flashcardActivity.js",
+      "sha256": "10a19647f82edfcce2511bd8077472f11433613da77b1ce9d932bffdb6e128f2",
+      "declarations": [
+        "mergeFlashcardActivityCounts",
+        "getFlashcardReviewPreviewCount"
+      ]
+    },
+    {
+      "file": "src/utils/dailyQuestTargets.js",
+      "sha256": "32f102401e70f1bfe86daaeffd56da490fb94fc8bc68dec42aa39ff9829f3b58",
+      "declarations": [
+        "getFlashcardDailyTarget",
+        "FLASHCARD_RANDOM_DAILY_TARGET_MAX",
+        "FLASHCARD_RANDOM_DAILY_TARGET_MIN",
+        "hashString"
+      ]
+    },
+    {
+      "file": "src/utils/cefrLevelInfo.js",
+      "sha256": "50ad5e9e5733d6ba42e40ad9bcd1027f9ea4f741b450afe71bcb6848b749d0c3",
+      "declarations": [
+        "CEFR_LEVEL_INFO"
+      ]
+    },
+    {
+      "file": "src/theme.js",
+      "sha256": "6fe6093ecca51d0debb1314a587d6bd0927e7ac9f8c1ba2c6c744017e3be407e",
+      "declarations": [
+        "APP_CARD_RADIUS",
+        "APP_SQUIRCLE_SHAPE"
+      ]
+    },
+    {
+      "file": "src/components/AlphabetBootcamp.jsx",
+      "sha256": "51a7b8ab6a3c0ee80fc7594fcf9ee66f345d002278c0987b717d5c4b309282d7",
+      "declarations": [
+        "uiText",
+        "normalizeSupportLanguage",
+        "DEFAULT_SUPPORT_LANGUAGE",
+        "ALPHABET_UI_TEXT",
+        "PHONICS_EXTRA_UI_TEXT",
+        "PHONICS_CONTROLS",
+        "getLanguageName",
+        "PHONICS_TARGET_NAMES",
+        "getLetterName",
+        "getLocalizedLetterField",
+        "SUPPLEMENTAL_PHONICS_VERSION",
+        "LOCALIZED_FIELD_SUFFIX",
+        "getMeaningText",
+        "normalizeMeaning",
+        "getLetterSound",
+        "getLetterTip",
+        "getPracticeLetterMarker",
+        "getHighlightedWordParts",
+        "buildAlphabetJudgePrompt",
+        "LANGUAGE_PROMPT_LABELS"
+      ]
+    },
+    {
+      "file": "src/utils/supplementalPhonics.js",
+      "sha256": "de9f68af6aeaf20613a4828a3469971dd1a60fcf5940acb62c0ab75f4006771f",
+      "declarations": [
+        "SUPPLEMENTAL_PHONICS_VERSION",
+        "buildSupplementalPhonicsDeck",
+        "PHONICS_TARGETS",
+        "PHONICS_SUPPORTS",
+        "PHONICS_LEVELS",
+        "SUPPLEMENTAL_DECK_SIZE",
+        "wordKey",
+        "clean",
+        "usesScript",
+        "scripts",
+        "supplementalPhonicsRecord",
+        "restoreSupplementalPhonics",
+        "supplementalPhonicsEvents"
+      ]
+    },
+    {
+      "file": "src/utils/phonicsCourseProgress.js",
+      "sha256": "417d12de20ba70f55ab2c67f14cce7fa65817d439150f83b945828b61e3a6b39",
+      "declarations": [
+        "getPhonicsCourseProgress",
+        "PHONICS_LEVELS",
+        "canAccessPhonicsLevel",
+        "resolvePhonicsLevel"
+      ]
+    },
+    {
+      "file": "src/utils/tts.js",
+      "sha256": "d6b7f16803fa7c88c7e94cd05186d491e8fd7846a08940bf86bf5175a36b7c7d",
+      "declarations": [
+        "TTS_LANG_TAG",
+        "sanitizeVoice",
+        "SUPPORTED_TTS_VOICES",
+        "DEFAULT_TTS_VOICE"
+      ]
+    }
+  ],
+  "fixtureCount": 198,
+  "goalFixtureCount": 116,
+  "flashcardFixtureCount": 117,
+  "phonicsFixtureCount": 106,
+  "phonicsAdapters": {
+    "targetLabels": {
+      "file": "src/data/phonics/names.js",
+      "sha256": "260e98e1957e57e221ce4bf2a51926c8e5e93a878a2bf4274315fc8cca5e0903",
+      "scope": "Original literal default export; no source module is imported at runtime."
+    },
+    "narration": "Original narrationSession expression and locale/voice helpers; native receive-only transport requires successful generation, buffer-stopped and the source minimum jitter-buffer tail before completion.",
+    "targets": "Exact PHONICS_CURRICULUM object keys replace loading authored payload modules; deck selection still uses exported authored snapshots.",
+    "grade": "Original 1-2 XP parser and pronunciation prompt; no source providers or stores execute.",
+    "generation": {
+      "file": "src/utils/phonicsDeckGeneration.js",
+      "sha256": "4ddb003827d7baa0444fccdb8ebefbe8083baa6f0dec719ed89a18272dac050c",
+      "scope": "Original input expression and parser split at the network boundary."
+    }
+  },
+  "flashcardAdapters": {
+    "uiLanguage": "Explicit p.language snapshot replaces getAppLanguage; p.copy supplies the previously exported source string dictionaries.",
+    "visuals": "JSX icon elements are omitted from original plain theme values. UI and source provider/store code never execute in this bundle.",
+    "prompts": "Original judge, reveal, explanation, note prompts and parser are split at network boundaries; the original native capture session configuration is unchanged.",
+    "rewardHandler": {
+      "file": "src/App.jsx",
+      "sha256": "eb7e06e1422cac6d205059dc92d68370bec40c1009c1a316f0c2d3eb5f325fd6",
+      "expression": "card.xpReward || 5"
+    }
+  },
+  "goalPlanner": {
+    "file": "src/utils/learningIntelligence.js",
+    "sha256": "224601a49ac60a341fb2b654de2284facb5da9f2c5053ff1ad400ab2a24aa66d",
+    "scope": "Original callResponses input template; source network/persistence code is excluded."
+  },
+  "fixtureEncoding": "gzip(JSON)",
+  "snapshotAdapter": "An explicit clock scopes Date during each call for reproducibility. Only useUserStore.getState().user is replaced by the explicit plain input snapshot; all source I/O functions are excluded. The deck prompt and parser are split at the source network call; no provider code executes. Authored phonics selection reads the exact pre-exported deck snapshot. Unread flag component fields in language metadata are null; language labels/normalization remain source functions."
+}

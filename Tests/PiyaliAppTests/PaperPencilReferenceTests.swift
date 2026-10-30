@@ -1,0 +1,25 @@
+import XCTest
+import WebKit
+import SwiftUI
+@testable import Piyali
+
+@MainActor final class PaperPencilReferenceTests:XCTestCase {
+    func testCurrentMangaModalResponsiveGeometryAndDismissal()async throws{
+        let env=ProcessInfo.processInfo.environment;guard env["PIYALI_OFFLINE_TESTS"] == "1",env["PIYALI_REFERENCE_PREVIEW_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Isolated source preview required")}
+        let scene=try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap{$0 as? UIWindowScene}.first),old=scene.windows.first{$0.isKeyWindow};defer{old?.makeKey()}
+        for size in [CGSize(width:320,height:568),.init(width:375,height:667),.init(width:402,height:874),.init(width:874,height:402)]{for(language,theme)in[("en","light"),("ar","dark")]{
+            let label="\(language) \(Int(size.width))x\(Int(size.height))",window=UIWindow(windowScene:scene);window.frame=CGRect(origin:.zero,size:size);let config=WKWebViewConfiguration();config.websiteDataStore = .nonPersistent();let web=WKWebView(frame:window.bounds,configuration:config),vc=UIViewController();vc.view=web;web.scrollView.contentInsetAdjustmentBehavior = .never;window.rootViewController=vc;window.makeKeyAndVisible();defer{web.stopLoading();window.isHidden=true;window.rootViewController=nil}
+            web.load(URLRequest(url:URL(string:"http://127.0.0.1:5181/__piyali-paper?language=\(language)&theme=\(theme)")!));var ready=false;for _ in 0..<400{ready=(try? await web.evaluateJavaScript("document.fonts.status==='loaded'&&document.querySelector('.chakra-modal__content img')?.complete&&document.querySelector('.chakra-modal__content img')?.naturalWidth===960"))as?Bool == true;if ready{break};try await Task.sleep(for:.milliseconds(50))};XCTAssertTrue(ready);guard ready else{throw NSError(domain:"PaperReferenceNotReady",code:1)};try await Task.sleep(for:.milliseconds(300))
+            let raw=try await web.evaluateJavaScript("JSON.stringify([...document.querySelectorAll('.chakra-modal__content,.app-modal-header,.chakra-modal__body,img,p,button')].map(e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return {tag:e.tagName,classes:e.className,text:e.tagName==='IMG'?'manga':e.innerText,x:r.x,y:r.y,width:r.width,height:r.height,size:s.fontSize,lineHeight:s.lineHeight,padding:s.padding,border:s.border,bg:s.backgroundColor,radius:s.borderRadius,font:s.fontFamily}}))"),metrics=try XCTUnwrap(raw as?String),items=try JSONDecoder().decode([JSONValue].self,from:Data(metrics.utf8)),panel=try XCTUnwrap(items.first{$0["classes"].string.contains("chakra-modal__content ") || $0["classes"].string.hasSuffix("chakra-modal__content")});let m=XCTAttachment(string:metrics);m.name="Source manga Paper geometry "+label;m.lifetime = .keepAlways;add(m)
+            let svgCount=(try await web.evaluateJavaScript("document.querySelectorAll('.chakra-modal__content svg').length"))as?Int;XCTAssertEqual(svgCount,0)
+            let shot=XCTAttachment(image:try await web.takeSnapshot(configuration:nil));shot.name="Source manga Paper modal "+label;shot.lifetime = .keepAlways;add(shot)
+            _=try await web.evaluateJavaScript("document.querySelector('.chakra-modal__body p').click()");let bodyDismissed=(try? await web.evaluateJavaScript("window.paperDismissed===true"))as?Bool == true;XCTAssertFalse(bodyDismissed)
+            _=try await web.evaluateJavaScript("document.querySelector('.chakra-modal__body button').click()");let dismissed=(try await web.evaluateJavaScript("window.paperDismissed"))as?Bool;XCTAssertEqual(dismissed,true)
+            web.stopLoading();window.isHidden=true;window.rootViewController=nil
+            let app=AppModel();app.learner.support=language;var measured=CGSize.zero
+            let content=ZStack{PiyaliBrand(dark:theme == "dark").background;(theme == "dark" ? PiyaliBrand.unitColor("020617").opacity(0.92):PiyaliBrand.unitColor("1c140c").opacity(0.82));PaperPencilView(onClose:{},onPanelSize:{measured=$0})}.ignoresSafeArea().environmentObject(app).environment(\.layoutDirection,language == "ar" ? .rightToLeft:.leftToRight).environment(\.dynamicTypeSize,.large).preferredColorScheme(theme == "dark" ? .dark:.light)
+            let host=UIHostingController(rootView:content);window.rootViewController=host;window.makeKeyAndVisible();host.view.layoutIfNeeded();try await Task.sleep(for:.milliseconds(400));let native=XCTAttachment(image:UIGraphicsImageRenderer(bounds:window.bounds).image{_ in window.drawHierarchy(in:window.bounds,afterScreenUpdates:true)});native.name="Native manga Paper modal "+label;native.lifetime = .keepAlways;add(native)
+            let nm=XCTAttachment(string:"{\"width\":\(measured.width),\"height\":\(measured.height)}");nm.name="Native manga Paper geometry "+label;nm.lifetime = .keepAlways;add(nm);XCTAssertEqual(measured.width,panel["width"].number,accuracy:0.5,label);XCTAssertEqual(measured.height,panel["height"].number,accuracy:2,label);window.isHidden=true;window.rootViewController=nil
+        }}
+    }
+}

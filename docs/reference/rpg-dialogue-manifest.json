@@ -1,0 +1,33 @@
+{
+  "sources": [
+    {
+      "file": "src/components/RPGGame/index.jsx",
+      "sha256": "f597e8f7a9296ff3f72fad4e6f24ca4a1a313fddbc87ba3cf2d128c1d6ea95a2"
+    },
+    {
+      "file": "src/utils/dialogueFormatting.js",
+      "sha256": "432c25a5a350cb801b4eb23d82e78a69ab25a132608ae5e36e9acd0deb65cc6a"
+    },
+    {
+      "file": "src/utils/bidiText.js",
+      "sha256": "0dc0959f0e58c3e715241dcd57eeab484ff55785860a1e53e7e15b79ac52aed1"
+    },
+    {
+      "file": "src/constants/languages.js",
+      "sha256": "02cb1507cb2ee1b5822ac4dd98cd7faf3e67a5101a13dd6c93826f553201ab32"
+    }
+  ],
+  "cases": 303,
+  "traces": 7,
+  "undoIcon": {
+    "module": "react-icons/md",
+    "export": "MdUndo",
+    "svgSHA256": "3e14087b908124673acccaa487a98b19e1070286ff8c77476cd67054f5b05720"
+  },
+  "motion": {
+    "charDelayMs": 18,
+    "fadeMilliseconds": 120,
+    "timing": "ease-in"
+  },
+  "adapters": "Original sentence splitting, active caption/prompt/reply declarations, memoized translation target selectors, roster/prompt, initialization and streamed line application. Actual async toggle runs against explicit inert Gemini/Responses chunks for trace fixtures. Native dictionaries use canonical key order; flags are inert. No providers, stores, React or browser persistence execute."
+}

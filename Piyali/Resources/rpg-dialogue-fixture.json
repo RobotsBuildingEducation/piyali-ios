@@ -1,0 +1,22 @@
+{
+  "en": {
+    "Hola!": "Hello!",
+    "Cómo te llamas?": "What is your name?",
+    "as?": "as?",
+    "Hola": "Hello",
+    "Adiós": "Goodbye",
+    "Gracias": "Thank you",
+    "Muy bien!": "Very good!",
+    "!": "!"
+  },
+  "ar": {
+    "Hola!": "مرحباً!",
+    "Cómo te llamas?": "ما اسمك؟",
+    "as?": "as?",
+    "Hola": "أهلاً",
+    "Adiós": "وداعاً",
+    "Gracias": "شكراً",
+    "Muy bien!": "جيد جداً!",
+    "!": "!"
+  }
+}

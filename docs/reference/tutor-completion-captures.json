@@ -1,0 +1,257 @@
+{
+  "scope": "Twelve original Tutor completion/review component pairs. 402x874 and 375x667 logical phone viewports, Spanish/Japanese target content, English/light and Arabic/dark interfaces. Native content must load a real source lesson; all agenda items are completed. Source/native neutral backgrounds match. External I/O is disabled; these are component comparisons, not full web game journeys. Exact pixel/color/motion identity is not asserted.",
+  "captures": [
+    {
+      "file": "docs/native/tutor-result-review-ja-ar-375.png",
+      "name": "Native Tutor review ja-ar 375",
+      "sha256": "60525cdf2a7cce1b8dd063d474fb2c91c1f13b6358116fe1befd2f53d96002a3",
+      "test": "TutorReferenceScreensTests/testOriginalCompletionAndAgendaReviewAcrossPhoneSizesAndSupportLanguages()",
+      "resultBundle": "PiyaliTutorCompletion7.xcresult"
+    },
+    {
+      "file": "docs/reference/tutor-result-review-ja-ar-375-metrics.json",
+      "name": "Source Tutor review metrics ja-ar 375",
+      "sha256": "da0e6c0c1a9a33204bc3308181a1458e92c3dc515359ec23824d7a1db02521b5",
+      "test": "TutorReferenceScreensTests/testOriginalCompletionAndAgendaReviewAcrossPhoneSizesAndSupportLanguages()",
+      "resultBundle": "PiyaliTutorCompletion7.xcresult"
+    },
+    {
+      "file": "docs/reference/tutor-result-review-ja-ar-375.png",
+      "name": "Source Tutor review ja-ar 375",
+      "sha256": "a50c83f3263069c6e0fa73fe96c20dba6c72c963a5ead6f9134325347625d381",
+      "test": "TutorReferenceScreensTests/testOriginalCompletionAndAgendaReviewAcrossPhoneSizesAndSupportLanguages()",
+      "resultBundle": "PiyaliTutorCompletion7.xcresult"
+    },
+    {
+      "file": "docs/native/tutor-result-completion-ja-ar-375.png",
+      "name": "Native Tutor completion ja-ar 375",
+      "sha256": "7a116995d4cb1dc0cf3679b6885b6c5085c16935055fcf85188cc7b1d10951f3",
+      "test": "TutorReferenceScreensTests/testOriginalCompletionAndAgendaReviewAcrossPhoneSizesAndSupportLanguages()",
+      "resultBundle": "PiyaliTutorCompletion7.xcresult"
+    },
+    {
+      "file": "docs/reference/tutor-result-completion-ja-ar-375-metrics.json",
+      "name": "Source Tutor completion metrics ja-ar 375",
+      "sha256": "b4c15951b268ca53a28abe8fe01e6a45b14c877591b19ec2804c74271155862a",
+      "test": "TutorReferenceScreensTests/testOriginalCompletionAndAgendaReviewAcrossPhoneSizesAndSupportLanguages()",
+      "resultBundle": "PiyaliTutorCompletion7.xcresult"
+    },
+    {
+      "file": "docs/reference/tutor-result-completion-ja-ar-375.png",
+      "name": "Source Tutor completion ja-ar 375",
+      "sha256": "f528b058ea20d172dafae766e3987d796f69fb9d59cf2d47cd14e68c98aedfcd",
+      "test": "TutorReferenceScreensTests/testOriginalCompletionAndAgendaReviewAcrossPhoneSizesAndSupportLanguages()",
+      "resultBundle": "PiyaliTutorCompletion7.xcresult"
+    },
+    {
+      "file": "docs/native/tutor-result-review-ja-en-402.png",
+      "name": "Native Tutor review ja-en 402",
+      "sha256": "b40f420af80776d328ef3c97c935b64b3bf531dea6b35d12386babbf9abe8cb0",
+      "test": "TutorReferenceScreensTests/testOriginalCompletionAndAgendaReviewAcrossPhoneSizesAndSupportLanguages()",
+      "resultBundle": "PiyaliTutorCompletion7.xcresult"
+    },
+    {
+      "file": "docs/reference/tutor-result-review-ja-en-402-metrics.json",
+      "name": "Source Tutor review metrics ja-en 402",
+      "sha256": "14425f71f3951c69798a1a377c74ac3a9d8aa1d1afbfbd0f2c686621bcdeca1d",
+      "test": "TutorReferenceScreensTests/testOriginalCompletionAndAgendaReviewAcrossPhoneSizesAndSupportLanguages()",
+      "resultBundle": "PiyaliTutorCompletion7.xcresult"
+    },
+    {
+      "file": "docs/reference/tutor-result-review-ja-en-402.png",
+      "name": "Source Tutor review ja-en 402",
+      "sha256": "cc248fc24f3bc32f448209db926e0af19c959928e1e2b6b5aee278622c69d99e",
+      "test": "TutorReferenceScreensTests/testOriginalCompletionAndAgendaReviewAcrossPhoneSizesAndSupportLanguages()",
+      "resultBundle": "PiyaliTutorCompletion7.xcresult"
+    },
+    {
+      "file": "docs/native/tutor-result-completion-ja-en-402.png",
+      "name": "Native Tutor completion ja-en 402",
+      "sha256": "79ed3b6569c74d2a026a24e56db7b68fdc16fb31c28843dae3eb4229774cd388",
+      "test": "TutorReferenceScreensTests/testOriginalCompletionAndAgendaReviewAcrossPhoneSizesAndSupportLanguages()",
+      "resultBundle": "PiyaliTutorCompletion7.xcresult"
+    },
+    {
+      "file": "docs/reference/tutor-result-completion-ja-en-402-metrics.json",
+      "name": "Source Tutor completion metrics ja-en 402",
+      "sha256": "f886f1cbe4e8c9c11b49fca7e44ba3f3cf7a0c0acec5186ba95ccf0912bfe30f",
+      "test": "TutorReferenceScreensTests/testOriginalCompletionAndAgendaReviewAcrossPhoneSizesAndSupportLanguages()",
+      "resultBundle": "PiyaliTutorCompletion7.xcresult"
+    },
+    {
+      "file": "docs/reference/tutor-result-completion-ja-en-402.png",
+      "name": "Source Tutor completion ja-en 402",
+      "sha256": "2a7f7ac006b15c5953e32ab1fd442c4ef2095e0ee26f33bcaecb35df55a3305e",
+      "test": "TutorReferenceScreensTests/testOriginalCompletionAndAgendaReviewAcrossPhoneSizesAndSupportLanguages()",
+      "resultBundle": "PiyaliTutorCompletion7.xcresult"
+    },
+    {
+      "file": "docs/native/tutor-result-review-es-ar-375.png",
+      "name": "Native Tutor review es-ar 375",
+      "sha256": "b62e9cb399cc5ac6838a8a86d072f79c6d9a70856dcc89a0760d0ce43433cc45",
+      "test": "TutorReferenceScreensTests/testOriginalCompletionAndAgendaReviewAcrossPhoneSizesAndSupportLanguages()",
+      "resultBundle": "PiyaliTutorCompletion7.xcresult"
+    },
+    {
+      "file": "docs/reference/tutor-result-review-es-ar-375-metrics.json",
+      "name": "Source Tutor review metrics es-ar 375",
+      "sha256": "2a6abe41366b8ef5948cfaad5d8b24de2b873d2cbb11781dccf8f94d637240f7",
+      "test": "TutorReferenceScreensTests/testOriginalCompletionAndAgendaReviewAcrossPhoneSizesAndSupportLanguages()",
+      "resultBundle": "PiyaliTutorCompletion7.xcresult"
+    },
+    {
+      "file": "docs/reference/tutor-result-review-es-ar-375.png",
+      "name": "Source Tutor review es-ar 375",
+      "sha256": "6a41a3afba49648fd02ba69db34bb2ea2c1c116b6746617bad9446c0d4ecef6d",
+      "test": "TutorReferenceScreensTests/testOriginalCompletionAndAgendaReviewAcrossPhoneSizesAndSupportLanguages()",
+      "resultBundle": "PiyaliTutorCompletion7.xcresult"
+    },
+    {
+      "file": "docs/native/tutor-result-completion-es-ar-375.png",
+      "name": "Native Tutor completion es-ar 375",
+      "sha256": "a60a9475cf112c598989efda75ffe990a693fdc847ed21a175369c8cfd57f3d3",
+      "test": "TutorReferenceScreensTests/testOriginalCompletionAndAgendaReviewAcrossPhoneSizesAndSupportLanguages()",
+      "resultBundle": "PiyaliTutorCompletion7.xcresult"
+    },
+    {
+      "file": "docs/reference/tutor-result-completion-es-ar-375-metrics.json",
+      "name": "Source Tutor completion metrics es-ar 375",
+      "sha256": "b4c15951b268ca53a28abe8fe01e6a45b14c877591b19ec2804c74271155862a",
+      "test": "TutorReferenceScreensTests/testOriginalCompletionAndAgendaReviewAcrossPhoneSizesAndSupportLanguages()",
+      "resultBundle": "PiyaliTutorCompletion7.xcresult"
+    },
+    {
+      "file": "docs/reference/tutor-result-completion-es-ar-375.png",
+      "name": "Source Tutor completion es-ar 375",
+      "sha256": "55fe7929a1fcf0043d6b9d3dde80580943742fb95ece7a1e3e8cd86ae14a54cf",
+      "test": "TutorReferenceScreensTests/testOriginalCompletionAndAgendaReviewAcrossPhoneSizesAndSupportLanguages()",
+      "resultBundle": "PiyaliTutorCompletion7.xcresult"
+    },
+    {
+      "file": "docs/native/tutor-result-review-es-en-375.png",
+      "name": "Native Tutor review es-en 375",
+      "sha256": "0e5b581460e10c4d8c9fc77cc0a767406b8aef07b944b9fee7adde694a0eb8f0",
+      "test": "TutorReferenceScreensTests/testOriginalCompletionAndAgendaReviewAcrossPhoneSizesAndSupportLanguages()",
+      "resultBundle": "PiyaliTutorCompletion7.xcresult"
+    },
+    {
+      "file": "docs/reference/tutor-result-review-es-en-375-metrics.json",
+      "name": "Source Tutor review metrics es-en 375",
+      "sha256": "9f43ed0844ac00feb75e28e19f6bc4e19093ba1e19a5c1845eb73521f354b1ec",
+      "test": "TutorReferenceScreensTests/testOriginalCompletionAndAgendaReviewAcrossPhoneSizesAndSupportLanguages()",
+      "resultBundle": "PiyaliTutorCompletion7.xcresult"
+    },
+    {
+      "file": "docs/reference/tutor-result-review-es-en-375.png",
+      "name": "Source Tutor review es-en 375",
+      "sha256": "87964d89de3d7b87c67dd80fbd76056c77567ffcc4b092445796b699aaa19dea",
+      "test": "TutorReferenceScreensTests/testOriginalCompletionAndAgendaReviewAcrossPhoneSizesAndSupportLanguages()",
+      "resultBundle": "PiyaliTutorCompletion7.xcresult"
+    },
+    {
+      "file": "docs/native/tutor-result-completion-es-en-375.png",
+      "name": "Native Tutor completion es-en 375",
+      "sha256": "08317b90292dd54973477f64931e310db15731dedf78b8744e09e1f2cd54881c",
+      "test": "TutorReferenceScreensTests/testOriginalCompletionAndAgendaReviewAcrossPhoneSizesAndSupportLanguages()",
+      "resultBundle": "PiyaliTutorCompletion7.xcresult"
+    },
+    {
+      "file": "docs/reference/tutor-result-completion-es-en-375-metrics.json",
+      "name": "Source Tutor completion metrics es-en 375",
+      "sha256": "76bd05e3a118d2eae5b49b2319727fc60dc4c4b0c960e79bda8c25857132f80e",
+      "test": "TutorReferenceScreensTests/testOriginalCompletionAndAgendaReviewAcrossPhoneSizesAndSupportLanguages()",
+      "resultBundle": "PiyaliTutorCompletion7.xcresult"
+    },
+    {
+      "file": "docs/reference/tutor-result-completion-es-en-375.png",
+      "name": "Source Tutor completion es-en 375",
+      "sha256": "d9653c7c93680a04f16d7f9ae7f7edebed18c2fa0418c1660aeaa78dbefb2587",
+      "test": "TutorReferenceScreensTests/testOriginalCompletionAndAgendaReviewAcrossPhoneSizesAndSupportLanguages()",
+      "resultBundle": "PiyaliTutorCompletion7.xcresult"
+    },
+    {
+      "file": "docs/native/tutor-result-review-es-ar-402.png",
+      "name": "Native Tutor review es-ar 402",
+      "sha256": "8bab340fe09ad5927cce78252d30a2bc92682c0ef714f3bc10e329efd8c31de3",
+      "test": "TutorReferenceScreensTests/testOriginalCompletionAndAgendaReviewAcrossPhoneSizesAndSupportLanguages()",
+      "resultBundle": "PiyaliTutorCompletion7.xcresult"
+    },
+    {
+      "file": "docs/reference/tutor-result-review-es-ar-402-metrics.json",
+      "name": "Source Tutor review metrics es-ar 402",
+      "sha256": "7bdf393ce59269de22e0ffc8d07b41c239d4346c80e819a4278c37e3bc951826",
+      "test": "TutorReferenceScreensTests/testOriginalCompletionAndAgendaReviewAcrossPhoneSizesAndSupportLanguages()",
+      "resultBundle": "PiyaliTutorCompletion7.xcresult"
+    },
+    {
+      "file": "docs/reference/tutor-result-review-es-ar-402.png",
+      "name": "Source Tutor review es-ar 402",
+      "sha256": "01849f4f95f5aa70dcdbf7bf2339624a5553ae6f7e399613185fd4d8ab2870cf",
+      "test": "TutorReferenceScreensTests/testOriginalCompletionAndAgendaReviewAcrossPhoneSizesAndSupportLanguages()",
+      "resultBundle": "PiyaliTutorCompletion7.xcresult"
+    },
+    {
+      "file": "docs/native/tutor-result-completion-es-ar-402.png",
+      "name": "Native Tutor completion es-ar 402",
+      "sha256": "3ea42c880ac20b180aa1e250892c3585bc16f585b685207081c77eca5aef9629",
+      "test": "TutorReferenceScreensTests/testOriginalCompletionAndAgendaReviewAcrossPhoneSizesAndSupportLanguages()",
+      "resultBundle": "PiyaliTutorCompletion7.xcresult"
+    },
+    {
+      "file": "docs/reference/tutor-result-completion-es-ar-402-metrics.json",
+      "name": "Source Tutor completion metrics es-ar 402",
+      "sha256": "83d2f2c24e9e57a801b53960fa6ad99eaa7f45a791e6b30fdede3a0b5baccafe",
+      "test": "TutorReferenceScreensTests/testOriginalCompletionAndAgendaReviewAcrossPhoneSizesAndSupportLanguages()",
+      "resultBundle": "PiyaliTutorCompletion7.xcresult"
+    },
+    {
+      "file": "docs/reference/tutor-result-completion-es-ar-402.png",
+      "name": "Source Tutor completion es-ar 402",
+      "sha256": "9998d73e89c86988c52c35bfa870f9aba7da4016e674afac76ca9660b7ad91a5",
+      "test": "TutorReferenceScreensTests/testOriginalCompletionAndAgendaReviewAcrossPhoneSizesAndSupportLanguages()",
+      "resultBundle": "PiyaliTutorCompletion7.xcresult"
+    },
+    {
+      "file": "docs/native/tutor-result-review-es-en-402.png",
+      "name": "Native Tutor review es-en 402",
+      "sha256": "7c70a2c96780cfc6e691036302bc6391b80508b07587e6630d08d6b9e79f4326",
+      "test": "TutorReferenceScreensTests/testOriginalCompletionAndAgendaReviewAcrossPhoneSizesAndSupportLanguages()",
+      "resultBundle": "PiyaliTutorCompletion7.xcresult"
+    },
+    {
+      "file": "docs/reference/tutor-result-review-es-en-402-metrics.json",
+      "name": "Source Tutor review metrics es-en 402",
+      "sha256": "84a946e0fe0b3d716f14a781c912110ed26194e9faa943bd5c84682d2122d0ae",
+      "test": "TutorReferenceScreensTests/testOriginalCompletionAndAgendaReviewAcrossPhoneSizesAndSupportLanguages()",
+      "resultBundle": "PiyaliTutorCompletion7.xcresult"
+    },
+    {
+      "file": "docs/reference/tutor-result-review-es-en-402.png",
+      "name": "Source Tutor review es-en 402",
+      "sha256": "7f370e83a81495f0dd1b06c771fdc70f095c277c47ed83fdb6cf64ac483798ca",
+      "test": "TutorReferenceScreensTests/testOriginalCompletionAndAgendaReviewAcrossPhoneSizesAndSupportLanguages()",
+      "resultBundle": "PiyaliTutorCompletion7.xcresult"
+    },
+    {
+      "file": "docs/native/tutor-result-completion-es-en-402.png",
+      "name": "Native Tutor completion es-en 402",
+      "sha256": "1db77bf3964bbb234b32046f5119a38cbe09aeaedf325b9992c1b6739048eb29",
+      "test": "TutorReferenceScreensTests/testOriginalCompletionAndAgendaReviewAcrossPhoneSizesAndSupportLanguages()",
+      "resultBundle": "PiyaliTutorCompletion7.xcresult"
+    },
+    {
+      "file": "docs/reference/tutor-result-completion-es-en-402-metrics.json",
+      "name": "Source Tutor completion metrics es-en 402",
+      "sha256": "f886f1cbe4e8c9c11b49fca7e44ba3f3cf7a0c0acec5186ba95ccf0912bfe30f",
+      "test": "TutorReferenceScreensTests/testOriginalCompletionAndAgendaReviewAcrossPhoneSizesAndSupportLanguages()",
+      "resultBundle": "PiyaliTutorCompletion7.xcresult"
+    },
+    {
+      "file": "docs/reference/tutor-result-completion-es-en-402.png",
+      "name": "Source Tutor completion es-en 402",
+      "sha256": "3867afed467105d3c9fbd0440fa1dacabf21b665aa0002980746db48c08a0e3e",
+      "test": "TutorReferenceScreensTests/testOriginalCompletionAndAgendaReviewAcrossPhoneSizesAndSupportLanguages()",
+      "resultBundle": "PiyaliTutorCompletion7.xcresult"
+    }
+  ]
+}

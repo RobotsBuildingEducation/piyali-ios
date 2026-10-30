@@ -123,13 +123,13 @@ struct LearningTeam: Identifiable, Sendable {
         try valid(identity:identity,author:author,version:version)
         remember(event)
     }
-    func create(name: String, members: String, identity: IdentityService) async throws {
+    func create(name: String, members: String, identity: IdentityService, id:String?=nil, reload:Bool=true) async throws {
         let name=try checkedName(name),hexes=try keys(members)
         guard !hexes.contains(identity.hex) else { throw AppError.message("You are already included as the creator.") }
         try await run(identity:identity) { author,version in
-            let id=UUID().uuidString.replacingOccurrences(of:"-",with:"").lowercased()
+            let id=id ?? UUID().uuidString.replacingOccurrences(of:"-",with:"").lowercased()
             try await self.publish(LearningTeams.teamTemplate(id:id,name:name,members:[author]+hexes,createdAt:Int64(Date().timeIntervalSince1970)),identity:identity,author:author,version:version)
-            try await self.load(identity:identity,author:author,version:version)
+            if reload {try await self.load(identity:identity,author:author,version:version)}
         }
     }
     private func current(_ team: LearningTeam, identity: IdentityService, author: String, version: Int) async throws -> LearningTeam {
@@ -163,11 +163,11 @@ struct LearningTeam: Identifiable, Sendable {
             try await self.load(identity:identity,author:author,version:version)
         }
     }
-    func publishProgress(_ state: LearnerState, identity: IdentityService) async throws {
+    func publishProgress(_ state: LearnerState, identity: IdentityService,reload:Bool=true) async throws {
         try await run(identity:identity) { author,version in
             let data=LearningTeams.snapshot(state)
             try await self.publish(.object(["created_at":data["updatedAt"],"content":.string(data.json),"tags":.array([["d","learning-progress"],["t","learning-progress"]].map { .array($0.map(JSONValue.string)) })]),identity:identity,author:author,version:version)
-            try await self.load(identity:identity,author:author,version:version)
+            if reload {try await self.load(identity:identity,author:author,version:version)}
         }
     }
     func row(member: String, team: LearningTeam, learner: LearnerState, viewer: String) -> JSONValue {

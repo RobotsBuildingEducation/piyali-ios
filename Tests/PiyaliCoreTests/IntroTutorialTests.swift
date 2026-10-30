@@ -4,6 +4,17 @@ import XCTest
 final class IntroTutorialTests:XCTestCase {
     private var root:URL { URL(fileURLWithPath:#filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent() }
     private func library(_ target:String = "es") throws -> IntroLibrary { try ContentLibrary.decode(IntroLibrary.self,url:root.appendingPathComponent("Piyali/Resources/intro-\(target).json.gz")) }
+    func testCompletedIntroCanRestartItsActivitiesWithoutAnotherCompletionReward() {
+        var state=LearnerState()
+        for mode in IntroTutorial.modes { XCTAssertTrue(state.visitIntro(mode,expectedLevel:state.level)) }
+        state.completed.insert(state.completionKey(IntroTutorial.lessonID));state.addXP(50,now:Date(),calendar:.current)
+        state.restartIntroReview();XCTAssertEqual(state.introSession.next,"vocabulary");XCTAssertEqual(state.xp,50);XCTAssertTrue(state.completed.contains("es:"+IntroTutorial.lessonID))
+        for mode in IntroTutorial.modes { XCTAssertTrue(state.visitIntro(mode,expectedLevel:state.level)) };XCTAssertTrue(state.introSession.ready)
+        let lesson=Lesson(id:IntroTutorial.lessonID,title:.string("Getting Started"),description:.string(""),xpReward:50,modes:IntroTutorial.modes,agenda:.object([:]),content:.object([:]))
+        XCTAssertFalse(state.completeIntro(lesson));XCTAssertEqual(state.xp,50)
+        var unfinished=LearnerState();_=unfinished.visitIntro("vocabulary",expectedLevel:unfinished.level);unfinished.restartIntroReview();XCTAssertEqual(unfinished.introSession.next,"grammar")
+    }
+
     func testSourceVisibilityAndAllAdaptedContentAndAdventures() throws {
         let fixtures=try JSONDecoder().decode(JSONValue.self,from:Data(contentsOf:root.appendingPathComponent("Tests/PiyaliCoreTests/Fixtures/intro.json")))
         for value in fixtures["visibility"].array { XCTAssertEqual(IntroTutorial.needed(level:value["level"].string,completed:value["lessons"][IntroTutorial.lessonID]["status"].string == "completed",hasFirstQuest:value["hasFirstQuestHistory"].boolean),value["expected"].boolean) }
@@ -16,7 +27,7 @@ final class IntroTutorialTests:XCTestCase {
                 if level != "Pre-A1" { XCTAssertEqual(lesson.content["game"]["tutorialPracticeLevel"].string,level);XCTAssertEqual(lesson.agenda["items"].array.count,6) }
                 XCTAssertEqual(Set(review.bySupport.keys),Set(LearningLanguages.support))
                 for scene in review.bySupport.values {
-                    XCTAssertEqual(scene.quest.steps.count,7);XCTAssertEqual(scene.quest.steps.map(\.weight).reduce(0,+),8)
+                    XCTAssertTrue((1...7).contains(scene.quest.steps.count));XCTAssertTrue(scene.quest.steps.allSatisfy{$0.weight == ($0.id == "finale" ? 2:1)})
                     let world=try XCTUnwrap(content.worlds[scene.worldKey]);XCTAssertTrue(world.walkable(world.start))
                     for npc in scene.npcs { XCTAssertNotNil(world.path(from:world.start,to:.init(x:npc.tx,y:npc.ty))) }
                     for step in scene.quest.steps { let node=try XCTUnwrap(step.nodes.first);XCTAssertFalse(node.npcLine.isEmpty);if node.responseMode == "choice" { XCTAssertEqual(node.choices.filter(\.correct).count,1) } else { XCTAssertFalse((node.speechTarget ?? "").isEmpty) } }

@@ -1,0 +1,86 @@
+[
+  {
+    "file": "docs/reference/companion-panel-en-402-80.png",
+    "side": "Source",
+    "state": "en-402-80",
+    "bundle": "PiyaliCompanionPanelPaint4.xcresult"
+  },
+  {
+    "file": "docs/native/companion-panel-en-402-80.png",
+    "side": "Native",
+    "state": "en-402-80",
+    "bundle": "PiyaliCompanionPanelPaint4.xcresult"
+  },
+  {
+    "file": "docs/reference/companion-panel-ar-402-49.png",
+    "side": "Source",
+    "state": "ar-402-49",
+    "bundle": "PiyaliCompanionPanelPaint4.xcresult"
+  },
+  {
+    "file": "docs/native/companion-panel-ar-402-49.png",
+    "side": "Native",
+    "state": "ar-402-49",
+    "bundle": "PiyaliCompanionPanelPaint4.xcresult"
+  },
+  {
+    "file": "docs/reference/companion-panel-en-375-24.png",
+    "side": "Source",
+    "state": "en-375-24",
+    "bundle": "PiyaliCompanionPanelPaint4.xcresult"
+  },
+  {
+    "file": "docs/native/companion-panel-en-375-24.png",
+    "side": "Native",
+    "state": "en-375-24",
+    "bundle": "PiyaliCompanionPanelPaint4.xcresult"
+  },
+  {
+    "file": "docs/reference/companion-panel-ar-375-0.png",
+    "side": "Source",
+    "state": "ar-375-0",
+    "bundle": "PiyaliCompanionPanelPaint4.xcresult"
+  },
+  {
+    "file": "docs/native/companion-panel-ar-375-0.png",
+    "side": "Native",
+    "state": "ar-375-0",
+    "bundle": "PiyaliCompanionPanelPaint4.xcresult"
+  },
+  {
+    "file": "docs/native/companion-panel-home-en.png",
+    "side": "Native product journey",
+    "state": "home-en",
+    "bundle": "PiyaliCompanionPanelJourneys2.xcresult"
+  },
+  {
+    "file": "docs/native/companion-panel-home-ar.png",
+    "side": "Native product journey",
+    "state": "home-ar",
+    "bundle": "PiyaliCompanionPanelJourneys2.xcresult"
+  },
+  {
+    "file": "docs/native/companion-panel-reward-en.png",
+    "side": "Native product journey",
+    "state": "reward-en",
+    "bundle": "PiyaliCompanionPanelJourneys2.xcresult"
+  },
+  {
+    "file": "docs/native/companion-panel-reward-ar.png",
+    "side": "Native product journey",
+    "state": "reward-ar",
+    "bundle": "PiyaliCompanionPanelJourneys2.xcresult"
+  },
+  {
+    "file": "docs/native/companion-panel-activity-en.png",
+    "side": "Native product journey",
+    "state": "activity-en",
+    "bundle": "PiyaliCompanionPanelJourneys2.xcresult"
+  },
+  {
+    "file": "docs/native/companion-panel-activity-ar.png",
+    "side": "Native product journey",
+    "state": "activity-ar",
+    "bundle": "PiyaliCompanionPanelJourneys2.xcresult"
+  }
+]

@@ -1,0 +1,674 @@
+{
+  "modules": [
+    {
+      "file": "src/components/Tutor.jsx",
+      "sha256": "bbe9dea6279119ecef32cb69a66a8fb40763642ca05717690dec789a72e088c3",
+      "declarations": [
+        "buildTutorRepairLessonFromFocus",
+        "buildGoalLesson",
+        "compactUnique",
+        "REPAIR_MAX_ITEMS",
+        "REPAIR_COPY",
+        "TUTOR_REPAIR_LESSON_XP_REQUIRED",
+        "tidyPairs",
+        "textIncludesPair",
+        "normalizePairText",
+        "splitByDelimiters",
+        "findLatestTutorUnlockedLesson",
+        "SKILL_STATUS",
+        "isTutorLessonUnlocked",
+        "isContentUnlockedByPlacement",
+        "isTutorLessonUnlockedById",
+        "findNextTutorLessonAfter",
+        "getTutorStarterAgendaCandidateItemIds",
+        "isTutorStarterAgendaLesson",
+        "TUTOR_STARTER_LESSON_IDS",
+        "getNextTutorStarterAgendaItem",
+        "TUTOR_STARTER_AGENDA_ITEMS",
+        "getLocalTutorTurnSuccessfulForXp",
+        "transcriptDemonstratesOpenAIRegularObjective",
+        "getOpenAIRegularObjectivePhrases",
+        "isTutorPracticePhraseAllowedForTarget",
+        "getBaseLanguageCode",
+        "isLikelySpanishSourcePhrase",
+        "normalizeTutorAgendaSpeech",
+        "SPANISH_SOURCE_TOKENS",
+        "tutorPhraseMatchesTranscript",
+        "anyTutorPhraseIsDirectAnswer",
+        "tutorPhraseIsDirectAnswer",
+        "buildOpenAIResponseInstructionsPrefix",
+        "buildOpenAIResponseInstructionsPrefixBase",
+        "liveGoalInstructions",
+        "goalInstructions",
+        "generationPerformanceContextFor",
+        "normalizeSupportLanguage",
+        "DEFAULT_SUPPORT_LANGUAGE",
+        "getLanguagePromptName",
+        "buildTutorLessonContext",
+        "getTutorLessonSubjects",
+        "getTutorDisplayText",
+        "getTutorLessonAgendaTitle",
+        "getTutorStarterAgendaTitleText",
+        "tutorCopy",
+        "getTutorLessonAgendaSubtitle",
+        "getTutorStarterAgendaSummary",
+        "cleanTutorSubjectText",
+        "getTutorAdaptiveLevel",
+        "practiceLevelForElo",
+        "eloForUser",
+        "buildOpenAITutorResponsePolicy",
+        "isTutorEarlyLevel",
+        "isTutorAdvancedConversationLevel",
+        "buildRealtimeResumeContext",
+        "normalizeOpenAITutorVoice",
+        "buildTutorInputTranscription",
+        "hasUnexpectedTutorTranscriptScript",
+        "getCurrentTutorInputLanguageCodes",
+        "normalizePracticeLanguage",
+        "LANGUAGE_LOCALES",
+        "getCurrentTutorTranscriptionKeywords",
+        "getTutorStarterItemModelPhrase",
+        "getTutorStarterModelPhrase",
+        "getRegularTutorAcceptedPhrases",
+        "extractPromptedTutorPhrases",
+        "extractQuotedTutorPhrases",
+        "getLatestTutorAssistantText",
+        "getTutorMessageVisibleText",
+        "sanitizeTutorAssistantText",
+        "isTutorRawSourceConceptPhrase",
+        "getTutorRawSourceConceptKeys",
+        "getLessonAgenda",
+        "getTutorLessonFocusAgendaItems",
+        "buildUnitQuizBlueprint",
+        "getLessonQuizSettings",
+        "getAgendaTargetForms",
+        "getAgendaGoal",
+        "getLocalizedAgendaLabel",
+        "buildTutorTurnDetection",
+        "normalizeTutorPauseMs",
+        "DEFAULT_TUTOR_PAUSE_MS",
+        "buildMessageTranslationPrompt",
+        "getTutorLessonXpRequired",
+        "TUTOR_STARTER_LESSON_XP_REQUIRED",
+        "getStableTutorLessonXpRequired",
+        "TUTOR_LESSON_XP_REQUIRED_MAX",
+        "TUTOR_LESSON_XP_REQUIRED_MIN",
+        "getTutorLessonPreviewAgendaItems",
+        "getTutorStarterItemSupportTask",
+        "getTutorStarterItemSupportMeaning",
+        "buildTutorCompletedAgendaData",
+        "TUTOR_LEVEL_INFO",
+        "getTutorStarterAgendaMatches",
+        "getTutorStarterTargetExamples",
+        "normalizeTutorStarterAgendaProgress",
+        "isTutorStarterAgendaComplete",
+        "hasTutorMeaningfulTranscript",
+        "buildTutorResponseInstructionsSuffix",
+        "buildTutorPersistentResponseSuffix",
+        "buildTutorWelcomeInstructions",
+        "buildTutorKickoffInstructions",
+        "buildTutorCodeSwitchingAudioInstruction",
+        "buildTutorTargetLanguageBoundaryInstruction",
+        "buildTutorTeacherTalkLanguageInstruction",
+        "isOpenAIRegularTutorAgendaIncomplete",
+        "getTutorTaskVariationInstruction",
+        "getTutorTaskVariationSentence",
+        "getLocalizedTutorTaskFormatSentence",
+        "getTutorSignatureExperienceInstruction",
+        "TUTOR_CEFR_LEVELS",
+        "TUTOR_SIGNATURE_EXPERIENCE_POOLS",
+        "TUTOR_SIGNATURE_EXPERIENCES",
+        "buildRecentTutorSessionContextInstruction",
+        "buildRecentTutorConversationContext",
+        "buildTutorAgendaResponseInstructions",
+        "TUTOR_TURN_VERDICT",
+        "buildOpenAIStarterAgendaTurnInstructions",
+        "getOpenAITutorSignatureExperienceLine",
+        "buildOpenAIRepairTurnInstructions",
+        "buildTutorRepairAgendaInstruction",
+        "buildOpenAIRegularTutorAgendaInstruction",
+        "buildOpenAITutorTurnVerdictDirective",
+        "buildOpenAIQuizTurnInstructions",
+        "buildOpenAIPurposeReviewLoopInstructions",
+        "buildOpenAITargetedReviewTurnInstructions",
+        "buildOpenAIIntegratedScenarioTurnInstructions",
+        "buildOpenAITeachTurnInstructions",
+        "buildOpenAIGoalTurnInstructions",
+        "buildTutorFollowupInstructions",
+        "buildTutorStarterProgressInstructions",
+        "getTutorAgendaItemLabel",
+        "buildTutorTurnSuccessJudgePrompt",
+        "PAPER_PANEL_SX",
+        "MATRIX_PANEL_SX",
+        "uiStateLabel",
+        "translations",
+        "getTutorPathCopy",
+        "getTutorLessonLaunchMode",
+        "buildLanguageInstructions",
+        "buildLanguageInstructionsBase",
+        "buildVoicePersonaPolicy",
+        "buildTutorLearnerAudioInstruction",
+        "getTutorStarterAgendaPromptText",
+        "isTutorToolGradingActive",
+        "TUTOR_TOOL_GRADING_ENABLED",
+        "normalizeGeminiLiveVoice",
+        "getTutorAgendaSnapshot"
+      ]
+    },
+    {
+      "file": "src/utils/learningIntelligenceModel.js",
+      "sha256": "5e6efcd7fea2758af10af1d3617945daa8583f68f0072cc26d5822549ef0a95c",
+      "declarations": [
+        "buildGoalLesson",
+        "goalInstructions",
+        "LESSON_PRACTICE_MODES",
+        "GOAL_MODE_TARGETS"
+      ]
+    },
+    {
+      "file": "src/utils/companionMemory.js",
+      "sha256": "05aeb83111145a419b83877ef3335063d55ace85e5a651f865fbf67d6d84bd91",
+      "declarations": [
+        "REPAIR_MAX_ITEMS"
+      ]
+    },
+    {
+      "file": "src/utils/companionMemoryCopy.js",
+      "sha256": "cdfb764934e9372e83c8e8d471d30ff8b942e50d1c29c8f98b17f96526b22777",
+      "declarations": [
+        "REPAIR_COPY"
+      ]
+    },
+    {
+      "file": "src/data/skillTree/index.js",
+      "sha256": "4f7403c1017aadb112f51e4f96a4818530f6b441426788598d9584f4316bb1ad",
+      "declarations": [
+        "SKILL_STATUS"
+      ]
+    },
+    {
+      "file": "src/utils/proficiencyPlacement.js",
+      "sha256": "34f0e0f1c0879a8e36e752d813ba74927563d99c7266f1f9e35df0e364af5ff9",
+      "declarations": [
+        "isContentUnlockedByPlacement",
+        "CEFR_PLACEMENT_LEVELS"
+      ]
+    },
+    {
+      "file": "src/utils/supportTranslation.js",
+      "sha256": "3ff21380e515e021c5c8ebf66fca2812a6615723a0098531a2da65e8e7d4ffd3",
+      "declarations": [
+        "getBaseLanguageCode",
+        "buildMessageTranslationPrompt",
+        "normalizeSupportLanguage",
+        "DEFAULT_SUPPORT_LANGUAGE",
+        "getLanguagePromptName"
+      ]
+    },
+    {
+      "file": "src/utils/performanceEloModel.js",
+      "sha256": "1c6caa8c52f76576e8fe507d2698c4a65736d5492e49a19d937db8f16e1894a1",
+      "declarations": [
+        "generationPerformanceContextFor",
+        "performanceContextFor",
+        "internalEloForUser",
+        "storedRating",
+        "MIN_RATING",
+        "SCORE_SCALE_VERSION",
+        "MAX_RATING",
+        "scoreToElo",
+        "MIN_SCORE",
+        "MAX_SCORE",
+        "ELO_PER_SCORE",
+        "migrateScoreV2",
+        "SCORE_LEVEL_BANDS",
+        "ELO_LEVELS",
+        "migrateLegacyEloRating",
+        "LEGACY_SCORE_POINTS",
+        "initialEloRating",
+        "SCORE_LEVEL_DEFAULTS",
+        "normalizeEloLevel",
+        "initialEloLevelForUser",
+        "curriculumLevelsForUser",
+        "higherLevel",
+        "calculateLessonCompletion",
+        "calculateFlashcardCompletion",
+        "eloToScore",
+        "practiceLevelForElo",
+        "eloForUser"
+      ]
+    },
+    {
+      "file": "src/utils/cefrProgress.js",
+      "sha256": "6681ba74b8d2d4c2e142f6c310274ecbe075c7ed5fb61a2817605c1583e41c85",
+      "declarations": [
+        "calculateLessonCompletion",
+        "LESSON_COUNTS",
+        "getLessonLevelFromId",
+        "calculateFlashcardCompletion",
+        "CEFR_LEVEL_COUNTS"
+      ]
+    },
+    {
+      "file": "src/data/flashcards/common.js",
+      "sha256": "e4110d661b925ecb53e3cf33c02227ea51ac0b67db9cb02a91ee71e14724a2c4",
+      "declarations": [
+        "CEFR_LEVEL_COUNTS"
+      ]
+    },
+    {
+      "file": "src/constants/languages.js",
+      "sha256": "02cb1507cb2ee1b5822ac4dd98cd7faf3e67a5101a13dd6c93826f553201ab32",
+      "declarations": [
+        "normalizeSupportLanguage",
+        "DEFAULT_SUPPORT_LANGUAGE",
+        "normalizeSupportedCode",
+        "normalizeCode",
+        "SUPPORTED_LANGUAGE_CODES_SET",
+        "LANGUAGE_META",
+        "egyptianFlag",
+        "netherlandsFlag",
+        "usaFlag",
+        "frenchFlag",
+        "germanFlag",
+        "italianFlag",
+        "indianFlag",
+        "chineseFlag",
+        "brazilianFlag",
+        "mexicanFlag",
+        "greekFlag",
+        "japaneseFlag",
+        "russianFlag",
+        "polishFlag",
+        "irishFlag",
+        "SUPPORT_LANGUAGE_CODES_SET",
+        "SUPPORT_LANGUAGE_CODES_BASE",
+        "CANONICAL_SUPPORT_LANGUAGE_CODES",
+        "getLanguagePromptName",
+        "LANGUAGE_PROMPT_LABELS",
+        "LANGUAGE_FALLBACK_LABELS",
+        "normalizePracticeLanguage",
+        "DEFAULT_TARGET_LANGUAGE",
+        "LANGUAGE_LOCALES"
+      ]
+    },
+    {
+      "file": "src/constants/supportLanguages.js",
+      "sha256": "d8e8dc17f353a5106bdc984f2cce9696669bc7216be10e006738cb0a04b40b5a",
+      "declarations": [
+        "SUPPORT_LANGUAGE_CODES"
+      ]
+    },
+    {
+      "file": "src/utils/openaiTutorPrompts.js",
+      "sha256": "1e2dcdfbcdd5cbf03523940a9125598f40099093d8a1003d8e9718c7e3a32d9c",
+      "declarations": [
+        "buildOpenAITutorResponsePolicy",
+        "LEVEL_CEILINGS",
+        "buildVoicePersonaPolicy",
+        "buildOpenAIStarterAgendaTurnInstructions",
+        "TUTOR_TURN_VERDICT",
+        "verdictDirective",
+        "quoteList",
+        "buildOpenAITeachTurnInstructions",
+        "buildOpenAIRepairTurnInstructions",
+        "buildOpenAITutorTurnVerdictDirective",
+        "buildOpenAIQuizTurnInstructions",
+        "buildOpenAIPurposeReviewLoopInstructions",
+        "buildOpenAITargetedReviewTurnInstructions",
+        "buildOpenAIIntegratedScenarioTurnInstructions",
+        "buildOpenAIGoalTurnInstructions"
+      ]
+    },
+    {
+      "file": "src/utils/voicePersonaPrompt.js",
+      "sha256": "b34f89fff23bdedc5a0b1e71110a65c6dd8261e616ba67cfc5814e8215395641",
+      "declarations": [
+        "buildVoicePersonaPolicy",
+        "normalizeVoicePersona",
+        "MAX_VOICE_PERSONA_LENGTH",
+        "buildVoicePersonaReminder"
+      ]
+    },
+    {
+      "file": "src/utils/realtimeSessionControls.js",
+      "sha256": "355b82624878e4efdb951308d2ef9b87389001a35b3bb641c6fcd9fdae87b006",
+      "declarations": [
+        "buildRealtimeResumeContext",
+        "snapshotRealtimeMessages",
+        "resumeRealtimeSpeech"
+      ]
+    },
+    {
+      "file": "src/utils/tutorRealtime.js",
+      "sha256": "46db0b32bc197f54b46f310faa80f16ca86fbb6d128f8e510c0a194569ddf20b",
+      "declarations": [
+        "normalizeOpenAITutorVoice"
+      ]
+    },
+    {
+      "file": "src/utils/openaiTutorVoices.js",
+      "sha256": "e12e170e0e84127cbc0474e651abbbc7cc99477170d02554a5c8a1f406b06677",
+      "declarations": [
+        "normalizeOpenAITutorVoice",
+        "OPENAI_TUTOR_VOICE_VALUES",
+        "LEGACY_OPENAI_VOICE_MIGRATION",
+        "DEFAULT_OPENAI_TUTOR_VOICE"
+      ]
+    },
+    {
+      "file": "src/utils/tutorSpeechPolicy.js",
+      "sha256": "9b3abcf9134e2fd5483a4ad068ff4271c7552b2e198d5beaacf0ea7c49789594",
+      "declarations": [
+        "buildTutorInputTranscription",
+        "DEFAULT_TRANSCRIPTION_MODEL",
+        "baseLanguageCode",
+        "hasUnexpectedTutorTranscriptScript",
+        "languageScripts",
+        "LANGUAGE_SCRIPT_GROUPS",
+        "SCRIPT_PATTERNS"
+      ]
+    },
+    {
+      "file": "src/utils/tutorStarterAgenda.js",
+      "sha256": "2ddcfa8b7e91698986ba80c726286f0fae6c4d8e85ea47837f24fe45bfd052c3",
+      "declarations": [
+        "getTutorStarterModelPhrase",
+        "getTutorStarterTargetExamples",
+        "getBaseLanguageCode",
+        "TARGET_EXAMPLES"
+      ]
+    },
+    {
+      "file": "src/utils/lessonCurriculum.js",
+      "sha256": "87f94db6ecfb9fddf198f3b51fca83017e48586230c0c02eff7f49a5d49a8ad9",
+      "declarations": [
+        "getLessonAgenda",
+        "getManualSpanishAgendaItems",
+        "getManualPreA1AgendaItems",
+        "getManualA1AgendaItems",
+        "getManualB1B2AgendaItems",
+        "getManualC1C2AgendaItems",
+        "normalizeAgendaItemSemantics",
+        "getAgendaTargetRole",
+        "AGENDA_TARGET_ROLES",
+        "normalizeTextList",
+        "uniqueText",
+        "normalizeObjectiveKey",
+        "cleanText",
+        "extractItemText",
+        "MODE_KIND",
+        "EXACT_FORM_MODES",
+        "isInstructionalLessonObjective",
+        "INSTRUCTIONAL_OBJECTIVE_PATTERN",
+        "getAgendaTargetForms",
+        "getAgendaGoal",
+        "getDisplayText",
+        "buildLessonAgenda",
+        "getConcreteModeObjectives",
+        "isInvalidLessonObjective",
+        "INVALID_OBJECTIVE_LABELS",
+        "createAgendaItem",
+        "slugify",
+        "buildObjectiveLabel",
+        "MODE_LABELS",
+        "CONCRETE_LABEL_MODES",
+        "extractTargetLanguageDetail",
+        "hasEnglishCurriculumScaffolding",
+        "ENGLISH_CURRICULUM_SCAFFOLDING",
+        "ENGLISH_CURRICULUM_CONNECTORS",
+        "SPANISH_TARGET_SIGNAL",
+        "localizeEmbeddedGrammarTerms",
+        "SUPPORT_GRAMMAR_TERMS",
+        "hasUsableLocalizedContext",
+        "UNLOCALIZED_CONTEXT_PATTERN",
+        "EVIDENCE_BY_MODE",
+        "getManualSpanishFoundationFormItems",
+        "getManualB1B2FoundationFormItems",
+        "getManualC1C2FoundationFormItems",
+        "buildUnitQuizBlueprint",
+        "buildUnitCurriculumSnapshot",
+        "isReviewLesson",
+        "REVIEW_LESSON_ID_PARTS",
+        "getLessonQuizSettings",
+        "getLocalizedAgendaLabel"
+      ]
+    },
+    {
+      "file": "src/data/manualPreA1Agendas.js",
+      "sha256": "d3a963315ddc4cb876713ec1150aebb8a19ceaf90fba0ea46a28a3ab5e920ddf",
+      "declarations": [
+        "getManualPreA1AgendaItems",
+        "MANUAL_PRE_A1_AGENDAS",
+        "agenda",
+        "buildAgenda",
+        "formItem",
+        "FORM_LABEL_PREFIXES",
+        "capabilityItem",
+        "MANUAL_APPLICATION_LABELS"
+      ]
+    },
+    {
+      "file": "src/data/manualA1Agendas.js",
+      "sha256": "c83487a99119180cc20e5f690e4e5a07f3b80209c34f7d72de158fcb908abfcc",
+      "declarations": [
+        "getManualA1AgendaItems",
+        "MANUAL_A1_AGENDAS",
+        "agenda",
+        "buildAgenda",
+        "formItem",
+        "FORM_LABEL_PREFIXES",
+        "applicationItem"
+      ]
+    },
+    {
+      "file": "src/data/manualB1B2Agendas.js",
+      "sha256": "5803258e0d154f309b98076f558dfa2066b9d89385e3a738997a9f953d610b1a",
+      "declarations": [
+        "getManualB1B2AgendaItems",
+        "MANUAL_B1_B2_AGENDAS",
+        "agenda",
+        "buildAgenda",
+        "formItem",
+        "FORM_LABEL_PREFIXES",
+        "applicationItem",
+        "APPLICATION_LABEL_PREFIXES",
+        "getManualB1B2FoundationFormItems",
+        "B1_B2_FOUNDATION_FORMS"
+      ]
+    },
+    {
+      "file": "src/data/manualC1C2Agendas.js",
+      "sha256": "296264b175d3d5425e0a3b2899b8dba27db12acea8e362778f1a17b72b915300",
+      "declarations": [
+        "getManualC1C2AgendaItems",
+        "MANUAL_C1_C2_AGENDAS",
+        "agenda",
+        "buildAgenda",
+        "formItem",
+        "FORM_LABEL_PREFIXES",
+        "applicationItem",
+        "APPLICATION_LABEL_PREFIXES",
+        "getManualC1C2FoundationFormItems",
+        "C1_C2_FOUNDATION_FORMS"
+      ]
+    },
+    {
+      "file": "src/utils/tutorLevelInfo.js",
+      "sha256": "4895ecf29992e36c45e9c760cd900aa004c7e207e089716b2c1abe49b8a24d52",
+      "declarations": [
+        "TUTOR_LEVEL_INFO"
+      ]
+    },
+    {
+      "file": "src/utils/tutorResponsePersistence.js",
+      "sha256": "deae4730b37f97c02f08f788ccbabc115ad2c5ceb6a9c8b80065f367388bf4ad",
+      "declarations": [
+        "buildTutorPersistentResponseSuffix",
+        "baseLanguageCode",
+        "buildVoicePersonaReminder",
+        "buildTutorTeacherTalkLanguageGate"
+      ]
+    },
+    {
+      "file": "src/utils/tutorTeacherTalkLanguageGate.js",
+      "sha256": "a2703e9324774dd012c8443e4c48bfe214a0979e289610f1525832e279251476",
+      "declarations": [
+        "buildTutorTeacherTalkLanguageGate",
+        "baseLanguageCode",
+        "LANGUAGE_GATES"
+      ]
+    },
+    {
+      "file": "src/utils/tutorCodeSwitchingPrompt.js",
+      "sha256": "b8d1120f6da2b887bb79ce6065e7454efdd7ed83020baecb6be704e4531fbec2",
+      "declarations": [
+        "buildTutorCodeSwitchingAudioInstruction",
+        "BILINGUAL_CODE_SWITCHING_INSTRUCTION",
+        "LEGACY_CODE_SWITCHING_INSTRUCTION"
+      ]
+    },
+    {
+      "file": "src/utils/tutorTaskFormatCopy.js",
+      "sha256": "5924b4044743c4a5e6c9a945cea440617352c957379a8c3db4077595a332229a",
+      "declarations": [
+        "getLocalizedTutorTaskFormatSentence",
+        "TUTOR_TASK_FORMATS_PRE_A1",
+        "TUTOR_TASK_FORMATS_GENERAL",
+        "normalizeLangKey"
+      ]
+    },
+    {
+      "file": "src/utils/tutorTurnVerdict.js",
+      "sha256": "2b2d5fe72811be1b47dd580c6d3ea78d97b28cf3099eeb431e01c665609f086a",
+      "declarations": [
+        "TUTOR_TURN_VERDICT",
+        "resolveTutorTurnVerdict"
+      ]
+    },
+    {
+      "file": "src/utils/tutorPathCopy.js",
+      "sha256": "034cc734f75fdb1057d0df1db87ccfa33c0fb8b3a699f4c246fe91ea4ad11ddd",
+      "declarations": [
+        "getTutorPathCopy",
+        "TUTOR_PATH_COPY",
+        "normalizeLanguage"
+      ]
+    },
+    {
+      "file": "src/utils/tutorLessonLaunch.js",
+      "sha256": "3f7774f26a4aa518a10a397390cd62ac3e8ea509e414e0a5659fce96357324cb",
+      "declarations": [
+        "getTutorLessonLaunchMode",
+        "TUTOR_LESSON_LAUNCH_MODE"
+      ]
+    },
+    {
+      "file": "src/utils/geminiLiveVoices.js",
+      "sha256": "4fe47cd8b28b9e8fb85fbe64b7fd45e8b195d87c02734a7554cd43e4baf5a049",
+      "declarations": [
+        "normalizeGeminiLiveVoice",
+        "LEGACY_ALIASES",
+        "GEMINI_LIVE_VOICE_BY_KEY",
+        "GEMINI_LIVE_VOICE_OPTIONS",
+        "GEMINI_LIVE_VOICE_DESCRIPTIONS",
+        "DEFAULT_GEMINI_LIVE_VOICE"
+      ]
+    },
+    {
+      "file": "src/utils/tutorAgendaFlow.js",
+      "sha256": "f17a32ed88633f068e505063d8b9fc78a37945061ca7eaf62547e8eb43709253",
+      "declarations": [
+        "getTutorAgendaSnapshot",
+        "normalizeTutorAgendaProgress",
+        "getAgendaItemId",
+        "advanceTutorAgendaProgress",
+        "advanceTutorQuizAttempt",
+        "isLegacyTutorAgendaProgress"
+      ]
+    },
+    {
+      "file": "src/utils/tutorConversationDraft.js",
+      "sha256": "73c064206690bd94b9c2f7b06755a10fa4721c83d6831bc6481cf3a9eb1c3505",
+      "declarations": [
+        "normalizeTutorConversationDraftMessages",
+        "cleanText",
+        "MAX_MESSAGE_TEXT_CHARS",
+        "TUTOR_CONVERSATION_DRAFT_MAX_MESSAGES",
+        "MAX_DRAFT_JSON_CHARS",
+        "getTutorConversationSessionState",
+        "getRestorableTutorConversationMessages",
+        "TUTOR_CONVERSATION_DRAFT_VERSION"
+      ]
+    },
+    {
+      "file": "src/utils/openaiRealtimeResponseInstructions.js",
+      "sha256": "a6c9dcf573656689d4bf10afb18f43b670994a99dbfaf582ec5d324dfe5604f2",
+      "declarations": [
+        "composeOpenAIRealtimeResponseInstructions"
+      ]
+    },
+    {
+      "file": "src/achievements/proficiencyCompletion.js",
+      "sha256": "6a384cef8e71f0481f548d2e27755c4dc42951dd9d3a85134ddf7e47cc3ac069",
+      "declarations": [
+        "tutorLevelFromCompletions",
+        "PROFICIENCY_LEVELS"
+      ]
+    },
+    {
+      "file": "src/achievements/progression.js",
+      "sha256": "09826ba0eb60c6bfa647c460776fad855244ef7c64a6dc25d1441e5380d9ed13",
+      "declarations": [
+        "PROFICIENCY_LEVELS"
+      ]
+    },
+    {
+      "file": "src/utils/courseProgress.js",
+      "sha256": "e182154b5986d226aa2f645a4e16f68bd6f59fd7edeac21f83f2df3ccbc77a96",
+      "declarations": [
+        "getCourseLevelStats",
+        "toCourseLevelKey"
+      ]
+    }
+  ],
+  "adapters": [
+    "inlineFeedbackRef",
+    "supportLang",
+    "selectedTutorLessonRef",
+    "selectedTutorUnitRef",
+    "supportLangRef",
+    "resolvedSupportLang",
+    "targetLangRef",
+    "targetLang",
+    "conversationSettingsRef",
+    "maxProficiencyLevel",
+    "messagesRef",
+    "realtimeProviderRef",
+    "turnCountRef",
+    "openAIRegularAgendaRef",
+    "tutorStarterAgendaProgressRef",
+    "tutorLessonEarnedXpRef",
+    "tutorLessonCompletionTriggeredRef",
+    "tutorRestoredConversationNeedsContextRef",
+    "tutorConversationResumeContextRef",
+    "tutorItemRetryCountRef",
+    "voicePersonaRef",
+    "pausedMessagesRef",
+    "getOpenAIRegularTutorAgendaSnapshot",
+    "currentRepairFocus",
+    "currentGoalFocus",
+    "useUserStore"
+  ],
+  "boundary": "Original pure declarations and prompt builders with explicit learner/lesson/agenda/reconnect snapshots. No React, source stores, Firebase, provider or transport executes. Regular agenda snapshot uses original item and progress helpers without its mount-time ref mutation; Swift owns sequencing and persistence.",
+  "fixtureCount": 598,
+  "translationAdapter": {
+    "resource": "Piyali/Resources/app-copy.json.gz",
+    "sha256": "0ea8bc3ce2e566ced7a1f3bb623e912354f714ce849f7f100ed1d8171e215fbe",
+    "keys": [
+      "proficiency_speaking",
+      "proficiency_listening",
+      "proficiency_thinking"
+    ]
+  }
+}

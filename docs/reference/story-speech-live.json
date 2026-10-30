@@ -1,0 +1,73 @@
+{
+  "result": "passed",
+  "test": "PiyaliStorySpeechLive2.xcresult",
+  "seconds": 15.911,
+  "publicSyntheticInput": "Me llamo Ana y vivo con mi familia.",
+  "ambientMicrophoneCapture": false,
+  "productionMicrophone": false,
+  "xpAwarded": 0,
+  "captures": [
+    {
+      "ambientMicrophoneCapture": false,
+      "confidence": 0.9,
+      "errorCodes": [],
+      "events": [
+        "session.created",
+        "session.updated",
+        "session.updated",
+        "input_audio_buffer.speech_started",
+        "input_audio_buffer.speech_stopped",
+        "input_audio_buffer.committed",
+        "conversation.item.added",
+        "conversation.item.done",
+        "conversation.item.input_audio_transcription.delta",
+        "conversation.item.input_audio_transcription.delta",
+        "conversation.item.input_audio_transcription.delta",
+        "conversation.item.input_audio_transcription.delta",
+        "conversation.item.input_audio_transcription.delta",
+        "conversation.item.input_audio_transcription.delta",
+        "conversation.item.input_audio_transcription.delta",
+        "conversation.item.input_audio_transcription.delta",
+        "conversation.item.input_audio_transcription.delta",
+        "conversation.item.input_audio_transcription.delta",
+        "conversation.item.input_audio_transcription.completed"
+      ],
+      "mode": "speaking",
+      "pass": true,
+      "sentAudioBytes": 192000,
+      "target": "Me llamo Ana y vivo con mi familia.",
+      "transcript": "Me llamo Ana y vivo con mi familia."
+    },
+    {
+      "ambientMicrophoneCapture": false,
+      "confidence": 0.9,
+      "errorCodes": [],
+      "events": [
+        "session.created",
+        "session.updated",
+        "session.updated",
+        "input_audio_buffer.speech_started",
+        "input_audio_buffer.speech_stopped",
+        "input_audio_buffer.committed",
+        "conversation.item.added",
+        "conversation.item.done",
+        "conversation.item.input_audio_transcription.delta",
+        "conversation.item.input_audio_transcription.delta",
+        "conversation.item.input_audio_transcription.delta",
+        "conversation.item.input_audio_transcription.delta",
+        "conversation.item.input_audio_transcription.delta",
+        "conversation.item.input_audio_transcription.delta",
+        "conversation.item.input_audio_transcription.delta",
+        "conversation.item.input_audio_transcription.delta",
+        "conversation.item.input_audio_transcription.delta",
+        "conversation.item.input_audio_transcription.delta",
+        "conversation.item.input_audio_transcription.completed"
+      ],
+      "mode": "conversation",
+      "pass": true,
+      "sentAudioBytes": 225600,
+      "target": "Me llamo Ana y vivo con mi familia.",
+      "transcript": "Me llamo Ana y vivo con mi familia."
+    }
+  ]
+}

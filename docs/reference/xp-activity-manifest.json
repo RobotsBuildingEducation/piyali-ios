@@ -1,0 +1,56 @@
+{
+  "sources": [
+    {
+      "file": "src/components/PlateActivityHeatmap.jsx",
+      "sha256": "616453637b282363dc40c3ee0f1ab031c70b04f565a9fae0e5ac18eca4e50a17"
+    },
+    {
+      "file": "src/hooks/useXpHistoryYear.js",
+      "sha256": "146c22afeca812ab9adc93c5e5d958ac910b9013f626d32dca6512c57c6510f9"
+    },
+    {
+      "file": "src/constants/languages.js",
+      "sha256": "02cb1507cb2ee1b5822ac4dd98cd7faf3e67a5101a13dd6c93826f553201ab32"
+    },
+    {
+      "file": "src/constants/supportLanguages.js",
+      "sha256": "d8e8dc17f353a5106bdc984f2cce9696669bc7216be10e006738cb0a04b40b5a"
+    },
+    {
+      "file": "src/components/DailyPlateActions.jsx",
+      "sha256": "8e3d686a87e7fb89e0ccb304d2b558a72442a98c86f1f070acb81d5fcbe71dc0"
+    },
+    {
+      "file": "src/theme.js",
+      "sha256": "6fe6093ecca51d0debb1314a587d6bd0927e7ac9f8c1ba2c6c744017e3be407e"
+    },
+    {
+      "file": "src/index.css",
+      "sha256": "79a5362dc1b189acd0d2288c0e85ff29c9cc1c8e39b8bb5cabe164ddd1c29030"
+    },
+    {
+      "file": "src/utils/translation.jsx",
+      "sha256": "010eb38be8f55e0509b99c209ae4042833057f3e28e0d925636dec42d7fb6fb6"
+    },
+    {
+      "file": "src/utils/translationArStatic.js",
+      "sha256": "1de18d1a33d0fd75344507b06799c9d60d1584ee72facab3cbff19293d5c5bc1"
+    }
+  ],
+  "cases": 80,
+  "styles": 24,
+  "languages": [
+    "en",
+    "es",
+    "pt",
+    "it",
+    "fr",
+    "de",
+    "ja",
+    "hi",
+    "ar",
+    "zh"
+  ],
+  "timezone": "America/Mexico_City",
+  "scope": "Actual source calendar weeks, padding, labels, tooltips and cell styles with explicit public history. Native calendar implementation is compared against full source outputs. Intl strings are exported because native ICU abbreviations differ. Flags are inert placeholders; no React, Firebase or learner I/O runs."
+}

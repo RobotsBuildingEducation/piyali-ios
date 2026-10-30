@@ -1,0 +1,248 @@
+[
+  {
+    "input": {
+      "paperShown": false,
+      "shown": false,
+      "hasPlacement": false
+    },
+    "initialOpen": true,
+    "onboardingClose": [
+      [
+        "paper",
+        false
+      ]
+    ],
+    "request": [
+      [
+        "paper",
+        true
+      ]
+    ],
+    "close": [
+      [
+        "paper",
+        false
+      ],
+      [
+        "ack",
+        "paper"
+      ],
+      [
+        "guidance",
+        true
+      ]
+    ]
+  },
+  {
+    "input": {
+      "paperShown": false,
+      "shown": false,
+      "hasPlacement": true
+    },
+    "initialOpen": true,
+    "onboardingClose": [
+      [
+        "paper",
+        false
+      ]
+    ],
+    "request": [
+      [
+        "paper",
+        true
+      ]
+    ],
+    "close": [
+      [
+        "paper",
+        false
+      ],
+      [
+        "ack",
+        "paper"
+      ],
+      [
+        "guidance",
+        true
+      ]
+    ]
+  },
+  {
+    "input": {
+      "paperShown": false,
+      "shown": true,
+      "hasPlacement": false
+    },
+    "initialOpen": true,
+    "onboardingClose": [
+      [
+        "paper",
+        false
+      ]
+    ],
+    "request": [
+      [
+        "placement",
+        true
+      ]
+    ],
+    "close": [
+      [
+        "paper",
+        false
+      ],
+      [
+        "ack",
+        "paper"
+      ]
+    ]
+  },
+  {
+    "input": {
+      "paperShown": false,
+      "shown": true,
+      "hasPlacement": true
+    },
+    "initialOpen": true,
+    "onboardingClose": [
+      [
+        "paper",
+        false
+      ]
+    ],
+    "request": [],
+    "close": [
+      [
+        "paper",
+        false
+      ],
+      [
+        "ack",
+        "paper"
+      ]
+    ]
+  },
+  {
+    "input": {
+      "paperShown": true,
+      "shown": false,
+      "hasPlacement": false
+    },
+    "initialOpen": true,
+    "onboardingClose": [
+      [
+        "paper",
+        false
+      ]
+    ],
+    "request": [
+      [
+        "guidance",
+        true
+      ]
+    ],
+    "close": [
+      [
+        "paper",
+        false
+      ],
+      [
+        "ack",
+        "paper"
+      ],
+      [
+        "guidance",
+        true
+      ]
+    ]
+  },
+  {
+    "input": {
+      "paperShown": true,
+      "shown": false,
+      "hasPlacement": true
+    },
+    "initialOpen": true,
+    "onboardingClose": [
+      [
+        "paper",
+        false
+      ]
+    ],
+    "request": [
+      [
+        "guidance",
+        true
+      ]
+    ],
+    "close": [
+      [
+        "paper",
+        false
+      ],
+      [
+        "ack",
+        "paper"
+      ],
+      [
+        "guidance",
+        true
+      ]
+    ]
+  },
+  {
+    "input": {
+      "paperShown": true,
+      "shown": true,
+      "hasPlacement": false
+    },
+    "initialOpen": true,
+    "onboardingClose": [
+      [
+        "paper",
+        false
+      ]
+    ],
+    "request": [
+      [
+        "placement",
+        true
+      ]
+    ],
+    "close": [
+      [
+        "paper",
+        false
+      ],
+      [
+        "ack",
+        "paper"
+      ]
+    ]
+  },
+  {
+    "input": {
+      "paperShown": true,
+      "shown": true,
+      "hasPlacement": true
+    },
+    "initialOpen": true,
+    "onboardingClose": [
+      [
+        "paper",
+        false
+      ]
+    ],
+    "request": [],
+    "close": [
+      [
+        "paper",
+        false
+      ],
+      [
+        "ack",
+        "paper"
+      ]
+    ]
+  }
+]

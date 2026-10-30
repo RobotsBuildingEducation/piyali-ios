@@ -1,0 +1,26 @@
+import XCTest
+
+@MainActor final class FirstRunJourneyTests:XCTestCase {
+    private func tap(_ id:String,_ app:XCUIApplication){let e=app.buttons[id];XCTAssertTrue(e.waitForExistence(timeout:15));for _ in 0..<8 where !e.isHittable{app.swipeUp(velocity:.slow)};XCTAssertTrue(e.isHittable);e.tap()}
+    private func launch(language:String="en",theme:String="light")->XCUIApplication {
+        continueAfterFailure=false;let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_ENTRY_INITIAL_LANGUAGE":language,"PIYALI_ENTRY_INITIAL_THEME":theme];app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US"];app.launch()
+        let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Setup Learner");tap("entryKeyboardDone",app);tap("createAccount",app)
+        XCTAssertTrue(app.staticTexts["paperPencilTitle"].waitForExistence(timeout:15));XCTAssertFalse(app.buttons["startLearning"].isHittable);shot("Native manga initial onboarding paper "+language,app)
+        if language == "ar"{app.coordinate(withNormalizedOffset:CGVector(dx:0.01,dy:0.5)).tap()}else{tap("paperPencilUnderstood",app)}
+        XCTAssertTrue(app.buttons["startLearning"].waitForExistence(timeout:8));XCTAssertFalse(app.staticTexts["gettingStartedTitle"].exists);tap("startLearning",app);XCTAssertTrue(app.staticTexts["todayFocusTitle"].waitForExistence(timeout:15));return app
+    }
+    private func shot(_ name:String,_ app:XCUIApplication){let a=XCTAttachment(screenshot:app.screenshot());a.name=name;a.lifetime = .keepAlways;add(a)}
+    private func changePractice(_ app:XCUIApplication,to title:String){tap("productMenu",app);tap("productPanel-settings",app);let picker=app.descendants(matching:.any).matching(identifier:"practiceLanguagePicker").firstMatch;XCTAssertTrue(picker.waitForExistence(timeout:8));picker.tap();let option=app.buttons[title].firstMatch;XCTAssertTrue(option.waitForExistence(timeout:8));option.tap();tap("productPanelClose",app)}
+    func testGuidanceWebInstructionsPlacementDismissalAndNewLanguageAfterRelaunch(){
+        let app=launch();tap("companionContinue",app);XCTAssertTrue(app.staticTexts["paperPencilTitle"].waitForExistence(timeout:8));shot("Native manga companion paper en",app);app.staticTexts["paperPencilMessage"].tap();XCTAssertTrue(app.staticTexts["paperPencilTitle"].exists);XCUIDevice.shared.press(.home);app.activate();XCTAssertTrue(app.staticTexts["paperPencilTitle"].waitForExistence(timeout:10));acknowledgePaperPencil(app)
+        app.buttons["Install the web app"].tap();XCTAssertTrue(app.staticTexts["1. Open the browser menu."].waitForExistence(timeout:8));shot("Native manga paper to original setup en",app);tap("gettingStartedGotIt",app);XCTAssertTrue(app.buttons["placementNew"].waitForExistence(timeout:8));tap("placementClose",app)
+        app.terminate();app.launch();XCTAssertTrue(app.staticTexts["paperPencilTitle"].waitForExistence(timeout:15));shot("Native manga returning initial paper en",app);tap("paperPencilUnderstood",app);XCTAssertFalse(app.staticTexts["gettingStartedTitle"].exists);XCTAssertTrue(app.buttons["placementClose"].waitForExistence(timeout:8));tap("placementClose",app)
+        changePractice(app,to:"German");tap("companionContinue",app);XCTAssertTrue(app.buttons["placementNew"].waitForExistence(timeout:8));XCTAssertFalse(app.staticTexts["paperPencilTitle"].exists);tap("placementNew",app)
+        app.terminate();app.launch();XCTAssertTrue(app.staticTexts["paperPencilTitle"].waitForExistence(timeout:15));tap("paperPencilUnderstood",app);XCTAssertTrue(app.buttons["productMenu"].waitForExistence(timeout:8));XCTAssertFalse(app.buttons["placementClose"].exists);XCTAssertFalse(app.staticTexts["gettingStartedTitle"].exists)
+    }
+    func testArabicDarkOverlayAcknowledgmentAndSettingsReopenGuidance(){
+        let app=launch(language:"ar",theme:"dark");tap("companionContinue",app);XCTAssertTrue(app.staticTexts["paperPencilTitle"].waitForExistence(timeout:8));shot("Native manga companion paper ar",app);app.coordinate(withNormalizedOffset:CGVector(dx:0.01,dy:0.5)).tap();XCTAssertTrue(app.staticTexts["gettingStartedTitle"].waitForExistence(timeout:8));shot("Native manga paper to original setup ar",app);app.coordinate(withNormalizedOffset:CGVector(dx:0.01,dy:0.5)).tap();XCTAssertTrue(app.buttons["placementNew"].waitForExistence(timeout:8));tap("placementClose",app)
+        tap("productMenu",app);tap("productPanel-settings",app);tap("settingsTab-account",app);tap("accountGettingStarted",app);XCTAssertTrue(app.staticTexts["gettingStartedTitle"].waitForExistence(timeout:8));tap("gettingStartedGotIt",app);XCTAssertTrue(app.buttons["productPanelClose"].waitForExistence(timeout:8));XCTAssertFalse(app.buttons["placementNew"].exists)
+        app.terminate();app.launch();XCTAssertTrue(app.staticTexts["paperPencilTitle"].waitForExistence(timeout:15));shot("Native manga returning initial paper ar",app);tap("paperPencilUnderstood",app);XCTAssertFalse(app.staticTexts["gettingStartedTitle"].exists);XCTAssertTrue(app.buttons["placementNew"].waitForExistence(timeout:8));tap("placementNew",app)
+    }
+}

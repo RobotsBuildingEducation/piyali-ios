@@ -1,0 +1,47 @@
+{
+  "bundle": "PiyaliNarrationCacheLive1.xcresult",
+  "seconds": 17.247,
+  "publicText": "Hola, Ana. Hoy aprendemos juntos.",
+  "speaker": "Sheilfer",
+  "voice": "echo",
+  "ambientMicrophoneCapture": false,
+  "speakerVolume": 0,
+  "plays": [
+    {
+      "ambientMicrophoneCapture": false,
+      "attempt": 1,
+      "capturedPCMBytes": 445284,
+      "connections": 1,
+      "failed": false,
+      "finished": true,
+      "seconds": 6.805904984474182,
+      "source": "network",
+      "speakerVolume": 0,
+      "started": true
+    },
+    {
+      "ambientMicrophoneCapture": false,
+      "attempt": 2,
+      "capturedPCMBytes": 0,
+      "connections": 1,
+      "failed": false,
+      "finished": true,
+      "seconds": 3.0383739471435547,
+      "source": "memory",
+      "speakerVolume": 0,
+      "started": true
+    },
+    {
+      "ambientMicrophoneCapture": false,
+      "attempt": 3,
+      "capturedPCMBytes": 0,
+      "connections": 1,
+      "failed": false,
+      "finished": true,
+      "seconds": 3.0525349378585815,
+      "source": "disk",
+      "speakerVolume": 0,
+      "started": true
+    }
+  ]
+}

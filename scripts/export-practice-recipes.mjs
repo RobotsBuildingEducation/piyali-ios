@@ -1,0 +1,234 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import vm from 'node:vm';
+import {realtimePolicyFragments} from './realtime-policy-fragments.mjs';
+import {conversationPolicyFragments} from './conversation-policy-fragments.mjs';
+import {readingPolicyFragments} from './reading-policy-fragments.mjs';
+import {storyPolicyFragments,batchWorthFragments,storyRevisionFragment} from './story-policy-fragments.mjs';
+import {gzipSync,gunzipSync} from 'node:zlib';
+
+// Lift only the original pure prompt builders and their lexical dependencies.
+// The reference stays read-only. React components, storage, audio and network
+// effects are neither bundled nor exposed to the native recipe interpreter.
+const reference=path.resolve(process.argv[2] || '../nosabos/nosabos');
+const storyDiversityFile=path.join(reference,'src/features/stories/storyDiversity.js');
+const parser=await import(path.join(reference,'node_modules/@babel/parser/lib/index.js'));
+const traversal=await import(path.join(reference,'node_modules/@babel/traverse/lib/index.js'));
+const traverse=traversal.default.default ?? traversal.default;
+const esbuild=await import(path.join(reference,'node_modules/esbuild/lib/main.js'));
+const modules=new Map();
+const pending=[];
+const forbidden=new Set(['window','document','localStorage','sessionStorage','fetch','XMLHttpRequest','React','navigator','process']);
+const storeFile=path.join(reference,'src/hooks/useUserStore.js');
+const translationFile=path.join(reference,'src/utils/translation.jsx');
+const flagsFile=path.join(reference,'src/components/flagsIcons/flags.jsx');
+const languageCopy=JSON.parse(gunzipSync(await fs.readFile(new URL('../Piyali/Resources/app-copy.json.gz',import.meta.url))));
+const labels=Object.fromEntries(Object.entries(languageCopy).map(([lang,strings])=>[lang,Object.fromEntries(Object.entries(strings).filter(([key])=>key.startsWith('language_')))]));
+async function resolve(specifier,importer) {
+ if(!specifier.startsWith('.') && !path.isAbsolute(specifier)) throw Error(`Non-local dependency ${specifier} in ${importer}`);
+ const base=path.resolve(path.dirname(importer),specifier);
+ for(const candidate of [base,base+'.js',base+'.jsx',path.join(base,'index.js')]) {
+  if(await fs.stat(candidate).then(s=>s.isFile()).catch(()=>false)) return candidate;
+ }
+ throw Error(`Missing source dependency: ${specifier}`);
+}
+async function moduleFor(file) {
+ if(modules.has(file)) return modules.get(file);
+ const source=await fs.readFile(file,'utf8'),ast=parser.parse(source,{sourceType:'module',plugins:['jsx']});
+ let program;
+ traverse(ast,{Program(p){program=p;p.stop();}});
+ const record={file,source,program,required:new Set(),declarations:new Map(),imports:new Map(),exports:new Map()};
+ if(file===storeFile) record.adapter='let user={};export function provide(value){user=value||{};}export default {getState:()=>({user})};';
+ if(file===translationFile) record.adapter='export const translations='+JSON.stringify(labels)+';export default translations;';
+ if(file===flagsFile) record.adapter='flags';
+ modules.set(file,record);return record;
+}
+async function requireSymbol(file,symbol) {
+ const record=await moduleFor(file);
+ if(!record.required.has(symbol)) { record.required.add(symbol);pending.push({record,symbol}); }
+}
+async function collect(record,node) {
+ const names=new Set();
+ node.traverse({ReferencedIdentifier(p) {
+  const name=p.node.name,binding=p.scope.getBinding(name);
+  if(binding?.scope===record.program.scope) names.add(name);
+  else if(!binding && forbidden.has(name)) throw Error(`Effectful dependency ${name} in ${record.file}`);
+ }});
+ for(const name of names) await requireSymbol(record.file,name);
+}
+async function lift({record,symbol}) {
+ if(record.file===storyDiversityFile && symbol==='readHistory') {
+  // Only storage is adapted. Planning/selection/quality policies stay original.
+  record.nativeStoryHistory=true;record.exports.set(symbol,symbol);return;
+ }
+ if(record.adapter) {
+  if(record.file===flagsFile) { const declaration=record.program.scope.getBinding(symbol)?.path;if(!declaration || !(declaration.isFunctionDeclaration() || declaration.isVariableDeclarator() && declaration.get('init').isArrowFunctionExpression())) throw Error('Unsupported flag reference '+symbol);return; }
+  if(!(record.file===translationFile ? ['default','translations'] : ['default','provide']).includes(symbol)) throw Error('Unsupported native adapter binding '+symbol);return;
+ }
+ const binding=record.program.scope.getBinding(symbol);
+ if(!binding) throw Error(`Missing pure binding ${symbol} in ${record.file}`);
+ if(binding.kind==='module') {
+  const declaration=binding.path.parentPath;
+  if(!declaration.isImportDeclaration()) throw Error('Unsupported imported binding '+symbol);
+  if(!binding.path.isImportSpecifier() && !binding.path.isImportDefaultSpecifier()) throw Error('Unsupported pure import: '+symbol);
+  const imported=binding.path.isImportDefaultSpecifier() ? 'default' : binding.path.node.imported.name;
+  const file=await resolve(declaration.node.source.value,record.file);
+  const imports=record.imports.get(file) ?? new Map();imports.set(symbol,imported);record.imports.set(file,imports);
+  await requireSymbol(file,imported);
+ } else {
+  let statement=binding.path.getStatementParent();
+  if(statement.isExportNamedDeclaration()) statement=statement.get('declaration');
+  if(!statement.isFunctionDeclaration() && !statement.isVariableDeclaration()) throw Error('Unsupported pure declaration '+symbol);
+  if(!record.declarations.has(statement.node.start)) { record.declarations.set(statement.node.start,statement);await collect(record,statement); }
+ }
+ record.exports.set(symbol,symbol);
+}
+const grammar=path.join(reference,'src/components/GrammarBook.jsx');
+const vocabulary=path.join(reference,'src/components/Vocabulary.jsx');
+const flashcard=path.join(reference,'src/components/LessonFlashcard.jsx');
+const delight=path.join(reference,'src/utils/delightQuestionVariants.js');
+const options=path.join(reference,'src/features/lessonPreparation/options.js');
+const recipes={
+ grammar:{fill:'buildFillStreamPrompt',mc:'buildMCStreamPrompt',ma:'buildMAStreamPrompt',speak:'buildSpeakGrammarStreamPrompt',match:'buildMatchStreamPrompt',translate:'buildTranslateStreamPrompt',repeat:'buildTranslateStreamPrompt',judgeFill:'buildFillJudgePrompt',judgeMC:'buildMCJudgePrompt',judgeMA:'buildMAJudgePrompt',judgeTranslate:'buildTranslateJudgePrompt'},
+ vocabulary:{fill:'buildFillVocabStreamPrompt',mc:'buildMCVocabStreamPrompt',ma:'buildMAVocabStreamPrompt',speak:'buildSpeakVocabStreamPrompt',match:'buildMatchVocabStreamPrompt',translate:'buildVocabTranslateStreamPrompt',repeat:'buildVocabTranslateStreamPrompt',judgeFill:'buildFillVocabJudgePrompt',judgeMC:'buildMCVocabJudgePrompt',judgeMA:'buildMAVocabJudgePrompt',judgeMatch:'buildMatchVocabJudgePrompt',judgeTranslate:'buildVocabTranslateJudgePrompt'}
+};
+for(const [kind,file] of [['grammar',grammar],['vocabulary',vocabulary]]) for(const symbol of Object.values(recipes[kind])) await requireSymbol(file,symbol);
+await requireSymbol(flashcard,'buildLessonFlashcardPrompt');await requireSymbol(flashcard,'buildFlashcardJudgePrompt');
+for(const symbol of ['DELIGHT_VARIANTS','DELIGHT_VARIANT_IDS','buildDelightQuestionPrompt','buildDelightResponseJudgePrompt','normalizeDelightQuestion','isDelightQuestionLanguageConsistent','getInitialDelightResponse','gradeDelightResponse','isDelightResponseReady','calculateDelightQuestionXp','getDelightFallbackQuestion','buildSentenceDetectivePrompt','validateMorphologyForgeQuestion']) await requireSymbol(delight,symbol);
+await requireSymbol(options,'createQuestionOptionSelector');
+await requireSymbol(storeFile,'provide');
+const curriculumFile=path.join(reference,'src/utils/lessonCurriculum.js'),reviewFile=path.join(reference,'src/utils/gameReviewContext.js');
+await requireSymbol(curriculumFile,'isCurriculumPayloadGrounded');await requireSymbol(reviewFile,'buildGameReviewContext');
+const difficultyFile=path.join(reference,'src/utils/questionDifficultyAssessment.js'),eloFile=path.join(reference,'src/utils/performanceEloModel.js');
+for(const symbol of ['buildQuestionDifficultyPrompt','parseQuestionDifficulty']) await requireSymbol(difficultyFile,symbol);for(const symbol of ['questionWorthForUser','applyGradedOutcome']) await requireSymbol(eloFile,symbol);
+const realtimeFile=path.join(reference,'src/components/RealTimeTest.jsx');
+const realtimeSource=await fs.readFile(realtimeFile,'utf8');
+const realtime=realtimePolicyFragments({source:realtimeSource,parser,traverse});
+const conversationFile=path.join(reference,'src/components/Conversations.jsx'),conversationSource=await fs.readFile(conversationFile,'utf8');
+const conversation=conversationPolicyFragments({source:conversationSource,starterSource:await fs.readFile(path.join(reference,'src/utils/starterPhrase.js'),'utf8'),parser,traverse});
+for(const symbol of conversation.imports) await requireSymbol(conversationFile,symbol);
+for(const symbol of [...realtime.imports,'buildLessonPreparationRecipe','buildRealtimeResumeContext']) await requireSymbol(realtimeFile,symbol);
+const readingFile=path.join(reference,'src/components/History.jsx'),readingSource=await fs.readFile(readingFile,'utf8');
+const reading=readingPolicyFragments({source:readingSource,parser,traverse});
+for(const symbol of ['LANG_NAME','buildStreamingPrompt']) await requireSymbol(readingFile,symbol);
+const batchWorth=batchWorthFragments({source:await fs.readFile(difficultyFile,'utf8'),parser,traverse});
+const speakingSource=await fs.readFile(path.join(reference,'src/components/Stories.jsx'),'utf8'),speaking=storyPolicyFragments({source:speakingSource,parser,traverse});
+const storyPromptsFile=path.join(reference,'src/features/stories/storyPrompts.js'),storySessionFile=path.join(reference,'src/features/stories/storySession.js'),storyPracticeFile=path.join(reference,'src/features/stories/practiceStoryGeneration.js'),qualityFile=path.join(reference,'src/utils/activityQualityReview.js'),activityFile=path.join(reference,'src/utils/activityGeneration.js'),intelligenceFile=path.join(reference,'src/utils/learningIntelligenceModel.js');
+for(const symbol of ['createStoryPlan','buildStoryDiversityPrompt','getStoryNoveltyIssues']) await requireSymbol(storyDiversityFile,symbol);
+for(const symbol of ['getStoryDifficulty','buildSpeakingStoryPrompt']) await requireSymbol(storyPromptsFile,symbol);
+for(const symbol of ['buildStorySessionPrompt','buildStorySessionStreamPrompt','applyStoryStreamLine']) await requireSymbol(storySessionFile,symbol);
+await requireSymbol(storyPracticeFile,'parsePracticeStory');
+for(const symbol of ['buildActivityReviewRequest','parseReview']) await requireSymbol(qualityFile,symbol);
+await requireSymbol(activityFile,'isExactActivityRepeat');await requireSymbol(intelligenceFile,'focusedLessonPrompt');await requireSymbol(eloFile,'generationPerformanceContextFor');
+const speakingRevision=storyRevisionFragment({source:await fs.readFile(storyPracticeFile,'utf8'),parser,traverse,name:'sourceSpeakingRevision'}),sessionRevision=storyRevisionFragment({source:await fs.readFile(path.join(reference,'src/features/stories/storyGeneration.js'),'utf8'),parser,traverse,name:'sourceSessionRevision'});
+for(let i=0;i<pending.length;i++) await lift(pending[i]);
+const virtual=new Map();
+for(const record of modules.values()) {
+ if(record.adapter) { virtual.set(record.file,record.file===flagsFile ? Array.from(record.required,name=>`export function ${name}(){return null;}`).join('\n') : record.adapter);continue; }
+ const imports=Array.from(record.imports,([file,names])=>`import {${Array.from(names,([local,original])=>`${original} as ${local}`).join(',')}} from ${JSON.stringify(file)};`);
+ const declarations=Array.from(record.declarations).sort(([a],[b])=>a-b).map(([,p])=>record.source.slice(p.node.start,p.node.end));
+ const historyAdapter=record.nativeStoryHistory ? 'let nativeStoryHistory=[];export function provideStoryHistory(entries){nativeStoryHistory=Array.isArray(entries)?entries:[];}function readHistory(){return nativeStoryHistory.filter(entry=>entry && typeof entry.targetText === "string");}' : '';
+ virtual.set(record.file,imports.join('\n')+'\n'+historyAdapter+'\n'+declarations.join('\n')+`\nexport {${Array.from(record.exports.keys()).join(',')}};`);
+}
+const entry=`import {createStoryPlan,buildStoryDiversityPrompt} from ${JSON.stringify(storyDiversityFile)};import {buildSpeakingStoryPrompt,getStoryDifficulty} from ${JSON.stringify(storyPromptsFile)};import * as storyDiversity from ${JSON.stringify(storyDiversityFile)};import * as storyPrompts from ${JSON.stringify(storyPromptsFile)};import * as storySession from ${JSON.stringify(storySessionFile)};import {parsePracticeStory} from ${JSON.stringify(storyPracticeFile)};import {buildActivityReviewRequest,parseReview} from ${JSON.stringify(qualityFile)};import {isExactActivityRepeat} from ${JSON.stringify(activityFile)};import {focusedLessonPrompt as storyFocusedLessonPrompt} from ${JSON.stringify(intelligenceFile)};import {generationPerformanceContextFor as storyPerformanceContext} from ${JSON.stringify(eloFile)};import * as readingOriginal from ${JSON.stringify(readingFile)};import {LANG_NAME} from ${JSON.stringify(readingFile)};import {buildQuestionDifficultyPrompt,parseQuestionDifficulty} from ${JSON.stringify(difficultyFile)};import {questionWorthForUser,applyGradedOutcome} from ${JSON.stringify(eloFile)};import {isCurriculumPayloadGrounded} from ${JSON.stringify(curriculumFile)};import {buildGameReviewContext} from ${JSON.stringify(reviewFile)};import * as realtimeOriginal from ${JSON.stringify(realtimeFile)};import {${realtime.imports.join(',')}} from ${JSON.stringify(realtimeFile)};import * as grammar from ${JSON.stringify(grammar)};import * as vocabulary from ${JSON.stringify(vocabulary)};import * as flashcard from ${JSON.stringify(flashcard)};import * as delight from ${JSON.stringify(delight)};import {createQuestionOptionSelector} from ${JSON.stringify(options)};import {provide} from ${JSON.stringify(storeFile)};import * as conversationOriginal from ${JSON.stringify(conversationFile)};
+const recipes={grammar:${JSON.stringify(recipes.grammar)},vocabulary:${JSON.stringify(recipes.vocabulary)}};
+${speaking.code}
+${batchWorth.prompt}
+${batchWorth.parse}
+${speakingRevision}
+${sessionRevision}
+function withParameters(parametersJSON,operation) {
+ const parameters=JSON.parse(parametersJSON);provide(parameters.user);
+ const previousRandom=Math.random;
+ if(Number.isFinite(parameters.randomSeed)) { let state=parameters.randomSeed>>>0;Math.random=()=>{state=(state+0x6d2b79f5)>>>0;let t=Math.imul(state^(state>>>15),1|state);t=(t+Math.imul(t^(t>>>7),61|t))^t;return ((t^(t>>>14))>>>0)/4294967296;}; }
+ try { return operation(parameters); }
+ finally { Math.random=previousRandom; }
+}
+export function build(module,kind,parametersJSON) { return withParameters(parametersJSON,parameters=>{
+ if(kind.startsWith('delight:')) { const variant=kind.slice(8);if(!delight.DELIGHT_VARIANT_IDS.includes(variant)) throw Error('Unsupported delight recipe');return (variant==='sentence_detective' ? delight.buildSentenceDetectivePrompt : delight.buildDelightQuestionPrompt)({...parameters,variant,moduleType:module}); }
+ if(kind==='preflightMorphology') { let prompt='';void delight.validateMorphologyForgeQuestion(parameters.question,{...parameters,judge:input=>{prompt=input;return 'YES';}});if(!prompt) throw Error('Invalid morphology reference');return prompt;}
+ if(kind==='judgeDelight') return delight.buildDelightResponseJudgePrompt({...parameters,moduleType:module});
+ if(kind==='flashcard') return flashcard.buildLessonFlashcardPrompt({...parameters,moduleType:module,collectedConcepts:parameters.collectedConcepts || []});if(kind==='judgeFlashcard') return flashcard.buildFlashcardJudgePrompt(parameters);const name=recipes[module]?.[kind];if(!name) throw Error('Unsupported exercise recipe');return (module==='grammar'?grammar:vocabulary)[name](parameters);
+}); }
+export function story(operation,parametersJSON) { return withParameters(parametersJSON,p=>{
+ storyDiversity.provideStoryHistory(p.history);
+ const content=p.lessonContent||{},plan=p.plan||{},level=p.cefrLevel||'Pre-A1';
+ const sessionArgs=()=>({mode:p.mode,targetName:p.targetName,supportName:p.supportName,targetLang:p.targetLang,supportLang:p.supportLang,difficulty:storyPrompts.getStoryDifficulty(level),context:[plan.objective,storyDiversity.buildStoryDiversityPrompt(plan)].filter(Boolean).join('\\n'),userCharacterName:'You'});
+ const operations={
+  plan:()=>storyDiversity.createStoryPlan(p),
+  revisionPrompt:()=>p.mode==='speaking'?sourceSpeakingRevision(p):sourceSessionRevision(p),
+  batchDifficultyPrompt:()=>sourceBatchDifficultyPrompt(p),
+  batchWorth:()=>sourceBatchWorth(p),
+  diversity:()=>storyDiversity.buildStoryDiversityPrompt(plan),
+  novelty:()=>storyDiversity.getStoryNoveltyIssues(p.candidate,plan),
+  exactRepeat:()=>isExactActivityRepeat(p.candidate.target,plan.recentEntries),
+  prepareSpeak:()=>sourceSpeakingPreparation({...p,lesson:{id:p.lessonId},account:p.npub},{storyMode:'speaking',cefrLevel:p.cefrLevel,curriculumCefrLevel:p.curriculumCefrLevel}),
+  sessionPrompt:()=>storySession.buildStorySessionPrompt(sessionArgs()),
+  sessionStreamPrompt:()=>storySession.buildStorySessionStreamPrompt(sessionArgs()),
+  streamPayload:()=>{const draft={title:'',segments:[]};let done=false;for(const line of String(p.raw||'').split('\\n')){if(!line.trim()||line.trim().startsWith(String.fromCharCode(96).repeat(3)))continue;if(done)throw Error('Content after story completion');const item=JSON.parse(line);if(item.type==='done'){done=true;continue;}if(item.segment!==undefined && (!Number.isInteger(item.segment)||item.segment<0||item.segment>3))throw Error('Invalid story segment');storySession.applyStoryStreamLine(draft,item);}if(!done)throw Error('Incomplete story');return draft;},
+  parseSpeaking:()=>parsePracticeStory(p.raw,{targetLang:p.targetLang,isTutorial:p.isTutorial}),
+  reviewPrompt:()=>buildActivityReviewRequest({candidate:p.candidate,recentEntries:plan.recentEntries,objective:plan.objective,selection:{subject:plan.subject,purpose:plan.purpose},mode:plan.mode,targetLang:plan.targetLang}).contents[0].parts[0].text,
+  parseReview:()=>parseReview(p.raw)
+ };
+ if(!operations[operation]) throw Error('Unsupported story policy');return JSON.stringify(operations[operation]());
+}); }
+export function conversation(operation,parametersJSON) { return withParameters(parametersJSON,p=>{
+ ${conversation.code}
+}); }
+export function realtime(operation,parametersJSON) { return withParameters(parametersJSON,p=>{
+ if(operation==='resume') return realtimeOriginal.buildRealtimeResumeContext(p.messages||[]);
+ if(operation==='goal') return realtimeOriginal.buildLessonPreparationRecipe(p,p.options||{cefrLevel:p.cefrLevel,curriculumCefrLevel:p.curriculumCefrLevel}).prompt;
+ ${realtime.code}
+}); }
+export function reading(operation,parametersJSON) { return withParameters(parametersJSON,p=>{
+ if(operation==='passage') return readingOriginal.buildStreamingPrompt(p);
+ ${reading.code}
+}); }
+const selector=createQuestionOptionSelector();
+export function select(mode,parametersJSON) { return withParameters(parametersJSON,p=>JSON.stringify(selector(mode,p.context))); }
+export function resetOptions() { selector.reset();return '{}'; }
+export function inspect(operation,parametersJSON) { return withParameters(parametersJSON,p=>{
+ const q=p.question,r=p.response;
+ const operations={graded:()=>applyGradedOutcome(p.bucket,p.event,p.fallbackLevel,p.now),difficultyPrompt:()=>buildQuestionDifficultyPrompt(p),parseDifficulty:()=>parseQuestionDifficulty(p.raw),worth:()=>questionWorthForUser(p.user,p.targetLang,p.questionLevel,p.assessment),curriculum:()=>buildGameReviewContext(p),grounded:()=>isCurriculumPayloadGrounded(p.payload,p.curriculumContext,{mode:p.mode}),variants:()=>delight.DELIGHT_VARIANTS,normalize:()=>delight.normalizeDelightQuestion(p.variant,p.raw,{targetLang:p.targetLang}),languageConsistent:()=>delight.isDelightQuestionLanguageConsistent(q,p),initialResponse:()=>delight.getInitialDelightResponse(q),grade:()=>delight.gradeDelightResponse(q,r),ready:()=>delight.isDelightResponseReady(q,r),xp:()=>delight.calculateDelightQuestionXp(q,r,p.options),fallback:()=>delight.getDelightFallbackQuestion(p.variant,p.moduleType || 'grammar',p.targetLang,p.supportLang)};
+ if(!operations[operation]) throw Error('Unsupported exercise operation');return JSON.stringify(operations[operation]());
+}); }`;
+const result=await esbuild.build({stdin:{contents:entry,resolveDir:reference},bundle:true,format:'iife',globalName:'PiyaliPracticeRecipes',platform:'neutral',target:'es2020',write:false,plugins:[{name:'pure-source-only',setup(build){build.onResolve({filter:/.*/},async args=>({path:await resolve(args.path,args.importer || path.join(reference,'entry.js')),namespace:'pure-source'}));build.onLoad({filter:/.*/,namespace:'pure-source'},args=>{const contents=virtual.get(args.path);if(!contents) throw Error('Unreviewed module '+args.path);return {contents,loader:'js'};});}}]});
+const code=result.outputFiles[0].text.replaceAll('// pure-source:'+reference+'/','// Reference: ');
+await fs.writeFile(new URL('../Piyali/Resources/practice-recipes.js',import.meta.url),code);
+const manifest=Array.from(modules.values()).map(m=>({file:path.relative(reference,m.file),sha256:crypto.createHash('sha256').update(m.source).digest('hex'),bindings:Array.from(m.required).sort(),...(m.nativeStoryHistory ? {nativeHistoryAdapter:'History supplied explicitly from native private state; original pure selection, prompts and quality policies retained.'} : {}),...(m.adapter ? {nativeAdapter:m.file===storeFile ? 'Read-only user supplied as a Swift recipe argument; no web store or effects.' : m.file===flagsFile ? 'Flag renderers omitted from text-only language metadata.' : 'Original language-name strings only; no JSX UI.'} : {})}));
+manifest.push({file:'src/utils/starterPhrase.js',sha256:crypto.createHash('sha256').update(await fs.readFile(path.join(reference,'src/utils/starterPhrase.js'),'utf8')).digest('hex'),bindings:['generateStarterPhrase:prompt','parseStarterPhrase'],nativeAdapter:'Original starter prompt/parser; native text provider and playback.'});
+manifest.push({file:'src/components/Conversations.jsx',sha256:crypto.createHash('sha256').update(conversationSource).digest('hex'),bindings:conversation.bindings,nativeAdapter:'Original conversation instruction, initial/contextual goal and judge expressions receive explicit private refs; audio, UI and network stay native.'});
+manifest.push({file:'src/components/RealTimeTest.jsx',sha256:crypto.createHash('sha256').update(realtimeSource).digest('hex'),bindings:realtime.bindings,nativeAdapter:'Pure lexical functions receive explicit JSON refs. Audio, network, React effects and account credentials omitted.'});
+for(const file of [storyPracticeFile,path.join(reference,'src/features/stories/storyGeneration.js')]) manifest.push({file:path.relative(reference,file),sha256:crypto.createHash('sha256').update(await fs.readFile(file,'utf8')).digest('hex'),bindings:['buildRevisionPrompt'],nativeAdapter:'Original validation/style revision expressions; generation coordinator and deadlines remain native.'});
+manifest.push({file:'src/utils/questionDifficultyAssessment.js',sha256:crypto.createHash('sha256').update(await fs.readFile(difficultyFile,'utf8')).digest('hex'),bindings:['assessGeneratedQuestionWorths:prompt','assessGeneratedQuestionWorths:validation'],nativeAdapter:'Original batch prompt and score-array validation; provider request stays native.'});
+manifest.push({file:'src/components/Stories.jsx',sha256:crypto.createHash('sha256').update(speakingSource).digest('hex'),bindings:speaking.bindings,nativeAdapter:'Original speaking preparation branch; history explicitly supplied, dynamic React import omitted.'});
+manifest.push({file:'src/components/History.jsx',sha256:crypto.createHash('sha256').update(readingSource).digest('hex'),bindings:reading.bindings,nativeAdapter:'Only original prompt expressions receive explicit JSON reading data. Native UI, audio and network remain outside the interpreter.'});
+await fs.writeFile(new URL('../Piyali/Resources/practice-recipes.manifest.json',import.meta.url),JSON.stringify(manifest,null,2)+'\n');
+const context={};vm.runInNewContext(code,context,{timeout:1000});
+const canonical=value=>Array.isArray(value) ? value.map(canonical) : value && typeof value==='object' ? Object.fromEntries(Object.keys(value).sort().map(key=>[key,canonical(value[key])])) : value;
+const fixtures=[];
+for(const module of ['grammar','vocabulary']) for(const kind of ['fill','mc','ma','speak','match','translate','repeat','flashcard']) for(const [target,support,level] of [['es','en','Pre-A1'],['ja','es','A2'],['fr','de','B2'],['en','ar','C1']]) {
+ const parameters=canonical({cefrLevel:level,targetLang:target,supportLang:support,showTranslations:true,appUILang:support,recentGood:['a previously answered item'],lessonContent:{topic:'greetings',focusPoints:['introduce yourself','polite replies'],cefrLevel:level},collectedConcepts:[],randomSeed:fixtures.length+1});
+ fixtures.push({module,kind,parameters,expected:context.PiyaliPracticeRecipes.build(module,kind,JSON.stringify(parameters))});
+}
+const variants=JSON.parse(context.PiyaliPracticeRecipes.inspect('variants','{}'));
+for(const module of ['grammar','vocabulary']) for(const {id} of variants) for(const [target,support,level] of [['es','en','Pre-A1'],['ja','es','A2'],['fr','de','B2'],['en','ar','C1']]) {
+ const parameters=canonical({targetLang:target,supportLang:support,cefrLevel:level,lessonContent:{topic:'greetings',focusPoints:['introduce yourself','polite replies'],cefrLevel:level},recentQuestions:[],randomSeed:fixtures.length+1});
+ fixtures.push({module,kind:'delight:'+id,parameters,expected:context.PiyaliPracticeRecipes.build(module,'delight:'+id,JSON.stringify(parameters))});
+}
+await fs.writeFile(new URL('../Tests/PiyaliCoreTests/Fixtures/practice-prompts.json.gz',import.meta.url),gzipSync(JSON.stringify(fixtures),{level:9}));
+const readingFixtures=[];
+for(const parameters of [
+ {targetLang:'es',supportLang:'en',cefrLevel:'Pre-A1',lessonContent:{topic:'tutorial'}},
+ {targetLang:'ja',supportLang:'es',cefrLevel:'A2',lessonContent:{topic:'family',tutorialPracticeLevel:'A2'}},
+ {targetLang:'fr',supportLang:'de',cefrLevel:'B2',lessonContent:{topic:'an everyday choice',cefrLevel:'B2'}},
+ {targetLang:'ar',supportLang:'en',cefrLevel:'A1',lessonContent:{topic:'a bus timetable',cefrLevel:'A1'}}
+]) for(const operation of ['passage','judge','explain','translate','speech']) {
+ const p=canonical({...parameters,isFirst:false,previousTitles:['A previous day'],reviewQuestionType:'mc',passage:'A plant grows near the window.',reviewQuestion:{question:'Where is the plant?',answer:'near the window'},answer:'by a window',sentences:['A plant grows.','It is near the window.'],user:{}});
+ readingFixtures.push({operation,parameters:p,expected:context.PiyaliPracticeRecipes.reading(operation,JSON.stringify(p))});
+}
+await fs.writeFile(new URL('../Tests/PiyaliCoreTests/Fixtures/reading-prompts.json.gz',import.meta.url),gzipSync(JSON.stringify(readingFixtures),{level:9}));
+console.log(`Exported ${modules.size} pure source modules (${code.length} characters) and ${fixtures.length} prompt fixtures.`);
+
+await import('./export-story-policy-fixtures.mjs');

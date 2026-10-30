@@ -1,0 +1,53 @@
+{
+  "file": "src/components/DelightQuestionLab.jsx",
+  "sha256": "71dd9be7177c308537972537e26734f6bdbca4411a737f471b1a9be442aa8798",
+  "cases": 132,
+  "orders": 17,
+  "adapters": "Unmodified callback bodies and stableShuffle; inert React callbacks/setters. Detective disabled controls are gated as rendered. Valid offered items only; native drop payloads additionally bind the question UUID.",
+  "bodySources": [
+    {
+      "file": "src/components/DelightQuestionLab.jsx",
+      "sha256": "71dd9be7177c308537972537e26734f6bdbca4411a737f471b1a9be442aa8798"
+    },
+    {
+      "file": "src/components/dnd/Sortable.jsx",
+      "sha256": "c6ba213eb453c50218f417048b32b03f91631c8890c77620f3d1885931ca4adf"
+    },
+    {
+      "file": "src/components/questionUiStyles.js",
+      "sha256": "5a3389380c6df57642d750220ef6c12f64326a73de92134ea6f2b365a00e5b97"
+    },
+    {
+      "file": "src/theme.js",
+      "sha256": "6fe6093ecca51d0debb1314a587d6bd0927e7ac9f8c1ba2c6c744017e3be407e"
+    },
+    {
+      "file": "src/index.css",
+      "sha256": "79a5362dc1b189acd0d2288c0e85ff29c9cc1c8e39b8bb5cabe164ddd1c29030"
+    },
+    {
+      "file": "src/utils/sentenceDetectiveI18n.js",
+      "sha256": "da38dd980182de120d61bd70771951fa77bdaa02357bd83d91e076bb02275c1f"
+    },
+    {
+      "file": "src/utils/dialogueForkI18n.js",
+      "sha256": "45273e537d84c83dcefef25cd34c755fb194727082b60595929d365b8c0f2eba"
+    },
+    {
+      "file": "src/utils/wordNeighborhoodsI18n.js",
+      "sha256": "83f411b0b56d6cb6f8a45ab76133225d4bd0e82f22f05867ca1207865ab7cec9"
+    },
+    {
+      "file": "src/utils/morphologyForgeI18n.js",
+      "sha256": "842c2a654b10234c01b47bf7fd2995577028eb41addf3b190e5d336e44c9f024"
+    },
+    {
+      "file": "src/utils/listenDifferenceI18n.js",
+      "sha256": "8e90940a788542699413df1a9216de5e38672e5991044f885566a00c0acfd3ef"
+    }
+  ],
+  "controlledBodyFixture": {
+    "file": "Tests/PiyaliAppTests/Fixtures/delight-bodies.json",
+    "sha256": "eb1d835064a3cb148d6db9cb0b03193db916ca313acd4406c2f716de782b38cd"
+  }
+}

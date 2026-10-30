@@ -1,0 +1,39 @@
+{
+  "sources": [
+    {
+      "file": "src/components/Vocabulary.jsx",
+      "sha256": "9aa9d5f74d62ac8fd7b3adb1026bbf0bef3bd48a826053b4c94f6045b1a3431c",
+      "expressions": {
+        "spoken": "(sTarget || \"\").trim()",
+        "question": "(text || \"\").trim().replace(/___/g, \" … \")",
+        "word": "(text || \"\").trim()"
+      }
+    },
+    {
+      "file": "src/components/GrammarBook.jsx",
+      "sha256": "0d0407a8a19c14e1cc111958b162c5ca8762f785627c33baea2dd18cdf058b82",
+      "expressions": {
+        "spoken": "(sTarget || \"\").trim()",
+        "question": "(text || \"\").trim().replace(/___/g, \" … \")",
+        "word": "(text || \"\").trim()"
+      }
+    },
+    {
+      "file": "src/utils/tts.js",
+      "sha256": "d6b7f16803fa7c88c7e94cd05186d491e8fd7846a08940bf86bf5175a36b7c7d",
+      "narrationPolicy": "The existing companion-quest export retains original narrationSession, locale map and voice sanitization. Main lesson callers use getPreferredTTSVoice() with no override, default ash."
+    },
+    {
+      "file": "node_modules/@chakra-ui/react/dist/esm/spinner/spinner.mjs",
+      "sha256": "e24f2d1452341b38ac4da93e5d8fbca5381deb753d01a95e9ef5889d0e03fc7c",
+      "scope": "Installed reference spinner implementation/theme: xs sizes.3, 2px half ring and 0.45s linear rotation."
+    },
+    {
+      "file": "node_modules/@chakra-ui/theme/dist/esm/components/spinner.mjs",
+      "sha256": "3bdd76b47c8a67cfce93248e0fa2cdbc548ee0398b9d31f3c61a242d9e11b6a8",
+      "scope": "Installed reference spinner implementation/theme: xs sizes.3, 2px half ring and 0.45s linear rotation."
+    }
+  ],
+  "cases": 54,
+  "scope": "Original pure preparation expressions before provider I/O; native receive-only transport owns question cancellation and playout."
+}

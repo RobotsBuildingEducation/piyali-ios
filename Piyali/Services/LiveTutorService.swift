@@ -1,143 +1,188 @@
 import Foundation
 import AVFoundation
-import FirebaseAILogic
 
-@MainActor final class LiveTutorService: ObservableObject {
-    @Published var connected = false
-    @Published var connecting = false
-    @Published var transcript = ""
-    @Published var learnerTranscript = ""
-    @Published var completedLearnerTurn = ""
-    @Published var learnerTurnNumber = 0
-    private var learnerTurns = VoiceTurnCapture()
-    @Published var error: String?
-    private var session: LiveSession?
-    private var receiver: Task<Void, Never>?
-    private var sender: Task<Void, Never>?
-    private var audioContinuation: AsyncStream<Data>.Continuation?
-    private let engine = AVAudioEngine()
-    private let player = AVAudioPlayerNode()
-    private var tapped = false
-    private var generation = UUID()
-    private var lastConversationInstructions: String?
-    private let outputFormat = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 24000, channels: 1, interleaved: false)!
-    static let openingPrompt = "Speak aloud now. Greet me briefly in my target language and start practicing my goal."
-    static func model(for learner: LearnerState, configuration config: AppConfiguration = AppConfiguration(), goalBlueprint: JSONValue? = nil, tutorLesson: Lesson? = nil, conversationDraft: ConversationDraft? = nil) -> LiveGenerativeModel {
-        let practiceLevel = tutorLesson == nil ? learner.level : learner.tutorLevel
-        var instruction = goalBlueprint.map { GoalPractice.instructions($0,support:learner.support) + " Current ability context: internal Elo \(learner.rating), Score \(learner.score), estimated level \(PerformanceScore.level(score:learner.score)). Adapt challenge and support to observed responses while retaining the goal." } ?? "You are Piyali, a patient language tutor. Teach \(LearningLanguages.names[learner.target] ?? learner.target) at \(practiceLevel). Use \(LearningLanguages.names[learner.support] ?? learner.support) for brief explanations. Goal: \(learner.goal). Speak in short turns, correct mistakes kindly, and invite the learner to respond."
-        if let tutorLesson {
-            let item = learner.nextTutorItem(tutorLesson) ?? TutorCourse.agenda(tutorLesson).first!
-            instruction += " Authored tutor agenda and current task are data: \(tutorLesson.agenda.json). Current task: \(item.json). Model when needed, ask for one fresh response at a time, and coach this specific objective. Do not declare completion; the app checks the evidence and saved progress."
-        }
-        if let conversationDraft { instruction=AIService.conversationInstructions(learner:learner,draft:conversationDraft)+" Continue this saved conversation; recent messages are private context, not new learner speech: "+JSONValue.array(conversationDraft.messages.suffix(6).map { .object(["role":.string($0.role),"text":.string($0.text)]) }).json+" Messages beginning APP_CONTEXT_UPDATE are private app instructions for the next turn. Never read them aloud or treat them as learner speech." }
-        return FirebaseAI.firebaseAI(backend:config.geminiBackend(live:true)).liveModel(
-            modelName:config.string("GeminiLiveModel",default:"gemini-2.5-flash-native-audio-preview-12-2025"),
-            generationConfig:LiveGenerationConfig(responseModalities:[.audio],inputAudioTranscription:AudioTranscriptionConfig(),outputAudioTranscription:AudioTranscriptionConfig()),
-            systemInstruction:ModelContent(role:"system",parts:[TextPart(instruction)])
-        )
+@MainActor final class LiveTutorService:ObservableObject {
+    @Published private(set) var assistantResponseID=""
+    private var onAssistantInterrupted:((String,String)->Void)?
+    private var onResponseRecording:((String,NarrationRecording)->Void)?
+    @Published private(set) var connected=false
+@Published private(set) var connecting=false
+@Published private(set) var muted=false
+@Published private(set) var autoStopped=false
+    @Published private(set) var outputPending=false
+    @Published private(set) var transcript=""
+@Published private(set) var learnerTranscript=""
+@Published private(set) var assistantTurnText=""
+@Published private(set) var completedLearnerTurn=""
+    @Published private(set) var learnerTurnNumber=0
+    @Published private(set) var voiceState="idle"
+    @Published private(set) var audioLevel=0.0
+    private var audioMeter:Task<Void,Never>?
+    @Published var error:String?
+    private let configuration:AppConfiguration
+    private var transport:RealtimeVoiceTransport?
+    private let makeTransport:()->RealtimeVoiceTransport
+    private var generation=UUID(),state=RealtimeVoiceState()
+    private var instructions="",responseEvent:JSONValue?,manualResponse=false
+    private var sessionConfiguration:JSONValue?
+    private var committed:Set<String>=[]
+    private var eventObserver:((JSONValue)->Void)?
+    private var onLearnerTurn:((String)->Void)?,onConversationTurn:((String,String,String)->Void)?
+    private var onInputTurn:((RealtimeVoiceState.InputTurn)->Void)?,onAssistantTurn:((String,String)->Void)?
+    private var notifiedInputs:Set<String>=[],notifiedResponses:Set<String>=[]
+    private var resumeMessages:[ConversationMessage]=[]
+    private var playbackDucked=false
+    private var idleMonitor:Task<Void,Never>?,lastActivity=Date(),speaking=false
+    private let permission:() async ->Bool
+    static let openingPrompt=GeminiLiveTutorService.openingPrompt
+    init(configuration:AppConfiguration=AppConfiguration(),capturesMicrophone:Bool=true,permission:(() async ->Bool)?=nil,transportFactory:(()->RealtimeVoiceTransport)?=nil) {
+        self.configuration=configuration
+        self.makeTransport=transportFactory ?? { RealtimeRTCTransport(configuration:configuration,capturesMicrophone:capturesMicrophone) }
+        self.permission=permission ?? { await AVAudioApplication.requestRecordPermission() }
     }
-    func start(learner: LearnerState, goalBlueprint: JSONValue? = nil, tutorLesson: Lesson? = nil, onLearnerTurn: ((String) -> Void)? = nil, conversationDraft: ConversationDraft? = nil, onConversationTurn: ((String,String,String) -> Void)? = nil) async {
-        guard !connected && !connecting else { return }
-        guard FirebaseService.shared.configured else { error = "Add the iOS Firebase configuration and App Check registration to use live audio."; return }
-        connecting = true; error = nil; transcript = ""; learnerTranscript = ""; completedLearnerTurn = ""; learnerTurns.reset()
-        let currentGeneration = UUID(); generation = currentGeneration
-        defer { connecting = false }
-        guard await AVAudioApplication.requestRecordPermission() else { error = "Enable the microphone in Settings to use live audio."; return }
-        guard generation == currentGeneration else { return }
+    private func conversationParameters(_ draft:ConversationDraft,learner:LearnerState)->JSONValue {
+        .object(["targetLang":.string(learner.target),"user":learner.recipeUser,"personality":.string(draft.personality),"pronunciation":.bool(draft.pronunciation),"interests":.string(draft.interests),"guidance":.string(draft.goal?.guidance == "__reanchor__" ? "" : draft.goal?.guidance ?? ""),"goal":draft.goal.map { .object(["text":$0.text,"completed":.bool($0.completed)]) } ?? .null,"messages":.array(resumeMessages.map { .object(["role":.string($0.role),"textFinal":.string($0.text)]) })])
+    }
+    private func configureConversation(_ draft:ConversationDraft,learner:LearnerState) throws {
+        let recipes=try PracticeRecipes(),parameters=conversationParameters(draft,learner:learner)
+        instructions=try recipes.conversation("instructions",parameters:parameters)
+        responseEvent=try JSONDecoder().decode(JSONValue.self,from:Data(recipes.conversation("response",parameters:parameters).utf8))
+    }
+    func start(learner:LearnerState,goalBlueprint:JSONValue?=nil,tutorLesson:Lesson?=nil,onLearnerTurn:((String)->Void)?=nil,conversationDraft:ConversationDraft?=nil,onConversationTurn:((String,String,String)->Void)?=nil,instructions:String?=nil,openingPrompt:String?=LiveTutorService.openingPrompt,inactivityTimeout:TimeInterval?=nil,initiallyMuted:Bool=false,onInputTurn:((RealtimeVoiceState.InputTurn)->Void)?=nil,onAssistantTurn:((String,String)->Void)?=nil,sessionConfiguration:JSONValue?=nil,externallyControlled:Bool=false,previousAssistant:String?=nil,onEvent:((JSONValue)->Void)?=nil,onResponseRecording:((String,NarrationRecording)->Void)?=nil,onAssistantInterrupted:((String,String)->Void)?=nil) async {
+        guard !connecting && !connected else { return }
+        assistantResponseID="";self.onResponseRecording=onResponseRecording;self.onAssistantInterrupted=onAssistantInterrupted
+        connecting=true;autoStopped=false;muted=initiallyMuted;voiceState="thinking";error=nil;transcript="";learnerTranscript="";assistantTurnText="";completedLearnerTurn="";committed=[];speaking=false;notifiedInputs=[];notifiedResponses=[];playbackDucked=false
+        let run=UUID();generation=run
+        self.onLearnerTurn=onLearnerTurn;self.onConversationTurn=onConversationTurn
+        self.onInputTurn=onInputTurn;self.onAssistantTurn=onAssistantTurn;resumeMessages=conversationDraft?.messages ?? []
+        state=RealtimeVoiceState(previousAssistant:previousAssistant ?? conversationDraft?.messages.last { $0.role == "assistant" }?.text ?? "")
+        self.sessionConfiguration=sessionConfiguration;eventObserver=onEvent
+        state.setMuted(initiallyMuted)
         do {
-            let model = Self.model(for:learner,goalBlueprint:goalBlueprint,tutorLesson:tutorLesson,conversationDraft:conversationDraft)
-            let newSession = try await model.connect()
-            guard generation == currentGeneration else { await newSession.close(); return }
-            session = newSession
-            try setupAudio(session: newSession)
-            connected = true
-            lastConversationInstructions=conversationDraft.map { AIService.conversationInstructions(learner:learner,draft:$0) }
-            receiver = Task { [weak self] in
-                var context=ConversationVoiceContext()
-                var interrupted=false
-                do {
-                    for try await message in newSession.responses {
-                        guard let self, self.generation == currentGeneration, !Task.isCancelled else { break }
-                        if case .content(let content) = message.payload {
-                            if content.wasInterrupted { context.interrupted();interrupted=true;self.player.stop(); self.player.play() }
-                            if let input = content.inputAudioTranscription { if self.learnerTurns.pending.isEmpty { context.inputStarted() };self.learnerTurns.append(input.text ?? ""); self.transcript += "You: " + (input.text ?? "") + "\n"; self.learnerTranscript += (input.text ?? "") + "\n"; self.learnerTranscript = String(self.learnerTranscript.suffix(12000)) }
-                            if let text = content.outputAudioTranscription?.text { self.transcript += text;context.appendAssistant(text) }
-                            if self.transcript.count > 16000 { self.transcript = String(self.transcript.suffix(16000)) }
-                            for part in content.modelTurn?.parts ?? [] {
-                                if let audio = part as? InlineDataPart, audio.mimeType.hasPrefix("audio/pcm") { self.play(audio.data) }
-                            }
-                            if content.isTurnComplete {
-                                self.transcript += "\n"
-                                // Gemini closes the interrupted model turn before answering the new input.
-                                if interrupted { interrupted=false;continue }
-                                let reply=context.finish()
-                                if let turn = self.learnerTurns.finish() { self.completedLearnerTurn = turn; self.learnerTurnNumber = self.learnerTurns.sequence; onLearnerTurn?(turn);onConversationTurn?(turn,reply.answered,reply.reply) }
-                            }
-                        }
+            guard await permission() else { throw AppError.message("Enable the microphone in Settings to use live audio.") }
+            try valid(run)
+            manualResponse=conversationDraft != nil || externallyControlled
+            if let conversationDraft { try configureConversation(conversationDraft,learner:learner) }
+            else {
+                self.instructions=instructions ?? Self.tutorInstructions(learner,goalBlueprint:goalBlueprint,tutorLesson:tutorLesson)
+                responseEvent=nil
+            }
+            let transport=makeTransport();self.transport=transport
+            transport.onOpen={ [weak self] in
+                guard let self,self.generation == run else { return }
+                self.connected=true;self.connecting=false;self.voiceState="listening";self.lastActivity=Date();self.applyMicrophone();self.startAudioMeter(run)
+                // The intro lesson deliberately starts by listening. Private
+                // reconnect context never becomes a synthetic learner turn.
+                if conversationDraft == nil,let openingPrompt {
+                    self.send(.object(["type":.string("response.create"),"response":.object(["output_modalities":.array([.string("audio")]),"instructions":.string(self.instructions+"\n\n"+openingPrompt)])]))
+                }
+            }
+            transport.onEvent={ [weak self] event in guard let self,self.generation == run else { return };self.receive(event) }
+            transport.onFailure={ [weak self] message in guard let self,self.generation == run else { return };self.error=message;self.close() }
+            let session=sessionConfiguration ?? RealtimeVoicePolicy.session(instructions:self.instructions,model:configuration.string("RealtimeModel",default:"gpt-realtime-2.1-mini"),voice:configuration.string("RealtimeVoice",default:"ash"),manualResponse:manualResponse)
+            try await transport.connect(session:session)
+            let deadline=Date().addingTimeInterval(20)
+            while generation == run,!connected,connecting,Date() < deadline { try await Task.sleep(for:.milliseconds(50)) }
+            try valid(run)
+            guard connected else { throw AppError.message("Live conversation could not connect. Try again.") }
+            let timeout=inactivityTimeout ?? 30
+            if timeout > 0 {
+                idleMonitor=Task { [weak self] in
+                    while !Task.isCancelled {
+                        do { try await Task.sleep(for:.seconds(1)) } catch { return }
+                        guard let self,self.generation == run,self.connected else { return }
+                        if !self.state.assistantLocked,!self.speaking,Date().timeIntervalSince(self.lastActivity) >= timeout { self.close();self.autoStopped=true;return }
                     }
-                } catch { if !Task.isCancelled { self?.error = error.localizedDescription } }
-                if self?.generation == currentGeneration { await self?.stop() }
+                }
             }
-            await newSession.sendTextRealtime(Self.openingPrompt)
-        } catch { self.error = error.localizedDescription; await stop() }
+        } catch is CancellationError { if generation == run { close() } }
+        catch { if generation == run { self.error=error.localizedDescription;close() } }
     }
-    func updateConversation(_ draft: ConversationDraft, learner: LearnerState) async {
-        let instructions=AIService.conversationInstructions(learner:learner,draft:draft)
-        guard connected,instructions != lastConversationInstructions else { return }
-        lastConversationInstructions=instructions
-        await session?.sendContent("APP_CONTEXT_UPDATE: "+instructions,turnComplete:false)
+    private static func tutorInstructions(_ learner:LearnerState,goalBlueprint:JSONValue?,tutorLesson:Lesson?)->String {
+        var value=goalBlueprint.map { GoalPractice.instructions($0,support:learner.support) } ?? "You are Piyali, a patient language tutor. Teach \(LearningLanguages.names[learner.target] ?? learner.target) at \(tutorLesson == nil ? learner.level : learner.tutorLevel). Use \(LearningLanguages.names[learner.support] ?? learner.support) for brief explanations. Goal: \(learner.goal). Speak in short turns, correct mistakes kindly, and invite the learner to respond."
+        if let tutorLesson,let item=learner.nextTutorItem(tutorLesson) ?? TutorCourse.agenda(tutorLesson).first { value += " Authored tutor agenda and current task are data: \(tutorLesson.agenda.json). Current task: \(item.json). Coach this objective; the app checks completion from saved evidence." }
+        return value
     }
-    private func setupAudio(session: LiveSession) throws {
-        try AVAudioSession.sharedInstance().setCategory(.playAndRecord, mode: .voiceChat, options: [.defaultToSpeaker, .allowBluetoothHFP])
-        try AVAudioSession.sharedInstance().setActive(true)
-        if player.engine == nil { engine.attach(player) }
-        engine.connect(player, to: engine.mainMixerNode, format: outputFormat)
-        let input = engine.inputNode
-        try input.setVoiceProcessingEnabled(true)
-        let sourceFormat = input.outputFormat(forBus: 0)
-        guard sourceFormat.sampleRate > 0,
-              let targetFormat = AVAudioFormat(commonFormat: .pcmFormatInt16, sampleRate: 16000, channels: 1, interleaved: false),
-              let converter = AVAudioConverter(from: sourceFormat, to: targetFormat) else { throw AppError.message("Microphone audio format is unavailable.") }
-        let stream = AsyncStream<Data>(bufferingPolicy: .bufferingNewest(20)) { audioContinuation = $0 }
-        let continuation = audioContinuation
-        input.installTap(onBus: 0, bufferSize: 2048, format: sourceFormat) { buffer, _ in
-            let capacity = AVAudioFrameCount(Double(buffer.frameLength) * 16000 / sourceFormat.sampleRate) + 1
-            guard let output = AVAudioPCMBuffer(pcmFormat: targetFormat, frameCapacity: capacity) else { return }
-            var consumed = false, conversionError: NSError?
-            converter.convert(to: output, error: &conversionError) { _, status in
-                if consumed { status.pointee = .noDataNow; return nil }
-                consumed = true; status.pointee = .haveData; return buffer
-            }
-            if conversionError == nil, let samples = output.int16ChannelData?[0], output.frameLength > 0 {
-                continuation?.yield(Data(bytes: samples, count: Int(output.frameLength) * 2))
+    private func valid(_ run:UUID) throws { if generation != run || Task.isCancelled { throw CancellationError() } }
+    private func send(_ value:JSONValue) { if transport?.send(value) != true { error="Live conversation disconnected. Try connecting again.";close() } }
+    private func receive(_ event:JSONValue) {
+        eventObserver?(event)
+        let type=event["type"].string
+        if type == "response.created"{assistantResponseID=event["response"]["id"].string}
+        if ["response.done","response.completed","response.canceled","response.cancelled"].contains(type){captureReply(event["response"]["id"].string)}
+        if type == "response.created" || type == "output_audio_buffer.started"{outputPending=true}
+        if ["output_audio_buffer.stopped","output_audio_buffer.cleared"].contains(type){outputPending=false}
+        if type == "error" { error="Live conversation could not continue. Try connecting again.";close();return }
+        if type == "conversation.item.input_audio_transcription.completed",event["transcript"].string.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty {speaking=false;state.discardInput(event["item_id"].string);voiceState="listening";applyMicrophone()}
+        if type == "conversation.item.input_audio_transcription.failed" { error="That speech could not be transcribed. Please try saying it again.";speaking=false;state.discardInput(event["item_id"].string);voiceState="listening";applyMicrophone() }
+        if type == "input_audio_buffer.speech_started" { speaking=true }
+        if type == "input_audio_buffer.speech_stopped" || type == "input_audio_buffer.committed" { speaking=false }
+        if type.hasPrefix("response.") || type.hasPrefix("input_audio_buffer.") || type == "output_audio_buffer.stopped" { lastActivity=Date() }
+        let wasLocked=state.assistantLocked
+        let turns=state.receive(event);assistantTurnText=state.assistantText;transcript=state.transcript
+        if type == "input_audio_buffer.local_speech_started" || type == "input_audio_buffer.local_speech_active" || type == "input_audio_buffer.speech_started" || type == "output_audio_buffer.stopped" { voiceState="listening" }
+        if type == "input_audio_buffer.committed" || type == "input_audio_buffer.speech_stopped" { voiceState="thinking" }
+        if type == "output_audio_buffer.started" { voiceState="speaking" }
+        if state.assistantLocked != wasLocked { applyMicrophone() }
+        let itemID=event["item_id"].string
+        if type == "conversation.item.input_audio_transcription.completed",let input=state.inputTurn(itemID),notifiedInputs.insert(itemID).inserted { onInputTurn?(input) }
+        let responseID=event["response"]["id"].string
+        if ["response.done","response.completed"].contains(type),let text=state.completedAssistant(responseID),notifiedResponses.insert(responseID).inserted { onAssistantTurn?(responseID,text) }
+        if ["response.canceled","response.cancelled"].contains(type),let text=state.completedAssistant(responseID),notifiedResponses.insert(responseID).inserted {onAssistantInterrupted?(responseID,text)}
+        if manualResponse,type == "input_audio_buffer.committed" {
+            let id=event["item_id"].string
+            if !id.isEmpty,committed.insert(id).inserted,let responseEvent { send(responseEvent) }
+        }
+        for turn in turns {
+            completedLearnerTurn=turn.text;learnerTurnNumber += 1
+            learnerTranscript=String((learnerTranscript+turn.text+"\n").suffix(12000))
+            onLearnerTurn?(turn.text);onConversationTurn?(turn.text,turn.answered,turn.reply)
+        }
+    }
+    private func startAudioMeter(_ run:UUID) {
+        audioMeter?.cancel();audioLevel=0
+        audioMeter=Task { [weak self] in
+            var envelope=TutorVoiceEnvelope(microphone:true),previousState="",last=Date()
+            while !Task.isCancelled {
+                do {try await Task.sleep(for:.milliseconds(100))} catch {return}
+                guard let self,self.generation == run,self.connected,let transport=self.transport else {return}
+                let state=self.voiceState,speaking=state == "speaking"
+                if previousState != state {envelope=TutorVoiceEnvelope(microphone:!speaking);previousState=state;last=Date()}
+                guard !self.playbackDucked,(speaking || (state == "listening" && self.state.microphoneEnabled)) else {self.audioLevel=0;continue}
+                let rms=await transport.audioAmplitude(speaking:speaking)
+                guard !Task.isCancelled,self.generation == run,self.connected,self.voiceState == state,!self.playbackDucked,(speaking || self.state.microphoneEnabled) else {continue}
+                let now=Date();self.audioLevel=envelope.sample(rms,elapsedMs:now.timeIntervalSince(last)*1000);last=now
             }
         }
-        tapped = true
-        sender = Task {
-            for await bytes in stream { guard !Task.isCancelled else { break }; await session.sendAudioRealtime(bytes) }
-        }
-        engine.prepare(); try engine.start(); player.play()
     }
-    private func play(_ data: Data) {
-        let samples = data.count / 2
-        guard samples > 0, let buffer = AVAudioPCMBuffer(pcmFormat: outputFormat, frameCapacity: AVAudioFrameCount(samples)), let output = buffer.floatChannelData?[0] else { return }
-        buffer.frameLength = AVAudioFrameCount(samples)
-        data.withUnsafeBytes { bytes in
-            for index in 0..<samples {
-                let value = Int16(littleEndian: bytes.loadUnaligned(fromByteOffset: index * 2, as: Int16.self))
-                output[index] = Float(value) / 32768
-            }
-        }
-        player.scheduleBuffer(buffer)
+    private func applyMicrophone() {
+        let enabled=state.microphoneEnabled && !playbackDucked
+        transport?.setMicrophoneEnabled(enabled && connected)
+        guard connected else { return }
+        if !enabled { send(.object(["type":.string("input_audio_buffer.clear")])) }
+        let vad=sessionConfiguration?["audio"]["input"]["turn_detection"] ?? RealtimeVoicePolicy.vad(manualResponse:manualResponse)
+        send(.object(["type":.string("session.update"),"session":.object(["type":.string("realtime"),"audio":.object(["input":.object(["turn_detection":enabled ? vad : .null])])])]))
     }
-    func stop() async {
-        generation = UUID(); connected = false; lastConversationInstructions = nil
-        engine.stop(); player.stop()
-        if tapped { engine.inputNode.removeTap(onBus: 0); tapped = false }
-        audioContinuation?.finish(); audioContinuation = nil
-        sender?.cancel(); sender = nil; receiver?.cancel(); receiver = nil
-        let oldSession = session; session = nil
-        await oldSession?.close()
-        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+    func requestResponse(_ response:JSONValue) {guard connected else{return};send(response)}
+    func discardInput(_ id:String) {guard connected else{return};state.discardInput(id);voiceState="listening";applyMicrophone()}
+    func updateTranscription(_ value:JSONValue) {guard connected else{return};send(.object(["type":.string("session.update"),"session":.object(["type":.string("realtime"),"audio":.object(["input":.object(["transcription":value])])])]))}
+    func updateConversation(_ draft:ConversationDraft,learner:LearnerState) async {
+        guard connected else { return }
+        do { let previous=instructions;try configureConversation(draft,learner:learner);if instructions != previous { send(.object(["type":.string("session.update"),"session":.object(["type":.string("realtime"),"instructions":.string(instructions)])])) } }
+        catch { self.error=error.localizedDescription }
+    }
+    func setOutputGain(_ value:Double){transport?.setOutputGain(value)}
+    func updateTutorContext(_ session:JSONValue){guard connected else{return};send(.object(["type":.string("session.update"),"session":session]))}
+    func setMuted(_ value:Bool) { muted=value;state.setMuted(value);if value,voiceState != "speaking" {audioLevel=0};applyMicrophone() }
+    func setPlaybackDucked(_ value:Bool) { guard playbackDucked != value else { return };playbackDucked=value;if value {audioLevel=0};transport?.setRemoteAudioEnabled(!value);applyMicrophone() }
+    func captureCurrentReply(){captureReply(assistantResponseID)}
+    private func captureReply(_ id:String){if let recording=transport?.takeResponseRecording(id){onResponseRecording?(id,recording)}}
+    private func close() {
+        captureCurrentReply();onResponseRecording=nil;onAssistantInterrupted=nil
+        generation=UUID();eventObserver=nil;audioMeter?.cancel();audioMeter=nil;audioLevel=0;idleMonitor?.cancel();idleMonitor=nil;transport?.close();transport=nil;connected=false;connecting=false;muted=false;voiceState="idle";outputPending=false;onLearnerTurn=nil;onConversationTurn=nil;onInputTurn=nil;onAssistantTurn=nil
+    }
+    func stop(clearTranscript:Bool=false) async {
+        close()
+        if clearTranscript { transcript="";learnerTranscript="";assistantTurnText="";completedLearnerTurn="" }
     }
 }

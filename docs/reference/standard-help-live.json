@@ -1,0 +1,9 @@
+{
+  "run": "PiyaliStandardHelpLive1",
+  "outputs": {
+    "vocabulary mc-buttons explanation ar": "ولا يهمك، دي حتة صغيرة وهتتعلمها! كلمة \"adiós\" معناها \"مع السلامة\" (وداع)، مش تحية لما تيجي تقابل حد. أما \"hola\" فهي الصح لأن معناها \"أهلاً\" أو \"مرحباً\". عشان ما تلخبطش تاني، افتكر دايماً إن \"Hola\" قصيرة وفرحانة وليها علاقة بالبداية، و\"Adiós\" أطول وليها علاقة بالنهاية!",
+    "grammar match assistant ar": "**الإجابة الصحيحة:**\n\n* **hola** = hello\n* **adiós** = goodbye\n* **gracias** = thank you\n\n**ليه؟** دي التحيات والكلمات الشائعة بالإسباني وترجمتها الصح بالإنجليزي.",
+    "vocabulary ma-buttons explanation en": "You did a great job identifying \"padre,\" but you missed \"madre\"! Both of these words mean \"father\" and \"mother,\" which are core members of the immediate family in Spanish. To help you catch them all in the future, try translating each option into English in your head to see if it names a person related to you!",
+    "grammar fill assistant en": "* Answer: **pan**\n* Select the word **pan**.\n* Completed sentence: *La niña come pan.*\n\n**Why it works:** *Pan* means bread, which is a food made from flour."
+  }
+}
