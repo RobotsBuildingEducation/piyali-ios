@@ -44,3 +44,37 @@ extension TutorReplyReferenceTests {
         }}}
     }
 }
+
+@MainActor extension TutorReplyReferenceTests {
+    func testOriginalConversationUserBubbleAcrossPhoneSizes() async throws {
+        let env=ProcessInfo.processInfo.environment;guard env["PIYALI_OFFLINE_TESTS"] == "1",env["PIYALI_REFERENCE_PREVIEW_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Isolated identity and original Conversation fixture required")}
+        let scene=try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap{$0 as? UIWindowScene}.first),old=scene.windows.first{$0.isKeyWindow};defer{old?.makeKey()}
+        for width in [375,402] {for language in ["es","ar"] {for long in [false,true] {
+            let dark=language == "ar",text=language == "ar" ? (long ? "مرحباً، اسمي آنا. أحب قراءة الكتب في المكتبة والذهاب إلى السوق مع عائلتي في نهاية الأسبوع.":"مرحباً، اسمي آنا.") : (long ? "Hola, me llamo Ana. Me gusta leer libros en la biblioteca y visitar el mercado con mi familia los fines de semana.":"Hola, me llamo Ana."),height=width == 375 ? 667:874
+            let data:JSONValue = .object(["text":.string(text),"textLang":.string(language)]);var url=URLComponents(string:"http://127.0.0.1:5181/__piyali-conversation-reply")!;url.queryItems=[.init(name:"kind",value:"user"),.init(name:"theme",value:dark ? "dark":"light"),.init(name:"data",value:data.json)]
+            let window=UIWindow(windowScene:scene);window.frame=CGRect(x:0,y:0,width:width,height:height);let config=WKWebViewConfiguration();config.websiteDataStore = .nonPersistent();let web=WKWebView(frame:window.frame,configuration:config),vc=UIViewController();vc.view=web;window.rootViewController=vc;window.makeKeyAndVisible();web.scrollView.contentInsetAdjustmentBehavior = .never;web.load(URLRequest(url:try XCTUnwrap(url.url)));defer{web.stopLoading();window.isHidden=true;window.rootViewController=nil}
+            var ready=false;for _ in 0..<400 {ready=(try? await web.evaluateJavaScript("document.fonts.status==='loaded'&&!!document.querySelector('#fixture > div p')")) as? Bool == true;if ready{break};try await Task.sleep(for:.milliseconds(50))};XCTAssertTrue(ready);guard ready else{return};try await Task.sleep(for:.milliseconds(250))
+            let source=XCTAttachment(image:try await web.takeSnapshot(configuration:nil));source.name="Source Conversation user \(language) \(width) \(long ? "long":"short")";source.lifetime = .keepAlways;add(source)
+            let metrics=try await web.evaluateJavaScript("(()=>{const e=document.querySelector('#fixture > div'),r=e.getBoundingClientRect();return {width:r.width,height:r.height}})()") as? [String:Double] ?? [:]
+            web.stopLoading();window.isHidden=true;window.rootViewController=nil;var nativeSize=CGSize.zero
+            let native=UIHostingController(rootView:VStack{ConversationUserBubble(text:text,language:language).onGeometryChange(for:CGSize.self,of:{$0.size}){nativeSize=$0};Spacer(minLength:0)}.padding(16).frame(maxWidth:.infinity,maxHeight:.infinity,alignment:.top).background(PiyaliBrand.unitColor(dark ? "0b1220":"f7f1e7")).preferredColorScheme(dark ? .dark:.light).ignoresSafeArea());window.rootViewController=native;window.makeKeyAndVisible();native.view.layoutIfNeeded();try await Task.sleep(for:.milliseconds(250))
+            XCTAssertEqual(nativeSize.width,metrics["width"] ?? 0,accuracy:0.5);XCTAssertEqual(nativeSize.height,metrics["height"] ?? 0,accuracy:3,"Conversation user \(language) \(width) \(long)")
+            let shot=XCTAttachment(image:UIGraphicsImageRenderer(bounds:window.bounds).image{_ in window.drawHierarchy(in:window.bounds,afterScreenUpdates:true)});shot.name="Native Conversation user \(language) \(width) \(long ? "long":"short")";shot.lifetime = .keepAlways;add(shot);window.isHidden=true;window.rootViewController=nil
+        }}}
+    }
+}
+
+@MainActor extension TutorReplyReferenceTests {
+    func testOriginalConversationHistoryModalOrderAndHiddenTranslations() async throws {
+        let env=ProcessInfo.processInfo.environment;guard env["PIYALI_OFFLINE_TESTS"] == "1",env["PIYALI_REFERENCE_PREVIEW_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Isolated identity and original Conversation fixture required")}
+        let scene=try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap{$0 as? UIWindowScene}.first),old=scene.windows.first{$0.isKeyWindow};defer{old?.makeKey()}
+        let messages:JSONValue = .array([.object(["id":.string("1"),"role":.string("user"),"textFinal":.string("wrong topic"),"ts":.number(1)]),.object(["id":.string("2"),"role":.string("assistant"),"textFinal":.string("Intenta saludar y decir tu nombre."),"ts":.number(2)]),.object(["id":.string("3"),"role":.string("user"),"textFinal":.string("Hola, me llamo Ana."),"ts":.number(3)]),.object(["id":.string("4"),"role":.string("assistant"),"textFinal":.string("¡Hola, Ana! ¿Qué te gusta hacer?"),"translation":.string("Hello, Ana! What do you like doing?"),"translationLang":.string("en"),"ts":.number(4)])])
+        let data:JSONValue = .object(["messages":messages,"showSecondary":.bool(false),"secondaryLang":.string("en"),"targetLang":.string("es")]);var url=URLComponents(string:"http://127.0.0.1:5181/__piyali-conversation-reply")!;url.queryItems=[.init(name:"kind",value:"history"),.init(name:"data",value:data.json)]
+        let window=UIWindow(windowScene:scene);window.frame=CGRect(x:0,y:0,width:402,height:874);let config=WKWebViewConfiguration();config.websiteDataStore = .nonPersistent();let web=WKWebView(frame:window.frame,configuration:config),vc=UIViewController();vc.view=web;window.rootViewController=vc;window.makeKeyAndVisible();web.scrollView.contentInsetAdjustmentBehavior = .never;web.load(URLRequest(url:try XCTUnwrap(url.url)));defer{web.stopLoading();window.isHidden=true;window.rootViewController=nil}
+        var ready=false;for _ in 0..<400 {ready=(try? await web.evaluateJavaScript("document.fonts.status==='loaded'&&document.querySelectorAll('[role=dialog] p').length===4")) as? Bool == true;if ready{break};try await Task.sleep(for:.milliseconds(50))};XCTAssertTrue(ready);guard ready else{return};try await Task.sleep(for:.milliseconds(500))
+        let text=(try await web.evaluateJavaScript("[...document.querySelectorAll('[role=dialog] p')].map(e=>e.textContent)")) as? [String] ?? []
+        XCTAssertEqual(text,["¡Hola, Ana! ¿Qué te gusta hacer?","Hola, me llamo Ana.","Intenta saludar y decir tu nombre.","wrong topic"])
+        let dialogText=(try await web.evaluateJavaScript("document.querySelector('[role=dialog]').innerText")) as? String ?? "";XCTAssertFalse(dialogText.contains("Hello, Ana! What do you like doing?"))
+        let source=XCTAttachment(image:try await web.takeSnapshot(configuration:nil));source.name="Source Conversation history newest first with translations hidden";source.lifetime = .keepAlways;add(source)
+    }
+}

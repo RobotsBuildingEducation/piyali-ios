@@ -131,6 +131,7 @@ extension AIService:ConversationProviding {}
         if fixture,ProcessInfo.processInfo.environment["PIYALI_CONVERSATION_ALIGNMENT_FIXTURE"] == "1",text.contains("¡Hola, Ana!") {
             message.translation="Hello, Ana! What do you like doing?";message.translationLang="en"
             message.pairs = .array([.object(["lhs":.string("Hola, Ana"),"rhs":.string("Hello, Ana")]),.object(["lhs":.string("¿Qué te gusta hacer?"),"rhs":.string("What do you like doing?")])])
+            if ProcessInfo.processInfo.environment["PIYALI_CONVERSATION_TRANSLATIONS_HIDDEN_FIXTURE"] == "1" {app.updateSettings(.object(["showTranslations":.bool(false)]))}
         }
         #endif
         var draft=app.learner.conversation;draft.append(message);app.learner.saveConversation(draft);if liveReply?.providerID == providerID {liveReply=nil};app.persist()

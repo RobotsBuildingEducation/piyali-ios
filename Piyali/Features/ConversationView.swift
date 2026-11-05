@@ -11,6 +11,7 @@ struct ConversationView:View {
     @State private var showStarter=false
     @State private var showSettings=false
     @State private var showHistory=false
+    @State private var historyContentHeight:CGFloat=300
     @State private var showSummary=false
     @State private var paused=false
     @State private var pausedMuted=false
@@ -55,7 +56,7 @@ struct ConversationView:View {
             .onChange(of:app.plateCourseCompletion?.id){_,_ in if app.plateCourseCompletion?.kind == "conversation"{stop()}}
             .onDisappear { stop() }
             .sheet(isPresented:$showSettings,onDismiss:settingsClosed) { settingsSheet.presentationDetents([.fraction(0.8)]).presentationDragIndicator(.visible) }
-            .sheet(isPresented:$showHistory) { historySheet.presentationDetents([.large]).presentationDragIndicator(.visible) }
+            .fullScreenCover(isPresented:$showHistory) { historySheet.presentationBackground(.clear) }
             .fullScreenCover(isPresented:$showSummary) { summaryDialog.presentationBackground(.clear) }
     }
     private var content:some View {
@@ -177,13 +178,37 @@ struct ConversationView:View {
         }
     }
     private var historySheet:some View {
-        NavigationStack { ScrollView { LazyVStack(alignment:.leading,spacing:12) {
-            ForEach(draft.messages) { message in HStack {
-                if message.role == "user" { Spacer(minLength:36);VStack(alignment:.leading,spacing:8) {Text(t("ra_you","You")).font(PiyaliBrand.productFont(11,600)).foregroundStyle(brand.secondary);Text(message.text).font(PiyaliBrand.productFont(16)).textSelection(.enabled)}.padding(14).background(Color.cyan.opacity(0.1),in:RoundedRectangle(cornerRadius:16)) }
-                else {TutorReplyView(primary:message.text,secondary:translation(message),target:app.learner.target,support:app.learner.support,pairs:pairs(message),showSecondary:showTranslations,replayAvailable:false,showPairCards:false,conversationAppearance:true,primaryIdentifier:"conversationHistoryReply-\(message.id.uuidString)",secondaryIdentifier:"conversationHistoryTranslation-\(message.id.uuidString)",translateIdentifier:"conversationHistoryTranslate-\(message.id.uuidString)",translating:conversation.translating.contains(message.id),onTranslate:showTranslations ? translationAction(message):nil,onReplay:{});Spacer(minLength:24)}
-            } }
-            Button("Save transcript to notes") { app.learner.notes.insert(.init(title:"Conversation · "+app.learner.target,body:draft.transcript),at:0);app.persist() }.buttonStyle(.bordered).accessibilityIdentifier("conversationSave")
-        }.padding(16) }.background(brand.background).foregroundStyle(brand.text).navigationTitle(t("ra_conversation_log","Conversation log")).navigationBarTitleDisplayMode(.inline).toolbar { ToolbarItem(placement:.confirmationAction) { Button("Done") { showHistory=false } } } }
+        GeometryReader { geometry in
+            ZStack(alignment:.top) {
+                (scheme == .dark ? PiyaliBrand.unitColor("020617").opacity(0.92):PiyaliBrand.unitColor("1c140c").opacity(0.82)).ignoresSafeArea().onTapGesture {showHistory=false}
+                VStack(alignment:.leading,spacing:0) {
+                    HStack(spacing:12) {
+                        Text(t("ra_conversation_log","Conversation log")).font(PiyaliBrand.productFont(20,700)).accessibilityIdentifier("conversationHistoryTitle")
+                            .contextMenu {Button("Save transcript to notes") { app.learner.notes.insert(.init(title:"Conversation · "+app.learner.target,body:draft.transcript),at:0);app.persist() }.accessibilityIdentifier("conversationSave")}
+                        Spacer(minLength:0)
+                        Button {showHistory=false} label:{Image(systemName:"xmark").font(.system(size:15,weight:.medium)).frame(width:32,height:32).contentShape(Rectangle())}.buttonStyle(.plain).accessibilityLabel(t("close","Close")).accessibilityIdentifier("conversationHistoryClose")
+                    }.padding(.leading,32).padding(.trailing,20).padding(.vertical,24)
+                    ScrollView {
+                        LazyVStack(alignment:.leading,spacing:12) {
+                            ForEach(Array(draft.messages.reversed())) { message in HStack(alignment:.top,spacing:0) {
+                                if message.role == "user" { Spacer(minLength:0);ViewThatFits(in:.horizontal) { historyUser(message).fixedSize(horizontal:true,vertical:false);historyUser(message) }.frame(maxWidth:max(0,(geometry.size.width-80)*0.95),alignment:.trailing) }
+                                else { ViewThatFits(in:.horizontal) {historyReply(message).fixedSize(horizontal:true,vertical:false);historyReply(message)}.frame(maxWidth:max(0,(geometry.size.width-80)*0.95),alignment:.leading);Spacer(minLength:0) }
+                            } }
+                        }.padding(.horizontal,28).padding(.top,28).padding(.bottom,28)
+                            .onGeometryChange(for:CGFloat.self,of:{$0.size.height}){historyContentHeight=$0}
+                    }.frame(height:min(max(historyContentHeight,1),max(1,geometry.size.height-168)))
+                }.foregroundStyle(scheme == .dark ? .white:PiyaliBrand.unitColor("2f261d"))
+                    .background(PiyaliBrand.unitColor(scheme == .dark ? "111827":"f1e8dc"),in:RoundedRectangle(cornerRadius:48,style:.continuous))
+                    .overlay {RoundedRectangle(cornerRadius:48,style:.continuous).strokeBorder(scheme == .dark ? PiyaliBrand.unitColor("94a3b8").opacity(0.3):PiyaliBrand.unitColor("604d38").opacity(0.3),lineWidth:3).allowsHitTesting(false)}
+                    .clipShape(RoundedRectangle(cornerRadius:48,style:.continuous)).padding(.horizontal,12).padding(.top,64)
+            }.frame(maxWidth:.infinity,maxHeight:.infinity,alignment:.top).ignoresSafeArea()
+        }
+    }
+    private func historyUser(_ message:ConversationMessage)->some View {
+        ConversationUserBubble(text:message.text,language:app.learner.target).accessibilityIdentifier("conversationHistoryUser-\(message.id.uuidString)")
+    }
+    private func historyReply(_ message:ConversationMessage)->some View {
+        TutorReplyView(primary:message.text,secondary:translation(message),target:app.learner.target,support:app.learner.support,pairs:pairs(message),showSecondary:showTranslations,replayAvailable:false,showPairCards:false,conversationAppearance:true,primaryIdentifier:"conversationHistoryReply-\(message.id.uuidString)",secondaryIdentifier:"conversationHistoryTranslation-\(message.id.uuidString)",translateIdentifier:"conversationHistoryTranslate-\(message.id.uuidString)",translating:conversation.translating.contains(message.id),onTranslate:showTranslations ? translationAction(message):nil,onReplay:{})
     }
     private func closeSummary() { var transaction=Transaction();transaction.disablesAnimations=true;withTransaction(transaction) {showSummary=false} }
     private var summaryDialog:some View {
@@ -241,5 +266,21 @@ private struct ConversationXPBar:View {
                 LinearGradient(colors:[PiyaliBrand.unitColor("43e97b"),PiyaliBrand.unitColor("38f9d7")],startPoint:.leading,endPoint:.trailing).opacity(0.9).frame(width:geometry.size.width*fill)
             }.clipShape(Capsule()).overlay { Capsule().stroke(PiyaliBrand.unitColor("ededed")) }
         }.frame(height:15).task(id:value) { withAnimation(reduceMotion ? nil : .timingCurve(0.22,1,0.36,1,duration:0.8)) {fill=max(0,min(100,value))/100} }.accessibilityLabel("Experience progress").accessibilityValue("\(Int(value)) percent")
+    }
+}
+
+/// Source Conversation UserBubble: text only, 28-point radius, themed fill.
+struct ConversationUserBubble:View {
+    let text:String,language:String
+    @Environment(\.colorScheme) private var scheme
+    private var dark:Bool { scheme == .dark }
+    var body:some View {
+        Text(text).font(PiyaliBrand.productFont(16)).lineSpacing(max(0,25-UIFont.systemFont(ofSize:16).lineHeight)).padding(.vertical,max(0,25-UIFont.systemFont(ofSize:16).lineHeight)/2).fixedSize(horizontal:false,vertical:true).frame(maxWidth:.infinity,alignment:.leading).textSelection(.enabled)
+            .environment(\.layoutDirection,["ar","he","fa","ur"].contains(language) ? .rightToLeft:.leftToRight)
+            .foregroundStyle(dark ? .white:PiyaliBrand.unitColor("2f261d"))
+            .padding(12).padding(1)
+            .background(dark ? PiyaliBrand.unitColor("3182ce"):PiyaliBrand.unitColor("6cb6bf").opacity(0.16),in:RoundedRectangle(cornerRadius:28))
+            .overlay { RoundedRectangle(cornerRadius:28).strokeBorder(dark ? .white.opacity(0.08):PiyaliBrand.unitColor("6cb6bf").opacity(0.22)) }
+            .shadow(color:dark ? .black.opacity(0.25):PiyaliBrand.unitColor("6f5636").opacity(0.08),radius:dark ? 10:9,y:dark ? 6:8)
     }
 }

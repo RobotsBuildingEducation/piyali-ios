@@ -17,7 +17,10 @@
     "APP_TEXT_PRIMARY",
     "APP_TEXT_SECONDARY",
     "APP_SHADOW",
-    "AlignedBubble"
+    "AlignedBubble",
+    "UserBubble",
+    "RowLeft",
+    "RowRight"
   ],
-  "scope": "Original Conversation AlignedBubble JSX, phrase helpers, source theme/CSS and bidi helpers. Public fixture state with counted translation action; no account, provider, microphone, cloud or relay."
+  "scope": "Original Conversation transcript modal, bubble/row JSX, phrase helpers, source theme/CSS and bidi helpers. Public fixture state with counted translation action; no account, provider, microphone, cloud or relay."
 }
