@@ -67,6 +67,24 @@ import XCTest
 }
 
 extension ConversationLanguageServiceTests {
+    func testLiveReplyTranslationFollowsStableMessageThroughCompletionAndInterruption() async throws {
+        let app=try app();defer {try? app.identity.disconnect()};let provider=ConversationProviderFixture(),service=ConversationService(provider:provider)
+        service.observeLiveReply("Hola",providerID:"live-1",app:app);let live=try XCTUnwrap(service.liveReply);XCTAssertFalse(app.learner.conversation.messages.contains(where:{$0.id == live.id}))
+        provider.translationStarted=expectation(description:"Live translation pending");let work=Task {await service.translate(live,app:app)};await fulfillment(of:[provider.translationStarted!],timeout:2)
+        provider.translationUpdate?("Hel");service.observeLiveReply("Hola, amiga",providerID:"live-1",app:app);XCTAssertEqual(service.liveReply?.id,live.id);XCTAssertEqual(service.translationDrafts[live.id],"Hel")
+        service.assistantReply("Hola, amiga.",providerID:"live-1",app:app);XCTAssertNil(service.liveReply);XCTAssertEqual(app.learner.conversation.messages.last?.id,live.id)
+        provider.translationUpdate?("Hello, friend.");provider.translation?.resume(returning:"Hello, friend.");provider.translation=nil;await work.value
+        XCTAssertEqual(app.learner.conversation.messages.last?.translation(for:"en"),"Hello, friend.");XCTAssertEqual(app.learner.conversation.messages.filter {$0.providerID == "live-1"}.count,1)
+        service.observeLiveReply("Vamos",providerID:"live-2",app:app);let interrupted=try XCTUnwrap(service.liveReply)
+        provider.translationStarted=expectation(description:"Interrupted translation pending");let pending=Task {await service.translate(interrupted,app:app)};await fulfillment(of:[provider.translationStarted!],timeout:2)
+        service.preserveInterruptedReply("Vamos",providerID:"live-2",app:app);provider.translation?.resume(returning:"Let's go");provider.translation=nil;await pending.value
+        XCTAssertEqual(app.learner.conversation.messages.last?.id,interrupted.id);XCTAssertTrue(app.learner.conversation.messages.last?.interrupted == true);XCTAssertEqual(app.learner.conversation.messages.last?.translation(for:"en"),"Let's go")
+        service.observeLiveReply("Gracias",providerID:"live-3",app:app);let third=try XCTUnwrap(service.liveReply)
+        provider.translationStarted=expectation(description:"Translation finishes before the reply");let early=Task {await service.translate(third,app:app)};await fulfillment(of:[provider.translationStarted!],timeout:2)
+        provider.translation?.resume(returning:"Thanks");provider.translation=nil;await early.value;XCTAssertEqual(service.liveReply?.translation(for:"en"),"Thanks")
+        service.observeLiveReply("Gracias, amiga",providerID:"live-3",app:app);service.assistantReply("Gracias, amiga.",providerID:"live-3",app:app)
+        XCTAssertEqual(app.learner.conversation.messages.last?.id,third.id);XCTAssertEqual(app.learner.conversation.messages.last?.translation(for:"en"),"Thanks")
+    }
     func testStreamingTranslationRemainsTransientAndRejectsStaleLanguageUpdates() async throws {
         let app=try app();defer {try? app.identity.disconnect()};let provider=ConversationProviderFixture();provider.translationStarted=expectation(description:"Streaming translation started");let service=ConversationService(provider:provider),message=try XCTUnwrap(app.learner.conversation.messages.first)
         let work=Task {await service.translate(message,app:app)};await fulfillment(of:[provider.translationStarted!],timeout:2)

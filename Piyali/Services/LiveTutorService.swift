@@ -30,6 +30,7 @@ import AVFoundation
     private var eventObserver:((JSONValue)->Void)?
     private var onLearnerTurn:((String)->Void)?,onConversationTurn:((String,String,String)->Void)?
     private var onInputTurn:((RealtimeVoiceState.InputTurn)->Void)?,onAssistantTurn:((String,String)->Void)?
+    private var onAssistantProgress:((String,String)->Void)?
     private var notifiedInputs:Set<String>=[],notifiedResponses:Set<String>=[]
     private var resumeMessages:[ConversationMessage]=[]
     private var playbackDucked=false
@@ -49,13 +50,13 @@ import AVFoundation
         instructions=try recipes.conversation("instructions",parameters:parameters)
         responseEvent=try JSONDecoder().decode(JSONValue.self,from:Data(recipes.conversation("response",parameters:parameters).utf8))
     }
-    func start(learner:LearnerState,goalBlueprint:JSONValue?=nil,tutorLesson:Lesson?=nil,onLearnerTurn:((String)->Void)?=nil,conversationDraft:ConversationDraft?=nil,onConversationTurn:((String,String,String)->Void)?=nil,instructions:String?=nil,openingPrompt:String?=LiveTutorService.openingPrompt,inactivityTimeout:TimeInterval?=nil,initiallyMuted:Bool=false,resumeInterrupted:String?=nil,onInputTurn:((RealtimeVoiceState.InputTurn)->Void)?=nil,onAssistantTurn:((String,String)->Void)?=nil,sessionConfiguration:JSONValue?=nil,externallyControlled:Bool=false,previousAssistant:String?=nil,onEvent:((JSONValue)->Void)?=nil,onResponseRecording:((String,NarrationRecording)->Void)?=nil,onAssistantInterrupted:((String,String)->Void)?=nil) async {
+    func start(learner:LearnerState,goalBlueprint:JSONValue?=nil,tutorLesson:Lesson?=nil,onLearnerTurn:((String)->Void)?=nil,conversationDraft:ConversationDraft?=nil,onConversationTurn:((String,String,String)->Void)?=nil,instructions:String?=nil,openingPrompt:String?=LiveTutorService.openingPrompt,inactivityTimeout:TimeInterval?=nil,initiallyMuted:Bool=false,resumeInterrupted:String?=nil,onInputTurn:((RealtimeVoiceState.InputTurn)->Void)?=nil,onAssistantTurn:((String,String)->Void)?=nil,onAssistantProgress:((String,String)->Void)?=nil,sessionConfiguration:JSONValue?=nil,externallyControlled:Bool=false,previousAssistant:String?=nil,onEvent:((JSONValue)->Void)?=nil,onResponseRecording:((String,NarrationRecording)->Void)?=nil,onAssistantInterrupted:((String,String)->Void)?=nil) async {
         guard !connecting && !connected else { return }
         assistantResponseID="";self.onResponseRecording=onResponseRecording;self.onAssistantInterrupted=onAssistantInterrupted
         connecting=true;autoStopped=false;muted=initiallyMuted;voiceState="thinking";error=nil;transcript="";learnerTranscript="";assistantTurnText="";completedLearnerTurn="";committed=[];speaking=false;notifiedInputs=[];notifiedResponses=[];playbackDucked=false
         let run=UUID();generation=run
         self.onLearnerTurn=onLearnerTurn;self.onConversationTurn=onConversationTurn
-        self.onInputTurn=onInputTurn;self.onAssistantTurn=onAssistantTurn;resumeMessages=conversationDraft?.messages ?? []
+        self.onInputTurn=onInputTurn;self.onAssistantTurn=onAssistantTurn;self.onAssistantProgress=onAssistantProgress;resumeMessages=conversationDraft?.messages ?? []
         state=RealtimeVoiceState(previousAssistant:previousAssistant ?? conversationDraft?.messages.last { $0.role == "assistant" }?.text ?? "")
         self.sessionConfiguration=sessionConfiguration;eventObserver=onEvent
         state.setMuted(initiallyMuted);if resumeInterrupted != nil {state.lockAssistant()}
@@ -126,13 +127,14 @@ import AVFoundation
         if type.hasPrefix("response.") || type.hasPrefix("input_audio_buffer.") || type == "output_audio_buffer.stopped" { lastActivity=Date() }
         let wasLocked=state.assistantLocked
         let turns=state.receive(event);assistantTurnText=state.assistantText;transcript=state.transcript
+        if !assistantResponseID.isEmpty,(type == "response.created" || type.hasPrefix("response.") && (type.hasSuffix(".delta") || type.hasSuffix(".done") || type == "response.completed")) {onAssistantProgress?(assistantResponseID,assistantTurnText)}
         if type == "input_audio_buffer.local_speech_started" || type == "input_audio_buffer.local_speech_active" || type == "input_audio_buffer.speech_started" || type == "output_audio_buffer.stopped" { voiceState="listening" }
         if type == "input_audio_buffer.committed" || type == "input_audio_buffer.speech_stopped" { voiceState="thinking" }
         if type == "output_audio_buffer.started" { voiceState="speaking" }
         if state.assistantLocked != wasLocked { applyMicrophone() }
         let itemID=event["item_id"].string
         if type == "conversation.item.input_audio_transcription.completed",let input=state.inputTurn(itemID),notifiedInputs.insert(itemID).inserted { onInputTurn?(input) }
-        let responseID=event["response"]["id"].string
+        let responseID=event["response"]["id"].string.isEmpty ? event["response_id"].string : event["response"]["id"].string
         if ["response.done","response.completed"].contains(type),let text=state.completedAssistant(responseID),notifiedResponses.insert(responseID).inserted { onAssistantTurn?(responseID,text) }
         if ["response.canceled","response.cancelled"].contains(type),let text=state.completedAssistant(responseID),notifiedResponses.insert(responseID).inserted {onAssistantInterrupted?(responseID,text)}
         if manualResponse,type == "input_audio_buffer.committed" {
@@ -185,7 +187,7 @@ import AVFoundation
     private func captureReply(_ id:String){if let recording=transport?.takeResponseRecording(id){onResponseRecording?(id,recording)}}
     private func close() {
         captureCurrentReply();onResponseRecording=nil;onAssistantInterrupted=nil
-        generation=UUID();eventObserver=nil;audioMeter?.cancel();audioMeter=nil;audioLevel=0;idleMonitor?.cancel();idleMonitor=nil;transport?.close();transport=nil;connected=false;connecting=false;muted=false;voiceState="idle";outputPending=false;onLearnerTurn=nil;onConversationTurn=nil;onInputTurn=nil;onAssistantTurn=nil
+        generation=UUID();eventObserver=nil;audioMeter?.cancel();audioMeter=nil;audioLevel=0;idleMonitor?.cancel();idleMonitor=nil;transport?.close();transport=nil;connected=false;connecting=false;muted=false;voiceState="idle";outputPending=false;onLearnerTurn=nil;onConversationTurn=nil;onInputTurn=nil;onAssistantTurn=nil;onAssistantProgress=nil
     }
     func stop(clearTranscript:Bool=false) async {
         close()

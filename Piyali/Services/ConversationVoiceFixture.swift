@@ -24,6 +24,7 @@ import Foundation
     private let script:ConversationVoiceScript
     private var emission:Task<Void,Never>?,closed=false,microphone=false
     private var resumeEmission:Task<Void,Never>?
+    private var replyEmission:Task<Void,Never>?
     private let prefix=UUID().uuidString
     init(script:ConversationVoiceScript) { self.script=script }
     func connect(session:JSONValue) async throws { closed=false;onOpen?() }
@@ -56,6 +57,14 @@ import Foundation
             self.emit(["type":.string("response.created"),"response":.object(["id":.string(response)])])
             self.emit(["type":.string("conversation.item.input_audio_transcription.completed"),"item_id":.string(input),"transcript":.string(turn.0)])
             self.emit(["type":.string("output_audio_buffer.started")])
+            if ProcessInfo.processInfo.environment["PIYALI_CONVERSATION_LIVE_TRANSLATION_FIXTURE"] == "1",index == 0 {
+                self.script.position=self.script.turns.count;self.emit(["type":.string("response.output_audio_transcript.delta"),"response_id":.string(response),"delta":.string("Vamos a practicar")])
+                self.replyEmission=Task { [weak self] in
+                    try? await Task.sleep(for:.seconds(8));guard !Task.isCancelled,let self,!self.closed else{return}
+                    self.emit(["type":.string("response.output_audio_transcript.delta"),"response_id":.string(response),"delta":.string(" juntos.")])
+                    self.emit(["type":.string("response.done"),"response":.object(["id":.string(response),"status":.string("completed"),"output":.array([.object(["content":.array([.object(["transcript":.string("Vamos a practicar juntos.")])])])])])]);self.emit(["type":.string("output_audio_buffer.stopped")])
+                };return
+            }
             if ProcessInfo.processInfo.environment["PIYALI_CONVERSATION_PARTIAL_FIXTURE"] == "1",index == 0 {self.emit(["type":.string("response.output_audio_transcript.delta"),"response_id":.string(response),"delta":.string("Vamos a practicar")]);return}
             self.emit(["type":.string("response.output_audio_transcript.done"),"response_id":.string(response),"transcript":.string(turn.1)])
             self.emit(["type":.string("response.done"),"response":.object(["id":.string(response),"status":.string("completed"),"output":.array([.object(["content":.array([.object(["transcript":.string(turn.1)])])])])])])
@@ -63,6 +72,6 @@ import Foundation
         }
     }
     private func emit(_ event:[String:JSONValue]) { guard !closed else { return };onEvent?(.object(event)) }
-    func close() { closed=true;microphone=false;emission?.cancel();emission=nil;resumeEmission?.cancel();resumeEmission=nil }
+    func close() { closed=true;microphone=false;emission?.cancel();emission=nil;resumeEmission?.cancel();resumeEmission=nil;replyEmission?.cancel();replyEmission=nil }
 }
 #endif

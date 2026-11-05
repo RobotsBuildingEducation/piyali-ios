@@ -5,6 +5,29 @@ import FirebaseAppCheck
 @testable import Piyali
 
 @MainActor final class RealtimeConnectionTests:XCTestCase {
+    func testLiveConversationReplyCanTranslateBeforeResponseCompletion() async throws {
+        guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else {throw XCTSkip("Explicit live API opt-in required.")}
+        XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""));executionTimeAllowance=120
+        if FirebaseApp.app() == nil {AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure()};XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let app=AppModel();try app.identity.create();app.subscription.bind(app.identity);app.learner.target="es";app.learner.support="en";app.learner.saveConversation(ConversationDraft());try await FirebaseIdentityService.shared.ensure(app.identity)
+        let live=LiveTutorService(capturesMicrophone:false,permission:{true}),conversation=ConversationService(),completed=expectation(description:"Assistant completed"),translated=expectation(description:"Live translation finished")
+        var translationWork:Task<Void,Never>?,started=false,sawDelta=false,completedReply=false,replyID=""
+        await live.start(learner:app.learner,conversationDraft:app.learner.conversation,inactivityTimeout:60,onAssistantTurn:{id,text in conversation.assistantReply(text,providerID:id,app:app);replyID=id;completedReply=true;completed.fulfill()},onAssistantProgress:{id,text in
+            conversation.observeLiveReply(text,providerID:id,app:app)
+            guard !started,sawDelta,!completedReply,!text.isEmpty,let message=conversation.liveReply else{return};started=true
+            translationWork=Task {await conversation.translate(message,app:app);translated.fulfill()}
+        },onEvent:{event in if event["type"].string == "response.output_audio_transcript.delta" || event["type"].string == "response.audio_transcript.delta" {sawDelta=true}})
+        let connected=live.connected
+        if connected {
+            live.requestResponse(.object(["type":.string("response.create"),"response":.object(["output_modalities":.array([.string("audio")]),"instructions":.string("In Spanish, describe a visit to a neighborhood market in four short sentences. Do not ask the learner a question.")])]))
+            await fulfillment(of:[completed,translated],timeout:60)
+        }
+        let failure=live.error;await live.stop();translationWork?.cancel();await translationWork?.value
+        let message=app.learner.conversation.messages.first {$0.providerID == replyID};let translation=message?.translation(for:"en"),xp=app.learner.totalXP
+        do {try await Auth.auth().currentUser?.delete();try Auth.auth().signOut();try app.identity.disconnect()} catch {try? Auth.auth().signOut();try? app.identity.disconnect();throw error}
+        XCTAssertTrue(connected);XCTAssertNil(failure);XCTAssertTrue(started);XCTAssertTrue(sawDelta);XCTAssertTrue(completedReply);XCTAssertFalse(translation?.isEmpty ?? true);XCTAssertEqual(xp,0)
+        if connected,started,sawDelta,completedReply,translation?.isEmpty == false,xp == 0 {print("LIVE CONVERSATION: translated a Realtime transcript delta, retained it on the completed message, and awarded no XP; microphone disabled")}
+    }
     func testConversationResumeReceivesLiveContinuationWithoutAnotherLearnerTurn() async throws {
         guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else {throw XCTSkip("Explicit live API opt-in required.")}
         XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""));executionTimeAllowance=120
@@ -155,6 +178,17 @@ import FirebaseAppCheck
 }
 
 extension RealtimeVoiceControllerTests {
+    func testLiveProgressAndCanceledReplyUseResponseIdentityExactlyOnce() async throws {
+        let transport=VoiceTransportFixture(),service=LiveTutorService(permission:{true},transportFactory:{transport});var progress:[String]=[],interrupted:[String]=[]
+        await service.start(learner:LearnerState(),conversationDraft:ConversationDraft(),onAssistantProgress:{id,text in progress.append(id+":"+text)},onAssistantInterrupted:{id,text in interrupted.append(id+":"+text)})
+        try transport.receive(#"{"type":"response.created","response":{"id":"r1"}}"#)
+        try transport.receive(#"{"type":"response.output_audio_transcript.delta","response_id":"r1","delta":"Hola"}"#)
+        try transport.receive(#"{"type":"response.canceled","response_id":"r1"}"#)
+        try transport.receive(#"{"type":"response.canceled","response_id":"r1"}"#)
+        XCTAssertEqual(progress,["r1:","r1:Hola"]);XCTAssertEqual(interrupted,["r1:Hola"]);XCTAssertEqual(service.learnerTurnNumber,0)
+        let old=transport.onEvent;await service.stop();old?(.object(["type":.string("response.output_audio_transcript.delta"),"response_id":.string("r1"),"delta":.string(" late")]))
+        XCTAssertEqual(progress,["r1:","r1:Hola"])
+    }
     func testInterruptedConversationResumesWithoutOpeningMicOrGradingAgain() async throws {
         let transport=VoiceTransportFixture(),service=LiveTutorService(permission:{true},transportFactory:{transport})
         var draft=ConversationDraft();draft.append(.init(role:"user",text:"¿Qué hacemos?"))

@@ -101,7 +101,7 @@ struct ConversationView:View {
         }.buttonStyle(.plain).padding(8).frame(maxWidth:400).background { ConversationGoalSurface(light:scheme != .dark) }.overlay { RoundedRectangle(cornerRadius:16).stroke(brand.border.opacity(scheme == .dark ? 0.3 : 1)) }
     }
     private var replyBubble:some View {
-        let message=latest?.text == reply ? latest:nil
+        let message:ConversationMessage? = if !live.assistantResponseID.isEmpty,conversation.liveReply?.providerID == live.assistantResponseID,!live.assistantTurnText.isEmpty {conversation.liveReply} else if !live.assistantResponseID.isEmpty,latest?.providerID == live.assistantResponseID,!live.assistantTurnText.isEmpty {latest} else {latest?.text == reply ? latest:nil}
         return TutorReplyView(primary:reply,secondary:message.map(translation) ?? "",target:app.learner.target,support:app.learner.support,pairs:message.map(pairs) ?? .array([]),showSecondary:showTranslations,replayAvailable:false,showPairCards:false,primaryIdentifier:"conversationLatestReply",secondaryIdentifier:"conversationTranslation",translating:message.map {conversation.translating.contains($0.id)} ?? false,onTranslate:showTranslations ? translationAction(message):nil,onReplay:{})
             .frame(maxWidth:.infinity,minHeight:150,alignment:.topLeading)
     }
@@ -136,6 +136,12 @@ struct ConversationView:View {
         },onAssistantTurn:{ id,text in
             guard active,connectionEpoch == token,app.identity.npub == account,app.learner.target == target,app.learner.support == support,app.learner.conversation.id == session,allowed else { return }
             conversation.assistantReply(text,providerID:id,app:app)
+        },onAssistantProgress:{ id,text in
+            guard active,connectionEpoch == token,app.identity.npub == account,app.learner.target == target,app.learner.support == support,app.learner.conversation.id == session,allowed else{return}
+            conversation.observeLiveReply(text,providerID:id,app:app)
+        },onAssistantInterrupted:{ id,text in
+            guard active,connectionEpoch == token,app.identity.npub == account,app.learner.target == target,app.learner.support == support,app.learner.conversation.id == session,allowed else{return}
+            conversation.preserveInterruptedReply(text,providerID:id,app:app)
             })
             guard active,connectionEpoch == token,app.identity.npub == account,app.learner.target == target,app.learner.support == support,app.learner.conversation.id == session else{return}
             if live.connected {pausedSpeech=nil;pauseWork=nil} else if resuming {paused=true}
@@ -153,7 +159,7 @@ struct ConversationView:View {
         if live.outputPending,!live.assistantTurnText.isEmpty {conversation.preserveInterruptedReply(live.assistantTurnText,providerID:live.assistantResponseID,app:app)}
         connectionEpoch=UUID();paused=true;speech.stopAll();pauseWork=Task {await live.stop()}
     }
-    private func end() {connectionEpoch=UUID();paused=false;pausedSpeech=nil;starterPlaying=false;speech.stopAll();let waiting=pauseWork;pauseWork=nil;Task {await waiting?.value;await live.stop();var transaction=Transaction();transaction.disablesAnimations=true;withTransaction(transaction) {showSummary=true}}}
+    private func end() {if live.outputPending,!live.assistantTurnText.isEmpty {conversation.preserveInterruptedReply(live.assistantTurnText,providerID:live.assistantResponseID,app:app)};connectionEpoch=UUID();paused=false;pausedSpeech=nil;starterPlaying=false;speech.stopAll();let waiting=pauseWork;pauseWork=nil;Task {await waiting?.value;await live.stop();var transaction=Transaction();transaction.disablesAnimations=true;withTransaction(transaction) {showSummary=true}}}
     private func stop() { connectionEpoch=UUID();starterPlaying=false;active=false;paused=false;pausedSpeech=nil;pauseWork=nil;conversation.cancel();speech.stopAll();Task { await live.stop() } }
     private func settingsClosed() { if settingsRevision != settingsKey { showStarter=false;Task { await conversation.shuffleTopic(app);await live.updateConversation(app.learner.conversation,learner:app.learner) } } }
     private func change(_ update:(inout ConversationDraft)->Void) { var next=draft;update(&next);app.learner.saveConversation(next);app.persist();Task { await live.updateConversation(app.learner.conversation,learner:app.learner) } }

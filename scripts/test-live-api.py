@@ -34,6 +34,7 @@ methods = {'narration-warm-refill':'testSilentNarrationRefillPreservesAnActiveNa
            'conversation': 'testNativeConversationGoalsGradeCommunicationAndReanchorPremiseRejection',
            'conversation-resume': 'testConversationResumeReceivesLiveContinuationWithoutAnotherLearnerTurn',
            'conversation-translation': 'testConversationTranslationStreamsAndUsesResponsesFallback',
+           'conversation-live-translation': 'testLiveConversationReplyCanTranslateBeforeResponseCompletion',
            'rpg': 'testNativeRPGStoryAndRoleplayUseTheAuthoredChapter',
            'rpg-objects': 'testNativeRPGObjectsUseOriginalPromptAndReturnBilingualAmbientContent',
            'signer': 'testNativeRemoteSignerAuthenticatesWithActualUserAndWebRestoreDeniesUnlinkedAccount'}
@@ -50,7 +51,7 @@ env.update(TEST_RUNNER_PIYALI_OFFLINE_TESTS='1', TEST_RUNNER_PIYALI_LIVE_API_TES
            TEST_RUNNER_PIYALI_TEST_IDENTITY_SCOPE=str(uuid.uuid4()), TEST_RUNNER_FIRAAppCheckDebugToken=token)
 if selection == 'exploration':
     env['TEST_RUNNER_PIYALI_EXPLORATION_DIAGNOSTICS_DIR'] = str(root / '.secrets/exploration-diagnostics')
-test = ('PiyaliTests/RealtimeConnectionTests' if selection in ('realtime','realtime-connection','conversation-resume') else 'PiyaliTests/LiveAPIIntegrationTests') + ('/' + methods[selection] if selection else '')
+test = ('PiyaliTests/RealtimeConnectionTests' if selection in ('realtime','realtime-connection','conversation-resume','conversation-live-translation') else 'PiyaliTests/LiveAPIIntegrationTests') + ('/' + methods[selection] if selection else '')
 if selection == 'teams':
     test = 'PiyaliTests/TeamsMirrorLiveTests/testDeployedPublicMirrorMembershipRenameAddsAndRevocation'
 tests = [test]

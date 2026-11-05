@@ -3,12 +3,31 @@ import XCTest
 @MainActor final class ConversationPlayTests:XCTestCase {
     private func tap(_ id:String,_ app:XCUIApplication) { let button=app.buttons[id];XCTAssertTrue(button.waitForExistence(timeout:15));XCTAssertTrue(button.isHittable);button.tap() }
     private func open(_ app:XCUIApplication) { tap("productMenu",app);tap("productModeMenu",app);tap("productMode-conversation",app);XCTAssertTrue(app.staticTexts["conversationGoal"].waitForExistence(timeout:15)) }
-    private func start(theme:String="light",partial:Bool=false,translationStream:Bool=false)->XCUIApplication {
+    private func start(theme:String="light",partial:Bool=false,translationStream:Bool=false,liveTranslation:Bool=false)->XCUIApplication {
         continueAfterFailure=false
-        let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString;app.launchEnvironment["PIYALI_CONVERSATION_FIXTURE"]="1";if partial {app.launchEnvironment["PIYALI_CONVERSATION_PARTIAL_FIXTURE"]="1"};if translationStream {app.launchEnvironment["PIYALI_CONVERSATION_TRANSLATION_STREAM_FIXTURE"]="1"};app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme",theme];app.launch();handleInitialPaperPencil(app)
+        let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString;app.launchEnvironment["PIYALI_CONVERSATION_FIXTURE"]="1";if partial {app.launchEnvironment["PIYALI_CONVERSATION_PARTIAL_FIXTURE"]="1"};if translationStream || liveTranslation {app.launchEnvironment["PIYALI_CONVERSATION_TRANSLATION_STREAM_FIXTURE"]="1"};if liveTranslation {app.launchEnvironment["PIYALI_CONVERSATION_LIVE_TRANSLATION_FIXTURE"]="1"};app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme",theme];app.launch();handleInitialPaperPencil(app)
         let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Conversation Learner");if app.buttons["entryKeyboardDone"].exists { app.buttons["entryKeyboardDone"].tap() };tap("createAccount",app);handleInitialPaperPencil(app);tap("startLearning",app);open(app);return app
     }
     private func photo(_ name:String,_ app:XCUIApplication) { let capture=XCTAttachment(screenshot:app.screenshot());capture.name=name;capture.lifetime = .keepAlways;add(capture) }
+    func testLiveReplyTranslationSurvivesGrowingReplyAndPrivateRelaunch() {
+        let app=start(liveTranslation:true);tap("conversationStart",app)
+        let reply=app.staticTexts["conversationLatestReply"];expectation(for:NSPredicate(format:"label == %@","Vamos a practicar"),evaluatedWith:reply);waitForExpectations(timeout:15)
+        tap("conversationTranslate",app);let translation=app.staticTexts["conversationTranslation"];XCTAssertTrue(translation.waitForExistence(timeout:5));XCTAssertEqual(translation.label,"Try gr");photo("Native translation of an arriving Conversation reply",app)
+        expectation(for:NSPredicate(format:"label == %@","Vamos a practicar juntos."),evaluatedWith:reply);waitForExpectations(timeout:15)
+        XCTAssertEqual(translation.label,"Try gr");XCTAssertFalse(app.buttons["conversationTranslate"].isEnabled)
+        expectation(for:NSPredicate(format:"label == %@","Try greeting and saying your name."),evaluatedWith:translation);waitForExpectations(timeout:20)
+        tap("conversationEnd",app);XCTAssertTrue(app.staticTexts["conversationSummaryXP"].waitForExistence(timeout:8));XCTAssertTrue(app.staticTexts["conversationSummaryXP"].label.contains("+0"));tap("conversationSummaryDone",app)
+        app.terminate();app.launch();handleInitialPaperPencil(app);open(app);XCTAssertEqual(app.staticTexts["conversationLatestReply"].label,"Vamos a practicar juntos.");XCTAssertEqual(app.staticTexts["conversationTranslation"].label,"Try greeting and saying your name.")
+    }
+    func testEndingDuringLiveTranslationPreservesTheInterruptedMessage() {
+        let app=start(liveTranslation:true);tap("conversationStart",app)
+        let reply=app.staticTexts["conversationLatestReply"];expectation(for:NSPredicate(format:"label == %@","Vamos a practicar"),evaluatedWith:reply);waitForExpectations(timeout:15)
+        tap("conversationTranslate",app);XCTAssertTrue(app.staticTexts["conversationTranslation"].waitForExistence(timeout:5));XCTAssertEqual(reply.label,"Vamos a practicar");tap("conversationEnd",app)
+        XCTAssertTrue(app.staticTexts["conversationSummaryXP"].waitForExistence(timeout:8));XCTAssertTrue(app.staticTexts["conversationSummaryXP"].label.contains("+0"));tap("conversationSummaryDone",app)
+        let translation=app.staticTexts["conversationTranslation"];expectation(for:NSPredicate(format:"label == %@","Try greeting and saying your name."),evaluatedWith:translation);waitForExpectations(timeout:20)
+        XCTAssertEqual(reply.label,"Vamos a practicar");app.terminate();app.launch();handleInitialPaperPencil(app);open(app)
+        XCTAssertEqual(app.staticTexts["conversationLatestReply"].label,"Vamos a practicar");XCTAssertEqual(app.staticTexts["conversationTranslation"].label,"Try greeting and saying your name.")
+    }
     func testConversationTranslationStreamsAndSurvivesPrivateRelaunch() {
         let app=start(translationStream:true);tap("conversationStart",app)
         let reply=app.staticTexts["conversationLatestReply"];expectation(for:NSPredicate(format:"label CONTAINS %@","¡Hola, Ana!"),evaluatedWith:reply);waitForExpectations(timeout:18)

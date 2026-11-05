@@ -19,6 +19,7 @@ extension AIService:ConversationProviding {}
     @Published private(set) var orbFeedback:OrbFeedback?
     @Published private(set) var translationDrafts:[UUID:String]=[:]
     @Published private(set) var translating:Set<UUID>=[]
+    @Published private(set) var liveReply:ConversationMessage?
     private var generation=UUID()
     private var work:Set<UUID>=[]
     private var grading:UUID?
@@ -41,7 +42,7 @@ extension AIService:ConversationProviding {}
         return false
         #endif
     }
-    func cancel() { generation=UUID();work=[];grading=nil;pendingNextGoals=[];busy=false;error=nil;feedback="";orbFeedback=nil;translationDrafts=[:];translating=[] }
+    func cancel() { generation=UUID();work=[];grading=nil;pendingNextGoals=[];busy=false;error=nil;feedback="";orbFeedback=nil;translationDrafts=[:];translating=[];liveReply=nil }
     private func valid(_ app: AppModel, account: String, target: String, support:String, session: UUID, token: UUID) -> Bool {
         app.identity.npub == account && app.learner.target == target && app.learner.support == support && app.learner.conversation.id == session && generation == token && (app.subscription.hasAccess || fixture)
     }
@@ -113,16 +114,25 @@ extension AIService:ConversationProviding {}
         if grading != nil { var draft=app.learner.conversation;draft.append(ConversationMessage(role:"user",text:text,providerID:providerID),beforeProviderID:beforeResponseID);if !reply.isEmpty { draft.append(ConversationMessage(role:"assistant",text:reply)) };app.learner.saveConversation(draft);_ = app.learner.conversationTurn(id:id,answer:text,verdict:nil,turnXP:fixture ? 2 : Int.random(in:1...3),goalXP:0);app.persist();return }
         await turn(text,answered:answered,voiceReply:reply,id:id,app:app,providerID:providerID,beforeResponseID:beforeResponseID)
     }
+    func observeLiveReply(_ text:String,providerID:String,app:AppModel) {
+        bind(app);guard (app.subscription.hasAccess || fixture),!providerID.isEmpty else{return}
+        if app.learner.conversation.messages.contains(where:{$0.providerID == providerID}) {if liveReply?.providerID == providerID {liveReply=nil};return}
+        if let previous=liveReply,previous.providerID != providerID,!previous.text.isEmpty {preserveInterruptedReply(previous.text,providerID:previous.providerID ?? "",app:app)}
+        var message=liveReply?.providerID == providerID ? liveReply! : ConversationMessage(role:"assistant",text:"",providerID:providerID)
+        message.text=String(text.prefix(2000));if liveReply != message {liveReply=message}
+    }
     func assistantReply(_ text:String,providerID:String,app:AppModel) {
         bind(app)
         guard app.subscription.hasAccess || fixture,!text.isEmpty else { return }
-        var draft=app.learner.conversation;draft.append(.init(role:"assistant",text:text,providerID:providerID));app.learner.saveConversation(draft);app.persist()
+        var message=liveReply?.providerID == providerID ? liveReply! : ConversationMessage(role:"assistant",text:text,providerID:providerID)
+        message.text=String(text.prefix(2000));var draft=app.learner.conversation;draft.append(message);app.learner.saveConversation(draft);if liveReply?.providerID == providerID {liveReply=nil};app.persist()
     }
     func preserveInterruptedReply(_ text:String,providerID:String,app:AppModel) {
         bind(app);guard app.subscription.hasAccess || fixture,!text.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else{return}
         var draft=app.learner.conversation
         if !providerID.isEmpty,let index=draft.messages.firstIndex(where:{$0.providerID == providerID}) {draft.messages[index].interrupted=true}
-        else {var message=ConversationMessage(role:"assistant",text:text,providerID:providerID.isEmpty ? nil:providerID);message.interrupted=true;draft.append(message)}
+        else {var message=liveReply?.providerID == providerID && !providerID.isEmpty ? liveReply! : ConversationMessage(role:"assistant",text:text,providerID:providerID.isEmpty ? nil:providerID);message.text=String(text.prefix(2000));message.interrupted=true;draft.append(message)}
+        if liveReply?.providerID == providerID {liveReply=nil}
         app.learner.saveConversation(draft);app.persist()
     }
     func shuffleTopic(_ app:AppModel) async {
@@ -191,15 +201,17 @@ extension AIService:ConversationProviding {}
             else if fixture {
                 text=support == "fr" ? "Bonjour Ana ! Qu’aimez-vous faire ?" : (message.text.contains("Ana") ? "Hello, Ana! What do you like doing?" : "Try greeting and saying your name.")
                 #if DEBUG
-                if ProcessInfo.processInfo.environment["PIYALI_CONVERSATION_TRANSLATION_STREAM_FIXTURE"] == "1" {translationDrafts[message.id]=String(text.prefix(6));try await Task.sleep(for:.seconds(6))}
+                if ProcessInfo.processInfo.environment["PIYALI_CONVERSATION_TRANSLATION_STREAM_FIXTURE"] == "1" {translationDrafts[message.id]=String(text.prefix(6));try await Task.sleep(for:.seconds(ProcessInfo.processInfo.environment["PIYALI_CONVERSATION_LIVE_TRANSLATION_FIXTURE"] == "1" ? 14:6))}
                 #endif
             }
             else { text=try await provider(app).conversationTranslationStream(message.text,support:support,onChunk:{[weak self] snapshot in
-                guard let self,self.valid(app,account:account,target:target,support:support,session:session,token:token),app.learner.conversation.messages.contains(where:{$0.id == message.id && $0.text == message.text}) else{return}
+                guard let self,self.valid(app,account:account,target:target,support:support,session:session,token:token),self.liveReply?.id == message.id || app.learner.conversation.messages.contains(where:{$0.id == message.id}) else{return}
                 self.translationDrafts[message.id]=ConversationTranslation.streaming(snapshot)
             }) }
             guard valid(app,account:account,target:target,support:support,session:session,token:token),support == app.learner.support else { return }
-            var draft=app.learner.conversation;guard let index=draft.messages.firstIndex(where:{ $0.id == message.id && $0.text == message.text }) else { return };draft.messages[index].translation=ConversationTranslation.complete(text);draft.messages[index].translationLang=support;draft.messages[index].pairs=nil;app.learner.saveConversation(draft);app.persist()
+            var draft=app.learner.conversation
+            if let index=draft.messages.firstIndex(where:{$0.id == message.id}) {draft.messages[index].translation=ConversationTranslation.complete(text);draft.messages[index].translationLang=support;draft.messages[index].pairs=nil;app.learner.saveConversation(draft);app.persist()}
+            else if liveReply?.id == message.id {liveReply?.translation=ConversationTranslation.complete(text);liveReply?.translationLang=support;liveReply?.pairs=nil}
         } catch { if valid(app,account:account,target:target,support:support,session:session,token:token) { self.error=error.localizedDescription } }
     }
 }
