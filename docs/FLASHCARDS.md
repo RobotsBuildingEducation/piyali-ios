@@ -48,3 +48,5 @@ Listen now shares the native receive-only Realtime narration service with Phonic
 ## Shared capture and identity-session fence — 2026-11-05
 
 The [exercise/capture checkpoint](EXERCISE_NOTES_CAPTURE.md) adds the original transient Memory catch after an SRS note is inserted, with repeated-event/owner fencing and a stable menu control. The ordinary SRS note → Memory/relaunch regression passes with the effect enabled; pending note checks now reject sign-out or the same key restored in a new identity session. Focused/repair-deck choreography, sounds, full viewport and physical verification remain open.
+
+Fresh Goal flashcard preparation now keeps the original captured fallback usable after provider/artifact failure. [Offline preparation](FLASHCARD_OFFLINE_PREPARATION.md) records the reproduced extra native failure, source browser cache/control comparisons, SDK winner/reconnect checks and native process-restoration journey. Answer/completion acknowledgment gates remain.

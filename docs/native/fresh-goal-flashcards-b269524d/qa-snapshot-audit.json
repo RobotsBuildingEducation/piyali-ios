@@ -1,0 +1,16 @@
+{
+  "qaDevice": "CE8248B6-7171-4FD4-97DE-89E499107F82",
+  "startedAt": 1793908459.347949,
+  "scope": "Read-only final private QA snapshot after fresh provider/artifact failure, actual first recall/save failure, offline process restoration, reconnect acknowledgment, remaining recalls, next-lesson handoff and relaunch. UI tests verify controls; this audit verifies persisted counts. No keys, names, notes or full profiles are exported.",
+  "profile": {
+    "snapshotSHA256": "79b33b9a4c95c759b2bb2128e0524608ae912f848850c4643b59bdff8e889cb2",
+    "totalXP": 6,
+    "gradedAttempts": 3,
+    "flashcardModeProgress": 3,
+    "lessonModeProgress": 0,
+    "goalModeEventCount": 1,
+    "pendingGoalReceipts": 0,
+    "pendingPracticeReceipts": 0,
+    "ordinaryReviewCount": 0
+  }
+}

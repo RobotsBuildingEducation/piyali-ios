@@ -3,7 +3,47 @@ import SwiftUI
 import WebKit
 @testable import Piyali
 
+@MainActor private final class FreshDeckComparisonStore:LearnerProgressService {
+    func load(npub:String,local:LearnerState?)async throws->LearnerState?{nil}
+    func saveCompanionCustomization(_ change:SettingsChange,npub:String)async throws->Bool{false}
+    func save(_ state:LearnerState,npub:String)async throws->LearnerState?{throw URLError(.notConnectedToInternet)}
+}
 @MainActor final class FocusedFlashcardComparisonTests:XCTestCase {
+    private func promptParts(_ text:String)throws->[JSONValue] {
+        let prefix="Generate exactly 3 recall cards preparing this goal: ",middle=". Live internal Elo, curriculum CEFR and performance memory: ",tail=". Adapt recall challenge and support to this evidence."
+        XCTAssertTrue(text.hasPrefix(prefix));let a=try XCTUnwrap(text.range(of:middle)),b=try XCTUnwrap(text.range(of:tail,range:a.upperBound..<text.endIndex)),decoder=JSONDecoder()
+        return [.string(String(text.prefix(prefix.count))),try decoder.decode(JSONValue.self,from:Data(text[text.index(text.startIndex,offsetBy:prefix.count)..<a.lowerBound].utf8)),.string(middle),try decoder.decode(JSONValue.self,from:Data(text[a.upperBound..<b.lowerBound].utf8)),.string(String(text[b.lowerBound...]))]
+    }
+    func testOriginalFreshGoalFactoryAndLocalCacheRemainUsableAfterRemoteFailureAgainstNative()async throws {
+        let e=ProcessInfo.processInfo.environment;guard e["PIYALI_REFERENCE_PREVIEW_TESTS"] == "1",e["PIYALI_OFFLINE_TESTS"] == "1",UUID(uuidString:e["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Read-only source preview and isolated identity required")}
+        let scene=try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap{$0 as? UIWindowScene}.first),old=scene.windows.first{$0.isKeyWindow}
+        for (language,theme) in [("en","light"),("ar","dark")] {for failed in [true,false] {
+            let app=AppModel(progressService:FreshDeckComparisonStore());try app.identity.create();app.signedIn=true;app.subscription.bind(app.identity);defer{try? app.identity.disconnect()};app.learner=LearnerState();app.learner.onboardingComplete=true;app.learner.target="es";app.learner.support=language;app.learner.editGoal("Speak with family")
+            let day=CalendarDay.key(Date()),bp:JSONValue = .object(["goalId":app.learner.goalBucket["activeGoal"]["id"],"goalText":.string("Speak with family"),"dayKey":.string(day),"lang":.string("es"),"mode":.string("flashcards"),"modes":.array(["flashcards","lesson"].map(JSONValue.string)),"modeTargets":.object(["flashcards":.number(3),"lesson":.number(20)]),"cefrLevel":.string("Pre-A1"),"objective":.string("Name your family members"),"targetLanguage":.array(["papá","hermana","mamá"].map(JSONValue.string))])
+            app.learner.applyGoal(.init(action:.blueprint,target:"es",payload:bp));app.learner.pendingGoalChanges=[];await app.reloadContent()
+            let raw="[{\"target\":\"papá\",\"support\":\"Dad\"},{\"target\":\"hermana\",\"support\":\"Sister\"},{\"target\":\"mamá\",\"support\":\"Mom\"}]",focus:JSONValue = .object(["npub":.string(app.identity.npub),"targetLang":.string("es"),"supportLang":.string(language),"surface":.string("flashcards"),"blueprint":bp]),input:JSONValue = .object(["kind":.string("goal"),"language":.string(language),"xp":.number(0),"focus":focus,"artifact":.null,"freshFallback":.bool(true),"offlineArtifacts":.bool(true),"providerFailed":.bool(failed),"raw":.string(raw),"user":app.learner.companionQuestUser.setting("local_npub",.string(app.identity.npub)).setting("progress",.object(["targetLang":.string("es")]))])
+            var prompts:[String]=[];try await app.prepareGoalDeck(bp,mode:"flashcards",respond:{prompt in prompts.append(prompt);if failed{throw URLError(.notConnectedToInternet)};return raw})
+            let expected=app.goalArtifact(bp,mode:"flashcards"),tag=language+"-"+(failed ? "provider-failure":"generated")
+            let publicInput=XCTAttachment(data:Data(input.json.utf8),uniformTypeIdentifier:"public.json");publicInput.name="Public fresh Goal \(tag) input";publicInput.lifetime = .keepAlways;add(publicInput)
+            let configuration=WKWebViewConfiguration();configuration.websiteDataStore = .nonPersistent();let web=WKWebView(frame:CGRect(x:0,y:0,width:402,height:1100),configuration:configuration),vc=UIViewController(),window=UIWindow(windowScene:scene);vc.view=web;window.frame=web.frame;window.rootViewController=vc;window.makeKeyAndVisible();web.scrollView.contentInsetAdjustmentBehavior = .never
+            defer{web.stopLoading();window.isHidden=true;window.rootViewController=nil;old?.makeKey()}
+            var url=URLComponents(string:"http://127.0.0.1:5181/__piyali-focused-flashcards")!;url.queryItems=[.init(name:"snapshot",value:input.json),.init(name:"theme",value:theme)];web.load(URLRequest(url:try XCTUnwrap(url.url)))
+            func waitForDeck()async throws{var ready=false;for _ in 0..<600{ready=(try? await web.evaluateJavaScript("document.fonts.status==='loaded' && window.__focused?.artifact?.cards?.length===3 && document.body.innerText.includes('0/3')"))as?Bool == true;if ready{break};try await Task.sleep(for:.milliseconds(50))};if !ready{let diagnostic=try? await web.evaluateJavaScript("JSON.stringify({text:document.body.innerText,errors:fixtureErrors})");XCTFail(String(describing:diagnostic))}}
+            try await waitForDeck();try await Task.sleep(for:.milliseconds(2400))
+            let artifactString=try await web.evaluateJavaScript("JSON.stringify(window.__focused.artifact)"),artifact=try JSONDecoder().decode(JSONValue.self,from:Data(try XCTUnwrap(artifactString as?String).utf8));XCTAssertEqual(artifact["cards"],expected["cards"]);XCTAssertEqual(artifact["ownerKey"],expected["ownerKey"]);XCTAssertTrue(artifact["outcomes"].object.isEmpty)
+            let originalPrompts=try await web.evaluateJavaScript("window.__focused.prompts"),sourcePrompts=try XCTUnwrap(originalPrompts as?[String]);XCTAssertEqual(try sourcePrompts.map(promptParts),try prompts.map(promptParts),"Instruction text and embedded Goal/performance data match independently of JSON key order")
+            let calls=try await web.evaluateJavaScript("window.__focused.calls");XCTAssertEqual(calls as?[String],["remote-read","generation","transaction"])
+            let source=XCTAttachment(image:try await web.takeSnapshot(configuration:nil));source.name="Source fresh Goal \(tag) remote failure deck";source.lifetime = .keepAlways;add(source)
+            window.rootViewController=UIHostingController(rootView:FlashcardsView(goalBlueprint:bp).environmentObject(app).environment(\.layoutDirection,language == "ar" ? .rightToLeft:.leftToRight).environment(\.dynamicTypeSize,.large).ignoresSafeArea().preferredColorScheme(theme == "dark" ? .dark:.light));window.rootViewController?.view.layoutIfNeeded();try await Task.sleep(for:.milliseconds(450))
+            let native=XCTAttachment(image:UIGraphicsImageRenderer(bounds:window.bounds).image{_ in window.drawHierarchy(in:window.bounds,afterScreenUpdates:true)});native.name="Native fresh Goal \(tag) remote failure deck";native.lifetime = .keepAlways;add(native)
+            window.rootViewController=vc;window.makeKeyAndVisible();_ = try await web.evaluateJavaScript("window.remountFocusedDeck()");try await waitForDeck();let restoredCalls=try await web.evaluateJavaScript("window.__focused.calls");XCTAssertEqual(restoredCalls as?[String],calls as?[String],"Actual source account-local cache avoids generation and remote I/O on remount")
+            _ = try await web.evaluateJavaScript("window.__focused.offlineArtifacts=false")
+            for index in 0..<3{_ = try await web.callAsyncJavaScript("return JSON.stringify(await window.runFocusedRecall(index));",arguments:["index":index],in:nil,contentWorld:.page)}
+            let trace=try await web.evaluateJavaScript("JSON.stringify({artifact:window.__focused.artifact,document:window.__focused.document,calls:window.__focused.calls,prompts:window.__focused.prompts,writes:window.__focused.writes})"),data=Data(try XCTUnwrap(trace as?String).utf8),result=try JSONDecoder().decode(JSONValue.self,from:data),writes=result["writes"].array
+            XCTAssertEqual(writes.filter{$0.array.first?.string == "xp"}.count,3);XCTAssertTrue(writes.filter{$0.array.first?.string == "xp"}.allSatisfy{$0.array[1].array[1].number == 2});XCTAssertEqual(writes.filter{$0.array.first?.string == "attempt"}.count,1);XCTAssertEqual(result["document"]["practice_flashcards_goal"]["outcomes"].object.count,3);XCTAssertEqual(app.learner.totalXP,0);XCTAssertEqual(app.readyGoal?["modeProgress"]["flashcards"].number,0)
+            let recorded=XCTAttachment(data:data,uniformTypeIdentifier:"public.json");recorded.name="Source actual fresh Goal \(tag) remount and recall trace";recorded.lifetime = .keepAlways;add(recorded)
+        }}
+    }
     func testOriginalFocusedTreeAndNativeLibraryStatsConfirmedCountsAndDeckInEnglishAndArabic()async throws {
         let e=ProcessInfo.processInfo.environment
         guard e["PIYALI_REFERENCE_PREVIEW_TESTS"] == "1",e["PIYALI_OFFLINE_TESTS"] == "1",UUID(uuidString:e["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Read-only source preview and isolated identity required")}

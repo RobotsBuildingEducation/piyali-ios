@@ -44,6 +44,27 @@ import Security
         }
         FirebaseIdentityService.shared.clearSession();try identity.disconnect()
     }
+    func testOriginalFocusedGoalFlashcardGenerationUsesConfiguredAndResponsesProviders()async throws {
+        if let token=ProcessInfo.processInfo.environment["TEST_RUNNER_FIRAAppCheckDebugToken"]{setenv("FIRAAppCheckDebugToken",token,1)};FirebaseConfiguration.shared.setLoggerLevel(.error)
+        let env=ProcessInfo.processInfo.environment;guard env["PIYALI_LIVE_API_TESTS"] == "1",env["PIYALI_OFFLINE_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Explicit isolated live opt-in required")}
+        if FirebaseApp.app() == nil{AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure()};XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let identity=IdentityService();try identity.create()
+        do {
+            try await FirebaseIdentityService.shared.ensure(identity)
+            let policy=try CompanionQuestPolicy(),configured=AIService(),responses=AIService(configuration:AppConfiguration(values:AppConfiguration().values.merging(["AIProvider":"responses"]){_,new in new}));var rows:[Piyali.JSONValue]=[]
+            for (label,ai) in [("configured",configured),("responses",responses)]{for support in ["en","ar"] {
+                var state=LearnerState();state.target="es";state.support=support;state.editGoal("Greet my family in Spanish")
+                let bp:Piyali.JSONValue = .object(["goalId":.string("public-family"),"goalText":.string("Greet my family in Spanish"),"dayKey":.string(CalendarDay.key(Date())),"lang":.string("es"),"mode":.string("flashcards"),"cefrLevel":.string("Pre-A1"),"objective":.string("Greet my mother and ask how she is"),"targetLanguage":.array(["Hola, mamá","¿Cómo estás?","Bien, gracias"].map(Piyali.JSONValue.string))]),focus:Piyali.JSONValue = .object(["blueprint":bp,"targetLang":.string("es"),"supportLang":.string(support)]),prompt=try policy.run("goalDeckPrompt",.object(["focus":focus,"user":state.companionQuestUser])).string,raw=try await ai.sourceResponsesText(prompt)
+                let start=try XCTUnwrap(raw.firstIndex(of:"[")),end=try XCTUnwrap(raw.lastIndex(of:"]")),entries=try JSONDecoder().decode(Piyali.JSONValue.self,from:Data(raw[start...end].utf8)).array
+                XCTAssertEqual(entries.count,3);XCTAssertTrue(entries.allSatisfy{!$0["target"].string.isEmpty && !$0["support"].string.isEmpty});if support == "ar"{XCTAssertTrue(entries.allSatisfy{$0["support"].string.range(of:"\\p{Arabic}",options:.regularExpression) != nil})}
+                let cards=try policy.run("goalDeckCards",.object(["focus":focus,"raw":.string(raw)]));XCTAssertEqual(cards.array.count,3);XCTAssertEqual(cards.array.map{$0["concept"]["es"].string},entries.map{String($0["target"].string.prefix(180))});XCTAssertEqual(state.totalXP,0)
+                rows.append(.object(["providerPath":.string(label),"support":.string(support),"prompt":.string(prompt),"raw":.string(raw),"cards":cards,"learnerProgressWritten":.bool(false)]))
+            }}
+            let data=try JSONEncoder().encode(rows),attachment=XCTAttachment(data:data,uniformTypeIdentifier:"public.json");attachment.name="Live public Goal flashcard generation configured and Responses English Arabic";attachment.lifetime = .keepAlways;add(attachment)
+            print("LIVE FOCUSED FLASHCARDS: configured and Responses provider paths returned three parsed recall cards with English/Arabic cues; no learner progress writes")
+        }catch{try? await deleteLiveTestIdentity(identity);throw error}
+        try await deleteLiveTestIdentity(identity)
+    }
     /// Only a single retained QA key created during an explicitly named failed run.
     /// Attributes are enumerated without returning or printing private key data.
     func testCleanupIsolatedIdentityFromFailedRunWindow() async throws {

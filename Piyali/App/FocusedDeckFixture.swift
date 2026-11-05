@@ -16,6 +16,12 @@ import Foundation
         return nil
         #endif
     }
+    static var freshGoalResponse:(@MainActor(String)async throws->String)? {
+        #if DEBUG
+        if scenario == "goal",ProcessInfo.processInfo.environment["PIYALI_FOCUSED_DECK_FRESH"] == "1"{return {_ in throw URLError(.notConnectedToInternet)}}
+        #endif
+        return nil
+    }
     static func seed(_ app:AppModel) {
         #if DEBUG
         guard !scenario.isEmpty else{return};let key="piyali.focusedDeckFixture."+app.identity.npub
@@ -25,7 +31,7 @@ import Foundation
             let bp:JSONValue = .object(["goalId":state.goalBucket["activeGoal"]["id"],"goalText":.string(state.goal),"dayKey":.string(day),"lang":.string(state.target),"mode":.string("flashcards"),"modes":.array(["flashcards","lesson"].map(JSONValue.string)),"modeTargets":.object(["flashcards":.number(3),"lesson":.number(20)]),"cefrLevel":.string("Pre-A1"),"objective":.string("Name your family members"),"scenario":.string("Talk about your family."),"targetLanguage":.array(["papá","hermana","mamá"].map(JSONValue.string)),"supports":.array([.string("Use a short cue")]),"successCriteria":.array([.string("Recall the family words")])])
             state.applyGoal(.init(action:.blueprint,target:state.target,payload:bp))
             let cards=(try? app.companionQuestPolicy?.run("goalDeckCards",.object(["focus":.object(["blueprint":bp,"targetLang":.string(state.target),"supportLang":.string(state.support)]),"raw":.string("[{\"target\":\"papá\",\"support\":\"dad\"},{\"target\":\"hermana\",\"support\":\"sister\"},{\"target\":\"mamá\",\"support\":\"mom\"}]")])) ) ?? .array([])
-            state.applyGoal(.init(action:.artifact,target:state.target,payload:bp.setting("mode",.string("flashcards")).setting("cards",cards)));state.questPlans=[state.target:.init(day:day,kinds:["goal","review"])]
+            if ProcessInfo.processInfo.environment["PIYALI_FOCUSED_DECK_FRESH"] != "1"{state.applyGoal(.init(action:.artifact,target:state.target,payload:bp.setting("mode",.string("flashcards")).setting("cards",cards)))};state.questPlans=[state.target:.init(day:day,kinds:["goal","review"])]
         } else {
             state.goal="";state.goalIntelligence=[:]
             let items:JSONValue = .array([.object(["memoryId":.string("greeting"),"concept":.string("A greeting"),"expectedAnswer":.string("Hola"),"mode":.string("flashcards"),"errorType":.string("vocabulary"),"cefrLevel":.string("Pre-A1")]),.object(["memoryId":.string("agreement"),"concept":.string("A simple agreement"),"expectedAnswer":.string("Soy estudiante"),"mode":.string("lesson"),"errorType":.string("grammar"),"cefrLevel":.string("Pre-A1")])])
@@ -49,6 +55,7 @@ import Foundation
     func saveCompanionCustomization(_ change:SettingsChange,npub:String)async throws->Bool{false}
     func save(_ state:LearnerState,npub:String)async throws->LearnerState? {
         guard !FocusedDeckFixture.scenario.isEmpty,!npub.isEmpty else{throw CancellationError()}
+        if ProcessInfo.processInfo.environment["PIYALI_FOCUSED_DECK_PREPARATION_OFFLINE"] == "1",(state.pendingGoalChanges ?? []).contains(where:{$0.action == .artifact}){throw URLError(.notConnectedToInternet)}
         var saved=state;saved.pendingChanges=[];saved.pendingGoalChanges=[];saved.pendingMemoryChanges=[];saved.pendingCompanionQuestDays=[:];saved.pendingRepairEvidence=[];saved.pendingPlacements=[:];saved.pendingSettingsChanges=[];saved.pendingImmersionChanges=[];saved.pendingPlateHeadlines=[:];saved.pendingCompanionQuestDays=[:];return saved
     }
 }

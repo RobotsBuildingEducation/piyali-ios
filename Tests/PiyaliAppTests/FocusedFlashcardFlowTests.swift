@@ -31,6 +31,25 @@ import XCTest
         try await app.prepareGoalDeck(sparse,mode:"flashcards",respond:{_ in XCTFail("Cached deck must be reused");return "[]"});XCTAssertEqual(prompts.count,1)
         app.learner=try JSONDecoder().decode(LearnerState.self,from:JSONEncoder().encode(app.learner));XCTAssertEqual(app.goalArtifact(bp,mode:"flashcards")["cards"].array,cards)
     }
+    func testFreshGoalFallbackRemainsUsableWhenProviderAndArtifactSaveFailThenRestoresPrivately()async throws {
+        let(app,store,bp)=try model();defer{try? app.identity.disconnect()};var requests=0
+        do{try await app.prepareGoalDeck(bp,mode:"flashcards",respond:{_ in requests += 1;throw URLError(.notConnectedToInternet)})}catch{XCTFail("The original local deck remains usable after remote failure: \(error)")}
+        let cards=app.goalArtifact(bp,mode:"flashcards")["cards"].array;XCTAssertEqual(cards.count,3);XCTAssertEqual(cards.map{$0["concept"]["es"].string},["Hola","Gracias","Adiós"]);XCTAssertEqual(requests,1)
+        XCTAssertEqual((app.learner.pendingGoalChanges ?? []).filter{$0.action == .artifact}.count,1);XCTAssertEqual(app.learner.totalXP,0);XCTAssertNil(app.learner.gradedByLanguage);XCTAssertEqual(app.readyGoal?["modeProgress"]["flashcards"].number,0)
+        let key=app.identity.exportKey();app.signOut();await app.signIn(nsec:key);await app.boot()
+        XCTAssertTrue(app.goalIsCurrent(bp));try await app.prepareGoalDeck(bp,mode:"flashcards",respond:{_ in XCTFail("Private cached fallback must not generate again");return "[]"});XCTAssertEqual(app.goalArtifact(bp,mode:"flashcards")["cards"].array,cards)
+        store.online=true;await app.sync();XCTAssertTrue((app.learner.pendingGoalChanges ?? []).isEmpty);XCTAssertEqual(app.learner.totalXP,0);XCTAssertEqual(app.readyGoal?["modeProgress"]["flashcards"].number,0)
+    }
+    func testLateFreshGoalDeckCannotMutateReplacedIdentityLanguageGoalOrCancelledTask()async throws {
+        for boundary in ["signout","sameKey","target","support","goal","cancel"] {
+            let(app,_,bp)=try model();defer{try? app.identity.disconnect()};var held:CheckedContinuation<String,Error>?
+            let task=Task{try await app.prepareGoalDeck(bp,mode:"flashcards",respond:{_ in try await withCheckedThrowingContinuation{held=$0}})}
+            for _ in 0..<100 where held == nil{try await Task.sleep(for:.milliseconds(10))};XCTAssertNotNil(held)
+            switch boundary{case "signout":app.signedIn=false;case "sameKey":let key=app.identity.exportKey();try app.identity.disconnect();try app.identity.importKey(key);case "target":app.learner.target="fr";case "support":app.learner.support="ar";case "goal":app.learner.editGoal("A different goal");default:task.cancel()}
+            held?.resume(returning:"[]");do{try await task.value}catch is CancellationError{}catch{XCTFail("Unexpected failure: \(error)")}
+            XCTAssertTrue((app.learner.goalArtifacts ?? [:]).isEmpty,boundary);XCTAssertFalse((app.learner.pendingGoalChanges ?? []).contains{$0.action == .artifact},boundary);XCTAssertEqual(app.learner.totalXP,0,boundary)
+        }
+    }
     func testFailedGoalSaveCloseReopenAndRetryStayActionableWithoutDuplicateXPOrPrematureMode()async throws {
         let(app,store,bp)=try model();defer{try? app.identity.disconnect()};let cards=try install(app,bp)
         var session=try FlashcardSessionController(app:app,card:cards[0],status:"active",goal:bp,provider:provider("YES | 6"));app.flashcardSession=session;session.answer="Hola";session.submit(app);await settle(session);session.commit(.good,app:app);await settle(session)

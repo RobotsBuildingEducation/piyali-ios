@@ -12,6 +12,7 @@ methods = {'narration-warm-refill':'testSilentNarrationRefillPreservesAnActiveNa
            'lesson-audio':'testLessonNarrationUsesOriginalVoiceAndReceivesSpanishAndArabicAudio',
            'phonics':'testNativePhonicsJudgeGeneratedDeckAndReceiveOnlyNarration',
            'flashcards':'testOriginalFlashcardJudgeRevealAndDifficultyThroughNativeProviders',
+           'focused-flashcards':'testOriginalFocusedGoalFlashcardGenerationUsesConfiguredAndResponsesProviders',
            'focused-goal':'testOriginalFocusedGoalPlannerAndWrittenRubricUseNativeProvider',
            'companion-quest':'testNativeCompanionBlueprintAndRecallDeckUseOriginalPrompts',
            'headline':'testNativePlateHeadlineStreamsPublicLessonOutcomesAndResponsesRecovery',

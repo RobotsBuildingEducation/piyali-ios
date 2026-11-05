@@ -549,7 +549,7 @@ import SwiftUI
             let focus:JSONValue = .object(["blueprint":blueprint,"targetLang":.string(target),"supportLang":.string(state.support)])
             let prompt=try policy.run("goalDeckPrompt",.object(["focus":focus,"user":state.companionQuestUser])).string
             let input:JSONValue
-            do {let raw:String;if let respond {raw=try await respond(prompt)}else{raw=try await ai.sourceResponsesText(prompt)};input = .object(["focus":focus,"raw":.string(raw)])}
+            do {let raw:String;if let respond=respond ?? FocusedDeckFixture.freshGoalResponse {raw=try await respond(prompt)}else{raw=try await ai.sourceResponsesText(prompt)};input = .object(["focus":focus,"raw":.string(raw)])}
             catch is CancellationError{throw CancellationError()}
             catch {try Task.checkCancellation();input = .object(["focus":focus,"providerFailed":.bool(true)])}
             cards=try policy.run("goalDeckCards",input).array
@@ -559,12 +559,13 @@ import SwiftUI
             let focused=try focusedPhonicsDeck(goal:blueprint);guard !focused["requiresTutor"].boolean else{return};cards=focused["cards"].array
         }
 
-        guard identity.sessionRevision == identitySession,goalCourseScope == scope,identity.npub == account, learner.target == target, goalIsCurrent(blueprint) else { return }
+        try Task.checkCancellation();guard signedIn,identity.sessionRevision == identitySession,goalCourseScope == scope,identity.npub == account, learner.target == target, goalIsCurrent(blueprint) else { return }
         let payload = blueprint.setting("mode",.string(mode)).setting("cards",.array(cards)).setting("requiresTutor",.bool(cards.isEmpty))
         learner.applyGoal(GoalChange(action:.artifact,target:target,payload:payload)); persist(); await sync()
         try Task.checkCancellation();guard signedIn,identity.sessionRevision == identitySession,goalCourseScope == scope,goalIsCurrent(blueprint) else{throw CancellationError()}
-        // Authored Phonics has the original deterministic local fallback; completion still awaits its receipt.
-        if mode == "phonics" {return}
+        // Both original focused factories keep their local candidate usable after remote failure.
+        // Earned answers/completion still await their own receipts.
+        if ["phonics","flashcards"].contains(mode) {return}
         guard !(learner.pendingGoalChanges ?? []).contains(where:{ $0.target == target && $0.action == .artifact }) else { throw AppError.message("Reconnect to save this practice deck across devices.") }
     }
     func recordGoalPreparation(_ blueprint: JSONValue, mode: String, card: JSONValue, success: Bool, answer: String, assess:Bool = true) {

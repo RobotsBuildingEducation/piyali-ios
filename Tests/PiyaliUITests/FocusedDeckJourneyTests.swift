@@ -4,8 +4,9 @@ import XCTest
     private func element(_ id:String,_ app:XCUIApplication)->XCUIElement{app.descendants(matching:.any).matching(identifier:id).firstMatch}
     private func tap(_ id:String,_ app:XCUIApplication){let e=element(id,app);XCTAssertTrue(e.waitForExistence(timeout:15),id);XCTAssertEqual(XCTWaiter.wait(for:[XCTNSPredicateExpectation(predicate:NSPredicate(format:"enabled == true"),object:e)],timeout:15),.completed,id);for _ in 0..<8 where !e.isHittable{app.swipeUp(velocity:.slow)};XCTAssertTrue(e.isHittable,id);e.tap()}
     private func shot(_ name:String,_ app:XCUIApplication){let a=XCTAttachment(screenshot:app.screenshot());a.name=name;a.lifetime = .keepAlways;add(a)}
-    private func start(_ scenario:String)->XCUIApplication {
+    private func start(_ scenario:String,freshOffline:Bool=false)->XCUIApplication {
         let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_FOCUSED_DECK_FIXTURE":scenario,"PIYALI_FLASHCARD_FIXTURE":"1","PIYALI_FLASHCARD_NOTE_FIXTURE":"1","PIYALI_FLASHCARD_NOTE_DELAY_MS":"12000","PIYALI_MEMORY_CAPTURE_ONLY":"1","PIYALI_HEADLINE_FIXTURE":"failure","PIYALI_PRACTICE_FIXTURE":"standard:fill","PIYALI_PRACTICE_JUDGE_FIXTURE":"offered-reference"]
+        if freshOffline{app.launchEnvironment["PIYALI_FOCUSED_DECK_FRESH"]="1";app.launchEnvironment["PIYALI_FOCUSED_DECK_PREPARATION_OFFLINE"]="1"}
         app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"];app.launch();handleInitialPaperPencil(app)
         let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Focused Deck Learner");tap("entryKeyboardDone",app);tap("createAccount",app);handleInitialPaperPencil(app);chooseEnglishSpanishOnboarding(app);tap("startLearning",app);tap("companionContinue",app);acknowledgePaperPencil(app);tap("gettingStartedGotIt",app);chooseA1Placement(app);tap("startDailyPractice",app);return app
     }
@@ -39,5 +40,15 @@ import XCTest
         answer("Gracias",index:1,prefix:"repair-",app:app)
         XCTAssertTrue(app.textFields["typedPracticeAnswer"].waitForExistence(timeout:15));XCTAssertFalse(app.buttons.matching(NSPredicate(format:"identifier BEGINSWITH 'flashcardTile-repair-'")).firstMatch.exists);shot("Native completed repair deck hands off to next repair lesson",app)
         app.terminate();app.launch();XCTAssertTrue(app.buttons["productMenu"].waitForExistence(timeout:15));tap("startDailyPractice",app);XCTAssertTrue(app.textFields["typedPracticeAnswer"].waitForExistence(timeout:15));shot("Native next repair lesson restores after relaunch",app)
+    }
+    func testFreshGoalOfflineFallbackCanBeAnsweredRestoredThenAcknowledgedBeforeNextLesson(){
+        continueAfterFailure=false;let app=start("goal",freshOffline:true);progress("0/3",app)
+        XCTAssertFalse(app.staticTexts["Reconnect to save this practice deck across devices."].exists);shot("Native fresh Goal fallback after provider and artifact save failure",app)
+        answer("papá",index:0,prefix:"goal-",app:app);XCTAssertTrue(element("flashcardError",app).waitForExistence(timeout:10));XCTAssertTrue(app.buttons["flashcardRate-good"].exists);shot("Native fresh Goal first recall waits for acknowledgment",app)
+        app.terminate();app.launch();XCTAssertTrue(app.buttons["productMenu"].waitForExistence(timeout:15));tap("startDailyPractice",app);progress("0/3",app);XCTAssertFalse(app.staticTexts["Reconnect to save this practice deck across devices."].exists);shot("Native private fresh Goal fallback restores offline with pending recall",app)
+        app.terminate();app.launchEnvironment["PIYALI_FOCUSED_DECK_PREPARATION_OFFLINE"]="0";app.launch();XCTAssertTrue(app.buttons["productMenu"].waitForExistence(timeout:15));tap("startDailyPractice",app);progress("1/3",app);shot("Native fresh Goal first recall acknowledges after reconnect",app)
+        answer("hermana",index:1,prefix:"goal-",app:app);progress("2/3",app);answer("mamá",index:2,prefix:"goal-",app:app)
+        XCTAssertTrue(app.textFields["typedPracticeAnswer"].waitForExistence(timeout:15));shot("Native fresh Goal fallback completes into next lesson",app)
+        app.terminate();app.launch();XCTAssertTrue(app.buttons["productMenu"].waitForExistence(timeout:15));tap("startDailyPractice",app);XCTAssertTrue(app.textFields["typedPracticeAnswer"].waitForExistence(timeout:15));shot("Native fresh Goal completion restores after relaunch",app)
     }
 }
