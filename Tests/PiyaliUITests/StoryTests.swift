@@ -69,6 +69,32 @@ import XCTest
         XCTAssertTrue(app.buttons["storyRecord"].waitForExistence(timeout:15),app.debugDescription)
         XCTAssertFalse(app.staticTexts["storySpeechFeedback"].exists);xp(0,app)
     }
+    func testRadioStreamingAllowsPlaybackAndAnswerBeforeFinalStory() {
+        let app=start("radio",narration:true,stream:true)
+        tap("storyPlay",app)
+        XCTAssertTrue(app.descendants(matching:.any).matching(identifier:"storyPendingSegment").firstMatch.waitForExistence(timeout:5),app.debugDescription)
+        XCTAssertFalse(app.staticTexts["storyQuestion"].exists);xp(0,app)
+        XCTAssertTrue(app.staticTexts["storyQuestion"].waitForExistence(timeout:12),app.debugDescription)
+        option("His friend",app);tap("storyCheck",app);XCTAssertTrue(app.staticTexts["storyFeedback"].waitForExistence(timeout:5));tap("storyNext",app)
+        XCTAssertTrue(app.staticTexts["Build what you hear."].waitForExistence(timeout:10),app.debugDescription);xp(0,app)
+        for word in ["Sí","es","hoy"] { option(word,app) };tap("storyCheck",app);tap("storyNext",app)
+        XCTAssertTrue(app.staticTexts["Select two words you hear."].waitForExistence(timeout:10));option("pastel",app);option("tengo",app);tap("storyCheck",app);tap("storyNext",app)
+        XCTAssertTrue(app.staticTexts["realtimeGoal"].waitForExistence(timeout:40),app.debugDescription);xp(6,app)
+    }
+    func testConversationStreamingSupportsLearnerTurnBeforeQuestion() {
+        let app=start("conversation",role:true,narration:true,stream:true)
+        tap("storyPlay",app);XCTAssertTrue(app.staticTexts["storyRoleTarget"].waitForExistence(timeout:5));XCTAssertFalse(app.staticTexts["storyQuestion"].exists)
+        record(app);tap("storySpeechRetry",app);record(app);tap("storyNext",app)
+        XCTAssertTrue(app.staticTexts["storyQuestion"].waitForExistence(timeout:15),app.debugDescription);xp(0,app)
+        option("His mother",app);tap("storyCheck",app);tap("storyNext",app)
+        XCTAssertTrue(app.staticTexts["storyRoleTarget"].waitForExistence(timeout:10));xp(0,app)
+    }
+    func testRadioStreamingBackgroundDiscardsUnvalidatedDraft() {
+        let app=start("radio",narration:true,stream:true);tap("storyPlay",app)
+        XCTAssertTrue(app.descendants(matching:.any).matching(identifier:"storyPendingSegment").firstMatch.waitForExistence(timeout:5));xp(0,app)
+        XCUIDevice.shared.press(.home);app.activate()
+        XCTAssertTrue(app.buttons["storyPlay"].waitForExistence(timeout:15),app.debugDescription);XCTAssertFalse(app.staticTexts["storyQuestion"].exists);xp(0,app)
+    }
     func testBackgroundedGenerationRestartsAndReturnsToExplicitRecording() {
         let app=start("speaking",delay:true)
         XCTAssertTrue(app.staticTexts["storyLoading"].waitForExistence(timeout:3))

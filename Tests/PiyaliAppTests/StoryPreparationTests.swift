@@ -10,6 +10,18 @@ import XCTest
         let payload:JSONValue = .object(["title":.string("Old completed story"),"sentences":.array([.object(["speaker":.string("Sheilfer"),"target":.string("Hola.")]),.object(["speaker":.string("You"),"target":.string("Buenos días.")])])])
         var run=try StoryRun(payload:payload,mode:.speaking,target:"es",support:"en",level:"Pre-A1",lessonID:nil,worth:.null,tutorial:true);run.index=run.count;run.completed=true;return run
     }
+    func testProvisionalEpisodePromotesOnlyMatchingQuestionsAndTurns() throws {
+        let payload=try ContentLibrary.load(JSONValue.self,name:"story-test-episode")
+        let complete=try StoryRun(payload:payload,mode:.radio,target:"es",support:"en",level:"A1",lessonID:nil,worth:.null)
+        let episode=try XCTUnwrap(complete.episode)
+        var partial=StoryRun(provisionalID:UUID(),episode:.init(title:episode.title,segments:[episode.segments[0]]),ready:[0],mode:.radio,target:"es",support:"en",level:"A1",lessonID:nil,worth:.null)
+        partial.heard=[0];partial.answers=["0":[1]];partial.results=["0":false];partial.index=1
+        var matching=complete;XCTAssertTrue(StoryService.promoteEpisode(partial,into:&matching));XCTAssertEqual(matching.id,partial.id);XCTAssertEqual(matching.index,1);XCTAssertEqual(matching.answers,partial.answers);XCTAssertEqual(matching.results,partial.results);XCTAssertEqual(matching.heard,partial.heard)
+        var changed=partial;changed.episode!.segments[0].turns[0] = .init(speaker:"Ana",target:"Changed")
+        var rejected=complete;XCTAssertFalse(StoryService.promoteEpisode(changed,into:&rejected));XCTAssertEqual(rejected.id,complete.id);XCTAssertTrue(rejected.results.isEmpty)
+        changed=partial;changed.episode!.segments[0].question.options.swapAt(0,1)
+        XCTAssertFalse(StoryService.promoteEpisode(changed,into:&rejected));XCTAssertEqual(rejected.id,complete.id);XCTAssertTrue(rejected.results.isEmpty)
+    }
     func testFreshFailureCannotExposeCachedCompletionAsPrepared() async throws {
         let app=try model();defer { try? app.identity.disconnect() };let old=try cached();app.learner.saveStory(old)
         let service=StoryService(writer:{ _ in throw AppError.message("Temporary generation failure") })

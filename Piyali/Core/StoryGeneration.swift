@@ -20,7 +20,11 @@ import Foundation
     }
     public static func payload(_ raw:String,mode:StoryMode,target:String,tutorial:Bool,title:String,recipes:PracticeRecipes)throws->JSONValue {
         guard raw.utf8.count <= 100_000 else { throw StoryFailure.invalid }
-        if mode != .speaking { return try recipes.story("streamPayload",parameters:.object(["raw":.string(raw)])) }
+        if mode != .speaking {
+            let payload=try recipes.story("streamPayload",parameters:.object(["raw":.string(raw)]))
+            let segments=payload["segments"].array.map { segment in segment.setting("question",StoryStreamDraft.normalizeSingleAnswer(segment["question"])) }
+            return payload.setting("segments",.array(segments))
+        }
         let parsed=try recipes.story("parseSpeaking",parameters:.object(["raw":.string(raw),"targetLang":.string(target),"isTutorial":.bool(tutorial)]))
         let lines=parsed["sentences"].array.map { .object(["speaker":$0["character"],"target":$0["tgt"],"support":$0["sup"],"gender":$0["gender"]]) as JSONValue }
         return .object(["title":.string(title.isEmpty ? "Practice" : title),"sentences":.array(lines)])

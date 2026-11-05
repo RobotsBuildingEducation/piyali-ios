@@ -27,6 +27,9 @@ import FirebaseAILogic
         #endif
     }
     func cancel() { generation=UUID();preparation?.cancel();preparation=nil;busy=false;provisional=nil }
+    func updateProvisional(_ id:UUID,_ change:(inout StoryRun)->Void) {
+        guard var run=provisional,run.id == id else{return};change(&run);provisional=run
+    }
     func prepare(_ app:AppModel,lesson:Lesson?,mode:StoryMode,fresh:Bool) async ->Bool {
         preparation?.cancel()
         let request=Task { @MainActor in await load(app,lesson:lesson,mode:mode,fresh:fresh) }
@@ -38,6 +41,34 @@ import FirebaseAILogic
         var portraits=previous?.id == id ? (previous?.portraitIDs ?? [:]) : [:]
         for name in Set(turns.map(\.speaker)) where portraits[name] == nil {portraits[name]=StoryCharacterAvatar.appearance.portraitPool(name,learnerName:state.name).randomElement() ?? "35"}
         run.portraitIDs=portraits;if previous?.id == id {run.updatedAt=previous!.updatedAt};return run
+    }
+    private static func makeProvisionalEpisode(previous:StoryRun?,id:UUID,draft:StoryStreamDraft.Episode,mode:StoryMode,state:LearnerState,level:String,lesson:Lesson?)->StoryRun {
+        var run=StoryRun(provisionalID:id,episode:draft.value,ready:draft.ready,mode:mode,target:state.target,support:state.support,level:level,lessonID:lesson?.id,worth:ConversationPractice.worth(rating:state.rating,level:level))
+        if let previous,previous.id == id {
+            run.index=previous.index;run.answers=previous.answers;run.results=previous.results;run.heard=previous.heard;run.translations=previous.translations;run.portraitIDs=previous.portraitIDs;run.updatedAt=previous.updatedAt
+        }
+        var portraits=run.portraitIDs ?? [:]
+        for name in Set(draft.value.segments.flatMap { $0.turns.map(\.speaker) }) where portraits[name] == nil {portraits[name]=StoryCharacterAvatar.appearance.portraitPool(name,learnerName:state.name).randomElement() ?? "35"}
+        run.portraitIDs=portraits;return run
+    }
+    private static func extends(_ previous:StoryRun,_ draft:StoryStreamDraft.Episode)->Bool {
+        guard let old=previous.episode,old.segments.count <= draft.value.segments.count else{return false}
+        for (index,segment) in old.segments.enumerated() {
+            let next=draft.value.segments[index]
+            guard next.turns.starts(with:segment.turns) else{return false}
+            if previous.provisionalQuestions?.contains(index) == true,(!draft.ready.contains(index) || segment.question != next.question) {return false}
+        }
+        return true
+    }
+    static func promoteEpisode(_ draft:StoryRun,into run:inout StoryRun)->Bool {
+        guard let partial=draft.episode,let final=run.episode,partial.segments.count <= final.segments.count else{return false}
+        for (index,segment) in partial.segments.enumerated() {
+            guard final.segments[index].turns.starts(with:segment.turns) else{return false}
+            if draft.provisionalQuestions?.contains(index) == true,segment.question != final.segments[index].question {return false}
+        }
+        guard draft.index <= run.count else{return false}
+        run.id=draft.id;run.index=draft.index;run.answers=draft.answers;run.results=draft.results;run.heard=draft.heard;run.translations=draft.translations
+        return true
     }
     private func load(_ app:AppModel,lesson:Lesson?,mode:StoryMode,fresh:Bool) async ->Bool {
         guard !Task.isCancelled else { return false }
@@ -80,6 +111,14 @@ import FirebaseAILogic
                             try await Task.sleep(for:.seconds(8))
                         }
                     }
+                } else if ProcessInfo.processInfo.environment["PIYALI_STORY_STREAM_FIXTURE"] == "1" {
+                    let episode=try StoryEpisode.parse(payload,target:target,prepare:true),id=UUID()
+                    var segments=[StorySegment(turns:episode.segments[0].turns,question:episode.segments[0].question)]
+                    provisional=Self.makeProvisionalEpisode(previous:nil,id:id,draft:.init(value:.init(title:episode.title,segments:segments),ready:[]),mode:mode,state:state,level:level,lesson:lesson)
+                    try await Task.sleep(for:.seconds(8))
+                    segments=episode.segments
+                    provisional=Self.makeProvisionalEpisode(previous:provisional,id:id,draft:.init(value:.init(title:episode.title,segments:segments),ready:Set(segments.indices)),mode:mode,state:state,level:level,lesson:lesson)
+                    try await Task.sleep(for:.seconds(25))
                 }
             } else {
                 let unit=app.units.first { $0.lessons.contains { $0.id == lesson?.id } } ?? (lesson?.id == IntroTutorial.lessonID ? app.introLibrary?.units[state.level] : nil)
@@ -88,8 +127,16 @@ import FirebaseAILogic
                     var id=UUID()
                     payload=try await app.ai.storyPayload(mode:mode,lesson:lesson,state:state,level:level,tutorial:tutorial,recent:state.storyHistory?[target] ?? [],repair:false,unit:unit,account:account,onSpeakingChunk:{[weak self] snapshot in
                         guard let self,self.generation == token,app.identity.npub == account,app.learner.target == target,app.learner.support == support else{return}
+                        if snapshot.isEmpty {if self.provisional != nil {id=UUID()};self.provisional=nil;return}
+                        if mode != .speaking {
+                            guard let draft=StoryStreamDraft.episode(snapshot) else{return}
+                            var previous=self.provisional
+                            if let old=previous,!Self.extends(old,draft) {id=UUID();previous=nil}
+                            let next=Self.makeProvisionalEpisode(previous:previous,id:id,draft:draft,mode:mode,state:state,level:level,lesson:lesson)
+                            if self.provisional != next {self.provisional=next};return
+                        }
                         let turns=StoryStreamDraft.speaking(snapshot)
-                        guard !turns.isEmpty else {if self.provisional != nil {id=UUID()};self.provisional=nil;return}
+                        guard !turns.isEmpty else {return}
                         let next=Self.makeProvisional(previous:self.provisional,id:id,turns:turns,state:state,level:level,lesson:lesson,title:lesson?.title.localized(support) ?? "Practice")
                         if self.provisional != next {self.provisional=next}
                     })
@@ -98,6 +145,7 @@ import FirebaseAILogic
             try Task.checkCancellation();guard generation == token,app.identity.npub == account,app.learner.target == target,app.learner.support == support else { return false }
             var run=try StoryRun(payload:payload,mode:mode,target:target,support:support,level:level,lessonID:lesson?.id,worth:ConversationPractice.worth(rating:state.rating,level:level),tutorial:tutorial)
             if let provisional,let first=provisional.currentSentence,let final=run.currentSentence,first.speaker == final.speaker,first.target == final.target {run.id=provisional.id}
+            if let provisional,mode != .speaking {_=Self.promoteEpisode(provisional,into:&run)}
             run.lessonLevel=authoredLevel;run.sourceContext=sourceContext
             let recipes=try PracticeRecipes()
             if mode == .speaking {
@@ -150,8 +198,8 @@ extension AIService {
             return payload.setting("nativePlan",.object(["lessonId":plan["lessonId"],"mode":plan["mode"],"subject":plan["subject"],"purpose":plan["purpose"],"isTutorial":plan["isTutorial"]]))
         }
         if !repair {
-            do { let raw=try await storyProtocol(streamPrompt,stream:true,mode:mode,onChunk:mode == .speaking ? onSpeakingChunk : {_ in});return try result(checked(raw,stream:true)) }
-            catch { try Task.checkCancellation();if mode == .speaking {onSpeakingChunk("")} }
+            do { let raw=try await storyProtocol(streamPrompt,stream:true,mode:mode,onChunk:onSpeakingChunk);return try result(checked(raw,stream:true)) }
+            catch { try Task.checkCancellation();onSpeakingChunk("") }
         }
         let prompt=mode == .speaking ? streamPrompt : try recipes.story("sessionPrompt",parameters:parameters).string
         let revisionParameters:JSONValue = .object(["mode":.string(mode.rawValue),"prompt":.string(prompt)])
@@ -188,7 +236,7 @@ extension AIService {
                 guard !response.candidates.contains(where:{ $0.finishReason == .maxTokens }),let text=response.text else { throw StoryFailure.invalid };return text
             } catch { try Task.checkCancellation();if stream {onChunk("")} }
         }
-        if stream && mode == .speaking {let output=try await responsesStream(prompt,onChunk:onChunk);onChunk(output+"\n");return output}
+        if stream {let output=try await responsesStream(prompt,onChunk:onChunk);onChunk(output+"\n");return output}
         // NDJSON uses the existing authenticated text response route. The source's
         // validated batch episode still uses its fixed JSON schema on fallback.
         return try await responsesText(prompt,json:!stream && mode != .speaking,reasoning:"low",outputProfile:!stream && mode != .speaking ? "story_episode" : nil,maxOutputTokens:8192)

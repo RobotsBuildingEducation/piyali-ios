@@ -1,0 +1,6 @@
+{
+  "source": "src/features/stories/storySession.js",
+  "sha256": "f05815923df5191d4be7c63fffe95b897d5bcc056c3c6634ba31dc5ed891e22d",
+  "cases": 9,
+  "scope": "Original applyStoryStreamLine executed against in-memory episodes; choice and true/false fixtures omit random word-tile generation."
+}

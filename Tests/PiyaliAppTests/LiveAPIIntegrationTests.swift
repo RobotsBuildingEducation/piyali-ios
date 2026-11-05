@@ -809,6 +809,48 @@ import Security
         } catch {try? await Auth.auth().currentUser?.delete();try? Auth.auth().signOut();try? identity.disconnect();throw error}
         try await Auth.auth().currentUser?.delete();try Auth.auth().signOut();try identity.disconnect()
     }
+    func testEpisodeStoriesStreamBeforeValidatedCompletion() async throws {
+        guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else {throw XCTSkip("Explicit live API opt-in required.")}
+        XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))
+        if FirebaseApp.app() == nil {AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure()};XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let identity=IdentityService();try identity.create();try await FirebaseIdentityService.shared.ensure(identity)
+        do {
+            var state=LearnerState();state.target="es";state.support="en";state.level="A1"
+            let fallback=AIService(configuration:AppConfiguration(values:AppConfiguration().values.merging(["AIProvider":"responses"]) {_,new in new}))
+            for (label,ai) in [("configured",AIService()),("responses",fallback)] {
+                if let selected=ProcessInfo.processInfo.environment["PIYALI_EPISODE_STREAM_PATH"],selected != label {continue}
+                for mode in [StoryMode.radio,.conversation] {
+                    if let selected=ProcessInfo.processInfo.environment["PIYALI_EPISODE_STREAM_MODE"],selected != mode.rawValue {continue}
+                    var matched=false,lastError:Error=StoryFailure.invalid
+                    for attempt in 0..<2 {
+                        var first:StoryTurn?,partial=0,seen=0,resets=0,lastSnapshot="",resetSnapshot=""
+                        do {
+                            let payload=try await ai.storyPayload(mode:mode,lesson:nil,state:state,level:"A1",tutorial:false,recent:[],repair:false,onSpeakingChunk:{snapshot in
+                                if snapshot.isEmpty {resetSnapshot=lastSnapshot;first=nil;partial=0;resets += 1;return};lastSnapshot=snapshot
+                                let done=snapshot.components(separatedBy:.newlines).contains {line in (try? JSONDecoder().decode(Piyali.JSONValue.self,from:Data(line.utf8)))?["type"].string == "done"}
+                                if !done,let turn=StoryStreamDraft.episode(snapshot)?.value.segments.first?.turns.first {first=turn;partial += 1;seen += 1}
+                            })
+                            let run=try StoryRun(payload:payload,mode:mode,target:"es",support:"en",level:"A1",lessonID:nil,worth:.null)
+                            print("LIVE EPISODE ATTEMPT: path=\(label), mode=\(mode.rawValue), attempt=\(attempt+1), snapshots=\(seen), resets=\(resets), retained=\(partial)")
+                            if !resetSnapshot.isEmpty {
+                                do {
+                                    let candidate=try StoryGeneration.payload(resetSnapshot,mode:mode,target:"es",tutorial:false,title:"Practice",recipes:PracticeRecipes())
+                                    let shapes=candidate["segments"].array.map { "turns=\($0["turns"].array.count),question=\($0["question"] == .null ? "missing" : $0["question"]["type"].string)" }.joined(separator:"; ")
+                                    print("LIVE EPISODE RESET SHAPE: segments=\(candidate["segments"].array.count), title=\(!candidate["title"].string.isEmpty), \(shapes)")
+                                    let episode=try JSONDecoder().decode(StoryEpisode.self,from:JSONEncoder().encode(candidate))
+                                    let segments=episode.segments.map { "turns=\($0.turns.count),type=\($0.question.type),options=\($0.question.options.count),answers=\($0.question.answer.count),audio=\($0.question.audioTurn.map(String.init) ?? "nil")" }.joined(separator:"; ")
+                                    do {_=try StoryEpisode.parse(candidate,target:"es",prepare:true);print("LIVE EPISODE RESET CANDIDATE: validated, \(segments)")} catch {print("LIVE EPISODE RESET CANDIDATE: validation failed, \(segments)")}
+                                } catch {print("LIVE EPISODE RESET PARSE: \(String(reflecting:error))")}
+                            }
+                            if partial > 0,let first,let final=run.episode?.segments.first?.turns.first,first.speaker == final.speaker,first.target == final.target {matched=true;print("LIVE EPISODE STREAM: path=\(label), mode=\(mode.rawValue), usable partial snapshots=\(partial)");break}
+                        } catch {lastError=error;print("LIVE EPISODE ATTEMPT FAILED: path=\(label), mode=\(mode.rawValue), attempt=\(attempt+1), snapshots=\(seen), resets=\(resets), error=\(error.localizedDescription)")}
+                    }
+                    if !matched {XCTFail("\(label) \(mode.rawValue) did not produce a matching partial turn before completion: \(lastError)")}
+                }
+            }
+        } catch {try? await Auth.auth().currentUser?.delete();try? Auth.auth().signOut();try? identity.disconnect();throw error}
+        try await Auth.auth().currentUser?.delete();try Auth.auth().signOut();try identity.disconnect()
+    }
     func testNativeStorySourcePoliciesBatchWorthAndResponsesFallback() async throws {
         guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else { throw XCTSkip("Explicit live API opt-in required.") }
         XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))

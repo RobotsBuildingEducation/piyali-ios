@@ -23,6 +23,7 @@ public struct StoryRun:Codable,Equatable,Sendable {
     public var passedLines=Set<Int>()
     public var completed=false
     public var isProvisional:Bool?
+    public var provisionalQuestions:Set<Int>?
     public var earnedXP=0
     public var speechResult:StorySpeechResult?
     public var lastWords=""
@@ -40,6 +41,10 @@ public struct StoryRun:Codable,Equatable,Sendable {
     public init(provisionalID:UUID,turns:[StoryTurn],target:String,support:String,level:String,lessonID:String?,title:String,worth:JSONValue) {
         self.id=provisionalID;self.isProvisional=true;self.target=target;self.support=support;self.level=level;self.lessonID=lessonID;self.mode = .speaking;self.sentences=turns;self.title=title;self.worth=worth
     }
+    public init(provisionalID:UUID,episode:StoryEpisode,ready:Set<Int>,mode:StoryMode,target:String,support:String,level:String,lessonID:String?,worth:JSONValue) {
+        self.id=provisionalID;self.isProvisional=true;self.provisionalQuestions=ready;self.target=target;self.support=support;self.level=level;self.lessonID=lessonID;self.mode=mode;self.episode=episode;self.sentences=[];self.title=episode.title;self.worth=worth
+    }
+    public var questionAvailable:Bool { isProvisional != true || provisionalQuestions?.contains(index) == true }
     public static func contextData(content:JSONValue,agenda:JSONValue,level:String)throws->Data {
         let encoder=JSONEncoder();encoder.outputFormatting=[.sortedKeys,.withoutEscapingSlashes]
         return try encoder.encode(JSONValue.object(["content":content,"agenda":agenda,"level":.string(level)]))

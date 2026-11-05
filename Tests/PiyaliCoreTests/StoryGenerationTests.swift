@@ -56,6 +56,12 @@ import XCTest
         let payload=try StoryGeneration.payload(records.map(\.json).joined(separator:"\n"),mode:.radio,target:"es",tutorial:false,title:"",recipes:engine)
         let run=try StoryRun(payload:payload,mode:.radio,target:"es",support:"en",level:"A1",lessonID:nil,worth:.null)
         XCTAssertEqual(run.count,2);XCTAssertEqual(run.episode?.segments[1].question.answer.count,3)
+        let questionIndex=try XCTUnwrap(records.firstIndex { $0["type"].string == "question" })
+        let question=records[questionIndex]["question"],single=JSONValue.number(0)
+        records[questionIndex]=records[questionIndex].setting("question",question.setting("type",.string("choice")).setting("answer",single))
+        let repaired=try StoryGeneration.payload(records.map(\.json).joined(separator:"\n"),mode:.radio,target:"es",tutorial:false,title:"",recipes:engine)
+        let repairedRun=try StoryRun(payload:repaired,mode:.radio,target:"es",support:"en",level:"A1",lessonID:nil,worth:.null)
+        XCTAssertEqual(repairedRun.episode?.segments.first?.question.answer,[Int(single.number)])
         XCTAssertThrowsError(try StoryGeneration.payload(#"{"type":"turn","segment":99999999,"target":"Hola"}"#+"\n"+#"{"type":"done"}"#,mode:.radio,target:"es",tutorial:false,title:"",recipes:engine))
     }
     func testEachSavedLineUsesItsOwnGeneratedQuoteAfterRatingChangesAndRelaunch()throws {
