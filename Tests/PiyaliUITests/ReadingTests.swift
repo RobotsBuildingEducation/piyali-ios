@@ -27,6 +27,13 @@ import XCTest
         tap("readingMicrophone",app);tap("readingMicrophone",app)
         XCTAssertTrue(app.staticTexts["readingSpeechTranscript"].waitForExistence(timeout:5));XCTAssertTrue(app.buttons["readingSpeechStartOver"].exists)
     }
+    func testReadingCaptureShowsInteractiveDisplayOrbAndRemovesItAfterStop() {
+        let app=speechApp();tap("readingMicrophone",app)
+        let orb=app.descendants(matching:.any)["readingListeningOrb"];XCTAssertTrue(orb.waitForExistence(timeout:8));reveal(orb,in:app);XCTAssertGreaterThanOrEqual(orb.frame.width,44);XCTAssertLessThanOrEqual(orb.frame.width,75);XCTAssertGreaterThanOrEqual(orb.frame.height,44);XCTAssertLessThanOrEqual(orb.frame.height,75)
+        XCTAssertTrue(orb.isHittable);orb.tap();XCTAssertEqual(orb.value as? String,"Loving reaction")
+        let shot=XCTAttachment(screenshot:app.screenshot());shot.name="Native Reading listening display orb";shot.lifetime = .keepAlways;add(shot)
+        tap("readingMicrophone",app);XCTAssertFalse(orb.exists);XCTAssertTrue(app.staticTexts["readingSpeechTranscript"].waitForExistence(timeout:5));XCTAssertFalse(app.staticTexts["readingCompleted"].exists)
+    }
     func testSpeechTranscriptResumeStartOverSixCardsAndSingleRewardHandoff() {
         let app=speechApp();spokenFragment(app)
         let transcript=app.staticTexts["readingSpeechTranscript"].label

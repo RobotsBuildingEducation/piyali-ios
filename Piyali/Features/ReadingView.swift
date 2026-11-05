@@ -126,7 +126,7 @@ struct ReadingView:View {
     }
     @ViewBuilder private func recording(_ run:ReadingRun)->some View {
         if !run.awarded {
-            if recordingNow { BrandArtwork(name:"piyali-orb.png").frame(width:75,height:75).frame(maxWidth:.infinity);Text(t("history_speech_listening")).font(PiyaliBrand.productFont(12,600)).frame(maxWidth:.infinity) }
+            if recordingNow { PublicVoiceOrb(animating:active && phase == .active,size:75).frame(width:75,height:75).accessibilityIdentifier("readingListeningOrb").frame(maxWidth:.infinity);Text(t("history_speech_listening")).font(PiyaliBrand.productFont(12,600)).frame(maxWidth:.infinity) }
             if !recorder.transcript.isEmpty { Text(recorder.transcript).font(PiyaliBrand.productFont(12)).lineSpacing(6).italic().accessibilityIdentifier("readingSpeechTranscript") }
             if let code=recorder.issue { let copy=ReadingSpeechCapture.feedback(code);Text(t(copy.title)+". "+t(copy.description)).font(PiyaliBrand.productFont(14)).foregroundStyle(brand.secondary).accessibilityIdentifier("readingRecordingError") }
         }
