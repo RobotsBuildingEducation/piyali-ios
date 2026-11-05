@@ -67,10 +67,12 @@ extension AppModel {
 
 extension AppModel {
     var currentRepairStep:RepairStep? {
-        let day=CalendarDay.key(Date());guard let plan=learner.repairPlan(day:day),let policy=companionQuestPolicy,let value=try? policy.run("next",.object(["plan":plan,"completedCount":.number(Double(learner.plateCourses(user:identity.npub).first(where:{$0.kind == "repair"})?.count ?? 0))])),let step=try? JSONDecoder().decode(RepairStep.self,from:Data(value.json.utf8)),learner.repairStepIsCurrent(step) else{return nil};return step
+        let day=CalendarDay.key(Date());guard let plan=learner.repairPlan(day:day),let policy=companionQuestPolicy,let value=try? policy.run("next",.object(["plan":plan,"completedCount":.number(Double(learner.plateCourses(user:identity.npub).first(where:{$0.kind == "repair"})?.count ?? 0))])),let step=try? JSONDecoder().decode(RepairStep.self,from:Data(value.json.utf8)),(learner.repairStepIsCurrent(step) || pendingRepairCompletion(step)) else{return nil};return step
     }
+    func pendingRepairCompletion(_ step:RepairStep)->Bool {(learner.pendingChanges ?? []).contains{$0.source == .repair && $0.target == step.target && $0.dayKey == step.day && $0.contentID == step.id}}
+    func repairRouteIsCurrent(_ step:RepairStep)->Bool {currentRepairStep?.id == step.id && currentRepairStep?.item == step.item}
     func repairLesson(_ step:RepairStep)->Lesson? {
-        guard learner.repairStepIsCurrent(step),let policy=companionQuestPolicy,let value=try? policy.run("lesson",.object(["user":learner.companionQuestUser,"plan":step.plan,"targetLang":.string(step.target),"cefrLevel":.string(learner.level),"dayKey":.string(step.day),"recommendedMode":.string(step.mode),"stepIndex":.number(Double(step.index))])) else{return nil}
+        guard repairRouteIsCurrent(step),let policy=companionQuestPolicy,let value=try? policy.run("lesson",.object(["user":learner.companionQuestUser,"plan":step.plan,"targetLang":.string(step.target),"cefrLevel":.string(learner.level),"dayKey":.string(step.day),"recommendedMode":.string(step.mode),"stepIndex":.number(Double(step.index))])) else{return nil}
         return try? JSONDecoder().decode(Lesson.self,from:Data(value.setting("agenda",.object([:])).json.utf8))
     }
     func authoredRepairPhonics(_ step:RepairStep)->[PhonicsCard] {
@@ -79,31 +81,26 @@ extension AppModel {
         return (try? JSONDecoder().decode([PhonicsCard].self,from:Data(cards.json.utf8))) ?? []
     }
     func repairPhonics(_ step:RepairStep)->[PhonicsCard] {
-        let cards=learner.repairArtifact(step,mode:"phonics")["cards"].array
-        let authored=LearningLanguages.levels.flatMap{phonicsLibrary[learner.target+":"+learner.support+":"+$0] ?? []}
-        return cards.compactMap{saved in
-            guard let source=authored.first(where:{$0.id == saved["authoredId"].string}),let data=try? JSONEncoder().encode(source),let value=try? JSONDecoder().decode(JSONValue.self,from:data) else{return nil}
-            return try? JSONDecoder().decode(PhonicsCard.self,from:Data(value.setting("id",saved["id"]).setting("authoredId",saved["authoredId"]).setting("practiceRole",saved["practiceRole"]).json.utf8))
-        }
+        let value=try? focusedPhonicsDeck(repair:step,artifact:learner.repairArtifact(step,mode:"phonics"))
+        return (try? JSONDecoder().decode([PhonicsCard].self,from:Data((value?["cards"] ?? .array([])).json.utf8))) ?? []
     }
     func prepareRepairPhonics(_ step:RepairStep) async throws {
         guard learner.repairStepIsCurrent(step),learner.repairArtifact(step,mode:"phonics")["cards"].array.isEmpty else{return}
-        let selected=authoredRepairPhonics(step),account=identity.npub,support=learner.support
-        let cards=try selected.enumerated().map{index,card -> JSONValue in
-            let value=try JSONDecoder().decode(JSONValue.self,from:JSONEncoder().encode(card))
-            return value.setting("authoredId",.string(card.id)).setting("id",.string("focused-"+CompanionQuestDay.artifactKey(step,mode:"phonics")+"-\(index)")).setting("practiceRole",.string(index == 0 ? "original":index == 2 ? "transfer":"contrast")).setting("isRepair",.bool(true))
-        }
-        guard !cards.isEmpty else{return}
-        var artifact:JSONValue = .object(["version":.number(1),"ownerKey":.string(CompanionQuestDay.artifactKey(step,mode:"phonics")),"cards":.array(cards),"outcomes":.object([:])])
+        let account=identity.npub,session=identity.sessionRevision,support=learner.support
+        if phonicsLibrary.isEmpty {await reloadContent()}
+        try Task.checkCancellation();guard signedIn,identity.npub == account,identity.sessionRevision == session,learner.support == support,learner.repairStepIsCurrent(step) else{throw CancellationError()}
+        var artifact=try focusedPhonicsDeck(repair:step)
+        guard !artifact["cards"].array.isEmpty else{return}
         #if DEBUG
-        let offline=ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"] == "1"
+        let env=ProcessInfo.processInfo.environment;let offline=env["PIYALI_OFFLINE_TESTS"] == "1" && UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil && env["PIYALI_LIVE_API_TESTS"] != "1"
         #else
         let offline=false
         #endif
         if !offline {artifact=try await FirebaseService.shared.reserveRepairArtifact(npub:account,step:step,mode:"phonics",candidate:artifact)}
-        try Task.checkCancellation();guard identity.npub == account,learner.support == support,learner.repairStepIsCurrent(step) else{return}
+        try Task.checkCancellation();guard signedIn,identity.npub == account,identity.sessionRevision == session,learner.support == support,learner.repairStepIsCurrent(step) else{throw CancellationError()}
         learner.storeRepairArtifact(artifact,step:step,mode:"phonics");persist()
     }
+
     func recordRepairOutcome(_ step:RepairStep,mode:String,cardID:String,success:Bool,item:String,deferCompletion:Bool = false) {
         guard learner.recordRepairOutcome(step,mode:mode,cardID:cardID,success:success,item:item,support:mode == "phonics" ? "modeled":"prompted") else{return}
         persist();if !deferCompletion {checkRepairPracticeCompletion(step,mode:mode)}
@@ -112,8 +109,13 @@ extension AppModel {
         let artifact=learner.repairArtifact(step,mode:mode),cards=artifact["cards"].array
         let required=mode == "phonics" ? cards.filter{["original","transfer"].contains($0["practiceRole"].string)}:cards
         guard !required.isEmpty,required.allSatisfy({artifact["outcomes"][$0["id"].string]["success"].boolean}) else{return}
-        let observation=required.map{artifact["outcomes"][$0["id"].string]["item"].string}.joined(separator:"; ")
-        finishRepair(step,observation:mode == "phonics" ? observation+" pronounced successfully after a model":"Correct recall of "+observation+"; recall only, not independent production.",support:mode == "phonics" ? "modeled":"prompted")
+        if mode == "phonics" {
+            guard let completion=try? companionQuestPolicy?.run("focusedPhonicsCompletion",.object(["goal":.bool(false),"artifact":artifact])),completion["complete"].boolean else{return}
+            finishRepair(step,observation:completion["observation"].string,support:"modeled")
+        }else{
+            let observation=required.map{artifact["outcomes"][$0["id"].string]["item"].string}.joined(separator:"; ")
+            finishRepair(step,observation:"Correct recall of "+observation+"; recall only, not independent production.",support:"prompted")
+        }
     }
     func finishRepair(_ step:RepairStep,observation:String,support:String = "prompted") {
         guard learner.repairStepIsCurrent(step),let policy=companionQuestPolicy else{return}

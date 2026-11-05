@@ -4416,6 +4416,80 @@ function parseRepairEntries(raw){  const text = String(raw || "");
     return null;
   }
 }
+function focusedPhonicsDeck(p){const practiceArtifactKey=M14.practiceArtifactKey,getAuthoredPhonicsFocusCards=M15.getAuthoredPhonicsFocusCards,PHONICS_LEVELS=M15.PHONICS_LEVELS,getAuthoredPhonicsDeck=M15.getAuthoredPhonicsDeck,practiceArtifact=(focus,mode,create)=>p.artifact?.cards?.length ? p.artifact:{version:1,ownerKey:M14.practiceArtifactKey(focus,mode),cards:create(),outcomes:{}};function getFocusedPhonicsDeck(focus, alphabet = []) {
+  const localizedFocus = {
+    ...focus,
+    supportLang: alphabet[0]?.supportLanguage || focus.supportLang
+  };
+  const selected = getAuthoredPhonicsFocusCards(localizedFocus);
+  if (!selected.length) return {
+    cards: [],
+    outcomes: {},
+    requiresTutor: true
+  };
+  const cards = selected.map((card, index) => ({
+    ...card,
+    authoredId: card.id,
+    id: "focused-" + practiceArtifactKey(focus, "phonics") + "-" + index,
+    practiceRole: index === 0 ? "original" : index === (focus.blueprint ? 1 : 2) ? "transfer" : "contrast",
+    isGoal: Boolean(focus.blueprint),
+    isRepair: !focus.blueprint
+  }));
+  const artifact = practiceArtifact(focus, "phonics", () => cards);
+  // Changing support language keeps outcomes but never reuses saved copy from
+  // the previous support language. Only canonical authored text is displayed.
+  // Changing support language keeps outcomes but never reuses saved copy from
+  // the previous support language. Only canonical authored text is displayed.
+  const byId = new Map(PHONICS_LEVELS.flatMap(level => getAuthoredPhonicsDeck(focus.targetLang, localizedFocus.supportLang, level)).map(card => [card.id, card]));
+  return {
+    ...artifact,
+    cards: artifact.cards.flatMap(saved => {
+      const source = byId.get(saved.authoredId);
+      return source ? [{
+        ...source,
+        authoredId: source.id,
+        id: saved.id,
+        practiceRole: saved.practiceRole,
+        isGoal: Boolean(focus.blueprint),
+        isRepair: !focus.blueprint
+      }] : [];
+    })
+  };
+};return getFocusedPhonicsDeck(p.focus,p.alphabet||[]);}
+function focusedPhonicsCapture(p){const letter=p.card,practiceWord=letter.practiceWord,practiceWordMeaningData=letter.practiceWordMeaning,cefrLevel=p.level,answer=p.answer,npub=p.npub,targetLang=p.targetLang,uiLang=p.supportLang,assessedWorth=p.worth;return {
+  npub,
+  targetLang,
+  supportLang: uiLang,
+  sourceMode: "phonics",
+  concept: practiceWord,
+  userAnswer: answer,
+  expectedAnswer: practiceWord,
+  // Generated cards carry the level they were generated at; base
+  // alphabet cards fall back to the learner-context prop.
+  cefrLevel: letter?.cefrLevel || cefrLevel,
+  questionWorth: assessedWorth,
+  gradedOutcome: false,
+  // The letter/sound card id, not a generic label — lets a routed
+  // repair deep-seed the deck with this exact card instead of a
+  // random one (see the repair-focus deck reorder on mount).
+  sourceContext: {
+    card: {
+      id: letter?.id || "",
+      letter: letter?.letter || "",
+      tts: letter?.tts || "",
+      phoneme: letter?.phoneme || "",
+      practiceWord,
+      practiceWordMeaning: practiceWordMeaningData || {}
+    }
+  }
+};}
+function focusedPhonicsCompletion(p){const letter={isGoal:p.goal},artifact=p.artifact,required=letter.isGoal
+            ? artifact?.cards?.slice(0, 2) || []
+            : artifact?.cards?.filter(
+                (card) =>
+                  card.practiceRole === "original" ||
+                  card.practiceRole === "transfer",
+              ) || [];const complete=required.length>0&&required.every(c=>artifact.outcomes[c.id]?.success);return{required,complete,observation:complete?required.map(c => `${c.practiceRole}: ${artifact.outcomes[c.id].item} pronounced successfully after a model`).join("; "):''};}
 function goalDeckPrompt(p){const focus=p.focus,blueprint=focus.blueprint,goalPromptData=M14.goalPromptData,generationPerformanceContextFor=M0.generationPerformanceContextFor,useUserStore={getState:()=>({user:p.user||{}})};return `Generate exactly 3 recall cards preparing this goal: ${JSON.stringify(
           goalPromptData(blueprint),
         )}. Live internal Elo, curriculum CEFR and performance memory: ${JSON.stringify(generationPerformanceContextFor(useUserStore.getState().user, focus.targetLang))}. Adapt recall challenge and support to this evidence. Needed language may exceed CEFR with simple cues in ${
@@ -4722,6 +4796,9 @@ else if(operation==='steps')value=m.getRepairSteps(p.plan);
 else if(operation==='next')value=m.getNextRepairStep(p.plan,p.completedCount);
 else if(operation==='lesson')value=m.buildEphemeralRepairLesson(p);
 else if(operation==='performance')value=m.generationPerformanceContextFor(p.user,p.targetLang);
+else if(operation==='focusedPhonicsDeck')value=focusedPhonicsDeck(p);
+else if(operation==='focusedPhonicsCapture')value=focusedPhonicsCapture(p);
+else if(operation==='focusedPhonicsCompletion')value=focusedPhonicsCompletion(p);
 else if(operation==='goalDeckPrompt')value=goalDeckPrompt(p);
 else if(operation==='goalDeckCards')value=goalDeckCards(p);
 else if(operation==='focusedRecallEvent')value=focusedRecallEvent(p);

@@ -1,0 +1,19 @@
+{
+  "cases": 23,
+  "sources": [
+    {
+      "file": "src/utils/focusedPracticeDecks.js",
+      "sha256": "bb5f8e54a4ad8db64bfb5e725f8fec4e37f538b4aa26a20714d18e825d6ad59d"
+    },
+    {
+      "file": "src/components/AlphabetBootcamp.jsx",
+      "sha256": "51a7b8ab6a3c0ee80fc7594fcf9ee66f345d002278c0987b717d5c4b309282d7"
+    },
+    {
+      "file": "src/data/phonics/index.js",
+      "sha256": "1ff20fa3e0742b40231e3ea2c9a0dd944105352345b5c29d52173d5f69ad7896",
+      "hashScope": "independently bundled original authored module and all dependencies"
+    }
+  ],
+  "scope": "Original full async getFocusedPhonicsDeck with original authored module, public cached artifact boundary and original required-card/observation expressions. No source stores, Firebase or provider services execute."
+}

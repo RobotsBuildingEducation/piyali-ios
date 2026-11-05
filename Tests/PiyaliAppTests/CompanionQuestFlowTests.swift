@@ -45,7 +45,7 @@ import UIKit
         try await app.prepareRepairPhonics(step);let cards=app.repairPhonics(step);XCTAssertEqual(cards.count,3);XCTAssertEqual(cards.map(\.practiceRole),["original","contrast","transfer"])
         app.learner.support="ar";let arabic=app.repairPhonics(step);XCTAssertEqual(arabic.map(\.id),cards.map(\.id));XCTAssertEqual(arabic.first?.tip,app.phonicsLibrary["es:ar:Pre-A1"]?.first?.tip);app.learner.support="en"
         app.recordRepairOutcome(step,mode:"phonics",cardID:cards[0].id,success:true,item:cards[0].practiceWord);XCTAssertEqual(app.plateCourses.first?.count,0)
-        app.recordRepairOutcome(step,mode:"phonics",cardID:cards[2].id,success:true,item:cards[2].practiceWord);XCTAssertEqual(app.plateCourses.first?.count,1);XCTAssertEqual(app.learner.totalXP,10)
+        app.recordRepairOutcome(step,mode:"phonics",cardID:cards[2].id,success:true,item:cards[2].practiceWord);XCTAssertEqual(app.plateCourses.first?.count,0,"The step counter waits for its completion receipt");XCTAssertEqual(app.learner.plateProgress["repairDailyActivity"]["es"][today].number,1);XCTAssertEqual(app.learner.totalXP,10)
         XCTAssertEqual(app.learner.plateProgress["phonicsDailyActivity"],.null);XCTAssertNil(app.learner.masteredPhonics)
         XCTAssertFalse(app.learner.repairArtifact(step,mode:"phonics")["outcomes"][cards[1].id]["success"].boolean)
     }

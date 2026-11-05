@@ -275,6 +275,7 @@
 		15104995E3FAFE9C0548DFD6 /* RPGGround-5bb84374950e5f4a5f536957.png in Resources */ = {isa = PBXBuildFile; fileRef = C1D156FC164A31459F9C0D8F /* RPGGround-5bb84374950e5f4a5f536957.png */; };
 		1518013645189AC3E520B378 /* RPGGround-9435546feb373bc92770475c.png in Resources */ = {isa = PBXBuildFile; fileRef = 342146AC327E1817DA7ECAF1 /* RPGGround-9435546feb373bc92770475c.png */; };
 		152095861E52CB60B4CD58E9 /* RPGGround-a3372da89ccb6398e8b9c723.png in Resources */ = {isa = PBXBuildFile; fileRef = 7BC199EAC13E8370993052CE /* RPGGround-a3372da89ccb6398e8b9c723.png */; };
+		152F12B271615021A4077163 /* ConfirmedRepairProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D43E0B8FFB9AA9424B23A75 /* ConfirmedRepairProgress.swift */; };
 		152F66F67FF12E0CEC007D55 /* RPGProp-table-487.png in Resources */ = {isa = PBXBuildFile; fileRef = 3D14D23E61EA83D1CE485067 /* RPGProp-table-487.png */; };
 		1532922642C214DFEA1F3030 /* RPGGround-6c72dba0e0f504589aa4d043.png in Resources */ = {isa = PBXBuildFile; fileRef = 939977E0A2D29201E9981D47 /* RPGGround-6c72dba0e0f504589aa4d043.png */; };
 		153A9ADD1C2E2592FA626CFE /* RPGProp-stove-402.png in Resources */ = {isa = PBXBuildFile; fileRef = 69744C00416C2C7F32EAAB82 /* RPGProp-stove-402.png */; };
@@ -427,6 +428,7 @@
 		1ECD9E8B6CD361E77488D5BC /* RPGProp-tree-165.png in Resources */ = {isa = PBXBuildFile; fileRef = 975E05BDB157A2E271B1828A /* RPGProp-tree-165.png */; };
 		1ED1576586375A3E7971B52F /* RPGProp-counter-165.png in Resources */ = {isa = PBXBuildFile; fileRef = ED014B951893214AC5749AA4 /* RPGProp-counter-165.png */; };
 		1EDFFE8BF076C9C52FD050C6 /* RPGProp-tree-394.png in Resources */ = {isa = PBXBuildFile; fileRef = F92A55A90D4F4BE11ABAF98E /* RPGProp-tree-394.png */; };
+		1EEBE4D1F8C3F37843B14A3A /* FocusedPhonicsFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = F87D49D7B42420299229B4C5 /* FocusedPhonicsFixture.swift */; };
 		1EEFEAD86090621A4E783FAE /* RealtimeNarrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23E6A57EDCD9B9A354D84709 /* RealtimeNarrationTests.swift */; };
 		1EFE914F56ED215BF7A7AFA5 /* RPGProp-shelf-896.png in Resources */ = {isa = PBXBuildFile; fileRef = 9DF1F27F273FE54FBAEBE7F1 /* RPGProp-shelf-896.png */; };
 		1F20FFEBC123CB2F9065A3D4 /* RPGGround-301a14ece1c3456479ec8ba7.png in Resources */ = {isa = PBXBuildFile; fileRef = DD97F27928D03B489B1B1F96 /* RPGGround-301a14ece1c3456479ec8ba7.png */; };
@@ -618,6 +620,7 @@
 		2B93F26663B35FC4F5883967 /* RPGPetPreview-slime-4.png in Resources */ = {isa = PBXBuildFile; fileRef = AD229FA8BF12193895E50CE1 /* RPGPetPreview-slime-4.png */; };
 		2B9B2D47B711BC48984560CA /* oral-assistance.js in Resources */ = {isa = PBXBuildFile; fileRef = 1442A9A49060F6464DF6F4B5 /* oral-assistance.js */; };
 		2B9EDEB0B398F74889F7401E /* RPGGround-433038e74a0a2b24a8666d8f.png in Resources */ = {isa = PBXBuildFile; fileRef = A8F1A171A42F60287CB7DF4F /* RPGGround-433038e74a0a2b24a8666d8f.png */; };
+		2BB4790095D3E29BBE2119B9 /* FocusedPhonicsJourneyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE853105C3D7AA89E9D70A81 /* FocusedPhonicsJourneyTests.swift */; };
 		2BD63636A05F8EC5C7F85AC7 /* RPGProp-bench-1098.png in Resources */ = {isa = PBXBuildFile; fileRef = E8CD32F5A0D4580BEA1AE341 /* RPGProp-bench-1098.png */; };
 		2BF696AC1A25290D44434553 /* OrbRendererTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D25420488FB059C97DBF0D5 /* OrbRendererTests.swift */; };
 		2BFA97DC3993BB1A1654E282 /* RPGEnv-c951429291b75d4393fb1440.png in Resources */ = {isa = PBXBuildFile; fileRef = 0CF1962DFD931D19AC1A152E /* RPGEnv-c951429291b75d4393fb1440.png */; };
@@ -1174,6 +1177,7 @@
 		53415E992CBAE3CEAD46FFA7 /* curriculum-de.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 0D2B4377365D26F6B633ABCA /* curriculum-de.json.gz */; };
 		534A1A0DE10111CFED0B1C1E /* RPGProp-bookshelf-419.png in Resources */ = {isa = PBXBuildFile; fileRef = 08387E221F16A4E56A6860E1 /* RPGProp-bookshelf-419.png */; };
 		5356C00D0E06234B4D5A9C35 /* RPGProp-plant-669.png in Resources */ = {isa = PBXBuildFile; fileRef = 73E6B6356F1EAE5B6C7A661B /* RPGProp-plant-669.png */; };
+		5361A8ADCBD9229BDBD77967 /* FocusedPhonicsFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF7FF26D2E2ACC325337C13C /* FocusedPhonicsFlowTests.swift */; };
 		536FB4278530EACCD3846E5A /* RPGNPC-2-1.png in Resources */ = {isa = PBXBuildFile; fileRef = C2F3943F348F43100994C6F3 /* RPGNPC-2-1.png */; };
 		5385A9226388A581243ECD21 /* GoalPreparationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82DE9E947F9BAD6E1426FAEF /* GoalPreparationView.swift */; };
 		53A0C6E3DE59977C3D7CB207 /* RPGGround-89f508d20a48b0bee591896c.png in Resources */ = {isa = PBXBuildFile; fileRef = 5B689BE08EAFDFF3268228B7 /* RPGGround-89f508d20a48b0bee591896c.png */; };
@@ -2521,6 +2525,7 @@
 		B099691B445F0BF683B6036E /* course-RiEmotionHappyLine@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 66FAAFA428ED6D86DBD0BE2F /* course-RiEmotionHappyLine@3x.png */; };
 		B0A707AE77354278522BD8F4 /* course-RiSailboatLine@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = F91BD0CD7FFB3D18E6D88D81 /* course-RiSailboatLine@3x.png */; };
 		B0A9D3746F5359A746A6D903 /* story-portrait-36.webp in Resources */ = {isa = PBXBuildFile; fileRef = 00FF2283F56FE143908E103B /* story-portrait-36.webp */; };
+		B0B7B4DB33C7299E5FEAD115 /* FocusedPhonicsComparisonTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A618462619AF4A9FD172D8F9 /* FocusedPhonicsComparisonTests.swift */; };
 		B0C74E4FCA3D25AA9E600C3C /* RPGGround-93d3b217333304ac98c27fcd.png in Resources */ = {isa = PBXBuildFile; fileRef = BE039A97707078F465E3675A /* RPGGround-93d3b217333304ac98c27fcd.png */; };
 		B0CBF94C93F541F1F6FF7D27 /* NostrTeamsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74D0919860725E45CA524288 /* NostrTeamsTests.swift */; };
 		B0D9E84B38DABE0C1C56C5DD /* StandardInlineSentence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F6CA94FE15154CA16CE261D /* StandardInlineSentence.swift */; };
@@ -3045,6 +3050,7 @@
 		D164E02E843361D17B86FFC4 /* RPGGround-a0949c03cefbda94dfc8dc35.png in Resources */ = {isa = PBXBuildFile; fileRef = D56C2B2DDCC300F0585DC887 /* RPGGround-a0949c03cefbda94dfc8dc35.png */; };
 		D16685EDF042304A0F50F8CC /* RPGProp-plant-373.png in Resources */ = {isa = PBXBuildFile; fileRef = B2FE06D534642AB28F6F4BE9 /* RPGProp-plant-373.png */; };
 		D17183F63B181DB5ADABA365 /* RPGProp-speaker-1479.png in Resources */ = {isa = PBXBuildFile; fileRef = 3C25D39B11EBF9C134C4EEE5 /* RPGProp-speaker-1479.png */; };
+		D1984EE026ED994118B8A2F3 /* AppModel+FocusedPhonics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 216F7112D278D2AC3530D84E /* AppModel+FocusedPhonics.swift */; };
 		D1B576F2ED252A02E0F71589 /* RPGGround-b9925169c0ce9b9e53968db6.png in Resources */ = {isa = PBXBuildFile; fileRef = 774883D6E7249EB15C1E1811 /* RPGGround-b9925169c0ce9b9e53968db6.png */; };
 		D1F4673A2A6F1E408585B0A1 /* RPGGround-10fb8748eef1d41266e0c036.png in Resources */ = {isa = PBXBuildFile; fileRef = 45B67D67929EDF2D96B06B20 /* RPGGround-10fb8748eef1d41266e0c036.png */; };
 		D1F615FF6A2CC7E46EF32882 /* RPGProp-bench-766.png in Resources */ = {isa = PBXBuildFile; fileRef = 18279F0855A8BF47229F209F /* RPGProp-bench-766.png */; };
@@ -3918,6 +3924,7 @@
 		0D1EC8C2BB886210FEBE28B5 /* RPGGround-58aed5f28ec92d1809c264db.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGGround-58aed5f28ec92d1809c264db.png"; sourceTree = "<group>"; };
 		0D2B4377365D26F6B633ABCA /* curriculum-de.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "curriculum-de.json.gz"; sourceTree = "<group>"; };
 		0D3E4129360BF73DE453092E /* RPGProp-tv-274.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGProp-tv-274.png"; sourceTree = "<group>"; };
+		0D43E0B8FFB9AA9424B23A75 /* ConfirmedRepairProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfirmedRepairProgress.swift; sourceTree = "<group>"; };
 		0D5576BB0B21C227D1B7234C /* story-feedback-policy.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "story-feedback-policy.js"; sourceTree = "<group>"; };
 		0D60E4F31F81492949BFA3F2 /* RPGProp-counter-1392.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGProp-counter-1392.png"; sourceTree = "<group>"; };
 		0D6A09F656B4881A352F2759 /* RPGProp-desk-1088.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGProp-desk-1088.png"; sourceTree = "<group>"; };
@@ -4192,6 +4199,7 @@
 		2163F6AB6AB910D0BD43D134 /* RPGProp-table-1064.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGProp-table-1064.png"; sourceTree = "<group>"; };
 		216463BF4BB782E2E5D66AF1 /* RPGProp-lamp-3116.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGProp-lamp-3116.png"; sourceTree = "<group>"; };
 		216AF9703C8AE5374FB72D2F /* tutor-curriculum-ga.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "tutor-curriculum-ga.json.gz"; sourceTree = "<group>"; };
+		216F7112D278D2AC3530D84E /* AppModel+FocusedPhonics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppModel+FocusedPhonics.swift"; sourceTree = "<group>"; };
 		21ADBAFCB3D41BDDC9F80C61 /* AchievementStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementStorageTests.swift; sourceTree = "<group>"; };
 		21B6C2F5C1C326ED50A1EE04 /* RPGPet-axolotl-right-5.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGPet-axolotl-right-5.png"; sourceTree = "<group>"; };
 		21EF8F0EC077D82C65FFFCBA /* game-loader-policy.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "game-loader-policy.js"; sourceTree = "<group>"; };
@@ -6077,6 +6085,7 @@
 		A5E6988F3D50F996073D5786 /* RPGProp-bench-822.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGProp-bench-822.png"; sourceTree = "<group>"; };
 		A5F463D47A22FA4D175C3711 /* MemoryCaptureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryCaptureTests.swift; sourceTree = "<group>"; };
 		A5FCC4449726989AB1D2FCA5 /* RPGProp-bench-414.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGProp-bench-414.png"; sourceTree = "<group>"; };
+		A618462619AF4A9FD172D8F9 /* FocusedPhonicsComparisonTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusedPhonicsComparisonTests.swift; sourceTree = "<group>"; };
 		A629AB6EF3262CE87F07C938 /* RPGProp-plant-2058.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGProp-plant-2058.png"; sourceTree = "<group>"; };
 		A634A1226FD11A7052B53F06 /* RPGProp-desk-366.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGProp-desk-366.png"; sourceTree = "<group>"; };
 		A63A985FFBA2A96BDED826FC /* PracticeRecipes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PracticeRecipes.swift; sourceTree = "<group>"; };
@@ -6705,6 +6714,7 @@
 		CE7CD2B648FD8BAF9B2489F0 /* RPGProp-desk-572.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGProp-desk-572.png"; sourceTree = "<group>"; };
 		CE7F7D7151A6ACAFA6D61CD5 /* RPGPreparationControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RPGPreparationControllerTests.swift; sourceTree = "<group>"; };
 		CE8515E4F4A40310F85DC008 /* FlashcardSessionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlashcardSessionController.swift; sourceTree = "<group>"; };
+		CE853105C3D7AA89E9D70A81 /* FocusedPhonicsJourneyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusedPhonicsJourneyTests.swift; sourceTree = "<group>"; };
 		CEA681C543B518C776291D85 /* RPGProp-sign-620.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGProp-sign-620.png"; sourceTree = "<group>"; };
 		CEB55064B2B50632106413A6 /* RPGGround-910c1d32d346c2ace8331c26.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGGround-910c1d32d346c2ace8331c26.png"; sourceTree = "<group>"; };
 		CEC08F42046ABB06F8AA3405 /* RPGProp-plant-465.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGProp-plant-465.png"; sourceTree = "<group>"; };
@@ -7190,6 +7200,7 @@
 		EF5B1AB566FB872BFFAD7206 /* RPGPet-axolotl-right-1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGPet-axolotl-right-1.png"; sourceTree = "<group>"; };
 		EF6D4062E19EC30541CDC8A8 /* ConversationPractice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationPractice.swift; sourceTree = "<group>"; };
 		EF6EBC304E32F80DD493A499 /* PracticeRepairContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PracticeRepairContext.swift; sourceTree = "<group>"; };
+		EF7FF26D2E2ACC325337C13C /* FocusedPhonicsFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusedPhonicsFlowTests.swift; sourceTree = "<group>"; };
 		EFAF3A1FBDD0A5E284A4AAF5 /* PhonicsSessionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhonicsSessionController.swift; sourceTree = "<group>"; };
 		EFB6B5468EBB1D3733B7F264 /* RPGProp-bench-606.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGProp-bench-606.png"; sourceTree = "<group>"; };
 		EFC79CA52EC107FFA01C7788 /* memory-policy.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "memory-policy.js"; sourceTree = "<group>"; };
@@ -7314,6 +7325,7 @@
 		F841BD02AF2B0A947541C7DA /* RPGGround-6ce5d5f3a8b1f37c5c82636a.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGGround-6ce5d5f3a8b1f37c5c82636a.png"; sourceTree = "<group>"; };
 		F847C26C89584975327E9664 /* RPGGround-c8522115ee59ca81a24d8a89.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGGround-c8522115ee59ca81a24d8a89.png"; sourceTree = "<group>"; };
 		F8512BB62E4860C24576BA95 /* LandingDemoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandingDemoTests.swift; sourceTree = "<group>"; };
+		F87D49D7B42420299229B4C5 /* FocusedPhonicsFixture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusedPhonicsFixture.swift; sourceTree = "<group>"; };
 		F89245EBCF6A1E38A3CF7FC8 /* AIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIService.swift; sourceTree = "<group>"; };
 		F8A263ABBF54748AAABD91D1 /* RPGProp-speaker-3070.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGProp-speaker-3070.png"; sourceTree = "<group>"; };
 		F8B5535C9F7D32A822A458B1 /* RPGPet-alien-up-3.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGPet-alien-up-3.png"; sourceTree = "<group>"; };
@@ -7526,6 +7538,8 @@
 				C46759F8F6BFB22C1AC97F86 /* FocusedFlashcardComparisonTests.swift */,
 				6E7BEBD3DEED247B3D9B6558 /* FocusedFlashcardFlowTests.swift */,
 				4FAA7EE77D52F7CE9B037AD5 /* FocusedGoalFlowTests.swift */,
+				A618462619AF4A9FD172D8F9 /* FocusedPhonicsComparisonTests.swift */,
+				EF7FF26D2E2ACC325337C13C /* FocusedPhonicsFlowTests.swift */,
 				31B8D76B86BF9262F9BB9232 /* GameLoaderReferenceTests.swift */,
 				B8A097C6B450BA795CD9F472 /* GameLoaderRendererTests.swift */,
 				C3A569DFCF3852FE74AA12FA /* GamePreparationTests.swift */,
@@ -8104,6 +8118,7 @@
 				C9304277563CFDA73534542C /* AppModel.swift */,
 				64989D3A68AA8CE1986A56DC /* AppModel+CompanionQuest.swift */,
 				1E0026F1C2027A48B1842713 /* AppModel+FocusedGoal.swift */,
+				216F7112D278D2AC3530D84E /* AppModel+FocusedPhonics.swift */,
 				156AC099D65E79FDC7AB89E0 /* AppModel+Settings.swift */,
 				B5F31E9A0B6B91BB6AFC7C84 /* AppModel+StudyNotes.swift */,
 				44CC37F4F1A89ABE345C746B /* AutomaticProgressController.swift */,
@@ -8111,6 +8126,7 @@
 				38B1F8C569B7382ADA2F009B /* CompanionSaveUIFixture.swift */,
 				CE8515E4F4A40310F85DC008 /* FlashcardSessionController.swift */,
 				419B6D65FE3A719F77D55C16 /* FocusedDeckFixture.swift */,
+				F87D49D7B42420299229B4C5 /* FocusedPhonicsFixture.swift */,
 				2E1DF6C8F4BE4742D057C2BB /* GoalEditorController.swift */,
 				25A6475E80E1E0E5989BC746 /* GoalPracticeFixture.swift */,
 				4A9465969012E791B3FD5B3E /* MemoryCaptureController.swift */,
@@ -8180,6 +8196,7 @@
 				2E16EDB98CD5683A1763BCD6 /* FlashcardParityTests.swift */,
 				0334C1CC1DE6538FB2E2C5E3 /* FocusedDeckJourneyTests.swift */,
 				AA007FC620368A00F0E7628D /* FocusedGoalSettingsJourneyTests.swift */,
+				CE853105C3D7AA89E9D70A81 /* FocusedPhonicsJourneyTests.swift */,
 				72D9450A8E1F928FB8CAE9AC /* FocusHomeJourneyTests.swift */,
 				4CE56AEB6A1F50262209D108 /* GameHandoffJourneyTests.swift */,
 				5B78EFABB92CDEBAD8647F4C /* GamePreparationPlayTests.swift */,
@@ -8252,6 +8269,7 @@
 				FC8C1AFE520430E24776DD16 /* CompanionMemory.swift */,
 				22009DB6970D5A4A308107A3 /* CompanionQuest.swift */,
 				528F343DDAB21B309CBCDCA3 /* CompanionUnlock.swift */,
+				0D43E0B8FFB9AA9424B23A75 /* ConfirmedRepairProgress.swift */,
 				007295F8EDB35E196711A524 /* ContentLibrary.swift */,
 				EF6D4062E19EC30541CDC8A8 /* ConversationPractice.swift */,
 				D337D742C8D0501E60632291 /* CoursePathPolicy.swift */,
@@ -14646,6 +14664,7 @@
 				61E68F3A717382B18F2E1B05 /* FocusHomeJourneyTests.swift in Sources */,
 				30F207415939138C5BB5CB35 /* FocusedDeckJourneyTests.swift in Sources */,
 				3EDDB4E3408F97A3A23B5238 /* FocusedGoalSettingsJourneyTests.swift in Sources */,
+				2BB4790095D3E29BBE2119B9 /* FocusedPhonicsJourneyTests.swift in Sources */,
 				E67517D55D98A94775FB83F4 /* GameHandoffJourneyTests.swift in Sources */,
 				9F7F39577015D858931A9CAA /* GamePreparationPlayTests.swift in Sources */,
 				3DA940FD20915E1EC1015AC3 /* GoalMemoryJourneyTests.swift in Sources */,
@@ -14723,6 +14742,8 @@
 				63A90868907151A231432C0C /* FocusedFlashcardComparisonTests.swift in Sources */,
 				27F406762C95D4C7ED4BD9CC /* FocusedFlashcardFlowTests.swift in Sources */,
 				479DC12A3A25B8028DC6ECBF /* FocusedGoalFlowTests.swift in Sources */,
+				B0B7B4DB33C7299E5FEAD115 /* FocusedPhonicsComparisonTests.swift in Sources */,
+				5361A8ADCBD9229BDBD77967 /* FocusedPhonicsFlowTests.swift in Sources */,
 				9A7773F7E80F72AB53F9CEF7 /* GameLoaderReferenceTests.swift in Sources */,
 				0C849FBE8617E11E80187B9B /* GameLoaderRendererTests.swift in Sources */,
 				C51FD5C4B9211FF15995B31F /* GamePreparationTests.swift in Sources */,
@@ -14842,6 +14863,7 @@
 				882DF197F6E0043796DBFC66 /* AppConfiguration.swift in Sources */,
 				C809E1674A5A3F3890B0C161 /* AppModel+CompanionQuest.swift in Sources */,
 				D51105E004BC4069C9C55F05 /* AppModel+FocusedGoal.swift in Sources */,
+				D1984EE026ED994118B8A2F3 /* AppModel+FocusedPhonics.swift in Sources */,
 				801202777BE4E38B05B348F5 /* AppModel+Settings.swift in Sources */,
 				E9155E476E97D8D533B05A1F /* AppModel+StudyNotes.swift in Sources */,
 				A877E84CD10C1FB5B0B82B67 /* AppModel.swift in Sources */,
@@ -14866,6 +14888,7 @@
 				A05D1C670B24313BABF2E221 /* CompanionUnlock.swift in Sources */,
 				722BF26623FECC5AB0EEC089 /* CompanionUnlockView.swift in Sources */,
 				3687A4F9FF6DA6EA779C730C /* ConfirmedAchievementDelivery.swift in Sources */,
+				152F12B271615021A4077163 /* ConfirmedRepairProgress.swift in Sources */,
 				31F9D04AD0E82F0B26A8A2EA /* ContentLibrary.swift in Sources */,
 				652B7BD2D4227C04A9D4086D /* ConversationArchiveView.swift in Sources */,
 				4461A5366D400097094A1092 /* ConversationPractice.swift in Sources */,
@@ -14913,6 +14936,7 @@
 				36CD1599731975B082035957 /* FocusedDeckProgress.swift in Sources */,
 				0190149C33930144915403A7 /* FocusedGoalCourseView.swift in Sources */,
 				97CD86E7CAFD7CE4585A68DE /* FocusedLearningViews.swift in Sources */,
+				1EEBE4D1F8C3F37843B14A3A /* FocusedPhonicsFixture.swift in Sources */,
 				329D6053860FF31CBDF74BBA /* GameLoaderCanvas.swift in Sources */,
 				8453DAE746597EC834EBCF32 /* GameLoaderPolicy.swift in Sources */,
 				0B3727DB033F0482E4946FCC /* GamePreparationController.swift in Sources */,

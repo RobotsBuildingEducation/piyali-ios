@@ -12,24 +12,24 @@ struct PhonicsView:View {
     init(repairStep:RepairStep?=nil,goalBlueprint:JSONValue?=nil,controller:PhonicsCourseController?=nil){self.repairStep=repairStep;self.goalBlueprint=goalBlueprint;_course=StateObject(wrappedValue:controller ?? PhonicsCourseController(goal:goalBlueprint,repair:repairStep))}
     private var dark:Bool {scheme == .dark}
     private var brand:PiyaliBrand {.init(dark:dark)}
-    private var scope:String {app.identity.npub+":"+app.learner.target+":"+app.learner.support+":"+(goalBlueprint?["goalId"].string ?? repairStep?.id ?? "ordinary")+":"+(app.lessonLevels.last ?? "Pre-A1")}
+    private var scope:String {app.identity.sessionRevision.uuidString+":"+CalendarDay.key(Date())+":"+app.identity.npub+":"+app.learner.target+":"+app.learner.support+":"+(goalBlueprint?["goalId"].string ?? repairStep?.id ?? "ordinary")+":"+(app.lessonLevels.last ?? "Pre-A1")}
     var body:some View {
         ScrollView {
             VStack(spacing:16){
                 if course.focused {VStack(spacing:0){OnboardingText(text:(try? app.companionQuestPolicy?.run("ph_copy",.object(["language":.string(app.learner.support),"targetLang":.string(app.learner.target),"key":.string("progress")])))?["headline"].string ?? "",size:20,weight:.bold,lineHeight:24);OnboardingText(text:course.control("subhead",app:app),size:14,lineHeight:21).foregroundStyle(brand.secondary)}}else{header}
                 if !course.initialized {ProgressView().frame(height:148)}
                 else if let card=course.deck.first {
-                    VStack(spacing:16){if course.focused{VStack(spacing:4){HStack{OnboardingText(text:course.copy("progress",app:app),size:12,lineHeight:18);Spacer();OnboardingText(text:"\(course.collected.count) / \(course.total)",size:12,weight:.bold,lineHeight:18)};FocusWaveBar(percent:Double(course.completed)/Double(max(1,course.total))*100,height:10,start:"fbbf24",end:"f59e0b")}.frame(maxWidth:400)}
+                    VStack(spacing:16){if course.focused{VStack(spacing:4){HStack{OnboardingText(text:course.copy("progress",app:app),size:12,lineHeight:18);Spacer();OnboardingText(text:app.learner.support == "ar" ? "\u{2067}\(course.collected.count) / \(course.total)\u{2069}":"\(course.collected.count) / \(course.total)",size:12,weight:.bold,lineHeight:18).accessibilityIdentifier("focusedPhonicsProgress")};FocusWaveBar(percent:Double(course.completed)/Double(max(1,course.total))*100,height:10,start:"fbbf24",end:"f59e0b",background:.white.opacity(0.8),border:PiyaliBrand.unitColor("ededed"),animateFill:true,insetBorder:true)}.frame(maxWidth:400)}
                         PhonicsSourceCard(app:app,card:card,count:Int(course.counts[card["id"].string].number),stackCount:course.deck.count,dock:true,goal:goalBlueprint,repair:repairStep,onReady:{session in active=session;course.currentSession=session;if action == nil || action?.matches(app) != true{action=session}},onActivate:{session in course.touch();action=session},onBack:{action=course.deck.isEmpty ? nil:active},onCollect:{session in session.stopAudio();course.collect(card,app:app);action=nil}).id(scope+":"+course.sessionGeneration.uuidString+":"+card["id"].string)
                     }
-                }else if course.total>0 {
+                }else if course.total>0 || course.focused && course.hasLetters {
                     VStack(spacing:16){PhonicsCompletionPortrait();OnboardingText(text:course.control("complete",app:app),size:16,weight:.bold,lineHeight:24).foregroundStyle(PiyaliBrand.unitColor(dark ? "9ae6b4":"276749"))}.padding(24).frame(maxWidth:400).background(PiyaliBrand.unitColor(dark ? "1c4532":"f0fff4"),in:RoundedRectangle(cornerRadius:8)).overlay{RoundedRectangle(cornerRadius:8).stroke(PiyaliBrand.unitColor(dark ? "48bb78":"9ae6b4"))}
                     if course.complete,!course.focused {VStack(spacing:12){Button{Task{await course.newRound(app)}}label:{HStack{FlashcardIcon(name:"refresh",size:18);Text(course.copy("newRound",app:app))}.frame(maxWidth:.infinity,minHeight:48)}.buttonStyle(.bordered).disabled(course.generating).accessibilityIdentifier("phonicsNewRound");if course.activeLevel != "C2"{Button(course.control("next",app:app)){changeLevel(nextLevel)}.disabled(course.generating).accessibilityIdentifier("phonicsNextLevel")}}.frame(maxWidth:400)}
                 }else{Text(course.copy("loadError",app:app)).padding(24)}
                 if let error=course.error {VStack(spacing:8){Text(error).font(PiyaliBrand.productFont(14));Button(EntryCopy.ui(app.learner.support,"try_again")){Task{if course.initialized{await course.newRound(app)}else{await course.load(app)}}}}.accessibilityIdentifier("phonicsCourseError")}
                 if !course.collected.isEmpty {VStack(spacing:16){ForEach(course.collected,id:\.phonicsCardID){card in PhonicsSourceCard(app:app,card:card,count:Int(course.counts[card["id"].string].number),stackCount:1,dock:false,goal:goalBlueprint,repair:repairStep,onReady:{_ in},onActivate:{session in course.touch();action=session},onBack:{action=course.deck.isEmpty ? nil:active},onCollect:{session in session.retry()}).id(scope+":"+course.sessionGeneration.uuidString+":collected:"+card["id"].string)}}.padding(.top,16)}
             }.padding(.horizontal,24).padding(.top,20).padding(.bottom,max(32,app.activityFooterHeight+24))
-        }.background(BrandBackground()).foregroundStyle(brand.text)
+        }.background(brand.background).foregroundStyle(brand.text)
             .task(id:scope){active?.cancel();action?.cancel();active=nil;action=nil;await course.load(app)}
             .onChange(of:app.learner.phonicsRecords){_,_ in course.refresh(app)}
             .onChange(of:scenePhase){_,phase in if phase == .background{active?.stopAudio();action?.stopAudio()}}

@@ -19,6 +19,7 @@ public struct PracticeChange: Codable, Identifiable, Sendable {
     public var skillTreeLessonLevel:String?
     public var tutorAgendaItemID: String?
     public var tutorData:JSONValue?
+    public var repairStepIndex:Int?
     public var questYesterdayComplete:Bool?
     public var questCarry: [String]?
     public var questIntro: Bool?

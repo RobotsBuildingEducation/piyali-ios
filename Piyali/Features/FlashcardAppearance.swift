@@ -6,7 +6,7 @@ struct FlashcardPaint {
     func color(_ value:String)->Color {
         if value.contains("var(") {
             if value.contains("glass-bg-soft"){return PiyaliBrand.unitColor(dark ? "0b1220":"fff9f2").opacity(dark ? 0.12:0.88)};if value.contains("glass-bg"){return PiyaliBrand.unitColor(dark ? "0b1220":"fffcf7").opacity(dark ? 0.66:0.94)}
-            if value.contains("surface-elevated"){return brand.surface};if value.contains("surface-muted"){return PiyaliBrand.unitColor(dark ? "182031":"efe4d5")};if value.contains("surface-frame"){return PiyaliBrand.unitColor(dark ? "94a3b8":"604d38").opacity(dark ? 0.42:0.3)};if value.contains("surface"){return PiyaliBrand.unitColor(dark ? "0b1220":"fdf9f2")};if value.contains("border"){return brand.border};return brand.text
+            if value.contains("surface-elevated"){return brand.surface};if value.contains("surface-muted"){return PiyaliBrand.unitColor(dark ? "182031":"efe4d5")};if value.contains("surface-frame"){return PiyaliBrand.unitColor(dark ? "94a3b8":"604d38").opacity(dark ? 0.42:0.3)};if value.contains("surface"){return PiyaliBrand.unitColor(dark ? "0b1220":"fdf9f2")};if value.contains("border-strong"){return PiyaliBrand.unitColor(dark ? "94a3b8":"604d38").opacity(dark ? 0.32:0.24)};if value.contains("border"){return brand.border};return brand.text
         }
         if value.hasPrefix("whiteAlpha."),let alpha=Double(value.dropFirst(11)){return .white.opacity(alpha/1000)}
         if value.hasPrefix("blackAlpha."),let alpha=Double(value.dropFirst(11)){return .black.opacity(alpha/1000)}

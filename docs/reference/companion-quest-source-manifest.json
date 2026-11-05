@@ -480,6 +480,18 @@
   "flashcardFixtureCount": 118,
   "phonicsFixtureCount": 106,
   "phonicsAdapters": {
+    "focusedDeck": {
+      "file": "src/utils/focusedPracticeDecks.js",
+      "sha256": "bb5f8e54a4ad8db64bfb5e725f8fec4e37f538b4aa26a20714d18e825d6ad59d",
+      "scope": "Original complete getFocusedPhonicsDeck body: its single artifact await and trivial async cards callback become synchronous at the native cache boundary. Selection, canonical support relocalization, dropped authored IDs, keys and roles remain original."
+    },
+    "focusedEvidence": {
+      "file": "src/components/AlphabetBootcamp.jsx",
+      "sha256": "51a7b8ab6a3c0ee80fc7594fcf9ee66f345d002278c0987b717d5c4b309282d7",
+      "required": "letter.isGoal\n            ? artifact?.cards?.slice(0, 2) || []\n            : artifact?.cards?.filter(\n                (card) =>\n                  card.practiceRole === \"original\" ||\n                  card.practiceRole === \"transfer\",\n              ) || []",
+      "observation": "required.map(c => `${c.practiceRole}: ${artifact.outcomes[c.id].item} pronounced successfully after a model`).join(\"; \")",
+      "capture": "{\n  npub,\n  targetLang,\n  supportLang: uiLang,\n  sourceMode: \"phonics\",\n  concept: practiceWord,\n  userAnswer: answer,\n  expectedAnswer: practiceWord,\n  // Generated cards carry the level they were generated at; base\n  // alphabet cards fall back to the learner-context prop.\n  cefrLevel: letter?.cefrLevel || cefrLevel,\n  questionWorth: assessedWorth,\n  gradedOutcome: false,\n  // The letter/sound card id, not a generic label — lets a routed\n  // repair deep-seed the deck with this exact card instead of a\n  // random one (see the repair-focus deck reorder on mount).\n  sourceContext: {\n    card: {\n      id: letter?.id || \"\",\n      letter: letter?.letter || \"\",\n      tts: letter?.tts || \"\",\n      phoneme: letter?.phoneme || \"\",\n      practiceWord,\n      practiceWordMeaning: practiceWordMeaningData || {}\n    }\n  }\n}"
+    },
     "targetLabels": {
       "file": "src/data/phonics/names.js",
       "sha256": "260e98e1957e57e221ce4bf2a51926c8e5e93a878a2bf4274315fc8cca5e0903",

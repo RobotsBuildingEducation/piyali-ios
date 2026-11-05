@@ -7,10 +7,10 @@ export const phonicsFixture={name:'piyali-source-phonics-fixture',enforce:'pre',
  if(modules[id])return prefix+modules[id];
  },load(id){if(!id.startsWith(prefix))return;const module=id.slice(prefix.length);
  if(module==='judge')return `export const DEFAULT_RESPONSES_MODEL='public-fixture';export async function callResponses({input}){await new Promise(r=>setTimeout(r,100));return input.includes('WRONG_FIXTURE')?'NO':'YES | 2'};`;
- if(module==='intelligence')return 'export const currentGoalFocus=()=>null;export const recordGoalAttempt=async()=>{};export const recordGradedOutcome=async()=>{};';
- if(module==='memory')return 'export const captureCompanionMemory=async()=>{};export const completeRepairFocus=async()=>{};';
+ if(module==='intelligence')return `import{currentGoalFocus as originalFocus}from'/src/utils/learningIntelligence.js';export const currentGoalFocus=surface=>window.__focusedPhonics?originalFocus(surface):null;export const recordGoalAttempt=async(...args)=>window.__focusedPhonics?.writes.push(['attempt',args]),recordGradedOutcome=async(...args)=>window.__focusedPhonics?.writes.push(['grade',args]);`;
+ if(module==='memory')return `export const captureCompanionMemory=async(...args)=>window.__focusedPhonics?.writes.push(['memory',args]),completeRepairFocus=async(...args)=>window.__focusedPhonics?.writes.push(['repair',args]);`;
  if(module==='worth')return 'export const assessGeneratedQuestionWorth=async()=>null;';
- if(module==='xp')return 'export const awardXp=async()=>{};';
+ if(module==='xp')return `export const awardXp=async(...args)=>window.__focusedPhonics?.writes.push(['xp',args]);`;
  if(module==='activity')return 'export const recordPlateActivity=async()=>{};';
  if(module==='achievements')return 'export const awardProgressionAchievements=async()=>{};';
  if(module==='speech')return `import {useState,useRef} from 'react';let count=0;export function useSpeechPractice(options){const [isRecording,setRecording]=useState(false),[isConnecting,setConnecting]=useState(false),[isEvaluating,setEvaluating]=useState(false),pending=useRef(null);const deliver=()=>{clearTimeout(pending.current);setRecording(false);setEvaluating(true);const text=++count===1?'WRONG_FIXTURE':options.transcriptionHint;pending.current=setTimeout(()=>{setEvaluating(false);options.onResult({recognizedText:text})},100)};return {supportsSpeech:true,isRecording,isConnecting,isEvaluating,stream:null,startRecording:async()=>{setConnecting(true);pending.current=setTimeout(()=>{setConnecting(false);setRecording(true);pending.current=setTimeout(deliver,200)},100)},stopRecording:deliver}};`;

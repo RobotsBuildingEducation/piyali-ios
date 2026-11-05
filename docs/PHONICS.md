@@ -1,5 +1,7 @@
 # Native phonics checkpoint
 
+> Focused-deck continuation, 2026-11-05: canonical cached localization, offline reentry, required-role evidence, held repair/plate completion, final original/native English/Arabic comparisons and two native recovery journeys are recorded in [FOCUSED_PHONICS_HANDOFF.md](FOCUSED_PHONICS_HANDOFF.md). Its source exceptions, precise scopes, retained failures and remaining trial/device/design gates qualify the earlier baseline below; the overall parity goal stays open.
+
 The main `/` Phonics mode now uses the original authored deck, stacked front/back cards, CEFR navigation, collected cards and fixed practice actions. This replaces the former list/form and fixed five-XP transcript-equality exercise. This checkpoint is part of the ongoing functional and design correction, not a claim of full app parity.
 
 ## Source contracts

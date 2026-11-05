@@ -163,7 +163,7 @@ public extension LearnerState {
         guard repairStepIsCurrent(step,now:now) else{return false}
         completed.insert(completionKey(step.id))
         if bonusXP>0 {addXP(bonusXP,now:now,calendar:.current)}
-        enqueue(PracticeChange(date:now,dayKey:step.day,target:target,level:step.item["cefrLevel"].string.isEmpty ? level:step.item["cefrLevel"].string,amount:max(0,bonusXP),source:.repair,contentID:step.id))
+        var completion=PracticeChange(date:now,dayKey:step.day,target:target,level:step.item["cefrLevel"].string.isEmpty ? level:step.item["cefrLevel"].string,amount:max(0,bonusXP),source:.repair,contentID:step.id);completion.repairStepIndex=step.index;enqueue(completion)
         for id in step.plan["memoryIds"].array.map(\.string) {reinforceMemory(id:id,now:now)}
         let event=step.event.setting("success",.bool(success)).setting("observation",.string(observation)).setting("support",.string(support))
         if pendingRepairEvidence == nil {pendingRepairEvidence=[]};pendingRepairEvidence?.append(RepairEvidenceChange(target:target,date:now,event:event))

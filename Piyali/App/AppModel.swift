@@ -153,7 +153,7 @@ import SwiftUI
         self.nostrAchievements=nostrAchievements ?? recoveryFixture?.1 ?? NostrAchievementsService();self.achievementRetries=achievementRetries ?? recoveryFixture?.0 ?? AchievementRetryController()
         let env=ProcessInfo.processInfo.environment
         automaticAchievementRecovery=achievementRetries != nil || recoveryFixture != nil || (env["PIYALI_OFFLINE_TESTS"] != "1" && env["PIYALI_FIRESTORE_EMULATOR_TESTS"] != "1")
-        self.progressService=progressService ?? FocusedDeckFixture.progressService() ?? CompanionSaveUIFixture.progressService() ?? AchievementDeliveryUIFixture.progressService() ?? FirebaseService.shared
+        self.progressService=progressService ?? FocusedPhonicsFixture.progressService() ?? FocusedDeckFixture.progressService() ?? CompanionSaveUIFixture.progressService() ?? AchievementDeliveryUIFixture.progressService() ?? FirebaseService.shared
         self.automaticWallet=automaticWallet ?? WalletService()
         curriculumIndex = (try? ContentLibrary.load([String:[String:[String]]].self, name: "curriculum-index")) ?? [:]
         flashcardIndex = (try? ContentLibrary.load([String:[String]].self, name: "flashcard-index")) ?? [:]
@@ -293,7 +293,7 @@ import SwiftUI
     func boot() async { guard signedIn else { return };scheduleAutomaticTips(recovering:true); await reloadContent();resumeAchievementSync(); await sync(); await subscription.refresh();scheduleAutomaticTips() }
     func finishOnboarding(_ draft:OnboardingDraft?=nil) {
         if let draft {learner.completeOnboarding(draft)} else {learner.onboardingComplete=true;learner.preferencesModifiedAt=Date()}
-        restoringLearner=true;PlatePracticeFixture.seed(self);MemoryDrawerFixture.seed(self);SettingsFixture.seed(self);GoalPracticeFixture.seed(self);FocusedDeckFixture.seed(self);restoringLearner=false;persist();Task { await reloadContent() }
+        restoringLearner=true;PlatePracticeFixture.seed(self);MemoryDrawerFixture.seed(self);SettingsFixture.seed(self);GoalPracticeFixture.seed(self);FocusedDeckFixture.seed(self);FocusedPhonicsFixture.seed(self);restoringLearner=false;persist();Task { await reloadContent() }
     }
     var immersionPreparationKey: String {
         let scope=learner.immersionScope()
@@ -526,17 +526,14 @@ import SwiftUI
         let key = GoalPractice.artifactKey(target:learner.target,day:blueprint["dayKey"].string,mode:mode,goalID:blueprint["goalId"].string)
         let artifact = learner.goalArtifacts?[key] ?? .object([:])
         guard mode == "phonics", !artifact["cards"].array.isEmpty else { return artifact }
-        let authored = LearningLanguages.levels.flatMap { phonicsLibrary["\(learner.target):\(learner.support):\($0)"] ?? [] }
-        let cards = artifact["cards"].array.compactMap { saved -> JSONValue? in
-            guard let source = authored.first(where:{ $0.id == saved["authoredId"].string }), let data = try? JSONEncoder().encode(source), let localized = try? JSONDecoder().decode(JSONValue.self,from:data) else { return nil }
-            return localized.setting("id",saved["id"]).setting("authoredId",saved["authoredId"]).setting("practiceRole",saved["practiceRole"]).setting("isGoal",.bool(true))
-        }
-        return artifact.setting("cards",.array(cards)).setting("requiresTutor",.bool(cards.isEmpty))
+        return (try? focusedPhonicsDeck(goal:blueprint,artifact:artifact)) ?? artifact.setting("cards",.array([]))
     }
+
     func prepareGoalDeck(_ blueprint: JSONValue, mode: String,respond:(@MainActor(String)async throws->String)?=nil) async throws {
         guard goalIsCurrent(blueprint), subscription.hasAccess else { return }
         let account = identity.npub, identitySession=identity.sessionRevision,scope=goalCourseScope,target = learner.target, state = learner
-        if !goalArtifact(blueprint,mode:mode)["cards"].array.isEmpty || goalArtifact(blueprint,mode:mode)["requiresTutor"].boolean { return }
+        let cachedKey=GoalPractice.artifactKey(target:target,day:blueprint["dayKey"].string,mode:mode,goalID:blueprint["goalId"].string),cached=learner.goalArtifacts?[cachedKey] ?? .null
+        if !cached["cards"].array.isEmpty || (mode != "phonics" && cached["requiresTutor"].boolean) {return}
         var cards: [JSONValue] = []
         if mode == "flashcards" {
             guard let policy=companionQuestPolicy else{throw PracticeRecipeFailure.unavailable}
@@ -548,21 +545,11 @@ import SwiftUI
             catch {try Task.checkCancellation();input = .object(["focus":focus,"providerFailed":.bool(true)])}
             cards=try policy.run("goalDeckCards",input).array
         } else if mode == "phonics" {
-            let all = phonicsLibrary.isEmpty ? try ContentLibrary.load([String:[PhonicsCard]].self,name:"phonics") : phonicsLibrary
-            let requested = all["\(target):\(state.support):\(blueprint["cefrLevel"].string)"] ?? []
-            let chunks = GoalPractice.list(blueprint["targetLanguage"])
-            let levels = LearningLanguages.levels
-            let first = requested.first { $0.practiceWord == chunks.first } ?? levels.flatMap { all["\(target):\(state.support):\($0)"] ?? [] }.first { $0.practiceWord == chunks.first }
-            if let first, let level = levels.first(where:{ (all["\(target):\(state.support):\($0)"] ?? []).contains(where:{ $0.id == first.id }) }) {
-                let siblings = all["\(target):\(state.support):\(level)"] ?? []
-                let selected = Array(([first] + siblings.filter { $0.id != first.id }).prefix(2))
-                cards = try selected.enumerated().map { index,card in
-                    var fields = try JSONDecoder().decode(JSONValue.self,from:JSONEncoder().encode(card))
-                    fields = fields.setting("authoredId",.string(card.id)).setting("id",.string("focused-" + GoalPractice.artifactKey(target:target,day:blueprint["dayKey"].string,mode:mode,goalID:blueprint["goalId"].string) + "-\(index)"))
-                    return fields.setting("practiceRole",.string(index == 0 ? "original" : "transfer")).setting("isGoal",.bool(true))
-                }
-            }
+            if phonicsLibrary.isEmpty {await reloadContent()}
+            try Task.checkCancellation();guard identity.sessionRevision == identitySession,goalCourseScope == scope,goalIsCurrent(blueprint) else{throw CancellationError()}
+            let focused=try focusedPhonicsDeck(goal:blueprint);guard !focused["requiresTutor"].boolean else{return};cards=focused["cards"].array
         }
+
         guard identity.sessionRevision == identitySession,goalCourseScope == scope,identity.npub == account, learner.target == target, goalIsCurrent(blueprint) else { return }
         let payload = blueprint.setting("mode",.string(mode)).setting("cards",.array(cards)).setting("requiresTutor",.bool(cards.isEmpty))
         learner.applyGoal(GoalChange(action:.artifact,target:target,payload:payload)); persist(); await sync()
