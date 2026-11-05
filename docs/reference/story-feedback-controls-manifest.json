@@ -10,7 +10,7 @@
     },
     {
       "file": "src/components/RandomCharacter.jsx",
-      "sha256": "926ca4aa285166d5b47908dfe92c135ed25eaba567ffd5d2476204af5980b729"
+      "sha256": "caa28f8b1d25cd82aff68323eadc1a8003c93506714aff53d3cf3b079eee5db0"
     },
     {
       "file": "src/components/WaveBar.jsx",
@@ -26,7 +26,7 @@
     },
     {
       "file": "src/utils/translation.jsx",
-      "sha256": "10c6705379ed869d84ece0ec7a829193bb3c9522d742683701de56cb194666b9"
+      "sha256": "010eb38be8f55e0509b99c209ae4042833057f3e28e0d925636dec42d7fb6fb6"
     },
     {
       "file": "src/utils/translationArStatic.js",
@@ -61,5 +61,5 @@
       "sha256": "79a5362dc1b189acd0d2288c0e85ff29c9cc1c8e39b8bb5cabe164ddd1c29030"
     }
   ],
-  "scope": "Original compact FeedbackRail JSX, actual icons/artwork/Markdown/WaveBar/action row and copy. Explicit public result snapshots; original sound/store hooks are excluded. Fixed allowed portrait 7 makes the comparison repeatable. No microphone, providers, notes or learner stores execute."
+  "scope": "Original compact FeedbackRail JSX, actual icons/artwork/Markdown/WaveBar/action row and copy. Explicit public result snapshots or original strict Japanese speech evaluation; original sound/store hooks are excluded. Fixed allowed portrait 7 makes the comparison repeatable. No microphone, providers, notes or learner stores execute."
 }

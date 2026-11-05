@@ -42,13 +42,30 @@ final class StoryTests:XCTestCase {
             XCTAssertEqual(result.charSim,expected["charSim"].number,accuracy:1e-10);XCTAssertEqual(result.f1,expected["f1"].number,accuracy:1e-10)
         }
     }
-    func testSpeechQualityAndNonLatinScriptsUseActualLanguageRatherThanLatinOnlyDetection() {
+    func testCurrentSourceStrictEvaluationAcrossScriptsAndAudio() throws {
+        let url=URL(fileURLWithPath:#filePath).deletingLastPathComponent().appendingPathComponent("Fixtures/story-strict-evaluation.json")
+        let cases=try JSONDecoder().decode([JSONValue].self,from:Data(contentsOf:url));XCTAssertEqual(cases.count,540)
+        for item in cases {let input=item["input"],expected=item["expected"],metrics=input["audioMetrics"],audio:SpeechAudioMetrics? = metrics == .null ? nil:.init(duration:metrics["duration"].number,rms:metrics["rms"].number,zeroCrossings:Int(metrics["zeroCrossings"].number))
+            let result=StorySpeech.evaluate(recognized:input["recognizedText"].string,target:input["targetSentence"].string,lang:input["lang"].string,confidence:input["confidence"].number,audio:audio)
+            XCTAssertEqual(result.pass,expected["pass"].boolean,input.json);XCTAssertEqual(result.score,Int(expected["score"].number),input.json);XCTAssertEqual(result.reasons,expected["reasons"].array.map(\.string),input.json)
+            XCTAssertEqual(result.charSim,expected["charSim"].number,accuracy:1e-10,input.json);XCTAssertEqual(result.f1,expected["f1"].number,accuracy:1e-10,input.json);XCTAssertEqual(result.langLike,expected["langLike"].number,accuracy:1e-10,input.json)
+        }
+    }
+    func testSourceRejectsExactNonLatinMatchesAndNoisySpeech() {
+        // This mirrors the source defect: a score of 100 can still fail its language check.
         for (language,text) in [("ar","هذا البيت جميل"),("el","Το σπίτι είναι όμορφο"),("hi","यह घर अच्छा है"),("ja","今日は母の誕生日です"),("ru","Этот дом красивый"),("zh","今天是她的生日")] {
-            XCTAssertTrue(StorySpeech.evaluate(recognized:text,target:text,lang:language,confidence:0.9).pass,language)
-            XCTAssertFalse(StorySpeech.evaluate(recognized:"These are English words",target:text,lang:language,confidence:0.9).pass)
+            let result=StorySpeech.evaluate(recognized:text,target:text,lang:language,confidence:0.9)
+            XCTAssertFalse(result.pass,language);XCTAssertTrue(result.reasons.contains("not-target-lang"),language);XCTAssertEqual(result.score,100,language)
         }
         let noisy=StorySpeech.evaluate(recognized:"Tengo flores rojas",target:"Tengo flores rojas",lang:"es",confidence:0.9,audio:.init(duration:0.1,rms:0,zeroCrossings:0))
         XCTAssertFalse(noisy.pass);XCTAssertTrue(noisy.reasons.contains("speech-quality"))
+    }
+    func testSourceRejectedJapaneseLineDoesNotAwardOrAdvanceAfterReload() throws {
+        let line:JSONValue = .object(["speaker":.string("Ana"),"target":.string("今日は母の誕生日です"),"support":.string("Today is my mother's birthday.")])
+        let second=line.setting("speaker",.string("Luis"));let run=try StoryRun(payload:.object(["title":.string("A birthday"),"sentences":.array([line,second])]),mode:.speaking,target:"ja",support:"en",level:"A1",lessonID:nil,worth:ConversationPractice.worth(rating:800,level:"A1"),tutorial:true)
+        var state=LearnerState();state.target="ja";state.support="en";state.saveStory(run)
+        XCTAssertEqual(state.practiceStoryLine(words:line["target"].string,confidence:0.9),0);XCTAssertEqual(state.totalXP,0);XCTAssertEqual(state.story?.index,0);XCTAssertEqual(state.story?.speechResult?.reasons,["not-target-lang"]);XCTAssertTrue(state.story?.passedLines.isEmpty == true)
+        let restored=try JSONDecoder().decode(LearnerState.self,from:JSONEncoder().encode(state));XCTAssertEqual(restored.totalXP,0);XCTAssertEqual(restored.story?.speechResult?.reasons,["not-target-lang"]);XCTAssertTrue(restored.story?.passedLines.isEmpty == true)
     }
     func testNativeCharacterIdentityAndPortraitPoolsMatchExecutedSource() throws {
         let root=URL(fileURLWithPath:#filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent(),appearance=StoryAppearance(try ContentLibrary.decode(JSONValue.self,url:root.appendingPathComponent("Piyali/Resources/story-ui.json.gz")))

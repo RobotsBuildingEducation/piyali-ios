@@ -100,7 +100,10 @@ import FirebaseAILogic
                     payload=payload.setting("segments",.array(segments)) }
                 #endif
                 if mode == .speaking {
-                    let lines=payload["segments"].array.flatMap { $0["turns"].array }
+                    var lines=payload["segments"].array.flatMap { $0["turns"].array }
+                    #if DEBUG
+                    if target == "ja",ProcessInfo.processInfo.environment["PIYALI_STORY_JAPANESE_FIXTURE"] == "1" {lines=lines.map {$0.setting("target",.string("今日は母の誕生日です"))}}
+                    #endif
                     payload = .object(["title":payload["title"],"sentences":.array(tutorial ? Array(lines.prefix(2)) : Array((lines+lines).prefix(10)))])
                     if ProcessInfo.processInfo.environment["PIYALI_STORY_STREAM_FIXTURE"] == "1" {
                         let id=UUID();var available:[StoryTurn]=[]

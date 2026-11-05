@@ -54,3 +54,16 @@ private struct StoryCapturePose:View{
     private var copy:StoryAppearance{StoryCharacterAvatar.appearance}
     var body:some View{HStack(spacing:8){Button{}label:{StoryRecordLabel(recorder:recorder,speaking:speaking,record:copy.text("record",language:language),connecting:copy.text("connectingMic",language:language))}.buttonStyle(ActivityPrimaryButtonStyle(tone:wrong ? "stop":"speak")).disabled(recorder.connecting || recorder.evaluating)}.padding(.leading,52)}
 }
+
+@MainActor extension StoryRecordingReferenceTests {
+    func testOriginalJapaneseExactSpeechFailureFeedback() async throws {
+        let env=ProcessInfo.processInfo.environment;guard env["PIYALI_OFFLINE_TESTS"] == "1",env["PIYALI_REFERENCE_PREVIEW_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Isolated source preview required")}
+        let scene=try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap{$0 as? UIWindowScene}.first),old=scene.windows.first{$0.isKeyWindow};defer{old?.makeKey()}
+        let config=WKWebViewConfiguration();config.websiteDataStore = .nonPersistent();let web=WKWebView(frame:CGRect(x:0,y:0,width:402,height:874),configuration:config),window=UIWindow(windowScene:scene),vc=UIViewController();window.frame=web.frame;window.rootViewController=vc;vc.view.addSubview(web);window.makeKeyAndVisible();web.scrollView.contentInsetAdjustmentBehavior = .never;defer{web.stopLoading();window.isHidden=true;window.rootViewController=nil}
+        web.load(URLRequest(url:try XCTUnwrap(URL(string:"http://127.0.0.1:5181/__piyali-story-feedback?language=en&kind=speaking&case=japanese"))));var ready=false
+        for _ in 0..<600 {if (try? await web.evaluateJavaScript("window.__storyFeedbackReady===true")) as? Bool == true {ready=true;break};try await Task.sleep(for:.milliseconds(25))};XCTAssertTrue(ready);guard ready else{return};try await Task.sleep(for:.milliseconds(400))
+        let raw=try await web.evaluateJavaScript("JSON.stringify({result:window.__storyFeedbackEvaluation,text:document.querySelector('[data-source-story-feedback]').innerText})"),data=Data((raw as? String ?? "{}").utf8),result=try JSONDecoder().decode(JSONValue.self,from:data)
+        XCTAssertFalse(result["result"]["pass"].boolean);XCTAssertEqual(result["result"]["score"].number,100);XCTAssertEqual(result["result"]["reasons"].array.map(\.string),["not-target-lang"]);XCTAssertTrue(result["text"].string.contains("Try speaking in Japanese"));XCTAssertFalse(result["text"].string.contains("+2 XP"))
+        let image=try await web.takeSnapshot(configuration:nil),shot=XCTAttachment(image:image);shot.name="Source Japanese Story exact transcription rejected";shot.lifetime = .keepAlways;add(shot)
+    }
+}
