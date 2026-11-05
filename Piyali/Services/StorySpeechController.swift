@@ -9,8 +9,9 @@ import Combine
     private func scope(_ app:AppModel,_ run:StoryRun,target:String,role:Int?)->String{[app.identity.npub,app.learner.target,app.learner.support,app.learner.level,run.id.uuidString,String(run.index),String(role ?? -1),target].joined(separator:"|")}
     func cancel(){owner=nil;recorder.cancel();recorder.clearError()}
     func stop(){recorder.stop()}
-    func start(_ app:AppModel,run:StoryRun,target:String,role:Int?,allowed:@escaping()->Bool,result:@escaping(JSONValue)->Void){
-        guard allowed(),!recorder.connecting,!recorder.recording,!recorder.evaluating,let current=app.learner.story,current.id == run.id,current.index == run.index,!current.completed,!current.atEnd else{return}
+    func start(_ app:AppModel,run:StoryRun,target:String,role:Int?,allowed:@escaping()->Bool,currentRun:(()->StoryRun?)?=nil,result:@escaping(JSONValue)->Void){
+        let currentRun=currentRun ?? {app.learner.story}
+        guard allowed(),!recorder.connecting,!recorder.recording,!recorder.evaluating,let current=currentRun(),current.id == run.id,current.index == run.index,!current.completed,!current.atEnd else{return}
         if run.mode == .speaking{guard role == nil,current.currentSentence?.target == target else{return}}
         else{guard let role,let segment=current.currentSegment,segment.turns.indices.contains(role),segment.turns[role].target == target,StoryAppearance.isUser(segment.turns[role].speaker,learnerName:app.learner.name)else{return}}
         cancel();let captured=scope(app,current,target:target,role:role);owner=captured
@@ -20,7 +21,7 @@ import Combine
             #endif
             recorder.start(target:config["targetLang"].string,policy:speechPolicy!,transcriptionHint:config["transcriptionHint"].string,timeoutMs:Int(config["timeoutMs"].number)){[weak self] text in
                 guard let self,self.owner == captured else{return};self.owner=nil
-                guard allowed(),let current=app.learner.story,current.id == run.id,current.index == run.index,!current.completed,self.scope(app,current,target:target,role:role) == captured else{return}
+                guard allowed(),let current=currentRun(),current.id == run.id,current.index == run.index,!current.completed,self.scope(app,current,target:target,role:role) == captured else{return}
                 do{let metadata=try self.options!.result(text);guard !metadata["recognizedText"].string.isEmpty else{self.recorder.reportError("no-speech");return};result(metadata)}catch{self.recorder.reportError("transcription-failed")}
             }
         }catch{recorder.reportError("connection-failed")}

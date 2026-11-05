@@ -27,6 +27,7 @@ methods = {'narration-warm-refill':'testSilentNarrationRefillPreservesAnActiveNa
            'reading': 'testNativeReadingGenerationAndResponsesFallback',
            'reading-stream': 'testReadingStreamingProvidersAndTranslation',
            'stories': 'testNativeStorySourcePoliciesBatchWorthAndResponsesFallback',
+           'story-stream': 'testSpeakingStoryStreamsBeforeValidatedCompletion',
            'services': 'testNativeAuthenticationGeminiResponsesAndVoice',
            'immersion': 'testNativeImmersionGenerationUsesResponsesAndPreservesExistingMissions',
            'conversation': 'testNativeConversationGoalsGradeCommunicationAndReanchorPremiseRejection',

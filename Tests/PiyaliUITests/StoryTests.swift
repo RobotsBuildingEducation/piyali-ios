@@ -12,11 +12,12 @@ import XCTest
         XCTAssertTrue(element.waitForExistence(timeout:10));XCTAssertTrue(element.isHittable,app.debugDescription)
     }
     private func tap(_ id:String,_ app:XCUIApplication) { let button=app.buttons[id];reveal(button,app);button.tap() }
-    private func start(_ mode:String,role:Bool=false,failure:Bool=false,theme:String="light",delay:Bool=false,narration:Bool=false,speechDelay:Bool=false,denied:Bool=false,auto:Bool=false)->XCUIApplication {
+    private func start(_ mode:String,role:Bool=false,failure:Bool=false,theme:String="light",delay:Bool=false,narration:Bool=false,speechDelay:Bool=false,denied:Bool=false,auto:Bool=false,stream:Bool=false)->XCUIApplication {
         continueAfterFailure=false
         let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString;app.launchEnvironment["PIYALI_STORY_FIXTURE"]=mode;app.launchEnvironment["PIYALI_PRACTICE_FIXTURE"]="delight:natural_or_weird";app.launchEnvironment["PIYALI_READING_FIXTURE"]="1";app.launchEnvironment["PIYALI_STORY_SPEECH_RESULTS"]="miss,pass,pass,pass"
         if narration{app.launchEnvironment["PIYALI_STORY_NARRATION_FIXTURE"]="1" };if speechDelay{app.launchEnvironment["PIYALI_STORY_SPEECH_OPEN_DELAY_MS"]="2000"};if denied{app.launchEnvironment["PIYALI_STORY_SPEECH_DENIED"]="1"};if auto{app.launchEnvironment["PIYALI_STORY_SPEECH_AUTOFINISH"]="1";app.launchEnvironment["PIYALI_STORY_SPEECH_RESULTS"]="pass"};if delay { app.launchEnvironment["PIYALI_STORY_GENERATION_DELAY_MS"]="8000" }
         if role { app.launchEnvironment["PIYALI_STORY_LEARNER_CAST"]="1" };if failure { app.launchEnvironment["PIYALI_STORY_AUDIO_FAIL_FIRST"]="1" }
+        if stream { app.launchEnvironment["PIYALI_STORY_STREAM_FIXTURE"]="1" }
         app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme",theme];app.launch();handleInitialPaperPencil(app)
         let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Story Learner");if app.buttons["entryKeyboardDone"].exists { app.buttons["entryKeyboardDone"].tap() };app.buttons["createAccount"].tap();handleInitialPaperPencil(app)
         XCTAssertTrue(app.buttons["startLearning"].waitForExistence(timeout:20));app.buttons["startLearning"].tap();open(app,expectStory:!delay);return app
@@ -46,6 +47,27 @@ import XCTest
     }
     func testCompletedTranscriptionAutomaticallyGradesWithoutAnExtraStopTap() {
         let app=start("speaking",narration:true,auto:true);tap("storyRecord",app);XCTAssertTrue(app.staticTexts["storySpeechFeedback"].waitForExistence(timeout:8));XCTAssertEqual(app.staticTexts["storySpeechFeedback"].value as? String,"+2 XP");XCTAssertFalse(app.buttons["storyRecord"].exists);XCTAssertTrue(app.staticTexts["storySpeechFeedback"].label.contains("Well done!"));XCTAssertTrue(app.staticTexts["storySpeechScore"].exists);XCTAssertFalse(app.descendants(matching:.any).matching(identifier:"storyFeedbackExplanation").firstMatch.exists);xp(2,app);photo("Native Story automatic completed-transcript grade",app)
+    }
+    func testStreamingSpeakingDefersCreditUntilStoryIsValidated() {
+        let app=start("speaking",narration:true,auto:true,stream:true)
+        XCTAssertTrue(app.buttons["storyRecord"].isHittable)
+        tap("storyRecord",app)
+        XCTAssertTrue(app.descendants(matching:.any).matching(identifier:"storyPendingAssessment").firstMatch.waitForExistence(timeout:5),app.debugDescription)
+        XCTAssertFalse(app.staticTexts["storySpeechFeedback"].exists);xp(0,app)
+        photo("Native Story first line while generation continues",app)
+        XCTAssertTrue(app.staticTexts["storySpeechFeedback"].waitForExistence(timeout:25),app.debugDescription)
+        XCTAssertEqual(app.staticTexts["storySpeechFeedback"].value as? String,"+2 XP");xp(2,app)
+        XCTAssertTrue(app.buttons["storyNext"].exists)
+        app.terminate();app.launchEnvironment.removeValue(forKey:"PIYALI_STORY_STREAM_FIXTURE");app.launch();handleInitialPaperPencil(app);open(app)
+        XCTAssertEqual(app.staticTexts["storySpeechFeedback"].value as? String,"+2 XP");xp(2,app)
+    }
+    func testBackgroundDiscardsPendingStreamingSpeech() {
+        let app=start("speaking",narration:true,auto:true,stream:true)
+        tap("storyRecord",app)
+        XCTAssertTrue(app.descendants(matching:.any).matching(identifier:"storyPendingAssessment").firstMatch.waitForExistence(timeout:5))
+        XCUIDevice.shared.press(.home);app.activate()
+        XCTAssertTrue(app.buttons["storyRecord"].waitForExistence(timeout:15),app.debugDescription)
+        XCTAssertFalse(app.staticTexts["storySpeechFeedback"].exists);xp(0,app)
     }
     func testBackgroundedGenerationRestartsAndReturnsToExplicitRecording() {
         let app=start("speaking",delay:true)

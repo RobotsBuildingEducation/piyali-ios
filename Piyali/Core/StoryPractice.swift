@@ -22,6 +22,7 @@ public struct StoryRun:Codable,Equatable,Sendable {
     public var practicedRoleLines=Set<String>()
     public var passedLines=Set<Int>()
     public var completed=false
+    public var isProvisional:Bool?
     public var earnedXP=0
     public var speechResult:StorySpeechResult?
     public var lastWords=""
@@ -34,6 +35,10 @@ public struct StoryRun:Codable,Equatable,Sendable {
             guard !payload["title"].string.isEmpty,let lines=try? JSONDecoder().decode([StoryTurn].self,from:JSONEncoder().encode(payload["sentences"])),(tutorial ? 2...3 : 8...10).contains(lines.count),Set(lines.map(\.speaker)).count == 2,lines.allSatisfy({ !$0.target.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty && $0.target.utf8.count <= 8000 && !$0.speaker.isEmpty }),StoryEpisode.compatible(lines.map(\.target),target:target) else { throw StoryFailure.invalid }
             sentences=lines;title=payload["title"].string;episode=nil
         } else { let value=try StoryEpisode.parse(payload,target:target,prepare:true);episode=value;sentences=[];title=value.title }
+    }
+    /// Transient UI state only; finalized content must still pass the normal initializer.
+    public init(provisionalID:UUID,turns:[StoryTurn],target:String,support:String,level:String,lessonID:String?,title:String,worth:JSONValue) {
+        self.id=provisionalID;self.isProvisional=true;self.target=target;self.support=support;self.level=level;self.lessonID=lessonID;self.mode = .speaking;self.sentences=turns;self.title=title;self.worth=worth
     }
     public static func contextData(content:JSONValue,agenda:JSONValue,level:String)throws->Data {
         let encoder=JSONEncoder();encoder.outputFormatting=[.sortedKeys,.withoutEscapingSlashes]
@@ -70,13 +75,14 @@ public struct StoryRun:Codable,Equatable,Sendable {
 public extension LearnerState {
     var story:StoryRun? { storyRuns?[target] }
     mutating func saveStory(_ run:StoryRun) {
+        guard run.isProvisional != true else{return}
         var saved=run;saved.updatedAt=Date();if storyRuns == nil { storyRuns=[:] };storyRuns?[run.target]=saved
         while storyRuns!.count > 1,(storyRuns!.count > 3 || (try? JSONEncoder().encode(storyRuns).count) ?? 0 > 80_000) {
             let oldest=storyRuns!.values.filter { $0.target != run.target }.min { $0.updatedAt < $1.updatedAt }!.target;storyRuns?.removeValue(forKey:oldest)
         }
     }
     @discardableResult mutating func practiceStoryLine(words:String,confidence:Double = 0,audio:SpeechAudioMetrics? = nil,typed:Bool = false,now:Date = Date()) -> Int {
-        guard var run=story,run.support == support,run.mode == .speaking,!run.completed,!run.passedLines.contains(run.index),run.speechResult == nil,let line=run.currentSentence,!words.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else { return 0 }
+        guard var run=story,run.isProvisional != true,run.support == support,run.mode == .speaking,!run.completed,!run.passedLines.contains(run.index),run.speechResult == nil,let line=run.currentSentence,!words.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else { return 0 }
         let verdict=StorySpeech.evaluate(recognized:words,target:line.target,lang:run.target,confidence:confidence,audio:audio)
         run.speechResult=verdict;run.lastWords=String(words.prefix(2000));let amount=verdict.pass ? 2 : 0
         var change=PracticeChange(date:now,dayKey:CalendarDay.key(now),target:run.target,level:run.level,amount:amount,source:verdict.pass ? .storyTurn : .practice,contentID:run.contentID(verdict.pass ? "line-"+String(run.index) : "miss-"+UUID().uuidString))
@@ -93,7 +99,7 @@ public extension LearnerState {
         enqueue(change);saveStory(run);return amount
     }
     @discardableResult mutating func finishStory(now:Date = Date()) -> Int {
-        guard var run=story,run.support == support,run.atEnd,!run.completed,run.mode == .speaking || run.results.count == run.count else { return 0 }
+        guard var run=story,run.isProvisional != true,run.support == support,run.atEnd,!run.completed,run.mode == .speaking || run.results.count == run.count else { return 0 }
         let amount=run.mode == .speaking ? 0 : 6;run.completed=true;run.earnedXP += amount
         var change=PracticeChange(date:now,dayKey:CalendarDay.key(now),target:run.target,level:run.level,amount:amount,source:.storyCompletion,contentID:run.contentID("complete"))
         change.attachCurriculumLesson(id:run.lessonID,level:run.lessonLevel ?? run.level)

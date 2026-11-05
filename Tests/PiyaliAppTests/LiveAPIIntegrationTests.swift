@@ -782,6 +782,33 @@ import Security
         } catch {try? await Auth.auth().currentUser?.delete();try? Auth.auth().signOut();try? identity.disconnect();throw error}
         try await Auth.auth().currentUser?.delete();try Auth.auth().signOut();try identity.disconnect()
     }
+    func testSpeakingStoryStreamsBeforeValidatedCompletion() async throws {
+        guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else {throw XCTSkip("Explicit live API opt-in required.")}
+        XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))
+        if FirebaseApp.app() == nil {AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure()};XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let identity=IdentityService();try identity.create();try await FirebaseIdentityService.shared.ensure(identity)
+        do {
+            var state=LearnerState();state.target="es";state.support="en";state.level="A1"
+            let fallback=AIService(configuration:AppConfiguration(values:AppConfiguration().values.merging(["AIProvider":"responses"]) {_,new in new}))
+            for (label,ai) in [("configured",AIService()),("responses",fallback)] {
+                var matched=false,lastError:Error=StoryFailure.invalid
+                for _ in 0..<2 {
+                    var first:String?,partial=0
+                    do {
+                        let payload=try await ai.storyPayload(mode:.speaking,lesson:nil,state:state,level:"A1",tutorial:false,recent:[],repair:false,onSpeakingChunk:{snapshot in
+                            if snapshot.isEmpty {first=nil;partial=0;return}
+                            let done=snapshot.components(separatedBy:.newlines).contains {line in (try? JSONDecoder().decode(Piyali.JSONValue.self,from:Data(line.utf8)))?["type"].string == "done"}
+                            if !done,let line=StoryStreamDraft.speaking(snapshot).first {first=line.target;partial += 1}
+                        })
+                        let run=try StoryRun(payload:payload,mode:.speaking,target:"es",support:"en",level:"A1",lessonID:nil,worth:.null)
+                        if partial > 0,first == run.sentences.first?.target {matched=true;print("LIVE SPEAK STREAM: path=\(label), usable partial snapshots=\(partial)");break}
+                    } catch {lastError=error}
+                }
+                if !matched {XCTFail("\(label) did not produce a matching partial sentence before completion: \(lastError)")}
+            }
+        } catch {try? await Auth.auth().currentUser?.delete();try? Auth.auth().signOut();try? identity.disconnect();throw error}
+        try await Auth.auth().currentUser?.delete();try Auth.auth().signOut();try identity.disconnect()
+    }
     func testNativeStorySourcePoliciesBatchWorthAndResponsesFallback() async throws {
         guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else { throw XCTSkip("Explicit live API opt-in required.") }
         XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))

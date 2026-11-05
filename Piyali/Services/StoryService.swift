@@ -6,6 +6,7 @@ import FirebaseAILogic
     @Published var busy=false
     @Published var error:String?
     @Published private(set) var activeRunID:UUID?
+    @Published private(set) var provisional:StoryRun?
     private var generation=UUID()
     private var preparation:Task<Bool,Never>?
     struct Request { let mode:StoryMode;let lesson:Lesson?;let state:LearnerState;let level:String;let tutorial:Bool;let recent:[JSONValue];let unit:LearningUnit?;let account:String }
@@ -25,16 +26,22 @@ import FirebaseAILogic
         return nil
         #endif
     }
-    func cancel() { generation=UUID();preparation?.cancel();preparation=nil;busy=false }
+    func cancel() { generation=UUID();preparation?.cancel();preparation=nil;busy=false;provisional=nil }
     func prepare(_ app:AppModel,lesson:Lesson?,mode:StoryMode,fresh:Bool) async ->Bool {
         preparation?.cancel()
         let request=Task { @MainActor in await load(app,lesson:lesson,mode:mode,fresh:fresh) }
         preparation=request
         return await withTaskCancellationHandler(operation:{ await request.value },onCancel:{ request.cancel() })
     }
+    private static func makeProvisional(previous:StoryRun?,id:UUID,turns:[StoryTurn],state:LearnerState,level:String,lesson:Lesson?,title:String)->StoryRun {
+        var run=StoryRun(provisionalID:id,turns:turns,target:state.target,support:state.support,level:level,lessonID:lesson?.id,title:title,worth:ConversationPractice.worth(rating:state.rating,level:level))
+        var portraits=previous?.id == id ? (previous?.portraitIDs ?? [:]) : [:]
+        for name in Set(turns.map(\.speaker)) where portraits[name] == nil {portraits[name]=StoryCharacterAvatar.appearance.portraitPool(name,learnerName:state.name).randomElement() ?? "35"}
+        run.portraitIDs=portraits;if previous?.id == id {run.updatedAt=previous!.updatedAt};return run
+    }
     private func load(_ app:AppModel,lesson:Lesson?,mode:StoryMode,fresh:Bool) async ->Bool {
         guard !Task.isCancelled else { return false }
-        let token=UUID();generation=token;busy=false;activeRunID=nil;error=nil
+        let token=UUID();generation=token;busy=false;activeRunID=nil;provisional=nil;error=nil
         let account=app.identity.npub,target=app.learner.target,support=app.learner.support
         let authoredLevel=Self.authoredLevel(lesson,learnerLevel:app.learner.level)
         let fixed=lesson?.id == IntroTutorial.lessonID || lesson?.isFinalQuiz == true || lesson?.id.hasPrefix("goal-") == true || lesson?.id.hasPrefix("repair-") == true
@@ -47,7 +54,7 @@ import FirebaseAILogic
         }
         guard app.subscription.hasAccess || Self.fixtureMode != nil else { return false }
         busy=true
-        defer { if generation == token { busy=false } }
+        defer { if generation == token { busy=false;provisional=nil } }
         let state=app.learner,tutorial=lesson?.id == IntroTutorial.lessonID || lesson?.content["stories"]["topic"].string == "tutorial" || !(lesson?.content["stories"]["tutorialPracticeLevel"].string ?? "").isEmpty
         do {
             var payload:JSONValue
@@ -64,14 +71,33 @@ import FirebaseAILogic
                 if mode == .speaking {
                     let lines=payload["segments"].array.flatMap { $0["turns"].array }
                     payload = .object(["title":payload["title"],"sentences":.array(tutorial ? Array(lines.prefix(2)) : Array((lines+lines).prefix(10)))])
+                    if ProcessInfo.processInfo.environment["PIYALI_STORY_STREAM_FIXTURE"] == "1" {
+                        let id=UUID();var available:[StoryTurn]=[]
+                        for line in payload["sentences"].array.prefix(2) {
+                            try Task.checkCancellation();guard generation == token,app.identity.npub == account,app.learner.target == target,app.learner.support == support else{return false}
+                            let turn=try JSONDecoder().decode(StoryTurn.self,from:JSONEncoder().encode(line));available.append(turn)
+                            provisional=Self.makeProvisional(previous:provisional,id:id,turns:available,state:state,level:level,lesson:lesson,title:payload["title"].string)
+                            try await Task.sleep(for:.seconds(8))
+                        }
+                    }
                 }
             } else {
                 let unit=app.units.first { $0.lessons.contains { $0.id == lesson?.id } } ?? (lesson?.id == IntroTutorial.lessonID ? app.introLibrary?.units[state.level] : nil)
                 if let writer { payload=try await writer(.init(mode:mode,lesson:lesson,state:state,level:level,tutorial:tutorial,recent:state.storyHistory?[target] ?? [],unit:unit,account:account)) }
-                else { payload=try await app.ai.storyPayload(mode:mode,lesson:lesson,state:state,level:level,tutorial:tutorial,recent:state.storyHistory?[target] ?? [],repair:false,unit:unit,account:account) }
+                else {
+                    var id=UUID()
+                    payload=try await app.ai.storyPayload(mode:mode,lesson:lesson,state:state,level:level,tutorial:tutorial,recent:state.storyHistory?[target] ?? [],repair:false,unit:unit,account:account,onSpeakingChunk:{[weak self] snapshot in
+                        guard let self,self.generation == token,app.identity.npub == account,app.learner.target == target,app.learner.support == support else{return}
+                        let turns=StoryStreamDraft.speaking(snapshot)
+                        guard !turns.isEmpty else {if self.provisional != nil {id=UUID()};self.provisional=nil;return}
+                        let next=Self.makeProvisional(previous:self.provisional,id:id,turns:turns,state:state,level:level,lesson:lesson,title:lesson?.title.localized(support) ?? "Practice")
+                        if self.provisional != next {self.provisional=next}
+                    })
+                }
             }
             try Task.checkCancellation();guard generation == token,app.identity.npub == account,app.learner.target == target,app.learner.support == support else { return false }
             var run=try StoryRun(payload:payload,mode:mode,target:target,support:support,level:level,lessonID:lesson?.id,worth:ConversationPractice.worth(rating:state.rating,level:level),tutorial:tutorial)
+            if let provisional,let first=provisional.currentSentence,let final=run.currentSentence,first.speaker == final.speaker,first.target == final.target {run.id=provisional.id}
             run.lessonLevel=authoredLevel;run.sourceContext=sourceContext
             let recipes=try PracticeRecipes()
             if mode == .speaking {
@@ -80,7 +106,8 @@ import FirebaseAILogic
             }
             try Task.checkCancellation();guard generation == token,app.identity.npub == account,app.learner.target == target,app.learner.support == support else { return false }
             let names=Set(run.episode?.segments.flatMap { $0.turns.map(\.speaker) } ?? run.sentences.map(\.speaker))
-            run.portraitIDs=Dictionary(uniqueKeysWithValues:names.map { ($0,StoryCharacterAvatar.appearance.portraitPool($0,learnerName:state.name).randomElement() ?? "35") })
+            let existing=provisional?.id == run.id ? (provisional?.portraitIDs ?? [:]) : [:]
+            run.portraitIDs=Dictionary(uniqueKeysWithValues:names.map { ($0,existing[$0] ?? StoryCharacterAvatar.appearance.portraitPool($0,learnerName:state.name).randomElement() ?? "35") })
             app.learner.saveStory(run)
             if payload["nativePlan"] != .null,!payload["nativePlan"]["isTutorial"].boolean {
                 let plan=payload["nativePlan"]
@@ -90,13 +117,13 @@ import FirebaseAILogic
                 while app.learner.storyHistory!.count > 3 { let old=app.learner.storyHistory!.keys.sorted().first { $0 != target }!;app.learner.storyHistory?.removeValue(forKey:old) }
                 while (try? JSONEncoder().encode(app.learner.storyHistory).count) ?? 0 > 96_000,(app.learner.storyHistory?[target]?.count ?? 0) > 1 { app.learner.storyHistory?[target]?.removeLast() }
             }
-            activeRunID=run.id;app.persist();return true
+            activeRunID=run.id;provisional=nil;app.persist();return true
         } catch is CancellationError { } catch { if generation == token { self.error=error.localizedDescription } }
         return false
     }
 }
 extension AIService {
-    func storyPayload(mode:StoryMode,lesson:Lesson?,state:LearnerState,level:String,tutorial:Bool,recent:[JSONValue],repair:Bool,unit:LearningUnit?=nil,account:String="native") async throws ->JSONValue {
+    func storyPayload(mode:StoryMode,lesson:Lesson?,state:LearnerState,level:String,tutorial:Bool,recent:[JSONValue],repair:Bool,unit:LearningUnit?=nil,account:String="native",onSpeakingChunk:@escaping @MainActor(String)->Void = {_ in}) async throws ->JSONValue {
         let recipes=try PracticeRecipes()
         var parameters=try StoryGeneration.parameters(state:state,lesson:lesson,unit:unit,mode:mode,account:account,level:level,user:state.recipeUser,recipes:recipes)
         parameters=parameters.setting("history",.array(StoryGeneration.history(recent)))
@@ -123,8 +150,8 @@ extension AIService {
             return payload.setting("nativePlan",.object(["lessonId":plan["lessonId"],"mode":plan["mode"],"subject":plan["subject"],"purpose":plan["purpose"],"isTutorial":plan["isTutorial"]]))
         }
         if !repair {
-            do { let raw=try await storyProtocol(streamPrompt,stream:true,mode:mode);return try result(checked(raw,stream:true)) }
-            catch { try Task.checkCancellation() }
+            do { let raw=try await storyProtocol(streamPrompt,stream:true,mode:mode,onChunk:mode == .speaking ? onSpeakingChunk : {_ in});return try result(checked(raw,stream:true)) }
+            catch { try Task.checkCancellation();if mode == .speaking {onSpeakingChunk("")} }
         }
         let prompt=mode == .speaking ? streamPrompt : try recipes.story("sessionPrompt",parameters:parameters).string
         let revisionParameters:JSONValue = .object(["mode":.string(mode.rawValue),"prompt":.string(prompt)])
@@ -145,7 +172,7 @@ extension AIService {
         let question=Schema.object(properties:["type":.enumeration(values:["choice","true_false","select_words","order_words","reply"]),"prompt":.string(),"options":.array(items:.string(),maxItems:8),"answer":.array(items:.integer(),maxItems:8),"explanation":.string(),"audioTurn":.integer()])
         return .object(properties:["title":.string(),"segments":.array(items:.object(properties:["turns":.array(items:turn,minItems:2,maxItems:6),"question":question]),minItems:2,maxItems:4)])
     }
-    private func storyProtocol(_ prompt:String,stream:Bool,mode:StoryMode) async throws->String {
+    private func storyProtocol(_ prompt:String,stream:Bool,mode:StoryMode,onChunk:@escaping @MainActor(String)->Void = {_ in}) async throws->String {
         if configuration.string("AIProvider") == "gemini",FirebaseService.shared.configured {
             do {
                 let model=FirebaseAI.firebaseAI(backend:configuration.geminiBackend()).generativeModel(modelName:configuration.string("GeminiModel"),generationConfig:GenerationConfig(temperature:0.7,maxOutputTokens:8192,responseMIMEType:!stream && mode != .speaking ? "application/json" : nil,responseSchema:!stream && mode != .speaking ? Self.storyEpisodeSchema : nil))
@@ -153,14 +180,15 @@ extension AIService {
                     var output=""
                     for try await chunk in try model.generateContentStream(prompt) {
                         try Task.checkCancellation();guard !chunk.candidates.contains(where:{ $0.finishReason == .maxTokens }) else { throw StoryFailure.invalid }
-                        output += chunk.text ?? "";guard output.utf8.count <= 100_000 else { throw StoryFailure.invalid }
+                        output += chunk.text ?? "";guard output.utf8.count <= 100_000 else { throw StoryFailure.invalid };onChunk(output)
                     }
-                    return output
+                    onChunk(output+"\n");return output
                 }
                 let response=try await model.generateContent(prompt)
                 guard !response.candidates.contains(where:{ $0.finishReason == .maxTokens }),let text=response.text else { throw StoryFailure.invalid };return text
-            } catch { try Task.checkCancellation() }
+            } catch { try Task.checkCancellation();if stream {onChunk("")} }
         }
+        if stream && mode == .speaking {let output=try await responsesStream(prompt,onChunk:onChunk);onChunk(output+"\n");return output}
         // NDJSON uses the existing authenticated text response route. The source's
         // validated batch episode still uses its fixed JSON schema on fallback.
         return try await responsesText(prompt,json:!stream && mode != .speaking,reasoning:"low",outputProfile:!stream && mode != .speaking ? "story_episode" : nil,maxOutputTokens:8192)
