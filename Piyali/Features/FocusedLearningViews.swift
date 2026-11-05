@@ -13,18 +13,21 @@ struct RepairPracticeView: View {
     @State private var routed:RepairStep?
     @State private var tutorFinishing=false
     @State private var phonicsFinishing=false
+    @State private var unavailablePhonicsScope:String?
     var body:some View {
         SubscriptionRequiredView(service:app.subscription,preserveEarnedWork:tutorFinishing || phonicsFinishing) {Group {
             if let step=routed {
                 Group {
                     if step.mode == "lesson",let lesson=app.repairLesson(step) {LessonView(lesson:lesson)}
                     else if step.mode == "flashcards" {FlashcardsView(repairStep:step)}
-                    else if step.mode == "phonics",!app.authoredRepairPhonics(step).isEmpty {PhonicsView(repairStep:step,controller:phonicsControllerFactory?(step),onEarnedWorkChanged:{phonicsFinishing=$0})}
+                    else if step.mode == "phonics",!app.authoredRepairPhonics(step).isEmpty,unavailablePhonicsScope != phonicsScope(step) {PhonicsView(repairStep:step,controller:phonicsControllerFactory?(step),onEarnedWorkChanged:{phonicsFinishing=$0},onFocusedPracticeUnavailable:{phonicsUnavailable(step)})}
                     else {SourceTutorView(controller:tutorControllerFactory?(.repair(step)),focus:.repair(step),onCompletionPending:{tutorFinishing=$0},onFocusedCompletion:{route(app.currentRepairStep)})}
                 }.id(step.id)
             } else {ContentUnavailableView(ProductCopy.course(app.learner.support,"repair"),systemImage:"checkmark.circle")}
         }}.navigationTitle(ProductCopy.course(app.learner.support,"repair")).task{route(app.currentRepairStep)}.onChange(of:app.currentRepairStep){_,step in if !tutorFinishing{route(step)}}
     }
+    private func phonicsScope(_ step:RepairStep)->String {[app.identity.sessionRevision.uuidString,app.identity.npub,app.learner.target,app.learner.support,step.id,step.plan.canonicalJSON].joined(separator:":")}
+    private func phonicsUnavailable(_ step:RepairStep){guard routed == step,app.repairRouteIsCurrent(step) else{return};let scope=phonicsScope(step);guard unavailablePhonicsScope != scope else{return};unavailablePhonicsScope=scope;onSurface(.tutor)}
     private func route(_ step:RepairStep?) {
         phonicsFinishing=false;routed=step;guard let step else{return}
         onSurface(step.mode == "lesson" ? .path:step.mode == "flashcards" ? .cards:step.mode == "phonics" && !app.authoredRepairPhonics(step).isEmpty ? .phonics:.tutor)

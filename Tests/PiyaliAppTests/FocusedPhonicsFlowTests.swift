@@ -19,11 +19,38 @@ import SwiftUI
     private func setup()async throws->(AppModel,FocusedPhonicsStore,JSONValue,[JSONValue]) {
         let e=ProcessInfo.processInfo.environment;guard e["PIYALI_OFFLINE_TESTS"] == "1",UUID(uuidString:e["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Isolated offline identity required")}
         let store=FocusedPhonicsStore(),app=AppModel(progressService:store);try app.identity.create();app.signedIn=true;app.subscription.bind(app.identity);app.learner=LearnerState();app.learner.onboardingComplete=true;await app.reloadContent();app.learner.editGoal("Pronounce casa")
-        let bp:JSONValue = .object(["goalId":app.learner.goalBucket["activeGoal"]["id"],"lang":.string("es"),"dayKey":.string(CalendarDay.key(Date())),"mode":.string("phonics"),"modes":.array(["phonics","lesson"].map(JSONValue.string)),"modeTargets":.object(["phonics":.number(2),"lesson":.number(20)]),"cefrLevel":.string("Pre-A1"),"objective":.string("Pronounce two family words"),"targetLanguage":.array([.string("casa")])])
+        let bp:JSONValue = .object(["goalId":app.learner.goalBucket["activeGoal"]["id"],"lang":.string("es"),"dayKey":.string(CalendarDay.key(Date())),"mode":.string("phonics"),"modes":.array(["phonics","lesson"].map(JSONValue.string)),"modeTargets":.object(["phonics":.number(2),"lesson":.number(20)]),"cefrLevel":.string("Pre-A1"),"objective":.string("Pronounce two family words"),"scenario":.string("Say two family words clearly"),"supports":.array([.string("Listen to a model")]),"successCriteria":.array([.string("Pronounce both words")]),"targetLanguage":.array([.string("casa")])])
         app.learner.applyGoal(.init(action:.blueprint,target:"es",payload:bp));let cards=try app.focusedPhonicsDeck(goal:bp)["cards"].array;XCTAssertEqual(cards.count,2)
         app.learner.applyGoal(.init(action:.artifact,target:"es",payload:bp.setting("cards",.array(cards))));app.learner.pendingGoalChanges=[];return(app,store,bp,cards)
     }
     private func provider(_ raw:String)->PhonicsProvider{.init(judge:{_ in raw},quote:{_,_ in .null})}
+    func testFocusedPhonicsLoadFailureHandsTheSameGoalOrRepairToTutorWithoutStartingOrRewardingIt()async throws {
+        for kind in ["goal","repair"] {
+            let(app,_,bp,_)=try await setup();defer{try? app.identity.disconnect()};let step=kind == "repair" ? try freshRepair(app):nil,course=PhonicsCourseController(goal:kind == "goal" ? bp:nil,repair:step)
+            if let step{let artifact=try app.focusedPhonicsDeck(repair:step);app.learner.storeRepairArtifact(artifact.setting("cards",.array([.null])),step:step,mode:"phonics");XCTAssertFalse(app.authoredRepairPhonics(step).isEmpty)}
+            else{let key=GoalPractice.artifactKey(target:"es",day:bp["dayKey"].string,mode:"phonics",goalID:bp["goalId"].string);app.learner.goalArtifacts?[key]=app.learner.goalArtifacts?[key]?.setting("cards",.array([.null]));XCTAssertFalse(app.authoredGoalPhonics(bp).isEmpty)}
+            let focus:TutorFocus=step.map(TutorFocus.repair) ?? .goal(bp),tutor=TutorSessionController(focus:focus),scene=try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap{$0 as? UIWindowScene}.first),old=scene.windows.first{$0.isKeyWindow},window=UIWindow(windowScene:scene);var surfaces:[ProductMode]=[]
+            let content:AnyView=kind == "goal" ? AnyView(FocusedGoalCourseView(onSurface:{surfaces.append($0)},tutorControllerFactory:{_ in tutor},phonicsControllerFactory:{_ in course})):AnyView(RepairPracticeView(onSurface:{surfaces.append($0)},tutorControllerFactory:{_ in tutor},phonicsControllerFactory:{_ in course}))
+            let host=UIHostingController(rootView:content.environmentObject(app));window.rootViewController=host;window.makeKeyAndVisible();host.view.layoutIfNeeded();defer{window.isHidden=true;window.rootViewController=nil;old?.makeKey()}
+            for _ in 0..<160 where surfaces.last != .tutor || tutor.id.isEmpty{try await Task.sleep(for:.milliseconds(25))}
+            XCTAssertNotNil(course.error);XCTAssertEqual(surfaces,[.phonics,.tutor],kind);XCTAssertFalse(tutor.id.isEmpty,kind);XCTAssertEqual(tutor.focus,focus);XCTAssertFalse(tutor.live.connected);XCTAssertFalse(tutor.live.connecting);XCTAssertEqual(app.learner.totalXP,0);XCTAssertNil(app.learner.gradedByLanguage);XCTAssertTrue((app.learner.pendingRepairEvidence ?? []).isEmpty);XCTAssertEqual(app.readyGoal?["modeProgress"]["phonics"].number ?? 0,0)
+            let trace:JSONValue = .object(["kind":.string(kind),"surfaces":.array(surfaces.map{.string($0.rawValue)}),"loadError":.string(course.error ?? ""),"tutorLesson":tutor.lesson,"focus":focus.snapshot(app),"connected":.bool(tutor.live.connected),"xp":.number(Double(app.learner.totalXP))]),attachment=XCTAttachment(data:Data(trace.json.utf8),uniformTypeIdentifier:"public.json");attachment.name="Native focused Phonics \(kind) load-failure handoff trace";attachment.lifetime = .keepAlways;add(attachment)
+        }
+    }
+    func testPendingEarnedCompletionSaveFailureDoesNotBecomeADeckUnavailableHandoff()async throws {
+        let(app,_,bp,cards)=try await setup();defer{try? app.identity.disconnect()};let key=GoalPractice.artifactKey(target:"es",day:bp["dayKey"].string,mode:"phonics",goalID:bp["goalId"].string),outcomes=JSONValue.object(Dictionary(uniqueKeysWithValues:cards.map{($0["id"].string,JSONValue.object(["success":.bool(true),"item":$0["practiceWord"]]))}))
+        app.learner.goalArtifacts?[key]=app.learner.goalArtifacts?[key]?.setting("outcomes",outcomes);app.recordGoalAttempt(bp,mode:"phonics",success:true,support:"modeled",observation:"The pronunciation is earned; only its completion save is pending")
+        let course=PhonicsCourseController(goal:bp);await course.load(app);XCTAssertTrue(course.initialized);XCTAssertNotNil(course.error);XCTAssertFalse(course.focusedUnavailable);XCTAssertEqual(course.collected.count,2);XCTAssertEqual(app.readyGoal?["modeProgress"]["phonics"].number,0)
+    }
+    func testCancelledOrReplacedFocusedLoadDoesNotRequestAnUnavailableTutorHandoff()async throws {
+        for boundary in ["signout","sameKey","target","support","day","plan","cancel"] {
+            let(app,store,_,_)=try await setup();defer{try? app.identity.disconnect()};let step=try freshRepair(app),course=PhonicsCourseController(repair:step);var held:CheckedContinuation<JSONValue,Error>?
+            store.reservation={_ in try await withCheckedThrowingContinuation{held=$0}};let task=Task{await course.load(app)};for _ in 0..<100 where held == nil{try await Task.sleep(for:.milliseconds(10))};XCTAssertNotNil(held)
+            let key=CompanionQuestDay.key(step.target,step.day)
+            switch boundary{case "signout":app.signedIn=false;case "sameKey":let secret=app.identity.exportKey();try app.identity.disconnect();try app.identity.importKey(secret);case "target":app.learner.target="fr";case "support":app.learner.support="ar";case "day":app.learner.companionQuestDays?[key] = .object([:]);case "plan":let doc=app.learner.companionQuestDays?[key] ?? .null;app.learner.companionQuestDays?[key]=doc.setting("repair",step.plan.setting("items",.array([])));default:task.cancel()}
+            held?.resume(throwing:URLError(.notConnectedToInternet));await task.value;XCTAssertFalse(course.focusedUnavailable,boundary);XCTAssertNil(course.error,boundary);XCTAssertEqual(app.learner.totalXP,0,boundary)
+        }
+    }
     private func settle(_ session:PhonicsSessionController)async throws{for _ in 0..<250 where session.busy{try await Task.sleep(for:.milliseconds(20))};XCTAssertFalse(session.busy)}
     func testCachedDeckLoadsOfflineUsesCanonicalNewSupportAndDropsRemovedAuthoredCards()async throws {
         let(app,store,bp,cards)=try await setup();defer{try? app.identity.disconnect()}

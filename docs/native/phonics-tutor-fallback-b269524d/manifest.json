@@ -1,0 +1,1102 @@
+{
+  "reference_revision": "b269524ddc578027c549616fc47f5954991d9f6f",
+  "native_base": "60d1f30a812522c9b1ab33ac3718f82037912161",
+  "qa_device": "CE8248B6-7171-4FD4-97DE-89E499107F82",
+  "scope": "Original focused Phonics load effect and actual App routing callbacks lead to the actual source Tutor. Public I/O fixtures and a bounded preview route driver are not the full authenticated App. Native real entry, failed cache restoration, explicit synthetic connect/pause/end and private relaunch retain the same disconnected focused Tutor. Paired components include the published native dock, not full product chrome. Physical speech, general failure/migration shapes, full routing and whole-product design remain open.",
+  "checks": {
+    "main_app_source": {
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "tests": 31,
+      "failures": 0,
+      "seconds": 296.274,
+      "models": 26,
+      "models_seconds": 162.587,
+      "tutor_cases": 3,
+      "tutor_seconds": 17.985,
+      "fallback_source_cases": 8,
+      "fallback_source_seconds": 57.468,
+      "normal_phonics_source_seconds": 58.234
+    },
+    "main_ui": {
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "tests": 2,
+      "failures": 0,
+      "seconds": 161.819,
+      "goal_seconds": 81.365,
+      "repair_seconds": 80.454
+    },
+    "presentation_app": {
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackFinalScreens20261105.xcresult",
+      "tests": 2,
+      "failures": 0,
+      "seconds": 68.368,
+      "source_seconds": 59.54,
+      "completion_seconds": 8.828,
+      "scope": "Original SVG/palette update; before final computed disabled opacity, header inset/spacing and badge height correction."
+    },
+    "final_source": {
+      "result_bundle": "/tmp/PiyaliPhonicsTutorComputedStyles20261105.xcresult",
+      "tests": 1,
+      "failures": 0,
+      "seconds": 59.382,
+      "cases": 8,
+      "scope": "Final source/native captures after measured 0.6 disabled opacity, 25-point badge, border inset and progress-spacing correction. Handoff/ownership/completion logic unchanged."
+    },
+    "final_ui": {
+      "result_bundle": "/tmp/PiyaliPhonicsTutorComputedStyles20261105.xcresult",
+      "tests": 2,
+      "failures": 0,
+      "goal_seconds": 80.018,
+      "repair_seconds": 79.856,
+      "seconds": 159.874
+    },
+    "core": {
+      "tests": 29,
+      "failures": 0,
+      "seconds": 14.451,
+      "log": "/tmp/piyali-phonics-tutor-fallback-core-20261105.log"
+    },
+    "qa_snapshot_audit": {
+      "passed": true
+    }
+  },
+  "main_bundle": {
+    "sources": [
+      {
+        "file": "Piyali/App/PhonicsCourseController.swift",
+        "sha256": "c05833aadf744796a5f3bb28223c38ee14391a46a814cd3ad2ec7713a58d5ea1"
+      },
+      {
+        "file": "Piyali/App/FocusedPhonicsFixture.swift",
+        "sha256": "2da8ab43f659ce00114826d30f26fa70352a299a89b1275bec094e782e051f29"
+      },
+      {
+        "file": "Piyali/Features/SourcePhonicsView.swift",
+        "sha256": "9dc42c77c0da97dfdbaaef91c0d2dfdf257436108c0601b1bee248e4dd4a99d2"
+      },
+      {
+        "file": "Piyali/Features/FocusedGoalCourseView.swift",
+        "sha256": "a68979bad885a7e75522474edf2062d9e27549db6be3ebd03809cc57b16535ed"
+      },
+      {
+        "file": "Piyali/Features/FocusedLearningViews.swift",
+        "sha256": "ad663f2d71ced6220d40f1fe1cea6ff74ea10aa32c32c1d52d40f209e895321a"
+      },
+      {
+        "file": "Piyali/Features/SourceTutorView.swift",
+        "sha256": "932b9ffaab16782fd26af3de577c7ea3745f2fff8d6f9e38a8f334a46a528000"
+      },
+      {
+        "file": "Tests/PiyaliAppTests/FocusedPhonicsComparisonTests.swift",
+        "sha256": "d692bc1e93e3758ddc2a4581ae06bff3cd0347480da03533a35c24c124a1f382"
+      },
+      {
+        "file": "Tests/PiyaliAppTests/FocusedPhonicsFlowTests.swift",
+        "sha256": "d58b8e439de9769fc05c1b1f07cbf303ef3dffa8b47c5c1ab8566e34a1ade8b2"
+      },
+      {
+        "file": "Tests/PiyaliAppTests/TutorSessionTests.swift",
+        "sha256": "365241b3cb3c5ab951acaf9f2ba51107ad64c5bc2153f7e35557c41cb42a6a61"
+      },
+      {
+        "file": "Tests/PiyaliUITests/FocusedPhonicsJourneyTests.swift",
+        "sha256": "b4d336ee5d8c67c1f33c8b19cc5b3c8a4c5f61b260fcf15d3ecc15b067b5c33f"
+      },
+      {
+        "file": "scripts/reference-focused-phonics.jsx",
+        "sha256": "af6db54db662e79f151958db739013206b092986f34a0efe1b5f95f6cdba8a40"
+      },
+      {
+        "file": "scripts/reference-focused-phonics.mjs",
+        "sha256": "57e720f88c61ab4b671a943405b682077be4bf5c45723ce1792ecd1d8069e441"
+      }
+    ],
+    "products": [
+      {
+        "file": "DerivedData/Build/Products/Debug-iphonesimulator/Piyali.app/Piyali",
+        "sha256": "7a504a74f455af6c10a4bdc7cb91e632c9542053c571b143a6f64d7c9db70052"
+      },
+      {
+        "file": "DerivedData/Build/Products/Debug-iphonesimulator/Piyali.app/Piyali.debug.dylib",
+        "sha256": "ebf72d9d6c3e4ff493639100766a29924aa3f3b2ac1b185fb0345acb603b7c26"
+      },
+      {
+        "file": "DerivedData/Build/Products/Debug-iphonesimulator/Piyali.app/PlugIns/PiyaliTests.xctest/PiyaliTests",
+        "sha256": "855f8e040a178a78839f9a9d9571904b9c3f47dc5ba2625a0f67aa1b01a4586d"
+      },
+      {
+        "file": "DerivedData/Build/Products/Debug-iphonesimulator/PiyaliUITests-Runner.app/PlugIns/PiyaliUITests.xctest/PiyaliUITests",
+        "sha256": "d2f2eec289ee21e6635bb06f51c336230f0c18f048dc0826cc7c616f726ff903"
+      }
+    ]
+  },
+  "presentation_bundle": {
+    "sources": [
+      {
+        "file": "Piyali/App/PhonicsCourseController.swift",
+        "sha256": "c05833aadf744796a5f3bb28223c38ee14391a46a814cd3ad2ec7713a58d5ea1"
+      },
+      {
+        "file": "Piyali/App/FocusedPhonicsFixture.swift",
+        "sha256": "2da8ab43f659ce00114826d30f26fa70352a299a89b1275bec094e782e051f29"
+      },
+      {
+        "file": "Piyali/Features/SourcePhonicsView.swift",
+        "sha256": "9dc42c77c0da97dfdbaaef91c0d2dfdf257436108c0601b1bee248e4dd4a99d2"
+      },
+      {
+        "file": "Piyali/Features/FocusedGoalCourseView.swift",
+        "sha256": "a68979bad885a7e75522474edf2062d9e27549db6be3ebd03809cc57b16535ed"
+      },
+      {
+        "file": "Piyali/Features/FocusedLearningViews.swift",
+        "sha256": "ad663f2d71ced6220d40f1fe1cea6ff74ea10aa32c32c1d52d40f209e895321a"
+      },
+      {
+        "file": "Piyali/Features/SourceTutorView.swift",
+        "sha256": "97ca047d46bf03bb3b0c06e5230a95883d12e197e551643b1861f7ddf4383b0b"
+      },
+      {
+        "file": "Tests/PiyaliAppTests/FocusedPhonicsComparisonTests.swift",
+        "sha256": "024dbc98e597573cf911f29cf8334c6a4dd16b8be605defc9c26e24237093405"
+      },
+      {
+        "file": "Tests/PiyaliAppTests/FocusedPhonicsFlowTests.swift",
+        "sha256": "d58b8e439de9769fc05c1b1f07cbf303ef3dffa8b47c5c1ab8566e34a1ade8b2"
+      },
+      {
+        "file": "Tests/PiyaliAppTests/TutorSessionTests.swift",
+        "sha256": "df4a101f15d4a4f7be3d0d6a9667eeeec4d7a1624db80340a8583b3eb98e3698"
+      },
+      {
+        "file": "Tests/PiyaliUITests/FocusedPhonicsJourneyTests.swift",
+        "sha256": "b4d336ee5d8c67c1f33c8b19cc5b3c8a4c5f61b260fcf15d3ecc15b067b5c33f"
+      },
+      {
+        "file": "scripts/reference-focused-phonics.jsx",
+        "sha256": "af6db54db662e79f151958db739013206b092986f34a0efe1b5f95f6cdba8a40"
+      },
+      {
+        "file": "scripts/reference-focused-phonics.mjs",
+        "sha256": "57e720f88c61ab4b671a943405b682077be4bf5c45723ce1792ecd1d8069e441"
+      },
+      {
+        "file": "scripts/export-flashcard-icons.mjs",
+        "sha256": "56b9d1f70f76f08d99e4bb5d617f4600d5bc5316bb96ea0388a01eb6b548b7ab"
+      },
+      {
+        "file": "scripts/audit-phonics-tutor-fallback-qa.py",
+        "sha256": "b12a0706624b666548265a71fea1f75f39960ef9504251bb19cfa83b0547b48e"
+      }
+    ],
+    "products": [
+      {
+        "file": "DerivedData/Build/Products/Debug-iphonesimulator/Piyali.app/Piyali",
+        "sha256": "9e7ec0eace5d2e2ca9bf3744c5d5fab2cc98765ee140aeb9abd1b93d8dc0b40c"
+      },
+      {
+        "file": "DerivedData/Build/Products/Debug-iphonesimulator/Piyali.app/Piyali.debug.dylib",
+        "sha256": "fe9c38d027466ed147f5dd1e2732553b68242d0b3abcf770408aa28f4448f35b"
+      },
+      {
+        "file": "DerivedData/Build/Products/Debug-iphonesimulator/Piyali.app/PlugIns/PiyaliTests.xctest/PiyaliTests",
+        "sha256": "e48e91028c4343502e95c070fb786c35462a4b0ebb433f8b910fa1fcbc6366a1"
+      },
+      {
+        "file": "DerivedData/Build/Products/Debug-iphonesimulator/PiyaliUITests-Runner.app/PlugIns/PiyaliUITests.xctest/PiyaliUITests",
+        "sha256": "d2f2eec289ee21e6635bb06f51c336230f0c18f048dc0826cc7c616f726ff903"
+      }
+    ]
+  },
+  "final_bundle": {
+    "sources": [
+      {
+        "file": "Piyali/App/PhonicsCourseController.swift",
+        "sha256": "c05833aadf744796a5f3bb28223c38ee14391a46a814cd3ad2ec7713a58d5ea1"
+      },
+      {
+        "file": "Piyali/App/FocusedPhonicsFixture.swift",
+        "sha256": "2da8ab43f659ce00114826d30f26fa70352a299a89b1275bec094e782e051f29"
+      },
+      {
+        "file": "Piyali/Features/SourcePhonicsView.swift",
+        "sha256": "9dc42c77c0da97dfdbaaef91c0d2dfdf257436108c0601b1bee248e4dd4a99d2"
+      },
+      {
+        "file": "Piyali/Features/FocusedGoalCourseView.swift",
+        "sha256": "a68979bad885a7e75522474edf2062d9e27549db6be3ebd03809cc57b16535ed"
+      },
+      {
+        "file": "Piyali/Features/FocusedLearningViews.swift",
+        "sha256": "ad663f2d71ced6220d40f1fe1cea6ff74ea10aa32c32c1d52d40f209e895321a"
+      },
+      {
+        "file": "Piyali/Features/SourceTutorView.swift",
+        "sha256": "2ca236c14a2ba6b5cbc38cad8ff483b40a7394c9fc14cb2947a446a434899c96"
+      },
+      {
+        "file": "Tests/PiyaliAppTests/FocusedPhonicsComparisonTests.swift",
+        "sha256": "07928e52bd1339ccf19aeac3f683ba40114b48fbbdfb232b41e80b02738d713f"
+      },
+      {
+        "file": "Tests/PiyaliAppTests/FocusedPhonicsFlowTests.swift",
+        "sha256": "d58b8e439de9769fc05c1b1f07cbf303ef3dffa8b47c5c1ab8566e34a1ade8b2"
+      },
+      {
+        "file": "Tests/PiyaliAppTests/TutorSessionTests.swift",
+        "sha256": "df4a101f15d4a4f7be3d0d6a9667eeeec4d7a1624db80340a8583b3eb98e3698"
+      },
+      {
+        "file": "Tests/PiyaliUITests/FocusedPhonicsJourneyTests.swift",
+        "sha256": "b4d336ee5d8c67c1f33c8b19cc5b3c8a4c5f61b260fcf15d3ecc15b067b5c33f"
+      },
+      {
+        "file": "scripts/reference-focused-phonics.jsx",
+        "sha256": "af6db54db662e79f151958db739013206b092986f34a0efe1b5f95f6cdba8a40"
+      },
+      {
+        "file": "scripts/reference-focused-phonics.mjs",
+        "sha256": "57e720f88c61ab4b671a943405b682077be4bf5c45723ce1792ecd1d8069e441"
+      },
+      {
+        "file": "scripts/export-flashcard-icons.mjs",
+        "sha256": "56b9d1f70f76f08d99e4bb5d617f4600d5bc5316bb96ea0388a01eb6b548b7ab"
+      },
+      {
+        "file": "scripts/audit-phonics-tutor-fallback-qa.py",
+        "sha256": "b12a0706624b666548265a71fea1f75f39960ef9504251bb19cfa83b0547b48e"
+      },
+      {
+        "file": "scripts/reference-tutor-fixtures.mjs",
+        "sha256": "0d557ccc1947b8cc7144d35c93117f8ab6bf16bd15fb6b7bec6b656701d9df76"
+      },
+      {
+        "file": "Piyali/Resources/companion-quest-policy.js",
+        "sha256": "5d4cca9ebc006685670fd61c692d1d096c208710c15a715ede85dc176bf7b1d9"
+      },
+      {
+        "file": "Piyali/Resources/tutor-policy.js",
+        "sha256": "b7ba03d2ec49b560c501c06b2611ee8780a33da0d27e650e7d02785b3769b8d4"
+      },
+      {
+        "file": "Piyali/Resources/BrandAssets.xcassets/Flashcard-tutor-path.imageset/icon.svg",
+        "sha256": "0b7e9b8fa32a75c79e829ed32af26bd866d70af722626be886b9b83e86baedca"
+      },
+      {
+        "file": "Piyali/Resources/BrandAssets.xcassets/Flashcard-tutor-path.imageset/Contents.json",
+        "sha256": "b73602d871739113f46285fa8c227b49f9376c0b660327dd6c563c28caa55f19"
+      },
+      {
+        "file": "Piyali/Resources/BrandAssets.xcassets/Flashcard-tutor-history.imageset/icon.svg",
+        "sha256": "3f45f3416a67097bac8d8be92ef1f5eddbba9c3a19a219b716f928677ab47e38"
+      },
+      {
+        "file": "Piyali/Resources/BrandAssets.xcassets/Flashcard-tutor-history.imageset/Contents.json",
+        "sha256": "b73602d871739113f46285fa8c227b49f9376c0b660327dd6c563c28caa55f19"
+      }
+    ],
+    "products": [
+      {
+        "file": "DerivedData/Build/Products/Debug-iphonesimulator/Piyali.app/Piyali",
+        "sha256": "bb4f7f52cf2497c2d1b78fdaff2c99712ec8e3cf5beea38d1f448c6cc9480d25"
+      },
+      {
+        "file": "DerivedData/Build/Products/Debug-iphonesimulator/Piyali.app/Piyali.debug.dylib",
+        "sha256": "166db92e80bf987f8a3ede6ea67a7efa82bd45cc0c2548b43473e64c2c68cd47"
+      },
+      {
+        "file": "DerivedData/Build/Products/Debug-iphonesimulator/Piyali.app/PlugIns/PiyaliTests.xctest/PiyaliTests",
+        "sha256": "593084434b1552ef1274ecdd4748bd523f3a6c0a1895f6af9f798e49ee140e87"
+      },
+      {
+        "file": "DerivedData/Build/Products/Debug-iphonesimulator/PiyaliUITests-Runner.app/PlugIns/PiyaliUITests.xctest/PiyaliUITests",
+        "sha256": "d2f2eec289ee21e6635bb06f51c336230f0c18f048dc0826cc7c616f726ff903"
+      }
+    ]
+  },
+  "reference_sources": [
+    {
+      "file": "src/App.jsx",
+      "sha256": "9e6447368ce10a647025f76daf1b730fb20073590c586f8a3bed8a6d4f2ab948"
+    },
+    {
+      "file": "src/components/AlphabetBootcamp.jsx",
+      "sha256": "51a7b8ab6a3c0ee80fc7594fcf9ee66f345d002278c0987b717d5c4b309282d7"
+    },
+    {
+      "file": "src/utils/focusedPracticeDecks.js",
+      "sha256": "bb5f8e54a4ad8db64bfb5e725f8fec4e37f538b4aa26a20714d18e825d6ad59d"
+    },
+    {
+      "file": "src/data/phonics/index.js",
+      "sha256": "7877d9aeb179f0252d259976c9b94ecb51402f4d62d5ea62b8b4389e93a47cbc"
+    },
+    {
+      "file": "src/components/Tutor.jsx",
+      "sha256": "bbe9dea6279119ecef32cb69a66a8fb40763642ca05717690dec789a72e088c3"
+    },
+    {
+      "file": "src/components/XpProgressHeader.jsx",
+      "sha256": "abfebc2b4b2362c92990fb330a45aafa046d3b4de292a37d2f334eb58e011878"
+    },
+    {
+      "file": "src/components/realtimeArchiveStream.jsx",
+      "sha256": "6bcac1a39ebe7bf137a13d28bee5cedce9ce3be15fad35bfd6ea66f8cb4fb65a"
+    }
+  ],
+  "source_icon_assets": [
+    {
+      "file": "Piyali/Resources/BrandAssets.xcassets/Flashcard-tutor-path.imageset/icon.svg",
+      "original_component": "RiRoadMapLine",
+      "module": "react-icons/ri",
+      "package_version": "5.5.0",
+      "sha256": "0b7e9b8fa32a75c79e829ed32af26bd866d70af722626be886b9b83e86baedca",
+      "scope": "Unmodified original React icon SVG paths; only currentColor replaced by a black native template mask."
+    },
+    {
+      "file": "Piyali/Resources/BrandAssets.xcassets/Flashcard-tutor-history.imageset/icon.svg",
+      "original_component": "FaRegCommentDots",
+      "module": "react-icons/fa",
+      "package_version": "5.5.0",
+      "sha256": "3f45f3416a67097bac8d8be92ef1f5eddbba9c3a19a219b716f928677ab47e38",
+      "scope": "Unmodified original React icon SVG paths; only currentColor replaced by a black native template mask."
+    }
+  ],
+  "normal_phonics_regression_attachment_hashes": [
+    {
+      "attachment": "Source actual focused phonics repair ar writes_0_F14579A2-E71B-4D70-87EE-BDC0CB8D0E1C.json",
+      "sha256": "a3c8570436dc99ddc7dd46c516ca7e244abd6b28430a76dd7db624a0c5524b7a",
+      "bytes": 7145,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Native focused phonics repair correct ar_0_638F9983-D38B-481D-B6F1-74D147402ECF.png",
+      "sha256": "89c3825c226e01bc1719496d48b55d99df21b399d56d1402ee3f1960bedd535d",
+      "bytes": 859899,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused phonics repair correct ar geometry_0_234DCC18-70DE-4C60-B89C-2CFCD9C88D62.json",
+      "sha256": "3f9bc751caf1098d76bb1eade70cca59377e084af0a12e5dacc272e20cfb6a86",
+      "bytes": 3992,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused phonics repair correct ar_0_2D6D2163-1E8C-48B5-8FD8-CC4D77B17326.png",
+      "sha256": "f229a1b03c33499f6500da27877be41958ba3ead4f46ab146e99ee517ece5c66",
+      "bytes": 362073,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Native focused phonics repair wrong ar_0_471457F2-FEFB-48D3-BAB3-8191374152A9.png",
+      "sha256": "4388cbc1261e74979bb519bca7f6240a8f8596862f76d7b4a92abe8ea910d78f",
+      "bytes": 852613,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused phonics repair wrong ar geometry_0_A6708E50-9FB5-44FD-87A4-3D2391B06787.json",
+      "sha256": "87adca52e780b1a4e1f7928d99d74d648cf5d5a813ffdd3842343eca06ca64bc",
+      "bytes": 3900,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused phonics repair wrong ar_0_8E92198A-54B7-4899-8753-C5D0EA074F42.png",
+      "sha256": "c7abb2d7615a15fcb70be36fc560f91b76bb4406c7f556dc4547c5d3908b215c",
+      "bytes": 299074,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Native focused phonics repair practice ar_0_792D10FE-B296-4E9D-BB64-EBEAE677CFBE.png",
+      "sha256": "a3fb79da3277f6184b353c13aedc9566f3ece4ceda1d45e458e16337071110a8",
+      "bytes": 637988,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused phonics repair practice ar geometry_0_3DE9E8C8-C1EE-4FC1-83D9-08B9ABEB8DCF.json",
+      "sha256": "feafa9d3a375e5092b47b8f47f3210c25e290e1526b3e1ee98d55e0b3997bfb9",
+      "bytes": 3661,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused phonics repair practice ar_0_47A42D24-36D0-432D-8E5E-12F3DE3B7CF3.png",
+      "sha256": "9ce13ac162dd5e950605a38c9323897dd5907a2b0c4db2abe029fe605ddf05bd",
+      "bytes": 259264,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Native focused phonics repair front ar_0_0C697CFA-F07D-46BE-ACC7-45EB17E02FBB.png",
+      "sha256": "9bc4cf9c179f4ef359bea86ebf40f1f526d2dd2a75eeb2695f486bb425710c15",
+      "bytes": 647276,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused phonics repair front ar geometry_0_771AB437-C69E-4379-AA0E-28D5BAB45BC2.json",
+      "sha256": "0ffc46e0fe16ff311186165a58c18824e28b332bd718e1fbde32578b6b3e5bf5",
+      "bytes": 3546,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused phonics repair front ar_0_602D65D5-BED2-479E-9CD9-C221FA140594.png",
+      "sha256": "648001cef935b61c9b2c0b930162f6dda1a6d40128370a53e21ee48adb6f79ec",
+      "bytes": 266322,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Public focused phonics repair ar input_0_61D59CEA-5F39-4DBB-8314-EC7BAB64967B.json",
+      "sha256": "a6381d98170f259c6e824188849cb5180336de7df4110b7b7371cb8d5a74d4d9",
+      "bytes": 4180,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source actual focused phonics goal ar writes_0_4BE60D83-958C-4F85-88C0-5F2E8850C2F1.json",
+      "sha256": "c73ce3b4407e8422acaff53a85fbc30faa0e5025304c42c3258c75b430327db1",
+      "bytes": 6028,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Native focused phonics goal correct ar_0_EBD678FC-867F-427C-955F-D4AA9653000D.png",
+      "sha256": "71f63e8608cd9f129a281decadd39d9c8d1c9f5868ee0b954c151ca448db2f90",
+      "bytes": 863953,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused phonics goal correct ar geometry_0_A7462A7A-A8D3-47AF-8E94-F68425218D09.json",
+      "sha256": "4201e4257547e3e0f3b9c87df23746b679a3201e651fa5cc5a2add026353d8b7",
+      "bytes": 3993,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused phonics goal correct ar_0_2BCE69FD-8727-429B-B749-8DC55E2619C1.png",
+      "sha256": "5191b9df2b0712a77caa19fa6d2e2a61874c89d15598dfbfc440036cadbb391b",
+      "bytes": 360247,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Native focused phonics goal wrong ar_0_C5962D87-178E-455C-82D3-B9F2AAF0C7AB.png",
+      "sha256": "e7b7277aeffb5c278bf34249666d6c6316caf139a286e0f19dba9a83a5c46ab0",
+      "bytes": 855952,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused phonics goal wrong ar geometry_0_9CA5C3A7-E942-4126-9C1A-2692823E6D7B.json",
+      "sha256": "f7c5a3b28eeaabb8419531a9c0682e6be4630e388324f9114dd07fd188b0d58d",
+      "bytes": 3901,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused phonics goal wrong ar_0_97A6E1F3-0F92-4F4C-B53C-BBEB4AB546DE.png",
+      "sha256": "d2a130d26c4fa494801125204a65e15bec34ea0cbababadfb1d32cf6b876d341",
+      "bytes": 296697,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Native focused phonics goal practice ar_0_1062C753-A3F1-456E-8126-C012AB3C654D.png",
+      "sha256": "757209343f0bdf3625d505301334bf51ad4bf7d6ce564b57de76b2a27e919270",
+      "bytes": 632539,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused phonics goal practice ar geometry_0_DFA783C6-121B-4D1B-B5D3-0A2EFA0C5DF8.json",
+      "sha256": "67e373712ce03b420918675eaa329f7fea9e1a89b79cfce39ece00ab862d7568",
+      "bytes": 3662,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused phonics goal practice ar_0_5862074B-5182-4850-8C0C-3C99BD07B7EC.png",
+      "sha256": "4165a8029a1c4151323709b29fe4f336af9a3640b2e904ed8442c6f18e15afec",
+      "bytes": 257324,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Native focused phonics goal front ar_0_3E5B6296-F009-43ED-9353-2703A393B3EA.png",
+      "sha256": "a481771990afd5ea570f6232b4eda7b517078abe3b41031f0b3689627a70e03e",
+      "bytes": 642143,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused phonics goal front ar geometry_0_8F6BF5C4-78A8-4CCC-807D-D732E44E2279.json",
+      "sha256": "76b6593bd15132645ff928698bdeff7ba051d0a3275ad3dda4a9905c78d81791",
+      "bytes": 3547,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused phonics goal front ar_0_4759D008-4B19-497A-A52E-8CCA36B35700.png",
+      "sha256": "35c16265e0c3c8f279e2b3644dcf55f27ed62bc68ce010a075bf21568a750032",
+      "bytes": 261442,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Public focused phonics goal ar input_0_E35AEFBF-1260-4838-BC21-8AA1387971C9.json",
+      "sha256": "a401b2be08a0c60d3b294479e7a722b61b4d67f2d2eed417a12021e24fdbea78",
+      "bytes": 3718,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source actual focused phonics repair en writes_0_03BE8230-02C2-438A-BDF4-7620184F233C.json",
+      "sha256": "4387db8649dd731383834e50b5bd95da471468ffc236abe3aaa377863719b431",
+      "bytes": 6830,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Native focused phonics repair correct en_0_D4085FA8-DE48-4A43-9080-48F2D63CDD84.png",
+      "sha256": "576b29e894161b2db8033700ab5479a648118b89fe93928514d640a51f621813",
+      "bytes": 1346330,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused phonics repair correct en geometry_0_E78FF241-D0B6-459D-B717-4E88EC70CC70.json",
+      "sha256": "c1d2425a5530ac06fa3f5e29e8f991d97089894e0eb787f817f7fffc84dc1380",
+      "bytes": 3772,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused phonics repair correct en_0_1A206208-D6FB-4214-94FB-9611F35C19B1.png",
+      "sha256": "9c5fd4ace646bc0f77408aa33bda010160917da5047e78d16d9d85c4143df5a6",
+      "bytes": 334768,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Native focused phonics repair wrong en_0_2924B11F-4F4B-44A8-986E-9CBD3AAAE443.png",
+      "sha256": "3db66ec36c8a9c79d3778683576d7cd743d0355604b4069a3bedacacad8284fe",
+      "bytes": 1362733,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused phonics repair wrong en geometry_0_DB29144F-E27B-4196-A3CF-F549EEB252CF.json",
+      "sha256": "fbe8e2d65d88ce4d94f1b84af338f09e1574b4db9825eb6472b8091f04fec480",
+      "bytes": 3673,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused phonics repair wrong en_0_5B810BD2-6673-4599-9366-6B5E682F3A84.png",
+      "sha256": "df7d2459da7cadb69de6de28881bb72dff878e38d0f207bbec032357c757d299",
+      "bytes": 337465,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Native focused phonics repair practice en_0_6F45A43C-D397-44DE-83AA-D21AF788AA83.png",
+      "sha256": "f643040a35d5cffea7680b8df45f1c76fb109304e9e7c1e0abe6bcc9a2e426ef",
+      "bytes": 981540,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused phonics repair practice en geometry_0_81C8B415-7A4F-491A-A692-C5671E6AEBD7.json",
+      "sha256": "5eb8c6a0ef6881fff5917463023ff1435a463c7c72fa514a29e6c9cc5ae175c4",
+      "bytes": 3454,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused phonics repair practice en_0_5B36C2EA-960B-4118-A148-EF21397EF085.png",
+      "sha256": "13756e78ce4980b6cc8dd3ec8ebe4c3743d981ff1dc8fc7a36a8a20676aff39a",
+      "bytes": 381199,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Native focused phonics repair front en_0_448D343F-07B9-40DA-996B-FAF6EFE112EE.png",
+      "sha256": "4c355219c0b0b886a9dbdc6c911fc907fc295b2220591a5f9c584950281ec2c3",
+      "bytes": 1002738,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused phonics repair front en geometry_0_6E7B3B87-BD4D-4A74-9BFB-26BB227C86DA.json",
+      "sha256": "d3ded5b2e93edb77575d2d60323a7bc05a406ab481acf587ade2e2ffdd2b9762",
+      "bytes": 3347,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused phonics repair front en_0_1A369484-4F57-4785-ACFD-37EEF354B9EA.png",
+      "sha256": "5b389907b464c1bf25cd3c121d8fbcedfb6e48258f332ef61df581aa15dea934",
+      "bytes": 363524,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Public focused phonics repair en input_0_6BE45AB7-053B-4177-8011-2B0739212155.json",
+      "sha256": "94ba1ce3a1b857dc468e036edb48879c63038857f0611a50d6c9899a7fb9513d",
+      "bytes": 4078,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source actual focused phonics goal en writes_0_7A27688D-101E-4A7A-9431-BA5257BFDCC2.json",
+      "sha256": "5e2fae74aea66a263bb21582783bde9886c275058b8f16df9b37995704dab741",
+      "bytes": 5824,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Native focused phonics goal correct en_0_60D92D7D-5F2C-49F9-843D-77A8B2083F46.png",
+      "sha256": "8de870ec5d3d1757e8032027f55bd8dfd43c880267c88aebbc9402f1710ffea4",
+      "bytes": 1313838,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused phonics goal correct en geometry_0_81EABCA2-1B15-4CFB-A1DD-46091776EB3A.json",
+      "sha256": "dddf24adf15aa59bd8e0bd3d743e9ab249fa17a3ca559eb2085964aae54db224",
+      "bytes": 3774,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused phonics goal correct en_0_33896CD5-44D1-4B05-9989-54E4B3AA2E3F.png",
+      "sha256": "b427da8f9a0d1e2d8799f529ff452f5ffe15015384b6e80a292c7a4776033be2",
+      "bytes": 332941,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Native focused phonics goal wrong en_0_8AFD5C3F-82EB-4A2B-9349-B413EAC356BC.png",
+      "sha256": "77e46b1b6281ffaf0aa23f622fed9a2b71964bcbf1f898f29385ab912c88ca1f",
+      "bytes": 1329356,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused phonics goal wrong en geometry_0_A62A25E3-FCA1-4D99-81AE-C4F6039F3503.json",
+      "sha256": "3b3f8ea2ad893566c2516c78b31d8116557146e8611efd8755b85ca239907ceb",
+      "bytes": 3675,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused phonics goal wrong en_0_D3EFD3CD-692C-46E8-8F84-9DA2C42BBF47.png",
+      "sha256": "07852a7548ebf8a61de6cb0d861313d7d102f09b3544aaa54f59611504329481",
+      "bytes": 335625,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Native focused phonics goal practice en_0_7EB802E6-E15D-4C9D-83A9-EB0F7F992F7B.png",
+      "sha256": "adb94dc5c935e8606712b239cebe0518c4d103a1468ddf3cb671559bd2fae9a1",
+      "bytes": 945114,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused phonics goal practice en geometry_0_670C6BD7-3F6D-41AF-AF45-2C362F57B62C.json",
+      "sha256": "f48f6361b0062b1b77b36a3e937893eef15072a3a7fbfaefd49fefdd74b5507c",
+      "bytes": 3456,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused phonics goal practice en_0_CBABCFB3-0776-4756-8EB6-5022FD4ECE54.png",
+      "sha256": "a316b6b7d4757a4e1ad59f3630402165673ae808aa248372acea6cb2d3358171",
+      "bytes": 378254,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Native focused phonics goal front en_0_56E36507-D53C-4DC5-AB0E-8F84718D0C8E.png",
+      "sha256": "375008087fb2f1c0853742431a8d81fe32c9a0789963c165bec80e377ab602bb",
+      "bytes": 965876,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused phonics goal front en geometry_0_24A5CE27-FF80-4511-97BA-266DBFE268A4.json",
+      "sha256": "4c1ca32ae082cf4845cf184a3f7a63499844fac6a13518c0d89e40783bd0547f",
+      "bytes": 3349,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused phonics goal front en_0_1C5BB163-D101-4C33-837E-627D9DDD54E0.png",
+      "sha256": "63890161ec76874e5eaedc3618e83452c2f10d4e01d837dad315799c9725eb02",
+      "bytes": 360352,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Public focused phonics goal en input_0_C36B5DB5-525D-44C5-A483-ECEDC91006AE.json",
+      "sha256": "bddf54a9f39aec1cdd91c4807a4c141243d943a4ad7b13cce697286cae210704",
+      "bytes": 3650,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult",
+      "retained_in_result_bundle": true
+    }
+  ],
+  "artifacts": [
+    {
+      "file": "goal-unmatched-en-input.json",
+      "attachment": "Public unavailable Phonics goal-unmatched-en input",
+      "sha256": "77c14bf55f06c68bba394dc014dbd3b61d12c749e09ac008c3c2e8f93e5751e0",
+      "bytes": 2177,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorComputedStyles20261105.xcresult"
+    },
+    {
+      "file": "goal-unmatched-en-source-trace.json",
+      "attachment": "Original unavailable Phonics App handoff goal-unmatched-en trace",
+      "sha256": "029de8d7cd301bfef231e69f3b25b32f45f22e4ca4d1b11d9746d0b6a1236611",
+      "bytes": 3702,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorComputedStyles20261105.xcresult"
+    },
+    {
+      "file": "goal-unmatched-en-source.png",
+      "attachment": "Source unavailable Phonics goal-unmatched-en Tutor ready",
+      "sha256": "93f1b248a27b735ee0ff58396fdbf9e9ceab8093b529a429454bc430767657cb",
+      "bytes": 616288,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorComputedStyles20261105.xcresult"
+    },
+    {
+      "file": "goal-unmatched-en-native.png",
+      "attachment": "Native unavailable Phonics goal-unmatched-en Tutor ready",
+      "sha256": "e59fd06ccee0cc54778592cdaf3660d296f6a39ef24cb76d0aee1602af48967b",
+      "bytes": 1227771,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorComputedStyles20261105.xcresult"
+    },
+    {
+      "file": "goal-malformed-en-input.json",
+      "attachment": "Public unavailable Phonics goal-malformed-en input",
+      "sha256": "05307e7b0e54b8ebd08e1d89a8edf303dfc33bce539fbe8713a3fe414649f280",
+      "bytes": 2247,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorComputedStyles20261105.xcresult"
+    },
+    {
+      "file": "goal-malformed-en-source-trace.json",
+      "attachment": "Original unavailable Phonics App handoff goal-malformed-en trace",
+      "sha256": "e4f8e2020de10c6245082a9d0a370518a8fadc844b9e35c2873b46797fe759cb",
+      "bytes": 3663,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorComputedStyles20261105.xcresult"
+    },
+    {
+      "file": "goal-malformed-en-source.png",
+      "attachment": "Source unavailable Phonics goal-malformed-en Tutor ready",
+      "sha256": "7f68d173feb76e4b27ccc9fee0b21fb50f2e0e9641266b597f5fb0f0dc33d61a",
+      "bytes": 617359,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorComputedStyles20261105.xcresult"
+    },
+    {
+      "file": "goal-malformed-en-native.png",
+      "attachment": "Native unavailable Phonics goal-malformed-en Tutor ready",
+      "sha256": "e59fd06ccee0cc54778592cdaf3660d296f6a39ef24cb76d0aee1602af48967b",
+      "bytes": 1227771,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorComputedStyles20261105.xcresult"
+    },
+    {
+      "file": "goal-malformed-en-pair.png",
+      "sha256": "bd15d03a8ed3eb6f0acca0ddaf0f55b7e164daad066a39eaee2f73e8b45f2331",
+      "bytes": 119064,
+      "derived_from": [
+        "goal-malformed-en-source.png",
+        "goal-malformed-en-native.png"
+      ],
+      "scope": "Display pair normalized to sRGB at 402-point width. Originals retain their profiles; component/dock capture omits the full product shell/menu."
+    },
+    {
+      "file": "repair-unmatched-en-input.json",
+      "attachment": "Public unavailable Phonics repair-unmatched-en input",
+      "sha256": "61496e8bea574b34aa5b396a77cbccbddf2c9435296e05eaf78ee6de350660bf",
+      "bytes": 1650,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorComputedStyles20261105.xcresult"
+    },
+    {
+      "file": "repair-unmatched-en-source-trace.json",
+      "attachment": "Original unavailable Phonics App handoff repair-unmatched-en trace",
+      "sha256": "6708acae7bd82736abac63b665d12f30467ac89b7560e3100c4b4ce93621cc6e",
+      "bytes": 3460,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorComputedStyles20261105.xcresult"
+    },
+    {
+      "file": "repair-unmatched-en-source.png",
+      "attachment": "Source unavailable Phonics repair-unmatched-en Tutor ready",
+      "sha256": "97fdc6966dc39d85232a56499072f1b4a63cb4824e372bc6dde365fcac9679df",
+      "bytes": 609297,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorComputedStyles20261105.xcresult"
+    },
+    {
+      "file": "repair-unmatched-en-native.png",
+      "attachment": "Native unavailable Phonics repair-unmatched-en Tutor ready",
+      "sha256": "6e1c5df0fd881a3a4c9749d1b6c163411d8eb15ce11f1f1dd359ce2bd2f4cf95",
+      "bytes": 1226397,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorComputedStyles20261105.xcresult"
+    },
+    {
+      "file": "repair-malformed-en-input.json",
+      "attachment": "Public unavailable Phonics repair-malformed-en input",
+      "sha256": "410ab2a3329d036b48d8ed4d2a3b433b39943f0cbb2ff7a58396d08aaa47a19d",
+      "bytes": 1589,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorComputedStyles20261105.xcresult"
+    },
+    {
+      "file": "repair-malformed-en-source-trace.json",
+      "attachment": "Original unavailable Phonics App handoff repair-malformed-en trace",
+      "sha256": "6148c7fa52900837f32c29b1dd8eb9a69f5e938c9cd32fc63300da741542b540",
+      "bytes": 3369,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorComputedStyles20261105.xcresult"
+    },
+    {
+      "file": "repair-malformed-en-source.png",
+      "attachment": "Source unavailable Phonics repair-malformed-en Tutor ready",
+      "sha256": "c372a17f3f1f1293a031fb3062aa5e4f0c8027a309b1e825ea5da046871d645b",
+      "bytes": 609302,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorComputedStyles20261105.xcresult"
+    },
+    {
+      "file": "repair-malformed-en-native.png",
+      "attachment": "Native unavailable Phonics repair-malformed-en Tutor ready",
+      "sha256": "6e1c5df0fd881a3a4c9749d1b6c163411d8eb15ce11f1f1dd359ce2bd2f4cf95",
+      "bytes": 1226397,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorComputedStyles20261105.xcresult"
+    },
+    {
+      "file": "repair-malformed-en-pair.png",
+      "sha256": "a33ab062d5e40ba436102b45922bcf49f19a0bd7ff3844783101a6c7742bf57c",
+      "bytes": 110417,
+      "derived_from": [
+        "repair-malformed-en-source.png",
+        "repair-malformed-en-native.png"
+      ],
+      "scope": "Display pair normalized to sRGB at 402-point width. Originals retain their profiles; component/dock capture omits the full product shell/menu."
+    },
+    {
+      "file": "goal-unmatched-ar-input.json",
+      "attachment": "Public unavailable Phonics goal-unmatched-ar input",
+      "sha256": "0bb2e20f6471880da002ca812bf357447e705d78efa8b3ff33277394baa0e0ab",
+      "bytes": 2183,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorComputedStyles20261105.xcresult"
+    },
+    {
+      "file": "goal-unmatched-ar-source-trace.json",
+      "attachment": "Original unavailable Phonics App handoff goal-unmatched-ar trace",
+      "sha256": "b9db35ee28821bfa1747564fefa348e2d805dcea7e2cfb471ac39008e3d80565",
+      "bytes": 3651,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorComputedStyles20261105.xcresult"
+    },
+    {
+      "file": "goal-unmatched-ar-source.png",
+      "attachment": "Source unavailable Phonics goal-unmatched-ar Tutor ready",
+      "sha256": "28c9e16c56658827cc3a439012a267b677865ff190ab15069a45a4b7b0b7d76b",
+      "bytes": 436415,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorComputedStyles20261105.xcresult"
+    },
+    {
+      "file": "goal-unmatched-ar-native.png",
+      "attachment": "Native unavailable Phonics goal-unmatched-ar Tutor ready",
+      "sha256": "9d42c1b52e32d4f57adaa740ea39e22ddc4cce4febe71d214afb7a86707c0a72",
+      "bytes": 1201137,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorComputedStyles20261105.xcresult"
+    },
+    {
+      "file": "goal-malformed-ar-input.json",
+      "attachment": "Public unavailable Phonics goal-malformed-ar input",
+      "sha256": "1ecd053442542963012582e822b0d13606a75f568f8f9be925516e6dfd996a81",
+      "bytes": 2253,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorComputedStyles20261105.xcresult"
+    },
+    {
+      "file": "goal-malformed-ar-source-trace.json",
+      "attachment": "Original unavailable Phonics App handoff goal-malformed-ar trace",
+      "sha256": "093438c92bb885c677d741758b47a13fa408933f564eee7187972553eccc9ffe",
+      "bytes": 3612,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorComputedStyles20261105.xcresult"
+    },
+    {
+      "file": "goal-malformed-ar-source.png",
+      "attachment": "Source unavailable Phonics goal-malformed-ar Tutor ready",
+      "sha256": "11e99191036bda84c7fb786aafef78c07221934ea27d02b566f2248ea1744e78",
+      "bytes": 436455,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorComputedStyles20261105.xcresult"
+    },
+    {
+      "file": "goal-malformed-ar-native.png",
+      "attachment": "Native unavailable Phonics goal-malformed-ar Tutor ready",
+      "sha256": "9d42c1b52e32d4f57adaa740ea39e22ddc4cce4febe71d214afb7a86707c0a72",
+      "bytes": 1201137,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorComputedStyles20261105.xcresult"
+    },
+    {
+      "file": "goal-malformed-ar-pair.png",
+      "sha256": "edb503ebafedda8d3c1f7bf2258f10414ed6e6f9592439ed39fc34041645a7c5",
+      "bytes": 90968,
+      "derived_from": [
+        "goal-malformed-ar-source.png",
+        "goal-malformed-ar-native.png"
+      ],
+      "scope": "Display pair normalized to sRGB at 402-point width. Originals retain their profiles; component/dock capture omits the full product shell/menu."
+    },
+    {
+      "file": "repair-unmatched-ar-input.json",
+      "attachment": "Public unavailable Phonics repair-unmatched-ar input",
+      "sha256": "8a789f20a3d4940eba738535aafb1b4ac3a13173022ce849f9c72d1bec8cc79f",
+      "bytes": 1650,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorComputedStyles20261105.xcresult"
+    },
+    {
+      "file": "repair-unmatched-ar-source-trace.json",
+      "attachment": "Original unavailable Phonics App handoff repair-unmatched-ar trace",
+      "sha256": "5f92bddca055a58fb19d3e32b01713d6ee9b0ebb7eb1c640e2e7be2d3d08315c",
+      "bytes": 3403,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorComputedStyles20261105.xcresult"
+    },
+    {
+      "file": "repair-unmatched-ar-source.png",
+      "attachment": "Source unavailable Phonics repair-unmatched-ar Tutor ready",
+      "sha256": "7d2d49d0970ce8439b2eb56e1d9ac49c59f8dc2b392e322d8a09f35371096234",
+      "bytes": 433448,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorComputedStyles20261105.xcresult"
+    },
+    {
+      "file": "repair-unmatched-ar-native.png",
+      "attachment": "Native unavailable Phonics repair-unmatched-ar Tutor ready",
+      "sha256": "9b6ce7e9d4264d10e556aab04666189facf8668a8a35ba2862182d5e99ece04b",
+      "bytes": 1197580,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorComputedStyles20261105.xcresult"
+    },
+    {
+      "file": "repair-malformed-ar-input.json",
+      "attachment": "Public unavailable Phonics repair-malformed-ar input",
+      "sha256": "9c0bb89a92ad095f90b751d86df95b031618b18288e164a646c9cb5b5617d192",
+      "bytes": 1589,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorComputedStyles20261105.xcresult"
+    },
+    {
+      "file": "repair-malformed-ar-source-trace.json",
+      "attachment": "Original unavailable Phonics App handoff repair-malformed-ar trace",
+      "sha256": "d38efe0e2da2326a9a196f260ba9df94228ad56723389fb7da5a95aae292e151",
+      "bytes": 3312,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorComputedStyles20261105.xcresult"
+    },
+    {
+      "file": "repair-malformed-ar-source.png",
+      "attachment": "Source unavailable Phonics repair-malformed-ar Tutor ready",
+      "sha256": "36ca98aeb4b644322d422c0f36fabd55385edddc8b7e51e5e2e5c3cdac0cc8ec",
+      "bytes": 436193,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorComputedStyles20261105.xcresult"
+    },
+    {
+      "file": "repair-malformed-ar-native.png",
+      "attachment": "Native unavailable Phonics repair-malformed-ar Tutor ready",
+      "sha256": "792ca06ee836af061c111d0574fd7df1d4ac26e9a5271348d45d619e93b0fe3d",
+      "bytes": 1197570,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorComputedStyles20261105.xcresult"
+    },
+    {
+      "file": "repair-malformed-ar-pair.png",
+      "sha256": "37c9457de417bc30c7f7aabe2f6d40ff52604f3b7d03258ff764987240cb6e44",
+      "bytes": 88065,
+      "derived_from": [
+        "repair-malformed-ar-source.png",
+        "repair-malformed-ar-native.png"
+      ],
+      "scope": "Display pair normalized to sRGB at 402-point width. Originals retain their profiles; component/dock capture omits the full product shell/menu."
+    },
+    {
+      "file": "native-goal-tutor-ready.png",
+      "attachment": "Native goal Phonics load failure hands off to disconnected Tutor",
+      "sha256": "1c2ab1344cd775573a1d795952c2734f587489018fbe05e32ef181681aa77901",
+      "bytes": 651600,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorComputedStyles20261105.xcresult"
+    },
+    {
+      "file": "native-goal-tutor-paused.png",
+      "attachment": "Native goal fallback Tutor explicitly connects then pauses",
+      "sha256": "a807cb79a42379cc5d57d1f944b67540556ec4136288fdbffd74e8962bff70b0",
+      "bytes": 772879,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorComputedStyles20261105.xcresult"
+    },
+    {
+      "file": "native-goal-tutor-restored.png",
+      "attachment": "Native goal same fallback Tutor restores without auto connecting",
+      "sha256": "f3900fa168f11c53493679ecdc3fcf864104fdc79f1db9dd4472f3ef965d2ae6",
+      "bytes": 654689,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorComputedStyles20261105.xcresult"
+    },
+    {
+      "file": "native-goal-load-failure-trace.json",
+      "attachment": "Native focused Phonics goal load-failure handoff trace",
+      "sha256": "77941cd05123b8d658a210adc35799e443c577fee7e8efb201da5be4cad7e845",
+      "bytes": 1487,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult"
+    },
+    {
+      "file": "native-goal-earned-completion-trace.json",
+      "attachment": "Native Phonics fallback Tutor goal earned completion trace",
+      "sha256": "ed7dad094014298bcd8537093519ebb8b9934cd116b5f3a6f7c6769c39146513",
+      "bytes": 279,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackFinalScreens20261105.xcresult"
+    },
+    {
+      "file": "native-repair-tutor-ready.png",
+      "attachment": "Native repair Phonics load failure hands off to disconnected Tutor",
+      "sha256": "cfcc5fff8c8d2828b13a5ce164ff622506e93390fe7fbb1df0a0105928f01352",
+      "bytes": 650893,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorComputedStyles20261105.xcresult"
+    },
+    {
+      "file": "native-repair-tutor-paused.png",
+      "attachment": "Native repair fallback Tutor explicitly connects then pauses",
+      "sha256": "3e30647cbe6fecc2861aa8f6c2c200d7ccbeef4005b276b5e72b61d43db74373",
+      "bytes": 772224,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorComputedStyles20261105.xcresult"
+    },
+    {
+      "file": "native-repair-tutor-restored.png",
+      "attachment": "Native repair same fallback Tutor restores without auto connecting",
+      "sha256": "7228bfda8d4077429bcd69562fd219f2dafcabe8e6ef6cc88d66cd9f5f6be2ef",
+      "bytes": 653868,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorComputedStyles20261105.xcresult"
+    },
+    {
+      "file": "native-repair-load-failure-trace.json",
+      "attachment": "Native focused Phonics repair load-failure handoff trace",
+      "sha256": "15562979a9db311dd94a0792292f7f6f99590afb4b3d9ad2ab25e7ffadb034fc",
+      "bytes": 1877,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackVerified20261105.xcresult"
+    },
+    {
+      "file": "native-repair-earned-completion-trace.json",
+      "attachment": "Native Phonics fallback Tutor repair earned completion trace",
+      "sha256": "4a926b84d19fe914a8a7da89510b172e8c6e990683868e15e71861ba277f8074",
+      "bytes": 256,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorFallbackFinalScreens20261105.xcresult"
+    },
+    {
+      "file": "qa-snapshot-audit.json",
+      "sha256": "d635a48a092681af3beea81d8d6253ebf3fa24419f80897e198251f024f8192f",
+      "bytes": 1235,
+      "result_bundle": "/tmp/PiyaliPhonicsTutorComputedStyles20261105.xcresult",
+      "scope": "Read-only isolated QA profile hashes/counts; no names, keys, notes or full profiles exported."
+    }
+  ]
+}

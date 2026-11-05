@@ -74,3 +74,5 @@ Tutor game preparation now stops voice before generation, keeps the original pla
 The [live reply checkpoint](TUTOR_REPLIES.md) restores translated phrase cards, original repeated/overlapping-token selection, visibility of existing translations, shared assistant replies in history and the localized live status label. Twelve measured source/native pairs and English/Arabic product journeys retain their component and physical-audio limits.
 
 Original response recordings, cache-first replay, source voice/language fallback, per-message busy state and interruption ownership are tracked in [Tutor replay](TUTOR_REPLAY.md). The optional OpenAI full-duplex capture and physical-audio boundaries remain open.
+
+Focused Phonics restoration-error handoffs, original ready-header SVG/badge styling, scoped completion at the trial boundary and native reconnect/reentry journeys are recorded in [PHONICS_TUTOR_FALLBACK.md](PHONICS_TUTOR_FALLBACK.md). The source already routed unmatched words to Tutor; the new correction covers mounted deck errors. This does not close split/late ASR, physical audio or full viewport/design gates.

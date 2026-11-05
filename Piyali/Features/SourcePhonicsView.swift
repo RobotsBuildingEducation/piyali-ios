@@ -11,7 +11,8 @@ struct PhonicsView:View {
     @State private var action:PhonicsSessionController?
     @State private var earnedOwners:Set<UUID>=[]
     private let onEarnedWorkChanged:(Bool)->Void
-    init(repairStep:RepairStep?=nil,goalBlueprint:JSONValue?=nil,controller:PhonicsCourseController?=nil,onEarnedWorkChanged:@escaping(Bool)->Void={_ in}){self.onEarnedWorkChanged=onEarnedWorkChanged;self.repairStep=repairStep;self.goalBlueprint=goalBlueprint;_course=StateObject(wrappedValue:controller ?? PhonicsCourseController(goal:goalBlueprint,repair:repairStep))}
+    private let onFocusedPracticeUnavailable:()->Void
+    init(repairStep:RepairStep?=nil,goalBlueprint:JSONValue?=nil,controller:PhonicsCourseController?=nil,onEarnedWorkChanged:@escaping(Bool)->Void={_ in},onFocusedPracticeUnavailable:@escaping()->Void={}){self.onEarnedWorkChanged=onEarnedWorkChanged;self.onFocusedPracticeUnavailable=onFocusedPracticeUnavailable;self.repairStep=repairStep;self.goalBlueprint=goalBlueprint;_course=StateObject(wrappedValue:controller ?? PhonicsCourseController(goal:goalBlueprint,repair:repairStep))}
     private var dark:Bool {scheme == .dark}
     private var brand:PiyaliBrand {.init(dark:dark)}
     private var scope:String {app.identity.sessionRevision.uuidString+":"+CalendarDay.key(Date())+":"+app.identity.npub+":"+app.learner.target+":"+app.learner.support+":"+(goalBlueprint?["goalId"].string ?? repairStep?.id ?? "ordinary")+":"+(app.lessonLevels.last ?? "Pre-A1")}
@@ -28,16 +29,17 @@ struct PhonicsView:View {
                     VStack(spacing:16){PhonicsCompletionPortrait();OnboardingText(text:course.control("complete",app:app),size:16,weight:.bold,lineHeight:24).foregroundStyle(PiyaliBrand.unitColor(dark ? "9ae6b4":"276749"))}.padding(24).frame(maxWidth:400).background(PiyaliBrand.unitColor(dark ? "1c4532":"f0fff4"),in:RoundedRectangle(cornerRadius:8)).overlay{RoundedRectangle(cornerRadius:8).stroke(PiyaliBrand.unitColor(dark ? "48bb78":"9ae6b4"))}
                     if course.complete,!course.focused {VStack(spacing:12){Button{Task{await course.newRound(app)}}label:{HStack{FlashcardIcon(name:"refresh",size:18);Text(course.copy("newRound",app:app))}.frame(maxWidth:.infinity,minHeight:48)}.buttonStyle(.bordered).disabled(course.generating).accessibilityIdentifier("phonicsNewRound");if course.activeLevel != "C2"{Button(course.control("next",app:app)){changeLevel(nextLevel)}.disabled(course.generating).accessibilityIdentifier("phonicsNextLevel")}}.frame(maxWidth:400)}
                 }else{Text(course.copy("loadError",app:app)).padding(24)}
-                if let error=course.error {VStack(spacing:8){Text(error).font(PiyaliBrand.productFont(14));Button(EntryCopy.ui(app.learner.support,"try_again")){Task{if course.initialized && !course.focused{await course.newRound(app)}else{await course.load(app)}}}}.accessibilityIdentifier("phonicsCourseError")}
+                if let error=course.error {VStack(spacing:8){Text(error).font(PiyaliBrand.productFont(14));Button(EntryCopy.ui(app.learner.support,"try_again")){Task{if course.initialized && !course.focused{await course.newRound(app)}else{await load()}}}}.accessibilityIdentifier("phonicsCourseError")}
                 if !course.collected.isEmpty {VStack(spacing:16){ForEach(course.collected,id:\.phonicsCardID){card in PhonicsSourceCard(app:app,card:card,count:Int(course.counts[card["id"].string].number),stackCount:1,dock:false,goal:goalBlueprint,repair:repairStep,onReady:{session in configure(session)},onActivate:{session in guard app.subscription.hasAccess else{return};course.touch();action=session},onBack:{action=course.deck.isEmpty ? nil:active},onCollect:{session in session.retry()}).id(scope+":"+course.sessionGeneration.uuidString+":collected:"+card["id"].string)}}.padding(.top,16)}
             }.padding(.horizontal,24).padding(.top,20).padding(.bottom,max(32,app.activityFooterHeight+24))
         }.background(brand.background).foregroundStyle(brand.text)
-            .task(id:scope){active?.cancel();action?.cancel();active=nil;action=nil;await course.load(app)}
+            .task(id:scope){active?.cancel();action?.cancel();active=nil;action=nil;await load()}
             .onChange(of:app.learner.phonicsRecords){_,_ in course.refresh(app)}
             .onChange(of:scenePhase){_,phase in if phase == .background{active?.stopAudio();action?.stopAudio()}}
             .onDisappear{active?.cancel();action?.cancel()}
             .overlay{if let action{PhonicsFooterPublisher(session:action,owner:action.id,app:app,onCollect:{session in session.stopAudio();if course.deck.contains(where:{$0["id"] == session.card["id"]}){course.collect(session.card,app:app);session.finishReview();self.action=nil}else{session.retry()}},onBack:{self.action?.stopAudio();self.action?.back();self.action=course.deck.isEmpty ? nil:active}).id(action.id)}}
     }
+    private func load()async {await course.load(app);if !Task.isCancelled,course.focusedUnavailable{onFocusedPracticeUnavailable()}}
     private func configure(_ session:PhonicsSessionController){
         let id=session.id;session.onEarnedWorkChanged={pending in if pending{earnedOwners.insert(id)}else{earnedOwners.remove(id)};onEarnedWorkChanged(!earnedOwners.isEmpty)}
     }

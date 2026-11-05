@@ -11,6 +11,7 @@ struct FocusedGoalCourseView:View {
     @State private var request=UUID()
     @State private var tutorFinishing=false
     @State private var phonicsFinishing=false
+    @State private var unavailablePhonicsScope:String?
     private var next:String? {app.readyGoal.flatMap(GoalPractice.nextMode)}
     private var preserveEarnedWork:Bool {if tutorFinishing || phonicsFinishing{return true};guard let routed,routed["mode"].string == "lesson",let lesson=try? app.sourceGoalLesson(routed) else{return false};return app.preserveEarnedGoalLesson(lesson)}
     var body:some View {
@@ -28,10 +29,12 @@ struct FocusedGoalCourseView:View {
         switch blueprint["mode"].string {
         case "lesson":if let lesson=try? app.sourceGoalLesson(blueprint){LessonView(lesson:lesson)}
         case "flashcards":FlashcardsView(goalBlueprint:blueprint)
-        case "phonics":if app.authoredGoalPhonics(blueprint).isEmpty {focusedTutor(blueprint)}else{PhonicsView(goalBlueprint:blueprint,controller:phonicsControllerFactory?(blueprint),onEarnedWorkChanged:{phonicsFinishing=$0})}
+        case "phonics":if app.authoredGoalPhonics(blueprint).isEmpty || unavailablePhonicsScope == phonicsScope(blueprint) {focusedTutor(blueprint)}else{PhonicsView(goalBlueprint:blueprint,controller:phonicsControllerFactory?(blueprint),onEarnedWorkChanged:{phonicsFinishing=$0},onFocusedPracticeUnavailable:{phonicsUnavailable(blueprint)})}
         default:focusedTutor(blueprint)
         }
     }
+    private func phonicsScope(_ blueprint:JSONValue)->String {[app.identity.sessionRevision.uuidString,app.identity.npub,app.learner.target,app.learner.support,blueprint.canonicalJSON].joined(separator:":")}
+    private func phonicsUnavailable(_ blueprint:JSONValue){guard routed == blueprint,next == "phonics",app.goalIsCurrent(blueprint) else{return};let scope=phonicsScope(blueprint);guard unavailablePhonicsScope != scope else{return};unavailablePhonicsScope=scope;onSurface(.tutor)}
     private func focusedTutor(_ blueprint:JSONValue)->some View {SourceTutorView(controller:tutorControllerFactory?(.goal(blueprint)),focus:.goal(blueprint),onCompletionPending:{tutorFinishing=$0})}
     private func prepare() async {
         let scope=app.goalCourseScope;failure=nil

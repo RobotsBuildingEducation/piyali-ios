@@ -11,6 +11,7 @@ import Combine
     @Published private(set) var sessionGeneration=UUID()
     @Published private(set) var generating=false
     @Published private(set) var error:String?
+    @Published private(set) var focusedUnavailable=false
     weak var currentSession:PhonicsSessionController?
     private var all:[JSONValue]=[],authored:[JSONValue]=[],extras:[JSONValue]=[],scope="",interacted=false
     private var policy:PhonicsPolicy?
@@ -26,22 +27,22 @@ import Combine
     private func key(_ app:AppModel)->String {app.identity.sessionRevision.uuidString+":"+String(app.signedIn)+":"+CalendarDay.key(Date())+":"+app.identity.npub+":"+app.learner.target+":"+app.learner.support+":"+(goal?["goalId"].string ?? repair?.id ?? "ordinary")}
     private func baseLevel(_ app:AppModel)->String {[app.lessonLevels.last,app.cardLevels.last,app.tutorLevels.last].compactMap{$0}.max{(LearningLanguages.levels.firstIndex(of:$0) ?? 0)<(LearningLanguages.levels.firstIndex(of:$1) ?? 0)} ?? "Pre-A1"}
     func load(_ app:AppModel)async {
-        let token=key(app);scope=token;initialized=false;sessionGeneration=UUID();interacted=false;error=nil
+        let token=key(app);scope=token;initialized=false;sessionGeneration=UUID();interacted=false;error=nil;focusedUnavailable=false
         do {
             if let goal {guard app.goalIsCurrent(goal) else{throw CancellationError()}}
             if let repair {guard app.repairRouteIsCurrent(repair) else{throw CancellationError()}}
             policy=try PhonicsPolicy(engine:app.companionQuestPolicy)
             if app.phonicsLibrary.isEmpty{await app.reloadContent()};try Task.checkCancellation();guard token == key(app) else{return}
             all=try LearningLanguages.levels.flatMap{app.phonicsLibrary[app.learner.target+":"+app.learner.support+":"+$0] ?? []}.map{try JSONDecoder().decode(JSONValue.self,from:JSONEncoder().encode($0))}
-            if let goal {try await app.prepareGoalDeck(goal,mode:"phonics");try Task.checkCancellation();guard token == key(app),app.goalIsCurrent(goal) else{return};partitionFocus(try app.displayedPhonicsArtifact(goal:goal,repair:nil),app:app)}
-            else if let repair {try await app.prepareRepairPhonics(repair);try Task.checkCancellation();guard token == key(app),app.repairRouteIsCurrent(repair) else{return};partitionFocus(try app.displayedPhonicsArtifact(goal:nil,repair:repair),app:app)}
+            if let goal {try await app.prepareGoalDeck(goal,mode:"phonics");try Task.checkCancellation();guard token == key(app),app.goalIsCurrent(goal) else{return};let artifact=try app.displayedPhonicsArtifact(goal:goal,repair:nil);guard !artifact["requiresTutor"].boolean else{focusedUnavailable=true;return};partitionFocus(artifact,app:app)}
+            else if let repair {try await app.prepareRepairPhonics(repair);try Task.checkCancellation();guard token == key(app),app.repairRouteIsCurrent(repair) else{return};let artifact=try app.displayedPhonicsArtifact(goal:nil,repair:repair);guard !artifact["requiresTutor"].boolean else{focusedUnavailable=true;return};partitionFocus(artifact,app:app)}
             else {
                 refresh(app);activeLevel=course["unlockedLevel"].string.isEmpty ? "Pre-A1":course["unlockedLevel"].string;partition(app)
             }
             try Task.checkCancellation();guard token == key(app) else{return};initialized=true
             let pendingGoal=goal.map{bp in (app.learner.pendingGoalChanges ?? []).contains{$0.action == .attempt && $0.target == app.learner.target && $0.payload["goalId"] == bp["goalId"] && $0.payload["dayKey"] == bp["dayKey"] && $0.payload["mode"].string == "phonics"}} ?? false
             if pendingGoal || repair.map({app.pendingRepairCompletion($0)}) == true {try await app.finishPhonicsFocus(goal:goal,repair:repair)}
-        }catch is CancellationError{}catch{if token == key(app){self.error=error.localizedDescription}}
+        }catch is CancellationError{}catch{if token == key(app){self.error=error.localizedDescription;focusedUnavailable=focused && !initialized}} // Earned completion retries keep their existing Phonics surface.
     }
     private func partitionFocus(_ artifact:JSONValue,app:AppModel) {
         let cards=artifact["cards"].array
