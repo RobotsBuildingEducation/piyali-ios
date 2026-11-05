@@ -12,6 +12,13 @@ struct ConversationView:View {
     @State private var showSettings=false
     @State private var showHistory=false
     @State private var historyContentHeight:CGFloat=300
+    @State private var archivePrevious:ConversationVisibleReply?
+    @State private var archive:ConversationArchive?
+    @State private var archiveHiddenID:String?
+    @State private var archivePulse=false
+    @State private var archiveTextFrame=CGRect.zero
+    @State private var archiveButtonFrame=CGRect.zero
+    @State private var archiveWork:Task<Void,Never>?
     @State private var showSummary=false
     @State private var paused=false
     @State private var pausedMuted=false
@@ -39,6 +46,11 @@ struct ConversationView:View {
     private func pairs(_ message:ConversationMessage)->JSONValue {message.translationLang == app.learner.support ? message.pairs ?? .array([]) : .array([])}
     private func translationAction(_ message:ConversationMessage?)->(()->Void)? {guard let message else{return nil};return {Task {await conversation.translate(message,app:app)}}}
     private var reply:String { !live.assistantTurnText.isEmpty ? live.assistantTurnText : paused && !pausedReply.isEmpty ? pausedReply : latest?.text ?? "" }
+    private var visibleReply:ConversationVisibleReply? {
+        guard !reply.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else{return nil}
+        let id = !live.assistantTurnText.isEmpty && !live.assistantResponseID.isEmpty ? live.assistantResponseID : (latest?.providerID ?? latest?.id.uuidString ?? "")
+        return id.isEmpty ? nil:ConversationVisibleReply(id:id,text:reply)
+    }
     private var footerRevision:String { "\(live.connected)|\(live.connecting)|\(live.muted)|\(paused)|\(conversation.busy)|\(draft.goal?.id.uuidString ?? "")" }
     private var settingsRevision:String { (draft.challengeLevel ?? "")+"|"+draft.interests }
     private var allowed:Bool { app.subscription.hasAccess || conversation.fixture }
@@ -46,15 +58,16 @@ struct ConversationView:View {
         Group { if conversation.fixture { content } else { SubscriptionRequiredView(service:app.subscription) { content } } }
             .navigationTitle(t("course_conversation","Conversation")).navigationBarTitleDisplayMode(.inline)
             .task(id:app.identity.npub+":"+app.learner.target+":"+app.learner.support+":"+String(allowed)) {
-                active=false;connectionEpoch=UUID();conversation.cancel();speech.stopAll();paused=false;pausedReply="";pausedSpeech=nil;pauseWork=nil;showStarter=false;starterPlaying=false
-                await live.stop(clearTranscript:true);guard !Task.isCancelled else { return };active=true;await conversation.prepare(app)
+                active=false;resetArchive();connectionEpoch=UUID();conversation.cancel();speech.stopAll();paused=false;pausedReply="";pausedSpeech=nil;pauseWork=nil;showStarter=false;starterPlaying=false
+                await live.stop(clearTranscript:true);guard !Task.isCancelled else { return };active=true;archivePrevious=visibleReply;await conversation.prepare(app)
             }
             .activityFooter(owner:footerOwner,revision:footerRevision,access:app.subscription,fixtureAllowed:conversation.fixture) { ActivityFooterSurface(hasFeedback:false,feedback:{EmptyView()},actions:{controls}) }
             .onChange(of:scenePhase) { _,phase in if phase == .background { stop() } }
             .onChange(of:app.subscription.hasAccess) { _,access in if !access { stop() } }
             .onChange(of:draft.goal?.id) { _,_ in stopStarter();showStarter=false;Task { await live.updateConversation(app.learner.conversation,learner:app.learner) } }
             .onChange(of:app.plateCourseCompletion?.id){_,_ in if app.plateCourseCompletion?.kind == "conversation"{stop()}}
-            .onDisappear { stop() }
+            .onChange(of:visibleReply) { _,value in updateArchive(value) }
+            .onDisappear { resetArchive();stop() }
             .sheet(isPresented:$showSettings,onDismiss:settingsClosed) { settingsSheet.presentationDetents([.fraction(0.8)]).presentationDragIndicator(.visible) }
             .fullScreenCover(isPresented:$showHistory) { historySheet.presentationBackground(.clear) }
             .fullScreenCover(isPresented:$showSummary) { summaryDialog.presentationBackground(.clear) }
@@ -74,13 +87,19 @@ struct ConversationView:View {
                 Color.clear.frame(height:app.activityFooterHeight+12)
             }.padding(.top,8).padding(.bottom,12).frame(maxWidth:672).frame(maxWidth:.infinity)
         }.background(brand.background).foregroundStyle(brand.text)
+            .overlay {if let archive {ConversationArchiveView(archive:archive,dark:scheme == .dark)}}
+            .coordinateSpace(name:"conversationArchive")
     }
     private var goalCard:some View {
         VStack(spacing:12) {
             HStack {
                 Button { settingsKey=settingsRevision;showSettings=true } label:{ Label(t("ra_conversation_settings","Conversation settings"),systemImage:"gearshape").font(PiyaliBrand.productFont(12,500)) }.opacity(0.7).accessibilityIdentifier("conversationSettings")
                 Spacer()
-                Button { showHistory=true } label:{ Image(systemName:"bubble.left.and.bubble.right").font(.system(size:14)).frame(width:26,height:26) }.disabled(draft.messages.isEmpty).accessibilityLabel(t("ra_chat_log","Chat log")).accessibilityIdentifier("conversationHistory")
+                Button { showHistory=true } label:{ Image(systemName:"bubble.left.and.bubble.right").font(.system(size:14)).frame(width:26,height:26).foregroundStyle(scheme == .dark ? (archivePulse ? Color.white:brand.text):PiyaliBrand.unitColor(archivePulse ? "69533d":"8b755f"))
+                    .background(scheme == .dark ? Color.clear:PiyaliBrand.unitColor("fffaf1").opacity(archivePulse ? 0.96:0.58),in:RoundedRectangle(cornerRadius:6))
+                    .overlay {if scheme != .dark {RoundedRectangle(cornerRadius:6).strokeBorder(PiyaliBrand.unitColor(archivePulse ? "6ec1d6":"bfa88b").opacity(archivePulse ? 0.56:0.34))}}
+                    .shadow(color:PiyaliBrand.unitColor(scheme == .dark ? "3b82f6":"6ec1d6").opacity(archivePulse ? 0.35:0),radius:archivePulse ? 9:0).scaleEffect(archivePulse ? 1.015:1)
+                }.buttonStyle(.plain).animation(.easeOut(duration:0.22),value:archivePulse).disabled(draft.messages.isEmpty).accessibilityLabel(t("ra_chat_log","Chat log")).accessibilityValue(conversation.fixture && archivePulse ? "Archiving":"").accessibilityIdentifier("conversationHistory").onGeometryChange(for:CGRect.self,of:{$0.frame(in:.named("conversationArchive"))}){archiveButtonFrame=$0}
             }
             HStack(spacing:8) {
                 Button { showStarter=false;Task { await conversation.shuffleTopic(app) } } label:{ Image(systemName:"dice").font(.system(size:14)).frame(width:26,height:26) }.opacity(0.7).disabled(conversation.busy || live.connected || live.connecting).accessibilityLabel(t("ra_new_topic","New topic")).accessibilityIdentifier("conversationShuffle")
@@ -101,9 +120,21 @@ struct ConversationView:View {
             }
         }.buttonStyle(.plain).padding(8).frame(maxWidth:400).background { ConversationGoalSurface(light:scheme != .dark) }.overlay { RoundedRectangle(cornerRadius:16).stroke(brand.border.opacity(scheme == .dark ? 0.3 : 1)) }
     }
+    private func resetArchive() {archiveWork?.cancel();archiveWork=nil;archivePrevious=nil;archive=nil;archiveHiddenID=nil;archivePulse=false;archiveTextFrame = .zero;archiveButtonFrame = .zero}
+    private func updateArchive(_ next:ConversationVisibleReply?) {
+        guard let next else{return}
+        defer {archivePrevious=next}
+        guard let previous=archivePrevious,previous.id != next.id,active,!reduceMotion,!showHistory,!showSummary,let flight=ConversationArchive(text:previous.text,source:archiveTextFrame,target:archiveButtonFrame) else{return}
+        archiveWork?.cancel();archive=flight;archiveHiddenID=next.id;archivePulse=true
+        archiveWork=Task { @MainActor in
+            do {try await Task.sleep(for:.milliseconds(170));guard !Task.isCancelled,archive?.id == flight.id else{return};archiveHiddenID=nil
+                try await Task.sleep(for:.milliseconds(1180));guard !Task.isCancelled,archive?.id == flight.id else{return};archive=nil;archivePulse=false;archiveWork=nil
+            } catch {return}
+        }
+    }
     private var replyBubble:some View {
         let message:ConversationMessage? = if !live.assistantResponseID.isEmpty,conversation.liveReply?.providerID == live.assistantResponseID,!live.assistantTurnText.isEmpty {conversation.liveReply} else if !live.assistantResponseID.isEmpty,latest?.providerID == live.assistantResponseID,!live.assistantTurnText.isEmpty {latest} else {latest?.text == reply ? latest:nil}
-        return TutorReplyView(primary:reply,secondary:message.map(translation) ?? "",target:app.learner.target,support:app.learner.support,pairs:message.map(pairs) ?? .array([]),showSecondary:showTranslations,replayAvailable:false,showPairCards:false,conversationAppearance:true,primaryIdentifier:"conversationLatestReply",secondaryIdentifier:"conversationTranslation",translating:message.map {conversation.translating.contains($0.id)} ?? false,onTranslate:showTranslations ? translationAction(message):nil,onReplay:{})
+        return TutorReplyView(primary:reply,secondary:message.map(translation) ?? "",target:app.learner.target,support:app.learner.support,pairs:message.map(pairs) ?? .array([]),showSecondary:showTranslations,replayAvailable:false,showPairCards:false,conversationAppearance:true,primaryIdentifier:"conversationLatestReply",secondaryIdentifier:"conversationTranslation",translating:message.map {conversation.translating.contains($0.id)} ?? false,onTranslate:showTranslations ? translationAction(message):nil,archiveHidden:archiveHiddenID != nil && archiveHiddenID == visibleReply?.id,onPrimaryFrame:{archiveTextFrame=$0},onReplay:{})
             .frame(maxWidth:.infinity,minHeight:150,alignment:.topLeading)
     }
     @ViewBuilder private var controls:some View {
@@ -284,3 +315,5 @@ struct ConversationUserBubble:View {
             .shadow(color:dark ? .black.opacity(0.25):PiyaliBrand.unitColor("6f5636").opacity(0.08),radius:dark ? 10:9,y:dark ? 6:8)
     }
 }
+
+private struct ConversationVisibleReply:Equatable {let id:String,text:String}

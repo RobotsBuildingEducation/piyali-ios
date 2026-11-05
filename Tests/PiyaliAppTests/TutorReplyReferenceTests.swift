@@ -78,3 +78,39 @@ extension TutorReplyReferenceTests {
         let source=XCTAttachment(image:try await web.takeSnapshot(configuration:nil));source.name="Source Conversation history newest first with translations hidden";source.lifetime = .keepAlways;add(source)
     }
 }
+
+@MainActor extension TutorReplyReferenceTests {
+    func testConversationArchiveWordsFollowSourceEndpointsAndTiming() throws {
+        let source=CGRect(x:20,y:250,width:220,height:75),target=CGRect(x:310,y:80,width:26,height:26)
+        let archive=try XCTUnwrap(ConversationArchive(text:"Intenta saludar y decir tu nombre.",source:source,target:target,started:.distantPast))
+        XCTAssertEqual(archive.words.map(\.text),["Intenta","saludar","y","decir","tu","nombre."])
+        XCTAssertEqual(ConversationArchive.hold,0.170);XCTAssertEqual(ConversationArchive.highlight,1.350)
+        let cjk="这是一个较长的句子需要换行并且保持每一行的文字完整";let wrapped=try XCTUnwrap(ConversationArchive(text:cjk,source:CGRect(x:0,y:0,width:90,height:100),target:target))
+        XCTAssertGreaterThan(wrapped.words.count,1);XCTAssertEqual(wrapped.words.map(\.text).joined(),cjk);XCTAssertGreaterThan(Set(wrapped.words.map(\.line)).count,1)
+        for word in archive.words {let initial=archive.pose(word,elapsed:-1),final=archive.pose(word,elapsed:2)
+            XCTAssertEqual(initial.center.x,source.minX+word.rect.minX,accuracy:0.01);XCTAssertEqual(initial.center.y,source.minY+CGFloat(word.line)*25,accuracy:0.01);XCTAssertEqual(initial.opacity,1,accuracy:0.001)
+            XCTAssertEqual(final.center.x,target.midX-word.rect.width/2,accuracy:0.01);XCTAssertEqual(final.center.y,target.midY-(word.rect.midY-CGFloat(word.line)*25),accuracy:0.01);XCTAssertEqual(final.opacity,0,accuracy:0.001)
+        }
+    }
+}
+
+@MainActor extension TutorReplyReferenceTests {
+    func testOriginalConversationArchiveMotionAtFixedTime() async throws {
+        let env=ProcessInfo.processInfo.environment;guard env["PIYALI_OFFLINE_TESTS"] == "1",env["PIYALI_REFERENCE_PREVIEW_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Isolated identity and source archive fixture required")}
+        let scene=try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap{$0 as? UIWindowScene}.first),old=scene.windows.first{$0.isKeyWindow};defer{old?.makeKey()}
+        let window=UIWindow(windowScene:scene);window.frame=CGRect(x:0,y:0,width:402,height:874);let config=WKWebViewConfiguration();config.websiteDataStore = .nonPersistent();let web=WKWebView(frame:window.frame,configuration:config),vc=UIViewController();vc.view=web;window.rootViewController=vc;window.makeKeyAndVisible();web.scrollView.contentInsetAdjustmentBehavior = .never;web.load(URLRequest(url:try XCTUnwrap(URL(string:"http://127.0.0.1:5181/__piyali-conversation-reply?kind=archive"))));defer{web.stopLoading();window.isHidden=true;window.rootViewController=nil}
+        var ready=false;for _ in 0..<400 {ready=(try? await web.evaluateJavaScript("!!window.__archiveGlyphs&&document.querySelectorAll('span[style*=\"offset-path\"]').length===6")) as? Bool == true;if ready{break};try await Task.sleep(for:.milliseconds(50))};XCTAssertTrue(ready);guard ready else{return}
+        _ = try await web.evaluateJavaScript("document.getAnimations().forEach(a=>{a.pause();a.currentTime=300})");try await Task.sleep(for:.milliseconds(200))
+        let positions=(try await web.evaluateJavaScript("[...document.querySelectorAll('span[style*=\"offset-path\"]')].map(e=>{let r=e.getBoundingClientRect(),s=getComputedStyle(e);return {text:e.textContent,x:r.x+r.width/2,y:r.y+r.height/2,duration:parseFloat(s.animationDuration)*1000,delay:parseFloat(s.animationDelay)*1000}})")) as? [[String:Any]] ?? []
+        let archive=try XCTUnwrap(ConversationArchive(text:"Intenta saludar y decir tu nombre.",source:CGRect(x:24,y:220,width:300,height:75),target:CGRect(x:320,y:80,width:26,height:26)))
+        XCTAssertEqual(positions.count,archive.words.count)
+        for (index,source) in positions.enumerated() where index<archive.words.count {let word=archive.words[index],pose=archive.pose(word,elapsed:0.3),path=archive.trajectories[index]
+            XCTAssertEqual(source["text"] as? String,word.text);XCTAssertEqual(source["duration"] as? Double ?? 0,path.duration*1000,accuracy:5);XCTAssertEqual(source["delay"] as? Double ?? 0,path.delay*1000,accuracy:2)
+            XCTAssertEqual(source["x"] as? Double ?? 0,pose.center.x,accuracy:12,"word \(word.text) x");XCTAssertEqual(source["y"] as? Double ?? 0,pose.center.y,accuracy:12,"word \(word.text) y")
+        }
+        let sourceShot=XCTAttachment(image:try await web.takeSnapshot(configuration:nil));sourceShot.name="Source Conversation archive at 300ms";sourceShot.lifetime = .keepAlways;add(sourceShot)
+        web.stopLoading();window.isHidden=true;window.rootViewController=nil
+        let native=UIHostingController(rootView:ConversationArchiveView(archive:archive,dark:false,fixedElapsed:0.3).background(PiyaliBrand.unitColor("f7f1e7")).ignoresSafeArea());window.rootViewController=native;window.makeKeyAndVisible();native.view.layoutIfNeeded();try await Task.sleep(for:.milliseconds(200))
+        let nativeShot=XCTAttachment(image:UIGraphicsImageRenderer(bounds:window.bounds).image{_ in window.drawHierarchy(in:window.bounds,afterScreenUpdates:true)});nativeShot.name="Native Conversation archive at 300ms";nativeShot.lifetime = .keepAlways;add(nativeShot)
+    }
+}

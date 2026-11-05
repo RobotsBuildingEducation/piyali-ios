@@ -34,11 +34,23 @@ import XCTest
         tap("conversationHistory",app);XCTAssertFalse(app.staticTexts.matching(NSPredicate(format:"identifier BEGINSWITH %@","conversationHistoryTranslation-")).firstMatch.exists)
         XCTAssertFalse(app.buttons.matching(NSPredicate(format:"identifier BEGINSWITH %@","conversationHistoryTranslate-")).firstMatch.exists)
     }
+    func testNewLiveReplyArchivesPreviousIntoHistory() {
+        let app=start();tap("conversationStart",app)
+        let reply=app.staticTexts["conversationLatestReply"],history=app.buttons["conversationHistory"]
+        expectation(for:NSPredicate(format:"label CONTAINS %@","Intenta saludar"),evaluatedWith:reply);waitForExpectations(timeout:15)
+        XCTAssertNotEqual(history.value as? String,"Archiving")
+        expectation(for:NSPredicate(format:"value == %@","Archiving"),evaluatedWith:history);waitForExpectations(timeout:12);photo("Native Conversation archive transition",app)
+        expectation(for:NSPredicate(format:"label CONTAINS %@","¡Hola, Ana!"),evaluatedWith:reply);waitForExpectations(timeout:8)
+        expectation(for:NSPredicate(format:"value != %@","Archiving"),evaluatedWith:history);waitForExpectations(timeout:8)
+        tap("conversationEnd",app);tap("conversationSummaryDone",app);tap("conversationHistory",app)
+        XCTAssertTrue(app.staticTexts["Intenta saludar y decir tu nombre."].waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts.matching(NSPredicate(format:"label CONTAINS %@","¡Hola, Ana!")).firstMatch.exists)
+    }
     func testLiveReplyTranslationSurvivesGrowingReplyAndPrivateRelaunch() {
         let app=start(liveTranslation:true);tap("conversationStart",app)
         let reply=app.staticTexts["conversationLatestReply"];expectation(for:NSPredicate(format:"label == %@","Vamos a practicar"),evaluatedWith:reply);waitForExpectations(timeout:15)
         tap("conversationTranslate",app);let translation=app.staticTexts["conversationTranslation"];XCTAssertTrue(translation.waitForExistence(timeout:5));XCTAssertEqual(translation.label,"Try gr");photo("Native translation of an arriving Conversation reply",app)
         expectation(for:NSPredicate(format:"label == %@","Vamos a practicar juntos."),evaluatedWith:reply);waitForExpectations(timeout:15)
+        XCTAssertNotEqual(app.buttons["conversationHistory"].value as? String,"Archiving")
         XCTAssertEqual(translation.label,"Try gr");XCTAssertFalse(app.buttons["conversationTranslate"].isEnabled)
         expectation(for:NSPredicate(format:"label == %@","Try greeting and saying your name."),evaluatedWith:translation);waitForExpectations(timeout:20)
         tap("conversationEnd",app);XCTAssertTrue(app.staticTexts["conversationSummaryXP"].waitForExistence(timeout:8));XCTAssertTrue(app.staticTexts["conversationSummaryXP"].label.contains("+0"));tap("conversationSummaryDone",app)

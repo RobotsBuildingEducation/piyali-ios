@@ -20,7 +20,19 @@
     "AlignedBubble",
     "UserBubble",
     "RowLeft",
-    "RowRight"
+    "RowRight",
+    "ARCHIVE_GLYPH_DURATION_MS",
+    "ARCHIVE_GLYPH_DURATION_VARIANCE_MS",
+    "ARCHIVE_ANIMATION_BUFFER_MS",
+    "ARCHIVE_GLYPH_STREAM_SPREAD_MS",
+    "ARCHIVE_GLYPH_STREAM_JITTER_MS",
+    "archiveLayoutCache",
+    "archiveMeasureContext",
+    "getArchiveLines",
+    "getArchiveMeasureContext",
+    "getArchiveGlyphs",
+    "archiveNoise",
+    "ArchiveTextAnimation"
   ],
-  "scope": "Original Conversation transcript modal, bubble/row JSX, phrase helpers, source theme/CSS and bidi helpers. Public fixture state with counted translation action; no account, provider, microphone, cloud or relay."
+  "scope": "Original Conversation transcript modal, bubble/row and archive-animation JSX, phrase/layout helpers, source theme/CSS and bidi helpers. Public fixture state with counted translation action; no account, provider, microphone, cloud or relay."
 }

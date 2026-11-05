@@ -7,6 +7,7 @@ struct TutorReplyView:View {
     var replayAvailable=true,showPairCards=true,conversationAppearance=false
     var primaryIdentifier="tutorLatestReply",secondaryIdentifier="tutorTranslation",translateIdentifier="conversationTranslate"
     var translating=false,onTranslate:(()->Void)?=nil
+    var archiveHidden=false,onPrimaryFrame:((CGRect)->Void)?=nil
     let onReplay:()->Void
     @Environment(\.colorScheme) private var scheme
     @State private var activeRoot:String?
@@ -20,7 +21,7 @@ struct TutorReplyView:View {
         VStack(alignment:.leading,spacing:0){
             HStack(alignment:.top,spacing:8){
                 if replayAvailable {Button(action:onReplay){Group{if replaying{ProgressView().controlSize(.mini)}else{Image(systemName:"speaker.wave.2").font(.system(size:14))}}.frame(width:24,height:24)}.buttonStyle(.plain).disabled(replaying).opacity(0.7).padding(.top,2).accessibilityLabel(EntryCopy.ui(support,"ra_btn_replay")).accessibilityIdentifier("tutorReplay")}
-                Text(aligned(value["primary"].array,color:ink)).font(PiyaliBrand.productFont(16)).lineSpacing(max(0,25-UIFont.systemFont(ofSize:16).lineHeight)).padding(.vertical,max(0,25-UIFont.systemFont(ofSize:16).lineHeight)/2).fixedSize(horizontal:false,vertical:true).frame(maxWidth:.infinity,alignment:.leading).textSelection(.enabled).environment(\.layoutDirection,rtl(target)).accessibilityIdentifier(primaryIdentifier).accessibilityAddTraits(activeRoot != nil ? .isSelected:[])
+                Text(aligned(value["primary"].array,color:ink)).font(PiyaliBrand.productFont(16)).lineSpacing(max(0,25-UIFont.systemFont(ofSize:16).lineHeight)).padding(.vertical,max(0,25-UIFont.systemFont(ofSize:16).lineHeight)/2).fixedSize(horizontal:false,vertical:true).frame(maxWidth:.infinity,alignment:.leading).textSelection(.enabled).environment(\.layoutDirection,rtl(target)).accessibilityIdentifier(primaryIdentifier).accessibilityAddTraits(activeRoot != nil ? .isSelected:[]).onGeometryChange(for:CGRect.self,of:{$0.frame(in:.named("conversationArchive"))}){onPrimaryFrame?($0)}
             }
             if showSecondary,!secondary.isEmpty {Text(aligned(value["secondary"].array,color:muted)).font(PiyaliBrand.productFont(12)).lineSpacing(max(0,18-UIFont.systemFont(ofSize:12).lineHeight)).padding(.vertical,max(0,18-UIFont.systemFont(ofSize:12).lineHeight)/2).foregroundStyle(muted).padding(.top,4).fixedSize(horizontal:false,vertical:true).frame(maxWidth:.infinity,alignment:.leading).environment(\.layoutDirection,rtl(support)).accessibilityIdentifier(secondaryIdentifier)}
             if showSecondary,let onTranslate {HStack {Spacer();Button(action:onTranslate){Group {if translating {ProgressView().controlSize(.mini)} else {Image("ConversationTranslate").resizable().renderingMode(.template).frame(width:12,height:12)}}.frame(width:24,height:24)}.buttonStyle(.plain).disabled(translating).accessibilityLabel(EntryCopy.ui(support,"ra_btn_translate")).accessibilityIdentifier(translateIdentifier)}.padding(.top,8)}
@@ -31,7 +32,7 @@ struct TutorReplyView:View {
                     OnboardingText(text:pair["rhs"].string,size:10,lineHeight:13).foregroundStyle(muted).frame(maxWidth:.infinity,alignment:.leading).environment(\.layoutDirection,rtl(support))
                 }.padding(.horizontal,12).padding(.vertical,10).padding(1).background(dark ? PiyaliBrand.unitColor("0b1220"):PiyaliBrand.unitColor("fffaf3"),in:RoundedRectangle(cornerRadius:8)).overlay{RoundedRectangle(cornerRadius:8).strokeBorder(color.opacity(dark ? 0.6:0.34))}.shadow(color:dark ? color.opacity(0.12):PiyaliBrand.unitColor("785e3d").opacity(0.06),radius:dark ? 9:8,y:6).accessibilityElement(children:.combine).accessibilityIdentifier("tutorPhrase-\(index)")
             }}.environment(\.layoutDirection,rtl(target)).padding(.top,12)}
-        }.padding(12).padding(1).foregroundStyle(ink).frame(maxWidth:.infinity,alignment:.leading)
+        }.opacity(archiveHidden ? 0:1).offset(y:archiveHidden ? 10:0).scaleEffect(archiveHidden ? 0.985:1).allowsHitTesting(!archiveHidden).animation(.easeOut(duration:0.18),value:archiveHidden).padding(12).padding(1).foregroundStyle(ink).frame(maxWidth:.infinity,alignment:.leading)
             .background{if conversationAppearance{ConversationReplySurface(light: !dark)}else if dark{TutorPaperPanel(radius:28,textured:true)}else{RoundedRectangle(cornerRadius:28).fill(PiyaliBrand.unitColor("f1e4d3").opacity(0.98))}}
             .clipShape(RoundedRectangle(cornerRadius:28)).overlay{RoundedRectangle(cornerRadius:28).strokeBorder(dark ? .white.opacity(0.06):PiyaliBrand.unitColor(conversationAppearance ? "604d38":"8e714f").opacity(conversationAppearance ? 0.16:0.26))}
             .shadow(color:dark ? .black.opacity(0.35):PiyaliBrand.unitColor(conversationAppearance ? "6f5636":"785e3d").opacity(conversationAppearance ? 0.08:0.13),radius:dark ? 14:(conversationAppearance ? 9:19),y:dark ? 14:(conversationAppearance ? 8:18))
