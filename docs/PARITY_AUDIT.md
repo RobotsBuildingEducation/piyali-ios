@@ -1,5 +1,7 @@
 # Functional and design parity: correction in progress
 
+> **Current completion plan (2026-11-04):** Read [PARITY_HANDOFF.md](PARITY_HANDOFF.md) for the remaining-work backlog and acceptance gates. The reference has advanced to `b269524d` since native checkpoint `9ab84a5`; REF-01 records confirmed entry/setup differences. Historical checks below keep their original scope and do not establish parity with the newer source.
+
 The earlier claim of a completed functional port was incorrect. Shared feature names, exported lesson counts and isolated service tests did not establish that the native app reproduced the web product. The user confirmed that landing, login, onboarding and the main features were all materially different, and explicitly expanded the requirement to design parity.
 
 The reference repository remains read-only. Work is in `codex/functional-design-parity` in `RobotsBuildingEducation/piyali-ios`. Existing Firebase, Cloudflare and Nostr services are reusable components; they are not evidence of screen or flow parity.

@@ -8,6 +8,8 @@ Open **Piyali.xcodeproj** in Xcode 26 or newer. Minimum iOS version is 17. Choos
 
 > **Parity correction:** The existing build does not yet match the web product. Prior component, transport and content tests do not establish functional or visual parity. Landing/login/onboarding, product navigation, guided sessions and exercise interactions are being reworked against the actual web screens. See [the corrected audit](docs/PARITY_AUDIT.md).
 
+**Continuation plan:** [Remaining design and feature parity work](docs/PARITY_HANDOFF.md) records the 2026-11-04 baselines, confirmed gaps, verification and release dependencies, acceptance criteria, and a focused workflow for a later Terra handoff. Start with its current-reference entry/setup differences; older passing checkpoints do not cover those changes.
+
 ## Existing native components (parity verification in progress)
 
 - Native Nostr account creation, existing nsec import and NIP-46 bunker connections; device-only Keychain storage; authenticated backup for local keys. Remote accounts keep the learner’s private key in their signer. See [docs/REMOTE_SIGNER.md](docs/REMOTE_SIGNER.md).
