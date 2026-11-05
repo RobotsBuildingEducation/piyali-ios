@@ -719,15 +719,18 @@ import Security
             for (index,entry) in [(AIService(),false),(AIService(),true),(fallback,false)].enumerated() {
                 let (ai,tutorial)=entry,authored=index == 0 ? lesson : nil,level=index == 0 ? "Pre-A1" : "A1"
                 let selection=Reading.select(content:authored?.content["reading"] ?? .null,level:level,recent:[],lesson:authored?.id ?? "free",roll:0)
-                var verified:ReadingRun?,failure:Error=ReadingFailure.invalid
+                var verified:ReadingRun?,failure:Error=ReadingFailure.invalid,partialEvents=0
                 for attempt in 0..<3 {
-                    do { let payload=try await ai.readingPayload(state:state,lesson:authored,level:level,selection:selection,recent:[],tutorial:tutorial,repair:attempt > 0,curriculum:index == 0 ? curriculum : .null)
+                    do { let payload=try await ai.readingPayload(state:state,lesson:authored,level:level,selection:selection,recent:[],tutorial:tutorial,repair:attempt > 0,curriculum:index == 0 ? curriculum : .null,onChunk:{snapshot in
+                            let hasDone=snapshot.components(separatedBy:.newlines).contains { line in (try? JSONDecoder().decode(Piyali.JSONValue.self,from:Data(line.utf8)))?["type"].string == "done" }
+                            if !hasDone,ReadingStreamDraft.parse(snapshot,target:"es",support:"en") != nil {partialEvents += 1}
+                        })
                         var candidate=try ReadingRun(payload:payload,target:"es",support:"en",level:level,lessonID:authored?.id,selection:selection,worth:.null,roll:0,tutorial:tutorial)
                         candidate.worth=try await GeneratedQuestionWorth.assess(question:.object(["passage":payload["target"],"reviewQuestion":payload["rawReviewQuestion"],"task":.string("Answer the review question about the passage")]),level:level,mode:"reading",learner:state,recipes:recipes,ai:ai)
                         verified=candidate;break
                     } catch { failure=error }
                 }
-                guard let reading=verified else { throw failure };XCTAssertFalse(reading.text.isEmpty);XCTAssertEqual(reading.takeaways.count,3);XCTAssertNotNil(QuestionWorth.delta(level:level,correct:true,independent:true,worth:reading.worth))
+                guard let reading=verified else { throw failure };XCTAssertGreaterThan(partialEvents,0,"A usable draft must arrive before the done record.");print("LIVE READING STREAM: provider=\(index == 2 ? "responses" : "gemini"), usable partial snapshots=\(partialEvents)");XCTAssertFalse(reading.text.isEmpty);XCTAssertEqual(reading.takeaways.count,3);XCTAssertNotNil(QuestionWorth.delta(level:level,correct:true,independent:true,worth:reading.worth))
                 if index == 0 || index == 2 {
                     let feedback=try await ai.readingSpeechFeedback(run:reading,transcript:Reading.displaySentences(reading.text).first ?? reading.text)
                     XCTAssertEqual(feedback.scores.count,6);XCTAssertFalse(feedback.summary.isEmpty);XCTAssertTrue(feedback.scores.values.allSatisfy { (1...10).contains($0.score) && !$0.note.isEmpty })
@@ -744,6 +747,39 @@ import Security
             }
             print("LIVE READING: original source protocol, actual family context, four-sentence welcome, Responses path, saved worth, semantic grading, explanation and aligned translation")
         } catch { try? await Auth.auth().currentUser?.delete();try? Auth.auth().signOut();try? identity.disconnect();throw error }
+        try await Auth.auth().currentUser?.delete();try Auth.auth().signOut();try identity.disconnect()
+    }
+    func testReadingStreamingProvidersAndTranslation() async throws {
+        guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else{throw XCTSkip("Explicit live API opt-in required.")}
+        XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))
+        if FirebaseApp.app() == nil {AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure()};XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let identity=IdentityService();try identity.create();try await FirebaseIdentityService.shared.ensure(identity)
+        do {
+            var state=LearnerState();state.target="es";state.support="en";state.level="A1"
+            let fallback=AIService(configuration:AppConfiguration(values:AppConfiguration().values.merging(["AIProvider":"responses"]) {_,new in new}))
+            for (label,ai) in [("configured",AIService()),("responses",fallback)] {
+                let selection=Reading.select(content:.null,level:"A1",recent:[],lesson:"free",roll:0)
+                var partial=0,restarted=false,payload: Piyali.JSONValue?,failure:Error=ReadingFailure.invalid
+                for attempt in 0..<2 {
+                    do {
+                        payload=try await ai.readingPayload(state:state,lesson:nil,level:"A1",selection:selection,recent:[],tutorial:false,repair:attempt > 0,onChunk:{snapshot in
+                            if snapshot.isEmpty {restarted=true;return}
+                            let done=snapshot.components(separatedBy:.newlines).contains {line in (try? JSONDecoder().decode(Piyali.JSONValue.self,from:Data(line.utf8)))?["type"].string == "done"}
+                            if !done,ReadingStreamDraft.parse(snapshot,target:"es",support:"en") != nil {partial += 1}
+                        });break
+                    } catch {failure=error}
+                }
+                guard let payload else{throw failure};_=try ReadingRun(payload:payload,target:"es",support:"en",level:"A1",lessonID:nil,selection:selection,worth:.null,roll:0)
+                XCTAssertGreaterThan(partial,0,"A usable draft must arrive before the done record.")
+                print("LIVE READING STREAM: path=\(label), usable partial snapshots=\(partial), provider restart=\(restarted)")
+                let sentences=Array(Reading.displaySentences(payload["target"].string).prefix(2)),prompt=try PracticeRecipes().reading("translate",parameters:.object(["targetLang":.string("es"),"supportLang":.string("en"),"sentences":.array(sentences.map(Piyali.JSONValue.string))]))
+                var translatedPartial=0
+                let output=try await ai.readingStreamText(prompt,onChunk:{snapshot in if !ReadingTranslationStream.lines(snapshot,limit:sentences.count).isEmpty {translatedPartial += 1}})
+                XCTAssertEqual(ReadingTranslationStream.lines(output,limit:sentences.count,includeTrailing:true).count,sentences.count)
+                XCTAssertGreaterThan(translatedPartial,0,"A translated line must arrive before stream completion.")
+                print("LIVE READING TRANSLATION STREAM: path=\(label), snapshots with a complete line=\(translatedPartial)")
+            }
+        } catch {try? await Auth.auth().currentUser?.delete();try? Auth.auth().signOut();try? identity.disconnect();throw error}
         try await Auth.auth().currentUser?.delete();try Auth.auth().signOut();try identity.disconnect()
     }
     func testNativeStorySourcePoliciesBatchWorthAndResponsesFallback() async throws {

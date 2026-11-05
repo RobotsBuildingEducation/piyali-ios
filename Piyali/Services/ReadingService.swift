@@ -4,8 +4,15 @@ import FirebaseAILogic
 @MainActor final class ReadingService:ObservableObject {
     @Published var busy=false
     @Published var error:String?
+    @Published private(set) var generating=false
+    @Published private(set) var draft:ReadingStreamDraft?
+    @Published private(set) var suppressedPrevious=false
+    @Published private(set) var translationPreview:[String]?
+    private var translationOwner:UUID?
     private var generation=UUID()
     private var speechReview:Task<ReadingSpeechFeedback,Error>?
+    private var writing:Task<JSONValue,Error>?
+    private var translating:Task<String,Error>?
     private let speechGrader:(@MainActor (ReadingRun,String) async throws->ReadingSpeechFeedback)?
     init(speechGrader:(@MainActor (ReadingRun,String) async throws->ReadingSpeechFeedback)?=nil) { self.speechGrader=speechGrader }
     static var fixture:Bool {
@@ -15,16 +22,16 @@ import FirebaseAILogic
         return false
         #endif
     }
-    func cancel() { generation=UUID();speechReview?.cancel();speechReview=nil;busy=false }
+    func cancel() { generation=UUID();writing?.cancel();writing=nil;translating?.cancel();translating=nil;translationPreview=nil;translationOwner=nil;speechReview?.cancel();speechReview=nil;busy=false;generating=false;draft=nil }
     func prepare(_ app:AppModel,lesson:Lesson?,fresh:Bool) async {
-        speechReview?.cancel();speechReview=nil
+        writing?.cancel();writing=nil;translating?.cancel();translating=nil;translationPreview=nil;translationOwner=nil;speechReview?.cancel();speechReview=nil
         let state=app.learner,account=app.identity.npub,target=state.target,support=state.support
         let authoredLevel=lesson?.cefrLevel ?? (lesson?.agenda["cefrLevel"].string.isEmpty == false ? lesson!.agenda["cefrLevel"].string : state.level)
         let fixed=lesson?.id == IntroTutorial.lessonID || lesson?.id.hasPrefix("goal-") == true || lesson?.id.hasPrefix("repair-") == true || lesson?.isFinalQuiz == true
         let level=fixed ? authoredLevel : PerformanceScore.level(score:state.score)
-        if !fresh,let run=state.reading,run.support == support,run.lessonID == lesson?.id,run.level == level { return }
+        if !fresh,let run=state.reading,run.support == support,run.lessonID == lesson?.id,run.level == level { suppressedPrevious=false;return }
         guard app.subscription.hasAccess || Self.fixture else { return }
-        let token=UUID();generation=token;busy=true;error=nil;defer { if generation == token { busy=false } }
+        let token=UUID();generation=token;busy=true;generating=true;suppressedPrevious=true;draft=nil;error=nil;defer { if generation == token { busy=false;generating=false;draft=nil;writing=nil } }
         do {
             let recipes=try PracticeRecipes(),unit=app.units.first { $0.lessons.contains { $0.id == lesson?.id } } ?? (lesson?.id == IntroTutorial.lessonID ? app.introLibrary?.units[state.level] : nil)
             let curriculum=try PracticeCurriculum.context(lesson:lesson,unit:unit,target:target,recipes:recipes)
@@ -32,11 +39,34 @@ import FirebaseAILogic
             let selection=Reading.select(content:content,level:level,recent:recent,lesson:lesson?.id ?? "free",roll:Double.random(in:0..<1))
             var prepared:ReadingRun?;var failure:Error=ReadingFailure.invalid
             for attempt in 0..<(Self.fixture ? 1 : 3) {
-                try Task.checkCancellation()
+                try Task.checkCancellation();guard generation == token,app.identity.npub == account,app.learner.target == target,app.learner.support == support else{return}
                 do {
-                    let payload:JSONValue
-                    if Self.fixture { payload=try ContentLibrary.load(JSONValue.self,name:"reading-test-passage") }
-                    else { payload=try await app.ai.readingPayload(state:state,lesson:lesson,level:level,selection:selection,recent:recent,tutorial:tutorial,repair:attempt > 0,curriculum:curriculum) }
+                    draft=nil
+                    let task=Task { @MainActor [weak self] () throws ->JSONValue in
+                        guard let self else{throw CancellationError()}
+                        if Self.fixture {
+                            let payload:JSONValue=try ContentLibrary.load(JSONValue.self,name:"reading-test-passage")
+                            #if DEBUG
+                            if ProcessInfo.processInfo.environment["PIYALI_READING_STREAM_FIXTURE"] == "1" {
+                                let lines=[JSONValue.object(["type":.string("title"),"text":payload["title"]]),.object(["type":.string("target"),"text":payload["target"]])]
+                                var snapshot=""
+                                for line in lines {
+                                    try Task.checkCancellation();guard self.generation == token,app.identity.npub == account,app.learner.target == target,app.learner.support == support else{throw CancellationError()}
+                                    snapshot += line.json+"\n";self.draft=ReadingStreamDraft.parse(snapshot,target:target,support:support)
+                                    try await Task.sleep(for:.seconds(8))
+                                }
+                            }
+                            #endif
+                            return payload
+                        }
+                        return try await app.ai.readingPayload(state:state,lesson:lesson,level:level,selection:selection,recent:recent,tutorial:tutorial,repair:attempt > 0,curriculum:curriculum,onChunk:{ [weak self] snapshot in
+                            guard let self,self.generation == token,app.identity.npub == account,app.learner.target == target,app.learner.support == support else{return}
+                            let next=ReadingStreamDraft.parse(snapshot,target:target,support:support);if next != self.draft {self.draft=next}
+                        })
+                    }
+                    writing=task
+                    let payload=try await withTaskCancellationHandler(operation:{try await task.value},onCancel:{task.cancel()})
+                    if generation == token {writing=nil}
                     var candidate=try ReadingRun(payload:payload,target:target,support:support,level:level,lessonID:lesson?.id,selection:selection,worth:.null,roll:Double.random(in:0..<1),method:Self.fixture ? (ProcessInfo.processInfo.environment["PIYALI_READING_SPEECH_FIXTURE"] == "1" ? "speech" : "question") : Bool.random() ? "question" : "speech",tutorial:Self.fixture ? false : tutorial,recent:Self.fixture ? [] : recent)
                     candidate.lessonLevel=authoredLevel
                     candidate.worth=Self.fixture ? try GeneratedQuestionWorth.fallback(level:level,learner:state,recipes:recipes) : try await GeneratedQuestionWorth.assess(question:.object(["passage":payload["target"],"reviewQuestion":payload["rawReviewQuestion"] == .null ? payload["reviewQuestion"] : payload["rawReviewQuestion"],"task":.string("Answer the review question about the passage")]),level:level,mode:"reading",learner:state,recipes:recipes,ai:app.ai)
@@ -45,7 +75,7 @@ import FirebaseAILogic
             }
             guard let run=prepared else { throw failure };try Task.checkCancellation()
             guard generation == token,app.identity.npub == account,app.learner.target == target,app.learner.support == support else { return }
-            app.learner.saveReading(run)
+            app.learner.saveReading(run);suppressedPrevious=false
             if app.learner.readingHistory == nil { app.learner.readingHistory=[:] }
             app.learner.readingHistory?[target]=Array(([run.historyEntry]+recent).prefix(30))
             while app.learner.readingHistory!.count > 1,(app.learner.readingHistory!.count > 3 || (try? JSONEncoder().encode(app.learner.readingHistory).count) ?? 0 > 96_000) { let old=app.learner.readingHistory!.keys.sorted().first { $0 != target }!;app.learner.readingHistory?.removeValue(forKey:old) }
@@ -93,19 +123,44 @@ import FirebaseAILogic
             current.explanation=String(output.prefix(6000));app.learner.saveReading(current);app.persist()
         } catch is CancellationError { } catch { if generation == token { self.error=error.localizedDescription } }
     }
-    func translate(_ app:AppModel,run:ReadingRun) async {
-        guard !busy,run.translation == nil,run.lineTranslations == nil,app.subscription.hasAccess || Self.fixture else { return }
-        let token=generation,account=app.identity.npub;busy=true;error=nil;defer { if generation == token { busy=false } }
+    func translationLines(for id:UUID)->[String]? {translationOwner == id ? translationPreview:nil}
+    @discardableResult func translate(_ app:AppModel,run:ReadingRun) async ->Bool {
+        guard !busy,run.translation == nil,run.lineTranslations == nil,app.subscription.hasAccess || Self.fixture else {return run.translation != nil || run.lineTranslations != nil}
+        let token=generation,account=app.identity.npub;busy=true;error=nil;translationOwner=run.id;translationPreview=[]
+        defer {if token == generation {busy=false;translating=nil;translationPreview=nil;translationOwner=nil}}
         do {
             let sentences=Reading.displaySentences(run.text)
             let prompt=try PracticeRecipes().reading("translate",parameters:.object(["targetLang":.string(run.target),"supportLang":.string(run.support),"sentences":.array(sentences.map(JSONValue.string))]))
-            let output=Self.fixture ? (try ContentLibrary.load(JSONValue.self,name:"reading-test-passage"))["translations"].array.map(\.string).joined(separator:"\n") : try await app.ai.text(prompt)
-            let lines=output.components(separatedBy:.newlines).map { $0.replacingOccurrences(of:"^\\s*\\d+[\\).:-]\\s*",with:"",options:.regularExpression).trimmingCharacters(in:.whitespacesAndNewlines) }.filter { !$0.isEmpty }
-            guard lines.count == sentences.count else { throw AppError.message(EntryCopy.ui(run.support,"try_again")) }
-            try Task.checkCancellation();guard token == generation,account == app.identity.npub,app.learner.target == run.target,app.learner.support == run.support,var current=app.learner.reading,current.id == run.id else { return }
-            current.lineTranslations=lines;app.learner.saveReading(current);app.persist()
-        } catch is CancellationError { } catch { if generation == token { self.error=error.localizedDescription } }
+            let task=Task { @MainActor [weak self] () throws ->String in
+                guard let self else{throw CancellationError()}
+                if Self.fixture {
+                    let lines=(try ContentLibrary.load(JSONValue.self,name:"reading-test-passage"))["translations"].array.map(\.string)
+                    #if DEBUG
+                    if ProcessInfo.processInfo.environment["PIYALI_READING_TRANSLATION_STREAM_FIXTURE"] == "1" {
+                        var snapshot=""
+                        for line in lines {
+                            try Task.checkCancellation();guard self.generation == token,app.identity.npub == account,app.learner.target == run.target,app.learner.support == run.support else{throw CancellationError()}
+                            snapshot += line+"\n";self.translationPreview=ReadingTranslationStream.lines(snapshot,limit:sentences.count)
+                            try await Task.sleep(for:.milliseconds(500))
+                        }
+                    }
+                    #endif
+                    return lines.joined(separator:"\n")
+                }
+                return try await app.ai.readingStreamText(prompt,onChunk:{[weak self] snapshot in
+                    guard let self,self.generation == token,self.translationOwner == run.id,app.identity.npub == account,app.learner.target == run.target,app.learner.support == run.support,app.learner.reading?.id == run.id else{return}
+                    let next=ReadingTranslationStream.lines(snapshot,limit:sentences.count);if next != self.translationPreview {self.translationPreview=next}
+                })
+            }
+            translating=task
+            let output=try await withTaskCancellationHandler(operation:{try await task.value},onCancel:{task.cancel()})
+            let lines=ReadingTranslationStream.lines(output,limit:sentences.count,includeTrailing:true)
+            guard lines.count == sentences.count else {throw AppError.message(EntryCopy.ui(run.support,"try_again"))}
+            try Task.checkCancellation();guard token == generation,account == app.identity.npub,app.learner.target == run.target,app.learner.support == run.support,var current=app.learner.reading,current.id == run.id else{return false}
+            current.lineTranslations=lines;app.learner.saveReading(current);app.persist();return true
+        } catch is CancellationError {return false} catch {if generation == token {self.error=error.localizedDescription};return false}
     }
+
 }
 extension AIService {
     func readingSpeechFeedback(run:ReadingRun,transcript:String) async throws->ReadingSpeechFeedback {
@@ -118,15 +173,44 @@ extension AIService {
         try Task.checkCancellation()
         guard let object=try GenerationObjects.parse(raw).first,let feedback=ReadingSpeechFeedback(object) else { throw ReadingFailure.invalid };return feedback
     }
-    func readingPayload(state:LearnerState,lesson:Lesson?,level:String,selection:JSONValue,recent:[JSONValue],tutorial:Bool,repair:Bool,curriculum:JSONValue = .null) async throws -> JSONValue {
+    func readingPayload(state:LearnerState,lesson:Lesson?,level:String,selection:JSONValue,recent:[JSONValue],tutorial:Bool,repair:Bool,curriculum:JSONValue = .null,onChunk:@escaping @MainActor(String)->Void = {_ in}) async throws -> JSONValue {
         let recipes=try PracticeRecipes(),type=["text","fill","mc"].randomElement()!
         var content=PracticeCurriculum.content(lesson,mode:"reading",context:curriculum)
         if tutorial { content=content.setting("topic",.string("tutorial")) }
         let titles=recent.compactMap { $0["title"].string.isEmpty ? nil : $0["title"].string }
         let parameters:JSONValue = .object(["targetLang":.string(state.target),"supportLang":.string(state.support),"cefrLevel":.string(level),"lessonContent":content,"reviewQuestionType":.string(type),"previousTitles":.array(titles.map(JSONValue.string)),"isFirst":.bool(titles.isEmpty),"user":state.recipeUser])
         var prompt=try recipes.reading("passage",parameters:parameters)
-        // The native parser consumes the source NDJSON protocol after completion.
         if repair { prompt += "\nPrevious generation failed validation. Return a fresh, complete passage and valid grounded question using the specified protocol." }
-        return try Reading.protocolPayload(try await text(ReadingRules.data["writer"].string+"\n"+prompt),questionType:type)
+        let output=try await readingStreamText(ReadingRules.data["writer"].string+"\n"+prompt,onChunk:onChunk)
+        onChunk(output+"\n") // Include a complete final record without a trailing newline.
+        var payload=try Reading.protocolPayload(output,questionType:type)
+        if let draft=ReadingStreamDraft.parse(output,target:state.target,support:state.support,includeTrailingRecord:true),!draft.text.isEmpty,draft.takeaways.count == 3 {
+            payload=payload.setting("title",.string(draft.title)).setting("target",.string(draft.text)).setting("takeaways",.array(draft.takeaways.map(JSONValue.string)))
+        }
+        return payload
+    }
+}
+
+
+extension AIService {
+    /// Publishes cumulative provider output; an empty snapshot abandons an
+    /// unsuccessful provider before the fallback starts.
+    func readingStreamText(_ prompt:String,onChunk:@escaping @MainActor(String)->Void) async throws ->String {
+        if configuration.string("AIProvider") == "gemini",FirebaseService.shared.configured {
+            do {
+                let model=FirebaseAI.firebaseAI(backend:configuration.geminiBackend()).generativeModel(modelName:configuration.string("GeminiModel"),generationConfig:GenerationConfig(temperature:0.7,maxOutputTokens:4096))
+                var output=""
+                for try await chunk in try model.generateContentStream(prompt) {
+                    try Task.checkCancellation()
+                    guard !chunk.candidates.contains(where:{$0.finishReason == .maxTokens}) else{throw ReadingFailure.invalid}
+                    output += chunk.text ?? ""
+                    guard output.utf8.count <= 100_000 else{throw ReadingFailure.invalid}
+                    onChunk(output)
+                }
+                guard !output.isEmpty else{throw ReadingFailure.invalid}
+                return output
+            } catch {try Task.checkCancellation();onChunk("")}
+        }
+        return try await responsesStream(prompt,onChunk:onChunk)
     }
 }

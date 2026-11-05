@@ -28,7 +28,7 @@ struct ReadingView:View {
     private var recordingNow:Bool { recorder.phase == .listening }
     private var finalizing:Bool { recorder.phase == .stopping }
     private var scope:String { [app.identity.npub,app.learner.target,app.learner.support,app.learner.level,lesson?.id ?? "free",String(refresh)].joined(separator:"|") }
-    private var run:ReadingRun? { guard let run=app.learner.reading,run.support == app.learner.support,run.lessonID == lesson?.id else { return nil };return run }
+    private var run:ReadingRun? { guard !service.generating,!service.suppressedPrevious,let run=app.learner.reading,run.support == app.learner.support,run.lessonID == lesson?.id else { return nil };return run }
     private func t(_ key:String)->String { EntryCopy.ui(app.learner.support,key) }
     var body:some View {
         Group { if ReadingService.fixture { activity } else { SubscriptionRequiredView(service:app.subscription,preserveEarnedWork:app.preserveEarnedGoalLesson(lesson)) { activity } } }
@@ -49,7 +49,9 @@ struct ReadingView:View {
             ScrollView {
                 VStack(alignment:.leading,spacing:18) {
                     Label(t("reading_title"),systemImage:"book").font(PiyaliBrand.productFont(16,600))
-                    if let run {
+                    if service.generating,let draft=service.draft {
+                        draftPassage(draft)
+                    } else if let run {
                         VStack(alignment:.leading,spacing:18) {
                             Text(run.title).font(PiyaliBrand.productFont(19,700)).frame(maxWidth:.infinity,alignment:.leading)
                             ReadingAudioControls(support:app.learner.support,loading:audio.readingAll && audio.loading,stopActive:readingAll,read:{stop();audio.play(run.text,language:run.target)},stop:stop)
@@ -69,6 +71,25 @@ struct ReadingView:View {
             Color.clear.frame(height:app.activityFooterHeight)
         }.font(PiyaliBrand.productFont(16)).foregroundStyle(brand.text).background(brand.background)
     }
+    private func draftPassage(_ draft:ReadingStreamDraft)->some View {
+        let sentences=Reading.displaySentences(draft.text)
+        return VStack(alignment:.leading,spacing:18) {
+            (Text(draft.title).font(PiyaliBrand.productFont(19,700)) + Text(" ("+t("reading_generating")+")").font(PiyaliBrand.productFont(13)).foregroundColor(brand.secondary)).accessibilityIdentifier("readingDraftTitle")
+            ReadingAudioControls(support:app.learner.support,loading:false,stopActive:readingAll,enabled:false,read:{},stop:stop)
+            VStack(alignment:.leading,spacing:14) {
+                if !sentences.isEmpty {
+                    ReadingSentenceText(sentences:sentences,active:activeSentence,dark:scheme == .dark,onSelect:{index in stop();audio.play(sentences[index],language:app.learner.target,sentence:index)})
+                        .accessibilityIdentifier("readingDraftPassage").environment(\.layoutDirection,app.learner.target == "ar" ? .rightToLeft:.leftToRight)
+                }
+                if app.learner.settingsSnapshot["progress"]["showTranslations"] != .bool(false) {
+                    HStack {Spacer();Button(t("history_translate")) {}.font(PiyaliBrand.productFont(13,600)).padding(.horizontal,12).padding(.vertical,10).foregroundStyle(.white).background(Color(red:64/255,green:103/255,blue:96/255),in:RoundedRectangle(cornerRadius:10)).buttonStyle(.plain).accessibilityIdentifier("readingDraftTranslate")}
+                }
+            }.padding(12).background(PiyaliBrand.teal.opacity(0.15),in:RoundedRectangle(cornerRadius:12)).overlay(alignment:.leading){UnevenRoundedRectangle(topLeadingRadius:3,bottomLeadingRadius:3).fill(PiyaliBrand.teal).frame(width:3)}
+            if !draft.takeaways.isEmpty {
+                VStack(alignment:.leading,spacing:7) {Text(t("reading_takeaways_heading")).font(PiyaliBrand.productFont(14,600));ForEach(Array(draft.takeaways.enumerated()),id:\.offset){_,value in Text("• "+value).font(PiyaliBrand.productFont(14))}}.padding(.top,24)
+            }
+        }.padding(16).frame(maxWidth:.infinity,alignment:.leading).background(brand.surface.opacity(0.68),in:RoundedRectangle(cornerRadius:16)).overlay{RoundedRectangle(cornerRadius:16).stroke(brand.border)}
+    }
     private func passage(_ run:ReadingRun)->some View {
         let sentences=Reading.displaySentences(run.text)
         return VStack(alignment:.leading,spacing:14) {
@@ -80,15 +101,15 @@ struct ReadingView:View {
                         Button { stop();audio.play(sentence,language:run.target,sentence:index) } label:{
                             Text(sentence).font(PiyaliBrand.productFont(16)).lineSpacing(6).multilineTextAlignment(.leading).padding(.horizontal,5).padding(.vertical,4).foregroundStyle(brand.text).background(sentenceColor(index).opacity(activeSentence == index ? 0.35 : 0.12),in:RoundedRectangle(cornerRadius:5)).overlay { RoundedRectangle(cornerRadius:5).stroke(sentenceColor(index).opacity(0.2)) }
                         }.buttonStyle(.plain).accessibilityIdentifier("readingSentence-\(index)")
-                        if showTranslation,let lines=run.lineTranslations,lines.indices.contains(index) { Text(lines[index]).font(PiyaliBrand.productFont(14)).italic().foregroundStyle(brand.secondary).frame(maxWidth:.infinity,alignment:.leading).accessibilityIdentifier("readingTranslation-\(index)").environment(\.layoutDirection,run.support == "ar" ? .rightToLeft : .leftToRight) }
+                        if showTranslation,let lines=service.translationLines(for:run.id) ?? run.lineTranslations,lines.indices.contains(index),!lines[index].isEmpty { Text(lines[index]).font(PiyaliBrand.productFont(14)).italic().foregroundStyle(brand.secondary).frame(maxWidth:.infinity,alignment:.leading).accessibilityIdentifier("readingTranslation-\(index)").environment(\.layoutDirection,run.support == "ar" ? .rightToLeft : .leftToRight) }
                     }
                 }
             }.environment(\.layoutDirection,run.target == "ar" ? .rightToLeft : .leftToRight) }
             if showTranslation,run.lineTranslations == nil,let translation=run.translation { Text(translation).font(PiyaliBrand.productFont(14)).italic().foregroundStyle(brand.secondary) }
-            HStack { Spacer();Button {
+            if app.learner.settingsSnapshot["progress"]["showTranslations"] != .bool(false) { HStack { Spacer();Button {
                 if showTranslation { showTranslation=false }
-                else { showTranslation=true;Task { await service.translate(app,run:run) } }
-            } label:{ HStack(spacing:6) { if service.busy { ProgressView().tint(.white) };Text(t(showTranslation ? "history_hide_translation" : run.translation == nil && run.lineTranslations == nil ? "history_translate" : "history_show_translation")) }.font(PiyaliBrand.productFont(13,600)).padding(.horizontal,12).padding(.vertical,10).foregroundStyle(.white).background(showTranslation ? Color(red:72/255,green:55/255,blue:156/255) : Color(red:64/255,green:103/255,blue:96/255),in:RoundedRectangle(cornerRadius:10)) }.buttonStyle(.plain).disabled(service.busy).accessibilityIdentifier("readingTranslate") }
+                else { showTranslation=true;Task { let success=await service.translate(app,run:run);if !success,self.run?.id == run.id {showTranslation=false} } }
+            } label:{ HStack(spacing:6) { if service.busy { ProgressView().tint(.white) };Text(t(showTranslation ? "history_hide_translation" : run.translation == nil && run.lineTranslations == nil ? "history_translate" : "history_show_translation")) }.font(PiyaliBrand.productFont(13,600)).padding(.horizontal,12).padding(.vertical,10).foregroundStyle(.white).background(showTranslation ? Color(red:72/255,green:55/255,blue:156/255) : Color(red:64/255,green:103/255,blue:96/255),in:RoundedRectangle(cornerRadius:10)) }.buttonStyle(.plain).disabled(service.busy).accessibilityIdentifier("readingTranslate") } }
         }.padding(12).background(PiyaliBrand.teal.opacity(0.15),in:RoundedRectangle(cornerRadius:12)).overlay(alignment:.leading) { UnevenRoundedRectangle(topLeadingRadius:3,bottomLeadingRadius:3).fill(PiyaliBrand.teal).frame(width:3) }
     }
     private func sentenceColor(_ index:Int)->Color { [PiyaliBrand.teal,Color(red:128/255,green:90/255,blue:213/255),Color(red:237/255,green:137/255,blue:54/255),Color(red:99/255,green:179/255,blue:237/255),Color(red:246/255,green:173/255,blue:85/255)][index%5] }
@@ -110,7 +131,7 @@ struct ReadingView:View {
             if let code=recorder.issue { let copy=ReadingSpeechCapture.feedback(code);Text(t(copy.title)+". "+t(copy.description)).font(PiyaliBrand.productFont(14)).foregroundStyle(brand.secondary).accessibilityIdentifier("readingRecordingError") }
         }
     }
-    private var footerRevision:String { [scope,run?.id.uuidString ?? "",String(run?.awarded ?? false),String(describing:run?.correct),run?.feedback ?? "",String(lessonPercent ?? -1),run?.explanation ?? "",answer,String(service.busy),service.error ?? "",recorder.phase.rawValue,recorder.transcript,recorder.issue ?? ""].joined(separator:"|") }
+    private var footerRevision:String { [scope,run?.id.uuidString ?? "",String(run?.awarded ?? false),String(describing:run?.correct),run?.feedback ?? "",String(lessonPercent ?? -1),run?.explanation ?? "",answer,String(service.busy),String(service.generating),String(service.suppressedPrevious),service.error ?? "",recorder.phase.rawValue,recorder.transcript,recorder.issue ?? ""].joined(separator:"|") }
     private var lessonPercent:Int? { guard let lesson,lesson.id != IntroTutorial.lessonID,lesson.xpReward > 0 else { return nil };let work=app.learner.lessonWork?[app.learner.completionKey(lesson.id)];return Int((work?.fraction(goal:lesson.xpReward) ?? 0)*100+0.5) }
     private var footer:some View {
         ActivityFooterSurface(feedbackLimit:run?.method == "speech" ? UIScreen.main.bounds.height*0.45 : nil,hasFeedback:run?.feedback.isEmpty == false || run?.awarded == true,feedback:{
@@ -161,23 +182,36 @@ private struct ReadingSentenceText:UIViewRepresentable {
     let onSelect:(Int)->Void
     func makeCoordinator()->Coordinator { Coordinator(onSelect:onSelect) }
     func makeUIView(context:Context)->UITextView {
-        let view=UITextView();view.isEditable=false;view.isScrollEnabled=false;view.backgroundColor = .clear;view.textContainerInset = .zero;view.textContainer.lineFragmentPadding=0;view.delegate=context.coordinator;view.linkTextAttributes=[:];view.setContentCompressionResistancePriority(.defaultLow,for:.horizontal);return view
+        let view=UITextView();view.isEditable=false;view.isSelectable=false;view.isScrollEnabled=false;view.backgroundColor = .clear;view.textContainerInset = .zero;view.textContainer.lineFragmentPadding=0;view.setContentCompressionResistancePriority(.defaultLow,for:.horizontal)
+        view.addGestureRecognizer(UITapGestureRecognizer(target:context.coordinator,action:#selector(Coordinator.tap(_:))))
+        return view
     }
     func updateUIView(_ view:UITextView,context:Context) {
         context.coordinator.onSelect=onSelect
         let text=NSMutableAttributedString(string:""),colors:[UIColor]=[.init(red:56/255,green:178/255,blue:172/255,alpha:1),.init(red:128/255,green:90/255,blue:213/255,alpha:1),.init(red:237/255,green:137/255,blue:54/255,alpha:1),.init(red:99/255,green:179/255,blue:237/255,alpha:1),.init(red:246/255,green:173/255,blue:85/255,alpha:1)]
         let paragraph=NSMutableParagraphStyle();paragraph.lineSpacing=13;paragraph.baseWritingDirection=context.environment.layoutDirection == .rightToLeft ? .rightToLeft : .leftToRight
         for (index,sentence) in sentences.enumerated() {
-            text.append(NSAttributedString(string:sentence,attributes:[.font:UIFont.systemFont(ofSize:16),.foregroundColor:dark ? UIColor(red:229/255,green:231/255,blue:235/255,alpha:1) : UIColor(red:47/255,green:38/255,blue:29/255,alpha:1),.backgroundColor:colors[index%colors.count].withAlphaComponent(active == index ? 0.35 : 0.12),.link:URL(string:"piyali-reading://sentence/\(index)")!,.paragraphStyle:paragraph]))
+            text.append(NSAttributedString(string:sentence,attributes:[.font:UIFont.systemFont(ofSize:16),.foregroundColor:dark ? UIColor(red:229/255,green:231/255,blue:235/255,alpha:1) : UIColor(red:47/255,green:38/255,blue:29/255,alpha:1),.backgroundColor:colors[index%colors.count].withAlphaComponent(active == index ? 0.35 : 0.12),NSAttributedString.Key("piyaliSentence"):index,.paragraphStyle:paragraph]))
             text.append(NSAttributedString(string:" ",attributes:[.font:UIFont.systemFont(ofSize:16),.paragraphStyle:paragraph]))
         }
         if !view.attributedText.isEqual(to:text) { view.attributedText=text }
         view.accessibilityIdentifier="readingPassage"
+        view.isAccessibilityElement=true;view.accessibilityLabel=sentences.joined(separator:" ")
+        view.accessibilityValue=active.flatMap {sentences.indices.contains($0) ? sentences[$0] : nil}
+        view.accessibilityCustomActions=sentences.enumerated().map { index,sentence in UIAccessibilityCustomAction(name:sentence) { _ in context.coordinator.onSelect(index);return true } }
     }
     func sizeThatFits(_ proposal:ProposedViewSize,uiView:UITextView,context:Context)->CGSize? { guard let width=proposal.width else { return nil };return uiView.sizeThatFits(CGSize(width:width,height:.greatestFiniteMagnitude)) }
-    final class Coordinator:NSObject,UITextViewDelegate {
+    final class Coordinator:NSObject {
         var onSelect:(Int)->Void
         init(onSelect:@escaping(Int)->Void) { self.onSelect=onSelect }
-        func textView(_ textView:UITextView,shouldInteractWith url:URL,in characterRange:NSRange,interaction:UITextItemInteraction)->Bool { if url.scheme == "piyali-reading",let index=Int(url.lastPathComponent) { onSelect(index) };return false }
+        @objc func tap(_ recognizer:UITapGestureRecognizer) {
+            guard let view=recognizer.view as? UITextView,view.attributedText.length > 0 else{return}
+            var point=recognizer.location(in:view);point.x -= view.textContainerInset.left;point.y -= view.textContainerInset.top
+            let manager=view.layoutManager,glyph=manager.glyphIndex(for:point,in:view.textContainer)
+            guard glyph < manager.numberOfGlyphs,manager.boundingRect(forGlyphRange:NSRange(location:glyph,length:1),in:view.textContainer).insetBy(dx:-2,dy:-4).contains(point) else{return}
+            let character=manager.characterIndexForGlyph(at:glyph)
+            guard character < view.attributedText.length,let index=view.attributedText.attribute(NSAttributedString.Key("piyaliSentence"),at:character,effectiveRange:nil) as? Int else{return}
+            onSelect(index)
+        }
     }
 }

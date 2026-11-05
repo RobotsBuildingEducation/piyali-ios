@@ -22,8 +22,18 @@ public enum Reading {
         return parts.map { $0.trimmingCharacters(in:.whitespacesAndNewlines) }.filter { !$0.isEmpty }
     }
     public static func protocolPayload(_ output:String,questionType:String)throws->JSONValue {
-        let objects=try GenerationObjects.parse(output)
-        guard let title=objects.first(where:{$0["type"].string == "title"}),let review=objects.first(where:{$0["type"].string == "review_question"}),objects.last?["type"].string == "done" else { throw ReadingFailure.invalid }
+        let objects:[JSONValue]
+        do {objects=try GenerationObjects.parse(output)} catch {
+            // The web skips malformed NDJSON records and continues consuming
+            // later complete lines. Keep the same behavior without weakening
+            // the final done marker and question validation below.
+            guard output.utf8.count <= 100_000 else{throw ReadingFailure.invalid}
+            objects=output.components(separatedBy:.newlines).compactMap { line in
+                guard let object=try? JSONDecoder().decode(JSONValue.self,from:Data(line.trimmingCharacters(in:.whitespacesAndNewlines).utf8)),case .object=object else{return nil};return object
+            }
+            guard objects.count <= 64 else{throw ReadingFailure.invalid}
+        }
+        guard let title=objects.first(where:{$0["type"].string == "title"}),let review=objects.last(where:{$0["type"].string == "review_question"}),objects.last?["type"].string == "done" else { throw ReadingFailure.invalid }
         let targets=objects.filter { $0["type"].string == "target" }.map { $0["text"].string },takeaways=objects.filter { $0["type"].string == "takeaway" }.map { $0["text"].string }
         let question=review.setting("questionType",review["questionType"] == .null ? .string(questionType) : review["questionType"])
         guard ReadingQuestion(question) != nil else { throw ReadingFailure.invalid }

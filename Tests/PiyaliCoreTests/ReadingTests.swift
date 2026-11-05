@@ -14,6 +14,8 @@ final class ReadingTests:XCTestCase {
         let lines:[JSONValue]=[.object(["type":.string("title"),"text":.string("A small garden")]),.object(["type":.string("target"),"text":.string("A plant grows near the window.")]),.object(["type":.string("takeaway"),"text":.string("A plant")]),.object(["type":.string("takeaway"),"text":.string("A window")]),.object(["type":.string("takeaway"),"text":.string("A garden")]),.object(["type":.string("review_question"),"questionType":.string("fill"),"question":.string("The plant is near the ___."),"answer":.string("window")]),.object(["type":.string("done")])]
         let output=lines.map(\.json).joined(separator:"\n"),payload=try Reading.protocolPayload(output,questionType:"mc")
         XCTAssertEqual(payload["target"].string,"A plant grows near the window.");XCTAssertEqual(ReadingQuestion(payload["reviewQuestion"])?.type,"fill");XCTAssertEqual(payload["rawReviewQuestion"],lines[5])
+        let malformed=lines[0].json+"\n{broken}\n"+lines.dropFirst().map(\.json).joined(separator:"\n")
+        XCTAssertEqual(try Reading.protocolPayload(malformed,questionType:"mc")["target"].string,"A plant grows near the window.")
         XCTAssertThrowsError(try Reading.protocolPayload(lines.dropLast().map(\.json).joined(separator:"\n"),questionType:"mc"))
         XCTAssertThrowsError(try Reading.protocolPayload(output.replacingOccurrences(of:"___",with:"here"),questionType:"mc"))
     }
