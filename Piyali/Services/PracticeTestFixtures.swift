@@ -25,7 +25,8 @@ enum PracticeTestFixtures {
         if kind.hasPrefix("wordbank:") {guard wordBankSamples[String(kind.dropFirst(9))]["kind"].string == run.question.kind,!prompt.isEmpty else{return nil};return run.answerText == run.question.strings("correctWords").joined(separator:" ") ? "YES":"NO"}
         if kind.hasPrefix("standard:") {
             let q=run.question,p=q.payload,r=run.response,choices=run.bank,words=r["indices"].array.compactMap{value->String? in let i=Int(value.number);return choices.indices.contains(i) ? choices[i]:nil}
-            guard standardSamples[q.module.rawValue][String(kind.dropFirst(9))]["kind"].string == q.kind,!prompt.isEmpty,!prompt.contains("undefined")else{return nil}
+            let name=String(kind.dropFirst(9))
+            guard standardSamples[q.module.rawValue][name == "match-no-stem" ? "match":name]["kind"].string == q.kind,!prompt.isEmpty,!prompt.contains("undefined")else{return nil}
             let correct:Bool
             switch q.kind{
             case "fill":correct=r["text"].string == p["answer"].string
@@ -60,9 +61,9 @@ enum PracticeTestFixtures {
         }
         if kind.hasPrefix("wordbank:") {let sample=wordBankSamples[String(kind.dropFirst(9))];guard sample != .null else{return nil};return try? PracticeQuestion(module:module,kind:sample["kind"].string,payload:sample["question"],options:sample["options"],target:target,support:support)}
         if kind.hasPrefix("standard:") {
-            let sample=standardSamples[module.rawValue][String(kind.dropFirst(9))]
+            let name=String(kind.dropFirst(9)),sample=standardSamples[module.rawValue][name == "match-no-stem" ? "match":name]
             guard sample != .null else{return nil}
-            return try? PracticeQuestion(module:module,kind:sample["kind"].string,payload:sample["question"],options:.object(["cefrLevel":.string("A1")]),target:target,support:support)
+            return try? PracticeQuestion(module:module,kind:sample["kind"].string,payload:name == "match-no-stem" ? sample["question"].setting("stem",.null).setting("hint",.null):sample["question"],options:.object(["cefrLevel":.string("A1")]),target:target,support:support)
         }
         let options:JSONValue = .object(["cefrLevel":.string("A1"),"direction":.string("target-to-support"),"isListening":.bool(false)])
         let payload:JSONValue

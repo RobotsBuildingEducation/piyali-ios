@@ -5,7 +5,7 @@ import XCTest
     private func tap(_ id:String,_ app:XCUIApplication){let e=element(id,app);XCTAssertTrue(e.waitForExistence(timeout:10));reveal(e,app);e.tap()}
     private func shot(_ name:String,_ app:XCUIApplication){let a=XCTAttachment(screenshot:app.screenshot());a.name=name;a.lifetime = .keepAlways;add(a)}
     private func launch(_ variant:String,audio:Bool=false,cache:Bool=false,warm:Bool=false)->XCUIApplication {
-        let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_HEADLINE_FIXTURE":"failure","PIYALI_PRACTICE_JUDGE_FIXTURE":"offered-reference","PIYALI_PRACTICE_FIXTURE":"standard:"+variant,"PIYALI_QUESTION_HELP_FIXTURE":"stream"];if audio{app.launchEnvironment["PIYALI_LESSON_AUDIO_FIXTURE"]="loading"};if cache{app.launchEnvironment["PIYALI_LESSON_AUDIO_FIXTURE"]="cache"};if warm{app.launchEnvironment["PIYALI_LESSON_AUDIO_FIXTURE"]="warm"};app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"];app.launch();handleInitialPaperPencil(app)
+        let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_MEMORY_CAPTURE_ONLY":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_HEADLINE_FIXTURE":"failure","PIYALI_PRACTICE_JUDGE_FIXTURE":"offered-reference","PIYALI_PRACTICE_FIXTURE":"standard:"+variant,"PIYALI_QUESTION_HELP_FIXTURE":"stream"];if audio{app.launchEnvironment["PIYALI_LESSON_AUDIO_FIXTURE"]="loading"};if cache{app.launchEnvironment["PIYALI_LESSON_AUDIO_FIXTURE"]="cache"};if warm{app.launchEnvironment["PIYALI_LESSON_AUDIO_FIXTURE"]="warm"};app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"];app.launch();handleInitialPaperPencil(app)
         let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Standard Learner");tap("entryKeyboardDone",app);tap("createAccount",app);handleInitialPaperPencil(app);chooseEnglishSpanishOnboarding(app);tap("startLearning",app);tap("companionContinue",app);acknowledgePaperPencil(app);tap("gettingStartedGotIt",app);chooseA1Placement(app);open(app);return app
     }
     private func open(_ app:XCUIApplication){tap("productMenu",app);tap("productModeMenu",app);tap("productMode-path",app);if !app.buttons["lessonNode-lesson-pre-a1-1-1"].exists{tap("lessonPreviousLevel",app)};tap("lessonNode-lesson-pre-a1-1-1",app);tap("startLessonFromPreview",app);XCTAssertTrue(element("typedQuestionPrompt",app).waitForExistence(timeout:10))}
@@ -26,6 +26,23 @@ import XCTest
             if variant == "match"{tap("nextTypedQuestion",app);tap("standardMatchBank-0",app);tap("standardMatchBank-2",app);tap("standardMatchBank-1",app);checkWrong(app);tap("explainTypedAnswer",app);XCTAssertTrue(app.staticTexts["typedExplanation"].waitForExistence(timeout:10));let explanation=app.staticTexts["typedExplanation"].label;drag("standardMatchPlaced-2",to:"standardSlot-0",app);XCTAssertTrue(app.staticTexts["practiceVerdict"].exists);XCTAssertEqual(app.staticTexts["typedExplanation"].label,explanation);shot("Native Grammar matching keeps submitted explanation while editing",app);correct(6,app)}
             app.terminate()
         }
+    }
+    func testStemlessMatchingMissAppearsInMemoryKeepsSubmittedPairsAndRestoresAfterCorrectRetry() {
+        continueAfterFailure=false;let app=launch("match-no-stem")
+        tap("standardMatchBank-1",app);tap("standardMatchBank-0",app);tap("standardMatchBank-2",app);checkWrong(app)
+        shot("Native stemless matching wrong submission",app)
+        func memory() {
+            tap("productMenu",app);tap("productPanel-memory",app)
+            XCTAssertTrue(app.buttons["memoryTab-repairs"].waitForExistence(timeout:10))
+            let repair=app.descendants(matching:.any).matching(NSPredicate(format:"identifier BEGINSWITH 'memoryRepair-' AND label CONTAINS 'Match the items:'")).firstMatch
+            XCTAssertTrue(repair.waitForExistence(timeout:10));XCTAssertTrue(repair.label.contains("hola → goodbye, adiós → hello, gracias → thank you"),repair.label)
+            XCTAssertTrue(repair.label.contains("Check the correct pairings"),repair.label)
+        }
+        memory();shot("Native stemless matching captured repair",app);tap("productPanelClose",app)
+        drag("standardMatchPlaced-1",to:"standardSlot-0",app);correct(6,app)
+        memory();shot("Native matching repair retains missed answer after correct retry",app);tap("productPanelClose",app)
+        app.terminate();app.launch();handleInitialPaperPencil(app)
+        XCTAssertTrue(app.buttons["productMenu"].waitForExistence(timeout:15));memory();shot("Native matching captured repair restored after relaunch",app)
     }
     func testMatchingTapNativeDragReturnSwapRetryAndFreshReentry() {
         continueAfterFailure=false;let app=launch("match");XCTAssertFalse(app.buttons["checkTypedAnswer"].isEnabled)

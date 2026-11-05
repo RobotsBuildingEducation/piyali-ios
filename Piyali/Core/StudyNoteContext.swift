@@ -19,9 +19,7 @@ public extension PracticeRun {
             case "three_clue_mystery","sentence_shapeshifter":userAnswer=r["text"].string
             case "morphology_forge":userAnswer=r["pieceIndices"].array.compactMap{let i=Int($0.number);return q.strings("pieces").indices.contains(i) ? q.strings("pieces")[i]:nil}.joined()
             case "word_neighborhoods":
-                let keys=studyAssignmentOrder ?? r["assignments"].object.keys.sorted()
-                let numeric=keys.compactMap{key->(String,UInt32)? in guard let value=UInt32(key),value<UInt32.max,String(value)==key else{return nil};return(key,value)}.sorted{$0.1<$1.1}.map(\.0)
-                let ordered=numeric+keys.filter{!numeric.contains($0)}
+                let ordered=studyOrderedAssignmentKeys
                 userAnswer=p["groups"].array.enumerated().map{index,group in group["label"].string+": "+ordered.filter{r["assignments"][$0] == .number(Double(index))}.joined(separator:", ")}.joined(separator:" | ")
             case "dialogue_fork":let value=r["selectedIndex"];let i=Int(value.number);userAnswer=value != .null && q.strings("options").indices.contains(i) ? q.strings("options")[i]:""
             default:userAnswer=first(r["replacement"].string,r["text"].string)

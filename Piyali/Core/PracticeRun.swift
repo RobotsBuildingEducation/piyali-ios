@@ -89,7 +89,10 @@ public extension LearnerState {
             var change=PracticeChange(date:now,dayKey:dailyKey,target:target,level:q.level,amount:run.earnedXP,source:.practice,contentID:q.id.uuidString)
             change.attachCurriculumLesson(id:run.lessonID,level:run.lessonLevel ?? level);enqueue(change)
             if let id=run.lessonID { practicedModes.insert(modeKey(id,q.module == .grammar ? PracticeMode.grammar.rawValue : PracticeMode.vocabulary.rawValue)) }
-        } else if !correct { captureMemory(mode:q.module.rawValue,concept:q.questionText,answer:run.answerText,expected:run.expected,feedback:"",context:run.lessonID ?? "",now:now) }
+        } else if !correct {
+            let memory=run.repairMemoryContext
+            captureMemory(mode:q.module.rawValue,concept:memory["concept"].string,answer:memory["userAnswer"].string,expected:memory["expectedAnswer"].string,feedback:"",context:memory["sourceContext"].string,now:now,questionLevel:memory["cefrLevel"].string)
+        }
         history.insert(.init(date:now,target:target,mode:q.module.rawValue,question:q.questionText,answer:run.answerText,feedback:correct ? "Correct" : "Try again",correct:correct,repairInMemory:!correct),at:0);history=Array(history.prefix(500))
         practiceRuns?[key]=run
         if correct { collectPracticeCard(run) }

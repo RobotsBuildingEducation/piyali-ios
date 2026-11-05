@@ -1814,6 +1814,7 @@
 		80C354562493354145D34B42 /* RPGGround-d46e2a842f71a190bb653038.png in Resources */ = {isa = PBXBuildFile; fileRef = CE3D0A71310991FCF9F2E25B /* RPGGround-d46e2a842f71a190bb653038.png */; };
 		80F4066D47929AB8F0680F60 /* RPGProp-lamp-676.png in Resources */ = {isa = PBXBuildFile; fileRef = DA0501232F141AF7D74F4CAF /* RPGProp-lamp-676.png */; };
 		810A769DEE7898DC9629F471 /* RPGGround-4b6d319e588726f62549363c.png in Resources */ = {isa = PBXBuildFile; fileRef = 3D57B2CD713D4BBE2073D662 /* RPGGround-4b6d319e588726f62549363c.png */; };
+		810D4B23B91EF3AD334AC853 /* PracticeRepairContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF6EBC304E32F80DD493A499 /* PracticeRepairContext.swift */; };
 		813DA605793EBC525DC76C1D /* RPGGround-0b1273d79093e3d886e171e9.png in Resources */ = {isa = PBXBuildFile; fileRef = 1BD14C93909AC6652CD9F8DB /* RPGGround-0b1273d79093e3d886e171e9.png */; };
 		81508C14C69B36FAB578FAFB /* RPGGround-def15d69bd97df5f5a66f331.png in Resources */ = {isa = PBXBuildFile; fileRef = 674AE649199064A95DA20A33 /* RPGGround-def15d69bd97df5f5a66f331.png */; };
 		8160E632B49D2837317D84DF /* RPGPet-slime-left-5.png in Resources */ = {isa = PBXBuildFile; fileRef = 37AE7FC80802DC1A6DD9B2AD /* RPGPet-slime-left-5.png */; };
@@ -2006,6 +2007,7 @@
 		8E5AAA977BA89D5E8F986ADB /* DailyActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83B8A7A15D89A25011C382B9 /* DailyActivityView.swift */; };
 		8E66B69E33676EBA86B9F5B8 /* SettingsDrawerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 850FF3E23122E2F3CA41A21A /* SettingsDrawerView.swift */; };
 		8E7043CB7FF24183972040D8 /* RPGPlayer-idle-1.png in Resources */ = {isa = PBXBuildFile; fileRef = 85B457E516EC2C7B8758734D /* RPGPlayer-idle-1.png */; };
+		8E901DF7E1386CA35D36E2D2 /* PracticeRepairComparisonTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EAB35CFE7916F07BFAC372F /* PracticeRepairComparisonTests.swift */; };
 		8E909BF9F674603A46D7A7A8 /* CalendarJourneyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37F1C4B38B527FF97B7BDC7B /* CalendarJourneyTests.swift */; };
 		8EAF339DC78860EB2A4A34CC /* RPGProp-shelf-917.png in Resources */ = {isa = PBXBuildFile; fileRef = 8A203B162C6C0340C8A069E2 /* RPGProp-shelf-917.png */; };
 		8ECCF96570E56781C1D6BDBB /* RPGProp-speaker-509.png in Resources */ = {isa = PBXBuildFile; fileRef = C45DD969E6DBA3CF7AAFBFD3 /* RPGProp-speaker-509.png */; };
@@ -5949,6 +5951,7 @@
 		9E6D709C633850DDDADD9A34 /* RPGGround-4549a37dcc54bd5efb8e68ba.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGGround-4549a37dcc54bd5efb8e68ba.png"; sourceTree = "<group>"; };
 		9E9659E5CA9AB5D27B2881A1 /* RPGGround-4d03d690e91911129d7d7de0.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGGround-4d03d690e91911129d7d7de0.png"; sourceTree = "<group>"; };
 		9E9F9062357E51EA0AB83B44 /* RPGGround-ada366f1b19efdabd8987d49.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGGround-ada366f1b19efdabd8987d49.png"; sourceTree = "<group>"; };
+		9EAB35CFE7916F07BFAC372F /* PracticeRepairComparisonTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PracticeRepairComparisonTests.swift; sourceTree = "<group>"; };
 		9EB0EC8072101A3237E90B18 /* TutorSessionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorSessionTests.swift; sourceTree = "<group>"; };
 		9EB2AE5AD4EA5CDF3B883C8F /* RPGProp-table-3104.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGProp-table-3104.png"; sourceTree = "<group>"; };
 		9EBC2A8E875A408DDF3B2154 /* course-RiCloudyLine@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "course-RiCloudyLine@3x.png"; sourceTree = "<group>"; };
@@ -7169,6 +7172,7 @@
 		EF4532FE361810062ED5532D /* RPGGround-0e271d6fba3424d929d01c71.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGGround-0e271d6fba3424d929d01c71.png"; sourceTree = "<group>"; };
 		EF5B1AB566FB872BFFAD7206 /* RPGPet-axolotl-right-1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGPet-axolotl-right-1.png"; sourceTree = "<group>"; };
 		EF6D4062E19EC30541CDC8A8 /* ConversationPractice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationPractice.swift; sourceTree = "<group>"; };
+		EF6EBC304E32F80DD493A499 /* PracticeRepairContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PracticeRepairContext.swift; sourceTree = "<group>"; };
 		EFAF3A1FBDD0A5E284A4AAF5 /* PhonicsSessionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhonicsSessionController.swift; sourceTree = "<group>"; };
 		EFB6B5468EBB1D3733B7F264 /* RPGProp-bench-606.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGProp-bench-606.png"; sourceTree = "<group>"; };
 		EFC79CA52EC107FFA01C7788 /* memory-policy.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "memory-policy.js"; sourceTree = "<group>"; };
@@ -7537,6 +7541,7 @@
 				E54650A0AFE07F46F1F799A1 /* PracticeAccessTests.swift */,
 				7A4D436BC4E0B81735EACDEA /* PracticeAssistanceControllerTests.swift */,
 				895C9A096BE7225A6E1F1385 /* PracticeJudgingTests.swift */,
+				9EAB35CFE7916F07BFAC372F /* PracticeRepairComparisonTests.swift */,
 				15D4E9A79FC213734379D223 /* PrerecordedStoryTransport.swift */,
 				641596110162775AE6F5FEF9 /* PrivateTeamsContractTests.swift */,
 				A4FF4A55256435B556AC0BD2 /* QuestionReferenceTests.swift */,
@@ -8270,6 +8275,7 @@
 				9E307A3DBB8525E94DFBE050 /* PracticeFeedbackDocument.swift */,
 				777A473B331F684E2FA3D426 /* PracticeQuestion.swift */,
 				A63A985FFBA2A96BDED826FC /* PracticeRecipes.swift */,
+				EF6EBC304E32F80DD493A499 /* PracticeRepairContext.swift */,
 				C22F579FC46B18E899EB9B03 /* PracticeRun.swift */,
 				7BA5A9F85D9D6B96F64A37A8 /* PrivateTeams.swift */,
 				43E5738CC2AE4EEEA134FAFD /* QuestionWorth.swift */,
@@ -14724,6 +14730,7 @@
 				4990524DDB974A8DCE175D6E /* PracticeAccessTests.swift in Sources */,
 				45411C572F7040540917B970 /* PracticeAssistanceControllerTests.swift in Sources */,
 				D8271DC3838A3EE7C53E4B25 /* PracticeJudgingTests.swift in Sources */,
+				8E901DF7E1386CA35D36E2D2 /* PracticeRepairComparisonTests.swift in Sources */,
 				576322BE7AF24D9F537969D2 /* PrerecordedStoryTransport.swift in Sources */,
 				958799F7F4DDA667ED9FE18C /* PrivateTeamsContractTests.swift in Sources */,
 				C7EE52D491DED048CFB968AB /* QuestionReferenceTests.swift in Sources */,
@@ -14978,6 +14985,7 @@
 				F62712A97732D749751C53B0 /* PracticeQuestion.swift in Sources */,
 				8D9BD57B9E8D618698045C1E /* PracticeQuestionComponents.swift in Sources */,
 				7363EC640BD8D1BE54D186CA /* PracticeRecipes.swift in Sources */,
+				810D4B23B91EF3AD334AC853 /* PracticeRepairContext.swift in Sources */,
 				35FF5D216814B7B6EC871B88 /* PracticeRun.swift in Sources */,
 				691DAAE7F72AC18991C7175B /* PracticeService.swift in Sources */,
 				C0859589C9FDB81CDBE004FA /* PracticeSoundPlayer.swift in Sources */,
