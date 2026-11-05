@@ -48,3 +48,5 @@ The source prepared-connection pool/cache, recorded replay, exact glass blur/glo
 ## Earned pronunciation at trial end — November 5
 
 [The trial recovery record](PHONICS_TRIAL_RECOVERY.md) supersedes the earlier code-inspected mounted 300-XP gate. Goal/repair pronunciation and ordinary Collect now retain their earned surface through the access transition; fresh practice requests require access. Its rendered tests, full UI journeys, retained failures and pre-acknowledgment process-termination/network-preparation limits have separate scopes.
+
+Fresh authored Goal/repair Phonics now follows the original cache fallback during remote failure. [Offline preparation](PHONICS_OFFLINE_PREPARATION.md) records the original full-cache oracle, source/native fresh frames, ownership/reservation winners and exact SDK/UI scopes. The pre-acknowledgment process-termination boundary remains open.

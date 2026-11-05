@@ -22,3 +22,18 @@ final class FocusedPhonicsPolicyTests:XCTestCase {
     }
 
 }
+
+extension FocusedPhonicsPolicyTests {
+    @MainActor func testOriginalCacheRemoteFailuresAndExistingWinnersUseTheSameCanonicalNativeDeck()throws {
+        let root=URL(fileURLWithPath:#filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent(),fixture=try ContentLibrary.decode(JSONValue.self,url:root.appendingPathComponent("Tests/PiyaliCoreTests/Fixtures/focused-phonics-cache.json.gz")),decks=try ContentLibrary.decode(JSONValue.self,url:root.appendingPathComponent("Tests/PiyaliCoreTests/Fixtures/focused-phonics.json.gz"))["decks"],engine=try CompanionQuestPolicy(source:root.appendingPathComponent("Piyali/Resources/companion-quest-policy.js"))
+        XCTAssertEqual(fixture["rows"].array.count,14)
+        for row in fixture["rows"].array {
+            let actual=try engine.run("focusedPhonicsDeck",row["input"].setting("decks",decks).setting("artifact",row["cached"]))
+            XCTAssertEqual(actual,row["expected"],row["name"].string)
+            let calls=row["calls"].array.map{$0.array.first?.string ?? ""},scenario=row["input"]["scenario"].string
+            if scenario == "local-existing"{XCTAssertEqual(calls,["read-local"])}
+            else{XCTAssertEqual(calls.filter{$0 == "read-remote"}.count,1);XCTAssertEqual(calls.filter{$0 == "write-local"}.count,1);XCTAssertEqual(calls.filter{$0 == "transaction"}.count,scenario == "remote-existing" ? 0:1)}
+            if scenario.contains("fail"){XCTAssertTrue(actual["outcomes"].object.isEmpty);XCTAssertEqual(actual["cards"].array.count,row["input"]["focus"]["blueprint"] == .null ? 3:2)}
+        }
+    }
+}

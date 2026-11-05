@@ -530,7 +530,7 @@ import SwiftUI
     }
 
     func prepareGoalDeck(_ blueprint: JSONValue, mode: String,respond:(@MainActor(String)async throws->String)?=nil) async throws {
-        guard goalIsCurrent(blueprint), subscription.hasAccess else { return }
+        guard signedIn,goalIsCurrent(blueprint), subscription.hasAccess else { return }
         let account = identity.npub, identitySession=identity.sessionRevision,scope=goalCourseScope,target = learner.target, state = learner
         let cachedKey=GoalPractice.artifactKey(target:target,day:blueprint["dayKey"].string,mode:mode,goalID:blueprint["goalId"].string),cached=learner.goalArtifacts?[cachedKey] ?? .null
         if !cached["cards"].array.isEmpty || (mode != "phonics" && cached["requiresTutor"].boolean) {return}
@@ -553,7 +553,9 @@ import SwiftUI
         guard identity.sessionRevision == identitySession,goalCourseScope == scope,identity.npub == account, learner.target == target, goalIsCurrent(blueprint) else { return }
         let payload = blueprint.setting("mode",.string(mode)).setting("cards",.array(cards)).setting("requiresTutor",.bool(cards.isEmpty))
         learner.applyGoal(GoalChange(action:.artifact,target:target,payload:payload)); persist(); await sync()
-        guard identity.npub == account, learner.target == target else { return }
+        try Task.checkCancellation();guard signedIn,identity.sessionRevision == identitySession,goalCourseScope == scope,goalIsCurrent(blueprint) else{throw CancellationError()}
+        // Authored Phonics has the original deterministic local fallback; completion still awaits its receipt.
+        if mode == "phonics" {return}
         guard !(learner.pendingGoalChanges ?? []).contains(where:{ $0.target == target && $0.action == .artifact }) else { throw AppError.message("Reconnect to save this practice deck across devices.") }
     }
     func recordGoalPreparation(_ blueprint: JSONValue, mode: String, card: JSONValue, success: Bool, answer: String, assess:Bool = true) {

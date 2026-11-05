@@ -85,19 +85,18 @@ extension AppModel {
         return (try? JSONDecoder().decode([PhonicsCard].self,from:Data((value?["cards"] ?? .array([])).json.utf8))) ?? []
     }
     func prepareRepairPhonics(_ step:RepairStep) async throws {
-        guard learner.repairStepIsCurrent(step),learner.repairArtifact(step,mode:"phonics")["cards"].array.isEmpty else{return}
+        guard signedIn,subscription.hasAccess,learner.repairStepIsCurrent(step),learner.repairArtifact(step,mode:"phonics")["cards"].array.isEmpty else{return}
         let account=identity.npub,session=identity.sessionRevision,support=learner.support
         if phonicsLibrary.isEmpty {await reloadContent()}
         try Task.checkCancellation();guard signedIn,identity.npub == account,identity.sessionRevision == session,learner.support == support,learner.repairStepIsCurrent(step) else{throw CancellationError()}
         var artifact=try focusedPhonicsDeck(repair:step)
         guard !artifact["cards"].array.isEmpty else{return}
-        #if DEBUG
-        let env=ProcessInfo.processInfo.environment;let offline=env["PIYALI_OFFLINE_TESTS"] == "1" && UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil && env["PIYALI_LIVE_API_TESTS"] != "1"
-        #else
-        let offline=false
-        #endif
-        if !offline {artifact=try await FirebaseService.shared.reserveRepairArtifact(npub:account,step:step,mode:"phonics",candidate:artifact)}
+        var reserved=false
+        do {artifact=try await progressService.reserveRepairArtifact(npub:account,step:step,mode:"phonics",candidate:artifact);reserved=true}
+        catch is CancellationError{throw CancellationError()}
+        catch {try Task.checkCancellation()} // The original authored candidate remains usable offline.
         try Task.checkCancellation();guard signedIn,identity.npub == account,identity.sessionRevision == session,learner.support == support,learner.repairStepIsCurrent(step) else{throw CancellationError()}
+        if reserved{learner.confirmFocusedArtifact(artifact)}
         learner.storeRepairArtifact(artifact,step:step,mode:"phonics");persist()
     }
 

@@ -3,6 +3,8 @@ import SwiftUI
 @testable import Piyali
 
 @MainActor private final class FocusedPhonicsStore:LearnerProgressService {
+    var reservations=0,reservation:((JSONValue)async throws->JSONValue)?
+    func reserveRepairArtifact(npub:String,step:RepairStep,mode:String,candidate:JSONValue)async throws->JSONValue{reservations += 1;if let reservation{return try await reservation(candidate)};throw URLError(.notConnectedToInternet)}
     var online=false,saves=0,failCompletion=false,holdAttempt=false
     var waiters:[CheckedContinuation<Void,Never>]=[]
     func release(){holdAttempt=false;let pending=waiters;waiters=[];pending.forEach{$0.resume()}}
@@ -132,5 +134,51 @@ extension FocusedPhonicsFlowTests {
         app.learner.subscriptionXPAdjustment=300;XCTAssertFalse(app.subscription.hasAccess);var judges=0,quotes=0
         let session=try PhonicsSessionController(app:app,card:card,provider:.init(judge:{_ in judges += 1;return "YES | 2"},quote:{_,_ in quotes += 1;return .null}));defer{session.cancel()};session.practice(app);session.submit("casa",app:app);session.record(app);session.speak("word",app:app);let level=course.activeLevel;course.select("A1",app:app);await course.newRound(app);try await Task.sleep(for:.milliseconds(200))
         XCTAssertEqual(judges,0);XCTAssertEqual(quotes,0);XCTAssertFalse(session.practicing);XCTAssertNil(session.grade);XCTAssertFalse(session.recorder.recording);XCTAssertFalse(session.playback.loading);XCTAssertEqual(course.activeLevel,level);XCTAssertEqual(store.saves,0);XCTAssertFalse((app.learner.pendingChanges ?? []).contains{$0.source == .phonicsDeck});XCTAssertEqual(app.learner.totalXP,0);XCTAssertFalse(app.preservingEarnedPractice)
+    }
+}
+
+
+extension FocusedPhonicsFlowTests {
+    private func freshRepair(_ app:AppModel)throws->RepairStep {
+        app.learner.goal="";app.learner.goalIntelligence=[:]
+        let day=CalendarDay.key(Date()),item:JSONValue = .object(["memoryId":.string("pronunciation"),"concept":.string("casa"),"expectedAnswer":.string("casa"),"mode":.string("phonics"),"errorType":.string("phonics"),"cefrLevel":.string("Pre-A1")]),plan:JSONValue = .object(["dayKey":.string(day),"targetLang":.string("es"),"target":.number(2),"items":.array([item,.object(["memoryId":.string("agreement"),"concept":.string("Soy estudiante"),"mode":.string("lesson"),"cefrLevel":.string("Pre-A1")])])])
+        app.learner.storeCompanionBlueprint(.object(["status":.string("ready"),"repair":plan]),target:"es",day:day);app.learner.pendingCompanionQuestDays=[:];return try XCTUnwrap(app.currentRepairStep)
+    }
+    func testFreshGoalAuthoredDeckRemainsUsableAfterOfflineSaveAndPrivateRelaunchWithoutAwardingCompletion()async throws {
+        let(app,store,bp,cards)=try await setup();defer{try? app.identity.disconnect()};app.learner.goalArtifacts=[:];let course=PhonicsCourseController(goal:bp);await course.load(app)
+        XCTAssertTrue(course.initialized);XCTAssertNil(course.error);XCTAssertEqual(course.deck,cards);XCTAssertTrue(course.collected.isEmpty);XCTAssertGreaterThan(store.saves,0);XCTAssertEqual(app.learner.pendingGoalChanges?.filter{$0.action == .artifact}.count,1)
+        app.learner=try JSONDecoder().decode(LearnerState.self,from:JSONEncoder().encode(app.learner));let savedCount=store.saves,reopened=PhonicsCourseController(goal:bp);await reopened.load(app)
+        XCTAssertTrue(reopened.initialized);XCTAssertNil(reopened.error);XCTAssertEqual(reopened.deck,cards);XCTAssertEqual(store.saves,savedCount);XCTAssertEqual(app.learner.totalXP,0);XCTAssertNil(app.learner.gradedByLanguage);XCTAssertEqual(app.readyGoal?["modeProgress"]["phonics"].number,0)
+    }
+    func testFreshRepairAuthoredDeckSurvivesReservationFailureAndPrivateRelaunchWithoutAwardingCompletion()async throws {
+        let(app,store,_,_)=try await setup();defer{try? app.identity.disconnect()};let step=try freshRepair(app),candidate=try app.focusedPhonicsDeck(repair:step),course=PhonicsCourseController(repair:step);await course.load(app)
+        XCTAssertEqual(store.reservations,1);XCTAssertTrue(course.initialized);XCTAssertNil(course.error);XCTAssertEqual(course.deck,candidate["cards"].array);XCTAssertTrue(course.collected.isEmpty);XCTAssertEqual(app.learner.repairArtifact(step,mode:"phonics"),candidate)
+        let field=CompanionQuestDay.artifactField(step,mode:"phonics"),key=CompanionQuestDay.key(step.target,step.day);XCTAssertEqual(app.learner.pendingCompanionQuestDays?[key]?[field],candidate)
+        app.learner=try JSONDecoder().decode(LearnerState.self,from:JSONEncoder().encode(app.learner));let reopened=PhonicsCourseController(repair:step);await reopened.load(app)
+        XCTAssertTrue(reopened.initialized);XCTAssertNil(reopened.error);XCTAssertEqual(reopened.deck,candidate["cards"].array);XCTAssertEqual(store.reservations,1);XCTAssertEqual(app.learner.totalXP,0);XCTAssertNil(app.learner.gradedByLanguage);XCTAssertEqual(app.currentRepairStep?.id,step.id);XCTAssertTrue((app.learner.pendingRepairEvidence ?? []).isEmpty)
+    }
+}
+
+extension FocusedPhonicsFlowTests {
+    func testRepairReservationWinnerKeepsItsIDsAndOutcomesButDisplaysCanonicalSupportCopy()async throws {
+        let(app,store,_,_)=try await setup();defer{try? app.identity.disconnect()};let step=try freshRepair(app),candidate=try app.focusedPhonicsDeck(repair:step)
+        let cards=candidate["cards"].array.enumerated().map{index,card in card.setting("id",.string("remote-card-\(index)")).setting("practiceWord",.string("STALE_COPY"))},remote=candidate.setting("cards",.array(cards)).setting("outcomes",.object(["remote-card-0":.object(["success":.bool(true),"item":.string("captured casa")])]))
+        store.reservation={_ in remote};let course=PhonicsCourseController(repair:step);await course.load(app)
+        XCTAssertTrue(course.initialized);XCTAssertNil(course.error);XCTAssertEqual(course.deck.map{$0["id"].string},["remote-card-1","remote-card-2"]);XCTAssertEqual(course.collected.first?["id"].string,"remote-card-0");XCTAssertFalse((course.deck+course.collected).contains{$0["practiceWord"].string == "STALE_COPY"});XCTAssertEqual(app.learner.repairArtifact(step,mode:"phonics")["outcomes"],remote["outcomes"]);XCTAssertEqual(app.learner.totalXP,0)
+    }
+    func testPendingFreshRepairReservationRejectsSignoutSameKeyTargetSupportDayPlanAndCancellation()async throws {
+        for boundary in ["signout","sameKey","target","support","day","plan","cancel"] {
+            let(app,store,_,_)=try await setup();defer{try? app.identity.disconnect()};let step=try freshRepair(app);var held:CheckedContinuation<JSONValue,Error>?
+            store.reservation={_ in try await withCheckedThrowingContinuation{held=$0}};let task=Task{try await app.prepareRepairPhonics(step)}
+            for _ in 0..<100 where held == nil{try await Task.sleep(for:.milliseconds(10))};XCTAssertNotNil(held)
+            let key=CompanionQuestDay.key(step.target,step.day)
+            switch boundary{case "signout":app.signedIn=false;case "sameKey":let secret=app.identity.exportKey();try app.identity.disconnect();try app.identity.importKey(secret);case "target":app.learner.target="fr";case "support":app.learner.support="ar";case "day":app.learner.companionQuestDays?[key] = .object([:]);case "plan":let doc=app.learner.companionQuestDays?[key] ?? .null;app.learner.companionQuestDays?[key]=doc.setting("repair",step.plan.setting("items",.array([])));default:task.cancel()}
+            held?.resume(throwing:URLError(.notConnectedToInternet));do{try await task.value;XCTFail("Stale reservation accepted: \(boundary)")}catch is CancellationError{}catch{XCTFail("Unexpected error: \(error)")}
+            XCTAssertTrue(app.learner.repairArtifact(step,mode:"phonics")["cards"].array.isEmpty,boundary);XCTAssertTrue((app.learner.pendingCompanionQuestDays ?? [:]).isEmpty,boundary);XCTAssertEqual(app.learner.totalXP,0,boundary)
+        }
+    }
+    func testExpiredAccessCannotPrepareFreshAuthoredGoalOrRepairArtifacts()async throws {
+        let(app,store,bp,_)=try await setup();defer{try? app.identity.disconnect()};app.learner.goalArtifacts=[:];app.learner.subscriptionXPAdjustment=300;try await app.prepareGoalDeck(bp,mode:"phonics");XCTAssertTrue((app.learner.goalArtifacts ?? [:]).isEmpty);XCTAssertEqual(store.saves,0)
+        let step=try freshRepair(app);try await app.prepareRepairPhonics(step);XCTAssertEqual(store.reservations,0);XCTAssertTrue(app.learner.repairArtifact(step,mode:"phonics")["cards"].array.isEmpty)
     }
 }

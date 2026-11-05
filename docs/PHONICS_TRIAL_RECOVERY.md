@@ -30,7 +30,7 @@ Final full UI result: `/tmp/PiyaliPhonicsTrialJourneysVerified20261105.xcresult`
 
 ## Remaining scope
 
-Fresh focused authored-artifact creation during network failure is the next concrete Phonics preparation gap: the source returns a local candidate on remote failures, while native new Goal artifacts still require acknowledgment and production repair reservation can throw. Cached offline reentry has its narrower existing proof. Process termination while earned completion is still pending at the access boundary, multi-device conflicts, physical microphone/playback/route changes, wider locales/accessibility, source toast composition and whole-product design remain open. The separate Firebase/Cloudflare services and read-only reference are preserved.
+Fresh focused authored-artifact preparation was subsequently corrected and verified in [offline preparation](PHONICS_OFFLINE_PREPARATION.md). The following describes this earlier checkpoint: fresh focused authored-artifact creation during network failure is the next concrete Phonics preparation gap: the source returns a local candidate on remote failures, while native new Goal artifacts still require acknowledgment and production repair reservation can throw. Cached offline reentry has its narrower existing proof. Process termination while earned completion is still pending at the access boundary, multi-device conflicts, physical microphone/playback/route changes, wider locales/accessibility, source toast composition and whole-product design remain open. The separate Firebase/Cloudflare services and read-only reference are preserved.
 
 
 Reproduce the app and UI scopes sequentially from the native checkout, using a new result path:
