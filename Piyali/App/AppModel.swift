@@ -293,7 +293,7 @@ import SwiftUI
     func boot() async { guard signedIn else { return };scheduleAutomaticTips(recovering:true); await reloadContent();resumeAchievementSync(); await sync(); await subscription.refresh();scheduleAutomaticTips() }
     func finishOnboarding(_ draft:OnboardingDraft?=nil) {
         if let draft {learner.completeOnboarding(draft)} else {learner.onboardingComplete=true;learner.preferencesModifiedAt=Date()}
-        restoringLearner=true;PlatePracticeFixture.seed(self);MemoryDrawerFixture.seed(self);SettingsFixture.seed(self);restoringLearner=false;persist();Task { await reloadContent() }
+        restoringLearner=true;PlatePracticeFixture.seed(self);MemoryDrawerFixture.seed(self);SettingsFixture.seed(self);GoalPracticeFixture.seed(self);restoringLearner=false;persist();Task { await reloadContent() }
     }
     var immersionPreparationKey: String {
         let scope=learner.immersionScope()

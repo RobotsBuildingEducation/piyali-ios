@@ -73,7 +73,7 @@ public extension LearnerState {
         // Bound private snapshots while preserving the most recent sessions.
         while practiceRuns!.count > 1,(practiceRuns!.count > 12 || (try? JSONEncoder().encode(practiceRuns).count) ?? 0 > 100_000) { if let oldest=practiceRuns!.min(by:{ $0.value.updatedAt < $1.value.updatedAt })?.key { practiceRuns?.removeValue(forKey:oldest) } }
     }
-    @discardableResult mutating func answerPractice(key:String,questionID:UUID,correct:Bool,reward:Int,now:Date = Date())->Bool {
+    @discardableResult mutating func answerPractice(key:String,questionID:UUID,correct:Bool,reward:Int,now:Date = Date(),goalFocus:GoalMemoryFocus? = nil)->Bool {
         guard var run=practiceRuns?[key],run.question.id == questionID,run.question.target == target,run.question.support == support,run.correct != true else { return false }
         if run.question.options["isFinalQuiz"].boolean {
             guard let lessonID=run.lessonID,let quizRunID=run.quizRunID,answerTypedQuizQuestion(lessonID:lessonID,runID:quizRunID,questionID:questionID,correct:correct,now:now) else { return false }
@@ -91,7 +91,7 @@ public extension LearnerState {
             if let id=run.lessonID { practicedModes.insert(modeKey(id,q.module == .grammar ? PracticeMode.grammar.rawValue : PracticeMode.vocabulary.rawValue)) }
         } else if !correct {
             let memory=run.repairMemoryContext
-            captureMemory(mode:q.module.rawValue,concept:memory["concept"].string,answer:memory["userAnswer"].string,expected:memory["expectedAnswer"].string,feedback:"",context:memory["sourceContext"].string,now:now,questionLevel:memory["cefrLevel"].string)
+            captureMemory(mode:q.module.rawValue,concept:memory["concept"].string,answer:memory["userAnswer"].string,expected:memory["expectedAnswer"].string,feedback:"",context:memory["sourceContext"].string,now:now,questionLevel:memory["cefrLevel"].string,goalFocus:goalFocus)
         }
         history.insert(.init(date:now,target:target,mode:q.module.rawValue,question:q.questionText,answer:run.answerText,feedback:correct ? "Correct" : "Try again",correct:correct,repairInMemory:!correct),at:0);history=Array(history.prefix(500))
         practiceRuns?[key]=run

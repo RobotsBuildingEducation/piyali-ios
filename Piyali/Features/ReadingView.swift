@@ -196,13 +196,13 @@ struct ReadingView:View {
         } else if run.method == "question",run.pendingQuestionType != nil {
             Button {Task {await service.ensureReviewQuestion(app,run:run,retry:true)}} label:{if service.questionGenerating {ProgressView().tint(.white)} else {Text(t("history_generate_review"))}}.buttonStyle(ActivityPrimaryButtonStyle()).disabled(service.questionGenerating || run.text.isEmpty).accessibilityIdentifier("readingGenerateQuestion")
         } else if run.method == "question" {
-            Button { answering=false;stop();Task { await service.check(app,run:run,answer:answer.isEmpty ? run.answer : answer,speech:false) } } label:{ if service.busy { ProgressView().tint(.white) } else { Text(t("quiz_submit")) } }.buttonStyle(ActivityPrimaryButtonStyle()).disabled(service.busy || (answer.isEmpty && run.answer.isEmpty)).accessibilityIdentifier("readingCheck")
+            Button { answering=false;stop();Task { await service.check(app,run:run,answer:answer.isEmpty ? run.answer : answer,speech:false,lesson:lesson) } } label:{ if service.busy { ProgressView().tint(.white) } else { Text(t("quiz_submit")) } }.buttonStyle(ActivityPrimaryButtonStyle()).disabled(service.busy || (answer.isEmpty && run.answer.isEmpty)).accessibilityIdentifier("readingCheck")
         } else {
             if !recorder.transcript.isEmpty,!recordingNow,!finalizing { Button(t("history_speech_start_over")) { guard hasAccess else { return };stop();recorder.restore("");update { $0.answer="" } }.font(PiyaliBrand.productFont(14,600)).disabled(service.busy).accessibilityIdentifier("readingSpeechStartOver") }
             Button {
                 guard hasAccess,active,phase == .active,!finalizing,!service.busy,app.learner.reading?.id == run.id,app.learner.target == run.target,app.learner.support == run.support else { return }
                 if recordingNow { recorder.stop() }
-                else if !recorder.transcript.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty { let words=recorder.transcript;Task { await service.check(app,run:run,answer:words,speech:true) } }
+                else if !recorder.transcript.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty { let words=recorder.transcript;Task { await service.check(app,run:run,answer:words,speech:true,lesson:lesson) } }
                 else { stop();recordingScope=app.identity.npub+":"+run.id.uuidString;recorder.start(language:run.target) }
             } label:{ if service.busy || finalizing { ProgressView().tint(.white) } else { Label(t(recordingNow ? "history_speech_stop_mic" : recorder.transcript.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty ? "history_speech_start_mic" : "history_speech_submit"),systemImage:recordingNow ? "stop.fill" : "mic.fill") } }.buttonStyle(ActivityPrimaryButtonStyle(tone:recordingNow ? "stop" : recorder.transcript.isEmpty ? "speak" : "primary")).disabled(service.busy || finalizing).accessibilityIdentifier("readingMicrophone").accessibilityValue(recorder.phase.rawValue)
         }

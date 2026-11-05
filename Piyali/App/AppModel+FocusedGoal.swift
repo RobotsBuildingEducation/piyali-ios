@@ -13,6 +13,15 @@ extension AppModel {
         guard let policy=companionQuestPolicy,let copy=try? policy.run("goalCompletionCopy",.object(["lang":.string(learner.support)])) else{return key}
         return copy[key].string
     }
+    func goalPracticeIsCurrent(_ lesson:Lesson?)->Bool {
+        guard let lesson,lesson.isGoal == true else{return true}
+        guard signedIn,let blueprint=lesson.goalBlueprint,goalIsCurrent(blueprint) else{return false}
+        return lesson.id == "goal-\(blueprint["goalId"].string)-\(blueprint["dayKey"].string)"
+    }
+    func goalMemoryFocus(_ lesson:Lesson?)->GoalMemoryFocus? {
+        guard let lesson,lesson.isGoal == true,goalPracticeIsCurrent(lesson),let blueprint=lesson.goalBlueprint else{return nil}
+        return GoalMemoryFocus(target:learner.target,blueprint:blueprint)
+    }
     func sourceGoalLesson(_ blueprint:JSONValue)throws->Lesson {
         guard let policy=companionQuestPolicy else{throw PracticeRecipeFailure.unavailable}
         let value=try policy.run("goalLesson",.object(["blueprint":blueprint]))
@@ -24,7 +33,7 @@ extension AppModel {
     func buildDailyGoal() async throws {
         let scope=goalCourseScope
         await sync();try Task.checkCancellation();guard goalCourseScope == scope else{throw CancellationError()}
-        guard (learner.pendingGoalChanges ?? []).filter({$0.target == scope.target}).isEmpty else{throw AppError.message("Reconnect and sync to save your goal across devices.")}
+        guard readyGoal != nil || (learner.pendingGoalChanges ?? []).filter({$0.target == scope.target}).isEmpty else{throw AppError.message("Reconnect and sync to save your goal across devices.")}
         guard GoalPractice.active(learner.goalBucket) != nil,let policy=companionQuestPolicy else{return}
         let args:JSONValue = .object(["user":learner.companionQuestUser,"targetLang":.string(scope.target),"supportLang":.string(scope.support),"dayKey":.string(scope.day),"cefrLevel":.string(learner.level),"now":.number(Date().timeIntervalSince1970*1000)])
         let plan=try policy.run("goalPlan",args)

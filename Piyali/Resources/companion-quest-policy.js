@@ -4649,6 +4649,7 @@ else if(operation==='deckCard')value=m.buildRepairCard(p);
 else if(operation==='deckEntries')value=parseRepairEntries(p.raw);
 else if(operation==='phonics')value=M14.getAuthoredPhonicsFocusCards(p.focus);
 else if(operation==='evidence')value=model.mergeEvidence(p.summary,p.event,'repair',now.toISOString());
+else if(operation==='goalEvidence')value=model.mergeEvidence(p.summary,p.event,'goal',now.toISOString());
 else if(operation==='goalPlan'){const user=p.user||{},lang=model.languageKey(p.targetLang),supportLang=p.supportLang||'en',dayKey=p.dayKey,cefrLevel=p.cefrLevel||'Pre-A1',goal=model.activeGoalFor(user,lang),bucket=user.learningIntelligence?.[lang]||{},compactSummary=model.compactSummary,context={goal,targetLang:lang,dayKey,cefrLevel,goalProgress:bucket.goalProgress,performance:m.generationPerformanceContextFor(user,lang,{curriculumCefrLevel:cefrLevel})};value=goal?{context,prompt:`Plan ONE daily language Goal task. User data: ${JSON.stringify({
           exactGoal: goal.text,
           targetLang: lang,

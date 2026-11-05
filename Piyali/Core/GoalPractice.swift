@@ -112,11 +112,11 @@ public enum GoalPractice {
             }
             guard let goal = active(bucket), payload["goalId"] == goal["id"], payload["dayKey"] == bucket["dailyGoal"]["blueprint"]["dayKey"], payload["goalId"] == bucket["dailyGoal"]["blueprint"]["goalId"] else { return (bucket,0) }
             let mode = payload["mode"].string, observation = text(payload["observation"],max:600)
-            guard modes.contains(mode), list(bucket["dailyGoal"]["blueprint"]["modes"],max:4).contains(mode), !observation.isEmpty else { return (bucket,0) }
+            guard modes.contains(mode), list(bucket["dailyGoal"]["blueprint"]["modes"],max:4).contains(mode), (change.action == .evidence || !observation.isEmpty) else { return (bucket,0) }
             let eventID = change.id.uuidString, daily = bucket["dailyGoal"], prior = daily["modeProgress"][mode].number
             guard !list(daily["modeEventIds"],max:40).contains(eventID) else { return (bucket,0) }
             if change.action == .attempt && prior >= Double(targets[mode] ?? 1) { return (bucket,0) }
-            let concept = change.action == .evidence && !text(payload["target"]).isEmpty ? payload["target"] : daily["blueprint"]["objective"]
+            let concept = change.action == .evidence ? payload["target"] : daily["blueprint"]["objective"]
             payload = payload.setting("id",.string(eventID)).setting("target",concept)
             bucket = bucket.setting("goalProgress",mergeEvidence(bucket["goalProgress"],event:payload,now:now))
             if change.action == .evidence { return (bucket,0) }
@@ -154,18 +154,19 @@ public enum GoalPractice {
     }
     public static func mergeEvidence(_ raw: JSONValue, event: JSONValue, now: String) -> JSONValue {
         var summary = compact(raw,now:now)
-        guard !event["id"].string.isEmpty, !event["target"].string.isEmpty, !list(summary["eventIds"],max:24).contains(event["id"].string) else { return summary }
+        let target=JSONValue.string(text(event["target"]))
+        guard !event["id"].string.isEmpty, !target.string.isEmpty, !list(summary["eventIds"],max:24).contains(event["id"].string) else { return summary }
         let cutoff = (WebProgressContract.date(now) ?? Date()).addingTimeInterval(-45 * 86400)
         let open = summary["openCapabilities"].array.filter { (WebProgressContract.date($0["lastSeen"].string) ?? .distantPast) >= cutoff }
-        let earlier = open.first { $0["target"] == event["target"] }
+        let earlier = open.first { $0["target"] == target }
         let success = event["success"].boolean && !text(event["observation"],max:600).isEmpty
-        let entry: JSONValue = .object(["target":event["target"],"example":event["observation"],"stage":supports.contains(event["support"].string) ? event["support"] : .string("prompted"),"mode":event["mode"],"domain":event["domain"],"severity":event["severity"],"recurrence":.number((earlier?["recurrence"].number ?? 0) + 1),"lastSeen":.string(now)])
+        let entry: JSONValue = .object(["target":target,"example":.string(event["observation"].string.isEmpty ? text(event["expectedAnswer"]):text(event["observation"])),"stage":supports.contains(event["support"].string) ? event["support"] : .string("prompted"),"mode":event["mode"],"domain":event["domain"],"severity":event["severity"],"recurrence":.number((earlier?["recurrence"].number ?? 0) + 1),"lastSeen":.string(now)])
         summary = summary.setting("eventIds",strings([event["id"].string] + list(summary["eventIds"],max:24)))
-            .setting("openCapabilities",.array((success ? [] : [entry]) + open.filter { $0["target"] != event["target"] }))
-            .setting("demonstrated",.array((success ? [entry] : []) + summary["demonstrated"].array.filter { $0["target"] != event["target"] }))
-            .setting("modeEvidence",.array([.string("\(event["mode"].string): \(success ? entry["stage"].string : "needs practice") — \(event["target"].string)")] + summary["modeEvidence"].array))
+            .setting("openCapabilities",.array((success ? [] : [entry]) + open.filter { $0["target"] != target }))
+            .setting("demonstrated",.array((success ? [entry] : []) + summary["demonstrated"].array.filter { $0["target"] != target }))
+            .setting("modeEvidence",.array([.string("\(event["mode"].string): \(success ? entry["stage"].string : "needs practice") — \(target.string)")] + summary["modeEvidence"].array))
             .setting("usefulLanguage",strings(([event["expectedAnswer"].string] + list(summary["usefulLanguage"])).filter { !$0.isEmpty }))
-            .setting("nextGoalGuidance",.object(["target":.string(success ? "Transfer \(event["target"].string) to a fresh situation" : event["target"].string),"support":.string(success ? "Reduce support gradually" : "Model, then elicit a fresh response"),"avoid":.string(success ? "Do not repeat the demonstrated exercise" : "Do not count exposure as success")]))
+            .setting("nextGoalGuidance",.object(["target":.string(success ? "Transfer \(target.string) to a fresh situation" : target.string),"support":.string(success ? "Reduce support gradually" : "Model, then elicit a fresh response"),"avoid":.string(success ? "Do not repeat the demonstrated exercise" : "Do not count exposure as success")]))
         return compact(summary,now:now)
     }
     public static func artifactKey(target: String, day: String, mode: String, goalID: String) -> String {

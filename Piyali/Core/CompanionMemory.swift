@@ -81,7 +81,11 @@ public enum MemoryContract {
 }
 public extension LearnerState {
     var activeMemories: [MemoryNote] { (companionMemory?[target] ?? []).filter { $0.active(on:CalendarDay.key(Date())) }.sorted { $0.severity == $1.severity ? $0.createdAt > $1.createdAt : $0.severity > $1.severity } }
-    mutating func captureMemory(mode: String, concept: String, answer: String, expected: String, feedback: String, context: String = "", now: Date = Date(), questionLevel:String? = nil,sourceContext:JSONValue? = nil) {
+    mutating func captureMemory(mode: String, concept: String, answer: String, expected: String, feedback: String, context: String = "", now: Date = Date(), questionLevel:String? = nil,sourceContext:JSONValue? = nil,goalFocus:GoalMemoryFocus? = nil) {
+        if let goalFocus,goalFocus.matches(self,now:now) {
+            applyGoal(GoalChange(action:.evidence,target:target,date:now,payload:goalFocus.payload(mode:mode,concept:concept,answer:answer,expected:expected)))
+            return
+        }
         guard !concept.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else { return }
         var note = MemoryContract.capture(target:target,support:support,level:questionLevel ?? level,mode:mode,concept:concept,answer:answer,expected:expected,feedback:feedback,context:context,now:now)
         if let sourceContext{note.fields["sourceContext"]=sourceContext}

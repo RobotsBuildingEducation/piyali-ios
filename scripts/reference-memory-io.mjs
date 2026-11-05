@@ -1,11 +1,18 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-export function memoryFixture(root,reference){const id=path.join(reference,'__piyali-memory.jsx'),entry=path.join(reference,'__piyali-memory-entry.jsx');return {name:'piyali-memory-fixture',enforce:'pre',resolveId(request,importer){
+import{createRequire}from'node:module';
+export function memoryFixture(root,reference){const req=createRequire(path.join(reference,'package.json'));const id=path.join(reference,'__piyali-memory.jsx'),entry=path.join(reference,'__piyali-memory-entry.jsx'),goal=path.join(reference,'__piyali-goal-memory.js');return {name:'piyali-memory-fixture',enforce:'pre',resolveId(request,importer){
  if(request==='/__piyali-memory.jsx')return id;
+ if(request==='/__piyali-goal-memory.js')return goal;
  if(request==='/__piyali-memory-entry.jsx')return entry;
  if(importer?.endsWith('/CompanionMemoryList.jsx')&&request.endsWith('/companionMemory'))return '\0piyali-memory-io';
  if(['/VoiceJourney.jsx','/JourneyRecordingModal.jsx'].some(v=>importer?.endsWith(v))&&request.endsWith('/voiceJourney'))return '\0piyali-journey-io';
 },async load(request){
+ if(request===goal){
+  const source=await fs.readFile(path.join(reference,'src/utils/companionMemory.js'),'utf8'),ast=req('@babel/parser').parse(source,{sourceType:'module'}),node=ast.program.body.map(n=>n.declaration).find(n=>n?.id?.name==='captureCompanionMemory');if(!node)throw Error('Source capture moved');
+  const policy=await fs.readFile(path.join(root,'Piyali/Resources/companion-quest-policy.js'),'utf8');
+  return `const api=(()=>{${policy};return PiyaliCompanionQuest})();export async function captureGoalSlip({focus,input,now}){const Clock=globalThis.Date;const Date=class extends Clock{constructor(...args){super(...(args.length?args:[now]))}static now(){return new Clock(now).getTime()}};let event,summary;const currentGoalFocus=()=>focus,normalizePlateLang=x=>x,resolveNpub=x=>x,recordGradedOutcome=async()=>{},recordLearningEvidence=async record=>{event=record.event;summary=JSON.parse(api.run('goalEvidence',JSON.stringify({summary:{},event,now})))};${source.slice(node.start,node.end)};await captureCompanionMemory({...input,gradedOutcome:false});if(!event)throw Error('Goal capture did not route');return{event,summary}}`;
+ }
  if(request===entry)return `import React from 'react';import{createRoot}from'react-dom/client';import{ChakraProvider}from'@chakra-ui/react';import{theme}from'/src/theme';import{useThemeStore}from'/src/useThemeStore';import'/src/index.css';import'@fontsource/dm-sans/400.css';import'@fontsource/dm-sans/700.css';import Preview from'/__piyali-memory.jsx';useThemeStore.getState().syncThemeMode(new URLSearchParams(location.search).get('theme')||'light');createRoot(document.getElementById('root')).render(<ChakraProvider theme={theme}><Preview/></ChakraProvider>);`;
  if(request===id){const file=path.join(root,'scripts/reference-memory.jsx');this.addWatchFile(file);return fs.readFile(file,'utf8')}
  if(request==='\0piyali-memory-io')return `const api=${await fs.readFile(path.join(root,'Piyali/Resources/memory-policy.js'),'utf8')};const day=n=>{const d=new Date();d.setDate(d.getDate()+n);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};export const getCompanionDayKey=()=>day(0),getYesterdayKey=()=>day(-1),getCompanionNotes=(user,target)=>user?.companionMemory?.[target]?.notes||[],MEMORY_STATUS={reinforced:'reinforced',usedInQuest:'used_in_quest'},ensureCompanionMemoryLocalization=async()=>{},getCachedMemorySummaryText=()=>globalThis.__piyaliMemorySummary||'',getOrBuildMemorySummary=async()=>globalThis.__piyaliMemorySummary||'',cleanMemoryConceptForSupportLanguage=(text,language)=>JSON.parse(api.run('clean',JSON.stringify({text,language}))).value,memoryNoteMatchesSupportLanguage=(note,language)=>JSON.parse(api.run('localized',JSON.stringify({note,language}))).value;`;

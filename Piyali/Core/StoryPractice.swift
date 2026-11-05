@@ -98,7 +98,7 @@ public extension LearnerState {
             let oldest=storyRuns!.values.filter { $0.target != run.target }.min { $0.updatedAt < $1.updatedAt }!.target;storyRuns?.removeValue(forKey:oldest)
         }
     }
-    @discardableResult mutating func practiceStoryLine(words:String,confidence:Double = 0,audio:SpeechAudioMetrics? = nil,typed:Bool = false,now:Date = Date()) -> Int {
+    @discardableResult mutating func practiceStoryLine(words:String,confidence:Double = 0,audio:SpeechAudioMetrics? = nil,typed:Bool = false,now:Date = Date(),goalFocus:GoalMemoryFocus? = nil) -> Int {
         guard var run=story,run.isProvisional != true,run.support == support,run.mode == .speaking,!run.completed,!run.passedLines.contains(run.index),run.speechResult == nil,let line=run.currentSentence,!words.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else { return 0 }
         let verdict=StorySpeech.evaluate(recognized:words,target:line.target,lang:run.target,confidence:confidence,audio:audio)
         run.speechResult=verdict;run.lastWords=String(words.prefix(2000));let amount=verdict.pass ? 2 : 0
@@ -111,7 +111,7 @@ public extension LearnerState {
             if ratingByLanguage == nil { ratingByLanguage=[:] };ratingByLanguage?[target]=updated
             if gradedByLanguage == nil { gradedByLanguage=[:] };gradedByLanguage?[target,default:0] += 1
             addXP(2,now:now,calendar:.current)
-        } else { captureMemory(mode:"story",concept:line.target,answer:words,expected:line.target,feedback:"Match the line's words and speak clearly.",context:run.lessonID ?? "story",now:now) }
+        } else { captureMemory(mode:"story",concept:line.target,answer:words,expected:line.target,feedback:"Match the line's words and speak clearly.",context:run.lessonID ?? "story",now:now,goalFocus:goalFocus) }
         change.storyProof = .object(["origin":.string("story"),"mode":.string("sentence"),"lang":.string(run.target),"supportLang":.string(run.support),"sentenceIndex":.number(Double(run.index)),"target":.string(line.target),"recognizedText":.string(String(words.prefix(2000))),"ok":.bool(verdict.pass),"method":.string(typed ? "typed" : "speech"),"xpAwarded":.number(Double(amount)),"confidence":.number(confidence),"eval":.object(["pass":.bool(verdict.pass),"score":.number(Double(verdict.score)),"reasons":.array(verdict.reasons.map(JSONValue.string))])])
         enqueue(change);saveStory(run);return amount
     }

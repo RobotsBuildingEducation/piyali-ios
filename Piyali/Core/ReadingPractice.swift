@@ -47,7 +47,7 @@ public extension LearnerState {
         var saved=run;saved.updatedAt=Date();if readingRuns == nil { readingRuns=[:] };readingRuns?[run.target]=saved
         while readingRuns!.count > 1,(readingRuns!.count > 3 || (try? JSONEncoder().encode(readingRuns).count) ?? 0 > 96_000) { let old=readingRuns!.values.filter { $0.target != run.target }.min { $0.updatedAt < $1.updatedAt }!.target;readingRuns?.removeValue(forKey:old) }
     }
-    @discardableResult mutating func reviewReading(answer:String,correct:Bool,feedback:String,speech:Bool = false,speechFeedback:ReadingSpeechFeedback? = nil,now:Date = Date()) -> Int {
+    @discardableResult mutating func reviewReading(answer:String,correct:Bool,feedback:String,speech:Bool = false,speechFeedback:ReadingSpeechFeedback? = nil,now:Date = Date(),goalFocus:GoalMemoryFocus? = nil) -> Int {
         guard var run=reading,run.support == support,!run.awarded,(speech || run.pendingQuestionType == nil),!answer.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else { return 0 }
         run.answer=speech ? ReadingSpeechCapture.boundedTranscript(answer) : String(answer.prefix(4000));run.correct=correct;run.feedback=String(feedback.prefix(2000))
         if speech { run.speechFeedback=speechFeedback }
@@ -63,7 +63,7 @@ public extension LearnerState {
                 if gradedByLanguage == nil { gradedByLanguage=[:] };gradedByLanguage?[target,default:0] += 1
             }
             if let lesson=run.lessonID { practicedModes.insert(modeKey(lesson,PracticeMode.reading.rawValue)) }
-        } else { captureMemory(mode:"reading",concept:run.question.question,answer:answer,expected:run.question.answer,feedback:feedback,context:run.lessonID ?? "reading",now:now) }
+        } else { captureMemory(mode:"reading",concept:run.question.question,answer:answer,expected:run.question.answer,feedback:feedback,context:run.lessonID ?? "reading",now:now,goalFocus:goalFocus) }
         change.readingProof = .object(["lang":.string(target),"supportLang":.string(support),"readingID":.string(run.contentID),"title":.string(run.title),"method":.string(speech ? "speech-transcript" : "question"),"answer":.string(run.answer),"ok":.bool(correct),"feedback":.string(run.feedback),"xpAwarded":.number(Double(amount))])
         if speech,let speechFeedback { change.readingProof=change.readingProof?.setting("speechFeedback",speechFeedback.value) }
         enqueue(change);saveReading(run);return amount

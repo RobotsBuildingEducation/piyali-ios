@@ -101,7 +101,7 @@ private struct MemoryRepairCard:View {
     private func field(_ label:String,_ value:String,color:Color)->some View {HStack(alignment:.firstTextBaseline,spacing:6){OnboardingText(text:label,size:9,weight:.bold,lineHeight:13.5).tracking(0.36).textCase(.uppercase).foregroundStyle(color).fixedSize();OnboardingText(text:value,size:12,lineHeight:18).foregroundStyle(brand.text).lineLimit(2)}}
 }
 
-enum MemoryPaint {static func surface(_ scheme:ColorScheme)->Color {PiyaliBrand.unitColor(scheme == .dark ? "111827":"fdf9f2")};static func glass(_ scheme:ColorScheme)->Color {PiyaliBrand.unitColor(scheme == .dark ? "0b1220":"fff9f2").opacity(scheme == .dark ? 0.12:0.88)}}
+enum MemoryPaint {static func surface(_ scheme:ColorScheme)->Color {PiyaliBrand.unitColor(scheme == .dark ? "0b1220":"fdf9f2")};static func glass(_ scheme:ColorScheme)->Color {PiyaliBrand.unitColor(scheme == .dark ? "0b1220":"fff9f2").opacity(scheme == .dark ? 0.12:0.88)}}
 
 struct MemoryIcon:View {let name:String;var size:CGFloat=16;var body:some View {Image("Memory-"+name).renderingMode(.template).resizable().scaledToFit().frame(width:size,height:size).accessibilityHidden(true)}}
 

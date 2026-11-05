@@ -97,9 +97,9 @@ import Foundation
         if run.question.isDelight { return (try? recipes().inspect("ready",parameters:.object(["question":run.question.payload,"response":run.response])).boolean) == true }
         return run.question.ready(run.response)
     }
-    func check(_ app:AppModel,run:PracticeRun,confidence:Double=0,audio:SpeechAudioMetrics?=nil) async {
-        guard !busy,!preparationFailed,run.correct != true,ready(run),app.subscription.hasAccess else { return }
-        let token=generation,account=app.identity.npub;busy=true;error=nil;defer { if token == generation { busy=false } }
+    func check(_ app:AppModel,run:PracticeRun,confidence:Double=0,audio:SpeechAudioMetrics?=nil,lesson:Lesson?=nil) async {
+        guard app.goalPracticeIsCurrent(lesson),!busy,!preparationFailed,run.correct != true,ready(run),app.subscription.hasAccess else { return }
+        let token=generation,account=app.identity.npub,identitySession=app.identity.sessionRevision;busy=true;error=nil;defer { if token == generation { busy=false } }
         do {
             let recipes=try recipes(),q=run.question
             let result=try await verdict(run:run,recipes:recipes,confidence:confidence,audio:audio,judge:{ prompt in
@@ -113,8 +113,8 @@ import Foundation
             if q.isDelight { reward=Int(try recipes.inspect("xp",parameters:.object(["question":q.payload,"response":run.response,"options":.object(["revealedClues":.number(Double(run.revealedClues))])])).number) }
             else { reward=result.reward ?? q.standardReward }
             try Task.checkCancellation()
-            guard generation == token,app.identity.npub == account,app.learner.target == q.target,app.learner.support == q.support,app.learner.practiceRuns?[run.key]?.question.id == q.id else { return }
-            _=app.learner.answerPractice(key:run.key,questionID:q.id,correct:result.correct,reward:reward);app.persist()
+            guard app.goalPracticeIsCurrent(lesson),app.identity.sessionRevision == identitySession,generation == token,app.identity.npub == account,app.learner.target == q.target,app.learner.support == q.support,app.learner.practiceRuns?[run.key]?.question.id == q.id else { return }
+            _=app.learner.answerPractice(key:run.key,questionID:q.id,correct:result.correct,reward:reward,goalFocus:app.goalMemoryFocus(lesson));app.persist()
         } catch is CancellationError { } catch { if token == generation { self.error=error.localizedDescription } }
     }
     func verdict(run:PracticeRun,recipes:PracticeRecipes,confidence:Double=0,audio:SpeechAudioMetrics?=nil,judge:(String) async throws ->String) async throws ->(correct:Bool,reward:Int?) {

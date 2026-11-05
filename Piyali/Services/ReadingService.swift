@@ -133,9 +133,9 @@ import FirebaseAILogic
             latest.question=question;latest.pendingQuestionType=nil;latest.worth=worth;app.learner.saveReading(latest);app.persist()
         } catch is CancellationError {attemptedQuestions.remove(run.id)} catch {if generation == token,app.identity.npub == account,app.learner.reading?.id == run.id{questionFailed=true}}
     }
-    func check(_ app:AppModel,run:ReadingRun,answer:String,speech:Bool) async {
-        guard !busy,!run.awarded,(speech || run.pendingQuestionType == nil),app.learner.reading?.id == run.id,app.learner.reading?.awarded == false,app.learner.target == run.target,app.learner.support == run.support,!answer.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty,app.subscription.hasAccess || Self.fixture else { return }
-        let token=generation,account=app.identity.npub;busy=true;error=nil;defer { if token == generation { busy=false;speechReview=nil } }
+    func check(_ app:AppModel,run:ReadingRun,answer:String,speech:Bool,lesson:Lesson?=nil) async {
+        guard app.goalPracticeIsCurrent(lesson),!busy,!run.awarded,(speech || run.pendingQuestionType == nil),app.learner.reading?.id == run.id,app.learner.reading?.awarded == false,app.learner.target == run.target,app.learner.support == run.support,!answer.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty,app.subscription.hasAccess || Self.fixture else { return }
+        let token=generation,account=app.identity.npub,identitySession=app.identity.sessionRevision;busy=true;error=nil;defer { if token == generation { busy=false;speechReview=nil } }
         var correct=false,feedback="",speechFeedback:ReadingSpeechFeedback?
         do {
             if speech {
@@ -159,8 +159,8 @@ import FirebaseAILogic
                 } catch { try Task.checkCancellation();correct=Reading.comparison(answer) == Reading.comparison(run.question.answer) }
                 feedback=EntryCopy.ui(run.support,correct ? "history_correct" : "history_not_quite")
             }
-            try Task.checkCancellation();guard generation == token,app.identity.npub == account,app.learner.target == run.target,app.learner.support == run.support,app.learner.reading?.id == run.id else { return }
-            _=app.learner.reviewReading(answer:answer,correct:correct,feedback:feedback,speech:speech,speechFeedback:speechFeedback);app.persist()
+            try Task.checkCancellation();guard app.goalPracticeIsCurrent(lesson),app.identity.sessionRevision == identitySession,generation == token,app.identity.npub == account,app.learner.target == run.target,app.learner.support == run.support,app.learner.reading?.id == run.id else { return }
+            _=app.learner.reviewReading(answer:answer,correct:correct,feedback:feedback,speech:speech,speechFeedback:speechFeedback,goalFocus:app.goalMemoryFocus(lesson));app.persist()
         } catch is CancellationError { } catch { if generation == token { self.error=error.localizedDescription } }
     }
     func explain(_ app:AppModel,run:ReadingRun) async {

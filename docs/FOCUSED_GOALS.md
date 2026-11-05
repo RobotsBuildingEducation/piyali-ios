@@ -34,3 +34,8 @@ The later [flashcard checkpoint](FLASHCARDS.md) replaces the focused recall form
 
 
 Focused Tutor now uses the source temporary lesson, automatic semantic checking, its own local XP target and the shared native voice screen. Goal records prompted production at 25 session XP; repair can finish on one demonstrated response or its 12-XP threshold, with one separate repair bonus/count. Regular Tutor records stay separate. Root-gate preservation and retry/handoff evidence are in [TUTOR.md](TUTOR.md); complete guided celebration and physical speech journeys remain open.
+
+
+## Goal slips, cached reentry and Memory surfaces — November 5
+
+[Exact source contracts, retained failures, bundle scopes and twelve hashed captures](GOAL_MEMORY_CAPTURE.md). Mounted Goal lesson typed/speech, Reading and Story misses now enter Goal evidence without creating repairs or completing modes; ordinary/restored practice retains Repairs. Actual SRS/realtime omitted-account source exceptions remain explicit. Cached acknowledged Goal plans reopen while evidence is pending; new-plan/completion acknowledgment gates remain. Blank observations and concept normalization match the original summary, and dark Memory/Journey base surfaces use the actual source token. Final verification: 62 focused Core tests, five app checks (including eight pending-verdict ownership cases and original capture/summary/drawer comparisons) and the actual onboarding/Start tasks/Goal miss/Memory/retry/reentry/ordinary miss/relaunch journey (168.059 s). The final normalized app/source checks and the prior full UI run have their separate scopes in the record; no live service, physical voice, whole-product design or overall parity completion is claimed.

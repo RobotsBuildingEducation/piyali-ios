@@ -52,9 +52,9 @@ struct StoryView:View {
                 guard let mode else { chosen=StoryMode.choose(content:content,random:Double.random(in:0..<1));return }
                 let fresh=refresh > 0 || startsFresh && !appeared;appeared=true
                 let prepared=await service.prepare(app,lesson:lesson,mode:mode,fresh:fresh)
-                guard prepared,!Task.isCancelled,active,hasAccess else { pendingSpeaking=nil;return }
+                guard app.goalPracticeIsCurrent(lesson),prepared,!Task.isCancelled,active,hasAccess else { pendingSpeaking=nil;return }
                 if let run,let pending=pendingSpeaking,pending.id == run.id,pending.target == run.currentSentence?.target {
-                    pendingSpeaking=nil;_=app.learner.practiceStoryLine(words:pending.metadata["recognizedText"].string,confidence:pending.metadata["confidence"].number,audio:nil);app.persist()
+                    pendingSpeaking=nil;_=app.learner.practiceStoryLine(words:pending.metadata["recognizedText"].string,confidence:pending.metadata["confidence"].number,audio:nil,goalFocus:app.goalMemoryFocus(lesson));app.persist()
                 } else {pendingSpeaking=nil}
                 if let run,!provisionalTranslations.isEmpty,run.id == app.learner.story?.id {update {value in value.translations.merge(provisionalTranslations){_,new in new}};provisionalTranslations=[:]}
                 if let run,run.atEnd { if !run.completed { finish() } else if let onComplete { onComplete() } else { newStory() } }
@@ -298,14 +298,14 @@ struct StoryView:View {
     private func finish() { guard hasAccess else { stop();return };stop();_=app.learner.finishStory();app.persist();if let onComplete { onComplete();if !embedded { dismiss() } } else { newStory() } }
     private func newStory() { stop();chosen=(mode ?? .speaking).next(content:content,random:Double.random(in:0..<1));refresh += 1 }
     private func record(_ run:StoryRun){
-        guard hasAccess else{stop();return}
+        guard hasAccess,app.goalPracticeIsCurrent(lesson) else{stop();return}
         if recordingNow{speech.stop();return};guard !speech.recorder.connecting,!speech.recorder.evaluating else{return}
         let role=run.mode == .speaking ? nil:audio.roleIndex,target=run.mode == .speaking ? run.currentSentence?.target:audio.currentTurn?.target
         guard let target,!target.isEmpty else{return};audio.stopPreview();roleResult=nil
-        speech.start(app,run:run,target:target,role:role,allowed:{active && phase == .active && hasAccess && (run.mode == .speaking || audio.phase == .awaitingSpeech && audio.roleIndex == role)},currentRun:{self.run}){metadata in
+        speech.start(app,run:run,target:target,role:role,allowed:{active && phase == .active && hasAccess && app.goalPracticeIsCurrent(lesson) && (run.mode == .speaking || audio.phase == .awaitingSpeech && audio.roleIndex == role)},currentRun:{self.run}){metadata in
             if run.mode == .speaking {
                 if service.provisional?.id == run.id {pendingSpeaking=(run.id,target,metadata)}
-                else { _=app.learner.practiceStoryLine(words:metadata["recognizedText"].string,confidence:metadata["confidence"].number,audio:nil);app.persist() }
+                else { _=app.learner.practiceStoryLine(words:metadata["recognizedText"].string,confidence:metadata["confidence"].number,audio:nil,goalFocus:app.goalMemoryFocus(lesson));app.persist() }
             }
             else{roleResult=StorySpeech.evaluate(recognized:metadata["recognizedText"].string,target:target,lang:run.target,confidence:metadata["confidence"].number,audio:nil)}
         }

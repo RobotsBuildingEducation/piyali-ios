@@ -48,10 +48,10 @@ import Foundation
     func judgePrompt(_ app:AppModel,lesson:Lesson,run:RealtimeLessonRun,utterance:String) throws ->String { try engine().realtime("judge",parameters:parameters(app,lesson:lesson,run:run).setting("utterance",.string(utterance))) }
     func receive(_ utterance:String,reply:String,turnID:UUID,app:AppModel,lesson:Lesson,runID:UUID) async {
         let key=RealtimeLessonRun.key(target:app.learner.target,lesson:lesson.id)
-        guard app.subscription.hasAccess,(!busy || processing),let initial=app.learner.realtimeLessonRuns?[key],initial.id == runID,!initial.completed,!utterance.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else { return }
+        guard app.goalPracticeIsCurrent(lesson),app.subscription.hasAccess,(!busy || processing),let initial=app.learner.realtimeLessonRuns?[key],initial.id == runID,!initial.completed,!utterance.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else { return }
         app.learner.captureRealtimeTranscript(key:key,runID:runID,turnID:turnID,utterance:utterance,reply:reply);app.persist()
         pending.append((utterance,reply,turnID,runID));guard !processing else { return }
-        let token=generation,account=app.identity.npub;processing=true;busy=true;error=nil;defer { if generation == token { busy=false;processing=false } }
+        let token=generation,account=app.identity.npub,identitySession=app.identity.sessionRevision;processing=true;busy=true;error=nil;defer { if generation == token { busy=false;processing=false } }
         while !pending.isEmpty,token == generation {
             let turn=pending.removeFirst()
             guard let run=app.learner.realtimeLessonRuns?[key],run.id == turn.runID,!run.completed else { continue }
@@ -59,7 +59,7 @@ import Foundation
                 let output=try await app.ai.responsesText(judgePrompt(app,lesson:lesson,run:run,utterance:turn.utterance),json:true)
                 let object=try GenerationObjects.parse(output).first ?? .null
                 let verdict=try JSONDecoder().decode(RealtimeLessonVerdict.self,from:Data(object.json.utf8))
-                try Task.checkCancellation();guard token == generation,app.identity.npub == account,app.learner.target == run.target,app.learner.support == run.support,app.subscription.hasAccess else { return }
+                try Task.checkCancellation();guard app.goalPracticeIsCurrent(lesson),app.identity.sessionRevision == identitySession,token == generation,app.identity.npub == account,app.learner.target == run.target,app.learner.support == run.support,app.subscription.hasAccess else { return }
                 _=app.learner.answerRealtimeLesson(key:key,runID:turn.runID,turnID:turn.id,utterance:turn.utterance,reply:turn.reply,verdict:verdict);app.persist()
             } catch is CancellationError { return } catch { if generation == token { self.error=error.localizedDescription } }
         }
