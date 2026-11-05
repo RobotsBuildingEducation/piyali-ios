@@ -8,6 +8,7 @@ import FirebaseAILogic
     @Published private(set) var activeRunID:UUID?
     @Published private(set) var provisional:StoryRun?
     private var generation=UUID()
+    private var generationAccount:String?
     private var preparation:Task<Bool,Never>?
     struct Request { let mode:StoryMode;let lesson:Lesson?;let state:LearnerState;let level:String;let tutorial:Bool;let recent:[JSONValue];let unit:LearningUnit?;let account:String }
     private let writer:(@MainActor (Request) async throws->JSONValue)?
@@ -26,9 +27,16 @@ import FirebaseAILogic
         return nil
         #endif
     }
-    func cancel() { generation=UUID();preparation?.cancel();preparation=nil;busy=false;provisional=nil }
+    func cancel() { generation=UUID();generationAccount=nil;preparation?.cancel();preparation=nil;busy=false;provisional=nil }
     func updateProvisional(_ id:UUID,_ change:(inout StoryRun)->Void) {
         guard var run=provisional,run.id == id else{return};change(&run);provisional=run
+    }
+    /// The web finishes the currently revealed episode without waiting for its stream.
+    /// Capture exactly that answered snapshot and invalidate the in-flight generation.
+    func retainFinishedEpisode(_ app:AppModel,lesson:Lesson?,id:UUID)->Bool {
+        guard generationAccount == app.identity.npub,var run=provisional,run.id == id,run.mode != .speaking,run.target == app.learner.target,run.support == app.learner.support,run.lessonID == lesson?.id,run.atEnd,run.count > 0,run.episode?.sourceStreamSafe == true,run.provisionalQuestions == Set(0..<run.count),run.results.count == run.count,(0..<run.count).allSatisfy({run.results[String($0)] != nil && run.heard.contains($0)}),let context=try? Self.contextID(lesson,learnerLevel:app.learner.level) else{return false}
+        run.isProvisional=nil;run.provisionalQuestions=nil;run.sourceEpisodeStream=true;run.sourceUnavailableQuestions=[];run.lessonLevel=Self.authoredLevel(lesson,learnerLevel:app.learner.level);run.sourceContext=context
+        cancel();app.learner.saveStory(run);return true
     }
     func prepare(_ app:AppModel,lesson:Lesson?,mode:StoryMode,fresh:Bool) async ->Bool {
         preparation?.cancel()
@@ -73,7 +81,7 @@ import FirebaseAILogic
     private func load(_ app:AppModel,lesson:Lesson?,mode:StoryMode,fresh:Bool) async ->Bool {
         guard !Task.isCancelled else { return false }
         let token=UUID();generation=token;busy=false;activeRunID=nil;provisional=nil;error=nil
-        let account=app.identity.npub,target=app.learner.target,support=app.learner.support
+        let account=app.identity.npub,target=app.learner.target,support=app.learner.support;generationAccount=account
         let authoredLevel=Self.authoredLevel(lesson,learnerLevel:app.learner.level)
         let fixed=lesson?.id == IntroTutorial.lessonID || lesson?.isFinalQuiz == true || lesson?.id.hasPrefix("goal-") == true || lesson?.id.hasPrefix("repair-") == true
         let level=mode != .speaking || fixed ? authoredLevel : PerformanceScore.level(score:app.learner.score)
@@ -123,6 +131,12 @@ import FirebaseAILogic
                             try await Task.sleep(for:.seconds(8))
                         }
                     }
+                } else if ProcessInfo.processInfo.environment["PIYALI_STORY_EARLY_EPISODE_FIXTURE"] == "1" {
+                    #if DEBUG
+                    let episode=try StoryEpisode.parse(payload,target:target,prepare:true),first=episode.segments[0]
+                    provisional=Self.makeProvisionalEpisode(previous:nil,id:UUID(),draft:.init(value:.init(title:episode.title,segments:[first]),ready:[0]),mode:mode,state:state,level:level,lesson:lesson)
+                    try await Task.sleep(for:.seconds(45));try Task.checkCancellation()
+                    #endif
                 } else if let outcome=ProcessInfo.processInfo.environment["PIYALI_STORY_SOURCE_EPISODE_FIXTURE"], ["completed","interrupted"].contains(outcome) {
                     #if DEBUG
                     guard let first=payload["segments"].array.first?["turns"].array.first else {throw StoryFailure.invalid}

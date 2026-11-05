@@ -288,7 +288,12 @@ struct StoryView:View {
         guard hasAccess,self.run?.id == run.id,self.run?.index == run.index else { return }
         stop();roleResult=nil;update { $0.advance() }
         guard let current=self.run,current.id == run.id else { return }
-        if current.atEnd || current.isProvisional == true && current.currentSegment?.turns.isEmpty == true {if current.isProvisional == true {pendingSegmentPlayback=true} else {finish()}} else if current.mode != .speaking { startPlayback(current) }
+        if current.atEnd {
+            if current.isProvisional == true {
+                if current.mode != .speaking,service.retainFinishedEpisode(app,lesson:lesson,id:current.id) {finish()} else {pendingSegmentPlayback=true}
+            } else {finish()}
+        } else if current.isProvisional == true && current.currentSegment?.turns.isEmpty == true {pendingSegmentPlayback=true}
+        else if current.mode != .speaking {startPlayback(current)}
     }
     private func finish() { guard hasAccess else { stop();return };stop();_=app.learner.finishStory();app.persist();if let onComplete { onComplete();if !embedded { dismiss() } } else { newStory() } }
     private func newStory() { stop();chosen=(mode ?? .speaking).next(content:content,random:Double.random(in:0..<1));refresh += 1 }
