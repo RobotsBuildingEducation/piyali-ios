@@ -125,7 +125,15 @@ extension AIService:ConversationProviding {}
         bind(app)
         guard app.subscription.hasAccess || fixture,!text.isEmpty else { return }
         var message=liveReply?.providerID == providerID ? liveReply! : ConversationMessage(role:"assistant",text:text,providerID:providerID)
-        message.text=String(text.prefix(2000));var draft=app.learner.conversation;draft.append(message);app.learner.saveConversation(draft);if liveReply?.providerID == providerID {liveReply=nil};app.persist()
+        message.text=String(text.prefix(2000))
+        #if DEBUG
+        // Exercise an imported web-shaped aligned message without contacting a provider.
+        if fixture,ProcessInfo.processInfo.environment["PIYALI_CONVERSATION_ALIGNMENT_FIXTURE"] == "1",text.contains("¡Hola, Ana!") {
+            message.translation="Hello, Ana! What do you like doing?";message.translationLang="en"
+            message.pairs = .array([.object(["lhs":.string("Hola, Ana"),"rhs":.string("Hello, Ana")]),.object(["lhs":.string("¿Qué te gusta hacer?"),"rhs":.string("What do you like doing?")])])
+        }
+        #endif
+        var draft=app.learner.conversation;draft.append(message);app.learner.saveConversation(draft);if liveReply?.providerID == providerID {liveReply=nil};app.persist()
     }
     func preserveInterruptedReply(_ text:String,providerID:String,app:AppModel) {
         bind(app);guard app.subscription.hasAccess || fixture,!text.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else{return}
