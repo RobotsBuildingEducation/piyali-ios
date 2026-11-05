@@ -3655,6 +3655,7 @@
 		FE56C2EB3CC9DDBF988E43D5 /* RPGGround-e989bec1ae8d2843148b3c67.png in Resources */ = {isa = PBXBuildFile; fileRef = A111917F895946983A2175FF /* RPGGround-e989bec1ae8d2843148b3c67.png */; };
 		FE6803001153525EBF9F43D8 /* entry-visuals.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 57A87ECB8434365604675DC0 /* entry-visuals.json.gz */; };
 		FE84645ACB08E3530C8D20C8 /* RPGProp-counter-526.png in Resources */ = {isa = PBXBuildFile; fileRef = A1F8A7DCA4D5C95248937D19 /* RPGProp-counter-526.png */; };
+		FE860580A3DAD285E21849CA /* paper-pencil-character.webp in Resources */ = {isa = PBXBuildFile; fileRef = FE23EF7291AA4D71D21C6D77 /* paper-pencil-character.webp */; };
 		FE957DBCE9ECB40411A63AC7 /* RPGGround-a15d76e8ab0727a8d6207ef6.png in Resources */ = {isa = PBXBuildFile; fileRef = 6BBC6032CE1646FE60158BFE /* RPGGround-a15d76e8ab0727a8d6207ef6.png */; };
 		FE974458E0729524A037A1A9 /* RPGGround-35278dda7344a189a370d7fc.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CE406D13D01F0C1407AD47E /* RPGGround-35278dda7344a189a370d7fc.png */; };
 		FEAA54BFE7699AF83F9F8693 /* RPGProp-table-887.png in Resources */ = {isa = PBXBuildFile; fileRef = 9D1467C8423B0A746C60430D /* RPGProp-table-887.png */; };
@@ -7340,6 +7341,7 @@
 		FE062BA31BFEB8A2E549F29C /* RPGProp-lamp-531.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGProp-lamp-531.png"; sourceTree = "<group>"; };
 		FE1DD7A44A0285D2E4D3B67A /* RPGEnv-59982d3a73cc29e70d39d181.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGEnv-59982d3a73cc29e70d39d181.png"; sourceTree = "<group>"; };
 		FE2387F6AAE3C3F6AED3BBA2 /* achievement-transcript.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = "achievement-transcript.json.gz"; sourceTree = "<group>"; };
+		FE23EF7291AA4D71D21C6D77 /* paper-pencil-character.webp */ = {isa = PBXFileReference; path = "paper-pencil-character.webp"; sourceTree = "<group>"; };
 		FE29E75C353918665EBDEA4B /* RPGPet-axolotl-down-1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGPet-axolotl-down-1.png"; sourceTree = "<group>"; };
 		FE44A800D16886CA71D27FF6 /* RPGProp-register-594.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGProp-register-594.png"; sourceTree = "<group>"; };
 		FE4B4B4DECCD7A1E03449D4F /* RPGGround-2ea2c5cc8d1e6c7ba8aef09d.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGGround-2ea2c5cc8d1e6c7ba8aef09d.png"; sourceTree = "<group>"; };
@@ -11179,6 +11181,7 @@
 				7C17DBC9623603D6AAEA65A9 /* DMSans-OFL.txt */,
 				631B89AE213A2C8EA7BD0A25 /* getting-started-character.webp */,
 				7A7A81BC9CDBA3374F75F3AF /* onboarding-character.webp */,
+				FE23EF7291AA4D71D21C6D77 /* paper-pencil-character.webp */,
 				D1DAE22D15DE94917B20977D /* piyali-orb.png */,
 				D588FE34EAC93191B3A60DE8 /* placement-dog.webp */,
 				6D86DE74859AB994A14CBE54 /* session-timer-character.webp */,
@@ -14376,6 +14379,7 @@
 				0949C32C41AD8D0E4185EC13 /* orb-surface.shader in Resources */,
 				C7A6DF95C2279D56E3F01C39 /* orb-tone.shader in Resources */,
 				7585CA03A5F1A0627F7A2836 /* orb-visuals.json.gz in Resources */,
+				FE860580A3DAD285E21849CA /* paper-pencil-character.webp in Resources */,
 				18F275F1FF035ABCCDE3CFC1 /* paper-pencil-manga.webp in Resources */,
 				85D8878EFD88B7FDD829EA4B /* paper-pencil-ui.json.gz in Resources */,
 				8CF7D8A00419A9CC9B6805BA /* phonics.json.gz in Resources */,

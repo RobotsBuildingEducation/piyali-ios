@@ -1,5 +1,7 @@
 # Piyali iOS: remaining design and feature parity work
 
+> **Continuation update, 2026-11-04:** REF-01 work and scoped results after this handoff are recorded in [REF_01_PROGRESS.md](REF_01_PROGRESS.md). The baseline and remaining-work descriptions below are historical where superseded by that record; the overall parity objective remains open.
+
 Prepared **2026-11-04** for a later Terra continuation. The objective is still **complete functional and design parity with the main web product**, implemented natively for iPhone. This is a completion plan, not a declaration that the app is finished. Substantial implementation and scoped verification already exist; preserve that work and close the remaining differences.
 
 This handoff was assembled from the current checkouts, implementation, feature records and test scripts. **No application changes, new test runs, deployments or model transfer were performed while preparing it.** Older passing results retain their original source revision and test scope.

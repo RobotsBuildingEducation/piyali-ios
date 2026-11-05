@@ -5,13 +5,7 @@
       "shown": false,
       "hasPlacement": false
     },
-    "initialOpen": true,
-    "onboardingClose": [
-      [
-        "paper",
-        false
-      ]
-    ],
+    "initialOpen": false,
     "request": [
       [
         "paper",
@@ -39,13 +33,7 @@
       "shown": false,
       "hasPlacement": true
     },
-    "initialOpen": true,
-    "onboardingClose": [
-      [
-        "paper",
-        false
-      ]
-    ],
+    "initialOpen": false,
     "request": [
       [
         "paper",
@@ -73,13 +61,115 @@
       "shown": true,
       "hasPlacement": false
     },
-    "initialOpen": true,
-    "onboardingClose": [
+    "initialOpen": false,
+    "request": [
+      [
+        "paper",
+        true
+      ]
+    ],
+    "close": [
       [
         "paper",
         false
+      ],
+      [
+        "ack",
+        "paper"
+      ],
+      [
+        "placement",
+        true
+      ]
+    ]
+  },
+  {
+    "input": {
+      "paperShown": false,
+      "shown": true,
+      "hasPlacement": true
+    },
+    "initialOpen": false,
+    "request": [
+      [
+        "paper",
+        true
       ]
     ],
+    "close": [
+      [
+        "paper",
+        false
+      ],
+      [
+        "ack",
+        "paper"
+      ]
+    ]
+  },
+  {
+    "input": {
+      "paperShown": true,
+      "shown": false,
+      "hasPlacement": false
+    },
+    "initialOpen": false,
+    "request": [
+      [
+        "guidance",
+        true
+      ]
+    ],
+    "close": [
+      [
+        "paper",
+        false
+      ],
+      [
+        "ack",
+        "paper"
+      ],
+      [
+        "guidance",
+        true
+      ]
+    ]
+  },
+  {
+    "input": {
+      "paperShown": true,
+      "shown": false,
+      "hasPlacement": true
+    },
+    "initialOpen": false,
+    "request": [
+      [
+        "guidance",
+        true
+      ]
+    ],
+    "close": [
+      [
+        "paper",
+        false
+      ],
+      [
+        "ack",
+        "paper"
+      ],
+      [
+        "guidance",
+        true
+      ]
+    ]
+  },
+  {
+    "input": {
+      "paperShown": true,
+      "shown": true,
+      "hasPlacement": false
+    },
+    "initialOpen": false,
     "request": [
       [
         "placement",
@@ -94,130 +184,11 @@
       [
         "ack",
         "paper"
-      ]
-    ]
-  },
-  {
-    "input": {
-      "paperShown": false,
-      "shown": true,
-      "hasPlacement": true
-    },
-    "initialOpen": true,
-    "onboardingClose": [
-      [
-        "paper",
-        false
-      ]
-    ],
-    "request": [],
-    "close": [
-      [
-        "paper",
-        false
       ],
-      [
-        "ack",
-        "paper"
-      ]
-    ]
-  },
-  {
-    "input": {
-      "paperShown": true,
-      "shown": false,
-      "hasPlacement": false
-    },
-    "initialOpen": true,
-    "onboardingClose": [
-      [
-        "paper",
-        false
-      ]
-    ],
-    "request": [
-      [
-        "guidance",
-        true
-      ]
-    ],
-    "close": [
-      [
-        "paper",
-        false
-      ],
-      [
-        "ack",
-        "paper"
-      ],
-      [
-        "guidance",
-        true
-      ]
-    ]
-  },
-  {
-    "input": {
-      "paperShown": true,
-      "shown": false,
-      "hasPlacement": true
-    },
-    "initialOpen": true,
-    "onboardingClose": [
-      [
-        "paper",
-        false
-      ]
-    ],
-    "request": [
-      [
-        "guidance",
-        true
-      ]
-    ],
-    "close": [
-      [
-        "paper",
-        false
-      ],
-      [
-        "ack",
-        "paper"
-      ],
-      [
-        "guidance",
-        true
-      ]
-    ]
-  },
-  {
-    "input": {
-      "paperShown": true,
-      "shown": true,
-      "hasPlacement": false
-    },
-    "initialOpen": true,
-    "onboardingClose": [
-      [
-        "paper",
-        false
-      ]
-    ],
-    "request": [
       [
         "placement",
         true
       ]
-    ],
-    "close": [
-      [
-        "paper",
-        false
-      ],
-      [
-        "ack",
-        "paper"
-      ]
     ]
   },
   {
@@ -226,13 +197,7 @@
       "shown": true,
       "hasPlacement": true
     },
-    "initialOpen": true,
-    "onboardingClose": [
-      [
-        "paper",
-        false
-      ]
-    ],
+    "initialOpen": false,
     "request": [],
     "close": [
       [

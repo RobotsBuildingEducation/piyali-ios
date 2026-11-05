@@ -26,7 +26,7 @@ struct GettingStartedView:View {
                                 Button {Task {await backup.copy(identity:app.identity,reason:t("app_copy_secret"))}} label:{tile(icon:"key",text:t("app_install_step6"))}.buttonStyle(.plain).disabled(backup.state == .working).accessibilityIdentifier("gettingStartedCopy")
                             } else {tile(icon:"key",text:FirstRunCopy.text(language,4))}
                         }
-                        OnboardingText(text:t("app_secret_note"),size:10,lineHeight:14.5).foregroundStyle(brand.secondary).multilineTextAlignment(.center)
+                        OnboardingText(text:FirstRunCopy.secretNote(language),size:10,lineHeight:14.5).foregroundStyle(brand.secondary).multilineTextAlignment(.center)
                         if backup.state == .working {ProgressView().accessibilityLabel(t("app_copy_secret"))}
                         if backup.state == .copied {OnboardingText(text:t("app_install_copied"),size:12,weight:.semibold).foregroundStyle(PiyaliBrand.teal).accessibilityIdentifier("gettingStartedCopied")}
                         if backup.state == .failed {OnboardingText(text:FirstRunCopy.text(language,3),size:12).foregroundStyle(brand.questionError).accessibilityIdentifier("gettingStartedBackupError")}

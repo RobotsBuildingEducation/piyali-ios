@@ -41,6 +41,8 @@ public extension LearnerState {
     mutating func place(_ placement: Placement) {
         guard LearningLanguages.levels.contains(placement.level) else { return }
         legacyFirstRunPlacement=nil
+        proficiencyModalShown=true
+        if immersionPlacementLanguages == nil {immersionPlacementLanguages=[]}; immersionPlacementLanguages?.insert(target.lowercased())
         var placement = placement; placement.gradedAtPlacement = gradedByLanguage?[target] ?? 0
         if placements == nil { placements = [:] }; placements?[target] = placement
         if pendingPlacements == nil { pendingPlacements = [:] }; pendingPlacements?[target] = placement

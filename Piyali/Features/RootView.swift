@@ -2,21 +2,19 @@ import SwiftUI
 
 struct RootView: View {
     @EnvironmentObject var app: AppModel
-    @State private var initialPaperOpen=true
     var body: some View {
         Group {
         if !app.signedIn { EntryView() }
-        else if !app.learner.onboardingComplete { ZStack {NavigationStack {BrandedOnboardingView(initial:app.learner).toolbar(.hidden,for:.navigationBar).accessibilityHidden(initialPaperOpen).allowsHitTesting(!initialPaperOpen)};if initialPaperOpen{PaperPencilDialog{initialPaperOpen=false}}} }
+        else if !app.learner.onboardingComplete { NavigationStack {BrandedOnboardingView(initial:app.learner).toolbar(.hidden,for:.navigationBar)} }
         else {
-            ProductAccessView(service:app.subscription,initialPaperOpen:$initialPaperOpen).id(app.identity.npub)
+            ProductAccessView(service:app.subscription).id(app.identity.npub)
         }
         }.background(SignerAuthorizationPresenter(identity:app.identity)).background(CompanionSaveNoticePresenter())
     }
 }
 private struct ProductAccessView:View {
     @ObservedObject var service:SubscriptionService
-    @Binding var initialPaperOpen:Bool
-    var body:some View {ProductAccessGate(service:service){TimelineView(.periodic(from:.now,by:60)){clock in ProductShellView(now:clock.date,initialPaperOpen:$initialPaperOpen)}}}
+    var body:some View {ProductAccessGate(service:service){TimelineView(.periodic(from:.now,by:60)){clock in ProductShellView(now:clock.date)}}}
 }
 /// Retain a mounted practice surface when the trial ends. Its earned completion
 /// can finish saving; the subscription surface covers further access afterward.

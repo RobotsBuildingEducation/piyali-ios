@@ -4,9 +4,11 @@ import SwiftUI
 struct PlacementView:View {
     @EnvironmentObject var app:AppModel
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
     @Environment(\.colorScheme) private var scheme
     var overlay=false
     var onClose:(()->Void)?=nil
+    var dismissible=true
     @State private var headerHeight:CGFloat=125
     @State private var bodyHeight:CGFloat=220
     @State private var scene=0
@@ -44,7 +46,7 @@ struct PlacementView:View {
                 BrandArtwork(name:"placement-dog.webp").frame(width:88,height:88).frame(height:42,alignment:.bottom).clipped().accessibilityHidden(true)
                 OnboardingText(text:t(scene == 3 ? "proficiency_modal_result_title" : "proficiency_modal_choose_start"),size:16,weight:.bold,lineHeight:20.8).multilineTextAlignment(.center).foregroundStyle(.white)
             }.frame(maxWidth:.infinity).padding(.horizontal,32).padding(.vertical,28)
-            Button { close() } label:{ Image(systemName:"xmark").font(.system(size:14,weight:.semibold)).foregroundStyle(.white).frame(width:44,height:44).contentShape(Rectangle()) }.padding(14).accessibilityLabel(EntryCopy.ui(app.learner.support,"app_close")).accessibilityIdentifier("placementClose")
+            if dismissible { Button { close() } label:{ Image(systemName:"xmark").font(.system(size:14,weight:.semibold)).foregroundStyle(.white).frame(width:44,height:44).contentShape(Rectangle()) }.padding(14).accessibilityLabel(EntryCopy.ui(app.learner.support,"app_close")).accessibilityIdentifier("placementClose") }
         }.background(LinearGradient(colors:[Color(red:11/255,green:197/255,blue:234/255),Color(red:0,green:181/255,blue:216/255)],startPoint:.leading,endPoint:.trailing))
     }
     private var choice:some View {
@@ -83,7 +85,7 @@ struct PlacementView:View {
                 OnboardingText(text:t("proficiency_modal_starting_elo",["score":String(estimate.score)]),size:12,weight:.medium).foregroundStyle(scheme == .dark ? brand.muted : brand.secondary).padding(.top,10)
             }.padding(.vertical,14).padding(.horizontal,16).frame(maxWidth:.infinity).background(scheme == .dark ? Color.white.opacity(0.08) : PiyaliBrand.unitColor("f1fafb"),in:RoundedRectangle(cornerRadius:18)).overlay {RoundedRectangle(cornerRadius:18).stroke(PiyaliBrand.unitColor(scheme == .dark ? "00b5d8" : "46b9cd"),lineWidth:1.5).padding(0.75)}
             Button(t("proficiency_modal_start_level",["level":estimate.level])) {start(estimate)}.buttonStyle(PlacementChoiceStyle(height:50)).accessibilityIdentifier("placementStart")
-            Link(t("proficiency_modal_take_test_now"),destination:AppConfiguration().web.appendingPathComponent("proficiency")).buttonStyle(PlacementChoiceStyle(height:50)).accessibilityIdentifier("placementWebTest")
+            Button(t("proficiency_modal_take_test_now")) { openURL(AppConfiguration().web.appendingPathComponent("proficiency"));close() }.buttonStyle(PlacementChoiceStyle(height:50)).accessibilityIdentifier("placementWebTest")
             Button(t("proficiency_modal_back")) {scene=2}.font(PiyaliBrand.productFont(14,600)).frame(minHeight:32)
         }.multilineTextAlignment(.center)
     }

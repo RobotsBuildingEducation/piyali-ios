@@ -711,6 +711,7 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
     }
     func testPlacementSeedsBeforeOfflinePracticeAndPreservesEarnedScoreOnRetake() async throws {
         let (service,db,npub) = try context()
+        try await db.collection("users").document(npub).setData(["local_npub":npub,"foreignWriter":"preserve","membership":["active":true],"proficiencyPlacements":["fr":"A1"]])
         var state = LearnerState(); state.onboardingComplete = true; state.preferencesModifiedAt = Date()
         state.place(PlacementAssessment.estimate(["read_write"])!)
         state.assess(correct:true,independent:true)
@@ -727,6 +728,9 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
         XCTAssertEqual(retaken.rating,expected,accuracy:0.0001)
         let fields = try await db.collection("users").document(npub).getDocument().data() ?? [:]
         XCTAssertEqual((fields["proficiencyPlacements"] as? [String:String])?["es"],"C1")
+        XCTAssertEqual((fields["proficiencyPlacements"] as? [String:String])?["fr"],"A1")
+        XCTAssertEqual(fields["proficiencyPlacement"] as? String,"C1");XCTAssertEqual(fields["proficiencyModalShown"] as? Bool,true)
+        XCTAssertEqual(fields["foreignWriter"] as? String,"preserve");XCTAssertEqual((fields["membership"] as? [String:Any])?["active"] as? Bool,true)
         XCTAssertEqual((fields["progress"] as? [String:Any])?["languageXp"] as? [String:Int], ["es":0])
     }
     func testPlacementAndCourseSummaryRestoreWithoutGrantingCompletion() async throws {

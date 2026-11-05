@@ -10,3 +10,16 @@ const wav=Buffer.alloc(44+length*2);wav.write('RIFF');wav.writeUInt32LE(36+lengt
 await fs.writeFile('docs/reference/paper-pencil-manifest.json',JSON.stringify({sources:files.map((file,i)=>({file,sha256:createHash('sha256').update(sources[i]).digest('hex')})),locales:Object.keys(copy),animations,audio:{notes,seconds:length/rate,rendering:'Original source pitches/timing/gain; PCM approximates Tone sine envelopes at 120 BPM.'},illustration:{source:'src/assets/paper_pencil_manga.webp',sha256:createHash('sha256').update(await fs.readFile(path.join(ref,'src/assets/paper_pencil_manga.webp'))).digest('hex')},scope:'Current original modal copy and static manga artwork; no animated illustration layers remain. Source modal geometry, initial App state, onboarding close and product acknowledgment are verified separately with only external I/O stubbed.'},null,2)+'\n');console.log('Exported paper/pencil copy for '+Object.keys(copy).length+' languages, static manga artwork metadata and original action notes.');
 
 await fs.copyFile(path.join(ref,"src/assets/paper_pencil_manga.webp"),"Piyali/Resources/paper-pencil-manga.webp");
+// Resolve the numbered portrait through RandomCharacter's source map rather than
+// assuming its index is the same as the asset filename.
+const characterSource=await fs.readFile(path.join(ref,'src/components/RandomCharacter.jsx'),'utf8');
+const id=sources[0].match(/notSoRandomCharacter=\{["'](\d+)["']\}/)?.[1];
+const characterAST=parse(characterSource,{sourceType:'module',plugins:['jsx']});let alias;
+traverse(characterAST,{VariableDeclarator(p){if(p.node.id.name==='characterImagesMap')alias=p.node.init.properties.find(n=>String(n.key.value??n.key.name)===id)?.value?.name}});
+const characterImport=characterAST.program.body.find(n=>n.type==='ImportDeclaration'&&n.specifiers.some(s=>s.local.name===alias));
+if(!id||!characterImport)throw Error('Paper portrait source mapping moved');
+const portrait=path.resolve(ref,'src/components',characterImport.source.value),portraitData=await fs.readFile(portrait);
+await fs.writeFile('Piyali/Resources/Brand/paper-pencil-character.webp',portraitData);
+const manifestPath='docs/reference/paper-pencil-manifest.json',manifest=JSON.parse(await fs.readFile(manifestPath,'utf8'));
+manifest.character={id,source:path.relative(ref,portrait),sha256:createHash('sha256').update(portraitData).digest('hex')};
+await fs.writeFile(manifestPath,JSON.stringify(manifest,null,2)+'\n');

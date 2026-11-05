@@ -16,4 +16,19 @@ enum FirstRunCopy {
         "zh":["iPhone上的Piyali","应用已安装。请保存登录密钥，以便在其他设备上登录。","安装网页版应用","无法复制密钥，请重试。","登录密钥由远程签名器保管。"]
     ]
     static func text(_ language:String,_ index:Int)->String {(rows[language] ?? rows["en"]!)[index]}
+    static func secretNote(_ language:String)->String {
+        let notes=[
+            "en":"Keep your secret safe. Anyone with it can access your account.",
+            "es":"Mantén tu clave secreta a salvo. Quien la tenga puede acceder a tu cuenta.",
+            "pt":"Mantenha sua chave secreta segura. Quem a tiver pode acessar sua conta.",
+            "fr":"Gardez votre clé secrète en lieu sûr. Toute personne qui la possède peut accéder à votre compte.",
+            "it":"Conserva la chiave segreta al sicuro. Chi la possiede può accedere al tuo account.",
+            "de":"Bewahre deinen geheimen Schlüssel sicher auf. Wer ihn besitzt, kann auf dein Konto zugreifen.",
+            "ja":"秘密鍵は安全に保管してください。鍵を持つ人は誰でもアカウントにアクセスできます。",
+            "hi":"अपनी गुप्त कुंजी सुरक्षित रखें। जिसके पास यह होगी, वह आपके खाते में प्रवेश कर सकता है।",
+            "ar":"احتفظ بمفتاحك السري في مكان آمن. أي حد معاه المفتاح يقدر يدخل على حسابك.",
+            "zh":"请妥善保管您的私钥。任何持有私钥的人都可以访问您的账户。"
+        ]
+        return notes[language] ?? notes["en"]!
+    }
 }

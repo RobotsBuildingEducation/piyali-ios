@@ -266,6 +266,7 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                 // preference timestamps, so a stale device cannot unsee it.
                 if state.gettingStartedModalShown == true {patch["gettingStartedModalShown"]=true}
                 if state.paperPencilModalShown == true {patch["paperPencilModalShown"]=true}
+                if state.proficiencyModalShown == true {patch["proficiencyModalShown"]=true}
                 patch.merge(petPatch) { _,new in new }
                 if fields["createdAt"] == nil { patch["createdAt"] = WebProgressContract.iso(Date()) }
                 if state.preferencesModifiedAt.map({ $0 > (WebProgressContract.date(Self.normalized(fields)["iosPreferencesModifiedAt"]) ?? .distantPast) }) == true || fields["iosStateJSON"] == nil || !snapshot.exists {

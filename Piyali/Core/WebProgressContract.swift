@@ -45,6 +45,12 @@ public enum WebProgressContract {
         state.companionProgress = JSONValue.foundation(fields.filter { CompanionHealth.keys.contains($0.key) }.merging(CompanionHealth.reconcileFields(fields,now:now)) { _,new in new })
         state.gettingStartedModalShown = state.gettingStartedModalShown == true || fields["gettingStartedModalShown"] as? Bool == true ? true : state.gettingStartedModalShown
         state.paperPencilModalShown = state.paperPencilModalShown == true || fields["paperPencilModalShown"] as? Bool == true ? true : state.paperPencilModalShown
+        state.proficiencyModalShown = state.proficiencyModalShown == true || fields["proficiencyModalShown"] as? Bool == true ? true : state.proficiencyModalShown
+        if let raw = fields["proficiencyPlacements"] as? [String:Any] {
+            state.immersionPlacementLanguages = Set(raw.compactMap { key,value in
+                guard let level=value as? String, !level.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else {return nil}; return key
+            }).union((state.pendingPlacements ?? [:]).keys)
+        } else { state.immersionPlacementLanguages = nil }
         // The original prompt falls back to the old account-wide placement
         // only while the language placement map is entirely absent.
         state.legacyFirstRunPlacement = fields["proficiencyPlacements"] == nil || fields["proficiencyPlacements"] is NSNull ? (fields["proficiencyPlacement"] as? String).flatMap{$0.isEmpty ? nil : $0} : nil
@@ -146,7 +152,7 @@ public enum WebProgressContract {
         let savedDetail = (fields["iosPlacementDetails"] as? [String:[String:Any]])?[language] ?? [:]
         let detail = savedDetail["level"] as? String == existingLevel ? savedDetail : [:]
         guard iso(placement.updatedAt) > iso(date(detail["updatedAt"]) ?? (existingLevel == nil ? nil : date(fields["proficiencyPlacementAt"])) ?? .distantPast) else { return [:] }
-        var patch: [String:Any] = ["proficiencyPlacements":[language:placement.level],"proficiencyPlacementAt":iso(placement.updatedAt),"iosPlacementDetails":[language:["level":placement.level,"score":placement.score,"source":placement.source,"selectedIDs":placement.selectedIDs,"updatedAt":iso(placement.updatedAt)]]]
+        var patch: [String:Any] = ["proficiencyModalShown":true,"proficiencyPlacement":placement.level,"proficiencyPlacements":[language:placement.level],"proficiencyPlacementAt":iso(placement.updatedAt),"iosPlacementDetails":[language:["level":placement.level,"score":placement.score,"source":placement.source,"selectedIDs":placement.selectedIDs,"updatedAt":iso(placement.updatedAt)]]]
         var bucket = (fields["learningIntelligence"] as? [String:[String:Any]])?[language] ?? [:]
         var elo = bucket["elo"] as? [String:Any] ?? [:]
         if placement.source == "self_report" { bucket["selfAssessment"] = ["selectedIds":placement.selectedIDs,"estimatedLevel":placement.level,"estimatedRating":placement.score,"updatedAt":iso(placement.updatedAt)] }

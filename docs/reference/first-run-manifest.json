@@ -6,15 +6,15 @@
   "sources": [
     {
       "file": "src/App.jsx",
-      "sha256": "5fd4a87bd5db004c1fc049ff7e8c7e266e6d65d7c42201ef75e923044c4a7dc8"
+      "sha256": "9e6447368ce10a647025f76daf1b730fb20073590c586f8a3bed8a6d4f2ab948"
     },
     {
       "file": "src/components/GettingStartedModal.jsx",
-      "sha256": "77013aa8090df95b9a8af96c8cbfa0d0f3a16f38426deb0c08d12c2a5857d75f"
+      "sha256": "fcbae97acfd787a5feb7d66155468aae5037e07e3b07f8a47bc974bb16276f1a"
     },
     {
       "file": "src/components/PaperPencilModal.jsx",
-      "sha256": "70e7c58a94a6db3263f30797ffc5bf839fb518e79084ea60acabee5f29763b3d"
+      "sha256": "32ac96a14319fa28a2458fb39fbb063b7241dcccfbcacf5f6558e79071e7e691"
     },
     {
       "file": "src/components/ProficiencyTestModal.jsx",
@@ -22,7 +22,7 @@
     },
     {
       "file": "src/components/DailyPlateHome.jsx",
-      "sha256": "92310a11263430a66a3e11a6cfe9046432606670e22ab079f682736dc5683cf7"
+      "sha256": "369aa0da21ce419a7fd0e7097cb7c7ae4d78fc4370dcacf9185f41e1151d1920"
     },
     {
       "file": "src/theme.js",
@@ -34,12 +34,12 @@
     },
     {
       "file": "src/components/RandomCharacter.jsx",
-      "sha256": "926ca4aa285166d5b47908dfe92c135ed25eaba567ffd5d2476204af5980b729"
+      "sha256": "caa28f8b1d25cd82aff68323eadc1a8003c93506714aff53d3cf3b079eee5db0"
     },
     {
       "file": "src/assets/40.webp",
       "sha256": "607f7c208ed11ee9f47738e1b73e1171933e7a53d858726e225ef7e5a1d1f083"
     }
   ],
-  "scope": "Actual companion Continue, proficiency guard and GettingStarted Skip callbacks executed directly for 288 combinations, with identity/storage/render/sound/network effects replaced by inert fixture setters. Flag writing is stubbed; native Firestore behavior is checked separately. Native app-installed acknowledgement and authenticated expiring/local-only key copying are platform adaptations. The five original browser installation steps remain available."
+  "scope": "Actual companion Continue, proficiency guard and GettingStarted Skip callbacks executed directly for 96 combinations, with identity/storage/render/sound/network effects replaced by inert fixture setters. Flag writing is stubbed; native Firestore behavior is checked separately. Native app-installed acknowledgement and authenticated expiring/local-only key copying are platform adaptations. The five original browser installation steps remain available."
 }

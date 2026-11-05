@@ -163,6 +163,9 @@ public extension LearnerState {
         }
         for change in newer.sorted(by:{$0.date < $1.date}) {merged.applyGoalLessonWork(change)}
         merged.legacyFirstRunPlacement = (current.pendingPlacements ?? [:]).isEmpty ? acknowledged.legacyFirstRunPlacement : nil
+        merged.proficiencyModalShown = current.proficiencyModalShown == true || acknowledged.proficiencyModalShown == true ? true : acknowledged.proficiencyModalShown
+        merged.immersionPlacementLanguages = (acknowledged.immersionPlacementLanguages ?? []).union((current.pendingPlacements ?? [:]).keys)
+        if acknowledged.immersionPlacementLanguages == nil && (current.pendingPlacements ?? [:]).isEmpty {merged.immersionPlacementLanguages=nil}
         merged.gettingStartedModalShown = current.gettingStartedModalShown == true || acknowledged.gettingStartedModalShown == true ? true : acknowledged.gettingStartedModalShown
         merged.paperPencilModalShown = current.paperPencilModalShown == true || acknowledged.paperPencilModalShown == true ? true : acknowledged.paperPencilModalShown
         if current.goal == sent.goal && newGoals.isEmpty { merged.goal = acknowledged.goal }

@@ -2,11 +2,11 @@
   "sources": [
     {
       "file": "src/components/PaperPencilModal.jsx",
-      "sha256": "fdea477f6863eaf6bbb427fc93fe7c57983f57d10d038be9af2d443358de61ae"
+      "sha256": "32ac96a14319fa28a2458fb39fbb063b7241dcccfbcacf5f6558e79071e7e691"
     },
     {
       "file": "src/utils/paperPencilModalTranslations.js",
-      "sha256": "85bb54d68f363e52a7fd536bf9cddf29d47215f2a6d5839b8a2c99d7b3fc6229"
+      "sha256": "67742403b84c25bd92d6924d3e844ef8e515dfc52612a5c1fa85f528550ab54c"
     },
     {
       "file": "src/utils/translation.jsx",
@@ -94,7 +94,12 @@
   },
   "illustration": {
     "source": "src/assets/paper_pencil_manga.webp",
-    "sha256": "2f20b755410041cb598301f25719d641188b667a0311355a6015ed49a6b492a3"
+    "sha256": "7edb9da3493172cc54b113152e64b1d9748991524f506f008f9c7c0991ffb93a"
   },
-  "scope": "Current original modal copy and static manga artwork; no animated illustration layers remain. Source modal geometry, initial App state, onboarding close and product acknowledgment are verified separately with only external I/O stubbed."
+  "scope": "Current original modal copy and static manga artwork; no animated illustration layers remain. Source modal geometry, initial App state, onboarding close and product acknowledgment are verified separately with only external I/O stubbed.",
+  "character": {
+    "id": "20",
+    "source": "src/assets/21.webp",
+    "sha256": "2636bd60525c5100bfc01dd23360ee757868b33cd01cbfc89930ec8494216c2d"
+  }
 }
