@@ -3,12 +3,24 @@ import XCTest
 @MainActor final class ConversationPlayTests:XCTestCase {
     private func tap(_ id:String,_ app:XCUIApplication) { let button=app.buttons[id];XCTAssertTrue(button.waitForExistence(timeout:15));XCTAssertTrue(button.isHittable);button.tap() }
     private func open(_ app:XCUIApplication) { tap("productMenu",app);tap("productModeMenu",app);tap("productMode-conversation",app);XCTAssertTrue(app.staticTexts["conversationGoal"].waitForExistence(timeout:15)) }
-    private func start(theme:String="light")->XCUIApplication {
+    private func start(theme:String="light",partial:Bool=false)->XCUIApplication {
         continueAfterFailure=false
-        let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString;app.launchEnvironment["PIYALI_CONVERSATION_FIXTURE"]="1";app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme",theme];app.launch();handleInitialPaperPencil(app)
+        let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString;app.launchEnvironment["PIYALI_CONVERSATION_FIXTURE"]="1";if partial {app.launchEnvironment["PIYALI_CONVERSATION_PARTIAL_FIXTURE"]="1"};app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme",theme];app.launch();handleInitialPaperPencil(app)
         let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Conversation Learner");if app.buttons["entryKeyboardDone"].exists { app.buttons["entryKeyboardDone"].tap() };tap("createAccount",app);handleInitialPaperPencil(app);tap("startLearning",app);open(app);return app
     }
     private func photo(_ name:String,_ app:XCUIApplication) { let capture=XCTAttachment(screenshot:app.screenshot());capture.name=name;capture.lifetime = .keepAlways;add(capture) }
+    func testPausedPartialReplyContinuesAndRemainsInPrivateHistoryWithoutExtraXP() {
+        let app=start(partial:true);tap("conversationStart",app)
+        let reply=app.staticTexts["conversationLatestReply"];expectation(for:NSPredicate(format:"label == %@","Vamos a practicar"),evaluatedWith:reply);waitForExpectations(timeout:15)
+        tap("conversationPause",app);XCTAssertEqual(app.staticTexts["conversationVoiceStatus"].label,"Paused");XCTAssertEqual(reply.label,"Vamos a practicar");photo("Native interrupted Conversation reply",app)
+        XCTAssertFalse(app.staticTexts["conversationFeedback"].exists);tap("conversationPause",app)
+        expectation(for:NSPredicate(format:"label == %@","Vamos a practicar juntos."),evaluatedWith:reply);waitForExpectations(timeout:15)
+        XCTAssertTrue(app.staticTexts["conversationFeedback"].waitForExistence(timeout:10))
+        tap("conversationEnd",app);XCTAssertTrue(app.staticTexts["conversationSummaryXP"].waitForExistence(timeout:8));XCTAssertTrue(app.staticTexts["conversationSummaryXP"].label.contains("+0"));tap("conversationSummaryDone",app)
+        tap("conversationHistory",app);XCTAssertTrue(app.staticTexts["Vamos a practicar"].exists);XCTAssertTrue(app.staticTexts["Vamos a practicar juntos."].exists)
+        tap("Done",app);app.terminate();app.launch();handleInitialPaperPencil(app);open(app);tap("conversationHistory",app)
+        XCTAssertTrue(app.staticTexts["Vamos a practicar"].exists);XCTAssertTrue(app.staticTexts["Vamos a practicar juntos."].exists)
+    }
     func testVoiceFirstScreenHelpMutePauseResumeSummaryLogAndRelaunch() {
         let app=start()
         XCTAssertFalse(app.textFields["conversationReply"].exists);XCTAssertFalse(app.buttons["conversationSend"].exists);XCTAssertFalse(app.staticTexts["conversationLatestReply"].exists);XCTAssertFalse(app.buttons["conversationHistory"].isEnabled)

@@ -112,6 +112,13 @@ extension AIService:ConversationProviding {}
         guard app.subscription.hasAccess || fixture,!text.isEmpty else { return }
         var draft=app.learner.conversation;draft.append(.init(role:"assistant",text:text,providerID:providerID));app.learner.saveConversation(draft);app.persist()
     }
+    func preserveInterruptedReply(_ text:String,providerID:String,app:AppModel) {
+        bind(app);guard app.subscription.hasAccess || fixture,!text.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else{return}
+        var draft=app.learner.conversation
+        if !providerID.isEmpty,let index=draft.messages.firstIndex(where:{$0.providerID == providerID}) {draft.messages[index].interrupted=true}
+        else {var message=ConversationMessage(role:"assistant",text:text,providerID:providerID.isEmpty ? nil:providerID);message.interrupted=true;draft.append(message)}
+        app.learner.saveConversation(draft);app.persist()
+    }
     func shuffleTopic(_ app:AppModel) async {
         bind(app)
         guard !busy,app.subscription.hasAccess || fixture else { return };let operation=begin();error=nil;feedback=""
@@ -126,6 +133,9 @@ extension AIService:ConversationProviding {}
         let operation=begin();grading=id;error=nil;let token=generation,account=app.identity.npub,target=app.learner.target,support=app.learner.support,session=app.learner.conversation.id,captured=app.learner.conversation.goal
         defer { if generation == token,grading == id { grading=nil };finish(operation,token:token) }
         var draft=app.learner.conversation;draft.append(ConversationMessage(role:"user",text:text,providerID:providerID),beforeProviderID:beforeResponseID);if let voiceReply,!voiceReply.isEmpty { draft.append(ConversationMessage(role:"assistant",text:voiceReply)) };app.learner.saveConversation(draft);app.persist()
+        #if DEBUG
+        if fixture,ProcessInfo.processInfo.environment["PIYALI_CONVERSATION_PARTIAL_FIXTURE"] == "1" {try? await Task.sleep(for:.seconds(7));guard valid(app,account:account,target:target,support:support,session:session,token:token) else{return}}
+        #endif
         var verdict:ConversationVerdict?
         if text.count >= 3,let captured,!captured.completed {
             if fixture { verdict=ConversationVerdict(completed:!text.lowercased().contains("wrong") && !text.lowercased().contains("no tv"),reason:"Use your own words to keep the conversation going.",goalStillFits:!text.lowercased().contains("no tv")) }

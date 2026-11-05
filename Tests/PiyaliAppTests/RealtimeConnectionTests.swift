@@ -5,6 +5,21 @@ import FirebaseAppCheck
 @testable import Piyali
 
 @MainActor final class RealtimeConnectionTests:XCTestCase {
+    func testConversationResumeReceivesLiveContinuationWithoutAnotherLearnerTurn() async throws {
+        guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else {throw XCTSkip("Explicit live API opt-in required.")}
+        XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""));executionTimeAllowance=120
+        if FirebaseApp.app() == nil {AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure()};XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let identity=IdentityService();try identity.create();try await FirebaseIdentityService.shared.ensure(identity)
+        let live=LiveTutorService(capturesMicrophone:false,permission:{true}),spoken=expectation(description:"resumed output stopped")
+        var draft=ConversationDraft();draft.append(.init(role:"user",text:"¿Qué vamos a visitar?"));var partial=ConversationMessage(role:"assistant",text:"Vamos a visitar",providerID:"old-response");partial.interrupted=true;draft.append(partial)
+        var inputs=0,replies:[String]=[],didStop=false
+        await live.start(learner:LearnerState(),conversationDraft:draft,inactivityTimeout:60,resumeInterrupted:partial.text,onInputTurn:{_ in inputs += 1},onAssistantTurn:{_,text in replies.append(text)},onEvent:{event in if event["type"].string == "output_audio_buffer.stopped",!didStop {didStop=true;spoken.fulfill()}})
+        if live.connected {await fulfillment(of:[spoken],timeout:45)}
+        let failure=live.error,connected=live.connected;await live.stop()
+        do {try await Auth.auth().currentUser?.delete();try Auth.auth().signOut();try identity.disconnect()} catch {try? Auth.auth().signOut();try? identity.disconnect();throw error}
+        XCTAssertTrue(connected);XCTAssertNil(failure);XCTAssertTrue(didStop);XCTAssertFalse(replies.isEmpty);XCTAssertEqual(inputs,0)
+        if connected,didStop,!replies.isEmpty,inputs == 0 {print("LIVE CONVERSATION RESUME: native WebRTC received resumed speech and a completed transcript without a new learner turn; physical microphone disabled")}
+    }
     func testDefaultRealtimeModelReturnsDataEventsAndNativeWebRTCAudio() async throws {
         guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else { throw XCTSkip("Explicit live API opt-in required.") }
         XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1")
@@ -140,6 +155,32 @@ import FirebaseAppCheck
 }
 
 extension RealtimeVoiceControllerTests {
+    func testInterruptedConversationResumesWithoutOpeningMicOrGradingAgain() async throws {
+        let transport=VoiceTransportFixture(),service=LiveTutorService(permission:{true},transportFactory:{transport})
+        var draft=ConversationDraft();draft.append(.init(role:"user",text:"¿Qué hacemos?"))
+        var partial=ConversationMessage(role:"assistant",text:"Vamos a visitar",providerID:"old");partial.interrupted=true;draft.append(partial)
+        var inputs=0,replies:[String]=[]
+        await service.start(learner:LearnerState(),conversationDraft:draft,resumeInterrupted:partial.text,onInputTurn:{_ in inputs += 1},onAssistantTurn:{_,text in replies.append(text)})
+        XCTAssertTrue(service.connected);XCTAssertFalse(transport.microphone);XCTAssertEqual(transport.vad,.null)
+        let request=try XCTUnwrap(transport.events.first { $0["type"].string == "response.create" })
+        XCTAssertEqual(request["response"]["metadata"]["kind"].string,"pause_resume")
+        XCTAssertTrue(request["response"]["instructions"].string.contains("Vamos a visitar"));XCTAssertTrue(request["response"]["instructions"].string.contains("Briefly restate"))
+        XCTAssertTrue(transport.session["instructions"].string.contains("interrupted"))
+        try transport.receive(#"{"type":"response.created","response":{"id":"r-resume"}}"#)
+        try transport.receive(#"{"type":"response.done","response":{"id":"r-resume","status":"completed","output":[{"content":[{"transcript":"Vamos a visitar el museo."}]}]}}"#)
+        XCTAssertFalse(transport.microphone);XCTAssertEqual(replies,["Vamos a visitar el museo."]);XCTAssertEqual(inputs,0)
+        service.setMuted(true);try transport.receive(#"{"type":"output_audio_buffer.stopped"}"#);XCTAssertFalse(transport.microphone)
+        service.setMuted(false);XCTAssertTrue(transport.microphone);XCTAssertEqual(inputs,0)
+        await service.stop()
+    }
+    func testResumeBeforeAnyAssistantWordsRequestsThePendingReply() async throws {
+        let transport=VoiceTransportFixture(),service=LiveTutorService(permission:{true},transportFactory:{transport})
+        await service.start(learner:LearnerState(),conversationDraft:ConversationDraft(),initiallyMuted:true,resumeInterrupted:"")
+        let request=try XCTUnwrap(transport.events.first { $0["type"].string == "response.create" })
+        XCTAssertTrue(request["response"]["instructions"].string.contains("Your reply had not arrived"));XCTAssertFalse(transport.microphone)
+        try transport.receive(#"{"type":"response.created","response":{"id":"r"}}"#);try transport.receive(#"{"type":"output_audio_buffer.stopped"}"#)
+        XCTAssertFalse(transport.microphone);await service.stop()
+    }
     func testInputCanBeGradedBeforeAssistantFinishesAndResumeMuteNeverOpensMicrophone() async throws {
         let transport=VoiceTransportFixture(),service=LiveTutorService(permission:{true},transportFactory:{transport})
         var inputs:[RealtimeVoiceState.InputTurn]=[],replies:[String]=[]

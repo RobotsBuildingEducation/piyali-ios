@@ -24,6 +24,7 @@ public struct RealtimeVoiceState: Sendable {
     public func inputTurn(_ id:String)->InputTurn? { guard let value=inputs[id],let text=value.text else { return nil };return .init(id:id,text:text,answered:value.answered,responseID:value.response) }
     public func completedAssistant(_ id:String)->String? { guard let value=outputs[id],value.complete,!value.text.isEmpty else { return nil };return value.text }
     public mutating func setMuted(_ value:Bool) { muted=value }
+    public mutating func lockAssistant() { assistantLocked=true }
     public mutating func discardInput(_ id:String) {
         inputs[id]?.delivered=true
         if !outputPlaying,outputs[currentResponse]?.complete != false {assistantLocked=false}

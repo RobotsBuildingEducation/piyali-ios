@@ -661,7 +661,7 @@
     "useUserStore"
   ],
   "boundary": "Original pure declarations and prompt builders with explicit learner/lesson/agenda/reconnect snapshots. No React, source stores, Firebase, provider or transport executes. Regular agenda snapshot uses original item and progress helpers without its mount-time ref mutation; Swift owns sequencing and persistence.",
-  "fixtureCount": 598,
+  "fixtureCount": 600,
   "translationAdapter": {
     "resource": "Piyali/Resources/app-copy.json.gz",
     "sha256": "0ea8bc3ce2e566ced7a1f3bb623e912354f714ce849f7f100ed1d8171e215fbe",

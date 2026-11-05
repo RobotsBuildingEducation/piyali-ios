@@ -26,6 +26,7 @@ public struct ConversationMessage: Codable, Identifiable, Equatable, Sendable {
     public var translation: String?
     public var translationLang:String?
     public var providerID:String?
+    public var interrupted:Bool?
     public init(role: String, text: String,providerID:String?=nil) { self.role=role;self.text=String(text.prefix(2000));self.providerID=providerID }
     public func translation(for support:String)->String? { guard translationLang == support,let translation,!translation.isEmpty else { return nil };return translation }
 }

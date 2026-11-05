@@ -11392,6 +11392,7 @@ case 'script':value=t.hasUnexpectedTutorTranscriptScript(p.text,[p.target,p.supp
 case 'resumeContext':value=M14.buildRealtimeResumeContext(p.messages||[]);break;
 case 'snapshotMessages':value=M14.snapshotRealtimeMessages(p.messages||[]);break;
 case 'resumeSpeech':{const events=[];M14.resumeRealtimeSpeech({channel:{readyState:'open',send:raw=>events.push(JSON.parse(raw))},speech:p.speech,instructions:p.instructions||'',onComplete:()=>{},freshReply:true});value=events[0]||null;break;}
+case 'resumeConversationSpeech':{const events=[];M14.resumeRealtimeSpeech({channel:{readyState:'open',send:raw=>events.push(JSON.parse(raw))},speech:p.speech,instructions:p.instructions||'',onComplete:()=>{}});value=events[0]||null;break;}
 case 'response':value=p.provider==='gemini'?(p.welcome?t.buildTutorWelcomeInstructions():p.kickoff?t.buildTutorKickoffInstructions():t.buildTutorFollowupInstructions(p.answer||'',p.accepted||[],p.verdict||'uncertain')):M35.composeOpenAIRealtimeResponseInstructions(t.buildOpenAIResponseInstructionsPrefix(),p.welcome?t.buildTutorWelcomeInstructions():p.kickoff?t.buildTutorKickoffInstructions():t.buildTutorFollowupInstructions(p.answer||'',p.accepted||[],p.verdict||'uncertain'),t.buildTutorResponseInstructionsSuffix());break;
 case 'judge':value=t.buildTutorTurnSuccessJudgePrompt(p.answer||'',p.options||{});break;
 case 'draft':value=d.normalizeTutorConversationDraftMessages(p.messages||[]);break;

@@ -17,6 +17,9 @@ struct ConversationView:View {
     @State private var active=false
     @State private var starterPlaying=false
     @State private var pausedReply=""
+    @State private var pausedSpeech:String?
+    @State private var pauseWork:Task<Void,Never>?
+    @State private var connectionEpoch=UUID()
     @State private var settingsKey=""
     @State private var baseXP=0
     @State private var baseTurns=0
@@ -38,7 +41,7 @@ struct ConversationView:View {
         Group { if conversation.fixture { content } else { SubscriptionRequiredView(service:app.subscription) { content } } }
             .navigationTitle(t("course_conversation","Conversation")).navigationBarTitleDisplayMode(.inline)
             .task(id:app.identity.npub+":"+app.learner.target+":"+app.learner.support+":"+String(allowed)) {
-                active=false;conversation.cancel();speech.stopAll();paused=false;pausedReply="";showStarter=false;starterPlaying=false
+                active=false;connectionEpoch=UUID();conversation.cancel();speech.stopAll();paused=false;pausedReply="";pausedSpeech=nil;pauseWork=nil;showStarter=false;starterPlaying=false
                 await live.stop(clearTranscript:true);guard !Task.isCancelled else { return };active=true;await conversation.prepare(app)
             }
             .activityFooter(owner:footerOwner,revision:footerRevision,access:app.subscription,fixtureAllowed:conversation.fixture) { ActivityFooterSurface(hasFeedback:false,feedback:{EmptyView()},actions:{controls}) }
@@ -107,7 +110,7 @@ struct ConversationView:View {
             HStack(spacing:12) {
                 callButton(live.muted ? "mic.slash.fill" : "mic.fill",label:live.muted ? "Unmute microphone" : "Mute microphone",selected:live.muted) { live.setMuted(!live.muted) }.disabled(paused || !live.connected).accessibilityIdentifier("conversationMute")
                 callButton(paused ? "play.fill" : "pause.fill",label:paused ? "Resume conversation" : "Pause conversation",selected:paused) { if paused { start(resuming:true) } else { pause() } }.accessibilityIdentifier("conversationPause")
-                callButton("phone.down.fill",label:"End conversation",stop:true) { paused=false;starterPlaying=false;speech.stopAll();Task { await live.stop();var transaction=Transaction();transaction.disablesAnimations=true;withTransaction(transaction) { showSummary=true } } }.accessibilityIdentifier("conversationEnd")
+                callButton("phone.down.fill",label:"End conversation",stop:true) { end() }.accessibilityIdentifier("conversationEnd")
             }.frame(maxWidth:288).frame(maxWidth:.infinity)
         } else {
             Button { start() } label:{ Label(live.connecting ? t("ra_btn_starting","Starting...") : t("ra_btn_start","Start"),systemImage:"mic.fill") }.buttonStyle(ActivityPrimaryButtonStyle(tone:"speak")).disabled(live.connecting || conversation.busy || draft.goal == nil).accessibilityIdentifier("conversationStart")
@@ -117,19 +120,26 @@ struct ConversationView:View {
         Button(action:action) { Image(systemName:icon).font(.system(size:17,weight:.semibold)).frame(maxWidth:.infinity,minHeight:40).foregroundStyle(stop ? .white : brand.text).background { RoundedRectangle(cornerRadius:18).fill(stop ? AnyShapeStyle(LinearGradient(colors:[PiyaliBrand.unitColor("b0005b"),PiyaliBrand.unitColor("880046")],startPoint:.topLeading,endPoint:.bottomTrailing)) : AnyShapeStyle(selected ? brand.surface.opacity(0.88) : Color.clear)) } }.buttonStyle(.plain).accessibilityLabel(label).accessibilityAddTraits(selected ? .isSelected : [])
     }
     private func start(resuming:Bool=false) {
-        guard !live.connecting,!conversation.busy,allowed,let _=draft.goal else { return }
-        active=true;starterPlaying=false;speech.stopAll();showSummary=false;pausedReply=""
+        guard !live.connecting,(!conversation.busy || resuming),allowed,let _=draft.goal else { return }
+        active=true;starterPlaying=false;speech.stopAll();showSummary=false
         if !resuming { baseXP=draft.earnedXP;baseTurns=draft.turns;baseGoals=draft.goalsCompleted;pausedMuted=false }
         var context=draft;if !resuming { context.messages=[] }
         let account=app.identity.npub,target=app.learner.target,support=app.learner.support,session=draft.id
-        paused=false
-        Task { await live.start(learner:app.learner,conversationDraft:context,initiallyMuted:resuming && pausedMuted,onInputTurn:{ input in
-            guard active,app.identity.npub == account,app.learner.target == target,app.learner.support == support,app.learner.conversation.id == session,allowed else { return }
+        let interrupted=resuming ? pausedSpeech:nil,waiting=pauseWork,token=UUID();connectionEpoch=token;paused=false
+        if !resuming {pausedSpeech=nil;pausedReply=""}
+        Task {
+            if resuming {await waiting?.value}
+            guard active,connectionEpoch == token,app.identity.npub == account,app.learner.target == target,app.learner.support == support,app.learner.conversation.id == session,allowed else{return}
+            await live.start(learner:app.learner,conversationDraft:context,initiallyMuted:resuming && pausedMuted,resumeInterrupted:interrupted,onInputTurn:{ input in
+            guard active,connectionEpoch == token,app.identity.npub == account,app.learner.target == target,app.learner.support == support,app.learner.conversation.id == session,allowed else { return }
             Task { await conversation.voiceTurn(input.text,answered:input.answered,reply:"",id:UUID(),app:app,providerID:input.id,beforeResponseID:input.responseID);guard active,app.identity.npub == account,app.learner.target == target,app.learner.support == support,app.learner.conversation.id == session else { return };await live.updateConversation(app.learner.conversation,learner:app.learner) }
         },onAssistantTurn:{ id,text in
-            guard active,app.identity.npub == account,app.learner.target == target,app.learner.support == support,app.learner.conversation.id == session,allowed else { return }
+            guard active,connectionEpoch == token,app.identity.npub == account,app.learner.target == target,app.learner.support == support,app.learner.conversation.id == session,allowed else { return }
             conversation.assistantReply(text,providerID:id,app:app)
-        }) }
+            })
+            guard active,connectionEpoch == token,app.identity.npub == account,app.learner.target == target,app.learner.support == support,app.learner.conversation.id == session else{return}
+            if live.connected {pausedSpeech=nil;pauseWork=nil} else if resuming {paused=true}
+        }
     }
     private func playStarter(_ text:String) {
         if starterPlaying { stopStarter();return }
@@ -138,8 +148,13 @@ struct ConversationView:View {
         speech.speakSeries([cleaned],language:app.learner.target,onInterrupted:{stopStarter()},keepsVoiceSession:live.connected,onFinished:{stopStarter()})
     }
     private func stopStarter() { speech.stopAll();starterPlaying=false;live.setPlaybackDucked(false) }
-    private func pause() { starterPlaying=false;pausedMuted=live.muted;pausedReply=reply;paused=true;speech.stopAll();Task { await live.stop() } }
-    private func stop() { starterPlaying=false;active=false;paused=false;conversation.cancel();speech.stopAll();Task { await live.stop() } }
+    private func pause() {
+        guard live.connected else{return};starterPlaying=false;pausedMuted=live.muted;pausedReply=reply;pausedSpeech=live.hasPendingAssistant ? (live.outputPending ? live.assistantTurnText : "") : nil
+        if live.outputPending,!live.assistantTurnText.isEmpty {conversation.preserveInterruptedReply(live.assistantTurnText,providerID:live.assistantResponseID,app:app)}
+        connectionEpoch=UUID();paused=true;speech.stopAll();pauseWork=Task {await live.stop()}
+    }
+    private func end() {connectionEpoch=UUID();paused=false;pausedSpeech=nil;starterPlaying=false;speech.stopAll();let waiting=pauseWork;pauseWork=nil;Task {await waiting?.value;await live.stop();var transaction=Transaction();transaction.disablesAnimations=true;withTransaction(transaction) {showSummary=true}}}
+    private func stop() { connectionEpoch=UUID();starterPlaying=false;active=false;paused=false;pausedSpeech=nil;pauseWork=nil;conversation.cancel();speech.stopAll();Task { await live.stop() } }
     private func settingsClosed() { if settingsRevision != settingsKey { showStarter=false;Task { await conversation.shuffleTopic(app);await live.updateConversation(app.learner.conversation,learner:app.learner) } } }
     private func change(_ update:(inout ConversationDraft)->Void) { var next=draft;update(&next);app.learner.saveConversation(next);app.persist();Task { await live.updateConversation(app.learner.conversation,learner:app.learner) } }
     private var settingsSheet:some View {

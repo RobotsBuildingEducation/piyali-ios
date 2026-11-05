@@ -109,7 +109,7 @@ final class ConversationTranscriptOrderTests:XCTestCase {
     }
     func testOlderPrivateMessagesDecodeWithoutProviderIDs() throws {
         let old=#"{"id":"DB57F28E-6A01-4FA8-8D2C-8B038D746D6A","role":"user","text":"Hola"}"#
-        let value=try JSONDecoder().decode(ConversationMessage.self,from:Data(old.utf8));XCTAssertNil(value.providerID);XCTAssertEqual(value.text,"Hola")
+        let value=try JSONDecoder().decode(ConversationMessage.self,from:Data(old.utf8));XCTAssertNil(value.providerID);XCTAssertNil(value.interrupted);XCTAssertEqual(value.text,"Hola")
     }
 }
 
