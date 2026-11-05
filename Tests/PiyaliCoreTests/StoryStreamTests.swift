@@ -48,3 +48,27 @@ final class StoryStreamTests:XCTestCase {
         XCTAssertNil(learner.story);XCTAssertEqual(learner.practiceStoryLine(words:"Hola."),0);XCTAssertEqual(learner.finishStory(),0);XCTAssertEqual(learner.totalXP,0)
     }
 }
+
+extension StoryStreamTests {
+    func testSourceOneLineStreamCanBeCreditedOnceAndRestored() throws {
+        let snapshot="{\"type\":\"sentence\",\"tgt\":\"Hola.\"}\n",payload=try XCTUnwrap(StoryStreamDraft.speakingPayload(snapshot,completed:false,title:"Practice"))
+        let run=try StoryRun(payload:payload,mode:.speaking,target:"es",support:"en",level:"A1",lessonID:nil,worth:ConversationPractice.worth(rating:800,level:"A1"),tutorial:true,sourceSpeakingStream:true)
+        var learner=LearnerState();learner.target="es";learner.support="en";learner.saveStory(run)
+        XCTAssertEqual(learner.practiceStoryLine(words:"Hola.",confidence:0.9),2);XCTAssertEqual(learner.practiceStoryLine(words:"Hola.",confidence:0.9),0)
+        let restored=try JSONDecoder().decode(LearnerState.self,from:JSONEncoder().encode(learner));XCTAssertEqual(restored.totalXP,2);XCTAssertEqual(restored.story?.passedLines,[0]);XCTAssertEqual(restored.story?.sentences.count,1)
+    }
+    func testSourceSpeakingStreamCompletionAndFailureOutcomes() throws {
+        let url=URL(fileURLWithPath:#filePath).deletingLastPathComponent().appendingPathComponent("Fixtures/story-speak-stream-outcomes.json")
+        let rows=try JSONDecoder().decode([JSONValue].self,from:Data(contentsOf:url));XCTAssertEqual(rows.count,8)
+        for row in rows {let input=row["input"],expected=row["expected"],snapshot=input["chunks"].array.map(\.string).joined(),completed = !input["fail"].boolean
+            let turns=StoryStreamDraft.speaking(snapshot,includeTrailingRecord:completed),sourceUsedStream=expected["fallback"].number == 0
+            XCTAssertEqual(!turns.isEmpty,sourceUsedStream,input["name"].string)
+            let payload=StoryStreamDraft.speakingPayload(snapshot,completed:completed,title:"Practice");XCTAssertEqual(payload != nil,sourceUsedStream,input["name"].string)
+            if sourceUsedStream {
+                XCTAssertEqual(turns.map(\.target),expected["sentences"].array.map{$0["tgt"].string},input["name"].string);XCTAssertEqual(turns.map(\.speaker),expected["sentences"].array.map{$0["character"].string},input["name"].string)
+                let run=try StoryRun(payload:try XCTUnwrap(payload),mode:.speaking,target:"es",support:"en",level:"A1",lessonID:nil,worth:.null,tutorial:true,sourceSpeakingStream:true)
+                XCTAssertEqual(run.sentences.map(\.target),turns.map(\.target));XCTAssertEqual(payload?["nativeSpeakingStream"].string,completed ? "completed":"interrupted")
+            }
+        }
+    }
+}

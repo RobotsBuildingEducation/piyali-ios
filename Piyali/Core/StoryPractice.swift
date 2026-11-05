@@ -29,11 +29,16 @@ public struct StoryRun:Codable,Equatable,Sendable {
     public var lastWords=""
     public var translations:[String:String]=[:]
     public var updatedAt=Date()
-    public init(payload:JSONValue,mode:StoryMode,target:String,support:String,level:String,lessonID:String?,worth:JSONValue,tutorial:Bool = false) throws {
+    public init(payload:JSONValue,mode:StoryMode,target:String,support:String,level:String,lessonID:String?,worth:JSONValue,tutorial:Bool = false,sourceSpeakingStream:Bool = false) throws {
         guard payload.json.utf8.count <= 60_000 else { throw StoryFailure.invalid }
         self.target=target;self.support=support;self.level=level;self.lessonID=lessonID;self.mode=mode;self.worth=worth
         if mode == .speaking {
-            guard !payload["title"].string.isEmpty,let lines=try? JSONDecoder().decode([StoryTurn].self,from:JSONEncoder().encode(payload["sentences"])),(tutorial ? 2...3 : 8...10).contains(lines.count),Set(lines.map(\.speaker)).count == 2,lines.allSatisfy({ !$0.target.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty && $0.target.utf8.count <= 8000 && !$0.speaker.isEmpty }),StoryEpisode.compatible(lines.map(\.target),target:target) else { throw StoryFailure.invalid }
+            guard !payload["title"].string.isEmpty,let lines=try? JSONDecoder().decode([StoryTurn].self,from:JSONEncoder().encode(payload["sentences"])) else { throw StoryFailure.invalid }
+            if sourceSpeakingStream {
+                guard (1...64).contains(lines.count),lines.allSatisfy({$0.target.utf8.count <= 8000 && $0.speaker.utf8.count <= 8000}) else {throw StoryFailure.invalid}
+            } else {
+                guard (tutorial ? 2...3 : 8...10).contains(lines.count),Set(lines.map(\.speaker)).count == 2,lines.allSatisfy({ !$0.target.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty && $0.target.utf8.count <= 8000 && !$0.speaker.isEmpty }),StoryEpisode.compatible(lines.map(\.target),target:target) else {throw StoryFailure.invalid}
+            }
             sentences=lines;title=payload["title"].string;episode=nil
         } else { let value=try StoryEpisode.parse(payload,target:target,prepare:true);episode=value;sentences=[];title=value.title }
     }

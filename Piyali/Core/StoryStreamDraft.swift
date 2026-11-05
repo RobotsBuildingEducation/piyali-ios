@@ -1,7 +1,7 @@
 import Foundation
 
-/// Complete speaking records displayed while the source stream is in flight.
-/// These records require final validation and assessment before they can earn XP.
+/// Speaking records displayed provisionally while the source stream is in flight.
+/// A completed stream or an interruption after reveal can promote source-consumed records.
 public enum StoryStreamDraft {
     /// Providers sometimes emit a scalar for a question that requires exactly one index.
     public static func normalizeSingleAnswer(_ question:JSONValue)->JSONValue {
@@ -48,17 +48,30 @@ public enum StoryStreamDraft {
         guard segments.first?.turns.isEmpty == false else{return nil}
         return .init(value:.init(title:title,segments:segments),ready:ready)
     }
+    private static func truthy(_ value:JSONValue)->Bool {
+        switch value {case .null:return false;case .bool(let value):return value;case .number(let value):return value != 0 && value.isFinite;case .string(let value):return !value.isEmpty;case .array,.object:return true}
+    }
+    private static func jsString(_ value:JSONValue)->String {
+        switch value {case .null:return "null";case .bool(let value):return value ? "true":"false";case .string(let value):return value;case .number:return value.json;case .object:return "[object Object]";case .array(let values):return values.map { $0 == .null ? "":jsString($0) }.joined(separator:",")}
+    }
+    /// Source consumes a trailing record only on normal completion, not when a stream throws.
+    public static func speakingPayload(_ snapshot:String,completed:Bool,title:String)->JSONValue? {
+        let turns=speaking(snapshot,includeTrailingRecord:completed);guard !turns.isEmpty else{return nil}
+        let lines=turns.map { JSONValue.object(["speaker":.string($0.speaker),"target":.string($0.target),"support":.string($0.support ?? ""),"gender":$0.gender.map(JSONValue.string) ?? .null]) }
+        return .object(["title":.string(title.isEmpty ? "Practice":title),"sentences":.array(lines),"nativeSpeakingStream":.string(completed ? "completed":"interrupted")])
+    }
     public static func speaking(_ snapshot:String,includeTrailingRecord:Bool=false)->[StoryTurn] {
         guard snapshot.utf8.count <= 100_000 else{return []}
         var lines=snapshot.components(separatedBy:"\n");if !includeTrailingRecord {lines.removeLast()}
         return Array(lines.lazy.compactMap { raw ->StoryTurn? in
             let line=raw.trimmingCharacters(in:.whitespacesAndNewlines)
-            guard line.hasPrefix("{"),line.hasSuffix("}"),let object=try? JSONDecoder().decode(JSONValue.self,from:Data(line.utf8)),object["type"].string == "sentence",case .string(let rawTarget)=object["tgt"] else{return nil}
-            let target=rawTarget.trimmingCharacters(in:.whitespacesAndNewlines)
-            guard !target.isEmpty,target.utf8.count <= 8_000 else{return nil}
-            let speaker=object["character"].string.isEmpty ? "Sheilfer":object["character"].string
-            let support=object["sup"].string.trimmingCharacters(in:.whitespacesAndNewlines)
-            return StoryTurn(speaker:speaker,target:target,support:support,gender:object["gender"].string.isEmpty ? nil:object["gender"].string)
+            guard line.hasPrefix("{"),line.hasSuffix("}"),let object=try? JSONDecoder().decode(JSONValue.self,from:Data(line.utf8)),object["type"].string == "sentence",truthy(object["tgt"]) else{return nil}
+            let target=jsString(object["tgt"]).trimmingCharacters(in:.whitespacesAndNewlines)
+            guard target.utf8.count <= 8_000 else{return nil}
+            let speaker=truthy(object["character"]) ? jsString(object["character"]):"Sheilfer"
+            let support=truthy(object["sup"]) ? jsString(object["sup"]).trimmingCharacters(in:.whitespacesAndNewlines):""
+            let gender=truthy(object["gender"]) ? jsString(object["gender"]):nil
+            return StoryTurn(speaker:speaker,target:target,support:support,gender:gender)
         }.prefix(64))
     }
 }

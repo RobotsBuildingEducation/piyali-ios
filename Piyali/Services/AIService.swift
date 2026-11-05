@@ -4,6 +4,11 @@ import FirebaseAuth
 
 @MainActor final class AIService {
     let configuration: AppConfiguration
+    #if DEBUG
+    // A caller-supplied stream for isolated provider-boundary tests only.
+    var storyStreamOverride:(@MainActor (String,@escaping @MainActor(String)->Void) async throws->String)?
+    var storyBatchOverride:(@MainActor (String,StoryMode) async throws->String)?
+    #endif
     init(configuration: AppConfiguration = AppConfiguration()) { self.configuration = configuration }
     func text(_ prompt: String, json: Bool = false) async throws -> String {
         if configuration.string("AIProvider") == "gemini", FirebaseService.shared.configured {
