@@ -31,4 +31,9 @@ Product captures: [generated exercise note](native/memory-note-created-product.p
 
 ## Flashcard entry into Notes — 2026-11-05
 
-The [translation/notes checkpoint](READING_TRANSLATION_NOTES.md) covers an ordinary Flashcard-generated note reaching Notes through the real product menu, preserving example/summary/lesson/module/result and relaunch. Source Reading/Story instead capture missed answers in Repairs; no dedicated Create note action was found at `b269524d`. Source global capture animation, exercise note completion after advancing, focused-deck handoffs and broader interruption/locale checks remain open.
+The [translation/notes checkpoint](READING_TRANSLATION_NOTES.md) covers an ordinary Flashcard-generated note reaching Notes through the real product menu, preserving example/summary/lesson/module/result and relaunch. Source Reading/Story instead capture missed answers in Repairs; no dedicated Create note action was found at `b269524d`. The later [exercise/capture checkpoint](EXERCISE_NOTES_CAPTURE.md) verifies note completion after advancing and shared Memory capture. Focused/repair-deck handoffs, broader interruption/locale checks and complete viewport/device coverage remain open.
+
+
+## Pending exercise notes and native Memory capture — 2026-11-05
+
+[Implementation, source inputs, final source/native frames, real product journey, exact attempts and limits](EXERCISE_NOTES_CAPTURE.md). Pending notes now retain the original context after Next; new identity-session, account, target/support and cancellation fences prevent late results from crossing ownership. Native shared capture follows the source crystal geometry/timing and vector icon, expires/restarts once per event and leaves a stable menu hit target. Local repair capture, actual wrong-feedback publication and saved exercise/SRS notes are covered; localization and quiet note restoration do not start a new animation. Final component comparison covers timed light/dark and controlled reduced-motion frames. This does not close the remaining focused/repair, concurrency, whole-shell, sound or physical-device work.

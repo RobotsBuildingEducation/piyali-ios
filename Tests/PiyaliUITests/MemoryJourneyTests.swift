@@ -3,11 +3,25 @@ import XCTest
 @MainActor final class MemoryJourneyTests:XCTestCase {
     private func tap(_ id:String,_ app:XCUIApplication){let button=app.buttons[id];XCTAssertTrue(button.waitForExistence(timeout:15),id);XCTAssertEqual(XCTWaiter.wait(for:[XCTNSPredicateExpectation(predicate:NSPredicate(format:"enabled == true"),object:button)],timeout:10),.completed,id);for _ in 0..<6 where !button.isHittable{app.swipeUp(velocity:.slow)};XCTAssertTrue(button.isHittable,id);button.tap()}
     private func photo(_ name:String,_ app:XCUIApplication){let shot=XCTAttachment(screenshot:app.screenshot());shot.name=name;shot.lifetime = .keepAlways;add(shot)}
-    private func launch(automaticJourney:Bool=false,practiceKind:String?=nil)->XCUIApplication {
-        continueAfterFailure=false;let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_MEMORY_FIXTURE":"1"];if let practiceKind{app.launchEnvironment["PIYALI_PRACTICE_FIXTURE"]=practiceKind};if automaticJourney{app.launchEnvironment["PIYALI_JOURNEY_PROMPT_FIXTURE"]="1"};app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"];app.launch();handleInitialPaperPencil(app)
+    private func launch(automaticJourney:Bool=false,practiceKind:String?=nil,noteDelay:Int?=nil)->XCUIApplication {
+        continueAfterFailure=false;let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_MEMORY_FIXTURE":"1"];if let practiceKind{app.launchEnvironment["PIYALI_PRACTICE_FIXTURE"]=practiceKind};if let noteDelay{app.launchEnvironment["PIYALI_STUDY_NOTE_DELAY_MS"]=String(noteDelay)};if automaticJourney{app.launchEnvironment["PIYALI_JOURNEY_PROMPT_FIXTURE"]="1"};app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"];app.launch();handleInitialPaperPencil(app)
         let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Memory Learner");if app.buttons["entryKeyboardDone"].exists{app.buttons["entryKeyboardDone"].tap()};tap("createAccount",app);handleInitialPaperPencil(app);tap("startLearning",app);if !automaticJourney{open(app)};return app
     }
     private func open(_ app:XCUIApplication){tap("productMenu",app);tap("productPanel-memory",app);XCTAssertTrue(app.buttons["memoryTab-repairs"].waitForExistence(timeout:10))}
+    func testPendingExerciseNoteSurvivesNextCapturesMemoryAndRelaunchesWithoutRepeating() {
+        let app=launch(practiceKind:"delight:natural_or_weird",noteDelay:9000);tap("productPanelClose",app)
+        tap("productMenu",app);tap("productModeMenu",app);tap("productMode-path",app);tap("introLink",app);tap("startLessonFromPreview",app)
+        tap("typedChoice-0",app);tap("checkTypedAnswer",app);tap("createTypedStudyNote",app)
+        XCTAssertFalse(app.buttons["createTypedStudyNote"].isEnabled);tap("nextTypedQuestion",app)
+        XCTAssertTrue(app.buttons["checkTypedAnswer"].waitForExistence(timeout:10))
+        let captured=XCTNSPredicateExpectation(predicate:NSPredicate(format:"value == %@","Note saved!"),object:app.buttons["productMenu"])
+        XCTAssertEqual(XCTWaiter.wait(for:[captured],timeout:12),.completed);photo("Native pending exercise note captured after advancing",app)
+        open(app);tap("memoryTab-notes",app);tap("memoryLevel-A1",app)
+        let created=app.buttons.matching(NSPredicate(format:"identifier BEGINSWITH 'memoryNote-' AND label CONTAINS 'Hola, mamá.'")).firstMatch
+        XCTAssertTrue(created.waitForExistence(timeout:10));created.tap();XCTAssertTrue(app.staticTexts["Use hola to greet a family member."].waitForExistence(timeout:10));photo("Native advanced exercise note retained in Memory",app)
+        tap("productPanelClose",app);app.terminate();app.launch();handleInitialPaperPencil(app);XCTAssertTrue(app.buttons["productMenu"].waitForExistence(timeout:15));XCTAssertNotEqual(app.buttons["productMenu"].value as? String,"Note saved!")
+        open(app);tap("memoryTab-notes",app);tap("memoryLevel-A1",app);XCTAssertTrue(created.waitForExistence(timeout:10))
+    }
     func testAutomaticMilestoneWaitsForQuietAcknowledgesAndOpensJourneyWithoutRepeating(){
         let app=launch(automaticJourney:true)
         XCTAssertTrue(app.buttons["journeyCapture"].waitForExistence(timeout:15));photo("Native automatically prompted Journey milestone",app)

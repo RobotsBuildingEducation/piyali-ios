@@ -115,11 +115,11 @@ import Combine
         guard goals.isDisjoint(with:intentGoalIDs),practice.isDisjoint(with:intentPracticeIDs),evidence.isDisjoint(with:intentRepairIDs),!artifactPending else{throw AppError.message("Could not save practice. Please try again.")}
     }
     func createNote(_ app:AppModel){
-        guard !creatingNote,!noteSaved,let grade,matches(app) else{return};creatingNote=true
+        guard !creatingNote,!noteSaved,let grade,matches(app) else{return};creatingNote=true;let identitySession=app.identity.sessionRevision
         let parameters:JSONValue = .object(["concept":.string(concept),"userAnswer":.string(answer.isEmpty ? recognized:answer),"wasCorrect":.bool(grade.correct),"targetLang":.string(scope.target),"supportLang":.string(scope.support),"cefrLevel":card["cefrLevel"],"moduleType":.string("flashcard")])
         // The source note request may finish after rating/closing this card.
         // Keep its captured study context, while fencing account/language changes.
-        func ownsNote()->Bool {scope.account == app.identity.npub && scope.target == app.learner.target && scope.support == app.learner.support}
+        func ownsNote()->Bool {app.signedIn && identitySession == app.identity.sessionRevision && scope.account == app.identity.npub && scope.target == app.learner.target && scope.support == app.learner.support}
         Task{defer{creatingNote=false};do{
             let prompt=try policy.run("flashNotePrompt",parameters,language:scope.support).string
             let note:JSONValue
@@ -128,7 +128,7 @@ import Combine
             catch {try Task.checkCancellation();note=try policy.run("flashNoteFailure",parameters,language:scope.support)}
             try Task.checkCancellation();guard ownsNote() else{return}
             let metadata=parameters.setting("lessonTitle",.object(["en":.string(concept),"es":.string(concept)])).setting("example",note["example"]).setting("summary",note["summary"])
-            app.learner.notes.insert(Note(title:concept,body:note["example"].string+"\n\n"+note["summary"].string,study:metadata,createdAt:Date()),at:0);app.persist();noteSaved=true
+            app.learner.notes.insert(Note(title:concept,body:note["example"].string+"\n\n"+note["summary"].string,study:metadata,createdAt:Date()),at:0);app.persist();app.showMemoryCapture();noteSaved=true
         }catch is CancellationError{}catch{if ownsNote(),!closed{self.error=copy("note_error")}}}
     }
     func canRate(_ rating:ReviewRating)->Bool {!saving && (intentRating == nil || intentRating == rating)}

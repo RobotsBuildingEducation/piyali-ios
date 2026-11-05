@@ -167,7 +167,7 @@ struct LessonPracticeView:View {
         current.response=response;if clear{current.correct=nil};app.learner.savePractice(current);app.persist()
     }
     private func updateResponse(_ field:String,_ value:JSONValue) { guard let run else { return };updateResponse(run.response.setting(field,value)) }
-    private func updateResponse(_ response:JSONValue) { guard var run,run.correct != true,(!quiz || run.correct == nil),!service.busy else { return };run.response=response;run.correct=nil;app.learner.savePractice(run);app.persist() }
+    private func updateResponse(_ response:JSONValue) { guard var run,run.correct != true,(!quiz || run.correct == nil),!service.busy else { return };run.recordStudyAssignmentOrder(next:response);run.response=response;run.correct=nil;app.learner.savePractice(run);app.persist() }
 }
 
 struct PracticeFlowLayout:Layout {

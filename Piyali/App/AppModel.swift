@@ -3,7 +3,15 @@ import Combine
 import SwiftUI
 
 @MainActor final class AppModel: ObservableObject {
-    @Published var learner = LearnerState() { didSet {captureDailyGoalReward(previous:oldValue);captureCompanionUnlock(previous:oldValue);notifyPracticeObservers();subscription.updatePracticeXP(learner.subscriptionXP);bindAchievementDelivery()} }
+    @Published var learner = LearnerState() { didSet {captureMemoryFeedback(previous:oldValue);captureDailyGoalReward(previous:oldValue);captureCompanionUnlock(previous:oldValue);notifyPracticeObservers();subscription.updatePracticeXP(learner.subscriptionXP);bindAchievementDelivery()} }
+    let memoryCapture=MemoryCaptureController()
+    var memoryCaptureScope:String {[identity.npub,learner.target,learner.support].joined(separator:":")}
+    func showMemoryCapture(){guard signedIn,!identity.npub.isEmpty else{return};memoryCapture.capture(memoryCaptureScope)}
+    private func captureMemoryFeedback(previous:LearnerState){
+        guard !restoringLearner else{return};memoryCapture.bind(memoryCaptureScope)
+        let old=Set((previous.pendingMemoryChanges ?? []).map(\.id))
+        if (learner.pendingMemoryChanges ?? []).contains(where:{$0.action == .capture && $0.target == learner.target && !old.contains($0.id)}){showMemoryCapture()}
+    }
     @Published private(set) var companionUnlock:CompanionUnlock?
     @Published private(set) var companionUnlockRevision=0
     private var companionDelivery=CompanionUnlockState()
@@ -18,7 +26,7 @@ import SwiftUI
     private var achievementRetryUpdates:AnyCancellable?
     private var importedAchievementSnapshots:[String:JSONValue]=[:]
     private var achievementApplicationActive=true
-    @Published var signedIn = false {didSet{bindAchievementDelivery();upcomingGameReviews.revalidate()}}
+    @Published var signedIn = false {didSet{if !signedIn{memoryCapture.cancel()}else{memoryCapture.bind(memoryCaptureScope)};bindAchievementDelivery();upcomingGameReviews.revalidate()}}
     @Published private(set) var achievementUnlock=AchievementUnlockState(catalog:Set(((try? ContentLibrary.load([JSONValue].self,name:"achievement-protocol")) ?? []).map{$0["id"].string}))
     @Published var tutorUnits: [LearningUnit] = []
     @Published var units: [LearningUnit] = []

@@ -31,3 +31,8 @@ The final [capture manifest](native/reading-translation-notes-b269524d/manifest.
 | ![Original source and native saved note](native/reading-translation-notes-b269524d/flashcard-note-en.png) | ![Original Arabic source and native saved note](native/reading-translation-notes-b269524d/flashcard-note-ar.png) |
 
 [Native note in Memory](native/reading-translation-notes-b269524d/flashcard-note-memory.png), [native recovered translation](native/reading-translation-notes-b269524d/reading-recovered.png), [native thrown outcome](native/reading-translation-notes-b269524d/reading-thrown.png), [native incomplete outcome](native/reading-translation-notes-b269524d/reading-incomplete.png). Source passage crops: [arriving](reference/reading-translation-b269524d/arriving-en-light.jpg), [thrown](reference/reading-translation-b269524d/thrown-en-light.jpg), [recovered](reference/reading-translation-b269524d/recovered-en-light.jpg). These have different surrounding viewport contexts, as scoped above.
+
+
+## Subsequent exercise/capture checkpoint
+
+[EXERCISE_NOTES_CAPTURE.md](EXERCISE_NOTES_CAPTURE.md) supersedes the pending exercise-after-Next and wholly missing global Memory animation descriptions above. It adds source-specific inputs across all sixteen note-eligible lesson formats, same-key identity-session fences, actual native note/Next/Memory/relaunch behavior and timed source/native capture frames. Wider focused/repair, full-shell/interruption/device work remains open.

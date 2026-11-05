@@ -8,6 +8,7 @@ public struct PracticeRun:Codable,Sendable {
     public let bank:[String]
     public var rightOrder:[Int]?
     public var response:JSONValue = .object([:])
+    public var studyAssignmentOrder:[String]?
     public var correct:Bool?
     public var lastMissedAnswer:String?
     public var lastMissedResponse:JSONValue?

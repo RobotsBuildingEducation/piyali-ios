@@ -37,9 +37,14 @@ Regenerate the pure policy with `node scripts/export-companion-quest.mjs` and or
 
 ## Remaining work
 
-Listen now shares the native receive-only Realtime narration service with Phonics, using the original source instructions, locale/voice policy, loading indicator, cancellation and output-buffer drain; see [phonics](PHONICS.md). The dedicated native narration contract is deployed and passes real receive-only audio/positive-amplitude verification, followed by the existing conversation audio regression. The source prepared connection pool/cache and recorded replay remain open. Physical microphone quality, audible playback/routes, recording wave/flip animations, glow timing, source sounds and pause preferences still need parity work. Broader locale/state checks, focused-deck completion choreography, remaining focused-deck note handoffs and global Memory capture animation, app-wide reward/error presentation and the remaining Tutor/account/payment designs and wider phonics states are open in [the parity audit](PARITY_AUDIT.md).
+Listen now shares the native receive-only Realtime narration service with Phonics, using the original source instructions, locale/voice policy, loading indicator, cancellation and output-buffer drain; see [phonics](PHONICS.md). The dedicated native narration contract is deployed and passes real receive-only audio/positive-amplitude verification, followed by the existing conversation audio regression. The source prepared connection pool/cache and recorded replay remain open. Physical microphone quality, audible playback/routes, recording wave/flip animations, glow timing, source sounds and pause preferences still need parity work. Broader locale/state checks, focused-deck completion choreography, remaining focused-deck note handoffs and broader shared-capture interruptions, app-wide reward/error presentation and the remaining Tutor/account/payment designs and wider phonics states are open in [the parity audit](PARITY_AUDIT.md).
 
 
 ## Note request and drawer continuation — 2026-11-05
 
 [Current source/native evidence](READING_TRANSLATION_NOTES.md) adds the original catch fallback, shared Gemini-first study-note request path, pending note completion after rating/close with captured context and owner fences, original saved/loading bookmark states, and actual missing English accessibility keys (Arabic remains translated). It includes the real menu → card → note → Memory → relaunch journey. This supersedes the older unverified generated-note/drawer description; focused flows, animation, full viewport and physical audio remain open.
+
+
+## Shared capture and identity-session fence — 2026-11-05
+
+The [exercise/capture checkpoint](EXERCISE_NOTES_CAPTURE.md) adds the original transient Memory catch after an SRS note is inserted, with repeated-event/owner fencing and a stable menu control. The ordinary SRS note → Memory/relaunch regression passes with the effect enabled; pending note checks now reject sign-out or the same key restored in a new identity session. Focused/repair-deck choreography, sounds, full viewport and physical verification remain open.

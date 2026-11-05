@@ -19,6 +19,7 @@ private struct ActivityFooterPublisher:ViewModifier {
     let owner:UUID
     let revision:String
     let footer:AnyView
+    @State private var handledFeedback=false
     private var scope:String { app.identity.npub+":"+app.learner.target+":"+app.learner.support }
     func body(content:Content)->some View {
         content.task(id:scope+":"+revision+":"+(colorScheme == .dark ? "dark":"light")+":"+String(access.hasAccess || fixtureAllowed)+":"+String(enabled)) {
@@ -27,6 +28,8 @@ private struct ActivityFooterPublisher:ViewModifier {
                 if app.activityFooter?.owner == owner { app.activityFooter=nil };return
             }
             app.activityFooter = .init(owner:owner,content:footer,correct:correct,tone:tone)
+            if correct == nil{handledFeedback=false}
+            else if !handledFeedback{handledFeedback=true;if correct == false{app.showMemoryCapture()}}
         }.onDisappear { if app.activityFooter?.owner == owner { app.activityFooter=nil } }
     }
 }

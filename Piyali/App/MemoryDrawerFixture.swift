@@ -19,6 +19,13 @@ import CryptoKit
         if prompt.contains("digest"){return summary(language)}
         return JSONValue.object(["did":.string(language == "ar" ? "نسيت حرف h الصامت.":"The silent h was missing."),"fix":.string("hola"),"tip":.string(language == "ar" ? "افتكر حرف h في التحية.":"Keep the h in the greeting.")]).canonicalJSON
     }
+    static func studyNoteResponse(_ prompt:String,language:String)async throws->String? {
+        guard enabled else{return nil}
+        #if DEBUG
+        if let ms=Int(ProcessInfo.processInfo.environment["PIYALI_STUDY_NOTE_DELAY_MS"] ?? ""),(1...15000).contains(ms){try await Task.sleep(for:.milliseconds(ms))}
+        #endif
+        return response(prompt,language:language)
+    }
     static func repairNotes(_ lang:String)->[MemoryNote] {
         let today=CalendarDay.key(Date()),yesterday=CalendarDay.shift(today,by:-1)
         return [("today",today,"captured","hola","ola",2),("yesterday",yesterday,"reinforced","buenas noches","buenos noches",1),("open",yesterday,"used_in_quest","buenos días","buenas días",1)].map{id,day,status,concept,answer,severity in

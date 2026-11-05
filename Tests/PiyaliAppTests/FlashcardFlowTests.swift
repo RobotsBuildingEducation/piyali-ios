@@ -29,8 +29,8 @@ import WebKit
     }
     func testPendingNoteSurvivesRatingWithCapturedContextButRejectsChangedOwner() async throws {
         let app=try model();defer{try? app.identity.disconnect()}
-        for changeLanguage in [false,true] {
-            app.learner=LearnerState();var resume:CheckedContinuation<String,Error>?
+        for change in ["none","support","sameAccount","signedOut"] {
+            app.signedIn=true;app.learner=LearnerState();var resume:CheckedContinuation<String,Error>?
             var service=provider("YES | 6");service.note={_ in try await withCheckedThrowingContinuation{resume=$0}}
             let session=try FlashcardSessionController(app:app,card:card,status:"active",provider:service);app.flashcardSession=session
             session.answer="mamá";session.submit(app);await settle(session);session.createNote(app)
@@ -38,10 +38,11 @@ import WebKit
             session.commit(.hard,app:app)
             for _ in 0..<100 where session.saving {try await Task.sleep(for:.milliseconds(10))}
             XCTAssertNil(app.flashcardSession);XCTAssertEqual(app.learner.totalXP,6)
-            session.answer="changed after close";if changeLanguage{app.learner.support="ar"}
+            session.answer="changed after close"
+            switch change{case "support":app.learner.support="ar";case "sameAccount":let key=app.identity.exportKey();try app.identity.disconnect();try app.identity.importKey(key);case "signedOut":app.signedIn=false;default:break}
             resume?.resume(returning:"{\"example\":\"Mi mamá vive cerca.\",\"summary\":\"A family word.\"}");await settle(session)
-            XCTAssertEqual(app.learner.notes.count,changeLanguage ? 0:1);XCTAssertEqual(app.learner.totalXP,6)
-            if !changeLanguage{XCTAssertEqual(app.learner.notes.first?.study?["userAnswer"].string,"mamá")}
+            XCTAssertEqual(app.learner.notes.count,change == "none" ? 1:0,change);XCTAssertEqual(app.learner.totalXP,6)
+            if change == "none"{XCTAssertEqual(app.learner.notes.first?.study?["userAnswer"].string,"mamá")}
         }
     }
     func testRevealWrongRetryGradeAndChosenScheduleFollowSourceWithoutPrematureReview()async throws {
