@@ -65,7 +65,7 @@ import Combine
     private func partition(_ app:AppModel){
         refreshDeckDefinitions(app);let cards=authored+extras;deck=cards.filter{counts[$0["id"].string].number<=0};collected=cards.filter{counts[$0["id"].string].number>0}
     }
-    func select(_ level:String,app:AppModel){guard !focused,!generating,LearningLanguages.levels.contains(level),(try? policy?.run("ph_access",.object(["level":.string(level),"unlockedLevel":course["unlockedLevel"]])))?["allowed"].boolean == true else{return};activeLevel=level;partition(app)}
+    func select(_ level:String,app:AppModel){guard app.subscription.hasAccess else{return};guard !focused,!generating,LearningLanguages.levels.contains(level),(try? policy?.run("ph_access",.object(["level":.string(level),"unlockedLevel":course["unlockedLevel"]])))?["allowed"].boolean == true else{return};activeLevel=level;partition(app)}
     func touch(){interacted=true}
     func collect(_ card:JSONValue,app:AppModel){
         guard scope == key(app),let index=deck.firstIndex(where:{$0["id"] == card["id"]}) else{return};interacted=true;deck.remove(at:index);if !collected.contains(where:{$0["id"] == card["id"]}){collected.append(card)}
@@ -73,7 +73,7 @@ import Combine
         if !focused {_=app.learner.collectPhonics(cardID:card["id"].string);app.persist();refresh(app)}
     }
     func newRound(_ app:AppModel)async {
-        guard !focused,complete,!generating,let policy else{return};generating=true;error=nil;let token=scope,level=activeLevel
+        guard app.subscription.hasAccess,!focused,complete,!generating,let policy else{return};generating=true;error=nil;let token=scope,level=activeLevel
         defer{if scope == token{generating=false}}
         do {
             let pending=(app.learner.pendingChanges ?? []).first{$0.source == .phonicsDeck && $0.target == app.learner.target && $0.level == level && $0.phonicsData?["records"].array.first?["supportLanguage"].string == app.learner.support}

@@ -44,3 +44,7 @@ Provider/narration verification is opt-in through `python3 scripts/test-live-api
 ## Remaining work
 
 The source prepared-connection pool/cache, recorded replay, exact glass blur/glow/motion and source sounds are not complete. The global background and some typography/spacing still differ. Wider language/level/completion/generated-deck layouts, focused/repair/guided full journeys, real recording quality and physical playback/routes need checks. Tutor, Notes/memory/diary, account/payment panels and the other app-wide gaps remain in [the parity audit](PARITY_AUDIT.md).
+
+## Earned pronunciation at trial end — November 5
+
+[The trial recovery record](PHONICS_TRIAL_RECOVERY.md) supersedes the earlier code-inspected mounted 300-XP gate. Goal/repair pronunciation and ordinary Collect now retain their earned surface through the access transition; fresh practice requests require access. Its rendered tests, full UI journeys, retained failures and pre-acknowledgment process-termination/network-preparation limits have separate scopes.

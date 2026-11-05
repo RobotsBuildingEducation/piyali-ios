@@ -1,0 +1,175 @@
+{
+  "reference_revision": "b269524ddc578027c549616fc47f5954991d9f6f",
+  "native_base": "7e0a2550dfb7c5d8ee43bfd60a7a1f3544e83d42",
+  "scope": "Three rendered production native Phonics/access hierarchies with synthetic grading and an in-process progress store; full native setup/control journeys are recorded separately. No physical audio, production billing, full web routing or whole-shell design claim.",
+  "qa_device": "CE8248B6-7171-4FD4-97DE-89E499107F82",
+  "checks": {
+    "app": {
+      "tests": 11,
+      "failures": 0,
+      "seconds": 52.751,
+      "result_bundle": "/tmp/PiyaliPhonicsTrialRecovery20261105.xcresult",
+      "containing_bundle": "Two UI checks in this bundle fail due to background acknowledgment retiring Retry before a forced test tap. App checks all pass."
+    },
+    "ui": {
+      "tests": 2,
+      "failures": 0,
+      "seconds": 190.429,
+      "goal_seconds": 92.752,
+      "repair_seconds": 97.677,
+      "result_bundle": "/tmp/PiyaliPhonicsTrialJourneysVerified20261105.xcresult"
+    }
+  },
+  "artifacts": [
+    {
+      "file": "goal-acknowledged-subscription.png",
+      "attachment": "Native subscription after acknowledged Goal pronunciation",
+      "test": "FocusedPhonicsFlowTests/testRenderedGoalPhonicsRetainsFinalEarnedAttemptAcrossTrialGateUntilAcknowledged()",
+      "result_bundle": "/tmp/PiyaliPhonicsTrialRecovery20261105.xcresult",
+      "sha256": "447014bde88b4386d608c69c4422be3aa361b0ea5271e19d3bf3990f3d95ee07",
+      "bytes": 1616014
+    },
+    {
+      "file": "goal-failed-save.png",
+      "attachment": "Native Goal pronunciation failed save and retry across 300 XP",
+      "test": "FocusedPhonicsFlowTests/testRenderedGoalPhonicsRetainsFinalEarnedAttemptAcrossTrialGateUntilAcknowledged()",
+      "result_bundle": "/tmp/PiyaliPhonicsTrialRecovery20261105.xcresult",
+      "sha256": "8dbc70948c9963240c6cc9c92d33ea696d1a75afacbbd2f76069b86fb211fc8e",
+      "bytes": 1325878
+    },
+    {
+      "file": "goal-saving.png",
+      "attachment": "Native Goal pronunciation saving across 300 XP",
+      "test": "FocusedPhonicsFlowTests/testRenderedGoalPhonicsRetainsFinalEarnedAttemptAcrossTrialGateUntilAcknowledged()",
+      "result_bundle": "/tmp/PiyaliPhonicsTrialRecovery20261105.xcresult",
+      "sha256": "5cb60a39b313ea326af201b971b07767ce9b5d2035d01105038154b1473d78cc",
+      "bytes": 974780
+    },
+    {
+      "file": "ordinary-earned-collect.png",
+      "attachment": "Native ordinary pronunciation earned Collect across 300 XP",
+      "test": "FocusedPhonicsFlowTests/testRenderedOrdinaryPronunciationCanCollectEarnedWorkAtTrialEndButCannotStartAnotherAttempt()",
+      "result_bundle": "/tmp/PiyaliPhonicsTrialRecovery20261105.xcresult",
+      "sha256": "c4644b69fa71777f4645ca017f7044faefce6efb54bf8da94db2bbc59fd86d24",
+      "bytes": 1469442
+    },
+    {
+      "file": "repair-acknowledged-subscription.png",
+      "attachment": "Native subscription after acknowledged repair pronunciation",
+      "test": "FocusedPhonicsFlowTests/testRenderedRepairPhonicsKeepsCompletionRetryAcrossTrialGateThenDeniesTheNextLesson()",
+      "result_bundle": "/tmp/PiyaliPhonicsTrialRecovery20261105.xcresult",
+      "sha256": "447014bde88b4386d608c69c4422be3aa361b0ea5271e19d3bf3990f3d95ee07",
+      "bytes": 1616014
+    },
+    {
+      "file": "repair-failed-completion.png",
+      "attachment": "Native repair pronunciation completion retry across 300 XP",
+      "test": "FocusedPhonicsFlowTests/testRenderedRepairPhonicsKeepsCompletionRetryAcrossTrialGateThenDeniesTheNextLesson()",
+      "result_bundle": "/tmp/PiyaliPhonicsTrialRecovery20261105.xcresult",
+      "sha256": "2387f182821d2e976b8e3847def70b2fc0c170c142b8d9dce729e9f04818391a",
+      "bytes": 1406327
+    },
+    {
+      "file": "goal-product-relaunch.png",
+      "attachment": "Native goal trial-end subscription persists after relaunch",
+      "test": "FocusedPhonicsJourneyTests/testGoalPronunciationTrialEndRecoversCompletionIntoSubscription()",
+      "result_bundle": "/tmp/PiyaliPhonicsTrialJourneysVerified20261105.xcresult",
+      "sha256": "1546b23cb0e94ef24aa02fb877e14b5d5551bf3b77c74b385b111b4d37f7d2bd",
+      "bytes": 784986
+    },
+    {
+      "file": "goal-product-subscription.png",
+      "attachment": "Native goal subscription after earned pronunciation recovered",
+      "test": "FocusedPhonicsJourneyTests/testGoalPronunciationTrialEndRecoversCompletionIntoSubscription()",
+      "result_bundle": "/tmp/PiyaliPhonicsTrialJourneysVerified20261105.xcresult",
+      "sha256": "1546b23cb0e94ef24aa02fb877e14b5d5551bf3b77c74b385b111b4d37f7d2bd",
+      "bytes": 784986
+    },
+    {
+      "file": "repair-product-relaunch.png",
+      "attachment": "Native repair trial-end subscription persists after relaunch",
+      "test": "FocusedPhonicsJourneyTests/testRepairPronunciationTrialEndRecoversCompletionIntoSubscription()",
+      "result_bundle": "/tmp/PiyaliPhonicsTrialJourneysVerified20261105.xcresult",
+      "sha256": "275de1532244f7793ae16c55bfc836fbe8c75121e04520ec84b02bf0e8059a5f",
+      "bytes": 783563
+    },
+    {
+      "file": "repair-product-subscription.png",
+      "attachment": "Native repair subscription after earned pronunciation recovered",
+      "test": "FocusedPhonicsJourneyTests/testRepairPronunciationTrialEndRecoversCompletionIntoSubscription()",
+      "result_bundle": "/tmp/PiyaliPhonicsTrialJourneysVerified20261105.xcresult",
+      "sha256": "275de1532244f7793ae16c55bfc836fbe8c75121e04520ec84b02bf0e8059a5f",
+      "bytes": 783563
+    }
+  ],
+  "native": [
+    {
+      "file": "Piyali/App/FocusedPhonicsFixture.swift",
+      "sha256": "d0999b2552cba22907407cadcad90c2118ad3ee5c5b8f6ed13707fa845ad53b1"
+    },
+    {
+      "file": "Piyali/App/PhonicsCourseController.swift",
+      "sha256": "05c4d5d19b73187fe30d01a5c054f56807adb77661fa9e6716794c25443a7c62"
+    },
+    {
+      "file": "Piyali/App/PhonicsSessionController.swift",
+      "sha256": "5ebcb3c6083311a6c7c866932dcb7863261b4a95b7df31eded37018d141e20e0"
+    },
+    {
+      "file": "Piyali/Features/FocusedGoalCourseView.swift",
+      "sha256": "df0afe55c3fc16ebf94ea37cf29388c028eb60eaf613500b2f038c671278b7c1"
+    },
+    {
+      "file": "Piyali/Features/FocusedLearningViews.swift",
+      "sha256": "b88760463085ca76203efe83fb3bf3a8532f4594e5bbfe28ecde416f2855aa92"
+    },
+    {
+      "file": "Piyali/Features/PhonicsSourceCard.swift",
+      "sha256": "4623560cf92447e4e8314cabd18e0dfc235efdd500714a71612bc1cfc8ee5330"
+    },
+    {
+      "file": "Piyali/Features/SourcePhonicsView.swift",
+      "sha256": "352b92393187d06ac0d7452388cbf456d77700cf703fda575078491028f7d643"
+    },
+    {
+      "file": "Tests/PiyaliAppTests/FocusedPhonicsFlowTests.swift",
+      "sha256": "9b0842a82be7e0096e5063c0289fcf139343f31b192963ffe618eaa82a1d16ce"
+    },
+    {
+      "file": "Tests/PiyaliUITests/FocusedPhonicsJourneyTests.swift",
+      "sha256": "486b147d43a8bc9dece4955a3f8ab2a09b7c9734c534171b86732aefa295bff3"
+    }
+  ],
+  "reference": [
+    {
+      "file": "src/App.jsx",
+      "sha256": "9e6447368ce10a647025f76daf1b730fb20073590c586f8a3bed8a6d4f2ab948"
+    },
+    {
+      "file": "src/components/AlphabetBootcamp.jsx",
+      "sha256": "51a7b8ab6a3c0ee80fc7594fcf9ee66f345d002278c0987b717d5c4b309282d7"
+    },
+    {
+      "file": "src/utils/focusedPracticeDecks.js",
+      "sha256": "bb5f8e54a4ad8db64bfb5e725f8fec4e37f538b4aa26a20714d18e825d6ad59d"
+    }
+  ],
+  "tested_products": [
+    {
+      "file": "DerivedData/Build/Products/Debug-iphonesimulator/Piyali.app/Piyali",
+      "sha256": "678ba00323fd2aa51af39036bc7ed16cdedb8dc3bb21102447976515d0cd663a"
+    },
+    {
+      "file": "DerivedData/Build/Products/Debug-iphonesimulator/Piyali.app/Piyali.debug.dylib",
+      "sha256": "f3d71e590f6a93b01baa1297cfd3c060bfa6d31d2375c5098241b0be3d2f9c66"
+    },
+    {
+      "file": "DerivedData/Build/Products/Debug-iphonesimulator/Piyali.app/PlugIns/PiyaliTests.xctest/PiyaliTests",
+      "sha256": "d0a542e1d8c6ab3a4792ae7971a0ed239f714aa95fdb742e296239b7774af78e"
+    },
+    {
+      "file": "DerivedData/Build/Products/Debug-iphonesimulator/PiyaliUITests-Runner.app/PlugIns/PiyaliUITests.xctest/PiyaliUITests",
+      "sha256": "0b8a9003b9a0abc31431ae0b01bde685db4c89151fdf0c2efa6d7cd281d1ef72"
+    }
+  ]
+}

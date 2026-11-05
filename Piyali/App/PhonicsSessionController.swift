@@ -14,6 +14,10 @@ import Combine
     let recorder:SpeechPracticeService
     let playback:RealtimeNarrationService
     @Published private(set) var playingKind:String?
+    @Published private(set) var earnedWorkPending=false
+    var onEarnedWorkChanged:((Bool)->Void)?
+    private weak var earnedApp:AppModel?
+    private let day=CalendarDay.key(Date())
     private let identitySession:UUID
     private var subscriptions:Set<AnyCancellable>=[]
     private var generation=UUID(),work:Task<Void,Never>?,quote:Task<JSONValue,Error>?,submitted=false,closed=false
@@ -31,18 +35,19 @@ import Combine
         if let repair {let plan=app.learner.repairPlan(day:repair.day);return repair.day == CalendarDay.key(Date()) && plan?["items"].array.indices.contains(repair.index) == true && plan?["items"].array[repair.index] == repair.item}
         return true
     }
-    func practice(_ app:AppModel){guard matches(app),!busy else{return};practicing=true;flipped=true;grade=nil;error=nil;submitted=false;startQuote(app)}
-    func back(){flipped=false;practicing=false;grade=nil;error=nil;submitted=false;transcript=""}
-    func retry(){guard !busy,!needsSaveRetry else{return};grade=nil;error=nil;submitted=false;transcript=""}
+    func practice(_ app:AppModel){guard app.subscription.hasAccess,matches(app),!busy,!needsSaveRetry else{return};finishReview();practicing=true;flipped=true;grade=nil;error=nil;submitted=false;startQuote(app)}
+    func back(){guard !busy,!needsSaveRetry else{return};finishReview();flipped=false;practicing=false;grade=nil;error=nil;submitted=false;transcript=""}
+    func retry(){guard !busy,!needsSaveRetry else{return};finishReview();grade=nil;error=nil;submitted=false;transcript=""}
     private func startQuote(_ app:AppModel){if quote == nil{let provider=self.provider,card=self.card,state=app.learner;quote=Task{try await provider.quote(card,state)}}}
     func submit(_ text:String,app:AppModel){
-        guard matches(app),!busy,grade == nil,!text.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else{return};startQuote(app);grading=true;error=nil;transcript=text;let token=generation
+        guard app.subscription.hasAccess,matches(app),!busy,grade == nil,!text.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else{return};startQuote(app);grading=true;error=nil;transcript=text;let token=generation
         work=Task{defer{if generation == token{grading=false}};do {
             let prompt=try policy.run("ph_judge",.object(["practiceWord":card["practiceWord"],"phoneme":card["phoneme"],"userAnswer":.string(text),"targetLang":.string(target),"cefrLevel":card["cefrLevel"]])).string
             let verdict=try policy.grade(await provider.judge(prompt));try Task.checkCancellation();guard matches(app),token == generation else{return}
             let worth:JSONValue
             if let quoted=try? await quote?.value{worth=quoted}else{worth=try GeneratedQuestionWorth.fallback(level:card["cefrLevel"].string,learner:app.learner,recipes:PracticeRecipes())}
             try Task.checkCancellation();guard matches(app),token == generation else{return}
+            if verdict.correct {retainEarnedWork(app)}
             app.learner.assess(correct:verdict.correct,independent:false,questionLevel:card["cefrLevel"].string,worth:worth,concept:card["practiceWord"].string,mode:"phonics",support:"modeled")
             if !verdict.correct,goal == nil {
                 let capture=try policy.run("focusedPhonicsCapture",.object(["card":card,"answer":.string(text),"level":.string(app.learner.level),"npub":.string(account),"targetLang":.string(target),"supportLang":.string(support),"worth":worth]))
@@ -66,7 +71,7 @@ import Combine
         work=Task{defer{saving=false};do{try await app.finishPhonicsFocus(goal:goal,repair:repair)}catch is CancellationError{}catch{if generation == token,matches(app){self.error=self.text("gradingErrorDescription")}}}
     }
     func record(_ app:AppModel){
-        guard matches(app),!busy else{return};playback.stopAll();playingKind=nil
+        guard app.subscription.hasAccess,matches(app),!busy,!needsSaveRetry else{return};playback.stopAll();playingKind=nil
         if recorder.recording || recorder.evaluating{recorder.stop();return}
         retry()
         do{let policy=try FlashcardPolicy(engine:app.companionQuestPolicy),pause=Int(app.learner.plateProgress["pauseMs"].number)
@@ -76,10 +81,17 @@ import Combine
     func speak(_ kind:String,app:AppModel){
         guard matches(app) else{return};recorder.cancel()
         if playingKind == kind && (playback.loading || playback.playing){playback.stopAll();playingKind=nil;return}
+        guard app.subscription.hasAccess else{return}
         playingKind=kind;playback.play(kind == "letter" ? card["tts"].string:card["practiceWord"].string,language:target,engine:app.companionQuestPolicy){[weak self] in self?.playingKind=nil}
     }
+    private func retainEarnedWork(_ app:AppModel){
+        earnedApp=app;earnedWorkPending=true
+        app.retainEarnedPractice(owner:id,active:true,account:account,target:target,day:day);onEarnedWorkChanged?(true)
+    }
+    func finishReview(){guard !busy,!needsSaveRetry else{return};releaseEarnedWork()}
+    private func releaseEarnedWork(){guard earnedWorkPending else{return};earnedWorkPending=false;earnedApp?.releaseEarnedPractice(owner:id);onEarnedWorkChanged?(false)}
     func stopAudio(){recorder.cancel();playback.stopAll();playingKind=nil}
-    func cancel(){stopAudio();closed=true;generation=UUID();work?.cancel();quote?.cancel();grading=false;saving=false}
+    func cancel(){releaseEarnedWork();stopAudio();closed=true;generation=UUID();work?.cancel();quote?.cancel();grading=false;saving=false}
 }
 
 extension AppModel {

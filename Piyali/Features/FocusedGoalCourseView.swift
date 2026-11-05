@@ -5,12 +5,14 @@ struct FocusedGoalCourseView:View {
     @EnvironmentObject var app:AppModel
     var onSurface:(ProductMode)->Void = {_ in}
     var tutorControllerFactory:((TutorFocus)->TutorSessionController)? = nil
+    var phonicsControllerFactory:((JSONValue)->PhonicsCourseController)? = nil
     @State private var routed:JSONValue?
     @State private var failure:String?
     @State private var request=UUID()
     @State private var tutorFinishing=false
+    @State private var phonicsFinishing=false
     private var next:String? {app.readyGoal.flatMap(GoalPractice.nextMode)}
-    private var preserveEarnedWork:Bool {if tutorFinishing{return true};guard let routed,routed["mode"].string == "lesson",let lesson=try? app.sourceGoalLesson(routed) else{return false};return app.preserveEarnedGoalLesson(lesson)}
+    private var preserveEarnedWork:Bool {if tutorFinishing || phonicsFinishing{return true};guard let routed,routed["mode"].string == "lesson",let lesson=try? app.sourceGoalLesson(routed) else{return false};return app.preserveEarnedGoalLesson(lesson)}
     var body:some View {
         SubscriptionRequiredView(service:app.subscription,preserveEarnedWork:preserveEarnedWork){content}
             .task(id:app.goalPreparationKey+request.uuidString){await prepare()}
@@ -26,7 +28,7 @@ struct FocusedGoalCourseView:View {
         switch blueprint["mode"].string {
         case "lesson":if let lesson=try? app.sourceGoalLesson(blueprint){LessonView(lesson:lesson)}
         case "flashcards":FlashcardsView(goalBlueprint:blueprint)
-        case "phonics":if app.authoredGoalPhonics(blueprint).isEmpty {focusedTutor(blueprint)}else{PhonicsView(goalBlueprint:blueprint)}
+        case "phonics":if app.authoredGoalPhonics(blueprint).isEmpty {focusedTutor(blueprint)}else{PhonicsView(goalBlueprint:blueprint,controller:phonicsControllerFactory?(blueprint),onEarnedWorkChanged:{phonicsFinishing=$0})}
         default:focusedTutor(blueprint)
         }
     }
@@ -43,7 +45,7 @@ struct FocusedGoalCourseView:View {
         guard let daily=app.readyGoal else{return}
         let blueprint=daily["blueprint"].setting("mode",.string(mode))
         guard routed != blueprint else{return}
-        tutorFinishing=false;routed=blueprint
+        tutorFinishing=false;phonicsFinishing=false;routed=blueprint
         onSurface(mode == "lesson" ? .path:mode == "flashcards" ? .cards:mode == "phonics" && !app.authoredGoalPhonics(blueprint).isEmpty ? .phonics:.tutor)
     }
 }

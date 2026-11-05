@@ -34,17 +34,21 @@ import Foundation
             if let raw=try? app.companionQuestPolicy?.run("next",.object(["plan":plan,"completedCount":.number(0)])),let step=try? JSONDecoder().decode(RepairStep.self,from:Data(raw.json.utf8)),let artifact=try? app.focusedPhonicsDeck(repair:step){state.storeRepairArtifact(artifact,step:step,mode:"phonics")}
             state.questPlans=[state.target:.init(day:day,kinds:["repair","review"])]
         }
+        if ProcessInfo.processInfo.environment["PIYALI_FOCUSED_PHONICS_TRIAL"] == "1" {state.subscriptionXPAdjustment=scenario == "goal" ? 297:295}
         state.questProgress=state.plateProgress.setting("dailyQuestFirstSeen",.bool(true)).setting("dailyQuestFirstDayKey",.string(yesterday));state.pendingGoalChanges=[];state.pendingCompanionQuestDays=[:];state.pendingMemoryChanges=[];app.learner=state;UserDefaults.standard.set(true,forKey:key)
         #endif
     }
 }
 #if DEBUG
 @MainActor private final class FocusedPhonicsFixtureStore:LearnerProgressService {
+    private var failedCompletion=false
     func load(npub:String,local:LearnerState?)async throws->LearnerState?{nil}
     func saveCompanionCustomization(_ change:SettingsChange,npub:String)async throws->Bool{false}
     func save(_ state:LearnerState,npub:String)async throws->LearnerState? {
         guard !FocusedPhonicsFixture.scenario.isEmpty,!npub.isEmpty else{throw CancellationError()}
         if ProcessInfo.processInfo.environment["PIYALI_FOCUSED_PHONICS_COMPLETION_OFFLINE"] == "1",!(state.pendingRepairEvidence ?? []).isEmpty{throw URLError(.notConnectedToInternet)}
+        let completion = !(state.pendingRepairEvidence ?? []).isEmpty || (state.pendingGoalChanges ?? []).contains{$0.action == .attempt}
+        if ProcessInfo.processInfo.environment["PIYALI_FOCUSED_PHONICS_FAIL_COMPLETION_ONCE"] == "1",completion,!failedCompletion{failedCompletion=true;throw URLError(.notConnectedToInternet)}
         var saved=state;saved.pendingChanges=[];saved.pendingGoalChanges=[];saved.pendingMemoryChanges=[];saved.pendingCompanionQuestDays=[:];saved.pendingRepairEvidence=[];saved.pendingPlacements=[:];saved.pendingSettingsChanges=[];saved.pendingImmersionChanges=[];saved.pendingPlateHeadlines=[:];return saved
     }
 }
