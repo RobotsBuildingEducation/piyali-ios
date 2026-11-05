@@ -6506,5 +6506,13 @@
       "score": 11,
       "expected": "green"
     }
-  ]
+  ],
+  "generationUnavailable": {
+    "en": "We couldn't create a fresh reading. Please try again.",
+    "es": "No pudimos crear una lectura nueva. Inténtalo de nuevo.",
+    "it": "Non siamo riusciti a creare una nuova lettura. Riprova.",
+    "fr": "Nous n'avons pas pu créer une nouvelle lecture. Réessayez.",
+    "de": "Es konnte kein neuer Lesetext erstellt werden. Bitte versuche es erneut.",
+    "ja": "新しい読解文を作成できませんでした。もう一度お試しください。"
+  }
 }

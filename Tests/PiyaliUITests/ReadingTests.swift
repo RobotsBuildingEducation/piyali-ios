@@ -6,11 +6,11 @@ import XCTest
         for _ in 0..<10 { if element.isHittable { break };if element.frame.minY < app.frame.minY+90 { app.swipeDown(velocity:.slow) } else { app.swipeUp(velocity:.slow) } }
         XCTAssertTrue(element.isHittable)
     }
-    private func open(_ app:XCUIApplication) {
+    private func open(_ app:XCUIApplication,expectsPassage:Bool=true) {
         XCTAssertTrue(app.buttons["productMenu"].waitForExistence(timeout:15));app.buttons["productMenu"].tap();app.buttons["productModeMenu"].tap();app.buttons["productMode-path"].tap()
         XCTAssertTrue(app.buttons["introLink"].waitForExistence(timeout:15));app.buttons["introLink"].tap();app.buttons["startLessonFromPreview"].tap()
         for _ in 0..<2 { if app.buttons["introStep-reading"].value as? String == "Current" { break };tap("skipLessonActivity",app) }
-        XCTAssertTrue(app.descendants(matching:.any)["readingPassage"].waitForExistence(timeout:15));XCTAssertFalse(app.pickers["readingMethod"].exists)
+        if expectsPassage {XCTAssertTrue(app.descendants(matching:.any)["readingPassage"].waitForExistence(timeout:15))};XCTAssertFalse(app.pickers["readingMethod"].exists)
     }
     private func tap(_ id:String,_ app:XCUIApplication) { let button=app.buttons[id];reveal(button,in:app);button.tap() }
     private func speechApp(failure:Bool=false,noEnd:Bool=false,denied:Bool=false)->XCUIApplication {
@@ -27,11 +27,12 @@ import XCTest
         tap("readingMicrophone",app);tap("readingMicrophone",app)
         XCTAssertTrue(app.staticTexts["readingSpeechTranscript"].waitForExistence(timeout:5));XCTAssertTrue(app.buttons["readingSpeechStartOver"].exists)
     }
-    private func missingQuestionApp(failure:Bool=false)->XCUIApplication {
+    private func missingQuestionApp(failure:Bool=false,generationFailure:Bool=false)->XCUIApplication {
         continueAfterFailure=false;let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_READING_FIXTURE":"1","PIYALI_READING_MISSING_QUESTION_FIXTURE":"1","PIYALI_PRACTICE_FIXTURE":"delight:natural_or_weird"]
         if failure {app.launchEnvironment["PIYALI_READING_QUESTION_FALLBACK_FAILURE"]="1"}
+        if generationFailure {app.launchEnvironment["PIYALI_READING_GENERATION_FAILURE_FIXTURE"]="1"}
         app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en"];app.launch();handleInitialPaperPencil(app)
-        let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Partial Reader");if app.buttons["entryKeyboardDone"].exists {app.buttons["entryKeyboardDone"].tap()};app.buttons["createAccount"].tap();handleInitialPaperPencil(app);XCTAssertTrue(app.buttons["startLearning"].waitForExistence(timeout:20));app.buttons["startLearning"].tap();open(app);return app
+        let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Partial Reader");if app.buttons["entryKeyboardDone"].exists {app.buttons["entryKeyboardDone"].tap()};app.buttons["createAccount"].tap();handleInitialPaperPencil(app);XCTAssertTrue(app.buttons["startLearning"].waitForExistence(timeout:20));app.buttons["startLearning"].tap();open(app,expectsPassage:!generationFailure);return app
     }
     func testPartialReadingGeneratesMissingQuestionAndRetainsOneReward() {
         let app=missingQuestionApp();XCTAssertTrue(app.staticTexts["readingQuestion"].waitForExistence(timeout:12),app.debugDescription)
@@ -39,6 +40,18 @@ import XCTest
         let completed=app.staticTexts["readingCompleted"];reveal(completed,in:app);let reward=completed.label;XCTAssertTrue(reward.contains("XP awarded:"))
         let captured=XCTAttachment(screenshot:app.screenshot());captured.name="Recovered Reading question completed once";captured.lifetime = .keepAlways;add(captured)
         app.terminate();app.launch();handleInitialPaperPencil(app);open(app);reveal(completed,in:app);XCTAssertEqual(completed.label,reward);XCTAssertFalse(app.buttons["readingCheck"].exists)
+    }
+    func testGenerationFailureOffersExplicitRetryAndRetainsRecoveredRewardOnRelaunch() {
+        let app=missingQuestionApp(generationFailure:true),error=app.staticTexts["readingGenerationError"]
+        XCTAssertTrue(error.waitForExistence(timeout:12));XCTAssertEqual(error.label,"We couldn't create a fresh reading. Please try again.");XCTAssertFalse(app.staticTexts["readingCompleted"].exists)
+        let card=app.descendants(matching:.any)["readingGenerationErrorCard"],retry=app.buttons["readingRetry"]
+        XCTAssertTrue(card.waitForExistence(timeout:8));XCTAssertEqual(card.frame.height,280,accuracy:1);XCTAssertEqual(card.frame.width,app.frame.width-24,accuracy:1)
+        XCTAssertGreaterThanOrEqual(retry.frame.height,44);XCTAssertEqual(retry.frame.width,103.73,accuracy:2)
+        XCTAssertTrue(app.buttons["readingWaiting"].exists);XCTAssertFalse(app.buttons["readingWaiting"].isEnabled)
+        let failed=XCTAttachment(screenshot:app.screenshot());failed.name="Reading source generation error and explicit retry";failed.lifetime = .keepAlways;add(failed)
+        tap("readingRetry",app);XCTAssertTrue(app.staticTexts["readingQuestion"].waitForExistence(timeout:12));XCTAssertFalse(error.exists)
+        tap("readingOption-0",app);tap("readingCheck",app);let completed=app.staticTexts["readingCompleted"];reveal(completed,in:app);let reward=completed.label
+        XCTAssertTrue(reward.contains("XP awarded:"));app.terminate();app.launch();handleInitialPaperPencil(app);open(app);reveal(completed,in:app);XCTAssertEqual(completed.label,reward);XCTAssertFalse(app.buttons["readingCheck"].exists)
     }
     func testMissingQuestionFailureRetainsPassageWithoutInventingReward() {
         let app=missingQuestionApp(failure:true);let generate=app.buttons["readingGenerateQuestion"];XCTAssertTrue(generate.waitForExistence(timeout:10));let ready=XCTNSPredicateExpectation(predicate:NSPredicate(format:"enabled == true"),object:generate);XCTAssertEqual(XCTWaiter.wait(for:[ready],timeout:10),.completed);XCTAssertFalse(app.staticTexts["readingQuestion"].exists);XCTAssertFalse(app.staticTexts["readingCompleted"].exists)

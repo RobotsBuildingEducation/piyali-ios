@@ -2,6 +2,21 @@ import XCTest
 @testable import PiyaliCore
 
 final class ReadingStreamTests:XCTestCase {
+    func testGenerationErrorUsesOriginalCopyAndEnglishFallback() throws {
+        let url=URL(fileURLWithPath:#filePath).deletingLastPathComponent().appendingPathComponent("Fixtures/reading.json"),fixture=try JSONDecoder().decode(JSONValue.self,from:Data(contentsOf:url))["generationUnavailable"]
+        for language in ["en","es","it","fr","de","ja","ar","zh"] {
+            let expected=fixture[language].string.isEmpty ? fixture["en"].string:fixture[language].string
+            XCTAssertFalse(expected.isEmpty);XCTAssertEqual(Reading.generationFailure(support:language),expected)
+        }
+    }
+    func testDuplicateGuardMatchesOriginalSourceAtTimeAndTextBoundaries() throws {
+        let url=URL(fileURLWithPath:#filePath).deletingLastPathComponent().appendingPathComponent("Fixtures/reading-duplicates.json"),rows=try JSONDecoder().decode([JSONValue].self,from:Data(contentsOf:url))
+        XCTAssertEqual(rows.count,13)
+        for row in rows {
+            let input=row["input"],actual=Reading.isDuplicateOfLast(title:input["title"].string,target:input["target"].string,last:input["lectures"].array.last,now:Date(timeIntervalSince1970:input["now"].number/1000))
+            XCTAssertEqual(actual,row["expected"].boolean,input["name"].string)
+        }
+    }
     func testBackendOutcomesMatchSourceCleaningAndMissingQuestion() throws {
         let url=URL(fileURLWithPath:#filePath).deletingLastPathComponent().appendingPathComponent("Fixtures/reading-backend-outcomes.json"),rows=try JSONDecoder().decode([JSONValue].self,from:Data(contentsOf:url))
         for row in rows {

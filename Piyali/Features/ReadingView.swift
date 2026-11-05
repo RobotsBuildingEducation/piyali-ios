@@ -65,12 +65,24 @@ struct ReadingView:View {
                                 ForEach(Array(run.takeaways.enumerated()),id:\.offset) { _,value in Text("• "+value).font(PiyaliBrand.productFont(14)).frame(maxWidth:.infinity,alignment:.leading) }
                             }.padding(.top,24)
                         }.padding(16).frame(maxWidth:.infinity,alignment:.leading).background(brand.surface.opacity(0.68),in:RoundedRectangle(cornerRadius:16)).overlay { RoundedRectangle(cornerRadius:16).stroke(brand.border) }
-                    } else if service.busy { ProgressView(t("reading_generating")).frame(maxWidth:.infinity,minHeight:280) }
-                    if let error=service.error { Text(error).foregroundStyle(brand.questionError);Button(t("try_again")) { refresh += 1 }.disabled(service.busy) }
+                    } else if let error=service.error { generationError(error) }
+                    else if service.busy { ProgressView(t("reading_generating")).frame(maxWidth:.infinity,minHeight:280) }
+                    if run != nil,let error=service.error { Text(error).foregroundStyle(brand.questionError) }
                 }.padding(.horizontal,12).padding(.top,8).padding(.bottom,30).frame(maxWidth:640).frame(maxWidth:.infinity)
             }
             Color.clear.frame(height:app.activityFooterHeight)
         }.font(PiyaliBrand.productFont(16)).foregroundStyle(brand.text).background(brand.background)
+    }
+    private func generationError(_ message:String)->some View {
+        let leading=max(0,24-UIFont.systemFont(ofSize:16).lineHeight)
+        return VStack(alignment:.leading,spacing:12) {
+            Text(message).font(PiyaliBrand.productFont(16)).lineSpacing(leading).padding(.vertical,leading/2).fixedSize(horizontal:false,vertical:true).accessibilityIdentifier("readingGenerationError")
+            Button(t("try_again")) {refresh += 1}.buttonStyle(ReadingRetryButtonStyle()).disabled(service.busy).accessibilityIdentifier("readingRetry")
+        }.padding(13).frame(maxWidth:.infinity,minHeight:280,alignment:.topLeading)
+            .background{EntryCornerShape(radius:12).fill(.white.opacity(0.05))}
+            .overlay{EntryCornerShape(radius:12).stroke(.white.opacity(0.1),lineWidth:1)}
+            .accessibilityElement(children:.contain)
+            .accessibilityIdentifier("readingGenerationErrorCard")
     }
     private func draftPassage(_ draft:ReadingStreamDraft)->some View {
         let sentences=Reading.displaySentences(draft.text)
@@ -155,8 +167,7 @@ struct ReadingView:View {
         },actions:{
             if let onComplete { Button(t("reading_skip")) { stop();onComplete();if !embedded { dismiss() } }.font(PiyaliBrand.productFont(14,600)).foregroundStyle(brand.secondary).accessibilityIdentifier("skipLessonActivity") }
             if let run { primary(run) }
-            else if service.error != nil { Button(t("try_again")) { refresh += 1 }.buttonStyle(ActivityPrimaryButtonStyle()).disabled(service.busy) }
-            else { ProgressView().frame(maxWidth:.infinity,minHeight:40) }
+            else { Button {} label:{ProgressView().tint(.white).frame(maxWidth:.infinity,minHeight:40)}.buttonStyle(ActivityPrimaryButtonStyle()).disabled(true).accessibilityLabel(t("reading_loading")).accessibilityIdentifier("readingWaiting") }
         })
     }
     @ViewBuilder private func primary(_ run:ReadingRun)->some View {
@@ -179,6 +190,22 @@ struct ReadingView:View {
     private func saveTranscript() { guard let run,run.method == "speech",!run.awarded,recordingScope == app.identity.npub+":"+run.id.uuidString else { return };let words=ReadingSpeechCapture.boundedTranscript(recorder.transcript);guard words != run.answer else { return };update { $0.answer=words } }
     private func stop() { saveTranscript();recordingScope=nil;recorder.cancel();audio.stop() }
     private func update(_ action:(inout ReadingRun)->Void) { guard var current=app.learner.reading,current.id == run?.id else { return };action(&current);app.learner.saveReading(current);app.persist() }
+}
+
+/// The source theme's default blue Retry control, including its four-point edge.
+private struct ReadingRetryButtonStyle:ButtonStyle {
+    @Environment(\.isEnabled) private var enabled
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    func makeBody(configuration:Configuration)->some View {
+        configuration.label.font(PiyaliBrand.productFont(16,600)).foregroundStyle(.white)
+            .padding(.horizontal,17).frame(minWidth:40,minHeight:40)
+            .background{EntryCornerShape().fill(PiyaliBrand.unitColor("5dade2"))}
+            .compositingGroup()
+            .shadow(color:PiyaliBrand.unitColor("2f7cf7"),radius:0,y:configuration.isPressed ? 2:4)
+            .offset(y:configuration.isPressed ? 2:0).opacity(enabled ? 1:0.4)
+            .frame(minHeight:44,alignment:.top).contentShape(Rectangle())
+            .animation(reduceMotion ? nil:.easeOut(duration:0.12),value:configuration.isPressed)
+    }
 }
 
 /// Native text flow preserves inline sentence boundaries while each link plays one sentence.

@@ -1,0 +1,105 @@
+[
+  {
+    "input": {
+      "name": "no-reveal",
+      "chunks": [
+        "garbage\n"
+      ]
+    },
+    "expected": {
+      "lectures": [],
+      "fallback": 1,
+      "history": 0,
+      "error": false,
+      "fallbackDrafts": [
+        null
+      ]
+    }
+  },
+  {
+    "input": {
+      "name": "error-after-reveal",
+      "chunks": [
+        "{\"type\":\"title\",\"text\":\"El jardín\"}\n",
+        "{\"type\":\"target\",\"text\":\"La flor crece.\"}\n"
+      ],
+      "fail": true
+    },
+    "expected": {
+      "lectures": [],
+      "fallback": 1,
+      "history": 0,
+      "error": false,
+      "fallbackDrafts": [
+        {
+          "title": "El jardín",
+          "target": "La flor crece.",
+          "support": "",
+          "takeaways": []
+        }
+      ]
+    }
+  },
+  {
+    "input": {
+      "name": "error-before-reveal",
+      "chunks": [
+        "bad\n"
+      ],
+      "fail": true
+    },
+    "expected": {
+      "lectures": [],
+      "fallback": 1,
+      "history": 0,
+      "error": false,
+      "fallbackDrafts": [
+        null
+      ]
+    }
+  },
+  {
+    "input": {
+      "name": "no-reveal-backend-error",
+      "chunks": [
+        "bad\n"
+      ],
+      "fallbackFail": true
+    },
+    "expected": {
+      "lectures": [],
+      "fallback": 2,
+      "history": 0,
+      "error": true,
+      "fallbackDrafts": [
+        null,
+        null
+      ]
+    }
+  },
+  {
+    "input": {
+      "name": "stream-error-backend-error",
+      "chunks": [
+        "{\"type\":\"title\",\"text\":\"El jardín\"}\n",
+        "{\"type\":\"target\",\"text\":\"La flor crece.\"}\n"
+      ],
+      "fail": true,
+      "fallbackFail": true
+    },
+    "expected": {
+      "lectures": [],
+      "fallback": 1,
+      "history": 0,
+      "error": true,
+      "fallbackDrafts": [
+        {
+          "title": "El jardín",
+          "target": "La flor crece.",
+          "support": "",
+          "takeaways": []
+        }
+      ]
+    }
+  }
+]

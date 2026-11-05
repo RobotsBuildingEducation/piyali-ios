@@ -1,0 +1,62 @@
+{
+  "button": {
+    "background": "rgb(93, 173, 226) none repeat scroll 0% 0% / auto padding-box border-box",
+    "border": "1px solid rgba(0, 0, 0, 0)",
+    "borderRadius": "100px",
+    "color": "rgb(255, 255, 255)",
+    "cornerShape": "superellipse(2)",
+    "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+    "fontSize": "16px",
+    "lineHeight": "19.2px",
+    "padding": "0px 16px",
+    "rect": {
+      "height": 40,
+      "width": 103.7265625,
+      "x": 25,
+      "y": 85
+    },
+    "paint": {
+      "background": "rgb(93, 173, 226) none repeat scroll 0% 0% / auto padding-box border-box",
+      "border": "1px solid rgba(0, 0, 0, 0)",
+      "boxShadow": "color(srgb 0.184314 0.486275 0.968627) 0px 4px 0px 0px, color(srgb 0 0 0 / 0) 0px 7px 16px 0px",
+      "minHeight": "auto",
+      "minWidth": "40px",
+      "transform": "matrix(1, 0, 0, 1, 0, 0)",
+      "transition": "transform 0.12s, box-shadow 0.12s"
+    }
+  },
+  "card": {
+    "background": "rgba(255, 255, 255, 0.05) none repeat scroll 0% 0% / auto padding-box border-box",
+    "border": "1px solid rgba(255, 255, 255, 0.1)",
+    "borderRadius": "12px",
+    "color": "rgb(47, 38, 29)",
+    "cornerShape": "superellipse(2)",
+    "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+    "fontSize": "16px",
+    "lineHeight": "24px",
+    "padding": "12px",
+    "rect": {
+      "height": 280,
+      "width": 378,
+      "x": 12,
+      "y": 12
+    }
+  },
+  "text": {
+    "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+    "border": "0px solid rgb(203, 213, 225)",
+    "borderRadius": "0px",
+    "color": "rgb(47, 38, 29)",
+    "cornerShape": "superellipse(1)",
+    "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+    "fontSize": "16px",
+    "lineHeight": "24px",
+    "padding": "0px",
+    "rect": {
+      "height": 48,
+      "width": 352,
+      "x": 25,
+      "y": 25
+    }
+  }
+}

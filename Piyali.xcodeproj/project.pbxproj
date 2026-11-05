@@ -1896,6 +1896,7 @@
 		87AC6116F3D8389C997EB4A8 /* RPGGround-ecd27c7f4d4366df02ef353d.png in Resources */ = {isa = PBXBuildFile; fileRef = 7E6D562DEA399C675A88763C /* RPGGround-ecd27c7f4d4366df02ef353d.png */; };
 		87BE22583A12F6F9B58B2162 /* RPGProp-desk-647.png in Resources */ = {isa = PBXBuildFile; fileRef = B315FB2A54A5580414287EC1 /* RPGProp-desk-647.png */; };
 		87DB72EE5A0FCDE9D526E2C2 /* RPGGround-59a7e8102cb0efd3ac988e9f.png in Resources */ = {isa = PBXBuildFile; fileRef = 3B673C9A7768043372E9FEC9 /* RPGGround-59a7e8102cb0efd3ac988e9f.png */; };
+		87E5208686D272F662270CD1 /* reading-outcomes.json in Resources */ = {isa = PBXBuildFile; fileRef = C75341E518FBD5193A693921 /* reading-outcomes.json */; };
 		880F2889D12AEF1746FBC8B2 /* RPGProp-table-230.png in Resources */ = {isa = PBXBuildFile; fileRef = 847BA07228F74FEA22CD912A /* RPGProp-table-230.png */; };
 		882264C10AAA2C7805705069 /* RPGGround-e35832849134245b35d77636.png in Resources */ = {isa = PBXBuildFile; fileRef = F47CDF6846D6A83D19EBAA4D /* RPGGround-e35832849134245b35d77636.png */; };
 		882DF197F6E0043796DBFC66 /* AppConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66577C96C4071AB6D6B95BB8 /* AppConfiguration.swift */; };
@@ -6564,6 +6565,7 @@
 		C7206A0E9EFFD4CCB933C7CB /* RPGProp-shelf-2270.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGProp-shelf-2270.png"; sourceTree = "<group>"; };
 		C74541025287CF0F4E338771 /* TeamsMirrorContractTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamsMirrorContractTests.swift; sourceTree = "<group>"; };
 		C752312AB2AC31AF65C0A345 /* RPGGround-7872a2ab8c348f22a87eb665.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGGround-7872a2ab8c348f22a87eb665.png"; sourceTree = "<group>"; };
+		C75341E518FBD5193A693921 /* reading-outcomes.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "reading-outcomes.json"; sourceTree = "<group>"; };
 		C766572BE701B9CB115F9A10 /* RPGPet-dog-up-2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGPet-dog-up-2.png"; sourceTree = "<group>"; };
 		C76FCC1EE13ED9116E78782C /* RPGEnv-bc8d108927f0ad7ddd8f8421.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGEnv-bc8d108927f0ad7ddd8f8421.png"; sourceTree = "<group>"; };
 		C77F39C42092AA743534FBC4 /* RPGEnv-36ba85d6e7f57d7a43d0c479.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGEnv-36ba85d6e7f57d7a43d0c479.png"; sourceTree = "<group>"; };
@@ -11167,6 +11169,7 @@
 				C60CB1F7767441E9D3CA6709 /* paper-pencil-entry.json */,
 				2162DFF8EEF4FFC387AE3AB1 /* paper-pencil-motion.json */,
 				93F9EA3918C75E4A8605DF8B /* PiyaliSubscriptions.storekit */,
+				C75341E518FBD5193A693921 /* reading-outcomes.json */,
 				BB0CFD9E801E5079F26E5AF0 /* reading-story-narration.json */,
 				2CA9A99C6F536D8FB0E5A840 /* rpg-dialogue-traces.json */,
 				A8474534AE8686AB1EF9E9AB /* rpg-prepared-story.json */,
@@ -11377,6 +11380,7 @@
 				399781D39431BE546274D758 /* paper-pencil-art.js in Resources */,
 				EA1B09110008E5F7AC92070E /* paper-pencil-entry.json in Resources */,
 				A6B26E924DCE0DD7E561EEE7 /* paper-pencil-motion.json in Resources */,
+				87E5208686D272F662270CD1 /* reading-outcomes.json in Resources */,
 				E334C51CA79E4558A8733394 /* reading-story-narration.json in Resources */,
 				506A4773A4616F7F2D8AAB64 /* rpg-dialogue-traces.json in Resources */,
 				2DBF32F809D3638A4660B1B6 /* rpg-prepared-story.json in Resources */,

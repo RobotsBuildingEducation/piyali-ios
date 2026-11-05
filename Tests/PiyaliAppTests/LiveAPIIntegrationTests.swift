@@ -32,9 +32,37 @@ import Security
         print("LIVE ISOLATED CLEANUP: restored only the matching recent isolated QA identity, obtained a fresh signed Firebase session, deleted Auth identity and removed its local key.")
     }
     private func deleteLiveTestIdentity(_ identity:IdentityService)async throws {
-        // Streaming checks may exceed Firebase's recent-login window.
-        FirebaseIdentityService.shared.clearSession();try await FirebaseIdentityService.shared.ensure(identity)
-        try await Auth.auth().currentUser?.delete();FirebaseIdentityService.shared.clearSession();try identity.disconnect()
+        try await FirebaseIdentityService.shared.ensure(identity)
+        let user=try XCTUnwrap(Auth.auth().currentUser);XCTAssertEqual(user.uid,identity.npub)
+        guard user.uid == identity.npub else{throw CancellationError()}
+        do {try await user.delete()}
+        catch {
+            let failure=error as NSError
+            guard failure.domain == AuthErrors.domain,failure.code == AuthErrorCode.requiresRecentLogin.rawValue else{throw error}
+            FirebaseIdentityService.shared.clearSession();try await FirebaseIdentityService.shared.ensure(identity)
+            try await Auth.auth().currentUser?.delete()
+        }
+        FirebaseIdentityService.shared.clearSession();try identity.disconnect()
+    }
+    /// Only a single retained QA key created during an explicitly named failed run.
+    /// Attributes are enumerated without returning or printing private key data.
+    func testCleanupIsolatedIdentityFromFailedRunWindow() async throws {
+        let env=ProcessInfo.processInfo.environment
+        guard env["PIYALI_LIVE_API_TESTS"] == "1",env["PIYALI_OFFLINE_TESTS"] == "1",env["PIYALI_RECOVER_FAILED_RUN_IDENTITY"] == "1",let original=env["PIYALI_TEST_IDENTITY_SCOPE"],UUID(uuidString:original) != nil,let start=Double(env["PIYALI_FAILED_RUN_START"] ?? ""),let end=Double(env["PIYALI_FAILED_RUN_END"] ?? ""),end>start,end-start<120,Date().timeIntervalSince1970-end<7200 else{throw XCTSkip("Explicit recent isolated failed-run recovery required")}
+        if FirebaseApp.app() == nil{AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure()};XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        var result:CFTypeRef?;let query:[String:Any]=[kSecClass as String:kSecClassGenericPassword,kSecAttrAccount as String:"identity",kSecReturnAttributes as String:true,kSecMatchLimit as String:kSecMatchLimitAll]
+        XCTAssertEqual(SecItemCopyMatching(query as CFDictionary,&result),errSecSuccess)
+        let matches=(result as? [[String:Any]] ?? []).compactMap{item->String? in
+            guard let service=item[kSecAttrService as String] as? String,service.hasPrefix("app.piyali.ios.nostr.ui-test."),let scope=service.components(separatedBy:".ui-test.").last,UUID(uuidString:scope) != nil,let created=item[kSecAttrCreationDate as String] as? Date,(start...end).contains(created.timeIntervalSince1970) else{return nil};return scope
+        }
+        XCTAssertEqual(matches.count,1);guard matches.count == 1,let scope=matches.first else{return}
+        setenv("PIYALI_TEST_IDENTITY_SCOPE",scope,1);defer{setenv("PIYALI_TEST_IDENTITY_SCOPE",original,1)}
+        let identity=IdentityService();XCTAssertFalse(identity.npub.isEmpty);guard !identity.npub.isEmpty else{return}
+        try await FirebaseIdentityService.shared.ensure(identity)
+        let created=try XCTUnwrap(Auth.auth().currentUser?.metadata.creationDate)
+        XCTAssertTrue((start-2...end+2).contains(created.timeIntervalSince1970));guard (start-2...end+2).contains(created.timeIntervalSince1970) else{return}
+        try await deleteLiveTestIdentity(identity);XCTAssertNil(Auth.auth().currentUser);XCTAssertTrue(identity.npub.isEmpty)
+        print("LIVE ISOLATED CLEANUP: removed the single retained QA identity from the explicit failed-run window.")
     }
     func testReadingJSONBackendAndMissingQuestionUseNativeProviders() async throws {
         let env=ProcessInfo.processInfo.environment
@@ -48,10 +76,10 @@ import Security
             let fallback=AIService(configuration:AppConfiguration(values:AppConfiguration().values.merging(["AIProvider":"responses"]){_,new in new}))
             for (label,ai) in [("configured",AIService()),("responses",fallback)] {
                 ai.readingStreamOverride={_,onChunk in onChunk("{\"type\":\"title\",\"text\":\"Abandoned fixture\"}\n");throw ReadingFailure.invalid}
-                var cleared=false
-                let payload=try await ai.readingPayload(state:state,lesson:nil,level:"A1",selection:.null,recent:[],tutorial:true,repair:false,onChunk:{if $0.isEmpty{cleared=true}})
+                var revealed=false,cleared=false
+                let payload=try await ai.readingPayload(state:state,lesson:nil,level:"A1",selection:.null,recent:[],tutorial:true,repair:false,onChunk:{if $0.isEmpty{cleared=true};if $0.contains("Abandoned fixture"){revealed=true}})
                 let run=try ReadingRun(payload:payload,target:"es",support:"en",level:"A1",lessonID:nil,selection:.null,worth:.null,roll:0)
-                XCTAssertTrue(cleared);XCTAssertFalse(run.text.isEmpty);XCTAssertNotEqual(run.title,"Abandoned fixture");let type=try XCTUnwrap(run.pendingQuestionType)
+                XCTAssertTrue(revealed);XCTAssertFalse(cleared);XCTAssertFalse(run.text.isEmpty);XCTAssertNotEqual(run.title,"Abandoned fixture");let type=try XCTUnwrap(run.pendingQuestionType)
                 let raw=try await ai.text(Reading.reviewPrompt(type:type,text:run.text,target:run.target,support:run.support))
                 let object=try XCTUnwrap(try GenerationObjects.parse(raw).first),question=try XCTUnwrap(ReadingQuestion(object,expectedType:type))
                 XCTAssertFalse(question.question.isEmpty);XCTAssertFalse(question.answer.isEmpty);XCTAssertEqual(state.totalXP,0)

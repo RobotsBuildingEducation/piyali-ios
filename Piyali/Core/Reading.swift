@@ -1,6 +1,15 @@
 import Foundation
 
 public enum Reading {
+    public static func generationFailure(support:String)->String {
+        let copy=ReadingRules.data["generationUnavailable"]
+        return copy[support].string.isEmpty ? copy["en"].string : copy[support].string
+    }
+    /// History.jsx's session-local last-lecture guard, including its strict 15s boundary.
+    public static func isDuplicateOfLast(title:String,target:String,last:JSONValue?,now:Date)->Bool {
+        guard let last else{return false}
+        return now.timeIntervalSince1970*1000-last["createdAtClient"].number < 15000 && comparison(last["title"].string) == comparison(title) && comparison(last["target"].string) == comparison(target)
+    }
     public static func normalize(_ text:String) -> String { text.precomposedStringWithCompatibilityMapping.lowercased().replacingOccurrences(of:"[^\\p{L}\\p{N}\\s]",with:" ",options:.regularExpression).replacingOccurrences(of:"\\s+",with:" ",options:.regularExpression).trimmingCharacters(in:.whitespacesAndNewlines) }
     public static func comparison(_ text:String) -> String { text.lowercased().replacingOccurrences(of:"\\s+",with:" ",options:.regularExpression).trimmingCharacters(in:.whitespacesAndNewlines) }
     public static func matches(_ text:String,_ pattern:String) -> Bool { text.range(of:pattern,options:[.regularExpression,.caseInsensitive]) != nil }

@@ -7,6 +7,66 @@ import XCTest
         guard env["PIYALI_OFFLINE_TESTS"] == "1",env["PIYALI_READING_FIXTURE"] == "1",env["PIYALI_READING_STREAM_FIXTURE"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Isolated streaming fixture required")}
         let app=AppModel();try app.identity.create();app.learner=LearnerState();app.learner.target="es";app.learner.support="en";return app
     }
+    private func duplicateModel() throws ->AppModel {
+        guard ProcessInfo.processInfo.environment["PIYALI_READING_MISSING_QUESTION_FIXTURE"] == "1" else{throw XCTSkip("Immediate partial fixture required")}
+        return try model()
+    }
+    func testSourceFailureBudgetsAndDraftVisibility() async throws {
+        let app=try model();defer{try? app.identity.disconnect()}
+        let fixture=try XCTUnwrap(Bundle(for:Self.self).url(forResource:"reading-outcomes",withExtension:"json")),rows=try JSONDecoder().decode([JSONValue].self,from:Data(contentsOf:fixture))
+        for row in rows where row["expected"]["fallback"].number > 0 {
+            let ai=AIService(),spec=row["input"];var streams=0,backends=0,visible:ReadingStreamDraft?,backendTexts:[String?]=[]
+            ai.readingStreamOverride={_,chunk in
+                streams += 1;var snapshot=""
+                for part in spec["chunks"].array {snapshot += part.string;chunk(snapshot)}
+                if spec["fail"].boolean {throw ReadingFailure.invalid};return snapshot
+            }
+            ai.readingBackendOverride={_ in
+                backends += 1;backendTexts.append(visible?.text)
+                if spec["fallbackFail"].boolean {throw ReadingFailure.invalid}
+                return "{\"title\":\"A new passage\",\"target\":\"La planta crece.\"}"
+            }
+            var failed=false
+            do {_=try await ai.readingPayload(state:app.learner,lesson:nil,level:"A1",selection:.null,recent:[],tutorial:false,repair:false,onChunk:{visible=ReadingStreamDraft.parse($0,target:"es",support:"en")})}catch{failed=true}
+            XCTAssertEqual(streams,1);XCTAssertEqual(backends,Int(row["expected"]["fallback"].number),spec["name"].string);XCTAssertEqual(failed,row["expected"]["error"].boolean)
+            let expected=row["expected"]["fallbackDrafts"].array.map{$0 == .null ? nil:$0["target"].string}
+            XCTAssertEqual(backendTexts,expected,spec["name"].string)
+        }
+    }
+    func testExhaustedFallbackShowsSourceErrorAndOnlyExplicitRetryRestartsStream() async throws {
+        let app=try model();defer{try? app.identity.disconnect()};let ai=AIService();var streams=0,backends=0,fail=true
+        ai.readingStreamOverride={_,chunk in streams += 1;chunk("{\"type\":\"target\",\"text\":\"La flor crece.\"}\n");throw ReadingFailure.invalid}
+        ai.readingBackendOverride={_ in backends += 1;if fail {throw ReadingFailure.invalid};return "{\"title\":\"El jardín\",\"target\":\"La planta crece.\"}"}
+        let service=ReadingService(passageWriter:{publish in try await ai.readingPayload(state:app.learner,lesson:nil,level:"A1",selection:.null,recent:[],tutorial:false,repair:false,onChunk:publish)})
+        await service.prepare(app,lesson:nil,fresh:true)
+        XCTAssertEqual(streams,1);XCTAssertEqual(backends,1);XCTAssertEqual(service.error,"We couldn't create a fresh reading. Please try again.");XCTAssertNil(service.draft);XCTAssertNil(app.learner.reading);XCTAssertEqual(app.learner.totalXP,0)
+        fail=false;await service.prepare(app,lesson:nil,fresh:true)
+        XCTAssertEqual(streams,2);XCTAssertEqual(backends,2);XCTAssertNil(service.error);XCTAssertEqual(app.learner.reading?.text,"La planta crece.");XCTAssertEqual(app.learner.totalXP,0);XCTAssertEqual(app.learner.readingHistory?["es"]?.count,1)
+    }
+    func testImmediateDuplicateRetainsReviewedRunHistoryAndOneReward() async throws {
+        let app=try duplicateModel();defer{try? app.identity.disconnect()};var clock=Date(timeIntervalSince1970:1700000000)
+        let service=ReadingService(now:{clock});await service.prepare(app,lesson:nil,fresh:true)
+        var first=try XCTUnwrap(app.learner.reading);first.method="speech";first.lineTranslations=try ContentLibrary.load(JSONValue.self,name:"reading-test-passage")["translations"].array.map(\.string);app.learner.saveReading(first)
+        let reward=app.learner.reviewReading(answer:"Mi libreta verde está cerca de la ventana.",correct:true,feedback:"Reviewed",speech:true)
+        let completed=try XCTUnwrap(app.learner.reading),events=app.learner.pendingChanges,history=app.learner.readingHistory
+        XCTAssertGreaterThan(reward,0);clock=clock.addingTimeInterval(14.999);await service.prepare(app,lesson:nil,fresh:true)
+        XCTAssertEqual(app.learner.reading,completed);XCTAssertEqual(app.learner.pendingChanges?.map(\.id),events?.map(\.id));XCTAssertEqual(app.learner.readingHistory,history);XCTAssertEqual(app.learner.totalXP,reward)
+        XCTAssertFalse(service.suppressedPrevious);XCTAssertFalse(service.generating);XCTAssertFalse(service.busy)
+        XCTAssertEqual(app.learner.reviewReading(answer:"Again",correct:true,feedback:"",speech:true),0)
+        let restored=try JSONDecoder().decode(LearnerState.self,from:JSONEncoder().encode(app.learner));XCTAssertEqual(restored.reading?.id,completed.id);XCTAssertTrue(restored.reading?.awarded == true)
+    }
+    func testDuplicateExpiresAtFifteenSecondsAndDoesNotPersistAcrossMounts() async throws {
+        let app=try duplicateModel();defer{try? app.identity.disconnect()};var clock=Date(timeIntervalSince1970:1700000000)
+        let service=ReadingService(now:{clock});await service.prepare(app,lesson:nil,fresh:true);let first=try XCTUnwrap(app.learner.reading)
+        clock=clock.addingTimeInterval(15);await service.prepare(app,lesson:nil,fresh:true);let expired=try XCTUnwrap(app.learner.reading);XCTAssertNotEqual(expired.id,first.id)
+        let remounted=ReadingService(now:{clock});await remounted.prepare(app,lesson:nil,fresh:true);XCTAssertNotEqual(app.learner.reading?.id,expired.id);XCTAssertEqual(app.learner.totalXP,0)
+    }
+    func testDuplicateCannotReuseAnotherAccountOrLanguage() async throws {
+        let app=try duplicateModel();defer{try? app.identity.disconnect()};let service=ReadingService(now:{Date(timeIntervalSince1970:1700000000)})
+        await service.prepare(app,lesson:nil,fresh:true);let first=try XCTUnwrap(app.learner.reading)
+        try app.identity.disconnect();try app.identity.create();await service.prepare(app,lesson:nil,fresh:true);let replacement=try XCTUnwrap(app.learner.reading);XCTAssertNotEqual(replacement.id,first.id)
+        app.learner.support="fr";await service.prepare(app,lesson:nil,fresh:true);XCTAssertNotEqual(app.learner.reading?.id,replacement.id);XCTAssertEqual(app.learner.reading?.support,"fr");XCTAssertEqual(app.learner.totalXP,0)
+    }
     func testProviderBoundaryAcceptsNormalPartialStreamAndLeavesQuestionPending() async throws {
         let app=try model();defer{try? app.identity.disconnect()};let ai=AIService(),snapshot="{\"type\":\"target\",\"text\":\"La flor crece.\"}\n";var observed:[String]=[]
         ai.readingStreamOverride={_,onChunk in onChunk(snapshot);return snapshot}
@@ -14,7 +74,7 @@ import XCTest
         XCTAssertTrue(payload["nativeReadingStream"].boolean);XCTAssertEqual(payload["target"].string,"La flor crece.");XCTAssertEqual(payload["reviewQuestion"],.null);XCTAssertFalse(observed.isEmpty)
         let run=try ReadingRun(payload:payload,target:"es",support:"en",level:"A1",lessonID:nil,selection:.null,worth:.null,roll:0);XCTAssertNotNil(run.pendingQuestionType);XCTAssertTrue(run.takeaways.isEmpty)
     }
-    func testFailedAndEmptyStreamsUseJSONBackendAndClearDraft() async throws {
+    func testFailedAndEmptyStreamsUseJSONBackendAndRetainRevealedDraft() async throws {
         let app=try model();defer{try? app.identity.disconnect()}
         for fail in [false,true] {
             let ai=AIService();var snapshots:[String]=[],requests=0
@@ -27,7 +87,7 @@ import XCTest
                 return "{\"title\":\"Spanish: El jardín\",\"target\":\"La flor crece.\",\"takeaways\":[\"English: A flower grows.\"]}"
             }
             let payload=try await ai.readingPayload(state:app.learner,lesson:nil,level:"A1",selection:.null,recent:[],tutorial:false,repair:false,onChunk:{snapshots.append($0)})
-            XCTAssertEqual(requests,1);XCTAssertEqual(snapshots.last,"");XCTAssertEqual(payload["title"].string,"El jardín");XCTAssertEqual(payload["target"].string,"La flor crece.");XCTAssertEqual(payload["reviewQuestion"],.null);XCTAssertEqual(app.learner.totalXP,0)
+            XCTAssertEqual(requests,1);XCTAssertFalse(snapshots.contains(""));if fail {XCTAssertTrue(snapshots.last?.contains("Discard this partial.") == true)};XCTAssertEqual(payload["title"].string,"El jardín");XCTAssertEqual(payload["target"].string,"La flor crece.");XCTAssertEqual(payload["reviewQuestion"],.null);XCTAssertEqual(app.learner.totalXP,0)
         }
     }
     func testCancelledStreamNeverStartsBackend() async throws {
