@@ -33,6 +33,7 @@ methods = {'narration-warm-refill':'testSilentNarrationRefillPreservesAnActiveNa
            'immersion': 'testNativeImmersionGenerationUsesResponsesAndPreservesExistingMissions',
            'conversation': 'testNativeConversationGoalsGradeCommunicationAndReanchorPremiseRejection',
            'conversation-resume': 'testConversationResumeReceivesLiveContinuationWithoutAnotherLearnerTurn',
+           'conversation-translation': 'testConversationTranslationStreamsAndUsesResponsesFallback',
            'rpg': 'testNativeRPGStoryAndRoleplayUseTheAuthoredChapter',
            'rpg-objects': 'testNativeRPGObjectsUseOriginalPromptAndReturnBilingualAmbientContent',
            'signer': 'testNativeRemoteSignerAuthenticatesWithActualUserAndWebRestoreDeniesUnlinkedAccount'}

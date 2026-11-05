@@ -27,8 +27,22 @@ public struct ConversationMessage: Codable, Identifiable, Equatable, Sendable {
     public var translationLang:String?
     public var providerID:String?
     public var interrupted:Bool?
+    public var pairs:JSONValue?
     public init(role: String, text: String,providerID:String?=nil) { self.role=role;self.text=String(text.prefix(2000));self.providerID=providerID }
     public func translation(for support:String)->String? { guard translationLang == support,let translation,!translation.isEmpty else { return nil };return translation }
+}
+public enum ConversationTranslation {
+    public static func streaming(_ raw:String)->String {
+        var value=String(raw.drop(while:{$0.isWhitespace}))
+        if value.hasPrefix("\"") || value.hasPrefix("“") {value.removeFirst()}
+        return String(value.prefix(8_000))
+    }
+    public static func complete(_ raw:String)->String {
+        var value=raw.trimmingCharacters(in:.whitespacesAndNewlines)
+        if (value.hasPrefix("\"") && value.hasSuffix("\"")) || (value.hasPrefix("“") && value.hasSuffix("”")) {value=String(value.dropFirst().dropLast()).trimmingCharacters(in:.whitespacesAndNewlines)}
+        if value.hasPrefix("{"),let json=try? JSONDecoder().decode(JSONValue.self,from:Data(value.utf8)),!json["translation"].string.isEmpty {value=json["translation"].string.trimmingCharacters(in:.whitespacesAndNewlines)}
+        return String(value.prefix(8_000))
+    }
 }
 public struct ConversationDraft: Codable, Equatable, Sendable {
     public var id=UUID()

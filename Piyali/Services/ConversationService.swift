@@ -5,6 +5,10 @@ import Foundation
     func conversationVerdict(goal:ConversationGoal,learner:LearnerState,reply:String,answeredLine:String) async throws ->ConversationVerdict
     func conversationStarterPhrase(learner:LearnerState,draft:ConversationDraft) async throws ->JSONValue
     func conversationTranslation(_ text:String,support:String) async throws ->String
+    func conversationTranslationStream(_ text:String,support:String,onChunk:@escaping @MainActor(String)->Void) async throws ->String
+}
+extension ConversationProviding {
+    func conversationTranslationStream(_ text:String,support:String,onChunk:@escaping @MainActor(String)->Void) async throws ->String {let result=try await conversationTranslation(text,support:support);onChunk(result);return result}
 }
 extension AIService:ConversationProviding {}
 
@@ -13,6 +17,8 @@ extension AIService:ConversationProviding {}
     @Published var error: String?
     @Published private(set) var feedback=""
     @Published private(set) var orbFeedback:OrbFeedback?
+    @Published private(set) var translationDrafts:[UUID:String]=[:]
+    @Published private(set) var translating:Set<UUID>=[]
     private var generation=UUID()
     private var work:Set<UUID>=[]
     private var grading:UUID?
@@ -35,7 +41,7 @@ extension AIService:ConversationProviding {}
         return false
         #endif
     }
-    func cancel() { generation=UUID();work=[];grading=nil;pendingNextGoals=[];busy=false;error=nil;feedback="";orbFeedback=nil }
+    func cancel() { generation=UUID();work=[];grading=nil;pendingNextGoals=[];busy=false;error=nil;feedback="";orbFeedback=nil;translationDrafts=[:];translating=[] }
     private func valid(_ app: AppModel, account: String, target: String, support:String, session: UUID, token: UUID) -> Bool {
         app.identity.npub == account && app.learner.target == target && app.learner.support == support && app.learner.conversation.id == session && generation == token && (app.subscription.hasAccess || fixture)
     }
@@ -179,13 +185,21 @@ extension AIService:ConversationProviding {}
     }
     func translate(_ message: ConversationMessage, app: AppModel) async {
         bind(app)
-        guard !busy,app.subscription.hasAccess || fixture else { return };let operation=begin();let token=generation;defer { finish(operation,token:token) };let account=app.identity.npub,target=app.learner.target,support=app.learner.support,session=app.learner.conversation.id
+        guard !translating.contains(message.id),app.subscription.hasAccess || fixture else { return };let operation=begin();let token=generation;translating.insert(message.id);defer { if generation == token {translating.remove(message.id);translationDrafts[message.id]=nil};finish(operation,token:token) };let account=app.identity.npub,target=app.learner.target,support=app.learner.support,session=app.learner.conversation.id
         do { let text:String
             if target == support { text=message.text }
-            else if fixture { text=support == "fr" ? "Bonjour Ana ! Qu’aimez-vous faire ?" : (message.text.contains("Ana") ? "Hello, Ana! What do you like doing?" : "Try greeting and saying your name.") }
-            else { text=try await provider(app).conversationTranslation(message.text,support:support) }
+            else if fixture {
+                text=support == "fr" ? "Bonjour Ana ! Qu’aimez-vous faire ?" : (message.text.contains("Ana") ? "Hello, Ana! What do you like doing?" : "Try greeting and saying your name.")
+                #if DEBUG
+                if ProcessInfo.processInfo.environment["PIYALI_CONVERSATION_TRANSLATION_STREAM_FIXTURE"] == "1" {translationDrafts[message.id]=String(text.prefix(6));try await Task.sleep(for:.seconds(6))}
+                #endif
+            }
+            else { text=try await provider(app).conversationTranslationStream(message.text,support:support,onChunk:{[weak self] snapshot in
+                guard let self,self.valid(app,account:account,target:target,support:support,session:session,token:token),app.learner.conversation.messages.contains(where:{$0.id == message.id && $0.text == message.text}) else{return}
+                self.translationDrafts[message.id]=ConversationTranslation.streaming(snapshot)
+            }) }
             guard valid(app,account:account,target:target,support:support,session:session,token:token),support == app.learner.support else { return }
-            var draft=app.learner.conversation;guard let index=draft.messages.firstIndex(where:{ $0.id == message.id }) else { return };draft.messages[index].translation=text;draft.messages[index].translationLang=support;app.learner.saveConversation(draft);app.persist()
+            var draft=app.learner.conversation;guard let index=draft.messages.firstIndex(where:{ $0.id == message.id && $0.text == message.text }) else { return };draft.messages[index].translation=ConversationTranslation.complete(text);draft.messages[index].translationLang=support;draft.messages[index].pairs=nil;app.learner.saveConversation(draft);app.persist()
         } catch { if valid(app,account:account,target:target,support:support,session:session,token:token) { self.error=error.localizedDescription } }
     }
 }

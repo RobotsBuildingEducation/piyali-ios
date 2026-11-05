@@ -4,6 +4,9 @@ import SwiftUI
 struct TutorReplyView:View {
     let primary:String,secondary:String,target:String,support:String,pairs:JSONValue
     var showSecondary=true,replaying=false
+    var replayAvailable=true,showPairCards=true
+    var primaryIdentifier="tutorLatestReply",secondaryIdentifier="tutorTranslation",translateIdentifier="conversationTranslate"
+    var translating=false,onTranslate:(()->Void)?=nil
     let onReplay:()->Void
     @Environment(\.colorScheme) private var scheme
     @State private var activeRoot:String?
@@ -16,11 +19,12 @@ struct TutorReplyView:View {
     var body:some View {let value=plan
         VStack(alignment:.leading,spacing:0){
             HStack(alignment:.top,spacing:8){
-                Button(action:onReplay){Group{if replaying{ProgressView().controlSize(.mini)}else{Image(systemName:"speaker.wave.2").font(.system(size:14))}}.frame(width:24,height:24)}.buttonStyle(.plain).disabled(replaying).opacity(0.7).padding(.top,2).accessibilityLabel(EntryCopy.ui(support,"ra_btn_replay")).accessibilityIdentifier("tutorReplay")
-                Text(aligned(value["primary"].array)).font(PiyaliBrand.productFont(16)).lineSpacing(max(0,25-UIFont.systemFont(ofSize:16).lineHeight)).padding(.vertical,max(0,25-UIFont.systemFont(ofSize:16).lineHeight)/2).fixedSize(horizontal:false,vertical:true).frame(maxWidth:.infinity,alignment:.leading).textSelection(.enabled).environment(\.layoutDirection,rtl(target)).accessibilityIdentifier("tutorLatestReply").accessibilityAddTraits(activeRoot != nil ? .isSelected:[])
+                if replayAvailable {Button(action:onReplay){Group{if replaying{ProgressView().controlSize(.mini)}else{Image(systemName:"speaker.wave.2").font(.system(size:14))}}.frame(width:24,height:24)}.buttonStyle(.plain).disabled(replaying).opacity(0.7).padding(.top,2).accessibilityLabel(EntryCopy.ui(support,"ra_btn_replay")).accessibilityIdentifier("tutorReplay")}
+                Text(aligned(value["primary"].array)).font(PiyaliBrand.productFont(16)).lineSpacing(max(0,25-UIFont.systemFont(ofSize:16).lineHeight)).padding(.vertical,max(0,25-UIFont.systemFont(ofSize:16).lineHeight)/2).fixedSize(horizontal:false,vertical:true).frame(maxWidth:.infinity,alignment:.leading).textSelection(.enabled).environment(\.layoutDirection,rtl(target)).accessibilityIdentifier(primaryIdentifier).accessibilityAddTraits(activeRoot != nil ? .isSelected:[])
             }
-            if showSecondary,!secondary.isEmpty {Text(aligned(value["secondary"].array)).font(PiyaliBrand.productFont(12)).lineSpacing(max(0,18-UIFont.systemFont(ofSize:12).lineHeight)).padding(.vertical,max(0,18-UIFont.systemFont(ofSize:12).lineHeight)/2).foregroundStyle(muted).padding(.top,4).fixedSize(horizontal:false,vertical:true).frame(maxWidth:.infinity,alignment:.leading).environment(\.layoutDirection,rtl(support)).accessibilityIdentifier("tutorTranslation")}
-            if showSecondary,!value["pairs"].array.isEmpty {TutorPhraseFlow(spacing:12){ForEach(Array(value["pairs"].array.prefix(8).enumerated()),id:\.offset){index,pair in
+            if showSecondary,!secondary.isEmpty {Text(aligned(value["secondary"].array)).font(PiyaliBrand.productFont(12)).lineSpacing(max(0,18-UIFont.systemFont(ofSize:12).lineHeight)).padding(.vertical,max(0,18-UIFont.systemFont(ofSize:12).lineHeight)/2).foregroundStyle(muted).padding(.top,4).fixedSize(horizontal:false,vertical:true).frame(maxWidth:.infinity,alignment:.leading).environment(\.layoutDirection,rtl(support)).accessibilityIdentifier(secondaryIdentifier)}
+            if showSecondary,let onTranslate {HStack {Spacer();Button(action:onTranslate){if translating {ProgressView().controlSize(.mini)} else {Image(systemName:"character.bubble")}}.buttonStyle(.plain).disabled(translating).accessibilityLabel(EntryCopy.ui(support,"ra_btn_translate")).accessibilityIdentifier(translateIdentifier)}.padding(.top,8)}
+            if showSecondary,showPairCards,!value["pairs"].array.isEmpty {TutorPhraseFlow(spacing:12){ForEach(Array(value["pairs"].array.prefix(8).enumerated()),id:\.offset){index,pair in
                 let color=PiyaliBrand.unitColor(value["colors"].array.indices.contains(index) ? value["colors"].array[index].string:"91e0ff")
                 VStack(alignment:.leading,spacing:4){
                     OnboardingText(text:pair["lhs"].string,size:14,weight:.semibold,lineHeight:19).foregroundStyle(dark ? .white.opacity(0.92):ink).frame(maxWidth:.infinity,alignment:.leading).environment(\.layoutDirection,rtl(target))

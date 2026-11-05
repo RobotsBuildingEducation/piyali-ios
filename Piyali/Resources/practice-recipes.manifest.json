@@ -271,6 +271,7 @@
       "DEFAULT_SUPPORT_LANGUAGE",
       "buildConversationResponseCreateEvent",
       "buildConversationTurnDetection",
+      "buildDirectTranslationPrompt",
       "buildRealtimeResumeContext",
       "buildVoicePersonaPolicy",
       "eloForUser",
@@ -463,6 +464,16 @@
     ]
   },
   {
+    "file": "src/utils/supportTranslation.js",
+    "sha256": "3ff21380e515e021c5c8ebf66fca2812a6615723a0098531a2da65e8e7d4ffd3",
+    "bindings": [
+      "DEFAULT_SUPPORT_LANGUAGE",
+      "buildDirectTranslationPrompt",
+      "getLanguagePromptName",
+      "normalizeSupportLanguage"
+    ]
+  },
+  {
     "file": "src/utils/cefrUtils.js",
     "sha256": "1728261507ff4b90e05e0ccfa0717f4e1b758fc1f908fffb9c5ea3d101ab91b7",
     "bindings": [
@@ -509,7 +520,7 @@
   },
   {
     "file": "src/utils/translation.jsx",
-    "sha256": "10c6705379ed869d84ece0ec7a829193bb3c9522d742683701de56cb194666b9",
+    "sha256": "010eb38be8f55e0509b99c209ae4042833057f3e28e0d925636dec42d7fb6fb6",
     "bindings": [
       "translations"
     ],

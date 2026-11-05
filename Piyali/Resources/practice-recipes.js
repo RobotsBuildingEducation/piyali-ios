@@ -9431,6 +9431,7 @@ PREFLIGHT CHECK: This is a generated exercise, not a learner answer. Also requir
     DEFAULT_SUPPORT_LANGUAGE: () => DEFAULT_SUPPORT_LANGUAGE,
     buildConversationResponseCreateEvent: () => buildConversationResponseCreateEvent,
     buildConversationTurnDetection: () => buildConversationTurnDetection,
+    buildDirectTranslationPrompt: () => buildDirectTranslationPrompt,
     buildRealtimeResumeContext: () => buildRealtimeResumeContext,
     buildVoicePersonaPolicy: () => buildVoicePersonaPolicy,
     eloForUser: () => eloForUser,
@@ -9504,6 +9505,18 @@ PREFLIGHT CHECK: This is a generated exercise, not a learner answer. Also requir
         metadata: { kind: "conversation" }
       }
     };
+  }
+
+  // Reference: src/utils/supportTranslation.js
+  function buildDirectTranslationPrompt(targetLanguage) {
+    const target = normalizeSupportLanguage(
+      targetLanguage,
+      DEFAULT_SUPPORT_LANGUAGE
+    );
+    const languageName = getLanguagePromptName(target) || target;
+    return `Translate the following into concise, natural ${languageName}.
+Return ONLY the direct translation text.
+Do not wrap in quotes. Do not output JSON. Do not include notes or introductory text.`;
   }
 
   // Reference: src/utils/starterPhrase.js
@@ -9664,7 +9677,7 @@ ${JSON.stringify(raw)}`)({ stage: p.stage, raw: p.raw, error: { message: p.error
   }
   function conversation(operation, parametersJSON) {
     return withParameters(parametersJSON, (p) => {
-      const { buildVoicePersonaPolicy: buildVoicePersonaPolicy2, practiceLevelForElo: practiceLevelForElo2, eloForUser: eloForUser2, getAdultBeginnerToneRule: getAdultBeginnerToneRule2, generationPerformanceContextFor: generationPerformanceContextFor2, getLanguagePromptName: getLanguagePromptName2, foundationGoalRules: foundationGoalRules2, normalizeSupportLanguage: normalizeSupportLanguage2, DEFAULT_SUPPORT_LANGUAGE: DEFAULT_SUPPORT_LANGUAGE2, buildConversationResponseCreateEvent: buildConversationResponseCreateEvent2, buildConversationTurnDetection: buildConversationTurnDetection2, buildRealtimeResumeContext: buildRealtimeResumeContext2 } = Conversations_exports;
+      const { buildVoicePersonaPolicy: buildVoicePersonaPolicy2, practiceLevelForElo: practiceLevelForElo2, eloForUser: eloForUser2, getAdultBeginnerToneRule: getAdultBeginnerToneRule2, generationPerformanceContextFor: generationPerformanceContextFor2, getLanguagePromptName: getLanguagePromptName2, foundationGoalRules: foundationGoalRules2, normalizeSupportLanguage: normalizeSupportLanguage2, DEFAULT_SUPPORT_LANGUAGE: DEFAULT_SUPPORT_LANGUAGE2, buildConversationResponseCreateEvent: buildConversationResponseCreateEvent2, buildConversationTurnDetection: buildConversationTurnDetection2, buildRealtimeResumeContext: buildRealtimeResumeContext2, buildDirectTranslationPrompt: buildDirectTranslationPrompt2 } = Conversations_exports;
       const targetLangRef = { current: p.targetLang }, voicePersonaRef = { current: p.personality || "" }, conversationSettingsRef = { current: { practicePronunciation: !!p.pronunciation, conversationSubjects: p.interests || "" } }, currentGoalRef = { current: p.goal || null }, goalShepherdRef = { current: p.guidance || "" }, useUserStore = { getState: () => ({ user: p.user || {} }) }, resolvedSupportLang = p.supportLang || "en", selectedLevel = practiceLevelForElo2(eloForUser2(p.user || {}, p.targetLang)), customSubjects = p.interests || "", skillTreeTopics = p.topics || [], messagesRef = { current: p.messages || [] }, goal = p.goal || { text: { en: "" } }, currentGoal = goal, previousGoalAbandoned = !!p.abandoned, userMessage = p.utterance || "", aiResponse = p.answered || "";
       function buildLanguageInstructionsBase() {
         const tLang = targetLangRef.current;
@@ -9869,6 +9882,7 @@ Respond with ONLY a JSON object: {"target":"phrase in ${targetName}","support":"
       if (operation === "goal") return sourceInitialGoal();
       if (operation === "contextualGoal") return sourceNextGoal();
       if (operation === "judge") return sourceConversationJudge();
+      if (operation === "directTranslation") return buildDirectTranslationPrompt2(resolvedSupportLang);
       const instructions = [buildLanguageInstructionsBase(), buildRealtimeResumeContext2(p.messages || [])].filter(Boolean).join("\n\n");
       if (operation === "instructions") return instructions;
       if (operation === "response") return JSON.stringify(buildConversationResponseCreateEvent2({ sessionInstructions: instructions, persona: p.personality || "" }));

@@ -33,6 +33,10 @@ struct ConversationView:View {
     private func setting(_ key:String)->String { let copy=Self.copy["settings"][app.learner.support];return (copy == .null ? Self.copy["settings"]["en"] : copy)[key].string }
     private func summary(_ key:String)->String { let copy=Self.copy["summary"][app.learner.support];return (copy == .null ? Self.copy["summary"]["en"] : copy)[key].string }
     private var latest:ConversationMessage? { draft.messages.last { $0.role == "assistant" } }
+    private var showTranslations:Bool { app.learner.settingsSnapshot["progress"]["showTranslations"] != .bool(false) }
+    private func translation(_ message:ConversationMessage)->String { conversation.translationDrafts[message.id] ?? message.translation(for:app.learner.support) ?? "" }
+    private func pairs(_ message:ConversationMessage)->JSONValue {message.translationLang == app.learner.support ? message.pairs ?? .array([]) : .array([])}
+    private func translationAction(_ message:ConversationMessage?)->(()->Void)? {guard let message else{return nil};return {Task {await conversation.translate(message,app:app)}}}
     private var reply:String { !live.assistantTurnText.isEmpty ? live.assistantTurnText : paused && !pausedReply.isEmpty ? pausedReply : latest?.text ?? "" }
     private var footerRevision:String { "\(live.connected)|\(live.connecting)|\(live.muted)|\(paused)|\(conversation.busy)|\(draft.goal?.id.uuidString ?? "")" }
     private var settingsRevision:String { (draft.challengeLevel ?? "")+"|"+draft.interests }
@@ -97,13 +101,9 @@ struct ConversationView:View {
         }.buttonStyle(.plain).padding(8).frame(maxWidth:400).background { ConversationGoalSurface(light:scheme != .dark) }.overlay { RoundedRectangle(cornerRadius:16).stroke(brand.border.opacity(scheme == .dark ? 0.3 : 1)) }
     }
     private var replyBubble:some View {
-        VStack(alignment:.leading,spacing:10) {
-            Text(reply).font(PiyaliBrand.productFont(16)).lineSpacing(6).fixedSize(horizontal:false,vertical:true).textSelection(.enabled).accessibilityIdentifier("conversationLatestReply")
-            if let translation=latest?.translation(for:app.learner.support) { Text(translation).font(PiyaliBrand.productFont(12)).lineSpacing(4.5).foregroundStyle(brand.secondary).accessibilityIdentifier("conversationTranslation") }
-            if let latest,latest.text == reply,latest.translation(for:app.learner.support) == nil {
-                Button { Task { await conversation.translate(latest,app:app) } } label:{ Label(t("ra_btn_translate","Translate"),systemImage:"character.bubble").font(PiyaliBrand.productFont(12)) }.disabled(conversation.busy).accessibilityIdentifier("conversationTranslate")
-            }
-        }.frame(maxWidth:.infinity,alignment:.leading).padding(12).background { ConversationGoalSurface(light:scheme != .dark,radius:28) }.overlay { RoundedRectangle(cornerRadius:28,style:.continuous).stroke(scheme == .dark ? .white.opacity(0.06) : brand.border) }.shadow(color:.black.opacity(scheme == .dark ? 0.35 : 0.06),radius:14,y:scheme == .dark ? 14 : 8).frame(maxWidth:.infinity,minHeight:150,alignment:.topLeading)
+        let message=latest?.text == reply ? latest:nil
+        return TutorReplyView(primary:reply,secondary:message.map(translation) ?? "",target:app.learner.target,support:app.learner.support,pairs:message.map(pairs) ?? .array([]),showSecondary:showTranslations,replayAvailable:false,showPairCards:false,primaryIdentifier:"conversationLatestReply",secondaryIdentifier:"conversationTranslation",translating:message.map {conversation.translating.contains($0.id)} ?? false,onTranslate:showTranslations ? translationAction(message):nil,onReplay:{})
+            .frame(maxWidth:.infinity,minHeight:150,alignment:.topLeading)
     }
     @ViewBuilder private var controls:some View {
         if live.connected || paused {
@@ -172,7 +172,10 @@ struct ConversationView:View {
     }
     private var historySheet:some View {
         NavigationStack { ScrollView { LazyVStack(alignment:.leading,spacing:12) {
-            ForEach(draft.messages) { message in HStack { if message.role == "user" { Spacer(minLength:36) };VStack(alignment:.leading,spacing:8) { Text(message.role == "user" ? t("ra_you","You") : "Piyali").font(PiyaliBrand.productFont(11,600)).foregroundStyle(brand.secondary);Text(message.text).font(PiyaliBrand.productFont(16)).textSelection(.enabled);if let translated=message.translation(for:app.learner.support) { Text(translated).font(PiyaliBrand.productFont(13)).foregroundStyle(brand.secondary) };if message.role == "assistant",message.translation(for:app.learner.support) == nil { Button(t("ra_btn_translate","Translate")) { Task { await conversation.translate(message,app:app) } }.disabled(conversation.busy) } }.padding(14).background(message.role == "user" ? Color.cyan.opacity(0.1) : brand.surface,in:RoundedRectangle(cornerRadius:16));if message.role != "user" { Spacer(minLength:24) } } }
+            ForEach(draft.messages) { message in HStack {
+                if message.role == "user" { Spacer(minLength:36);VStack(alignment:.leading,spacing:8) {Text(t("ra_you","You")).font(PiyaliBrand.productFont(11,600)).foregroundStyle(brand.secondary);Text(message.text).font(PiyaliBrand.productFont(16)).textSelection(.enabled)}.padding(14).background(Color.cyan.opacity(0.1),in:RoundedRectangle(cornerRadius:16)) }
+                else {TutorReplyView(primary:message.text,secondary:translation(message),target:app.learner.target,support:app.learner.support,pairs:pairs(message),showSecondary:showTranslations,replayAvailable:false,showPairCards:false,primaryIdentifier:"conversationHistoryReply-\(message.id.uuidString)",secondaryIdentifier:"conversationHistoryTranslation-\(message.id.uuidString)",translateIdentifier:"conversationHistoryTranslate-\(message.id.uuidString)",translating:conversation.translating.contains(message.id),onTranslate:showTranslations ? translationAction(message):nil,onReplay:{});Spacer(minLength:24)}
+            } }
             Button("Save transcript to notes") { app.learner.notes.insert(.init(title:"Conversation · "+app.learner.target,body:draft.transcript),at:0);app.persist() }.buttonStyle(.bordered).accessibilityIdentifier("conversationSave")
         }.padding(16) }.background(brand.background).foregroundStyle(brand.text).navigationTitle(t("ra_conversation_log","Conversation log")).navigationBarTitleDisplayMode(.inline).toolbar { ToolbarItem(placement:.confirmationAction) { Button("Done") { showHistory=false } } } }
     }

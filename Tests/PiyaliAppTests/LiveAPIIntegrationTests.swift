@@ -782,6 +782,24 @@ import Security
         } catch {try? await Auth.auth().currentUser?.delete();try? Auth.auth().signOut();try? identity.disconnect();throw error}
         try await Auth.auth().currentUser?.delete();try Auth.auth().signOut();try identity.disconnect()
     }
+    func testConversationTranslationStreamsAndUsesResponsesFallback() async throws {
+        guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else{throw XCTSkip("Explicit live API opt-in required.")}
+        XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))
+        if FirebaseApp.app() == nil {AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure()};XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let identity=IdentityService();try identity.create();try await FirebaseIdentityService.shared.ensure(identity)
+        do {
+            let fallback=AIService(configuration:AppConfiguration(values:AppConfiguration().values.merging(["AIProvider":"responses"]) {_,new in new}))
+            for (label,ai) in [("configured",AIService()),("responses",fallback)] {
+                var snapshots:[String]=[]
+                let input="Hola, ¿cómo estás? Esta mañana fui al mercado con mi hermana para comprar tomates, pan y algunas flores. Después hablamos con nuestra vecina sobre la fiesta del sábado, y ella nos contó que vendrá con toda su familia. Más tarde prepararemos la comida juntos y escucharemos música en el jardín. ¿Qué te gustaría traer para compartir con nuestros amigos?"
+                let raw=try await ai.conversationTranslationStream(input,support:"en",onChunk:{snapshots.append($0)})
+                XCTAssertFalse(ConversationTranslation.complete(raw).isEmpty);XCTAssertFalse(snapshots.isEmpty)
+                if label == "configured" {XCTAssertTrue(snapshots.contains { !$0.isEmpty && $0 != raw },"A partial translation must arrive before the completed response.")}
+                print("LIVE CONVERSATION TRANSLATION: path=\(label), snapshots=\(snapshots.count), lengths=\(snapshots.map(\.count))")
+            }
+        } catch {try? await Auth.auth().currentUser?.delete();try? Auth.auth().signOut();try? identity.disconnect();throw error}
+        try await Auth.auth().currentUser?.delete();try Auth.auth().signOut();try identity.disconnect()
+    }
     func testSpeakingStoryStreamsBeforeValidatedCompletion() async throws {
         guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else {throw XCTSkip("Explicit live API opt-in required.")}
         XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))

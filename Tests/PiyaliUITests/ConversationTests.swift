@@ -3,12 +3,21 @@ import XCTest
 @MainActor final class ConversationPlayTests:XCTestCase {
     private func tap(_ id:String,_ app:XCUIApplication) { let button=app.buttons[id];XCTAssertTrue(button.waitForExistence(timeout:15));XCTAssertTrue(button.isHittable);button.tap() }
     private func open(_ app:XCUIApplication) { tap("productMenu",app);tap("productModeMenu",app);tap("productMode-conversation",app);XCTAssertTrue(app.staticTexts["conversationGoal"].waitForExistence(timeout:15)) }
-    private func start(theme:String="light",partial:Bool=false)->XCUIApplication {
+    private func start(theme:String="light",partial:Bool=false,translationStream:Bool=false)->XCUIApplication {
         continueAfterFailure=false
-        let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString;app.launchEnvironment["PIYALI_CONVERSATION_FIXTURE"]="1";if partial {app.launchEnvironment["PIYALI_CONVERSATION_PARTIAL_FIXTURE"]="1"};app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme",theme];app.launch();handleInitialPaperPencil(app)
+        let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString;app.launchEnvironment["PIYALI_CONVERSATION_FIXTURE"]="1";if partial {app.launchEnvironment["PIYALI_CONVERSATION_PARTIAL_FIXTURE"]="1"};if translationStream {app.launchEnvironment["PIYALI_CONVERSATION_TRANSLATION_STREAM_FIXTURE"]="1"};app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme",theme];app.launch();handleInitialPaperPencil(app)
         let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Conversation Learner");if app.buttons["entryKeyboardDone"].exists { app.buttons["entryKeyboardDone"].tap() };tap("createAccount",app);handleInitialPaperPencil(app);tap("startLearning",app);open(app);return app
     }
     private func photo(_ name:String,_ app:XCUIApplication) { let capture=XCTAttachment(screenshot:app.screenshot());capture.name=name;capture.lifetime = .keepAlways;add(capture) }
+    func testConversationTranslationStreamsAndSurvivesPrivateRelaunch() {
+        let app=start(translationStream:true);tap("conversationStart",app)
+        let reply=app.staticTexts["conversationLatestReply"];expectation(for:NSPredicate(format:"label CONTAINS %@","¡Hola, Ana!"),evaluatedWith:reply);waitForExpectations(timeout:18)
+        tap("conversationTranslate",app);let translation=app.staticTexts["conversationTranslation"]
+        XCTAssertTrue(translation.waitForExistence(timeout:4));XCTAssertEqual(translation.label,"Hello,");XCTAssertFalse(app.buttons["conversationTranslate"].isEnabled);photo("Native Conversation streaming translation",app)
+        expectation(for:NSPredicate(format:"label CONTAINS %@","What do you like doing?"),evaluatedWith:translation);waitForExpectations(timeout:12)
+        XCTAssertTrue(app.buttons["conversationTranslate"].exists);tap("conversationEnd",app);XCTAssertTrue(app.staticTexts["conversationSummaryXP"].waitForExistence(timeout:8));tap("conversationSummaryDone",app)
+        app.terminate();app.launch();handleInitialPaperPencil(app);open(app);XCTAssertTrue(app.staticTexts["conversationTranslation"].waitForExistence(timeout:8));XCTAssertTrue(app.staticTexts["conversationTranslation"].label.contains("Hello, Ana!"))
+    }
     func testPausedPartialReplyContinuesAndRemainsInPrivateHistoryWithoutExtraXP() {
         let app=start(partial:true);tap("conversationStart",app)
         let reply=app.staticTexts["conversationLatestReply"];expectation(for:NSPredicate(format:"label == %@","Vamos a practicar"),evaluatedWith:reply);waitForExpectations(timeout:15)

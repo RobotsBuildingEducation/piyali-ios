@@ -1,0 +1,46 @@
+[
+  {
+    "support": "en",
+    "expected": "Translate the following into concise, natural English.\nReturn ONLY the direct translation text.\nDo not wrap in quotes. Do not output JSON. Do not include notes or introductory text."
+  },
+  {
+    "support": "es",
+    "expected": "Translate the following into concise, natural Spanish (espanol).\nReturn ONLY the direct translation text.\nDo not wrap in quotes. Do not output JSON. Do not include notes or introductory text."
+  },
+  {
+    "support": "fr",
+    "expected": "Translate the following into concise, natural French (francais).\nReturn ONLY the direct translation text.\nDo not wrap in quotes. Do not output JSON. Do not include notes or introductory text."
+  },
+  {
+    "support": "ar",
+    "expected": "Translate the following into concise, natural Egyptian Arabic (العربية المصرية).\nReturn ONLY the direct translation text.\nDo not wrap in quotes. Do not output JSON. Do not include notes or introductory text."
+  },
+  {
+    "support": "ja",
+    "expected": "Translate the following into concise, natural Japanese (日本語).\nReturn ONLY the direct translation text.\nDo not wrap in quotes. Do not output JSON. Do not include notes or introductory text."
+  },
+  {
+    "support": "hi",
+    "expected": "Translate the following into concise, natural Hindi (hindi).\nReturn ONLY the direct translation text.\nDo not wrap in quotes. Do not output JSON. Do not include notes or introductory text."
+  },
+  {
+    "support": "pt",
+    "expected": "Translate the following into concise, natural Portuguese (portugues brasileiro).\nReturn ONLY the direct translation text.\nDo not wrap in quotes. Do not output JSON. Do not include notes or introductory text."
+  },
+  {
+    "support": "de",
+    "expected": "Translate the following into concise, natural German (Deutsch).\nReturn ONLY the direct translation text.\nDo not wrap in quotes. Do not output JSON. Do not include notes or introductory text."
+  },
+  {
+    "support": "zh",
+    "expected": "Translate the following into concise, natural Mandarin Chinese (普通话中文).\nReturn ONLY the direct translation text.\nDo not wrap in quotes. Do not output JSON. Do not include notes or introductory text."
+  },
+  {
+    "support": "",
+    "expected": "Translate the following into concise, natural English.\nReturn ONLY the direct translation text.\nDo not wrap in quotes. Do not output JSON. Do not include notes or introductory text."
+  },
+  {
+    "support": "unknown",
+    "expected": "Translate the following into concise, natural English.\nReturn ONLY the direct translation text.\nDo not wrap in quotes. Do not output JSON. Do not include notes or introductory text."
+  }
+]

@@ -128,6 +128,20 @@ final class ConversationSourcePromptTests:XCTestCase {
 }
 
 extension ConversationSourcePromptTests {
+    @MainActor func testDirectTranslationPromptsMatchSourceAndStreamingCleansOnlyPresentation() throws {
+        let root=URL(fileURLWithPath:#filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent(),recipes=try PracticeRecipes(source:root.appendingPathComponent("Piyali/Resources/practice-recipes.js"))
+        let rows=try JSONDecoder().decode([JSONValue].self,from:Data(contentsOf:root.appendingPathComponent("Tests/PiyaliCoreTests/Fixtures/conversation-translation-prompts.json")))
+        for row in rows {XCTAssertEqual(try recipes.conversation("directTranslation",parameters:.object(["supportLang":row["support"]])),row["expected"].string)}
+        XCTAssertEqual(ConversationTranslation.streaming("  \"Hello, "),"Hello, ")
+        XCTAssertEqual(ConversationTranslation.complete(" “Hello, friend.” "),"Hello, friend.")
+        XCTAssertEqual(ConversationTranslation.complete(#"{"translation":"Bonjour"}"#),"Bonjour")
+    }
+    func testConversationAlignmentMatchesSourceForRepeatedAndMultilingualPhrases() throws {
+        let root=URL(fileURLWithPath:#filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent(),policy=try TutorReplyPolicy(source:String(contentsOf:root.appendingPathComponent("Piyali/Resources/tutor-reply-policy.js"),encoding:.utf8))
+        let rows=try JSONDecoder().decode([JSONValue].self,from:Data(contentsOf:root.appendingPathComponent("Tests/PiyaliCoreTests/Fixtures/conversation-alignment.json")))
+        XCTAssertEqual(rows.count,40)
+        for row in rows {let input=row["input"];XCTAssertEqual(try policy.plan(primary:input["primaryText"].string,secondary:input["secondaryText"].string,pairs:input["pairs"]),row["expected"])}
+    }
     @MainActor func testOriginalStarterKeepsOnePersonalBlankAndItsSupportTranslation() throws {
         let root=URL(fileURLWithPath:#filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent(),recipes=try PracticeRecipes(source:root.appendingPathComponent("Piyali/Resources/practice-recipes.js"))
         let p:JSONValue = .object(["targetLang":.string("es"),"supportLang":.string("en"),"goal":.object(["text":.object(["en":.string("Say hello and your name")])]),"messages":.array([.object(["role":.string("assistant"),"textFinal":.string("¿Cómo te llamas?")])])])

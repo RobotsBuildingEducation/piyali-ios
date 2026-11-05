@@ -7,6 +7,7 @@ import XCTest
     var goalStarted:[String:XCTestExpectation]=[:]
     var translation:CheckedContinuation<String,Error>?
     var translationStarted:XCTestExpectation?
+    var translationUpdate:((String)->Void)?
     var starter:CheckedContinuation<JSONValue,Error>?
     var starterStarted:XCTestExpectation?
     var verdict:CheckedContinuation<ConversationVerdict,Error>?
@@ -18,6 +19,7 @@ import XCTest
         return result(learner.support)
     }
     func conversationTranslation(_ text:String,support:String) async throws ->String { translates += 1;return try await withCheckedThrowingContinuation { translation=$0;translationStarted?.fulfill() } }
+    func conversationTranslationStream(_ text:String,support:String,onChunk:@escaping @MainActor(String)->Void) async throws ->String {translationUpdate=onChunk;return try await conversationTranslation(text,support:support)}
     func conversationStarterPhrase(learner:LearnerState,draft:ConversationDraft) async throws ->JSONValue { try await withCheckedThrowingContinuation { starter=$0;starterStarted?.fulfill() } }
     func conversationVerdict(goal:ConversationGoal,learner:LearnerState,reply:String,answeredLine:String) async throws ->ConversationVerdict { try await withCheckedThrowingContinuation { verdict=$0;verdictStarted?.fulfill() } }
 }
@@ -65,6 +67,16 @@ import XCTest
 }
 
 extension ConversationLanguageServiceTests {
+    func testStreamingTranslationRemainsTransientAndRejectsStaleLanguageUpdates() async throws {
+        let app=try app();defer {try? app.identity.disconnect()};let provider=ConversationProviderFixture();provider.translationStarted=expectation(description:"Streaming translation started");let service=ConversationService(provider:provider),message=try XCTUnwrap(app.learner.conversation.messages.first)
+        let work=Task {await service.translate(message,app:app)};await fulfillment(of:[provider.translationStarted!],timeout:2)
+        provider.translationUpdate?("  \"Hello,");XCTAssertEqual(service.translationDrafts[message.id],"Hello,");XCTAssertNil(app.learner.conversation.messages.first?.translation);XCTAssertTrue(service.translating.contains(message.id))
+        provider.translationUpdate?("  \"Hello, friend.\"");provider.translation?.resume(returning:"  \"Hello, friend.\" ");provider.translation=nil;await work.value
+        XCTAssertNil(service.translationDrafts[message.id]);XCTAssertFalse(service.translating.contains(message.id));XCTAssertEqual(app.learner.conversation.messages.first?.translation(for:"en"),"Hello, friend.")
+        provider.translationStarted=expectation(description:"New translation started");let old=Task {await service.translate(message,app:app)};await fulfillment(of:[provider.translationStarted!],timeout:2)
+        let stale=provider.translationUpdate;app.learner.support="fr";await service.prepare(app);stale?("Old English");XCTAssertNil(service.translationDrafts[message.id])
+        provider.translation?.resume(returning:"Old English");provider.translation=nil;await old.value;XCTAssertNil(app.learner.conversation.messages.first?.translation(for:"fr"))
+    }
     func testStaleTranslationErrorIsHiddenEvenBeforeAReplacementRequestStarts() async throws {
         let app=try app();defer {try? app.identity.disconnect()};let provider=ConversationProviderFixture();provider.translationStarted=expectation(description:"Translation pending");let service=ConversationService(provider:provider),message=try XCTUnwrap(app.learner.conversation.messages.first)
         let request=Task {await service.translate(message,app:app)};await fulfillment(of:[provider.translationStarted!],timeout:2)
