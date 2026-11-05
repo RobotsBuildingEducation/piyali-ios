@@ -7,6 +7,7 @@ public struct ReadingStreamDraft:Equatable,Sendable {
     public let title:String
     public let text:String
     public let takeaways:[String]
+    public let hasTitle:Bool
 
     public static func parse(_ snapshot:String,target:String,support:String,includeTrailingRecord:Bool=false)->ReadingStreamDraft? {
         guard snapshot.utf8.count <= 100_000 else{return nil}
@@ -28,7 +29,19 @@ public struct ReadingStreamDraft:Equatable,Sendable {
         }
         guard !title.isEmpty || !parts.isEmpty else{return nil}
         let text=Reading.stripPreamble(parts.joined(separator:" "))
-        return .init(title:title.isEmpty ? (target == "en" ? "Generating...":"Generando...") : title,text:text,takeaways:takeaways)
+        return .init(title:title.isEmpty ? (target == "en" ? "Generating...":"Generando...") : title,text:text,takeaways:takeaways,hasTitle:!title.isEmpty)
+    }
+    /// Finalize the same consumed records as History.jsx after a normal stream end.
+    public static func sourcePayload(_ snapshot:String,target:String,support:String,questionType:String)->JSONValue? {
+        guard let draft=parse(snapshot,target:target,support:support,includeTrailingRecord:true) else{return nil}
+        var review:JSONValue = .null
+        for line in snapshot.components(separatedBy:"\n") {
+            if let object=try? JSONDecoder().decode(JSONValue.self,from:Data(line.trimmingCharacters(in:.whitespacesAndNewlines).utf8)),object["type"].string == "review_question" {review=object}
+        }
+        let question=ReadingQuestion(review,expectedType:questionType)
+        let encoded:JSONValue
+        if let question,let data=try? JSONEncoder().encode(question),let value=try? JSONDecoder().decode(JSONValue.self,from:data) {encoded=value} else {encoded = .null}
+        return .object(["title":.string(draft.hasTitle ? draft.title : (target == "en" ? "Reading Passage":"Lectura")),"target":.string(draft.text),"takeaways":.array(draft.takeaways.map(JSONValue.string)),"reviewQuestion":encoded,"rawReviewQuestion":review,"reviewQuestionType":.string(questionType),"nativeReadingStream":.bool(true)])
     }
     private static func normalize(_ value:String)->String {value.replacingOccurrences(of:"\\s+",with:" ",options:.regularExpression).trimmingCharacters(in:.whitespacesAndNewlines)}
     private static let labels:[String:[String]] = [

@@ -1,0 +1,233 @@
+[
+  {
+    "input": {
+      "name": "target-only",
+      "chunks": [
+        "{\"type\":\"target\",\"text\":\"La flor crece.\"}\n"
+      ]
+    },
+    "expected": {
+      "lectures": [
+        {
+          "id": "fixture-id",
+          "title": "Lectura",
+          "target": "La flor crece.",
+          "support": "",
+          "takeaways": [],
+          "targetLang": "es",
+          "supportLang": "en",
+          "xpAward": 6,
+          "xpReason": "Immediate random 5–8 XP award.",
+          "reviewFormat": "question",
+          "reviewQuestion": null,
+          "questionLevel": "A1",
+          "worth": {
+            "rating": 1
+          },
+          "reviewQuestionType": "text",
+          "createdAtClient": 1793876547354,
+          "awarded": false
+        }
+      ],
+      "fallback": 0,
+      "history": 1,
+      "error": false
+    }
+  },
+  {
+    "input": {
+      "name": "title-only",
+      "chunks": [
+        "{\"type\":\"title\",\"text\":\"El jardín\"}\n"
+      ]
+    },
+    "expected": {
+      "lectures": [
+        {
+          "id": "fixture-id",
+          "title": "El jardín",
+          "target": "",
+          "support": "",
+          "takeaways": [],
+          "targetLang": "es",
+          "supportLang": "en",
+          "xpAward": 6,
+          "xpReason": "Immediate random 5–8 XP award.",
+          "reviewFormat": "question",
+          "reviewQuestion": null,
+          "questionLevel": "A1",
+          "worth": {
+            "rating": 1
+          },
+          "reviewQuestionType": "text",
+          "createdAtClient": 1793876547356,
+          "awarded": false
+        }
+      ],
+      "fallback": 0,
+      "history": 1,
+      "error": false
+    }
+  },
+  {
+    "input": {
+      "name": "valid-question-no-done",
+      "chunks": [
+        "{\"type\":\"title\",\"text\":\"El jardín\"}\n",
+        "{\"type\":\"target\",\"text\":\"La flor crece.\"}\n",
+        "{\"type\":\"review_question\",\"questionType\":\"text\",\"question\":\"What grows?\",\"answer\":\"A flower\"}\n",
+        "{\"type\":\"takeaway\",\"text\":\"A flower grows.\"}\n"
+      ]
+    },
+    "expected": {
+      "lectures": [
+        {
+          "id": "fixture-id",
+          "title": "El jardín",
+          "target": "La flor crece.",
+          "support": "",
+          "takeaways": [
+            "A flower grows."
+          ],
+          "targetLang": "es",
+          "supportLang": "en",
+          "xpAward": 6,
+          "xpReason": "Immediate random 5–8 XP award.",
+          "reviewFormat": "question",
+          "reviewQuestion": {
+            "type": "text",
+            "question": "What grows?",
+            "answer": "A flower"
+          },
+          "questionLevel": "A1",
+          "worth": {
+            "rating": 1
+          },
+          "reviewQuestionType": "text",
+          "createdAtClient": 1793876547357,
+          "awarded": false
+        }
+      ],
+      "fallback": 0,
+      "history": 1,
+      "error": false
+    }
+  },
+  {
+    "input": {
+      "name": "trailing-record",
+      "chunks": [
+        "{\"type\":\"title\",\"text\":\"El jardín\"}\n",
+        "{\"type\":\"target\",\"text\":\"La flor crece.\"}"
+      ]
+    },
+    "expected": {
+      "lectures": [
+        {
+          "id": "fixture-id",
+          "title": "El jardín",
+          "target": "La flor crece.",
+          "support": "",
+          "takeaways": [],
+          "targetLang": "es",
+          "supportLang": "en",
+          "xpAward": 6,
+          "xpReason": "Immediate random 5–8 XP award.",
+          "reviewFormat": "question",
+          "reviewQuestion": null,
+          "questionLevel": "A1",
+          "worth": {
+            "rating": 1
+          },
+          "reviewQuestionType": "text",
+          "createdAtClient": 1793876547358,
+          "awarded": false
+        }
+      ],
+      "fallback": 0,
+      "history": 1,
+      "error": false
+    }
+  },
+  {
+    "input": {
+      "name": "invalid-question",
+      "chunks": [
+        "{\"type\":\"target\",\"text\":\"La flor crece.\"}\n",
+        "{\"type\":\"review_question\",\"questionType\":\"text\"}\n"
+      ]
+    },
+    "expected": {
+      "lectures": [
+        {
+          "id": "fixture-id",
+          "title": "Lectura",
+          "target": "La flor crece.",
+          "support": "",
+          "takeaways": [],
+          "targetLang": "es",
+          "supportLang": "en",
+          "xpAward": 6,
+          "xpReason": "Immediate random 5–8 XP award.",
+          "reviewFormat": "question",
+          "reviewQuestion": null,
+          "questionLevel": "A1",
+          "worth": {
+            "rating": 1
+          },
+          "reviewQuestionType": "text",
+          "createdAtClient": 1793876547359,
+          "awarded": false
+        }
+      ],
+      "fallback": 0,
+      "history": 1,
+      "error": false
+    }
+  },
+  {
+    "input": {
+      "name": "no-reveal",
+      "chunks": [
+        "garbage\n"
+      ]
+    },
+    "expected": {
+      "lectures": [],
+      "fallback": 1,
+      "history": 0,
+      "error": false
+    }
+  },
+  {
+    "input": {
+      "name": "error-after-reveal",
+      "chunks": [
+        "{\"type\":\"title\",\"text\":\"El jardín\"}\n",
+        "{\"type\":\"target\",\"text\":\"La flor crece.\"}\n"
+      ],
+      "fail": true
+    },
+    "expected": {
+      "lectures": [],
+      "fallback": 1,
+      "history": 0,
+      "error": false
+    }
+  },
+  {
+    "input": {
+      "name": "error-before-reveal",
+      "chunks": [
+        "bad\n"
+      ],
+      "fail": true
+    },
+    "expected": {
+      "lectures": [],
+      "fallback": 1,
+      "history": 0,
+      "error": false
+    }
+  }
+]

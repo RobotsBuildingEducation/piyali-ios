@@ -39,6 +39,13 @@ public enum Reading {
         guard ReadingQuestion(question) != nil else { throw ReadingFailure.invalid }
         return .object(["title":title["text"],"target":.string(targets.joined(separator:" ")),"takeaways":.array(takeaways.map(JSONValue.string)),"reviewQuestion":question,"rawReviewQuestion":review])
     }
+    /// Source History.jsx's on-demand review prompt for a missing bundled question.
+    public static func reviewPrompt(type:String,text:String,target:String,support:String)->String {
+        let a=target == "pt" ? "Brazilian Portuguese" : target == "hi" ? "hi" : LearningLanguages.names[target] ?? target,b=support == "pt" ? "Brazilian Portuguese" : support == "hi" ? "hi" : LearningLanguages.names[support] ?? support
+        if type == "fill" {return ["Based on this \(a) text, create a short fill-in-the-blank question in \(b).","Write a brief original question (not a sentence from the passage) with a key phrase replaced by \"___\".","The missing answer should be something clearly derivable from the text — use meaningful words or short phrases, not obscure single words.","Return ONLY valid JSON: {\"sentence\":\"<short question with ___>\",\"answer\":\"<the missing word or phrase>\"}","",text].joined(separator:"\n")}
+        if type == "mc" {return ["Based on this \(a) text, create one short multiple-choice comprehension question in \(b).","The question should test genuine understanding — ask about meaning, inference, or context rather than surface-level facts that are obvious from the question itself.","AVOID questions where the answer is already contained in the question (e.g. \"What relationship is the speaker's brother?\" with \"Brother\" as an option).","Instead, ask things like \"What can you infer about...?\", \"Why does the speaker mention...?\", \"What is the main idea?\", or \"What does ___ refer to in context?\"","Make the wrong options plausible but clearly distinguishable. Do NOT repeat or quote the passage. Keep the question to one sentence.","Return ONLY valid JSON: {\"question\":\"<the question>\",\"options\":[\"A\",\"B\",\"C\",\"D\"],\"answer\":\"<the correct option text>\"}","",text].joined(separator:"\n")}
+        return ["Based on this \(a) text, create one short comprehension question in \(b).","The question should be brief (one sentence). Do NOT repeat or quote the passage.","The answer should be a short phrase that any reasonable reader could derive from the text. Accept multiple valid phrasings.","Return ONLY valid JSON: {\"question\":\"<the question>\",\"answer\":\"<short correct answer>\"}","",text].joined(separator:"\n")
+    }
     public static func award(roll:Double) -> Int { 5+Int(floor((roll.isFinite ? max(0,min(1-Double.ulpOfOne,roll)) : 0)*4)) }
     public static func stripPreamble(_ text:String) -> String { var result=text.trimmingCharacters(in:.whitespacesAndNewlines);for pattern in ReadingRules.data["preambles"].array.map(\.string) { result=result.replacingOccurrences(of:pattern,with:"",options:[.regularExpression,.caseInsensitive]).trimmingCharacters(in:.whitespacesAndNewlines) };return result }
     private static func reaction(_ text:String) -> Bool { matches(text.replacingOccurrences(of:"^[¡¿\\s]+",with:"",options:.regularExpression),"^(?:oh\\b|ah\\b|wow\\b|yay\\b|hooray\\b|really\\b|look\\b|how\\s+(?:nice|lovely|wonderful|exciting|great)|what\\s+(?:a|an)\\b|ay\\b|vaya\\b|guau\\b|qué\\s+(?:bien|bonito|bueno|maravilla)|waouh\\b|super\\b|comme\\s+c'est|che\\s+bello|que\\s+(?:bom|legal)|wie\\s+(?:schön|toll)|わあ|すごい|哇)") }
@@ -92,6 +99,7 @@ public struct ReadingQuestion:Codable,Equatable,Sendable {
     public let question:String
     public let options:[String]
     public let answer:String
+    public init(unavailableType:String) {self.type=unavailableType;self.question="";self.options=[];self.answer=""}
     public init?(_ input:JSONValue,expectedType:String = "") {
         let allowed=["text","fill","mc"],type=allowed.contains(expectedType) ? expectedType : allowed.contains(input["questionType"].string) ? input["questionType"].string : input["type"].string
         let question=(input["question"].string.isEmpty ? input["sentence"].string : input["question"].string).trimmingCharacters(in:.whitespacesAndNewlines),answer=input["answer"].string.trimmingCharacters(in:.whitespacesAndNewlines)

@@ -6,6 +6,7 @@ import FirebaseAuth
     let configuration: AppConfiguration
     #if DEBUG
     // A caller-supplied stream for isolated provider-boundary tests only.
+    var readingStreamOverride:(@MainActor (String,@escaping @MainActor(String)->Void) async throws->String)?
     var storyStreamOverride:(@MainActor (String,@escaping @MainActor(String)->Void) async throws->String)?
     var storyBatchOverride:(@MainActor (String,StoryMode) async throws->String)?
     #endif

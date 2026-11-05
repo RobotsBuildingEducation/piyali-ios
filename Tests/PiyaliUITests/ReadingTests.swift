@@ -27,6 +27,23 @@ import XCTest
         tap("readingMicrophone",app);tap("readingMicrophone",app)
         XCTAssertTrue(app.staticTexts["readingSpeechTranscript"].waitForExistence(timeout:5));XCTAssertTrue(app.buttons["readingSpeechStartOver"].exists)
     }
+    private func missingQuestionApp(failure:Bool=false)->XCUIApplication {
+        continueAfterFailure=false;let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_READING_FIXTURE":"1","PIYALI_READING_MISSING_QUESTION_FIXTURE":"1","PIYALI_PRACTICE_FIXTURE":"delight:natural_or_weird"]
+        if failure {app.launchEnvironment["PIYALI_READING_QUESTION_FALLBACK_FAILURE"]="1"}
+        app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en"];app.launch();handleInitialPaperPencil(app)
+        let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Partial Reader");if app.buttons["entryKeyboardDone"].exists {app.buttons["entryKeyboardDone"].tap()};app.buttons["createAccount"].tap();handleInitialPaperPencil(app);XCTAssertTrue(app.buttons["startLearning"].waitForExistence(timeout:20));app.buttons["startLearning"].tap();open(app);return app
+    }
+    func testPartialReadingGeneratesMissingQuestionAndRetainsOneReward() {
+        let app=missingQuestionApp();XCTAssertTrue(app.staticTexts["readingQuestion"].waitForExistence(timeout:12),app.debugDescription)
+        XCTAssertTrue(app.staticTexts["readingQuestion"].label.contains("Why does"));tap("readingOption-0",app);tap("readingCheck",app)
+        let completed=app.staticTexts["readingCompleted"];reveal(completed,in:app);let reward=completed.label;XCTAssertTrue(reward.contains("XP awarded:"))
+        app.terminate();app.launch();handleInitialPaperPencil(app);open(app);reveal(completed,in:app);XCTAssertEqual(completed.label,reward);XCTAssertFalse(app.buttons["readingCheck"].exists)
+    }
+    func testMissingQuestionFailureRetainsPassageWithoutInventingReward() {
+        let app=missingQuestionApp(failure:true);let generate=app.buttons["readingGenerateQuestion"];XCTAssertTrue(generate.waitForExistence(timeout:10));let ready=XCTNSPredicateExpectation(predicate:NSPredicate(format:"enabled == true"),object:generate);XCTAssertEqual(XCTWaiter.wait(for:[ready],timeout:10),.completed);XCTAssertFalse(app.staticTexts["readingQuestion"].exists);XCTAssertFalse(app.staticTexts["readingCompleted"].exists)
+        tap("readingGenerateQuestion",app);XCTAssertTrue(generate.waitForExistence(timeout:5));XCTAssertFalse(app.staticTexts["readingCompleted"].exists)
+        app.terminate();app.launchEnvironment.removeValue(forKey:"PIYALI_READING_QUESTION_FALLBACK_FAILURE");app.launch();handleInitialPaperPencil(app);open(app);XCTAssertTrue(app.staticTexts["readingQuestion"].waitForExistence(timeout:12));XCTAssertFalse(app.staticTexts["readingCompleted"].exists)
+    }
     func testReadingCaptureShowsInteractiveDisplayOrbAndRemovesItAfterStop() {
         let app=speechApp();tap("readingMicrophone",app)
         let orb=app.descendants(matching:.any)["readingListeningOrb"];XCTAssertTrue(orb.waitForExistence(timeout:8));reveal(orb,in:app);XCTAssertGreaterThanOrEqual(orb.frame.width,44);XCTAssertLessThanOrEqual(orb.frame.width,75);XCTAssertGreaterThanOrEqual(orb.frame.height,44);XCTAssertLessThanOrEqual(orb.frame.height,75)
