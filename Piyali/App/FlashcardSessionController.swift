@@ -20,11 +20,12 @@ import Combine
     @Published private(set) var saving=false
     @Published private(set) var noteSaved=false
     @Published private(set) var creatingNote=false
+    private let identitySession:UUID
     private var request=UUID(),closed=false,capturedMiss=false,assessedSuccess=false
     private var work:Task<Void,Never>?,revealTask:Task<Void,Never>?,explainTask:Task<Void,Never>?,quoteTask:Task<JSONValue,Error>?
     private var intentRating:ReviewRating?,intentGoalIDs:Set<UUID>=[],intentPracticeIDs:Set<UUID>=[],intentRepairIDs:Set<UUID>=[]
     init(app:AppModel,card:JSONValue,status:String,goal:JSONValue?=nil,repair:RepairStep?=nil,provider:FlashcardProvider?=nil)throws {
-        self.card=card;self.goal=goal;self.repair=repair;practiceStatus=status;self.provider=provider ?? .native(app.ai);policy=try FlashcardPolicy(engine:app.companionQuestPolicy)
+        identitySession=app.identity.sessionRevision;self.card=card;self.goal=goal;self.repair=repair;practiceStatus=status;self.provider=provider ?? .native(app.ai);policy=try FlashcardPolicy(engine:app.companionQuestPolicy)
         scope = .init(account:app.identity.npub,target:app.learner.target,support:app.learner.support,cardID:card["id"].string,goalID:goal?["goalId"].string,day:goal?["dayKey"].string ?? repair?.day)
         var initial=goal != nil || repair != nil ? FlashcardReview():app.learner.cardReviews?[app.learner.completionKey(card["id"].string)] ?? FlashcardReview()
         if goal == nil,repair == nil,app.learner.cardReviews?[app.learner.completionKey(card["id"].string)] == nil,app.learner.flashcardMastery.contains(app.learner.completionKey(card["id"].string)){initial.completed=true;initial.schedulerState = .review;initial.intervalDays=1}
@@ -43,7 +44,7 @@ import Combine
     func dailyCount(_ app:AppModel)->Int {Int((try? policy.run("flashPreview",.object(["saved":.number(Double(policy.dailyCount(app.learner))),"base":reviewPreviewBase.map{.number(Double($0))} ?? .null])).number) ?? Double(policy.dailyCount(app.learner)))}
     var ratings:[JSONValue] {policy.ratings(progress,now:openedAt)}
     func matches(_ app:AppModel)->Bool {
-        guard !closed,scope.account == app.identity.npub,scope.target == app.learner.target,scope.support == app.learner.support else{return false}
+        guard app.signedIn,identitySession == app.identity.sessionRevision,!closed,scope.account == app.identity.npub,scope.target == app.learner.target,scope.support == app.learner.support else{return false}
         if let goal {return app.goalIsCurrent(goal)}
         if let repair {guard repair.day == CalendarDay.key(Date()),let plan=app.learner.repairPlan(day:repair.day),plan["items"].array.indices.contains(repair.index) else{return false};return plan["items"].array[repair.index] == repair.item}
         return true
@@ -112,7 +113,8 @@ import Combine
     private func requireAcknowledgment(_ app:AppModel)throws {
         let goals=Set((app.learner.pendingGoalChanges ?? []).map(\.id)),practice=Set((app.learner.pendingChanges ?? []).map(\.id)),evidence=Set((app.learner.pendingRepairEvidence ?? []).map(\.id))
         let artifactPending=repair.map{step in (app.learner.pendingCompanionQuestDays?[CompanionQuestDay.key(step.target,step.day)]?[CompanionQuestDay.artifactField(step,mode:"flashcards")] ?? .null) != .null} ?? false
-        guard goals.isDisjoint(with:intentGoalIDs),practice.isDisjoint(with:intentPracticeIDs),evidence.isDisjoint(with:intentRepairIDs),!artifactPending else{throw AppError.message("Could not save practice. Please try again.")}
+        let goalPending=goal.map{blueprint in (app.learner.pendingGoalChanges ?? []).contains{change in change.target == scope.target && change.payload["goalId"] == blueprint["goalId"] && change.payload["dayKey"] == blueprint["dayKey"] && change.payload["mode"].string == "flashcards" && (change.payload["cardID"].string == scope.cardID || [.artifact,.attempt].contains(change.action))}} ?? false
+        guard goals.isDisjoint(with:intentGoalIDs),practice.isDisjoint(with:intentPracticeIDs),evidence.isDisjoint(with:intentRepairIDs),!artifactPending,!goalPending else{throw AppError.message("Could not save practice. Please try again.")}
     }
     func createNote(_ app:AppModel){
         guard !creatingNote,!noteSaved,let grade,matches(app) else{return};creatingNote=true;let identitySession=app.identity.sessionRevision

@@ -113,7 +113,7 @@ public enum GoalPractice {
             guard let goal = active(bucket), payload["goalId"] == goal["id"], payload["dayKey"] == bucket["dailyGoal"]["blueprint"]["dayKey"], payload["goalId"] == bucket["dailyGoal"]["blueprint"]["goalId"] else { return (bucket,0) }
             let mode = payload["mode"].string, observation = text(payload["observation"],max:600)
             guard modes.contains(mode), list(bucket["dailyGoal"]["blueprint"]["modes"],max:4).contains(mode), (change.action == .evidence || !observation.isEmpty) else { return (bucket,0) }
-            let eventID = change.id.uuidString, daily = bucket["dailyGoal"], prior = daily["modeProgress"][mode].number
+            let eventID = payload["sourceEvidenceID"].string.isEmpty ? change.id.uuidString:payload["sourceEvidenceID"].string, daily = bucket["dailyGoal"], prior = daily["modeProgress"][mode].number
             guard !list(daily["modeEventIds"],max:40).contains(eventID) else { return (bucket,0) }
             if change.action == .attempt && prior >= Double(targets[mode] ?? 1) { return (bucket,0) }
             let concept = change.action == .evidence ? payload["target"] : daily["blueprint"]["objective"]
@@ -205,6 +205,7 @@ public extension LearnerState {
         if [.artifact,.outcome].contains(change.action) {
             let payload = change.payload
             let key = GoalPractice.artifactKey(target:change.target,day:payload["dayKey"].string,mode:payload["mode"].string,goalID:payload["goalId"].string)
+            if change.action == .outcome {rememberFocusedBase(goalArtifacts?[key] ?? .object([:]),pending:pendingGoalOutcomes(key:key))}
             let result = GoalPractice.applyingArtifact(change,to:goalArtifacts?[key] ?? .object([:]))
             if goalArtifacts == nil { goalArtifacts = [:] }; goalArtifacts?[key] = result.artifact
             if result.reward > 0 { addXP(result.reward,now:change.date,calendar:.current) }

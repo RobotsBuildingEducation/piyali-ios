@@ -63,3 +63,23 @@ struct FlashcardTileTexture:View {
 struct FlashcardTileStyle:ButtonStyle {
     func makeBody(configuration:Configuration)->some View {configuration.label.scaleEffect(configuration.isPressed ? 0.98:1)}
 }
+
+/// Source app-shadow-soft, shared by the library statistics and daily target.
+struct FlashcardSurfaceShadow:ViewModifier {
+    let dark:Bool
+    func body(content:Content)->some View {content.shadow(color:PiyaliBrand.unitColor(dark ? "020617":"6f5636").opacity(dark ? 0.28:0.08),radius:dark ? 30:9,y:dark ? 24:8)}
+}
+
+/// The source dark actionable tile has a two-second expanding colored glow.
+struct FlashcardTileGlow:ViewModifier {
+    let dark,actionable:Bool
+    let visuals:JSONValue
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var expanded=false
+    private var animated:Bool {dark && actionable && !reduceMotion}
+    func body(content:Content)->some View {
+        content.shadow(color:dark ? .black.opacity(actionable ? (expanded ? 1:0.28):0.28):PiyaliBrand.unitColor("7a5e3d").opacity(actionable ? 0.1:0.08),radius:dark ? (actionable ? (expanded ? 2:1):12):(actionable ? 7:5),y:dark ? (actionable ? (expanded ? 4:2):8):(actionable ? 6:4))
+            .overlay{if dark && actionable{RoundedRectangle(cornerRadius:48).stroke(FlashcardPaint(dark:dark).color(visuals[expanded ? "softGlowColor":"glowColor"].string),lineWidth:expanded ? 8:0).padding(expanded ? -4:0).allowsHitTesting(false)}}
+            .task(id:animated){expanded=false;if animated{withAnimation(.easeInOut(duration:1).repeatForever(autoreverses:true)){expanded=true}}}
+    }
+}

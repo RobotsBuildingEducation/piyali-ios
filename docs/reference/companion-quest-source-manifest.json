@@ -76,7 +76,8 @@
         "BUBBLE_PLAN_LABEL",
         "REPAIR_COPY",
         "companionMemorySummary",
-        "SAVED_FOR_TOMORROW"
+        "SAVED_FOR_TOMORROW",
+        "repairCopy"
       ]
     },
     {
@@ -272,9 +273,20 @@
       ]
     },
     {
+      "file": "src/utils/focusedPracticeDecks.js",
+      "sha256": "bb5f8e54a4ad8db64bfb5e725f8fec4e37f538b4aa26a20714d18e825d6ad59d",
+      "declarations": [
+        "goalPromptData",
+        "practiceArtifactKey",
+        "PHONICS_VERSION",
+        "getLocalDayKey"
+      ]
+    },
+    {
       "file": "src/data/phonics/index.js",
       "sha256": "7877d9aeb179f0252d259976c9b94ecb51402f4d62d5ea62b8b4389e93a47cbc",
       "declarations": [
+        "PHONICS_VERSION",
         "getAuthoredPhonicsFocusCards",
         "initialPhonicsLevel",
         "PHONICS_LEVELS",
@@ -491,6 +503,11 @@
       "sha256": "9e6447368ce10a647025f76daf1b730fb20073590c586f8a3bed8a6d4f2ab948",
       "expression": "card.xpReward || 5"
     }
+  },
+  "goalFlashcards": {
+    "file": "src/utils/focusedPracticeDecks.js",
+    "sha256": "bb5f8e54a4ad8db64bfb5e725f8fec4e37f538b4aa26a20714d18e825d6ad59d",
+    "scope": "Original getGoalFlashcards async card factory made synchronous by replacing its single awaited provider call with an explicit raw response/failure. Original prompt expression and focused rail subtitle are retained. Artifact persistence is native."
   },
   "goalPlanner": {
     "file": "src/utils/learningIntelligence.js",

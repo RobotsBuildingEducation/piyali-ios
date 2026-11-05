@@ -32,21 +32,19 @@ struct FlashcardsView:View {
         if let first=cards.firstIndex(where:{$0["id"].string == firstNewID}),let index=cards.firstIndex(where:{$0["id"] == card["id"]}),index>first{return "locked"}
         return "active"
     }
-    private var due:[JSONValue] {sorted(cards.filter{snapshot($0)["reviewState"].string == "due"})}
-    private var new:[JSONValue] {cards.filter{snapshot($0)["schedulerState"].string == "new"}}
-    private var learning:[JSONValue] {sorted(cards.filter{snapshot($0)["reviewState"].string == "learning"})}
-    private var weak:[JSONValue] {Array(cards.filter{let s=snapshot($0);return s["weak"].boolean}.sorted{weakness($0)>weakness($1)}.prefix(6))}
+    private var due:[JSONValue] {sorted(regularDeck.filter{snapshot($0)["reviewState"].string == "due"})}
+    private var new:[JSONValue] {regularDeck.filter{snapshot($0)["schedulerState"].string == "new"}}
+    private var learning:[JSONValue] {sorted(regularDeck.filter{snapshot($0)["reviewState"].string == "learning"})}
+    private var weak:[JSONValue] {Array(regularDeck.filter{let s=snapshot($0);return s["weak"].boolean}.sorted{weakness($0)>weakness($1)}.prefix(6))}
     private func weakness(_ c:JSONValue)->Double {snapshot(c)["weakness"].number}
-    private var scheduled:[JSONValue] {let ids=Set(weak.map{$0["id"].string});return sorted(cards.filter{snapshot($0)["reviewState"].string == "scheduled" && !ids.contains($0["id"].string)})}
+    private var scheduled:[JSONValue] {let ids=Set(weak.map{$0["id"].string});return sorted(regularDeck.filter{snapshot($0)["reviewState"].string == "scheduled" && !ids.contains($0["id"].string)})}
     private func sorted(_ values:[JSONValue])->[JSONValue] {values.sorted{snapshot($0)["nextReviewDate"].string<snapshot($1)["nextReviewDate"].string}}
     var body:some View {
         ScrollView {
             VStack(alignment:.leading,spacing:32){
-                if let goalBlueprint {GoalFocusBanner(blueprint:goalBlueprint)}
-                else if let repairStep {RepairFocusSummary(step:repairStep)}
                 levelHeader
                 dashboard
-                if focused {rail(title:goalBlueprint != nil ? app.goalText("title"):ProductCopy.course(app.learner.support,"repair"),values:cards){status($0)}}
+                if focused {if !cards.isEmpty{rail(subtitle:focusedSubtitle,title:focusedTitle,values:cards){status($0)}}}
                 else {
                     if !due.isEmpty {rail(title:copy("reviews_due"),values:due){_ in "due"}}
                     if !weak.isEmpty {rail(title:copy("weak_queue"),values:weak){_ in "weak"}}
@@ -55,9 +53,9 @@ struct FlashcardsView:View {
                 }
                 if loading {ProgressView(copy("session_loading")).frame(maxWidth:.infinity).accessibilityIdentifier("flashcardDeckLoading")}
                 if let failure {VStack(spacing:12){Text(failure);Button(EntryCopy.ui(app.learner.support,"try_again")){revision=UUID()}}}
-                if cards.isEmpty,!loading {VStack(spacing:16){Image(systemName:"checkmark").font(.system(size:64)).foregroundStyle(.green);Text(copy("all_done")).font(PiyaliBrand.productFont(24,900));Text(copy("all_completed")).multilineTextAlignment(.center)}.padding(48).frame(maxWidth:.infinity).background(brand.surface,in:RoundedRectangle(cornerRadius:16))}
+                if !focused,cards.isEmpty,!loading {VStack(spacing:16){Image(systemName:"checkmark").font(.system(size:64)).foregroundStyle(.green);Text(copy("all_done")).font(PiyaliBrand.productFont(24,900));Text(copy("all_completed")).multilineTextAlignment(.center)}.padding(48).frame(maxWidth:.infinity).background(brand.surface,in:RoundedRectangle(cornerRadius:16))}
             }.padding(.horizontal,12).padding(.vertical,12).padding(.bottom,24)
-        }.background(BrandBackground()).foregroundStyle(brand.text).navigationTitle(EntryCopy.ui(app.learner.support,"app_mode_cards"))
+        }.background(brand.background).foregroundStyle(brand.text).navigationTitle(EntryCopy.ui(app.learner.support,"app_mode_cards"))
             .task(id:scope+revision.uuidString){await prepare()}
             .onChange(of:app.learner.cardReviews){_,_ in refresh()}
             .onChange(of:app.cards.map(\.id)){_,_ in refresh()}
@@ -65,7 +63,7 @@ struct FlashcardsView:View {
     }
     private var levelHeader:some View {
         let level=app.learner.flashcardLevel,index=LearningLanguages.levels.firstIndex(of:level) ?? 0,details=(try? policy?.run("flashLevels"))?[level] ?? .null,accent=FlashcardPaint(dark:dark).color(details["color"].string)
-        let completed=cards.filter{snapshot($0)["completed"].boolean}.count,percentage=cards.isEmpty ? 0:Int((Double(completed)/Double(cards.count)*100).rounded()),xp=app.learner.xp
+        let completed=regularDeck.filter{snapshot($0)["completed"].boolean}.count,percentage=regularDeck.isEmpty ? 0:Int((Double(completed)/Double(regularDeck.count)*100).rounded()),xp=app.learner.xp
         let subtitle=EntryCopy.ui(app.learner.support,"skill_tree_next_level_progress").replacingOccurrences(of:"{percent}",with:String(xp%100)).replacingOccurrences(of:"{level}",with:String(xp/100+2))
         return VStack(spacing:0){
             VStack(spacing:16){VStack(spacing:0){
@@ -75,7 +73,7 @@ struct FlashcardsView:View {
             }.multilineTextAlignment(.center)
                 HStack(spacing:8){if index>0 {levelButton(LearningLanguages.levels[index-1],previous:true)};if index+1<LearningLanguages.levels.count{levelButton(LearningLanguages.levels[index+1],previous:false)}}
             }.padding(.bottom,24).frame(maxWidth:.infinity)
-            HStack(spacing:12){VStack(alignment:.leading,spacing:0){OnboardingText(text:"\(xp) XP",size:14,weight:.black,lineHeight:14);OnboardingText(text:subtitle,size:12,weight:.medium,lineHeight:18).foregroundStyle(PiyaliBrand.unitColor(dark ? "a3b4c9":"786654"))}.frame(maxWidth:.infinity,alignment:.leading)
+            HStack(spacing:12){VStack(alignment:.leading,spacing:0){OnboardingText(text:app.learner.support == "ar" ? "\u{2067}\(xp) XP\u{2069}":"\(xp) XP",size:14,weight:.black,lineHeight:14);OnboardingText(text:subtitle,size:12,weight:.medium,lineHeight:18).foregroundStyle(PiyaliBrand.unitColor(dark ? "a3b4c9":"786654"))}.frame(maxWidth:.infinity,alignment:.leading)
                 VStack(alignment:.trailing,spacing:4){HStack(spacing:8){OnboardingText(text:level,size:12,weight:.semibold,lineHeight:18);OnboardingText(text:"\(percentage)%",size:12,weight:.bold,lineHeight:18).foregroundStyle(PiyaliBrand.unitColor("90cdf4"))};FocusWaveBar(percent:Double(percentage),height:12,start:"4aa8ff",end:"75f8ff")}.frame(maxWidth:200)
             }.padding(.horizontal,12).padding(.vertical,8).background(FlashcardPaint(dark:dark).color("var(--app-glass-bg-soft)"),in:RoundedRectangle(cornerRadius:8)).overlay{RoundedRectangle(cornerRadius:8).stroke(brand.border)}.frame(maxWidth:600).frame(maxWidth:.infinity).padding(.bottom,16)
         }.padding(.bottom,-32)
@@ -85,14 +83,14 @@ struct FlashcardsView:View {
     }
     private var dashboard:some View {
         let count=policy?.dailyCount(app.learner) ?? 0,target=policy?.dailyTarget(app) ?? 5,progress=Double(count)/Double(max(1,target))*100
-        return VStack(spacing:20){VStack(spacing:12){HStack(spacing:12){stat(copy("reviews_due"),due.count);stat(copy("new_queue"),new.count)};stat(copy("mastered_cards"),cards.filter{snapshot($0)["completed"].boolean}.count)}
-            VStack(spacing:8){HStack{OnboardingText(text:copy("daily_target"),size:14,weight:.bold,lineHeight:21);Spacer();OnboardingText(text:"\(Int(progress.rounded()))%",size:14,lineHeight:21).foregroundStyle(brand.secondary)};FocusWaveBar(percent:progress,height:10,start:"f7d66c",end:"f0b429",background:FlashcardPaint(dark:dark).color("var(--app-surface-muted)"),border:Color(red:240/255,green:180/255,blue:41/255).opacity(0.3))}.padding(17).background(brand.surface,in:RoundedRectangle(cornerRadius:16)).overlay{RoundedRectangle(cornerRadius:16).stroke(brand.border)}
+        return VStack(spacing:20){VStack(spacing:12){HStack(spacing:12){stat(copy("reviews_due"),due.count);stat(copy("new_queue"),new.count)};stat(copy("mastered_cards"),regularDeck.filter{snapshot($0)["completed"].boolean}.count)}
+            VStack(spacing:8){HStack{OnboardingText(text:copy("daily_target"),size:14,weight:.bold,lineHeight:21);Spacer();OnboardingText(text:"\(Int(progress.rounded()))%",size:14,lineHeight:21).foregroundStyle(brand.secondary)};FocusWaveBar(percent:progress,height:10,start:"f7d66c",end:"f0b429",background:FlashcardPaint(dark:dark).color("var(--app-surface-muted)"),border:Color(red:240/255,green:180/255,blue:41/255).opacity(0.3))}.padding(17).background(brand.surface,in:RoundedRectangle(cornerRadius:16)).overlay{RoundedRectangle(cornerRadius:16).stroke(brand.border)}.modifier(FlashcardSurfaceShadow(dark:dark))
         }.padding(21).background{RoundedRectangle(cornerRadius:24).fill(paintSurface).overlay{LinearGradient(stops:[.init(color:Color(red:56/255,green:189/255,blue:248/255).opacity(0.12),location:0),.init(color:Color(red:14/255,green:165/255,blue:233/255).opacity(0.03),location:0.45),.init(color:Color(red:45/255,green:212/255,blue:191/255).opacity(0.12),location:1)],startPoint:.topLeading,endPoint:.bottomTrailing).clipShape(RoundedRectangle(cornerRadius:24))}.shadow(color:dark ? .black.opacity(0.28):Color(red:111/255,green:86/255,blue:54/255).opacity(0.08),radius:9,y:8)}.overlay{RoundedRectangle(cornerRadius:24).stroke(brand.border)}
     }
     private var paintSurface:Color {FlashcardPaint(dark:dark).color("var(--app-surface)")}
-    private func stat(_ title:String,_ count:Int)->some View {VStack(alignment:.leading,spacing:4){OnboardingText(text:title.uppercased(),size:12,lineHeight:18).tracking(0.96).foregroundStyle(brand.muted);OnboardingText(text:String(count),size:24,weight:.black,lineHeight:36)}.frame(maxWidth:.infinity,alignment:.leading).padding(17).background(brand.surface,in:RoundedRectangle(cornerRadius:16)).overlay{RoundedRectangle(cornerRadius:16).stroke(brand.border)}}
-    private func rail(title:String,values:[JSONValue],status:@escaping (JSONValue)->String)->some View {
-        VStack(alignment:.leading,spacing:12){OnboardingText(text:title,size:18,weight:.black,lineHeight:27).padding(.horizontal,4)
+    private func stat(_ title:String,_ count:Int)->some View {VStack(alignment:.leading,spacing:4){OnboardingText(text:title.uppercased(),size:12,lineHeight:18).tracking(0.96).foregroundStyle(brand.muted);OnboardingText(text:String(count),size:24,weight:.black,lineHeight:36)}.frame(maxWidth:.infinity,alignment:.leading).padding(17).background(brand.surface,in:RoundedRectangle(cornerRadius:16)).overlay{RoundedRectangle(cornerRadius:16).stroke(brand.border)}.modifier(FlashcardSurfaceShadow(dark:dark))}
+    private func rail(subtitle:String?=nil,title:String,values:[JSONValue],status:@escaping (JSONValue)->String)->some View {
+        VStack(alignment:.leading,spacing:12){VStack(alignment:.leading,spacing:4){OnboardingText(text:title,size:18,weight:.black,lineHeight:27);if let subtitle{OnboardingText(text:subtitle,size:14,lineHeight:21).foregroundStyle(brand.secondary).accessibilityIdentifier("focusedFlashcardProgress")}}.padding(.horizontal,4)
             ScrollView(.horizontal,showsIndicators:false){HStack(spacing:24){ForEach(values,id:\.json){card in let state=status(card);VStack(spacing:8){cardTile(card,status:state);if ["scheduled","learning","weak"].contains(state),let review=app.learner.cardReviews?[app.learner.completionKey(card["id"].string)],let date=review.nextReviewAt {Text(copy("next_review_label")+"\n"+((try? policy?.run("flashDate",.object(["date":.string(WebProgressContract.iso(date))]),language:app.learner.support).string) ?? "")).font(PiyaliBrand.productFont(14)).foregroundStyle(brand.secondary).multilineTextAlignment(.center).padding(.horizontal,8)}}.frame(width:220)}}.padding(24)}.padding(.bottom,16)
         }
     }
@@ -104,21 +102,26 @@ struct FlashcardsView:View {
             FlashcardTileTexture(visuals:data["visuals"],dark:dark,actionable:actionable)
             if locked {FlashcardIcon(name:"lock",size:80).foregroundStyle(dark ? Color.white:Color(red:96/255,green:77/255,blue:56/255).opacity(0.54)).opacity(dark ? 0.5:0.3)}else if status != "active" {FlashcardIcon(name:"check",size:status == "due" ? 96:120).foregroundStyle(dark ? Color.white:Color(red:96/255,green:77/255,blue:56/255).opacity(0.32)).opacity(dark ? (status == "due" ? 0.16:0.28):0.14)}
             Text(card["concept"][app.learner.support].string.isEmpty ? card["concept"]["en"].string:card["concept"][app.learner.support].string).font(PiyaliBrand.productFont(30,900)).multilineTextAlignment(.center).padding(24).foregroundStyle(paint.color(data["visuals"]["cardTextColor"].string))
-        }.frame(width:220,height:280).clipShape(RoundedRectangle(cornerRadius:48)).overlay{RoundedRectangle(cornerRadius:48).stroke(paint.color(decor["borderColor"].string),lineWidth:2)}.shadow(color:dark ? .black.opacity(0.28):Color(red:122/255,green:94/255,blue:61/255).opacity(actionable ? 0.1:0.08),radius:dark ? 12:7,y:dark ? 8:6).opacity(pow(decor["opacity"].number,2)).saturation(locked ? 0:1)}.buttonStyle(FlashcardTileStyle()).disabled(!actionable).accessibilityIdentifier("flashcardTile-"+card["id"].string)
+        }.frame(width:220,height:280).clipShape(RoundedRectangle(cornerRadius:48)).overlay{RoundedRectangle(cornerRadius:48).stroke(paint.color(decor["borderColor"].string),lineWidth:2)}.modifier(FlashcardTileGlow(dark:dark,actionable:actionable,visuals:data["visuals"])).opacity(pow(decor["opacity"].number,2)).saturation(locked ? 0:1)}.buttonStyle(FlashcardTileStyle()).disabled(!actionable).accessibilityIdentifier("flashcardTile-"+card["id"].string)
     }
-    private var focusedArtifact:JSONValue {if let goalBlueprint{return app.goalArtifact(goalBlueprint,mode:"flashcards")};if let repairStep{return app.learner.repairArtifact(repairStep,mode:"flashcards")};return .null}
+    private var focusedTitle:String {(try? app.companionQuestPolicy?.run("focusedDeckTitle",.object(["goal":.bool(goalBlueprint != nil),"language":.string(app.learner.support)])).string) ?? ""}
+    private var focusedSubtitle:String? {
+        guard focused,let engine=app.companionQuestPolicy else{return nil}
+        let answered=cards.filter{focusedArtifact["outcomes"][$0["id"].string]["success"].boolean}.count
+        return try? engine.run("focusedDeckSubtitle",.object(["answered":.number(Double(answered)),"cards":.array(cards),"language":.string(app.learner.support)])).string
+    }
+    private var focusedArtifact:JSONValue {if let goalBlueprint{return app.learner.displayedGoalArtifact(goalBlueprint,mode:"flashcards")};if let repairStep{return app.learner.displayedRepairArtifact(repairStep,mode:"flashcards")};return .null}
     private func refresh(){
-        if !focused {regularDeck=app.cards.compactMap{try? JSONDecoder().decode(JSONValue.self,from:JSONEncoder().encode($0))}}
+        regularDeck=app.cards.compactMap{try? JSONDecoder().decode(JSONValue.self,from:JSONEncoder().encode($0))}
         var values:[String:JSONValue]=[:]
-        for card in cards {
+        for card in regularDeck {
             let id=card["id"].string
-            if focused {let done=focusedArtifact["outcomes"][id]["success"].boolean;values[id] = .object(["completed":.bool(done),"schedulerState":.string(done ? "review":"new"),"reviewState":.string(done ? "scheduled":"new")])}
-            else {var progress=app.learner.cardReviews?[app.learner.completionKey(id)] ?? FlashcardReview();if app.learner.cardReviews?[app.learner.completionKey(id)] == nil,app.learner.flashcardMastery.contains(app.learner.completionKey(id)){progress.completed=true;progress.schedulerState = .review;progress.intervalDays=1}
-                let snapshot=policy?.snapshot(progress) ?? .null,weak=(try? policy?.run("flashWeak",.object(["snapshot":snapshot]))) ?? .null
-                values[id]=snapshot.setting("weak",weak["weak"]).setting("weakness",weak["score"])
-            }
+            var progress=app.learner.cardReviews?[app.learner.completionKey(id)] ?? FlashcardReview();if app.learner.cardReviews?[app.learner.completionKey(id)] == nil,app.learner.flashcardMastery.contains(app.learner.completionKey(id)){progress.completed=true;progress.schedulerState = .review;progress.intervalDays=1}
+            let snapshot=policy?.snapshot(progress) ?? .null,weak=(try? policy?.run("flashWeak",.object(["snapshot":snapshot]))) ?? .null
+            values[id]=snapshot.setting("weak",weak["weak"]).setting("weakness",weak["score"])
         }
-        snapshots=values;firstNewID=cards.first{values[$0["id"].string]?["schedulerState"].string == "new"}?["id"].string
+        if focused {for card in cards{let id=card["id"].string,done=focusedArtifact["outcomes"][id]["success"].boolean;values[id] = .object(["completed":.bool(done),"schedulerState":.string(done ? "review":"new"),"reviewState":.string(done ? "scheduled":"new")])}}
+        snapshots=values;firstNewID=regularDeck.first{values[$0["id"].string]?["schedulerState"].string == "new"}?["id"].string
     }
     private func prepare()async {
         let scope=self.scope;loading=true;failure=nil

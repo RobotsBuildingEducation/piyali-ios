@@ -856,11 +856,16 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
         state = try requireState(try await service.save(state,npub:npub))
         let payload = blueprint.setting("mode",.string("flashcards")).setting("cardID",card["id"]).setting("success",.bool(true)).setting("support",.string("prompted")).setting("item",.string("soupe"))
         state.applyGoal(GoalChange(action:.outcome,target:state.target,payload:payload))
+        XCTAssertFalse(state.displayedGoalArtifact(blueprint,mode:"flashcards")["outcomes"]["goal-card"]["success"].boolean)
         let sent = state
         state = try requireState(try await service.save(state,npub:npub)); _ = try await service.save(sent,npub:npub)
         XCTAssertEqual(state.xp,102)
         let key = GoalPractice.artifactKey(target:"fr",day:day,mode:"flashcards",goalID:blueprint["goalId"].string)
         XCTAssertTrue(state.goalArtifacts?[key]?["outcomes"]["goal-card"]["success"].boolean == true)
+        XCTAssertTrue(state.displayedGoalArtifact(blueprint,mode:"flashcards")["outcomes"]["goal-card"]["success"].boolean)
+        let profile=try await db.collection("users").document(npub).getDocument(source:.server).data() ?? [:]
+        let privateSnapshot=try JSONDecoder().decode(LearnerState.self,from:Data(try XCTUnwrap(profile["iosStateJSON"] as? String).utf8))
+        XCTAssertNil(privateSnapshot.confirmedFocusedOutcomes)
         XCTAssertFalse(state.dailyGoalTask?["completed"].boolean == true)
         let artifact = try await db.collection("users").document(npub).collection("questDays").document("fr_" + day).getDocument().data() ?? [:]
         XCTAssertEqual((artifact["practice_flashcards_goal"] as? [String:Any])?["ownerKey"] as? String,key)

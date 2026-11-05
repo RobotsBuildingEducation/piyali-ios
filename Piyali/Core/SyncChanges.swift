@@ -94,6 +94,7 @@ public extension LearnerState {
     // Merge a completed sync without losing practice performed while the network request was in flight.
     static func rebased(current: LearnerState, sent: LearnerState, acknowledged: LearnerState) -> LearnerState {
         var merged = current
+        merged.confirmFocusedArtifacts(from:acknowledged)
         let sentRepair=Set((sent.pendingRepairEvidence ?? []).map(\.id))
         merged.pendingRepairEvidence=(current.pendingRepairEvidence ?? []).filter{!sentRepair.contains($0.id)}
         let pendingQuest=(current.pendingCompanionQuestDays ?? [:]).filter {sent.pendingCompanionQuestDays?[$0.key] != $0.value}

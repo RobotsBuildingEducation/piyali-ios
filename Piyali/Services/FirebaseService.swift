@@ -252,7 +252,7 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                 // Historical months are canonical; the activity fallback stays on this device.
                 merged.xpActivity=nil
                 // Companion memory has its own shared web document, not a second snapshot authority.
-                merged.shareNostrAchievements = nil; merged.achievementRecords = nil; merged.achievementEvidence = nil; merged.achievementLedger = nil; merged.companionProgress = nil; merged.companionMemory = nil; merged.pendingMemoryChanges = []; merged.userSettings=nil;merged.pendingSettingsChanges=[]; merged.goalIntelligence = nil; merged.goalArtifacts = nil; merged.pendingGoalChanges = []; merged.questProgress = nil; merged.journeyQuestCounts = nil; merged.tutorLessons = nil; merged.acknowledgedEventIDs = nil
+                merged.shareNostrAchievements = nil; merged.achievementRecords = nil; merged.achievementEvidence = nil; merged.achievementLedger = nil; merged.companionProgress = nil; merged.companionMemory = nil; merged.pendingMemoryChanges = []; merged.userSettings=nil;merged.pendingSettingsChanges=[]; merged.goalIntelligence = nil; merged.goalArtifacts = nil; merged.confirmedFocusedOutcomes=nil; merged.pendingGoalChanges = []; merged.questProgress = nil; merged.journeyQuestCounts = nil; merged.tutorLessons = nil; merged.acknowledgedEventIDs = nil
                 var patch: [String:Any] = ["local_npub":npub,"iosStateJSON":String(decoding:try JSONEncoder().encode(merged),as:UTF8.self),"iosStateVersion":2,"iosUpdatedAt":FieldValue.serverTimestamp()]
                 // The shared field is the sole headline authority. Merge only
                 // dirty language entries, retaining the web's last-write
@@ -291,7 +291,7 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
         if !(state.pendingImmersionChanges ?? []).isEmpty || (state.pendingChanges ?? []).contains(where:{ $0.conversationGoalID != nil }) { try await AchievementSyncService.shared.refreshLedger(user:user) }
         try await AchievementSyncService.shared.sync(user:user,changes:state.pendingChanges ?? [])
         var acknowledged=try await load(npub:npub,local:uploaded)
-        for (key,value) in savedQuestDays {if acknowledged?.companionQuestDays == nil {acknowledged?.companionQuestDays=[:]};acknowledged?.companionQuestDays?[key]=value}
+        for (key,value) in savedQuestDays {if acknowledged?.companionQuestDays == nil {acknowledged?.companionQuestDays=[:]};acknowledged?.companionQuestDays?[key]=value;acknowledged?.confirmFocusedArtifacts(in:value)}
         return acknowledged
     }
     private func applyGoal(_ change: GoalChange, state: LearnerState, user: DocumentReference, database: Firestore) async throws {

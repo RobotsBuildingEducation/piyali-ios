@@ -1373,7 +1373,10 @@ const REPAIR_COPY = {
     hi: "नोट्स में सहेजा गया",
   },
 };
-return {buildQuestBubble,memoryCopy,normalizeSupportLanguage,DEFAULT_SUPPORT_LANGUAGE,getGermanCopy,BUBBLE_CLEARED,BUBBLE_WELCOME,BUBBLE_WELCOME_GOAL,BUBBLE_LEAD_REPAIR,BUBBLE_LEAD_REPAIR_MULTI,BUBBLE_LEAD_FRESH,fill,BUBBLE_PLAN_LABEL,REPAIR_COPY,companionMemorySummary,SAVED_FOR_TOMORROW};})();
+function repairCopy(lang, key) {
+  return memoryCopy(lang, REPAIR_COPY[key] || { en: "" });
+}
+return {buildQuestBubble,memoryCopy,normalizeSupportLanguage,DEFAULT_SUPPORT_LANGUAGE,getGermanCopy,BUBBLE_CLEARED,BUBBLE_WELCOME,BUBBLE_WELCOME_GOAL,BUBBLE_LEAD_REPAIR,BUBBLE_LEAD_REPAIR_MULTI,BUBBLE_LEAD_FRESH,fill,BUBBLE_PLAN_LABEL,REPAIR_COPY,companionMemorySummary,SAVED_FOR_TOMORROW,repairCopy};})();
 // src/utils/cefrUtils.js
 const M9=(function(){
 
@@ -2704,11 +2707,12 @@ function assembleAiBlueprint({
 }
 return {getTodaysCapturedNotes,getCompanionDayKey,getLocalDayKey,getCompanionNotes,readBucket,normalizePlateLang,getReusableMemory,getYesterdayKey,DAY_MS,MEMORY_STATUS,rankReusableNotes,REPAIR_MAX_ITEMS,normalizeConceptKey,buildRepairPlan,repairItemsFromNotes,repairModeForError,ERROR_TYPE_TO_REPAIR_MODE,getStoredRepairPlan,getStoredQuestExplanation,getStoredBlueprint,shouldRunDailyBatch,questDayDocumentId,BLUEPRINT_STALE_MS,buildDeterministicBlueprint,buildQuestBubble,appendGoalToMessage,GOAL_MESSAGE_SUFFIX,buildBatchInput,langName,getLanguagePromptName,BATCH_LANG_NAMES,displayCEFRLevel,normalizeCEFRLevel,repairLessonLevelGuard,repairSummaryFor,useUserStore,REPAIR_MODES,parseBlueprintJson,assembleAiBlueprint,normalizeRepairMode,getRepairSteps,REPAIR_STEP_FALLBACK_MODES,getNextRepairStep,buildEphemeralRepairLesson,performanceContextFor,isFoundationCEFRLevel,REPAIR_LESSON_MODES,REPAIR_COPY,generationPerformanceContextFor,buildRepairCard,generateRepairDeckEntries};})();
 // src/data/phonics/index.js
-const M14=(function(){
+const M15=(function(){
 
 const PHONICS_LEVELS = Object.freeze(['Pre-A1', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2']);
 const PHONICS_SUPPORTS = Object.freeze(['en', 'es', 'pt', 'it', 'fr', 'de', 'ja', 'hi', 'ar', 'zh']);
 const PHONICS_TARGETS=Object.freeze(["en","es","pt","it","fr","de","ja","hi","ar","zh","ru","nl","el","pl","ga","nah","yua"]);
+const PHONICS_VERSION = 'authored-v1';
 function initialPhonicsLevel({ placementLevel, cefrLevel } = {}) {
   return PHONICS_LEVELS.includes(placementLevel) ? placementLevel
     : PHONICS_LEVELS.includes(cefrLevel) ? cefrLevel : 'Pre-A1';
@@ -2754,9 +2758,25 @@ const PHONICS_CONTROLS = Object.freeze({
   ar: { level: 'مستوى التدريب', next: 'المستوى التالي', repeat: 'تدرب مرة أخرى', complete: 'اكتملت هذه المجموعة.', subhead: 'تدرب على الأصوات والنبر والإيقاع في مستواك.' },
   zh: { level: '练习级别', next: '下一级', repeat: '再次练习', complete: '本组已完成。', subhead: '按你的级别练习发音、重音和节奏。' },
 });
-return {getAuthoredPhonicsFocusCards,initialPhonicsLevel,PHONICS_LEVELS,getAuthoredPhonicsDeck,PHONICS_CONTROLS,partitionPhonicsProgress,PHONICS_TARGETS,PHONICS_SUPPORTS};})();
+return {PHONICS_VERSION,getAuthoredPhonicsFocusCards,initialPhonicsLevel,PHONICS_LEVELS,getAuthoredPhonicsDeck,PHONICS_CONTROLS,partitionPhonicsProgress,PHONICS_TARGETS,PHONICS_SUPPORTS};})();
+// src/utils/focusedPracticeDecks.js
+const M14=(function(){
+const PHONICS_VERSION=M15.PHONICS_VERSION;
+const getLocalDayKey=M3.getLocalDayKey;
+function goalPromptData(blueprint) {
+  const data = { ...blueprint };
+  delete data.scoreAtGeneration;
+  return data;
+}
+function practiceArtifactKey(focus, mode) {
+  if (mode === "phonics") mode = `phonics-${PHONICS_VERSION}`;
+  return `${focus.targetLang}_${
+    focus.blueprint?.dayKey || focus.plan?.dayKey || getLocalDayKey(new Date())
+  }_${mode}_${focus.blueprint?.goalId || `repair-s${focus.stepIndex || 0}`}`;
+}
+return {goalPromptData,practiceArtifactKey,PHONICS_VERSION,getLocalDayKey};})();
 // src/utils/lessonProgress.js
-const M15=(function(){
+const M16=(function(){
 
 function getLessonEarnedXp(lessonProgress) {
   const earnedXp = Number(lessonProgress?.earnedXp);
@@ -2820,7 +2840,7 @@ function isGoalLessonReady(bucket, lesson) {
 }
 return {getGoalPreparationXp,getLessonEarnedXp,nextGoalPreparationXp,isGoalLessonReady,hasCompletedLessonXp};})();
 // src/utils/learningGoalCopy.js
-const M16=(function(){
+const M17=(function(){
 
 const rows = {
   en: [
@@ -3016,18 +3036,18 @@ function goalLessonCompletionCopy(lang = "en") {
 }
 return {goalCopy,keys,rows,goalLessonCompletionCopy,completionRows};})();
 // src/theme.js
-const M24=(function(){
+const M25=(function(){
 
 const APP_CARD_RADIUS = "72px";
 const APP_SQUIRCLE_SHAPE = "superellipse(2)";
 return {APP_CARD_RADIUS,APP_SQUIRCLE_SHAPE};})();
 // src/components/FlashcardPractice.jsx
-const M17=(function(){
+const M18=(function(){
 const translations=new Proxy({}, {get:(_,key)=>snapshotTranslations[key]});
 const FLASHCARD_REVIEW_STATES=M3.FLASHCARD_REVIEW_STATES;
 const normalizeSupportLanguage=M6.normalizeSupportLanguage;
-const APP_CARD_RADIUS=M24.APP_CARD_RADIUS;
-const APP_SQUIRCLE_SHAPE=M24.APP_SQUIRCLE_SHAPE;
+const APP_CARD_RADIUS=M25.APP_CARD_RADIUS;
+const APP_SQUIRCLE_SHAPE=M25.APP_SQUIRCLE_SHAPE;
 const APP_SURFACE = "var(--app-surface)";
 const APP_SURFACE_ELEVATED = "var(--app-surface-elevated)";
 const APP_SURFACE_MUTED = "var(--app-surface-muted)";
@@ -3161,7 +3181,7 @@ function getFlashcardModalTrimTheme(card, cefrColor, isLightTheme) {
 }
 return {buildFlashcardJudgePrompt,LANG_NAME,getAppLanguage,translations,getFlashcardModalTrimTheme,FLASHCARD_REVIEW_STATES,APP_BORDER,getTranslation,getEffectiveCardLanguage,normalizeSupportLanguage,APP_CARD_RADIUS,APP_SQUIRCLE_SHAPE,APP_SURFACE,APP_SURFACE_ELEVATED,APP_SURFACE_MUTED,APP_BORDER_STRONG,APP_TEXT_PRIMARY,APP_TEXT_SECONDARY,APP_TEXT_MUTED,APP_SHADOW};})();
 // src/components/FlashcardSkillTree.jsx
-const M18=(function(){
+const M19=(function(){
 const FLASHCARD_REVIEW_STATES=M3.FLASHCARD_REVIEW_STATES;
 const getLocalDayKey=M3.getLocalDayKey;
 const APP_SURFACE_ELEVATED = "var(--app-surface-elevated)";
@@ -3308,7 +3328,7 @@ function isWeakCardSnapshot(snapshot) {
 }
 return {getCardDecor,APP_SURFACE_ELEVATED,APP_BORDER,getWeaknessScore,FLASHCARD_REVIEW_STATES,isWeakCardSnapshot,buildFallbackActivityMap,getLocalDayKey,APP_TEXT_PRIMARY};})();
 // src/hooks/useSpeechPractice.js
-const M19=(function(){
+const M20=(function(){
 
 const BCP47_TO_WHISPER = {
   ar: "ar",
@@ -3374,12 +3394,12 @@ function buildRealtimeSpeechSession({
 }
 return {buildRealtimeSpeechSession,BCP47_TO_WHISPER};})();
 // src/utils/noteGeneration.js
-const M20=(function(){
+const M21=(function(){
 const getLanguagePromptName=M6.getLanguagePromptName;
 const LANG_NAME = (code) => getLanguagePromptName(code) || code;
 return {LANG_NAME,getLanguagePromptName};})();
 // src/utils/cefrLevelInfo.js
-const M23=(function(){
+const M24=(function(){
 
 const CEFR_LEVEL_INFO = Object.freeze({
   "Pre-A1": {
@@ -3609,7 +3629,7 @@ const CEFR_LEVEL_INFO = Object.freeze({
 });
 return {CEFR_LEVEL_INFO};})();
 // src/utils/flashcardActivity.js
-const M21=(function(){
+const M22=(function(){
 
 function mergeFlashcardActivityCounts(...maps) {
   const merged = {};
@@ -3629,7 +3649,7 @@ function getFlashcardReviewPreviewCount(savedCount, countBeforeAnswer = null) {
 }
 return {mergeFlashcardActivityCounts,getFlashcardReviewPreviewCount};})();
 // src/utils/dailyQuestTargets.js
-const M22=(function(){
+const M23=(function(){
 
 function hashString(value) {
   const text = String(value || "");
@@ -3680,10 +3700,10 @@ function getFlashcardDailyTarget({
 }
 return {getFlashcardDailyTarget,FLASHCARD_RANDOM_DAILY_TARGET_MAX,FLASHCARD_RANDOM_DAILY_TARGET_MIN,hashString};})();
 // src/utils/supplementalPhonics.js
-const M27=(function(){
-const PHONICS_TARGETS=M14.PHONICS_TARGETS;
-const PHONICS_SUPPORTS=M14.PHONICS_SUPPORTS;
-const PHONICS_LEVELS=M14.PHONICS_LEVELS;
+const M28=(function(){
+const PHONICS_TARGETS=M15.PHONICS_TARGETS;
+const PHONICS_SUPPORTS=M15.PHONICS_SUPPORTS;
+const PHONICS_LEVELS=M15.PHONICS_LEVELS;
 const SUPPLEMENTAL_PHONICS_VERSION = 'phonics-extra-v1';
 const SUPPLEMENTAL_DECK_SIZE = 6;
 const scripts = { hi: /[\u0900-\u097f]/u, ar: /[\u0600-\u06ff]/u, ja: /[\u3040-\u30ff\u3400-\u9fff]/u, zh: /[\u3400-\u9fff]/u, ru: /[\u0400-\u04ff]/u, el: /[\u0370-\u03ff]/u };
@@ -3767,10 +3787,10 @@ function supplementalPhonicsEvents(target, records) {
 }
 return {SUPPLEMENTAL_PHONICS_VERSION,buildSupplementalPhonicsDeck,PHONICS_TARGETS,PHONICS_SUPPORTS,PHONICS_LEVELS,SUPPLEMENTAL_DECK_SIZE,wordKey,clean,usesScript,scripts,supplementalPhonicsRecord,restoreSupplementalPhonics,supplementalPhonicsEvents};})();
 // src/components/AlphabetBootcamp.jsx
-const M25=(function(){
+const M26=(function(){
 const normalizeSupportLanguage=M6.normalizeSupportLanguage;
 const DEFAULT_SUPPORT_LANGUAGE=M6.DEFAULT_SUPPORT_LANGUAGE;
-const PHONICS_CONTROLS=M14.PHONICS_CONTROLS;
+const PHONICS_CONTROLS=M15.PHONICS_CONTROLS;
 const PHONICS_TARGET_NAMES={
   en: { en:'English', es:'Spanish', pt:'Brazilian Portuguese', it:'Italian', fr:'French', de:'German', ja:'Japanese', ru:'Russian', nl:'Dutch', el:'Greek', pl:'Polish', ga:'Irish', nah:'Eastern Huasteca Nahuatl', yua:'Yucatec Maya', ar:'Egyptian Arabic', hi:'Hindi', zh:'Mandarin Chinese' },
   es: { en:'Inglés', es:'Español', pt:'Portugués brasileño', it:'Italiano', fr:'Francés', de:'Alemán', ja:'Japonés', ru:'Ruso', nl:'Neerlandés', el:'Griego', pl:'Polaco', ga:'Irlandés', nah:'Náhuatl huasteco oriental', yua:'Maya yucateco', ar:'Árabe egipcio', hi:'Hindi', zh:'Chino mandarín' },
@@ -3783,7 +3803,7 @@ const PHONICS_TARGET_NAMES={
   ar: { en:'الإنجليزية', es:'الإسبانية', pt:'البرتغالية البرازيلية', it:'الإيطالية', fr:'الفرنسية', de:'الألمانية', ja:'اليابانية', ru:'الروسية', nl:'الهولندية', el:'اليونانية', pl:'البولندية', ga:'الأيرلندية', nah:'ناواتل هواستيكا الشرقية', yua:'المايا اليوكاتيكية', ar:'العربية المصرية', hi:'الهندية', zh:'الصينية المندرينية' },
   zh: { en:'英语', es:'西班牙语', pt:'巴西葡萄牙语', it:'意大利语', fr:'法语', de:'德语', ja:'日语', ru:'俄语', nl:'荷兰语', el:'希腊语', pl:'波兰语', ga:'爱尔兰语', nah:'东部瓦斯特卡纳瓦特尔语', yua:'尤卡坦玛雅语', ar:'埃及阿拉伯语', hi:'印地语', zh:'汉语（普通话）' },
 };
-const SUPPLEMENTAL_PHONICS_VERSION=M27.SUPPLEMENTAL_PHONICS_VERSION;
+const SUPPLEMENTAL_PHONICS_VERSION=M28.SUPPLEMENTAL_PHONICS_VERSION;
 const LANGUAGE_PROMPT_LABELS=M6.LANGUAGE_PROMPT_LABELS;
 const ALPHABET_UI_TEXT = {
   en: {
@@ -4313,8 +4333,8 @@ const getHighlightedWordParts = (word, marker) => {
 };
 return {uiText,normalizeSupportLanguage,DEFAULT_SUPPORT_LANGUAGE,ALPHABET_UI_TEXT,PHONICS_EXTRA_UI_TEXT,PHONICS_CONTROLS,getLanguageName,PHONICS_TARGET_NAMES,getLetterName,getLocalizedLetterField,SUPPLEMENTAL_PHONICS_VERSION,LOCALIZED_FIELD_SUFFIX,getMeaningText,normalizeMeaning,getLetterSound,getLetterTip,getPracticeLetterMarker,getHighlightedWordParts,buildAlphabetJudgePrompt,LANGUAGE_PROMPT_LABELS};})();
 // src/utils/phonicsCourseProgress.js
-const M28=(function(){
-const PHONICS_LEVELS=M14.PHONICS_LEVELS;
+const M29=(function(){
+const PHONICS_LEVELS=M15.PHONICS_LEVELS;
 function getPhonicsCourseProgress({ cards = [], counts = {}, placementLevel, courseLevel } = {}) {
   const entryIndex = Math.max(0, PHONICS_LEVELS.indexOf(placementLevel), PHONICS_LEVELS.indexOf(courseLevel));
   const levels = Object.fromEntries(PHONICS_LEVELS.map(level => {
@@ -4340,7 +4360,7 @@ function resolvePhonicsLevel(selectedLevel, unlockedLevel, masterUnlocked = fals
 }
 return {getPhonicsCourseProgress,PHONICS_LEVELS,canAccessPhonicsLevel,resolvePhonicsLevel};})();
 // src/utils/tts.js
-const M29=(function(){
+const M30=(function(){
 
 const DEFAULT_TTS_VOICE = "ash";
 const TTS_LANG_TAG = {
@@ -4396,12 +4416,70 @@ function parseRepairEntries(raw){  const text = String(raw || "");
     return null;
   }
 }
-function flashRun(op,p,now){const f=M17,r=M3,t=M18,c=M13,isLightTheme=p.light!==false,isCorrect=Boolean(p.correct),assessmentMode=p.assessment||'ai',getTranslation=f.getTranslation,cefrColor=c.CEFR_COLORS[p.level||'Pre-A1'];
-if(op==='flashPreview')return M21.getFlashcardReviewPreviewCount(p.saved,p.base);
-if(op==='flashActivity')return M21.mergeFlashcardActivityCounts(p.saved,t.buildFallbackActivityMap(p.reviews));
-if(op==='flashTarget')return M22.getFlashcardDailyTarget(p);
-if(op==='flashLevels')return M23.CEFR_LEVEL_INFO;
-if(op==='flashNotePrompt'){const {concept,userAnswer,wasCorrect,targetLang,supportLang,cefrLevel,moduleType}=p,LANG_NAME=M20.LANG_NAME;
+function goalDeckPrompt(p){const focus=p.focus,blueprint=focus.blueprint,goalPromptData=M14.goalPromptData,generationPerformanceContextFor=M0.generationPerformanceContextFor,useUserStore={getState:()=>({user:p.user||{}})};return `Generate exactly 3 recall cards preparing this goal: ${JSON.stringify(
+          goalPromptData(blueprint),
+        )}. Live internal Elo, curriculum CEFR and performance memory: ${JSON.stringify(generationPerformanceContextFor(useUserStore.getState().user, focus.targetLang))}. Adapt recall challenge and support to this evidence. Needed language may exceed CEFR with simple cues in ${
+          focus.supportLang
+        }. Return only JSON array [{target:"answer in ${
+          focus.targetLang
+        }",support:"cue in ${focus.supportLang}"}].`;}
+function goalDeckCards(p){const focus=p.focus,readDeckResponse=()=>{if(p.providerFailed)throw Error('Explicit provider failure');return p.raw};return (() => {
+  const blueprint = focus.blueprint;
+  let entries = blueprint.targetLanguage.map(target => ({
+    target,
+    support: blueprint.objective
+  }));
+  try {
+    const raw = readDeckResponse();
+    const parsed = JSON.parse(String(raw).slice(String(raw).indexOf("["), String(raw).lastIndexOf("]") + 1));
+    if (Array.isArray(parsed) && parsed.some(e => e?.target && e?.support)) entries = parsed.filter(e => e?.target && e?.support);
+  } catch {
+    /* blueprint chunks remain usable */
+  }
+  const floor = entries.length ? entries : (blueprint.targetLanguage.length ? blueprint.targetLanguage : [blueprint.goalText || blueprint.objective]).map(target => ({
+    target,
+    support: blueprint.objective
+  }));
+  const selected = Array.from({
+    length: 3
+  }, (_, index) => ({
+    ...floor[index % floor.length],
+    support: index < floor.length ? floor[index].support : `${floor[index % floor.length].support} (${index + 1})`
+  }));
+  return selected.map((entry, i) => ({
+    id: `goal-${blueprint.goalId}-${blueprint.dayKey}-c${i}`,
+    isGoal: true,
+    category: "goal",
+    type: "phrase",
+    cefrLevel: blueprint.cefrLevel,
+    concept: {
+      [focus.supportLang]: String(entry.support).slice(0, 180),
+      [focus.targetLang]: String(entry.target).slice(0, 180)
+    }
+  }));
+})();}
+function focusedRecallEvent(p){const focus=p.focus,card=p.card,success=p.success,targetLang=focus.targetLang;return {
+          id: `recall:${card.id}:${success}`, goalId: focus.blueprint.goalId, target: card.concept?.[targetLang] || focus.blueprint.objective,
+          mode: "flashcards", domain: "recall", support: "prompted", success, observation: `${success ? "Correct" : "Unsuccessful"} recall; not independent production`, expectedAnswer: card.concept?.[targetLang] || "",
+        };}
+function focusedRecallCompletion(p){const activePracticeFocus=p.focus,repairDeck=p.cards,targetLang=p.focus.targetLang,onceKey=M14.practiceArtifactKey(p.focus,'flashcards');return {
+      id: `flashcards:${onceKey}`,
+      success: true,
+      support: "prompted",
+      domain: "recall",
+      observation: `Completed three goal-specific recall cards: ${repairDeck
+        .map((card) => card.concept?.[targetLang])
+        .filter(Boolean)
+        .join("; ")}`,
+    };}
+function focusedDeckTitle(p){const activePracticeFocus={blueprint:p.goal},appLanguage=p.language||'en',goalCopy=M17.goalCopy,repairCopy=M1.repairCopy;return activePracticeFocus?.blueprint ? goalCopy(appLanguage).title : repairCopy(appLanguage, "title");}
+function focusedDeckSubtitle(p){const repairAnsweredCount=p.answered||0,repairDeck=p.cards||[],appLanguage=p.language||'en',repairCopy=M1.repairCopy;return `${Math.min(repairAnsweredCount, repairDeck.length)}/${repairDeck.length} · ${repairCopy(appLanguage, "intro")}`;}
+function flashRun(op,p,now){const f=M18,r=M3,t=M19,c=M13,isLightTheme=p.light!==false,isCorrect=Boolean(p.correct),assessmentMode=p.assessment||'ai',getTranslation=f.getTranslation,cefrColor=c.CEFR_COLORS[p.level||'Pre-A1'];
+if(op==='flashPreview')return M22.getFlashcardReviewPreviewCount(p.saved,p.base);
+if(op==='flashActivity')return M22.mergeFlashcardActivityCounts(p.saved,t.buildFallbackActivityMap(p.reviews));
+if(op==='flashTarget')return M23.getFlashcardDailyTarget(p);
+if(op==='flashLevels')return M24.CEFR_LEVEL_INFO;
+if(op==='flashNotePrompt'){const {concept,userAnswer,wasCorrect,targetLang,supportLang,cefrLevel,moduleType}=p,LANG_NAME=M21.LANG_NAME;
   const targetLangName = LANG_NAME(targetLang);
   const supportLangName = LANG_NAME(supportLang);
 
@@ -4452,7 +4530,7 @@ if(op==='flashNoteParse'){const response=p.raw,concept=p.concept,cefrLevel=p.cef
       summary: `Keep practicing this ${cefrLevel} level concept.`,
     };
 }}
-if(op==='flashSpeech')return M19.buildRealtimeSpeechSession(p);
+if(op==='flashSpeech')return M20.buildRealtimeSpeechSession(p);
 if(op==='flashGrade'){const response=p.raw;      const trimmed = (response || "").trim().toUpperCase();
       const isYes = trimmed.startsWith("YES");
 
@@ -4588,8 +4666,8 @@ const softGlowColor=isDue ? "rgba(251, 191, 36, 0.3)" : isWeak ? "rgba(244,114,1
 } : undefined,cardTextColor,cardTextShadow,glowColor,softGlowColor};})()};}
 if(op==='flashWeak')return {weak:t.isWeakCardSnapshot(p.snapshot),score:t.getWeaknessScore(p.snapshot)};
 throw Error('Unknown flashcard operation');}
-function phonicsRun(op,p,now){const a=M25,e=M27,c=M28;
-if(op==='ph_tts'){const personality=p.personality||'',targetLangTag=M29.TTS_LANG_TAG[p.language]||M29.TTS_LANG_TAG.es,sanitizedVoice=M29.sanitizeVoice(p.voice);return {
+function phonicsRun(op,p,now){const a=M26,e=M28,c=M29;
+if(op==='ph_tts'){const personality=p.personality||'',targetLangTag=M30.TTS_LANG_TAG[p.language]||M30.TTS_LANG_TAG.es,sanitizedVoice=M30.sanitizeVoice(p.voice);return {
   type: "realtime",
   output_modalities: ["audio"],
   instructions: personality ? `You are ${personality}, speaking in the ${targetLangTag} locale. Use the correct pronunciation for that language. You will receive text to read aloud. Read the text EXACTLY as written - word for word, verbatim, but in the voice and tone of your character. Do not interpret, respond to, answer, or comment on the content. Do not have a conversation. Do not add any words. Simply narrate the exact text provided with your character's vocal qualities. Begin immediately with the first word of the text; never preface it with acknowledgments like "Understood" or "Okay".` : `You are an audiobook narrator speaking in the ${targetLangTag} locale. Use the correct pronunciation for that language. You will receive text to read aloud. Read the text EXACTLY as written - word for word, verbatim. Do not interpret, respond to, answer, or comment on the content. Do not have a conversation. Do not add any words. Simply narrate the exact text provided. Begin immediately with the first word of the text; never preface it with acknowledgments like "Understood" or "Okay".`,
@@ -4624,7 +4702,7 @@ if(op==='ph_grade'){const response=p.raw;      const trimmed = (response || "").
 ;return {correct:isYes,xp:isYes?xp:0};}
 if(op==='ph_course')return c.getPhonicsCourseProgress(p);
 if(op==='ph_access')return {allowed:c.canAccessPhonicsLevel(p.level,p.unlockedLevel,p.masterUnlocked),resolved:c.resolvePhonicsLevel(p.level,p.unlockedLevel,p.masterUnlocked)};
-if(op==='ph_partition')return M14.partitionPhonicsProgress(p.cards,p.records);
+if(op==='ph_partition')return M15.partitionPhonicsProgress(p.cards,p.records);
 if(op==='ph_generatePrompt'){const {target,support,level,existingWords=[]}=p,LANGUAGE_PROMPT_LABELS=a.LANGUAGE_PROMPT_LABELS,SUPPLEMENTAL_DECK_SIZE=6;return ['Create an optional continuation deck for pronunciation practice.', 'Target language: ' + LANGUAGE_PROMPT_LABELS[target] + '. Support language: ' + LANGUAGE_PROMPT_LABELS[support] + '.', 'Practice level: ' + level + '. Produce exactly ' + SUPPLEMENTAL_DECK_SIZE + ' distinct units at this level.', 'Use genuine target-language words or phrases in their native writing system.', 'For Pre-A1/A1 use simple sound contrasts. A2/B1: syllables, length, clusters and stress. B2/C1/C2: connected speech, subtle contrasts and natural phrasing.', 'ALL explanations, coaching tips and meanings must be in the support language. Do not use English comparisons when English is not the support language.', 'Avoid all of these previously practiced words/phrases: ' + JSON.stringify(existingWords.slice(-1000)), 'Return ONLY a JSON array. Each object has these required string fields:', '{"grapheme":"target sound or spelling","exampleWord":"target word or phrase","sound":"localized explanation","tip":"localized coaching","meaning":"localized meaning"}', 'Do not claim that transcription can measure tone, stress or pitch. Do not include markdown, HTML or alternative English fields.'].join('\n');}
 if(op==='ph_generateParse'){const {raw,target,support,level,existingWords=[],batchId}=p,buildSupplementalPhonicsDeck=e.buildSupplementalPhonicsDeck;  const text = typeof raw === 'string' ? raw.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '') : '';
   return buildSupplementalPhonicsDeck(JSON.parse(text), { target, support, level, existingWords, batchId });
@@ -4644,10 +4722,16 @@ else if(operation==='steps')value=m.getRepairSteps(p.plan);
 else if(operation==='next')value=m.getNextRepairStep(p.plan,p.completedCount);
 else if(operation==='lesson')value=m.buildEphemeralRepairLesson(p);
 else if(operation==='performance')value=m.generationPerformanceContextFor(p.user,p.targetLang);
+else if(operation==='goalDeckPrompt')value=goalDeckPrompt(p);
+else if(operation==='goalDeckCards')value=goalDeckCards(p);
+else if(operation==='focusedRecallEvent')value=focusedRecallEvent(p);
+else if(operation==='focusedRecallCompletion')value=focusedRecallCompletion(p);
+else if(operation==='focusedDeckTitle')value=focusedDeckTitle(p);
+else if(operation==='focusedDeckSubtitle')value=focusedDeckSubtitle(p);
 else if(operation==='deckPrompt')value=m.generateRepairDeckEntries(p);
 else if(operation==='deckCard')value=m.buildRepairCard(p);
 else if(operation==='deckEntries')value=parseRepairEntries(p.raw);
-else if(operation==='phonics')value=M14.getAuthoredPhonicsFocusCards(p.focus);
+else if(operation==='phonics')value=M15.getAuthoredPhonicsFocusCards(p.focus);
 else if(operation==='evidence')value=model.mergeEvidence(p.summary,p.event,'repair',now.toISOString());
 else if(operation==='goalEvidence')value=model.mergeEvidence(p.summary,p.event,'goal',now.toISOString());
 else if(operation==='goalPlan'){const user=p.user||{},lang=model.languageKey(p.targetLang),supportLang=p.supportLang||'en',dayKey=p.dayKey,cefrLevel=p.cefrLevel||'Pre-A1',goal=model.activeGoalFor(user,lang),bucket=user.learningIntelligence?.[lang]||{},compactSummary=model.compactSummary,context={goal,targetLang:lang,dayKey,cefrLevel,goalProgress:bucket.goalProgress,performance:m.generationPerformanceContextFor(user,lang,{curriculumCefrLevel:cefrLevel})};value=goal?{context,prompt:`Plan ONE daily language Goal task. User data: ${JSON.stringify({
@@ -4679,10 +4763,10 @@ else if(operation==='goalNormalize')value=model.normalizeGoalBlueprint(p.raw,p.c
 else if(operation==='goalLesson')value=model.buildGoalLesson(p.blueprint);
 else if(operation==='goalInstructions')value=model.goalInstructions(p.blueprint,p.supportLang);
 else if(operation==='goalNext')value=model.nextGoalMode(p.bucket,p.blueprint);
-else if(operation==='goalPreparation')value=M15.nextGoalPreparationXp(p);
-else if(operation==='goalReady')value=M15.isGoalLessonReady(p.bucket,p.lesson);
-else if(operation==='goalCopy')value=M16.goalCopy(p.lang);
-else if(operation==='goalCompletionCopy')value=M16.goalLessonCompletionCopy(p.lang);
+else if(operation==='goalPreparation')value=M16.nextGoalPreparationXp(p);
+else if(operation==='goalReady')value=M16.isGoalLessonReady(p.bucket,p.lesson);
+else if(operation==='goalCopy')value=M17.goalCopy(p.lang);
+else if(operation==='goalCompletionCopy')value=M17.goalLessonCompletionCopy(p.lang);
 else if(operation==='bubble')value=c.buildQuestBubble(p);
 else if(operation==='summary')value=c.companionMemorySummary(p.lang,p.concept);
 else if(operation==='prepare'){const ranked=m.rankReusableNotes(p.notes||[]),goal=model.activeGoalFor(p.user,p.targetLang),goalProgress=model.compactSummary(p.user?.learningIntelligence?.[p.targetLang]?.goalProgress,'goal'),args={ranked,langKey:p.targetLang,appLanguage:p.appLanguage,todayCleared:p.todayCleared,carryOverKinds:p.carryOverKinds||[],targetDayKey:p.dayKey,now,goal};value={ranked,fallback:m.buildDeterministicBlueprint(args),prompt:m.buildBatchInput({...args,targetLang:p.targetLang,cefrLevel:p.cefrLevel,goal,goalProgress,performance:p.performance||m.generationPerformanceContextFor(p.user,p.targetLang)})};}

@@ -81,6 +81,7 @@ public extension LearnerState {
     mutating func importQuestDay(_ value:JSONValue,target:String,day:String) {
         let key=CompanionQuestDay.key(target,day)
         if companionQuestDays == nil {companionQuestDays=[:]}
+        confirmFocusedArtifacts(in:value)
         var document=value.setting("lang",.string(target)).setting("dayKey",.string(day))
         if let pending=pendingCompanionQuestDays?[key] {document=CompanionQuestDay.merging(pending,into:document)}
         companionQuestDays?[key]=document
@@ -105,6 +106,8 @@ public extension LearnerState {
         guard repairStepIsCurrent(step,now:now) else{return false}
         let artifact=repairArtifact(step,mode:mode)
         guard let card=artifact["cards"].array.first(where:{$0["id"].string == cardID}),!artifact["outcomes"][cardID]["success"].boolean else{return false}
+        let pending=pendingCompanionQuestDays?[CompanionQuestDay.key(step.target,step.day)]?[CompanionQuestDay.artifactField(step,mode:mode)] ?? .null
+        rememberFocusedBase(artifact,pending:pending != .null)
         let outcome:JSONValue = .object(["success":.bool(success),"support":.string(support),"item":.string(String(item.prefix(180))),"transfer":.bool(card["practiceRole"].string == "transfer")])
         storeRepairArtifact(artifact.setting("outcomes",artifact["outcomes"].setting(cardID,outcome)),step:step,mode:mode,now:now)
         if success {award(mode == "flashcards" ? 2:5,source:.repairPractice,contentID:CompanionQuestDay.artifactKey(step,mode:mode)+":"+cardID,now:now)}
