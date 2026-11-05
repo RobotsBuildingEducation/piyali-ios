@@ -11,13 +11,15 @@ public enum StoryStreamDraft {
     public struct Episode:Equatable,Sendable {
         public var value:StoryEpisode
         public var ready:Set<Int>
+        /// A source question can be present but not safely representable as native controls.
+        public var received:Set<Int> = []
     }
     /// An incomplete episode is presentation state, never a validated story.
     public static func episode(_ snapshot:String,includeTrailingRecord:Bool=false)->Episode? {
         guard snapshot.utf8.count <= 100_000 else{return nil}
         var lines=snapshot.components(separatedBy:"\n");if !includeTrailingRecord {lines.removeLast()}
         let empty=StoryQuestion(type:"",prompt:"",options:[],answer:[],explanation:"",audioTurn:nil)
-        var title="",segments:[StorySegment]=[],ready=Set<Int>()
+        var title="",segments:[StorySegment]=[],ready=Set<Int>(),received=Set<Int>()
         for raw in lines {
             let line=raw.trimmingCharacters(in:.whitespacesAndNewlines)
             guard line.hasPrefix("{"),line.hasSuffix("}"),let object=try? JSONDecoder().decode(JSONValue.self,from:Data(line.utf8)) else{continue}
@@ -34,11 +36,13 @@ public enum StoryStreamDraft {
             else {continue}
             while segments.count <= index {segments.append(.init(turns:[],question:empty))}
             if object["type"].string == "turn" {
-                guard case .string(let value)=object["target"] else{continue}
-                let target=value.trimmingCharacters(in:.whitespacesAndNewlines),speaker=object["speaker"].string.trimmingCharacters(in:.whitespacesAndNewlines)
-                guard !target.isEmpty,target.utf8.count <= 8_000,speaker.utf8.count <= 8_000,segments[index].turns.count < 6 else{continue}
-                segments[index].turns.append(.init(speaker:speaker.isEmpty ? "Sheilfer":speaker,target:target,support:object["support"].string.trimmingCharacters(in:.whitespacesAndNewlines)))
+                guard case .string(let value)=object["target"],!value.isEmpty else{continue}
+                let target=value.trimmingCharacters(in:.whitespacesAndNewlines),speaker=truthy(object["speaker"]) ? jsString(object["speaker"]).trimmingCharacters(in:.whitespacesAndNewlines):"Sheilfer"
+                guard target.utf8.count <= 8_000,speaker.utf8.count <= 8_000,segments[index].turns.count < 6 else{continue}
+                segments[index].turns.append(.init(speaker:speaker,target:target,support:object["support"].string.trimmingCharacters(in:.whitespacesAndNewlines)))
             } else {
+                switch object["question"] {case .object,.array:break;default:continue}
+                received.insert(index);ready.remove(index);segments[index].question=empty
                 guard var q=try? JSONDecoder().decode(StoryQuestion.self,from:JSONEncoder().encode(normalizeSingleAnswer(object["question"]))) else{continue}
                 if q.type == "order_words" {let turn=q.audioTurn ?? 0;if segments[index].turns.indices.contains(turn) {let tiles=StoryEpisode.tiles(segments[index].turns[turn].target);q.options=tiles.options;q.answer=tiles.answer}}
                 guard ["choice","true_false","select_words","order_words","reply"].contains(q.type),!q.prompt.isEmpty,q.prompt.utf8.count <= 8_000,q.explanation.utf8.count <= 8_000,(2...8).contains(q.options.count),q.options.allSatisfy({ !$0.isEmpty && $0.utf8.count <= 8_000 }),Set(q.options).count == q.options.count,!q.answer.isEmpty,Set(q.answer).count == q.answer.count,q.answer.allSatisfy({q.options.indices.contains($0)}) else{continue}
@@ -46,7 +50,20 @@ public enum StoryStreamDraft {
             }
         }
         guard segments.first?.turns.isEmpty == false else{return nil}
-        return .init(value:.init(title:title,segments:segments),ready:ready)
+        return .init(value:.init(title:title,segments:segments),ready:ready,received:received)
+    }
+    /// The source adds the emergency question only after a normal stream end.
+    public static func episodeOutcome(_ snapshot:String,completed:Bool)->Episode? {
+        guard var draft=episode(snapshot,includeTrailingRecord:completed) else{return nil}
+        if completed {for index in draft.value.segments.indices where !draft.received.contains(index) {
+            draft.value.segments[index].question=StoryQuestion(type:"choice",prompt:"Comprehension check",options:["Yes","No"],answer:[0],explanation:"Understanding the conversation.",audioTurn:0);draft.ready.insert(index)
+        }}
+        return draft
+    }
+    public static func episodePayload(_ snapshot:String,completed:Bool)->JSONValue? {
+        guard let draft=episodeOutcome(snapshot,completed:completed),let data=try? JSONEncoder().encode(draft.value),let value=try? JSONDecoder().decode(JSONValue.self,from:data) else{return nil}
+        let unavailable=Set(draft.value.segments.indices).subtracting(draft.ready).sorted().map {JSONValue.number(Double($0))}
+        return value.setting("nativeEpisodeStream",.string(completed ? "completed":"interrupted")).setting("nativeEpisodeUnavailable",.array(unavailable))
     }
     private static func truthy(_ value:JSONValue)->Bool {
         switch value {case .null:return false;case .bool(let value):return value;case .number(let value):return value != 0 && value.isFinite;case .string(let value):return !value.isEmpty;case .array,.object:return true}

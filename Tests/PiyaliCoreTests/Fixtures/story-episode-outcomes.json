@@ -1,0 +1,418 @@
+[
+  {
+    "input": {
+      "name": "one-turn-no-question",
+      "chunks": [
+        "{\"type\":\"turn\",\"segment\":0,\"speaker\":\"Ana\",\"target\":\"Hola.\",\"support\":\"Hello.\"}\n"
+      ]
+    },
+    "expected": {
+      "episode": {
+        "title": "",
+        "segments": [
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "Hola.",
+                "support": "Hello."
+              }
+            ],
+            "question": {
+              "type": "choice",
+              "prompt": "Comprehension check",
+              "options": [
+                "Yes",
+                "No"
+              ],
+              "answer": [
+                0
+              ],
+              "explanation": "Understanding the conversation.",
+              "audioTurn": 0
+            }
+          }
+        ]
+      },
+      "fallback": 0,
+      "history": 1,
+      "discard": 0,
+      "error": false
+    }
+  },
+  {
+    "input": {
+      "name": "one-turn-question-no-done",
+      "chunks": [
+        "{\"type\":\"turn\",\"segment\":0,\"speaker\":\"Ana\",\"target\":\"Hola.\",\"support\":\"Hello.\"}\n",
+        "{\"type\":\"question\",\"segment\":0,\"question\":{\"type\":\"choice\",\"prompt\":\"Who?\",\"options\":[\"Ana\",\"Luis\"],\"answer\":[0],\"explanation\":\"Ana.\",\"audioTurn\":0}}\n"
+      ]
+    },
+    "expected": {
+      "episode": {
+        "title": "",
+        "segments": [
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "Hola.",
+                "support": "Hello."
+              }
+            ],
+            "question": {
+              "type": "choice",
+              "prompt": "Who?",
+              "options": [
+                "Ana",
+                "Luis"
+              ],
+              "answer": [
+                0
+              ],
+              "explanation": "Ana.",
+              "audioTurn": 0
+            }
+          }
+        ]
+      },
+      "fallback": 0,
+      "history": 1,
+      "discard": 0,
+      "error": false
+    }
+  },
+  {
+    "input": {
+      "name": "trailing-turn",
+      "chunks": [
+        "{\"type\":\"turn\",\"segment\":0,\"speaker\":\"Ana\",\"target\":\"Hola.\",\"support\":\"Hello.\"}"
+      ]
+    },
+    "expected": {
+      "episode": {
+        "title": "",
+        "segments": [
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "Hola.",
+                "support": "Hello."
+              }
+            ],
+            "question": {
+              "type": "choice",
+              "prompt": "Comprehension check",
+              "options": [
+                "Yes",
+                "No"
+              ],
+              "answer": [
+                0
+              ],
+              "explanation": "Understanding the conversation.",
+              "audioTurn": 0
+            }
+          }
+        ]
+      },
+      "fallback": 0,
+      "history": 1,
+      "discard": 0,
+      "error": false
+    }
+  },
+  {
+    "input": {
+      "name": "two-segments-missing-question",
+      "chunks": [
+        "{\"type\":\"turn\",\"segment\":0,\"speaker\":\"Ana\",\"target\":\"Hola.\",\"support\":\"Hello.\"}\n",
+        "{\"type\":\"turn\",\"segment\":1,\"speaker\":\"Luis\",\"target\":\"Vamos.\"}\n"
+      ]
+    },
+    "expected": {
+      "episode": {
+        "title": "",
+        "segments": [
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "Hola.",
+                "support": "Hello."
+              }
+            ],
+            "question": {
+              "type": "choice",
+              "prompt": "Comprehension check",
+              "options": [
+                "Yes",
+                "No"
+              ],
+              "answer": [
+                0
+              ],
+              "explanation": "Understanding the conversation.",
+              "audioTurn": 0
+            }
+          },
+          {
+            "turns": [
+              {
+                "speaker": "Luis",
+                "target": "Vamos.",
+                "support": ""
+              }
+            ],
+            "question": {
+              "type": "choice",
+              "prompt": "Comprehension check",
+              "options": [
+                "Yes",
+                "No"
+              ],
+              "answer": [
+                0
+              ],
+              "explanation": "Understanding the conversation.",
+              "audioTurn": 0
+            }
+          }
+        ]
+      },
+      "fallback": 0,
+      "history": 1,
+      "discard": 0,
+      "error": false
+    }
+  },
+  {
+    "input": {
+      "name": "failure-after-turn",
+      "chunks": [
+        "{\"type\":\"turn\",\"segment\":0,\"speaker\":\"Ana\",\"target\":\"Hola.\",\"support\":\"Hello.\"}\n"
+      ],
+      "fail": true
+    },
+    "expected": {
+      "episode": {
+        "title": "",
+        "segments": [
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "Hola.",
+                "support": "Hello."
+              }
+            ],
+            "question": null
+          }
+        ]
+      },
+      "fallback": 0,
+      "history": 0,
+      "discard": 1,
+      "error": false
+    }
+  },
+  {
+    "input": {
+      "name": "failure-after-question",
+      "chunks": [
+        "{\"type\":\"turn\",\"segment\":0,\"speaker\":\"Ana\",\"target\":\"Hola.\",\"support\":\"Hello.\"}\n",
+        "{\"type\":\"question\",\"segment\":0,\"question\":{\"type\":\"choice\",\"prompt\":\"Who?\",\"options\":[\"Ana\",\"Luis\"],\"answer\":[0],\"explanation\":\"Ana.\",\"audioTurn\":0}}\n"
+      ],
+      "fail": true
+    },
+    "expected": {
+      "episode": {
+        "title": "",
+        "segments": [
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "Hola.",
+                "support": "Hello."
+              }
+            ],
+            "question": {
+              "type": "choice",
+              "prompt": "Who?",
+              "options": [
+                "Ana",
+                "Luis"
+              ],
+              "answer": [
+                0
+              ],
+              "explanation": "Ana.",
+              "audioTurn": 0
+            }
+          }
+        ]
+      },
+      "fallback": 0,
+      "history": 0,
+      "discard": 1,
+      "error": false
+    }
+  },
+  {
+    "input": {
+      "name": "failure-before-turn",
+      "chunks": [
+        "{\"type\":\"turn\",\"target\":\"Hola"
+      ],
+      "fail": true
+    },
+    "expected": {
+      "episode": {
+        "title": "Fallback",
+        "segments": [
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "Fallback"
+              }
+            ],
+            "question": {
+              "type": "choice",
+              "prompt": "Fallback?",
+              "options": [
+                "Yes",
+                "No"
+              ],
+              "answer": [
+                0
+              ],
+              "explanation": "Fallback.",
+              "audioTurn": 0
+            }
+          }
+        ]
+      },
+      "fallback": 1,
+      "history": 1,
+      "discard": 1,
+      "error": false
+    }
+  },
+  {
+    "input": {
+      "name": "empty-stream",
+      "chunks": [
+        "not json\n"
+      ]
+    },
+    "expected": {
+      "episode": {
+        "title": "Fallback",
+        "segments": [
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "Fallback"
+              }
+            ],
+            "question": {
+              "type": "choice",
+              "prompt": "Fallback?",
+              "options": [
+                "Yes",
+                "No"
+              ],
+              "answer": [
+                0
+              ],
+              "explanation": "Fallback.",
+              "audioTurn": 0
+            }
+          }
+        ]
+      },
+      "fallback": 1,
+      "history": 1,
+      "discard": 0,
+      "error": false
+    }
+  },
+  {
+    "input": {
+      "name": "wrong-script",
+      "chunks": [
+        "{\"type\":\"turn\",\"target\":\"こんにちは\"}\n"
+      ]
+    },
+    "expected": {
+      "episode": {
+        "title": "",
+        "segments": [
+          {
+            "turns": [
+              {
+                "speaker": "Sheilfer",
+                "target": "こんにちは",
+                "support": ""
+              }
+            ],
+            "question": {
+              "type": "choice",
+              "prompt": "Comprehension check",
+              "options": [
+                "Yes",
+                "No"
+              ],
+              "answer": [
+                0
+              ],
+              "explanation": "Understanding the conversation.",
+              "audioTurn": 0
+            }
+          }
+        ]
+      },
+      "fallback": 0,
+      "history": 1,
+      "discard": 0,
+      "error": false
+    }
+  },
+  {
+    "input": {
+      "name": "malformed-question-present",
+      "chunks": [
+        "{\"type\":\"turn\",\"segment\":0,\"speaker\":\"Ana\",\"target\":\"Hola.\",\"support\":\"Hello.\"}\n",
+        "{\"type\":\"question\",\"question\":{\"type\":\"choice\",\"prompt\":\"?\"}}\n"
+      ]
+    },
+    "expected": {
+      "episode": {
+        "title": "",
+        "segments": [
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "Hola.",
+                "support": "Hello."
+              }
+            ],
+            "question": {
+              "type": "choice",
+              "prompt": "?"
+            }
+          }
+        ]
+      },
+      "fallback": 0,
+      "history": 1,
+      "discard": 0,
+      "error": false
+    }
+  }
+]

@@ -251,7 +251,9 @@ struct StoryView:View {
             Button(t("back")) { newStory() }.buttonStyle(ActivityPrimaryButtonStyle()).accessibilityIdentifier("storyNew")
         } else {
             skip
-            if run.mode != .speaking,run.isProvisional == true,(run.atEnd || run.heard.contains(run.index) && !run.questionAvailable) {
+            if run.mode != .speaking,run.isProvisional != true,!run.questionAvailable,run.heard.contains(run.index) {
+                Button(t("check")) {}.buttonStyle(ActivityPrimaryButtonStyle()).disabled(true).accessibilityIdentifier("storyCheck")
+            } else if run.mode != .speaking,run.isProvisional == true,(run.atEnd || run.heard.contains(run.index) && !run.questionAvailable) {
                 ProgressView().frame(maxWidth:.infinity,minHeight:40).accessibilityIdentifier("storyPendingSegment")
             } else if run.mode == .speaking || audio.phase == .awaitingSpeech {
                 Button { record(run) } label:{ StoryRecordLabel(recorder:speech.recorder,speaking:run.mode == .speaking,record:t("record"),connecting:t("connectingMic")) }.buttonStyle(ActivityPrimaryButtonStyle(tone:"speak")).disabled(speech.recorder.connecting || speech.recorder.evaluating).accessibilityLabel(t("record")).accessibilityValue(speech.recorder.connecting ? t("connectingMic"):recordingNow ? t("stopRecording"):"").accessibilityIdentifier("storyRecord")

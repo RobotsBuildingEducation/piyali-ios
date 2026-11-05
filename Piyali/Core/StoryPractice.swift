@@ -24,12 +24,14 @@ public struct StoryRun:Codable,Equatable,Sendable {
     public var completed=false
     public var isProvisional:Bool?
     public var provisionalQuestions:Set<Int>?
+    public var sourceEpisodeStream:Bool?
+    public var sourceUnavailableQuestions:Set<Int>?
     public var earnedXP=0
     public var speechResult:StorySpeechResult?
     public var lastWords=""
     public var translations:[String:String]=[:]
     public var updatedAt=Date()
-    public init(payload:JSONValue,mode:StoryMode,target:String,support:String,level:String,lessonID:String?,worth:JSONValue,tutorial:Bool = false,sourceSpeakingStream:Bool = false) throws {
+    public init(payload:JSONValue,mode:StoryMode,target:String,support:String,level:String,lessonID:String?,worth:JSONValue,tutorial:Bool = false,sourceSpeakingStream:Bool = false,sourceEpisodeStream:Bool = false) throws {
         guard payload.json.utf8.count <= 60_000 else { throw StoryFailure.invalid }
         self.target=target;self.support=support;self.level=level;self.lessonID=lessonID;self.mode=mode;self.worth=worth
         if mode == .speaking {
@@ -40,6 +42,11 @@ public struct StoryRun:Codable,Equatable,Sendable {
                 guard (tutorial ? 2...3 : 8...10).contains(lines.count),Set(lines.map(\.speaker)).count == 2,lines.allSatisfy({ !$0.target.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty && $0.target.utf8.count <= 8000 && !$0.speaker.isEmpty }),StoryEpisode.compatible(lines.map(\.target),target:target) else {throw StoryFailure.invalid}
             }
             sentences=lines;title=payload["title"].string;episode=nil
+        } else if sourceEpisodeStream {
+            guard let value=try? JSONDecoder().decode(StoryEpisode.self,from:JSONEncoder().encode(payload)),value.sourceStreamSafe else{throw StoryFailure.invalid}
+            episode=value;sentences=[];title=value.title;self.sourceEpisodeStream=true
+            let unavailable=payload["nativeEpisodeUnavailable"].array.compactMap { entry ->Int? in guard case .number(let n)=entry,n.isFinite,n.rounded() == n,n >= 0,n < Double(value.segments.count) else{return nil};return Int(n) }
+            sourceUnavailableQuestions=Set(unavailable)
         } else { let value=try StoryEpisode.parse(payload,target:target,prepare:true);episode=value;sentences=[];title=value.title }
     }
     /// Transient UI state only; finalized content must still pass the normal initializer.
@@ -49,7 +56,7 @@ public struct StoryRun:Codable,Equatable,Sendable {
     public init(provisionalID:UUID,episode:StoryEpisode,ready:Set<Int>,mode:StoryMode,target:String,support:String,level:String,lessonID:String?,worth:JSONValue) {
         self.id=provisionalID;self.isProvisional=true;self.provisionalQuestions=ready;self.target=target;self.support=support;self.level=level;self.lessonID=lessonID;self.mode=mode;self.episode=episode;self.sentences=[];self.title=episode.title;self.worth=worth
     }
-    public var questionAvailable:Bool { isProvisional != true || provisionalQuestions?.contains(index) == true }
+    public var questionAvailable:Bool { sourceUnavailableQuestions?.contains(index) != true && (isProvisional != true || provisionalQuestions?.contains(index) == true) }
     public static func contextData(content:JSONValue,agenda:JSONValue,level:String)throws->Data {
         let encoder=JSONEncoder();encoder.outputFormatting=[.sortedKeys,.withoutEscapingSlashes]
         return try encoder.encode(JSONValue.object(["content":content,"agenda":agenda,"level":.string(level)]))

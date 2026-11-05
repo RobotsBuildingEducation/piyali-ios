@@ -12,13 +12,14 @@ import XCTest
         XCTAssertTrue(element.waitForExistence(timeout:10));XCTAssertTrue(element.isHittable,app.debugDescription)
     }
     private func tap(_ id:String,_ app:XCUIApplication) { let button=app.buttons[id];reveal(button,app);button.tap() }
-    private func start(_ mode:String,role:Bool=false,failure:Bool=false,theme:String="light",delay:Bool=false,narration:Bool=false,speechDelay:Bool=false,denied:Bool=false,auto:Bool=false,stream:Bool=false,japanese:Bool=false,sourceStreamOutcome:String?=nil)->XCUIApplication {
+    private func start(_ mode:String,role:Bool=false,failure:Bool=false,theme:String="light",delay:Bool=false,narration:Bool=false,speechDelay:Bool=false,denied:Bool=false,auto:Bool=false,stream:Bool=false,japanese:Bool=false,sourceStreamOutcome:String?=nil,sourceEpisodeOutcome:String?=nil)->XCUIApplication {
         continueAfterFailure=false
         let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString;app.launchEnvironment["PIYALI_STORY_FIXTURE"]=mode;app.launchEnvironment["PIYALI_PRACTICE_FIXTURE"]="delight:natural_or_weird";app.launchEnvironment["PIYALI_READING_FIXTURE"]="1";app.launchEnvironment["PIYALI_STORY_SPEECH_RESULTS"]="miss,pass,pass,pass"
         if narration{app.launchEnvironment["PIYALI_STORY_NARRATION_FIXTURE"]="1" };if speechDelay{app.launchEnvironment["PIYALI_STORY_SPEECH_OPEN_DELAY_MS"]="2000"};if denied{app.launchEnvironment["PIYALI_STORY_SPEECH_DENIED"]="1"};if auto{app.launchEnvironment["PIYALI_STORY_SPEECH_AUTOFINISH"]="1";app.launchEnvironment["PIYALI_STORY_SPEECH_RESULTS"]="pass"};if delay { app.launchEnvironment["PIYALI_STORY_GENERATION_DELAY_MS"]="8000" }
         if role { app.launchEnvironment["PIYALI_STORY_LEARNER_CAST"]="1" };if failure { app.launchEnvironment["PIYALI_STORY_AUDIO_FAIL_FIRST"]="1" }
         if stream { app.launchEnvironment["PIYALI_STORY_STREAM_FIXTURE"]="1" }
         if let sourceStreamOutcome {app.launchEnvironment["PIYALI_STORY_SOURCE_STREAM_FIXTURE"]=sourceStreamOutcome}
+        if let sourceEpisodeOutcome {app.launchEnvironment["PIYALI_STORY_SOURCE_EPISODE_FIXTURE"]=sourceEpisodeOutcome}
         if japanese {app.launchEnvironment["PIYALI_STORY_JAPANESE_FIXTURE"]="1";app.launchEnvironment["PIYALI_STORY_SPEECH_RESULTS"]="pass";app.launchEnvironment["PIYALI_PRACTICE_FIXTURE"]="delight:sentence_shapeshifter";app.launchEnvironment["PIYALI_WRITING_FIXTURE"]="1"}
         app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme",theme];app.launch();handleInitialPaperPencil(app)
         let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Story Learner");if app.buttons["entryKeyboardDone"].exists { app.buttons["entryKeyboardDone"].tap() };app.buttons["createAccount"].tap();handleInitialPaperPencil(app)
@@ -88,6 +89,22 @@ import XCTest
         XCUIDevice.shared.press(.home);app.activate()
         XCTAssertTrue(app.buttons["storyRecord"].waitForExistence(timeout:15),app.debugDescription)
         XCTAssertFalse(app.staticTexts["storySpeechFeedback"].exists);xp(0,app)
+    }
+    func testCompletedRadioStreamOffersSourceEmergencyQuestionAndCreditsOnce() {
+        let app=start("radio",narration:true,sourceEpisodeOutcome:"completed");tap("storyPlay",app)
+        XCTAssertTrue(app.staticTexts["storyQuestion"].waitForExistence(timeout:18),app.debugDescription)
+        XCTAssertTrue(app.staticTexts["storyQuestion"].label.contains("Comprehension check"));photo("Native radio source emergency question",app)
+        option("Yes",app);tap("storyCheck",app);tap("storyNext",app)
+        XCTAssertTrue(app.staticTexts["realtimeGoal"].waitForExistence(timeout:10));xp(6,app)
+        app.terminate();app.launchEnvironment.removeValue(forKey:"PIYALI_STORY_SOURCE_EPISODE_FIXTURE");app.launch();handleInitialPaperPencil(app);open(app,expectStory:false)
+        XCTAssertTrue(app.staticTexts["realtimeGoal"].waitForExistence(timeout:10));xp(6,app)
+    }
+    func testInterruptedRadioStreamRetainsTurnWithoutInventingQuestionOrReward() {
+        let app=start("radio",narration:true,sourceEpisodeOutcome:"interrupted");tap("storyPlay",app)
+        XCTAssertTrue(app.buttons["storyCheck"].waitForExistence(timeout:18),app.debugDescription)
+        XCTAssertFalse(app.buttons["storyCheck"].isEnabled);XCTAssertFalse(app.staticTexts["storyQuestion"].exists);xp(0,app);photo("Native radio interrupted without question",app)
+        app.terminate();app.launchEnvironment.removeValue(forKey:"PIYALI_STORY_SOURCE_EPISODE_FIXTURE");app.launch();handleInitialPaperPencil(app);open(app)
+        XCTAssertTrue(app.buttons["storyCheck"].waitForExistence(timeout:10));XCTAssertFalse(app.buttons["storyCheck"].isEnabled);xp(0,app)
     }
     func testRadioStreamingAllowsPlaybackAndAnswerBeforeFinalStory() {
         let app=start("radio",narration:true,stream:true)

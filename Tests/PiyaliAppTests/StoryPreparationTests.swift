@@ -32,6 +32,31 @@ import XCTest
             XCTAssertEqual(payload["nativeSpeakingStream"].string,interrupted ? "interrupted":"completed");XCTAssertEqual(payload["sentences"].array.map{$0["target"].string},["Hola."]);XCTAssertFalse(snapshots.contains(""));XCTAssertEqual(payload["nativePlan"] == .null,interrupted)
         }
     }
+    func testEpisodeProviderPreservesCompletionAndInterruptionForBothModes() async throws {
+        let app=try model();defer {try? app.identity.disconnect()}
+        let turn="{\"type\":\"turn\",\"segment\":0,\"speaker\":\"Ana\",\"target\":\"Hola.\"}\n"
+        let question="{\"type\":\"question\",\"segment\":0,\"question\":{\"type\":\"choice\",\"prompt\":\"Who?\",\"options\":[\"Ana\",\"Luis\"],\"answer\":[0],\"explanation\":\"Ana.\",\"audioTurn\":0}}\n"
+        for mode in [StoryMode.radio,.conversation] {
+            for (interrupted,hasQuestion) in [(false,false),(true,false),(true,true)] {
+                let ai=AIService();var snapshots:[String]=[];var fallbacks=0
+                let input=turn+(hasQuestion ? question : "")
+                ai.storyStreamOverride={_,onChunk in onChunk(input);if interrupted {throw AppError.message("Public test interruption")};return input}
+                ai.storyBatchOverride={_,_ in fallbacks += 1;return ""}
+                let payload=try await ai.storyPayload(mode:mode,lesson:nil,state:app.learner,level:"A1",tutorial:true,recent:[],repair:false,onSpeakingChunk:{snapshots.append($0)})
+                XCTAssertEqual(payload["nativeEpisodeStream"].string,interrupted ? "interrupted":"completed")
+                XCTAssertEqual(payload["segments"].array.first?["question"]["prompt"].string,hasQuestion ? "Who?" : (interrupted ? "":"Comprehension check"))
+                XCTAssertEqual(payload["nativeEpisodeUnavailable"].array.count,interrupted && !hasQuestion ? 1:0)
+                XCTAssertEqual(payload["nativePlan"] == .null,interrupted);XCTAssertFalse(snapshots.contains(""));XCTAssertEqual(fallbacks,0)
+            }
+        }
+    }
+    func testEpisodeProviderBeforeRevealUsesBatchFallback() async throws {
+        let app=try model();defer {try? app.identity.disconnect()};let ai=AIService();var fallbacks=0
+        ai.storyStreamOverride={_,onChunk in onChunk("{\"type\":\"turn\"");throw AppError.message("Public test interruption")}
+        ai.storyBatchOverride={_,_ in fallbacks += 1;return try ContentLibrary.load(JSONValue.self,name:"story-test-episode").json}
+        let payload=try await ai.storyPayload(mode:.radio,lesson:nil,state:app.learner,level:"A1",tutorial:true,recent:[],repair:false)
+        XCTAssertEqual(fallbacks,1);XCTAssertEqual(payload["nativeEpisodeStream"],.null);XCTAssertFalse(payload["segments"].array.isEmpty)
+    }
     func testSourceProviderBeforeRevealUsesBatchFallback() async throws {
         let app=try model();defer {try? app.identity.disconnect()};let ai=AIService();var fallbackCalls=0,snapshots:[String]=[]
         ai.storyStreamOverride={_,onChunk in onChunk("{\"type\":\"sentence\",\"tgt\":\"unfinished");throw AppError.message("Public test stream interruption")}

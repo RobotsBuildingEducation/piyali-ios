@@ -72,3 +72,35 @@ extension StoryStreamTests {
         }
     }
 }
+
+extension StoryStreamTests {
+    func testSourceEpisodeEmergencyQuestionCreditsOnceAndInterruptedQuestionStaysUnavailable() throws {
+        let snapshot="{\"type\":\"turn\",\"target\":\"Hola.\"}\n"
+        let complete=try XCTUnwrap(StoryStreamDraft.episodePayload(snapshot,completed:true)),interrupted=try XCTUnwrap(StoryStreamDraft.episodePayload(snapshot,completed:false))
+        var state=LearnerState();state.target="es";state.support="en";var run=try StoryRun(payload:complete,mode:.radio,target:"es",support:"en",level:"A1",lessonID:nil,worth:.null,sourceEpisodeStream:true)
+        XCTAssertTrue(run.questionAvailable);run.heard.insert(0);run.select(0);run.check();XCTAssertEqual(run.result,true);run.advance();state.saveStory(run)
+        XCTAssertEqual(state.finishStory(),6);XCTAssertEqual(state.finishStory(),0);let restored=try JSONDecoder().decode(LearnerState.self,from:JSONEncoder().encode(state));XCTAssertEqual(restored.totalXP,6);XCTAssertTrue(restored.story?.completed == true)
+        var incomplete=try StoryRun(payload:interrupted,mode:.radio,target:"es",support:"en",level:"A1",lessonID:nil,worth:.null,sourceEpisodeStream:true);incomplete.heard.insert(0)
+        XCTAssertFalse(incomplete.questionAvailable);incomplete.select(0);incomplete.check();XCTAssertNil(incomplete.result)
+        var untouched=LearnerState();untouched.target="es";untouched.support="en";untouched.saveStory(incomplete);XCTAssertEqual(untouched.finishStory(),0);XCTAssertEqual(untouched.totalXP,0)
+    }
+    func testSourceEpisodeOutcomesExposeEmergencyQuestionsOnlyAfterNormalCompletion() throws {
+        let url=URL(fileURLWithPath:#filePath).deletingLastPathComponent().appendingPathComponent("Fixtures/story-episode-outcomes.json")
+        let rows=try JSONDecoder().decode([JSONValue].self,from:Data(contentsOf:url));XCTAssertEqual(rows.count,10)
+        for row in rows {
+            let input=row["input"],expected=row["expected"],snapshot=input["chunks"].array.map(\.string).joined(),completed = !input["fail"].boolean,sourceUsedStream=expected["fallback"].number == 0
+            let draft=StoryStreamDraft.episodeOutcome(snapshot,completed:completed)
+            XCTAssertEqual(draft != nil,sourceUsedStream,input["name"].string)
+            guard let draft,sourceUsedStream else {continue}
+            let payload=try XCTUnwrap(StoryStreamDraft.episodePayload(snapshot,completed:completed));let run=try StoryRun(payload:payload,mode:.radio,target:"es",support:"en",level:"A1",lessonID:nil,worth:.null,sourceEpisodeStream:true)
+            XCTAssertEqual(payload["nativeEpisodeStream"].string,completed ? "completed":"interrupted");XCTAssertTrue(run.sourceEpisodeStream == true)
+            let source=expected["episode"]["segments"].array
+            XCTAssertEqual(draft.value.segments.count,source.count,input["name"].string)
+            for index in source.indices where draft.value.segments.indices.contains(index) {
+                XCTAssertEqual(draft.value.segments[index].turns.map(\.target),source[index]["turns"].array.map{$0["target"].string},input["name"].string)
+                if source[index]["question"]["prompt"].string == "Comprehension check" {XCTAssertTrue(draft.ready.contains(index),input["name"].string);XCTAssertEqual(draft.value.segments[index].question.options,["Yes","No"]);XCTAssertEqual(draft.value.segments[index].question.answer,[0])}
+                if source[index]["question"] == .null || input["name"].string == "malformed-question-present" {XCTAssertTrue(run.sourceUnavailableQuestions?.contains(index) == true,input["name"].string)}
+            }
+        }
+    }
+}
