@@ -306,6 +306,8 @@
     "bindings": [
       "LANG_NAME",
       "buildCurriculumPromptContext",
+      "buildLecturePrompt",
+      "buildSeedLecturePrompt",
       "buildStreamingPrompt",
       "difficultyHint",
       "focusedLessonPrompt",

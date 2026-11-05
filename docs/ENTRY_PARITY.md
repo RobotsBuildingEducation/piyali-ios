@@ -45,3 +45,14 @@ Simulator journeys cover header pet interaction, retained name/back navigation, 
 Finish proficiency/atlas/card geometry, dark atlas styling, the rest of the locale/RTL layouts, the post-introduction modal chain and accessibility review across all controls. The welcome-drawer behavior is in [ONBOARDING.md](ONBOARDING.md), and the restored companion/setup/placement sequence is in [FIRST_RUN.md](FIRST_RUN.md). Background grain, exact gradient/blur/shadow and 3D compositing, platform icon/menu/font fallback differences, and any enabled interaction sounds still need comparison. Native remote signing is a platform adaptation rather than the browser extension UI. Verify the entire public voice lesson with physical microphone input and audible playback, beyond the controller, scripted UI and provider checks in [LANDING_DEMO.md](LANDING_DEMO.md).
 
 The first Today’s Focus/menu shell, scoped conductor and sequential lesson gates are now implemented. Distinct exercise interaction types, leaf-screen designs and complete guided-session lifecycle remain. The broad gaps are tracked in [PARITY_AUDIT.md](PARITY_AUDIT.md).
+
+## Current main-route smoke comparison — 2026-11-05
+
+Reference stays at `b269524ddc578027c549616fc47f5954991d9f6f`. Opened its actual public `/` at 402×874 in the read-only local preview, used the original language/theme controls, and inspected landing → key login → Back without creating an account. Fresh native entry captures come from the passing final named signup/key login/back/error simulator journey in `/tmp/PiyaliReadingBackendFinal20261105.xcresult`. The same isolated QA device passed both current first-run journeys in `/tmp/PiyaliReadingBackendEntry20261105.xcresult`. Production entry code is unchanged in this checkpoint.
+
+| State | Current web main route | Current native |
+|---|---|---|
+| English/light landing | [Web](reference/entry-main-b269524d/landing-en-light.jpg) | [iPhone](native/reading-backend-20261105/entry-hero-en-light.png) |
+| English/light key login | [Web](reference/entry-main-b269524d/key-login-en-light.jpg) | [iPhone](native/reading-backend-20261105/entry-signin-en-light.png) |
+
+[Web provenance/hashes](reference/entry-main-b269524d/manifest.json) and [native provenance/hashes](native/reading-backend-20261105/manifest.json) distinguish the browser viewport from the native 3× screenshot with status/safe areas. The native remote-signer alternative increases the login card height; the native installed-app setup still differs from the web's six installation tiles. Direct inspection also retains gradient/texture/shadow and whole-layout differences as DES-01 work. These comparisons do not certify full entry or setup design parity, a real signer, actual account recovery, or device accessibility.

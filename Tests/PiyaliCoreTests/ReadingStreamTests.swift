@@ -2,6 +2,16 @@ import XCTest
 @testable import PiyaliCore
 
 final class ReadingStreamTests:XCTestCase {
+    func testBackendOutcomesMatchSourceCleaningAndMissingQuestion() throws {
+        let url=URL(fileURLWithPath:#filePath).deletingLastPathComponent().appendingPathComponent("Fixtures/reading-backend-outcomes.json"),rows=try JSONDecoder().decode([JSONValue].self,from:Data(contentsOf:url))
+        for row in rows {
+            let payload=ReadingStreamDraft.backendPayload(row["input"],target:"es",support:"en",questionType:"text")
+            XCTAssertEqual(payload == nil,row["expected"]["error"].boolean)
+            guard let payload,let expected=row["expected"]["lectures"].array.first else{continue}
+            let run=try ReadingRun(payload:payload,target:"es",support:"en",level:"A1",lessonID:nil,selection:.null,worth:.null,roll:0)
+            XCTAssertEqual(run.title,expected["title"].string);XCTAssertEqual(run.text,expected["target"].string);XCTAssertEqual(run.takeaways,expected["takeaways"].array.map(\.string));XCTAssertEqual(run.pendingQuestionType,"text")
+        }
+    }
     func testSourceCompleteStreamWithoutDoneOrThreeTakeawaysIsAccepted() throws {
         let url=URL(fileURLWithPath:#filePath).deletingLastPathComponent().appendingPathComponent("Fixtures/reading-outcomes.json")
         let rows=try JSONDecoder().decode([JSONValue].self,from:Data(contentsOf:url)),row=try XCTUnwrap(rows.first{$0["input"]["name"].string == "valid-question-no-done"})

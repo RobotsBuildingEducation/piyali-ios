@@ -26,6 +26,7 @@ methods = {'narration-warm-refill':'testSilentNarrationRefillPreservesAnActiveNa
            'exploration':'testNativeExplorationQuestReauthoringAndNPCSpeechPreservePlayablePaths',
            'reading': 'testNativeReadingGenerationAndResponsesFallback',
            'reading-stream': 'testReadingStreamingProvidersAndTranslation',
+           'reading-backend': 'testReadingJSONBackendAndMissingQuestionUseNativeProviders',
            'stories': 'testNativeStorySourcePoliciesBatchWorthAndResponsesFallback',
            'story-stream': 'testSpeakingStoryStreamsBeforeValidatedCompletion',
            'episode-stream': 'testEpisodeStoriesStreamBeforeValidatedCompletion',

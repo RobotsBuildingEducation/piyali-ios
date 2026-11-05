@@ -7,7 +7,7 @@ final class ReadingTests:XCTestCase {
         let root=URL(fileURLWithPath:#filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
         struct Fixture:Decodable { let operation:String;let parameters:JSONValue;let expected:String }
         let engine=try PracticeRecipes(source:root.appendingPathComponent("Piyali/Resources/practice-recipes.js")),fixtures=try ContentLibrary.decode([Fixture].self,url:root.appendingPathComponent("Tests/PiyaliCoreTests/Fixtures/reading-prompts.json.gz"))
-        XCTAssertEqual(fixtures.count,20)
+        XCTAssertEqual(fixtures.count,28)
         for sample in fixtures { XCTAssertEqual(try engine.reading(sample.operation,parameters:sample.parameters),sample.expected,sample.operation) }
     }
     func testSourceReadingProtocolKeepsQuestionAndRejectsPartialOrInvalidOutput() throws {

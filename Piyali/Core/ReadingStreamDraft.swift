@@ -43,6 +43,14 @@ public struct ReadingStreamDraft:Equatable,Sendable {
         if let question,let data=try? JSONEncoder().encode(question),let value=try? JSONDecoder().decode(JSONValue.self,from:data) {encoded=value} else {encoded = .null}
         return .object(["title":.string(draft.hasTitle ? draft.title : (target == "en" ? "Reading Passage":"Lectura")),"target":.string(draft.text),"takeaways":.array(draft.takeaways.map(JSONValue.string)),"reviewQuestion":encoded,"rawReviewQuestion":review,"reviewQuestionType":.string(questionType),"nativeReadingStream":.bool(true)])
     }
+    /// History's backend fallback is one JSON passage, with a separate review request.
+    /// Ignore any incidental bundled question, as the source backend does.
+    public static func backendPayload(_ value:JSONValue,target:String,support:String,questionType:String)->JSONValue? {
+        guard case .string(let raw)=value["target"],!raw.isEmpty else{return nil}
+        let passage=Reading.stripPreamble(normalize(raw.components(separatedBy:.newlines).map{stripSpeaker(stripLabel($0,language:target))}.filter{!$0.isEmpty}.joined(separator:" ")))
+        let takeaways=value["takeaways"].array.map{stripLabel($0.string,language:support)}.filter{!$0.isEmpty}.prefix(3)
+        return .object(["title":.string(stripLabel(value["title"].string,language:target)),"target":.string(passage),"takeaways":.array(takeaways.map(JSONValue.string)),"reviewQuestion":.null,"reviewQuestionType":.string(questionType),"nativeReadingStream":.bool(true)])
+    }
     private static func normalize(_ value:String)->String {value.replacingOccurrences(of:"\\s+",with:" ",options:.regularExpression).trimmingCharacters(in:.whitespacesAndNewlines)}
     private static let labels:[String:[String]] = [
         "en":["English","Inglés"],"es":["Spanish","Español"],"ar":["Egyptian Arabic","Arabic","Árabe egipcio","العربية المصرية"],"zh":["Mandarin Chinese","Chinese","Chino mandarín","普通话中文","中文"],"pt":["Portuguese","Portugués","Brazilian Portuguese","Portugués brasileño"],"fr":["French","Francés","Français","Francais"],"it":["Italian","Italiano"],"nl":["Dutch","Holandés","Nederlands"],"nah":["Eastern Huasteca Nahuatl","Náhuatl huasteco oriental"],"el":["Greek","Griego","Ελληνικά"],"ru":["Russian","Ruso"],"de":["German","Alemán","Deutsch"],"pl":["Polish","Polaco","Polski"],"ga":["Irish","Irlandés","Gaeilge"],"yua":["Yucatec Maya","Maya yucateco","Maaya t'aan"]

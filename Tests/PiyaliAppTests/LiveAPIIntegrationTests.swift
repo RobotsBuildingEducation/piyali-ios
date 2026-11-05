@@ -36,6 +36,30 @@ import Security
         FirebaseIdentityService.shared.clearSession();try await FirebaseIdentityService.shared.ensure(identity)
         try await Auth.auth().currentUser?.delete();FirebaseIdentityService.shared.clearSession();try identity.disconnect()
     }
+    func testReadingJSONBackendAndMissingQuestionUseNativeProviders() async throws {
+        let env=ProcessInfo.processInfo.environment
+        guard env["PIYALI_LIVE_API_TESTS"] == "1",env["PIYALI_OFFLINE_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Explicit isolated live opt-in required")}
+        if FirebaseApp.app() == nil{AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure()}
+        XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
+        let identity=IdentityService();try identity.create()
+        do {
+            try await FirebaseIdentityService.shared.ensure(identity)
+            var state=LearnerState();state.target="es";state.support="en";state.level="A1"
+            let fallback=AIService(configuration:AppConfiguration(values:AppConfiguration().values.merging(["AIProvider":"responses"]){_,new in new}))
+            for (label,ai) in [("configured",AIService()),("responses",fallback)] {
+                ai.readingStreamOverride={_,onChunk in onChunk("{\"type\":\"title\",\"text\":\"Abandoned fixture\"}\n");throw ReadingFailure.invalid}
+                var cleared=false
+                let payload=try await ai.readingPayload(state:state,lesson:nil,level:"A1",selection:.null,recent:[],tutorial:true,repair:false,onChunk:{if $0.isEmpty{cleared=true}})
+                let run=try ReadingRun(payload:payload,target:"es",support:"en",level:"A1",lessonID:nil,selection:.null,worth:.null,roll:0)
+                XCTAssertTrue(cleared);XCTAssertFalse(run.text.isEmpty);XCTAssertNotEqual(run.title,"Abandoned fixture");let type=try XCTUnwrap(run.pendingQuestionType)
+                let raw=try await ai.text(Reading.reviewPrompt(type:type,text:run.text,target:run.target,support:run.support))
+                let object=try XCTUnwrap(try GenerationObjects.parse(raw).first),question=try XCTUnwrap(ReadingQuestion(object,expectedType:type))
+                XCTAssertFalse(question.question.isEmpty);XCTAssertFalse(question.answer.isEmpty);XCTAssertEqual(state.totalXP,0)
+                print("LIVE READING BACKEND: path=\(label), discarded forced stream, JSON passage characters=\(run.text.count), separate question type=\(type), no reward")
+            }
+        }catch{try? await deleteLiveTestIdentity(identity);throw error}
+        try await deleteLiveTestIdentity(identity)
+    }
     func testStoryCaptureTranscribesAPublicRecordingWithoutMicrophoneInput()async throws{
         if let token=ProcessInfo.processInfo.environment["TEST_RUNNER_FIRAAppCheckDebugToken"]{setenv("FIRAAppCheckDebugToken",token,1)};FirebaseConfiguration.shared.setLoggerLevel(.error)
         let env=ProcessInfo.processInfo.environment;guard env["PIYALI_LIVE_API_TESTS"] == "1",env["PIYALI_OFFLINE_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Explicit isolated live opt-in required")}

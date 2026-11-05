@@ -14,6 +14,38 @@ import XCTest
         XCTAssertTrue(payload["nativeReadingStream"].boolean);XCTAssertEqual(payload["target"].string,"La flor crece.");XCTAssertEqual(payload["reviewQuestion"],.null);XCTAssertFalse(observed.isEmpty)
         let run=try ReadingRun(payload:payload,target:"es",support:"en",level:"A1",lessonID:nil,selection:.null,worth:.null,roll:0);XCTAssertNotNil(run.pendingQuestionType);XCTAssertTrue(run.takeaways.isEmpty)
     }
+    func testFailedAndEmptyStreamsUseJSONBackendAndClearDraft() async throws {
+        let app=try model();defer{try? app.identity.disconnect()}
+        for fail in [false,true] {
+            let ai=AIService();var snapshots:[String]=[],requests=0
+            ai.readingStreamOverride={_,chunk in
+                if fail {chunk("{\"type\":\"target\",\"text\":\"Discard this partial.\"}\n");throw ReadingFailure.invalid}
+                return "malformed\n"
+            }
+            ai.readingBackendOverride={prompt in
+                requests += 1;XCTAssertTrue(prompt.contains("Return JSON ONLY:"));XCTAssertFalse(prompt.contains("Emit one line:"))
+                return "{\"title\":\"Spanish: El jardín\",\"target\":\"La flor crece.\",\"takeaways\":[\"English: A flower grows.\"]}"
+            }
+            let payload=try await ai.readingPayload(state:app.learner,lesson:nil,level:"A1",selection:.null,recent:[],tutorial:false,repair:false,onChunk:{snapshots.append($0)})
+            XCTAssertEqual(requests,1);XCTAssertEqual(snapshots.last,"");XCTAssertEqual(payload["title"].string,"El jardín");XCTAssertEqual(payload["target"].string,"La flor crece.");XCTAssertEqual(payload["reviewQuestion"],.null);XCTAssertEqual(app.learner.totalXP,0)
+        }
+    }
+    func testCancelledStreamNeverStartsBackend() async throws {
+        let app=try model();defer{try? app.identity.disconnect()};let ai=AIService();var started=false,backend=false
+        ai.readingStreamOverride={_,chunk in started=true;chunk("{\"type\":\"target\",\"text\":\"A partial.\"}\n");try await Task.sleep(for:.seconds(20));return ""}
+        ai.readingBackendOverride={_ in backend=true;return "{}"}
+        let request=Task{try await ai.readingPayload(state:app.learner,lesson:nil,level:"A1",selection:.null,recent:[],tutorial:false,repair:false)}
+        for _ in 0..<100 where !started {try await Task.sleep(for:.milliseconds(10))}
+        XCTAssertTrue(started);request.cancel()
+        do {_=try await request.value;XCTFail("Cancelled generation must not return a passage")}catch is CancellationError {}catch{XCTFail("Unexpected cancellation error: \(error)")}
+        XCTAssertFalse(backend);XCTAssertNil(app.learner.reading);XCTAssertEqual(app.learner.totalXP,0)
+    }
+    func testProviderCancellationDoesNotTriggerBackend() async throws {
+        let app=try model();defer{try? app.identity.disconnect()};let ai=AIService();var backend=false
+        ai.readingStreamOverride={_,_ in throw CancellationError()};ai.readingBackendOverride={_ in backend=true;return "{}"}
+        do {_=try await ai.readingPayload(state:app.learner,lesson:nil,level:"A1",selection:.null,recent:[],tutorial:false,repair:false);XCTFail("Provider cancellation must propagate")}catch is CancellationError {}catch{XCTFail("Unexpected cancellation error: \(error)")}
+        XCTAssertFalse(backend)
+    }
     func testReplacingPassageCancelsOldQuestionAndAllowsNewQuestion() async throws {
         guard ProcessInfo.processInfo.environment["PIYALI_READING_MISSING_QUESTION_FIXTURE"] == "1" else{throw XCTSkip("Missing-question fixture required")}
         let app=try model();defer{try? app.identity.disconnect()};let payload=try XCTUnwrap(ReadingStreamDraft.sourcePayload("{\"type\":\"target\",\"text\":\"La flor crece.\"}\n",target:"es",support:"en",questionType:"mc"))

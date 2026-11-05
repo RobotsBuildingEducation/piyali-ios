@@ -111,7 +111,7 @@ for(const symbol of conversation.imports) await requireSymbol(conversationFile,s
 for(const symbol of [...realtime.imports,'buildLessonPreparationRecipe','buildRealtimeResumeContext']) await requireSymbol(realtimeFile,symbol);
 const readingFile=path.join(reference,'src/components/History.jsx'),readingSource=await fs.readFile(readingFile,'utf8');
 const reading=readingPolicyFragments({source:readingSource,parser,traverse});
-for(const symbol of ['LANG_NAME','buildStreamingPrompt']) await requireSymbol(readingFile,symbol);
+for(const symbol of ['LANG_NAME','buildStreamingPrompt','buildSeedLecturePrompt','buildLecturePrompt']) await requireSymbol(readingFile,symbol);
 const batchWorth=batchWorthFragments({source:await fs.readFile(difficultyFile,'utf8'),parser,traverse});
 const speakingSource=await fs.readFile(path.join(reference,'src/components/Stories.jsx'),'utf8'),speaking=storyPolicyFragments({source:speakingSource,parser,traverse});
 const storyPromptsFile=path.join(reference,'src/features/stories/storyPrompts.js'),storySessionFile=path.join(reference,'src/features/stories/storySession.js'),storyPracticeFile=path.join(reference,'src/features/stories/practiceStoryGeneration.js'),qualityFile=path.join(reference,'src/utils/activityQualityReview.js'),activityFile=path.join(reference,'src/utils/activityGeneration.js'),intelligenceFile=path.join(reference,'src/utils/learningIntelligenceModel.js');
@@ -183,6 +183,7 @@ export function realtime(operation,parametersJSON) { return withParameters(param
 }); }
 export function reading(operation,parametersJSON) { return withParameters(parametersJSON,p=>{
  if(operation==='passage') return readingOriginal.buildStreamingPrompt(p);
+ if(operation==='backendPassage') return p.isFirst ? readingOriginal.buildSeedLecturePrompt(p) : readingOriginal.buildLecturePrompt(p);
  ${reading.code}
 }); }
 const selector=createQuestionOptionSelector();
@@ -224,9 +225,10 @@ for(const parameters of [
  {targetLang:'ja',supportLang:'es',cefrLevel:'A2',lessonContent:{topic:'family',tutorialPracticeLevel:'A2'}},
  {targetLang:'fr',supportLang:'de',cefrLevel:'B2',lessonContent:{topic:'an everyday choice',cefrLevel:'B2'}},
  {targetLang:'ar',supportLang:'en',cefrLevel:'A1',lessonContent:{topic:'a bus timetable',cefrLevel:'A1'}}
-]) for(const operation of ['passage','judge','explain','translate','speech']) {
+]) for(const operation of ['passage','backendPassage','judge','explain','translate','speech']) {
  const p=canonical({...parameters,isFirst:false,previousTitles:['A previous day'],reviewQuestionType:'mc',passage:'A plant grows near the window.',reviewQuestion:{question:'Where is the plant?',answer:'near the window'},answer:'by a window',sentences:['A plant grows.','It is near the window.'],user:{}});
  readingFixtures.push({operation,parameters:p,expected:context.PiyaliPracticeRecipes.reading(operation,JSON.stringify(p))});
+ if(operation==='backendPassage') {const first={...p,isFirst:true,previousTitles:[]};readingFixtures.push({operation,parameters:first,expected:context.PiyaliPracticeRecipes.reading(operation,JSON.stringify(first))});}
 }
 await fs.writeFile(new URL('../Tests/PiyaliCoreTests/Fixtures/reading-prompts.json.gz',import.meta.url),gzipSync(JSON.stringify(readingFixtures),{level:9}));
 console.log(`Exported ${modules.size} pure source modules (${code.length} characters) and ${fixtures.length} prompt fixtures.`);

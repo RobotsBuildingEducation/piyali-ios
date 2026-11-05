@@ -37,10 +37,12 @@ import XCTest
         let app=missingQuestionApp();XCTAssertTrue(app.staticTexts["readingQuestion"].waitForExistence(timeout:12),app.debugDescription)
         XCTAssertTrue(app.staticTexts["readingQuestion"].label.contains("Why does"));tap("readingOption-0",app);tap("readingCheck",app)
         let completed=app.staticTexts["readingCompleted"];reveal(completed,in:app);let reward=completed.label;XCTAssertTrue(reward.contains("XP awarded:"))
+        let captured=XCTAttachment(screenshot:app.screenshot());captured.name="Recovered Reading question completed once";captured.lifetime = .keepAlways;add(captured)
         app.terminate();app.launch();handleInitialPaperPencil(app);open(app);reveal(completed,in:app);XCTAssertEqual(completed.label,reward);XCTAssertFalse(app.buttons["readingCheck"].exists)
     }
     func testMissingQuestionFailureRetainsPassageWithoutInventingReward() {
         let app=missingQuestionApp(failure:true);let generate=app.buttons["readingGenerateQuestion"];XCTAssertTrue(generate.waitForExistence(timeout:10));let ready=XCTNSPredicateExpectation(predicate:NSPredicate(format:"enabled == true"),object:generate);XCTAssertEqual(XCTWaiter.wait(for:[ready],timeout:10),.completed);XCTAssertFalse(app.staticTexts["readingQuestion"].exists);XCTAssertFalse(app.staticTexts["readingCompleted"].exists)
+        let captured=XCTAttachment(screenshot:app.screenshot());captured.name="Reading passage retained with unavailable review";captured.lifetime = .keepAlways;add(captured)
         tap("readingGenerateQuestion",app);XCTAssertTrue(generate.waitForExistence(timeout:5));XCTAssertFalse(app.staticTexts["readingCompleted"].exists)
         app.terminate();app.launchEnvironment.removeValue(forKey:"PIYALI_READING_QUESTION_FALLBACK_FAILURE");app.launch();handleInitialPaperPencil(app);open(app);XCTAssertTrue(app.staticTexts["readingQuestion"].waitForExistence(timeout:12));XCTAssertFalse(app.staticTexts["readingCompleted"].exists)
     }

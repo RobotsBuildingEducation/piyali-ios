@@ -10,5 +10,6 @@
     }
   ],
   "cases": 8,
-  "scope": "Original Reading generation callback, normalizer and cleaning helpers executed with fake streams and in-memory state; no provider or learner data."
+  "scope": "Original Reading generation callback, normalizer and cleaning helpers executed with fake streams and in-memory state; no provider or learner data. Also executes the original JSON backend callback and cleaning helpers.",
+  "backendCases": 5
 }

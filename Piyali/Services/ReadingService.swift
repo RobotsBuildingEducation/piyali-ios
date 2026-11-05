@@ -104,7 +104,7 @@ import FirebaseAILogic
                     let fixture=try ContentLibrary.load(JSONValue.self,name:"reading-test-passage")["reviewQuestion"]
                     guard let value=ReadingQuestion(fixture,expectedType:type) else{throw ReadingFailure.invalid};return value
                 }
-                let raw=try await app.ai.responsesText(Reading.reviewPrompt(type:type,text:run.text,target:run.target,support:run.support),json:true)
+                let raw=try await app.ai.text(Reading.reviewPrompt(type:type,text:run.text,target:run.target,support:run.support))
                 guard let object=try GenerationObjects.parse(raw).first,let value=ReadingQuestion(object,expectedType:type) else{throw ReadingFailure.invalid};return value
             };questionTask=task
             let question=try await withTaskCancellationHandler(operation:{try await task.value},onCancel:{task.cancel()});try Task.checkCancellation()
@@ -213,9 +213,25 @@ extension AIService {
         let parameters:JSONValue = .object(["targetLang":.string(state.target),"supportLang":.string(state.support),"cefrLevel":.string(level),"lessonContent":content,"reviewQuestionType":.string(type),"previousTitles":.array(titles.map(JSONValue.string)),"isFirst":.bool(titles.isEmpty),"user":state.recipeUser])
         var prompt=try recipes.reading("passage",parameters:parameters)
         if repair { prompt += "\nPrevious generation failed validation. Return a fresh, complete passage and valid grounded question using the specified protocol." }
-        let output=try await readingStreamText(ReadingRules.data["writer"].string+"\n"+prompt,onChunk:onChunk)
-        onChunk(output+"\n") // Include a complete final record without a trailing newline.
-        guard let payload=ReadingStreamDraft.sourcePayload(output,target:state.target,support:state.support,questionType:type) else{throw ReadingFailure.invalid};return payload
+        do {
+            let output=try await readingStreamText(ReadingRules.data["writer"].string+"\n"+prompt,fallback:false,onChunk:onChunk)
+            try Task.checkCancellation()
+            onChunk(output+"\n") // Include a complete final record without a trailing newline.
+            if let payload=ReadingStreamDraft.sourcePayload(output,target:state.target,support:state.support,questionType:type) {return payload}
+        } catch is CancellationError {throw CancellationError()} catch {try Task.checkCancellation()}
+        // A failed or empty stream uses the source's JSON backend prompt, rather
+        // than asking a second provider for another NDJSON stream.
+        onChunk("")
+        let backendPrompt=ReadingRules.data["writer"].string+"\n"+(try recipes.reading("backendPassage",parameters:parameters))
+        let raw:String
+        #if DEBUG
+        if let override=readingBackendOverride {raw=try await override(backendPrompt)}
+        else {raw=try await text(backendPrompt)}
+        #else
+        raw=try await text(backendPrompt)
+        #endif
+        try Task.checkCancellation()
+        guard let object=try GenerationObjects.parse(raw).first,let payload=ReadingStreamDraft.backendPayload(object,target:state.target,support:state.support,questionType:type) else{throw ReadingFailure.invalid};return payload
     }
 }
 
@@ -223,7 +239,7 @@ extension AIService {
 extension AIService {
     /// Publishes cumulative provider output; an empty snapshot abandons an
     /// unsuccessful provider before the fallback starts.
-    func readingStreamText(_ prompt:String,onChunk:@escaping @MainActor(String)->Void) async throws ->String {
+    func readingStreamText(_ prompt:String,fallback:Bool=true,onChunk:@escaping @MainActor(String)->Void) async throws ->String {
         #if DEBUG
         if let override=readingStreamOverride {return try await override(prompt,onChunk)}
         #endif
@@ -233,14 +249,14 @@ extension AIService {
                 var output=""
                 for try await chunk in try model.generateContentStream(prompt) {
                     try Task.checkCancellation()
-                    guard !chunk.candidates.contains(where:{$0.finishReason == .maxTokens}) else{throw ReadingFailure.invalid}
+                    if fallback,chunk.candidates.contains(where:{$0.finishReason == .maxTokens}) {throw ReadingFailure.invalid}
                     output += chunk.text ?? ""
                     guard output.utf8.count <= 100_000 else{throw ReadingFailure.invalid}
                     onChunk(output)
                 }
                 guard !output.isEmpty else{throw ReadingFailure.invalid}
                 return output
-            } catch {try Task.checkCancellation();onChunk("")}
+            } catch {try Task.checkCancellation();if !fallback {throw error};onChunk("")}
         }
         return try await responsesStream(prompt,onChunk:onChunk)
     }

@@ -5770,6 +5770,101 @@ TUTORIAL READING - FIXED ABSOLUTE-BEGINNER WELCOME:
 - Do not add a dialogue, farewell, explanation, cultural context, or extra sentence
 - This is for a learner before A1`;
   }
+  function buildSeedLecturePrompt({
+    targetLang,
+    supportLang,
+    cefrLevel,
+    lessonContent = null
+  }) {
+    const TARGET = LANG_NAME(targetLang);
+    const SUPPORT = LANG_NAME(supportLang);
+    const diff = lessonContent?.isGoal ? focusedLessonPrompt(lessonContent) : difficultyHint(cefrLevel, targetLang, lessonContent?.cefrLevel);
+    const specs = getReadingLevelSpecs(cefrLevel);
+    const isTutorial = lessonContent?.topic === "tutorial";
+    const isAdaptiveTutorial = Boolean(lessonContent?.tutorialPracticeLevel);
+    const topicText = isTutorial ? "a first welcome for a language learner" : lessonContent?.topic || lessonContent?.scenario || "daily life and communication";
+    const promptText = lessonContent?.prompt || "";
+    const tutorialDirective = isTutorial ? tutorialReadingDirective(TARGET) : "";
+    const curriculumPromptContext = [
+      buildCurriculumPromptContext(lessonContent?.curriculumContext, {
+        mode: "reading",
+        includeExamples: false
+      }),
+      focusedLessonPrompt(lessonContent)
+    ].filter(Boolean).join("\n");
+    return `
+Write an engaging, realistic reading comprehension passage in ${TARGET} for a ${cefrLevel} learner.
+Topic: ${topicText}. ${promptText}.${tutorialDirective}
+${curriculumPromptContext}
+
+Content requirements:
+${isTutorial ? "- Exactly the four sentences specified above" : isAdaptiveTutorial ? `- Four to six connected sentences at CEFR ${cefrLevel}; this is a brief introduction to reading mode.` : `- Length: ${specs.wordCount} (${specs.sentenceCount}). Sentence length: ${specs.sentenceLength}. Minimum 100 words, increasing up to 300 words based on proficiency level.`}
+${isTutorial ? "- Preserve their meaning and order" : `- Level: ${diff}. Write natural connected reading prose (not a dialogue script or speaker labels).`}
+- Ground the text in everyday situations and authentic vocabulary related to ${topicText}.
+
+Include:
+- A concise title (<= 60 chars) in ${TARGET}
+- Reading passage body in ${TARGET}
+- 3 concise bullet takeaways in ${SUPPORT}
+
+Return JSON ONLY:
+{
+  "title": "<short title in ${TARGET}>",
+  "target": "<passage body in ${TARGET}>",
+  "takeaways": ["<3 bullets in ${SUPPORT}>"]
+}
+`.trim();
+  }
+  function buildLecturePrompt({
+    previousTitles,
+    targetLang,
+    supportLang,
+    cefrLevel,
+    lessonContent = null
+  }) {
+    const TARGET = LANG_NAME(targetLang);
+    const SUPPORT = LANG_NAME(supportLang);
+    const diff = lessonContent?.isGoal ? focusedLessonPrompt(lessonContent) : difficultyHint(cefrLevel, targetLang, lessonContent?.cefrLevel);
+    const specs = getReadingLevelSpecs(cefrLevel);
+    const prev = previousTitles && previousTitles.length ? previousTitles.map((t) => `- ${t}`).join("\n") : "(none yet)";
+    const isTutorial = lessonContent?.topic === "tutorial";
+    const isAdaptiveTutorial = Boolean(lessonContent?.tutorialPracticeLevel);
+    const topicText = isTutorial ? "a first welcome for a language learner" : lessonContent?.topic || lessonContent?.scenario || "daily life and communication";
+    const promptText = lessonContent?.prompt || "";
+    const tutorialDirective = isTutorial ? tutorialReadingDirective(TARGET) : "";
+    const curriculumPromptContext = [
+      buildCurriculumPromptContext(lessonContent?.curriculumContext, {
+        mode: "reading",
+        includeExamples: false
+      }),
+      focusedLessonPrompt(lessonContent)
+    ].filter(Boolean).join("\n");
+    return `
+Write a fresh, engaging reading comprehension passage in ${TARGET} for a ${cefrLevel} learner.
+Topic: ${topicText}. ${promptText}.${tutorialDirective}
+${curriculumPromptContext}
+
+previous_titles:
+${prev}
+
+Content requirements:
+${isTutorial ? "- Exactly the four sentences specified above" : isAdaptiveTutorial ? `- Four to six connected sentences at CEFR ${cefrLevel}; this is a brief introduction to reading mode.` : `- Length: ${specs.wordCount} (${specs.sentenceCount}). Sentence length: ${specs.sentenceLength}. Minimum 100 words, increasing up to 300 words based on proficiency level.`}
+${isTutorial ? "- Preserve their meaning and order" : `- Level: ${diff}. Write natural connected reading prose (not a dialogue script or speaker labels).`}
+- Choose a fresh everyday situation related to ${topicText}.
+
+Include:
+- A concise title (<= 60 chars) in ${TARGET}
+- Reading passage body in ${TARGET}
+- 3 concise bullet takeaways in ${SUPPORT}
+
+Return JSON ONLY:
+{
+  "title": "<short title in ${TARGET}>",
+  "target": "<passage body in ${TARGET}>",
+  "takeaways": ["<3 bullets in ${SUPPORT}>"]
+}
+`.trim();
+  }
   function streamingReviewQuestionProtocol(questionType, supportLang) {
     const SUPPORT = LANG_NAME(supportLang);
     const shared = [
@@ -10066,6 +10161,7 @@ Return ONLY JSON:
   function reading(operation, parametersJSON) {
     return withParameters(parametersJSON, (p) => {
       if (operation === "passage") return buildStreamingPrompt(p);
+      if (operation === "backendPassage") return p.isFirst ? buildSeedLecturePrompt(p) : buildLecturePrompt(p);
       const viewLecture = { target: p.passage || "" }, reviewQuestion = p.reviewQuestion || {}, reviewAnswer = p.answer || "", targetLang = p.targetLang, supportLang = p.supportLang, targetSentences = p.sentences || [], originalText = viewLecture.target, speechTranscript = reviewAnswer, langName = LANG_NAME(targetLang), supportName = LANG_NAME(supportLang);
       if (operation === "translate") return [
         `Translate each sentence below from ${LANG_NAME(targetLang)} (${targetLang}) into ${LANG_NAME(supportLang)} (${supportLang}).`,

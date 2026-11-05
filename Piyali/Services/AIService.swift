@@ -7,6 +7,7 @@ import FirebaseAuth
     #if DEBUG
     // A caller-supplied stream for isolated provider-boundary tests only.
     var readingStreamOverride:(@MainActor (String,@escaping @MainActor(String)->Void) async throws->String)?
+    var readingBackendOverride:(@MainActor (String) async throws->String)?
     var storyStreamOverride:(@MainActor (String,@escaping @MainActor(String)->Void) async throws->String)?
     var storyBatchOverride:(@MainActor (String,StoryMode) async throws->String)?
     #endif
@@ -17,7 +18,7 @@ import FirebaseAuth
                 let model = FirebaseAI.firebaseAI(backend: configuration.geminiBackend()).generativeModel(modelName: configuration.string("GeminiModel"), generationConfig:GenerationConfig(maxOutputTokens:4096,responseMIMEType:json ? "application/json" : nil))
                 let result = try await model.generateContent(prompt)
                 if let text = result.text, !text.isEmpty { return text }
-            } catch { /* The reference app also falls back to Responses. */ }
+            } catch { try Task.checkCancellation() /* The reference app also falls back to Responses. */ }
         }
         return try await responsesText(prompt,json:json)
     }
