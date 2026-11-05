@@ -177,6 +177,10 @@ import StoreKit
         let url=config.web.appendingPathComponent("api/patreon/status")
         return (webSession.configuration.httpCookieStorage?.cookies(for:url) ?? []).contains{cookie in cookie.name == "__session" && (cookie.value.removingPercentEncoding ?? cookie.value).hasPrefix("auth-session.")}
     }
+    private var hasRecoverySession:Bool{
+        let url=config.web.appendingPathComponent("api/patreon/cancel-replacement")
+        return (webSession.configuration.httpCookieStorage?.cookies(for:url) ?? []).contains{cookie in cookie.name == "__session" && (cookie.value.removingPercentEncoding ?? cookie.value).hasPrefix("oauth-recovery.") && (cookie.value.removingPercentEncoding ?? cookie.value).count > "oauth-recovery.".count}
+    }
     private func proof(_ action:String,account:String,token:UUID)async throws->[String:Any]{
         guard let identity,identity.npub == account,revision == token else{throw CancellationError()}
         let challenge=try await post("link-challenge",body:["npub":account,"action":action]),proof=try JSONDecoder().decode(PatreonRestoreChallenge.self,from:JSONSerialization.data(withJSONObject:challenge));try proof.validate(action:action)
@@ -315,7 +319,22 @@ import StoreKit
         }}
     }
     func cancelReplacement()async{
-        guard !busy else{return};let token=revision,mutation=beginStatusMutation();busy=true;defer{finishStatusMutation(mutation);if token == revision{busy=false}}
-        do{_=try await post("cancel-replacement",body:[:]);guard token == revision else{return};statusPayload = .object(["authorized":.bool(false),"linked":.bool(false)]);awaitingCheckout=false;statusError="";result=""}catch{if token == revision{statusError="unavailable";self.error=error.localizedDescription}}
+        guard !busy,let account=accountID,!account.isEmpty else{return};let token=revision,mutation=beginStatusMutation();statusError="";error=nil
+        // OAuth runs in Safari, whose recovery cookie is not in our URLSession.
+        // The endpoint returns 200 even without that cookie, so open the source
+        // recovery page in Safari and recheck the signed key status on return.
+        if !hasRecoverySession {
+            finishStatusMutation(mutation)
+            var components=URLComponents(url:config.web.appendingPathComponent("subscribe"),resolvingAgainstBaseURL:false)!
+            components.queryItems=[URLQueryItem(name:"patreon",value:"replace_required")]
+            guard let url=components.url else{statusError="unavailable";return}
+            let request=SubscriptionBrowserRequest(url:url,account:account,revision:token,kind:.cancelReplacement);browserReturn=request;browser=request;return
+        }
+        busy=true;defer{finishStatusMutation(mutation);if token == revision{busy=false}}
+        do{
+            _=try await post("cancel-replacement",body:[:]);guard token == revision,statusMutation == mutation else{return}
+            finishStatusMutation(mutation);try await restoreWeb();guard token == revision else{return}
+            if replacementRequired {statusError="replacement_failed"} else {awaitingCheckout=false;statusError="";result=""}
+        }catch{if token == revision{statusError="unavailable";self.error=error.localizedDescription}}
     }
 }

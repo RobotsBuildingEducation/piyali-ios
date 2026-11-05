@@ -22,16 +22,17 @@ final class LocalMembershipServer:@unchecked Sendable {
  private func respond(_ c:NWConnection,header:String,body:Data){
   let path=String(header.split(separator:"\r\n").first?.split(separator:" ").dropFirst().first ?? ""),json=(try? JSONSerialization.jsonObject(with:body)) as? [String:Any] ?? [:];calls.append(["path":path,"body":json,"headers":header]);var output:Data,contentType="application/json",code=200,cookie=""
   if path == "/authorize"{payload=["authorized":false,"linked":false,"configured":true,"checkoutRequired":true,"connected":true];contentType="text/html";output=Data("<html><meta name='viewport' content='width=device-width,initial-scale=1'><body><h1>Local membership authorization</h1><p>No real account was connected. Close this browser to return to Piyali.</p></body></html>".utf8)}
+  else if path.hasPrefix("/subscribe?"){contentType="text/html";cookie="Set-Cookie: __session=oauth-recovery.local-fixture; Path=/; HttpOnly; SameSite=Lax\r\n";output=Data("<html><meta name='viewport' content='width=device-width,initial-scale=1'><body><h1>Local recovery confirmation</h1><form method='post' action='/api/patreon/cancel-replacement'><button type='submit'>Cancel replacement</button></form></body></html>".utf8)}
   else if path == "/checkout"{payload=["authorized":true,"linked":true,"configured":true,"subscription":["status":"active","entitledAmountCents":800,"lastVerifiedAtMs":1793000000000]];contentType="text/html";output=Data("<html><meta name='viewport' content='width=device-width,initial-scale=1'><body><h1>Local checkout completed</h1><p>No payment was made. Close this browser to return to Piyali.</p></body></html>".utf8)}
   else{var value:[String:Any]=payload
    if path.hasSuffix("/link-challenge"){let action=json["action"] as? String ?? "",challenge=String(repeating:"c",count:32),f=ISO8601DateFormatter();f.formatOptions=[.withInternetDateTime,.withFractionalSeconds];value=["challengeId":challenge,"eventTemplate":["kind":27235,"created_at":Int64(Date().timeIntervalSince1970),"tags":[["action",action],["challenge",challenge],["expires",f.string(from:Date().addingTimeInterval(120))]],"content":"Authorize Piyali Patreon \(action): "+String(repeating:"n",count:43)]]}
    else if path.hasSuffix("/link-start"){value=["authorizeUrl":url+"/authorize"]}
    else if path.hasSuffix("/refresh-status"),let forcedPayload{value=forcedPayload;code=forcedCode}
    else if path.hasSuffix("/disconnect"){forcedPayload=nil;payload=["authorized":false,"linked":false,"configured":true];value=["ok":true]}
-   else if path.hasSuffix("/cancel-replacement"){payload=["authorized":false,"linked":false,"configured":true];value=["ok":true]}
+   else if path.hasSuffix("/cancel-replacement"){if header.contains("__session=oauth-recovery.local-fixture"){payload=["authorized":false,"linked":false,"configured":true]};value=["ok":true];if header.lowercased().contains("text/html"){contentType="text/html"}}
    else if !path.hasSuffix("/key-status") && !path.hasSuffix("/refresh-status") && !path.hasSuffix("/status"){code=404;value=["error":"Unknown fixture route"]}
    if path.hasSuffix("/key-status"),value["authorized"] as? Bool == true{cookie="Set-Cookie: __session=auth-session.local-fixture; Path=/; HttpOnly; SameSite=Lax\r\n"}
-   output=(try? JSONSerialization.data(withJSONObject:value)) ?? Data()
+   output=contentType == "text/html" ? Data("<html><meta name='viewport' content='width=device-width,initial-scale=1'><body><h1>Local recovery cancelled</h1></body></html>".utf8) : ((try? JSONSerialization.data(withJSONObject:value)) ?? Data())
   }
   var response=Data("HTTP/1.1 \(code) OK\r\nContent-Type: \(contentType)\r\nContent-Length: \(output.count)\r\nCache-Control: no-store\r\n\(cookie)Connection: close\r\n\r\n".utf8);response.append(output);c.send(content:response,completion:.contentProcessed{_ in c.cancel()})
  }
