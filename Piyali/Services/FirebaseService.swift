@@ -96,6 +96,7 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
         guard let fields = snapshot.data() else { return nil }
         var native = local
         if native == nil, let text = fields["iosStateJSON"] as? String { native = try JSONDecoder().decode(LearnerState.self,from:Data(text.utf8)) }
+        if local == nil{native?.pendingPhonicsFinishes=nil} // Continuations are private to this device, never restored from a server hint.
         var state = WebProgressContract.imported(Self.normalized(fields),native:native)
         let lessons = try await user.collection("languageLessons").whereField("targetLang",isEqualTo:state.target).whereField("cefrLevel",isEqualTo:state.level).getDocuments(source:.server)
         for document in lessons.documents {
@@ -252,7 +253,7 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                 // Historical months are canonical; the activity fallback stays on this device.
                 merged.xpActivity=nil
                 // Companion memory has its own shared web document, not a second snapshot authority.
-                merged.shareNostrAchievements = nil; merged.achievementRecords = nil; merged.achievementEvidence = nil; merged.achievementLedger = nil; merged.companionProgress = nil; merged.companionMemory = nil; merged.pendingMemoryChanges = []; merged.userSettings=nil;merged.pendingSettingsChanges=[]; merged.goalIntelligence = nil; merged.goalArtifacts = nil; merged.confirmedFocusedOutcomes=nil; merged.pendingGoalChanges = []; merged.questProgress = nil; merged.journeyQuestCounts = nil; merged.tutorLessons = nil; merged.acknowledgedEventIDs = nil
+                merged.shareNostrAchievements = nil; merged.achievementRecords = nil; merged.achievementEvidence = nil; merged.achievementLedger = nil; merged.companionProgress = nil; merged.companionMemory = nil; merged.pendingMemoryChanges = []; merged.userSettings=nil;merged.pendingSettingsChanges=[]; merged.goalIntelligence = nil; merged.goalArtifacts = nil; merged.confirmedFocusedOutcomes=nil; merged.pendingPhonicsFinishes=nil; merged.pendingGoalChanges = []; merged.questProgress = nil; merged.journeyQuestCounts = nil; merged.tutorLessons = nil; merged.acknowledgedEventIDs = nil
                 var patch: [String:Any] = ["local_npub":npub,"iosStateJSON":String(decoding:try JSONEncoder().encode(merged),as:UTF8.self),"iosStateVersion":2,"iosUpdatedAt":FieldValue.serverTimestamp()]
                 // The shared field is the sole headline authority. Merge only
                 // dirty language entries, retaining the web's last-write

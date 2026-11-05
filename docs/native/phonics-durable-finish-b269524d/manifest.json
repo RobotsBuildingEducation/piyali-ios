@@ -1,0 +1,512 @@
+{
+  "reference_revision": "b269524ddc578027c549616fc47f5954991d9f6f",
+  "native_base": "aa07e959b22042f0df86a7e278a03c95b5280dee",
+  "result_bundle": "/tmp/PiyaliPhonicsDurableFinishVerified20261105.xcresult",
+  "qa_device": "CE8248B6-7171-4FD4-97DE-89E499107F82",
+  "scope": "Original focused component promise continues after a real React unmount while its public XP boundary is held; no full browser auth/navigation/process-persistence claim. Native real signup/setup/pronunciation/termination/offline+online relaunch keeps the existing subscription gate visible; private scoped QA snapshot counts independently verify completion and rewards. Synthetic transcription/grading and acknowledgment fixtures do not prove physical speech, billing or whole-product design.",
+  "checks": {
+    "core": {
+      "tests": 20,
+      "failures": 0,
+      "seconds": 2.093,
+      "log": "/tmp/piyali-phonics-durable-finish-core-20261105.log"
+    },
+    "app_source_sdk": {
+      "tests": 24,
+      "failures": 0,
+      "seconds": 238.791,
+      "models": 21,
+      "sdk_seconds": 49.509,
+      "source_unmount_seconds": 16.561,
+      "source_normal_regression_seconds": 57.538,
+      "models_seconds": 115.182
+    },
+    "ui": {
+      "tests": 2,
+      "failures": 0,
+      "seconds": 194.645,
+      "goal_seconds": 92.356,
+      "repair_seconds": 102.289
+    },
+    "production_coordinator": {
+      "tests": 1,
+      "failures": 0,
+      "seconds": 11.061,
+      "result_bundle": "/tmp/PiyaliPhonicsDurableFinishCoordinator20261105.xcresult",
+      "scope": "Same implementation with automatic cloud retry coordinator enabled; only this test was added after the main capture bundle."
+    },
+    "final_cloud_first_legacy": {
+      "tests": 24,
+      "models": 23,
+      "failures": 0,
+      "seconds": 181.794,
+      "models_seconds": 131.782,
+      "sdk_seconds": 50.012,
+      "result_bundle": "/tmp/PiyaliPhonicsDurableFinishLegacyOrderVerified20261105.xcresult",
+      "scope": "Final production code: cloud-first legacy migration before ACK, modern coordinator, full native flow class and actual SDK outcome/completion result loss across repeated private restores. Separate from earlier source comparisons."
+    },
+    "final_ui": {
+      "tests": 2,
+      "failures": 0,
+      "seconds": 198.102,
+      "goal_seconds": 96.283,
+      "repair_seconds": 101.818,
+      "result_bundle": "/tmp/PiyaliPhonicsDurableFinishLastJourneys20261105.xcresult",
+      "scope": "Final production code after automatic cloud-first migration correction; real UI entry, setup, trial-boundary pronunciation, process termination, offline and online gated relaunch. Replaces the six retained native frames and QA audit."
+    }
+  },
+  "reference_sources": [
+    {
+      "file": "src/components/AlphabetBootcamp.jsx",
+      "sha256": "51a7b8ab6a3c0ee80fc7594fcf9ee66f345d002278c0987b717d5c4b309282d7"
+    },
+    {
+      "file": "src/utils/focusedPracticeDecks.js",
+      "sha256": "bb5f8e54a4ad8db64bfb5e725f8fec4e37f538b4aa26a20714d18e825d6ad59d"
+    },
+    {
+      "file": "src/App.jsx",
+      "sha256": "9e6447368ce10a647025f76daf1b730fb20073590c586f8a3bed8a6d4f2ab948"
+    }
+  ],
+  "main_bundle_sources": [
+    {
+      "file": "Piyali/App/AppModel.swift",
+      "sha256": "e5f511e3687f0c56d7435eb5af47457dbe13196878f5904236e441ca4ef77ed0"
+    },
+    {
+      "file": "Piyali/App/AppModel+PhonicsRecovery.swift",
+      "sha256": "8347ee2f91b55eca9e7016efffdf3008af3872e77938f15d665d43b58c20b4e8"
+    },
+    {
+      "file": "Piyali/App/PhonicsSessionController.swift",
+      "sha256": "7b6dd9c543d2f2205db1d544a8f99f1815e069d7b96a7f269582bc9d0e06ce0f"
+    },
+    {
+      "file": "Piyali/Core/Models.swift",
+      "sha256": "82e125e3e36bdcb500b5c7e97c6f5d50588600a4c74a944773ac36974ca78e13"
+    },
+    {
+      "file": "Piyali/Core/PhonicsFinishIntent.swift",
+      "sha256": "8f9d130a5f220c4f04bbf0af08b6eee25ecaa80063d2dca2a6c0a6b2745953b7"
+    },
+    {
+      "file": "Piyali/Services/FirebaseService.swift",
+      "sha256": "a3f2ff8b209c28850a9ff1b9214fc3939e683b7f5de6eead3feeb9b648b613c7"
+    },
+    {
+      "file": "Tests/PiyaliAppTests/FocusedPhonicsFlowTests.swift",
+      "sha256": "6e7c4ef204d51f47c746973af0878f8f839da6923fb74bdc63c5f5a081389d28"
+    },
+    {
+      "file": "Tests/PiyaliAppTests/FocusedPhonicsComparisonTests.swift",
+      "sha256": "57817341064cf86ea23818eecac2ea305a0c1a1f8286e9f9879f5ddbb426b02e"
+    },
+    {
+      "file": "Tests/PiyaliAppTests/FirestoreContractTests.swift",
+      "sha256": "36a81f8894017fe80c00b535ee1835acf57b7cf12c8c1fe7ba8693bc505be8cb"
+    },
+    {
+      "file": "Tests/PiyaliCoreTests/FocusedPhonicsPolicyTests.swift",
+      "sha256": "a6b789d1fb136b47e0529fd0a774831b910cd13ac9f0e0efe5137cafb3f1a9dc"
+    },
+    {
+      "file": "Tests/PiyaliUITests/FocusedPhonicsJourneyTests.swift",
+      "sha256": "0723c1154c1c92c54d45b38fcc26882c1a00e2e8d90d3069899696f9fb38c3ef"
+    },
+    {
+      "file": "scripts/reference-focused-phonics.jsx",
+      "sha256": "3e3f38829b945a0f736ae1687ddf02af6fd04ee53bbb7aadb5d65b99e43fdeb2"
+    },
+    {
+      "file": "scripts/reference-phonics-fixtures.mjs",
+      "sha256": "273b12d512bd7f9d3ad3d7042f0a3e864afe905397e641f73ba05d2cbd64d3bb"
+    }
+  ],
+  "main_bundle_products": [
+    {
+      "file": "DerivedData/Build/Products/Debug-iphonesimulator/Piyali.app/Piyali",
+      "sha256": "8843297be86ddcbd735dce669c8b562350c73ba2ce3859db5bbf84ab3d0960aa"
+    },
+    {
+      "file": "DerivedData/Build/Products/Debug-iphonesimulator/Piyali.app/Piyali.debug.dylib",
+      "sha256": "881670df2a8b2f76aa39c5b3af22cb55b536d9f5884c058153c0e969582e2221"
+    },
+    {
+      "file": "DerivedData/Build/Products/Debug-iphonesimulator/Piyali.app/PlugIns/PiyaliTests.xctest/PiyaliTests",
+      "sha256": "98013038a6de266befbbce3dfd6987cf636bef8025086365e71e1b250e8f6716"
+    },
+    {
+      "file": "DerivedData/Build/Products/Debug-iphonesimulator/PiyaliUITests-Runner.app/PlugIns/PiyaliUITests.xctest/PiyaliUITests",
+      "sha256": "73cd0ee324eb54d443171d28a18849fe1d1a1b33e37ddca37d021cd34c693547"
+    }
+  ],
+  "original_normal_regression_captures": [
+    {
+      "attachment": "Native focused phonics repair correct ar",
+      "sha256": "54135241e6baa9ea7d0f82c82c1899969ead3c8be9bee4f746d24b81bc8350dc",
+      "bytes": 859838
+    },
+    {
+      "attachment": "Source focused phonics repair correct ar",
+      "sha256": "f9da3e603596ea95abd9f2a8b9670f763b7439f2731feda7040321a82f4bd9aa",
+      "bytes": 362054
+    },
+    {
+      "attachment": "Native focused phonics repair wrong ar",
+      "sha256": "0b6678d1ea414d7a8f0955a981abb023f70921f3aca7b610562a74ac68cf03d2",
+      "bytes": 852741
+    },
+    {
+      "attachment": "Source focused phonics repair wrong ar",
+      "sha256": "9d2355482cf443f21419be083dd21311238a5918fc4364de9a6e74f41a0a2fe2",
+      "bytes": 299078
+    },
+    {
+      "attachment": "Native focused phonics repair practice ar",
+      "sha256": "bf86b7921c42dfd98ea1ebae79f1286830c39d7b28d548f84766f55f855b578f",
+      "bytes": 638188
+    },
+    {
+      "attachment": "Source focused phonics repair practice ar",
+      "sha256": "a03b665a28105fad48fcc3efee595fa52b08d26aec4346d629782b0c14535846",
+      "bytes": 259280
+    },
+    {
+      "attachment": "Native focused phonics repair front ar",
+      "sha256": "fbaf412baee1d539b41d887460483001a7d1c5a592d0822e5ad2cfcdd6e12cae",
+      "bytes": 647157
+    },
+    {
+      "attachment": "Source focused phonics repair front ar",
+      "sha256": "766b658285796a70596d5a58cac30b098ec4d7b0d0b29ebcf185070c917815f6",
+      "bytes": 266302
+    },
+    {
+      "attachment": "Native focused phonics goal correct ar",
+      "sha256": "311cc4fcfa0cc63426b5b6cc698ee213c2443547c32538219b0cbdea6ec4f57d",
+      "bytes": 863760
+    },
+    {
+      "attachment": "Source focused phonics goal correct ar",
+      "sha256": "e70825b6667738aa0896718825c87307ba904d0a145c4bdef4288ecff3fb8c0e",
+      "bytes": 360172
+    },
+    {
+      "attachment": "Native focused phonics goal wrong ar",
+      "sha256": "106e994ab4ccf03a6a0528fd273148cb06d87e278312cc36c513e24c71123a8b",
+      "bytes": 856118
+    },
+    {
+      "attachment": "Source focused phonics goal wrong ar",
+      "sha256": "6febc28748e721c88d1c1605029534d27ad743bfda9455654412cbf554968bdc",
+      "bytes": 296667
+    },
+    {
+      "attachment": "Native focused phonics goal practice ar",
+      "sha256": "7d0a6776e6053828128ca449b34c3feb0d9d05cfd1d53779a77a1b9e7db8d20e",
+      "bytes": 632718
+    },
+    {
+      "attachment": "Source focused phonics goal practice ar",
+      "sha256": "c527b446b9b54763e68e4752d63dc885d6d49ef239163f77ec750b531ffb08a1",
+      "bytes": 257362
+    },
+    {
+      "attachment": "Native focused phonics goal front ar",
+      "sha256": "865acae753531e747d351170d9b576c168ecc9449ac14c2993adfb17203e649e",
+      "bytes": 642624
+    },
+    {
+      "attachment": "Source focused phonics goal front ar",
+      "sha256": "fb25966ab778fd7f07c7271d7da84372b01fb2ce22ab892e4b5b43943ceb7ab0",
+      "bytes": 261432
+    },
+    {
+      "attachment": "Native focused phonics repair correct en",
+      "sha256": "403f377cc561b5ef3d1a18bcfca939bd77c8365d3c14568623d5f82f531b2ea5",
+      "bytes": 1346432
+    },
+    {
+      "attachment": "Source focused phonics repair correct en",
+      "sha256": "6f553f1a0e09041b6adfba4b1d29d4d0f1d7f3de43322bbc405acdcd1dbd4aa5",
+      "bytes": 334799
+    },
+    {
+      "attachment": "Native focused phonics repair wrong en",
+      "sha256": "9c586d35c942045d03387c4de06125fa54bac5fb0f81b071696f168e14e3cc90",
+      "bytes": 1362546
+    },
+    {
+      "attachment": "Source focused phonics repair wrong en",
+      "sha256": "edd65e8699baa4fdee609fb676583265f9c1b9fdb803590fe13519590ea8490e",
+      "bytes": 337469
+    },
+    {
+      "attachment": "Native focused phonics repair practice en",
+      "sha256": "051c5b8c8e45c64cbfe1a85c5249ee087200a89ca943478e81ddca360f5aa462",
+      "bytes": 981747
+    },
+    {
+      "attachment": "Source focused phonics repair practice en",
+      "sha256": "f890cfc73a68649374d62c6d782ebbb70d9983a413d2fb7012e0282ee6a5243e",
+      "bytes": 381231
+    },
+    {
+      "attachment": "Native focused phonics repair front en",
+      "sha256": "01e3799938e9a72c6f7cb4ead1c41e25c18488d97874c7c866a3416cf297c47a",
+      "bytes": 1002869
+    },
+    {
+      "attachment": "Source focused phonics repair front en",
+      "sha256": "10c2b573e30c88fd01e56eb1f5e49a2100e377fe556f47a5f667b2f423a4558b",
+      "bytes": 363535
+    },
+    {
+      "attachment": "Native focused phonics goal correct en",
+      "sha256": "aa9da277f6a9ccac3a14bd6580a3bb2490311ec36e3b4cf5e949bb10fb151006",
+      "bytes": 1313977
+    },
+    {
+      "attachment": "Source focused phonics goal correct en",
+      "sha256": "4b6c924d0e300e5cfaac8913f3d4036d079adee78962ac705d5bfbaea0ea5d9e",
+      "bytes": 332960
+    },
+    {
+      "attachment": "Native focused phonics goal wrong en",
+      "sha256": "27489bd22308067957bffcb59eae6329a0e32ee4ee3dd8487605020633406f33",
+      "bytes": 1329544
+    },
+    {
+      "attachment": "Source focused phonics goal wrong en",
+      "sha256": "22728d23806d5ea7b45b2ae8bb2f9622d83dc930dac8bf41ad89f42f5a58394b",
+      "bytes": 335705
+    },
+    {
+      "attachment": "Native focused phonics goal practice en",
+      "sha256": "cf36c43c55489dde27963dcd66ea72285eabab8e34d1c3b2623f2cae41104c0b",
+      "bytes": 944950
+    },
+    {
+      "attachment": "Source focused phonics goal practice en",
+      "sha256": "6b23df5e2542601ce17b7c2e9d8114c099cf644b9af0335f59276b3dc3c4ab34",
+      "bytes": 378296
+    },
+    {
+      "attachment": "Native focused phonics goal front en",
+      "sha256": "be29f14c7a9d9005ef552dde5e37fae3c5727ff6fd21213347d5cad53ecb1d25",
+      "bytes": 965552
+    },
+    {
+      "attachment": "Source focused phonics goal front en",
+      "sha256": "5e31b32ed521253d53a7d97ac7fded474e9802e39e2dfe016079caf277165f7e",
+      "bytes": 360400
+    }
+  ],
+  "artifacts": [
+    {
+      "file": "source-repair-after-unmount.json",
+      "attachment": "Source pronunciation completion after unmount repair trace",
+      "sha256": "ce4714ffb7223ae96d015e5eb8b6ab23f5ef946ada3bc5e0396174169301a25a",
+      "bytes": 7326,
+      "result_bundle": "/tmp/PiyaliPhonicsDurableFinishVerified20261105.xcresult"
+    },
+    {
+      "file": "source-repair-awaiting-xp.png",
+      "attachment": "Source repair pronunciation awaiting XP before unmount",
+      "sha256": "1782c5c26c608d012d85b8f77ecf7e3ccf9fa5dfc98bca3df76e02f85f99ea08",
+      "bytes": 510347,
+      "result_bundle": "/tmp/PiyaliPhonicsDurableFinishVerified20261105.xcresult"
+    },
+    {
+      "file": "source-repair-input.json",
+      "attachment": "Public pronunciation unmount repair input",
+      "sha256": "c8a1204c698f37de79545bd6ba059db66ada04819ee45aba9d4172e433c8a4ef",
+      "bytes": 4002,
+      "result_bundle": "/tmp/PiyaliPhonicsDurableFinishVerified20261105.xcresult"
+    },
+    {
+      "file": "source-goal-after-unmount.json",
+      "attachment": "Source pronunciation completion after unmount goal trace",
+      "sha256": "3202e698fbe05e5570b879c45914a412d0716167dbfb2583490525e01f154cde",
+      "bytes": 5781,
+      "result_bundle": "/tmp/PiyaliPhonicsDurableFinishVerified20261105.xcresult"
+    },
+    {
+      "file": "source-goal-awaiting-xp.png",
+      "attachment": "Source goal pronunciation awaiting XP before unmount",
+      "sha256": "24555fb8dde46b6f651e4517df82bca97688820a120035ab191d519d9c5c84c6",
+      "bytes": 365483,
+      "result_bundle": "/tmp/PiyaliPhonicsDurableFinishVerified20261105.xcresult"
+    },
+    {
+      "file": "source-goal-input.json",
+      "attachment": "Public pronunciation unmount goal input",
+      "sha256": "12a79f842d5c76d908488648a9abe925117f80c99ea8c5366088dce6cc1d59d0",
+      "bytes": 3511,
+      "result_bundle": "/tmp/PiyaliPhonicsDurableFinishVerified20261105.xcresult"
+    },
+    {
+      "file": "goal-online-recovered.png",
+      "attachment": "Native goal earned work recovers online behind subscription after relaunch",
+      "sha256": "a171cab9183e3c38288073ecdef98342aba67fa1a3622cde7a633e7b91456f66",
+      "bytes": 783470,
+      "result_bundle": "/tmp/PiyaliPhonicsDurableFinishLastJourneys20261105.xcresult"
+    },
+    {
+      "file": "goal-offline-relaunch.png",
+      "attachment": "Native goal pending earned work stays gated while offline after relaunch",
+      "sha256": "a171cab9183e3c38288073ecdef98342aba67fa1a3622cde7a633e7b91456f66",
+      "bytes": 783470,
+      "result_bundle": "/tmp/PiyaliPhonicsDurableFinishLastJourneys20261105.xcresult"
+    },
+    {
+      "file": "goal-before-termination.png",
+      "attachment": "Native goal earned pronunciation pending before termination",
+      "sha256": "91e5bfc8af4f6cf6d82348f2be037fe56af5501510574f1ece796249c60054c3",
+      "bytes": 760965,
+      "result_bundle": "/tmp/PiyaliPhonicsDurableFinishLastJourneys20261105.xcresult"
+    },
+    {
+      "file": "repair-online-recovered.png",
+      "attachment": "Native repair earned work recovers online behind subscription after relaunch",
+      "sha256": "536908ed2239886c6a8f8d6504a6010c57738bc5df190315e90cfe0fc27b500f",
+      "bytes": 784515,
+      "result_bundle": "/tmp/PiyaliPhonicsDurableFinishLastJourneys20261105.xcresult"
+    },
+    {
+      "file": "repair-offline-relaunch.png",
+      "attachment": "Native repair pending earned work stays gated while offline after relaunch",
+      "sha256": "536908ed2239886c6a8f8d6504a6010c57738bc5df190315e90cfe0fc27b500f",
+      "bytes": 784515,
+      "result_bundle": "/tmp/PiyaliPhonicsDurableFinishLastJourneys20261105.xcresult"
+    },
+    {
+      "file": "repair-before-termination.png",
+      "attachment": "Native repair earned pronunciation pending before termination",
+      "sha256": "adfe0e76353cc9aca7be1150cd9ea5dc74e75eb8c175c3bc13cbc97950ad431e",
+      "bytes": 768735,
+      "result_bundle": "/tmp/PiyaliPhonicsDurableFinishLastJourneys20261105.xcresult"
+    },
+    {
+      "file": "qa-snapshot-audit.json",
+      "attachment": "Read-only final QA snapshots after the two scoped UI termination/relaunch journeys",
+      "sha256": "1a6c26ad6e46a20389e05e8b53742227ae1fe101c3e2976f61ef5b21f403fc8b",
+      "bytes": 1293,
+      "result_bundle": "/tmp/PiyaliPhonicsDurableFinishLastJourneys20261105.xcresult"
+    }
+  ],
+  "coordinator_sources": [
+    {
+      "file": "Tests/PiyaliAppTests/FocusedPhonicsFlowTests.swift",
+      "sha256": "72d552b4a8a2905bad9a5e0f9a7dabd3d6b6e6471910e2742c28ab9559d77ab6"
+    },
+    {
+      "file": "scripts/audit-phonics-recovery-qa.py",
+      "sha256": "f5a77457f0b7d1a8d2b45bd6514a5c08848954a393693be3592c65ad8a83ef57"
+    }
+  ],
+  "coordinator_products": [
+    {
+      "file": "DerivedData/Build/Products/Debug-iphonesimulator/Piyali.app/Piyali",
+      "sha256": "a984fde3f97f09ee31de999bb08442cf8fccf468e06e748e9a865e0392f468c0"
+    },
+    {
+      "file": "DerivedData/Build/Products/Debug-iphonesimulator/Piyali.app/Piyali.debug.dylib",
+      "sha256": "881670df2a8b2f76aa39c5b3af22cb55b536d9f5884c058153c0e969582e2221"
+    },
+    {
+      "file": "DerivedData/Build/Products/Debug-iphonesimulator/Piyali.app/PlugIns/PiyaliTests.xctest/PiyaliTests",
+      "sha256": "4594f3f28e10341ff537731b7f9780499e7a766cfc672004f09b057d54eadba6"
+    },
+    {
+      "file": "DerivedData/Build/Products/Debug-iphonesimulator/PiyaliUITests-Runner.app/PlugIns/PiyaliUITests.xctest/PiyaliUITests",
+      "sha256": "73cd0ee324eb54d443171d28a18849fe1d1a1b33e37ddca37d021cd34c693547"
+    }
+  ],
+  "final_scope": "The final one-line automatic-save legacy capture changes AppModel.swift after the historical main/source/UI bundle. Final native+SDK and final UI bundles separately verify that final code. Historical source comparison and coordinator-only hashes retain their original scopes.",
+  "final_sources": [
+    {
+      "file": "Piyali/App/AppModel.swift",
+      "sha256": "c95a0d5d6853283cfe73333799aff4dbf1e88334dd47b728265b72873d9f4e4f"
+    },
+    {
+      "file": "Piyali/App/AppModel+PhonicsRecovery.swift",
+      "sha256": "8347ee2f91b55eca9e7016efffdf3008af3872e77938f15d665d43b58c20b4e8"
+    },
+    {
+      "file": "Piyali/App/PhonicsSessionController.swift",
+      "sha256": "7b6dd9c543d2f2205db1d544a8f99f1815e069d7b96a7f269582bc9d0e06ce0f"
+    },
+    {
+      "file": "Piyali/Core/Models.swift",
+      "sha256": "82e125e3e36bdcb500b5c7e97c6f5d50588600a4c74a944773ac36974ca78e13"
+    },
+    {
+      "file": "Piyali/Core/PhonicsFinishIntent.swift",
+      "sha256": "8f9d130a5f220c4f04bbf0af08b6eee25ecaa80063d2dca2a6c0a6b2745953b7"
+    },
+    {
+      "file": "Piyali/Services/FirebaseService.swift",
+      "sha256": "a3f2ff8b209c28850a9ff1b9214fc3939e683b7f5de6eead3feeb9b648b613c7"
+    },
+    {
+      "file": "Tests/PiyaliAppTests/FocusedPhonicsFlowTests.swift",
+      "sha256": "cd0c7cd0f8da0767798707feb256954cf67890ff702d6b158ee5023220183fb9"
+    },
+    {
+      "file": "Tests/PiyaliAppTests/FocusedPhonicsComparisonTests.swift",
+      "sha256": "57817341064cf86ea23818eecac2ea305a0c1a1f8286e9f9879f5ddbb426b02e"
+    },
+    {
+      "file": "Tests/PiyaliAppTests/FirestoreContractTests.swift",
+      "sha256": "36a81f8894017fe80c00b535ee1835acf57b7cf12c8c1fe7ba8693bc505be8cb"
+    },
+    {
+      "file": "Tests/PiyaliCoreTests/FocusedPhonicsPolicyTests.swift",
+      "sha256": "a6b789d1fb136b47e0529fd0a774831b910cd13ac9f0e0efe5137cafb3f1a9dc"
+    },
+    {
+      "file": "Tests/PiyaliUITests/FocusedPhonicsJourneyTests.swift",
+      "sha256": "0723c1154c1c92c54d45b38fcc26882c1a00e2e8d90d3069899696f9fb38c3ef"
+    },
+    {
+      "file": "scripts/reference-focused-phonics.jsx",
+      "sha256": "3e3f38829b945a0f736ae1687ddf02af6fd04ee53bbb7aadb5d65b99e43fdeb2"
+    },
+    {
+      "file": "scripts/reference-phonics-fixtures.mjs",
+      "sha256": "273b12d512bd7f9d3ad3d7042f0a3e864afe905397e641f73ba05d2cbd64d3bb"
+    },
+    {
+      "file": "Piyali/App/FocusedPhonicsFixture.swift",
+      "sha256": "08df4dd3c94906771fdb50312e30167dd62e90304cae847bda6a1f2be6e89a3c"
+    },
+    {
+      "file": "Piyali.xcodeproj/project.pbxproj",
+      "sha256": "48daa77ead1fe0246e8afc0828b1848481272091462454d83b5a7e46a19c4fe1"
+    },
+    {
+      "file": "scripts/audit-phonics-recovery-qa.py",
+      "sha256": "f5a77457f0b7d1a8d2b45bd6514a5c08848954a393693be3592c65ad8a83ef57"
+    }
+  ],
+  "final_ui_products": [
+    {
+      "file": "DerivedData/Build/Products/Debug-iphonesimulator/Piyali.app/Piyali",
+      "sha256": "5f184a8e3aa5ed4bbaa9d8eab474c149081ba870ab9e4f268ffc7a38a5c66efa"
+    },
+    {
+      "file": "DerivedData/Build/Products/Debug-iphonesimulator/Piyali.app/Piyali.debug.dylib",
+      "sha256": "2d4cdeda02d6c81a0724039b09d54c511afd1c01b5f79bb9b5381664876c4020"
+    },
+    {
+      "file": "DerivedData/Build/Products/Debug-iphonesimulator/Piyali.app/PlugIns/PiyaliTests.xctest/PiyaliTests",
+      "sha256": "35be718a7fb0464c9641f40d11809fa885147b32b248d0304aab8347059c351c"
+    },
+    {
+      "file": "DerivedData/Build/Products/Debug-iphonesimulator/PiyaliUITests-Runner.app/PlugIns/PiyaliUITests.xctest/PiyaliUITests",
+      "sha256": "73cd0ee324eb54d443171d28a18849fe1d1a1b33e37ddca37d021cd34c693547"
+    }
+  ]
+}

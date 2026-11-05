@@ -182,3 +182,74 @@ extension FocusedPhonicsFlowTests {
         let step=try freshRepair(app);try await app.prepareRepairPhonics(step);XCTAssertEqual(store.reservations,0);XCTAssertTrue(app.learner.repairArtifact(step,mode:"phonics")["cards"].array.isEmpty)
     }
 }
+
+
+extension FocusedPhonicsFlowTests {
+    func testGoalPronunciationRestoresEarnedOutcomeAndFinishesItsDependentModeBehindTheTrialGate()async throws {
+        let(app,store,bp,cards)=try await setup();defer{try? app.identity.disconnect()}
+        app.learner.applyGoal(.init(action:.outcome,target:"es",payload:bp.setting("mode",.string("phonics")).setting("cardID",cards[0]["id"]).setting("success",.bool(true)).setting("item",cards[0]["practiceWord"]).setting("externalReward",.bool(true))));app.learner.pendingGoalChanges=[];app.learner.subscriptionXPAdjustment=299
+        var judges=0;let session=try PhonicsSessionController(app:app,card:cards[1],goal:bp,provider:.init(judge:{_ in judges += 1;return "YES | 2"},quote:{_,_ in .null}));session.practice(app);session.submit(cards[1]["practiceWord"].string,app:app);try await settle(session)
+        XCTAssertTrue(session.needsSaveRetry);XCTAssertEqual(app.learner.totalXP,2);XCTAssertFalse(app.subscription.hasAccess);XCTAssertEqual(app.readyGoal?["modeProgress"]["phonics"].number,0)
+        let key=app.identity.exportKey();session.cancel();app.signOut();app.phonicsLibrary=[:];store.online=true;await app.signIn(nsec:key);await app.boot()
+        XCTAssertFalse(app.subscription.hasAccess);XCTAssertEqual(app.learner.totalXP,2);XCTAssertEqual(app.learner.gradedByLanguage?["es"],1);XCTAssertEqual(judges,1);XCTAssertEqual(app.readyGoal?["modeProgress"]["phonics"].number,2);XCTAssertEqual(GoalPractice.nextMode(try XCTUnwrap(app.readyGoal)),"lesson")
+    }
+    func testRepairPronunciationRestoresEarnedOutcomeAndFinishesItsDependentStepBehindTheTrialGate()async throws {
+        let(app,store,_,_)=try await setup();defer{try? app.identity.disconnect()};let step=try freshRepair(app),artifact=try app.focusedPhonicsDeck(repair:step),cards=artifact["cards"].array,outcomes=JSONValue.object(Dictionary(uniqueKeysWithValues:cards.prefix(2).map{($0["id"].string,JSONValue.object(["success":.bool(true),"item":$0["practiceWord"]]))}))
+        app.learner.storeRepairArtifact(artifact.setting("outcomes",outcomes),step:step,mode:"phonics");app.learner.pendingCompanionQuestDays=[:];app.learner.subscriptionXPAdjustment=299
+        var judges=0;let session=try PhonicsSessionController(app:app,card:cards[2],repair:step,provider:.init(judge:{_ in judges += 1;return "YES | 2"},quote:{_,_ in .null}));session.practice(app);session.submit(cards[2]["practiceWord"].string,app:app);try await settle(session)
+        XCTAssertTrue(session.needsSaveRetry);XCTAssertFalse(app.subscription.hasAccess);XCTAssertEqual(app.currentRepairStep?.id,step.id);XCTAssertEqual(app.learner.totalXP,2)
+        let key=app.identity.exportKey();session.cancel();app.signOut();app.phonicsLibrary=[:];store.online=true;await app.signIn(nsec:key);await app.boot()
+        XCTAssertFalse(app.subscription.hasAccess);XCTAssertEqual(app.learner.totalXP,2);XCTAssertEqual(app.learner.gradedByLanguage?["es"],1);XCTAssertEqual(judges,1);XCTAssertEqual(app.currentRepairStep?.index,1);XCTAssertEqual(app.learner.plateProgress["repairDailyActivity"]["es"][step.day].number,1)
+    }
+}
+
+
+extension FocusedPhonicsFlowTests {
+    func testAcknowledgedCachedSuccessWithoutAnInterruptedAttemptDoesNotInferCompletionOnBoot()async throws {
+        let(app,store,bp,cards)=try await setup();defer{try? app.identity.disconnect()};store.online=true
+        for card in cards{app.learner.applyGoal(.init(action:.outcome,target:"es",payload:bp.setting("mode",.string("phonics")).setting("cardID",card["id"]).setting("success",.bool(true)).setting("item",card["practiceWord"]).setting("externalReward",.bool(true))))};app.learner.pendingGoalChanges=[];await app.boot()
+        XCTAssertEqual(app.readyGoal?["modeProgress"]["phonics"].number,0);XCTAssertTrue((app.learner.pendingPhonicsFinishes ?? [:]).isEmpty);XCTAssertEqual(app.learner.totalXP,0);XCTAssertNil(app.learner.gradedByLanguage)
+    }
+    func testLegacyPendingSuccessfulPronunciationMigratesBeforeItsFirstAcknowledgment()async throws {
+        let(app,store,bp,cards)=try await setup();defer{try? app.identity.disconnect()}
+        for card in cards{app.learner.applyGoal(.init(action:.outcome,target:"es",payload:bp.setting("mode",.string("phonics")).setting("cardID",card["id"]).setting("success",.bool(true)).setting("item",card["practiceWord"]).setting("externalReward",.bool(true))))};app.learner.pendingGoalChanges=app.learner.pendingGoalChanges?.filter{$0.payload["cardID"] == cards[1]["id"]};_ = app.learner.attemptPhonics(card:cards[1],grade:PhonicsGrade(correct:true,xp:2),focused:true);app.persist();XCTAssertNil(app.learner.pendingPhonicsFinishes)
+        store.online=true;await app.sync();XCTAssertEqual(app.readyGoal?["modeProgress"]["phonics"].number,2);XCTAssertTrue((app.learner.pendingPhonicsFinishes ?? [:]).isEmpty);XCTAssertEqual(app.learner.totalXP,2)
+    }
+    func testEarnedContinuationCannotCompleteAReplacementGoalAfterItsOutcomeSaves()async throws {
+        let(app,store,bp,cards)=try await setup();defer{try? app.identity.disconnect()};let session=try PhonicsSessionController(app:app,card:cards[0],goal:bp,provider:provider("YES | 2"));session.practice(app);session.submit("casa",app:app);try await settle(session);XCTAssertEqual(app.learner.pendingPhonicsFinishes?.count,1);session.cancel();app.learner.editGoal("A different family goal");store.online=true;await app.sync()
+        XCTAssertEqual(app.learner.totalXP,2);XCTAssertTrue((app.learner.pendingPhonicsFinishes ?? [:]).isEmpty);XCTAssertNotEqual(app.learner.goalBucket["activeGoal"]["id"],bp["goalId"]);XCTAssertNil(app.readyGoal)
+    }
+}
+
+
+extension FocusedPhonicsFlowTests {
+    func testLegacyRepairAttemptRequiresItsMatchingSuccessfulSavedOutcomeBeforeMigration()async throws {
+        let(app,store,_,_)=try await setup();defer{try? app.identity.disconnect()};let step=try freshRepair(app),artifact=try app.focusedPhonicsDeck(repair:step),cards=artifact["cards"].array,last=cards[2],attempt=app.learner.attemptPhonics(card:last,grade:PhonicsGrade(correct:true,xp:2),focused:true)
+        var outcomes=JSONValue.object(Dictionary(uniqueKeysWithValues:cards.prefix(2).map{($0["id"].string,JSONValue.object(["success":.bool(true),"item":$0["practiceWord"]]))}));outcomes=outcomes.setting(last["id"].string,.object(["success":.bool(true),"item":last["practiceWord"],"iosAttemptID":.string(attempt.uuidString)]));app.learner.storeRepairArtifact(artifact.setting("outcomes",outcomes),step:step,mode:"phonics");app.persist();XCTAssertNil(app.learner.pendingPhonicsFinishes);store.online=true;await app.sync()
+        XCTAssertEqual(app.currentRepairStep?.index,1);XCTAssertEqual(app.learner.totalXP,2);XCTAssertTrue((app.learner.pendingPhonicsFinishes ?? [:]).isEmpty)
+    }
+    func testRepairContrastMissDoesNotInferCompletionFromAcknowledgedOriginalAndTransferSuccesses()async throws {
+        let(app,store,_,_)=try await setup();defer{try? app.identity.disconnect()};let step=try freshRepair(app),artifact=try app.focusedPhonicsDeck(repair:step),cards=artifact["cards"].array,outcomes=JSONValue.object(Dictionary(uniqueKeysWithValues:[cards[0],cards[2]].map{($0["id"].string,JSONValue.object(["success":.bool(true),"item":$0["practiceWord"]]))}));app.learner.storeRepairArtifact(artifact.setting("outcomes",outcomes),step:step,mode:"phonics");app.learner.pendingCompanionQuestDays=[:];store.online=true
+        let session=try PhonicsSessionController(app:app,card:cards[1],repair:step,provider:provider("NO"));defer{session.cancel()};session.practice(app);session.submit("WRONG_FIXTURE",app:app);try await settle(session);await app.sync();XCTAssertEqual(session.grade?.correct,false);XCTAssertEqual(app.currentRepairStep?.index,0);XCTAssertEqual(app.learner.totalXP,0);XCTAssertTrue((app.learner.pendingPhonicsFinishes ?? [:]).isEmpty);XCTAssertTrue((app.learner.pendingRepairEvidence ?? []).isEmpty)
+    }
+}
+
+
+extension FocusedPhonicsFlowTests {
+    func testDurableFinishAlsoResumesThroughTheProductionRetryCoordinator()async throws {
+        let(app,store,bp,cards)=try await setup();defer{try? app.identity.disconnect()};app.learner.applyGoal(.init(action:.outcome,target:"es",payload:bp.setting("mode",.string("phonics")).setting("cardID",cards[0]["id"]).setting("success",.bool(true)).setting("item",cards[0]["practiceWord"]).setting("externalReward",.bool(true))));app.learner.pendingGoalChanges=[];app.learner.subscriptionXPAdjustment=299
+        let session=try PhonicsSessionController(app:app,card:cards[1],goal:bp,provider:provider("YES | 2"));session.practice(app);session.submit(cards[1]["practiceWord"].string,app:app);try await settle(session);let key=app.identity.exportKey();session.cancel();app.signOut()
+        let retry=AchievementRetryController(),restored=AppModel(progressService:store,achievementRetries:retry);defer{restored.signOut()};store.online=true;await restored.signIn(nsec:key);await restored.boot()
+        XCTAssertFalse(restored.subscription.hasAccess);XCTAssertEqual(restored.readyGoal?["modeProgress"]["phonics"].number,2);XCTAssertTrue((restored.learner.pendingPhonicsFinishes ?? [:]).isEmpty);XCTAssertEqual(restored.learner.totalXP,2);XCTAssertEqual(restored.learner.gradedByLanguage?["es"],1);XCTAssertFalse(retry.pending(.cloud))
+    }
+}
+
+
+extension FocusedPhonicsFlowTests {
+    func testLegacyReceiptIsCapturedBeforeAnAutomaticCloudWorkerAcknowledgesIt()async throws {
+        let(app,store,bp,cards)=try await setup();defer{try? app.identity.disconnect()}
+        for card in cards{app.learner.applyGoal(.init(action:.outcome,target:"es",payload:bp.setting("mode",.string("phonics")).setting("cardID",card["id"]).setting("success",.bool(true)).setting("item",card["practiceWord"]).setting("externalReward",.bool(true))))};app.learner.pendingGoalChanges=app.learner.pendingGoalChanges?.filter{$0.payload["cardID"] == cards[1]["id"]};_ = app.learner.attemptPhonics(card:cards[1],grade:PhonicsGrade(correct:true,xp:2),focused:true);app.learner.subscriptionXPAdjustment=299;app.persist();let key=app.identity.exportKey();app.signOut()
+        let bridge=IdentityService();try bridge.importKey(key);let retry=AchievementRetryController(),restored=AppModel(progressService:store,achievementRetries:retry);defer{restored.signOut()};restored.resumeAchievementSync();store.online=true;try await retry.runNow(.cloud);await restored.resumePendingPhonicsFinishes()
+        XCTAssertFalse(restored.subscription.hasAccess);XCTAssertEqual(restored.readyGoal?["modeProgress"]["phonics"].number,2);XCTAssertEqual(restored.learner.totalXP,2);XCTAssertTrue((restored.learner.pendingPhonicsFinishes ?? [:]).isEmpty)
+    }
+}

@@ -198,6 +198,7 @@ public struct LearnerState: Codable, Sendable {
     public var pendingSettingsChanges:[SettingsChange]?
     public var acknowledgedEventIDs: Set<UUID>?
     public var ratingByLanguage: [String: Double]?
+    public var pendingPhonicsFinishes:[String:PhonicsFinishIntent]?
     public var confirmedFocusedOutcomes:[String:JSONValue]?
     public var goalArtifacts: [String: JSONValue]?
     public var goalIntelligence: [String: JSONValue]?

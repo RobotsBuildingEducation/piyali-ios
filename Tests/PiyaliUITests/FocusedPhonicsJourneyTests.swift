@@ -4,10 +4,11 @@ import XCTest
     private func element(_ id:String,_ app:XCUIApplication)->XCUIElement{app.descendants(matching:.any).matching(identifier:id).firstMatch}
     private func tap(_ id:String,_ app:XCUIApplication){let e=element(id,app);XCTAssertTrue(e.waitForExistence(timeout:15),id);XCTAssertEqual(XCTWaiter.wait(for:[XCTNSPredicateExpectation(predicate:NSPredicate(format:"enabled == true"),object:e)],timeout:15),.completed,id);for _ in 0..<6 where !e.isHittable{app.swipeUp(velocity:.slow)};XCTAssertTrue(e.isHittable,id);e.tap()}
     private func shot(_ name:String,_ app:XCUIApplication){let a=XCTAttachment(screenshot:app.screenshot());a.name=name;a.lifetime = .keepAlways;add(a)}
-    private func start(_ scenario:String,trial:Bool=false,fresh:Bool=false)->XCUIApplication {
+    private func start(_ scenario:String,trial:Bool=false,fresh:Bool=false,deferred:Bool=false)->XCUIApplication {
         let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_FOCUSED_PHONICS_FIXTURE":scenario,"PIYALI_FOCUSED_PHONICS_COMPLETION_OFFLINE":scenario == "repair" ? "1":"0","PIYALI_PHONICS_FIXTURE":"1","PIYALI_MEMORY_CAPTURE_ONLY":"1","PIYALI_HEADLINE_FIXTURE":"failure","PIYALI_PRACTICE_FIXTURE":"standard:fill","PIYALI_PRACTICE_JUDGE_FIXTURE":"offered-reference"]
         if fresh{app.launchEnvironment["PIYALI_FOCUSED_PHONICS_FRESH"]="1";app.launchEnvironment["PIYALI_FOCUSED_PHONICS_PREPARATION_OFFLINE"]="1";app.launchEnvironment["PIYALI_FOCUSED_PHONICS_COMPLETION_OFFLINE"]="0"}
         if trial{app.launchEnvironment["PIYALI_FOCUSED_PHONICS_TRIAL"]="1";app.launchEnvironment["PIYALI_FOCUSED_PHONICS_COMPLETION_OFFLINE"]="0";app.launchEnvironment["PIYALI_FOCUSED_PHONICS_FAIL_COMPLETION_ONCE"]="1"}
+        if deferred{app.launchEnvironment["PIYALI_FOCUSED_PHONICS_SAVE_OFFLINE_AT_TRIAL"]="1";app.launchEnvironment["PIYALI_FOCUSED_PHONICS_FAIL_COMPLETION_ONCE"]="0"}
         app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"];app.launch();handleInitialPaperPencil(app)
         let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Focused Phonics Learner");tap("entryKeyboardDone",app);tap("createAccount",app);handleInitialPaperPencil(app);chooseEnglishSpanishOnboarding(app);tap("startLearning",app);tap("companionContinue",app);acknowledgePaperPencil(app);tap("gettingStartedGotIt",app);chooseA1Placement(app);tap("startDailyPractice",app);XCTAssertTrue(app.buttons["phonicsPrimary"].waitForExistence(timeout:15));return app
     }
@@ -59,5 +60,19 @@ extension FocusedPhonicsJourneyTests {
         correct(app,firstCapture:true);XCTAssertTrue(element("phonicsCorrect",app).waitForExistence(timeout:15));tap("phonicsPrimary",app)
         if scenario == "repair"{correct(app,firstCapture:false);XCTAssertTrue(element("phonicsCorrect",app).waitForExistence(timeout:15));tap("phonicsPrimary",app)}
         correct(app,firstCapture:false);XCTAssertTrue(app.textFields["typedPracticeAnswer"].waitForExistence(timeout:15));shot("Native fresh \(scenario) phonics reconnects and completes into next lesson",app)
+    }
+}
+
+
+extension FocusedPhonicsJourneyTests {
+    func testGoalPhonicsTerminationBeforeAcknowledgmentRecoversBehindTheTrialGate(){deferredFinishJourney("goal")}
+    func testRepairPhonicsTerminationBeforeAcknowledgmentRecoversBehindTheTrialGate(){deferredFinishJourney("repair")}
+    private func deferredFinishJourney(_ scenario:String){
+        continueAfterFailure=false;let app=start(scenario,trial:true,deferred:true)
+        correct(app,firstCapture:true);XCTAssertTrue(element("phonicsCorrect",app).waitForExistence(timeout:15));tap("phonicsPrimary",app)
+        if scenario == "repair"{correct(app,firstCapture:false);XCTAssertTrue(element("phonicsCorrect",app).waitForExistence(timeout:15));tap("phonicsPrimary",app)}
+        correct(app,firstCapture:false);XCTAssertTrue(element("phonicsFooterError",app).waitForExistence(timeout:15));shot("Native \(scenario) earned pronunciation pending before termination",app)
+        app.terminate();app.launch();XCTAssertTrue(app.buttons["subscriptionNativeTools"].waitForExistence(timeout:15));XCTAssertFalse(app.buttons["phonicsPrimary"].exists);XCTAssertFalse(app.textFields["typedPracticeAnswer"].exists);shot("Native \(scenario) pending earned work stays gated while offline after relaunch",app)
+        app.terminate();app.launchEnvironment["PIYALI_FOCUSED_PHONICS_SAVE_OFFLINE_AT_TRIAL"]="0";app.launch();XCTAssertTrue(app.buttons["subscriptionNativeTools"].waitForExistence(timeout:15));XCTAssertFalse(app.buttons["phonicsPrimary"].exists);XCTAssertFalse(app.textFields["typedPracticeAnswer"].exists);shot("Native \(scenario) earned work recovers online behind subscription after relaunch",app)
     }
 }

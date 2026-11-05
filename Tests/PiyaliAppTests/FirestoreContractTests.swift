@@ -16,11 +16,11 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
 }
 @MainActor private final class PhonicsCompletionResultLossStore:LearnerProgressService {
     let service:FirebaseService
-    var loseCompletionResult=true
+    var loseCompletionResult=true,loseOutcomeResult=false
     init(_ service:FirebaseService){self.service=service}
     func load(npub:String,local:LearnerState?)async throws->LearnerState?{try await service.load(npub:npub,local:local)}
     func saveCompanionCustomization(_ change:SettingsChange,npub:String)async throws->Bool{try await service.saveCompanionCustomization(change,npub:npub)}
-    func save(_ state:LearnerState,npub:String)async throws->LearnerState?{let saved=try await service.save(state,npub:npub);if loseCompletionResult,!(state.pendingRepairEvidence ?? []).isEmpty{throw URLError(.networkConnectionLost)};return saved}
+    func save(_ state:LearnerState,npub:String)async throws->LearnerState?{let saved=try await service.save(state,npub:npub);if loseOutcomeResult,(state.pendingChanges ?? []).contains(where:{$0.source == .phonicsAttempt}){throw URLError(.networkConnectionLost)};if loseCompletionResult,(!(state.pendingRepairEvidence ?? []).isEmpty || (state.pendingGoalChanges ?? []).contains(where:{$0.action == .attempt})){throw URLError(.networkConnectionLost)};return saved}
 }
 @MainActor final class FirestoreContractTests: XCTestCase {
     func testGregorianDayWritesHistoryGoalHealthAndRetryUnderActualSystemCalendar()async throws{
@@ -1277,6 +1277,29 @@ extension FirestoreContractTests {
             await app.sync();let remote=JSONValue.foundation(try await reference.getDocument(source:.server).data() ?? [:]);XCTAssertEqual(remote[field]["cards"],winner["cards"]);XCTAssertEqual(remote[field]["outcomes"],winner["outcomes"]);XCTAssertEqual(remote["foreignArtifact"]["keep"],.bool(true))
             let restored=try requireState(await service.load(npub:npub));XCTAssertEqual(restored.totalXP,before);XCTAssertTrue(restored.phonicsDocuments.isEmpty);XCTAssertEqual(restored.goalBucket["dailyGoal"]["modeProgress"]["phonics"].number,0);XCTAssertEqual(restored.plateProgress["repairDailyActivity"][target][day].number,0)
             let settled=PhonicsCourseController(goal:kind == "goal" ? bp:nil,repair:kind == "repair" ? step:nil);await settled.load(app);XCTAssertEqual(settled.collected.count,1);XCTAssertEqual(settled.deck.map{$0["id"].string},Array(cards.dropFirst()).map{$0["id"].string})
+        }
+    }
+}
+
+
+extension FirestoreContractTests {
+    func testDurableGoalAndRepairPhonicsRestoreAcrossLostOutcomeAndCompletionResponsesWithoutDuplicatingReward()async throws {
+        for kind in ["goal","repair"] {
+            let(service,db,_)=try context(),store=PhonicsCompletionResultLossStore(service),app=AppModel(progressService:store);try app.identity.create();defer{try? app.identity.disconnect()};let npub=app.identity.npub,user=db.collection("users").document(npub);try await seed(db,npub);try await user.updateData(["xp":299]);app.signedIn=true;app.subscription.bind(app.identity);app.learner=try requireState(await service.load(npub:npub));await app.reloadContent();XCTAssertEqual(app.learner.subscriptionXP,299)
+            let base=try XCTUnwrap(app.phonics.first),target=app.learner.target,day=CalendarDay.key(Date());app.learner.editGoal("Pronounce two words")
+            let bp:JSONValue = .object(["goalId":app.learner.goalBucket["activeGoal"]["id"],"dayKey":.string(day),"lang":.string(target),"mode":.string("phonics"),"modes":.array(["phonics","lesson"].map(JSONValue.string)),"cefrLevel":.string(base.cefrLevel ?? "A1"),"objective":.string("Pronounce the two authored words"),"targetLanguage":.array([.string(base.practiceWord)])]),plan:JSONValue = .object(["dayKey":.string(day),"targetLang":.string(target),"target":.number(2),"items":.array([.object(["memoryId":.string("public-sound"),"concept":.string(base.practiceWord),"expectedAnswer":.string(base.practiceWord),"cefrLevel":.string(base.cefrLevel ?? "A1"),"mode":.string("phonics"),"errorType":.string("phonics")]),.object(["memoryId":.string("agreement"),"concept":.string("A supported agreement"),"mode":.string("lesson"),"cefrLevel":.string("A1")])])])
+            if kind == "goal"{app.learner.applyGoal(.init(action:.blueprint,target:target,payload:bp))}else{app.learner.storeCompanionBlueprint(.object(["status":.string("ready"),"repair":plan]),target:target,day:day)};await app.sync()
+            let step=kind == "repair" ? try XCTUnwrap(app.currentRepairStep):nil,candidate=try app.focusedPhonicsDeck(goal:kind == "goal" ? bp:nil,repair:step),cards=candidate["cards"].array,last=try XCTUnwrap(cards.last)
+            if kind == "goal"{app.learner.applyGoal(.init(action:.artifact,target:target,payload:bp.setting("cards",candidate["cards"])));for card in cards.dropLast(){app.learner.applyGoal(.init(action:.outcome,target:target,payload:bp.setting("mode",.string("phonics")).setting("cardID",card["id"]).setting("success",.bool(true)).setting("item",card["practiceWord"]).setting("externalReward",.bool(true))))}}
+            else if let step{let previous=JSONValue.object(Dictionary(uniqueKeysWithValues:cards.dropLast().map{($0["id"].string,JSONValue.object(["success":.bool(true),"item":$0["practiceWord"],"support":.string("modeled")]))}));app.learner.storeRepairArtifact(candidate.setting("outcomes",previous),step:step,mode:"phonics")};await app.sync()
+            var judges=0;store.loseOutcomeResult=true;let session=try PhonicsSessionController(app:app,card:last,goal:kind == "goal" ? bp:nil,repair:step,provider:.init(judge:{_ in judges += 1;return "YES | 2"},quote:{_,_ in .null}));session.practice(app);session.submit(last["practiceWord"].string,app:app);for _ in 0..<1500 where session.busy{try await Task.sleep(for:.milliseconds(20))};XCTAssertTrue(session.needsSaveRetry);XCTAssertEqual(app.learner.pendingPhonicsFinishes?.count,1);XCTAssertFalse(app.subscription.hasAccess)
+            let afterOutcome=try requireState(await service.load(npub:npub));XCTAssertEqual(afterOutcome.totalXP,152);XCTAssertEqual(afterOutcome.subscriptionXP,301);XCTAssertEqual(afterOutcome.gradedByLanguage?[target],1)
+            let key=app.identity.exportKey();session.cancel();app.signOut();store.loseOutcomeResult=false;await app.signIn(nsec:key);await app.boot();XCTAssertFalse(app.subscription.hasAccess);XCTAssertEqual(app.learner.pendingPhonicsFinishes?.count,1)
+            let committed=try requireState(await service.load(npub:npub));if kind == "goal"{XCTAssertEqual(app.readyGoal?["modeProgress"]["phonics"].number,0);XCTAssertEqual(committed.goalBucket["dailyGoal"]["modeProgress"]["phonics"].number,2)}else{XCTAssertEqual(app.currentRepairStep?.index,0);XCTAssertEqual(committed.plateProgress["repairDailyActivity"][target][day].number,1)}
+            app.signOut();store.loseCompletionResult=false;await app.signIn(nsec:key);await app.boot();async let first:Void=app.sync();async let second:Void=app.sync();_ = await(first,second)
+            XCTAssertTrue((app.learner.pendingPhonicsFinishes ?? [:]).isEmpty);XCTAssertFalse(app.subscription.hasAccess);XCTAssertEqual(judges,1);let final=try requireState(await service.load(npub:npub));XCTAssertEqual(final.totalXP,152);XCTAssertEqual(final.subscriptionXP,301);XCTAssertEqual(final.gradedByLanguage?[target],1);XCTAssertTrue(final.phonicsDocuments.isEmpty)
+            if kind == "goal"{XCTAssertEqual(app.readyGoal?["modeProgress"]["phonics"].number,2);XCTAssertEqual(final.goalBucket["goalProgress"]["demonstrated"].array.filter{$0["domain"].string == "pronunciation"}.count,1)}else{XCTAssertEqual(app.currentRepairStep?.index,1);XCTAssertEqual(final.goalBucket["repairSummary"]["eventIds"].array.count,1)}
+            let snapshot=try await user.getDocument(source:.server).data() ?? [:],native=try JSONDecoder().decode(JSONValue.self,from:Data(try XCTUnwrap(snapshot["iosStateJSON"]as?String).utf8));XCTAssertEqual(native["pendingPhonicsFinishes"],.null)
         }
     }
 }

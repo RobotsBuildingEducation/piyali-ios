@@ -37,3 +37,12 @@ extension FocusedPhonicsPolicyTests {
         }
     }
 }
+
+
+extension FocusedPhonicsPolicyTests {
+    func testPrivateFinishIntentSurvivesRestoreAndRebaseWithoutResurrectingAnOlderAttempt()throws {
+        let bp:JSONValue = .object(["goalId":.string("public-finish-goal"),"dayKey":.string("2026-11-05"),"lang":.string("es")]),old=try XCTUnwrap(PhonicsFinishIntent(id:UUID(),account:"public-account",target:"es",support:"en",goal:bp,repair:nil)),latest=try XCTUnwrap(PhonicsFinishIntent(id:UUID(),account:"public-account",target:"es",support:"en",goal:bp,repair:nil))
+        var sent=LearnerState();sent.queuePhonicsFinish(old);var current=sent;current.queuePhonicsFinish(latest);let restored=try JSONDecoder().decode(LearnerState.self,from:JSONEncoder().encode(current));XCTAssertEqual(restored.pendingPhonicsFinishes?[old.key],latest)
+        var cloud=sent;cloud.pendingPhonicsFinishes=nil;var rebased=LearnerState.rebased(current:restored,sent:sent,acknowledged:cloud);XCTAssertEqual(rebased.pendingPhonicsFinishes?[old.key],latest);XCTAssertFalse(rebased.retirePhonicsFinish(old));XCTAssertTrue(rebased.retirePhonicsFinish(latest));XCTAssertTrue((LearnerState.rebased(current:rebased,sent:sent,acknowledged:sent).pendingPhonicsFinishes ?? [:]).isEmpty);XCTAssertEqual(rebased.totalXP,0);XCTAssertNil(rebased.gradedByLanguage)
+    }
+}

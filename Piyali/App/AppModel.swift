@@ -69,6 +69,8 @@ import SwiftUI
     }
     func releaseEarnedPractice(owner:UUID){guard earnedPracticeOwners.removeValue(forKey:owner) != nil else{return};notifyPracticeObservers()}
     func hasEarnedPractice(excluding owner:UUID)->Bool {let scope=[identity.npub,learner.target,CalendarDay.key(Date())].joined(separator:":");return earnedPracticeOwners.contains{$0.key != owner && $0.value == scope}}
+    var phonicsFinishTasks:[String:(id:UUID,task:Task<Void,Error>)]=[:]
+    var phonicsRecoveryTask:(id:UUID,task:Task<Void,Never>)?
     @Published var lessonActivityActive=false
     @Published var activityFooter:ActivityFooterPresentation?
     @Published var activityFooterHeight:CGFloat=0
@@ -255,6 +257,7 @@ import SwiftUI
         } catch { self.error = error.localizedDescription;resumeAchievementSync() }
     }
     private func activateIdentity(newProfile:(name:String,support:String)? = nil) async {
+        cancelPhonicsRecovery()
         upcomingGameReviews.cancel()
         automaticTipTask?.task.cancel();automaticTipTask=nil;automaticWallet.cancel(clear:true)
         saveTask?.cancel(); contentTask?.cancel()
@@ -286,7 +289,7 @@ import SwiftUI
     func disconnectRemote() {
         upcomingGameReviews.cancel();flushGoalEditor();goalCheck=nil
         do {
-            try writeLocal();automaticProgress.reset();automaticTipTask?.task.cancel();automaticTipTask=nil;automaticWallet.cancel(clear:true);saveTask?.cancel();contentTask?.cancel();achievementRetries.pause();nostrAchievements.cancel();teams.cancel(clear:true);teamFeed.cancel(clear:true)
+            try writeLocal();cancelPhonicsRecovery();automaticProgress.reset();automaticTipTask?.task.cancel();automaticTipTask=nil;automaticWallet.cancel(clear:true);saveTask?.cancel();contentTask?.cancel();achievementRetries.pause();nostrAchievements.cancel();teams.cancel(clear:true);teamFeed.cancel(clear:true)
             journeyRecording?.controller.close();journeyRecording=nil;try identity.disconnect();FirebaseIdentityService.shared.clearSession();signedIn=false;lessonActivityActive=false;activityFooter=nil;pendingLessonCompletion=nil;scholarship=ScholarshipPrompt();tutorPath=nil;subscription.bind(identity);learner=LearnerState()
         } catch { self.error=error.localizedDescription }
     }
@@ -365,18 +368,20 @@ import SwiftUI
         })
     }
     private func performAchievementCloudSync(account:String)async throws{
+        let session=identity.sessionRevision
         do{
-            try await FirebaseIdentityService.shared.ensure(identity);try Task.checkCancellation();guard signedIn,identity.npub==account else{throw CancellationError()}
+            try await FirebaseIdentityService.shared.ensure(identity);try Task.checkCancellation();guard signedIn,identity.npub==account,identity.sessionRevision == session else{throw CancellationError()}
             let records=learner.nostrAchievementRecords ?? .object([:])
             if !records.object.isEmpty,importedAchievementSnapshots[account] != records{
                 guard let saved=try await progressService.importAchievements(records,npub:account)else{throw AppError.message("Achievement cloud import is pending.")}
-                try Task.checkCancellation();guard signedIn,identity.npub==account else{throw CancellationError()}
+                try Task.checkCancellation();guard signedIn,identity.npub==account,identity.sessionRevision == session else{throw CancellationError()}
                 learner.achievementRecords=NostrAchievementCollection.merging([.object(learner.achievementRecords ?? [:]),.object(saved),records]).object
                 do{try writeLocal()}catch{};importedAchievementSnapshots[account]=records
             }
+            captureLegacyPhonicsFinishes()
             let sent=learner
             guard let cloud=try await progressService.save(sent,npub:account)else{throw AppError.message("Cloud progress is pending.")}
-            try Task.checkCancellation();guard signedIn,identity.npub==account else{throw CancellationError()}
+            try Task.checkCancellation();guard signedIn,identity.npub==account,identity.sessionRevision == session else{throw CancellationError()}
             try applyAcknowledgment(cloud,sent:sent);syncStatus=synchronizedStatus
         }catch{if signedIn,identity.npub==account,!(error is CancellationError){syncStatus="Saved on iPhone; cloud sync pending"};throw error}
     }
@@ -407,6 +412,7 @@ import SwiftUI
         }
         contentTask = task; await task.value
     }
+    func persistPhonicsRecovery(){do{try writeLocal();syncStatus=synchronizedStatus}catch{self.error="Could not save progress: \(error.localizedDescription)"}}
     private func writeLocal() throws {do{try JSONEncoder().encode(learner).write(to:localURL,options:[.atomic,.completeFileProtection]);if localStorageUnavailable{localStorageUnavailable=false}}catch{if !localStorageUnavailable{localStorageUnavailable=true};throw error}}
     func acknowledgeFirstRun(_ acknowledgment:FirstRunAcknowledgment){
         guard signedIn,!identity.npub.isEmpty else{return};let account=identity.npub
@@ -431,16 +437,16 @@ import SwiftUI
         if newPractice.contains(where:{ $0.amount > 0 || $0.source == .repair }) { localPracticeRevision=UUID() }
         scheduleAutomaticTips(changes:newPractice)
         saveTask?.cancel()
-        let state = learner, npub = identity.npub
+        let state = learner, npub = identity.npub,session=identity.sessionRevision
         saveTask = Task {
             do {
                 try await Task.sleep(for:.milliseconds(500))
-                guard !Task.isCancelled,identity.npub == npub else { return }
+                guard !Task.isCancelled,signedIn,identity.npub == npub,identity.sessionRevision == session else { return }
                 if automaticAchievementRecovery{await sync();return}
                 try await FirebaseIdentityService.shared.ensure(identity)
-                guard identity.npub == npub, !Task.isCancelled else { return }
+                guard signedIn,identity.npub == npub,identity.sessionRevision == session,!Task.isCancelled else { return }
                 let acknowledged = try await progressService.save(state,npub:npub)
-                guard identity.npub == npub, !Task.isCancelled else { return }
+                guard signedIn,identity.npub == npub,identity.sessionRevision == session,!Task.isCancelled else { return }
                 if let acknowledged { try applyAcknowledgment(acknowledged,sent:state); syncStatus = synchronizedStatus }
                 else { syncStatus = "Saved on this iPhone" }
             } catch is CancellationError { }
@@ -449,7 +455,7 @@ import SwiftUI
     }
     var achievementSyncPending:Bool{achievementRetries.pending || synchronizedStatus != "Synced with Firebase" || syncStatus == "Saved on iPhone; cloud sync pending"}
     private var synchronizedStatus: String {
-        (learner.pendingChanges ?? []).isEmpty && (learner.pendingImmersionChanges ?? []).isEmpty && (learner.pendingMemoryChanges ?? []).isEmpty && (learner.pendingSettingsChanges ?? []).isEmpty && (learner.pendingPlacements ?? [:]).isEmpty && (learner.pendingGoalChanges ?? []).isEmpty && (learner.pendingPlateHeadlines ?? [:]).isEmpty && (learner.pendingCompanionQuestDays ?? [:]).isEmpty && (learner.pendingRepairEvidence ?? []).isEmpty ? "Synced with Firebase" : "Saved on iPhone; cloud sync pending"
+        (learner.pendingPhonicsFinishes ?? [:]).isEmpty && (learner.pendingChanges ?? []).isEmpty && (learner.pendingImmersionChanges ?? []).isEmpty && (learner.pendingMemoryChanges ?? []).isEmpty && (learner.pendingSettingsChanges ?? []).isEmpty && (learner.pendingPlacements ?? [:]).isEmpty && (learner.pendingGoalChanges ?? []).isEmpty && (learner.pendingPlateHeadlines ?? [:]).isEmpty && (learner.pendingCompanionQuestDays ?? [:]).isEmpty && (learner.pendingRepairEvidence ?? []).isEmpty ? "Synced with Firebase" : "Saved on iPhone; cloud sync pending"
     }
     private func applyAcknowledgment(_ cloud: LearnerState, sent: LearnerState) throws {
         automaticProgress.observe(cloud,identity:identity,locallyAllowed:learner.automaticPostsEnabled)
@@ -464,16 +470,19 @@ import SwiftUI
         let claimed = learner.claimPlate(user:identity.npub)
         lastPersisted = learner; try writeLocal()
         if claimed { persist() }
+        if !(learner.pendingPhonicsFinishes ?? [:]).isEmpty{Task{[weak self] in await self?.resumePendingPhonicsFinishes()}}
         if target != learner.target || support != learner.support || level != learner.level || cardLevel != learner.flashcardLevel || tutorLevel != learner.tutorLevel { Task { await reloadContent() } }
     }
-    func sync() async {
-        let state = learner, npub = identity.npub
+    func sync() async {captureLegacyPhonicsFinishes();await syncProgress();await resumePendingPhonicsFinishes()}
+    func syncProgress() async {
+        guard signedIn else{return}
+        let state = learner, npub = identity.npub,session=identity.sessionRevision
         do {
             if automaticAchievementRecovery{achievementRetries.setAccount(npub);try await achievementRetries.runNow(.cloud);return}
             try await FirebaseIdentityService.shared.ensure(identity)
-            guard identity.npub == npub else { return }
+            guard signedIn,identity.npub == npub,identity.sessionRevision == session else { return }
             if let cloud = try await progressService.save(state,npub:npub) {
-                guard identity.npub == npub else { return }
+                guard signedIn,identity.npub == npub,identity.sessionRevision == session else { return }
                 try applyAcknowledgment(cloud,sent:state); syncStatus = synchronizedStatus
             } else { syncStatus = "Saved on this iPhone" }
         } catch is CancellationError {}

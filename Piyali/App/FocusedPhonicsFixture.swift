@@ -53,6 +53,7 @@ import Foundation
     func save(_ state:LearnerState,npub:String)async throws->LearnerState? {
         guard !FocusedPhonicsFixture.scenario.isEmpty,!npub.isEmpty else{throw CancellationError()}
         if ProcessInfo.processInfo.environment["PIYALI_FOCUSED_PHONICS_PREPARATION_OFFLINE"] == "1"{throw URLError(.notConnectedToInternet)}
+        if ProcessInfo.processInfo.environment["PIYALI_FOCUSED_PHONICS_SAVE_OFFLINE_AT_TRIAL"] == "1",state.subscriptionXP>=300{throw URLError(.notConnectedToInternet)}
         if ProcessInfo.processInfo.environment["PIYALI_FOCUSED_PHONICS_COMPLETION_OFFLINE"] == "1",!(state.pendingRepairEvidence ?? []).isEmpty{throw URLError(.notConnectedToInternet)}
         let completion = !(state.pendingRepairEvidence ?? []).isEmpty || (state.pendingGoalChanges ?? []).contains{$0.action == .attempt}
         if ProcessInfo.processInfo.environment["PIYALI_FOCUSED_PHONICS_FAIL_COMPLETION_ONCE"] == "1",completion,!failedCompletion{failedCompletion=true;throw URLError(.notConnectedToInternet)}
