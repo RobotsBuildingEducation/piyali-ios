@@ -3091,6 +3091,7 @@
 		D5D4D626BE55A5158826E116 /* RPGGround-264a86e4ef8ee6e83d6386fc.png in Resources */ = {isa = PBXBuildFile; fileRef = 74EC39C5DF0CE025A2C6CEEA /* RPGGround-264a86e4ef8ee6e83d6386fc.png */; };
 		D60C17C2892D8BB4CC825692 /* RPGGround-cef51bbced171a3ff1ddc75f.png in Resources */ = {isa = PBXBuildFile; fileRef = B8ACEA3182BEF45BFAA65D5E /* RPGGround-cef51bbced171a3ff1ddc75f.png */; };
 		D62BB02C363E7A697E2C9E8C /* rpgDialogueSelect.wav in Resources */ = {isa = PBXBuildFile; fileRef = 40948B9BF64FB17058638220 /* rpgDialogueSelect.wav */; };
+		D65FED2E2A0877D0D8FECFB1 /* reading-translation-outcomes.json in Resources */ = {isa = PBXBuildFile; fileRef = 1690E14B1B4C454C171F40E5 /* reading-translation-outcomes.json */; };
 		D66CF2346F34DC35174D7E84 /* RPGGround-fbd7a3910da47772bc1ba0be.png in Resources */ = {isa = PBXBuildFile; fileRef = 9108DDDE044001EE3F86A1C3 /* RPGGround-fbd7a3910da47772bc1ba0be.png */; };
 		D67144022C2D49CA06F384A4 /* RPGProp-bench-632.png in Resources */ = {isa = PBXBuildFile; fileRef = 4C22224F90AF8D64D70FFBD2 /* RPGProp-bench-632.png */; };
 		D683D2346D1BBD3C62DA13A3 /* FirstRunHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9A518FFF685965772795F8A /* FirstRunHelpers.swift */; };
@@ -4032,6 +4033,7 @@
 		1651655E3218F03253C71846 /* RPGGround-ce3a7e22537030c40e1044b4.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGGround-ce3a7e22537030c40e1044b4.png"; sourceTree = "<group>"; };
 		16668F97916DD611C24C556D /* RPGProp-suitcaseStack-870.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGProp-suitcaseStack-870.png"; sourceTree = "<group>"; };
 		168E58FA6C6EE565EF7227FF /* course-RiChatCheckLine@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "course-RiChatCheckLine@3x.png"; sourceTree = "<group>"; };
+		1690E14B1B4C454C171F40E5 /* reading-translation-outcomes.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "reading-translation-outcomes.json"; sourceTree = "<group>"; };
 		16A8E09C7FF8308BCE932175 /* RPGProp-lamp-855.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGProp-lamp-855.png"; sourceTree = "<group>"; };
 		16AE05999899834BA8C56155 /* RPGGround-5fc35550f547993d10a350ca.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGGround-5fc35550f547993d10a350ca.png"; sourceTree = "<group>"; };
 		16C0DCA9CCEAF703D55BFC5F /* RPGProp-bookshelf-373.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGProp-bookshelf-373.png"; sourceTree = "<group>"; };
@@ -11171,6 +11173,7 @@
 				93F9EA3918C75E4A8605DF8B /* PiyaliSubscriptions.storekit */,
 				C75341E518FBD5193A693921 /* reading-outcomes.json */,
 				BB0CFD9E801E5079F26E5AF0 /* reading-story-narration.json */,
+				1690E14B1B4C454C171F40E5 /* reading-translation-outcomes.json */,
 				2CA9A99C6F536D8FB0E5A840 /* rpg-dialogue-traces.json */,
 				A8474534AE8686AB1EF9E9AB /* rpg-prepared-story.json */,
 				114539D4DD58B11260A96AA1 /* standard-bodies.json */,
@@ -11382,6 +11385,7 @@
 				A6B26E924DCE0DD7E561EEE7 /* paper-pencil-motion.json in Resources */,
 				87E5208686D272F662270CD1 /* reading-outcomes.json in Resources */,
 				E334C51CA79E4558A8733394 /* reading-story-narration.json in Resources */,
+				D65FED2E2A0877D0D8FECFB1 /* reading-translation-outcomes.json in Resources */,
 				506A4773A4616F7F2D8AAB64 /* rpg-dialogue-traces.json in Resources */,
 				2DBF32F809D3638A4660B1B6 /* rpg-prepared-story.json in Resources */,
 				383FE7ED0FC0491694BA1AF0 /* standard-bodies.json in Resources */,

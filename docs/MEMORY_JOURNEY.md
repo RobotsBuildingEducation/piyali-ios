@@ -27,3 +27,8 @@ Physical microphone/playback/routes, Chrome WebM/Opus recording import, device/s
 [Repairs, English](native/memory-repairs-en.png), [Goals](native/memory-goals-en.png), [Notes](native/memory-notes-en.png), [Journey](native/memory-journey-en.png), [recording](native/memory-record-en.png), [Arabic Notes](native/memory-notes-ar.png), [Arabic recording](native/memory-record-ar.png).
 
 Product captures: [generated exercise note](native/memory-note-created-product.png), [automatic prompt](native/journey-prompt-product.png), [private preview](native/journey-preview-product.png), [baseline comparison](native/journey-compare-product.png).
+
+
+## Flashcard entry into Notes — 2026-11-05
+
+The [translation/notes checkpoint](READING_TRANSLATION_NOTES.md) covers an ordinary Flashcard-generated note reaching Notes through the real product menu, preserving example/summary/lesson/module/result and relaunch. Source Reading/Story instead capture missed answers in Repairs; no dedicated Create note action was found at `b269524d`. Source global capture animation, exercise note completion after advancing, focused-deck handoffs and broader interruption/locale checks remain open.

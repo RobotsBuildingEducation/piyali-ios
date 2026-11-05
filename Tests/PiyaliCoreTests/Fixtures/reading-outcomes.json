@@ -209,6 +209,38 @@
   },
   {
     "input": {
+      "name": "empty-stream",
+      "chunks": []
+    },
+    "expected": {
+      "lectures": [],
+      "fallback": 1,
+      "history": 0,
+      "error": false,
+      "fallbackDrafts": [
+        null
+      ]
+    }
+  },
+  {
+    "input": {
+      "name": "empty-stream-backend-error",
+      "chunks": [],
+      "fallbackFail": true
+    },
+    "expected": {
+      "lectures": [],
+      "fallback": 2,
+      "history": 0,
+      "error": true,
+      "fallbackDrafts": [
+        null,
+        null
+      ]
+    }
+  },
+  {
+    "input": {
       "name": "error-after-reveal",
       "chunks": [
         "{\"type\":\"title\",\"text\":\"El jardín\"}\n",

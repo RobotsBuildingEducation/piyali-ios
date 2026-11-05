@@ -8,6 +8,9 @@ import FirebaseAILogic
     @Published private(set) var draft:ReadingStreamDraft?
     @Published private(set) var suppressedPrevious=false
     @Published private(set) var translationPreview:[String]?
+    @Published private(set) var translationLoading=false
+    private var translationRequest:UUID?
+    private var translationResult:(runID:UUID,visible:Bool)?
     @Published private(set) var questionGenerating=false
     @Published private(set) var questionFailed=false
     private var attemptedQuestions=Set<UUID>()
@@ -21,11 +24,13 @@ import FirebaseAILogic
     private var lastGeneration:(account:String,runID:UUID,createdAt:Date)?
     #if DEBUG
     private var fixtureGenerations=0
+    private var fixtureTranslations=0
     #endif
     private let now:@MainActor ()->Date
     private let passageWriter:(@MainActor (@escaping @MainActor (String)->Void) async throws->JSONValue)?
+    private let translationWriter:(@MainActor (String,@escaping @MainActor (String)->Void) async throws->String)?
     private let speechGrader:(@MainActor (ReadingRun,String) async throws->ReadingSpeechFeedback)?
-    init(speechGrader:(@MainActor (ReadingRun,String) async throws->ReadingSpeechFeedback)?=nil,now:@escaping @MainActor ()->Date={Date()},passageWriter:(@MainActor (@escaping @MainActor (String)->Void) async throws->JSONValue)?=nil) { self.speechGrader=speechGrader;self.now=now;self.passageWriter=passageWriter }
+    init(speechGrader:(@MainActor (ReadingRun,String) async throws->ReadingSpeechFeedback)?=nil,now:@escaping @MainActor ()->Date={Date()},passageWriter:(@MainActor (@escaping @MainActor (String)->Void) async throws->JSONValue)?=nil,translationWriter:(@MainActor (String,@escaping @MainActor (String)->Void) async throws->String)?=nil) { self.speechGrader=speechGrader;self.now=now;self.passageWriter=passageWriter;self.translationWriter=translationWriter }
     static var fixture:Bool {
         #if DEBUG
         return ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"] == "1" && UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil && ProcessInfo.processInfo.environment["PIYALI_READING_FIXTURE"] == "1"
@@ -33,9 +38,9 @@ import FirebaseAILogic
         return false
         #endif
     }
-    func cancel() { generation=UUID();questionTask?.cancel();questionTask=nil;questionGenerating=false;writing?.cancel();writing=nil;translating?.cancel();translating=nil;translationPreview=nil;translationOwner=nil;speechReview?.cancel();speechReview=nil;busy=false;generating=false;draft=nil }
+    func cancel() { generation=UUID();questionTask?.cancel();questionTask=nil;questionGenerating=false;writing?.cancel();writing=nil;translating?.cancel();translating=nil;translationPreview=nil;translationOwner=nil;translationRequest=nil;translationResult=nil;translationLoading=false;speechReview?.cancel();speechReview=nil;busy=false;generating=false;draft=nil }
     func prepare(_ app:AppModel,lesson:Lesson?,fresh:Bool) async {
-        writing?.cancel();writing=nil;translating?.cancel();translating=nil;translationPreview=nil;translationOwner=nil;speechReview?.cancel();speechReview=nil
+        writing?.cancel();writing=nil;translating?.cancel();translating=nil;translationPreview=nil;translationOwner=nil;translationRequest=nil;translationResult=nil;translationLoading=false;speechReview?.cancel();speechReview=nil
         let state=app.learner,account=app.identity.npub,target=state.target,support=state.support
         let authoredLevel=lesson?.cefrLevel ?? (lesson?.agenda["cefrLevel"].string.isEmpty == false ? lesson!.agenda["cefrLevel"].string : state.level)
         let fixed=lesson?.id == IntroTutorial.lessonID || lesson?.id.hasPrefix("goal-") == true || lesson?.id.hasPrefix("repair-") == true || lesson?.isFinalQuiz == true
@@ -169,41 +174,60 @@ import FirebaseAILogic
         } catch is CancellationError { } catch { if generation == token { self.error=error.localizedDescription } }
     }
     func translationLines(for id:UUID)->[String]? {translationOwner == id ? translationPreview:nil}
+    func translationVisibility(for id:UUID)->Bool? {translationResult?.runID == id ? translationResult?.visible:nil}
     @discardableResult func translate(_ app:AppModel,run:ReadingRun) async ->Bool {
-        guard !busy,run.translation == nil,run.lineTranslations == nil,app.subscription.hasAccess || Self.fixture else {return run.translation != nil || run.lineTranslations != nil}
-        let token=generation,account=app.identity.npub;busy=true;error=nil;translationOwner=run.id;translationPreview=[]
-        defer {if token == generation {busy=false;translating=nil;translationPreview=nil;translationOwner=nil}}
+        guard app.learner.target == run.target,app.learner.support == run.support,app.learner.reading?.id == run.id else{return false}
+        if run.translation != nil || run.lineTranslations != nil {return true}
+        let sentences=Reading.displaySentences(run.text)
+        guard !translationLoading,!sentences.isEmpty,app.subscription.hasAccess || Self.fixture else{return false}
+        let token=generation,account=app.identity.npub,request=UUID()
+        translationRequest=request;translationLoading=true;translationOwner=run.id;translationPreview=[];translationResult=nil
+        defer {if token == generation,translationRequest == request {translationLoading=false;translating=nil;translationPreview=nil;translationOwner=nil;translationRequest=nil}}
+        func ownsRequest()->Bool {token == generation && translationRequest == request && account == app.identity.npub && app.learner.target == run.target && app.learner.support == run.support && app.learner.reading?.id == run.id}
         do {
-            let sentences=Reading.displaySentences(run.text)
             let prompt=try PracticeRecipes().reading("translate",parameters:.object(["targetLang":.string(run.target),"supportLang":.string(run.support),"sentences":.array(sentences.map(JSONValue.string))]))
             let task=Task { @MainActor [weak self] () throws ->String in
                 guard let self else{throw CancellationError()}
+                let publish:@MainActor (String)->Void = {[weak self] snapshot in
+                    guard let self,ownsRequest() else{return}
+                    let next=ReadingTranslationStream.lines(snapshot,limit:sentences.count);if next != self.translationPreview {self.translationPreview=next}
+                }
+                if let writer=self.translationWriter {return try await writer(prompt,publish)}
                 if Self.fixture {
                     let lines=(try ContentLibrary.load(JSONValue.self,name:"reading-test-passage"))["translations"].array.map(\.string)
                     #if DEBUG
+                    let failure=ProcessInfo.processInfo.environment["PIYALI_READING_TRANSLATION_FAILURE_FIXTURE"] ?? ""
+                    if ["throw","incomplete"].contains(failure) {
+                        self.fixtureTranslations += 1
+                        if self.fixtureTranslations == 1 {
+                            let snapshot=lines[0]+"\n";publish(snapshot);try await Task.sleep(for:.seconds(4))
+                            if failure == "incomplete" {return snapshot};throw ReadingFailure.invalid
+                        }
+                    }
                     if ProcessInfo.processInfo.environment["PIYALI_READING_TRANSLATION_STREAM_FIXTURE"] == "1" {
                         var snapshot=""
                         for line in lines {
-                            try Task.checkCancellation();guard self.generation == token,app.identity.npub == account,app.learner.target == run.target,app.learner.support == run.support else{throw CancellationError()}
-                            snapshot += line+"\n";self.translationPreview=ReadingTranslationStream.lines(snapshot,limit:sentences.count)
+                            try Task.checkCancellation();guard ownsRequest() else{throw CancellationError()}
+                            snapshot += line+"\n";publish(snapshot)
                             try await Task.sleep(for:.milliseconds(500))
                         }
                     }
                     #endif
                     return lines.joined(separator:"\n")
                 }
-                return try await app.ai.readingStreamText(prompt,onChunk:{[weak self] snapshot in
-                    guard let self,self.generation == token,self.translationOwner == run.id,app.identity.npub == account,app.learner.target == run.target,app.learner.support == run.support,app.learner.reading?.id == run.id else{return}
-                    let next=ReadingTranslationStream.lines(snapshot,limit:sentences.count);if next != self.translationPreview {self.translationPreview=next}
-                })
+                return try await app.ai.readingStreamText(prompt,onChunk:publish)
             }
             translating=task
             let output=try await withTaskCancellationHandler(operation:{try await task.value},onCancel:{task.cancel()})
-            let lines=ReadingTranslationStream.lines(output,limit:sentences.count,includeTrailing:true)
-            guard lines.count == sentences.count else {throw AppError.message(EntryCopy.ui(run.support,"try_again"))}
-            try Task.checkCancellation();guard token == generation,account == app.identity.npub,app.learner.target == run.target,app.learner.support == run.support,var current=app.learner.reading,current.id == run.id else{return false}
+            try Task.checkCancellation();guard ownsRequest(),var current=app.learner.reading else{return false}
+            let resolution=ReadingTranslationStream.resolve(output,limit:sentences.count,failed:false)
+            translationResult=(run.id,resolution.visible)
+            guard let lines=resolution.lines else{return false}
             current.lineTranslations=lines;app.learner.saveReading(current);app.persist();return true
-        } catch is CancellationError {return false} catch {if generation == token {self.error=error.localizedDescription};return false}
+        } catch is CancellationError {return false} catch {
+            if ownsRequest(){translationResult=(run.id,ReadingTranslationStream.resolve("",limit:sentences.count,failed:true).visible)}
+            return false
+        }
     }
 
 }
@@ -228,7 +252,7 @@ extension AIService {
         if repair { prompt += "\nPrevious generation failed validation. Return a fresh, complete passage and valid grounded question using the specified protocol." }
         var fallbackAttempts=1
         do {
-            let output=try await readingStreamText(ReadingRules.data["writer"].string+"\n"+prompt,fallback:false,onChunk:onChunk)
+            let output=try await readingStreamText(ReadingRules.data["writer"].string+"\n"+prompt,onChunk:onChunk)
             try Task.checkCancellation()
             onChunk(output+"\n") // Include a complete final record without a trailing newline.
             if let payload=ReadingStreamDraft.sourcePayload(output,target:state.target,support:state.support,questionType:type) {return payload}
@@ -258,26 +282,22 @@ extension AIService {
 
 
 extension AIService {
-    /// Publishes cumulative provider output; an empty snapshot abandons an
-    /// unsuccessful provider before the fallback starts.
-    func readingStreamText(_ prompt:String,fallback:Bool=true,onChunk:@escaping @MainActor(String)->Void) async throws ->String {
+    /// One provider stream. Callers own completion and failure policy; a normal
+    /// empty end stays distinct from a thrown request. No hidden provider retry.
+    func readingStreamText(_ prompt:String,onChunk:@escaping @MainActor(String)->Void) async throws ->String {
         #if DEBUG
         if let override=readingStreamOverride {return try await override(prompt,onChunk)}
         #endif
         if configuration.string("AIProvider") == "gemini",FirebaseService.shared.configured {
-            do {
-                let model=FirebaseAI.firebaseAI(backend:configuration.geminiBackend()).generativeModel(modelName:configuration.string("GeminiModel"),generationConfig:GenerationConfig(temperature:0.7,maxOutputTokens:4096))
-                var output=""
-                for try await chunk in try model.generateContentStream(prompt) {
-                    try Task.checkCancellation()
-                    if fallback,chunk.candidates.contains(where:{$0.finishReason == .maxTokens}) {throw ReadingFailure.invalid}
-                    output += chunk.text ?? ""
-                    guard output.utf8.count <= 100_000 else{throw ReadingFailure.invalid}
-                    onChunk(output)
-                }
-                guard !output.isEmpty else{throw ReadingFailure.invalid}
-                return output
-            } catch {try Task.checkCancellation();if !fallback {throw error};onChunk("")}
+            let model=FirebaseAI.firebaseAI(backend:configuration.geminiBackend()).generativeModel(modelName:configuration.string("GeminiModel"),generationConfig:GenerationConfig(temperature:0.7,maxOutputTokens:4096))
+            var output=""
+            for try await chunk in try model.generateContentStream(prompt) {
+                try Task.checkCancellation()
+                output += chunk.text ?? ""
+                guard output.utf8.count <= 100_000 else{throw ReadingFailure.invalid}
+                onChunk(output)
+            }
+            return output
         }
         return try await responsesStream(prompt,onChunk:onChunk)
     }

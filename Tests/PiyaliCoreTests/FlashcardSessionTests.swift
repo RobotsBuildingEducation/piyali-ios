@@ -4,7 +4,7 @@ import XCTest
 final class FlashcardSessionTests:XCTestCase {
     @MainActor func testNativePolicyExecutesOriginalFlashcardPromptsGradesColorsAndScheduling()throws {
         let root=URL(fileURLWithPath:#filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent(),engine=try CompanionQuestPolicy(source:root.appendingPathComponent("Piyali/Resources/companion-quest-policy.js")),rows=try ContentLibrary.decode([JSONValue].self,url:root.appendingPathComponent("Tests/PiyaliCoreTests/Fixtures/flashcard-source-policy.json.gz"))
-        XCTAssertEqual(rows.count,117)
+        XCTAssertEqual(rows.count,118)
         for row in rows {XCTAssertEqual(try engine.run(row["operation"].string,row["input"]),row["expected"],row["operation"].string)}
     }
     func testReviewUsesExplicitSourceRewardIndependentlyOfTheChosenScheduleAndRemainsRebasable(){

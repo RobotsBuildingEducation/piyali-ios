@@ -2,6 +2,15 @@ import XCTest
 @testable import PiyaliCore
 
 final class ReadingStreamTests:XCTestCase {
+    func testTranslationCompletionAndFailureMatchOriginalCallback() throws {
+        let url=URL(fileURLWithPath:#filePath).deletingLastPathComponent().appendingPathComponent("Fixtures/reading-translation-outcomes.json"),rows=try JSONDecoder().decode([JSONValue].self,from:Data(contentsOf:url))
+        XCTAssertEqual(rows.count,13)
+        for row in rows {
+            let input=row["input"],result=ReadingTranslationStream.resolve(input["chunks"].array.map(\.string).joined(),limit:3,failed:input["fail"].boolean || input["noProvider"].boolean,supportFallback:input["support"].string)
+            XCTAssertEqual(result.visible,row["expected"]["visible"].boolean,input["name"].string)
+            XCTAssertEqual(result.lines,row["expected"]["lines"] == .null ? nil:row["expected"]["lines"].array.map(\.string),input["name"].string)
+        }
+    }
     func testGenerationErrorUsesOriginalCopyAndEnglishFallback() throws {
         let url=URL(fileURLWithPath:#filePath).deletingLastPathComponent().appendingPathComponent("Fixtures/reading.json"),fixture=try JSONDecoder().decode(JSONValue.self,from:Data(contentsOf:url))["generationUnavailable"]
         for language in ["en","es","it","fr","de","ja","ar","zh"] {

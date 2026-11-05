@@ -1,6 +1,23 @@
 import XCTest
 
 @MainActor final class FlashcardParityTests:XCTestCase {
+    func testCreatedFlashcardNoteReachesMemoryAndRestoresItsSourceMetadata() {
+        continueAfterFailure=false
+        let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_ENTRY_INITIAL_LANGUAGE":"en","PIYALI_ENTRY_INITIAL_THEME":"light","PIYALI_FLASHCARD_FIXTURE":"1","PIYALI_FLASHCARD_NOTE_FIXTURE":"1","PIYALI_HEADLINE_FIXTURE":"failure"]
+        app.launch();handleInitialPaperPencil(app)
+        func tap(_ id:String){let b=app.buttons[id];XCTAssertTrue(b.waitForExistence(timeout:15));for _ in 0..<8 where !b.isHittable {app.swipeUp(velocity:.slow)};XCTAssertTrue(b.isHittable);b.tap()}
+        let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Note Learner");tap("entryKeyboardDone");tap("createAccount");handleInitialPaperPencil(app)
+        tap("onboardingPractice");tap("onboardingOption-practice-es");tap("startLearning")
+        tap("productMenu");tap("productModeMenu");tap("productMode-cards");tap("flashcardTile-pre-a1-people-1")
+        let answer=app.textFields["flashcardAnswer"];XCTAssertTrue(answer.waitForExistence(timeout:10));answer.tap();answer.typeText("mamá\n");XCTAssertTrue(app.staticTexts["flashcardReward"].waitForExistence(timeout:10))
+        tap("flashcardCreateNote");let saved=XCTNSPredicateExpectation(predicate:NSPredicate(format:"enabled == false AND label == %@","flashcard_note_saved"),object:app.buttons["flashcardCreateNote"]);XCTAssertEqual(XCTWaiter.wait(for:[saved],timeout:10),.completed)
+        tap("flashcardRate-hard");tap("productMenu");tap("productPanel-memory");tap("memoryTab-notes");tap("memoryLevel-A1")
+        let note=app.buttons.matching(NSPredicate(format:"identifier BEGINSWITH 'memoryNote-' AND label CONTAINS 'Mi mamá vive cerca.'")).firstMatch
+        XCTAssertTrue(note.waitForExistence(timeout:10));note.tap();XCTAssertTrue(app.staticTexts["Use mamá to talk about your mother."].waitForExistence(timeout:10));XCTAssertTrue(app.staticTexts["Lesson: mom"].exists)
+        shot(app,"Flashcard study note in Memory with original example and lesson")
+        tap("productPanelClose");app.terminate();app.launch();handleInitialPaperPencil(app);tap("productMenu");tap("productPanel-memory");tap("memoryTab-notes");tap("memoryLevel-A1")
+        XCTAssertTrue(note.waitForExistence(timeout:10));note.tap();XCTAssertTrue(app.staticTexts["Use mamá to talk about your mother."].exists)
+    }
     func testCardsWrongRetryRevealRatingAndSchedulerRestoreThroughTheRealProductMenu(){
         continueAfterFailure=false
         let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString;app.launchEnvironment["PIYALI_ENTRY_INITIAL_LANGUAGE"]="en";app.launchEnvironment["PIYALI_ENTRY_INITIAL_THEME"]="light";app.launchEnvironment["PIYALI_FLASHCARD_FIXTURE"]="1";app.launchEnvironment["PIYALI_HEADLINE_FIXTURE"]="failure";app.launch();handleInitialPaperPencil(app)

@@ -457,9 +457,13 @@ import Security
             let prompt=try policy.run("flashReveal",.object(["concept":.string("mom"),"targetLang":.string("es"),"supportLang":.string("en")])).string;var chunks:[String]=[]
             let answer=try await provider.stream(prompt){chunks.append($0)};XCTAssertFalse(answer.isEmpty);XCTAssertFalse(chunks.isEmpty);XCTAssertLessThan(answer.count,120)
             let quote=try await provider.quote(card,LearnerState());XCTAssertGreaterThan(quote["gainBySupport"]["independent"].number,0)
-            print("LIVE FLASHCARDS: original semantic YES/NO grading, streamed translation and native question-worth quote succeeded; no learner progress writes")
-        }catch{try? await Auth.auth().currentUser?.delete();try? Auth.auth().signOut();try? identity.disconnect();throw error}
-        try await Auth.auth().currentUser?.delete();try Auth.auth().signOut();try identity.disconnect()
+            let parameters:Piyali.JSONValue = .object(["concept":.string("mom"),"userAnswer":.string("mamá"),"wasCorrect":.bool(true),"targetLang":.string("es"),"supportLang":.string("en"),"cefrLevel":.string("Pre-A1"),"moduleType":.string("flashcard")])
+            let notePrompt=try policy.run("flashNotePrompt",parameters).string,rawNote=try await provider.note(notePrompt)
+            let note=try policy.run("flashNoteParse",parameters.setting("raw",.string(rawNote)))
+            XCTAssertFalse(note["example"].string.isEmpty);XCTAssertFalse(note["summary"].string.isEmpty);XCTAssertNotEqual(note["example"].string,"Example: mom")
+            print("LIVE FLASHCARDS: original semantic YES/NO grading, streamed translation, native question-worth quote and source study-note prompt succeeded; no learner progress writes")
+        }catch{try? await deleteLiveTestIdentity(identity);throw error}
+        try await deleteLiveTestIdentity(identity)
     }
     func testOriginalFocusedGoalPlannerAndWrittenRubricUseNativeProvider() async throws {
         guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else{throw XCTSkip("Explicit live API opt-in required.")}
@@ -831,8 +835,8 @@ import Security
                 XCTAssertGreaterThan(translatedPartial,0,"A translated line must arrive before stream completion.")
                 print("LIVE READING TRANSLATION STREAM: path=\(label), snapshots with a complete line=\(translatedPartial)")
             }
-        } catch {try? await Auth.auth().currentUser?.delete();try? Auth.auth().signOut();try? identity.disconnect();throw error}
-        try await Auth.auth().currentUser?.delete();try Auth.auth().signOut();try identity.disconnect()
+        } catch {try? await deleteLiveTestIdentity(identity);throw error}
+        try await deleteLiveTestIdentity(identity)
     }
     func testConversationTranslationStreamsAndUsesResponsesFallback() async throws {
         guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else{throw XCTSkip("Explicit live API opt-in required.")}

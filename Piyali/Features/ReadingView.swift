@@ -97,7 +97,7 @@ struct ReadingView:View {
                 if app.learner.settingsSnapshot["progress"]["showTranslations"] != .bool(false) {
                     HStack {Spacer();Button(t("history_translate")) {}.font(PiyaliBrand.productFont(13,600)).padding(.horizontal,12).padding(.vertical,10).foregroundStyle(.white).background(Color(red:64/255,green:103/255,blue:96/255),in:RoundedRectangle(cornerRadius:10)).buttonStyle(.plain).accessibilityIdentifier("readingDraftTranslate")}
                 }
-            }.padding(12).background(PiyaliBrand.teal.opacity(0.15),in:RoundedRectangle(cornerRadius:12)).overlay(alignment:.leading){UnevenRoundedRectangle(topLeadingRadius:3,bottomLeadingRadius:3).fill(PiyaliBrand.teal).frame(width:3)}
+            }.padding(12).background(PiyaliBrand.unitColor("38b2ac").opacity(0.15),in:EntryCornerShape(radius:8)).overlay(alignment:.leading){Rectangle().fill(PiyaliBrand.unitColor("38b2ac")).frame(width:3)}.clipShape(EntryCornerShape(radius:8))
             if !draft.takeaways.isEmpty {
                 VStack(alignment:.leading,spacing:7) {Text(t("reading_takeaways_heading")).font(PiyaliBrand.productFont(14,600));ForEach(Array(draft.takeaways.enumerated()),id:\.offset){_,value in Text("• "+value).font(PiyaliBrand.productFont(14))}}.padding(.top,24)
             }
@@ -108,24 +108,44 @@ struct ReadingView:View {
         return VStack(alignment:.leading,spacing:14) {
             if !showTranslation {
                 ReadingSentenceText(sentences:sentences,active:activeSentence,dark:scheme == .dark,onSelect:{ index in stop();audio.play(sentences[index],language:run.target,sentence:index) }).accessibilityIdentifier("readingPassage").environment(\.layoutDirection,run.target == "ar" ? .rightToLeft : .leftToRight)
-            } else { VStack(alignment:.leading,spacing:12) {
+            } else { VStack(alignment:.leading,spacing:8) {
                 ForEach(Array(sentences.enumerated()),id:\.offset) { index,sentence in
-                    VStack(alignment:.leading,spacing:7) {
+                    VStack(alignment:.leading,spacing:4) {
                         Button { stop();audio.play(sentence,language:run.target,sentence:index) } label:{
-                            Text(sentence).font(PiyaliBrand.productFont(16)).lineSpacing(6).multilineTextAlignment(.leading).padding(.horizontal,5).padding(.vertical,4).foregroundStyle(brand.text).background(sentenceColor(index).opacity(activeSentence == index ? 0.35 : 0.12),in:RoundedRectangle(cornerRadius:5)).overlay { RoundedRectangle(cornerRadius:5).stroke(sentenceColor(index).opacity(0.2)) }
+                            Text(sentence).font(PiyaliBrand.productFont(16)).lineSpacing(max(0,24-UIFont.systemFont(ofSize:16).lineHeight)).multilineTextAlignment(.leading)
+                                .padding(.horizontal,4).padding(.vertical,max(0,24-UIFont.systemFont(ofSize:16).lineHeight)/2).foregroundStyle(brand.text)
+                                .background {RoundedRectangle(cornerRadius:2).fill(activeSentence == index ? PiyaliBrand.unitColor("38b2ac").opacity(0.35):sentenceColor(index).opacity(0.12)).shadow(color:activeSentence == index ? PiyaliBrand.unitColor("008080"):sentenceColor(index).opacity(0.3),radius:0,y:4)}
+                                .overlay {RoundedRectangle(cornerRadius:2).stroke(activeSentence == index ? PiyaliBrand.unitColor("38b2ac"):.white.opacity(0.12),lineWidth:1)}
                         }.buttonStyle(.plain).accessibilityIdentifier("readingSentence-\(index)")
-                        if showTranslation,let lines=service.translationLines(for:run.id) ?? run.lineTranslations,lines.indices.contains(index),!lines[index].isEmpty { Text(lines[index]).font(PiyaliBrand.productFont(14)).italic().foregroundStyle(brand.secondary).frame(maxWidth:.infinity,alignment:.leading).accessibilityIdentifier("readingTranslation-\(index)").environment(\.layoutDirection,run.support == "ar" ? .rightToLeft : .leftToRight) }
+                        if showTranslation,let lines=service.translationLines(for:run.id) ?? run.lineTranslations,lines.indices.contains(index),!lines[index].isEmpty { Text(lines[index]).font(PiyaliBrand.productFont(14)).italic().lineSpacing(max(0,21-UIFont.systemFont(ofSize:14).lineHeight)).padding(.vertical,max(0,21-UIFont.systemFont(ofSize:14).lineHeight)/2).padding(.horizontal,4).padding(.bottom,12).foregroundStyle(.white.opacity(0.8)).opacity(0.9).frame(maxWidth:.infinity,alignment:.leading).accessibilityIdentifier("readingTranslation-\(index)").environment(\.layoutDirection,run.support == "ar" ? .rightToLeft : .leftToRight) }
                     }
                 }
             }.environment(\.layoutDirection,run.target == "ar" ? .rightToLeft : .leftToRight) }
             if showTranslation,run.lineTranslations == nil,let translation=run.translation { Text(translation).font(PiyaliBrand.productFont(14)).italic().foregroundStyle(brand.secondary) }
-            if app.learner.settingsSnapshot["progress"]["showTranslations"] != .bool(false) { HStack { Spacer();Button {
-                if showTranslation { showTranslation=false }
-                else { showTranslation=true;Task { let success=await service.translate(app,run:run);if !success,self.run?.id == run.id {showTranslation=false} } }
-            } label:{ HStack(spacing:6) { if service.busy { ProgressView().tint(.white) };Text(t(showTranslation ? "history_hide_translation" : run.translation == nil && run.lineTranslations == nil ? "history_translate" : "history_show_translation")) }.font(PiyaliBrand.productFont(13,600)).padding(.horizontal,12).padding(.vertical,10).foregroundStyle(.white).background(showTranslation ? Color(red:72/255,green:55/255,blue:156/255) : Color(red:64/255,green:103/255,blue:96/255),in:RoundedRectangle(cornerRadius:10)) }.buttonStyle(.plain).disabled(service.busy).accessibilityIdentifier("readingTranslate") } }
-        }.padding(12).background(PiyaliBrand.teal.opacity(0.15),in:RoundedRectangle(cornerRadius:12)).overlay(alignment:.leading) { UnevenRoundedRectangle(topLeadingRadius:3,bottomLeadingRadius:3).fill(PiyaliBrand.teal).frame(width:3) }
+            if app.learner.settingsSnapshot["progress"]["showTranslations"] != .bool(false) {
+                let hasTranslation=run.translation != nil || !(service.translationLines(for:run.id) ?? run.lineTranslations ?? []).isEmpty
+                HStack { Spacer();Button {
+                    if hasTranslation {showTranslation.toggle()}
+                    else if !sentences.isEmpty {
+                        let requestedScope=scope;showTranslation=true
+                        Task {
+                            let success=await service.translate(app,run:run)
+                            guard requestedScope == scope,self.run?.id == run.id else{return}
+                            if !success,let visible=service.translationVisibility(for:run.id) {showTranslation=visible}
+                        }
+                    }
+                } label:{
+                    HStack(spacing:6) {
+                        if service.translationLoading {ProgressView().tint(.white)}
+                        Text(t(service.translationLoading ? "history_translating" : !hasTranslation ? "history_translate" : showTranslation ? "history_hide_translation":"history_show_translation"))
+                    }
+                }.buttonStyle(ReadingRetryButtonStyle(size:14,height:32,horizontal:13,background:hasTranslation && showTranslation ? "48379c":"406760",edge:hasTranslation && showTranslation ? "0d012c":"39534f"))
+                    .disabled(service.translationLoading).accessibilityIdentifier("readingTranslate")
+                }.padding(.top,2)
+            }
+        }.padding(12).background(PiyaliBrand.unitColor("38b2ac").opacity(0.15),in:EntryCornerShape(radius:8)).overlay(alignment:.leading){Rectangle().fill(PiyaliBrand.unitColor("38b2ac")).frame(width:3)}.clipShape(EntryCornerShape(radius:8))
     }
-    private func sentenceColor(_ index:Int)->Color { [PiyaliBrand.teal,Color(red:128/255,green:90/255,blue:213/255),Color(red:237/255,green:137/255,blue:54/255),Color(red:99/255,green:179/255,blue:237/255),Color(red:246/255,green:173/255,blue:85/255)][index%5] }
+    private func sentenceColor(_ index:Int)->Color { [PiyaliBrand.unitColor("38b2ac"),Color(red:128/255,green:90/255,blue:213/255),Color(red:237/255,green:137/255,blue:54/255),Color(red:99/255,green:179/255,blue:237/255),Color(red:246/255,green:173/255,blue:85/255)][index%5] }
     @ViewBuilder private func question(_ run:ReadingRun)->some View {
         if run.pendingQuestionType != nil {
             if service.questionGenerating {ProgressView(t("history_generating_question")).accessibilityIdentifier("readingQuestionLoading")}
@@ -148,7 +168,7 @@ struct ReadingView:View {
             if let code=recorder.issue { let copy=ReadingSpeechCapture.feedback(code);Text(t(copy.title)+". "+t(copy.description)).font(PiyaliBrand.productFont(14)).foregroundStyle(brand.secondary).accessibilityIdentifier("readingRecordingError") }
         }
     }
-    private var footerRevision:String { [scope,run?.id.uuidString ?? "",String(run?.awarded ?? false),String(describing:run?.correct),run?.feedback ?? "",String(lessonPercent ?? -1),run?.explanation ?? "",answer,String(service.busy),String(service.generating),String(service.questionGenerating),String(service.questionFailed),run?.pendingQuestionType ?? "",String(service.suppressedPrevious),service.error ?? "",recorder.phase.rawValue,recorder.transcript,recorder.issue ?? ""].joined(separator:"|") }
+    private var footerRevision:String { [scope,run?.id.uuidString ?? "",String(run?.awarded ?? false),String(describing:run?.correct),run?.feedback ?? "",String(lessonPercent ?? -1),run?.explanation ?? "",answer,String(service.busy),String(service.generating),String(service.translationLoading),String(service.questionGenerating),String(service.questionFailed),run?.pendingQuestionType ?? "",String(service.suppressedPrevious),service.error ?? "",recorder.phase.rawValue,recorder.transcript,recorder.issue ?? ""].joined(separator:"|") }
     private var lessonPercent:Int? { guard let lesson,lesson.id != IntroTutorial.lessonID,lesson.xpReward > 0 else { return nil };let work=app.learner.lessonWork?[app.learner.completionKey(lesson.id)];return Int((work?.fraction(goal:lesson.xpReward) ?? 0)*100+0.5) }
     private var footer:some View {
         ActivityFooterSurface(feedbackLimit:run?.method == "speech" ? UIScreen.main.bounds.height*0.45 : nil,hasFeedback:run?.feedback.isEmpty == false || run?.awarded == true,feedback:{
@@ -194,14 +214,16 @@ struct ReadingView:View {
 
 /// The source theme's default blue Retry control, including its four-point edge.
 private struct ReadingRetryButtonStyle:ButtonStyle {
+    var size:CGFloat=16,height:CGFloat=40,horizontal:CGFloat=17
+    var background="5dade2",edge="2f7cf7"
     @Environment(\.isEnabled) private var enabled
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     func makeBody(configuration:Configuration)->some View {
-        configuration.label.font(PiyaliBrand.productFont(16,600)).foregroundStyle(.white)
-            .padding(.horizontal,17).frame(minWidth:40,minHeight:40)
-            .background{EntryCornerShape().fill(PiyaliBrand.unitColor("5dade2"))}
+        configuration.label.font(PiyaliBrand.productFont(size,600)).foregroundStyle(.white)
+            .padding(.horizontal,horizontal).frame(minWidth:height,minHeight:height)
+            .background{EntryCornerShape().fill(PiyaliBrand.unitColor(background))}
             .compositingGroup()
-            .shadow(color:PiyaliBrand.unitColor("2f7cf7"),radius:0,y:configuration.isPressed ? 2:4)
+            .shadow(color:PiyaliBrand.unitColor(edge),radius:0,y:configuration.isPressed ? 2:4)
             .offset(y:configuration.isPressed ? 2:0).opacity(enabled ? 1:0.4)
             .frame(minHeight:44,alignment:.top).contentShape(Rectangle())
             .animation(reduceMotion ? nil:.easeOut(duration:0.12),value:configuration.isPressed)

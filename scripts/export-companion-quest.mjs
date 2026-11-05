@@ -1,5 +1,6 @@
 // Read-only extraction of pure source policy. UI stores, Firebase and provider modules are never imported/executed.
 import fs from 'node:fs/promises';
+import vm from 'node:vm';
 import path from 'node:path';
 import {createRequire} from 'node:module';
 import {createHash} from 'node:crypto';
@@ -106,6 +107,7 @@ if(op==='flashActivity')return M${flashActivity.index}.mergeFlashcardActivityCou
 if(op==='flashTarget')return M${flashTarget.index}.getFlashcardDailyTarget(p);
 if(op==='flashLevels')return M${flashLevels.index}.CEFR_LEVEL_INFO;
 if(op==='flashNotePrompt'){const {concept,userAnswer,wasCorrect,targetLang,supportLang,cefrLevel,moduleType}=p,LANG_NAME=M${flashNote.index}.LANG_NAME;${notePromptBody};return prompt;}
+if(op==='flashNoteFailure'){const concept=p.concept,cefrLevel=p.cefrLevel;${noteFallback}}
 if(op==='flashNoteParse'){const response=p.raw,concept=p.concept,cefrLevel=p.cefrLevel,moduleType='flashcard';try{${noteParser}}catch{${noteFallback}}}
 if(op==='flashSpeech')return M${flashSpeech.index}.buildRealtimeSpeechSession(p);
 if(op==='flashGrade'){const response=p.raw;${gradeParser};return {correct:isYes,xp:isYes?xp:0,suggested:isYes?r.mapXpToReviewOutcome(xp):'again'};}
@@ -223,6 +225,10 @@ for(const light of [true,false])for(const level of ['Pre-A1','A1','B2'])for(cons
 for(const progress of [{},{schedulerState:'learning',nextReviewAt:'2026-10-24T12:10:00'},{schedulerState:'review',intervalDays:10,lapseCount:2,consecutiveCorrect:0,nextReviewAt:'2026-10-25T12:00:00'}]){const p={progress};flashRecord('flashSnapshot',p);flashRecord('flashRatings',p);}
 for(const supportLang of ['en','ar','fr'])flashRecord('flashNotePrompt',{concept:'mom',userAnswer:'mama',wasCorrect:false,targetLang:'es',supportLang,cefrLevel:'Pre-A1',moduleType:'flashcard'});
 for(const raw of ['{"example":"Mi mamá","summary":"A family word"}','{bad}','no JSON'])flashRecord('flashNoteParse',{raw,concept:'mom',cefrLevel:'Pre-A1'});
+const failedNoteInput={concept:'mom',userAnswer:'mama',wasCorrect:false,targetLang:'es',supportLang:'en',cefrLevel:'Pre-A1',moduleType:'flashcard'};
+const failedNoteExpected=await vm.runInNewContext(flashNote.source.slice(noteNode.start,noteNode.end)+';generateNoteContent('+JSON.stringify(failedNoteInput)+')',{LANG_NAME:x=>x,DEFAULT_RESPONSES_MODEL:'public-fixture',callResponses:async()=>{throw Error('Public fixture provider failure')},console:{error(){}}});
+flashRows.push({operation:'flashNoteFailure',input:failedNoteInput,expected:JSON.parse(JSON.stringify(failedNoteExpected))});
+
 for(const [saved,base] of [[0,null],[0,0],[1,0],[7,4],[0,4]])flashRecord('flashPreview',{saved,base});
 for(const target of [null,5])flashRecord('flashTarget',{userKey:'public-source-fixture',langKey:'es',dayKey:'2026-10-24',plateSnapshot:target?{courses:[{kind:'review',target}]}:{courses:[]}});
 flashRecord('flashActivity',{saved:{'2026-10-24':2},reviews:{one:{lastReviewedAt:'2026-10-24T12:00:00'},two:{lastReviewedAt:'2026-10-24T12:00:00'},three:{completedAt:'2026-10-24T12:00:00'}}});

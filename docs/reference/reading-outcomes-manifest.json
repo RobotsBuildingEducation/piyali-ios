@@ -9,7 +9,7 @@
       "sha256": "bf3c1ca2844f5a49f9ff2adfbafbfdaccfd69bfa67fc88d6592cd3f6bc4f5c39"
     }
   ],
-  "cases": 10,
+  "cases": 12,
   "scope": "Original Reading generation callback, normalizer and cleaning helpers executed with fake streams and in-memory state; no provider or learner data. Also executes the original JSON backend callback and cleaning helpers. Also executes the original session-local duplicate guard.",
   "backendCases": 5,
   "duplicateCases": 13

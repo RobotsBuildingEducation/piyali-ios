@@ -4425,6 +4425,11 @@ Reply in this exact JSON format (no markdown, just raw JSON):
 {"example": "...", "summary": "..."}`;
 
 ;return prompt;}
+if(op==='flashNoteFailure'){const concept=p.concept,cefrLevel=p.cefrLevel;    return {
+      example: `${concept}`,
+      summary: `Keep practicing this ${cefrLevel} level concept.`,
+    };
+}
 if(op==='flashNoteParse'){const response=p.raw,concept=p.concept,cefrLevel=p.cefrLevel,moduleType='flashcard';try{    const trimmed = (response || "").trim();
 
     // Find JSON in response

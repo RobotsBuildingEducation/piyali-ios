@@ -1,5 +1,10 @@
 import SwiftUI
 
+/// The label owns the source's disabled opacity; PlainButtonStyle would dim it again.
+private struct FlashcardNoteButtonStyle:ButtonStyle {
+    func makeBody(configuration:Configuration)->some View {configuration.label}
+}
+
 struct FlashcardPracticeDialog:View {
     @EnvironmentObject var app:AppModel
     @Environment(\.colorScheme) private var scheme
@@ -66,7 +71,7 @@ struct FlashcardPracticeDialog:View {
     }
     private func result(_ grade:FlashcardGrade)->some View {
         VStack(alignment:.leading,spacing:16){
-            HStack(spacing:12){FlashcardIcon(name:grade.correct ? "check":"close",size:32).foregroundStyle(grade.correct ? Color.green:Color.red);OnboardingText(text:session.copy(grade.correct ? "correct":"incorrect"),size:24,weight:.bold,lineHeight:36);Spacer();Button{session.createNote(app)}label:{FlashcardIcon(name:"bookmark",size:18).frame(width:32,height:32)}.buttonStyle(.plain).disabled(session.creatingNote || session.noteSaved).accessibilityLabel(session.copy(session.noteSaved ? "note_saved":"create_note")).accessibilityIdentifier("flashcardCreateNote")}
+            HStack(spacing:12){FlashcardIcon(name:grade.correct ? "check":"close",size:32).foregroundStyle(grade.correct ? Color.green:Color.red);OnboardingText(text:session.copy(grade.correct ? "correct":"incorrect"),size:24,weight:.bold,lineHeight:36);Spacer();Button{session.createNote(app)}label:{Group{if session.creatingNote{ProgressView().controlSize(.mini)}else{FlashcardIcon(name:"bookmark",size:18)}}.frame(width:32,height:32).foregroundStyle(session.noteSaved ? .white:brand.text).background{if session.noteSaved{EntryCornerShape().fill(PiyaliBrand.unitColor("38a169"))}}.opacity(session.creatingNote || session.noteSaved ? 0.6:1).frame(width:44,height:44).contentShape(Rectangle())}.buttonStyle(FlashcardNoteButtonStyle()).disabled(session.creatingNote || session.noteSaved).accessibilityLabel(session.copy(session.noteSaved ? "note_saved":"create_note")).accessibilityIdentifier("flashcardCreateNote")}
             if grade.correct {HStack(spacing:8){FlashcardIcon(name:"star");OnboardingText(text:"+\(grade.xp) XP",size:18,weight:.bold,lineHeight:27)}.foregroundStyle(PiyaliBrand.unitColor("ecc94b")).accessibilityIdentifier("flashcardReward")}
             else {VStack(spacing:12){Button{recorder.cancel();session.retry()}label:{Text(session.copy("try_again"))}.buttonStyle(FlashcardActionStyle(color:PiyaliBrand.unitColor(dark ? "319795":"56a89b"),height:48)).disabled(session.saving).accessibilityIdentifier("flashcardRetry");Button{session.explain(app)}label:{HStack(spacing:8){FlashcardIcon(name:"help",size:18);Text(session.copy("explain_answer"))}}.buttonStyle(FlashcardActionStyle(color:PiyaliBrand.unitColor(dark ? "d45b88":"d8a4b6"),edge:PiyaliBrand.unitColor(dark ? "8f2950":"c08aa0"),text:dark ? .white:PiyaliBrand.unitColor("432b33"),height:48)).disabled(session.explaining || !session.explanation.isEmpty).accessibilityIdentifier("flashcardExplain")}.padding(.top,8)}
             ratingPanel

@@ -27,13 +27,34 @@ import XCTest
         tap("readingMicrophone",app);tap("readingMicrophone",app)
         XCTAssertTrue(app.staticTexts["readingSpeechTranscript"].waitForExistence(timeout:5));XCTAssertTrue(app.buttons["readingSpeechStartOver"].exists)
     }
-    private func missingQuestionApp(failure:Bool=false,generationFailure:Bool=false)->XCUIApplication {
+    private func missingQuestionApp(failure:Bool=false,generationFailure:Bool=false,translationFailure:String?=nil)->XCUIApplication {
         continueAfterFailure=false;let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_READING_FIXTURE":"1","PIYALI_READING_MISSING_QUESTION_FIXTURE":"1","PIYALI_PRACTICE_FIXTURE":"delight:natural_or_weird"]
         if failure {app.launchEnvironment["PIYALI_READING_QUESTION_FALLBACK_FAILURE"]="1"}
         if generationFailure {app.launchEnvironment["PIYALI_READING_GENERATION_FAILURE_FIXTURE"]="1"}
+        if let translationFailure {app.launchEnvironment["PIYALI_READING_TRANSLATION_FAILURE_FIXTURE"]=translationFailure;app.launchEnvironment["PIYALI_READING_TRANSLATION_STREAM_FIXTURE"]="0"}
         app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en"];app.launch();handleInitialPaperPencil(app)
         let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Partial Reader");if app.buttons["entryKeyboardDone"].exists {app.buttons["entryKeyboardDone"].tap()};app.buttons["createAccount"].tap();handleInitialPaperPencil(app);XCTAssertTrue(app.buttons["startLearning"].waitForExistence(timeout:20));app.buttons["startLearning"].tap();open(app,expectsPassage:!generationFailure);return app
     }
+    private func translationFailureJourney(_ kind:String) {
+        let app=missingQuestionApp(translationFailure:kind)
+        XCTAssertTrue(app.staticTexts["readingQuestion"].waitForExistence(timeout:12));tap("readingOption-0",app);tap("readingTranslate",app)
+        XCTAssertTrue(app.staticTexts["readingTranslation-0"].waitForExistence(timeout:5));XCTAssertFalse(app.buttons["readingTranslate"].isEnabled)
+        XCTAssertTrue(app.buttons["readingCheck"].isEnabled,"Translation must not block source grading");tap("readingCheck",app)
+        let completed=app.staticTexts["readingCompleted"];XCTAssertTrue(completed.waitForExistence(timeout:10));let reward=completed.label
+        let translate=app.buttons["readingTranslate"]
+        let retry=XCTNSPredicateExpectation(predicate:NSPredicate(format:"enabled == true AND label == %@","Translate"),object:translate)
+        XCTAssertEqual(XCTWaiter.wait(for:[retry],timeout:10),.completed);XCTAssertFalse(app.staticTexts["readingTranslation-0"].exists)
+        if kind == "throw" {XCTAssertTrue(app.buttons["readingSentence-0"].exists)}else{XCTAssertTrue(app.descendants(matching:.any)["readingPassage"].exists)}
+        reveal(translate,in:app);let failed=XCTAttachment(screenshot:app.screenshot());failed.name="Reading translation "+kind+" preserves source retry";failed.lifetime = .keepAlways;add(failed)
+        tap("readingTranslate",app);XCTAssertTrue(app.staticTexts["readingTranslation-0"].waitForExistence(timeout:10));XCTAssertEqual(translate.label,"Hide translation")
+        tap("readingTranslate",app);XCTAssertEqual(translate.label,"Show translation")
+        app.terminate();app.launch();handleInitialPaperPencil(app);open(app);reveal(completed,in:app);XCTAssertEqual(completed.label,reward)
+        tap("readingTranslate",app);XCTAssertTrue(app.staticTexts["readingTranslation-0"].waitForExistence(timeout:5));XCTAssertEqual(translate.label,"Hide translation")
+        for _ in 0..<6 where !app.staticTexts["readingTranslation-0"].isHittable {app.swipeDown(velocity:.slow)}
+        let recovered=XCTAttachment(screenshot:app.screenshot());recovered.name="Reading translation "+kind+" recovered and restored";recovered.lifetime = .keepAlways;add(recovered)
+    }
+    func testThrownTranslationKeepsSentenceStackAllowsReviewAndRetriesAfterCompletion(){translationFailureJourney("throw")}
+    func testIncompleteTranslationRestoresProseAllowsReviewAndRetriesAfterCompletion(){translationFailureJourney("incomplete")}
     func testPartialReadingGeneratesMissingQuestionAndRetainsOneReward() {
         let app=missingQuestionApp();XCTAssertTrue(app.staticTexts["readingQuestion"].waitForExistence(timeout:12),app.debugDescription)
         XCTAssertTrue(app.staticTexts["readingQuestion"].label.contains("Why does"));tap("readingOption-0",app);tap("readingCheck",app)

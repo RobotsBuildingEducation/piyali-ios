@@ -11,6 +11,52 @@ import XCTest
         guard ProcessInfo.processInfo.environment["PIYALI_READING_MISSING_QUESTION_FIXTURE"] == "1" else{throw XCTSkip("Immediate partial fixture required")}
         return try model()
     }
+    private func translationRun(_ app:AppModel) throws ->ReadingRun {
+        let payload:JSONValue = .object(["title":.string("Tres frases"),"target":.string("Una. Dos. Tres."),"takeaways":.array([]),"reviewQuestionType":.string("text"),"nativeReadingStream":.bool(true),"reviewQuestion":.object(["type":.string("text"),"question":.string("What comes first?"),"answer":.string("One")])])
+        let run=try ReadingRun(payload:payload,target:"es",support:"en",level:PerformanceScore.level(score:app.learner.score),lessonID:nil,selection:.null,worth:.null,roll:0)
+        app.learner.saveReading(run);return run
+    }
+    func testTranslationServiceMatchesReachableSourceOutcomesWithoutErrorOrReward() async throws {
+        let app=try model();defer{try? app.identity.disconnect()}
+        let url=try XCTUnwrap(Bundle(for:Self.self).url(forResource:"reading-translation-outcomes",withExtension:"json")),rows=try JSONDecoder().decode([JSONValue].self,from:Data(contentsOf:url))
+        for row in rows where row["input"]["support"].string.isEmpty && !row["input"]["noProvider"].boolean {
+            let spec=row["input"],run=try translationRun(app);var calls=0
+            let service=ReadingService(translationWriter:{_,publish in
+                calls += 1;var snapshot=""
+                for chunk in spec["chunks"].array {snapshot += chunk.string;publish(snapshot)}
+                if spec["fail"].boolean {throw ReadingFailure.invalid};return snapshot
+            })
+            service.error="Existing grade message"
+            let success=await service.translate(app,run:run),expected=row["expected"]["lines"]
+            XCTAssertEqual(calls,1);XCTAssertEqual(success,expected != .null,spec["name"].string);XCTAssertEqual(service.translationVisibility(for:run.id),row["expected"]["visible"].boolean)
+            XCTAssertEqual(app.learner.reading?.lineTranslations,expected == .null ? nil:expected.array.map(\.string));XCTAssertEqual(service.error,"Existing grade message");XCTAssertFalse(service.translationLoading);XCTAssertFalse(service.busy);XCTAssertEqual(app.learner.totalXP,0)
+        }
+    }
+    func testTranslationDoesNotBlockReviewOrOverwriteItsCompletedReceipt() async throws {
+        let app=try model();defer{try? app.identity.disconnect()};let run=try translationRun(app);var completion:CheckedContinuation<String,Error>?
+        let service=ReadingService(speechGrader:{_,_ in .unavailable(support:"en")},translationWriter:{_,publish in publish("One.\n");return try await withCheckedThrowingContinuation{completion=$0}})
+        let translation=Task{await service.translate(app,run:run)}
+        for _ in 0..<100 where completion == nil {try await Task.sleep(for:.milliseconds(10))}
+        XCTAssertTrue(service.translationLoading);XCTAssertFalse(service.busy);XCTAssertEqual(service.translationLines(for:run.id),["One."])
+        await service.check(app,run:run,answer:"Una.",speech:true);let receipt=app.learner.pendingChanges?.map(\.id)
+        XCTAssertTrue(app.learner.reading?.awarded == true);XCTAssertEqual(app.learner.totalXP,run.reward)
+        completion?.resume(returning:"One.\nTwo.\nThree.");let translated=await translation.value;XCTAssertTrue(translated)
+        XCTAssertEqual(app.learner.reading?.lineTranslations,["One.","Two.","Three."]);XCTAssertTrue(app.learner.reading?.awarded == true);XCTAssertEqual(app.learner.totalXP,run.reward);XCTAssertEqual(app.learner.pendingChanges?.map(\.id),receipt)
+        let restored=try JSONDecoder().decode(LearnerState.self,from:JSONEncoder().encode(app.learner));XCTAssertEqual(restored.reading?.lineTranslations,app.learner.reading?.lineTranslations)
+    }
+    func testCancelledTranslationCannotClearAReplacementRequestInTheSameRun() async throws {
+        let app=try model();defer{try? app.identity.disconnect()};let run=try translationRun(app);var completions:[CheckedContinuation<String,Error>]=[]
+        let service=ReadingService(translationWriter:{_,publish in publish(completions.isEmpty ? "Old.\n":"New.\n");return try await withCheckedThrowingContinuation{completions.append($0)}})
+        let old=Task{await service.translate(app,run:run)}
+        for _ in 0..<100 where completions.isEmpty {try await Task.sleep(for:.milliseconds(10))}
+        await service.prepare(app,lesson:nil,fresh:false)
+        let new=Task{await service.translate(app,run:run)}
+        for _ in 0..<100 where completions.count < 2 {try await Task.sleep(for:.milliseconds(10))}
+        XCTAssertEqual(completions.count,2);guard completions.count == 2 else{completions.first?.resume(throwing:CancellationError());return}
+        completions[0].resume(returning:"Old.\nOld.\nOld.");let stale=await old.value;XCTAssertFalse(stale)
+        XCTAssertTrue(service.translationLoading);XCTAssertEqual(service.translationLines(for:run.id),["New."]);XCTAssertNil(app.learner.reading?.lineTranslations)
+        completions[1].resume(returning:"New.\nTwo.\nThree.");let fresh=await new.value;XCTAssertTrue(fresh);XCTAssertFalse(service.translationLoading);XCTAssertEqual(app.learner.reading?.lineTranslations,["New.","Two.","Three."])
+    }
     func testSourceFailureBudgetsAndDraftVisibility() async throws {
         let app=try model();defer{try? app.identity.disconnect()}
         let fixture=try XCTUnwrap(Bundle(for:Self.self).url(forResource:"reading-outcomes",withExtension:"json")),rows=try JSONDecoder().decode([JSONValue].self,from:Data(contentsOf:fixture))

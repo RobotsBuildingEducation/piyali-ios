@@ -17,6 +17,33 @@ import WebKit
     }
     private func provider(_ response:String)->FlashcardProvider {.init(judge:{_ in response},stream:{_,update in update("ma");await Task.yield();update("mamá");return "mamá"},quote:{card,state in try GeneratedQuestionWorth.fallback(level:card["cefrLevel"].string,learner:state,recipes:PracticeRecipes())})}
     private func settle(_ session:FlashcardSessionController)async {for _ in 0..<100 where session.grading || session.revealing || session.saving || session.creatingNote {try? await Task.sleep(for:.milliseconds(20))}}
+    func testNoteRequestFailureUsesSourceCatchFallbackWithoutAwardingOrDuplicating() async throws {
+        let app=try model();defer{try? app.identity.disconnect()};var requests=0
+        var service=provider("YES | 6");service.note={_ in requests += 1;throw URLError(.notConnectedToInternet)}
+        let session=try FlashcardSessionController(app:app,card:card,status:"active",provider:service);app.flashcardSession=session
+        session.answer="mamá";session.submit(app);await settle(session)
+        XCTAssertEqual(session.copy("create_note"),"flashcard_create_note");session.createNote(app);await settle(session)
+        let note=try XCTUnwrap(app.learner.notes.first);XCTAssertEqual(note.study?["example"].string,"mom");XCTAssertEqual(note.study?["summary"].string,"Keep practicing this Pre-A1 level concept.")
+        XCTAssertTrue(session.noteSaved);XCTAssertEqual(session.copy("note_saved"),"flashcard_note_saved");XCTAssertEqual(session.copy("note_error"),"flashcard_note_error");XCTAssertEqual(app.learner.totalXP,0)
+        session.createNote(app);await settle(session);XCTAssertEqual(requests,1);XCTAssertEqual(app.learner.notes.count,1);XCTAssertNil(app.learner.cardReviews)
+    }
+    func testPendingNoteSurvivesRatingWithCapturedContextButRejectsChangedOwner() async throws {
+        let app=try model();defer{try? app.identity.disconnect()}
+        for changeLanguage in [false,true] {
+            app.learner=LearnerState();var resume:CheckedContinuation<String,Error>?
+            var service=provider("YES | 6");service.note={_ in try await withCheckedThrowingContinuation{resume=$0}}
+            let session=try FlashcardSessionController(app:app,card:card,status:"active",provider:service);app.flashcardSession=session
+            session.answer="mamá";session.submit(app);await settle(session);session.createNote(app)
+            for _ in 0..<100 where resume == nil {await Task.yield()};XCTAssertNotNil(resume)
+            session.commit(.hard,app:app)
+            for _ in 0..<100 where session.saving {try await Task.sleep(for:.milliseconds(10))}
+            XCTAssertNil(app.flashcardSession);XCTAssertEqual(app.learner.totalXP,6)
+            session.answer="changed after close";if changeLanguage{app.learner.support="ar"}
+            resume?.resume(returning:"{\"example\":\"Mi mamá vive cerca.\",\"summary\":\"A family word.\"}");await settle(session)
+            XCTAssertEqual(app.learner.notes.count,changeLanguage ? 0:1);XCTAssertEqual(app.learner.totalXP,6)
+            if !changeLanguage{XCTAssertEqual(app.learner.notes.first?.study?["userAnswer"].string,"mamá")}
+        }
+    }
     func testRevealWrongRetryGradeAndChosenScheduleFollowSourceWithoutPrematureReview()async throws {
         let app=try model();defer{try? app.identity.disconnect()};var raw="NO",prompts:[String]=[]
         var service=provider("");service.judge={prompt in prompts.append(prompt);return raw}
@@ -84,8 +111,16 @@ import WebKit
             defer{web.stopLoading();window.isHidden=true;window.rootViewController=nil;old?.makeKey()}
             web.load(URLRequest(url:try XCTUnwrap(URL(string:"http://127.0.0.1:5181/__piyali-onboarding?screen=flashcards&language=\(language)&theme=\(theme)"))))
             var ready=false;for _ in 0..<500 {ready=(try? await web.evaluateJavaScript("document.fonts.status==='loaded' && Boolean(document.querySelector('.chakra-modal__content input'))")) as? Bool == true;if ready{break};try await Task.sleep(for:.milliseconds(50))};XCTAssertTrue(ready);guard ready else{return};try await Task.sleep(for:.milliseconds(300))
-            for state in ["initial","wrong","correct"] {
-                if state != "initial" {
+            for state in ["initial","wrong","correct","note"] {
+                if state == "note" {
+                    func sourceLabel(_ key:String)throws->String {let full="flashcard_"+key,value=EntryCopy.ui(language,full);return String(data:try JSONEncoder().encode(value.isEmpty ? full:value),encoding:.utf8)!}
+                    let createLabel=try sourceLabel("create_note"),savedLabel=try sourceLabel("note_saved")
+                    _=try await web.evaluateJavaScript("[...document.querySelectorAll('button')].find(b=>b.getAttribute('aria-label')===\(createLabel)).click()")
+                    var saved=false
+                    for _ in 0..<100 {saved=(try? await web.evaluateJavaScript("[...document.querySelectorAll('button')].some(b=>b.disabled && b.getAttribute('aria-label')===\(savedLabel))")) as? Bool == true;if saved{break};try await Task.sleep(for:.milliseconds(25))}
+                    let sourceExample=try await web.evaluateJavaScript("JSON.parse(localStorage.getItem('nosabo_notes'))[0].example") as? String
+                    XCTAssertTrue(saved);XCTAssertEqual(sourceExample,"Mi mamá vive cerca.")
+                } else if state != "initial" {
                     if state == "correct" {_=try await web.evaluateJavaScript("[...document.querySelectorAll('button')].find(b=>b.textContent.includes(\(String(data:try JSONEncoder().encode(EntryCopy.ui(language,"flashcard_try_again")),encoding:.utf8)!))).click()")}
                     let answer=state == "wrong" ? "WRONG_FIXTURE":"mamá",value=String(data:try JSONEncoder().encode(answer),encoding:.utf8)!
                     _=try await web.evaluateJavaScript("(()=>{const input=document.querySelector('.chakra-modal__content input');input.focus();Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,\(value));input.dispatchEvent(new Event('input',{bubbles:true}));input.blur();})()")
@@ -99,6 +134,7 @@ import WebKit
                 let geometry=XCTAttachment(data:Data(try XCTUnwrap(raw as? String).utf8),uniformTypeIdentifier:"public.json");geometry.name="Source flashcard \(state) \(language) geometry";geometry.lifetime = .keepAlways;add(geometry)
                 app.learner.support=language;app.learner.xpByLanguage=["es":10];app.prepareDailyPlate();let session=try FlashcardSessionController(app:app,card:card,status:"active",provider:provider(state == "wrong" ? "NO":"YES | 6"));app.flashcardSession=session
                 if state != "initial" {session.answer=state == "wrong" ? "WRONG_FIXTURE":"mamá";session.submit(app);await settle(session)}
+                if state == "note" {session.createNote(app);await settle(session);XCTAssertTrue(session.noteSaved)}
                 let host=UIHostingController(rootView:FlashcardPracticeDialog(session:session).environmentObject(app).environment(\.layoutDirection,language == "ar" ? .rightToLeft:.leftToRight).environment(\.dynamicTypeSize,.large).ignoresSafeArea().preferredColorScheme(theme == "dark" ? .dark:.light));window.rootViewController=host;host.view.layoutIfNeeded();try await Task.sleep(for:.milliseconds(250))
                 let image=UIGraphicsImageRenderer(bounds:window.bounds).image{_ in window.drawHierarchy(in:window.bounds,afterScreenUpdates:true)},shot=XCTAttachment(image:image);shot.name="Native flashcard \(state) \(language)";shot.lifetime = .keepAlways;add(shot);session.close(app,abandoned:false)
                 window.rootViewController=controller;window.makeKeyAndVisible()

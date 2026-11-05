@@ -34,7 +34,12 @@ import Combine
     }
     var focused:Bool {goal != nil || repair != nil}
     var concept:String {let value=card["concept"][scope.support].string;return value.isEmpty ? card["concept"]["en"].string:value}
-    func copy(_ key:String)->String {EntryCopy.ui(scope.support,"flashcard_"+key)}
+    func copy(_ key:String)->String {
+        let fullKey="flashcard_"+key,value=EntryCopy.ui(scope.support,fullKey)
+        // Source getTranslation returns the key itself when the dictionary lacks
+        // it; its truthy result prevents the component's English fallback.
+        return value.isEmpty ? fullKey:value
+    }
     func dailyCount(_ app:AppModel)->Int {Int((try? policy.run("flashPreview",.object(["saved":.number(Double(policy.dailyCount(app.learner))),"base":reviewPreviewBase.map{.number(Double($0))} ?? .null])).number) ?? Double(policy.dailyCount(app.learner)))}
     var ratings:[JSONValue] {policy.ratings(progress,now:openedAt)}
     func matches(_ app:AppModel)->Bool {
@@ -110,15 +115,21 @@ import Combine
         guard goals.isDisjoint(with:intentGoalIDs),practice.isDisjoint(with:intentPracticeIDs),evidence.isDisjoint(with:intentRepairIDs),!artifactPending else{throw AppError.message("Could not save practice. Please try again.")}
     }
     func createNote(_ app:AppModel){
-        guard !creatingNote,!noteSaved,let grade,matches(app) else{return};creatingNote=true;let token=request
+        guard !creatingNote,!noteSaved,let grade,matches(app) else{return};creatingNote=true
+        let parameters:JSONValue = .object(["concept":.string(concept),"userAnswer":.string(answer.isEmpty ? recognized:answer),"wasCorrect":.bool(grade.correct),"targetLang":.string(scope.target),"supportLang":.string(scope.support),"cefrLevel":card["cefrLevel"],"moduleType":.string("flashcard")])
+        // The source note request may finish after rating/closing this card.
+        // Keep its captured study context, while fencing account/language changes.
+        func ownsNote()->Bool {scope.account == app.identity.npub && scope.target == app.learner.target && scope.support == app.learner.support}
         Task{defer{creatingNote=false};do{
-            let parameters:JSONValue = .object(["concept":.string(concept),"userAnswer":.string(answer.isEmpty ? recognized:answer),"wasCorrect":.bool(grade.correct),"targetLang":.string(scope.target),"supportLang":.string(scope.support),"cefrLevel":card["cefrLevel"],"moduleType":.string("flashcard")])
             let prompt=try policy.run("flashNotePrompt",parameters,language:scope.support).string
-            let raw=(try? await provider.judge(prompt)) ?? "",note=try policy.run("flashNoteParse",parameters.setting("raw",.string(raw)),language:scope.support)
-            try Task.checkCancellation();guard token == request,matches(app) else{return}
+            let note:JSONValue
+            do {let raw=try await provider.note(prompt);note=try policy.run("flashNoteParse",parameters.setting("raw",.string(raw)),language:scope.support)}
+            catch is CancellationError {throw CancellationError()}
+            catch {try Task.checkCancellation();note=try policy.run("flashNoteFailure",parameters,language:scope.support)}
+            try Task.checkCancellation();guard ownsNote() else{return}
             let metadata=parameters.setting("lessonTitle",.object(["en":.string(concept),"es":.string(concept)])).setting("example",note["example"]).setting("summary",note["summary"])
             app.learner.notes.insert(Note(title:concept,body:note["example"].string+"\n\n"+note["summary"].string,study:metadata,createdAt:Date()),at:0);app.persist();noteSaved=true
-        }catch is CancellationError{}catch{if token == request,matches(app){self.error=copy("note_error")}}}
+        }catch is CancellationError{}catch{if ownsNote(),!closed{self.error=copy("note_error")}}}
     }
     func canRate(_ rating:ReviewRating)->Bool {!saving && (intentRating == nil || intentRating == rating)}
     func close(_ app:AppModel,abandoned:Bool=true){

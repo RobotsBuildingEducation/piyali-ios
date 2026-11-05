@@ -465,7 +465,7 @@
   ],
   "fixtureCount": 198,
   "goalFixtureCount": 116,
-  "flashcardFixtureCount": 117,
+  "flashcardFixtureCount": 118,
   "phonicsFixtureCount": 106,
   "phonicsAdapters": {
     "targetLabels": {
@@ -488,7 +488,7 @@
     "prompts": "Original judge, reveal, explanation, note prompts and parser are split at network boundaries; the original native capture session configuration is unchanged.",
     "rewardHandler": {
       "file": "src/App.jsx",
-      "sha256": "eb7e06e1422cac6d205059dc92d68370bec40c1009c1a316f0c2d3eb5f325fd6",
+      "sha256": "9e6447368ce10a647025f76daf1b730fb20073590c586f8a3bed8a6d4f2ab948",
       "expression": "card.xpReward || 5"
     }
   },
