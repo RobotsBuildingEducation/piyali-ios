@@ -25,10 +25,12 @@ struct CommunityPost:Identifiable {
         self.client=selected
     }
     func cancel(clear:Bool=false) { generation += 1;pending?.cancel();pending=nil;busy=false;if clear { posts=[];cachedAt=nil;account="";error=nil } }
-    func refresh(account:String,force:Bool=false,now:Date=Date()) async {
+    /// A successful empty cache is distinct from a feed that has never loaded.
+    func cachedPosts(account:String)->[CommunityPost]? { self.account == account && cachedAt != nil ? posts:nil }
+    func refresh(account:String,force:Bool=false,now:Date=Date(),failureAsEmpty:Bool=false) async {
         if self.account != account { cancel(clear:true);self.account=account }
         if let pending { await pending.value;return }
-        if !force,let cachedAt,now.timeIntervalSince(cachedAt) < (posts.isEmpty ? 15 : 120) { return }
+        if !force,let cachedAt,now.timeIntervalSince(cachedAt) < (posts.isEmpty ? 15 : 120) { error=nil;return }
         let version=generation;busy=true;error=nil
         let request=Task { @MainActor in
             defer { if version == self.generation { self.busy=false;self.pending=nil } }
@@ -48,7 +50,12 @@ struct CommunityPost:Identifiable {
                     guard let milestone=CommunityMilestone.parse(content:event.content,tags:event.tags,name:name),let npub=PublicKey(hex:event.pubkey)?.npub else { return nil }
                     return CommunityPost(event:event,name:name,npub:npub,milestone:milestone)
                 };self.cachedAt=now
-            } catch { if version == self.generation,!(error is CancellationError) { self.error=error.localizedDescription } }
+            } catch { if version == self.generation,!(error is CancellationError) {
+                self.error=error.localizedDescription
+                // The main product's original Nostr adapter catches fetch failures and
+                // resolves []; its shared cache treats that as a successful empty result.
+                if failureAsEmpty{self.posts=[];self.cachedAt=now}
+            } }
         };pending=request;await request.value
     }
     func publishProfile(name:String,identity:IdentityService,expectedAuthor:String)async throws {

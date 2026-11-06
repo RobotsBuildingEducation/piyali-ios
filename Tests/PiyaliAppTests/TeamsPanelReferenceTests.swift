@@ -8,7 +8,7 @@ import WebKit
     func load(npub:String,local:LearnerState?)async throws->LearnerState?{nil}
     func save(_ state:LearnerState,npub:String)async throws->LearnerState?{throw URLError(.notConnectedToInternet)}
 }
-@MainActor private final class TeamsPreviewAccess:TeamsPanelAccess {
+@MainActor private class TeamsPreviewAccess:TeamsPanelAccess {
     let snapshot:TeamsPanelSnapshot,posts:[CommunityPost]
     init(_ fixture:JSONValue,state:String){
         var teams=["empty","create","queued"].contains(state) ? []:fixture["teams"].array
@@ -23,6 +23,7 @@ import WebKit
     func remove(_ team:JSONValue,app:AppModel)async throws{throw URLError(.notConnectedToInternet)}
     func respond(_ invite:JSONValue,accept:Bool,app:AppModel)async throws{throw URLError(.notConnectedToInternet)}
     func publish(_ app:AppModel)async throws{}
+    func cachedFeed(_ app:AppModel)->[CommunityPost]?{nil}
     func feed(_ app:AppModel,force:Bool)async throws->[CommunityPost]{posts}
     func cancel(){}
 }
@@ -132,5 +133,92 @@ extension TeamsPanelReferenceTests {
             window.rootViewController=UIHostingController(rootView:ZStack{PiyaliBrand(dark:theme == "dark").background;TeamsDrawerView(model:model,initialEditor:editor,initialMembers:state == "queue-warning" ? [fixture["creator"].string]:[],initialMember:state == "queue-error" ? "bad":"",onClose:{});TeamsNoticeStack(notices:[notice],rtl:language == "ar")}.environmentObject(app).preferredColorScheme(theme == "dark" ? .dark:.light).ignoresSafeArea());window.makeKeyAndVisible();try await Task.sleep(for:.milliseconds(600))
             let native=XCTAttachment(image:UIGraphicsImageRenderer(bounds:window.bounds).image{_ in window.drawHierarchy(in:window.bounds,afterScreenUpdates:true)});native.name="Native Teams toast \(state) \(language)";native.lifetime = .keepAlways;add(native);model.cancel();web.stopLoading();window.isHidden=true;window.rootViewController=nil
         }}
+    }
+}
+
+
+@MainActor private final class TeamsFeedPreviewAccess:TeamsPreviewAccess {
+    let state:String
+    var cache:[CommunityPost]?
+    var calls:[Bool]=[]
+    var held:CheckedContinuation<[CommunityPost],Error>?
+    override init(_ fixture:JSONValue,state:String){self.state=state;super.init(fixture,state:"empty");if state == "feed-cached-refresh" || state == "feed"{cache=posts}}
+    override func cachedFeed(_ app:AppModel)->[CommunityPost]?{cache}
+    override func feed(_ app:AppModel,force:Bool)async throws->[CommunityPost]{
+        calls.append(force)
+        if state == "feed-error",calls.count == 1{throw AppError.message("Community relay unavailable")}
+        if state == "feed-loading" || state == "feed-cached-refresh" || state == "feed-error"{let values=try await withCheckedThrowingContinuation{held=$0};cache=values;return values}
+        let values=state == "feed-empty" ? []:posts;cache=values;return values
+    }
+    func complete(_ values:[CommunityPost]){held?.resume(returning:values);held=nil}
+    func reject(){held?.resume(throwing:AppError.message("Community relay unavailable"));held=nil}
+    override func cancel(){held?.resume(throwing:CancellationError());held=nil}
+}
+extension TeamsPanelReferenceTests {
+    func testActualFeedCacheLoadingEmptyFailureRefreshAndQuestionCardsInBothDirections()async throws {
+        let env=ProcessInfo.processInfo.environment;guard env["PIYALI_OFFLINE_TESTS"] == "1",env["PIYALI_REFERENCE_PREVIEW_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Isolated source preview required")}
+        let fixture=try JSONDecoder().decode(JSONValue.self,from:Data(contentsOf:try XCTUnwrap(Bundle(for:Self.self).url(forResource:"teams-panel-preview",withExtension:"json"))))
+        let app=AppModel(progressService:TeamsNoCloud());try app.identity.create();app.signedIn=true;defer{app.signOut()}
+        let scene=try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap{$0 as? UIWindowScene}.first),old=scene.windows.first{$0.isKeyWindow};defer{old?.makeKey()}
+        for(language,theme)in [("en","light"),("ar","dark")] {for state in ["feed-loading","feed-empty","feed-error","feed-cached-refresh","feed","feed-question"] {
+            app.learner.support=language
+            var nativeFixture=fixture
+            if state == "feed-question"{nativeFixture=nativeFixture.setting("posts",.array(fixture["posts"].array.map{$0.setting("content",.string("Finished question 30! https://piyali.app **literal** #LearnWithNostr")).setting("tags",.array([]))}))}
+            let sourceWindow=UIWindow(windowScene:scene);sourceWindow.frame=CGRect(x:0,y:0,width:402,height:874);let web=WKWebView(frame:sourceWindow.frame),vc=UIViewController();vc.view=web;sourceWindow.rootViewController=vc;sourceWindow.makeKeyAndVisible();web.scrollView.contentInsetAdjustmentBehavior = .never
+            let access=TeamsFeedPreviewAccess(nativeFixture,state:state),model=TeamsPanelController(access:access),nativeWindow=UIWindow(windowScene:scene);nativeWindow.frame=sourceWindow.frame
+            defer{model.cancel();web.stopLoading();sourceWindow.isHidden=true;sourceWindow.rootViewController=nil;nativeWindow.isHidden=true;nativeWindow.rootViewController=nil}
+            web.load(URLRequest(url:try XCTUnwrap(URL(string:"http://127.0.0.1:5181/__piyali-teams?state=\(state)&language=\(language)&theme=\(theme)"))))
+            var ready=false;for _ in 0..<400{ready=(try? await web.evaluateJavaScript("document.fonts.status==='loaded'&&document.querySelectorAll('[role=tab]').length===2")) as? Bool == true;if ready{break};try await Task.sleep(for:.milliseconds(40))};XCTAssertTrue(ready);guard ready else{return}
+            _=try await web.evaluateJavaScript("document.querySelectorAll('[role=tab]')[1].click()")
+            nativeWindow.rootViewController=UIHostingController(rootView:ZStack{PiyaliBrand(dark:theme == "dark").background;TeamsDrawerView(model:model,initialTab:1,onClose:{})}.environmentObject(app).environment(\.dynamicTypeSize,.large).preferredColorScheme(theme == "dark" ? .dark:.light).ignoresSafeArea());nativeWindow.makeKeyAndVisible()
+            for _ in 0..<200 where access.calls.isEmpty{try await Task.sleep(for:.milliseconds(10))};XCTAssertFalse(access.calls.isEmpty)
+            func capture(_ phase:String)async throws {
+                try await Task.sleep(for:.milliseconds(600));sourceWindow.makeKeyAndVisible();try await Task.sleep(for:.milliseconds(120))
+                let source=XCTAttachment(image:try await web.takeSnapshot(configuration:nil));source.name="Source Teams \(phase) \(language)";source.lifetime = .keepAlways;add(source)
+                let geometry=try await web.evaluateJavaScript("JSON.stringify({requests:window.__feedRequests,visible:[...document.querySelectorAll('[role=tabpanel]')].filter(e=>!e.hidden).flatMap(e=>[e,...e.querySelectorAll('*')]).filter(e=>e.getBoundingClientRect().width>0).map(e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return{text:e.textContent,tag:e.tagName,x:r.x,y:r.y,width:r.width,height:r.height,fontSize:s.fontSize,lineHeight:s.lineHeight,color:s.color,bg:s.backgroundColor,border:s.border,direction:s.direction}})})") as? String ?? "{}"
+                let metrics=XCTAttachment(data:Data(geometry.utf8),uniformTypeIdentifier:"public.json");metrics.name="Source Teams \(phase) \(language) geometry";metrics.lifetime = .keepAlways;add(metrics)
+                nativeWindow.makeKeyAndVisible();try await Task.sleep(for:.milliseconds(120));let native=XCTAttachment(image:UIGraphicsImageRenderer(bounds:nativeWindow.bounds).image{_ in nativeWindow.drawHierarchy(in:nativeWindow.bounds,afterScreenUpdates:true)});native.name="Native Teams \(phase) \(language)";native.lifetime = .keepAlways;add(native)
+            }
+            try await capture(state)
+            if state == "feed-loading"{XCTAssertTrue(model.feedLoading);XCTAssertTrue(model.posts.isEmpty);XCTAssertNil(model.feedError)}
+            if state == "feed-empty"{XCTAssertFalse(model.feedLoading);XCTAssertTrue(model.posts.isEmpty);XCTAssertNil(model.feedError)}
+            if state == "feed-cached-refresh"{
+                XCTAssertFalse(model.feedLoading);XCTAssertEqual(model.posts.count,1);XCTAssertNotNil(access.held)
+                _=try await web.evaluateJavaScript("window.__rejectFeed()");access.reject();try await capture("feed-cached-error")
+                XCTAssertEqual(model.feedError,"Community relay unavailable");XCTAssertEqual(model.posts.count,1,"Old data remains in cache but the error branch hides it")
+            }
+            if state == "feed-error"{
+                XCTAssertEqual(model.feedError,"Community relay unavailable");XCTAssertNil(model.error,"Feed failures never replace roster/action diagnostics")
+                _=try await web.evaluateJavaScript("[...document.querySelectorAll('button')].find(b=>b.textContent==='Refresh').click()")
+                let retry=Task{await model.loadFeed(app,force:true)};for _ in 0..<200 where access.held == nil{try await Task.sleep(for:.milliseconds(10))};XCTAssertNotNil(access.held);XCTAssertTrue(model.feedLoading);XCTAssertNil(model.feedError)
+                try await capture("feed-retry-loading")
+                _=try await web.evaluateJavaScript("window.__releaseFeed()");access.complete(access.posts);await retry.value;try await capture("feed-recovered")
+                XCTAssertEqual(access.calls,[false,true]);XCTAssertNil(model.feedError);XCTAssertFalse(model.feedLoading);XCTAssertEqual(model.posts.count,1)
+            }
+            if state == "feed-question"{let links=try await web.evaluateJavaScript("[...document.querySelectorAll('[role=tabpanel]')].filter(e=>!e.hidden).flatMap(e=>[...e.querySelectorAll('a')]).map(a=>a.getAttribute('href'))") as? [String];XCTAssertEqual(links?.last,"https://piyali.app")}
+        }}
+    }
+}
+
+
+extension TeamsPanelReferenceTests {
+    func testFeedFailurePersistsAcrossRosterReloadAndForcedRetryCoalescesWithoutClearingManagementError()async throws {
+        let env=ProcessInfo.processInfo.environment;guard env["PIYALI_OFFLINE_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Isolated identity required")}
+        let fixture=try JSONDecoder().decode(JSONValue.self,from:Data(contentsOf:try XCTUnwrap(Bundle(for:Self.self).url(forResource:"teams-panel-preview",withExtension:"json"))))
+        let app=AppModel(progressService:TeamsNoCloud());try app.identity.create();defer{app.signOut()};let access=TeamsFeedPreviewAccess(fixture,state:"feed-cached-refresh"),model=TeamsPanelController(access:access);defer{model.cancel()}
+        await model.reload(app);model.error="Unrelated management failure"
+        let initial=Task{await model.loadFeed(app)};for _ in 0..<200 where access.held == nil{try await Task.sleep(for:.milliseconds(10))};XCTAssertNotNil(access.held);XCTAssertFalse(model.feedLoading);XCTAssertEqual(model.posts.count,1)
+        access.reject();await initial.value;XCTAssertEqual(model.feedError,"Community relay unavailable");XCTAssertEqual(model.error,"Unrelated management failure")
+        await model.reload(app);XCTAssertNil(model.error);XCTAssertEqual(model.feedError,"Community relay unavailable")
+        model.error="Another management failure";let retry=Task{await model.loadFeed(app,force:true)};for _ in 0..<200 where access.held == nil{try await Task.sleep(for:.milliseconds(10))};XCTAssertTrue(model.feedLoading);XCTAssertNil(model.feedError);XCTAssertEqual(model.posts.count,1)
+        await model.loadFeed(app,force:true);XCTAssertEqual(access.calls,[false,true]);access.complete([]);await retry.value;XCTAssertFalse(model.feedLoading);XCTAssertTrue(model.posts.isEmpty);XCTAssertNil(model.feedError);XCTAssertEqual(model.error,"Another management failure");XCTAssertTrue(app.teamsNotices.notices.isEmpty)
+    }
+    func testLateFeedFailureAfterAccountReplacementCannotReappearOrStopTheNewRequest()async throws {
+        let env=ProcessInfo.processInfo.environment;guard env["PIYALI_OFFLINE_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Isolated identity required")}
+        let fixture=try JSONDecoder().decode(JSONValue.self,from:Data(contentsOf:try XCTUnwrap(Bundle(for:Self.self).url(forResource:"teams-panel-preview",withExtension:"json"))))
+        let app=AppModel(progressService:TeamsNoCloud());try app.identity.create();defer{app.signOut()};let access=TeamsFeedPreviewAccess(fixture,state:"feed-loading"),model=TeamsPanelController(access:access);defer{model.cancel()}
+        await model.reload(app);let old=Task{await model.loadFeed(app)};for _ in 0..<200 where access.held == nil{try await Task.sleep(for:.milliseconds(10))};let reply=try XCTUnwrap(access.held);access.held=nil
+        try app.identity.create();await model.reload(app);let next=Task{await model.loadFeed(app)};for _ in 0..<200 where access.held == nil{try await Task.sleep(for:.milliseconds(10))};XCTAssertNotNil(access.held);reply.resume(throwing:AppError.message("Stale account failure"));await old.value
+        XCTAssertTrue(model.feedLoading);XCTAssertNil(model.feedError);XCTAssertTrue(model.posts.isEmpty);access.complete(access.posts);await next.value;XCTAssertFalse(model.feedLoading);XCTAssertEqual(model.posts.count,1);XCTAssertNil(model.feedError)
     }
 }

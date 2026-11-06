@@ -6,6 +6,8 @@
 
 > **Teams drawer continuation, 2026-11-06:** [TEAMS_DRAWER_RTL.md](TEAMS_DRAWER_RTL.md) advances the actual Arabic drawer/card/form layout, fixed physical controls, queued identifiers and source alpha tokens. It records exact-value native editing/relaunch checks, source/native captures and failed diagnostics. Feed states, broader Teams lifecycle/design and the overall objective remain open.
 
+> **Teams feed continuation, 2026-11-06:** [TEAMS_FEED_STATES.md](TEAMS_FEED_STATES.md) records exclusive loading/error/empty/post branches, original-cache comparisons, source-shaped card/link presentation and the important default Nostr adapter boundary: ordinary relay failure resolves to empty. Component rejected-fetch/Refresh checks and real native signed-feed journeys retain separate scopes. Broader Teams/product acceptance remains open.
+
 Prepared **2026-11-04** for a later Terra continuation. The objective is still **complete functional and design parity with the main web product**, implemented natively for iPhone. This is a completion plan, not a declaration that the app is finished. Substantial implementation and scoped verification already exist; preserve that work and close the remaining differences.
 
 This handoff was assembled from the current checkouts, implementation, feature records and test scripts. **No application changes, new test runs, deployments or model transfer were performed while preparing it.** Older passing results retain their original source revision and test scope.

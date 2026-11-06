@@ -32,7 +32,7 @@ import Combine
         #if DEBUG
         if ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"] == "1",ProcessInfo.processInfo.environment["PIYALI_TEAM_TEST_RELAY"] == nil{return}
         #endif
-        if !disabled{await app.teamFeed.refresh(account:app.identity.npub)}
+        if !disabled{await app.teamFeed.refresh(account:app.identity.npub,failureAsEmpty:true)}
     }
     func cancel(){reader.cancel();invitations.stopWatchingInvitations()}
 }

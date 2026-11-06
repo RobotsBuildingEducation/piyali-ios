@@ -14,12 +14,14 @@ struct TeamsPanelSnapshot:Equatable {
     func respond(_ invite:JSONValue,accept:Bool,app:AppModel)async throws
     func publish(_ app:AppModel)async throws
     func feed(_ app:AppModel,force:Bool)async throws->[CommunityPost]
+    func cachedFeed(_ app:AppModel)->[CommunityPost]?
     func cancel()
     func watch(_ teams:[JSONValue],app:AppModel,onChange:@escaping @MainActor()->Void)async
     func watchSnapshot(_ snapshot:TeamsPanelSnapshot,app:AppModel,onChange:@escaping @MainActor()->Void)async
     func watchInvites(_ app:AppModel,onChange:@escaping @MainActor([JSONValue])->Void)async
 }
 extension TeamsPanelAccess {
+    func cachedFeed(_ app:AppModel)->[CommunityPost]?{nil}
     func watch(_ teams:[JSONValue],app:AppModel,onChange:@escaping @MainActor()->Void)async{}
     func watchSnapshot(_ snapshot:TeamsPanelSnapshot,app:AppModel,onChange:@escaping @MainActor()->Void)async{await watch(snapshot.teams,app:app,onChange:onChange)}
     func watchInvites(_ app:AppModel,onChange:@escaping @MainActor([JSONValue])->Void)async{}
@@ -82,7 +84,8 @@ extension TeamsPanelAccess {
     func watchSnapshot(_ snapshot:TeamsPanelSnapshot,app:AppModel,onChange:@escaping @MainActor()->Void)async{await mirror.watch(snapshot.teams,invites:snapshot.invites,identity:app.identity,includeInvites:false,onChange:onChange)}
     func watchInvites(_ app:AppModel,onChange:@escaping @MainActor([JSONValue])->Void)async{try? await mirror.watchInvitations(identity:app.identity,onChange:onChange)}
     func publish(_ app:AppModel)async throws{try await service.publishProgress(app.learner,identity:app.identity,reload:false)}
-    func feed(_ app:AppModel,force:Bool)async throws->[CommunityPost]{await app.teamFeed.refresh(account:app.identity.npub,force:force);if let error=app.teamFeed.error{throw AppError.message(error)};return app.teamFeed.posts}
+    func cachedFeed(_ app:AppModel)->[CommunityPost]?{app.teamFeed.cachedPosts(account:app.identity.npub)}
+    func feed(_ app:AppModel,force:Bool)async throws->[CommunityPost]{await app.teamFeed.refresh(account:app.identity.npub,force:force,failureAsEmpty:true);return app.teamFeed.posts}
     func cancel(){mirror.stopWatching();mirror.stopWatchingInvitations();service.cancel();legacy.cancel()}
 }
 
@@ -92,6 +95,8 @@ extension TeamsPanelAccess {
     @Published private(set) var loading=false
     @Published private(set) var working=false
     @Published private(set) var feedLoading=false
+    @Published private(set) var feedError:String?
+    private var feedInFlight=false
     @Published var error:String? {didSet{retainErrorOnWatch = error != nil}}
     @Published var sharingError:String?
     private let access:TeamsPanelAccess
@@ -103,7 +108,7 @@ extension TeamsPanelAccess {
     init(access:TeamsPanelAccess,initial:TeamsPanelSnapshot = .init(),initialOwner:String=""){self.access=access;snapshot=initial;owner=initialOwner;hasInitialSnapshot = !initialOwner.isEmpty;policy=try? TeamsPanelPolicy()}
     private func owned(_ app:AppModel,_ token:UUID)->Bool {epoch == token && !closed && owner == app.identity.npub && ownerSession == app.identity.sessionRevision && !Task.isCancelled}
     private func bind(_ app:AppModel){
-        if owner != app.identity.npub || ownerSession.map({$0 != app.identity.sessionRevision}) == true{cancel();snapshot = .init();posts=[];hasInitialSnapshot=false}
+        if owner != app.identity.npub || ownerSession.map({$0 != app.identity.sessionRevision}) == true{cancel();snapshot = .init();posts=[];feedError=nil;hasInitialSnapshot=false}
         owner=app.identity.npub;ownerSession=app.identity.sessionRevision;closed=false
     }
     func reload(_ app:AppModel,preservingError:Bool=false)async {
@@ -162,11 +167,13 @@ extension TeamsPanelAccess {
         }catch is CancellationError{}catch{if let self,self.owned(app,token){self.sharingError=error.localizedDescription}}}
     }
     func loadFeed(_ app:AppModel,force:Bool=false)async{
-        guard !feedLoading,!closed else{return};if owner.isEmpty{bind(app)};let token=epoch;guard owned(app,token) else{return};feedLoading=true;error=nil
-        defer{if owned(app,token){feedLoading=false}}
-        do{let values=try await access.feed(app,force:force);guard owned(app,token) else{return};posts=values}catch{if owned(app,token),!(error is CancellationError){self.error=error.localizedDescription;retainErrorOnWatch=false}}
+        guard !feedInFlight,!closed else{return};if owner.isEmpty{bind(app)};let token=epoch;guard owned(app,token) else{return}
+        let cached=access.cachedFeed(app);if let cached{posts=cached}
+        feedInFlight=true;feedLoading=force || cached == nil;feedError=nil
+        defer{if owned(app,token){feedLoading=false;feedInFlight=false}}
+        do{let values=try await access.feed(app,force:force);guard owned(app,token) else{return};posts=values}catch{if owned(app,token),!(error is CancellationError){feedError=error.localizedDescription}}
     }
-    func cancel(){epoch=UUID();closed=true;work?.cancel();sharing?.cancel();refresh?.cancel();invitationWatch?.cancel();work=nil;sharing=nil;refresh=nil;invitationWatch=nil;loading=false;working=false;feedLoading=false;reloading=false;refreshNeeded=false;watchingInvites=false;inviteRevision=0;shareKey="";watchKey="";access.cancel()}
+    func cancel(){epoch=UUID();closed=true;work?.cancel();sharing?.cancel();refresh?.cancel();invitationWatch?.cancel();work=nil;sharing=nil;refresh=nil;invitationWatch=nil;loading=false;working=false;feedLoading=false;feedInFlight=false;reloading=false;refreshNeeded=false;watchingInvites=false;inviteRevision=0;shareKey="";watchKey="";access.cancel()}
 }
 
 private extension Result where Success == TeamsMirrorService.Records,Failure == Error {

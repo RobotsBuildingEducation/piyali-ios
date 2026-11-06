@@ -145,10 +145,57 @@ struct TeamsDrawerView:View {
     }
     private func input(_ placeholder:String,text:Binding<String>,id:String)->some View{TextField("",text:text,prompt:Text(directed(placeholder)).foregroundStyle(light ? c("9b8875"):c("a3b4c9"))).font(.system(size:16)).padding(.horizontal,16).frame(height:40).background(light ? c("efe4d5"):c("111827"),in:RoundedRectangle(cornerRadius:6)).overlay{RoundedRectangle(cornerRadius:6).stroke(field == id ? c("3182ce"):border,lineWidth:field == id ? 2:1)}.multilineTextAlignment(rtl ? .trailing:.leading).textInputAutocapitalization(.never).autocorrectionDisabled().focused($field,equals:id).disabled(model.working).onSubmit{field=nil}.accessibilityIdentifier(id).environment(\.layoutDirection,.leftToRight)}
     @ViewBuilder private var feed:some View {
-        if model.feedLoading{VStack(spacing:12){PublicVoiceOrb(size:88);text(t("teams_feed_loading","Syncing with the community...")).font(.system(size:14)).foregroundStyle(muted)}.frame(maxWidth:.infinity).padding(.vertical,32)}else if model.posts.isEmpty{text(t("teams_feed_empty","No posts yet. Check back soon!")).font(.system(size:14)).foregroundStyle(muted)}
-        ForEach(model.posts){post in let profile:JSONValue = .object(["pubkey":.string(post.event.pubkey),"content":.string(post.event.content),"tags":.array(post.event.tags.map{.array($0.map(JSONValue.string))})]);let card=(try? model.policy?.run("feedCard",.object(["profile":profile]))) ?? .null
-            if card != .null{VStack(alignment:rtl ? .trailing:.leading,spacing:8){HStack(spacing:12){if let asset=try? model.policy?.run("feedAvatar",.object(["profile":profile])).string{BrandArtwork(name:asset).frame(width:32,height:32).clipShape(RoundedRectangle(cornerRadius:15))};Link(directed(post.name),destination:URL(string:"https://ditto.pub/"+post.npub)!).underline().accessibilityLabel(post.name)}.frame(maxWidth:.infinity,alignment:.leading);if card["kind"].string == "progress"{text(t("teams_feed_total_xp","Total XP")+": "+number(card["totalXP"]))};if card["percent"] != .null{GeometryReader{g in wave(card["percent"].number).frame(width:g.size.width*0.8)}.frame(height:14);if card["kind"].string == "progress"{text(t("teams_feed_goal_completion","Goal completion")+": "+number(card["percent"])+"%").font(.system(size:12)).foregroundStyle(muted)}};Text(.init(directed(post.event.content))).multilineTextAlignment(rtl ? .trailing:.leading).accessibilityLabel(post.event.content);Spacer().frame(height:24);Rectangle().fill(border).frame(height:1)}.font(.system(size:14)).multilineTextAlignment(rtl ? .trailing:.leading).padding(16).background(light ? surface:c("111827"),in:RoundedRectangle(cornerRadius:8)).overlay{RoundedRectangle(cornerRadius:8).stroke(border)}}
+        if model.feedLoading {
+            VStack(spacing:12){PublicVoiceOrb(size:88).frame(width:88,height:88);text(t("teams_feed_loading","Syncing with the community...")).font(.system(size:14)).lineSpacing(4).frame(minHeight:21).foregroundStyle(muted)}.frame(maxWidth:.infinity).padding(.vertical,32).accessibilityElement(children:.contain).accessibilityIdentifier("teamsFeedLoading")
+        }else if let error=model.feedError {
+            feedStatus(error:error)
+        }else if model.posts.isEmpty {
+            feedStatus(error:nil)
+        }else {
+            ForEach(model.posts){post in
+                let profile:JSONValue = .object(["pubkey":.string(post.event.pubkey),"content":.string(post.event.content),"tags":.array(post.event.tags.map{.array($0.map(JSONValue.string))})])
+                let card=(try? model.policy?.run("feedCard",.object(["profile":profile]))) ?? .null
+                if card != .null{feedCard(post,profile:profile,card:card)}
+            }
         }
+    }
+    private func feedStatus(error:String?)->some View {
+        VStack(alignment:.leading,spacing:8){
+            text(error ?? t("teams_feed_empty","No posts yet. Start the conversation!")).font(.system(size:14)).lineSpacing(4).padding(.vertical,2).fixedSize(horizontal:false,vertical:true).frame(maxWidth:.infinity,minHeight:21,alignment:.leading).foregroundStyle(error == nil ? muted:light ? c("8f4a5e"):c("feb2b2")).accessibilityIdentifier(error == nil ? "teamsFeedEmpty":"teamsFeedError")
+            if error != nil{Button{Task{await model.loadFeed(app,force:true)}}label:{text(t("teams_feed_refresh","Refresh"))}.buttonStyle(TeamsFeedRefreshStyle()).accessibilityIdentifier("teamsFeedRefresh")}
+        }.padding(17).frame(maxWidth:.infinity,alignment:.leading).background(light ? surface:.clear,in:RoundedRectangle(cornerRadius:6)).overlay{RoundedRectangle(cornerRadius:6).strokeBorder(error == nil ? cardBorder:light ? c("c26784").opacity(0.28):c("fc8181"))}
+    }
+    private func feedCard(_ post:CommunityPost,profile:JSONValue,card:JSONValue)->some View {
+        VStack(alignment:rtl ? .trailing:.leading,spacing:0){
+            HStack(spacing:12){
+                if let asset=try? model.policy?.run("feedAvatar",.object(["profile":profile])).string{BrandArtwork(name:asset).frame(width:32,height:32).clipShape(RoundedRectangle(cornerRadius:14.72))}
+                Link(directed(post.name),destination:URL(string:"https://ditto.pub/"+post.npub)!).underline().accessibilityLabel(post.name).foregroundStyle(light ? ink:.white)
+            }.frame(maxWidth:.infinity,alignment:.leading).padding(.bottom,8)
+            if card["kind"].string == "progress"{
+                text(t("teams_feed_total_xp","Total XP")+": "+number(card["totalXP"])).foregroundStyle(ink).frame(minHeight:21).padding(.bottom,card["percent"] == .null ? 16:8)
+            }
+            if card["percent"] != .null{
+                GeometryReader{g in
+                    FocusWaveBar(percent:card["percent"].number,start:card["kind"].string == "progress" ? "fbbf24":"43e97b",end:card["kind"].string == "progress" ? "f59e0b":"38f9d7",background:.white.opacity(light ? 0.58:0.22),border:light ? c("5b4b3a").opacity(0.1):.white.opacity(0.14)).environment(\.layoutDirection,.leftToRight).frame(width:g.size.width*0.8)
+                }.frame(height:14).padding(.bottom,card["kind"].string == "progress" ? 8:16)
+                if card["kind"].string == "progress"{text(t("teams_feed_goal_completion","Goal completion")+": "+number(card["percent"])+"%").font(.system(size:12)).frame(minHeight:18).foregroundStyle(light ? muted:c("b7c5d8")).padding(.bottom,8)}
+            }
+            Text(feedContent(post.event.content)).lineSpacing(4).padding(.vertical,2).fixedSize(horizontal:false,vertical:true).frame(maxWidth:.infinity,minHeight:21,alignment:rtl ? .trailing:.leading).accessibilityLabel(post.event.content).accessibilityIdentifier("teamsFeedContent")
+            Color.clear.frame(height:21)
+            Rectangle().fill(cardBorder).frame(height:1)
+        }.font(.system(size:14)).foregroundStyle(light ? ink:.white).multilineTextAlignment(rtl ? .trailing:.leading).padding(17).background(light ? Color(red:0.978431,green:0.955882,blue:0.920588):c("111827"),in:RoundedRectangle(cornerRadius:8)).overlay{RoundedRectangle(cornerRadius:8).strokeBorder(cardBorder)}.shadow(color:light ? c("6f5636").opacity(0.08):.clear,radius:9,y:8).accessibilityElement(children:.contain).accessibilityIdentifier("teamsFeedPost")
+    }
+    /// The source only links literal http(s) URLs; it does not interpret post Markdown.
+    private func feedContent(_ content:String)->AttributedString {
+        guard let regex=try? NSRegularExpression(pattern:"https?://[^\\s]+") else{return AttributedString(directed(content))}
+        var result=AttributedString(rtl ? "\u{200F}":""),cursor=content.startIndex
+        for match in regex.matches(in:content,range:NSRange(content.startIndex...,in:content)){
+            guard let range=Range(match.range,in:content) else{continue}
+            result.append(AttributedString(String(content[cursor..<range.lowerBound])))
+            var link=AttributedString(String(content[range]));link.link=URL(string:String(content[range]));link.foregroundColor=light ? c("2f7dd3"):c("4299e1");link.underlineStyle = .single;result.append(link);cursor=range.upperBound
+        }
+        result.append(AttributedString(String(content[cursor...])+(rtl ? "\u{200F}":"")))
+        return result
     }
 }
 enum TeamsEditor:Equatable {case create,rename(JSONValue),add(JSONValue);var team:JSONValue?{switch self{case .create:nil;case .rename(let team),.add(let team):team}};var isRename:Bool{if case .rename=self{return true};return false};var isAdd:Bool{if case .add=self{return true};return false}}
@@ -179,5 +226,11 @@ private struct TeamsLoadingDots:View {
                 Circle().frame(width:4,height:4).opacity(0.3+0.7*wave).offset(y:-3*wave)
             }}}.foregroundStyle(color).padding(.vertical,32).frame(maxWidth:.infinity)
         }.accessibilityElement(children:.ignore).accessibilityLabel(title).accessibilityIdentifier("teamsLoading")
+    }
+}
+
+private struct TeamsFeedRefreshStyle:ButtonStyle {
+    func makeBody(configuration:Configuration)->some View {
+        configuration.label.font(.system(size:14,weight:.semibold)).foregroundStyle(.white).padding(.horizontal,13).frame(height:32).background{Capsule().fill(PiyaliBrand.unitColor(configuration.isPressed ? "66cdaa":"5dade2")).shadow(color:configuration.isPressed ? .clear:PiyaliBrand.unitColor("2f7cf7"),radius:0,y:4)}.offset(y:configuration.isPressed ? 4:0).animation(.easeOut(duration:0.12),value:configuration.isPressed)
     }
 }
