@@ -1,0 +1,35 @@
+{
+  "qaDevice": "CE8248B6-7171-4FD4-97DE-89E499107F82",
+  "startedAt": 1793907746.884186,
+  "scope": "Read-only final account-private QA snapshots after real UI termination, an offline gated relaunch and online gated relaunch. No keys, names, notes or full profiles are exported. Subscription presentation is verified by the UI test, not inferred from these counts.",
+  "profiles": {
+    "repair": {
+      "snapshotSHA256": "1d5554eb44ea504fb92dda8c38cec05f3688a77506e1a5b4b3b31a9cf3713047",
+      "totalXP": 6,
+      "subscriptionXP": 301,
+      "gradedAttempts": 4,
+      "pendingFinishes": 0,
+      "pendingPracticeReceipts": 0,
+      "pendingGoalReceipts": 0,
+      "pendingRepairEvidence": 0,
+      "phonicsModeProgress": 0,
+      "goalModeEventCount": 0,
+      "repairCompletedCount": 1,
+      "repairEvidenceEventCount": 1
+    },
+    "goal": {
+      "snapshotSHA256": "2972e14a23122edc4185757d19ad7082d12fc22393e5634f014e1e697f1a762a",
+      "totalXP": 4,
+      "subscriptionXP": 301,
+      "gradedAttempts": 3,
+      "pendingFinishes": 0,
+      "pendingPracticeReceipts": 0,
+      "pendingGoalReceipts": 0,
+      "pendingRepairEvidence": 0,
+      "phonicsModeProgress": 2,
+      "goalModeEventCount": 1,
+      "repairCompletedCount": 0,
+      "repairEvidenceEventCount": 0
+    }
+  }
+}

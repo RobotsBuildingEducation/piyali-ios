@@ -1,2 +1,5 @@
 # Preserve the unchanged upstream formatting of the MIT-licensed compatibility copy.
 Vendor/NostrSDK/Sources/** -whitespace
+
+# Linear RGBE lighting captures are binary assets.
+*.hdr binary

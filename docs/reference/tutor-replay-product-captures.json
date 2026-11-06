@@ -1,0 +1,26 @@
+{
+  "result": "PiyaliTutorReplayFinal6.xcresult",
+  "scope": "Normal entry, Start learning, product menu, Tutor start, actual saved-clip AVAudioPlayer, pause/resume/end, per-response history replay, private fresh relaunch. Explicit isolated offline provider fixture supplies a public synthetic six-second tone; real provider PCM and physical audio are separate checks. Existing source reply component comparisons retain their own scope.",
+  "records": [
+    {
+      "file": "docs/native/tutor-replay-active-en-product.png",
+      "sha256": "ef2760058bd6462818823bcce61e87aa3b6c08751127d7d9747897be87c39097",
+      "attachment": "Native Tutor recorded reply replay active_0_A644BE6C-4412-40D3-92A2-A8C5916B17D6.png"
+    },
+    {
+      "file": "docs/native/tutor-replay-paused-en-product.png",
+      "sha256": "32e04c7fb387eea38371ec63931afdeca2de37e616e1227232bdf793458fd59f",
+      "attachment": "Native Tutor replay interrupted by pause_0_565C97E4-1986-4F24-856A-B8857F22EA00.png"
+    },
+    {
+      "file": "docs/native/tutor-replay-history-en-product.png",
+      "sha256": "dd8596747e3a3614f7f9249de127566f3045c690d7ecf1d9ce5ceefb6fa3a2b1",
+      "attachment": "Native Tutor history replay keeps other reply available_0_0BB84ED6-EF56-4F2C-B616-ABEB9A6D491E.png"
+    },
+    {
+      "file": "docs/native/tutor-replay-relaunch-en-product.png",
+      "sha256": "2539e8be72cff4b7c09b07dee977d8a960d8c639db27a506f4e15fc8b3632088",
+      "attachment": "Native Tutor recording cache does not expose private replies on relaunch_0_7DB12B14-E858-4111-8855-8D39EA22ECDA.png"
+    }
+  ]
+}

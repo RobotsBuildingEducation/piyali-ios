@@ -1,0 +1,89 @@
+{
+  "scope": "Native complete QA simulator viewports from passing individual UI journeys; containing bundles may retain separately documented source-harness failures. Public offline input, no regular profile or physical audio. Source component crops are scoped separately.",
+  "referenceCommit": "b269524ddc578027c549616fc47f5954991d9f6f",
+  "captures": [
+    {
+      "file": "reading-recovered.png",
+      "sha256": "82e6139d770ad6af9962a410a7334b1c52793a427b12c1ea5686fc85bcc1f1bf",
+      "resultBundle": "/tmp/PiyaliNoteAndTranslationPaintFinal20261105.xcresult",
+      "attachment": "Reading translation throw recovered and restored_0_B42A6616-DB3C-4FD1-BC2C-F80770A6EB53.png"
+    },
+    {
+      "file": "reading-thrown.png",
+      "sha256": "906faad5398dd893e3a72977a9d26799d516e8523b0324c12f5268e279ef30e0",
+      "resultBundle": "/tmp/PiyaliNoteAndTranslationPaintFinal20261105.xcresult",
+      "attachment": "Reading translation throw preserves source retry_0_5B70F525-8332-4F39-BA4E-F297EF1A968E.png"
+    },
+    {
+      "file": "reading-incomplete.png",
+      "sha256": "7b1776c6458cf9fcb778c377982b4982311a109e65d7e6a615403c4fed8d4bbc",
+      "resultBundle": "/tmp/PiyaliTranslationNotesFinal20261105.xcresult",
+      "attachment": "Reading translation incomplete preserves source retry_0_F3983BAF-4F3C-4A2F-9CB0-4C99646D733A.png"
+    },
+    {
+      "file": "flashcard-note-memory.png",
+      "sha256": "6b1199fefa314c5ad147e86062ea82e8feea8ab1b77e3f02d04ffe0e23944740",
+      "resultBundle": "/tmp/PiyaliNotesSourceFinal20261105.xcresult",
+      "attachment": "Flashcard study note in Memory with original example and lesson_0_C2A2F923-3E17-42D9-BC28-9378FEDC873F.png"
+    },
+    {
+      "file": "flashcard-note-en.png",
+      "sha256": "d08b3bec71f1a053543bc5f735a24826c147b9ff16b5da69940196b9caea8ef2",
+      "resultBundle": "/tmp/PiyaliNoteOpacityFinal20261105.xcresult",
+      "scope": "Passing original source handlers/store and native component comparison at 402x874, public provider boundary, no full product shell."
+    },
+    {
+      "file": "flashcard-note-en-source.json",
+      "sha256": "5f82bc9b41bb73ce4c427eb71b30cf748f0044ce28c4958207bcf21f797309d2",
+      "resultBundle": "/tmp/PiyaliNoteOpacityFinal20261105.xcresult",
+      "scope": "Passing original source handlers/store and native component comparison at 402x874, public provider boundary, no full product shell."
+    },
+    {
+      "file": "flashcard-note-ar.png",
+      "sha256": "35f41e8213cd603672798be6d6d1e4a5977052c29a6333b1541f6d2c7f8fb731",
+      "resultBundle": "/tmp/PiyaliNoteOpacityFinal20261105.xcresult",
+      "scope": "Passing original source handlers/store and native component comparison at 402x874, public provider boundary, no full product shell."
+    },
+    {
+      "file": "flashcard-note-ar-source.json",
+      "sha256": "9e7a595b6d8088bc5e30bfac7fc9aeb20ed76034e7538836d96fd44f04bf02ae",
+      "resultBundle": "/tmp/PiyaliNoteOpacityFinal20261105.xcresult",
+      "scope": "Passing original source handlers/store and native component comparison at 402x874, public provider boundary, no full product shell."
+    }
+  ],
+  "additionalSourceFiles": [
+    {
+      "file": "src/components/FlashcardPractice.jsx",
+      "sha256": "b1da353b8d9d095030637a8e57f100d80184f69bb1e5b5f6a4c37ac3cb756a14"
+    },
+    {
+      "file": "src/utils/noteGeneration.js",
+      "sha256": "84b74e70390456b31b6d11b779acf79d4d321f2eadbf461776f573f38e082825"
+    },
+    {
+      "file": "src/hooks/useNotesStore.js",
+      "sha256": "7de9aeb0bff5a6c517df207052f6f8bf94f3d52171a3143aa0f3cd087df124e1"
+    },
+    {
+      "file": "src/utils/translation.jsx",
+      "sha256": "010eb38be8f55e0509b99c209ae4042833057f3e28e0d925636dec42d7fb6fb6"
+    },
+    {
+      "file": "src/utils/translationArStatic.js",
+      "sha256": "1de18d1a33d0fd75344507b06799c9d60d1584ee72facab3cbff19293d5c5bc1"
+    },
+    {
+      "file": "src/theme.js",
+      "sha256": "6fe6093ecca51d0debb1314a587d6bd0927e7ac9f8c1ba2c6c744017e3be407e"
+    },
+    {
+      "file": "src/index.css",
+      "sha256": "79a5362dc1b189acd0d2288c0e85ff29c9cc1c8e39b8bb5cabe164ddd1c29030"
+    }
+  ],
+  "fixtureScripts": [
+    "scripts/start-reference-preview.mjs",
+    "scripts/reference-practice-question.mjs",
+    "scripts/render-reading-reference.mjs"
+  ]
+}

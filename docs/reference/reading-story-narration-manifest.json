@@ -1,0 +1,33 @@
+{
+  "sources": [
+    {
+      "file": "src/utils/tts.js",
+      "sha256": "d6b7f16803fa7c88c7e94cd05186d491e8fd7846a08940bf86bf5175a36b7c7d"
+    },
+    {
+      "file": "src/components/History.jsx",
+      "sha256": "ceca67f29b27ebc41c300c29e6ea92240bda1020fb23c3e505a06b65842832a9"
+    },
+    {
+      "file": "src/features/stories/StoryComprehension.jsx",
+      "sha256": "05a735aa10caaf25c8e1ea9fad02f29e23d912148e58c6e1a9bed4c2efeff328"
+    },
+    {
+      "file": "src/features/stories/storyCharacters.js",
+      "sha256": "fbe1d229c53880b2e57f5ad266a4ef6170dd204c8cb2e8039b4fd6847c06ca9d"
+    },
+    {
+      "file": "src/utils/softStopButton.js",
+      "sha256": "f0ef9cb52255274d27ee5a1df22185b1765b24561e15c271b9c6fb8e84b39a6f"
+    }
+  ],
+  "cases": 287,
+  "adapters": "Original StoryComprehension getPlayer and History speak request objects, BCP47 map, voice helpers and original narrationSession expression. Explicit turn/user/language snapshots; no UI/provider I/O. JSCore has no window/localStorage. Reading preserves the source BCP47 fallback for hi/ga/pl.",
+  "icons": {
+    "names": [
+      "PiLightningDuotone",
+      "PiStopDuotone"
+    ],
+    "source": "Installed reference react-icons/pi, rendered directly to SVG template assets"
+  }
+}

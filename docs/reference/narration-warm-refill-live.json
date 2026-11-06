@@ -1,0 +1,13 @@
+{
+  "activePlaybackSurvivedRefill" : true,
+  "activeResponses" : 1,
+  "capturedPCMBytes" : 990208,
+  "handshakes" : 2,
+  "microphoneCapture" : false,
+  "speakerVolume" : 0,
+  "unusedEventSends" : [
+
+  ],
+  "unusedIdleDrainedFrames" : 334080,
+  "unusedResponses" : 0
+}

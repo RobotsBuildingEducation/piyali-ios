@@ -1,0 +1,117 @@
+[
+  {
+    "input": "",
+    "goal": 1,
+    "minutes": 10
+  },
+  {
+    "input": " ",
+    "goal": 1,
+    "minutes": 10
+  },
+  {
+    "input": "-100",
+    "goal": 1,
+    "minutes": 10
+  },
+  {
+    "input": "0",
+    "goal": 1,
+    "minutes": 10
+  },
+  {
+    "input": "0.49",
+    "goal": 1,
+    "minutes": 1
+  },
+  {
+    "input": "0.5",
+    "goal": 1,
+    "minutes": 1
+  },
+  {
+    "input": "1",
+    "goal": 1,
+    "minutes": 1
+  },
+  {
+    "input": "1.5",
+    "goal": 2,
+    "minutes": 2
+  },
+  {
+    "input": "9.5",
+    "goal": 10,
+    "minutes": 10
+  },
+  {
+    "input": "10",
+    "goal": 10,
+    "minutes": 10
+  },
+  {
+    "input": "20",
+    "goal": 20,
+    "minutes": 20
+  },
+  {
+    "input": "50",
+    "goal": 50,
+    "minutes": 50
+  },
+  {
+    "input": "100",
+    "goal": 100,
+    "minutes": 100
+  },
+  {
+    "input": "150",
+    "goal": 150,
+    "minutes": 150
+  },
+  {
+    "input": "240",
+    "goal": 240,
+    "minutes": 240
+  },
+  {
+    "input": "240.5",
+    "goal": 241,
+    "minutes": 241
+  },
+  {
+    "input": "300",
+    "goal": 300,
+    "minutes": 300
+  },
+  {
+    "input": "999.5",
+    "goal": 1000,
+    "minutes": 1000
+  },
+  {
+    "input": "1000",
+    "goal": 1000,
+    "minutes": 1000
+  },
+  {
+    "input": "1001",
+    "goal": 1000,
+    "minutes": 1001
+  },
+  {
+    "input": "invalid",
+    "goal": 1,
+    "minutes": 10
+  },
+  {
+    "input": "Infinity",
+    "goal": 1000,
+    "minutes": 10
+  },
+  {
+    "input": "-Infinity",
+    "goal": 1,
+    "minutes": 10
+  }
+]

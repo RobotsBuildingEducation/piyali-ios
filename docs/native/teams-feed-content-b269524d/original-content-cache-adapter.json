@@ -1,0 +1,298 @@
+{
+  "reference": "b269524ddc578027c549616fc47f5954991d9f6f",
+  "scope": "Four unchanged extracted adapter callbacks with controlled NDK boundary, two actual source-cache clocks, twelve actual original browser scenes. Metadata setup rejection is not a production NDK no-EOSE/outage test. No authenticated source App or production relay writes.",
+  "hashes": {
+    "src/hooks/useDecentralizedIdentity.js": "0cd7422bc4fd1424cc74a3f55c98fc7da070bf38b48c5c44ac3690fc00b41e7f",
+    "src/utils/globalTeamFeedCache.js": "2b3855caf2791a23ff7b465ddb84edd03a9c7cfb5a13cf8268df52f103c4a3b9",
+    "src/components/Teams/TeamFeed.jsx": "85aa1826902089bf473bd2c7b3a17bd0398d6204999182d0c5e3eccc1dfb1abc"
+  },
+  "results": [
+    {
+      "boundary": "original-adapter",
+      "mode": "ordinary",
+      "requests": [
+        {
+          "kinds": [
+            1
+          ],
+          "#t": [
+            "LearnWithNostr"
+          ],
+          "limit": 50
+        },
+        {
+          "kinds": [
+            0
+          ],
+          "authors": [
+            "1111111111111111111111111111111111111111111111111111111111111111"
+          ]
+        }
+      ],
+      "notes": [
+        {
+          "content": "A community greeting",
+          "createdAt": 100,
+          "tags": [
+            [
+              "t",
+              "LearnWithNostr"
+            ]
+          ],
+          "id": "public-note",
+          "pubkey": "1111111111111111111111111111111111111111111111111111111111111111",
+          "npub": "npub1zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zygse4sl3h",
+          "profile": {
+            "name": "Ada",
+            "about": "",
+            "picture": ""
+          }
+        }
+      ]
+    },
+    {
+      "boundary": "original-adapter",
+      "mode": "banned",
+      "requests": [
+        {
+          "kinds": [
+            1
+          ],
+          "#t": [
+            "LearnWithNostr"
+          ],
+          "limit": 50
+        },
+        {
+          "kinds": [
+            0
+          ],
+          "authors": [
+            "1111111111111111111111111111111111111111111111111111111111111111"
+          ]
+        }
+      ],
+      "notes": [
+        {
+          "content": "A community greeting",
+          "createdAt": 100,
+          "tags": [
+            [
+              "t",
+              "LearnWithNostr"
+            ]
+          ],
+          "id": "public-note",
+          "pubkey": "1111111111111111111111111111111111111111111111111111111111111111",
+          "npub": "npub1zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zygse4sl3h",
+          "profile": {
+            "name": "TEST",
+            "about": "",
+            "picture": ""
+          }
+        }
+      ]
+    },
+    {
+      "boundary": "original-adapter",
+      "mode": "missing-profile",
+      "requests": [
+        {
+          "kinds": [
+            1
+          ],
+          "#t": [
+            "LearnWithNostr"
+          ],
+          "limit": 50
+        },
+        {
+          "kinds": [
+            0
+          ],
+          "authors": [
+            "1111111111111111111111111111111111111111111111111111111111111111"
+          ]
+        }
+      ],
+      "notes": [
+        {
+          "content": "A community greeting",
+          "createdAt": 100,
+          "tags": [
+            [
+              "t",
+              "LearnWithNostr"
+            ]
+          ],
+          "id": "public-note",
+          "pubkey": "1111111111111111111111111111111111111111111111111111111111111111",
+          "npub": "npub1zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zygse4sl3h",
+          "profile": {
+            "name": "New Private User",
+            "about": "",
+            "picture": ""
+          }
+        }
+      ]
+    },
+    {
+      "boundary": "original-adapter",
+      "mode": "metadata-setup-failure",
+      "requests": [
+        {
+          "kinds": [
+            1
+          ],
+          "#t": [
+            "LearnWithNostr"
+          ],
+          "limit": 50
+        },
+        {
+          "kinds": [
+            0
+          ],
+          "authors": [
+            "1111111111111111111111111111111111111111111111111111111111111111"
+          ]
+        }
+      ],
+      "notes": []
+    },
+    {
+      "boundary": "original-cache",
+      "mode": "ordinary",
+      "rawLength": 1,
+      "readsAt16Seconds": 1,
+      "readsAfter121Seconds": 2
+    },
+    {
+      "boundary": "original-cache",
+      "mode": "banned",
+      "rawLength": 1,
+      "readsAt16Seconds": 1,
+      "readsAfter121Seconds": 2
+    },
+    {
+      "boundary": "original-cache-completion-clock",
+      "mode": "posts",
+      "readsAfterLongPendingThenOneSecond": 1,
+      "readsAfterCompletedTTL": 2
+    },
+    {
+      "boundary": "original-cache-completion-clock",
+      "mode": "empty",
+      "readsAfterLongPendingThenOneSecond": 1,
+      "readsAfterCompletedTTL": 2
+    },
+    {
+      "boundary": "original-browser-component",
+      "state": "feed-ordinary",
+      "language": "en",
+      "rawCount": 1,
+      "posts": 0,
+      "empty": false,
+      "blank": true
+    },
+    {
+      "boundary": "original-browser-component",
+      "state": "feed-zero",
+      "language": "en",
+      "rawCount": 1,
+      "posts": 0,
+      "empty": false,
+      "blank": true
+    },
+    {
+      "boundary": "original-browser-component",
+      "state": "feed-scholarship",
+      "language": "en",
+      "rawCount": 1,
+      "posts": 0,
+      "empty": false,
+      "blank": true
+    },
+    {
+      "boundary": "original-browser-component",
+      "state": "feed-banned",
+      "language": "en",
+      "rawCount": 1,
+      "posts": 0,
+      "empty": true,
+      "blank": false
+    },
+    {
+      "boundary": "original-browser-component",
+      "state": "feed-mixed",
+      "language": "en",
+      "rawCount": 3,
+      "posts": 1,
+      "empty": false,
+      "blank": false
+    },
+    {
+      "boundary": "original-browser-component",
+      "state": "feed-fallback",
+      "language": "en",
+      "rawCount": 1,
+      "posts": 1,
+      "empty": false,
+      "blank": false
+    },
+    {
+      "boundary": "original-browser-component",
+      "state": "feed-ordinary",
+      "language": "ar",
+      "rawCount": 1,
+      "posts": 0,
+      "empty": false,
+      "blank": true
+    },
+    {
+      "boundary": "original-browser-component",
+      "state": "feed-zero",
+      "language": "ar",
+      "rawCount": 1,
+      "posts": 0,
+      "empty": false,
+      "blank": true
+    },
+    {
+      "boundary": "original-browser-component",
+      "state": "feed-scholarship",
+      "language": "ar",
+      "rawCount": 1,
+      "posts": 0,
+      "empty": false,
+      "blank": true
+    },
+    {
+      "boundary": "original-browser-component",
+      "state": "feed-banned",
+      "language": "ar",
+      "rawCount": 1,
+      "posts": 0,
+      "empty": true,
+      "blank": false
+    },
+    {
+      "boundary": "original-browser-component",
+      "state": "feed-mixed",
+      "language": "ar",
+      "rawCount": 3,
+      "posts": 1,
+      "empty": false,
+      "blank": false
+    },
+    {
+      "boundary": "original-browser-component",
+      "state": "feed-fallback",
+      "language": "ar",
+      "rawCount": 1,
+      "posts": 1,
+      "empty": false,
+      "blank": false
+    }
+  ]
+}

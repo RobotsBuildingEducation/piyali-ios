@@ -1,0 +1,132 @@
+{
+  "test": "PiyaliStorySpeechFinal3.xcresult",
+  "pairs": [
+    {
+      "mode": "speaking",
+      "state": "idle",
+      "language": "en",
+      "source": "docs/reference/story-recording-speaking-idle-en.png",
+      "native": "docs/native/story-recording-speaking-idle-en.png"
+    },
+    {
+      "mode": "speaking",
+      "state": "connecting",
+      "language": "en",
+      "source": "docs/reference/story-recording-speaking-connecting-en.png",
+      "native": "docs/native/story-recording-speaking-connecting-en.png"
+    },
+    {
+      "mode": "speaking",
+      "state": "recording",
+      "language": "en",
+      "source": "docs/reference/story-recording-speaking-recording-en.png",
+      "native": "docs/native/story-recording-speaking-recording-en.png"
+    },
+    {
+      "mode": "speaking",
+      "state": "evaluating",
+      "language": "en",
+      "source": "docs/reference/story-recording-speaking-evaluating-en.png",
+      "native": "docs/native/story-recording-speaking-evaluating-en.png"
+    },
+    {
+      "mode": "speaking",
+      "state": "wrong",
+      "language": "en",
+      "source": "docs/reference/story-recording-speaking-wrong-en.png",
+      "native": "docs/native/story-recording-speaking-wrong-en.png"
+    },
+    {
+      "mode": "speaking",
+      "state": "idle",
+      "language": "ar",
+      "source": "docs/reference/story-recording-speaking-idle-ar.png",
+      "native": "docs/native/story-recording-speaking-idle-ar.png"
+    },
+    {
+      "mode": "speaking",
+      "state": "connecting",
+      "language": "ar",
+      "source": "docs/reference/story-recording-speaking-connecting-ar.png",
+      "native": "docs/native/story-recording-speaking-connecting-ar.png"
+    },
+    {
+      "mode": "speaking",
+      "state": "recording",
+      "language": "ar",
+      "source": "docs/reference/story-recording-speaking-recording-ar.png",
+      "native": "docs/native/story-recording-speaking-recording-ar.png"
+    },
+    {
+      "mode": "speaking",
+      "state": "evaluating",
+      "language": "ar",
+      "source": "docs/reference/story-recording-speaking-evaluating-ar.png",
+      "native": "docs/native/story-recording-speaking-evaluating-ar.png"
+    },
+    {
+      "mode": "speaking",
+      "state": "wrong",
+      "language": "ar",
+      "source": "docs/reference/story-recording-speaking-wrong-ar.png",
+      "native": "docs/native/story-recording-speaking-wrong-ar.png"
+    },
+    {
+      "mode": "conversation",
+      "state": "idle",
+      "language": "en",
+      "source": "docs/reference/story-recording-conversation-idle-en.png",
+      "native": "docs/native/story-recording-conversation-idle-en.png"
+    },
+    {
+      "mode": "conversation",
+      "state": "connecting",
+      "language": "en",
+      "source": "docs/reference/story-recording-conversation-connecting-en.png",
+      "native": "docs/native/story-recording-conversation-connecting-en.png"
+    },
+    {
+      "mode": "conversation",
+      "state": "recording",
+      "language": "en",
+      "source": "docs/reference/story-recording-conversation-recording-en.png",
+      "native": "docs/native/story-recording-conversation-recording-en.png"
+    },
+    {
+      "mode": "conversation",
+      "state": "evaluating",
+      "language": "en",
+      "source": "docs/reference/story-recording-conversation-evaluating-en.png",
+      "native": "docs/native/story-recording-conversation-evaluating-en.png"
+    },
+    {
+      "mode": "conversation",
+      "state": "idle",
+      "language": "ar",
+      "source": "docs/reference/story-recording-conversation-idle-ar.png",
+      "native": "docs/native/story-recording-conversation-idle-ar.png"
+    },
+    {
+      "mode": "conversation",
+      "state": "connecting",
+      "language": "ar",
+      "source": "docs/reference/story-recording-conversation-connecting-ar.png",
+      "native": "docs/native/story-recording-conversation-connecting-ar.png"
+    },
+    {
+      "mode": "conversation",
+      "state": "recording",
+      "language": "ar",
+      "source": "docs/reference/story-recording-conversation-recording-ar.png",
+      "native": "docs/native/story-recording-conversation-recording-ar.png"
+    },
+    {
+      "mode": "conversation",
+      "state": "evaluating",
+      "language": "ar",
+      "source": "docs/reference/story-recording-conversation-evaluating-ar.png",
+      "native": "docs/native/story-recording-conversation-evaluating-ar.png"
+    }
+  ],
+  "comparison": "Original recording-button subtrees and ActivityActionRow; explicit public mode/state inputs, no hooks/provider/microphone. Source sRGB and native Display P3 PNGs retain their profiles. Component evidence only; frozen base wave pose, not full motion or screen parity."
+}

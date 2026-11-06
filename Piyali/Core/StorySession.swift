@@ -22,7 +22,8 @@ public struct StoryTurn:Codable,Equatable,Sendable {
     public let speaker:String
     public let target:String
     public var support:String?
-    public init(speaker:String,target:String,support:String? = nil) { self.speaker=speaker;self.target=target;self.support=support }
+    public var gender:String?
+    public init(speaker:String,target:String,support:String? = nil,gender:String? = nil) { self.speaker=speaker;self.target=target;self.support=support;self.gender=gender }
 }
 public struct StoryQuestion:Codable,Equatable,Sendable {
     public var type:String
@@ -41,6 +42,14 @@ public struct StoryEpisode:Codable,Equatable,Sendable {
     public var title:String
     public var segments:[StorySegment]
     public var text:String { segments.flatMap(\.turns).map(\.target).joined(separator:"\n") }
+    /// Resource bounds for source streams, which may be structurally incomplete.
+    public var sourceStreamSafe:Bool {
+        guard (1...4).contains(segments.count),segments.first?.turns.isEmpty == false,title.utf8.count <= 8_000 else{return false}
+        return segments.allSatisfy { segment in
+            let q=segment.question
+            return segment.turns.count <= 6 && segment.turns.allSatisfy {$0.target.utf8.count <= 8_000 && $0.speaker.utf8.count <= 8_000 && ($0.support?.utf8.count ?? 0) <= 8_000} && q.type.utf8.count <= 8_000 && q.prompt.utf8.count <= 8_000 && q.explanation.utf8.count <= 8_000 && q.options.count <= 8 && q.options.allSatisfy {$0.utf8.count <= 8_000} && q.answer.count <= 8
+        }
+    }
     public static func parse(_ raw:JSONValue,target:String = "",prepare:Bool = false) throws -> StoryEpisode {
         let data:Data
         if case .string(let string)=raw {

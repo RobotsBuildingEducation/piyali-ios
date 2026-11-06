@@ -1,0 +1,95 @@
+{
+  "offer": {
+    "panel": "gate"
+  },
+  "awaiting": {
+    "panel": "gate",
+    "awaiting": true
+  },
+  "unavailable": {
+    "panel": "gate",
+    "error": "unavailable"
+  },
+  "migration": {
+    "panel": "gate",
+    "migration": true
+  },
+  "replacement": {
+    "panel": "replacement"
+  },
+  "replacement-expired": {
+    "panel": "replacement",
+    "error": "replacement_expired"
+  },
+  "embedded": {
+    "panel": "membership",
+    "status": {
+      "linked": false
+    }
+  },
+  "active": {
+    "panel": "membership",
+    "status": {
+      "linked": true,
+      "authorized": true,
+      "subscription": {
+        "status": "active",
+        "entitledAmountCents": 800,
+        "lastVerifiedAtMs": 1793000000000
+      }
+    }
+  },
+  "stale": {
+    "panel": "membership",
+    "status": {
+      "linked": true,
+      "authorized": true,
+      "subscription": {
+        "status": "active",
+        "stale": true,
+        "entitledAmountCents": 800
+      }
+    }
+  },
+  "payment": {
+    "panel": "membership",
+    "status": {
+      "linked": true,
+      "authorized": false,
+      "subscription": {
+        "status": "payment_issue",
+        "entitledAmountCents": 800
+      }
+    }
+  },
+  "inactive": {
+    "panel": "membership",
+    "status": {
+      "linked": true,
+      "authorized": false,
+      "subscription": {
+        "status": "inactive"
+      }
+    }
+  },
+  "disconnect": {
+    "panel": "membership",
+    "confirmingDisconnect": true,
+    "status": {
+      "linked": true,
+      "authorized": true,
+      "subscription": {
+        "status": "active"
+      }
+    }
+  },
+  "checking": {
+    "panel": "gate",
+    "busy": true
+  },
+  "disabled": {
+    "panel": "gate",
+    "available": false,
+    "error": "unavailable"
+  }
+}

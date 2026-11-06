@@ -1,0 +1,242 @@
+[
+  {
+    "test": "TeamsPanelReferenceTests/testOriginalRetainedNonMilestoneFilteredMixedAndFallbackFeedScreens()",
+    "title": "Native Teams content feed-fallback ar",
+    "path": "native-feed-fallback-ar.png"
+  },
+  {
+    "test": "TeamsPanelReferenceTests/testOriginalRetainedNonMilestoneFilteredMixedAndFallbackFeedScreens()",
+    "title": "Source Teams content feed-fallback ar geometry",
+    "path": "source-feed-fallback-ar-geometry.json"
+  },
+  {
+    "test": "TeamsPanelReferenceTests/testOriginalRetainedNonMilestoneFilteredMixedAndFallbackFeedScreens()",
+    "title": "Source Teams content feed-fallback ar",
+    "path": "source-feed-fallback-ar.png"
+  },
+  {
+    "test": "TeamsPanelReferenceTests/testOriginalRetainedNonMilestoneFilteredMixedAndFallbackFeedScreens()",
+    "title": "Native Teams content feed-mixed ar",
+    "path": "native-feed-mixed-ar.png"
+  },
+  {
+    "test": "TeamsPanelReferenceTests/testOriginalRetainedNonMilestoneFilteredMixedAndFallbackFeedScreens()",
+    "title": "Source Teams content feed-mixed ar geometry",
+    "path": "source-feed-mixed-ar-geometry.json"
+  },
+  {
+    "test": "TeamsPanelReferenceTests/testOriginalRetainedNonMilestoneFilteredMixedAndFallbackFeedScreens()",
+    "title": "Source Teams content feed-mixed ar",
+    "path": "source-feed-mixed-ar.png"
+  },
+  {
+    "test": "TeamsPanelReferenceTests/testOriginalRetainedNonMilestoneFilteredMixedAndFallbackFeedScreens()",
+    "title": "Native Teams content feed-banned ar",
+    "path": "native-feed-banned-ar.png"
+  },
+  {
+    "test": "TeamsPanelReferenceTests/testOriginalRetainedNonMilestoneFilteredMixedAndFallbackFeedScreens()",
+    "title": "Source Teams content feed-banned ar geometry",
+    "path": "source-feed-banned-ar-geometry.json"
+  },
+  {
+    "test": "TeamsPanelReferenceTests/testOriginalRetainedNonMilestoneFilteredMixedAndFallbackFeedScreens()",
+    "title": "Source Teams content feed-banned ar",
+    "path": "source-feed-banned-ar.png"
+  },
+  {
+    "test": "TeamsPanelReferenceTests/testOriginalRetainedNonMilestoneFilteredMixedAndFallbackFeedScreens()",
+    "title": "Native Teams content feed-scholarship ar",
+    "path": "native-feed-scholarship-ar.png"
+  },
+  {
+    "test": "TeamsPanelReferenceTests/testOriginalRetainedNonMilestoneFilteredMixedAndFallbackFeedScreens()",
+    "title": "Source Teams content feed-scholarship ar geometry",
+    "path": "source-feed-scholarship-ar-geometry.json"
+  },
+  {
+    "test": "TeamsPanelReferenceTests/testOriginalRetainedNonMilestoneFilteredMixedAndFallbackFeedScreens()",
+    "title": "Source Teams content feed-scholarship ar",
+    "path": "source-feed-scholarship-ar.png"
+  },
+  {
+    "test": "TeamsPanelReferenceTests/testOriginalRetainedNonMilestoneFilteredMixedAndFallbackFeedScreens()",
+    "title": "Native Teams content feed-zero ar",
+    "path": "native-feed-zero-ar.png"
+  },
+  {
+    "test": "TeamsPanelReferenceTests/testOriginalRetainedNonMilestoneFilteredMixedAndFallbackFeedScreens()",
+    "title": "Source Teams content feed-zero ar geometry",
+    "path": "source-feed-zero-ar-geometry.json"
+  },
+  {
+    "test": "TeamsPanelReferenceTests/testOriginalRetainedNonMilestoneFilteredMixedAndFallbackFeedScreens()",
+    "title": "Source Teams content feed-zero ar",
+    "path": "source-feed-zero-ar.png"
+  },
+  {
+    "test": "TeamsPanelReferenceTests/testOriginalRetainedNonMilestoneFilteredMixedAndFallbackFeedScreens()",
+    "title": "Native Teams content feed-ordinary ar",
+    "path": "native-feed-ordinary-ar.png"
+  },
+  {
+    "test": "TeamsPanelReferenceTests/testOriginalRetainedNonMilestoneFilteredMixedAndFallbackFeedScreens()",
+    "title": "Source Teams content feed-ordinary ar geometry",
+    "path": "source-feed-ordinary-ar-geometry.json"
+  },
+  {
+    "test": "TeamsPanelReferenceTests/testOriginalRetainedNonMilestoneFilteredMixedAndFallbackFeedScreens()",
+    "title": "Source Teams content feed-ordinary ar",
+    "path": "source-feed-ordinary-ar.png"
+  },
+  {
+    "test": "TeamsPanelReferenceTests/testOriginalRetainedNonMilestoneFilteredMixedAndFallbackFeedScreens()",
+    "title": "Native Teams content feed-fallback en",
+    "path": "native-feed-fallback-en.png"
+  },
+  {
+    "test": "TeamsPanelReferenceTests/testOriginalRetainedNonMilestoneFilteredMixedAndFallbackFeedScreens()",
+    "title": "Source Teams content feed-fallback en geometry",
+    "path": "source-feed-fallback-en-geometry.json"
+  },
+  {
+    "test": "TeamsPanelReferenceTests/testOriginalRetainedNonMilestoneFilteredMixedAndFallbackFeedScreens()",
+    "title": "Source Teams content feed-fallback en",
+    "path": "source-feed-fallback-en.png"
+  },
+  {
+    "test": "TeamsPanelReferenceTests/testOriginalRetainedNonMilestoneFilteredMixedAndFallbackFeedScreens()",
+    "title": "Native Teams content feed-mixed en",
+    "path": "native-feed-mixed-en.png"
+  },
+  {
+    "test": "TeamsPanelReferenceTests/testOriginalRetainedNonMilestoneFilteredMixedAndFallbackFeedScreens()",
+    "title": "Source Teams content feed-mixed en geometry",
+    "path": "source-feed-mixed-en-geometry.json"
+  },
+  {
+    "test": "TeamsPanelReferenceTests/testOriginalRetainedNonMilestoneFilteredMixedAndFallbackFeedScreens()",
+    "title": "Source Teams content feed-mixed en",
+    "path": "source-feed-mixed-en.png"
+  },
+  {
+    "test": "TeamsPanelReferenceTests/testOriginalRetainedNonMilestoneFilteredMixedAndFallbackFeedScreens()",
+    "title": "Native Teams content feed-banned en",
+    "path": "native-feed-banned-en.png"
+  },
+  {
+    "test": "TeamsPanelReferenceTests/testOriginalRetainedNonMilestoneFilteredMixedAndFallbackFeedScreens()",
+    "title": "Source Teams content feed-banned en geometry",
+    "path": "source-feed-banned-en-geometry.json"
+  },
+  {
+    "test": "TeamsPanelReferenceTests/testOriginalRetainedNonMilestoneFilteredMixedAndFallbackFeedScreens()",
+    "title": "Source Teams content feed-banned en",
+    "path": "source-feed-banned-en.png"
+  },
+  {
+    "test": "TeamsPanelReferenceTests/testOriginalRetainedNonMilestoneFilteredMixedAndFallbackFeedScreens()",
+    "title": "Native Teams content feed-scholarship en",
+    "path": "native-feed-scholarship-en.png"
+  },
+  {
+    "test": "TeamsPanelReferenceTests/testOriginalRetainedNonMilestoneFilteredMixedAndFallbackFeedScreens()",
+    "title": "Source Teams content feed-scholarship en geometry",
+    "path": "source-feed-scholarship-en-geometry.json"
+  },
+  {
+    "test": "TeamsPanelReferenceTests/testOriginalRetainedNonMilestoneFilteredMixedAndFallbackFeedScreens()",
+    "title": "Source Teams content feed-scholarship en",
+    "path": "source-feed-scholarship-en.png"
+  },
+  {
+    "test": "TeamsPanelReferenceTests/testOriginalRetainedNonMilestoneFilteredMixedAndFallbackFeedScreens()",
+    "title": "Native Teams content feed-zero en",
+    "path": "native-feed-zero-en.png"
+  },
+  {
+    "test": "TeamsPanelReferenceTests/testOriginalRetainedNonMilestoneFilteredMixedAndFallbackFeedScreens()",
+    "title": "Source Teams content feed-zero en geometry",
+    "path": "source-feed-zero-en-geometry.json"
+  },
+  {
+    "test": "TeamsPanelReferenceTests/testOriginalRetainedNonMilestoneFilteredMixedAndFallbackFeedScreens()",
+    "title": "Source Teams content feed-zero en",
+    "path": "source-feed-zero-en.png"
+  },
+  {
+    "test": "TeamsPanelReferenceTests/testOriginalRetainedNonMilestoneFilteredMixedAndFallbackFeedScreens()",
+    "title": "Native Teams content feed-ordinary en",
+    "path": "native-feed-ordinary-en.png"
+  },
+  {
+    "test": "TeamsPanelReferenceTests/testOriginalRetainedNonMilestoneFilteredMixedAndFallbackFeedScreens()",
+    "title": "Source Teams content feed-ordinary en geometry",
+    "path": "source-feed-ordinary-en-geometry.json"
+  },
+  {
+    "test": "TeamsPanelReferenceTests/testOriginalRetainedNonMilestoneFilteredMixedAndFallbackFeedScreens()",
+    "title": "Source Teams content feed-ordinary en",
+    "path": "source-feed-ordinary-en.png"
+  },
+  {
+    "test": "TeamsTests/testRawFeedBlankCacheFilteredMetadataAndMixedRecoveryInArabicProduct()",
+    "title": "Native Teams content mixed signed recovery ar",
+    "path": "ui-native-mixed-signed-recovery-ar.png"
+  },
+  {
+    "test": "TeamsTests/testRawFeedBlankCacheFilteredMetadataAndMixedRecoveryInArabicProduct()",
+    "title": "Native Teams content missing profile fallback ar",
+    "path": "ui-native-missing-profile-fallback-ar.png"
+  },
+  {
+    "test": "TeamsTests/testRawFeedBlankCacheFilteredMetadataAndMixedRecoveryInArabicProduct()",
+    "title": "Native Teams content metadata failure empty ar",
+    "path": "ui-native-metadata-failure-empty-ar.png"
+  },
+  {
+    "test": "TeamsTests/testRawFeedBlankCacheFilteredMetadataAndMixedRecoveryInArabicProduct()",
+    "title": "Native Teams content filtered author empty ar",
+    "path": "ui-native-filtered-author-empty-ar.png"
+  },
+  {
+    "test": "TeamsTests/testRawFeedBlankCacheFilteredMetadataAndMixedRecoveryInArabicProduct()",
+    "title": "Native Teams content raw cache reopen ar",
+    "path": "ui-native-raw-cache-reopen-ar.png"
+  },
+  {
+    "test": "TeamsTests/testRawFeedBlankCacheFilteredMetadataAndMixedRecoveryInArabicProduct()",
+    "title": "Native Teams content ordinary blank ar",
+    "path": "ui-native-ordinary-blank-ar.png"
+  },
+  {
+    "test": "TeamsTests/testRawFeedBlankCacheFilteredMetadataAndMixedRecoveryInEnglishProduct()",
+    "title": "Native Teams content mixed signed recovery en",
+    "path": "ui-native-mixed-signed-recovery-en.png"
+  },
+  {
+    "test": "TeamsTests/testRawFeedBlankCacheFilteredMetadataAndMixedRecoveryInEnglishProduct()",
+    "title": "Native Teams content missing profile fallback en",
+    "path": "ui-native-missing-profile-fallback-en.png"
+  },
+  {
+    "test": "TeamsTests/testRawFeedBlankCacheFilteredMetadataAndMixedRecoveryInEnglishProduct()",
+    "title": "Native Teams content metadata failure empty en",
+    "path": "ui-native-metadata-failure-empty-en.png"
+  },
+  {
+    "test": "TeamsTests/testRawFeedBlankCacheFilteredMetadataAndMixedRecoveryInEnglishProduct()",
+    "title": "Native Teams content filtered author empty en",
+    "path": "ui-native-filtered-author-empty-en.png"
+  },
+  {
+    "test": "TeamsTests/testRawFeedBlankCacheFilteredMetadataAndMixedRecoveryInEnglishProduct()",
+    "title": "Native Teams content raw cache reopen en",
+    "path": "ui-native-raw-cache-reopen-en.png"
+  },
+  {
+    "test": "TeamsTests/testRawFeedBlankCacheFilteredMetadataAndMixedRecoveryInEnglishProduct()",
+    "title": "Native Teams content ordinary blank en",
+    "path": "ui-native-ordinary-blank-en.png"
+  }
+]

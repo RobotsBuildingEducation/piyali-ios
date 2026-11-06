@@ -1,0 +1,27 @@
+{
+  "result": "PiyaliReadingBackendFinal20261105.xcresult",
+  "device": "CE8248B6-7171-4FD4-97DE-89E499107F82",
+  "scope": "Native production views on isolated simulator; local model/identity/review fixtures. No physical microphone evidence.",
+  "captures": [
+    {
+      "file": "entry-signin-en-light.png",
+      "sha256": "f7369b6082ccf831fa6e2789a3932bde2c84d760d0571f7425af7d6a5f90707a",
+      "test": "EntryParityTests/testLandingHasNamedSignupAndDedicatedKeyLoginWithBackAndErrors()"
+    },
+    {
+      "file": "entry-hero-en-light.png",
+      "sha256": "8fb0f4e30991ab9df87def3c424f2caf45293998a903a90b5282fbef019ec0b2",
+      "test": "EntryParityTests/testLandingHasNamedSignupAndDedicatedKeyLoginWithBackAndErrors()"
+    },
+    {
+      "file": "reading-review-unavailable.png",
+      "sha256": "a91647f1502551f1ae5de41d9b8acac18abf7f31a5448cd8350ced125cef3f61",
+      "test": "ReadingPlayTests/testMissingQuestionFailureRetainsPassageWithoutInventingReward()"
+    },
+    {
+      "file": "reading-recovered-completed.png",
+      "sha256": "a05f32a06847dcea0f7896ad987bd903d83260a5633efd67df65cbe47d12581f",
+      "test": "ReadingPlayTests/testPartialReadingGeneratesMissingQuestionAndRetainsOneReward()"
+    }
+  ]
+}

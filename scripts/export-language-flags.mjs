@@ -1,0 +1,7 @@
+import fs from 'node:fs/promises';import path from 'node:path';import {createRequire} from 'node:module';
+const root=process.cwd(),reference=path.resolve(root,'../nosabos/nosabos'),require=createRequire(path.join(reference,'package.json')),React=require('react'),{renderToStaticMarkup}=require('react-dom/server'),esbuild=require('esbuild');
+const bundled=await esbuild.build({entryPoints:[path.join(reference,'src/components/flagsIcons/flags.jsx')],bundle:true,format:'cjs',write:false});
+const module={exports:{}};new Function('React','module','exports',bundled.outputFiles[0].text)(React,module,module.exports);
+const names={es:'mexicanFlag',en:'usaFlag',pt:'brazilianFlag',fr:'frenchFlag',it:'italianFlag',nl:'netherlandsFlag',de:'germanFlag',ja:'japaneseFlag',ru:'russianFlag',el:'greekFlag',pl:'polishFlag',ga:'irishFlag',ar:'egyptianFlag',hi:'indianFlag',zh:'chineseFlag'};
+for(const [code,name] of Object.entries(names)){const folder=path.join(root,'Piyali/Resources/BrandAssets.xcassets','LanguageFlag-'+code+'.imageset');await fs.mkdir(folder,{recursive:true});await fs.writeFile(path.join(folder,'flag.svg'),renderToStaticMarkup(module.exports[name]()).replace(/<svg(?![^>]*xmlns=) /,'<svg xmlns="http://www.w3.org/2000/svg" '));await fs.writeFile(path.join(folder,'Contents.json'),JSON.stringify({images:[{filename:'flag.svg',idiom:'universal'}],info:{author:'xcode',version:1},properties:{'preserves-vector-representation':true}},null,2)+'\n')}
+console.log('Exported '+Object.keys(names).length+' original circular SVG flags.');

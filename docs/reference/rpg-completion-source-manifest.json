@@ -1,0 +1,31 @@
+{
+  "source": "src/components/RPGGame/index.jsx",
+  "sha256": "f597e8f7a9296ff3f72fad4e6f24ca4a1a313fddbc87ba3cf2d128c1d6ea95a2",
+  "additionalSources": [
+    {
+      "file": "src/App.jsx",
+      "sha256": "5fd4a87bd5db004c1fc049ff7e8c7e266e6d65d7c42201ef75e923044c4a7dc8"
+    },
+    {
+      "file": "src/theme.js",
+      "sha256": "6fe6093ecca51d0debb1314a587d6bd0927e7ac9f8c1ba2c6c744017e3be407e"
+    },
+    {
+      "file": "src/index.css",
+      "sha256": "79a5362dc1b189acd0d2288c0e85ff29c9cc1c8e39b8bb5cabe164ddd1c29030"
+    },
+    {
+      "file": "src/components/WaveBar.jsx",
+      "sha256": "619c6d05f99488316facec96f2b35fa46544910a5b1fd0d0584e529af756c536"
+    },
+    {
+      "file": "src/components/RPGGame/episodes/profile.js",
+      "sha256": "e5f9cdc455a185ca73429d535a5aa753b8d8472e81abd5d37bbb2303c65a7372"
+    },
+    {
+      "file": "src/utils/bidiText.js",
+      "sha256": "0dc0959f0e58c3e715241dcd57eeab484ff55785860a1e53e7e15b79ac52aed1"
+    }
+  ],
+  "adapters": "Actual authored-completion JSX, color bindings and UI_TEXT. Public scenario/score input; original WaveBar, score/XP functions, theme, bidi helpers and CSS. Neutral backdrop is shared with the native component; no game state, provider, identity, Firebase or relay I/O."
+}

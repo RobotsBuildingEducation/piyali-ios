@@ -1,0 +1,190 @@
+[0/1] Planning build
+Building for debugging...
+[0/3] Write sources
+[1/3] Write swift-version--58304C5D6DBC2206.txt
+[3/6] Compiling PiyaliCoreTests MemorySourcePolicyTests.swift
+[4/6] Emitting module PiyaliCoreTests
+[5/6] Compiling PiyaliCoreTests MemoryTests.swift
+[5/7] Write Objects.LinkFileList
+[6/7] Linking PiyaliCorePackageTests
+Build complete! (1.95s)
+Test Suite 'Selected tests' started at 2026-11-05 23:34:27.659.
+Test Suite 'PiyaliCorePackageTests.xctest' started at 2026-11-05 23:34:27.659.
+Test Suite 'FinalQuizTests' started at 2026-11-05 23:34:27.659.
+Test Case '-[PiyaliCoreTests.FinalQuizTests testAllCurriculaRetainFinalQuizMetadataAndAuthoredLevel]' started.
+Test Case '-[PiyaliCoreTests.FinalQuizTests testAllCurriculaRetainFinalQuizMetadataAndAuthoredLevel]' passed (31.435 seconds).
+Test Case '-[PiyaliCoreTests.FinalQuizTests testEarlyFailureCannotCompleteAndRetryFencesOldAnswers]' started.
+Test Case '-[PiyaliCoreTests.FinalQuizTests testEarlyFailureCannotCompleteAndRetryFencesOldAnswers]' passed (1.824 seconds).
+Test Case '-[PiyaliCoreTests.FinalQuizTests testIncompleteQuestionsCannotReplaceTheCurrentDraft]' started.
+Test Case '-[PiyaliCoreTests.FinalQuizTests testIncompleteQuestionsCannotReplaceTheCurrentDraft]' passed (1.636 seconds).
+Test Case '-[PiyaliCoreTests.FinalQuizTests testNoQuestionXPOnceOnlyAssessmentAndPassedLessonReward]' started.
+Test Case '-[PiyaliCoreTests.FinalQuizTests testNoQuestionXPOnceOnlyAssessmentAndPassedLessonReward]' passed (1.646 seconds).
+Test Case '-[PiyaliCoreTests.FinalQuizTests testOutcomesMatchEverySourceReachablePrefix]' started.
+Test Case '-[PiyaliCoreTests.FinalQuizTests testOutcomesMatchEverySourceReachablePrefix]' passed (0.487 seconds).
+Test Suite 'FinalQuizTests' passed at 2026-11-05 23:35:04.689.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 37.029 (37.030) seconds
+Test Suite 'GoalMemoryCaptureTests' started at 2026-11-05 23:35:04.689.
+Test Case '-[PiyaliCoreTests.GoalMemoryCaptureTests testGoalFocusRejectsTargetDayPauseReplacementAndWrongMode]' started.
+Test Case '-[PiyaliCoreTests.GoalMemoryCaptureTests testGoalFocusRejectsTargetDayPauseReplacementAndWrongMode]' passed (0.001 seconds).
+Test Case '-[PiyaliCoreTests.GoalMemoryCaptureTests testOriginalFullCaptureRoutesGoalSlipsWithoutRepairsXPOrCompletionIncludingEmptyAnswers]' started.
+Test Case '-[PiyaliCoreTests.GoalMemoryCaptureTests testOriginalFullCaptureRoutesGoalSlipsWithoutRepairsXPOrCompletionIncludingEmptyAnswers]' passed (0.016 seconds).
+Test Case '-[PiyaliCoreTests.GoalMemoryCaptureTests testReadingStoryAndConversationMissReducersPreserveOriginalCallerDifferences]' started.
+Test Case '-[PiyaliCoreTests.GoalMemoryCaptureTests testReadingStoryAndConversationMissReducersPreserveOriginalCallerDifferences]' passed (0.078 seconds).
+Test Case '-[PiyaliCoreTests.GoalMemoryCaptureTests testTypedGoalMissDoesNotFillLessonAndContextIsNeverRestoredOrInferredFromAnActiveGoal]' started.
+Test Case '-[PiyaliCoreTests.GoalMemoryCaptureTests testTypedGoalMissDoesNotFillLessonAndContextIsNeverRestoredOrInferredFromAnActiveGoal]' passed (0.004 seconds).
+Test Suite 'GoalMemoryCaptureTests' passed at 2026-11-05 23:35:04.789.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.100 (0.100) seconds
+Test Suite 'MemorySourcePolicyTests' started at 2026-11-05 23:35:04.789.
+Test Case '-[PiyaliCoreTests.MemorySourcePolicyTests testAccountBearingCaptureQueuesSourceRepairEvidenceWithoutAdditionalXPOrAssessment]' started.
+Test Case '-[PiyaliCoreTests.MemorySourcePolicyTests testAccountBearingCaptureQueuesSourceRepairEvidenceWithoutAdditionalXPOrAssessment]' passed (0.000 seconds).
+Test Case '-[PiyaliCoreTests.MemorySourcePolicyTests testCaptureEvidenceKeepsSourceContentIDsAndSeparateReplayReceiptsAtSeverityCap]' started.
+Test Case '-[PiyaliCoreTests.MemorySourcePolicyTests testCaptureEvidenceKeepsSourceContentIDsAndSeparateReplayReceiptsAtSeverityCap]' passed (0.002 seconds).
+Test Case '-[PiyaliCoreTests.MemorySourcePolicyTests testFullCaptureConceptSurvivesPrivateSerializationAndOldChangesStillDecode]' started.
+Test Case '-[PiyaliCoreTests.MemorySourcePolicyTests testFullCaptureConceptSurvivesPrivateSerializationAndOldChangesStillDecode]' passed (0.001 seconds).
+Test Case '-[PiyaliCoreTests.MemorySourcePolicyTests testGenericInitialMemoryUsesSourcePendingFieldsAndUTF16Limits]' started.
+Test Case '-[PiyaliCoreTests.MemorySourcePolicyTests testGenericInitialMemoryUsesSourcePendingFieldsAndUTF16Limits]' passed (0.058 seconds).
+Test Case '-[PiyaliCoreTests.MemorySourcePolicyTests testLocalizationPreservesLifecycleAndForeignFieldsAndRejectsStaleCapture]' started.
+Test Case '-[PiyaliCoreTests.MemorySourcePolicyTests testLocalizationPreservesLifecycleAndForeignFieldsAndRejectsStaleCapture]' passed (0.000 seconds).
+Test Case '-[PiyaliCoreTests.MemorySourcePolicyTests testNativeDuplicateMergeMatchesCompleteOriginalCaptureCases]' started.
+Test Case '-[PiyaliCoreTests.MemorySourcePolicyTests testNativeDuplicateMergeMatchesCompleteOriginalCaptureCases]' passed (0.242 seconds).
+Test Case '-[PiyaliCoreTests.MemorySourcePolicyTests testNativeSharedInitialFieldsMatchAllSourceModesAndNormalizationCases]' started.
+Test Case '-[PiyaliCoreTests.MemorySourcePolicyTests testNativeSharedInitialFieldsMatchAllSourceModesAndNormalizationCases]' passed (0.169 seconds).
+Test Case '-[PiyaliCoreTests.MemorySourcePolicyTests testOriginalMemoryCopyPromptsParsersLanguageGuardsAndJourneyRules]' started.
+Test Case '-[PiyaliCoreTests.MemorySourcePolicyTests testOriginalMemoryCopyPromptsParsersLanguageGuardsAndJourneyRules]' passed (0.271 seconds).
+Test Case '-[PiyaliCoreTests.MemorySourcePolicyTests testRepeatedSourceTutorCaptureKeepsFirstCorrectionAndLocalizesPendingSummary]' started.
+Test Case '-[PiyaliCoreTests.MemorySourcePolicyTests testRepeatedSourceTutorCaptureKeepsFirstCorrectionAndLocalizesPendingSummary]' passed (0.004 seconds).
+Test Suite 'MemorySourcePolicyTests' passed at 2026-11-05 23:35:05.537.
+	 Executed 9 tests, with 0 failures (0 unexpected) in 0.747 (0.748) seconds
+Test Suite 'MemoryTests' started at 2026-11-05 23:35:05.537.
+Test Case '-[PiyaliCoreTests.MemoryTests testOverlappingSyncDoesNotReplayAlreadyCommittedPracticeOrMemory]' started.
+Test Case '-[PiyaliCoreTests.MemoryTests testOverlappingSyncDoesNotReplayAlreadyCommittedPracticeOrMemory]' passed (0.003 seconds).
+Test Case '-[PiyaliCoreTests.MemoryTests testRepeatedSlipsStrengthenOneMemoryAndPreserveEnrichment]' started.
+Test Case '-[PiyaliCoreTests.MemoryTests testRepeatedSlipsStrengthenOneMemoryAndPreserveEnrichment]' passed (0.001 seconds).
+Test Case '-[PiyaliCoreTests.MemoryTests testSupportLanguageChangeClearsOldLocalizedTip]' started.
+Test Case '-[PiyaliCoreTests.MemoryTests testSupportLanguageChangeClearsOldLocalizedTip]' passed (0.001 seconds).
+Test Case '-[PiyaliCoreTests.MemoryTests testSyncReplaysOnlyMemoryCapturedWhileRequestWasInFlight]' started.
+Test Case '-[PiyaliCoreTests.MemoryTests testSyncReplaysOnlyMemoryCapturedWhileRequestWasInFlight]' passed (0.001 seconds).
+Test Case '-[PiyaliCoreTests.MemoryTests testTargetLanguageIsolationAndReinforcementLifecycle]' started.
+Test Case '-[PiyaliCoreTests.MemoryTests testTargetLanguageIsolationAndReinforcementLifecycle]' passed (0.001 seconds).
+Test Case '-[PiyaliCoreTests.MemoryTests testWindowExpiresAtDayTwoAndLimitsRecentNotes]' started.
+Test Case '-[PiyaliCoreTests.MemoryTests testWindowExpiresAtDayTwoAndLimitsRecentNotes]' passed (0.013 seconds).
+Test Suite 'MemoryTests' passed at 2026-11-05 23:35:05.558.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.021 (0.021) seconds
+Test Suite 'PracticeRepairContextTests' started at 2026-11-05 23:35:05.558.
+Test Case '-[PiyaliCoreTests.PracticeRepairContextTests testAllSeventeenFormatsUseOriginalSourceCaptureInputs]' started.
+Test Case '-[PiyaliCoreTests.PracticeRepairContextTests testAllSeventeenFormatsUseOriginalSourceCaptureInputs]' passed (0.008 seconds).
+Test Case '-[PiyaliCoreTests.PracticeRepairContextTests testStemlessMatchCapturesQuestionLevelAndOriginalPairingsSurvivesRestoreAndRetryWithoutXP]' started.
+Test Case '-[PiyaliCoreTests.PracticeRepairContextTests testStemlessMatchCapturesQuestionLevelAndOriginalPairingsSurvivesRestoreAndRetryWithoutXP]' passed (0.002 seconds).
+Test Suite 'PracticeRepairContextTests' passed at 2026-11-05 23:35:05.568.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.010 (0.010) seconds
+Test Suite 'PracticeRunTests' started at 2026-11-05 23:35:05.568.
+Test Case '-[PiyaliCoreTests.PracticeRunTests testCollectingAndFlippingDoNotAwardAndCorrectFlashcardCollectsOnce]' started.
+Test Case '-[PiyaliCoreTests.PracticeRunTests testCollectingAndFlippingDoNotAwardAndCorrectFlashcardCollectsOnce]' passed (0.002 seconds).
+Test Case '-[PiyaliCoreTests.PracticeRunTests testQuestionAndDuplicateWordPositionsResumeAndStaleAccountsCannotAward]' started.
+Test Case '-[PiyaliCoreTests.PracticeRunTests testQuestionAndDuplicateWordPositionsResumeAndStaleAccountsCannotAward]' passed (0.000 seconds).
+Test Case '-[PiyaliCoreTests.PracticeRunTests testQuizQuestionContractCannotAwardPracticeXPEvenWhenARewardWasRequested]' started.
+Test Case '-[PiyaliCoreTests.PracticeRunTests testQuizQuestionContractCannotAwardPracticeXPEvenWhenARewardWasRequested]' passed (0.000 seconds).
+Test Case '-[PiyaliCoreTests.PracticeRunTests testWrongAnswerCanRetryAndCorrectAnswerAwardsOnceWithActualAssistanceAndScope]' started.
+Test Case '-[PiyaliCoreTests.PracticeRunTests testWrongAnswerCanRetryAndCorrectAnswerAwardsOnceWithActualAssistanceAndScope]' passed (0.002 seconds).
+Test Suite 'PracticeRunTests' passed at 2026-11-05 23:35:05.572.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.004 (0.004) seconds
+Test Suite 'ReadingTests' started at 2026-11-05 23:35:05.572.
+Test Case '-[PiyaliCoreTests.ReadingTests testDisplaySentenceBoundariesMatchExecutedSourceAndTranslationsResume]' started.
+Test Case '-[PiyaliCoreTests.ReadingTests testDisplaySentenceBoundariesMatchExecutedSourceAndTranslationsResume]' passed (0.037 seconds).
+Test Case '-[PiyaliCoreTests.ReadingTests testDraftKeepsAnswerAndSharedAwardThroughLanguageSwitchAndInFlightSync]' started.
+Test Case '-[PiyaliCoreTests.ReadingTests testDraftKeepsAnswerAndSharedAwardThroughLanguageSwitchAndInFlightSync]' passed (0.002 seconds).
+Test Case '-[PiyaliCoreTests.ReadingTests testLongReadingTranscriptKeepsTheClosingWordsInDraftAndReceipt]' started.
+Test Case '-[PiyaliCoreTests.ReadingTests testLongReadingTranscriptKeepsTheClosingWordsInDraftAndReceipt]' passed (0.017 seconds).
+Test Case '-[PiyaliCoreTests.ReadingTests testMissRetriesThenClaimsOneRewardAcrossReviewMethodsAndPersists]' started.
+Test Case '-[PiyaliCoreTests.ReadingTests testMissRetriesThenClaimsOneRewardAcrossReviewMethodsAndPersists]' passed (0.005 seconds).
+Test Case '-[PiyaliCoreTests.ReadingTests testOriginalReadingPoliciesExecuteInNativeWithoutWebEffects]' started.
+Test Case '-[PiyaliCoreTests.ReadingTests testOriginalReadingPoliciesExecuteInNativeWithoutWebEffects]' passed (0.015 seconds).
+Test Case '-[PiyaliCoreTests.ReadingTests testReadAloudEarnsRewardRegardlessOfTranscriptMatchAndDoesNotChangeScore]' started.
+Test Case '-[PiyaliCoreTests.ReadingTests testReadAloudEarnsRewardRegardlessOfTranscriptMatchAndDoesNotChangeScore]' passed (0.002 seconds).
+Test Case '-[PiyaliCoreTests.ReadingTests testReferenceFiveToEightXPIsLatchedWithinRange]' started.
+Test Case '-[PiyaliCoreTests.ReadingTests testReferenceFiveToEightXPIsLatchedWithinRange]' passed (0.034 seconds).
+Test Case '-[PiyaliCoreTests.ReadingTests testReferenceFormatChoicesAndSubjectOrderAcrossSevenLevels]' started.
+Test Case '-[PiyaliCoreTests.ReadingTests testReferenceFormatChoicesAndSubjectOrderAcrossSevenLevels]' passed (0.037 seconds).
+Test Case '-[PiyaliCoreTests.ReadingTests testReferenceQualityChecksPreserveDocumentsAndRejectScriptsAndRepeats]' started.
+Test Case '-[PiyaliCoreTests.ReadingTests testReferenceQualityChecksPreserveDocumentsAndRejectScriptsAndRepeats]' passed (0.067 seconds).
+Test Case '-[PiyaliCoreTests.ReadingTests testReferenceQuestionNormalizationRequiresFourDistinctChoicesAndARealAnswer]' started.
+Test Case '-[PiyaliCoreTests.ReadingTests testReferenceQuestionNormalizationRequiresFourDistinctChoicesAndARealAnswer]' passed (0.034 seconds).
+Test Case '-[PiyaliCoreTests.ReadingTests testRequiredDocumentOverridesRandomFormatAndSubjectsRotateInAuthoredOrder]' started.
+Test Case '-[PiyaliCoreTests.ReadingTests testRequiredDocumentOverridesRandomFormatAndSubjectsRotateInAuthoredOrder]' passed (0.000 seconds).
+Test Case '-[PiyaliCoreTests.ReadingTests testSourceReadingProtocolKeepsQuestionAndRejectsPartialOrInvalidOutput]' started.
+Test Case '-[PiyaliCoreTests.ReadingTests testSourceReadingProtocolKeepsQuestionAndRejectsPartialOrInvalidOutput]' passed (0.003 seconds).
+Test Case '-[PiyaliCoreTests.ReadingTests testSpeechCardsPersistWithTheSharedPracticeReceiptAndNoScoreAssessment]' started.
+Test Case '-[PiyaliCoreTests.ReadingTests testSpeechCardsPersistWithTheSharedPracticeReceiptAndNoScoreAssessment]' passed (0.003 seconds).
+Test Case '-[PiyaliCoreTests.ReadingTests testSpeechFeedbackUsesSourceCriteriaAndColorBoundariesWithoutInventingMissingScores]' started.
+Test Case '-[PiyaliCoreTests.ReadingTests testSpeechFeedbackUsesSourceCriteriaAndColorBoundariesWithoutInventingMissingScores]' passed (0.033 seconds).
+Test Case '-[PiyaliCoreTests.ReadingTests testTutorialRequiresFourSentences]' started.
+Test Case '-[PiyaliCoreTests.ReadingTests testTutorialRequiresFourSentences]' passed (0.000 seconds).
+Test Suite 'ReadingTests' passed at 2026-11-05 23:35:05.863.
+	 Executed 15 tests, with 0 failures (0 unexpected) in 0.290 (0.291) seconds
+Test Suite 'StoryTests' started at 2026-11-05 23:35:05.864.
+Test Case '-[PiyaliCoreTests.StoryTests testCheckpointNeedsTheCompleteBoundedSelectionBeforeOneGrade]' started.
+Test Case '-[PiyaliCoreTests.StoryTests testCheckpointNeedsTheCompleteBoundedSelectionBeforeOneGrade]' passed (0.033 seconds).
+Test Case '-[PiyaliCoreTests.StoryTests testComprehensionRequiresAllCheckpointsAndAwardsSixOnceEvenAfterMisses]' started.
+Test Case '-[PiyaliCoreTests.StoryTests testComprehensionRequiresAllCheckpointsAndAwardsSixOnceEvenAfterMisses]' passed (0.034 seconds).
+Test Case '-[PiyaliCoreTests.StoryTests testCurrentSourceStrictEvaluationAcrossScriptsAndAudio]' started.
+Test Case '-[PiyaliCoreTests.StoryTests testCurrentSourceStrictEvaluationAcrossScriptsAndAudio]' passed (0.102 seconds).
+Test Case '-[PiyaliCoreTests.StoryTests testNativeCharacterIdentityAndPortraitPoolsMatchExecutedSource]' started.
+Test Case '-[PiyaliCoreTests.StoryTests testNativeCharacterIdentityAndPortraitPoolsMatchExecutedSource]' passed (0.118 seconds).
+Test Case '-[PiyaliCoreTests.StoryTests testReferenceCheckpointAnswersTreatSelectionAsSetsAndOrderingAsSequence]' started.
+Test Case '-[PiyaliCoreTests.StoryTests testReferenceCheckpointAnswersTreatSelectionAsSetsAndOrderingAsSequence]' passed (0.034 seconds).
+Test Case '-[PiyaliCoreTests.StoryTests testReferenceEpisodeValidationIncludingInvalidAndWrongLanguageStories]' started.
+Test Case '-[PiyaliCoreTests.StoryTests testReferenceEpisodeValidationIncludingInvalidAndWrongLanguageStories]' passed (0.036 seconds).
+Test Case '-[PiyaliCoreTests.StoryTests testSourceAutomaticModeRotationRespectsTutorialAndExplicitPins]' started.
+Test Case '-[PiyaliCoreTests.StoryTests testSourceAutomaticModeRotationRespectsTutorialAndExplicitPins]' passed (0.032 seconds).
+Test Case '-[PiyaliCoreTests.StoryTests testSourceRejectedJapaneseLineDoesNotAwardOrAdvanceAfterReload]' started.
+Test Case '-[PiyaliCoreTests.StoryTests testSourceRejectedJapaneseLineDoesNotAwardOrAdvanceAfterReload]' passed (0.001 seconds).
+Test Case '-[PiyaliCoreTests.StoryTests testSourceRejectsExactNonLatinMatchesAndNoisySpeech]' started.
+Test Case '-[PiyaliCoreTests.StoryTests testSourceRejectsExactNonLatinMatchesAndNoisySpeech]' passed (0.001 seconds).
+Test Case '-[PiyaliCoreTests.StoryTests testSourceSpeechEvaluationAcrossSevenLanguagesAndRecognitionConfidence]' started.
+Test Case '-[PiyaliCoreTests.StoryTests testSourceSpeechEvaluationAcrossSevenLanguagesAndRecognitionConfidence]' passed (0.069 seconds).
+Test Case '-[PiyaliCoreTests.StoryTests testSpeakingLineHasOneTwoXPRewardQuotedScoreAndZeroXPForMissOrFinalization]' started.
+Test Case '-[PiyaliCoreTests.StoryTests testSpeakingLineHasOneTwoXPRewardQuotedScoreAndZeroXPForMissOrFinalization]' passed (0.035 seconds).
+Test Case '-[PiyaliCoreTests.StoryTests testStoryContextIsStableAcrossDictionaryOrderAndSnapshotRoundTrips]' started.
+Test Case '-[PiyaliCoreTests.StoryTests testStoryContextIsStableAcrossDictionaryOrderAndSnapshotRoundTrips]' passed (0.000 seconds).
+Test Case '-[PiyaliCoreTests.StoryTests testStoryDraftsAreLanguageScopedBoundedAndSurviveInFlightSync]' started.
+Test Case '-[PiyaliCoreTests.StoryTests testStoryDraftsAreLanguageScopedBoundedAndSurviveInFlightSync]' passed (0.034 seconds).
+Test Case '-[PiyaliCoreTests.StoryTests testTilesKeepFullDialogueAndMergeDuplicateButtonsAcrossScripts]' started.
+Test Case '-[PiyaliCoreTests.StoryTests testTilesKeepFullDialogueAndMergeDuplicateButtonsAcrossScripts]' passed (0.081 seconds).
+Test Suite 'StoryTests' passed at 2026-11-05 23:35:06.477.
+	 Executed 14 tests, with 0 failures (0 unexpected) in 0.612 (0.613) seconds
+Test Suite 'SyncContractTests' started at 2026-11-05 23:35:06.477.
+Test Case '-[PiyaliCoreTests.SyncContractTests testInvalidWebNumericDataUsesDefaultsWithoutTrapping]' started.
+Test Case '-[PiyaliCoreTests.SyncContractTests testInvalidWebNumericDataUsesDefaultsWithoutTrapping]' passed (0.000 seconds).
+Test Case '-[PiyaliCoreTests.SyncContractTests testLegacyDayKeyNormalizesWithoutResettingTodaysXP]' started.
+Test Case '-[PiyaliCoreTests.SyncContractTests testLegacyDayKeyNormalizesWithoutResettingTodaysXP]' passed (0.001 seconds).
+Test Case '-[PiyaliCoreTests.SyncContractTests testOfflineAwardsKeepTheirCalendarDay]' started.
+Test Case '-[PiyaliCoreTests.SyncContractTests testOfflineAwardsKeepTheirCalendarDay]' passed (0.001 seconds).
+Test Case '-[PiyaliCoreTests.SyncContractTests testPreferenceEditsDuringSyncSurviveAcknowledgment]' started.
+Test Case '-[PiyaliCoreTests.SyncContractTests testPreferenceEditsDuringSyncSurviveAcknowledgment]' passed (0.001 seconds).
+Test Case '-[PiyaliCoreTests.SyncContractTests testRebaseKeepsNewPracticeAndAcknowledgesOnlySentEvents]' started.
+Test Case '-[PiyaliCoreTests.SyncContractTests testRebaseKeepsNewPracticeAndAcknowledgesOnlySentEvents]' passed (0.004 seconds).
+Test Case '-[PiyaliCoreTests.SyncContractTests testRevealReviewDoesNotAwardXPOrPrematureMastery]' started.
+Test Case '-[PiyaliCoreTests.SyncContractTests testRevealReviewDoesNotAwardXPOrPrematureMastery]' passed (0.002 seconds).
+Test Case '-[PiyaliCoreTests.SyncContractTests testSchedulesMatchReferenceFixtures]' started.
+Test Case '-[PiyaliCoreTests.SyncContractTests testSchedulesMatchReferenceFixtures]' passed (0.122 seconds).
+Test Case '-[PiyaliCoreTests.SyncContractTests testWebAccountImportUsesLanguageXPAndRetainsUnknownWebState]' started.
+Test Case '-[PiyaliCoreTests.SyncContractTests testWebAccountImportUsesLanguageXPAndRetainsUnknownWebState]' passed (0.001 seconds).
+Test Suite 'SyncContractTests' passed at 2026-11-05 23:35:06.609.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 0.132 (0.132) seconds
+Test Suite 'TypedFinalQuizTests' started at 2026-11-05 23:35:06.609.
+Test Case '-[PiyaliCoreTests.TypedFinalQuizTests testOneAttemptPerTypedItemEarlyFailureRetryAndStaleRunFences]' started.
+Test Case '-[PiyaliCoreTests.TypedFinalQuizTests testOneAttemptPerTypedItemEarlyFailureRetryAndStaleRunFences]' passed (0.001 seconds).
+Test Case '-[PiyaliCoreTests.TypedFinalQuizTests testSourceQuizPlanPersistsSixteenUniqueFormatsWithoutFlashcards]' started.
+Test Case '-[PiyaliCoreTests.TypedFinalQuizTests testSourceQuizPlanPersistsSixteenUniqueFormatsWithoutFlashcards]' passed (0.013 seconds).
+Test Case '-[PiyaliCoreTests.TypedFinalQuizTests testTypedQuizPassResumesWithoutQuestionXPAndPreservesOneLessonReward]' started.
+Test Case '-[PiyaliCoreTests.TypedFinalQuizTests testTypedQuizPassResumesWithoutQuestionXPAndPreservesOneLessonReward]' passed (0.004 seconds).
+Test Suite 'TypedFinalQuizTests' passed at 2026-11-05 23:35:06.628.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.019 (0.019) seconds
+Test Suite 'PiyaliCorePackageTests.xctest' passed at 2026-11-05 23:35:06.628.
+	 Executed 70 tests, with 0 failures (0 unexpected) in 38.963 (38.969) seconds
+Test Suite 'Selected tests' passed at 2026-11-05 23:35:06.628.
+	 Executed 70 tests, with 0 failures (0 unexpected) in 38.963 (38.970) seconds
+◇ Test run started.
+↳ Testing Library Version: 1743
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

@@ -1,6 +1,18 @@
 import SwiftUI
 
 struct ExerciseView: View {
+    let mode:PracticeMode
+    let lesson:Lesson?
+    var concept:String?=nil
+    var flashcardID:String?=nil
+    var body:some View {
+        if flashcardID == nil,let lesson,lesson.isFinalQuiz == true { FinalQuizView(lesson:lesson) }
+        else if flashcardID == nil,mode == .conversation,let lesson { RealtimeLessonView(lesson:lesson) }
+        else if flashcardID == nil,[.grammar,.vocabulary].contains(mode) { LessonPracticeView(module:mode == .grammar ? .grammar : .vocabulary,lesson:lesson) }
+        else { LegacyExerciseView(mode:mode,lesson:lesson,concept:concept,flashcardID:flashcardID) }
+    }
+}
+private struct LegacyExerciseView: View {
     @EnvironmentObject var app: AppModel
     @StateObject private var speech = SpeechService()
     let mode: PracticeMode
@@ -82,8 +94,9 @@ struct ExerciseView: View {
 }
 struct SubscriptionRequiredView<Content: View>: View {
     @ObservedObject var service: SubscriptionService
+    var preserveEarnedWork=false
     @ViewBuilder var content: () -> Content
-    var body: some View { if service.authorized { content() } else { SubscriptionView(service: service) } }
+    var body: some View { if service.hasAccess || preserveEarnedWork { content() } else { SubscriptionView(service: service) } }
 }
 struct GrammarReferenceView: View {
     @EnvironmentObject var app: AppModel

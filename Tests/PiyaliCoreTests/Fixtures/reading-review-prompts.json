@@ -1,0 +1,107 @@
+[
+  {
+    "type": "text",
+    "target": "es",
+    "support": "en",
+    "text": "A short fixture passage.",
+    "expected": "Based on this Spanish text, create one short comprehension question in English.\nThe question should be brief (one sentence). Do NOT repeat or quote the passage.\nThe answer should be a short phrase that any reasonable reader could derive from the text. Accept multiple valid phrasings.\nReturn ONLY valid JSON: {\"question\":\"<the question>\",\"answer\":\"<short correct answer>\"}\n\nA short fixture passage."
+  },
+  {
+    "type": "text",
+    "target": "pt",
+    "support": "fr",
+    "text": "A short fixture passage.",
+    "expected": "Based on this Brazilian Portuguese text, create one short comprehension question in French.\nThe question should be brief (one sentence). Do NOT repeat or quote the passage.\nThe answer should be a short phrase that any reasonable reader could derive from the text. Accept multiple valid phrasings.\nReturn ONLY valid JSON: {\"question\":\"<the question>\",\"answer\":\"<short correct answer>\"}\n\nA short fixture passage."
+  },
+  {
+    "type": "text",
+    "target": "ja",
+    "support": "ar",
+    "text": "A short fixture passage.",
+    "expected": "Based on this Japanese text, create one short comprehension question in Egyptian Arabic.\nThe question should be brief (one sentence). Do NOT repeat or quote the passage.\nThe answer should be a short phrase that any reasonable reader could derive from the text. Accept multiple valid phrasings.\nReturn ONLY valid JSON: {\"question\":\"<the question>\",\"answer\":\"<short correct answer>\"}\n\nA short fixture passage."
+  },
+  {
+    "type": "text",
+    "target": "hi",
+    "support": "en",
+    "text": "A short fixture passage.",
+    "expected": "Based on this hi text, create one short comprehension question in English.\nThe question should be brief (one sentence). Do NOT repeat or quote the passage.\nThe answer should be a short phrase that any reasonable reader could derive from the text. Accept multiple valid phrasings.\nReturn ONLY valid JSON: {\"question\":\"<the question>\",\"answer\":\"<short correct answer>\"}\n\nA short fixture passage."
+  },
+  {
+    "type": "text",
+    "target": "en",
+    "support": "hi",
+    "text": "A short fixture passage.",
+    "expected": "Based on this English text, create one short comprehension question in hi.\nThe question should be brief (one sentence). Do NOT repeat or quote the passage.\nThe answer should be a short phrase that any reasonable reader could derive from the text. Accept multiple valid phrasings.\nReturn ONLY valid JSON: {\"question\":\"<the question>\",\"answer\":\"<short correct answer>\"}\n\nA short fixture passage."
+  },
+  {
+    "type": "fill",
+    "target": "es",
+    "support": "en",
+    "text": "A short fixture passage.",
+    "expected": "Based on this Spanish text, create a short fill-in-the-blank question in English.\nWrite a brief original question (not a sentence from the passage) with a key phrase replaced by \"___\".\nThe missing answer should be something clearly derivable from the text — use meaningful words or short phrases, not obscure single words.\nReturn ONLY valid JSON: {\"sentence\":\"<short question with ___>\",\"answer\":\"<the missing word or phrase>\"}\n\nA short fixture passage."
+  },
+  {
+    "type": "fill",
+    "target": "pt",
+    "support": "fr",
+    "text": "A short fixture passage.",
+    "expected": "Based on this Brazilian Portuguese text, create a short fill-in-the-blank question in French.\nWrite a brief original question (not a sentence from the passage) with a key phrase replaced by \"___\".\nThe missing answer should be something clearly derivable from the text — use meaningful words or short phrases, not obscure single words.\nReturn ONLY valid JSON: {\"sentence\":\"<short question with ___>\",\"answer\":\"<the missing word or phrase>\"}\n\nA short fixture passage."
+  },
+  {
+    "type": "fill",
+    "target": "ja",
+    "support": "ar",
+    "text": "A short fixture passage.",
+    "expected": "Based on this Japanese text, create a short fill-in-the-blank question in Egyptian Arabic.\nWrite a brief original question (not a sentence from the passage) with a key phrase replaced by \"___\".\nThe missing answer should be something clearly derivable from the text — use meaningful words or short phrases, not obscure single words.\nReturn ONLY valid JSON: {\"sentence\":\"<short question with ___>\",\"answer\":\"<the missing word or phrase>\"}\n\nA short fixture passage."
+  },
+  {
+    "type": "fill",
+    "target": "hi",
+    "support": "en",
+    "text": "A short fixture passage.",
+    "expected": "Based on this hi text, create a short fill-in-the-blank question in English.\nWrite a brief original question (not a sentence from the passage) with a key phrase replaced by \"___\".\nThe missing answer should be something clearly derivable from the text — use meaningful words or short phrases, not obscure single words.\nReturn ONLY valid JSON: {\"sentence\":\"<short question with ___>\",\"answer\":\"<the missing word or phrase>\"}\n\nA short fixture passage."
+  },
+  {
+    "type": "fill",
+    "target": "en",
+    "support": "hi",
+    "text": "A short fixture passage.",
+    "expected": "Based on this English text, create a short fill-in-the-blank question in hi.\nWrite a brief original question (not a sentence from the passage) with a key phrase replaced by \"___\".\nThe missing answer should be something clearly derivable from the text — use meaningful words or short phrases, not obscure single words.\nReturn ONLY valid JSON: {\"sentence\":\"<short question with ___>\",\"answer\":\"<the missing word or phrase>\"}\n\nA short fixture passage."
+  },
+  {
+    "type": "mc",
+    "target": "es",
+    "support": "en",
+    "text": "A short fixture passage.",
+    "expected": "Based on this Spanish text, create one short multiple-choice comprehension question in English.\nThe question should test genuine understanding — ask about meaning, inference, or context rather than surface-level facts that are obvious from the question itself.\nAVOID questions where the answer is already contained in the question (e.g. \"What relationship is the speaker's brother?\" with \"Brother\" as an option).\nInstead, ask things like \"What can you infer about...?\", \"Why does the speaker mention...?\", \"What is the main idea?\", or \"What does ___ refer to in context?\"\nMake the wrong options plausible but clearly distinguishable. Do NOT repeat or quote the passage. Keep the question to one sentence.\nReturn ONLY valid JSON: {\"question\":\"<the question>\",\"options\":[\"A\",\"B\",\"C\",\"D\"],\"answer\":\"<the correct option text>\"}\n\nA short fixture passage."
+  },
+  {
+    "type": "mc",
+    "target": "pt",
+    "support": "fr",
+    "text": "A short fixture passage.",
+    "expected": "Based on this Brazilian Portuguese text, create one short multiple-choice comprehension question in French.\nThe question should test genuine understanding — ask about meaning, inference, or context rather than surface-level facts that are obvious from the question itself.\nAVOID questions where the answer is already contained in the question (e.g. \"What relationship is the speaker's brother?\" with \"Brother\" as an option).\nInstead, ask things like \"What can you infer about...?\", \"Why does the speaker mention...?\", \"What is the main idea?\", or \"What does ___ refer to in context?\"\nMake the wrong options plausible but clearly distinguishable. Do NOT repeat or quote the passage. Keep the question to one sentence.\nReturn ONLY valid JSON: {\"question\":\"<the question>\",\"options\":[\"A\",\"B\",\"C\",\"D\"],\"answer\":\"<the correct option text>\"}\n\nA short fixture passage."
+  },
+  {
+    "type": "mc",
+    "target": "ja",
+    "support": "ar",
+    "text": "A short fixture passage.",
+    "expected": "Based on this Japanese text, create one short multiple-choice comprehension question in Egyptian Arabic.\nThe question should test genuine understanding — ask about meaning, inference, or context rather than surface-level facts that are obvious from the question itself.\nAVOID questions where the answer is already contained in the question (e.g. \"What relationship is the speaker's brother?\" with \"Brother\" as an option).\nInstead, ask things like \"What can you infer about...?\", \"Why does the speaker mention...?\", \"What is the main idea?\", or \"What does ___ refer to in context?\"\nMake the wrong options plausible but clearly distinguishable. Do NOT repeat or quote the passage. Keep the question to one sentence.\nReturn ONLY valid JSON: {\"question\":\"<the question>\",\"options\":[\"A\",\"B\",\"C\",\"D\"],\"answer\":\"<the correct option text>\"}\n\nA short fixture passage."
+  },
+  {
+    "type": "mc",
+    "target": "hi",
+    "support": "en",
+    "text": "A short fixture passage.",
+    "expected": "Based on this hi text, create one short multiple-choice comprehension question in English.\nThe question should test genuine understanding — ask about meaning, inference, or context rather than surface-level facts that are obvious from the question itself.\nAVOID questions where the answer is already contained in the question (e.g. \"What relationship is the speaker's brother?\" with \"Brother\" as an option).\nInstead, ask things like \"What can you infer about...?\", \"Why does the speaker mention...?\", \"What is the main idea?\", or \"What does ___ refer to in context?\"\nMake the wrong options plausible but clearly distinguishable. Do NOT repeat or quote the passage. Keep the question to one sentence.\nReturn ONLY valid JSON: {\"question\":\"<the question>\",\"options\":[\"A\",\"B\",\"C\",\"D\"],\"answer\":\"<the correct option text>\"}\n\nA short fixture passage."
+  },
+  {
+    "type": "mc",
+    "target": "en",
+    "support": "hi",
+    "text": "A short fixture passage.",
+    "expected": "Based on this English text, create one short multiple-choice comprehension question in hi.\nThe question should test genuine understanding — ask about meaning, inference, or context rather than surface-level facts that are obvious from the question itself.\nAVOID questions where the answer is already contained in the question (e.g. \"What relationship is the speaker's brother?\" with \"Brother\" as an option).\nInstead, ask things like \"What can you infer about...?\", \"Why does the speaker mention...?\", \"What is the main idea?\", or \"What does ___ refer to in context?\"\nMake the wrong options plausible but clearly distinguishable. Do NOT repeat or quote the passage. Keep the question to one sentence.\nReturn ONLY valid JSON: {\"question\":\"<the question>\",\"options\":[\"A\",\"B\",\"C\",\"D\"],\"answer\":\"<the correct option text>\"}\n\nA short fixture passage."
+  }
+]

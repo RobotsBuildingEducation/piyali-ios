@@ -1,0 +1,5 @@
+{
+  "file": "src/utils/voiceJourneyCrypto.js",
+  "sha256": "603db90becbb8b0fbe6524dbc494989344fde023833978f16c785c99a257f765",
+  "fixture": "Public source NIP-44 self-wrapped AES-256-GCM key; ciphertext/tag authenticated to npub, language and milestone. Audio fixture contains public text only."
+}

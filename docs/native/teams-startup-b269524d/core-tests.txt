@@ -1,0 +1,43 @@
+Test Suite 'Selected tests' started at 2026-11-06 02:31:47.333.
+Test Suite 'PiyaliCorePackageTests.xctest' started at 2026-11-06 02:31:47.336.
+Test Suite 'CommunityFeedTests' started at 2026-11-06 02:31:47.336.
+Test Case '-[PiyaliCoreTests.CommunityFeedTests testMilestoneFilteringAndNumericBounds]' started.
+Test Case '-[PiyaliCoreTests.CommunityFeedTests testMilestoneFilteringAndNumericBounds]' passed (0.003 seconds).
+Test Case '-[PiyaliCoreTests.CommunityFeedTests testPublisherUsesWebContentAndLowercaseTagWithoutPrivateState]' started.
+Test Case '-[PiyaliCoreTests.CommunityFeedTests testPublisherUsesWebContentAndLowercaseTagWithoutPrivateState]' passed (0.000 seconds).
+Test Case '-[PiyaliCoreTests.CommunityFeedTests testSourceFilterAndQuestionFixtures]' started.
+Test Case '-[PiyaliCoreTests.CommunityFeedTests testSourceFilterAndQuestionFixtures]' passed (0.002 seconds).
+Test Suite 'CommunityFeedTests' passed at 2026-11-06 02:31:47.341.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.005 (0.006) seconds
+Test Suite 'LearningTeamsTests' started at 2026-11-06 02:31:47.341.
+Test Case '-[PiyaliCoreTests.LearningTeamsTests testLeaveReferencesTheSpecificCreatorAndTeam]' started.
+Test Case '-[PiyaliCoreTests.LearningTeamsTests testLeaveReferencesTheSpecificCreatorAndTeam]' passed (0.000 seconds).
+Test Case '-[PiyaliCoreTests.LearningTeamsTests testProgressRowsAndSignedTemplatesMatchActualWebSource]' started.
+Test Case '-[PiyaliCoreTests.LearningTeamsTests testProgressRowsAndSignedTemplatesMatchActualWebSource]' passed (0.011 seconds).
+Test Case '-[PiyaliCoreTests.LearningTeamsTests testPublishedSnapshotIncludesLanguageCompanionAndDistinctScore]' started.
+Test Case '-[PiyaliCoreTests.LearningTeamsTests testPublishedSnapshotIncludesLanguageCompanionAndDistinctScore]' passed (0.000 seconds).
+Test Suite 'LearningTeamsTests' passed at 2026-11-06 02:31:47.354.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.012 (0.012) seconds
+Test Suite 'PrivateTeamsTests' started at 2026-11-06 02:31:47.354.
+Test Case '-[PiyaliCoreTests.PrivateTeamsTests testInvitationMutationsMatchTheExecutedWebHelpersAndPreserveOtherMembers]' started.
+Test Case '-[PiyaliCoreTests.PrivateTeamsTests testInvitationMutationsMatchTheExecutedWebHelpersAndPreserveOtherMembers]' passed (0.002 seconds).
+Test Case '-[PiyaliCoreTests.PrivateTeamsTests testNewInvitationsRequireDistinctValidMembersAndRetainTheExistingRoster]' started.
+Test Case '-[PiyaliCoreTests.PrivateTeamsTests testNewInvitationsRequireDistinctValidMembersAndRetainTheExistingRoster]' passed (0.002 seconds).
+Test Case '-[PiyaliCoreTests.PrivateTeamsTests testSharedProgressContainsNoPrivateLearnerFields]' started.
+Test Case '-[PiyaliCoreTests.PrivateTeamsTests testSharedProgressContainsNoPrivateLearnerFields]' passed (0.000 seconds).
+Test Suite 'PrivateTeamsTests' passed at 2026-11-06 02:31:47.358.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.004 (0.004) seconds
+Test Suite 'TeamInviteAttentionTests' started at 2026-11-06 02:31:47.358.
+Test Case '-[PiyaliCoreTests.TeamInviteAttentionTests testActualAppInvitationEffectsMatchNativeAttentionAcrossViewedDuplicateAndReplacementIDs]' started.
+Test Case '-[PiyaliCoreTests.TeamInviteAttentionTests testActualAppInvitationEffectsMatchNativeAttentionAcrossViewedDuplicateAndReplacementIDs]' passed (0.014 seconds).
+Test Suite 'TeamInviteAttentionTests' passed at 2026-11-06 02:31:47.372.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.014 (0.014) seconds
+Test Suite 'TeamsPanelPolicyTests' started at 2026-11-06 02:31:47.372.
+Test Case '-[PiyaliCoreTests.TeamsPanelPolicyTests testActualTeamsPanelPolicies]' started.
+Test Case '-[PiyaliCoreTests.TeamsPanelPolicyTests testActualTeamsPanelPolicies]' passed (0.062 seconds).
+Test Suite 'TeamsPanelPolicyTests' passed at 2026-11-06 02:31:47.434.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.062 (0.063) seconds
+Test Suite 'PiyaliCorePackageTests.xctest' passed at 2026-11-06 02:31:47.435.
+	 Executed 11 tests, with 0 failures (0 unexpected) in 0.098 (0.099) seconds
+Test Suite 'Selected tests' passed at 2026-11-06 02:31:47.435.
+	 Executed 11 tests, with 0 failures (0 unexpected) in 0.098 (0.101) seconds

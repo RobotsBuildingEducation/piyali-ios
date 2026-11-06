@@ -1,0 +1,21 @@
+{
+  "sources": [
+    {
+      "file": "src/components/History.jsx",
+      "sha256": "ceca67f29b27ebc41c300c29e6ea92240bda1020fb23c3e505a06b65842832a9"
+    },
+    {
+      "file": "src/theme.js",
+      "sha256": "6fe6093ecca51d0debb1314a587d6bd0927e7ac9f8c1ba2c6c744017e3be407e"
+    },
+    {
+      "file": "src/index.css",
+      "sha256": "79a5362dc1b189acd0d2288c0e85ff29c9cc1c8e39b8bb5cabe164ddd1c29030"
+    },
+    {
+      "file": "src/utils/softStopButton.js",
+      "sha256": "f0ef9cb52255274d27ee5a1df22185b1765b24561e15c271b9c6fb8e84b39a6f"
+    }
+  ],
+  "scope": "Original History Read all/Stop HStack, theme and icons with explicit idle/loading/playing state. Previously verified original localized app-copy snapshot; sound and playback callbacks are inert. No learner/provider I/O."
+}

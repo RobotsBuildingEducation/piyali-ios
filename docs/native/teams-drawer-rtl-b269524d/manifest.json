@@ -1,0 +1,669 @@
+{
+  "reference": "b269524ddc578027c549616fc47f5954991d9f6f",
+  "nativeBase": "b092bfdb775f982ae5785ca665f4d7be28aebb3c",
+  "scope": "Five final passing XCTest cases: three source/native component methods with 30 paired scenes, real Arabic Settings and English signed-roster journeys with exact field/name and relaunch direction checks. Source I/O fixtures are not an authenticated source App or production-service test. Full parity remains open.",
+  "normalization": "Original PNGs retained. Embedded ICC profiles normalized to sRGB; each side resampled to 402x874 logical points. Source left, native right. Baseline is a failed design comparison despite passing capture assertions.",
+  "implementation": {
+    "Piyali/Features/TeamsDrawerView.swift": "8527f349a27421599ba5e4c914b7add3057d8a78724e42f39950033a63f2d093",
+    "Tests/PiyaliAppTests/TeamsPanelReferenceTests.swift": "435db6e68b70d05d07c037611b2b4af3b42486486d5a9c2a79ad44b524b2f125",
+    "Tests/PiyaliUITests/TeamsTests.swift": "427610066480f271f6e809c5738857d215c96e8ae0cebd7a64783ee7a309dcc7"
+  },
+  "sourceFiles": {
+    "src/components/Teams/TeamsDrawer.jsx": "c9a5782a41cc39d7dac9fca19bdde0a6d8a3f24a4c463dc611f5d9332cee41fc",
+    "src/components/Teams/TeamView.jsx": "2facc3dd6abc05f079200ee3e903c30415b71aba8078a3fa9d5691f5b0e482d1",
+    "src/components/Teams/TeamCreation.jsx": "f11087861531d5865539d9c4b3ed041e1cb838ddee578f22335ab8d69566cbe6",
+    "src/components/Teams/TeamFeed.jsx": "85aa1826902089bf473bd2c7b3a17bd0398d6204999182d0c5e3eccc1dfb1abc",
+    "src/components/Teams/TeamCompanionAvatar.jsx": "9a8e8cbaeae84eb416924296d21f801fa51155891a4060a765c0b2eb09a53c9f",
+    "src/components/WaveBar.jsx": "619c6d05f99488316facec96f2b35fa46544910a5b1fd0d0584e529af756c536",
+    "src/utils/documentLanguage.js": "568036a5ee21ddcd2f3585005ad467e67a059cd473c12ec17d7507b4240d3371",
+    "src/theme.js": "6fe6093ecca51d0debb1314a587d6bd0927e7ac9f8c1ba2c6c744017e3be407e",
+    "node_modules/@chakra-ui/theme/dist/esm/foundations/colors.mjs": "fa2aeec30570414b48ffedfd9ecda13a117b572e0d0bf3b71f21cb6c4ea404f0"
+  },
+  "artifacts": [
+    {
+      "path": "app-final-pass.json",
+      "bytes": 971,
+      "sha256": "5a6d33a7dfbd8e81a2e04597467a9f021978cdc81bd8a29bdcd3a6b31a44987d"
+    },
+    {
+      "path": "baseline-capture-only.json",
+      "bytes": 971,
+      "sha256": "f9914d66ffe5501a930d63b827b06fa5be8872c7201dc7a71c1269d2cd40e9e3"
+    },
+    {
+      "path": "baseline-native-single-ar.png",
+      "bytes": 474450,
+      "sha256": "5a43c24d945e74e2ccff320bdebf38fa0e5656842b8a01771a98d78b366589b4"
+    },
+    {
+      "path": "baseline-pair-single-ar.png",
+      "bytes": 131169,
+      "sha256": "ac404f5ec95253ba37ac53ea6b6fd7c60d8a4eec337ea52db62eaeab8ebc1606"
+    },
+    {
+      "path": "baseline-source-single-ar.png",
+      "bytes": 254978,
+      "sha256": "1079102cb6c896c9402f1cd9e521f8d077bbd442b6bba92a5248fd79828ee7dc"
+    },
+    {
+      "path": "caret-edit-failed.json",
+      "bytes": 1511,
+      "sha256": "90f22e08c96a5b3dcb381847affe15e3868ee05ae06b97478c7bd3678cdbf2fa"
+    },
+    {
+      "path": "edit-menu-failed.json",
+      "bytes": 2168,
+      "sha256": "7f326b683275ab714c725ed6d4325db47cb283238108a307d6fa93184f79b5b3"
+    },
+    {
+      "path": "end-caret-failed.json",
+      "bytes": 1555,
+      "sha256": "1ffd24ab78e7a8caba0a483e1f304403f2833b96cdd1f923735f25a34886a256"
+    },
+    {
+      "path": "initial-ar-en-journeys.json",
+      "bytes": 971,
+      "sha256": "1b4d433551af4d369f5965e67bf20124e020d7b39eb8c2a53f16404d2108e301"
+    },
+    {
+      "path": "initial-mirror-capture.json",
+      "bytes": 971,
+      "sha256": "f9d05d438fd2fc7fa054c0b60fb73b03388402ea45e817fc27c9d41cc044d7f1"
+    },
+    {
+      "path": "installed-build.json",
+      "bytes": 515,
+      "sha256": "2abd2ef0385dea6fa7a8561609faf0493e41b2862f0b6e1e5961c101675d13b8"
+    },
+    {
+      "path": "native-teams-create-ar.png",
+      "bytes": 268945,
+      "sha256": "a7b1f5f0217a5cafbc08709903d63e959d2f21832e4397ec9c6db2e91a07d4ac"
+    },
+    {
+      "path": "native-teams-create-en.png",
+      "bytes": 257716,
+      "sha256": "b6ee6d6868d20788552acd1c7ad119037b7dc844f2df37cee06515718c4d7a0d"
+    },
+    {
+      "path": "native-teams-empty-ar.png",
+      "bytes": 230694,
+      "sha256": "c4f391e53e584fc79c91d246a8c6accbab2c80fd4f7513e8f857143598bb8349"
+    },
+    {
+      "path": "native-teams-empty-en.png",
+      "bytes": 226130,
+      "sha256": "c7b88d71cdbaea38abeadbef7f3d64ce2644be2093ad63a9594380bd71976ce8"
+    },
+    {
+      "path": "native-teams-feed-ar.png",
+      "bytes": 326095,
+      "sha256": "ebd8eeca0f50dec72cba5b9562e701816c9cdd85aa04ba1f63b0ebc8e2764c99"
+    },
+    {
+      "path": "native-teams-feed-en.png",
+      "bytes": 322475,
+      "sha256": "a1a519161a8bbea8f123765fbc8a09f011bf9cd5b0646ae48863164260bc80bc"
+    },
+    {
+      "path": "native-teams-held-loading-dots-ar.png",
+      "bytes": 232203,
+      "sha256": "d734d4443cc53c5c7beeee3fb7622444cbc279be2dbf793fdb2227ea0daa93c7"
+    },
+    {
+      "path": "native-teams-held-loading-dots-en.png",
+      "bytes": 227701,
+      "sha256": "273ad605dd4aaf365da7d29b98da71fe5e962f4793d1d6ade49fc31f05f0106d"
+    },
+    {
+      "path": "native-teams-multi-ar.png",
+      "bytes": 270746,
+      "sha256": "bba86a07a2b6ff307d3b8efb811d4f0c6178f73c0126eab44286667296b5d0f8"
+    },
+    {
+      "path": "native-teams-multi-en.png",
+      "bytes": 265805,
+      "sha256": "6cbdad39aef5084ac4c6468dda2d4a646881022dcb02da0ec219c5e58614200d"
+    },
+    {
+      "path": "native-teams-pending-ar.png",
+      "bytes": 417977,
+      "sha256": "d03b291d90ebaead3df04eb8af8647f6ff00f4ecb317bf078439a3e767cae413"
+    },
+    {
+      "path": "native-teams-pending-en.png",
+      "bytes": 404796,
+      "sha256": "e3c871aaf76aec92fa028c3a7305f40ccd30f0bbbba9ac419f7b55e848ad008f"
+    },
+    {
+      "path": "native-teams-queued-ar.png",
+      "bytes": 307845,
+      "sha256": "cf5090ac64e5cdab71c403fa2b7b73994e3eb6c8326239370960c950462b98bd"
+    },
+    {
+      "path": "native-teams-queued-en.png",
+      "bytes": 295049,
+      "sha256": "fb9d0d33cbcfd09772f05352af67621897229ea9ff00dd73322ce4a952b4135d"
+    },
+    {
+      "path": "native-teams-rename-ar.png",
+      "bytes": 406904,
+      "sha256": "5e2fbd05b06e0d595d39b2f17efc03ded884fc6887b1ebee864e85b93a733840"
+    },
+    {
+      "path": "native-teams-rename-en.png",
+      "bytes": 419425,
+      "sha256": "f60acd03f0f1ad70cc71876f2940b1ad4d5eedf51d3fe6061a158701813f8756"
+    },
+    {
+      "path": "native-teams-single-ar.png",
+      "bytes": 469887,
+      "sha256": "36b9924edf5eb5bfa2bbd5f09fba52703c30734cc70bfe2d68fefcd4352c79cc"
+    },
+    {
+      "path": "native-teams-single-en.png",
+      "bytes": 464789,
+      "sha256": "58ba024fa7f46418500453fa6bab4afa8125124068a780a3cd15ed0461c3677d"
+    },
+    {
+      "path": "native-teams-toast-copy-ar.png",
+      "bytes": 490099,
+      "sha256": "5dfc8d04a0d648dd17883f0712bebf137315bfcf9669a0d1afeb53a090faf107"
+    },
+    {
+      "path": "native-teams-toast-copy-en.png",
+      "bytes": 488540,
+      "sha256": "1f29a8601a32b8802f23f86b05d66dc4df106c7e0466481448d4bc7cdf653b02"
+    },
+    {
+      "path": "native-teams-toast-queue-error-ar.png",
+      "bytes": 414143,
+      "sha256": "f88c2440cd0af262fa0e5cfccf2d05132fb1257cbb0da7de01781b9d56062e97"
+    },
+    {
+      "path": "native-teams-toast-queue-error-en.png",
+      "bytes": 416705,
+      "sha256": "a4e9bb736339008e7586baa084fc38aecee822f30c9a16c6c14b00274ac7ca3d"
+    },
+    {
+      "path": "native-teams-toast-queue-warning-ar.png",
+      "bytes": 454074,
+      "sha256": "48484ff14d07c05df71642cf16c143a61843824ad3cc317f60674c65a84f11eb"
+    },
+    {
+      "path": "native-teams-toast-queue-warning-en.png",
+      "bytes": 458327,
+      "sha256": "d75dbcfbd630908c8cf3a6c8e0ec84fa1ca5e62bed531fcfaf2615d0bdec6127"
+    },
+    {
+      "path": "native-teams-toast-rename-error-ar.png",
+      "bytes": 417502,
+      "sha256": "0ad54d4abfa6e293980188cf3a9c1c446cceba1d8acbca87bb36adb3c519fcc0"
+    },
+    {
+      "path": "native-teams-toast-rename-error-en.png",
+      "bytes": 431050,
+      "sha256": "06f3ca4783901d23710af38374e6e55036bff5a8b94bdc3ff6d935f4b93b58c9"
+    },
+    {
+      "path": "native-teams-toast-rename-success-ar.png",
+      "bytes": 480163,
+      "sha256": "ac6ca31c6629c913f8fd9f4a6fc76217f8bbd3538ebae29eeb4fbdd18c5455f0"
+    },
+    {
+      "path": "native-teams-toast-rename-success-en.png",
+      "bytes": 478194,
+      "sha256": "0d7fee7be72cad3e4cc21616b5314b5fd1c5fa4a0f769841738c3fb2697be1c8"
+    },
+    {
+      "path": "native-teams-toast-rename-warning-ar.png",
+      "bytes": 464051,
+      "sha256": "1915f4175ade227bbe5307404b84cef8a2f1263575037d057879d63a968d64c4"
+    },
+    {
+      "path": "native-teams-toast-rename-warning-en.png",
+      "bytes": 462205,
+      "sha256": "70d7c51e9be468c09b5c7e0b766a50dd8ad8bfc9e02249f12fc4ba8cfd1eb97a"
+    },
+    {
+      "path": "pair-create-ar.png",
+      "bytes": 78476,
+      "sha256": "9594d5c6b091debcdfbc20078da8031d4b76b78e3a9e2edbc9af20a5a0d759ad"
+    },
+    {
+      "path": "pair-create-en.png",
+      "bytes": 80354,
+      "sha256": "2230e583be67fa850819ed50e53c6d379669ccbf2ff609dc9d4672a677869cb8"
+    },
+    {
+      "path": "pair-empty-ar.png",
+      "bytes": 54270,
+      "sha256": "a03bfda48404ce34947296afdadbb9a4ec3abe58bb57376ddf2393756e80bff2"
+    },
+    {
+      "path": "pair-empty-en.png",
+      "bytes": 53748,
+      "sha256": "7ad65e12383e55e7ee2547ede50c68bfb8658f0290684471680c78bdb48069f0"
+    },
+    {
+      "path": "pair-feed-ar.png",
+      "bytes": 70751,
+      "sha256": "998c8238df7951bba33420623ecd53fec81fd4dcfffbf1c06fc50949f99088ee"
+    },
+    {
+      "path": "pair-feed-en.png",
+      "bytes": 71621,
+      "sha256": "bd7e897dc123f5f20b18ffe6febf7ad45e0bc783f886f5168b54ef572d43198b"
+    },
+    {
+      "path": "pair-multi-ar.png",
+      "bytes": 76555,
+      "sha256": "70b2e6150166eb000fd984f52c0fdbe0db9b24b8d5d58e435d9f51831bb8f8ff"
+    },
+    {
+      "path": "pair-multi-en.png",
+      "bytes": 78431,
+      "sha256": "641753538dc2f7b978edf51c9a06c99545bfc52138fa614934330a1f9d30418e"
+    },
+    {
+      "path": "pair-pending-ar.png",
+      "bytes": 137677,
+      "sha256": "97aed15712d4ebda493d35fb17d803c5b4cda13b3c89ce543a1b356ea877504f"
+    },
+    {
+      "path": "pair-pending-en.png",
+      "bytes": 136536,
+      "sha256": "46893b7ab78f3bf4e81ee552d7a3c16da68380b2adbacdbc1982cdae9a7341bd"
+    },
+    {
+      "path": "pair-queued-ar.png",
+      "bytes": 99500,
+      "sha256": "986403b4155febb0d7607fba6c4e355ec24d7a7c60607a7519859f5309c7a4a2"
+    },
+    {
+      "path": "pair-queued-en.png",
+      "bytes": 104123,
+      "sha256": "a26b6ba7ff4e976ac391c60928c6047ff5a6c671e803967dc11d1c275c9eacbe"
+    },
+    {
+      "path": "pair-rename-ar.png",
+      "bytes": 112488,
+      "sha256": "57145701f88afbf278cb0dd30ba63c74deeb81193d88b97f32ded52fe4549b57"
+    },
+    {
+      "path": "pair-rename-en.png",
+      "bytes": 117225,
+      "sha256": "f7a8be5dae98248d7d3328eea46f19896a76cdebe24a1de7c6f0ca64deca9598"
+    },
+    {
+      "path": "pair-single-ar.png",
+      "bytes": 129142,
+      "sha256": "5365b8a06a5b03f1d7614a1073f110f75120831a4a9d897e9132afe09c8e9c32"
+    },
+    {
+      "path": "pair-single-en.png",
+      "bytes": 128306,
+      "sha256": "6e4b93a4e80d4c4306f866eac005919217e816cd77f2941adb3f22ae86a3d083"
+    },
+    {
+      "path": "source-teams-create-ar-geometry.json",
+      "bytes": 3955,
+      "sha256": "d9f8c1c4424473acb241d4b9dab6f869e1e8efda188e5b9a0838a340dd5826ca"
+    },
+    {
+      "path": "source-teams-create-ar.png",
+      "bytes": 144529,
+      "sha256": "b06e95ecbb8420945b2918e82cb8d13ef7ef41336b669bb772aaf6c4769f3701"
+    },
+    {
+      "path": "source-teams-create-en-geometry.json",
+      "bytes": 3947,
+      "sha256": "8efe65142d7f7fd257cf1a78481d7b24842add62816cb28ea8ee4e58ccfee3b8"
+    },
+    {
+      "path": "source-teams-create-en.png",
+      "bytes": 166566,
+      "sha256": "c53f4e685c8e4d634113d1e9447b3b5c5da67597c8ab391cc55eb38b9b76a441"
+    },
+    {
+      "path": "source-teams-empty-ar-geometry.json",
+      "bytes": 2149,
+      "sha256": "051d2d8a67f04afe019f3cdae135b213d89adaf1850a9b0796985a1974150c9a"
+    },
+    {
+      "path": "source-teams-empty-ar.png",
+      "bytes": 134905,
+      "sha256": "3d5cf048fada062386b6f1345b288301c46b6e643bb83b2465f79829f5f2eec8"
+    },
+    {
+      "path": "source-teams-empty-en-geometry.json",
+      "bytes": 2144,
+      "sha256": "3fdd5e08b72d846c21b6dade6674a89763c4ae0c942be0ed4c55646f02c1630e"
+    },
+    {
+      "path": "source-teams-empty-en.png",
+      "bytes": 130286,
+      "sha256": "edca8c247f64ae22fba4f865ea3719296f601c41f6c620f8a6005ae4b6d5e46c"
+    },
+    {
+      "path": "source-teams-feed-ar-geometry.json",
+      "bytes": 1830,
+      "sha256": "c0b6fd2b86b75b79c5a6d600b100f7fd0edf60f6c5e4873c3a38e9978d582b46"
+    },
+    {
+      "path": "source-teams-feed-ar.png",
+      "bytes": 177376,
+      "sha256": "bbd004db3241a883a73ad9f5763b828e9c3cc61f97cc9735d50967f076876487"
+    },
+    {
+      "path": "source-teams-feed-en-geometry.json",
+      "bytes": 1818,
+      "sha256": "70ba2bc2ce70a4b05b4d91bda5a72bc0afd451812b94bac908cb8375835d43b0"
+    },
+    {
+      "path": "source-teams-feed-en.png",
+      "bytes": 186242,
+      "sha256": "92d22204ab91972c683a89668c3e439bf267e5c7719783ff43327d9e91f8d226"
+    },
+    {
+      "path": "source-teams-held-loading-dots-ar.png",
+      "bytes": 136010,
+      "sha256": "51d1bf864ce9a7c2abc05b1d50d1044b5338e9d7f141a6762e568e9186582c84"
+    },
+    {
+      "path": "source-teams-held-loading-dots-en.png",
+      "bytes": 131073,
+      "sha256": "fa69a1c928d6e989d31ab9ddb11448fd117243d2031e2e781133c93a40979a5f"
+    },
+    {
+      "path": "source-teams-held-loading-geometry-ar.json",
+      "bytes": 701,
+      "sha256": "753dde2e00640914e3253dcda57e58a802f1d6cf0f2c69f15e3658557b2a9634"
+    },
+    {
+      "path": "source-teams-held-loading-geometry-en.json",
+      "bytes": 684,
+      "sha256": "9ade34cce841d7910f73b4ef167fad60f2afa03be69a86dfcac60ad2436c8bc8"
+    },
+    {
+      "path": "source-teams-multi-ar-geometry.json",
+      "bytes": 4383,
+      "sha256": "a3fbdfc2683e339000ee3e31af3c3dd3dfb082b8f53284c2e6429f179f2979a4"
+    },
+    {
+      "path": "source-teams-multi-ar.png",
+      "bytes": 159145,
+      "sha256": "dc134a408f1ae7fae7c0e50e5821edbac1bafb7264d9b0354ca2348901205f9c"
+    },
+    {
+      "path": "source-teams-multi-en-geometry.json",
+      "bytes": 4344,
+      "sha256": "41396e76c07c0bcf22388d4935a545ae19d06cc3bd0c40c6cc9e338db5b9524f"
+    },
+    {
+      "path": "source-teams-multi-en.png",
+      "bytes": 172642,
+      "sha256": "b85c35f9ac2f562d0747e40171468b0f68cc5fc370f55ddd14b433092278bb22"
+    },
+    {
+      "path": "source-teams-pending-ar-geometry.json",
+      "bytes": 9168,
+      "sha256": "38fe7c9ede64496314b9782fd5694106c41f2338843da755f16598a9686b8dcc"
+    },
+    {
+      "path": "source-teams-pending-ar.png",
+      "bytes": 235584,
+      "sha256": "ea774b69b7d75cd07434cc258c489c2ec7e6eafe72720a98e9189f9b684311af"
+    },
+    {
+      "path": "source-teams-pending-en-geometry.json",
+      "bytes": 9074,
+      "sha256": "82ff8e3be447ac16c6d6136bedcd819cbfb883f9d86905d84efb63fcf6bcaf2c"
+    },
+    {
+      "path": "source-teams-pending-en.png",
+      "bytes": 247528,
+      "sha256": "855a3743031a6520a56a1ecd6c917d78c7ba84890af45c727c6d17e168263ddc"
+    },
+    {
+      "path": "source-teams-queued-ar-geometry.json",
+      "bytes": 4762,
+      "sha256": "0e89bb01477ca0eb057b5c3f255a9490230faba3eb94167f05685613a978cddc"
+    },
+    {
+      "path": "source-teams-queued-ar.png",
+      "bytes": 165464,
+      "sha256": "82788edc4969babea757b050f0a90b97c55b04f9bbe81c619e0fea6a53aa757a"
+    },
+    {
+      "path": "source-teams-queued-en-geometry.json",
+      "bytes": 4746,
+      "sha256": "c808010906e60f4017017f4cfedea02c7bb164cbca611706c8f51a308ed84d7d"
+    },
+    {
+      "path": "source-teams-queued-en.png",
+      "bytes": 196268,
+      "sha256": "18c5b2583871ba2e05332924a1f60ac1790e407b95dc36adafba8e7ff6eb22c7"
+    },
+    {
+      "path": "source-teams-rename-ar-geometry.json",
+      "bytes": 9351,
+      "sha256": "02e04590be392faf618dbd497563390e756537a33222163aae7ca92791fe9309"
+    },
+    {
+      "path": "source-teams-rename-ar.png",
+      "bytes": 220945,
+      "sha256": "dae8bc57bfc0628bfd35528d15a8fca971e12937412f4a58e129126778f7c8dc"
+    },
+    {
+      "path": "source-teams-rename-en-geometry.json",
+      "bytes": 9263,
+      "sha256": "d8c7507b4bc15bc267d84a156a30cfb614824439554593c4fa9e35db22e42e40"
+    },
+    {
+      "path": "source-teams-rename-en.png",
+      "bytes": 247261,
+      "sha256": "c4ec7ac34811968f5478702f8b6a4876a200c1bedd02ee7560a752300b14a819"
+    },
+    {
+      "path": "source-teams-single-ar-geometry.json",
+      "bytes": 7885,
+      "sha256": "2a02e6dec1b1ee331c4aba7e71d5f607525b09dd63a8ed9f05a2b8989dcba663"
+    },
+    {
+      "path": "source-teams-single-ar.png",
+      "bytes": 255012,
+      "sha256": "8f82ee4f6d0610378674940ad8bf5f3f86f725d2730c615f90a9c99f87f520b7"
+    },
+    {
+      "path": "source-teams-single-en-geometry.json",
+      "bytes": 7797,
+      "sha256": "4618917246497c3640bcb1656467ec732d632e00c0d1d58f3970dd8a88bdef1f"
+    },
+    {
+      "path": "source-teams-single-en.png",
+      "bytes": 256784,
+      "sha256": "52f9eb5d9a8a627d886bf613cb9f825339acd27ae15f304062d5d666cf78cf84"
+    },
+    {
+      "path": "source-teams-toast-copy-ar.png",
+      "bytes": 268189,
+      "sha256": "2a911253bdaae76ef214c99ca48ac9993eb1ead3966e91a42360e0d16075b6f0"
+    },
+    {
+      "path": "source-teams-toast-copy-en.png",
+      "bytes": 271998,
+      "sha256": "f33e7879ab9526f9d48acb3ec34ea2c80e767254fb8c296fa4349ab75350ea20"
+    },
+    {
+      "path": "source-teams-toast-geometry-copy-ar.json",
+      "bytes": 3932,
+      "sha256": "052067bd60b8a7793f90ab64ab03c6ed9a64bc864acb53f76162484c07d8454c"
+    },
+    {
+      "path": "source-teams-toast-geometry-copy-en.json",
+      "bytes": 3923,
+      "sha256": "3e590681480e03560938a26fae6e0e5083f5c9e8af5d270ec691bc16a78bd6c9"
+    },
+    {
+      "path": "source-teams-toast-geometry-queue-error-ar.json",
+      "bytes": 3398,
+      "sha256": "a95309d4adf74b8d42be0b9c7acb3e51ab7bd4dffe0b00d7739737c1f2abd1de"
+    },
+    {
+      "path": "source-teams-toast-geometry-queue-error-en.json",
+      "bytes": 3392,
+      "sha256": "c2ae8e4c6ee9fdcb90c59d1351b3b3b34a82cd0387b5594abf63fffa9736bdcd"
+    },
+    {
+      "path": "source-teams-toast-geometry-queue-warning-ar.json",
+      "bytes": 3339,
+      "sha256": "c59e413b94f82a50ce9433fcb14b0eceb575f890f5ee7b184a6bdf41d3ca296b"
+    },
+    {
+      "path": "source-teams-toast-geometry-queue-warning-en.json",
+      "bytes": 3331,
+      "sha256": "6b5c5e350c1c47e779abf168d6ef63c138fc6315d93c3bb7f1f1dfaf035e4435"
+    },
+    {
+      "path": "source-teams-toast-geometry-rename-error-ar.json",
+      "bytes": 3294,
+      "sha256": "6f0cf9b0b08ec3e20eb099a52cde207ea2b37121acb4146a1b5a87a2fc7ba783"
+    },
+    {
+      "path": "source-teams-toast-geometry-rename-error-en.json",
+      "bytes": 3286,
+      "sha256": "cb944266390fa030f30d13d1b3ace7e0c6b44ea4d7a2caad99353446a2f04da8"
+    },
+    {
+      "path": "source-teams-toast-geometry-rename-success-ar.json",
+      "bytes": 2812,
+      "sha256": "8f5427c54c92a0fccb3711b8b1b1b9d913e01ecc651cef70826ac49dd5751220"
+    },
+    {
+      "path": "source-teams-toast-geometry-rename-success-en.json",
+      "bytes": 2803,
+      "sha256": "747baff4d2ffc8b682132ae89efa9ca1e0de4915ea2f46533e71eaeb9669a93b"
+    },
+    {
+      "path": "source-teams-toast-geometry-rename-warning-ar.json",
+      "bytes": 3573,
+      "sha256": "5fa83ac49a8a2e6a2d055fb28e1f819a223e2adbfb39175b15deca58ec7bb130"
+    },
+    {
+      "path": "source-teams-toast-geometry-rename-warning-en.json",
+      "bytes": 3567,
+      "sha256": "45d70b996b91b03ec3ab34bfbda060da76ee9f623594725a725f47706e80f1c5"
+    },
+    {
+      "path": "source-teams-toast-queue-error-ar.png",
+      "bytes": 223070,
+      "sha256": "fd67d9b81567fc5fdb2e461fc78e2b14cbf6ba73944a606d422ef4c7d692f82c"
+    },
+    {
+      "path": "source-teams-toast-queue-error-en.png",
+      "bytes": 251939,
+      "sha256": "906aede80a39f7cfa99b6dd0e19714ab0cd7d9a873e26bdc2a0981799b1b0f87"
+    },
+    {
+      "path": "source-teams-toast-queue-warning-ar.png",
+      "bytes": 249928,
+      "sha256": "55849a03ee5e98fb20490dffd87a2f8fa9960f5f548bc595f3d460fa51222f7f"
+    },
+    {
+      "path": "source-teams-toast-queue-warning-en.png",
+      "bytes": 281991,
+      "sha256": "68a4799d73f08704226ab4fa08aac588685bffbb885535fa334190291f3a3571"
+    },
+    {
+      "path": "source-teams-toast-rename-error-ar.png",
+      "bytes": 234380,
+      "sha256": "e08b8c9c2055bac4236f25741731d8ff4eb5ad1692dd9c549dbe52143e02d62c"
+    },
+    {
+      "path": "source-teams-toast-rename-error-en.png",
+      "bytes": 256276,
+      "sha256": "09310fe1fe7229301797eb732e4072b4507e0f4cf7b825696a5269108c317439"
+    },
+    {
+      "path": "source-teams-toast-rename-success-ar.png",
+      "bytes": 262734,
+      "sha256": "a98734196816093f2a1d8bd775c8570df3715a3f578b2463e227070130a6a9cc"
+    },
+    {
+      "path": "source-teams-toast-rename-success-en.png",
+      "bytes": 266543,
+      "sha256": "e3a1722ae3b6d407aa7fd8677441a3ca527e6e1ef2e7b560dbfecfcdfbc9e4f2"
+    },
+    {
+      "path": "source-teams-toast-rename-warning-ar.png",
+      "bytes": 259253,
+      "sha256": "7d3af52539af12334372a4fc32d1a36c68f72001d14504d8092b0383b6c9d7d9"
+    },
+    {
+      "path": "source-teams-toast-rename-warning-en.png",
+      "bytes": 264279,
+      "sha256": "4e52c9d25180aabf9a4b97beda99509f4fc9ea0e32dff6b92603adadf8e83152"
+    },
+    {
+      "path": "ui-ar-final-pass.json",
+      "bytes": 970,
+      "sha256": "d6290fbce49f8482be23cef4dd3b2c66b84c9e54d76a0f916a9d1dd9f8aa7560"
+    },
+    {
+      "path": "ui-ar-native-arabic-teams-empty-product.png",
+      "bytes": 303177,
+      "sha256": "5d03633db8d009acfe5e03ab2b56efe83f350f8f99074c6b6fb52883ba458875"
+    },
+    {
+      "path": "ui-ar-native-teams-feed-product.png",
+      "bytes": 280876,
+      "sha256": "19ddb29512d68c1a925c4efcd77c7820836d53e6d4ff5e5caa06a7a4bd5c4b8b"
+    },
+    {
+      "path": "ui-ar-native-teams-queued-product.png",
+      "bytes": 284526,
+      "sha256": "699a542dbe3088f167d327ac3b0a32d3a8fdab1959585b4ecebb1ed0500c4109"
+    },
+    {
+      "path": "ui-ar-native-teams-restored-product.png",
+      "bytes": 388496,
+      "sha256": "522b3f2682b3ba117426e30abeb0edc05dee32177c8e310682d4e349d3252d88"
+    },
+    {
+      "path": "ui-ar-native-teams-single-product.png",
+      "bytes": 377833,
+      "sha256": "78204f73ad8e41921bef79a6cfc60bae60b935d5f74d98bf3985e3bbbd30b21b"
+    },
+    {
+      "path": "ui-en-final-pass.json",
+      "bytes": 971,
+      "sha256": "22c36bc476f4638d992165a56208dc7c7fae7cf5eec445573bf769fda877360c"
+    },
+    {
+      "path": "ui-en-native-teams-empty-product.png",
+      "bytes": 411804,
+      "sha256": "d0698e0d7779a2f5fdd28212cf4290cc0a057794a55b4a515bb1187b7a64c095"
+    },
+    {
+      "path": "ui-en-native-teams-feed-product.png",
+      "bytes": 391776,
+      "sha256": "2c9fc57b90556f308edb2fba5ce3f77a98aabaeb9c9547b22f4519b1c387ad4e"
+    },
+    {
+      "path": "ui-en-native-teams-queued-product.png",
+      "bytes": 368435,
+      "sha256": "375e66d2e11de82374616340066591c9e54e3c004a060229672c962c32ccdc1b"
+    },
+    {
+      "path": "ui-en-native-teams-restored-product.png",
+      "bytes": 499150,
+      "sha256": "81822e8702a8d9147f53633a4d1dafb03801c85e80dfb10a6082d3acd444c68d"
+    },
+    {
+      "path": "ui-en-native-teams-single-product.png",
+      "bytes": 489816,
+      "sha256": "b09019aed2ae791a40f34913dd1453da35739657489ae5ab1b66fb51be7297ba"
+    }
+  ]
+}

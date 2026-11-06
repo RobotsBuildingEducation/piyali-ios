@@ -14,7 +14,222 @@ private final class EmulatorAppCheckProvider: NSObject, AppCheckProvider {
 private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
     func createProvider(with app: FirebaseApp) -> AppCheckProvider? { EmulatorAppCheckProvider() }
 }
+@MainActor private final class PhonicsCompletionResultLossStore:LearnerProgressService {
+    let service:FirebaseService
+    var loseCompletionResult=true,loseOutcomeResult=false
+    init(_ service:FirebaseService){self.service=service}
+    func load(npub:String,local:LearnerState?)async throws->LearnerState?{try await service.load(npub:npub,local:local)}
+    func saveCompanionCustomization(_ change:SettingsChange,npub:String)async throws->Bool{try await service.saveCompanionCustomization(change,npub:npub)}
+    func save(_ state:LearnerState,npub:String)async throws->LearnerState?{let saved=try await service.save(state,npub:npub);if loseOutcomeResult,(state.pendingChanges ?? []).contains(where:{$0.source == .phonicsAttempt}){throw URLError(.networkConnectionLost)};if loseCompletionResult,(!(state.pendingRepairEvidence ?? []).isEmpty || (state.pendingGoalChanges ?? []).contains(where:{$0.action == .attempt})){throw URLError(.networkConnectionLost)};return saved}
+}
 @MainActor final class FirestoreContractTests: XCTestCase {
+    func testGregorianDayWritesHistoryGoalHealthAndRetryUnderActualSystemCalendar()async throws{
+        let expected=ProcessInfo.processInfo.environment["PIYALI_EXPECTED_SYSTEM_CALENDAR"];if let expected{XCTAssertEqual(String(describing:Calendar.current.identifier),expected)}
+        let(service,db,npub)=try context();try await seed(db,npub);let now=Date(),today=CalendarDay.key(now),yesterday=CalendarDay.shift(today,by:-1),year=CalendarDay.year(now),user=db.collection("users").document(npub)
+        XCTAssertEqual(year,Calendar(identifier:.gregorian).component(.year,from:now));XCTAssertTrue(today.hasPrefix(String(year)))
+        try await user.setData(["dailyGoalPetHealth":85,"dailyGoalPetTrackedDay":today,"dailyGoalPetStartedFull":true,"dailyGoalPetLastAccountedDay":yesterday,"lastGoalDayKey":yesterday,"goalStreakCount":2,"membership":["active":true]],merge:true)
+        var state=try requireState(await service.load(npub:npub));XCTAssertEqual(state.dailyXP,5);state.award(45,now:now);let pending=state;XCTAssertEqual(pending.pendingChanges?.last?.dayKey,today);_=try await service.save(pending,npub:npub);_=try await service.save(pending,npub:npub)
+        let restored=try requireState(await service.load(npub:npub)),fields=try await user.getDocument(source:.server).data() ?? [:],history=try await service.activityHistory(npub:npub,year:year)
+        XCTAssertEqual(restored.dailyXP,50);XCTAssertEqual(restored.totalXP,195);XCTAssertEqual(restored.companionHealth,100);XCTAssertEqual(fields["lastGoalDayKey"]as?String,today);XCTAssertEqual(fields["goalStreakCount"]as?Int,3);XCTAssertEqual(history["days"][today].number,50);XCTAssertTrue(history["goalDays"].array.contains(.string(today)));XCTAssertTrue((fields["dailyGoalPetReachedDates"]as?[String] ?? []).contains(today));XCTAssertEqual(fields["patreonVerified"]as?Bool,true);XCTAssertEqual((fields["membership"]as?[String:Any])?["active"]as?Bool,true)
+    }
+    func testXPActivityMonthlyReadLegacyImportAndSnapshotSeparation()async throws{
+        let(service,db,npub)=try context();try await seed(db,npub);let year=Calendar(identifier:.gregorian).component(.year,from:Date())-1,today=CalendarDay.key(Date()),user=db.collection("users").document(npub)
+        try await user.setData(["dailyXpRecent":[today:5,"\(year)-01-02":12],"completedGoalDates":["\(year)-01-04"]],merge:true)
+        try await user.collection("xpHistory").document("\(year)-01").setData(["days":["\(year)-01-01":250,"\(year)-01-02":30],"goalDays":["\(year)-01-01","\(year)-01-03"]])
+        try await user.collection("xpHistory").document("\(year)-02").setData(["days":["\(year)-02-01":50],"goalDays":["\(year)-01-01"]])
+        try await user.collection("xpHistory").document("\(year+2)-01").setData(["days":["\(year+2)-01-01":999],"goalDays":["\(year+2)-01-01"]])
+        let loaded=try await service.activityHistory(npub:npub,year:year);XCTAssertEqual(loaded["days"].object.count,3);XCTAssertEqual(loaded["goalDays"].array.count,2);XCTAssertEqual(loaded["days"]["\(year)-01-02"].number,30);XCTAssertEqual(loaded["days"]["\(year+2)-01-01"],.null)
+        var state=try requireState(await service.load(npub:npub));XCTAssertEqual(state.activityLegacy["days"]["\(year)-01-02"].number,12);let merged=XPActivityPlan.merge(state.activityLegacy,loaded);XCTAssertEqual(merged["days"]["\(year)-01-02"].number,30);XCTAssertTrue(merged["goalDays"].array.contains(.string("\(year)-01-04")))
+        state.award(5);_=try await service.save(state,npub:npub);let fields=try await user.getDocument(source:.server).data() ?? [:],snapshot=try JSONDecoder().decode(LearnerState.self,from:Data(try XCTUnwrap(fields["iosStateJSON"]as?String).utf8));XCTAssertNil(snapshot.xpActivity);XCTAssertEqual(fields["xp"]as?Int,155);XCTAssertEqual(fields["patreonVerified"]as?Bool,true)
+        let restored=try requireState(await service.load(npub:npub));XCTAssertEqual(restored.dailyXP,10);let after=try await service.activityHistory(npub:npub,year:year+1);XCTAssertEqual(after["days"][today].number,10)
+    }
+    func testCompanionBlueprintLeaseCanonicalMirrorsAndRepairEvidenceSurviveRetries() async throws {
+        let (service,db,npub)=try context();try await seed(db,npub)
+        var state=try requireState(await service.load(npub:npub));let target=state.target,day=CalendarDay.key(Date()),key=CompanionQuestDay.key(target,day),reference=db.collection("users").document(npub).collection("questDays").document(key)
+        try await reference.setData(["iosPlate":["kinds":["learn","review"]],"foreignArtifact":["keep":true]],merge:true)
+        async let a=service.reserveCompanionQuest(npub:npub,target:target,day:day,id:"one")
+        async let b=service.reserveCompanionQuest(npub:npub,target:target,day:day,id:"two")
+        let reservations=try await[a,b],owner=try XCTUnwrap(reservations.first?["blueprint"]["iosGenerationID"].string)
+        XCTAssertFalse(owner.isEmpty);XCTAssertTrue(reservations.allSatisfy{$0["blueprint"]["iosGenerationID"].string == owner})
+        let item:JSONValue = .object(["memoryId":.string("repair-memory"),"concept":.string("Say a greeting"),"originalConcept":.string("greetings"),"expectedAnswer":.string("Bonjour"),"mode":.string("flashcards"),"errorType":.string("conversation_flow"),"cefrLevel":.string("A1")])
+        let plan:JSONValue = .object(["targetLang":.string(target),"dayKey":.string(day),"target":.number(1),"items":.array([item]),"memoryIds":.array([.string("repair-memory")])])
+        let ready:JSONValue = .object(["status":.string("ready"),"iosGenerationID":.string(owner),"message":.object(["long":.string("A focused warm-up")]),"repair":plan,"rationale":.object(["summary":.string("Why this repair")])])
+        var stale=state;state.storeCompanionBlueprint(ready,target:target,day:day);stale.storeCompanionBlueprint(ready.setting("iosGenerationID",.string("late")).setting("message",.object(["long":.string("Late")])) ,target:target,day:day)
+        _=try await service.save(state,npub:npub);_=try await service.save(stale,npub:npub);_=try await service.save(state,npub:npub)
+        let saved=JSONValue.foundation(try await reference.getDocument(source:.server).data() ?? [:])
+        XCTAssertEqual(saved["blueprint"]["message"]["long"].string,"A focused warm-up");XCTAssertEqual(saved["repair"],plan);XCTAssertEqual(saved["explanation"],ready["rationale"]);XCTAssertEqual(saved["lang"].string,target);XCTAssertEqual(saved["dayKey"].string,day);XCTAssertEqual(saved["foreignArtifact"]["keep"],.bool(true));XCTAssertEqual(saved["iosPlate"]["kinds"].array.count,2)
+        var restored=try requireState(await service.load(npub:npub));let policy=try CompanionQuestPolicy(),next=try policy.run("next",.object(["plan":plan,"completedCount":.number(0)])),step=try JSONDecoder().decode(RepairStep.self,from:Data(next.json.utf8))
+        let card:JSONValue = .object(["id":.string("repair-"+target+"-"+day+"-s0-c0"),"concept":.object(["en":.string("Greeting"),target:.string("Bonjour")]),"cefrLevel":.string("A1"),"isRepair":.bool(true)])
+        let candidate:JSONValue = .object(["version":.number(1),"ownerKey":.string(CompanionQuestDay.artifactKey(step,mode:"flashcards")),"cards":.array([card]),"outcomes":.object([:])])
+        let artifact=try await service.reserveRepairArtifact(npub:npub,step:step,mode:"flashcards",candidate:candidate)
+        let retry=try await service.reserveRepairArtifact(npub:npub,step:step,mode:"flashcards",candidate:candidate.setting("cards",.array([])));XCTAssertEqual(artifact,retry)
+        restored.storeRepairArtifact(artifact,step:step,mode:"flashcards")
+        XCTAssertTrue(restored.recordRepairOutcome(step,mode:"flashcards",cardID:card["id"].string,success:true,item:"Bonjour",support:"prompted"))
+        XCTAssertFalse(restored.recordRepairOutcome(step,mode:"flashcards",cardID:card["id"].string,success:true,item:"Bonjour",support:"prompted"))
+        let event=step.event.setting("success",.bool(true)).setting("support",.string("prompted")).setting("observation",.string("Produced Bonjour")),summary=try policy.run("evidence",.object(["summary":.object([:]),"event":event]))
+        XCTAssertTrue(restored.completeRepairStep(step,summary:summary,observation:"Produced Bonjour"))
+        _=try await service.save(restored,npub:npub);_=try await service.save(restored,npub:npub)
+        let result=try requireState(await service.load(npub:npub)),fields=try await db.collection("users").document(npub).getDocument(source:.server).data() ?? [:]
+        XCTAssertEqual(result.questDay(day:day)["repair"],plan);XCTAssertEqual(result.plateProgress["repairDailyActivity"][target][day].number,1);XCTAssertEqual(result.goalBucket["repairSummary"]["eventIds"].array.count,1);XCTAssertEqual(result.totalXP,152);XCTAssertEqual(result.plateProgress["flashcardDailyActivity"],state.plateProgress["flashcardDailyActivity"]);XCTAssertNil(result.cardReviews?[result.completionKey(card["id"].string)]);XCTAssertTrue(result.repairArtifact(step,mode:"flashcards")["outcomes"][card["id"].string]["success"].boolean)
+        XCTAssertEqual(fields["patreonVerified"] as? Bool,true);XCTAssertEqual(fields["unrelatedWebSetting"] as? String,"preserve")
+        let snapshot=try JSONDecoder().decode(LearnerState.self,from:Data((fields["iosStateJSON"] as? String ?? "").utf8));XCTAssertNil(snapshot.companionQuestDays);XCTAssertTrue(snapshot.pendingRepairEvidence?.isEmpty == true)
+    }
+    func testPhonicsAttemptsRepeatRewardsAndCollectionUseCanonicalSeparateReceipts()async throws {
+        let (service,db,npub)=try context();try await seed(db,npub);var state=try requireState(await service.load(npub:npub));let target=state.target,card:JSONValue = .object(["id":.string("authored-v1:fr:Pre-A1:public-test"),"practiceWord":.string("Bonjour"),"practiceWordMeaning":.object(["en":.string("Hello")]),"cefrLevel":.string("Pre-A1")])
+        state.attemptPhonics(card:card,grade:.init(correct:false,xp:0));state.attemptPhonics(card:card,grade:.init(correct:true,xp:2));let pending=state
+        _=try await service.save(pending,npub:npub);_=try await service.save(pending,npub:npub);state=try requireState(await service.load(npub:npub));XCTAssertEqual(state.totalXP,152)
+        let record=try XCTUnwrap(state.phonicsRecords?[PhonicsProgress.key(target,card["id"].string)]);XCTAssertEqual(record["attempts"].number,2);XCTAssertEqual(record["correctCount"].number,1);XCTAssertEqual(record["currentWord"].string,"Bonjour");XCTAssertEqual(record["practicedWords"].array.count,1);XCTAssertEqual(state.plateProgress["phonicsDailyActivity"][target][CalendarDay.key(Date())].number,0)
+        state.attemptPhonics(card:card,grade:.init(correct:true,xp:1));state.collectPhonics(cardID:card["id"].string);let repeated=state;_=try await service.save(repeated,npub:npub);_=try await service.save(repeated,npub:npub)
+        let final=try requireState(await service.load(npub:npub)),root=try await db.collection("users").document(npub).getDocument(source:.server).data() ?? [:]
+        XCTAssertEqual(final.totalXP,153);XCTAssertEqual(final.phonicsRecords?[PhonicsProgress.key(target,card["id"].string)]?["attempts"].number,3);XCTAssertEqual(final.phonicsRecords?[PhonicsProgress.key(target,card["id"].string)]?["correctCount"].number,2);XCTAssertEqual(final.plateProgress["phonicsDailyActivity"][target][CalendarDay.key(Date())].number,1);XCTAssertEqual(root["patreonVerified"] as? Bool,true);XCTAssertEqual(root["unrelatedWebSetting"] as? String,"preserve")
+        let saved=try JSONDecoder().decode(LearnerState.self,from:Data(try XCTUnwrap(root["iosStateJSON"] as? String).utf8));XCTAssertNil(saved.phonicsRecords,"alphabetPractice is the shared authority")
+    }
+    func testSupplementalPhonicsBatchIsAtomicAndRestoresWithoutReplacingCompletion()async throws {
+        let (service,db,npub)=try context();try await seed(db,npub);var state=try requireState(await service.load(npub:npub));let policy=try PhonicsPolicy(),units=["lapin","chapeau","nuage","feuille","soleil","plume"].enumerated().map{index,word in JSONValue.object(["grapheme":.string(String(word.prefix(1))),"exampleWord":.string(word),"sound":.string("A clear sound"),"tip":.string("Keep it clear"),"meaning":.string("Example \(index)")])},cards=try policy.run("ph_generateParse",.object(["target":.string("fr"),"support":.string("en"),"level":.string("Pre-A1"),"existingWords":.array([]),"batchId":.number(1792830600000000),"raw":.string(JSONValue.array(units).json)])).array,records=try cards.map{try policy.run("ph_extraRecord",.object(["card":$0]))}
+        state.storeSupplementalPhonics(records);let batch=state;_=try await service.save(batch,npub:npub);_=try await service.save(batch,npub:npub);state=try requireState(await service.load(npub:npub));XCTAssertEqual(state.totalXP,150);XCTAssertEqual(try policy.run("ph_extraRestore",.object(["target":.string("fr"),"support":.string("en"),"level":.string("Pre-A1"),"records":.array(state.phonicsDocuments)])).array,cards)
+        state.attemptPhonics(card:try XCTUnwrap(cards.first),grade:.init(correct:true,xp:2));_=try await service.save(state,npub:npub);_=try await service.save(batch,npub:npub)
+        let final=try requireState(await service.load(npub:npub));XCTAssertEqual(final.totalXP,152);XCTAssertEqual(final.phonicsRecords?[PhonicsProgress.key("fr",cards[0]["id"].string)]?["correctCount"].number,1)
+        let docs=try await db.collection("users").document(npub).collection("alphabetPractice").whereField("generated",isEqualTo:true).getDocuments(source:.server);XCTAssertEqual(docs.count,6)
+    }
+    func testFocusedPhonicsAwardsOneToTwoXPPerAttemptAndCompletesOnlyItsOwnMode()async throws {
+        let (service,db,_)=try context(),app=AppModel(progressService:service);try app.identity.create();defer{try? app.identity.disconnect()};let npub=app.identity.npub;try await seed(db,npub);app.subscription.bind(app.identity);app.signedIn=true;app.learner=try requireState(await service.load(npub:npub));app.learner.editGoal("Pronounce two words");await app.reloadContent()
+        let cards=try app.phonics.prefix(2).enumerated().map{index,card->JSONValue in try JSONDecoder().decode(JSONValue.self,from:JSONEncoder().encode(card)).setting("authoredId",.string(card.id)).setting("id",.string("public-phonics-\(index)")).setting("isGoal",.bool(true)).setting("practiceRole",.string(index == 0 ? "original":"transfer"))},day=CalendarDay.key(Date()),bp:JSONValue = .object(["goalId":app.learner.goalBucket["activeGoal"]["id"],"dayKey":.string(day),"lang":.string(app.learner.target),"mode":.string("phonics"),"modes":.array([.string("phonics"),.string("lesson")]),"cefrLevel":cards.first?["cefrLevel"] ?? .string("Pre-A1"),"objective":.string("Pronounce two words"),"targetLanguage":.array([cards[0]["practiceWord"]])])
+        XCTAssertEqual(cards.count,2);app.learner.applyGoal(.init(action:.blueprint,target:app.learner.target,payload:bp));app.learner.applyGoal(.init(action:.artifact,target:app.learner.target,payload:bp.setting("cards",.array(cards))));await app.sync()
+        let provider=PhonicsProvider(judge:{_ in "YES | 2"},quote:{card,state in try GeneratedQuestionWorth.fallback(level:card["cefrLevel"].string,learner:state,recipes:PracticeRecipes())})
+        for index in [0,0,1]{let session=try PhonicsSessionController(app:app,card:cards[index],goal:bp,provider:provider);session.practice(app);session.submit(cards[index]["practiceWord"].string,app:app);for _ in 0..<700 where session.busy{try await Task.sleep(for:.milliseconds(20))};XCTAssertNil(session.error);let audit=app.goalArtifact(bp,mode:"phonics");XCTAssertTrue(audit["outcomes"][cards[index]["id"].string]["success"].boolean);session.cancel()}
+        let final=try requireState(await service.load(npub:npub));XCTAssertEqual(final.totalXP,156);XCTAssertEqual(final.gradedByLanguage?[final.target],3);XCTAssertTrue(final.phonicsDocuments.isEmpty);XCTAssertEqual(final.plateProgress["phonicsDailyActivity"][final.target][day].number,0);XCTAssertEqual(final.dailyGoalTask?["modeProgress"]["phonics"].number,2);XCTAssertEqual(final.dailyGoalTask?["modeProgress"]["lesson"].number,0)
+    }
+    func testRepairPhonicsCommittedResultLossHoldsRoutingAndRetryPreservesRewardAndEvidence()async throws {
+        let(service,db,_)=try context(),store=PhonicsCompletionResultLossStore(service),app=AppModel(progressService:store);try app.identity.create();defer{try? app.identity.disconnect()};let npub=app.identity.npub;try await seed(db,npub);app.signedIn=true;app.subscription.bind(app.identity);app.learner=try requireState(await service.load(npub:npub));await app.reloadContent()
+        let base=try XCTUnwrap(app.phonics.first),target=app.learner.target,day=CalendarDay.key(Date()),item:JSONValue = .object(["memoryId":.string("pronunciation"),"concept":.string(base.practiceWord),"expectedAnswer":.string(base.practiceWord),"mode":.string("phonics"),"errorType":.string("phonics"),"cefrLevel":.string(base.cefrLevel ?? "A1"),"sourceContext":.object(["card":.object(["id":.string(base.id),"practiceWord":.string(base.practiceWord)])])]),plan:JSONValue = .object(["dayKey":.string(day),"targetLang":.string(target),"target":.number(2),"items":.array([item,.object(["memoryId":.string("agreement"),"concept":.string("A simple agreement"),"mode":.string("lesson"),"errorType":.string("grammar"),"cefrLevel":.string("A1")])])])
+        app.learner.questPlans=[target:.init(day:day,kinds:["repair","review"])];app.learner.questProgress=app.learner.plateProgress.setting("dailyQuestFirstSeen",.bool(true)).setting("dailyQuestFirstDayKey",.string(CalendarDay.shift(day,by:-1)));app.learner.storeCompanionBlueprint(.object(["status":.string("ready"),"repair":plan]),target:target,day:day);await app.sync()
+        let step=try XCTUnwrap(app.currentRepairStep),candidate=try app.focusedPhonicsDeck(repair:step),artifact=try await service.reserveRepairArtifact(npub:npub,step:step,mode:"phonics",candidate:candidate),cards=artifact["cards"].array;XCTAssertEqual(cards.count,3);app.learner.storeRepairArtifact(artifact,step:step,mode:"phonics");await app.sync()
+        var last:PhonicsSessionController?
+        for index in [1,0,2]{let session=try PhonicsSessionController(app:app,card:cards[index],repair:step,provider:.init(judge:{_ in index == 1 ? "NO":"YES | 2"},quote:{_,_ in .null}));session.practice(app);session.submit(index == 1 ? "WRONG_FIXTURE":cards[index]["practiceWord"].string,app:app);for _ in 0..<1000 where session.busy{try await Task.sleep(for:.milliseconds(20))};XCTAssertFalse(session.busy);if index == 2{last=session}else{XCTAssertNil(session.error);session.cancel()}}
+        let session=try XCTUnwrap(last);defer{session.cancel()};XCTAssertTrue(session.needsSaveRetry);XCTAssertEqual(app.currentRepairStep?.index,0);XCTAssertEqual(app.learner.confirmedPlateProgress["repairDailyActivity"][target][day].number,0)
+        let committed=try requireState(await service.load(npub:npub));XCTAssertEqual(committed.totalXP,154);XCTAssertEqual(committed.plateProgress["repairDailyActivity"][target][day].number,1)
+        store.loseCompletionResult=false;session.retrySave(app);for _ in 0..<1000 where session.busy{try await Task.sleep(for:.milliseconds(20))};XCTAssertNil(session.error);XCTAssertEqual(app.currentRepairStep?.index,1)
+        let restored=try requireState(await service.load(npub:npub));XCTAssertEqual(restored.totalXP,154);XCTAssertEqual(restored.gradedByLanguage?[target],3);XCTAssertTrue(restored.phonicsDocuments.isEmpty);XCTAssertEqual(restored.plateProgress["phonicsDailyActivity"][target][day].number,0);XCTAssertEqual(restored.goalBucket["repairSummary"]["eventIds"].array.count,1);XCTAssertEqual(restored.plateProgress["repairDailyActivity"][target][day].number,1)
+        let document=JSONValue.foundation(try await db.collection("users").document(npub).collection("questDays").document(target+"_"+day).getDocument(source:.server).data() ?? [:]);XCTAssertEqual(document[CompanionQuestDay.artifactField(step,mode:"phonics")]["ownerKey"],artifact["ownerKey"])
+    }
+    func testSourceFlashcardGradeAndRatingPersistOnceAndGoalCardsRemainOutsideNormalSRS()async throws {
+        let (service,db,_)=try context(),app=AppModel(progressService:service);try app.identity.create();defer{try? app.identity.disconnect()};let npub=app.identity.npub;try await seed(db,npub)
+        app.subscription.bind(app.identity);app.signedIn=true;app.learner=try requireState(await service.load(npub:npub))
+        let card:JSONValue = .object(["id":.string("pre-a1-public-review"),"concept":.object(["es":.string("mamá"),"fr":.string("maman")]),"cefrLevel":.string("Pre-A1"),"category":.string("people"),"type":.string("word")])
+        let provider=FlashcardProvider(judge:{_ in "YES | 6"},stream:{_,update in update("maman");return "maman"},quote:{card,state in try GeneratedQuestionWorth.fallback(level:card["cefrLevel"].string,learner:state,recipes:PracticeRecipes())})
+        func settle(_ session:FlashcardSessionController)async throws {for _ in 0..<700 where session.grading || session.saving {try await Task.sleep(for:.milliseconds(20))};XCTAssertFalse(session.grading);XCTAssertFalse(session.saving)}
+        let ordinary=try FlashcardSessionController(app:app,card:card,status:"active",provider:provider);app.flashcardSession=ordinary;ordinary.answer="maman";ordinary.submit(app);try await settle(ordinary)
+        XCTAssertEqual(app.learner.totalXP,150);XCTAssertNil(app.learner.cardReviews)
+        ordinary.commit(.hard,app:app);try await settle(ordinary);let sent=app.learner
+        _=try await service.save(sent,npub:npub);_=try await service.save(sent,npub:npub);await app.sync()
+        let first=try requireState(await service.load(npub:npub));XCTAssertEqual(first.totalXP,156);XCTAssertEqual(first.cardReviews?["fr:pre-a1-public-review"]?.lastReviewOutcome,.hard);XCTAssertEqual(first.cardReviews?["fr:pre-a1-public-review"]?.reviewCount,1)
+        let day=CalendarDay.key(Date());app.learner.editGoal("Greet a family member")
+        let bp:JSONValue = .object(["goalId":app.learner.goalBucket["activeGoal"]["id"],"dayKey":.string(day),"lang":.string("fr"),"mode":.string("flashcards"),"modes":.array([.string("flashcards"),.string("lesson")]),"modeTargets":.object(["flashcards":.number(3),"lesson":.number(20)]),"objective":.string("Greet a family member"),"cefrLevel":.string("Pre-A1")])
+        let focused=card.setting("id",.string("focused-public-review")).setting("isGoal",.bool(true))
+        app.learner.applyGoal(GoalChange(action:.blueprint,target:"fr",payload:bp));app.learner.applyGoal(GoalChange(action:.artifact,target:"fr",payload:bp.setting("cards",.array([focused]))));await app.sync();XCTAssertNotNil(app.readyGoal)
+        let goal=try FlashcardSessionController(app:app,card:focused,status:"active",goal:bp,provider:provider);app.flashcardSession=goal;goal.answer="maman";goal.submit(app);try await settle(goal);goal.commit(.good,app:app);try await settle(goal)
+        XCTAssertNil(goal.error);XCTAssertNil(app.flashcardSession)
+        let restored=try requireState(await service.load(npub:npub)),user=db.collection("users").document(npub),root=try await user.getDocument(source:.server).data() ?? [:],ephemeral=try await user.collection("languageFlashcards").document("fr_focused-public-review").getDocument(source:.server)
+        XCTAssertEqual(restored.totalXP,158);XCTAssertEqual(restored.gradedByLanguage?["fr"],2,"Focused practice must not grade the same answer again when scheduling it")
+        XCTAssertFalse(ephemeral.exists);XCTAssertEqual(restored.plateProgress["flashcardDailyActivity"]["fr"][day].number,1);XCTAssertTrue(restored.goalArtifacts?.values.contains{$0["outcomes"]["focused-public-review"]["success"].boolean} == true)
+        XCTAssertEqual(root["patreonVerified"] as? Bool,true);XCTAssertEqual(root["unrelatedWebSetting"] as? String,"preserve")
+    }
+    func testFocusedGoalLessonCommitsFinalXPBeforeCompletionAndRetriesWithoutBonus() async throws {
+        let (service,db,_)=try context(),app=AppModel(progressService:service);try app.identity.create();defer{try? app.identity.disconnect()}
+        let npub=app.identity.npub;try await seed(db,npub);app.subscription.bind(app.identity);app.signedIn=true
+        var state=try requireState(await service.load(npub:npub));state.editGoal("Greet a family member")
+        let day=CalendarDay.key(Date()),bp:JSONValue = .object(["goalId":state.goalBucket["activeGoal"]["id"],"dayKey":.string(day),"lang":.string("fr"),"mode":.string("lesson"),"modes":.array([.string("lesson"),.string("tutor")]),"objective":.string("Greet a family member"),"scenario":.string("Start a greeting"),"targetLanguage":.array([.string("Bonjour")]),"supports":.array([]),"successCriteria":.array([.string("Say hello")]),"cefrLevel":.string("A1")])
+        state.applyGoal(GoalChange(action:.blueprint,target:"fr",payload:bp));app.learner=try requireState(await service.save(state,npub:npub))
+        let lesson=try app.sourceGoalLesson(bp);app.learner.award(12,lesson:lesson);app.learner.award(10,lesson:lesson)
+        try await app.completeFocusedGoalLesson(lesson);try await app.completeFocusedGoalLesson(lesson)
+        let restored=try requireState(await service.load(npub:npub)),root=try await db.collection("users").document(npub).getDocument(source:.server).data() ?? [:]
+        XCTAssertEqual(GoalLessonProgress.earned(restored.goalBucket),22);XCTAssertEqual(restored.goalBucket["dailyGoal"]["modeProgress"]["lesson"].number,20);XCTAssertFalse(restored.goalBucket["dailyGoal"]["completed"].boolean)
+        XCTAssertEqual(restored.totalXP,172);XCTAssertEqual(restored.goalBucket["activeGoal"]["status"].string,"active");XCTAssertEqual(root["patreonVerified"] as? Bool,true);XCTAssertEqual(root["unrelatedWebSetting"] as? String,"preserve")
+        let document=try await db.collection("users").document(npub).collection("languageLessons").document("fr_"+lesson.id).getDocument(source:.server);XCTAssertFalse(document.exists)
+        XCTAssertTrue(app.learner.pendingGoalChanges?.isEmpty == true);XCTAssertTrue(app.learner.pendingChanges?.isEmpty == true);XCTAssertEqual(GoalPractice.nextMode(try XCTUnwrap(app.readyGoal)),"tutor")
+    }
+    func testSessionTimerCompletionIsIdempotentAndGoalEditsPreserveXPAndPaidFields() async throws {
+        let (service,db,npub)=try context();try await seed(db,npub)
+        let window=try await db.collection("users").document(npub).getDocument(source:.server)
+        var state=try requireState(await service.load(npub:npub));state.dailyGoal=5;state.preferencesModifiedAt=Date()
+        _=try await service.save(state,npub:npub)
+        let id=UUID().uuidString,path=try AchievementSyncService.documentID(metric:"session_timers",id:id)
+        try await service.recordSessionTimer(npub:npub,id:id)
+        let ref=db.collection("users").document(npub).collection("achievementProgress").document("nosabos").collection("events").document(path)
+        let first=try await ref.getDocument(source:.server)
+        try await service.recordSessionTimer(npub:npub,id:id)
+        let second=try await ref.getDocument(source:.server),events=try await ref.parent.whereField("metric",isEqualTo:"session_timers").getDocuments(source:.server)
+        XCTAssertEqual(events.documents.count,1);XCTAssertEqual(first["createdAt"] as? Timestamp,second["createdAt"] as? Timestamp);XCTAssertEqual(second["completionId"] as? String,id)
+        let root=try await db.collection("users").document(npub).getDocument(source:.server)
+        XCTAssertEqual(root["dailyGoalXp"] as? Int,5);XCTAssertEqual(root["dailyXp"] as? Int,5);XCTAssertEqual(root["xp"] as? Int,150);XCTAssertEqual(root["patreonVerified"] as? Bool,true);XCTAssertEqual(root["unrelatedWebSetting"] as? String,"preserve")
+        XCTAssertEqual(root["dailyStartedAt"] as? String,window["dailyStartedAt"] as? String);XCTAssertEqual(root["dailyResetAt"] as? String,window["dailyResetAt"] as? String)
+    }
+    func testHeadlinesMergeByLanguageKeepSourceLastWriteAndPreserveMembershipAndXP() async throws {
+        let (service,db,npub)=try context();try await seed(db,npub)
+        try await db.collection("users").document(npub).setData(["membership":["active":true]],merge:true)
+        let original=try requireState(await service.load(npub:npub)),today=CalendarDay.key(Date()),tomorrow=CalendarDay.shift(CalendarDay.key(Date()),by:1)
+        var first=original,second=original
+        first.storePlateHeadline(.init(dayKey:today,appLanguage:"en",text:"Ask about plans."),target:"es")
+        second.storePlateHeadline(.init(dayKey:today,appLanguage:"ar",text:"تحدث بثقة."),target:"fr")
+        async let a=service.save(first,npub:npub),b=service.save(second,npub:npub);_=try await(a,b)
+        _=try await service.save(first,npub:npub)
+        let together=try requireState(await service.load(npub:npub));XCTAssertEqual(together.plateHeadlines?["es"]?.text,"Ask about plans.");XCTAssertEqual(together.plateHeadlines?["fr"]?.appLanguage,"ar")
+        var later=together;later.storePlateHeadline(.init(dayKey:tomorrow,appLanguage:"en",text:"A new day."),target:"es");_=try await service.save(later,npub:npub)
+        let stale=try requireState(await service.save(first,npub:npub));XCTAssertEqual(stale.plateHeadlines?["es"]?.dayKey,today,"The original setDoc helper uses last-write semantics even across date changes.");XCTAssertTrue(stale.pendingPlateHeadlines?.isEmpty == true)
+        var support=stale;support.storePlateHeadline(.init(dayKey:tomorrow,appLanguage:"fr",text:"Une nouvelle journée."),target:"es");let saved=try requireState(await service.save(support,npub:npub));XCTAssertEqual(saved.plateHeadlines?["es"]?.appLanguage,"fr");XCTAssertEqual(saved.totalXP,original.totalXP)
+        let fields=try await db.collection("users").document(npub).getDocument().data() ?? [:]
+        XCTAssertEqual(WebProgressContract.integer(fields["xp"]),150)
+        XCTAssertEqual(fields["patreonVerified"] as? Bool,true)
+        XCTAssertEqual((fields["membership"] as? [String:Any])?["active"] as? Bool,true)
+        let snapshot=try JSONDecoder().decode(LearnerState.self,from:Data((fields["iosStateJSON"] as? String ?? "").utf8));XCTAssertNil(snapshot.plateHeadlines,"Canonical headlines must not be shadowed inside iosStateJSON.")
+    }
+    func testQuotedAssessmentsUseTheSavedPriceAcrossConcurrentSyncAndRetriesWithoutXP() async throws {
+        let (service,db,npub)=try context();try await seed(db,npub)
+        try await db.collection("users").document(npub).setData(["learningIntelligence":["fr":["elo":["rating":1100,"scaleVersion":4,"totalGraded":3]]]],merge:true)
+        var state=try requireState(await service.load(npub:npub));state.pendingChanges=[]
+        let recipes=try PracticeRecipes(),quote=try recipes.inspect("worth",parameters:.object(["user":state.recipeUser,"targetLang":.string("fr"),"questionLevel":.string("B2"),"assessment":.object(["difficultyScore":.number(10)])]))
+        var first=state,second=state
+        first.assess(correct:true,independent:true,questionLevel:"B2",worth:quote,concept:nil,mode:"vocabulary")
+        second.assess(correct:false,independent:false,questionLevel:"B2",worth:quote,concept:"famille",mode:"grammar")
+        async let a=service.save(first,npub:npub),b=service.save(second,npub:npub);_=try await(a,b)
+        _=try await service.save(first,npub:npub);_=try await service.save(second,npub:npub)
+        let fields=try await db.collection("users").document(npub).getDocument().data() ?? [:],bucket=((fields["learningIntelligence"] as? [String:[String:Any]])?["fr"] ?? [:]),elo=bucket["elo"] as? [String:Any] ?? [:]
+        let expected=1100+quote["gainBySupport"]["independent"].number-quote["loss"].number
+        XCTAssertEqual(WebProgressContract.number(elo["rating"]),expected,accuracy:1e-8);XCTAssertEqual(WebProgressContract.integer(elo["totalGraded"]),5);XCTAssertEqual(WebProgressContract.integer(fields["xp"]),150)
+        let counts=(((bucket["performanceSummary"] as? [String:Any])?["byLevel"] as? [String:[String:Any]])?["Pre-A1"] ?? [:]);XCTAssertEqual(WebProgressContract.integer(counts["correct"]),1);XCTAssertEqual(WebProgressContract.integer(counts["missed"]),1)
+        let restored=try requireState(await service.load(npub:npub));XCTAssertEqual(restored.rating,expected,accuracy:1e-8)
+    }
+    func testCurriculumOwnXPResumesAndConcurrentPracticeRetriesDoNotDuplicateWork() async throws {
+        let (service,db,npub)=try context();try await seed(db,npub)
+        let lesson=Lesson(id:"lesson-a1-counter",title:.string("Greetings"),description:.string("Use greetings"),xpReward:50,modes:["grammar","vocabulary"],agenda:.object([:]),content:.object([:]),cefrLevel:"A1")
+        var state=try requireState(await service.load(npub:npub));XCTAssertTrue(state.beginLessonWork(lesson))
+        state=try requireState(await service.save(state,npub:npub));state.pendingChanges=[]
+        let key=state.completionKey(lesson.id)
+        XCTAssertEqual(state.lessonWork?[key]?.status,.inProgress);XCTAssertEqual(state.lessonWork?[key]?.earnedXP,0)
+        var a=state,b=state;a.award(6,lesson:lesson);b.award(5,lesson:lesson)
+        async let first=service.save(a,npub:npub),second=service.save(b,npub:npub);_=try await(first,second)
+        _=try await service.save(a,npub:npub);_=try await service.save(b,npub:npub)
+        state=try requireState(await service.load(npub:npub));state.pendingChanges=[]
+        XCTAssertEqual(state.lessonWork?[key]?.earnedXP,11);XCTAssertEqual(state.totalXP,161)
+        state.award(20,source:.tutorTurn);state=try requireState(await service.save(state,npub:npub));state.pendingChanges=[]
+        XCTAssertEqual(state.lessonWork?[key]?.earnedXP,11)
+        state.award(44,lesson:lesson);state=try requireState(await service.save(state,npub:npub));state.pendingChanges=[]
+        XCTAssertTrue(try XCTUnwrap(state.lessonWork?[key]).ready(goal:50));XCTAssertTrue(state.complete(lesson))
+        _=try await service.save(state,npub:npub);_=try await service.save(state,npub:npub)
+        let restored=try requireState(await service.load(npub:npub))
+        XCTAssertEqual(restored.lessonWork?[key]?.status,.completed);XCTAssertEqual(restored.lessonWork?[key]?.earnedXP,50);XCTAssertEqual(restored.totalXP,275)
+        let document=try await db.collection("users").document(npub).collection("languageLessons").document("fr_"+lesson.id).getDocument().data()
+        XCTAssertEqual(WebProgressContract.integer(document?["xpEarned"]),50)
+    }
+    func testWebCompletedLessonDoesNotClaimAnotherNativeCompletionBonus() async throws {
+        let (service,db,npub)=try context();try await seed(db,npub)
+        let lesson=Lesson(id:"lesson-web-completed",title:.string("Greetings"),description:.string(""),xpReward:50,modes:["grammar"],agenda:.object([:]),content:.object([:]),cefrLevel:"A1")
+        var offline=LearnerState();offline.target="fr";offline.level="A1";XCTAssertTrue(offline.complete(lesson))
+        try await db.collection("users").document(npub).collection("languageLessons").document("fr_"+lesson.id).setData(["lessonId":lesson.id,"targetLang":"fr","cefrLevel":"A1","status":"completed","earnedXp":50,"xpEarned":50])
+        _=try await service.save(offline,npub:npub)
+        let restored=try requireState(await service.load(npub:npub))
+        XCTAssertEqual(restored.totalXP,150);XCTAssertEqual(restored.lessonWork?["fr:"+lesson.id]?.status,.completed)
+    }
     func testFinalQuizRestoresQuestionAndCountsAssessmentsAndLessonRewardOnce() async throws {
         let (service,db,npub)=try context();try await seed(db,npub)
         let levels=try ContentLibrary.load([String:[LearningUnit]].self,name:"curriculum-fr"),lesson=try XCTUnwrap(levels["Pre-A1"]?.flatMap(\.lessons).first { $0.isFinalQuiz == true })
@@ -54,6 +269,83 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
         var newer=state;var edited=run;XCTAssertTrue(edited.drop(0));newer.saveExploration(edited)
         XCTAssertTrue(LearnerState.rebased(current:newer,sent:state,acknowledged:restored).explorationRuns?["es"]?.inventory.isEmpty ?? false)
     }
+    func testJourneyEncryptedRecordingsUseCanonicalFirestoreAndRejectExpiredOrDuplicateSaves()async throws {
+        let (_,db,npub)=try context();try await seed(db,npub)
+        let ref=db.collection("users").document(npub).collection("voiceJourney").document("fr")
+        try await ref.setData(["completedQuests":5,"foreignJourneyField":"preserve","recordings":[:]])
+        let store=VoiceJourneyStore(database:db),key=Data(repeating:7,count:32),nonce=Data(repeating:8,count:12)
+        let payload:JSONValue = .object(["audio":.string(MemoryDrawerFixture.audio().base64EncodedString()),"mimeType":.string("audio/wav"),"duration":.number(1.5),"prompt":.string("Bonjour"),"support":.string("independent")])
+        let ciphertext=try JourneyCryptography.seal(payload,key:key,nonce:nonce,account:npub,target:"fr",milestone:5),envelope=JourneyEnvelope(wrappedKey:"public-test-wrapper",iv:nonce,ciphertext:ciphertext)
+        do {try await store.save(envelope,account:npub,target:"fr",milestone:1);XCTFail("Expired milestone accepted")}catch{}
+        try await store.acknowledge(account:npub,target:"fr",milestone:1)
+        try await store.acknowledge(account:npub,target:"fr",milestone:5)
+        let acknowledged=try await ref.getDocument(source:.server).data() ?? [:]
+        XCTAssertEqual(acknowledged["lastPromptedMilestone"] as? Int,5)
+        try await store.save(envelope,account:npub,target:"fr",milestone:5)
+        do {try await store.save(envelope,account:npub,target:"fr",milestone:5);XCTFail("Duplicate recording accepted")}catch{}
+        let loaded=try await store.load(account:npub,target:"fr",milestone:5)
+        XCTAssertEqual(try JourneyCryptography.open(loaded,key:key,account:npub,target:"fr",milestone:5),payload)
+        let saved=try await ref.getDocument(source:.server).data() ?? [:],raw=try await ref.collection("recordings").document("5").getDocument(source:.server).data() ?? [:]
+        XCTAssertEqual(saved["completedQuests"] as? Int,5);XCTAssertEqual(saved["lastPromptedMilestone"] as? Int,5);XCTAssertEqual(saved["foreignJourneyField"] as? String,"preserve")
+        XCTAssertEqual(Set(raw.keys),Set(["version","wrappedKey","iv","ciphertext"]));XCTAssertNil(raw["audio"])
+        try await store.delete(account:npub,target:"fr",milestone:5)
+        let removed=try await ref.getDocument(source:.server).data() ?? [:],clip=try await ref.collection("recordings").document("5").getDocument(source:.server)
+        XCTAssertFalse(clip.exists);XCTAssertTrue((removed["recordings"] as? [String:Any])?.isEmpty == true);XCTAssertEqual(removed["completedQuests"] as? Int,5)
+    }
+    func testMemoryLocalizationRetainsConcurrentLifecycleForeignTimestampAndXPOnRetry()async throws {
+        let (service,db,npub)=try context();try await seed(db,npub)
+        var state=try requireState(await service.load(npub:npub));state.captureMemory(mode:"grammar",concept:"salutation",answer:"bad",expected:"bonjour",feedback:"")
+        state=try requireState(await service.save(state,npub:npub));let note=try XCTUnwrap(state.companionMemory?["fr"]?.first),ref=db.collection("users").document(npub).collection("companion").document("fr"),timestamp=Timestamp(date:Date(timeIntervalSince1970:1_700_000_000))
+        let before=try await ref.getDocument(source:.server)
+        var raw=try XCTUnwrap(before.data()?["notes"] as? [[String:Any]])
+        raw[0]["status"]="reinforced";raw[0]["severity"]=4;raw[0]["foreignTimestamp"]=timestamp;raw[0]["foreignNested"]=["date":timestamp,"keep":true]
+        try await ref.setData(["notes":raw,"foreignRoot":timestamp],merge:true)
+        state.localizeMemory(note,fields:.object(["mistake":.string("Un saludo"),"correction":.string("bonjour"),"tip":.string("Saluda primero")]),support:"es")
+        _=try await service.save(state,npub:npub);_=try await service.save(state,npub:npub)
+        let saved=try await ref.getDocument(source:.server).data() ?? [:],notes=try XCTUnwrap(saved["notes"] as? [[String:Any]]),root=try await db.collection("users").document(npub).getDocument(source:.server).data() ?? [:]
+        XCTAssertEqual(notes[0]["tip"] as? String,"Saluda primero");XCTAssertEqual(notes[0]["status"] as? String,"reinforced");XCTAssertEqual(notes[0]["severity"] as? Int,4);XCTAssertEqual(notes[0]["foreignTimestamp"] as? Timestamp,timestamp);XCTAssertEqual((notes[0]["foreignNested"] as? [String:Any])?["date"] as? Timestamp,timestamp);XCTAssertEqual(saved["foreignRoot"] as? Timestamp,timestamp);XCTAssertEqual(root["xp"] as? Int,150)
+    }
+    func testConcurrentSettingsPreserveVoiceForeignValuesXPAndNewerOfflineEdits()async throws {
+        let(service,db,npub)=try context();try await seed(db,npub)
+        let ref=db.collection("users").document(npub),timestamp=Timestamp(date:Date(timeIntervalSince1970:1_700_000_000))
+        try await ref.setData(["themeMode":"dark","progress":["tutorVoice":"Aoede","foreignTimestamp":timestamp,"foreignBytes":Data([1,2,3])]],merge:true)
+        var a=try requireState(await service.load(npub:npub)),b=a
+        a.changeSettings(.object(["tutorVoice":.string("cedar"),"tutorVoicePersona":.string("A calm guide")]))
+        b.changeSettings(.object(["pauseMs":.number(800)]))
+        async let first=service.save(a,npub:npub),second=service.save(b,npub:npub);_=try await(first,second)
+        _=try await service.save(a,npub:npub);_=try await service.save(b,npub:npub)
+        let result=try requireState(await service.load(npub:npub)),fields=try await ref.getDocument(source:.server).data() ?? [:],progress=fields["progress"] as? [String:Any] ?? [:]
+        XCTAssertEqual(result.settingsSnapshot["progress"]["tutorVoice"],.string("cedar"));XCTAssertEqual(result.tutorPauseMilliseconds,800);XCTAssertEqual(result.settingsSnapshot["progress"]["tutorVoicePersona"],.string("A calm guide"));XCTAssertEqual(result.settingsSnapshot["themeMode"],.string("dark"));XCTAssertEqual(result.totalXP,150)
+        XCTAssertEqual(progress["foreignTimestamp"] as? Timestamp,timestamp);XCTAssertEqual(progress["foreignBytes"] as? Data,Data([1,2,3]));XCTAssertEqual(fields["patreonVerified"] as? Bool,true)
+        let snapshot=try JSONDecoder().decode(LearnerState.self,from:Data(try XCTUnwrap(fields["iosStateJSON"] as? String).utf8));XCTAssertNil(snapshot.userSettings);XCTAssertTrue(snapshot.pendingSettingsChanges?.isEmpty == true)
+    }
+    func testOfflineGeminiVoiceAndVolumeRetryPreserveCanonicalProgressAndUnknownTypes()async throws {
+        let(service,db,npub)=try context();try await seed(db,npub)
+        let ref=db.collection("users").document(npub),stamp=Timestamp(date:Date(timeIntervalSince1970:1_700_000_000))
+        try await ref.setData(["progress":["foreignTimestamp":stamp]],merge:true)
+        var state=try requireState(await service.load(npub:npub));state.changeSettings(.object(["tutorVoice":.string("Charon")]),provider:"gemini");state.changeSettings(.object(["tutorVolume":.number(0.6)]),provider:"gemini")
+        let restored=try JSONDecoder().decode(LearnerState.self,from:JSONEncoder().encode(state));_=try await service.save(restored,npub:npub);_=try await service.save(restored,npub:npub)
+        let result=try requireState(await service.load(npub:npub)),fields=try await ref.getDocument(source:.server).data() ?? [:]
+        XCTAssertEqual(result.settingsSnapshot["progress"]["tutorVoice"],.string("Charon"));XCTAssertEqual(result.settingsSnapshot["tutorVolume"],.number(0.6));XCTAssertEqual(result.totalXP,150);XCTAssertEqual(fields["patreonVerified"] as? Bool,true);XCTAssertEqual((fields["progress"] as? [String:Any])?["foreignTimestamp"] as? Timestamp,stamp)
+    }
+    func testRPGMusicRetryPreservesCanonicalXPAndForeignSettings()async throws {
+        let(service,db,npub)=try context();try await seed(db,npub)
+        let ref=db.collection("users").document(npub),stamp=Timestamp(date:Date(timeIntervalSince1970:1_700_000_000))
+        try await ref.setData(["progress":["foreignTimestamp":stamp],"foreignRoot":stamp],merge:true)
+        var state=try requireState(await service.load(npub:npub));state.changeSettings(.object(["rpgMusicEnabled":.bool(true),"rpgMusicPreferenceVersion":.number(2)]))
+        let restored=try JSONDecoder().decode(LearnerState.self,from:JSONEncoder().encode(state));_=try await service.save(restored,npub:npub);_=try await service.save(restored,npub:npub)
+        let result=try requireState(await service.load(npub:npub)),fields=try await ref.getDocument(source:.server).data() ?? [:]
+        XCTAssertEqual(result.settingsSnapshot["rpgMusicEnabled"],.bool(true));XCTAssertEqual(result.settingsSnapshot["rpgMusicPreferenceVersion"],.number(2));XCTAssertEqual(result.totalXP,150);XCTAssertEqual(fields["patreonVerified"] as? Bool,true);XCTAssertEqual(fields["foreignRoot"] as? Timestamp,stamp);XCTAssertEqual((fields["progress"] as? [String:Any])?["foreignTimestamp"] as? Timestamp,stamp)
+    }
+    func testWalletRecipientAndCreatedFlagRetriesPreserveForeignProgressAndEntitlement()async throws {
+        let(service,db,npub)=try context();try await seed(db,npub)
+        let ref=db.collection("users").document(npub),stamp=Timestamp(date:Date(timeIntervalSince1970:1_700_000_000)),recipient=WalletContract.defaultRecipient
+        try await ref.setData(["identity":"old-recipient","progress":["foreignTimestamp":stamp],"foreignRoot":stamp],merge:true)
+        var state=try requireState(await service.load(npub:npub));state.changeSettings(.object(["identity":.string(recipient)]));state.changeSettings(.object(["createdWallet":.bool(true),"tutorialBitcoinModalShown":.bool(true)]))
+        let restored=try JSONDecoder().decode(LearnerState.self,from:JSONEncoder().encode(state));_=try await service.save(restored,npub:npub);_=try await service.save(restored,npub:npub)
+        let result=try requireState(await service.load(npub:npub)),fields=try await ref.getDocument(source:.server).data() ?? [:]
+        XCTAssertEqual(result.settingsSnapshot["identity"],.string(recipient));XCTAssertEqual(result.settingsSnapshot["createdWallet"],.bool(true));XCTAssertEqual(fields["identity"] as? String,recipient);XCTAssertEqual(fields["createdWallet"] as? Bool,true);XCTAssertEqual(result.settingsSnapshot["tutorialBitcoinModalShown"],.bool(true));XCTAssertEqual(fields["tutorialBitcoinModalShown"] as? Bool,true);XCTAssertEqual(result.totalXP,150);XCTAssertEqual(fields["patreonVerified"] as? Bool,true);XCTAssertEqual(fields["foreignRoot"] as? Timestamp,stamp);XCTAssertEqual((fields["progress"] as? [String:Any])?["foreignTimestamp"] as? Timestamp,stamp)
+    }
     private func context() throws -> (FirebaseService,Firestore,String) {
         guard ProcessInfo.processInfo.environment["PIYALI_FIRESTORE_EMULATOR_TESTS"] == "1" else { throw XCTSkip("Run with the local Firestore emulator and TEST_RUNNER_PIYALI_FIRESTORE_EMULATOR_TESTS=1.") }
         let name = "PiyaliContractEmulator"
@@ -64,7 +356,9 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
             FirebaseApp.configure(name:name,options:options)
             let database = Firestore.firestore(app:FirebaseApp.app(name:name)!)
             // Set the local host before disabling SSL: Firestore rejects SSL=false on its default production host.
-            database.useEmulator(withHost:"127.0.0.1",port:8180)
+            let port=Int(ProcessInfo.processInfo.environment["PIYALI_FIRESTORE_EMULATOR_PORT"] ?? "8180") ?? 8180
+            guard (1024...65535).contains(port)else{throw AppError.message("Invalid local emulator port.")}
+            database.useEmulator(withHost:"127.0.0.1",port:port)
             let settings = database.settings; settings.cacheSettings = MemoryCacheSettings(); settings.isSSLEnabled = false; database.settings = settings
         }
         let database = Firestore.firestore(app:FirebaseApp.app(name:name)!)
@@ -320,8 +614,12 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
         let decks=try ContentLibrary.load([String:[JSONValue]].self,name:"phonics")
         let cards=try XCTUnwrap(decks["fr:es:Pre-A1"])
         XCTAssertFalse(cards.isEmpty)
-        for card in cards { state.award(5,source:.phonics,contentID:card["id"].string) }
+        // Finish migration first: incremental phonicsAttempt sync must load the canonical evidence too.
+        state=try requireState(try await service.save(state,npub:npub))
+        for card in cards { state.attemptPhonics(card:card,grade:.init(correct:true,xp:2)) }
         let saved=try requireState(try await service.save(state,npub:npub))
+        XCTAssertEqual(saved.totalXP,150+cards.count*2)
+        XCTAssertEqual(saved.plateProgress["phonicsDailyActivity"]["fr"][CalendarDay.key(Date())].number,0)
         XCTAssertGreaterThan(saved.achievementRecords?["nosabos_phonics_decks_1"]?["unlockedAt"].number ?? 0,0)
         XCTAssertGreaterThan(saved.achievementRecords?["nosabos_phonics_cards_all"]?["unlockedAt"].number ?? 0,0)
         _=try await service.save(state,npub:npub)
@@ -434,6 +732,7 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
     }
     func testPlacementSeedsBeforeOfflinePracticeAndPreservesEarnedScoreOnRetake() async throws {
         let (service,db,npub) = try context()
+        try await db.collection("users").document(npub).setData(["local_npub":npub,"foreignWriter":"preserve","membership":["active":true],"proficiencyPlacements":["fr":"A1"]])
         var state = LearnerState(); state.onboardingComplete = true; state.preferencesModifiedAt = Date()
         state.place(PlacementAssessment.estimate(["read_write"])!)
         state.assess(correct:true,independent:true)
@@ -450,6 +749,9 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
         XCTAssertEqual(retaken.rating,expected,accuracy:0.0001)
         let fields = try await db.collection("users").document(npub).getDocument().data() ?? [:]
         XCTAssertEqual((fields["proficiencyPlacements"] as? [String:String])?["es"],"C1")
+        XCTAssertEqual((fields["proficiencyPlacements"] as? [String:String])?["fr"],"A1")
+        XCTAssertEqual(fields["proficiencyPlacement"] as? String,"C1");XCTAssertEqual(fields["proficiencyModalShown"] as? Bool,true)
+        XCTAssertEqual(fields["foreignWriter"] as? String,"preserve");XCTAssertEqual((fields["membership"] as? [String:Any])?["active"] as? Bool,true)
         XCTAssertEqual((fields["progress"] as? [String:Any])?["languageXp"] as? [String:Int], ["es":0])
     }
     func testPlacementAndCourseSummaryRestoreWithoutGrantingCompletion() async throws {
@@ -462,6 +764,41 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
         XCTAssertEqual(state.placements?["fr"]?.level,"B1"); XCTAssertNil(state.placements?["es"])
         XCTAssertEqual(state.courseCompletion?["fr"]?["skillTree"]?["Pre-A1"],86)
         XCTAssertTrue(state.completed.isEmpty); XCTAssertTrue(state.flashcardMastery.isEmpty)
+    }
+    func testOnboardingGoalsForEveryChosenLanguageSurviveConcurrentRetryAndKeepMembership() async throws {
+        let (service,db,npub)=try context(),user=db.collection("users").document(npub)
+        try await user.setData(["membership":["active":true],"learningIntelligence":["it":["activeGoal":["id":"untouched","text":"Visit my friend","status":"active"]]]])
+        var state=LearnerState();state.name="Onboarding learner"
+        state.completeOnboarding(OnboardingDraft(support:"fr",target:"fr",learningGoals:["es":"Talk with family","fr":"Order in a cafe","en":" "]))
+        async let first=service.save(state,npub:npub),second=service.save(state,npub:npub);_=try await(first,second)
+        _=try await service.save(state,npub:npub)
+        let restored=try requireState(await service.load(npub:npub)),fields=try await user.getDocument().data() ?? [:]
+        XCTAssertTrue(restored.onboardingComplete);XCTAssertEqual(restored.support,"fr");XCTAssertEqual(restored.target,"fr");XCTAssertEqual(restored.goal,"Order in a cafe")
+        XCTAssertEqual(restored.goalIntelligence?["es"]?["activeGoal"]["text"].string,"Talk with family");XCTAssertEqual(restored.goalIntelligence?["it"]?["activeGoal"]["id"].string,"untouched");XCTAssertNil(restored.goalIntelligence?["en"])
+        XCTAssertEqual(restored.totalXP,0);XCTAssertNil(restored.placements);XCTAssertEqual((fields["membership"] as? [String:Any])?["active"] as? Bool,true)
+    }
+    func testPaperAndSetupPartialAcknowledgmentsPreserveForeignFieldsAndConvergeWithStaleDevice()async throws{
+        let(service,db,npub)=try context();try await seed(db,npub);let user=db.collection("users").document(npub)
+        try await user.setData(["membership":["active":true],"proficiencyPlacements":["fr":"A1"],"foreignWriter":"preserve"],merge:true)
+        let stale=try requireState(await service.load(npub:npub)),before=try await user.getDocument(source:.server).data() ?? [:]
+        try await service.saveFirstRunAcknowledgment(.paperPencil,npub:npub);try await service.saveFirstRunAcknowledgment(.gettingStarted,npub:npub)
+        let partial=try await user.getDocument(source:.server).data() ?? [:]
+        XCTAssertEqual(partial["paperPencilModalShown"]as?Bool,true);XCTAssertEqual(partial["gettingStartedModalShown"]as?Bool,true);XCTAssertEqual(partial["xp"]as?Int,before["xp"]as?Int);XCTAssertEqual(partial["iosStateJSON"]as?String,before["iosStateJSON"]as?String);XCTAssertNotNil(partial["updatedAt"]as?String)
+        _=try await service.save(stale,npub:npub);let restored=try requireState(await service.load(npub:npub)),fields=try await user.getDocument(source:.server).data() ?? [:]
+        XCTAssertTrue(restored.paperPencilModalShown == true);XCTAssertTrue(restored.gettingStartedModalShown == true);XCTAssertEqual(restored.totalXP,stale.totalXP);XCTAssertEqual(restored.placements?["fr"]?.level,"A1");XCTAssertEqual(fields["foreignWriter"]as?String,"preserve");XCTAssertEqual(fields["patreonVerified"]as?Bool,true);XCTAssertEqual((fields["membership"]as?[String:Any])?["active"]as?Bool,true)
+        // An offline acknowledgment also uploads through the ordinary durable save path.
+        let(_,_,other)=try context();var offline=LearnerState();offline.paperPencilModalShown=true;_=try await service.save(offline,npub:other);let retried=try requireState(await service.load(npub:other));XCTAssertTrue(retried.paperPencilModalShown == true)
+    }
+    func testGettingStartedAcknowledgmentSurvivesStaleDeviceAndKeepsPlacementMembershipAndXP() async throws {
+        let (service,db,npub)=try context();try await seed(db,npub)
+        let user=db.collection("users").document(npub)
+        try await user.setData(["membership":["active":true],"proficiencyPlacements":["fr":"A1"]],merge:true)
+        let stale=try requireState(await service.load(npub:npub));var seen=stale;seen.gettingStartedModalShown=true
+        async let first=service.save(seen,npub:npub),second=service.save(stale,npub:npub);_=try await(first,second)
+        _=try await service.save(stale,npub:npub)
+        let restored=try requireState(await service.load(npub:npub)),fields=try await user.getDocument().data() ?? [:]
+        XCTAssertTrue(restored.gettingStartedModalShown == true);XCTAssertEqual(fields["gettingStartedModalShown"] as? Bool,true)
+        XCTAssertEqual(restored.totalXP,stale.totalXP);XCTAssertEqual(restored.placements?["fr"]?.level,"A1");XCTAssertEqual((fields["membership"] as? [String:Any])?["active"] as? Bool,true)
     }
     func testFirstGoalUploadInitializesCanonicalProfile() async throws {
         let (service,db,npub) = try context()
@@ -540,11 +877,16 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
         state = try requireState(try await service.save(state,npub:npub))
         let payload = blueprint.setting("mode",.string("flashcards")).setting("cardID",card["id"]).setting("success",.bool(true)).setting("support",.string("prompted")).setting("item",.string("soupe"))
         state.applyGoal(GoalChange(action:.outcome,target:state.target,payload:payload))
+        XCTAssertFalse(state.displayedGoalArtifact(blueprint,mode:"flashcards")["outcomes"]["goal-card"]["success"].boolean)
         let sent = state
         state = try requireState(try await service.save(state,npub:npub)); _ = try await service.save(sent,npub:npub)
         XCTAssertEqual(state.xp,102)
         let key = GoalPractice.artifactKey(target:"fr",day:day,mode:"flashcards",goalID:blueprint["goalId"].string)
         XCTAssertTrue(state.goalArtifacts?[key]?["outcomes"]["goal-card"]["success"].boolean == true)
+        XCTAssertTrue(state.displayedGoalArtifact(blueprint,mode:"flashcards")["outcomes"]["goal-card"]["success"].boolean)
+        let profile=try await db.collection("users").document(npub).getDocument(source:.server).data() ?? [:]
+        let privateSnapshot=try JSONDecoder().decode(LearnerState.self,from:Data(try XCTUnwrap(profile["iosStateJSON"] as? String).utf8))
+        XCTAssertNil(privateSnapshot.confirmedFocusedOutcomes)
         XCTAssertFalse(state.dailyGoalTask?["completed"].boolean == true)
         let artifact = try await db.collection("users").document(npub).collection("questDays").document("fr_" + day).getDocument().data() ?? [:]
         XCTAssertEqual((artifact["practice_flashcards_goal"] as? [String:Any])?["ownerKey"] as? String,key)
@@ -707,14 +1049,20 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
         let (service,db,npub)=try context();try await seed(db,npub)
         var base=try requireState(try await service.load(npub:npub));base.target="es";base.support="en";base.level="A1";base.preferencesModifiedAt=Date()
         let payload=try ContentLibrary.load(JSONValue.self,name:"story-test-episode"),lines=payload["segments"].array.flatMap { $0["turns"].array }
-        let spoken=try StoryRun(payload:.object(["title":payload["title"],"sentences":.array(lines+lines)]),mode:.speaking,target:"es",support:"en",level:"A1",lessonID:nil,worth:ConversationPractice.worth(rating:base.rating,level:"A1"))
+        var spoken=try StoryRun(payload:.object(["title":payload["title"],"sentences":.array(Array((lines+lines).prefix(10)))]),mode:.speaking,target:"es",support:"en",level:"A1",lessonID:nil,worth:ConversationPractice.worth(rating:base.rating,level:"A1"))
+        let questions=spoken.sentences.map { JSONValue.object(["sentence":.string($0.target),"task":.string("Understand and pronounce this sentence")]) }
+        let scores=(0..<questions.count).map { JSONValue.number($0 == 0 ? 0 : 100) }
+        spoken.sentenceWorths=try PracticeRecipes().story("batchWorth",parameters:.object(["questions":.array(questions),"user":base.recipeUser,"targetLang":.string("es"),"questionLevel":.string("A1"),"raw":.object(["difficultyScores":.array(scores)])])).array
+        spoken.lessonLevel="A1";spoken.sourceContext="canonical-lesson-context";spoken.portraitIDs=["Ana":"25","Luis":"6"]
         base.saveStory(spoken);var first=base,second=base
         XCTAssertEqual(first.practiceStoryLine(words:spoken.sentences[0].target,typed:true),2);XCTAssertEqual(second.practiceStoryLine(words:spoken.sentences[0].target,typed:true),2)
         async let one=service.save(first,npub:npub);async let two=service.save(second,npub:npub);_=try await (one,two)
         var restored=try requireState(try await service.load(npub:npub));XCTAssertEqual(restored.totalXP,152);XCTAssertEqual(restored.gradedByLanguage?["es"],1)
+        XCTAssertEqual(restored.story?.sourceContext,spoken.sourceContext);XCTAssertEqual(restored.story?.portraitIDs,spoken.portraitIDs);XCTAssertEqual(restored.story?.lessonLevel,"A1");XCTAssertEqual(restored.story?.sentenceWorths,spoken.sentenceWorths)
+        XCTAssertEqual(restored.rating,ConversationPractice.rating(base.rating,level:"A1",success:true,worth:spoken.sentenceWorths![0]),accuracy:1e-8)
         let spokenProofs=try await db.collection("users").document(npub).collection("storyTurns").getDocuments(source:.server);XCTAssertEqual(spokenProofs.count,1)
         let fresh=try StoryRun(payload:payload,mode:.radio,target:"es",support:"en",level:"A1",lessonID:nil,worth:.null)
-        var a=fresh;a.index=a.count;a.results=["0":true,"1":true];var b=a;b.results=["0":false,"1":false]
+        var a=fresh;a.index=a.count;a.results=Dictionary(uniqueKeysWithValues:(0..<a.count).map { (String($0),true) });var b=a;b.results=Dictionary(uniqueKeysWithValues:(0..<b.count).map { (String($0),false) })
         first=restored;second=restored;first.saveStory(a);second.saveStory(b);XCTAssertEqual(first.finishStory(),6);XCTAssertEqual(second.finishStory(),6)
         let pendingFirst=first,pendingSecond=second
         async let three=service.save(pendingFirst,npub:npub);async let four=service.save(pendingSecond,npub:npub);_=try await (three,four)
@@ -743,4 +1091,372 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
         let root=try await db.collection("users").document(npub).getDocument(source:.server);XCTAssertEqual(root.data()?["patreonVerified"] as? Bool,true)
     }
 
+    func testReadingSpeechCardsPersistWithOnePracticeReceipt() async throws {
+        let (service,db,npub)=try context();try await seed(db,npub)
+        var base=try requireState(try await service.load(npub:npub));base.target="es";base.support="en";base.level="A1";base.preferencesModifiedAt=Date()
+        let payload=try ContentLibrary.load(JSONValue.self,name:"reading-test-passage"),feedback=try XCTUnwrap(ReadingSpeechFeedback(payload["speechFeedback"]))
+        var reading=try ReadingRun(payload:payload,target:"es",support:"en",level:"A1",lessonID:nil,selection:.null,worth:.null,roll:0.7);reading.method="speech";base.saveReading(reading)
+        let transcript=String(repeating:"Una frase del párrafo. ",count:220)+"Últimas palabras."
+        var a=base,b=base
+        XCTAssertGreaterThan(transcript.count,4000)
+        XCTAssertEqual(a.reviewReading(answer:transcript,correct:true,feedback:feedback.summary,speech:true,speechFeedback:feedback),7)
+        XCTAssertEqual(b.reviewReading(answer:transcript,correct:true,feedback:feedback.summary,speech:true,speechFeedback:feedback),7)
+        async let one=service.save(a,npub:npub);async let two=service.save(b,npub:npub);_=try await (one,two)
+        _=try await service.save(a,npub:npub)
+        let restored=try requireState(try await service.load(npub:npub));XCTAssertEqual(restored.totalXP,157);XCTAssertEqual(restored.rating,base.rating);XCTAssertEqual(restored.gradedByLanguage?["es"] ?? 0,0);XCTAssertEqual(restored.reading?.speechFeedback,feedback);XCTAssertEqual(restored.reading?.answer,transcript)
+        let records=try await db.collection("users").document(npub).collection("readingTurns").getDocuments(source:.server);XCTAssertEqual(records.count,1);XCTAssertEqual(JSONValue.foundation(records.documents.first?.data()["speechFeedback"] ?? [:]),feedback.value)
+        let root=try await db.collection("users").document(npub).getDocument(source:.server);XCTAssertEqual(root.data()?["patreonVerified"] as? Bool,true)
+    }
+
+}
+
+extension FirestoreContractTests {
+    func testSourceTutorOwnXPCapPrivateDraftQuizResetAndCompletionSurviveRetriesBeyondTrial()async throws {
+        let (service,db,npub)=try context();try await seed(db,npub);let user=db.collection("users").document(npub)
+        try await user.updateData(["xp":298,"progress.totalXp":298,"progress.languageXp.fr":248])
+        let curriculum=try ContentLibrary.load([String:[LearningUnit]].self,name:"tutor-curriculum-fr"),lesson=try XCTUnwrap(curriculum["Pre-A1"]?.first?.lessons.first),reference=user.collection("tutorLanguageLessons").document("fr_"+lesson.id),foreignDate=Timestamp(date:Date(timeIntervalSince1970:1792800000))
+        try await reference.setData(["lessonId":lesson.id,"targetLang":"fr","cefrLevel":"Pre-A1","status":"in_progress","earnedXp":47,"foreignDate":foreignDate,"foreignField":["keep":true],"tutorAgendaProgress":["schemaVersion":2,"items":["old":true],"quiz":["correctItems":["old":true],"attemptNumber":1]]])
+        var state=try requireState(await service.load(npub:npub));XCTAssertEqual(state.totalXP,298)
+        let draft:JSONValue = .object(["version":.number(1),"messages":.array([.object(["id":.string("public-assistant"),"role":.string("assistant"),"text":.string("Bonjour"),"ts":.number(1792800000000)])])])
+        state.storeTutorState(lesson:lesson,data:.object(["kind":.string("start"),"draft":draft,"agenda":.object([:]),"replaceAgenda":.bool(true),"quiz":.object(["correctItems":.object([:]),"attemptNumber":.number(2)])]))
+        let stale=state;_=try await service.save(state,npub:npub);state=try requireState(await service.load(npub:npub))
+        XCTAssertEqual(state.tutorProgress(lesson.id).earnedXP,47);XCTAssertTrue(state.tutorProgress(lesson.id).items.isEmpty);XCTAssertEqual(state.tutorProgress(lesson.id).sourceState?["conversationDraft"]["version"].number,1);XCTAssertEqual(state.tutorProgress(lesson.id).sourceState?["tutorAgendaProgress"]["quiz"]["attemptNumber"].number,2)
+        state.sourceTutorTurn(lesson:lesson,required:50,agenda:.object(["hello":.bool(true)]),xp:7);XCTAssertEqual(state.totalXP,305);XCTAssertEqual(state.tutorProgress(lesson.id).earnedXP,50);XCTAssertTrue(state.completeSourceTutor(lesson:lesson,required:50,ready:true));let sent=state
+        _=try await service.save(sent,npub:npub);_=try await service.save(sent,npub:npub);_=try await service.save(stale,npub:npub)
+        let final=try requireState(await service.load(npub:npub)),data=try await reference.getDocument(source:.server).data() ?? [:],root=try await user.getDocument(source:.server).data() ?? [:],day=CalendarDay.key(Date())
+        XCTAssertEqual(final.totalXP,355);XCTAssertEqual(final.tutorProgress(lesson.id).earnedXP,50);XCTAssertTrue(final.completed.contains(final.tutorKey(lesson.id)));XCTAssertFalse(final.completed.contains(final.completionKey(lesson.id)));XCTAssertEqual(final.plateProgress["speakDailyActivity"]["fr"][day].number,1);XCTAssertEqual(final.plateProgress["lessonDailyActivity"]["fr"][day].number,0)
+        XCTAssertEqual(data["status"] as? String,"completed");XCTAssertNil(data["conversationDraft"]);XCTAssertNil(data["tutorAgendaProgress"]);XCTAssertEqual(data["foreignDate"] as? Timestamp,foreignDate);XCTAssertEqual((data["foreignField"] as? [String:Bool])?["keep"],true);XCTAssertTrue((root["progress"] as? [String:Any])?["currentTutorLesson"] is NSNull);XCTAssertEqual(root["unrelatedWebSetting"] as? String,"preserve");XCTAssertEqual(final.courseCompletion?["fr"]?["tutor"]?["Pre-A1"],1)
+    }
+}
+
+extension FirestoreContractTests {
+    func testTutorSummaryUnlockAndCompletedReviewPreserveCanonicalWorkAcrossStaleDevices()async throws {
+        let (service,db,npub)=try context();try await seed(db,npub);let user=db.collection("users").document(npub),summary=user.collection("courseProgress").document("fr")
+        try await summary.setData(["tutor":["levels":["b1":["completed":105,"total":105],"pre_a1":["completed":0,"total":86]]]])
+        var state=try requireState(await service.load(npub:npub));XCTAssertEqual(state.earnedTutorLevel(index:[:]),"B2");XCTAssertEqual(state.tutorLevel,"A1");XCTAssertNil(state.courseCompletion?["fr"]?["tutor"]?["A1"])
+        _=try await service.save(state,npub:npub)
+        var root=try await user.getDocument(source:.server).data() ?? [:]
+        XCTAssertEqual(((root["progress"] as? [String:Any])?["tutorUnlockedLevels"] as? [String:String])?["fr"],"B2")
+        let stale=state
+        try await user.updateData(["progress.tutorUnlockedLevels.fr":"C1","progress.tutorUnlockedLevels.ja":"B1"])
+        _=try await service.save(stale,npub:npub);_=try await service.save(stale,npub:npub)
+        root=try await user.getDocument(source:.server).data() ?? [:]
+        XCTAssertEqual((root["progress"] as? [String:Any])?["tutorUnlockedLevels"] as? [String:String],["fr":"C1","ja":"B1"])
+        let curriculum=try ContentLibrary.load([String:[LearningUnit]].self,name:"tutor-curriculum-fr"),lesson=try XCTUnwrap(curriculum["A1"]?.first?.lessons.first),reference=user.collection("tutorLanguageLessons").document("fr_"+lesson.id)
+        let date=Timestamp(date:Date(timeIntervalSince1970:1792800000))
+        try await reference.setData(["lessonId":lesson.id,"targetLang":"fr","cefrLevel":"A1","status":"completed","earnedXp":50,"completedAt":date,"foreignDate":date])
+        state=try requireState(await service.load(npub:npub));let xp=state.totalXP
+        state.sourceTutorReview(lesson:lesson,xp:5);_=try await service.save(state,npub:npub);_=try await service.save(state,npub:npub)
+        let restored=try requireState(await service.load(npub:npub)),record=try await reference.getDocument(source:.server).data() ?? [:]
+        XCTAssertEqual(restored.totalXP,xp+5);XCTAssertEqual(restored.tutorProgress(lesson.id).earnedXP,50)
+        XCTAssertEqual(record["status"] as? String,"completed");XCTAssertEqual(record["completedAt"] as? Timestamp,date);XCTAssertEqual(record["foreignDate"] as? Timestamp,date);XCTAssertNil(record["tutorAgendaProgress"]);XCTAssertNil(record["conversationDraft"])
+        XCTAssertEqual(restored.courseCompletion?["fr"]?["tutor"]?["B1"],105);XCTAssertEqual(restored.courseCompletion?["fr"]?["tutor"]?["A1"],0,"The achievement migration creates a real zero count, preserved by review")
+        XCTAssertEqual(restored.tutorUnlockedLevels?["fr"],"C1");XCTAssertEqual(restored.plateProgress["speakDailyActivity"]["fr"][CalendarDay.key(Date())].number,0)
+    }
+}
+
+extension FirestoreContractTests {
+    func testFocusedTutorTurnsGoalCompletionAndRepairBonusNeverWriteTheRegularTutorPath()async throws {
+        let (service,db,npub)=try context();try await seed(db,npub);let user=db.collection("users").document(npub),day=CalendarDay.key(Date()),ordinary=user.collection("tutorLanguageLessons").document("fr_lesson-tutorial-1"),stamp=Timestamp(date:Date(timeIntervalSince1970:1792800000))
+        try await user.updateData(["progress.currentTutorLesson":"lesson-tutorial-1"])
+        try await ordinary.setData(["lessonId":"lesson-tutorial-1","targetLang":"fr","cefrLevel":"Pre-A1","status":"in_progress","earnedXp":9,"foreignDate":stamp,"conversationDraft":["version":1,"messages":[]]])
+        var state=try requireState(await service.load(npub:npub));state.editGoal("Order coffee");let bp:JSONValue = .object(["goalId":state.goalBucket["activeGoal"]["id"],"goalText":.string("Order coffee"),"dayKey":.string(day),"lang":.string("fr"),"mode":.string("tutor"),"modes":.array([.string("tutor"),.string("lesson")]),"modeTargets":.object(["tutor":.number(25),"lesson":.number(20)]),"cefrLevel":.string("A1"),"objective":.string("Order a coffee politely"),"scenario":.string("At a cafe"),"targetLanguage":.array([.string("Un café, s'il vous plaît")]),"supports":.array([.string("A model is available")]),"successCriteria":.array([.string("Ask for a coffee")])])
+        state.applyGoal(GoalChange(action:.blueprint,target:"fr",payload:bp));state=try requireState(await service.save(state,npub:npub))
+        for _ in 0..<5{state.sourceFocusedTutorTurn(level:"A1",xp:5)}
+        state.applyGoal(GoalChange(action:.attempt,target:"fr",payload:.object(["goalId":bp["goalId"],"dayKey":bp["dayKey"],"mode":.string("tutor"),"success":.bool(true),"support":.string("prompted"),"domain":.string("production"),"observation":.string("Completed 25 XP of goal-specific Tutor practice with successful spoken turns.")])))
+        let sent=state;_=try await service.save(sent,npub:npub);_=try await service.save(sent,npub:npub);state=try requireState(await service.load(npub:npub));XCTAssertEqual(state.totalXP,175);XCTAssertEqual(state.goalBucket["dailyGoal"]["modeProgress"]["tutor"].number,25)
+        let item:JSONValue = .object(["memoryId":.string("greeting"),"concept":.string("A greeting"),"expectedAnswer":.string("Bonjour"),"errorType":.string("conversation_flow"),"cefrLevel":.string("A1")]),plan:JSONValue = .object(["targetLang":.string("fr"),"dayKey":.string(day),"items":.array([item]),"memoryIds":.array([.string("greeting")]),"target":.number(1)])
+        try await user.collection("questDays").document("fr_"+day).setData(["repair":plan.foundation],merge:true);state=try requireState(await service.load(npub:npub));let step=RepairStep(index:0,mode:"tutor",item:item,plan:plan,stepCount:1)
+        state.sourceFocusedTutorTurn(level:"A1",xp:5);XCTAssertTrue(state.completeRepairStep(step,summary:.object([:]),observation:"Produced Bonjour",success:true,bonusXP:12));let repair=state
+        _=try await service.save(repair,npub:npub);_=try await service.save(repair,npub:npub);let final=try requireState(await service.load(npub:npub)),record=try await ordinary.getDocument(source:.server).data() ?? [:],documents=try await user.collection("tutorLanguageLessons").getDocuments(source:.server)
+        XCTAssertEqual(final.totalXP,192);XCTAssertEqual(final.plateProgress["repairDailyActivity"]["fr"][day].number,1);XCTAssertEqual(final.plateProgress["speakDailyActivity"]["fr"][day].number,0);XCTAssertEqual(final.plateProgress["lessonDailyActivity"]["fr"][day].number,0);XCTAssertEqual(final.goalBucket["dailyGoal"]["modeProgress"]["tutor"].number,25)
+        XCTAssertEqual(documents.documents.count,1);XCTAssertEqual(record["status"] as? String,"in_progress");XCTAssertEqual(record["earnedXp"] as? Int,9);XCTAssertEqual(record["foreignDate"] as? Timestamp,stamp);XCTAssertNotNil(record["conversationDraft"]);XCTAssertEqual(final.plateProgress["currentTutorLesson"].string,"lesson-tutorial-1")
+    }
+}
+
+extension FirestoreContractTests {
+    func testOnlyCommittedFreshAwardsDeliverOnceAcrossConcurrentSavesAndRestorationIsQuiet()async throws{
+        let(service,db,_)=try context(),app=AppModel(progressService:service);try app.identity.create();defer{try? app.identity.disconnect()};let npub=app.identity.npub;app.signedIn=true;try await seed(db,npub)
+        var state=try requireState(await service.load(npub:npub));state=try requireState(await service.save(state,npub:npub));app.learner=state;XCTAssertTrue(app.achievementUnlock.queue.isEmpty,"Initial backfill is silent")
+        var delivered:[String]=[];let observer=AchievementSyncService.shared.delivery.sink{event in if event.account == npub{delivered += event.ids}};defer{observer.cancel()}
+        for i in 1...10{state.review(cardID:"a1-confirmed-\(i)",rating:.good)}
+        async let a=service.save(state,npub:npub);async let b=service.save(state,npub:npub);_=try await(a,b)
+        let wanted=["nosabos_flashcards_completed_5","nosabos_flashcards_completed_10"];XCTAssertEqual(delivered,wanted);XCTAssertEqual(app.achievementUnlock.queue.map(\.achievementID),wanted)
+        for item in app.achievementUnlock.queue{app.dismissAchievement(item.id)};let restored=try requireState(await service.load(npub:npub));_=try await service.save(restored,npub:npub);XCTAssertTrue(app.achievementUnlock.queue.isEmpty);XCTAssertEqual(delivered,wanted)
+        let user=db.collection("users").document(npub),id="nosabos_tutor_lessons_5",record:[String:Any]=["unlockedAt":123,"source":"nosabos","catalogVersion":8]
+        let pending=expectation(description:"SDK emitted an optimistic local award snapshot");pending.assertForOverFulfill=false;let listener=user.collection("achievements").addSnapshotListener(includeMetadataChanges:true){snapshot,_ in if let snapshot,snapshot.metadata.hasPendingWrites,snapshot.documents.contains(where:{$0.documentID == id}){pending.fulfill()}};defer{listener.remove()}
+        try await db.disableNetwork();let write=Task{try await user.collection("achievements").document(id).setData(record)}
+        do{await fulfillment(of:[pending],timeout:8);XCTAssertNil(app.learner.achievementRecords?[id]);XCTAssertTrue(app.achievementUnlock.queue.isEmpty);try await db.enableNetwork();try await write.value}catch{try? await db.enableNetwork();throw error}
+        _=try await service.importAchievements(.object([id:.object(["unlockedAt":.number(123),"source":.string("nosabos")])]),npub:npub)
+        XCTAssertTrue(app.achievementUnlock.queue.isEmpty,"External writes/imports restore the transcript without pretending the local learner just earned them");XCTAssertEqual(delivered,wanted)
+        let docs=try await user.collection("achievements").getDocuments(source:.server);XCTAssertTrue(wanted.allSatisfy{key in docs.documents.contains{$0.documentID == key}})
+    }
+}
+
+extension FirestoreContractTests {
+ func testCompanionCustomizationUsesPartialReceiptsKeepsWebPreferencesAndDoesNotReplayOldWrites()async throws{
+  let(service,db,npub)=try context();try await seed(db,npub);let user=db.collection("users").document(npub),date=Timestamp(date:Date(timeIntervalSince1970:1792800000));var state=try requireState(await service.load(npub:npub));let xp=state.totalXP
+  state.customizeCompanion(name:"  Cielo  ",type:"ALIEN");XCTAssertNil(state.preferencesModifiedAt);let pending=state
+  try await user.updateData(["dailyGoalXp":85,"language":"ar","progress.supportLang":"ar","progress.tutorVoice":"Kore","dailyGoalPetName":"Web old","dailyGoalPetType":"ghost","foreignTimestamp":date])
+  _=try await service.save(pending,npub:npub);var restored=try requireState(await service.load(npub:npub)),fields=try await user.getDocument(source:.server).data() ?? [:]
+  XCTAssertEqual(restored.companionName,"Cielo");XCTAssertEqual(restored.companionType,"alien");XCTAssertEqual(restored.dailyGoal,85);XCTAssertEqual(restored.support,"ar");XCTAssertEqual(restored.settingsSnapshot["progress"]["tutorVoice"].string,"Kore");XCTAssertEqual(restored.totalXP,xp);XCTAssertTrue(restored.pendingSettingsChanges?.isEmpty == true);XCTAssertEqual(fields["foreignTimestamp"] as? Timestamp,date);XCTAssertEqual(fields["patreonVerified"] as? Bool,true)
+  try await user.updateData(["dailyGoalPetName":"New web choice","dailyGoalPetType":"ghost"]);_=try await service.save(pending,npub:npub);restored=try requireState(await service.load(npub:npub));XCTAssertEqual(restored.companionName,"New web choice");XCTAssertEqual(restored.companionType,"ghost","A lost acknowledgment retry must not undo a newer web customization")
+  restored.customizeCompanion(name:"",type:"robot");_=try await service.save(restored,npub:npub);fields=try await user.getDocument(source:.server).data() ?? [:];XCTAssertEqual(fields["dailyGoalPetName"] as? String,"");XCTAssertEqual(fields["dailyGoalPetType"] as? String,"ghost","Locked selections fall back to the source starter");XCTAssertEqual(fields["dailyGoalXp"] as? Int,85);XCTAssertEqual(fields["xp"] as? Int,xp)
+  var legacy=restored;legacy.companionCustomizationVersion=nil;legacy.pendingSettingsChanges=[];legacy.preferencesModifiedAt=Date(timeIntervalSince1970:1792800000);legacy.companionName="Legacy offline choice";legacy.companionType="alien"
+  _=try await service.save(legacy,npub:npub);let migrated=try requireState(await service.load(npub:npub));XCTAssertEqual(migrated.companionName,"Legacy offline choice");XCTAssertEqual(migrated.companionCustomizationVersion,1)
+  try await user.updateData(["dailyGoalPetName":"Web after migration"]);_=try await service.save(legacy,npub:npub);let retry=try requireState(await service.load(npub:npub));XCTAssertEqual(retry.companionName,"Web after migration","A lost legacy-migration acknowledgment cannot replay the write under a new receipt")
+ }
+}
+
+
+extension FirestoreContractTests {
+ func testCompanionUnlockFlagsUnionAcrossDevicesAndIgnoreClearsAndRepeatedReceipts()async throws{
+  let(service,db,npub)=try context();try await seed(db,npub);let user=db.collection("users").document(npub),date=Timestamp(date:Date(timeIntervalSince1970:1792800000));try await user.setData(["companionUnlocksCelebrated":["alien":true,"futureCompanion":"preserve"],"dailyGoalPetName":"Cielo","dailyGoalPetType":"ghost","foreignTimestamp":date],merge:true)
+  let baseline=try requireState(await service.load(npub:npub));var a=baseline,b=baseline
+  a.changeSettings(.object(["companionUnlocksCelebrated":.object(["robot":.bool(true)])]));b.changeSettings(.object(["companionUnlocksCelebrated":.object(["slime":.bool(true)])]));let sentA=a,sentB=b
+  async let first=service.save(sentA,npub:npub);async let second=service.save(sentB,npub:npub);_=try await[first,second];_=try await service.save(sentA,npub:npub)
+  var restored=try requireState(await service.load(npub:npub));XCTAssertEqual(restored.settingsSnapshot["companionUnlocksCelebrated"],.object(["alien":.bool(true),"robot":.bool(true),"slime":.bool(true),"futureCompanion":.string("preserve")]))
+  restored.changeSettings(.object(["companionUnlocksCelebrated":.object(["alien":.bool(false),"bogus":.bool(true)])]));restored.changeSettings(.object(["companionUnlocksCelebrated":.object([:])]));_=try await service.save(restored,npub:npub)
+  let final=try requireState(await service.load(npub:npub)),fields=try await user.getDocument(source:.server).data() ?? [:]
+  XCTAssertEqual(final.settingsSnapshot["companionUnlocksCelebrated"],restored.settingsSnapshot["companionUnlocksCelebrated"]);XCTAssertTrue(final.pendingSettingsChanges?.isEmpty == true);XCTAssertEqual(final.totalXP,baseline.totalXP);XCTAssertEqual(final.dailyXP,baseline.dailyXP);XCTAssertEqual(final.companionHealth,baseline.companionHealth);XCTAssertEqual(final.companionName,"Cielo");XCTAssertEqual(final.companionType,"ghost");XCTAssertEqual(fields["patreonVerified"] as? Bool,true);XCTAssertEqual(fields["foreignTimestamp"] as? Timestamp,date);XCTAssertEqual(fields["unrelatedWebSetting"] as? String,"preserve")
+ }
+}
+
+extension FirestoreContractTests {
+ func testImmediateCompanionReceiptWritesOnlyItsFieldsAndDurableRetryCannotUndoNewWebChoice()async throws{
+  let(service,db,npub)=try context();try await seed(db,npub);let user=db.collection("users").document(npub),stamp=Timestamp(date:Date(timeIntervalSince1970:1792800000));try await user.setData(["dailyGoalPetName":"Web before","dailyGoalPetType":"ghost","foreignTimestamp":stamp],merge:true)
+  var state=try requireState(await service.load(npub:npub));let date=Date(timeIntervalSince1970:1793000000);state.customizeCompanion(name:"Cielo",type:"alien",now:date);let intent=try XCTUnwrap(state.pendingSettingsChanges?.last),saved=try await service.saveCompanionCustomization(intent,npub:npub);XCTAssertTrue(saved)
+  var fields=try await user.getDocument(source:.server).data() ?? [:];XCTAssertEqual(fields["dailyGoalPetName"] as? String,"Cielo");XCTAssertEqual(fields["dailyGoalPetType"] as? String,"alien");XCTAssertEqual(fields["updatedAt"] as? String,WebProgressContract.iso(date));XCTAssertNil(fields["iosStateJSON"],"The direct write cannot flush unrelated snapshot or practice work");XCTAssertEqual(fields["xp"] as? Int,150);XCTAssertEqual(fields["patreonVerified"] as? Bool,true);XCTAssertEqual(fields["foreignTimestamp"] as? Timestamp,stamp)
+  try await user.updateData(["dailyGoalPetName":"Newer web choice","updatedAt":"newer-web-time"]);_=try await service.saveCompanionCustomization(intent,npub:npub);_=try await service.save(state,npub:npub);fields=try await user.getDocument(source:.server).data() ?? [:];XCTAssertEqual(fields["dailyGoalPetName"] as? String,"Newer web choice");XCTAssertEqual(fields["updatedAt"] as? String,"newer-web-time");let restored=try requireState(await service.load(npub:npub));XCTAssertTrue(restored.pendingSettingsChanges?.isEmpty == true);XCTAssertEqual(restored.companionName,"Newer web choice");XCTAssertEqual(fields["unrelatedWebSetting"] as? String,"preserve")
+  do{_=try await service.saveCompanionCustomization(.init(partial:.object(["soundEnabled":.bool(false)])),npub:npub);XCTFail("Companion transport accepted unrelated settings")}catch{XCTAssertEqual(error.localizedDescription,"Invalid companion customization fields.")}
+ }
+}
+
+extension FirestoreContractTests {
+ func testRapidCompanionSavesPreserveIntentOrderAcrossDelayedDirectWriteAndOldSnapshotRetry()async throws{
+  let(service,db,_)=try context(),store=CompanionRaceStore(service:service),app=AppModel(progressService:store);try app.identity.create();defer{try? app.identity.disconnect()};let npub=app.identity.npub,user=db.collection("users").document(npub);try await seed(db,npub);app.signedIn=true;app.learner=try requireState(await service.load(npub:npub));app.learner.changeSettings(.object(["allowPosts":.bool(false)]));app.customizeCompanion(name:"First intent",type:"alien");let earlier=app.learner
+  for _ in 0..<250 where store.resume == nil{try await Task.sleep(for:.milliseconds(20))};XCTAssertNotNil(store.resume)
+  app.customizeCompanion(name:"Second intent",type:"ghost");var secondSaved=false
+  for _ in 0..<250{let fields=try await user.getDocument(source:.server).data() ?? [:];if fields["dailyGoalPetName"] as? String == "Second intent"{secondSaved=true;break};try await Task.sleep(for:.milliseconds(20))};XCTAssertTrue(secondSaved);store.resume?.resume();store.resume=nil
+  for _ in 0..<250 where !store.firstFinished{try await Task.sleep(for:.milliseconds(20))};XCTAssertTrue(store.firstFinished);_=try await service.save(earlier,npub:npub)
+  let fields=try await user.getDocument(source:.server).data() ?? [:];XCTAssertEqual(fields["dailyGoalPetName"] as? String,"Second intent");XCTAssertEqual(fields["dailyGoalPetType"] as? String,"ghost");XCTAssertEqual(fields["xp"] as? Int,150);XCTAssertEqual(fields["patreonVerified"] as? Bool,true)
+ }
+}
+@MainActor private final class CompanionRaceStore:LearnerProgressService {
+ let service:FirebaseService
+ var first=true,firstFinished=false,resume:CheckedContinuation<Void,Never>?
+ init(service:FirebaseService){self.service=service}
+ func load(npub:String,local:LearnerState?)async throws->LearnerState?{try await service.load(npub:npub,local:local)}
+ func save(_ state:LearnerState,npub:String)async throws->LearnerState?{try await service.save(state,npub:npub)}
+ func saveCompanionCustomization(_ change:SettingsChange,npub:String)async throws->Bool{let isFirst=first;if isFirst{first=false;await withCheckedContinuation{resume=$0}};defer{if isFirst{firstFinished=true}};return try await service.saveCompanionCustomization(change,npub:npub)}
+}
+
+
+extension FirestoreContractTests {
+    func testFreshGoalFlashcardFallbackSurvivesSDKNetworkDisableThenPreservesWinnerAndEarnsOnce()async throws {
+        for remoteWinner in [false,true] {
+            let(service,db,_)=try context(),app=AppModel(progressService:service);try app.identity.create();defer{try? app.identity.disconnect()};let npub=app.identity.npub;try await seed(db,npub);app.signedIn=true;app.subscription.bind(app.identity);app.learner=try requireState(await service.load(npub:npub));app.learner.editGoal("Order a meal")
+            let target=app.learner.target,day=CalendarDay.key(Date()),bp:JSONValue = .object(["goalId":app.learner.goalBucket["activeGoal"]["id"],"goalText":.string("Order a meal"),"lang":.string(target),"dayKey":.string(day),"cefrLevel":.string("A1"),"mode":.string("flashcards"),"modes":.array(["flashcards","lesson"].map(JSONValue.string)),"modeTargets":.object(["flashcards":.number(3),"lesson":.number(20)]),"objective":.string("Name the food you want"),"targetLanguage":.array(["soupe","pain","eau"].map(JSONValue.string))])
+            app.learner.applyGoal(.init(action:.blueprint,target:target,payload:bp));await app.sync();let before=app.learner.totalXP,field=GoalPractice.artifactField(mode:"flashcards"),reference=db.collection("users").document(npub).collection("questDays").document(target+"_"+day),policy=try XCTUnwrap(app.companionQuestPolicy),candidate=try policy.run("goalDeckCards",.object(["focus":.object(["blueprint":bp,"targetLang":.string(target),"supportLang":.string(app.learner.support)]),"providerFailed":.bool(true)]))
+            let winnerCards=JSONValue.array(candidate.array.enumerated().map{index,card in card.setting("id",.string("public-server-winner-\(index)"))}),winner:JSONValue = .object(["version":.number(1),"ownerKey":.string(GoalPractice.artifactKey(target:target,day:day,mode:"flashcards",goalID:bp["goalId"].string)),"cards":winnerCards,"outcomes":.object(["public-server-winner-0":.object(["success":.bool(true),"support":.string("prompted"),"item":.string("soupe")])])])
+            try await reference.setData(remoteWinner ? [field:winner.foundation,"foreignArtifact":["keep":true]]:["foreignArtifact":["keep":true]],merge:true)
+            try await db.disableNetwork();var networkRestored=false,requests=0
+            let failsafe=Task{try? await Task.sleep(for:.seconds(20));guard !Task.isCancelled,!networkRestored else{return};XCTFail("Offline flashcard preparation did not return before network recovery");try? await db.enableNetwork()}
+            do {
+                try await app.prepareGoalDeck(bp,mode:"flashcards",respond:{_ in requests += 1;throw URLError(.notConnectedToInternet)})
+                let captured=app.goalArtifact(bp,mode:"flashcards");XCTAssertEqual(captured["cards"],candidate);XCTAssertEqual(app.learner.totalXP,before);XCTAssertEqual(app.readyGoal?["modeProgress"]["flashcards"].number,0)
+                app.learner=try JSONDecoder().decode(LearnerState.self,from:JSONEncoder().encode(app.learner));try await app.prepareGoalDeck(bp,mode:"flashcards",respond:{_ in XCTFail("Private captured deck must not regenerate");return "[]"});XCTAssertEqual(requests,1);XCTAssertEqual(app.goalArtifact(bp,mode:"flashcards")["cards"],captured["cards"])
+                let trace:JSONValue = .object(["remoteWinner":.bool(remoteWinner),"networkDisabled":.bool(true),"artifact":captured,"pendingArtifacts":.number(Double((app.learner.pendingGoalChanges ?? []).filter{$0.action == .artifact}.count)),"syncStatus":.string(app.syncStatus)]),attachment=XCTAttachment(data:Data(trace.json.utf8),uniformTypeIdentifier:"public.json");attachment.name="SDK fresh Goal flashcards offline winner-\(remoteWinner) trace";attachment.lifetime = .keepAlways;add(attachment)
+                networkRestored=true;failsafe.cancel();try await db.enableNetwork()
+            }catch{networkRestored=true;failsafe.cancel();try? await db.enableNetwork();throw error}
+            let pending=app.learner;await app.sync();_ = try await service.save(pending,npub:npub);let remote=JSONValue.foundation(try await reference.getDocument(source:.server).data() ?? [:]);XCTAssertEqual(remote["foreignArtifact"]["keep"],.bool(true));XCTAssertEqual(remote[field]["cards"],remoteWinner ? winnerCards:candidate);XCTAssertEqual(app.goalArtifact(bp,mode:"flashcards")["cards"],remote[field]["cards"]);XCTAssertEqual(app.learner.totalXP,before);XCTAssertTrue((app.learner.pendingGoalChanges ?? []).isEmpty)
+            if remoteWinner{XCTAssertEqual(remote[field]["outcomes"],winner["outcomes"]);XCTAssertEqual(app.learner.displayedGoalArtifact(bp,mode:"flashcards")["outcomes"],winner["outcomes"])}
+            else {
+                var judges=0
+                for card in candidate.array{let session=try FlashcardSessionController(app:app,card:card,status:"active",goal:bp,provider:.init(judge:{_ in judges += 1;return "YES | 6"},stream:{_,_ in ""},quote:{_,_ in .null}));app.flashcardSession=session;session.answer=card["concept"][target].string;session.submit(app);for _ in 0..<1000 where session.grading{try await Task.sleep(for:.milliseconds(20))};session.commit(.good,app:app);for _ in 0..<1000 where session.saving{try await Task.sleep(for:.milliseconds(20))};XCTAssertNil(session.error);XCTAssertNil(app.flashcardSession)}
+                await app.sync();let restored=try requireState(await service.load(npub:npub));XCTAssertEqual(judges,3);XCTAssertEqual(restored.totalXP,before+6);XCTAssertEqual(restored.gradedByLanguage?[target],3);XCTAssertEqual(restored.goalBucket["dailyGoal"]["modeProgress"]["flashcards"].number,3);XCTAssertEqual(GoalPractice.nextMode(try XCTUnwrap(restored.dailyGoalTask)),"lesson");XCTAssertNil(restored.cardReviews)
+                let earned=restored;_ = try await service.save(earned,npub:npub);let repeated=try requireState(await service.load(npub:npub));XCTAssertEqual(repeated.totalXP,restored.totalXP);XCTAssertEqual(repeated.goalBucket["dailyGoal"]["modeEventIds"].array.count,1)
+            }
+        }
+    }
+    func testFreshAuthoredPhonicsSurvivesSDKNetworkDisableAndPreservesRemoteWinnerOnReconnect()async throws {
+        for kind in ["goal","repair"] {
+            let(service,db,_)=try context(),app=AppModel(progressService:service);try app.identity.create();defer{try? app.identity.disconnect()};let npub=app.identity.npub;try await seed(db,npub);app.signedIn=true;app.subscription.bind(app.identity);app.learner=try requireState(await service.load(npub:npub));await app.reloadContent()
+            let base=try XCTUnwrap(app.phonics.first),target=app.learner.target,day=CalendarDay.key(Date());app.learner.editGoal("Pronounce two words")
+            let bp:JSONValue = .object(["goalId":app.learner.goalBucket["activeGoal"]["id"],"dayKey":.string(day),"lang":.string(target),"mode":.string("phonics"),"modes":.array(["phonics","lesson"].map(JSONValue.string)),"cefrLevel":.string(base.cefrLevel ?? "A1"),"targetLanguage":.array([.string(base.practiceWord)])]),plan:JSONValue = .object(["dayKey":.string(day),"targetLang":.string(target),"target":.number(1),"items":.array([.object(["memoryId":.string("public-sound"),"concept":.string(base.practiceWord),"expectedAnswer":.string(base.practiceWord),"cefrLevel":.string(base.cefrLevel ?? "A1"),"mode":.string("phonics"),"errorType":.string("phonics")])])])
+            app.learner.applyGoal(.init(action:.blueprint,target:target,payload:bp));app.learner.storeCompanionBlueprint(.object(["status":.string("ready"),"repair":plan]),target:target,day:day);await app.sync();let step=try XCTUnwrap(app.currentRepairStep),candidate=try app.focusedPhonicsDeck(goal:kind == "goal" ? bp:nil,repair:kind == "repair" ? step:nil),before=app.learner.totalXP
+            let cards=candidate["cards"].array.enumerated().map{index,card in card.setting("id",.string("server-owned-\(index)"))},winner=candidate.setting("cards",.array(cards)).setting("outcomes",.object(["server-owned-0":.object(["success":.bool(true),"support":.string("modeled"),"item":cards[0]["practiceWord"]])])),field=kind == "goal" ? GoalPractice.artifactField(mode:"phonics"):CompanionQuestDay.artifactField(step,mode:"phonics"),reference=db.collection("users").document(npub).collection("questDays").document(target+"_"+day)
+            try await reference.setData([field:winner.foundation,"foreignArtifact":["keep":true]],merge:true)
+            try await db.disableNetwork();var networkRestored=false
+            let failsafe=Task{try? await Task.sleep(for:.seconds(20));guard !Task.isCancelled,!networkRestored else{return};XCTFail("Offline preparation did not return before recovery");try? await db.enableNetwork()}
+            do {
+                func assertUsable(_ course:PhonicsCourseController){
+                    XCTAssertTrue(course.initialized,kind);XCTAssertNil(course.error,kind)
+                    if course.deck.map({$0["id"].string}) == candidate["cards"].array.map({$0["id"].string}){XCTAssertTrue(course.collected.isEmpty)}
+                    else{XCTAssertEqual(course.deck.map{$0["id"].string},Array(cards.dropFirst()).map{$0["id"].string});XCTAssertEqual(course.collected.map{$0["id"].string},["server-owned-0"])}
+                }
+                let course=PhonicsCourseController(goal:kind == "goal" ? bp:nil,repair:kind == "repair" ? step:nil);await course.load(app);assertUsable(course);XCTAssertEqual(app.learner.totalXP,before)
+                let trace:JSONValue = .object(["kind":.string(kind),"networkDisabled":.bool(true),"syncStatus":.string(app.syncStatus),"deck":.array(course.deck),"collected":.array(course.collected),"pendingGoalArtifacts":.number(Double((app.learner.pendingGoalChanges ?? []).filter{$0.action == .artifact}.count)),"pendingRepairArtifact":app.learner.pendingCompanionQuestDays?[CompanionQuestDay.key(target,day)]?[field] ?? .null]);let attachment=XCTAttachment(data:Data(trace.json.utf8),uniformTypeIdentifier:"public.json");attachment.name="SDK network-disabled phonics \(kind) preparation trace";attachment.lifetime = .keepAlways;add(attachment)
+                app.learner=try JSONDecoder().decode(LearnerState.self,from:JSONEncoder().encode(app.learner));let reopened=PhonicsCourseController(goal:kind == "goal" ? bp:nil,repair:kind == "repair" ? step:nil);await reopened.load(app);assertUsable(reopened)
+                networkRestored=true;failsafe.cancel();try await db.enableNetwork()
+            }catch{networkRestored=true;failsafe.cancel();try? await db.enableNetwork();throw error}
+            await app.sync();let remote=JSONValue.foundation(try await reference.getDocument(source:.server).data() ?? [:]);XCTAssertEqual(remote[field]["cards"],winner["cards"]);XCTAssertEqual(remote[field]["outcomes"],winner["outcomes"]);XCTAssertEqual(remote["foreignArtifact"]["keep"],.bool(true))
+            let restored=try requireState(await service.load(npub:npub));XCTAssertEqual(restored.totalXP,before);XCTAssertTrue(restored.phonicsDocuments.isEmpty);XCTAssertEqual(restored.goalBucket["dailyGoal"]["modeProgress"]["phonics"].number,0);XCTAssertEqual(restored.plateProgress["repairDailyActivity"][target][day].number,0)
+            let settled=PhonicsCourseController(goal:kind == "goal" ? bp:nil,repair:kind == "repair" ? step:nil);await settled.load(app);XCTAssertEqual(settled.collected.count,1);XCTAssertEqual(settled.deck.map{$0["id"].string},Array(cards.dropFirst()).map{$0["id"].string})
+        }
+    }
+}
+
+
+extension FirestoreContractTests {
+    func testDurableGoalAndRepairPhonicsRestoreAcrossLostOutcomeAndCompletionResponsesWithoutDuplicatingReward()async throws {
+        for kind in ["goal","repair"] {
+            let(service,db,_)=try context(),store=PhonicsCompletionResultLossStore(service),app=AppModel(progressService:store);try app.identity.create();defer{try? app.identity.disconnect()};let npub=app.identity.npub,user=db.collection("users").document(npub);try await seed(db,npub);try await user.updateData(["xp":299]);app.signedIn=true;app.subscription.bind(app.identity);app.learner=try requireState(await service.load(npub:npub));await app.reloadContent();XCTAssertEqual(app.learner.subscriptionXP,299)
+            let base=try XCTUnwrap(app.phonics.first),target=app.learner.target,day=CalendarDay.key(Date());app.learner.editGoal("Pronounce two words")
+            let bp:JSONValue = .object(["goalId":app.learner.goalBucket["activeGoal"]["id"],"dayKey":.string(day),"lang":.string(target),"mode":.string("phonics"),"modes":.array(["phonics","lesson"].map(JSONValue.string)),"cefrLevel":.string(base.cefrLevel ?? "A1"),"objective":.string("Pronounce the two authored words"),"targetLanguage":.array([.string(base.practiceWord)])]),plan:JSONValue = .object(["dayKey":.string(day),"targetLang":.string(target),"target":.number(2),"items":.array([.object(["memoryId":.string("public-sound"),"concept":.string(base.practiceWord),"expectedAnswer":.string(base.practiceWord),"cefrLevel":.string(base.cefrLevel ?? "A1"),"mode":.string("phonics"),"errorType":.string("phonics")]),.object(["memoryId":.string("agreement"),"concept":.string("A supported agreement"),"mode":.string("lesson"),"cefrLevel":.string("A1")])])])
+            if kind == "goal"{app.learner.applyGoal(.init(action:.blueprint,target:target,payload:bp))}else{app.learner.storeCompanionBlueprint(.object(["status":.string("ready"),"repair":plan]),target:target,day:day)};await app.sync()
+            let step=kind == "repair" ? try XCTUnwrap(app.currentRepairStep):nil,candidate=try app.focusedPhonicsDeck(goal:kind == "goal" ? bp:nil,repair:step),cards=candidate["cards"].array,last=try XCTUnwrap(cards.last)
+            if kind == "goal"{app.learner.applyGoal(.init(action:.artifact,target:target,payload:bp.setting("cards",candidate["cards"])));for card in cards.dropLast(){app.learner.applyGoal(.init(action:.outcome,target:target,payload:bp.setting("mode",.string("phonics")).setting("cardID",card["id"]).setting("success",.bool(true)).setting("item",card["practiceWord"]).setting("externalReward",.bool(true))))}}
+            else if let step{let previous=JSONValue.object(Dictionary(uniqueKeysWithValues:cards.dropLast().map{($0["id"].string,JSONValue.object(["success":.bool(true),"item":$0["practiceWord"],"support":.string("modeled")]))}));app.learner.storeRepairArtifact(candidate.setting("outcomes",previous),step:step,mode:"phonics")};await app.sync()
+            var judges=0;store.loseOutcomeResult=true;let session=try PhonicsSessionController(app:app,card:last,goal:kind == "goal" ? bp:nil,repair:step,provider:.init(judge:{_ in judges += 1;return "YES | 2"},quote:{_,_ in .null}));session.practice(app);session.submit(last["practiceWord"].string,app:app);for _ in 0..<1500 where session.busy{try await Task.sleep(for:.milliseconds(20))};XCTAssertTrue(session.needsSaveRetry);XCTAssertEqual(app.learner.pendingPhonicsFinishes?.count,1);XCTAssertFalse(app.subscription.hasAccess)
+            let afterOutcome=try requireState(await service.load(npub:npub));XCTAssertEqual(afterOutcome.totalXP,152);XCTAssertEqual(afterOutcome.subscriptionXP,301);XCTAssertEqual(afterOutcome.gradedByLanguage?[target],1)
+            let key=app.identity.exportKey();session.cancel();app.signOut();store.loseOutcomeResult=false;await app.signIn(nsec:key);await app.boot();XCTAssertFalse(app.subscription.hasAccess);XCTAssertEqual(app.learner.pendingPhonicsFinishes?.count,1)
+            let committed=try requireState(await service.load(npub:npub));if kind == "goal"{XCTAssertEqual(app.readyGoal?["modeProgress"]["phonics"].number,0);XCTAssertEqual(committed.goalBucket["dailyGoal"]["modeProgress"]["phonics"].number,2)}else{XCTAssertEqual(app.currentRepairStep?.index,0);XCTAssertEqual(committed.plateProgress["repairDailyActivity"][target][day].number,1)}
+            app.signOut();store.loseCompletionResult=false;await app.signIn(nsec:key);await app.boot();async let first:Void=app.sync();async let second:Void=app.sync();_ = await(first,second)
+            XCTAssertTrue((app.learner.pendingPhonicsFinishes ?? [:]).isEmpty);XCTAssertFalse(app.subscription.hasAccess);XCTAssertEqual(judges,1);let final=try requireState(await service.load(npub:npub));XCTAssertEqual(final.totalXP,152);XCTAssertEqual(final.subscriptionXP,301);XCTAssertEqual(final.gradedByLanguage?[target],1);XCTAssertTrue(final.phonicsDocuments.isEmpty)
+            if kind == "goal"{XCTAssertEqual(app.readyGoal?["modeProgress"]["phonics"].number,2);XCTAssertEqual(final.goalBucket["goalProgress"]["demonstrated"].array.filter{$0["domain"].string == "pronunciation"}.count,1)}else{XCTAssertEqual(app.currentRepairStep?.index,1);XCTAssertEqual(final.goalBucket["repairSummary"]["eventIds"].array.count,1)}
+            let snapshot=try await user.getDocument(source:.server).data() ?? [:],native=try JSONDecoder().decode(JSONValue.self,from:Data(try XCTUnwrap(snapshot["iosStateJSON"]as?String).utf8));XCTAssertEqual(native["pendingPhonicsFinishes"],.null)
+        }
+    }
+}
+
+extension FirestoreContractTests {
+    func testTutorPendingWorthSavesLessonBeforeAccountAwardAndStaleRetryCannotReplayItsProjection()async throws {
+        let (service,db,npub)=try context();try await seed(db,npub);let user=db.collection("users").document(npub),curriculum=try ContentLibrary.load([String:[LearningUnit]].self,name:"tutor-curriculum-fr"),lesson=try XCTUnwrap(curriculum["Pre-A1"]?.first?.lessons.first)
+        var state=try requireState(await service.load(npub:npub));let day=CalendarDay.key(Date()),initialXP=state.totalXP,initialDaily=state.dailyXP
+        state.storeTutorState(lesson:lesson,data:.object(["earnedXp":.number(5),"required":.number(50),"agenda":.object(["hello":.bool(true)])]))
+        var turn=PracticeChange(dayKey:day,target:state.target,level:"Pre-A1",amount:5,source:.tutorTurn,contentID:lesson.id);turn.tutorData = .object(["required":.number(50),"progressRecorded":.bool(true)])
+        let intent=TutorOutcomeIntent(turn:turn,target:state.target,level:"Pre-A1",correct:true,independent:true,worthParameters:.object(["question":.object(["tutorPrompt":.string("Say bonjour.")]),"targetLang":.string(state.target)]));state.queueTutorOutcome(intent);let pending=state
+        let acknowledged=try requireState(await service.save(pending,npub:npub));state=LearnerState.rebased(current:state,sent:pending,acknowledged:acknowledged)
+        XCTAssertEqual(state.totalXP,initialXP);XCTAssertEqual(state.dailyXP,initialDaily+5);XCTAssertEqual(state.pendingTutorOutcomes?.count,1);XCTAssertEqual(state.tutorProgress(lesson.id).earnedXP,5)
+        let before=try await user.getDocument(source:.server).data() ?? [:],hint=try JSONDecoder().decode(LearnerState.self,from:Data(try XCTUnwrap(before["iosStateJSON"] as? String).utf8)),remote=try requireState(await service.load(npub:npub))
+        XCTAssertEqual(before["xp"] as? Int,initialXP);XCTAssertEqual(before["dailyXp"] as? Int,initialDaily);XCTAssertNil(hint.pendingTutorOutcomes);XCTAssertNil(remote.pendingTutorOutcomes);XCTAssertEqual(remote.dailyXP,initialDaily)
+        XCTAssertTrue(state.deliverTutorOutcome(intent.id,worth:nil));XCTAssertEqual(state.totalXP,initialXP+5);XCTAssertEqual(state.dailyXP,initialDaily+5);let delivered=state
+        _=try await service.save(delivered,npub:npub);_=try await service.save(delivered,npub:npub)
+        let staleAck=try requireState(await service.save(pending,npub:npub));XCTAssertTrue(staleAck.pendingTutorOutcomes?.isEmpty ?? true);XCTAssertEqual(staleAck.dailyXP,initialDaily+5)
+        let final=try requireState(await service.load(npub:npub)),data=try await user.collection("tutorLanguageLessons").document(state.target+"_"+lesson.id).getDocument(source:.server).data() ?? [:]
+        XCTAssertEqual(final.totalXP,initialXP+5);XCTAssertEqual(final.dailyXP,initialDaily+5);XCTAssertEqual(final.gradedByLanguage?[state.target],1);XCTAssertEqual(final.tutorProgress(lesson.id).earnedXP,5);XCTAssertEqual(data["earnedXp"] as? Int,5);XCTAssertEqual(final.plateProgress["speakDailyActivity"][state.target][day].number,0);XCTAssertFalse(final.completed.contains(final.tutorKey(lesson.id)))
+        let trace:JSONValue = .object(["beforeAwardAccountXP":.number(Double(initialXP)),"beforeAwardCanonicalDailyXP":.number(Double(initialDaily)),"beforeAwardLocalDailyXP":.number(Double(initialDaily+5)),"lessonXP":.number(Double(final.tutorProgress(lesson.id).earnedXP)),"finalAccountXP":.number(Double(final.totalXP)),"finalDailyXP":.number(Double(final.dailyXP)),"gradedAttempts":.number(Double(final.gradedByLanguage?[state.target] ?? 0)),"stalePendingCount":.number(Double(staleAck.pendingTutorOutcomes?.count ?? 0)),"privateIntentInServerHint":.bool(hint.pendingTutorOutcomes != nil)])
+        let a=XCTAttachment(data:Data(trace.json.utf8),uniformTypeIdentifier:"public.json");a.name="Firebase SDK Tutor pending worth and stale receipt projection";a.lifetime = .keepAlways;add(a)
+    }
+}
+
+extension FirestoreContractTests {
+    func testOriginalTutorPendingMemoryAndEnrichmentPersistWithoutXPOrExtraAssessmentOnRetry()async throws {
+        let(service,db,npub)=try context();try await seed(db,npub);var state=try requireState(await service.load(npub:npub));let initial=state,now=Date()
+        let fields=MemoryUI.value("captureNote",.object(["targetLang":.string("fr"),"supportLang":.string("es"),"sourceMode":.string("tutor"),"sourceContext":.string("tutor"),"concept":.string("Un saludo"),"userAnswer":.string("A public attempt"),"expectedAnswer":.string("Bonjour"),"now":.string(WebProgressContract.iso(now))]))
+        let note=try XCTUnwrap(state.captureMemory(MemoryNote(fields:fields.object),now:now));XCTAssertEqual(note.fields["enriched"],.bool(false));XCTAssertTrue(note.text("mistake").isEmpty)
+        _=try await service.save(state,npub:npub);_=try await service.save(state,npub:npub)
+        state=try requireState(await service.load(npub:npub));let saved=try XCTUnwrap(state.companionMemory?["fr"]?.first);XCTAssertEqual(saved.id,note.id);XCTAssertEqual(saved.severity,1);XCTAssertEqual(saved.text("sourceContext"),"tutor");XCTAssertEqual(saved.text("cefrLevel"),"Pre-A1");XCTAssertEqual(saved.text("companionSummary"),note.text("companionSummary"));XCTAssertEqual(state.totalXP,initial.totalXP);XCTAssertEqual(state.dailyXP,initial.dailyXP);XCTAssertEqual(state.gradedByLanguage,initial.gradedByLanguage)
+        let ref=db.collection("users").document(npub).collection("companion").document("fr"),raw=try await ref.getDocument(source:.server).data() ?? [:];var remote=try XCTUnwrap((raw["notes"]as?[[String:Any]])?.first);remote["status"]="reinforced";remote["publicForeignField"]="preserve";try await ref.setData(["notes":[remote]],merge:true)
+        state.localizeMemory(saved,fields:.object(["mistake":.string("Faltó el saludo."),"correction":.string("Bonjour"),"tip":.string("Empieza con bonjour.")]),support:"es")
+        _=try await service.save(state,npub:npub);_=try await service.save(state,npub:npub)
+        let restored=try requireState(await service.load(npub:npub)),result=try XCTUnwrap(restored.companionMemory?["fr"]?.first)
+        XCTAssertEqual(result.id,note.id);XCTAssertEqual(result.text("status"),"reinforced");XCTAssertEqual(result.text("publicForeignField"),"preserve");XCTAssertEqual(result.text("tip"),"Empieza con bonjour.");XCTAssertEqual(result.fields["enriched"],.bool(true));XCTAssertEqual(result.severity,1);XCTAssertEqual(restored.totalXP,initial.totalXP);XCTAssertEqual(restored.dailyXP,initial.dailyXP);XCTAssertEqual(restored.gradedByLanguage,initial.gradedByLanguage)
+    }
+}
+
+extension FirestoreContractTests {
+    func testRepeatedMemoryKeepsFirstCorrectionOrderAndLifecycleAcrossLanguageRetryAndStaleEnrichment()async throws {
+        let(service,db,npub)=try context();try await seed(db,npub);var state=try requireState(await service.load(npub:npub));let now=Date()
+        func note(_ concept:String,_ support:String,_ answer:String,_ expected:String,_ at:Date)->MemoryNote {MemoryNote(fields:MemoryUI.value("captureNote",.object(["targetLang":.string("fr"),"supportLang":.string(support),"sourceMode":.string("tutor"),"sourceContext":.string("tutor"),"concept":.string(concept),"userAnswer":.string(answer),"expectedAnswer":.string(expected),"now":.string(WebProgressContract.iso(at))])).object)}
+        let first=try XCTUnwrap(state.captureMemory(note("Saludo","es","first attempt","Bonjour",now),now:now));state.localizeMemory(first,fields:.object(["mistake":.string("Un saludo"),"correction":.string("Bonjour"),"tip":.string("Saluda primero")]),support:"es",now:now)
+        let other=try XCTUnwrap(state.captureMemory(note("Another concept","es","other attempt","other correction",now.addingTimeInterval(1)),now:now.addingTimeInterval(1)));state=try requireState(await service.save(state,npub:npub))
+        let ref=db.collection("users").document(npub).collection("companion").document("fr"),raw=try await ref.getDocument(source:.server).data() ?? [:];var remote=try XCTUnwrap(raw["notes"]as?[[String:Any]]);let index=try XCTUnwrap(remote.firstIndex{($0["id"]as?String)==first.id}),timestamp=Timestamp(date:Date(timeIntervalSince1970:1_700_000_000));remote[index]["status"]="reinforced";remote[index]["foreignTimestamp"]=timestamp;try await ref.setData(["notes":remote],merge:true)
+        state.support="ar";_ = state.captureMemory(note("saludo","ar","","Salut",now.addingTimeInterval(2)),now:now.addingTimeInterval(2));let stale=state
+        _=try await service.save(state,npub:npub);_=try await service.save(stale,npub:npub)
+        var restored=try requireState(await service.load(npub:npub));let saved=try XCTUnwrap(restored.companionMemory?["fr"]?.first(where:{$0.id == first.id}));XCTAssertEqual(restored.companionMemory?["fr"]?.map(\.id),[other.id,first.id]);XCTAssertEqual(saved.severity,2);XCTAssertEqual(saved.text("expectedAnswer"),"Bonjour");XCTAssertEqual(saved.text("correction"),"Bonjour");XCTAssertEqual(saved.text("userAnswer"),"first attempt");XCTAssertEqual(saved.text("supportLang"),"ar");XCTAssertEqual(saved.text("companionSummary"),"محفوظ لبكرة: saludo");XCTAssertEqual(saved.text("status"),"reinforced");XCTAssertTrue(saved.text("mistake").isEmpty);XCTAssertTrue(saved.text("tip").isEmpty);XCTAssertEqual(saved.fields["enriched"],.bool(false));XCTAssertEqual(restored.totalXP,150)
+        var obsolete=first;obsolete.fields["tip"] = .string("Stale tip");restored.pendingMemoryChanges=[MemoryChange(action:.localize,target:"fr",date:now.addingTimeInterval(3),dayKey:CalendarDay.key(now),note:obsolete)];_=try await service.save(restored,npub:npub)
+        let final=try await ref.getDocument(source:.server).data() ?? [:],notes=try XCTUnwrap(final["notes"]as?[[String:Any]]),result=try XCTUnwrap(notes.first{($0["id"]as?String)==first.id});XCTAssertEqual(result["foreignTimestamp"]as?Timestamp,timestamp);XCTAssertEqual(result["tip"]as?String,"");XCTAssertEqual(result["correction"]as?String,"Bonjour");XCTAssertEqual(result["severity"]as?Int,2)
+    }
+}
+
+extension FirestoreContractTests {
+    func testCaptureLearningEvidenceUsesSourceIDsAndStableDeliveryAcrossRetryAndWindowEviction()async throws {
+        let(service,db,npub)=try context();try await seed(db,npub);var state=try requireState(await service.load(npub:npub));let user=db.collection("users").document(npub),now=Date()
+        for index in 0..<4 {state.captureMemory(mode:"grammar",concept:"A greeting",answer:"attempt \(index)",expected:"hola",feedback:"Private reason",now:now.addingTimeInterval(Double(index)))}
+        let capture=try XCTUnwrap(state.pendingMemoryChanges?.first),note=try XCTUnwrap(state.companionMemory?["fr"]?.first),evidence=try XCTUnwrap(state.pendingRepairEvidence);XCTAssertEqual(evidence.count,4);XCTAssertEqual(evidence[2].event["id"],evidence[3].event["id"]);XCTAssertEqual(evidence[0].sourceCaptureID,capture.id)
+        _=try await service.save(state,npub:npub);_=try await service.save(state,npub:npub)
+        var fields=JSONValue.foundation((try await user.getDocument(source:.server).data() ?? [:]).filter{["learningIntelligence","xp","patreonVerified","iosStateJSON"].contains($0.key)}),summary=fields["learningIntelligence"]["fr"]["repairSummary"]
+        XCTAssertEqual(fields["learningIntelligence"]["fr"]["version"],.number(1));XCTAssertEqual(summary["eventIds"].array.count,3);XCTAssertEqual(summary["openPatterns"].array.first?["recurrence"],.number(3));XCTAssertEqual(summary["openPatterns"].array.first?["severity"],.number(3));XCTAssertEqual(summary["openPatterns"].array.first?["mode"],.string("lesson"));XCTAssertEqual(fields["xp"],.number(150));XCTAssertEqual(fields["patreonVerified"],.bool(true))
+        let receipts=try await user.collection("iosPracticeReceipts").whereField("source",isEqualTo:"repair-evidence").getDocuments(source:.server);XCTAssertEqual(receipts.documents.count,4)
+        // Source model IDs have a 24-entry dedupe window, separate from the
+        // native durable receipt for a particular capture delivery.
+        try await user.updateData([FieldPath(["learningIntelligence","fr","repairSummary","eventIds"]):[]])
+        state=try requireState(await service.load(npub:npub));state.captureMemory(mode:"grammar",concept:"A greeting",answer:"fresh attempt",expected:"new correction",feedback:"",now:now.addingTimeInterval(5));let retry=state
+        _=try await service.save(state,npub:npub);_=try await service.save(retry,npub:npub)
+        fields=JSONValue.foundation((try await user.getDocument(source:.server).data() ?? [:]).filter{["learningIntelligence","xp","patreonVerified","iosStateJSON"].contains($0.key)});summary=fields["learningIntelligence"]["fr"]["repairSummary"]
+        XCTAssertEqual(summary["eventIds"].array.count,1);XCTAssertEqual(summary["eventIds"].array.first,.string(note.id+":3"));XCTAssertEqual(summary["openPatterns"].array.first?["recurrence"],.number(4));XCTAssertEqual(summary["openPatterns"].array.first?["example"],.string("fresh attempt"));XCTAssertEqual(fields["xp"],.number(150))
+        let result=try requireState(await service.load(npub:npub));XCTAssertTrue(result.pendingRepairEvidence?.isEmpty ?? true);XCTAssertEqual(result.companionMemory?["fr"]?.first?.text("expectedAnswer"),"hola");XCTAssertEqual(result.gradedByLanguage?["fr"],0)
+        let hint=fields["iosStateJSON"].string;XCTAssertFalse(hint.contains("sourceCaptureID"))
+        let trace:JSONValue = .object(["learningIntelligence":fields["learningIntelligence"],"sourceContentID":.string(note.id+":3"),"nativeCaptureReceiptsBeforeEviction":.number(Double(receipts.documents.count)),"totalXP":.number(Double(result.totalXP)),"gradedAttempts":.number(Double(result.gradedByLanguage?["fr"] ?? 0)),"captureMetadataInServerHint":.bool(hint.contains("sourceCaptureID"))]);let a=XCTAttachment(data:Data(trace.json.utf8),uniformTypeIdentifier:"public.json");a.name="Firebase capture evidence retry and source dedupe window";a.lifetime = .keepAlways;add(a)
+    }
+    func testSourceOmittedAccountModesSaveNotesWithoutInventingCaptureLearningEvidence()async throws {
+        let(service,db,npub)=try context();try await seed(db,npub);var state=try requireState(await service.load(npub:npub))
+        for mode in ["flashcard","conversation","tutor"] {state.captureMemory(mode:mode,concept:"A greeting",answer:"ola",expected:"hola",feedback:"Private reason")}
+        XCTAssertTrue(state.pendingRepairEvidence?.isEmpty ?? true);_=try await service.save(state,npub:npub);_=try await service.save(state,npub:npub)
+        let result=try requireState(await service.load(npub:npub)),fields=JSONValue.foundation(try await db.collection("users").document(npub).getDocument(source:.server).data() ?? [:]);XCTAssertEqual(result.companionMemory?["fr"]?.count,3);XCTAssertEqual(fields["learningIntelligence"]["fr"]["repairSummary"],.null);XCTAssertEqual(result.totalXP,150);XCTAssertNil(result.gradedByLanguage)
+    }
+}
+
+
+extension FirestoreContractTests {
+    func testPendingMemoryEnrichmentStaysDevicePrivateAcrossCanonicalAckAndRejectsAServerHintContinuation()async throws {
+        let(service,db,npub)=try context();try await seed(db,npub);var state=try requireState(await service.load(npub:npub));let concept=String(repeating:"x",count:241)
+        state.captureMemory(mode:"grammar",concept:concept,answer:"public attempt",expected:"hola",feedback:"");let note=try XCTUnwrap(state.companionMemory?["fr"]?.first),intent=try XCTUnwrap(state.queueMemoryEnrichment(account:npub,note:note,concept:concept)),sent=state
+        let ack=try requireState(await service.save(sent,npub:npub));state=LearnerState.rebased(current:state,sent:sent,acknowledged:ack);XCTAssertTrue(state.pendingMemoryChanges?.isEmpty == true);XCTAssertEqual(state.pendingMemoryEnrichments?.first?.id,intent.id);XCTAssertEqual(state.pendingMemoryEnrichments?.first?.concept,concept)
+        let user=db.collection("users").document(npub),fields=try await user.getDocument(source:.server).data() ?? [:],hint=try JSONDecoder().decode(JSONValue.self,from:Data(try XCTUnwrap(fields["iosStateJSON"] as? String).utf8));XCTAssertEqual(hint["pendingMemoryEnrichments"],.null)
+        let clean=try requireState(await service.load(npub:npub));XCTAssertNil(clean.pendingMemoryEnrichments);XCTAssertEqual(clean.companionMemory?["fr"]?.first?.fields["enriched"],.bool(false))
+        // Legacy/foreign server hints are never authority to restart private AI.
+        let forged=String(data:try JSONEncoder().encode(state),encoding:.utf8)!;try await user.updateData(["iosStateJSON":forged]);let remoteOnly=try requireState(await service.load(npub:npub));XCTAssertNil(remoteOnly.pendingMemoryEnrichments)
+        let local=try requireState(await service.load(npub:npub,local:state));XCTAssertEqual(local.pendingMemoryEnrichments?.first?.id,intent.id)
+        state.localizeMemory(note,fields:.object(["mistake":.string("Faltaba la h."),"correction":.string("hola"),"tip":.string("Empieza con hola.")]),support:state.support);let settled=state;_=try await service.save(settled,npub:npub);_=try await service.save(settled,npub:npub);_=try await service.save(sent,npub:npub)
+        let final=try requireState(await service.load(npub:npub));XCTAssertNil(final.pendingMemoryEnrichments);XCTAssertEqual(final.companionMemory?["fr"]?.first?.id,note.id);XCTAssertEqual(final.companionMemory?["fr"]?.first?.text("tip"),"Empieza con hola.");XCTAssertEqual(final.totalXP,150);XCTAssertEqual(final.gradedByLanguage?["fr"] ?? 0,0)
+        let receipts=try await user.collection("iosPracticeReceipts").whereField("source",isEqualTo:"memory-localize").getDocuments(source:.server);XCTAssertEqual(receipts.documents.count,1)
+        let trace:JSONValue = .object(["pendingAfterCaptureAck":.number(Double(ack.pendingMemoryEnrichments?.count ?? 0)),"privateIntentInServerHint":.bool(hint["pendingMemoryEnrichments"] != .null),"remoteOnlyContinuationCount":.number(Double(remoteOnly.pendingMemoryEnrichments?.count ?? 0)),"retainedLocallyAfterAck":.bool(local.pendingMemoryEnrichments?.first?.id == intent.id),"localizationReceipts":.number(Double(receipts.documents.count)),"totalXP":.number(Double(final.totalXP)),"gradedAttempts":.number(Double(final.gradedByLanguage?["fr"] ?? 0)),"fullConceptLength":.number(Double(concept.count))]);let a=XCTAttachment(data:Data(trace.json.utf8),uniformTypeIdentifier:"public.json");a.name="Firebase device-private pending Memory acknowledgment and stale retry";a.lifetime = .keepAlways;add(a)
+    }
+}
+
+
+extension FirestoreContractTests {
+    func testFocusedTutorCompletionLostResponseRestoresPrivateReceiptAndBanksGoalOrRepairOnceBeyondTrial()async throws {
+        for kind in ["goal","repair"] {
+            let(service,db,_)=try context(),store=PhonicsCompletionResultLossStore(service),app=AppModel(progressService:store);try app.identity.create();app.signedIn=true;app.subscription.bind(app.identity);let npub=app.identity.npub;try await seed(db,npub);let user=db.collection("users").document(npub);try await user.updateData(["xp":kind == "goal" ? 279:299]);var state=try requireState(await service.load(npub:npub));let baseXP=state.totalXP,day=CalendarDay.key(Date()),target=state.target,support=state.support
+            var bp:JSONValue?,step:RepairStep?
+            if kind == "goal" {
+                state.editGoal("Greet a family member");let value:JSONValue = .object(["goalId":state.goalBucket["activeGoal"]["id"],"goalText":.string(state.goal),"dayKey":.string(day),"lang":.string(target),"mode":.string("tutor"),"modes":.array([.string("tutor"),.string("flashcards")]),"modeTargets":.object(["tutor":.number(25),"flashcards":.number(3)]),"cefrLevel":.string("A1"),"objective":.string("Greet a relative"),"scenario":.string("Start a short family conversation"),"targetLanguage":.array([.string("Bonjour")]),"supports":.array([.string("Use a model")]),"successCriteria":.array([.string("Greet the relative")])]);state.applyGoal(.init(action:.blueprint,target:target,payload:value));bp=value
+            } else {
+                state.captureMemory(mode:"tutor",concept:"Bonjour",answer:"Public attempt",expected:"Bonjour",feedback:"");let memoryID=try XCTUnwrap(state.companionMemory?[target]?.first?.id)
+                let item:JSONValue = .object(["memoryId":.string(memoryID),"concept":.string("Bonjour"),"expectedAnswer":.string("Bonjour"),"mode":.string("tutor"),"errorType":.string("conversation_flow"),"cefrLevel":.string("A1")]),plan:JSONValue = .object(["targetLang":.string(target),"dayKey":.string(day),"target":.number(1),"items":.array([item]),"memoryIds":.array([.string(memoryID)])]);state.storeCompanionBlueprint(.object(["status":.string("ready"),"repair":plan]),target:target,day:day);step=RepairStep(index:0,mode:"tutor",item:item,plan:plan,stepCount:1)
+            }
+            state=try requireState(await service.save(state,npub:npub));app.learner=state
+            let focus:TutorFocus;if let bp{focus = .goal(bp)}else{focus = .repair(try XCTUnwrap(step))}
+            let policy=try TutorSourcePolicy(),lesson=try policy.run("focusLesson",.object(["focus":focus.snapshot(app)]));var run=try XCTUnwrap(FocusedTutorRun(account:npub,target:target,support:support,goal:bp,repair:step,lesson:lesson,required:kind == "goal" ? 25:12))
+            // Public already-graded turn snapshots isolate real SDK receipts from voice/model I/O.
+            for _ in 0..<(kind == "goal" ? 5:1) {let turn=PracticeChange(dayKey:day,target:target,level:"A1",amount:5,source:.tutorTurn),intent=TutorOutcomeIntent(turn:turn,target:target,level:"A1",correct:true,independent:true,worthParameters:.object(["question":.object(["tutorPrompt":.string("Say bonjour")]),"targetLang":.string(target)]));state.queueTutorOutcome(intent);run.outcomeIDs.insert(intent.id);XCTAssertTrue(state.deliverTutorOutcome(intent.id,worth:nil))}
+            state=try requireState(await service.save(state,npub:npub));run.earnedXP=kind == "goal" ? 25:5;run.ready=true;run.evidence = .object(["success":.bool(true),"observation":.string("Bonjour")]);state.storeFocusedTutorRun(run);app.learner=state;XCTAssertFalse(app.subscription.hasAccess);XCTAssertTrue(app.persistFocusedTutorRecovery())
+            let finished=await app.finishFocusedTutor(run.key);XCTAssertFalse(finished);let pending=try XCTUnwrap(app.learner.focusedTutorRuns?[run.key]);XCTAssertNotNil(pending.completionID);XCTAssertTrue(app.hasPendingFocusedTutorCompletion)
+            let committed=try requireState(await service.load(npub:npub));XCTAssertEqual(committed.totalXP,baseXP+(kind == "goal" ? 25:17));XCTAssertEqual(committed.gradedByLanguage?[target],kind == "goal" ? 5:1)
+            let key=app.identity.exportKey();app.signOut();store.loseCompletionResult=false;let restored=AppModel(progressService:store);defer{restored.signOut()};await restored.signIn(nsec:key);await restored.boot();await restored.sync()
+            XCTAssertFalse(restored.subscription.hasAccess);XCTAssertTrue(restored.learner.focusedTutorRuns?.isEmpty == true);XCTAssertEqual(restored.learner.totalXP,committed.totalXP);XCTAssertEqual(restored.learner.gradedByLanguage?[target],kind == "goal" ? 5:1);XCTAssertTrue(restored.learner.tutorLessons?.isEmpty ?? true)
+            if kind == "goal" {XCTAssertEqual(restored.readyGoal?["modeProgress"]["tutor"].number,25)}else{XCTAssertEqual(restored.learner.plateProgress["repairDailyActivity"][target][day].number,1);XCTAssertEqual(restored.learner.companionMemory?[target]?.first?.text("status"),"reinforced")}
+            let fields=try await user.getDocument(source:.server).data() ?? [:],hint=try JSONDecoder().decode(JSONValue.self,from:Data(try XCTUnwrap(fields["iosStateJSON"] as? String).utf8));XCTAssertEqual(hint["focusedTutorRuns"],.null);XCTAssertEqual(fields["patreonVerified"] as? Bool,true)
+            let receipts=try await user.collection("iosPracticeReceipts").whereField("eventID",isEqualTo:try XCTUnwrap(pending.completionID).uuidString).getDocuments(source:.server);XCTAssertEqual(receipts.documents.count,1);XCTAssertEqual(receipts.documents.first?.data()["source"] as? String,kind == "goal" ? "goal-attempt":"repair")
+            let forged=hint.setting("focusedTutorRuns",try JSONDecoder().decode(JSONValue.self,from:JSONEncoder().encode([run.key:pending])))
+            try await user.updateData(["iosStateJSON":String(decoding:try JSONEncoder().encode(forged),as:UTF8.self)])
+            let remoteOnly=try requireState(await service.load(npub:npub));XCTAssertNil(remoteOnly.focusedTutorRuns);XCTAssertEqual(remoteOnly.totalXP,committed.totalXP)
+            try await user.updateData(["iosStateJSON":String(decoding:try JSONEncoder().encode(hint),as:UTF8.self)])
+            let trace:JSONValue = .object(["kind":.string(kind),"canonicalXP":.number(Double(fields["xp"] as? Int ?? 0)),"nativeXP":.number(Double(restored.learner.totalXP)),"gradedAttempts":.number(Double(restored.learner.gradedByLanguage?[target] ?? 0)),"privateHint":hint["focusedTutorRuns"],"completionReceiptExists":.bool(receipts.documents.count == 1),"goalModes":restored.readyGoal?["modeProgress"] ?? .null,"repairCount":restored.learner.plateProgress["repairDailyActivity"][target][day],"access":.bool(restored.subscription.hasAccess)]);let a=XCTAttachment(data:Data(trace.json.utf8),uniformTypeIdentifier:"public.json");a.name="Firebase focused Tutor \(kind) lost completion response and private relaunch";a.lifetime = .keepAlways;add(a)
+        }
+    }
 }

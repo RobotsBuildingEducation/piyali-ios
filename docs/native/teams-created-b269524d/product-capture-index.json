@@ -1,0 +1,62 @@
+[
+  {
+    "path": "ui-native-streamed-roster-deletion-private-relaunch.png",
+    "name": "Native streamed roster deletion private relaunch",
+    "test": "TeamsTests/testArabicMirrorCardChangesBeforeAHeldSignedMemberReadThenRestoresFreshProgressAndDeletes()"
+  },
+  {
+    "path": "ui-native-streamed-roster-signed-peer-progress-settled.png",
+    "name": "Native streamed roster signed peer progress settled",
+    "test": "TeamsTests/testArabicMirrorCardChangesBeforeAHeldSignedMemberReadThenRestoresFreshProgressAndDeletes()"
+  },
+  {
+    "path": "ui-native-streamed-roster-mirror-title-before-signed-member-reply.png",
+    "name": "Native streamed roster mirror title before signed member reply",
+    "test": "TeamsTests/testArabicMirrorCardChangesBeforeAHeldSignedMemberReadThenRestoresFreshProgressAndDeletes()"
+  },
+  {
+    "path": "ui-native-cold-roster-signed-members-settled.png",
+    "name": "Native cold roster signed members settled",
+    "test": "TeamsTests/testArabicMirrorCardChangesBeforeAHeldSignedMemberReadThenRestoresFreshProgressAndDeletes()"
+  },
+  {
+    "path": "ui-native-cold-roster-creator-before-held-member-batch.png",
+    "name": "Native cold roster creator before held member batch",
+    "test": "TeamsTests/testArabicMirrorCardChangesBeforeAHeldSignedMemberReadThenRestoresFreshProgressAndDeletes()"
+  },
+  {
+    "path": "ui-native-streamed-roster-initial-signed-member.png",
+    "name": "Native streamed roster initial signed member",
+    "test": "TeamsTests/testArabicMirrorCardChangesBeforeAHeldSignedMemberReadThenRestoresFreshProgressAndDeletes()"
+  },
+  {
+    "path": "ui-native-acknowledged-creation-before-held-roster-reply.png",
+    "name": "Native acknowledged creation before held roster reply",
+    "test": "TeamsTests/testArabicMirrorCardChangesBeforeAHeldSignedMemberReadThenRestoresFreshProgressAndDeletes()"
+  },
+  {
+    "path": "ui-native-teams-feed-product.png",
+    "name": "Native Teams feed product",
+    "test": "TeamsTests/testCreateEditRosterAndDeleteUseSignedLocalRelayAndSurviveRelaunch()"
+  },
+  {
+    "path": "ui-native-teams-restored-product.png",
+    "name": "Native Teams restored product",
+    "test": "TeamsTests/testCreateEditRosterAndDeleteUseSignedLocalRelayAndSurviveRelaunch()"
+  },
+  {
+    "path": "ui-native-teams-single-product.png",
+    "name": "Native Teams single product",
+    "test": "TeamsTests/testCreateEditRosterAndDeleteUseSignedLocalRelayAndSurviveRelaunch()"
+  },
+  {
+    "path": "ui-native-teams-queued-product.png",
+    "name": "Native Teams queued product",
+    "test": "TeamsTests/testCreateEditRosterAndDeleteUseSignedLocalRelayAndSurviveRelaunch()"
+  },
+  {
+    "path": "ui-native-teams-empty-product.png",
+    "name": "Native Teams empty product",
+    "test": "TeamsTests/testCreateEditRosterAndDeleteUseSignedLocalRelayAndSurviveRelaunch()"
+  }
+]

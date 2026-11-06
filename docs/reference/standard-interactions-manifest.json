@@ -1,0 +1,49 @@
+{
+  "sources": [
+    {
+      "file": "src/components/Vocabulary.jsx",
+      "sha256": "9aa9d5f74d62ac8fd7b3adb1026bbf0bef3bd48a826053b4c94f6045b1a3431c"
+    },
+    {
+      "file": "src/components/GrammarBook.jsx",
+      "sha256": "0d0407a8a19c14e1cc111958b162c5ca8762f785627c33baea2dd18cdf058b82"
+    },
+    {
+      "file": "src/components/dnd/Sortable.jsx",
+      "sha256": "c6ba213eb453c50218f417048b32b03f91631c8890c77620f3d1885931ca4adf"
+    },
+    {
+      "file": "src/components/questionUiStyles.js",
+      "sha256": "5a3389380c6df57642d750220ef6c12f64326a73de92134ea6f2b365a00e5b97"
+    },
+    {
+      "file": "src/components/QuestionActionArea.jsx",
+      "sha256": "0f5677340e83ba813deef7bbb6113f4939e08b415d4be639257264ef70c713db"
+    },
+    {
+      "file": "src/components/ActivityActionRow.jsx",
+      "sha256": "3c23b2db2865f64c746005d756e4e101432090a95e86902fc6e55f238befbc2f"
+    },
+    {
+      "file": "src/constants/languages.js",
+      "sha256": "02cb1507cb2ee1b5822ac4dd98cd7faf3e67a5101a13dd6c93826f553201ab32"
+    },
+    {
+      "file": "src/theme.js",
+      "sha256": "6fe6093ecca51d0debb1314a587d6bd0927e7ac9f8c1ba2c6c744017e3be407e"
+    },
+    {
+      "file": "src/index.css",
+      "sha256": "79a5362dc1b189acd0d2288c0e85ff29c9cc1c8e39b8bb5cabe164ddd1c29030"
+    }
+  ],
+  "cases": 70,
+  "layouts": 126,
+  "repairs": 64,
+  "controlledFixture": {
+    "file": "Tests/PiyaliAppTests/Fixtures/standard-bodies.json",
+    "sha256": "defe0eb949caf002534a45b5349e6803130f5dcf70c13fe611191670aca97cda"
+  },
+  "nativeAdapter": "Exact/case-matched reference priority and non-Latin diacritics/symbols are retained instead of the source ASCII-only comparison collapsing them; nonreference choices still use original semantic judges.",
+  "adapters": "Unmodified generated-choice repair helpers, standard MC/MA/Match drag and auto-move handlers, and UTF-16 selector helpers. Controlled React setters. Native responses additionally store bank/slot positions and fence drop UUIDs."
+}

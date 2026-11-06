@@ -1,0 +1,15 @@
+{
+  "sources": [
+    {
+      "file": "src/components/History.jsx",
+      "sha256": "ceca67f29b27ebc41c300c29e6ea92240bda1020fb23c3e505a06b65842832a9"
+    },
+    {
+      "file": "src/utils/readingHistoryStore.js",
+      "sha256": "bf3c1ca2844f5a49f9ff2adfbafbfdaccfd69bfa67fc88d6592cd3f6bc4f5c39"
+    }
+  ],
+  "cases": 14,
+  "scope": "Original revealDraft and tryConsumeLine callbacks plus source cleaning helpers executed with in-memory setters; no React, storage or provider I/O. Translation cases execute the source applyLine callback with in-memory state.",
+  "translationCases": 8
+}

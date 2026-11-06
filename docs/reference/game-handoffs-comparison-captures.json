@@ -1,0 +1,89 @@
+{
+  "scope": "Four original App/Tutor loading components paired with native at 402x874 logical points, English/light and Arabic/dark, public seed 7, frame 1, clock 1000000, ghost companion. Actual source computed metrics and native canvas bounds are retained; no automated pixel-perfect claim. External sound/provider I/O disabled; source components are unmodified AST extractions.",
+  "captures": [
+    {
+      "file": "docs/native/game-handoff-tutor-ar.png",
+      "name": "Native tutor playable loader ar",
+      "sha256": "698586bc95d1b549733f8084da757c8deea387faab77959c37cf4d2421f1f70d",
+      "test": "GameLoaderReferenceTests/testActualTutorialAndTutorLoadingSurfacesAgainstNative()",
+      "resultBundle": "PiyaliGameHandoffsPaint4.xcresult"
+    },
+    {
+      "file": "docs/reference/game-handoff-tutor-ar-metrics.json",
+      "name": "Source tutor loader metrics ar",
+      "sha256": "bdcb51e32de03672cc07e20680470ac7b0cfa589579a8b63f41b1b3a44b50959",
+      "test": "GameLoaderReferenceTests/testActualTutorialAndTutorLoadingSurfacesAgainstNative()",
+      "resultBundle": "PiyaliGameHandoffsPaint4.xcresult"
+    },
+    {
+      "file": "docs/reference/game-handoff-tutor-ar.png",
+      "name": "Source tutor playable loader ar",
+      "sha256": "1fb7d384e384bec98befe5fb31385b6bd6e44a0c6047d97b5814dd5467c9aa51",
+      "test": "GameLoaderReferenceTests/testActualTutorialAndTutorLoadingSurfacesAgainstNative()",
+      "resultBundle": "PiyaliGameHandoffsPaint4.xcresult"
+    },
+    {
+      "file": "docs/native/game-handoff-tutor-en.png",
+      "name": "Native tutor playable loader en",
+      "sha256": "4b215f4122fe6fd99c79ecf485e67034b35b495ec64fad9fa97085c9b8701555",
+      "test": "GameLoaderReferenceTests/testActualTutorialAndTutorLoadingSurfacesAgainstNative()",
+      "resultBundle": "PiyaliGameHandoffsPaint4.xcresult"
+    },
+    {
+      "file": "docs/reference/game-handoff-tutor-en-metrics.json",
+      "name": "Source tutor loader metrics en",
+      "sha256": "4b726ec7ee934ae64fcb46406eec392dc72640c37f3f6d3c518ec87443284663",
+      "test": "GameLoaderReferenceTests/testActualTutorialAndTutorLoadingSurfacesAgainstNative()",
+      "resultBundle": "PiyaliGameHandoffsPaint4.xcresult"
+    },
+    {
+      "file": "docs/reference/game-handoff-tutor-en.png",
+      "name": "Source tutor playable loader en",
+      "sha256": "8ae173f471e2c5cf8bd50bcc27a6c27438f501cff569a498a408078806ac340a",
+      "test": "GameLoaderReferenceTests/testActualTutorialAndTutorLoadingSurfacesAgainstNative()",
+      "resultBundle": "PiyaliGameHandoffsPaint4.xcresult"
+    },
+    {
+      "file": "docs/native/game-handoff-intro-ar.png",
+      "name": "Native intro playable loader ar",
+      "sha256": "0545fbbb2c1b6f543cbdb032cef76172b2b9c8afe435d7d9a7e579d058f9d38b",
+      "test": "GameLoaderReferenceTests/testActualTutorialAndTutorLoadingSurfacesAgainstNative()",
+      "resultBundle": "PiyaliGameHandoffsPaint4.xcresult"
+    },
+    {
+      "file": "docs/reference/game-handoff-intro-ar-metrics.json",
+      "name": "Source intro loader metrics ar",
+      "sha256": "2562bfc689a29ef757c2984340dd5b50fa73bce6e99b291a4e3dd378ce2d0e56",
+      "test": "GameLoaderReferenceTests/testActualTutorialAndTutorLoadingSurfacesAgainstNative()",
+      "resultBundle": "PiyaliGameHandoffsPaint4.xcresult"
+    },
+    {
+      "file": "docs/reference/game-handoff-intro-ar.png",
+      "name": "Source intro playable loader ar",
+      "sha256": "ea525989bef8f82b8129a9f4d57322706fd3dc7a8311e88ba528147106a89b0f",
+      "test": "GameLoaderReferenceTests/testActualTutorialAndTutorLoadingSurfacesAgainstNative()",
+      "resultBundle": "PiyaliGameHandoffsPaint4.xcresult"
+    },
+    {
+      "file": "docs/native/game-handoff-intro-en.png",
+      "name": "Native intro playable loader en",
+      "sha256": "11f7d2c35f76f990a00107e4190d97db00dcb858d5e3d7e2307bac0d1cf5a42e",
+      "test": "GameLoaderReferenceTests/testActualTutorialAndTutorLoadingSurfacesAgainstNative()",
+      "resultBundle": "PiyaliGameHandoffsPaint4.xcresult"
+    },
+    {
+      "file": "docs/reference/game-handoff-intro-en-metrics.json",
+      "name": "Source intro loader metrics en",
+      "sha256": "9f72b375395674820f29beeb6b7a9b691168ffc9564e9334f58acfd5ec26dd25",
+      "test": "GameLoaderReferenceTests/testActualTutorialAndTutorLoadingSurfacesAgainstNative()",
+      "resultBundle": "PiyaliGameHandoffsPaint4.xcresult"
+    },
+    {
+      "file": "docs/reference/game-handoff-intro-en.png",
+      "name": "Source intro playable loader en",
+      "sha256": "6c72bd2260e4a218ad3ad22face925f101d03ac634262ca479078e0bbe3178be",
+      "test": "GameLoaderReferenceTests/testActualTutorialAndTutorLoadingSurfacesAgainstNative()",
+      "resultBundle": "PiyaliGameHandoffsPaint4.xcresult"
+    }
+  ]
+}

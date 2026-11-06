@@ -1,0 +1,14 @@
+{
+  "sources": [
+    {
+      "file": "src/features/stories/StoryComprehension.jsx",
+      "sha256": "05a735aa10caaf25c8e1ea9fad02f29e23d912148e58c6e1a9bed4c2efeff328"
+    },
+    {
+      "file": "src/features/stories/storySession.js",
+      "sha256": "f05815923df5191d4be7c63fffe95b897d5bcc056c3c6634ba31dc5ed891e22d"
+    }
+  ],
+  "cases": 10,
+  "scope": "Original StoryComprehension generation callback and applyStoryStreamLine executed with fake streams and in-memory episode setters; no provider, user, audio or network."
+}

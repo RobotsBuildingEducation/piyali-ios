@@ -1,0 +1,168 @@
+[
+  {
+    "target": "es",
+    "support": "en",
+    "snapshot": "{\"type\":\"title\",\"text\":\"Spanish: El jard",
+    "expected": null
+  },
+  {
+    "target": "es",
+    "support": "en",
+    "snapshot": "{\"type\":\"title\",\"text\":\"Spanish: El jardín\"}\n{\"type\":\"target\",\"text\":\"A: La planta crece.\"}\n",
+    "expected": {
+      "title": "El jardín",
+      "target": "La planta crece.",
+      "support": "",
+      "takeaways": []
+    }
+  },
+  {
+    "target": "es",
+    "support": "en",
+    "snapshot": "{\"type\":\"title\",\"text\":\"Spanish: El jardín\"}\n{\"type\":\"target\",\"text\":\"A: La planta crece.\"}\n{broken}\n{\"type\":\"target\",\"text\":\"A: La planta crece.\"}\n",
+    "expected": {
+      "title": "El jardín",
+      "target": "La planta crece.",
+      "support": "",
+      "takeaways": []
+    }
+  },
+  {
+    "target": "es",
+    "support": "en",
+    "snapshot": "{\"type\":\"title\",\"text\":\"Spanish: El jardín\"}\n{\"type\":\"target\",\"text\":\"A: La planta crece.\"}\n{broken}\n{\"type\":\"target\",\"text\":\"A: La planta crece.\"}\n{\"type\":\"takeaway\",\"text\":\"English: A plant\"}\n{\"type\":\"takeaway\",\"text\":\"A plant\"}\n",
+    "expected": {
+      "title": "El jardín",
+      "target": "La planta crece.",
+      "support": "",
+      "takeaways": [
+        "A plant"
+      ]
+    }
+  },
+  {
+    "target": "es",
+    "support": "en",
+    "snapshot": "{\"type\":\"title\",\"text\":\"Spanish: El jardín\"}\n{\"type\":\"target\",\"text\":\"A: La planta crece.\"}\n{broken}\n{\"type\":\"target\",\"text\":\"A: La planta crece.\"}\n{\"type\":\"takeaway\",\"text\":\"English: A plant\"}\n{\"type\":\"takeaway\",\"text\":\"A plant\"}\n{\"type\":\"target\",\"text\":\"Hay una ventana.\"}\n{\"type\":\"takeaway\",\"text\":\"A window\"}\n",
+    "expected": {
+      "title": "El jardín",
+      "target": "La planta crece. Hay una ventana.",
+      "support": "",
+      "takeaways": [
+        "A plant",
+        "A window"
+      ]
+    }
+  },
+  {
+    "target": "ar",
+    "support": "fr",
+    "snapshot": "{\"type\":\"target\",\"text\":\"العربية المصرية: أهلاً بالعالم.\"}\n",
+    "expected": {
+      "title": "Generando...",
+      "target": "أهلاً بالعالم.",
+      "support": "",
+      "takeaways": []
+    }
+  },
+  {
+    "target": "ar",
+    "support": "fr",
+    "snapshot": "{\"type\":\"target\",\"text\":\"العربية المصرية: أهلاً بالعالم.\"}\n{\"type\":\"takeaway\",\"text\":\"French: Bonjour\"}\n",
+    "expected": {
+      "title": "Generando...",
+      "target": "أهلاً بالعالم.",
+      "support": "",
+      "takeaways": [
+        "Bonjour"
+      ]
+    }
+  },
+  {
+    "target": "ar",
+    "support": "fr",
+    "snapshot": "{\"type\":\"target\",\"text\":\"العربية المصرية: أهلاً بالعالم.\"}\n{\"type\":\"takeaway\",\"text\":\"French: Bonjour\"}\n{\"type\":\"title\",\"text\":\"[العنوان]\"}\n",
+    "expected": {
+      "title": "العنوان",
+      "target": "أهلاً بالعالم.",
+      "support": "",
+      "takeaways": [
+        "Bonjour"
+      ]
+    }
+  },
+  {
+    "target": "en",
+    "support": "es",
+    "snapshot": "{\"type\":\"review_question\",\"question\":\"Hidden\"}\n",
+    "expected": null
+  },
+  {
+    "target": "en",
+    "support": "es",
+    "snapshot": "{\"type\":\"review_question\",\"question\":\"Hidden\"}\n{\"type\":\"title\",\"text\":\"• Small notes\"}\n",
+    "expected": {
+      "title": "Small notes",
+      "target": "",
+      "support": "",
+      "takeaways": []
+    }
+  },
+  {
+    "target": "en",
+    "support": "es",
+    "snapshot": "{\"type\":\"review_question\",\"question\":\"Hidden\"}\n{\"type\":\"title\",\"text\":\"• Small notes\"}\n{\"type\":\"target\",\"text\":\"Notice: Library hours are nine to five.\"}\n",
+    "expected": {
+      "title": "Small notes",
+      "target": "Notice: Library hours are nine to five.",
+      "support": "",
+      "takeaways": []
+    }
+  },
+  {
+    "target": "en",
+    "support": "es",
+    "snapshot": "{\"type\":\"review_question\",\"question\":\"Hidden\"}\n{\"type\":\"title\",\"text\":\"• Small notes\"}\n{\"type\":\"target\",\"text\":\"Notice: Library hours are nine to five.\"}\n{\"type\":\"takeaway\",\"text\":\"Español: Primera\"}\n{\"type\":\"takeaway\",\"text\":\"Segunda\"}\n{\"type\":\"takeaway\",\"text\":\"Tercera\"}\n{\"type\":\"takeaway\",\"text\":\"Cuarta\"}\n",
+    "expected": {
+      "title": "Small notes",
+      "target": "Notice: Library hours are nine to five.",
+      "support": "",
+      "takeaways": [
+        "Primera",
+        "Segunda",
+        "Tercera"
+      ]
+    }
+  },
+  {
+    "target": "en",
+    "support": "es",
+    "snapshot": "{\"type\":\"review_question\",\"question\":\"Hidden\"}\n{\"type\":\"title\",\"text\":\"• Small notes\"}\n{\"type\":\"target\",\"text\":\"Notice: Library hours are nine to five.\"}\n{\"type\":\"takeaway\",\"text\":\"Español: Primera\"}\n{\"type\":\"takeaway\",\"text\":\"Segunda\"}\n{\"type\":\"takeaway\",\"text\":\"Tercera\"}\n{\"type\":\"takeaway\",\"text\":\"Cuarta\"}\n{\"type\":\"target\",\"text\":\"A final record\"}",
+    "expected": {
+      "title": "Small notes",
+      "target": "Notice: Library hours are nine to five.",
+      "support": "",
+      "takeaways": [
+        "Primera",
+        "Segunda",
+        "Tercera"
+      ]
+    }
+  },
+  {
+    "target": "en",
+    "support": "es",
+    "snapshot": "{\"type\":\"review_question\",\"question\":\"Hidden\"}\n{\"type\":\"title\",\"text\":\"• Small notes\"}\n{\"type\":\"target\",\"text\":\"Notice: Library hours are nine to five.\"}\n{\"type\":\"takeaway\",\"text\":\"Español: Primera\"}\n{\"type\":\"takeaway\",\"text\":\"Segunda\"}\n{\"type\":\"takeaway\",\"text\":\"Tercera\"}\n{\"type\":\"takeaway\",\"text\":\"Cuarta\"}\n{\"type\":\"target\",\"text\":\"A final record\"}",
+    "includeTrailing": true,
+    "expected": {
+      "title": "Small notes",
+      "target": "Notice: Library hours are nine to five. A final record",
+      "support": "",
+      "takeaways": [
+        "Primera",
+        "Segunda",
+        "Tercera"
+      ]
+    }
+  }
+]

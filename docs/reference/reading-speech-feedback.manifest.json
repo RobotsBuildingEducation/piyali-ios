@@ -1,0 +1,37 @@
+{
+  "sources": [
+    {
+      "file": "src/components/History.jsx",
+      "sha256": "ceca67f29b27ebc41c300c29e6ea92240bda1020fb23c3e505a06b65842832a9"
+    },
+    {
+      "file": "src/components/RandomCharacter.jsx",
+      "sha256": "926ca4aa285166d5b47908dfe92c135ed25eaba567ffd5d2476204af5980b729"
+    },
+    {
+      "file": "src/components/WaveBar.jsx",
+      "sha256": "619c6d05f99488316facec96f2b35fa46544910a5b1fd0d0584e529af756c536"
+    },
+    {
+      "file": "src/components/questionUiStyles.js",
+      "sha256": "5a3389380c6df57642d750220ef6c12f64326a73de92134ea6f2b365a00e5b97"
+    },
+    {
+      "file": "src/theme.js",
+      "sha256": "6fe6093ecca51d0debb1314a587d6bd0927e7ac9f8c1ba2c6c744017e3be407e"
+    },
+    {
+      "file": "src/utils/translation.jsx",
+      "sha256": "10c6705379ed869d84ece0ec7a829193bb3c9522d742683701de56cb194666b9"
+    }
+  ],
+  "scope": "Original speech-feedback JSX subtree and original theme/copy/assets; fixed QA feedback, no learner/provider account",
+  "viewport": {
+    "width": 402,
+    "height": 874
+  },
+  "savedCaptureCrop": {
+    "width": 402,
+    "height": 420
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "referenceCommit": "b269524ddc578027c549616fc47f5954991d9f6f",
+  "scope": "Eight original source/native crystal/menu component pairs at 402x400; 160x160 center crops enlarged 2x. Native tagged Display P3 PNGs are converted to sRGB before composition; source untagged PNGs use source CSS sRGB. Original product PNGs retain their profiles. Source animation clocks are paused at the recorded milliseconds. Reduced source mode applies its original CSS equivalent inline; native uses a rendering override, not a physical accessibility setting. Source menu trigger is transparent; native product captures retain the existing shell. This does not certify whole navigation viewport parity.",
+  "captures": [
+    {
+      "file": "capture-light-500-motion.png",
+      "sha256": "c119a8e040d3ec31abcafe4e20e86bf2f41120f53360cf9b6650dc7be162b3d1",
+      "resultBundle": "/tmp/PiyaliMemoryCaptureFinalPaint20261105.xcresult"
+    },
+    {
+      "file": "capture-light-500-motion.json",
+      "sha256": "9ed0825c9780806788b01a7f71aa7716a756c387f26bc3fbdab591e0b2ce26e5",
+      "resultBundle": "/tmp/PiyaliMemoryCaptureFinalPaint20261105.xcresult"
+    },
+    {
+      "file": "capture-light-1600-motion.png",
+      "sha256": "23807ffc600001867765b011202d41d7a777f14a0c093989d31e4743295eef36",
+      "resultBundle": "/tmp/PiyaliMemoryCaptureFinalPaint20261105.xcresult"
+    },
+    {
+      "file": "capture-light-1600-motion.json",
+      "sha256": "477573411f649d3a38072b943f89f34d80f3be7d2f22cd9f6a1e75aed37c354e",
+      "resultBundle": "/tmp/PiyaliMemoryCaptureFinalPaint20261105.xcresult"
+    },
+    {
+      "file": "capture-light-2300-motion.png",
+      "sha256": "9a76eb7c1cc4df6aa7bd5f4f33f108f6a27ddb1a0f89332ca2c01e303aec619b",
+      "resultBundle": "/tmp/PiyaliMemoryCaptureFinalPaint20261105.xcresult"
+    },
+    {
+      "file": "capture-light-2300-motion.json",
+      "sha256": "b1d35e79ccfa926109f5819b64193e35dbab5ccb0114efcd7daa7a2d4dbdea6d",
+      "resultBundle": "/tmp/PiyaliMemoryCaptureFinalPaint20261105.xcresult"
+    },
+    {
+      "file": "capture-light-1600-reduced.png",
+      "sha256": "e48bdcc45e4ce4faffe25420df8a4a4c8bba0b19c70b45842c3fc9b436afb8be",
+      "resultBundle": "/tmp/PiyaliMemoryCaptureFinalPaint20261105.xcresult"
+    },
+    {
+      "file": "capture-light-1600-reduced.json",
+      "sha256": "3b3a547538676fb85d5fdfe9cdfc7a98a8db9a328a8a812f8decc3e531a6d799",
+      "resultBundle": "/tmp/PiyaliMemoryCaptureFinalPaint20261105.xcresult"
+    },
+    {
+      "file": "capture-dark-500-motion.png",
+      "sha256": "4c5f13e93eb9af9c1108e7b1e8742e4d200f6657012d4cab2fac0c825868083b",
+      "resultBundle": "/tmp/PiyaliMemoryCaptureFinalPaint20261105.xcresult"
+    },
+    {
+      "file": "capture-dark-500-motion.json",
+      "sha256": "9ed0825c9780806788b01a7f71aa7716a756c387f26bc3fbdab591e0b2ce26e5",
+      "resultBundle": "/tmp/PiyaliMemoryCaptureFinalPaint20261105.xcresult"
+    },
+    {
+      "file": "capture-dark-1600-motion.png",
+      "sha256": "c74b25b2e6c5dfbe1032fdf52d32c04ada6d2d84953c55cb6bffa21b57d14063",
+      "resultBundle": "/tmp/PiyaliMemoryCaptureFinalPaint20261105.xcresult"
+    },
+    {
+      "file": "capture-dark-1600-motion.json",
+      "sha256": "477573411f649d3a38072b943f89f34d80f3be7d2f22cd9f6a1e75aed37c354e",
+      "resultBundle": "/tmp/PiyaliMemoryCaptureFinalPaint20261105.xcresult"
+    },
+    {
+      "file": "capture-dark-2300-motion.png",
+      "sha256": "8f7499ccb106fe7d793529aa32368d921fc6aadd071352d272144926f1bc2008",
+      "resultBundle": "/tmp/PiyaliMemoryCaptureFinalPaint20261105.xcresult"
+    },
+    {
+      "file": "capture-dark-2300-motion.json",
+      "sha256": "b1d35e79ccfa926109f5819b64193e35dbab5ccb0114efcd7daa7a2d4dbdea6d",
+      "resultBundle": "/tmp/PiyaliMemoryCaptureFinalPaint20261105.xcresult"
+    },
+    {
+      "file": "capture-dark-1600-reduced.png",
+      "sha256": "3abff3e5d29674f7e156a8b3b3dd469ea6dd98fe461967c97f8345034e35331c",
+      "resultBundle": "/tmp/PiyaliMemoryCaptureFinalPaint20261105.xcresult"
+    },
+    {
+      "file": "capture-dark-1600-reduced.json",
+      "sha256": "3b3a547538676fb85d5fdfe9cdfc7a98a8db9a328a8a812f8decc3e531a6d799",
+      "resultBundle": "/tmp/PiyaliMemoryCaptureFinalPaint20261105.xcresult"
+    },
+    {
+      "file": "pending-note-after-next.png",
+      "sha256": "83b6c9dffda2a1cb28ddf7c620f2d0ffa49235dcaf96fbdaa6f8db0d3d86707c",
+      "resultBundle": "/tmp/PiyaliMemoryCaptureStable20261105.xcresult",
+      "scope": "Passing full isolated product journey, before final paint-only shadow clipping calibration."
+    },
+    {
+      "file": "note-in-memory.png",
+      "sha256": "bd5485f837439351ff23c6bbc1a39fcc6bfcbd2e340ee8aba888da41ebb8d516",
+      "resultBundle": "/tmp/PiyaliMemoryCaptureStable20261105.xcresult",
+      "scope": "Passing full isolated product journey, before final paint-only shadow clipping calibration."
+    }
+  ]
+}

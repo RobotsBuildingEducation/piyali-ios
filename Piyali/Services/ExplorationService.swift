@@ -28,7 +28,7 @@ import Foundation
         await run(app) { account,version in
             guard let library=self.library else { throw ExplorationFailure.invalidScenario }
             let target=app.learner.target,support=app.learner.support,base=["es","en"].contains(target) ? target : "en"
-            let candidates=library.templates.filter { $0.theme == theme && $0.level == app.learner.level && $0.baseLanguage == base && (!searchObjects || $0.quest["steps"].array.contains { $0["nodes"].array.contains { $0["responseMode"].string == "gather" } }) }
+            let candidates=library.templates.filter { (theme.isEmpty || $0.theme == theme) && $0.level == app.learner.level && $0.baseLanguage == base && (!searchObjects || $0.quest["steps"].array.contains { $0["nodes"].array.contains { $0["responseMode"].string == "gather" } }) }
             var chosen=candidates.randomElement()
             #if DEBUG
             if ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"] == "1",ProcessInfo.processInfo.environment["PIYALI_EXPLORATION_TEST_FIXTURE"] == "1",UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil { chosen=candidates.first { $0.quest["steps"].array.contains { $0["nodes"].array.contains { $0["responseMode"].string == "gather" } } } }

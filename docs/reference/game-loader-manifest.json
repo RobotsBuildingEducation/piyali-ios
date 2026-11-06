@@ -1,0 +1,153 @@
+{
+  "sources": [
+    {
+      "file": "src/components/LoadingMiniGame.jsx",
+      "sha256": "bec40af3b8172356bd2a56b56b90374df09b655827f9aec5b9c8fe27b3d1f763"
+    },
+    {
+      "file": "src/components/rpgCompanionSprites.js",
+      "sha256": "9b2e8ebb287b271936959b1dcc02b2841bd92cb81c006ae4a513cefaafdae23f"
+    },
+    {
+      "file": "src/utils/gameLoaderTiming.js",
+      "sha256": "b1b45f44b881510e435fc15616c858b8fffc89bb83e99df678bbf23682cd262f"
+    },
+    {
+      "file": "src/utils/gameLoadingMessages.js",
+      "sha256": "30381c2be46677160a267c23fe3fc6938451a3ff5d81d291d53785470a3de650"
+    },
+    {
+      "file": "src/utils/bidiText.js",
+      "sha256": "0dc0959f0e58c3e715241dcd57eeab484ff55785860a1e53e7e15b79ac52aed1"
+    },
+    {
+      "file": "src/constants/languages.js",
+      "sha256": "02cb1507cb2ee1b5822ac4dd98cd7faf3e67a5101a13dd6c93826f553201ab32"
+    },
+    {
+      "file": "src/components/SkillTree.jsx",
+      "sha256": "d9aa286221c8648d3a06730045d85e9ad621906f439e7255e5149bf55bdc8020"
+    },
+    {
+      "file": "src/utils/tutorialGameLoader.js",
+      "sha256": "c8bc246c612dc99f45af6441d5fa8345fad5b044ba0e35482146cb97a8905e41"
+    },
+    {
+      "file": "src/App.jsx",
+      "sha256": "5fd4a87bd5db004c1fc049ff7e8c7e266e6d65d7c42201ef75e923044c4a7dc8"
+    },
+    {
+      "file": "src/index.css",
+      "sha256": "79a5362dc1b189acd0d2288c0e85ff29c9cc1c8e39b8bb5cabe164ddd1c29030"
+    },
+    {
+      "file": "src/theme.js",
+      "sha256": "6fe6093ecca51d0debb1314a587d6bd0927e7ac9f8c1ba2c6c744017e3be407e"
+    },
+    {
+      "file": "src/utils/SoundManager.js",
+      "sha256": "74b0ae85c6ea2b8a077af4176d6ad5df6f5715ecc7d0bcdf65789a4875fc7471"
+    }
+  ],
+  "cases": 569,
+  "adapters": "Original world generator, drawing functions, character drawers, initial state, movement/touch/interaction/door callbacks and frame loop. Native-sized canvas, recorded drawing commands, explicit clock/timer and sound-event adapters replace browser I/O. No React, providers, stores, Firebase or learner data executes.",
+  "sounds": [
+    {
+      "name": "rpgStep",
+      "notes": [
+        {
+          "note": "A5",
+          "duration": "256n",
+          "at": 0,
+          "envelope": {
+            "type": "sine",
+            "attack": 0.002,
+            "decay": 0.035,
+            "sustain": 0,
+            "release": 0.05
+          },
+          "volume": -24
+        },
+        {
+          "note": "E6",
+          "duration": "256n",
+          "at": 0.018,
+          "envelope": {
+            "type": "sine",
+            "attack": 0.002,
+            "decay": 0.035,
+            "sustain": 0,
+            "release": 0.05
+          },
+          "volume": -24
+        }
+      ],
+      "seconds": 0.07582766439909297
+    },
+    {
+      "name": "rpgDialogueOpen",
+      "notes": [
+        {
+          "note": "D5",
+          "duration": "32n",
+          "at": 0,
+          "envelope": {
+            "type": "sine",
+            "attack": 0.01,
+            "decay": 0.08,
+            "sustain": 0.05,
+            "release": 0.1
+          },
+          "volume": -16
+        },
+        {
+          "note": "A5",
+          "duration": "32n",
+          "at": 0.04,
+          "envelope": {
+            "type": "sine",
+            "attack": 0.01,
+            "decay": 0.08,
+            "sustain": 0.05,
+            "release": 0.1
+          },
+          "volume": -16
+        },
+        {
+          "note": "D6",
+          "duration": "32n",
+          "at": 0.08,
+          "envelope": {
+            "type": "sine",
+            "attack": 0.01,
+            "decay": 0.08,
+            "sustain": 0.05,
+            "release": 0.1
+          },
+          "volume": -16
+        }
+      ],
+      "seconds": 0.2425170068027211
+    },
+    {
+      "name": "rpgDialogueSelect",
+      "notes": [
+        {
+          "note": "F5",
+          "duration": "64n",
+          "at": 0,
+          "envelope": {
+            "type": "sine",
+            "attack": 0.001,
+            "decay": 0.05,
+            "sustain": 0,
+            "release": 0.05
+          },
+          "volume": -16
+        }
+      ],
+      "seconds": 0.08126984126984127
+    }
+  ],
+  "nativeAudio": "Original sine pitches, timing, envelopes and gain; portable PCM approximates Tone exponential envelopes at 120 BPM."
+}

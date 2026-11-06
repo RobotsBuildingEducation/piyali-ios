@@ -1,0 +1,31 @@
+{
+  "plans": 443,
+  "worlds": 443,
+  "textures": 181,
+  "traces": 49,
+  "frameSamples": 245,
+  "seed": 1792936800000,
+  "sources": [
+    {
+      "file": "src/components/RPGGame/index.jsx",
+      "sha256": "f597e8f7a9296ff3f72fad4e6f24ca4a1a313fddbc87ba3cf2d128c1d6ea95a2"
+    },
+    {
+      "file": "src/components/RPGGame/GameRouter.jsx",
+      "sha256": "4869757e8ee2b8a244fbbaaf8d2105a97cfbc04919b1eeaf2f578d4252c5ce29"
+    },
+    {
+      "file": "src/components/RPGGame/pixelArt.js",
+      "sha256": "22e2d4516c21cb81a48e8b24debe6394682a77ffa8cf136d8b2049f06a528c2d"
+    },
+    {
+      "file": "src/components/rpgCompanionSprites.js",
+      "sha256": "9b2e8ebb287b271936959b1dcc02b2841bd92cb81c006ae4a513cefaafdae23f"
+    },
+    {
+      "file": "src/components/RPGGame/episodes/legacyScenario.js",
+      "sha256": "9030dbf6f0adfd0f1b8e592525ebee84a549849c61a4d101fbf6eb5b1e950327"
+    }
+  ],
+  "adapters": "Actual main-product scene-building blocks and frame loop execute offline against Three/Canvas. Ground/solid rasterization is retained from the existing exporter. Original prop textures are reused, new decal/disc/mote textures are content-deduplicated with source material color-space conversion. Main NPCs remain anchored; the separate demo movement module is not imported. Complete 3600-tick ambient companion cycles retain identical frames by content hash."
+}

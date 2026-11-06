@@ -1,0 +1,76 @@
+{
+  "file": "src/utils/dailyPlateHeadline.js",
+  "sha256": "e5da31059f1875572cb823ba52344f5a23ba061dd4502cd4d04e5836226469fd",
+  "pureDeclarations": [
+    "LANGUAGE_PROMPT_NAMES",
+    "resolveLanguageName",
+    "normalizePlateLang",
+    "getStoredPlateHeadline",
+    "isLessonCompleted",
+    "findNextLessonFromUnits",
+    "getPlateTaskSummary",
+    "buildPlateHeadlinePrompt",
+    "cleanHeadlineText"
+  ],
+  "fixtureCount": 60,
+  "metadataCases": 8848,
+  "metadata": [
+    {
+      "target": "de",
+      "curriculumSHA256": "23ec5cdbd4589d5bcd2f0e5293b436398882dfb7130b7feadbf4aacd3451c665"
+    },
+    {
+      "target": "el",
+      "curriculumSHA256": "a9e80997f4515ecfb29dedea2264659d993fec62291a0c4dbdbc3bdb8a737792"
+    },
+    {
+      "target": "en",
+      "curriculumSHA256": "2b33667dca8d902a677f29e8274afefbb1202194de19bee9222107bc8a6c1ec4"
+    },
+    {
+      "target": "es",
+      "curriculumSHA256": "d3a864b4cc5e28e329ff508748f878dd403cb90e9e2bb23de3bddde8efbe5935"
+    },
+    {
+      "target": "fr",
+      "curriculumSHA256": "1b1c98d2262922803187ee6aeaa483b6189b0cf774ec1576f42c2aada27f6d2a"
+    },
+    {
+      "target": "ga",
+      "curriculumSHA256": "eca7a6a9eb5dbc5c01b9e5f1e28a73d6e92c39c9fed85e2217d2f1345c0743aa"
+    },
+    {
+      "target": "it",
+      "curriculumSHA256": "27859c195cf3516b303d01ddefed640b40f6369116e73a860c71f7bd466b4a25"
+    },
+    {
+      "target": "ja",
+      "curriculumSHA256": "5a8c056c4a9e278c7b5ff8145f07069f8048aaea69fd325f0d35da2cb7ad7a99"
+    },
+    {
+      "target": "nah",
+      "curriculumSHA256": "d3a864b4cc5e28e329ff508748f878dd403cb90e9e2bb23de3bddde8efbe5935"
+    },
+    {
+      "target": "nl",
+      "curriculumSHA256": "52620e760529dcb7152a26670dce4326b3548af88242c8598cf6986bf6dedff2"
+    },
+    {
+      "target": "pl",
+      "curriculumSHA256": "13d36152703831e0817c968c0578455b769ef82fbee5c89f2322a5d8645fe41c"
+    },
+    {
+      "target": "pt",
+      "curriculumSHA256": "a537fdbe001d8c9b3a0fddd6205db7702a2dd061d696c4f761a1eec07c6c35d8"
+    },
+    {
+      "target": "ru",
+      "curriculumSHA256": "7f2ace2d30104a99d922644a1e27cffa13b88d30d30d52296830fdd7d7645368"
+    },
+    {
+      "target": "yua",
+      "curriculumSHA256": "d3a864b4cc5e28e329ff508748f878dd403cb90e9e2bb23de3bddde8efbe5935"
+    }
+  ],
+  "scope": "Pure task selection, prompt, cleaning and cache guards executed from source. Metadata/full-curriculum equivalence checks every possible next unfinished lesson in the bundled levels. Native stream lifecycle and persistence tested separately."
+}

@@ -1,0 +1,1564 @@
+[
+  {
+    "input": {
+      "primaryText": "Hola, hola. ¿Cómo estás?",
+      "secondaryText": "Hello Hello. How are you? Hi mom. Street. Alphabet.",
+      "pairs": [
+        {
+          "lhs": "Hola",
+          "rhs": "Hello"
+        },
+        {
+          "lhs": "¿Cómo estás?",
+          "rhs": "How are you?"
+        }
+      ]
+    },
+    "expected": {
+      "pairs": [
+        {
+          "lhs": "Hola",
+          "rhs": "Hello"
+        },
+        {
+          "lhs": "¿Cómo estás?",
+          "rhs": "How are you?"
+        }
+      ],
+      "colors": [
+        "#91E0FF",
+        "#A0EBAF",
+        "#FFD48A",
+        "#C6B7FF",
+        "#FF9FB1",
+        "#B0F0FF"
+      ],
+      "primary": [
+        "",
+        {
+          "text": "Hola",
+          "token": "tok_1",
+          "root": "tok"
+        },
+        ", ",
+        {
+          "text": "hola",
+          "token": "tok_1_cont",
+          "root": "tok"
+        },
+        ". ",
+        {
+          "text": "¿Cómo estás?",
+          "token": "tok_0",
+          "root": "tok"
+        },
+        ""
+      ],
+      "secondary": [
+        "",
+        {
+          "text": "Hello",
+          "token": "tok_1",
+          "root": "tok"
+        },
+        " ",
+        {
+          "text": "Hello",
+          "token": "tok_1_cont",
+          "root": "tok"
+        },
+        ". ",
+        {
+          "text": "How are you?",
+          "token": "tok_0",
+          "root": "tok"
+        },
+        " Hi mom. Street. Alphabet."
+      ]
+    }
+  },
+  {
+    "input": {
+      "primaryText": "Hola, hola. ¿Cómo estás?",
+      "secondaryText": "Hello Hello. How are you? Hi mom. Street. Alphabet.",
+      "pairs": [
+        {
+          "lhs": "hola mamá",
+          "rhs": "Hi mom"
+        },
+        {
+          "lhs": "hola",
+          "rhs": "Hi"
+        }
+      ]
+    },
+    "expected": {
+      "pairs": [
+        {
+          "lhs": "hola",
+          "rhs": "Hi"
+        }
+      ],
+      "colors": [
+        "#91E0FF",
+        "#A0EBAF",
+        "#FFD48A",
+        "#C6B7FF",
+        "#FF9FB1",
+        "#B0F0FF"
+      ],
+      "primary": [
+        "",
+        {
+          "text": "Hola",
+          "token": "tok_0",
+          "root": "tok"
+        },
+        ", ",
+        {
+          "text": "hola",
+          "token": "tok_0_cont",
+          "root": "tok"
+        },
+        ". ¿Cómo estás?"
+      ],
+      "secondary": [
+        "Hello Hello. How are you? ",
+        {
+          "text": "Hi",
+          "token": "tok_0",
+          "root": "tok"
+        },
+        " mom. Street. Alphabet."
+      ]
+    }
+  },
+  {
+    "input": {
+      "primaryText": "Hola, hola. ¿Cómo estás?",
+      "secondaryText": "Hello Hello. How are you? Hi mom. Street. Alphabet.",
+      "pairs": [
+        {
+          "lhs": "ABC",
+          "rhs": "Alphabet"
+        },
+        {
+          "lhs": "Straße",
+          "rhs": "Street"
+        },
+        {
+          "lhs": "مرحبا",
+          "rhs": "Hello"
+        },
+        {
+          "lhs": "こんにちは",
+          "rhs": "Hello"
+        }
+      ]
+    },
+    "expected": {
+      "pairs": [],
+      "colors": [
+        "#91E0FF",
+        "#A0EBAF",
+        "#FFD48A",
+        "#C6B7FF",
+        "#FF9FB1",
+        "#B0F0FF"
+      ],
+      "primary": [
+        "Hola, hola. ¿Cómo estás?"
+      ],
+      "secondary": [
+        "Hello Hello. How are you? Hi mom. Street. Alphabet."
+      ]
+    }
+  },
+  {
+    "input": {
+      "primaryText": "Hola, hola. ¿Cómo estás?",
+      "secondaryText": "Hello Hello. How are you? Hi mom. Street. Alphabet.",
+      "pairs": []
+    },
+    "expected": {
+      "pairs": [],
+      "colors": [
+        "#91E0FF",
+        "#A0EBAF",
+        "#FFD48A",
+        "#C6B7FF",
+        "#FF9FB1",
+        "#B0F0FF"
+      ],
+      "primary": [
+        "Hola, hola. ¿Cómo estás?"
+      ],
+      "secondary": [
+        "Hello Hello. How are you? Hi mom. Street. Alphabet."
+      ]
+    }
+  },
+  {
+    "input": {
+      "primaryText": "Hola, hola. ¿Cómo estás?",
+      "secondaryText": "Hello Hello. How are you? Hi mom. Street. Alphabet.",
+      "pairs": [
+        {
+          "lhs": "",
+          "rhs": "empty"
+        },
+        {
+          "lhs": "missing",
+          "rhs": "none"
+        }
+      ]
+    },
+    "expected": {
+      "pairs": [],
+      "colors": [
+        "#91E0FF",
+        "#A0EBAF",
+        "#FFD48A",
+        "#C6B7FF",
+        "#FF9FB1",
+        "#B0F0FF"
+      ],
+      "primary": [
+        "Hola, hola. ¿Cómo estás?"
+      ],
+      "secondary": [
+        "Hello Hello. How are you? Hi mom. Street. Alphabet."
+      ]
+    }
+  },
+  {
+    "input": {
+      "primaryText": "Hola mamá, hola mamá.",
+      "secondaryText": "Hello Hello. How are you? Hi mom. Street. Alphabet.",
+      "pairs": [
+        {
+          "lhs": "Hola",
+          "rhs": "Hello"
+        },
+        {
+          "lhs": "¿Cómo estás?",
+          "rhs": "How are you?"
+        }
+      ]
+    },
+    "expected": {
+      "pairs": [
+        {
+          "lhs": "Hola",
+          "rhs": "Hello"
+        }
+      ],
+      "colors": [
+        "#91E0FF",
+        "#A0EBAF",
+        "#FFD48A",
+        "#C6B7FF",
+        "#FF9FB1",
+        "#B0F0FF"
+      ],
+      "primary": [
+        "",
+        {
+          "text": "Hola",
+          "token": "tok_0",
+          "root": "tok"
+        },
+        " mamá, ",
+        {
+          "text": "hola",
+          "token": "tok_0_cont",
+          "root": "tok"
+        },
+        " mamá."
+      ],
+      "secondary": [
+        "",
+        {
+          "text": "Hello",
+          "token": "tok_0",
+          "root": "tok"
+        },
+        " ",
+        {
+          "text": "Hello",
+          "token": "tok_0_cont",
+          "root": "tok"
+        },
+        ". How are you? Hi mom. Street. Alphabet."
+      ]
+    }
+  },
+  {
+    "input": {
+      "primaryText": "Hola mamá, hola mamá.",
+      "secondaryText": "Hello Hello. How are you? Hi mom. Street. Alphabet.",
+      "pairs": [
+        {
+          "lhs": "hola mamá",
+          "rhs": "Hi mom"
+        },
+        {
+          "lhs": "hola",
+          "rhs": "Hi"
+        }
+      ]
+    },
+    "expected": {
+      "pairs": [
+        {
+          "lhs": "hola mamá",
+          "rhs": "Hi mom"
+        },
+        {
+          "lhs": "hola",
+          "rhs": "Hi"
+        }
+      ],
+      "colors": [
+        "#91E0FF",
+        "#A0EBAF",
+        "#FFD48A",
+        "#C6B7FF",
+        "#FF9FB1",
+        "#B0F0FF"
+      ],
+      "primary": [
+        "",
+        {
+          "text": "Hola mamá",
+          "token": "tok_0",
+          "root": "tok"
+        },
+        ", ",
+        {
+          "text": "hola mamá",
+          "token": "tok_0_cont",
+          "root": "tok"
+        },
+        "."
+      ],
+      "secondary": [
+        "Hello Hello. How are you? ",
+        {
+          "text": "Hi mom",
+          "token": "tok_0",
+          "root": "tok"
+        },
+        ". Street. Alphabet."
+      ]
+    }
+  },
+  {
+    "input": {
+      "primaryText": "Hola mamá, hola mamá.",
+      "secondaryText": "Hello Hello. How are you? Hi mom. Street. Alphabet.",
+      "pairs": [
+        {
+          "lhs": "ABC",
+          "rhs": "Alphabet"
+        },
+        {
+          "lhs": "Straße",
+          "rhs": "Street"
+        },
+        {
+          "lhs": "مرحبا",
+          "rhs": "Hello"
+        },
+        {
+          "lhs": "こんにちは",
+          "rhs": "Hello"
+        }
+      ]
+    },
+    "expected": {
+      "pairs": [],
+      "colors": [
+        "#91E0FF",
+        "#A0EBAF",
+        "#FFD48A",
+        "#C6B7FF",
+        "#FF9FB1",
+        "#B0F0FF"
+      ],
+      "primary": [
+        "Hola mamá, hola mamá."
+      ],
+      "secondary": [
+        "Hello Hello. How are you? Hi mom. Street. Alphabet."
+      ]
+    }
+  },
+  {
+    "input": {
+      "primaryText": "Hola mamá, hola mamá.",
+      "secondaryText": "Hello Hello. How are you? Hi mom. Street. Alphabet.",
+      "pairs": []
+    },
+    "expected": {
+      "pairs": [],
+      "colors": [
+        "#91E0FF",
+        "#A0EBAF",
+        "#FFD48A",
+        "#C6B7FF",
+        "#FF9FB1",
+        "#B0F0FF"
+      ],
+      "primary": [
+        "Hola mamá, hola mamá."
+      ],
+      "secondary": [
+        "Hello Hello. How are you? Hi mom. Street. Alphabet."
+      ]
+    }
+  },
+  {
+    "input": {
+      "primaryText": "Hola mamá, hola mamá.",
+      "secondaryText": "Hello Hello. How are you? Hi mom. Street. Alphabet.",
+      "pairs": [
+        {
+          "lhs": "",
+          "rhs": "empty"
+        },
+        {
+          "lhs": "missing",
+          "rhs": "none"
+        }
+      ]
+    },
+    "expected": {
+      "pairs": [],
+      "colors": [
+        "#91E0FF",
+        "#A0EBAF",
+        "#FFD48A",
+        "#C6B7FF",
+        "#FF9FB1",
+        "#B0F0FF"
+      ],
+      "primary": [
+        "Hola mamá, hola mamá."
+      ],
+      "secondary": [
+        "Hello Hello. How are you? Hi mom. Street. Alphabet."
+      ]
+    }
+  },
+  {
+    "input": {
+      "primaryText": "ＡＢＣ y abc",
+      "secondaryText": "Hello Hello. How are you? Hi mom. Street. Alphabet.",
+      "pairs": [
+        {
+          "lhs": "Hola",
+          "rhs": "Hello"
+        },
+        {
+          "lhs": "¿Cómo estás?",
+          "rhs": "How are you?"
+        }
+      ]
+    },
+    "expected": {
+      "pairs": [],
+      "colors": [
+        "#91E0FF",
+        "#A0EBAF",
+        "#FFD48A",
+        "#C6B7FF",
+        "#FF9FB1",
+        "#B0F0FF"
+      ],
+      "primary": [
+        "ＡＢＣ y abc"
+      ],
+      "secondary": [
+        "Hello Hello. How are you? Hi mom. Street. Alphabet."
+      ]
+    }
+  },
+  {
+    "input": {
+      "primaryText": "ＡＢＣ y abc",
+      "secondaryText": "Hello Hello. How are you? Hi mom. Street. Alphabet.",
+      "pairs": [
+        {
+          "lhs": "hola mamá",
+          "rhs": "Hi mom"
+        },
+        {
+          "lhs": "hola",
+          "rhs": "Hi"
+        }
+      ]
+    },
+    "expected": {
+      "pairs": [],
+      "colors": [
+        "#91E0FF",
+        "#A0EBAF",
+        "#FFD48A",
+        "#C6B7FF",
+        "#FF9FB1",
+        "#B0F0FF"
+      ],
+      "primary": [
+        "ＡＢＣ y abc"
+      ],
+      "secondary": [
+        "Hello Hello. How are you? Hi mom. Street. Alphabet."
+      ]
+    }
+  },
+  {
+    "input": {
+      "primaryText": "ＡＢＣ y abc",
+      "secondaryText": "Hello Hello. How are you? Hi mom. Street. Alphabet.",
+      "pairs": [
+        {
+          "lhs": "ABC",
+          "rhs": "Alphabet"
+        },
+        {
+          "lhs": "Straße",
+          "rhs": "Street"
+        },
+        {
+          "lhs": "مرحبا",
+          "rhs": "Hello"
+        },
+        {
+          "lhs": "こんにちは",
+          "rhs": "Hello"
+        }
+      ]
+    },
+    "expected": {
+      "pairs": [
+        {
+          "lhs": "ABC",
+          "rhs": "Alphabet"
+        }
+      ],
+      "colors": [
+        "#91E0FF",
+        "#A0EBAF",
+        "#FFD48A",
+        "#C6B7FF",
+        "#FF9FB1",
+        "#B0F0FF"
+      ],
+      "primary": [
+        "ＡＢＣ y ",
+        {
+          "text": "abc",
+          "token": "tok_0",
+          "root": "tok"
+        },
+        ""
+      ],
+      "secondary": [
+        "Hello Hello. How are you? Hi mom. Street. ",
+        {
+          "text": "Alphabet",
+          "token": "tok_0",
+          "root": "tok"
+        },
+        "."
+      ]
+    }
+  },
+  {
+    "input": {
+      "primaryText": "ＡＢＣ y abc",
+      "secondaryText": "Hello Hello. How are you? Hi mom. Street. Alphabet.",
+      "pairs": []
+    },
+    "expected": {
+      "pairs": [],
+      "colors": [
+        "#91E0FF",
+        "#A0EBAF",
+        "#FFD48A",
+        "#C6B7FF",
+        "#FF9FB1",
+        "#B0F0FF"
+      ],
+      "primary": [
+        "ＡＢＣ y abc"
+      ],
+      "secondary": [
+        "Hello Hello. How are you? Hi mom. Street. Alphabet."
+      ]
+    }
+  },
+  {
+    "input": {
+      "primaryText": "ＡＢＣ y abc",
+      "secondaryText": "Hello Hello. How are you? Hi mom. Street. Alphabet.",
+      "pairs": [
+        {
+          "lhs": "",
+          "rhs": "empty"
+        },
+        {
+          "lhs": "missing",
+          "rhs": "none"
+        }
+      ]
+    },
+    "expected": {
+      "pairs": [],
+      "colors": [
+        "#91E0FF",
+        "#A0EBAF",
+        "#FFD48A",
+        "#C6B7FF",
+        "#FF9FB1",
+        "#B0F0FF"
+      ],
+      "primary": [
+        "ＡＢＣ y abc"
+      ],
+      "secondary": [
+        "Hello Hello. How are you? Hi mom. Street. Alphabet."
+      ]
+    }
+  },
+  {
+    "input": {
+      "primaryText": "Straße SS",
+      "secondaryText": "Hello Hello. How are you? Hi mom. Street. Alphabet.",
+      "pairs": [
+        {
+          "lhs": "Hola",
+          "rhs": "Hello"
+        },
+        {
+          "lhs": "¿Cómo estás?",
+          "rhs": "How are you?"
+        }
+      ]
+    },
+    "expected": {
+      "pairs": [],
+      "colors": [
+        "#91E0FF",
+        "#A0EBAF",
+        "#FFD48A",
+        "#C6B7FF",
+        "#FF9FB1",
+        "#B0F0FF"
+      ],
+      "primary": [
+        "Straße SS"
+      ],
+      "secondary": [
+        "Hello Hello. How are you? Hi mom. Street. Alphabet."
+      ]
+    }
+  },
+  {
+    "input": {
+      "primaryText": "Straße SS",
+      "secondaryText": "Hello Hello. How are you? Hi mom. Street. Alphabet.",
+      "pairs": [
+        {
+          "lhs": "hola mamá",
+          "rhs": "Hi mom"
+        },
+        {
+          "lhs": "hola",
+          "rhs": "Hi"
+        }
+      ]
+    },
+    "expected": {
+      "pairs": [],
+      "colors": [
+        "#91E0FF",
+        "#A0EBAF",
+        "#FFD48A",
+        "#C6B7FF",
+        "#FF9FB1",
+        "#B0F0FF"
+      ],
+      "primary": [
+        "Straße SS"
+      ],
+      "secondary": [
+        "Hello Hello. How are you? Hi mom. Street. Alphabet."
+      ]
+    }
+  },
+  {
+    "input": {
+      "primaryText": "Straße SS",
+      "secondaryText": "Hello Hello. How are you? Hi mom. Street. Alphabet.",
+      "pairs": [
+        {
+          "lhs": "ABC",
+          "rhs": "Alphabet"
+        },
+        {
+          "lhs": "Straße",
+          "rhs": "Street"
+        },
+        {
+          "lhs": "مرحبا",
+          "rhs": "Hello"
+        },
+        {
+          "lhs": "こんにちは",
+          "rhs": "Hello"
+        }
+      ]
+    },
+    "expected": {
+      "pairs": [
+        {
+          "lhs": "Straße",
+          "rhs": "Street"
+        }
+      ],
+      "colors": [
+        "#91E0FF",
+        "#A0EBAF",
+        "#FFD48A",
+        "#C6B7FF",
+        "#FF9FB1",
+        "#B0F0FF"
+      ],
+      "primary": [
+        "",
+        {
+          "text": "Straße",
+          "token": "tok_0",
+          "root": "tok"
+        },
+        " SS"
+      ],
+      "secondary": [
+        "Hello Hello. How are you? Hi mom. ",
+        {
+          "text": "Street",
+          "token": "tok_0",
+          "root": "tok"
+        },
+        ". Alphabet."
+      ]
+    }
+  },
+  {
+    "input": {
+      "primaryText": "Straße SS",
+      "secondaryText": "Hello Hello. How are you? Hi mom. Street. Alphabet.",
+      "pairs": []
+    },
+    "expected": {
+      "pairs": [],
+      "colors": [
+        "#91E0FF",
+        "#A0EBAF",
+        "#FFD48A",
+        "#C6B7FF",
+        "#FF9FB1",
+        "#B0F0FF"
+      ],
+      "primary": [
+        "Straße SS"
+      ],
+      "secondary": [
+        "Hello Hello. How are you? Hi mom. Street. Alphabet."
+      ]
+    }
+  },
+  {
+    "input": {
+      "primaryText": "Straße SS",
+      "secondaryText": "Hello Hello. How are you? Hi mom. Street. Alphabet.",
+      "pairs": [
+        {
+          "lhs": "",
+          "rhs": "empty"
+        },
+        {
+          "lhs": "missing",
+          "rhs": "none"
+        }
+      ]
+    },
+    "expected": {
+      "pairs": [],
+      "colors": [
+        "#91E0FF",
+        "#A0EBAF",
+        "#FFD48A",
+        "#C6B7FF",
+        "#FF9FB1",
+        "#B0F0FF"
+      ],
+      "primary": [
+        "Straße SS"
+      ],
+      "secondary": [
+        "Hello Hello. How are you? Hi mom. Street. Alphabet."
+      ]
+    }
+  },
+  {
+    "input": {
+      "primaryText": "مرحبا كيف حالك مرحبا",
+      "secondaryText": "Hello Hello. How are you? Hi mom. Street. Alphabet.",
+      "pairs": [
+        {
+          "lhs": "Hola",
+          "rhs": "Hello"
+        },
+        {
+          "lhs": "¿Cómo estás?",
+          "rhs": "How are you?"
+        }
+      ]
+    },
+    "expected": {
+      "pairs": [],
+      "colors": [
+        "#91E0FF",
+        "#A0EBAF",
+        "#FFD48A",
+        "#C6B7FF",
+        "#FF9FB1",
+        "#B0F0FF"
+      ],
+      "primary": [
+        "مرحبا كيف حالك مرحبا"
+      ],
+      "secondary": [
+        "Hello Hello. How are you? Hi mom. Street. Alphabet."
+      ]
+    }
+  },
+  {
+    "input": {
+      "primaryText": "مرحبا كيف حالك مرحبا",
+      "secondaryText": "Hello Hello. How are you? Hi mom. Street. Alphabet.",
+      "pairs": [
+        {
+          "lhs": "hola mamá",
+          "rhs": "Hi mom"
+        },
+        {
+          "lhs": "hola",
+          "rhs": "Hi"
+        }
+      ]
+    },
+    "expected": {
+      "pairs": [],
+      "colors": [
+        "#91E0FF",
+        "#A0EBAF",
+        "#FFD48A",
+        "#C6B7FF",
+        "#FF9FB1",
+        "#B0F0FF"
+      ],
+      "primary": [
+        "مرحبا كيف حالك مرحبا"
+      ],
+      "secondary": [
+        "Hello Hello. How are you? Hi mom. Street. Alphabet."
+      ]
+    }
+  },
+  {
+    "input": {
+      "primaryText": "مرحبا كيف حالك مرحبا",
+      "secondaryText": "Hello Hello. How are you? Hi mom. Street. Alphabet.",
+      "pairs": [
+        {
+          "lhs": "ABC",
+          "rhs": "Alphabet"
+        },
+        {
+          "lhs": "Straße",
+          "rhs": "Street"
+        },
+        {
+          "lhs": "مرحبا",
+          "rhs": "Hello"
+        },
+        {
+          "lhs": "こんにちは",
+          "rhs": "Hello"
+        }
+      ]
+    },
+    "expected": {
+      "pairs": [
+        {
+          "lhs": "مرحبا",
+          "rhs": "Hello"
+        }
+      ],
+      "colors": [
+        "#91E0FF",
+        "#A0EBAF",
+        "#FFD48A",
+        "#C6B7FF",
+        "#FF9FB1",
+        "#B0F0FF"
+      ],
+      "primary": [
+        "",
+        {
+          "text": "مرحبا",
+          "token": "tok_0",
+          "root": "tok"
+        },
+        " كيف حالك ",
+        {
+          "text": "مرحبا",
+          "token": "tok_0_cont",
+          "root": "tok"
+        },
+        ""
+      ],
+      "secondary": [
+        "",
+        {
+          "text": "Hello",
+          "token": "tok_0",
+          "root": "tok"
+        },
+        " ",
+        {
+          "text": "Hello",
+          "token": "tok_0_cont",
+          "root": "tok"
+        },
+        ". How are you? Hi mom. Street. Alphabet."
+      ]
+    }
+  },
+  {
+    "input": {
+      "primaryText": "مرحبا كيف حالك مرحبا",
+      "secondaryText": "Hello Hello. How are you? Hi mom. Street. Alphabet.",
+      "pairs": []
+    },
+    "expected": {
+      "pairs": [],
+      "colors": [
+        "#91E0FF",
+        "#A0EBAF",
+        "#FFD48A",
+        "#C6B7FF",
+        "#FF9FB1",
+        "#B0F0FF"
+      ],
+      "primary": [
+        "مرحبا كيف حالك مرحبا"
+      ],
+      "secondary": [
+        "Hello Hello. How are you? Hi mom. Street. Alphabet."
+      ]
+    }
+  },
+  {
+    "input": {
+      "primaryText": "مرحبا كيف حالك مرحبا",
+      "secondaryText": "Hello Hello. How are you? Hi mom. Street. Alphabet.",
+      "pairs": [
+        {
+          "lhs": "",
+          "rhs": "empty"
+        },
+        {
+          "lhs": "missing",
+          "rhs": "none"
+        }
+      ]
+    },
+    "expected": {
+      "pairs": [],
+      "colors": [
+        "#91E0FF",
+        "#A0EBAF",
+        "#FFD48A",
+        "#C6B7FF",
+        "#FF9FB1",
+        "#B0F0FF"
+      ],
+      "primary": [
+        "مرحبا كيف حالك مرحبا"
+      ],
+      "secondary": [
+        "Hello Hello. How are you? Hi mom. Street. Alphabet."
+      ]
+    }
+  },
+  {
+    "input": {
+      "primaryText": "こんにちは世界",
+      "secondaryText": "Hello Hello. How are you? Hi mom. Street. Alphabet.",
+      "pairs": [
+        {
+          "lhs": "Hola",
+          "rhs": "Hello"
+        },
+        {
+          "lhs": "¿Cómo estás?",
+          "rhs": "How are you?"
+        }
+      ]
+    },
+    "expected": {
+      "pairs": [],
+      "colors": [
+        "#91E0FF",
+        "#A0EBAF",
+        "#FFD48A",
+        "#C6B7FF",
+        "#FF9FB1",
+        "#B0F0FF"
+      ],
+      "primary": [
+        "こんにちは世界"
+      ],
+      "secondary": [
+        "Hello Hello. How are you? Hi mom. Street. Alphabet."
+      ]
+    }
+  },
+  {
+    "input": {
+      "primaryText": "こんにちは世界",
+      "secondaryText": "Hello Hello. How are you? Hi mom. Street. Alphabet.",
+      "pairs": [
+        {
+          "lhs": "hola mamá",
+          "rhs": "Hi mom"
+        },
+        {
+          "lhs": "hola",
+          "rhs": "Hi"
+        }
+      ]
+    },
+    "expected": {
+      "pairs": [],
+      "colors": [
+        "#91E0FF",
+        "#A0EBAF",
+        "#FFD48A",
+        "#C6B7FF",
+        "#FF9FB1",
+        "#B0F0FF"
+      ],
+      "primary": [
+        "こんにちは世界"
+      ],
+      "secondary": [
+        "Hello Hello. How are you? Hi mom. Street. Alphabet."
+      ]
+    }
+  },
+  {
+    "input": {
+      "primaryText": "こんにちは世界",
+      "secondaryText": "Hello Hello. How are you? Hi mom. Street. Alphabet.",
+      "pairs": [
+        {
+          "lhs": "ABC",
+          "rhs": "Alphabet"
+        },
+        {
+          "lhs": "Straße",
+          "rhs": "Street"
+        },
+        {
+          "lhs": "مرحبا",
+          "rhs": "Hello"
+        },
+        {
+          "lhs": "こんにちは",
+          "rhs": "Hello"
+        }
+      ]
+    },
+    "expected": {
+      "pairs": [
+        {
+          "lhs": "こんにちは",
+          "rhs": "Hello"
+        }
+      ],
+      "colors": [
+        "#91E0FF",
+        "#A0EBAF",
+        "#FFD48A",
+        "#C6B7FF",
+        "#FF9FB1",
+        "#B0F0FF"
+      ],
+      "primary": [
+        "",
+        {
+          "text": "こんにちは",
+          "token": "tok_0",
+          "root": "tok"
+        },
+        "世界"
+      ],
+      "secondary": [
+        "",
+        {
+          "text": "Hello",
+          "token": "tok_0",
+          "root": "tok"
+        },
+        " ",
+        {
+          "text": "Hello",
+          "token": "tok_0_cont",
+          "root": "tok"
+        },
+        ". How are you? Hi mom. Street. Alphabet."
+      ]
+    }
+  },
+  {
+    "input": {
+      "primaryText": "こんにちは世界",
+      "secondaryText": "Hello Hello. How are you? Hi mom. Street. Alphabet.",
+      "pairs": []
+    },
+    "expected": {
+      "pairs": [],
+      "colors": [
+        "#91E0FF",
+        "#A0EBAF",
+        "#FFD48A",
+        "#C6B7FF",
+        "#FF9FB1",
+        "#B0F0FF"
+      ],
+      "primary": [
+        "こんにちは世界"
+      ],
+      "secondary": [
+        "Hello Hello. How are you? Hi mom. Street. Alphabet."
+      ]
+    }
+  },
+  {
+    "input": {
+      "primaryText": "こんにちは世界",
+      "secondaryText": "Hello Hello. How are you? Hi mom. Street. Alphabet.",
+      "pairs": [
+        {
+          "lhs": "",
+          "rhs": "empty"
+        },
+        {
+          "lhs": "missing",
+          "rhs": "none"
+        }
+      ]
+    },
+    "expected": {
+      "pairs": [],
+      "colors": [
+        "#91E0FF",
+        "#A0EBAF",
+        "#FFD48A",
+        "#C6B7FF",
+        "#FF9FB1",
+        "#B0F0FF"
+      ],
+      "primary": [
+        "こんにちは世界"
+      ],
+      "secondary": [
+        "Hello Hello. How are you? Hi mom. Street. Alphabet."
+      ]
+    }
+  },
+  {
+    "input": {
+      "primaryText": "a\nb\nHola",
+      "secondaryText": "Hello Hello. How are you? Hi mom. Street. Alphabet.",
+      "pairs": [
+        {
+          "lhs": "Hola",
+          "rhs": "Hello"
+        },
+        {
+          "lhs": "¿Cómo estás?",
+          "rhs": "How are you?"
+        }
+      ]
+    },
+    "expected": {
+      "pairs": [
+        {
+          "lhs": "Hola",
+          "rhs": "Hello"
+        }
+      ],
+      "colors": [
+        "#91E0FF",
+        "#A0EBAF",
+        "#FFD48A",
+        "#C6B7FF",
+        "#FF9FB1",
+        "#B0F0FF"
+      ],
+      "primary": [
+        "a\nb\n",
+        {
+          "text": "Hola",
+          "token": "tok_0",
+          "root": "tok"
+        },
+        ""
+      ],
+      "secondary": [
+        "",
+        {
+          "text": "Hello",
+          "token": "tok_0",
+          "root": "tok"
+        },
+        " ",
+        {
+          "text": "Hello",
+          "token": "tok_0_cont",
+          "root": "tok"
+        },
+        ". How are you? Hi mom. Street. Alphabet."
+      ]
+    }
+  },
+  {
+    "input": {
+      "primaryText": "a\nb\nHola",
+      "secondaryText": "Hello Hello. How are you? Hi mom. Street. Alphabet.",
+      "pairs": [
+        {
+          "lhs": "hola mamá",
+          "rhs": "Hi mom"
+        },
+        {
+          "lhs": "hola",
+          "rhs": "Hi"
+        }
+      ]
+    },
+    "expected": {
+      "pairs": [
+        {
+          "lhs": "hola",
+          "rhs": "Hi"
+        }
+      ],
+      "colors": [
+        "#91E0FF",
+        "#A0EBAF",
+        "#FFD48A",
+        "#C6B7FF",
+        "#FF9FB1",
+        "#B0F0FF"
+      ],
+      "primary": [
+        "a\nb\n",
+        {
+          "text": "Hola",
+          "token": "tok_0",
+          "root": "tok"
+        },
+        ""
+      ],
+      "secondary": [
+        "Hello Hello. How are you? ",
+        {
+          "text": "Hi",
+          "token": "tok_0",
+          "root": "tok"
+        },
+        " mom. Street. Alphabet."
+      ]
+    }
+  },
+  {
+    "input": {
+      "primaryText": "a\nb\nHola",
+      "secondaryText": "Hello Hello. How are you? Hi mom. Street. Alphabet.",
+      "pairs": [
+        {
+          "lhs": "ABC",
+          "rhs": "Alphabet"
+        },
+        {
+          "lhs": "Straße",
+          "rhs": "Street"
+        },
+        {
+          "lhs": "مرحبا",
+          "rhs": "Hello"
+        },
+        {
+          "lhs": "こんにちは",
+          "rhs": "Hello"
+        }
+      ]
+    },
+    "expected": {
+      "pairs": [],
+      "colors": [
+        "#91E0FF",
+        "#A0EBAF",
+        "#FFD48A",
+        "#C6B7FF",
+        "#FF9FB1",
+        "#B0F0FF"
+      ],
+      "primary": [
+        "a\nb\nHola"
+      ],
+      "secondary": [
+        "Hello Hello. How are you? Hi mom. Street. Alphabet."
+      ]
+    }
+  },
+  {
+    "input": {
+      "primaryText": "a\nb\nHola",
+      "secondaryText": "Hello Hello. How are you? Hi mom. Street. Alphabet.",
+      "pairs": []
+    },
+    "expected": {
+      "pairs": [],
+      "colors": [
+        "#91E0FF",
+        "#A0EBAF",
+        "#FFD48A",
+        "#C6B7FF",
+        "#FF9FB1",
+        "#B0F0FF"
+      ],
+      "primary": [
+        "a\nb\nHola"
+      ],
+      "secondary": [
+        "Hello Hello. How are you? Hi mom. Street. Alphabet."
+      ]
+    }
+  },
+  {
+    "input": {
+      "primaryText": "a\nb\nHola",
+      "secondaryText": "Hello Hello. How are you? Hi mom. Street. Alphabet.",
+      "pairs": [
+        {
+          "lhs": "",
+          "rhs": "empty"
+        },
+        {
+          "lhs": "missing",
+          "rhs": "none"
+        }
+      ]
+    },
+    "expected": {
+      "pairs": [],
+      "colors": [
+        "#91E0FF",
+        "#A0EBAF",
+        "#FFD48A",
+        "#C6B7FF",
+        "#FF9FB1",
+        "#B0F0FF"
+      ],
+      "primary": [
+        "a\nb\nHola"
+      ],
+      "secondary": [
+        "Hello Hello. How are you? Hi mom. Street. Alphabet."
+      ]
+    }
+  },
+  {
+    "input": {
+      "primaryText": "No matching phrase",
+      "secondaryText": "Hello Hello. How are you? Hi mom. Street. Alphabet.",
+      "pairs": [
+        {
+          "lhs": "Hola",
+          "rhs": "Hello"
+        },
+        {
+          "lhs": "¿Cómo estás?",
+          "rhs": "How are you?"
+        }
+      ]
+    },
+    "expected": {
+      "pairs": [],
+      "colors": [
+        "#91E0FF",
+        "#A0EBAF",
+        "#FFD48A",
+        "#C6B7FF",
+        "#FF9FB1",
+        "#B0F0FF"
+      ],
+      "primary": [
+        "No matching phrase"
+      ],
+      "secondary": [
+        "Hello Hello. How are you? Hi mom. Street. Alphabet."
+      ]
+    }
+  },
+  {
+    "input": {
+      "primaryText": "No matching phrase",
+      "secondaryText": "Hello Hello. How are you? Hi mom. Street. Alphabet.",
+      "pairs": [
+        {
+          "lhs": "hola mamá",
+          "rhs": "Hi mom"
+        },
+        {
+          "lhs": "hola",
+          "rhs": "Hi"
+        }
+      ]
+    },
+    "expected": {
+      "pairs": [],
+      "colors": [
+        "#91E0FF",
+        "#A0EBAF",
+        "#FFD48A",
+        "#C6B7FF",
+        "#FF9FB1",
+        "#B0F0FF"
+      ],
+      "primary": [
+        "No matching phrase"
+      ],
+      "secondary": [
+        "Hello Hello. How are you? Hi mom. Street. Alphabet."
+      ]
+    }
+  },
+  {
+    "input": {
+      "primaryText": "No matching phrase",
+      "secondaryText": "Hello Hello. How are you? Hi mom. Street. Alphabet.",
+      "pairs": [
+        {
+          "lhs": "ABC",
+          "rhs": "Alphabet"
+        },
+        {
+          "lhs": "Straße",
+          "rhs": "Street"
+        },
+        {
+          "lhs": "مرحبا",
+          "rhs": "Hello"
+        },
+        {
+          "lhs": "こんにちは",
+          "rhs": "Hello"
+        }
+      ]
+    },
+    "expected": {
+      "pairs": [],
+      "colors": [
+        "#91E0FF",
+        "#A0EBAF",
+        "#FFD48A",
+        "#C6B7FF",
+        "#FF9FB1",
+        "#B0F0FF"
+      ],
+      "primary": [
+        "No matching phrase"
+      ],
+      "secondary": [
+        "Hello Hello. How are you? Hi mom. Street. Alphabet."
+      ]
+    }
+  },
+  {
+    "input": {
+      "primaryText": "No matching phrase",
+      "secondaryText": "Hello Hello. How are you? Hi mom. Street. Alphabet.",
+      "pairs": []
+    },
+    "expected": {
+      "pairs": [],
+      "colors": [
+        "#91E0FF",
+        "#A0EBAF",
+        "#FFD48A",
+        "#C6B7FF",
+        "#FF9FB1",
+        "#B0F0FF"
+      ],
+      "primary": [
+        "No matching phrase"
+      ],
+      "secondary": [
+        "Hello Hello. How are you? Hi mom. Street. Alphabet."
+      ]
+    }
+  },
+  {
+    "input": {
+      "primaryText": "No matching phrase",
+      "secondaryText": "Hello Hello. How are you? Hi mom. Street. Alphabet.",
+      "pairs": [
+        {
+          "lhs": "",
+          "rhs": "empty"
+        },
+        {
+          "lhs": "missing",
+          "rhs": "none"
+        }
+      ]
+    },
+    "expected": {
+      "pairs": [],
+      "colors": [
+        "#91E0FF",
+        "#A0EBAF",
+        "#FFD48A",
+        "#C6B7FF",
+        "#FF9FB1",
+        "#B0F0FF"
+      ],
+      "primary": [
+        "No matching phrase"
+      ],
+      "secondary": [
+        "Hello Hello. How are you? Hi mom. Street. Alphabet."
+      ]
+    }
+  }
+]

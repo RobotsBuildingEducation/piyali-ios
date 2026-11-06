@@ -1,0 +1,1884 @@
+{
+  "Source question geometry correct ar": [
+    {
+      "text": "طبيعي أم غريب؟",
+      "aria": null,
+      "x": 236.4375,
+      "y": 40,
+      "width": 140.5625,
+      "height": 30
+    },
+    {
+      "text": "",
+      "aria": "اطلب مساعدة المساعد",
+      "disabled": false,
+      "x": 25,
+      "y": 39,
+      "width": 32,
+      "height": 32
+    },
+    {
+      "text": "حدد ما إذا كانت هذه الجملة تبدو طبيعية في الاستخدام اليومي.",
+      "aria": null,
+      "x": 25,
+      "y": 75,
+      "width": 352,
+      "height": 21
+    },
+    {
+      "text": "“Yo somos Ana.”",
+      "aria": null,
+      "x": 98,
+      "y": 143.5,
+      "width": 258,
+      "height": 27
+    },
+    {
+      "text": "",
+      "aria": "استمع إلى الجملة",
+      "disabled": true,
+      "x": 46,
+      "y": 137,
+      "width": 40,
+      "height": 40
+    },
+    {
+      "text": "✓يبدو غريبًا",
+      "aria": null,
+      "disabled": false,
+      "x": 25,
+      "y": 218,
+      "width": 352,
+      "height": 60
+    },
+    {
+      "text": "يبدو غريبًا",
+      "aria": null,
+      "x": 261.5,
+      "y": 236,
+      "width": 61.5,
+      "height": 24
+    },
+    {
+      "text": "يبدو طبيعيًا",
+      "aria": null,
+      "disabled": false,
+      "x": 25,
+      "y": 290,
+      "width": 352,
+      "height": 60
+    },
+    {
+      "text": "يبدو طبيعيًا",
+      "aria": null,
+      "x": 251.703125,
+      "y": 308,
+      "width": 71.296875,
+      "height": 24
+    },
+    {
+      "text": "صح! · +6 XP",
+      "aria": null,
+      "x": 69,
+      "y": 709,
+      "width": 266,
+      "height": 24
+    },
+    {
+      "text": "",
+      "aria": "اعمل ملاحظة",
+      "disabled": false,
+      "x": 25,
+      "y": 709,
+      "width": 32,
+      "height": 32
+    },
+    {
+      "text": "تقدم الدرس",
+      "aria": null,
+      "x": 323.5625,
+      "y": 753,
+      "width": 55.4375,
+      "height": 18
+    },
+    {
+      "text": "8%",
+      "aria": null,
+      "x": 25,
+      "y": 753,
+      "width": 20.09375,
+      "height": 18
+    },
+    {
+      "text": "السؤال التالي ←",
+      "aria": null,
+      "x": 21,
+      "y": 809,
+      "width": 362,
+      "height": 40
+    },
+    {
+      "text": "السؤال التالي ←",
+      "aria": null,
+      "disabled": false,
+      "x": 21,
+      "y": 809,
+      "width": 310,
+      "height": 40
+    },
+    {
+      "text": "",
+      "aria": "Activity menu",
+      "disabled": false,
+      "x": 20,
+      "y": 807,
+      "width": 44,
+      "height": 44
+    },
+    {
+      "text": "",
+      "aria": "Close menu",
+      "disabled": false,
+      "x": 75.33333587646484,
+      "y": 26.399999618530273,
+      "width": 25.599998474121094,
+      "height": 25.600000381469727
+    },
+    {
+      "text": "Modes",
+      "aria": null,
+      "disabled": false,
+      "x": 22.233333587646484,
+      "y": 69.5999984741211,
+      "width": 81.89999389648438,
+      "height": 43.20000457763672
+    },
+    {
+      "text": "Modes",
+      "aria": null,
+      "x": 34.233333587646484,
+      "y": 85.19999694824219,
+      "width": 33.89999771118164,
+      "height": 12
+    }
+  ],
+  "Source question geometry assistant ar": [
+    {
+      "text": "طبيعي أم غريب؟",
+      "aria": null,
+      "x": 236.4375,
+      "y": 40,
+      "width": 140.5625,
+      "height": 30
+    },
+    {
+      "text": "",
+      "aria": "اطلب مساعدة المساعد",
+      "disabled": false,
+      "x": 25,
+      "y": 39,
+      "width": 32,
+      "height": 32
+    },
+    {
+      "text": "حدد ما إذا كانت هذه الجملة تبدو طبيعية في الاستخدام اليومي.",
+      "aria": null,
+      "x": 25,
+      "y": 75,
+      "width": 352,
+      "height": 21
+    },
+    {
+      "text": "“Yo somos Ana.”",
+      "aria": null,
+      "x": 98,
+      "y": 143.5,
+      "width": 258,
+      "height": 27
+    },
+    {
+      "text": "",
+      "aria": "استمع إلى الجملة",
+      "disabled": false,
+      "x": 46,
+      "y": 137,
+      "width": 40,
+      "height": 40
+    },
+    {
+      "text": "يبدو غريبًا",
+      "aria": null,
+      "disabled": false,
+      "x": 25,
+      "y": 218,
+      "width": 352,
+      "height": 60
+    },
+    {
+      "text": "يبدو غريبًا",
+      "aria": null,
+      "x": 261.5,
+      "y": 236,
+      "width": 61.5,
+      "height": 24
+    },
+    {
+      "text": "يبدو طبيعيًا",
+      "aria": null,
+      "disabled": false,
+      "x": 25,
+      "y": 290,
+      "width": 352,
+      "height": 60
+    },
+    {
+      "text": "يبدو طبيعيًا",
+      "aria": null,
+      "x": 251.703125,
+      "y": 308,
+      "width": 71.296875,
+      "height": 24
+    },
+    {
+      "text": "المساعد",
+      "aria": null,
+      "x": 290.4375,
+      "y": 713,
+      "width": 56.5625,
+      "height": 24
+    },
+    {
+      "text": "",
+      "aria": "إغلاق",
+      "disabled": false,
+      "x": 25,
+      "y": 709,
+      "width": 32,
+      "height": 32
+    },
+    {
+      "text": "Use Sounds weird. The correct sentence is Yo soy Ana.",
+      "aria": null,
+      "x": 25,
+      "y": 749,
+      "width": 354,
+      "height": 44
+    },
+    {
+      "text": "إغلاق",
+      "aria": null,
+      "x": 21,
+      "y": 809,
+      "width": 362,
+      "height": 40
+    },
+    {
+      "text": "إغلاق",
+      "aria": null,
+      "disabled": false,
+      "x": 21,
+      "y": 809,
+      "width": 310,
+      "height": 40
+    },
+    {
+      "text": "",
+      "aria": "Activity menu",
+      "disabled": false,
+      "x": 20,
+      "y": 807,
+      "width": 44,
+      "height": 44
+    },
+    {
+      "text": "",
+      "aria": "Close menu",
+      "disabled": false,
+      "x": 75.33333587646484,
+      "y": 26.399999618530273,
+      "width": 25.599998474121094,
+      "height": 25.600000381469727
+    },
+    {
+      "text": "Modes",
+      "aria": null,
+      "disabled": false,
+      "x": 22.233333587646484,
+      "y": 69.5999984741211,
+      "width": 81.89999389648438,
+      "height": 43.20000457763672
+    },
+    {
+      "text": "Modes",
+      "aria": null,
+      "x": 34.233333587646484,
+      "y": 85.19999694824219,
+      "width": 33.89999771118164,
+      "height": 12
+    }
+  ],
+  "Source question geometry explanation ar": [
+    {
+      "text": "طبيعي أم غريب؟",
+      "aria": null,
+      "x": 236.4375,
+      "y": 40,
+      "width": 140.5625,
+      "height": 30
+    },
+    {
+      "text": "",
+      "aria": "اطلب مساعدة المساعد",
+      "disabled": false,
+      "x": 25,
+      "y": 39,
+      "width": 32,
+      "height": 32
+    },
+    {
+      "text": "حدد ما إذا كانت هذه الجملة تبدو طبيعية في الاستخدام اليومي.",
+      "aria": null,
+      "x": 25,
+      "y": 75,
+      "width": 352,
+      "height": 21
+    },
+    {
+      "text": "“Yo somos Ana.”",
+      "aria": null,
+      "x": 98,
+      "y": 143.5,
+      "width": 258,
+      "height": 27
+    },
+    {
+      "text": "",
+      "aria": "استمع إلى الجملة",
+      "disabled": false,
+      "x": 46,
+      "y": 137,
+      "width": 40,
+      "height": 40
+    },
+    {
+      "text": "يبدو غريبًا",
+      "aria": null,
+      "disabled": false,
+      "x": 25,
+      "y": 218,
+      "width": 352,
+      "height": 60
+    },
+    {
+      "text": "يبدو غريبًا",
+      "aria": null,
+      "x": 261.5,
+      "y": 236,
+      "width": 61.5,
+      "height": 24
+    },
+    {
+      "text": "✓يبدو طبيعيًا",
+      "aria": null,
+      "disabled": false,
+      "x": 25,
+      "y": 290,
+      "width": 352,
+      "height": 60
+    },
+    {
+      "text": "يبدو طبيعيًا",
+      "aria": null,
+      "x": 251.703125,
+      "y": 308,
+      "width": 71.296875,
+      "height": 24
+    },
+    {
+      "text": "✖",
+      "aria": null,
+      "x": 356,
+      "y": 723,
+      "width": 23,
+      "height": 24
+    },
+    {
+      "text": "جرّب تاني",
+      "aria": null,
+      "x": 69,
+      "y": 723,
+      "width": 275,
+      "height": 24
+    },
+    {
+      "text": "",
+      "aria": "اعمل ملاحظة",
+      "disabled": false,
+      "x": 25,
+      "y": 723,
+      "width": 32,
+      "height": 32
+    },
+    {
+      "text": "Use soy with yo. Say Yo soy Ana.",
+      "aria": null,
+      "x": 25,
+      "y": 763,
+      "width": 354,
+      "height": 22
+    },
+    {
+      "text": "تخطيتحقق",
+      "aria": null,
+      "x": 21,
+      "y": 809,
+      "width": 362,
+      "height": 40
+    },
+    {
+      "text": "تخطي",
+      "aria": null,
+      "disabled": false,
+      "x": 280.390625,
+      "y": 809,
+      "width": 50.609375,
+      "height": 40
+    },
+    {
+      "text": "تحقق",
+      "aria": null,
+      "disabled": false,
+      "x": 21,
+      "y": 809,
+      "width": 251.390625,
+      "height": 40
+    },
+    {
+      "text": "",
+      "aria": "Activity menu",
+      "disabled": false,
+      "x": 20,
+      "y": 807,
+      "width": 44,
+      "height": 44
+    },
+    {
+      "text": "",
+      "aria": "Close menu",
+      "disabled": false,
+      "x": 75.33333587646484,
+      "y": 26.399999618530273,
+      "width": 25.599998474121094,
+      "height": 25.600000381469727
+    },
+    {
+      "text": "Modes",
+      "aria": null,
+      "disabled": false,
+      "x": 22.233333587646484,
+      "y": 69.5999984741211,
+      "width": 81.89999389648438,
+      "height": 43.20000457763672
+    },
+    {
+      "text": "Modes",
+      "aria": null,
+      "x": 34.233333587646484,
+      "y": 85.19999694824219,
+      "width": 33.89999771118164,
+      "height": 12
+    }
+  ],
+  "Source question geometry wrong ar": [
+    {
+      "text": "طبيعي أم غريب؟",
+      "aria": null,
+      "x": 236.4375,
+      "y": 40,
+      "width": 140.5625,
+      "height": 30
+    },
+    {
+      "text": "",
+      "aria": "اطلب مساعدة المساعد",
+      "disabled": false,
+      "x": 25,
+      "y": 39,
+      "width": 32,
+      "height": 32
+    },
+    {
+      "text": "حدد ما إذا كانت هذه الجملة تبدو طبيعية في الاستخدام اليومي.",
+      "aria": null,
+      "x": 25,
+      "y": 75,
+      "width": 352,
+      "height": 21
+    },
+    {
+      "text": "“Yo somos Ana.”",
+      "aria": null,
+      "x": 98,
+      "y": 143.5,
+      "width": 258,
+      "height": 27
+    },
+    {
+      "text": "",
+      "aria": "استمع إلى الجملة",
+      "disabled": false,
+      "x": 46,
+      "y": 137,
+      "width": 40,
+      "height": 40
+    },
+    {
+      "text": "يبدو غريبًا",
+      "aria": null,
+      "disabled": false,
+      "x": 25,
+      "y": 218,
+      "width": 352,
+      "height": 60
+    },
+    {
+      "text": "يبدو غريبًا",
+      "aria": null,
+      "x": 261.5,
+      "y": 236,
+      "width": 61.5,
+      "height": 24
+    },
+    {
+      "text": "✓يبدو طبيعيًا",
+      "aria": null,
+      "disabled": false,
+      "x": 25,
+      "y": 290,
+      "width": 352,
+      "height": 60
+    },
+    {
+      "text": "يبدو طبيعيًا",
+      "aria": null,
+      "x": 251.703125,
+      "y": 308,
+      "width": 71.296875,
+      "height": 24
+    },
+    {
+      "text": "✖",
+      "aria": null,
+      "x": 356,
+      "y": 709,
+      "width": 23,
+      "height": 24
+    },
+    {
+      "text": "جرّب تاني",
+      "aria": null,
+      "x": 69,
+      "y": 709,
+      "width": 275,
+      "height": 24
+    },
+    {
+      "text": "",
+      "aria": "اعمل ملاحظة",
+      "disabled": false,
+      "x": 25,
+      "y": 709,
+      "width": 32,
+      "height": 32
+    },
+    {
+      "text": "اشرح إجابتي",
+      "aria": null,
+      "disabled": false,
+      "x": 25,
+      "y": 753,
+      "width": 354,
+      "height": 40
+    },
+    {
+      "text": "تخطيتحقق",
+      "aria": null,
+      "x": 21,
+      "y": 809,
+      "width": 362,
+      "height": 40
+    },
+    {
+      "text": "تخطي",
+      "aria": null,
+      "disabled": false,
+      "x": 280.390625,
+      "y": 809,
+      "width": 50.609375,
+      "height": 40
+    },
+    {
+      "text": "تحقق",
+      "aria": null,
+      "disabled": false,
+      "x": 21,
+      "y": 809,
+      "width": 251.390625,
+      "height": 40
+    },
+    {
+      "text": "",
+      "aria": "Activity menu",
+      "disabled": false,
+      "x": 20,
+      "y": 807,
+      "width": 44,
+      "height": 44
+    },
+    {
+      "text": "",
+      "aria": "Close menu",
+      "disabled": false,
+      "x": 75.33333587646484,
+      "y": 26.399999618530273,
+      "width": 25.599998474121094,
+      "height": 25.600000381469727
+    },
+    {
+      "text": "Modes",
+      "aria": null,
+      "disabled": false,
+      "x": 22.233333587646484,
+      "y": 69.5999984741211,
+      "width": 81.89999389648438,
+      "height": 43.20000457763672
+    },
+    {
+      "text": "Modes",
+      "aria": null,
+      "x": 34.233333587646484,
+      "y": 85.19999694824219,
+      "width": 33.89999771118164,
+      "height": 12
+    }
+  ],
+  "Source question geometry selected ar": [
+    {
+      "text": "طبيعي أم غريب؟",
+      "aria": null,
+      "x": 236.4375,
+      "y": 40,
+      "width": 140.5625,
+      "height": 30
+    },
+    {
+      "text": "",
+      "aria": "اطلب مساعدة المساعد",
+      "disabled": false,
+      "x": 25,
+      "y": 39,
+      "width": 32,
+      "height": 32
+    },
+    {
+      "text": "حدد ما إذا كانت هذه الجملة تبدو طبيعية في الاستخدام اليومي.",
+      "aria": null,
+      "x": 25,
+      "y": 75,
+      "width": 352,
+      "height": 21
+    },
+    {
+      "text": "“Yo somos Ana.”",
+      "aria": null,
+      "x": 98,
+      "y": 143.5,
+      "width": 258,
+      "height": 27
+    },
+    {
+      "text": "",
+      "aria": "استمع إلى الجملة",
+      "disabled": false,
+      "x": 46,
+      "y": 137,
+      "width": 40,
+      "height": 40
+    },
+    {
+      "text": "يبدو غريبًا",
+      "aria": null,
+      "disabled": false,
+      "x": 25,
+      "y": 218,
+      "width": 352,
+      "height": 60
+    },
+    {
+      "text": "يبدو غريبًا",
+      "aria": null,
+      "x": 261.5,
+      "y": 236,
+      "width": 61.5,
+      "height": 24
+    },
+    {
+      "text": "✓يبدو طبيعيًا",
+      "aria": null,
+      "disabled": false,
+      "x": 25,
+      "y": 290,
+      "width": 352,
+      "height": 60
+    },
+    {
+      "text": "يبدو طبيعيًا",
+      "aria": null,
+      "x": 251.703125,
+      "y": 308,
+      "width": 71.296875,
+      "height": 24
+    },
+    {
+      "text": "تخطيتحقق",
+      "aria": null,
+      "x": 21,
+      "y": 809,
+      "width": 362,
+      "height": 40
+    },
+    {
+      "text": "تخطي",
+      "aria": null,
+      "disabled": false,
+      "x": 280.390625,
+      "y": 809,
+      "width": 50.609375,
+      "height": 40
+    },
+    {
+      "text": "تحقق",
+      "aria": null,
+      "disabled": false,
+      "x": 21,
+      "y": 809,
+      "width": 251.390625,
+      "height": 40
+    },
+    {
+      "text": "",
+      "aria": "Activity menu",
+      "disabled": false,
+      "x": 20,
+      "y": 807,
+      "width": 44,
+      "height": 44
+    },
+    {
+      "text": "",
+      "aria": "Close menu",
+      "disabled": false,
+      "x": 75.33333587646484,
+      "y": 26.399999618530273,
+      "width": 25.599998474121094,
+      "height": 25.600000381469727
+    },
+    {
+      "text": "Modes",
+      "aria": null,
+      "disabled": false,
+      "x": 22.233333587646484,
+      "y": 69.5999984741211,
+      "width": 81.89999389648438,
+      "height": 43.20000457763672
+    },
+    {
+      "text": "Modes",
+      "aria": null,
+      "x": 34.233333587646484,
+      "y": 85.19999694824219,
+      "width": 33.89999771118164,
+      "height": 12
+    }
+  ],
+  "Source question geometry idle ar": [
+    {
+      "text": "طبيعي أم غريب؟",
+      "aria": null,
+      "x": 236.4375,
+      "y": 40,
+      "width": 140.5625,
+      "height": 30
+    },
+    {
+      "text": "",
+      "aria": "اطلب مساعدة المساعد",
+      "disabled": false,
+      "x": 25,
+      "y": 39,
+      "width": 32,
+      "height": 32
+    },
+    {
+      "text": "حدد ما إذا كانت هذه الجملة تبدو طبيعية في الاستخدام اليومي.",
+      "aria": null,
+      "x": 25,
+      "y": 75,
+      "width": 352,
+      "height": 21
+    },
+    {
+      "text": "“Yo somos Ana.”",
+      "aria": null,
+      "x": 98,
+      "y": 143.5,
+      "width": 258,
+      "height": 27
+    },
+    {
+      "text": "",
+      "aria": "استمع إلى الجملة",
+      "disabled": false,
+      "x": 46,
+      "y": 137,
+      "width": 40,
+      "height": 40
+    },
+    {
+      "text": "يبدو غريبًا",
+      "aria": null,
+      "disabled": false,
+      "x": 25,
+      "y": 218,
+      "width": 352,
+      "height": 60
+    },
+    {
+      "text": "يبدو غريبًا",
+      "aria": null,
+      "x": 261.5,
+      "y": 236,
+      "width": 61.5,
+      "height": 24
+    },
+    {
+      "text": "يبدو طبيعيًا",
+      "aria": null,
+      "disabled": false,
+      "x": 25,
+      "y": 290,
+      "width": 352,
+      "height": 60
+    },
+    {
+      "text": "يبدو طبيعيًا",
+      "aria": null,
+      "x": 251.703125,
+      "y": 308,
+      "width": 71.296875,
+      "height": 24
+    },
+    {
+      "text": "تخطيتحقق",
+      "aria": null,
+      "x": 21,
+      "y": 809,
+      "width": 362,
+      "height": 40
+    },
+    {
+      "text": "تخطي",
+      "aria": null,
+      "disabled": false,
+      "x": 280.390625,
+      "y": 809,
+      "width": 50.609375,
+      "height": 40
+    },
+    {
+      "text": "تحقق",
+      "aria": null,
+      "disabled": true,
+      "x": 21,
+      "y": 809,
+      "width": 251.390625,
+      "height": 40
+    },
+    {
+      "text": "",
+      "aria": "Activity menu",
+      "disabled": false,
+      "x": 20,
+      "y": 807,
+      "width": 44,
+      "height": 44
+    },
+    {
+      "text": "",
+      "aria": "Close menu",
+      "disabled": false,
+      "x": 75.33333587646484,
+      "y": 26.399999618530273,
+      "width": 25.599998474121094,
+      "height": 25.600000381469727
+    },
+    {
+      "text": "Modes",
+      "aria": null,
+      "disabled": false,
+      "x": 22.233333587646484,
+      "y": 69.5999984741211,
+      "width": 81.89999389648438,
+      "height": 43.20000457763672
+    },
+    {
+      "text": "Modes",
+      "aria": null,
+      "x": 34.233333587646484,
+      "y": 85.19999694824219,
+      "width": 33.89999771118164,
+      "height": 12
+    }
+  ],
+  "Source question geometry correct en": [
+    {
+      "text": "Natural or Weird?",
+      "aria": null,
+      "x": 25,
+      "y": 40,
+      "width": 166.859375,
+      "height": 30
+    },
+    {
+      "text": "",
+      "aria": "Ask assistant for help",
+      "disabled": false,
+      "x": 345,
+      "y": 39,
+      "width": 32,
+      "height": 32
+    },
+    {
+      "text": "Decide if this sentence sounds natural in everyday use.",
+      "aria": null,
+      "x": 25,
+      "y": 75,
+      "width": 352,
+      "height": 42
+    },
+    {
+      "text": "“Yo somos Ana.”",
+      "aria": null,
+      "x": 46,
+      "y": 164.5,
+      "width": 258,
+      "height": 27
+    },
+    {
+      "text": "",
+      "aria": "Listen to sentence",
+      "disabled": true,
+      "x": 316,
+      "y": 158,
+      "width": 40,
+      "height": 40
+    },
+    {
+      "text": "✓Sounds weird",
+      "aria": null,
+      "disabled": false,
+      "x": 25,
+      "y": 239,
+      "width": 352,
+      "height": 60
+    },
+    {
+      "text": "Sounds weird",
+      "aria": null,
+      "x": 79,
+      "y": 257,
+      "width": 100.515625,
+      "height": 24
+    },
+    {
+      "text": "Sounds natural",
+      "aria": null,
+      "disabled": false,
+      "x": 25,
+      "y": 311,
+      "width": 352,
+      "height": 60
+    },
+    {
+      "text": "Sounds natural",
+      "aria": null,
+      "x": 79,
+      "y": 329,
+      "width": 111.65625,
+      "height": 24
+    },
+    {
+      "text": "Correct! · +6 XP",
+      "aria": null,
+      "x": 68,
+      "y": 709,
+      "width": 266,
+      "height": 24
+    },
+    {
+      "text": "",
+      "aria": "Create note",
+      "disabled": false,
+      "x": 346,
+      "y": 709,
+      "width": 32,
+      "height": 32
+    },
+    {
+      "text": "Lesson progress",
+      "aria": null,
+      "x": 24,
+      "y": 753,
+      "width": 93.109375,
+      "height": 18
+    },
+    {
+      "text": "8%",
+      "aria": null,
+      "x": 357.90625,
+      "y": 753,
+      "width": 20.09375,
+      "height": 18
+    },
+    {
+      "text": "Next question",
+      "aria": null,
+      "x": 20,
+      "y": 809,
+      "width": 362,
+      "height": 40
+    },
+    {
+      "text": "Next question",
+      "aria": null,
+      "disabled": false,
+      "x": 72,
+      "y": 809,
+      "width": 310,
+      "height": 40
+    },
+    {
+      "text": "",
+      "aria": "Activity menu",
+      "disabled": false,
+      "x": 20,
+      "y": 807,
+      "width": 44,
+      "height": 44
+    },
+    {
+      "text": "",
+      "aria": "Close menu",
+      "disabled": false,
+      "x": 75.33333587646484,
+      "y": 26.399999618530273,
+      "width": 25.599998474121094,
+      "height": 25.600000381469727
+    },
+    {
+      "text": "Modes",
+      "aria": null,
+      "disabled": false,
+      "x": 22.233333587646484,
+      "y": 69.5999984741211,
+      "width": 81.89999389648438,
+      "height": 43.20000457763672
+    },
+    {
+      "text": "Modes",
+      "aria": null,
+      "x": 34.233333587646484,
+      "y": 85.19999694824219,
+      "width": 33.89999771118164,
+      "height": 12
+    }
+  ],
+  "Source question geometry assistant en": [
+    {
+      "text": "Natural or Weird?",
+      "aria": null,
+      "x": 25,
+      "y": 40,
+      "width": 166.859375,
+      "height": 30
+    },
+    {
+      "text": "",
+      "aria": "Ask assistant for help",
+      "disabled": false,
+      "x": 345,
+      "y": 39,
+      "width": 32,
+      "height": 32
+    },
+    {
+      "text": "Decide if this sentence sounds natural in everyday use.",
+      "aria": null,
+      "x": 25,
+      "y": 75,
+      "width": 352,
+      "height": 42
+    },
+    {
+      "text": "“Yo somos Ana.”",
+      "aria": null,
+      "x": 46,
+      "y": 164.5,
+      "width": 258,
+      "height": 27
+    },
+    {
+      "text": "",
+      "aria": "Listen to sentence",
+      "disabled": false,
+      "x": 316,
+      "y": 158,
+      "width": 40,
+      "height": 40
+    },
+    {
+      "text": "Sounds weird",
+      "aria": null,
+      "disabled": false,
+      "x": 25,
+      "y": 239,
+      "width": 352,
+      "height": 60
+    },
+    {
+      "text": "Sounds weird",
+      "aria": null,
+      "x": 79,
+      "y": 257,
+      "width": 100.515625,
+      "height": 24
+    },
+    {
+      "text": "Sounds natural",
+      "aria": null,
+      "disabled": false,
+      "x": 25,
+      "y": 311,
+      "width": 352,
+      "height": 60
+    },
+    {
+      "text": "Sounds natural",
+      "aria": null,
+      "x": 79,
+      "y": 329,
+      "width": 111.65625,
+      "height": 24
+    },
+    {
+      "text": "Assistant",
+      "aria": null,
+      "x": 56,
+      "y": 713,
+      "width": 72.9375,
+      "height": 24
+    },
+    {
+      "text": "",
+      "aria": "Close",
+      "disabled": false,
+      "x": 346,
+      "y": 709,
+      "width": 32,
+      "height": 32
+    },
+    {
+      "text": "Use Sounds weird. The correct sentence is Yo soy Ana.",
+      "aria": null,
+      "x": 24,
+      "y": 749,
+      "width": 354,
+      "height": 44
+    },
+    {
+      "text": "Close",
+      "aria": null,
+      "x": 20,
+      "y": 809,
+      "width": 362,
+      "height": 40
+    },
+    {
+      "text": "Close",
+      "aria": null,
+      "disabled": false,
+      "x": 72,
+      "y": 809,
+      "width": 310,
+      "height": 40
+    },
+    {
+      "text": "",
+      "aria": "Activity menu",
+      "disabled": false,
+      "x": 20,
+      "y": 807,
+      "width": 44,
+      "height": 44
+    },
+    {
+      "text": "",
+      "aria": "Close menu",
+      "disabled": false,
+      "x": 75.33333587646484,
+      "y": 26.399999618530273,
+      "width": 25.599998474121094,
+      "height": 25.600000381469727
+    },
+    {
+      "text": "Modes",
+      "aria": null,
+      "disabled": false,
+      "x": 22.233333587646484,
+      "y": 69.5999984741211,
+      "width": 81.89999389648438,
+      "height": 43.20000457763672
+    },
+    {
+      "text": "Modes",
+      "aria": null,
+      "x": 34.233333587646484,
+      "y": 85.19999694824219,
+      "width": 33.89999771118164,
+      "height": 12
+    }
+  ],
+  "Source question geometry explanation en": [
+    {
+      "text": "Natural or Weird?",
+      "aria": null,
+      "x": 25,
+      "y": 40,
+      "width": 166.859375,
+      "height": 30
+    },
+    {
+      "text": "",
+      "aria": "Ask assistant for help",
+      "disabled": false,
+      "x": 345,
+      "y": 39,
+      "width": 32,
+      "height": 32
+    },
+    {
+      "text": "Decide if this sentence sounds natural in everyday use.",
+      "aria": null,
+      "x": 25,
+      "y": 75,
+      "width": 352,
+      "height": 42
+    },
+    {
+      "text": "“Yo somos Ana.”",
+      "aria": null,
+      "x": 46,
+      "y": 164.5,
+      "width": 258,
+      "height": 27
+    },
+    {
+      "text": "",
+      "aria": "Listen to sentence",
+      "disabled": false,
+      "x": 316,
+      "y": 158,
+      "width": 40,
+      "height": 40
+    },
+    {
+      "text": "Sounds weird",
+      "aria": null,
+      "disabled": false,
+      "x": 25,
+      "y": 239,
+      "width": 352,
+      "height": 60
+    },
+    {
+      "text": "Sounds weird",
+      "aria": null,
+      "x": 79,
+      "y": 257,
+      "width": 100.515625,
+      "height": 24
+    },
+    {
+      "text": "✓Sounds natural",
+      "aria": null,
+      "disabled": false,
+      "x": 25,
+      "y": 311,
+      "width": 352,
+      "height": 60
+    },
+    {
+      "text": "Sounds natural",
+      "aria": null,
+      "x": 79,
+      "y": 329,
+      "width": 111.65625,
+      "height": 24
+    },
+    {
+      "text": "✖",
+      "aria": null,
+      "x": 24,
+      "y": 723,
+      "width": 23,
+      "height": 24
+    },
+    {
+      "text": "Try again",
+      "aria": null,
+      "x": 59,
+      "y": 723,
+      "width": 275,
+      "height": 24
+    },
+    {
+      "text": "",
+      "aria": "Create note",
+      "disabled": false,
+      "x": 346,
+      "y": 723,
+      "width": 32,
+      "height": 32
+    },
+    {
+      "text": "Use soy with yo. Say Yo soy Ana.",
+      "aria": null,
+      "x": 24,
+      "y": 763,
+      "width": 354,
+      "height": 22
+    },
+    {
+      "text": "SkipSubmit",
+      "aria": null,
+      "x": 20,
+      "y": 809,
+      "width": 362,
+      "height": 40
+    },
+    {
+      "text": "Skip",
+      "aria": null,
+      "disabled": false,
+      "x": 72,
+      "y": 809,
+      "width": 45.546875,
+      "height": 40
+    },
+    {
+      "text": "Submit",
+      "aria": null,
+      "disabled": false,
+      "x": 125.546875,
+      "y": 809,
+      "width": 256.453125,
+      "height": 40
+    },
+    {
+      "text": "",
+      "aria": "Activity menu",
+      "disabled": false,
+      "x": 20,
+      "y": 807,
+      "width": 44,
+      "height": 44
+    },
+    {
+      "text": "",
+      "aria": "Close menu",
+      "disabled": false,
+      "x": 75.33333587646484,
+      "y": 26.399999618530273,
+      "width": 25.599998474121094,
+      "height": 25.600000381469727
+    },
+    {
+      "text": "Modes",
+      "aria": null,
+      "disabled": false,
+      "x": 22.233333587646484,
+      "y": 69.5999984741211,
+      "width": 81.89999389648438,
+      "height": 43.20000457763672
+    },
+    {
+      "text": "Modes",
+      "aria": null,
+      "x": 34.233333587646484,
+      "y": 85.19999694824219,
+      "width": 33.89999771118164,
+      "height": 12
+    }
+  ],
+  "Source question geometry wrong en": [
+    {
+      "text": "Natural or Weird?",
+      "aria": null,
+      "x": 25,
+      "y": 40,
+      "width": 166.859375,
+      "height": 30
+    },
+    {
+      "text": "",
+      "aria": "Ask assistant for help",
+      "disabled": false,
+      "x": 345,
+      "y": 39,
+      "width": 32,
+      "height": 32
+    },
+    {
+      "text": "Decide if this sentence sounds natural in everyday use.",
+      "aria": null,
+      "x": 25,
+      "y": 75,
+      "width": 352,
+      "height": 42
+    },
+    {
+      "text": "“Yo somos Ana.”",
+      "aria": null,
+      "x": 46,
+      "y": 164.5,
+      "width": 258,
+      "height": 27
+    },
+    {
+      "text": "",
+      "aria": "Listen to sentence",
+      "disabled": false,
+      "x": 316,
+      "y": 158,
+      "width": 40,
+      "height": 40
+    },
+    {
+      "text": "Sounds weird",
+      "aria": null,
+      "disabled": false,
+      "x": 25,
+      "y": 239,
+      "width": 352,
+      "height": 60
+    },
+    {
+      "text": "Sounds weird",
+      "aria": null,
+      "x": 79,
+      "y": 257,
+      "width": 100.515625,
+      "height": 24
+    },
+    {
+      "text": "✓Sounds natural",
+      "aria": null,
+      "disabled": false,
+      "x": 25,
+      "y": 311,
+      "width": 352,
+      "height": 60
+    },
+    {
+      "text": "Sounds natural",
+      "aria": null,
+      "x": 79,
+      "y": 329,
+      "width": 111.65625,
+      "height": 24
+    },
+    {
+      "text": "✖",
+      "aria": null,
+      "x": 24,
+      "y": 709,
+      "width": 23,
+      "height": 24
+    },
+    {
+      "text": "Try again",
+      "aria": null,
+      "x": 59,
+      "y": 709,
+      "width": 275,
+      "height": 24
+    },
+    {
+      "text": "",
+      "aria": "Create note",
+      "disabled": false,
+      "x": 346,
+      "y": 709,
+      "width": 32,
+      "height": 32
+    },
+    {
+      "text": "Explain my answer",
+      "aria": null,
+      "disabled": false,
+      "x": 24,
+      "y": 753,
+      "width": 354,
+      "height": 40
+    },
+    {
+      "text": "SkipSubmit",
+      "aria": null,
+      "x": 20,
+      "y": 809,
+      "width": 362,
+      "height": 40
+    },
+    {
+      "text": "Skip",
+      "aria": null,
+      "disabled": false,
+      "x": 72,
+      "y": 809,
+      "width": 45.546875,
+      "height": 40
+    },
+    {
+      "text": "Submit",
+      "aria": null,
+      "disabled": false,
+      "x": 125.546875,
+      "y": 809,
+      "width": 256.453125,
+      "height": 40
+    },
+    {
+      "text": "",
+      "aria": "Activity menu",
+      "disabled": false,
+      "x": 20,
+      "y": 807,
+      "width": 44,
+      "height": 44
+    },
+    {
+      "text": "",
+      "aria": "Close menu",
+      "disabled": false,
+      "x": 75.33333587646484,
+      "y": 26.399999618530273,
+      "width": 25.599998474121094,
+      "height": 25.600000381469727
+    },
+    {
+      "text": "Modes",
+      "aria": null,
+      "disabled": false,
+      "x": 22.233333587646484,
+      "y": 69.5999984741211,
+      "width": 81.89999389648438,
+      "height": 43.20000457763672
+    },
+    {
+      "text": "Modes",
+      "aria": null,
+      "x": 34.233333587646484,
+      "y": 85.19999694824219,
+      "width": 33.89999771118164,
+      "height": 12
+    }
+  ],
+  "Source question geometry selected en": [
+    {
+      "text": "Natural or Weird?",
+      "aria": null,
+      "x": 25,
+      "y": 40,
+      "width": 166.859375,
+      "height": 30
+    },
+    {
+      "text": "",
+      "aria": "Ask assistant for help",
+      "disabled": false,
+      "x": 345,
+      "y": 39,
+      "width": 32,
+      "height": 32
+    },
+    {
+      "text": "Decide if this sentence sounds natural in everyday use.",
+      "aria": null,
+      "x": 25,
+      "y": 75,
+      "width": 352,
+      "height": 42
+    },
+    {
+      "text": "“Yo somos Ana.”",
+      "aria": null,
+      "x": 46,
+      "y": 164.5,
+      "width": 258,
+      "height": 27
+    },
+    {
+      "text": "",
+      "aria": "Listen to sentence",
+      "disabled": false,
+      "x": 316,
+      "y": 158,
+      "width": 40,
+      "height": 40
+    },
+    {
+      "text": "Sounds weird",
+      "aria": null,
+      "disabled": false,
+      "x": 25,
+      "y": 239,
+      "width": 352,
+      "height": 60
+    },
+    {
+      "text": "Sounds weird",
+      "aria": null,
+      "x": 79,
+      "y": 257,
+      "width": 100.515625,
+      "height": 24
+    },
+    {
+      "text": "✓Sounds natural",
+      "aria": null,
+      "disabled": false,
+      "x": 25,
+      "y": 311,
+      "width": 352,
+      "height": 60
+    },
+    {
+      "text": "Sounds natural",
+      "aria": null,
+      "x": 79,
+      "y": 329,
+      "width": 111.65625,
+      "height": 24
+    },
+    {
+      "text": "SkipSubmit",
+      "aria": null,
+      "x": 20,
+      "y": 809,
+      "width": 362,
+      "height": 40
+    },
+    {
+      "text": "Skip",
+      "aria": null,
+      "disabled": false,
+      "x": 72,
+      "y": 809,
+      "width": 45.546875,
+      "height": 40
+    },
+    {
+      "text": "Submit",
+      "aria": null,
+      "disabled": false,
+      "x": 125.546875,
+      "y": 809,
+      "width": 256.453125,
+      "height": 40
+    },
+    {
+      "text": "",
+      "aria": "Activity menu",
+      "disabled": false,
+      "x": 20,
+      "y": 807,
+      "width": 44,
+      "height": 44
+    },
+    {
+      "text": "",
+      "aria": "Close menu",
+      "disabled": false,
+      "x": 75.33333587646484,
+      "y": 26.399999618530273,
+      "width": 25.599998474121094,
+      "height": 25.600000381469727
+    },
+    {
+      "text": "Modes",
+      "aria": null,
+      "disabled": false,
+      "x": 22.233333587646484,
+      "y": 69.5999984741211,
+      "width": 81.89999389648438,
+      "height": 43.20000457763672
+    },
+    {
+      "text": "Modes",
+      "aria": null,
+      "x": 34.233333587646484,
+      "y": 85.19999694824219,
+      "width": 33.89999771118164,
+      "height": 12
+    }
+  ],
+  "Source question geometry idle en": [
+    {
+      "text": "Natural or Weird?",
+      "aria": null,
+      "x": 25,
+      "y": 40,
+      "width": 166.859375,
+      "height": 30
+    },
+    {
+      "text": "",
+      "aria": "Ask assistant for help",
+      "disabled": false,
+      "x": 345,
+      "y": 39,
+      "width": 32,
+      "height": 32
+    },
+    {
+      "text": "Decide if this sentence sounds natural in everyday use.",
+      "aria": null,
+      "x": 25,
+      "y": 75,
+      "width": 352,
+      "height": 42
+    },
+    {
+      "text": "“Yo somos Ana.”",
+      "aria": null,
+      "x": 46,
+      "y": 164.5,
+      "width": 258,
+      "height": 27
+    },
+    {
+      "text": "",
+      "aria": "Listen to sentence",
+      "disabled": false,
+      "x": 316,
+      "y": 158,
+      "width": 40,
+      "height": 40
+    },
+    {
+      "text": "Sounds weird",
+      "aria": null,
+      "disabled": false,
+      "x": 25,
+      "y": 239,
+      "width": 352,
+      "height": 60
+    },
+    {
+      "text": "Sounds weird",
+      "aria": null,
+      "x": 79,
+      "y": 257,
+      "width": 100.515625,
+      "height": 24
+    },
+    {
+      "text": "Sounds natural",
+      "aria": null,
+      "disabled": false,
+      "x": 25,
+      "y": 311,
+      "width": 352,
+      "height": 60
+    },
+    {
+      "text": "Sounds natural",
+      "aria": null,
+      "x": 79,
+      "y": 329,
+      "width": 111.65625,
+      "height": 24
+    },
+    {
+      "text": "SkipSubmit",
+      "aria": null,
+      "x": 20,
+      "y": 809,
+      "width": 362,
+      "height": 40
+    },
+    {
+      "text": "Skip",
+      "aria": null,
+      "disabled": false,
+      "x": 72,
+      "y": 809,
+      "width": 45.546875,
+      "height": 40
+    },
+    {
+      "text": "Submit",
+      "aria": null,
+      "disabled": true,
+      "x": 125.546875,
+      "y": 809,
+      "width": 256.453125,
+      "height": 40
+    },
+    {
+      "text": "",
+      "aria": "Activity menu",
+      "disabled": false,
+      "x": 20,
+      "y": 807,
+      "width": 44,
+      "height": 44
+    },
+    {
+      "text": "",
+      "aria": "Close menu",
+      "disabled": false,
+      "x": 75.33333587646484,
+      "y": 26.399999618530273,
+      "width": 25.599998474121094,
+      "height": 25.600000381469727
+    },
+    {
+      "text": "Modes",
+      "aria": null,
+      "disabled": false,
+      "x": 22.233333587646484,
+      "y": 69.5999984741211,
+      "width": 81.89999389648438,
+      "height": 43.20000457763672
+    },
+    {
+      "text": "Modes",
+      "aria": null,
+      "x": 34.233333587646484,
+      "y": 85.19999694824219,
+      "width": 33.89999771118164,
+      "height": 12
+    }
+  ]
+}

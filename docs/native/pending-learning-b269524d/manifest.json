@@ -1,0 +1,175 @@
+{
+  "referenceRevision": "b269524ddc578027c549616fc47f5954991d9f6f",
+  "result": "/tmp/PiyaliPendingLearningVerified20261106.xcresult",
+  "scope": "Original source callback/component comparisons with public external-I/O adapters plus actual native fresh-account pending ordinary Memory/Tutor Memory/Tutor worth, real process termination and two relaunches. Device-private recovery is a native lifecycle adaptation; no full web-route, source-Firebase, live provider/acoustic or complete-shell parity claim.",
+  "records": [
+    {
+      "file": "attachments.json",
+      "sha256": "8e6c699d7025bcffafee6865d4008a93723809c080bd3408c36b57f4e180f8d8"
+    },
+    {
+      "file": "baseline-memory-pending-audit.json",
+      "sha256": "7f42f3e47405fa52a9efe9204fd11b28c7e0571ee20783cb833717f0b7ce1ee8"
+    },
+    {
+      "file": "baseline-worth-settled-audit.json",
+      "sha256": "a36e4dde7e8d6bf9b23c69d84b64484ab427e438d37e1a56c2c3cefd33527d44"
+    },
+    {
+      "file": "contract-build-failure.txt",
+      "sha256": "a8540ad81dea8ae16fcb9f9c0776551e4d3fc4cdd6bc0f58a67f8c7c801214f6"
+    },
+    {
+      "file": "core-tests.txt",
+      "sha256": "1e92c0d1342badb872d239a1e83d19a6c0bf355f92d2ade0a864d16a841c3ca9"
+    },
+    {
+      "file": "export-stability.json",
+      "sha256": "c778b4cb475bc73e9603f710917506dffdd6f59c7cb85aeb2447295c2693f331"
+    },
+    {
+      "file": "final-source-hashes.json",
+      "sha256": "16f2aa3de0bb8d14d13e33c0872421eb87aaeb85b638caf4b0d51832848c1af8"
+    },
+    {
+      "file": "initial-core-failures.txt",
+      "sha256": "61505b934352f9f50ed0a2d23957ecf328c3f701988494734430545e951ec99c"
+    },
+    {
+      "file": "native-enriched-ar.png",
+      "sha256": "b750d75280d413155a72f9dd7e265a2b3164c87a7625336b924cb78a52619acd"
+    },
+    {
+      "file": "native-enriched-en.png",
+      "sha256": "eedb9e3f80bb4b0d542123580e600b64f55069166b449cf097259988bd7a7ebb"
+    },
+    {
+      "file": "native-memory-pending.png",
+      "sha256": "fab65b0dfeb914d9f20047e48525533502a353935388387659950613198c9d1e"
+    },
+    {
+      "file": "native-memory-restored.png",
+      "sha256": "885037399a7d18257864961ae58f66468a8159ff56a72c1e6d0f15a4737a3429"
+    },
+    {
+      "file": "native-memory-second-relaunch.png",
+      "sha256": "885037399a7d18257864961ae58f66468a8159ff56a72c1e6d0f15a4737a3429"
+    },
+    {
+      "file": "native-pending-restored-contact.png",
+      "sha256": "394342c5112b3ca612aec7ff93f69f19e6e48e0fafd7d4ca1e3be5b73864e38d"
+    },
+    {
+      "file": "native-tutor-memory-pending.png",
+      "sha256": "1e22f214606f7c792d41eab55c7f0d6cec749fb2004c33285419365a05b6078a"
+    },
+    {
+      "file": "native-tutor-memory-restored.png",
+      "sha256": "af4993975e3768b71afdaffd9bcfb5cd8f6a456e128e4a6ca379b524bcb92b7b"
+    },
+    {
+      "file": "native-tutor-memory-second-relaunch.png",
+      "sha256": "af4993975e3768b71afdaffd9bcfb5cd8f6a456e128e4a6ca379b524bcb92b7b"
+    },
+    {
+      "file": "native-worth-pending.png",
+      "sha256": "3849ab94d631f4f484e2d9c4462f41074047a0d4054acc345fb75d6ac35bf50b"
+    },
+    {
+      "file": "native-worth-restored.png",
+      "sha256": "77a2c0c4d28bc8a890b5fe5d5236ff10b5076e6f2a6a11a3efb6e40f89008512"
+    },
+    {
+      "file": "native-worth-second-relaunch.png",
+      "sha256": "c17e4fedf4a5f316ba453977b1f749e0332961e0578b306eaba36917a0eea030"
+    },
+    {
+      "file": "pair-enriched-ar.png",
+      "sha256": "cc7a0df2b402345fc641c9e49f3b0d4fe9171742d61db31d194f1dd2677d1e25"
+    },
+    {
+      "file": "pair-enriched-en.png",
+      "sha256": "76526f4d24a9e9707fac21ae8639f0575a64f04d5160d845af94559fdbdd72b9"
+    },
+    {
+      "file": "qa-memory-after.json",
+      "sha256": "7b5c99441e9ca666d24ac3bf571a5aef2f95b5281c05c2add19c796388bbc2dd"
+    },
+    {
+      "file": "qa-memory-before.json",
+      "sha256": "eb649dc660bc01989256ac8543081771667240fabea826e42947d5e9d5cb3671"
+    },
+    {
+      "file": "qa-product-hashes.json",
+      "sha256": "a56ec4dc56682c34320b65159ae2ffd5ed397b6f6f71b9fc36756a124ccc075f"
+    },
+    {
+      "file": "qa-tutor-memory-after.json",
+      "sha256": "0a8f474ad10835c7d9491353e3b8eaee9efbbff5e125c9ae2b2fb8a59b8e44a7"
+    },
+    {
+      "file": "qa-tutor-memory-before.json",
+      "sha256": "6e6e05091eea98df43c3373b1093080a0712b45bcd9330135f9834f93442445a"
+    },
+    {
+      "file": "qa-worth-after.json",
+      "sha256": "636ed134767298ed2bfc7fe5cdb15e19111ffa3c35266664da589790ccd8a62e"
+    },
+    {
+      "file": "qa-worth-before.json",
+      "sha256": "60f6d6ddced826648ef0e79c4bf572f8d727032dbf660c4c280a9688ac7bfe29"
+    },
+    {
+      "file": "reference-hashes.json",
+      "sha256": "0bdf981f0184d0e52cf91685a6b39d8cf1ee6878b2069d015d18622d4f9feefb"
+    },
+    {
+      "file": "reproduction-summary.json",
+      "sha256": "6c29c5521565dac234e718dc129c7d7bb6fda74aaadabbb81359acef752314e8"
+    },
+    {
+      "file": "sdk-private-recovery-trace.json",
+      "sha256": "969f20830cc6a84e6692433ad80a16dc37fdad5ddc1e4e4fce3b92f1bbe97577"
+    },
+    {
+      "file": "source-enriched-ar.png",
+      "sha256": "5d7596fb89d9c110144413e1f1ffa381079317a8eebcb21a7b44ac813d9b55c0"
+    },
+    {
+      "file": "source-enriched-en.png",
+      "sha256": "3af697c07eff348eaf8e19adb0c457252661717d9d603a61e8801add327b8605"
+    },
+    {
+      "file": "source-version-core-failures.txt",
+      "sha256": "5b979d4c91517cd32b0b16c748ee753fb5d98e275289d50724f4770abff409a9"
+    },
+    {
+      "file": "targeted-contract-summary.json",
+      "sha256": "1cb4991f96ef190445c3fd6316c4429b7d7ed82a671ef0a32e438d41663b564f"
+    },
+    {
+      "file": "targeted-contract-tests.txt",
+      "sha256": "753e11eb843933d0e1640c459179b3f48567a2800f1dcf1d844c457ac5bdfe16"
+    },
+    {
+      "file": "trace-ar.json",
+      "sha256": "655cb1fb7d675def20004a5097bc58f9b1202127b114ecb57a77bb5935a54bde"
+    },
+    {
+      "file": "trace-en.json",
+      "sha256": "40d5399e7cdd9a5784c70c9a69793ba38b80a52cec3dc7a4b9da4bde15d539f4"
+    },
+    {
+      "file": "verification-commands.txt",
+      "sha256": "488c12e04a3c8183e123b1ffeb30a72ff9181c36fcf238f5144f73adbab5995c"
+    },
+    {
+      "file": "verified-summary.json",
+      "sha256": "3bb015e56260f499879be37da0bd54b268cf7f32cefe2d5e813b05114c67f23c"
+    },
+    {
+      "file": "verified-tests.txt",
+      "sha256": "fe91b4efd1eb585b78748b762f856a945aa557f68edf70c5d756d388cf4fe7e1"
+    }
+  ]
+}

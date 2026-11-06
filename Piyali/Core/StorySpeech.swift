@@ -31,9 +31,8 @@ public enum StorySpeech {
         for i in A.indices { var previous=distance[0];distance[0]=i+1;for j in B.indices { let temp=distance[j+1];distance[j+1]=A[i] == B[j] ? previous : 1+min(previous,distance[j],distance[j+1]);previous=temp } }
         let charSim=1-Double(distance.last!)/Double(max(1,max(A.count,B.count)))
         let letters=rec.filter { $0.range(of:"^[a-zñáéíóúü]+$",options:[.regularExpression,.caseInsensitive]) != nil }.count,stops=rec.filter { stop.contains($0) }.count
-        var langLike=rec.isEmpty ? 0 : 0.8*Double(letters)/Double(rec.count)+0.2*Double(stops)/Double(max(2,rec.count))
-        // The browser helper's Latin-only likelihood rejects every correctly spoken non-Latin line.
-        if ["ar","el","hi","ja","ru","zh"].contains(lang),!rec.isEmpty,StoryEpisode.compatible([target],target:lang) { langLike=StoryEpisode.compatible([recognized],target:lang) ? 1 : 0 }
+        // Match the current source languageLikelihood, including its Latin-only limitation.
+        let langLike=rec.isEmpty ? 0 : 0.8*Double(letters)/Double(rec.count)+0.2*Double(stops)/Double(max(2,rec.count))
         var reasons:[String]=[]
         if let audio {
             let expected=max(cfg["MIN_SPEECH_SEC"].number,Double(target.utf16.count)*cfg["DURATION_PER_CHAR_SEC"].number),ratio=audio.duration/expected,zps=audio.duration > 0 ? Double(audio.zeroCrossings)/audio.duration : 0
@@ -42,7 +41,7 @@ public enum StorySpeech {
         if langLike < cfg["MIN_LANG_LIKE"].number { reasons.append("not-target-lang") }
         if charSim < cfg["MIN_CHAR_SIM"].number { reasons.append("low-char-sim") }
         if f1 < cfg["MIN_WORD_F1"].number { reasons.append("low-word-f1") }
-        if confidence > 0,confidence < cfg["MIN_CONFIDENCE"].number { reasons.append("low-confidence") }
+        if confidence != 0,confidence < cfg["MIN_CONFIDENCE"].number { reasons.append("low-confidence") }
         let score=Int(max(0,min(100,charSim*60+f1*35+langLike*20+max(confidence == 0 ? 0.55 : confidence,0.55)*15)).rounded())
         return .init(pass:reasons.isEmpty,score:score,reasons:reasons,charSim:charSim,f1:f1,langLike:langLike,confidence:confidence)
     }

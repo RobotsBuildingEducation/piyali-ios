@@ -1,0 +1,101 @@
+{
+  "traces": 12,
+  "copyLocales": 10,
+  "audio": {
+    "notes": [
+      {
+        "note": "G5",
+        "duration": "64n",
+        "at": 0,
+        "envelope": {
+          "type": "sine",
+          "attack": 0.001,
+          "decay": 0.08,
+          "sustain": 0,
+          "release": 0.1
+        },
+        "volume": -12
+      },
+      {
+        "note": "C6",
+        "duration": "64n",
+        "at": 0.06,
+        "envelope": {
+          "type": "sine",
+          "attack": 0.001,
+          "decay": 0.08,
+          "sustain": 0,
+          "release": 0.1
+        },
+        "volume": -12
+      },
+      {
+        "note": "E6",
+        "duration": "64n",
+        "at": 0.12,
+        "envelope": {
+          "type": "sine",
+          "attack": 0.001,
+          "decay": 0.08,
+          "sustain": 0,
+          "release": 0.1
+        },
+        "volume": -12
+      },
+      {
+        "note": "G6",
+        "duration": "64n",
+        "at": 0.18,
+        "envelope": {
+          "type": "sine",
+          "attack": 0.001,
+          "decay": 0.08,
+          "sustain": 0,
+          "release": 0.1
+        },
+        "volume": -12
+      },
+      {
+        "note": "C7",
+        "duration": "64n",
+        "at": 0.24,
+        "envelope": {
+          "type": "sine",
+          "attack": 0.001,
+          "decay": 0.08,
+          "sustain": 0,
+          "release": 0.1
+        },
+        "volume": -12
+      }
+    ],
+    "seconds": 0.37126984126984125,
+    "rendering": "Original sine pitches/timing/envelope/gain; PCM approximates Tone exponential envelopes at 120 BPM."
+  },
+  "sources": [
+    {
+      "file": "src/App.jsx",
+      "sha256": "eb7e06e1422cac6d205059dc92d68370bec40c1009c1a316f0c2d3eb5f325fd6"
+    },
+    {
+      "file": "src/utils/petTypes.js",
+      "sha256": "e22bacdec1bd9f58bad705b3f4d032adc43ad8799aea5fbf676a77b1a8160770"
+    },
+    {
+      "file": "src/components/DailyGoalPetPanel.jsx",
+      "sha256": "59b5919a3c0e93718d9a5e18e804cf5c1f989db31860900f028f2e4c620e422e"
+    },
+    {
+      "file": "src/utils/germanCopy.js",
+      "sha256": "c5d8071bc25c6907cf33693b8e6ae274d3796d7f72b80b21a2056946ebba4307"
+    },
+    {
+      "file": "src/useThemeStore.jsx",
+      "sha256": "ff0a591e7e674099e0202c58dfdff3d663fd65297f1a9cde0e6328f9ee5e4b4e"
+    },
+    {
+      "file": "src/utils/SoundManager.js",
+      "sha256": "74b0ae85c6ea2b8a077af4176d6ad5df6f5715ecc7d0bcdf65789a4875fc7471"
+    }
+  ]
+}

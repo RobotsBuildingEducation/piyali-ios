@@ -1,7 +1,8 @@
 import { verifyFirebaseAuth } from './firebase-auth.js';
 import { proxyResponses } from './responses.js';
+import { proxyRealtime } from './realtime.js';
 import { verifyAppCheck } from './app-check.js';
-import { HTTPError, publicIdentity, challengeFor, verifyChallenge, customToken } from './auth.js';
+import { HTTPError, publicIdentity, challengeFor, verifyChallenge, customToken, landingDemoToken, LANDING_DEMO_UID } from './auth.js';
 const json = (value,status=200) => new Response(JSON.stringify(value),{status,headers:{'Content-Type':'application/json','Cache-Control':'no-store'}});
 async function body(request,limit=8192) {
   if (!request.headers.get('Content-Type')?.startsWith('application/json')) throw new HTTPError(415,'Send JSON.');
@@ -54,10 +55,25 @@ export function handler(check = verifyAppCheck, authenticate = verifyFirebaseAut
       try {
         const url = new URL(request.url);
         if (url.pathname === '/health' && request.method === 'GET') return json({ok:true,project:env.FIREBASE_PROJECT_ID});
-        if (!['/auth/challenge','/auth/sign-in','/proxyResponses'].includes(url.pathname)) throw new HTTPError(404,'Not found.');
+        if (!['/auth/challenge','/auth/sign-in','/auth/landing-demo','/proxyResponses','/realtime'].includes(url.pathname)) throw new HTTPError(404,'Not found.');
         if (request.method !== 'POST') throw new HTTPError(405,'Use POST.');
         try { await check(request.headers.get('X-Firebase-AppCheck') ?? '',env); }
         catch { throw new HTTPError(401,'A valid Piyali App Check token is required.'); }
+        if(url.pathname==='/auth/landing-demo') {
+          if(!env.DEMO_RATE_LIMITER) throw new HTTPError(503,'Live practice is unavailable.');
+          const {success}=await env.DEMO_RATE_LIMITER.limit({key:request.headers.get('CF-Connecting-IP') ?? 'unknown'});
+          if(!success) throw new HTTPError(429,'Try another short lesson shortly.');
+          const data=await body(request,1024);
+          if(Object.keys(data).length) throw new HTTPError(400,'This session does not accept profile data.');
+          return json({uid:LANDING_DEMO_UID,token:await landingDemoToken(env)});
+        }
+        if(url.pathname==='/realtime') {
+          const npub=await authenticate(request,env);
+          if(!env.REALTIME_RATE_LIMITER) throw new HTTPError(503,'Live conversation is unavailable.');
+          const {success}=await env.REALTIME_RATE_LIMITER.limit({key:npub});
+          if(!success) throw new HTTPError(429,'Too many voice connections. Try again shortly.');
+          return await proxyRealtime(await body(request,131072),env,fetchUpstream);
+        }
         if(url.pathname==='/proxyResponses') {
           const npub=await authenticate(request,env);
           if(!env.AI_RATE_LIMITER) throw new HTTPError(503,'The tutor is not configured.');

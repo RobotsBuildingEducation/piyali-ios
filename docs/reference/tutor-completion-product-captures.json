@@ -1,0 +1,68 @@
+{
+  "scope": "Actual native entry/onboarding, public goal edit to 50 XP, authored seven-task Tutor game, completion/review, daily-goal release, path quiet-window, scholarship/task acknowledgment, fresh practice at 0/7, Back, process relaunch and reopened completed path. UUID-scoped offline providers; native game, root presentation, progression and persistence remain active. These do not prove live provider or physical audio behavior.",
+  "captures": [
+    {
+      "file": "docs/native/tutor-sequence-relaunch.png",
+      "name": "Native completed Tutor path survives relaunch",
+      "sha256": "23073189a375e379add18f97adf8a118cec27f4454a7e24deec1668fec015f6c",
+      "test": "GameHandoffJourneyTests/testTutorAuthoredGameCompletesThroughItsOwnBonusWithoutLessonCredit()",
+      "resultBundle": "PiyaliTutorCompletion8.xcresult"
+    },
+    {
+      "file": "docs/native/tutor-sequence-path.png",
+      "name": "Native Tutor returned path after completion sequence",
+      "sha256": "92187ace7acacad79c12d5b91f2385035408ffac3d9dc101d35f5e65eabbe54d",
+      "test": "GameHandoffJourneyTests/testTutorAuthoredGameCompletesThroughItsOwnBonusWithoutLessonCredit()",
+      "resultBundle": "PiyaliTutorCompletion8.xcresult"
+    },
+    {
+      "file": "docs/native/tutor-sequence-task.png",
+      "name": "Native Tutor task acknowledgment after path closes",
+      "sha256": "cd6a5830473345a153e0cb7c9e4e338f8d06fbaff0ae07056d3d0660aa221279",
+      "test": "GameHandoffJourneyTests/testTutorAuthoredGameCompletesThroughItsOwnBonusWithoutLessonCredit()",
+      "resultBundle": "PiyaliTutorCompletion8.xcresult"
+    },
+    {
+      "file": "docs/native/tutor-sequence-scholarship.png",
+      "name": "Native Tutor scholarship after closing returned path",
+      "sha256": "11827bb2910a3581f2d51c6400418e7b735e9b59088c1beba586dfc28a72fb82",
+      "test": "GameHandoffJourneyTests/testTutorAuthoredGameCompletesThroughItsOwnBonusWithoutLessonCredit()",
+      "resultBundle": "PiyaliTutorCompletion8.xcresult"
+    },
+    {
+      "file": "docs/native/tutor-sequence-path-quiet.png",
+      "name": "Native Tutor returned path holds quiet-window rewards",
+      "sha256": "92187ace7acacad79c12d5b91f2385035408ffac3d9dc101d35f5e65eabbe54d",
+      "test": "GameHandoffJourneyTests/testTutorAuthoredGameCompletesThroughItsOwnBonusWithoutLessonCredit()",
+      "resultBundle": "PiyaliTutorCompletion8.xcresult"
+    },
+    {
+      "file": "docs/native/tutor-sequence-daily-goal.png",
+      "name": "Native Tutor game daily goal after review",
+      "sha256": "8ad3798feeda5f5989d6ca197944301a73dc0e0fa48ff975bc03adb1db677bf4",
+      "test": "GameHandoffJourneyTests/testTutorAuthoredGameCompletesThroughItsOwnBonusWithoutLessonCredit()",
+      "resultBundle": "PiyaliTutorCompletion8.xcresult"
+    },
+    {
+      "file": "docs/native/tutor-sequence-review.png",
+      "name": "Native Tutor game review above returned path",
+      "sha256": "cec3f3f30e86f8011a92340e0f60d1621d2b46731609a7c4629de4338eeb9e99",
+      "test": "GameHandoffJourneyTests/testTutorAuthoredGameCompletesThroughItsOwnBonusWithoutLessonCredit()",
+      "resultBundle": "PiyaliTutorCompletion8.xcresult"
+    },
+    {
+      "file": "docs/native/tutor-sequence-bonus.png",
+      "name": "Native Tutor game own completion bonus",
+      "sha256": "549f5a40e02f80f83103d0bf4fbc96104f8921a1de02dd8d6ef403060684e87b",
+      "test": "GameHandoffJourneyTests/testTutorAuthoredGameCompletesThroughItsOwnBonusWithoutLessonCredit()",
+      "resultBundle": "PiyaliTutorCompletion8.xcresult"
+    },
+    {
+      "file": "docs/native/tutor-sequence-recap.png",
+      "name": "Native Tutor game completed recap",
+      "sha256": "da8cc27ade37740fdbc7647218d13deb6f18b0a999696430211d60a62480bd53",
+      "test": "GameHandoffJourneyTests/testTutorAuthoredGameCompletesThroughItsOwnBonusWithoutLessonCredit()",
+      "resultBundle": "PiyaliTutorCompletion8.xcresult"
+    }
+  ]
+}

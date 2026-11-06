@@ -1,0 +1,79 @@
+{
+  "devicesAndConfigurations" : [
+    {
+      "device" : {
+        "architecture" : "arm64",
+        "deviceId" : "CE8248B6-7171-4FD4-97DE-89E499107F82",
+        "deviceName" : "Piyali Parity QA",
+        "modelName" : "iPhone 17 Pro",
+        "osBuildNumber" : "23E254a",
+        "osVersion" : "26.4.1",
+        "platform" : "iOS Simulator"
+      },
+      "expectedFailures" : 0,
+      "failedTests" : 3,
+      "passedTests" : 17,
+      "skippedTests" : 0,
+      "testPlanConfiguration" : {
+        "configurationId" : "1",
+        "configurationName" : "Test Scheme Action"
+      }
+    }
+  ],
+  "environmentDescription" : "Piyali · Built with macOS 26.4.1",
+  "expectedFailures" : 0,
+  "failedTests" : 3,
+  "finishTime" : 1793944869.877,
+  "passedTests" : 17,
+  "result" : "Failed",
+  "skippedTests" : 0,
+  "startTime" : 1793944667.485,
+  "statistics" : [
+
+  ],
+  "testFailures" : [
+    {
+      "failureText" : "XCTAssertEqual failed: (\"2\") is not equal to (\"0\")",
+      "targetName" : "PiyaliTests",
+      "testIdentifier" : 5,
+      "testIdentifierString" : "MemoryFlowTests/testActualSourceSharedEnrichmentAndLearningEvidenceInEnglishAndArabic()",
+      "testIdentifierURL" : "test://com.apple.xcode/Piyali/PiyaliTests/MemoryFlowTests/testActualSourceSharedEnrichmentAndLearningEvidenceInEnglishAndArabic",
+      "testName" : "testActualSourceSharedEnrichmentAndLearningEvidenceInEnglishAndArabic()"
+    },
+    {
+      "failureText" : "XCTAssertEqual failed: (\"null\") is not equal to (\"number(1.0)\")",
+      "targetName" : "PiyaliTests",
+      "testIdentifier" : 1,
+      "testIdentifierString" : "FirestoreContractTests/testCaptureLearningEvidenceUsesSourceIDsAndStableDeliveryAcrossRetryAndWindowEviction()",
+      "testIdentifierURL" : "test://com.apple.xcode/Piyali/PiyaliTests/FirestoreContractTests/testCaptureLearningEvidenceUsesSourceIDsAndStableDeliveryAcrossRetryAndWindowEviction",
+      "testName" : "testCaptureLearningEvidenceUsesSourceIDsAndStableDeliveryAcrossRetryAndWindowEviction()"
+    },
+    {
+      "failureText" : "XCTAssertEqual failed: (\"Example: Choose a greeting\") is not equal to (\"Hola, mamá.\")",
+      "targetName" : "PiyaliTests",
+      "testIdentifier" : 12,
+      "testIdentifierString" : "MemoryFlowTests/testExerciseNoteKeepsSourceGeneratedContentAndPrivateStudyMetadata()",
+      "testIdentifierURL" : "test://com.apple.xcode/Piyali/PiyaliTests/MemoryFlowTests/testExerciseNoteKeepsSourceGeneratedContentAndPrivateStudyMetadata",
+      "testName" : "testExerciseNoteKeepsSourceGeneratedContentAndPrivateStudyMetadata()"
+    }
+  ],
+  "title" : "Test - Piyali",
+  "topInsights" : [
+    {
+      "category" : "Common Failures",
+      "impact" : "33% of failures",
+      "text" : "2 runs of 1 test failed with XCTAssertEqual failed: (\"null\") is not equal to (\"number(150.0)\")"
+    },
+    {
+      "category" : "Common Failures",
+      "impact" : "33% of failures",
+      "text" : "2 runs of 1 test failed with XCTAssertEqual failed: (\"nil\") is not equal to (\"Optional(Piyali.JSONValue.number(3.0))\")"
+    },
+    {
+      "category" : "Common Failures",
+      "impact" : "33% of failures",
+      "text" : "2 runs of 1 test failed with XCTAssertEqual failed: (\"Optional(Piyali.JSONValue.string(\"grammar\"))\") is not equal to (\"Optional(Piyali.JSONValue.string(\"\"))\") - sourceContext"
+    }
+  ],
+  "totalTestCount" : 20
+}

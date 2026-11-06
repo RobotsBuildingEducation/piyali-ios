@@ -1,0 +1,142 @@
+[
+  {
+    "time": 0,
+    "styles": [
+      {
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "origin": "210px 92px",
+        "opacity": 1
+      },
+      {
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "origin": "68px 42px",
+        "opacity": 0.92
+      },
+      {
+        "transform": "none",
+        "origin": "282px 68px",
+        "opacity": 1
+      }
+    ]
+  },
+  {
+    "time": 0.85,
+    "styles": [
+      {
+        "opacity": 1,
+        "transform": "matrix(0.999945, -0.010472, 0.010472, 0.999945, -1, -1.75)",
+        "origin": "210px 92px"
+      },
+      {
+        "transform": "matrix(0.864987, 0, 0, 0.864987, 0, 0)",
+        "opacity": 0.567466,
+        "origin": "68px 42px"
+      },
+      {
+        "opacity": 0.919062,
+        "transform": "matrix(0.999641, 0, 0, 0.999641, 0, 0)",
+        "origin": "282px 68px"
+      }
+    ]
+  },
+  {
+    "time": 1.7,
+    "styles": [
+      {
+        "origin": "210px 92px",
+        "transform": "matrix(0.999781, -0.020942, 0.020942, 0.999781, -2, -3.5)",
+        "opacity": 1
+      },
+      {
+        "transform": "matrix(0.855507, 0, 0, 0.855507, 0, 0)",
+        "opacity": 0.542712,
+        "origin": "68px 42px"
+      },
+      {
+        "transform": "matrix(0.885381, 0, 0, 0.885381, 0, 0)",
+        "opacity": 0.620718,
+        "origin": "282px 68px"
+      }
+    ]
+  },
+  {
+    "time": 2.6,
+    "styles": [
+      {
+        "transform": "matrix(0.999956, -0.009412, 0.009412, 0.999956, -0.898803, -1.572906)",
+        "opacity": 1,
+        "origin": "210px 92px"
+      },
+      {
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "opacity": 0.92,
+        "origin": "68px 42px"
+      },
+      {
+        "transform": "matrix(0.829445, 0, 0, 0.829445, 0, 0)",
+        "opacity": 0.474663,
+        "origin": "282px 68px"
+      }
+    ]
+  },
+  {
+    "time": 3.4,
+    "styles": [
+      {
+        "opacity": 1,
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "origin": "210px 92px"
+      },
+      {
+        "opacity": 0.594578,
+        "transform": "matrix(0.87537, 0, 0, 0.87537, 0, 0)",
+        "origin": "68px 42px"
+      },
+      {
+        "opacity": 0.818009,
+        "transform": "matrix(0.96094, 0, 0, 0.96094, 0, 0)",
+        "origin": "282px 68px"
+      }
+    ]
+  },
+  {
+    "time": 3.9,
+    "styles": [
+      {
+        "transform": "matrix(0.999993, -0.00377, 0.00377, 0.999993, -0.360021, -0.630037)",
+        "origin": "210px 92px",
+        "opacity": 1
+      },
+      {
+        "transform": "matrix(0.82, 0, 0, 0.82, 0, 0)",
+        "origin": "68px 42px",
+        "opacity": 0.45
+      },
+      {
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "origin": "282px 68px",
+        "opacity": 0.92
+      }
+    ]
+  },
+  {
+    "time": 6.8,
+    "styles": [
+      {
+        "opacity": 1,
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "origin": "210px 92px"
+      },
+      {
+        "opacity": 0.501509,
+        "transform": "matrix(0.839727, 0, 0, 0.839727, 0, 0)",
+        "origin": "68px 42px"
+      },
+      {
+        "opacity": 0.904394,
+        "transform": "matrix(0.994023, 0, 0, 0.994023, 0, 0)",
+        "origin": "282px 68px"
+      }
+    ]
+  }
+]

@@ -1,0 +1,18 @@
+{
+  "cases": 36,
+  "scope": "Original standard wrong-answer snapshots and actual capture argument objects; original pure Delight memory extractor and actual capture argument object. Public state only; no React, store, provider or backend executes.",
+  "sources": [
+    {
+      "file": "src/components/DelightQuestionLab.jsx",
+      "sha256": "71dd9be7177c308537972537e26734f6bdbca4411a737f471b1a9be442aa8798"
+    },
+    {
+      "file": "src/components/Vocabulary.jsx",
+      "sha256": "9aa9d5f74d62ac8fd7b3adb1026bbf0bef3bd48a826053b4c94f6045b1a3431c"
+    },
+    {
+      "file": "src/components/GrammarBook.jsx",
+      "sha256": "0d0407a8a19c14e1cc111958b162c5ca8762f785627c33baea2dd18cdf058b82"
+    }
+  ]
+}

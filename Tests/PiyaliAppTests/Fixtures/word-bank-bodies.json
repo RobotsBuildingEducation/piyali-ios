@@ -1,0 +1,432 @@
+{
+  "translate-target": {
+    "kind": "translate",
+    "options": {
+      "cefrLevel": "A1",
+      "direction": "target-to-support",
+      "isListening": false,
+      "repeatMode": "target-tts-support-bank"
+    },
+    "question": {
+      "sentence": "Yo no digo que no",
+      "correctWords": [
+        "I",
+        "do",
+        "not",
+        "say",
+        "no"
+      ],
+      "distractors": [
+        "I",
+        "yes"
+      ],
+      "hint": "Notice the repeated negative word."
+    },
+    "bank": [
+      "I",
+      "do",
+      "not",
+      "say",
+      "no",
+      "I",
+      "yes"
+    ],
+    "responses": {
+      "idle": {
+        "indices": [],
+        "wordBankOrder": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ]
+      },
+      "partial": {
+        "indices": [
+          5,
+          6
+        ],
+        "wordBankOrder": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "filled": {
+        "indices": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "wordBankOrder": [
+          5,
+          6
+        ]
+      },
+      "locked": {
+        "indices": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "wordBankOrder": [
+          5,
+          6
+        ]
+      }
+    }
+  },
+  "translate-support": {
+    "kind": "translate",
+    "options": {
+      "cefrLevel": "A1",
+      "direction": "support-to-target",
+      "isListening": false,
+      "repeatMode": "support-tts-target-bank"
+    },
+    "question": {
+      "sentence": "I do not say no",
+      "correctWords": [
+        "Yo",
+        "no",
+        "digo",
+        "que",
+        "no"
+      ],
+      "distractors": [
+        "Yo",
+        "sí"
+      ],
+      "hint": "Notice the repeated negative word."
+    },
+    "bank": [
+      "Yo",
+      "no",
+      "digo",
+      "que",
+      "no",
+      "Yo",
+      "sí"
+    ],
+    "responses": {
+      "idle": {
+        "indices": [],
+        "wordBankOrder": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ]
+      },
+      "partial": {
+        "indices": [
+          5,
+          6
+        ],
+        "wordBankOrder": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "filled": {
+        "indices": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "wordBankOrder": [
+          5,
+          6
+        ]
+      },
+      "locked": {
+        "indices": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "wordBankOrder": [
+          5,
+          6
+        ]
+      }
+    }
+  },
+  "repeat-target": {
+    "kind": "repeat",
+    "options": {
+      "cefrLevel": "A1",
+      "direction": "target-to-support",
+      "isListening": false,
+      "repeatMode": "target-tts-support-bank"
+    },
+    "question": {
+      "sentence": "Yo no digo que no",
+      "correctWords": [
+        "I",
+        "do",
+        "not",
+        "say",
+        "no"
+      ],
+      "distractors": [
+        "I",
+        "yes"
+      ],
+      "hint": "Notice the repeated negative word."
+    },
+    "bank": [
+      "I",
+      "do",
+      "not",
+      "say",
+      "no",
+      "I",
+      "yes"
+    ],
+    "responses": {
+      "idle": {
+        "indices": [],
+        "wordBankOrder": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ]
+      },
+      "partial": {
+        "indices": [
+          5,
+          6
+        ],
+        "wordBankOrder": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "filled": {
+        "indices": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "wordBankOrder": [
+          5,
+          6
+        ]
+      },
+      "locked": {
+        "indices": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "wordBankOrder": [
+          5,
+          6
+        ]
+      }
+    }
+  },
+  "repeat-support": {
+    "kind": "repeat",
+    "options": {
+      "cefrLevel": "A1",
+      "direction": "support-to-target",
+      "isListening": false,
+      "repeatMode": "support-tts-target-bank"
+    },
+    "question": {
+      "sentence": "I do not say no",
+      "correctWords": [
+        "Yo",
+        "no",
+        "digo",
+        "que",
+        "no"
+      ],
+      "distractors": [
+        "Yo",
+        "sí"
+      ],
+      "hint": "Notice the repeated negative word."
+    },
+    "bank": [
+      "Yo",
+      "no",
+      "digo",
+      "que",
+      "no",
+      "Yo",
+      "sí"
+    ],
+    "responses": {
+      "idle": {
+        "indices": [],
+        "wordBankOrder": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ]
+      },
+      "partial": {
+        "indices": [
+          5,
+          6
+        ],
+        "wordBankOrder": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "filled": {
+        "indices": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "wordBankOrder": [
+          5,
+          6
+        ]
+      },
+      "locked": {
+        "indices": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "wordBankOrder": [
+          5,
+          6
+        ]
+      }
+    }
+  },
+  "repeat-listening": {
+    "kind": "repeat",
+    "options": {
+      "cefrLevel": "A1",
+      "direction": "support-to-target",
+      "isListening": true,
+      "repeatMode": "listening-target"
+    },
+    "question": {
+      "sentence": "Yo no digo que no",
+      "correctWords": [
+        "Yo",
+        "no",
+        "digo",
+        "que",
+        "no"
+      ],
+      "distractors": [
+        "Yo",
+        "sí"
+      ],
+      "hint": "Notice the repeated negative word."
+    },
+    "bank": [
+      "Yo",
+      "no",
+      "digo",
+      "que",
+      "no",
+      "Yo",
+      "sí"
+    ],
+    "responses": {
+      "idle": {
+        "indices": [],
+        "wordBankOrder": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ]
+      },
+      "partial": {
+        "indices": [
+          5,
+          6
+        ],
+        "wordBankOrder": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "filled": {
+        "indices": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "wordBankOrder": [
+          5,
+          6
+        ]
+      },
+      "locked": {
+        "indices": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "wordBankOrder": [
+          5,
+          6
+        ]
+      }
+    }
+  }
+}

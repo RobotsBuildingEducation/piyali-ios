@@ -1,0 +1,340 @@
+[
+  {
+    "event": {
+      "kind": 9321,
+      "created_at": 1700000000,
+      "tags": [
+        [
+          "alt",
+          "This is a nutzap"
+        ],
+        [
+          "p",
+          "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        ],
+        [
+          "u",
+          "https://mint.example"
+        ],
+        [
+          "proof",
+          "{\"amount\":1,\"id\":\"00abc\",\"secret\":\"public-fixture-only\",\"C\":\"02aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}"
+        ]
+      ],
+      "content": "Robots Building Education",
+      "pubkey": "1b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+      "id": "8ad90bbe01e0d90569d0939435d94e8e819d99ff24d0168f01d775d12e44c785",
+      "sig": "0dc76369b23737c282c44b7d43e346544af3316d5325530bc469f3c42945419273b7bd06ee74d2e7c881834ce2fa909be2555beacde81f82fc5385aa67f98627"
+    },
+    "expected": {
+      "id": "8ad90bbe01e0d90569d0939435d94e8e819d99ff24d0168f01d775d12e44c785",
+      "createdAt": 1700000000,
+      "sender": "1b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+      "recipient": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "amount": 1,
+      "unit": "sat",
+      "note": "Robots Building Education"
+    }
+  },
+  {
+    "event": {
+      "kind": 9321,
+      "created_at": 1700000000,
+      "tags": [
+        [
+          "alt",
+          "This is a nutzap"
+        ],
+        [
+          "p",
+          "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        ],
+        [
+          "u",
+          "https://mint.example"
+        ],
+        [
+          "proof",
+          "{\"amount\":1,\"id\":\"00abc\",\"secret\":\"public-fixture-only\",\"C\":\"02aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}"
+        ],
+        [
+          "p",
+          "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        ]
+      ],
+      "content": "Robots Building Education",
+      "pubkey": "1b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+      "id": "c2b032fc7042f18fe4f8a1be15f2156a5ad5ccae4dabde5d00d0574d85d6372d",
+      "sig": "c187bbcadc3edafa07f6ed1784ad18998a0ab9ec3ed5e074141e7a3fa6a9caf7900ebbcdc3473dcb5a5e70ce107be9ff738e7ae5fa62d814ff397914c7d91820"
+    },
+    "expected": null
+  },
+  {
+    "event": {
+      "kind": 9321,
+      "created_at": 1700000000,
+      "tags": [
+        [
+          "alt",
+          "This is a nutzap"
+        ],
+        [
+          "p",
+          "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        ],
+        [
+          "u",
+          "https://mint.example"
+        ],
+        [
+          "proof",
+          "{\"amount\":1,\"id\":\"00abc\",\"secret\":\"public-fixture-only\",\"C\":\"02aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}"
+        ],
+        [
+          "e",
+          "a"
+        ],
+        [
+          "e",
+          "b"
+        ]
+      ],
+      "content": "Robots Building Education",
+      "pubkey": "1b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+      "id": "158233d1ebbf80decb5b7349c8f073695de66e434c3a5390a8b0a37b17a856aa",
+      "sig": "4486c187c639a7bd81c85dcaa34b1bddac043ba394c59aadf43872d996690e2b2ca9cfc0fb5b153747ee342a2e631233b7264de407be76df4e1447083f31e29d"
+    },
+    "expected": null
+  },
+  {
+    "event": {
+      "kind": 9321,
+      "created_at": 1700000000,
+      "tags": [
+        [
+          "alt",
+          "This is a nutzap"
+        ],
+        [
+          "p",
+          "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        ],
+        [
+          "proof",
+          "{\"amount\":1,\"id\":\"00abc\",\"secret\":\"public-fixture-only\",\"C\":\"02aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}"
+        ]
+      ],
+      "content": "Robots Building Education",
+      "pubkey": "1b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+      "id": "99a07b7268d5570aa791c25fba34b78d8ef99cd65d1d5d08e3118ba39af624da",
+      "sig": "d3c12fd31fc3bebb97d1f3ee46b937e24986fc600b2dadb8408c4731ea8c51fed8b2a421c0b66d781440d7a99860a3b7dcfa7074f29030b3dde3336e1e36b97d"
+    },
+    "expected": null
+  },
+  {
+    "event": {
+      "kind": 9321,
+      "created_at": 1700000000,
+      "tags": [
+        [
+          "alt",
+          "This is a nutzap"
+        ],
+        [
+          "p",
+          "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        ],
+        [
+          "u",
+          "https://mint.example"
+        ],
+        [
+          "proof",
+          "bad-json"
+        ]
+      ],
+      "content": "Robots Building Education",
+      "pubkey": "1b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+      "id": "69e3baa074494c8b956ed15e85809c164b9001ddc8da955069fb93ad73fa2ef2",
+      "sig": "2e9158d611e863e6cf887793683e44c21e1a70756e80d2fe789a73780d68c3cdc5266628ad3475e0c7a80c2a8eb7da856cada047afb77281da2e75bf5cca9e5a"
+    },
+    "expected": null
+  },
+  {
+    "event": {
+      "kind": 9321,
+      "created_at": 1700000000,
+      "tags": [
+        [
+          "alt",
+          "This is a nutzap"
+        ],
+        [
+          "p",
+          "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        ],
+        [
+          "u",
+          "https://mint.example"
+        ],
+        [
+          "proof",
+          "{\"amount\":0,\"id\":\"00abc\",\"secret\":\"public-fixture-only\",\"C\":\"02aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}"
+        ]
+      ],
+      "content": "Robots Building Education",
+      "pubkey": "1b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+      "id": "322bd4124762f55febad4fb056548f3c1a56b5cf36f06ad80b5fd7f914d3cbc4",
+      "sig": "c5e948e8499c57615c90648046c8aea7e8d6e02e0928e10777bb7415ca0fd699fdf6c70e0f2289522bca10b3ed6f4f7d8164244e761bb2b27728c724e41871ff"
+    },
+    "expected": null
+  },
+  {
+    "event": {
+      "kind": 9321,
+      "created_at": 1700000000,
+      "tags": [
+        [
+          "alt",
+          "This is a nutzap"
+        ],
+        [
+          "p",
+          "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        ],
+        [
+          "u",
+          "https://mint.example"
+        ],
+        [
+          "proof",
+          "{\"amount\":1,\"id\":\"00abc\",\"secret\":\"public-fixture-only\",\"C\":\"02aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}"
+        ],
+        [
+          "proof",
+          "{\"amount\":2,\"id\":\"00abc\",\"secret\":\"public-fixture-only\",\"C\":\"02aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}"
+        ],
+        [
+          "unit",
+          "msat"
+        ],
+        [
+          "comment",
+          " Robots Building Education "
+        ]
+      ],
+      "content": "Robots Building Education",
+      "pubkey": "1b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+      "id": "cf6ee510375dbe40134eb3e0cae706e1ec7bdbc4b2b010ae81a263065c865f51",
+      "sig": "100f1e0d6a88e2d5f4853844e21741a6f17c048f3f55b969496403c11111063628a061da0e79e4ed4f4b87e2d682fb72c95239de083fe3007d542391e8331250"
+    },
+    "expected": {
+      "id": "cf6ee510375dbe40134eb3e0cae706e1ec7bdbc4b2b010ae81a263065c865f51",
+      "createdAt": 1700000000,
+      "sender": "1b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+      "recipient": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "amount": 3,
+      "unit": "sat",
+      "note": "Robots Building Education"
+    }
+  },
+  {
+    "event": {
+      "kind": 9321,
+      "created_at": 1700000000,
+      "tags": [
+        [
+          "alt",
+          "This is a nutzap"
+        ],
+        [
+          "p",
+          "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        ],
+        [
+          "u",
+          "https://mint.example"
+        ]
+      ],
+      "content": "[{\"amount\":1,\"id\":\"00abc\",\"secret\":\"public-fixture-only\",\"C\":\"02aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}]",
+      "pubkey": "1b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+      "id": "086d2bbd570dd06e1dfbe32bbaec4812a1f60a3acc3ccdb591efc6026331cf48",
+      "sig": "b795181547b85d42ab4bb6dd649008ea3c253dafa14898ea527b6e1bc4bea15932d6f74e425c27eec26c35598c54e9bae38f648c9659c1a63e93ab80b2c56602"
+    },
+    "expected": {
+      "id": "086d2bbd570dd06e1dfbe32bbaec4812a1f60a3acc3ccdb591efc6026331cf48",
+      "createdAt": 1700000000,
+      "sender": "1b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+      "recipient": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "amount": 1,
+      "unit": "sat",
+      "note": "[{\"amount\":1,\"id\":\"00abc\",\"secret\":\"public-fixture-only\",\"C\":\"02aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}]"
+    }
+  },
+  {
+    "event": {
+      "kind": 9321,
+      "created_at": 1700000000,
+      "tags": [
+        [
+          "alt",
+          "This is a nutzap"
+        ],
+        [
+          "p",
+          "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        ],
+        [
+          "u",
+          "https://mint.example"
+        ],
+        [
+          "proof",
+          "{\"amount\":1,\"id\":\"00abc\",\"secret\":\"public-fixture-only\",\"C\":\"02aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}"
+        ]
+      ],
+      "content": "Unrelated note",
+      "pubkey": "1b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+      "id": "b559bd62d49fe779a0c7b12597ca9273ce692f63f0055622496cdcf3e22231c6",
+      "sig": "b73b82f96baf880b22b45ad12037d33aded7ca8ab0db1a94e431f691ecb085c822fc9d70923d327a94942d1f5d83d75b5637c83deac64c826df29b429ce31182"
+    },
+    "expected": {
+      "id": "b559bd62d49fe779a0c7b12597ca9273ce692f63f0055622496cdcf3e22231c6",
+      "createdAt": 1700000000,
+      "sender": "1b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+      "recipient": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "amount": 1,
+      "unit": "sat",
+      "note": "Unrelated note"
+    }
+  },
+  {
+    "event": {
+      "kind": 9321,
+      "created_at": 1700000000,
+      "tags": [
+        [
+          "alt",
+          "This is a nutzap"
+        ],
+        [
+          "p",
+          "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        ],
+        [
+          "u",
+          "https://mint.example"
+        ],
+        [
+          "proof",
+          "{\"amount\":1,\"id\":\"00abc\",\"secret\":\"public-fixture-only\",\"C\":\"02aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}"
+        ]
+      ],
+      "content": "Forged",
+      "pubkey": "1b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+      "id": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "sig": "0dc76369b23737c282c44b7d43e346544af3316d5325530bc469f3c42945419273b7bd06ee74d2e7c881834ce2fa909be2555beacde81f82fc5385aa67f98627"
+    },
+    "expected": null
+  }
+]

@@ -1,0 +1,20 @@
+// Pure reference data export; no files in the reference checkout are changed.
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import vm from 'node:vm';
+import {createRequire} from 'node:module';
+import {gzipSync} from 'node:zlib';
+const reference=path.resolve(process.argv[2] || '../nosabos/nosabos');
+const require=createRequire(path.join(reference,'package.json'));
+const {build}=require('esbuild'),parser=require('@babel/parser');
+const built=await build({stdin:{contents:`export {LEARNING_PATHS} from ${JSON.stringify(path.join(reference,'src/data/skillTreeData.js'))};export {getTutorStarterPreviewAgendaItems} from ${JSON.stringify(path.join(reference,'src/utils/tutorStarterAgenda.js'))};`,resolveDir:reference},bundle:true,platform:'node',format:'esm',write:false});
+const {LEARNING_PATHS,getTutorStarterPreviewAgendaItems}=await import('data:text/javascript;base64,'+Buffer.from(built.outputFiles[0].text).toString('base64'));
+const units=Object.fromEntries(Object.entries(LEARNING_PATHS).map(([target,levels])=>[target,Object.fromEntries(Object.values(levels).flatMap(units=>units.map(u=>[u.id,{color:u.color,position:u.position}])))]));
+const source=await fs.readFile(path.join(reference,'src/components/SkillTree.jsx'),'utf8');
+const ast=parser.parse(source,{sourceType:'module',plugins:['jsx']});
+const init=ast.program.body.flatMap(n=>n.type==='VariableDeclaration'?n.declarations:[]).find(n=>n.id.name==='LESSON_OBJECTIVES_LABELS')?.init;
+if(!init) throw Error('Original lesson objectives labels are missing');
+const objectives=vm.runInNewContext('('+source.slice(init.start,init.end)+')',{}, {timeout:1000});
+const starter=Object.fromEntries(Object.keys(units).map(target=>[target,Object.fromEntries(Object.keys(objectives).map(support=>[support,getTutorStarterPreviewAgendaItems({targetLang:target,supportLang:support})]))]));
+await fs.writeFile(new URL('../Piyali/Resources/lesson-appearance.json.gz',import.meta.url),gzipSync(JSON.stringify({units,objectives,starter}),{level:9}));
+console.log(`Exported original unit appearance for ${Object.keys(units).length} practice languages.`);

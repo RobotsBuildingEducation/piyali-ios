@@ -1,0 +1,25 @@
+{
+  "referenceRevision": "b269524ddc578027c549616fc47f5954991d9f6f",
+  "nativeBase": "0cf48b6760706d9c1f8ba52ad8eaf6ba16de3f04",
+  "judgeOracle": "224 raw provider-response cases independently compared with the complete original async judge callback before fixture export; external I/O represented by explicit public values. Original note builder excludes only its random ID from fixture equality.",
+  "records": [
+    {
+      "file": "Tests/PiyaliCoreTests/Fixtures/tutor-source-policy.json.gz",
+      "priorCases": 991,
+      "currentCases": 1215,
+      "addedCases": 224,
+      "priorCasesUnchanged": true,
+      "priorFixtureSHA256": "d6dd8c35ef9fe14035e1d480b27b0d730679fd460fc5719f60a1f0fd11382128",
+      "fixtureSHA256": "ce7606f2d4d06d90f38b3218ec8951e4dfcd58c9e905b6e6d456ae6c086a5025"
+    },
+    {
+      "file": "Tests/PiyaliCoreTests/Fixtures/memory-policy.json.gz",
+      "priorCases": 55,
+      "currentCases": 64,
+      "addedCases": 9,
+      "priorCasesUnchanged": true,
+      "priorFixtureSHA256": "7d2d5740461fc81b018ba3e344d2105469bb057dc578042f4709c2390a87c1ac",
+      "fixtureSHA256": "86a4feabe238797731df2d398f7cfed9c362204c067b877d4520c416de12f3c2"
+    }
+  ]
+}

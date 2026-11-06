@@ -1,0 +1,9 @@
+{
+  "src/App.jsx": "eb7e06e1422cac6d205059dc92d68370bec40c1009c1a316f0c2d3eb5f325fd6",
+  "src/components/DailyGoalModal.jsx": "b32bb635283bdb304e3378a6c6255029ae46221d10945fa64698b06f59822216",
+  "src/components/SessionTimerModal.jsx": "f45dd39e9e323c3fa986533eb7b9f14b2c52b0b4f46a8e8ef8647dbaa7d9a3ec",
+  "src/components/SessionTimerBadge.jsx": "eef59cf2285267833dc849b04031d9c58ac378ebb605b3cc719aa8557122b710",
+  "src/components/DailyGoalPetPanel.jsx": "59b5919a3c0e93718d9a5e18e804cf5c1f989db31860900f028f2e4c620e422e",
+  "src/components/RandomCharacter.jsx": "926ca4aa285166d5b47908dfe92c135ed25eaba567ffd5d2476204af5980b729",
+  "src/assets/33.webp": "f3ed60b76b70bc38f0f9de6ef6aa8907af0378ef9d693092c87faa7e3db34d68"
+}

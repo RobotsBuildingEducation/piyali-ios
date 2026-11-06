@@ -1,0 +1,24 @@
+{
+  "sources": [
+    {
+      "file": "src/components/RPGGame/index.jsx",
+      "sha256": "f597e8f7a9296ff3f72fad4e6f24ca4a1a313fddbc87ba3cf2d128c1d6ea95a2"
+    },
+    {
+      "file": "src/components/RPGGame/scenarios.js",
+      "sha256": "f9ef0847970de74ae914a88005df76ea26a46c51fe3a82a21de3eec031d01dca"
+    },
+    {
+      "file": "src/components/RPGGame/worldGen.js",
+      "sha256": "1e0bee8e3e6c32678cb638bf0185f61b5ba17ae71dfda7ba0683dd53746bf8aa"
+    },
+    {
+      "file": "src/components/RPGGame/pixelArt.js",
+      "sha256": "22e2d4516c21cb81a48e8b24debe6394682a77ffa8cf136d8b2049f06a528c2d"
+    }
+  ],
+  "seed": 1792936800000,
+  "maps": 448,
+  "items": 39,
+  "adapters": "Original source world/ground/prop/item drawers execute offline. Fixed source seed; dynamic ambient layers remain to be exported for legacy maps."
+}

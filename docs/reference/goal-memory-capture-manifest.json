@@ -1,0 +1,91 @@
+{
+  "sourceFile": "src/utils/companionMemory.js",
+  "callers": [
+    {
+      "file": "src/components/Vocabulary.jsx",
+      "sha256": "9aa9d5f74d62ac8fd7b3adb1026bbf0bef3bd48a826053b4c94f6045b1a3431c",
+      "calls": [
+        {
+          "npub": true,
+          "sourceMode": "vocabulary"
+        }
+      ]
+    },
+    {
+      "file": "src/components/GrammarBook.jsx",
+      "sha256": "0d0407a8a19c14e1cc111958b162c5ca8762f785627c33baea2dd18cdf058b82",
+      "calls": [
+        {
+          "npub": true,
+          "sourceMode": "grammar"
+        }
+      ]
+    },
+    {
+      "file": "src/components/DelightQuestionLab.jsx",
+      "sha256": "71dd9be7177c308537972537e26734f6bdbca4411a737f471b1a9be442aa8798",
+      "calls": [
+        {
+          "npub": true,
+          "sourceMode": "expression"
+        }
+      ]
+    },
+    {
+      "file": "src/components/History.jsx",
+      "sha256": "ceca67f29b27ebc41c300c29e6ea92240bda1020fb23c3e505a06b65842832a9",
+      "calls": [
+        {
+          "npub": true,
+          "sourceMode": "reading"
+        }
+      ]
+    },
+    {
+      "file": "src/components/Stories.jsx",
+      "sha256": "98a951b5e2de6f075b89da93dc99c4c8bfeee5fecd4cb365df2906be4302238c",
+      "calls": [
+        {
+          "npub": true,
+          "sourceMode": "story"
+        }
+      ]
+    },
+    {
+      "file": "src/components/FlashcardPractice.jsx",
+      "sha256": "b1da353b8d9d095030637a8e57f100d80184f69bb1e5b5f6a4c37ac3cb756a14",
+      "calls": [
+        {
+          "npub": false,
+          "sourceMode": "flashcard"
+        },
+        {
+          "npub": false,
+          "sourceMode": "flashcard"
+        },
+        {
+          "npub": false,
+          "sourceMode": "flashcard"
+        }
+      ]
+    },
+    {
+      "file": "src/components/RealTimeTest.jsx",
+      "sha256": "9c45b94d47afed3c84f776f7ca23b49dfc2da721cda52365bbf8402405a432a6",
+      "calls": [
+        {
+          "npub": false,
+          "sourceMode": "conversation"
+        }
+      ]
+    }
+  ],
+  "summarySource": {
+    "file": "src/utils/learningIntelligenceModel.js",
+    "sha256": "5e6efcd7fea2758af10af1d3617945daa8583f68f0072cc26d5822549ef0a95c"
+  },
+  "policySha256": "47974ac353339cdd8df1b6118fa23b1018fe7f1ed77969dc914a082a23ab3341",
+  "sha256": "05aeb83111145a419b83877ef3335063d55ace85e5a651f865fbf67d6d84bd91",
+  "cases": 12,
+  "scope": "Full original captureCompanionMemory callback executed with explicit currentGoalFocus snapshots, clock and recording learning-evidence boundary. Ordinary-path cleaning is a recording stop boundary; no store, enrichment, provider or Firebase runs. Summary uses the original extracted mergeEvidence/compactSummary."
+}

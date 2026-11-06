@@ -1,0 +1,141 @@
+Test Suite 'Selected tests' started at 2026-11-05 22:02:46.336.
+Test Suite 'PiyaliTests.xctest' started at 2026-11-05 22:02:46.337.
+Test Suite 'FirestoreContractTests' started at 2026-11-05 22:02:46.337.
+Test Case '-[PiyaliTests.FirestoreContractTests testOriginalTutorPendingMemoryAndEnrichmentPersistWithoutXPOrExtraAssessmentOnRetry]' started.
+Test Case '-[PiyaliTests.FirestoreContractTests testOriginalTutorPendingMemoryAndEnrichmentPersistWithoutXPOrExtraAssessmentOnRetry]' passed (6.244 seconds).
+Test Suite 'FirestoreContractTests' passed at 2026-11-05 22:02:52.582.
+Test Suite 'MemoryCaptureTests' started at 2026-11-05 22:02:52.582.
+Test Case '-[PiyaliTests.MemoryCaptureTests testCaptureScopeReplacementAndActualSourceLifetime]' started.
+Test Case '-[PiyaliTests.MemoryCaptureTests testCaptureScopeReplacementAndActualSourceLifetime]' passed (3.238 seconds).
+Test Case '-[PiyaliTests.MemoryCaptureTests testRepeatedCaptureGetsNewIdentityAndOldExpiryCannotClearIt]' started.
+Test Case '-[PiyaliTests.MemoryCaptureTests testRepeatedCaptureGetsNewIdentityAndOldExpiryCannotClearIt]' passed (0.003 seconds).
+Test Suite 'MemoryCaptureTests' passed at 2026-11-05 22:02:55.824.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 3.241 (3.242) seconds
+Test Suite 'TutorSessionTests' started at 2026-11-05 22:02:55.824.
+Test Case '-[PiyaliTests.TutorSessionTests testAcknowledgedCompletionKeepsItsReviewAcrossTheTrialBoundaryAndSelectsNextLesson]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testAcknowledgedCompletionKeepsItsReviewAcrossTheTrialBoundaryAndSelectsNextLesson]' passed (4.414 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testActualSourceOrdinarySemanticMemoryAndRenderedNativeNotesInEnglishAndArabic]' started.
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliAppTests/TutorSessionTests.swift:903: error: -[PiyaliTests.TutorSessionTests testActualSourceOrdinarySemanticMemoryAndRenderedNativeNotesInEnglishAndArabic] : XCTAssertEqual failed: ("0") is not equal to ("5")
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliAppTests/TutorSessionTests.swift:903: error: -[PiyaliTests.TutorSessionTests testActualSourceOrdinarySemanticMemoryAndRenderedNativeNotesInEnglishAndArabic] : XCTAssertEqual failed: ("0") is not equal to ("1")
+Test Case '-[PiyaliTests.TutorSessionTests testActualSourceOrdinarySemanticMemoryAndRenderedNativeNotesInEnglishAndArabic]' failed (31.903 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testCompletedVoiceLessonAdvancesSessionAgendaAndRewardsPracticeWithoutRecompletion]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testCompletedVoiceLessonAdvancesSessionAgendaAndRewardsPracticeWithoutRecompletion]' passed (4.283 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testEarnedLessonWaitsForWorthBeforeBonusAndEndStillFinishesItsAcknowledgedHandoff]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testEarnedLessonWaitsForWorthBeforeBonusAndEndStillFinishesItsAcknowledgedHandoff]' passed (4.313 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testEarnedWorthDeliverySurvivesEndAndLanguageChangeButRejectsAReplacementAccount]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testEarnedWorthDeliverySurvivesEndAndLanguageChangeButRejectsAReplacementAccount]' passed (8.342 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testEndingMidReplyKeepsVisibleTextAndClipForPrivateHistory]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testEndingMidReplyKeepsVisibleTextAndClipForPrivateHistory]' passed (4.218 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testFinalLessonContinuesIntoNextTutorCourseWithoutChangingCompletionReview]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testFinalLessonContinuesIntoNextTutorCourseWithoutChangingCompletionReview]' passed (4.266 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testFirstStarterRetriesKeepTheKickoffItemAndUseOriginalRejectionInstructions]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testFirstStarterRetriesKeepTheKickoffItemAndUseOriginalRejectionInstructions]' passed (5.174 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testGameHandoffWaitsForAcknowledgmentAndReplayCannotAwardAgain]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testGameHandoffWaitsForAcknowledgmentAndReplayCannotAwardAgain]' passed (4.274 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testGameUsesOnlyTutorBonusAndFailedCloudRetryDoesNotDuplicateIt]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testGameUsesOnlyTutorBonusAndFailedCloudRetryDoesNotDuplicateIt]' passed (4.119 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testGeminiAmbiguousOrdinaryAnswerRequestsFollowupWhileJudgeWaitsThenCreditsSilently]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testGeminiAmbiguousOrdinaryAnswerRequestsFollowupWhileJudgeWaitsThenCreditsSilently]' passed (4.196 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testGeminiLocalWarmupAdvancesWithoutCallingOrWaitingForTheOpenAIObjectiveJudge]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testGeminiLocalWarmupAdvancesWithoutCallingOrWaitingForTheOpenAIObjectiveJudge]' passed (4.213 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testGeminiQuizCorrectAnswerUsesTheOriginalAcceptedFollowupInsteadOfItsOrdinaryDefault]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testGeminiQuizCorrectAnswerUsesTheOriginalAcceptedFollowupInsteadOfItsOrdinaryDefault]' passed (4.278 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testGoalTutorFailedSaveKeepsOneCompletionIntentAndRetryDoesNotAddXP]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testGoalTutorFailedSaveKeepsOneCompletionIntentAndRetryDoesNotAddXP]' passed (4.241 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testGoalTutorUsesOriginalRubricAndOnlyFinishesAt25XPWithoutTutorPathOrBonus]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testGoalTutorUsesOriginalRubricAndOnlyFinishesAt25XPWithoutTutorPathOrBonus]' passed (4.427 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testHelpUncertaintyAndForeignScriptDoNotEarnOrReduceScoreAndFreshStartIsPrivate]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testHelpUncertaintyAndForeignScriptDoNotEarnOrReduceScoreAndFreshStartIsPrivate]' passed (4.373 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testLateCompletionSettlesOnExplicitPauseEndAndTimeoutButRejectsAReplacedOwner]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testLateCompletionSettlesOnExplicitPauseEndAndTimeoutButRejectsAReplacedOwner]' passed (19.304 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testLateCorrectBurstsAdvanceStarterAgendaSilentlyButPayOnlyTheExistingTurnOnce]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testLateCorrectBurstsAdvanceStarterAgendaSilentlyButPayOnlyTheExistingTurnOnce]' passed (4.286 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testLateEarnedCompletionKeepsTheReplyAndTrialOwnerUntilPlaybackStopsThenRetriesOnce]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testLateEarnedCompletionKeepsTheReplyAndTrialOwnerUntilPlaybackStopsThenRetriesOnce]' passed (5.137 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testLateGoalVerdictCannotCompleteAfterTheGoalChanges]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testLateGoalVerdictCannotCompleteAfterTheGoalChanges]' passed (4.472 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testLateJudgeCannotApplyAfterSupportChanges]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testLateJudgeCannotApplyAfterSupportChanges]' passed (4.199 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testLateJudgeCannotCommitAfterPauseStopLanguageAccountOrLessonReplacement]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testLateJudgeCannotCommitAfterPauseStopLanguageAccountOrLessonReplacement]' passed (25.953 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testLateMistakesKeepOneAssessmentAndMemoryWithoutAddingChatOrAnotherReply]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testLateMistakesKeepOneAssessmentAndMemoryWithoutAddingChatOrAnotherReply]' passed (4.402 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testLateSemanticRegularSuccessUsesStreamedPromptAdvancesOnceAndRatesTheOriginalQuestion]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testLateSemanticRegularSuccessUsesStreamedPromptAdvancesOnceAndRatesTheOriginalQuestion]' passed (4.327 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testLateSpeechBeforePracticeDuringWelcomeAndDuringQuizNeverGradesOrConsumesAGreeting]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testLateSpeechBeforePracticeDuringWelcomeAndDuringQuizNeverGradesOrConsumesAGreeting]' passed (4.430 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testLocalTutorProgressDailyXPAndNextPromptDoNotWaitForQuestionWorth]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testLocalTutorProgressDailyXPAndNextPromptDoNotWaitForQuestionWorth]' passed (4.229 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testOpeningPreviewAndWelcomeAreUngradedThenExactSpeechAdvancesOnce]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testOpeningPreviewAndWelcomeAreUngradedThenExactSpeechAdvancesOnce]' passed (4.264 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testOrdinarySemanticSlipCaptureIsIndependentOfSuccessfulAndLowConfidenceGrades]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testOrdinarySemanticSlipCaptureIsIndependentOfSuccessfulAndLowConfidenceGrades]' passed (21.038 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testOrdinarySemanticSlipTrimsAndFallsBackToCorrectionInsteadOfDroppingIt]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testOrdinarySemanticSlipTrimsAndFallsBackToCorrectionInsteadOfDroppingIt]' passed (4.246 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testOrdinaryTutorCompletionAndReviewRemainVisibleThroughTheRootTrialGate]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testOrdinaryTutorCompletionAndReviewRemainVisibleThroughTheRootTrialGate]' passed (5.018 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testOriginalLateBurstProgressAndCompletionGateAgainstRenderedNativeInEnglishAndArabic]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testOriginalLateBurstProgressAndCompletionGateAgainstRenderedNativeInEnglishAndArabic]' passed (55.192 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testOriginalPendingWorthAndGeminiAgendaFollowupAgainstRenderedNativeInEnglishAndArabic]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testOriginalPendingWorthAndGeminiAgendaFollowupAgainstRenderedNativeInEnglishAndArabic]' passed (65.294 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testOriginalTutorUnexpectedScriptRecoveryAndLateRejectionAgainstRenderedNativeInEnglishAndArabic]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testOriginalTutorUnexpectedScriptRecoveryAndLateRejectionAgainstRenderedNativeInEnglishAndArabic]' passed (33.482 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testPauseKeepsInterruptedResponseIDAndPlayedClipWithoutAwardingProgress]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testPauseKeepsInterruptedResponseIDAndPlayedClipWithoutAwardingProgress]' passed (5.903 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testPauseRetainsVisibleTranscriptAndMuteWithoutRegradingOnResume]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testPauseRetainsVisibleTranscriptAndMuteWithoutRegradingOnResume]' passed (4.711 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testPhonicsFallbackTutorKeepsOriginalModeAndOnlyRoutesAfterEarnedCompletionAcknowledges]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testPhonicsFallbackTutorKeepsOriginalModeAndOnlyRoutesAfterEarnedCompletionAcknowledges]' passed (11.658 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testPreparedGameSelectionStartsOnlyTutorProgressAndSurvivesReload]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testPreparedGameSelectionStartsOnlyTutorProgressAndSurvivesReload]' passed (6.791 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testQueuedRecoveryCannotReachStoppedReplacedOrPausedSession]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testQueuedRecoveryCannotReachStoppedReplacedOrPausedSession]' passed (15.440 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testQuizHelpStaysPutAndConfidentWrongRoundResetsCursorWithoutXP]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testQuizHelpStaysPutAndConfidentWrongRoundResetsCursorWithoutXP]' passed (5.993 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testRecoveryBeforeWelcomeReplyKeepsGreetingUngradedAndUsesCurrentAgendaPhrase]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testRecoveryBeforeWelcomeReplyKeepsGreetingUngradedAndUsesCurrentAgendaPhrase]' passed (5.547 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testRenderedGoalTutorRetainsEarnedWorkAcrossTrialGateAndRoutesAfterAcknowledgment]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testRenderedGoalTutorRetainsEarnedWorkAcrossTrialGateAndRoutesAfterAcknowledgment]' passed (6.806 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testRenderedRepairTutorRetainsFailedCompletionUntilRetryAcknowledgesIt]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testRenderedRepairTutorRetainsFailedCompletionUntilRetryAcknowledgesIt]' passed (5.838 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testRepairTutorOneGoodRepCommitsOneRepairAndBonusWithoutOrdinaryTutorWrites]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testRepairTutorOneGoodRepCommitsOneRepairAndBonusWithoutOrdinaryTutorWrites]' passed (5.006 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testRepairTutorXPCompletionDoesNotInventDemonstratedRepairEvidence]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testRepairTutorXPCompletionDoesNotInventDemonstratedRepairEvidence]' passed (5.037 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testRestoredEarnedWorthIntentDeliversOnceAndKeepsItsFrozenOriginalQuestion]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testRestoredEarnedWorthIntentDeliversOnceAndKeepsItsFrozenOriginalQuestion]' passed (5.338 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testRestoredTutorGameRetriesDurableBonusAndMigratesLegacyFinishedRun]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testRestoredTutorGameRetriesDurableBonusAndMigratesLegacyFinishedRun]' passed (9.750 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testSkippedRepairKeepsLiveLessonUntilStopThenRestoresOrdinaryTutor]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testSkippedRepairKeepsLiveLessonUntilStopThenRestoresOrdinaryTutor]' passed (6.053 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testTutorGameRetiresOnlyAfterAcknowledgmentAndCompletedReplayStartsFresh]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testTutorGameRetiresOnlyAfterAcknowledgmentAndCompletedReplayStartsFresh]' passed (6.491 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testTutorInheritsHighestOtherCourseUnlockButKeepsExplicitLowerBrowsingChoice]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testTutorInheritsHighestOtherCourseUnlockButKeepsExplicitLowerBrowsingChoice]' passed (11.701 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testTutorMemoryEnrichesAfterEndAndTargetChangeWithoutASecondAssessment]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testTutorMemoryEnrichesAfterEndAndTargetChangeWithoutASecondAssessment]' passed (5.612 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testTutorMemoryLateEnrichmentRejectsReplacedAccountAndNewerCapture]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testTutorMemoryLateEnrichmentRejectsReplacedAccountAndNewerCapture]' passed (6.702 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testTutorMemoryRepeatedLocalizedSlipReusesItsEnrichment]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testTutorMemoryRepeatedLocalizedSlipReusesItsEnrichment]' passed (3.482 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testUnexpectedScriptDuringReplyDeletesOnlyAndNeverInterruptsOrUnlocksIt]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testUnexpectedScriptDuringReplyDeletesOnlyAndNeverInterruptsOrUnlocksIt]' passed (5.055 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testUnexpectedTranscriptDeletesContextAndRequestsTheSamePhraseWithoutGrading]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testUnexpectedTranscriptDeletesContextAndRequestsTheSamePhraseWithoutGrading]' passed (5.255 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testWarmupPhraseEarnsOnceWhileCapabilityNeedsItsOwnEvidence]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testWarmupPhraseEarnsOnceWhileCapabilityNeedsItsOwnEvidence]' passed (5.260 seconds).
+Test Suite 'TutorSessionTests' failed at 2026-11-05 22:11:35.574.
+	 Executed 55 tests, with 2 failures (0 unexpected) in 519.731 (519.750) seconds
+Test Suite 'PiyaliTests.xctest' failed at 2026-11-05 22:11:35.575.
+	 Executed 58 tests, with 2 failures (0 unexpected) in 529.217 (529.238) seconds
+Test Suite 'Selected tests' failed at 2026-11-05 22:11:35.575.
+	 Executed 58 tests, with 2 failures (0 unexpected) in 529.217 (529.239) seconds
+Test Suite 'Selected tests' started at 2026-11-05 22:11:46.014.
+Test Suite 'PiyaliUITests.xctest' started at 2026-11-05 22:11:46.014.
+Test Suite 'TutorParityTests' started at 2026-11-05 22:11:46.015.
+Test Case '-[PiyaliUITests.TutorParityTests testNormalSignupTutorSemanticMemoryEnrichesWithoutXPAndSurvivesRelaunch]' started.
+Test Case '-[PiyaliUITests.TutorParityTests testNormalSignupTutorSemanticMemoryEnrichesWithoutXPAndSurvivesRelaunch]' passed (49.987 seconds).
+Test Suite 'TutorParityTests' passed at 2026-11-05 22:12:36.004.
+Test Suite 'PiyaliUITests.xctest' passed at 2026-11-05 22:12:36.007.
+Test Suite 'Selected tests' passed at 2026-11-05 22:12:36.008.
+** TEST FAILED **

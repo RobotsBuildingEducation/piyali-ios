@@ -1,0 +1,262 @@
+{
+  "date": "2026-11-05",
+  "referenceCommit": "b269524ddc578027c549616fc47f5954991d9f6f",
+  "nativeImplementationBase": "1ac151fd72ac0913df067c11ce840ed24bf1c45d",
+  "qaDevice": "CE8248B6-7171-4FD4-97DE-89E499107F82",
+  "scope": "Unexpected-script Tutor ASR recovery only. Actual reference Tutor component/original prompt and actual Swift view, plus full native signup-to-recovery/history/relaunch. Public protocol/provider fixtures, no physical/live acoustic or full-product web parity claim. Native/reference orb, edge glow/control glyphs/shadows/full viewport remain open. Valid split/late ASR grading and setup fallbacks remain open.",
+  "fullIntegrationResultBundle": "/tmp/PiyaliTutorASRRecoveryVerified20261105.xcresult",
+  "fullRunSummaryBeforeOpenAIDialectNormalization": {
+    "result": "Passed",
+    "passedTests": 57,
+    "failedTests": 0,
+    "skippedTests": 0,
+    "totalTestCount": 57,
+    "startTime": 1793923763.004,
+    "finishTime": 1793924101.673
+  },
+  "finalComponentResultBundle": "/tmp/PiyaliTutorASRRecoveryDialectFinal20261105.xcresult",
+  "finalComponentSummary": {
+    "failedTests": 0,
+    "passedTests": 4,
+    "result": "Passed",
+    "skippedTests": 0,
+    "totalTestCount": 4
+  },
+  "core": {
+    "tests": 13,
+    "failures": 0,
+    "seconds": 13.742,
+    "log": "/tmp/piyali-tutor-asr-recovery-core-final-20261105.log",
+    "sourcePolicyCases": 651
+  },
+  "priorRuns": [
+    {
+      "bundle": "/tmp/PiyaliTutorASRRecoveryReproduction20261105.xcresult",
+      "result": "Command target error before tests (PiyaliAppTests instead of PiyaliTests)"
+    },
+    {
+      "bundle": "/tmp/PiyaliTutorASRRecoveryReproductionCorrected20261105.xcresult",
+      "tests": 1,
+      "failures": 6,
+      "seconds": 4.529
+    },
+    {
+      "bundle": "/tmp/PiyaliTutorASRRecoveryFirstFix20261105.xcresult",
+      "tests": 1,
+      "failures": 0,
+      "seconds": 4.183
+    },
+    {
+      "bundle": "/tmp/PiyaliTutorASRRecoveryIntegration20261105.xcresult",
+      "tests": 55,
+      "passed": 54,
+      "failures": 1,
+      "seconds": 187.126,
+      "failure": "New fixture incorrectly expected ¿Cómo estás? after hola. Original authored agenda selects me llamo; fixture corrected."
+    }
+  ],
+  "nativeFileHashes": {
+    "Tests/PiyaliCoreTests/TutorSourcePolicyTests.swift": "b6114503a2d8579896219c74921af614d831fd23fc50295db098fe9bbb28d78f",
+    "Piyali/Core/RealtimeVoiceState.swift": "7c413deb0029c5773cbf6019732e7873b026f39d217079197c2a4c726346ced9",
+    "Piyali/Services/LiveTutorService.swift": "e2adcab56dfc66c3e5266709e9e4fdcb2383e7c3534037694155071bcbed3b55",
+    "Piyali/Services/TutorSessionController.swift": "169a8a1b373a94255c83871297706d622382441dc73a8b3ed957ad6895a2f9aa",
+    "Piyali/Services/GeminiTutorTransport.swift": "d606825455086adad37da9a3af0fd45a433443f82384424a294bf7431d8471d4",
+    "Piyali/Services/TutorVoiceFixture.swift": "2219c8ab5c43a2e0f226b835cb05110d5059a609dd2358d5df5d2c604e78d90e",
+    "Piyali/Resources/tutor-policy.js": "5bd90b6eacaca0475f089994159df5d1dc6b32f17b4708fd1c6e914265fe3149",
+    "scripts/export-tutor-policy.mjs": "c2dcf401ba099f9c7d5efdd95434946834b0eafb4779f1fc52907f285d03e321",
+    "scripts/reference-tutor-fixtures.mjs": "c374c01761bb72484a696585884901cd448911f731b1712b3a7348e285f07c89",
+    "scripts/reference-tutor-asr-bridge.js": "4d8a5a5aa0f17cc40709167311743841d7503e22381a46b5973bc9b57739f796",
+    "scripts/audit-tutor-asr-recovery-qa.py": "fadf218bf37cc6b614c655059ab6bac20ed59b93c964c2aab81c82033c7e1b2e",
+    "Tests/PiyaliAppTests/TutorSessionTests.swift": "013f9baf688a425a129891d803b8b91ef10e9ff797950cd5c4f221e2f17d8f10",
+    "Tests/PiyaliAppTests/RealtimeConnectionTests.swift": "576a15feb8fa8c19722595a5066642652ff5f908c2792c7bdc0d37e33b1f08d1",
+    "Tests/PiyaliAppTests/GeminiTutorTransportTests.swift": "fdf89941b454541b1876c15578041976d0d4d24cd19eff19991f96d243e4a9ff",
+    "Tests/PiyaliCoreTests/RealtimeVoiceTests.swift": "ce6410a71f0cba679159379761a36ccad24e9ea32b341e8c5ab52e633496b719",
+    "Tests/PiyaliCoreTests/Fixtures/tutor-source-policy.json.gz": "d2d58fd423c5e36cb9271b896532e2c2f2c44704cb86c3e424649bbd618d3048",
+    "Tests/PiyaliUITests/TutorParityTests.swift": "868dd158d1ec4e1773aceda2115f6e4d4073c175e7a062b5378e9527943776b3",
+    "Piyali/Features/SourceTutorView.swift": "2ca236c14a2ba6b5cbc38cad8ff483b40a7394c9fc14cb2947a446a434899c96",
+    "Piyali/Design/PiyaliBrand.swift": "45d87cd2560b4c76774b3d9a7a2e912398ad68621e2a7504453c07900d8875db",
+    "Piyali/Design/VoiceOrbView.swift": "52e55313231ab31086374ee13cc625c4a2c493f4ff37fa9231d5a4ecd35f819a"
+  },
+  "referenceFileHashes": {
+    "src/components/Tutor.jsx": "bbe9dea6279119ecef32cb69a66a8fb40763642ca05717690dec789a72e088c3",
+    "src/utils/geminiLiveBridge.js": "249727e4101d6a6f2d3c8cc48fbc211ecf4f496ed43ca978724d421e145fad8f",
+    "src/theme.js": "6fe6093ecca51d0debb1314a587d6bd0927e7ac9f8c1ba2c6c744017e3be407e",
+    "src/index.css": "79a5362dc1b189acd0d2288c0e85ff29c9cc1c8e39b8bb5cabe164ddd1c29030"
+  },
+  "artifacts": [
+    {
+      "file": "source-waiting-en.png",
+      "sha256": "ec123dd99144d570a22495b3bf5476941778d9f1b8127038fc25959f35769e3c",
+      "bytes": 750270,
+      "scope": "Original 3x component capture; public protocol injection; no full ProductShell.",
+      "attachmentName": "Source Tutor ASR waiting en_0_71353298-CB2B-4DCE-821B-A02A22169539.png"
+    },
+    {
+      "file": "native-waiting-en.png",
+      "sha256": "c737a40526eab82144855051fbc86ce87de5b157aa1328f71dc46a7ed8be6331",
+      "bytes": 1445516,
+      "scope": "Original 3x component capture; public protocol injection; no full ProductShell.",
+      "attachmentName": "Native Tutor ASR waiting en_0_18CCA56A-4C97-478B-83AA-F5E4EAD2EDC1.png"
+    },
+    {
+      "file": "pair-waiting-en.png",
+      "sha256": "7933d212cee7e81a15b34c49ab1355627807b55e2defb6e2f99e2e02a11a6d4d",
+      "bytes": 137556,
+      "scope": "Color-managed sRGB pair at logical points: original web component left; actual Swift component right."
+    },
+    {
+      "file": "source-retry-en.png",
+      "sha256": "618aa9ec2272600b95c96359b1791e655a0188bdf03d517204c8c171dd8560a1",
+      "bytes": 776303,
+      "scope": "Original 3x component capture; public protocol injection; no full ProductShell.",
+      "attachmentName": "Source Tutor ASR retry en_0_63DA5A3B-CFDA-4A3C-BA37-98407547C6B8.png"
+    },
+    {
+      "file": "native-retry-en.png",
+      "sha256": "a472ad50b8270e80e3f30ab99f7cd9432602edb857941b96daade12f98a1cb3d",
+      "bytes": 1453789,
+      "scope": "Original 3x component capture; public protocol injection; no full ProductShell.",
+      "attachmentName": "Native Tutor ASR retry en_0_061304F5-E70D-4CEC-8DBB-5A1C6B62684F.png"
+    },
+    {
+      "file": "pair-retry-en.png",
+      "sha256": "89418e906f0476f70dace1f510e7ddec0633cb38254b7cf2bfe38adcc7fa4b4a",
+      "bytes": 146841,
+      "scope": "Color-managed sRGB pair at logical points: original web component left; actual Swift component right."
+    },
+    {
+      "file": "source-late-script-en.png",
+      "sha256": "bb1b737d94bbab8307b8851c7e35a2bb1a46fa11240bd8182e9f77851a6d09e6",
+      "bytes": 1080693,
+      "scope": "Original 3x component capture; public protocol injection; no full ProductShell.",
+      "attachmentName": "Source Tutor ASR late-script en_0_ADDC2DC8-95EE-4204-BD22-3467C9939AEF.png"
+    },
+    {
+      "file": "native-late-script-en.png",
+      "sha256": "03ae64924bd45ac86e4091cc58b6d4977200e0cc4c9952bde878c8df27b4de73",
+      "bytes": 1460103,
+      "scope": "Original 3x component capture; public protocol injection; no full ProductShell.",
+      "attachmentName": "Native Tutor ASR late-script en_0_534DCF26-3F97-4A25-8375-D358F4052185.png"
+    },
+    {
+      "file": "pair-late-script-en.png",
+      "sha256": "cd960b59081633d414df386f1c02bda66c29dc61525bc15678b99349487c31d7",
+      "bytes": 181064,
+      "scope": "Color-managed sRGB pair at logical points: original web component left; actual Swift component right."
+    },
+    {
+      "file": "source-trace-en.json",
+      "sha256": "8d66552a3db4218c9169ce7f22a2770bdc71081f6c969887c75183ad3b5b5b2e",
+      "bytes": 844,
+      "scope": "Public rejection/recovery trace; no learner identity or credentials."
+    },
+    {
+      "file": "native-trace-en.json",
+      "sha256": "be40808985d23ed4214dd50bcb8899c06a95a5cfee4f34b5eb1a5c87cc697a1b",
+      "bytes": 1083,
+      "scope": "Public rejection/recovery trace; no learner identity or credentials."
+    },
+    {
+      "file": "source-waiting-ar.png",
+      "sha256": "bbedf756a1ee216e34892bcc41bc465ce2f442a8b716a4ba751ef8cd11073047",
+      "bytes": 587831,
+      "scope": "Original 3x component capture; public protocol injection; no full ProductShell.",
+      "attachmentName": "Source Tutor ASR waiting ar_0_0D7EBC0A-677D-4883-9E14-86BB8329C5D0.png"
+    },
+    {
+      "file": "native-waiting-ar.png",
+      "sha256": "6a9ae929b63de452274bacc318368f8eb671906283a01c8208cfebee658d7c4c",
+      "bytes": 1643659,
+      "scope": "Original 3x component capture; public protocol injection; no full ProductShell.",
+      "attachmentName": "Native Tutor ASR waiting ar_0_38CA4A82-98FF-4D65-AE17-E96D436CFBCE.png"
+    },
+    {
+      "file": "pair-waiting-ar.png",
+      "sha256": "36d5f541ffcdd19143e612dc1103250393138eee6ee669453e21148f7e1feae1",
+      "bytes": 119202,
+      "scope": "Color-managed sRGB pair at logical points: original web component left; actual Swift component right."
+    },
+    {
+      "file": "source-retry-ar.png",
+      "sha256": "ee6a4c5e5aff41862ee77ffeb8a0b3a7ecc352c4b8a5f1b45c4254d2f316ec5a",
+      "bytes": 608717,
+      "scope": "Original 3x component capture; public protocol injection; no full ProductShell.",
+      "attachmentName": "Source Tutor ASR retry ar_0_E30F1E32-8086-40ED-8FDB-59D20B6821FB.png"
+    },
+    {
+      "file": "native-retry-ar.png",
+      "sha256": "c85c3e0868d586c380a2570d63a75f1b3084b902ce145560b200512a14dcd231",
+      "bytes": 1649827,
+      "scope": "Original 3x component capture; public protocol injection; no full ProductShell.",
+      "attachmentName": "Native Tutor ASR retry ar_0_5C3672A2-B0C2-45BD-A4CE-AD116B074522.png"
+    },
+    {
+      "file": "pair-retry-ar.png",
+      "sha256": "d35c02b9b38ea195099301b56be5b5be52be3bc6946817e407c8ea2dd0b7e511",
+      "bytes": 124290,
+      "scope": "Color-managed sRGB pair at logical points: original web component left; actual Swift component right."
+    },
+    {
+      "file": "source-late-script-ar.png",
+      "sha256": "7ce0a2ba628a61e74e57d931d762ece68799372cd6b7426926e8a59a4c185387",
+      "bytes": 1030786,
+      "scope": "Original 3x component capture; public protocol injection; no full ProductShell.",
+      "attachmentName": "Source Tutor ASR late-script ar_0_31B68332-BBC3-45B4-82C8-F14FDB093997.png"
+    },
+    {
+      "file": "native-late-script-ar.png",
+      "sha256": "976d928c8b103f266a11924dfabd2befa0d3201d7fd85f83c03981dd6d49d084",
+      "bytes": 1657303,
+      "scope": "Original 3x component capture; public protocol injection; no full ProductShell.",
+      "attachmentName": "Native Tutor ASR late-script ar_0_9799B395-5029-4230-BA20-14D6C2EAE3F3.png"
+    },
+    {
+      "file": "pair-late-script-ar.png",
+      "sha256": "973fa46e06c113b7a1acd991a4144e64e528b38759e13078f4b384f73083671f",
+      "bytes": 178394,
+      "scope": "Color-managed sRGB pair at logical points: original web component left; actual Swift component right."
+    },
+    {
+      "file": "source-trace-ar.json",
+      "sha256": "927b13686056374a420ef268d69daeba2e5ac03964f89c387ebcc1e5fa4e9c39",
+      "bytes": 884,
+      "scope": "Public rejection/recovery trace; no learner identity or credentials."
+    },
+    {
+      "file": "native-trace-ar.json",
+      "sha256": "683a3d8fd67df9a571b43d4c5c9035c3ea63cb713d54debad3c02ff8fd57a87d",
+      "bytes": 1129,
+      "scope": "Public rejection/recovery trace; no learner identity or credentials."
+    },
+    {
+      "file": "native-product-recovery.png",
+      "sha256": "9ecf614daf53e9abb4865bb057527019e430a7d3e476a5a0c231d3d8dbc5ec5b",
+      "bytes": 780173,
+      "scope": "Full native entry/signup/setup, product Tutor Start, scripted rejection/recovery, End/history/private relaunch."
+    },
+    {
+      "file": "native-product-history.png",
+      "sha256": "f636aea1b0211923b8512a2cdf87080c27c66b2037ce617209aa3aa1eaf91aec",
+      "bytes": 526055,
+      "scope": "Full native entry/signup/setup, product Tutor Start, scripted rejection/recovery, End/history/private relaunch."
+    },
+    {
+      "file": "native-product-relaunch.png",
+      "sha256": "6a122f5e098a2fffe984b92d7d80b7c4893c73a503d68ad84aad443caf3b0ddd",
+      "bytes": 654791,
+      "scope": "Full native entry/signup/setup, product Tutor Start, scripted rejection/recovery, End/history/private relaunch."
+    },
+    {
+      "file": "qa-audit.json",
+      "sha256": "12e49f67e9aae7ca4204054c8d5445bdefd74db34f10d759e5243ae865d3cc51",
+      "bytes": 690,
+      "scope": "Read-only counters and snapshot SHA; only new isolated UI identity. No profile/key/note bodies exported."
+    },
+    {
+      "file": "policy-dialect-audit.json",
+      "sha256": "86f4aa912ad94b479afba0516b5107f245c5b428a11602d5d7a6866bcf7d7fcc",
+      "bytes": 132,
+      "scope": "Explicit before/after policy output audit: intended OpenAI normalization only; original Gemini recovery and all other prior cases unchanged."
+    }
+  ]
+}

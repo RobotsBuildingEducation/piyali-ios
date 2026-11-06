@@ -12,7 +12,7 @@ public enum ExplorationText {
         result.npcs=zip(original.npcs,npcs).map { $0.0.setting("name",$0.1["name"]).setting("personality",$0.1["personality"]) }
         result.quest=transform(protectedQuest(original)) { text in npcs.enumerated().reduce(text) { $0.replacingOccurrences(of:"__NPC_\($1.offset)__",with:$1.element["name"].string) } }
         let roomNames=Dictionary(uniqueKeysWithValues:zip(original.maps,rooms).map { ($0.0.id,names($0.0.name ?? .object([:]),$0.1)) })
-        result.maps=original.maps.map { old in ExplorationMap(id:old.id,name:roomNames[old.id],world:old.world,portals:old.portals.map { $0.setting("label",roomNames[$0["toMapId"].string] ?? $0["label"]) }) }
+        result.maps=original.maps.map { old in ExplorationMap(id:old.id,name:roomNames[old.id],world:old.world,portals:old.portals.map { $0.setting("label",roomNames[$0["toMapId"].string] ?? $0["label"]) },worldKey:old.worldKey) }
         return try result.validated()
     }
     private static let editable:Set<String>=["intro","storySeed","title","npcLine","npcReply","text","playerLine","playerBridge","speechFallbackReply","speechContinueReply","name","hint","gatherWrongItemTemplate","supportName","supportHint","transcription"]

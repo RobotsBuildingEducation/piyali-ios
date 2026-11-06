@@ -1,42 +1,34 @@
 import Foundation
 import AVFoundation
 
-@MainActor final class JourneyRecorder: NSObject, ObservableObject, AVAudioRecorderDelegate {
-    @Published var recording = false
-    @Published var error: String?
-    @Published var savedFile: String?
-    private var recorder: AVAudioRecorder?
-    private var player: AVAudioPlayer?
-    func record(account: String, milestone: Int, language: String) async {
-        guard await AVAudioApplication.requestRecordPermission() else { error = "Enable microphone access in Settings."; return }
+/// A private draft. Saving to Journey is explicit and encrypts the audio first.
+@MainActor final class JourneyRecorder:NSObject,ObservableObject,AVAudioRecorderDelegate {
+    @Published private(set) var recording=false
+    @Published private(set) var starting=false
+    @Published private(set) var stopping=false
+    @Published private(set) var seconds:Double=0
+    @Published private(set) var draft:Data?
+    @Published private(set) var mime="audio/mp4"
+    @Published private(set) var errorKey:String?
+    private var recorder:AVAudioRecorder?,url:URL?,started=Date(),timer:Task<Void,Never>?,epoch=UUID()
+    func start()async {
+        guard !recording,!starting,!stopping else{return};clear();let token=epoch;starting=true;errorKey=nil
+        defer{if epoch == token{starting=false}}
+        if MemoryDrawerFixture.enabled {mime="audio/wav";recording=true;started=Date();tick(token);return}
+        guard await AVAudioApplication.requestRecordPermission(),epoch == token else{if epoch == token{errorKey="micError"};return}
         do {
-            let root = FileManager.default.urls(for:.applicationSupportDirectory,in:.userDomainMask)[0].appendingPathComponent("Piyali/Recordings/\(account)")
-            try FileManager.default.createDirectory(at:root,withIntermediateDirectories:true,attributes:[.protectionKey:FileProtectionType.complete])
-            let filename = "\(language)-milestone-\(milestone).m4a"
-            let url = root.appendingPathComponent(filename)
-            try AVAudioSession.sharedInstance().setCategory(.playAndRecord,mode:.spokenAudio,options:[.defaultToSpeaker])
-            try AVAudioSession.sharedInstance().setActive(true)
-            let recording = try AVAudioRecorder(url:url,settings:[AVFormatIDKey:kAudioFormatMPEG4AAC,AVSampleRateKey:16000,AVNumberOfChannelsKey:1,AVEncoderBitRateKey:64000])
-            recording.delegate = self; recorder = recording; savedFile = nil
-            guard recording.record(forDuration:45) else { throw AppError.message("Could not start recording.") }
-            self.recording = true
-        } catch { self.error = error.localizedDescription }
+            let url=FileManager.default.temporaryDirectory.appendingPathComponent("piyali-journey-\(UUID().uuidString).m4a");self.url=url
+            try AVAudioSession.sharedInstance().setCategory(.playAndRecord,mode:.spokenAudio,options:[.defaultToSpeaker]);try AVAudioSession.sharedInstance().setActive(true)
+            let recorder=try AVAudioRecorder(url:url,settings:[AVFormatIDKey:kAudioFormatMPEG4AAC,AVSampleRateKey:16000,AVNumberOfChannelsKey:1,AVEncoderBitRateKey:48000]);try? FileManager.default.setAttributes([.protectionKey:FileProtectionType.complete],ofItemAtPath:url.path)
+            recorder.delegate=self;self.recorder=recorder;guard recorder.record(forDuration:45) else{throw AppError.message("Recording failed")};recording=true;started=Date();tick(token)
+        }catch{clear();errorKey="micError"}
     }
-    func stop() { recorder?.stop(); recording = false }
-    nonisolated func audioRecorderDidFinishRecording(_ recorder: AVAudioRecorder, successfully flag: Bool) {
-        let filename = recorder.url.lastPathComponent
-        Task { @MainActor in
-            recording = false
-            if flag { savedFile = filename } else { error = "Recording failed. Please try again." }
-        }
+    private func tick(_ token:UUID){timer=Task{while !Task.isCancelled,epoch == token,recording{seconds=min(45,Date().timeIntervalSince(started));if seconds>=45{stop();break};try? await Task.sleep(for:.milliseconds(100))}}}
+    func stop(){
+        guard recording else{return};seconds=min(45,Date().timeIntervalSince(started));recording=false;timer?.cancel()
+        if MemoryDrawerFixture.enabled {draft=MemoryDrawerFixture.audio();seconds=1.5;return}
+        stopping=true;recorder?.stop()
     }
-    func play(account: String, file: String) {
-        let root = FileManager.default.urls(for:.applicationSupportDirectory,in:.userDomainMask)[0].appendingPathComponent("Piyali/Recordings/\(account)")
-        do {
-            try AVAudioSession.sharedInstance().setCategory(.playback,mode:.spokenAudio)
-            try AVAudioSession.sharedInstance().setActive(true)
-            player = try AVAudioPlayer(contentsOf:root.appendingPathComponent(file)); player?.play()
-        } catch { self.error = error.localizedDescription }
-    }
-    func stopAll() { stop(); player?.stop() }
+    nonisolated func audioRecorderDidFinishRecording(_ recorder:AVAudioRecorder,successfully flag:Bool){let file=recorder.url;Task{@MainActor in guard file == url else{return};recording=false;stopping=false;timer?.cancel();if flag,let data=try? Data(contentsOf:file),seconds>=1,data.count<=VoiceJourneyModel.maxBytes{draft=data}else{errorKey="error"};try? FileManager.default.removeItem(at:file);url=nil;self.recorder=nil}}
+    func clear(){epoch=UUID();timer?.cancel();recorder?.delegate=nil;recorder?.stop();recorder=nil;if let url{try? FileManager.default.removeItem(at:url)};url=nil;recording=false;starting=false;stopping=false;draft=nil;seconds=0}
 }

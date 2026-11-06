@@ -1,0 +1,15 @@
+{
+  "sources": [
+    {
+      "file": "src/utils/geminiLiveBridge.js",
+      "sha256": "249727e4101d6a6f2d3c8cc48fbc211ecf4f496ed43ca978724d421e145fad8f"
+    },
+    {
+      "file": "src/utils/geminiLiveVoices.js",
+      "sha256": "4fe47cd8b28b9e8fb85fbe64b7fd45e8b195d87c02734a7554cd43e4baf5a049"
+    }
+  ],
+  "traces": 9,
+  "steps": 70,
+  "adapters": "Original bridge class executes in Node with inert session/audio/clock/ID adapters. No source Firebase, browser, microphone, relay or production network runs. Audio callbacks and reset completion are explicit commands; all policy branches remain original."
+}

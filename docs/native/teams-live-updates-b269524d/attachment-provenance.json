@@ -1,0 +1,75 @@
+{
+  "images": "Original XCTest bytes retained. Pair/contact images normalize ICC to sRGB, scale to 402x874 logical pixels and add provenance labels, without retouching app contents. Source loading is the original TeamView/TeamsDrawer with public held-read I/O; it is not an authenticated App route.",
+  "attachments": [
+    {
+      "file": "native-teams-held-loading-dots-ar.png",
+      "attachmentName": "Native Teams held loading dots ar",
+      "bundle": "/tmp/PiyaliTeamsLoadingVisualFinal20261106.xcresult",
+      "testIdentifier": "TeamsPanelReferenceTests/testOriginalLoadingDotsAndNativeHeldReadHidePendingCardsInEnglishAndArabic()",
+      "originalSHA256": "cf33937db2fb005e86c05a520d127684ec0799e22a7821431fd3971f539f50f7"
+    },
+    {
+      "file": "source-teams-held-loading-geometry-ar.json",
+      "attachmentName": "Source Teams held loading geometry ar",
+      "bundle": "/tmp/PiyaliTeamsLoadingVisualFinal20261106.xcresult",
+      "testIdentifier": "TeamsPanelReferenceTests/testOriginalLoadingDotsAndNativeHeldReadHidePendingCardsInEnglishAndArabic()",
+      "originalSHA256": "b7faa5641b59081e2d97efa39ac0bfd8d93dcc06050b1312ccbf8dc86ed0bf17"
+    },
+    {
+      "file": "source-teams-held-loading-dots-ar.png",
+      "attachmentName": "Source Teams held loading dots ar",
+      "bundle": "/tmp/PiyaliTeamsLoadingVisualFinal20261106.xcresult",
+      "testIdentifier": "TeamsPanelReferenceTests/testOriginalLoadingDotsAndNativeHeldReadHidePendingCardsInEnglishAndArabic()",
+      "originalSHA256": "817881ef74e942bd0278a31df7224dd2777d8c6a54d44ace1a6201772e7647cf"
+    },
+    {
+      "file": "native-teams-held-loading-dots-en.png",
+      "attachmentName": "Native Teams held loading dots en",
+      "bundle": "/tmp/PiyaliTeamsLoadingVisualFinal20261106.xcresult",
+      "testIdentifier": "TeamsPanelReferenceTests/testOriginalLoadingDotsAndNativeHeldReadHidePendingCardsInEnglishAndArabic()",
+      "originalSHA256": "09b2d51a33fa3e2446111295ffb1fd39ee6b304a2c5730486adb36c2c7b0c425"
+    },
+    {
+      "file": "source-teams-held-loading-geometry-en.json",
+      "attachmentName": "Source Teams held loading geometry en",
+      "bundle": "/tmp/PiyaliTeamsLoadingVisualFinal20261106.xcresult",
+      "testIdentifier": "TeamsPanelReferenceTests/testOriginalLoadingDotsAndNativeHeldReadHidePendingCardsInEnglishAndArabic()",
+      "originalSHA256": "9ade34cce841d7910f73b4ef167fad60f2afa03be69a86dfcac60ad2436c8bc8"
+    },
+    {
+      "file": "source-teams-held-loading-dots-en.png",
+      "attachmentName": "Source Teams held loading dots en",
+      "bundle": "/tmp/PiyaliTeamsLoadingVisualFinal20261106.xcresult",
+      "testIdentifier": "TeamsPanelReferenceTests/testOriginalLoadingDotsAndNativeHeldReadHidePendingCardsInEnglishAndArabic()",
+      "originalSHA256": "8ac1503f9485ac8c4c4769cb4695e2b2ccc592ecdb77bf8714bd561498957e7c"
+    },
+    {
+      "file": "native-teams-old-signed-name-and-incoming-invitation-restore.png",
+      "attachmentName": "Native Teams old signed name and incoming invitation restore",
+      "bundle": "/tmp/PiyaliTeamsLiveUpdateFinal20261106.xcresult",
+      "testIdentifier": "TeamsTests/testIncomingInvitationSurvivesHeldRejectedRenameAndRelaunchWithoutAcceptingTheFailedRoster()",
+      "originalSHA256": "b74c940af8fd615fe6a77a8e9e94937af3b785c3df506bb450f4ca4fe467e8c4"
+    },
+    {
+      "file": "native-teams-pending-invitation-remains-after-failed-mutation.png",
+      "attachmentName": "Native Teams pending invitation remains after failed mutation",
+      "bundle": "/tmp/PiyaliTeamsLiveUpdateFinal20261106.xcresult",
+      "testIdentifier": "TeamsTests/testIncomingInvitationSurvivesHeldRejectedRenameAndRelaunchWithoutAcceptingTheFailedRoster()",
+      "originalSHA256": "e0cf6b3e97a1efbe3e0dd511ebd0b2fb9ea3dabbfb5548f82a55bcb191768f5d"
+    },
+    {
+      "file": "native-teams-rejected-rename-retains-its-error.png",
+      "attachmentName": "Native Teams rejected rename retains its error",
+      "bundle": "/tmp/PiyaliTeamsLiveUpdateFinal20261106.xcresult",
+      "testIdentifier": "TeamsTests/testIncomingInvitationSurvivesHeldRejectedRenameAndRelaunchWithoutAcceptingTheFailedRoster()",
+      "originalSHA256": "02a546bc2ea5f20386423de5a0d73f2f67a81c5a8461f6e22e078e8cbfe5c56a"
+    },
+    {
+      "file": "native-teams-invitation-delivered-during-held-rename.png",
+      "attachmentName": "Native Teams invitation delivered during held rename",
+      "bundle": "/tmp/PiyaliTeamsLiveUpdateFinal20261106.xcresult",
+      "testIdentifier": "TeamsTests/testIncomingInvitationSurvivesHeldRejectedRenameAndRelaunchWithoutAcceptingTheFailedRoster()",
+      "originalSHA256": "a84830d50fb664f674769fc90235336e98d215372cc81383a1cabb8478772154"
+    }
+  ]
+}

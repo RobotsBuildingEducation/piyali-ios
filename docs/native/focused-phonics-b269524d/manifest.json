@@ -1,0 +1,701 @@
+{
+  "reference_revision": "b269524ddc578027c549616fc47f5954991d9f6f",
+  "native_base": "a439879d2d74851811d6b2930f4358eda2f7e26a",
+  "result_bundle": "/tmp/PiyaliFocusedPhonicsVerified20261105.xcresult",
+  "qa_device": "CE8248B6-7171-4FD4-97DE-89E499107F82",
+  "scope": "Original 402x874 focused Phonics component and actual Practice/Record/wrong/Try again/correct handlers with public stores, synthetic transcription/judge and recorded artifact/XP/evidence boundaries. Native real entry/setup/placement/pronunciation/reentry/next-lesson/relaunch controls use explicit cached public decks, synthetic input and acknowledgment/failure save fixtures. Not full browser app routing, production/physical speech, all scripts/levels, whole-shell design or release proof.",
+  "checks": {
+    "core": {
+      "tests": 30,
+      "failures": 0,
+      "seconds": 1.616,
+      "log": "/tmp/piyali-focused-phonics-final2-core-20261105.log"
+    },
+    "app_source_emulator": {
+      "tests": 9,
+      "failures": 0,
+      "seconds": 159.178
+    },
+    "ui": {
+      "tests": 2,
+      "failures": 0,
+      "seconds": 215.125,
+      "goal_seconds": 108.069,
+      "repair_seconds": 107.056
+    },
+    "shared_receipt_routing": {
+      "tests": 4,
+      "failures": 0,
+      "seconds": 10.715,
+      "result_bundle": "/tmp/PiyaliFocusedPhonicsSharedRouting20261105.xcresult",
+      "log": "/tmp/piyali-focused-phonics-shared-routing-ios-20261105.log",
+      "scope": "Rendered Goal/repair Tutor, failed-save flashcard repair and legacy authored Phonics repair. Test assertions only changed after the capture bundle."
+    }
+  },
+  "sources": [
+    {
+      "file": "src/utils/focusedPracticeDecks.js",
+      "sha256": "bb5f8e54a4ad8db64bfb5e725f8fec4e37f538b4aa26a20714d18e825d6ad59d"
+    },
+    {
+      "file": "src/components/AlphabetBootcamp.jsx",
+      "sha256": "51a7b8ab6a3c0ee80fc7594fcf9ee66f345d002278c0987b717d5c4b309282d7"
+    },
+    {
+      "file": "src/data/phonics/index.js",
+      "sha256": "7877d9aeb179f0252d259976c9b94ecb51402f4d62d5ea62b8b4389e93a47cbc"
+    },
+    {
+      "file": "src/components/WaveBar.jsx",
+      "sha256": "619c6d05f99488316facec96f2b35fa46544910a5b1fd0d0584e529af756c536"
+    },
+    {
+      "file": "src/components/PhonicsCardStack.jsx",
+      "sha256": "8755e862bb044324529c7b6cf983322cc315e96fa1c4a304a0279bf7c3d42b49"
+    },
+    {
+      "file": "src/index.css",
+      "sha256": "79a5362dc1b189acd0d2288c0e85ff29c9cc1c8e39b8bb5cabe164ddd1c29030"
+    },
+    {
+      "file": "src/utils/learningIntelligence.js",
+      "sha256": "224601a49ac60a341fb2b654de2284facb5da9f2c5053ff1ad400ab2a24aa66d"
+    }
+  ],
+  "native": [
+    {
+      "file": "Piyali/App/AppModel+FocusedPhonics.swift",
+      "sha256": "11a26c14acad2dc8cc45bdd4dddc154d3df3643d76d3bdfe041565659a8845cc"
+    },
+    {
+      "file": "Piyali/App/AppModel.swift",
+      "sha256": "a28c6302d4720434013d4a5814f9963ca93a2b94c0b988dfe7e9d680ea888de3"
+    },
+    {
+      "file": "Piyali/App/AppModel+CompanionQuest.swift",
+      "sha256": "35517e0be2a85df01beaf02a91895f90d2c476712bee8747f45dabd0076cf467"
+    },
+    {
+      "file": "Piyali/App/PhonicsCourseController.swift",
+      "sha256": "4f6c4232bbb5e482f053ee1097a6df573cf87c4ffa53ed1b3e9a09d31769f2a3"
+    },
+    {
+      "file": "Piyali/App/PhonicsSessionController.swift",
+      "sha256": "f9a45f2d44cc123ad97a35e8036da5d2ba108d141ece466039075ed5663c8708"
+    },
+    {
+      "file": "Piyali/Core/ConfirmedRepairProgress.swift",
+      "sha256": "0604ca0d7de76e86d43798f510d6c584cc4516accde7bfef787c026aae8de58e"
+    },
+    {
+      "file": "Piyali/Core/DailyPlate.swift",
+      "sha256": "32fbe94bd11d65f80c5a3485fd0130d5e43781243fa89fe5a7cf286ff563bfbf"
+    },
+    {
+      "file": "Piyali/Core/SyncChanges.swift",
+      "sha256": "780dfbdd291af534ce5160cc9550c7dcc8da7d4681a073c6c8f48e787e67b030"
+    },
+    {
+      "file": "Piyali/Core/CompanionQuest.swift",
+      "sha256": "12405f2216a98502f41d5f09946ad96add7f97382fd1f670ca01a07aba4fd9d8"
+    },
+    {
+      "file": "Piyali/Features/PhonicsSourceCard.swift",
+      "sha256": "68a61c56375e14c727b526c47a88a685570c72ac39b622faa4828b68e8fd9f09"
+    },
+    {
+      "file": "Piyali/Features/SourcePhonicsView.swift",
+      "sha256": "605902f075d51d499155dd4a605fdc1af9e18ecea94bcadae5ed53f6eece7aad"
+    },
+    {
+      "file": "Piyali/Features/FlashcardAppearance.swift",
+      "sha256": "88b07f93e3e9bd1fb2e85d18ba77c8f721b18faabae0124bd68723ae9bf6e4aa"
+    },
+    {
+      "file": "Piyali/Resources/companion-quest-policy.js",
+      "sha256": "5d4cca9ebc006685670fd61c692d1d096c208710c15a715ede85dc176bf7b1d9"
+    },
+    {
+      "file": "Piyali/Resources/phonics.json.gz",
+      "sha256": "75ffb1248a1bb4df8a2613aea2864020db68ecca42d0e6e1828b713ea4d97bd7"
+    },
+    {
+      "file": "Piyali/App/FocusedPhonicsFixture.swift",
+      "sha256": "5af728df0b1891659676681a0081635190911c93499e21ff62e998add3a2e017"
+    },
+    {
+      "file": "Tests/PiyaliAppTests/FocusedPhonicsFlowTests.swift",
+      "sha256": "1d9f0823fbdba205cfc0d45636fcdb71017ad5be8c4b8cb3cc6fb8a7b9165ba9"
+    },
+    {
+      "file": "Tests/PiyaliAppTests/FocusedPhonicsComparisonTests.swift",
+      "sha256": "fbf1617935d61768d8c19ef1be9925f1bd664bdda703935b21da7f0da0ba8432"
+    },
+    {
+      "file": "Tests/PiyaliUITests/FocusedPhonicsJourneyTests.swift",
+      "sha256": "4ea861cc8151d6d36022e472d6e1759f9305eac74fa929f306e576cfa4e7efcc"
+    }
+  ],
+  "tested_products": [
+    {
+      "file": "DerivedData/Build/Products/Debug-iphonesimulator/Piyali.app/Piyali",
+      "sha256": "02b5b32feddc4925c2292b061fb914d386e1eee8b15129d9bec0e5d75bd5c158"
+    },
+    {
+      "file": "DerivedData/Build/Products/Debug-iphonesimulator/Piyali.app/Piyali.debug.dylib",
+      "sha256": "851b4beb500d016790931b0528ea4f46a2c2204c1b12c0f757bd9c45bc7bcc78"
+    },
+    {
+      "file": "DerivedData/Build/Products/Debug-iphonesimulator/Piyali.app/PlugIns/PiyaliTests.xctest/PiyaliTests",
+      "sha256": "710c1239b145678dfe4007b7d86429b9d272864abd80286198304cfbe23c6db4"
+    },
+    {
+      "file": "DerivedData/Build/Products/Debug-iphonesimulator/PiyaliUITests-Runner.app/PlugIns/PiyaliUITests.xctest/PiyaliUITests",
+      "sha256": "33f26c2ddd66bdaa58027c22620d5e5beaace4a961876b6f4c2dffd5f701507d"
+    }
+  ],
+  "original_captures": [
+    {
+      "attachment": "Source focused phonics goal front en",
+      "result_attachment": "F77B215F-946D-46DE-9B25-4FD05FA75C1B.png",
+      "sha256": "793578a04f5a5ac724005d6a49c54e262275af739be3d554051db987bab3065c",
+      "bytes": 360387
+    },
+    {
+      "attachment": "Native focused phonics goal front en",
+      "result_attachment": "6670AF1E-AF41-4C23-8F2E-F9C840CC70DC.png",
+      "sha256": "30b4464d612c820448582363e84ea723c59c08f558b4ea45b208dd67679507db",
+      "bytes": 965865
+    },
+    {
+      "attachment": "Source focused phonics goal practice en",
+      "result_attachment": "8F66B209-2E42-486A-A195-BE6E26620B28.png",
+      "sha256": "2634719c9dade24e244e15734a0e0b16e882dd16af7350dc92d4dad0a070fd7e",
+      "bytes": 378326
+    },
+    {
+      "attachment": "Native focused phonics goal practice en",
+      "result_attachment": "EE329C4D-0A0B-45DC-B5A8-4860654DFD18.png",
+      "sha256": "2e383033c553878616b808659fb76113e30c7d16573b5f9137a8dff6ecb03b5f",
+      "bytes": 945156
+    },
+    {
+      "attachment": "Source focused phonics goal wrong en",
+      "result_attachment": "B9B438EB-F16F-4400-8F31-2BA4CDFAC883.png",
+      "sha256": "2579fe65da6cbf9761c3facba9adcc7f99c860a2ea9fbad86792f6783265d840",
+      "bytes": 335706
+    },
+    {
+      "attachment": "Native focused phonics goal wrong en",
+      "result_attachment": "F77B1C25-4AF1-40F5-B18F-68BFF6954912.png",
+      "sha256": "4cf4f814684e597e8d7f52edfbc330dc47bf479be90d6c190dacd9386589f683",
+      "bytes": 1329414
+    },
+    {
+      "attachment": "Source focused phonics goal correct en",
+      "result_attachment": "35E66297-6C3F-40A1-8DFC-26BBF6BB0E1F.png",
+      "sha256": "4f7b6b612591f6a078bc9a7ab96a742e6ae0880a5a04104179cc824d0e709de1",
+      "bytes": 332988
+    },
+    {
+      "attachment": "Native focused phonics goal correct en",
+      "result_attachment": "2DF662B8-540A-462C-A4DF-893C960B0D51.png",
+      "sha256": "abdac3801ccb1dbb0194df790bde7b07b96264fb0f9795f97b24194293bd5d08",
+      "bytes": 1313830
+    },
+    {
+      "attachment": "Source focused phonics goal front ar",
+      "result_attachment": "F7870E43-3AE9-4F52-91F7-F384CDC9CBE1.png",
+      "sha256": "198af3c34ff799274de0957264668f02a51cff69fbe74207397f956a7ec7abe3",
+      "bytes": 261481
+    },
+    {
+      "attachment": "Native focused phonics goal front ar",
+      "result_attachment": "5FFAA2AA-BE19-45C7-87B3-4C02322BF24A.png",
+      "sha256": "dca673c05112a06fd0587cda8108c78b5162ef65d71743998cb22193fbc1a0ad",
+      "bytes": 642121
+    },
+    {
+      "attachment": "Source focused phonics goal practice ar",
+      "result_attachment": "A5BEC926-E8CE-43EC-B6F9-70607711231F.png",
+      "sha256": "c527b446b9b54763e68e4752d63dc885d6d49ef239163f77ec750b531ffb08a1",
+      "bytes": 257362
+    },
+    {
+      "attachment": "Native focused phonics goal practice ar",
+      "result_attachment": "FF40FDB9-3194-45B3-A7BF-C63EA5EAD5CF.png",
+      "sha256": "82e5d5c496cfd32f62c90ce516d6143be0b170120169ec9e2912d091659f7012",
+      "bytes": 632495
+    },
+    {
+      "attachment": "Source focused phonics goal wrong ar",
+      "result_attachment": "91DDBE33-9F94-4159-9B5A-A0BE37BAD497.png",
+      "sha256": "7dc81b24173951005def667a8574198f69601e637e77640fb8b564cd398a9a5f",
+      "bytes": 296660
+    },
+    {
+      "attachment": "Native focused phonics goal wrong ar",
+      "result_attachment": "39B83B3C-47A8-43A3-B1F7-EDEAD2193F2A.png",
+      "sha256": "eeeb825b325310926c5789901798a79ddafbde58bcb951e415d24d86682cb778",
+      "bytes": 856181
+    },
+    {
+      "attachment": "Source focused phonics goal correct ar",
+      "result_attachment": "305D0A0E-1616-4FAF-A086-098795E13D0B.png",
+      "sha256": "4b5cfe88ec4809a87f1baf2eec904f49b3299f25c12fb4d2c885e94d7105a9c5",
+      "bytes": 360149
+    },
+    {
+      "attachment": "Native focused phonics goal correct ar",
+      "result_attachment": "D814E29B-97B9-43E6-A89A-B30408F99956.png",
+      "sha256": "f7cd03b173fdb71e8afcf91cd2cc8866f48ec7ad8f140bf4a5476139e30a4067",
+      "bytes": 863680
+    },
+    {
+      "attachment": "Source focused phonics repair front en",
+      "result_attachment": "DB5E5400-145B-4FBE-ABF2-9FF81B6BBD55.png",
+      "sha256": "8f095fd4256eeff6e78d54670afb8d544adc1a35de261f6f5ba7ee9cc58c7cb3",
+      "bytes": 363565
+    },
+    {
+      "attachment": "Native focused phonics repair front en",
+      "result_attachment": "7CB34AF4-F68C-4C08-BE89-68B1CBA525B6.png",
+      "sha256": "fabd4118809ac02754583b62ed67ef047759eff8cad8aeca5476e5607a51c475",
+      "bytes": 1002765
+    },
+    {
+      "attachment": "Source focused phonics repair practice en",
+      "result_attachment": "E3FB851C-3E3F-465B-945D-AD00F2E668C5.png",
+      "sha256": "f1211caf6d7702128f62ddfacad84805206c57c33e59e0779a7b44db704339d2",
+      "bytes": 381204
+    },
+    {
+      "attachment": "Native focused phonics repair practice en",
+      "result_attachment": "2920090F-6118-4FE3-9265-1DB419FC5C40.png",
+      "sha256": "f151fb71820f7f0e09a8b86ca1c346a76d1a7014e170d7d48e31ce2b748a3dcb",
+      "bytes": 981366
+    },
+    {
+      "attachment": "Source focused phonics repair wrong en",
+      "result_attachment": "9A640443-4553-43CE-BDED-9F8CD1C9C35B.png",
+      "sha256": "d96f76ee667f0ecb8af90f2f575053a434177fbbb8344f95a9b8ebc2505efa43",
+      "bytes": 337447
+    },
+    {
+      "attachment": "Native focused phonics repair wrong en",
+      "result_attachment": "9C706E2D-905A-4273-8281-F829539A9BDF.png",
+      "sha256": "56d41c6c161ba83ded6b569b837f8fb5d3b54c4ae25c81bb76f04c725548e14c",
+      "bytes": 1362768
+    },
+    {
+      "attachment": "Source focused phonics repair correct en",
+      "result_attachment": "01E741E1-FE15-4BAE-8FF0-B3C8AA1D6D36.png",
+      "sha256": "9049a10094b727a58f03b5d0aa1dd004571adce56c03effc41f3953970d321a5",
+      "bytes": 334796
+    },
+    {
+      "attachment": "Native focused phonics repair correct en",
+      "result_attachment": "60BB175F-54D6-4F09-B6EB-0CC4D4D2BA1C.png",
+      "sha256": "92efb148cc6bd808914e1a736a47f85d635685955244659d5002ac5fa9aab6e9",
+      "bytes": 1346649
+    },
+    {
+      "attachment": "Source focused phonics repair front ar",
+      "result_attachment": "75FB8824-6C2A-47B4-8212-A6E2BC3495A5.png",
+      "sha256": "c4e22ab9345b42758b07d9870eb55b345b3084bbead8b9ebbdad0918a40f872e",
+      "bytes": 266294
+    },
+    {
+      "attachment": "Native focused phonics repair front ar",
+      "result_attachment": "12C3BFCA-7AFE-4CBC-A120-038F3D54CBAF.png",
+      "sha256": "bf737d15a97b8783eee96ac9c3fbe56f3fe0277007128c05dc35eb2102910d68",
+      "bytes": 647296
+    },
+    {
+      "attachment": "Source focused phonics repair practice ar",
+      "result_attachment": "4EA74EDE-BFA0-49B0-B682-C599843F97F2.png",
+      "sha256": "1626468ed51ca8c57942561fd2988851a0f995afa903809d86b1aba15e5b2630",
+      "bytes": 259297
+    },
+    {
+      "attachment": "Native focused phonics repair practice ar",
+      "result_attachment": "3768BD4E-7EDC-4767-A99C-70C6AE9B3345.png",
+      "sha256": "cfdd13639c8b94f78c2c193251969f462d912770466deb2d1482df9fd5fbcb93",
+      "bytes": 638108
+    },
+    {
+      "attachment": "Source focused phonics repair wrong ar",
+      "result_attachment": "7CF709F8-85E1-4672-957F-27167F69760C.png",
+      "sha256": "f60ef3a741da47d1d7d9d93946a0bfc34e406fe0582261b71cee3b1d1e71faf2",
+      "bytes": 299080
+    },
+    {
+      "attachment": "Native focused phonics repair wrong ar",
+      "result_attachment": "B560F55D-9CD4-40D7-8B21-73CDAD3A4E56.png",
+      "sha256": "9aabada7b55eec03f7e93a173c9b83519cde6a79dda79c804fb77ecffc5a4853",
+      "bytes": 852763
+    },
+    {
+      "attachment": "Source focused phonics repair correct ar",
+      "result_attachment": "1227360A-CBF9-4F51-B869-71800E43A850.png",
+      "sha256": "a40564f1dd80a2bd8a4bf66cac1f5f768d9e523442fc369369228cb16fcf9177",
+      "bytes": 362071
+    },
+    {
+      "attachment": "Native focused phonics repair correct ar",
+      "result_attachment": "1397183B-D728-4BAD-B7E3-BBBD29A58FE8.png",
+      "sha256": "34228b304798d9e9c6817b98985c161b98d21d198526a784225fe00b457aff9e",
+      "bytes": 860023
+    }
+  ],
+  "artifacts": [
+    {
+      "file": "source-goal-front-en.png",
+      "attachment": "Source focused phonics goal front en",
+      "sha256": "793578a04f5a5ac724005d6a49c54e262275af739be3d554051db987bab3065c",
+      "bytes": 360387
+    },
+    {
+      "file": "native-goal-front-en.png",
+      "attachment": "Native focused phonics goal front en",
+      "sha256": "30b4464d612c820448582363e84ea723c59c08f558b4ea45b208dd67679507db",
+      "bytes": 965865
+    },
+    {
+      "file": "goal-front-en-pair.png",
+      "scope": "sRGB pair at 402-point source/native content viewport, source left/native right; originals retain profiles",
+      "sha256": "8c15e148a4cff8a999b5e9b12f42c78f93482ff5805a8fded6ee1ff2b970e341",
+      "bytes": 148418
+    },
+    {
+      "file": "goal-front-en-geometry.json",
+      "attachment": "Source focused phonics goal front en geometry",
+      "sha256": "4c1ca32ae082cf4845cf184a3f7a63499844fac6a13518c0d89e40783bd0547f",
+      "bytes": 3349
+    },
+    {
+      "file": "goal-practice-en-pair.png",
+      "scope": "sRGB pair at 402-point source/native content viewport, source left/native right; originals retain profiles",
+      "sha256": "6a1ec8bb7b1f3ed3001a99870e922065e01b0df3029d5590e6cd6ff7206c82bf",
+      "bytes": 141095
+    },
+    {
+      "file": "goal-practice-en-geometry.json",
+      "attachment": "Source focused phonics goal practice en geometry",
+      "sha256": "f48f6361b0062b1b77b36a3e937893eef15072a3a7fbfaefd49fefdd74b5507c",
+      "bytes": 3456
+    },
+    {
+      "file": "goal-wrong-en-pair.png",
+      "scope": "sRGB pair at 402-point source/native content viewport, source left/native right; originals retain profiles",
+      "sha256": "b048838f0cb9564b0826b6ea96c2e6510ef5eb6211dd33f4acb6221466a7fb94",
+      "bytes": 166512
+    },
+    {
+      "file": "goal-wrong-en-geometry.json",
+      "attachment": "Source focused phonics goal wrong en geometry",
+      "sha256": "3b3f8ea2ad893566c2516c78b31d8116557146e8611efd8755b85ca239907ceb",
+      "bytes": 3675
+    },
+    {
+      "file": "source-goal-correct-en.png",
+      "attachment": "Source focused phonics goal correct en",
+      "sha256": "4f7b6b612591f6a078bc9a7ab96a742e6ae0880a5a04104179cc824d0e709de1",
+      "bytes": 332988
+    },
+    {
+      "file": "native-goal-correct-en.png",
+      "attachment": "Native focused phonics goal correct en",
+      "sha256": "abdac3801ccb1dbb0194df790bde7b07b96264fb0f9795f97b24194293bd5d08",
+      "bytes": 1313830
+    },
+    {
+      "file": "goal-correct-en-pair.png",
+      "scope": "sRGB pair at 402-point source/native content viewport, source left/native right; originals retain profiles",
+      "sha256": "f761eceb2b1a3d835b2607c927ea7df845e728b4c8f490583df14cf5654c3d83",
+      "bytes": 163704
+    },
+    {
+      "file": "goal-correct-en-geometry.json",
+      "attachment": "Source focused phonics goal correct en geometry",
+      "sha256": "dddf24adf15aa59bd8e0bd3d743e9ab249fa17a3ca559eb2085964aae54db224",
+      "bytes": 3774
+    },
+    {
+      "file": "goal-en-input.json",
+      "attachment": "Public focused phonics goal en input",
+      "sha256": "24550ad9a542948c598a317ef5a48feefe732cf63479ee3ade962c04a6f027f1",
+      "bytes": 3650
+    },
+    {
+      "file": "goal-en-source-writes.json",
+      "attachment": "Source actual focused phonics goal en writes",
+      "sha256": "045cdfa797ac44442fd1a7f2bc530963c32b6867a51e79ee4734367b60031142",
+      "bytes": 5824
+    },
+    {
+      "file": "goal-front-ar-pair.png",
+      "scope": "sRGB pair at 402-point source/native content viewport, source left/native right; originals retain profiles",
+      "sha256": "42449680de8b64649596ba55b4b6d4d7bab79d571db471333ed55f4123840a88",
+      "bytes": 121079
+    },
+    {
+      "file": "goal-front-ar-geometry.json",
+      "attachment": "Source focused phonics goal front ar geometry",
+      "sha256": "76b6593bd15132645ff928698bdeff7ba051d0a3275ad3dda4a9905c78d81791",
+      "bytes": 3547
+    },
+    {
+      "file": "goal-practice-ar-pair.png",
+      "scope": "sRGB pair at 402-point source/native content viewport, source left/native right; originals retain profiles",
+      "sha256": "65427561bbefd618a31a3903818741a27c274d91c874360e5c1f469947bb1874",
+      "bytes": 116625
+    },
+    {
+      "file": "goal-practice-ar-geometry.json",
+      "attachment": "Source focused phonics goal practice ar geometry",
+      "sha256": "67e373712ce03b420918675eaa329f7fea9e1a89b79cfce39ece00ab862d7568",
+      "bytes": 3662
+    },
+    {
+      "file": "goal-wrong-ar-pair.png",
+      "scope": "sRGB pair at 402-point source/native content viewport, source left/native right; originals retain profiles",
+      "sha256": "a0ae9859d8dbff70c81c8576675921a3861a1ddada003966dd751ae7911c308d",
+      "bytes": 138861
+    },
+    {
+      "file": "goal-wrong-ar-geometry.json",
+      "attachment": "Source focused phonics goal wrong ar geometry",
+      "sha256": "f7c5a3b28eeaabb8419531a9c0682e6be4630e388324f9114dd07fd188b0d58d",
+      "bytes": 3901
+    },
+    {
+      "file": "goal-correct-ar-pair.png",
+      "scope": "sRGB pair at 402-point source/native content viewport, source left/native right; originals retain profiles",
+      "sha256": "aabced87b5ba7e4f28ae9e95463afc9d2978951a9c9ef5dfcc4042e5a540733b",
+      "bytes": 136176
+    },
+    {
+      "file": "goal-correct-ar-geometry.json",
+      "attachment": "Source focused phonics goal correct ar geometry",
+      "sha256": "4201e4257547e3e0f3b9c87df23746b679a3201e651fa5cc5a2add026353d8b7",
+      "bytes": 3993
+    },
+    {
+      "file": "goal-ar-input.json",
+      "attachment": "Public focused phonics goal ar input",
+      "sha256": "22a95bb10ce7ee4d1db8cca5871266c05bc34430204c141b9f7678b609935577",
+      "bytes": 3718
+    },
+    {
+      "file": "goal-ar-source-writes.json",
+      "attachment": "Source actual focused phonics goal ar writes",
+      "sha256": "83eb57ed93ef63f6e838bc102dbcabbbadb4e464d05185fcbe6065e98d18edc8",
+      "bytes": 6028
+    },
+    {
+      "file": "repair-front-en-pair.png",
+      "scope": "sRGB pair at 402-point source/native content viewport, source left/native right; originals retain profiles",
+      "sha256": "efa258dea6a8a0cecca7a91ee2b44033285a6fb56d5675d7baea074ca9b1744b",
+      "bytes": 150731
+    },
+    {
+      "file": "repair-front-en-geometry.json",
+      "attachment": "Source focused phonics repair front en geometry",
+      "sha256": "d3ded5b2e93edb77575d2d60323a7bc05a406ab481acf587ade2e2ffdd2b9762",
+      "bytes": 3347
+    },
+    {
+      "file": "repair-practice-en-pair.png",
+      "scope": "sRGB pair at 402-point source/native content viewport, source left/native right; originals retain profiles",
+      "sha256": "af6a041a5a9d715635880bc4a8409d1151a73145a76c8c386908560381effe89",
+      "bytes": 143231
+    },
+    {
+      "file": "repair-practice-en-geometry.json",
+      "attachment": "Source focused phonics repair practice en geometry",
+      "sha256": "5eb8c6a0ef6881fff5917463023ff1435a463c7c72fa514a29e6c9cc5ae175c4",
+      "bytes": 3454
+    },
+    {
+      "file": "repair-wrong-en-pair.png",
+      "scope": "sRGB pair at 402-point source/native content viewport, source left/native right; originals retain profiles",
+      "sha256": "5771cccda43ddef46af3de6849a55b48106d08b2c72e768086e70301aca5621f",
+      "bytes": 168852
+    },
+    {
+      "file": "repair-wrong-en-geometry.json",
+      "attachment": "Source focused phonics repair wrong en geometry",
+      "sha256": "fbe8e2d65d88ce4d94f1b84af338f09e1574b4db9825eb6472b8091f04fec480",
+      "bytes": 3673
+    },
+    {
+      "file": "repair-correct-en-pair.png",
+      "scope": "sRGB pair at 402-point source/native content viewport, source left/native right; originals retain profiles",
+      "sha256": "160accc99bf23042addcaabef32815d959385f902a93aa4602878503097a145c",
+      "bytes": 165888
+    },
+    {
+      "file": "repair-correct-en-geometry.json",
+      "attachment": "Source focused phonics repair correct en geometry",
+      "sha256": "c1d2425a5530ac06fa3f5e29e8f991d97089894e0eb787f817f7fffc84dc1380",
+      "bytes": 3772
+    },
+    {
+      "file": "repair-en-input.json",
+      "attachment": "Public focused phonics repair en input",
+      "sha256": "c50040e47a1abc4b39c41b36ae767de5218deaf3fa7edace7cce0fb4aa381a7f",
+      "bytes": 4078
+    },
+    {
+      "file": "repair-en-source-writes.json",
+      "attachment": "Source actual focused phonics repair en writes",
+      "sha256": "52e3ffe067e991f263dafeb734a930f2b7f293564e98a0ce5b8232fab8495ceb",
+      "bytes": 6830
+    },
+    {
+      "file": "source-repair-front-ar.png",
+      "attachment": "Source focused phonics repair front ar",
+      "sha256": "c4e22ab9345b42758b07d9870eb55b345b3084bbead8b9ebbdad0918a40f872e",
+      "bytes": 266294
+    },
+    {
+      "file": "native-repair-front-ar.png",
+      "attachment": "Native focused phonics repair front ar",
+      "sha256": "bf737d15a97b8783eee96ac9c3fbe56f3fe0277007128c05dc35eb2102910d68",
+      "bytes": 647296
+    },
+    {
+      "file": "repair-front-ar-pair.png",
+      "scope": "sRGB pair at 402-point source/native content viewport, source left/native right; originals retain profiles",
+      "sha256": "4dcb68f573fd716ed70a3dd80417ad430889e9e47f6256f98dd32485c1dfea76",
+      "bytes": 121898
+    },
+    {
+      "file": "repair-front-ar-geometry.json",
+      "attachment": "Source focused phonics repair front ar geometry",
+      "sha256": "0ffc46e0fe16ff311186165a58c18824e28b332bd718e1fbde32578b6b3e5bf5",
+      "bytes": 3546
+    },
+    {
+      "file": "repair-practice-ar-pair.png",
+      "scope": "sRGB pair at 402-point source/native content viewport, source left/native right; originals retain profiles",
+      "sha256": "1dd3e98862db73aab5c0319773f6901db16c06f6990287a5f8626134515b6e3d",
+      "bytes": 117208
+    },
+    {
+      "file": "repair-practice-ar-geometry.json",
+      "attachment": "Source focused phonics repair practice ar geometry",
+      "sha256": "feafa9d3a375e5092b47b8f47f3210c25e290e1526b3e1ee98d55e0b3997bfb9",
+      "bytes": 3661
+    },
+    {
+      "file": "source-repair-wrong-ar.png",
+      "attachment": "Source focused phonics repair wrong ar",
+      "sha256": "f60ef3a741da47d1d7d9d93946a0bfc34e406fe0582261b71cee3b1d1e71faf2",
+      "bytes": 299080
+    },
+    {
+      "file": "native-repair-wrong-ar.png",
+      "attachment": "Native focused phonics repair wrong ar",
+      "sha256": "9aabada7b55eec03f7e93a173c9b83519cde6a79dda79c804fb77ecffc5a4853",
+      "bytes": 852763
+    },
+    {
+      "file": "repair-wrong-ar-pair.png",
+      "scope": "sRGB pair at 402-point source/native content viewport, source left/native right; originals retain profiles",
+      "sha256": "af8e233de5ef93171a6ce92e5cd619f05431a02433b6f82aa12c2745e7a86afa",
+      "bytes": 139645
+    },
+    {
+      "file": "repair-wrong-ar-geometry.json",
+      "attachment": "Source focused phonics repair wrong ar geometry",
+      "sha256": "87adca52e780b1a4e1f7928d99d74d648cf5d5a813ffdd3842343eca06ca64bc",
+      "bytes": 3900
+    },
+    {
+      "file": "repair-correct-ar-pair.png",
+      "scope": "sRGB pair at 402-point source/native content viewport, source left/native right; originals retain profiles",
+      "sha256": "2c96e148cd3a72ebe1e855ffdf409dc00735c7bae23a0a0c703f138aa9493de7",
+      "bytes": 136880
+    },
+    {
+      "file": "repair-correct-ar-geometry.json",
+      "attachment": "Source focused phonics repair correct ar geometry",
+      "sha256": "3f9bc751caf1098d76bb1eade70cca59377e084af0a12e5dacc272e20cfb6a86",
+      "bytes": 3992
+    },
+    {
+      "file": "repair-ar-input.json",
+      "attachment": "Public focused phonics repair ar input",
+      "sha256": "8eb74a93a8238760b1e571b05c1d0d4a3585523fafe4d7208845329e3ac7493f",
+      "bytes": 4180
+    },
+    {
+      "file": "repair-ar-source-writes.json",
+      "attachment": "Source actual focused phonics repair ar writes",
+      "sha256": "ed357304aacbe6adfd59a83fc17a4ae9c26cb12f0cbcbba1c693d9d809e0b570",
+      "bytes": 7145
+    },
+    {
+      "file": "goal-front-phone.png",
+      "attachment": "Native focused Goal phonics front",
+      "sha256": "b49f2bf11ebb8512eb4590ec84300972c30383573c64d8310a2edec8932e551e",
+      "bytes": 420627
+    },
+    {
+      "file": "goal-saved-before-collect.png",
+      "attachment": "Native first Goal phonics outcome saved before Collect",
+      "sha256": "d5f3876176b8eb8aa21e043e878bb27d25de7653d929e1c6577d15aa9106e073",
+      "bytes": 638632
+    },
+    {
+      "file": "goal-reentry-without-collect.png",
+      "attachment": "Native focused Goal phonics restores saved outcome without Collect",
+      "sha256": "93fb98203e87d5231ac7bf2bba5f122ac522c27a0ae1e5af91de90f912383028",
+      "bytes": 568805
+    },
+    {
+      "file": "goal-next-lesson.png",
+      "attachment": "Native Goal phonics completes into next lesson",
+      "sha256": "1b560837c8fa18d3d1846f27b3bd660d58579bd83fbfb67bc91f7ff54ec1e02c",
+      "bytes": 268625
+    },
+    {
+      "file": "goal-next-restored.png",
+      "attachment": "Native next Goal lesson restores after pronunciation",
+      "sha256": "9dff126b7c65147b7f0dc2b945cebaeddfbac4041fec16679f5a1b3cee96ab24",
+      "bytes": 268619
+    },
+    {
+      "file": "repair-front-phone.png",
+      "attachment": "Native repair phonics original front",
+      "sha256": "090091c9cdbb3a0eec344afb9a6b54d16d993102411d1e5323f81f7d0fb275ae",
+      "bytes": 432718
+    },
+    {
+      "file": "repair-contrast.png",
+      "attachment": "Native repair contrast does not finish transfer",
+      "sha256": "6f40fd02ac308e75c64961bcfa4156e287ebe415b946af9324dfbce239bb8bdf",
+      "bytes": 778874
+    },
+    {
+      "file": "repair-failed-completion.png",
+      "attachment": "Native repair completion failure retains pronunciation and retry",
+      "sha256": "7c3496cb23c5f3818fed5c344d0372902c29b3b9b8369ebed2397c5dd28d7254",
+      "bytes": 769585
+    },
+    {
+      "file": "repair-next-restored.png",
+      "attachment": "Native next repair lesson restores after pronunciation",
+      "sha256": "02fb933a160dae11ea036d219a1d6d8ad9fc96b07b27b8acaff0d81caa1e55ea",
+      "bytes": 256253
+    }
+  ],
+  "shared_routing_test_products": [
+    {
+      "file": "DerivedData/Build/Products/Debug-iphonesimulator/Piyali.app/PlugIns/PiyaliTests.xctest/PiyaliTests",
+      "sha256": "61a5e71bce2a30720e0076de770695b920eb2a883c6ef00ee02d353e362e8862"
+    }
+  ]
+}

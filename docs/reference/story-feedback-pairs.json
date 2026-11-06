@@ -1,0 +1,214 @@
+{
+  "test": "PiyaliStoryFeedbackFinal3.xcresult",
+  "pairs": [
+    {
+      "kind": "checkpoint",
+      "state": "wrong",
+      "language": "en",
+      "source": "docs/reference/story-feedback-checkpoint-wrong-en.png",
+      "sourceButtonBox": [
+        52.0,
+        168.0,
+        350.0,
+        40.0
+      ],
+      "native": "docs/native/story-feedback-checkpoint-wrong-en.png",
+      "nativeButtonBox": [
+        52.0,
+        169.67,
+        350.0,
+        40.0
+      ]
+    },
+    {
+      "kind": "checkpoint",
+      "state": "correct",
+      "language": "en",
+      "source": "docs/reference/story-feedback-checkpoint-correct-en.png",
+      "sourceButtonBox": [
+        52.0,
+        108.0,
+        350.0,
+        40.0
+      ],
+      "native": "docs/native/story-feedback-checkpoint-correct-en.png",
+      "nativeButtonBox": [
+        52.0,
+        108.0,
+        350.0,
+        40.0
+      ]
+    },
+    {
+      "kind": "speaking",
+      "state": "wrong",
+      "language": "en",
+      "source": "docs/reference/story-feedback-speaking-wrong-en.png",
+      "sourceButtonBox": null,
+      "native": "docs/native/story-feedback-speaking-wrong-en.png",
+      "nativeButtonBox": null
+    },
+    {
+      "kind": "speaking",
+      "state": "correct",
+      "language": "en",
+      "source": "docs/reference/story-feedback-speaking-correct-en.png",
+      "sourceButtonBox": [
+        52.0,
+        121.0,
+        350.0,
+        40.0
+      ],
+      "native": "docs/native/story-feedback-speaking-correct-en.png",
+      "nativeButtonBox": [
+        52.0,
+        121.67,
+        350.0,
+        40.0
+      ]
+    },
+    {
+      "kind": "role",
+      "state": "wrong",
+      "language": "en",
+      "source": "docs/reference/story-feedback-role-wrong-en.png",
+      "sourceButtonBox": [
+        52.0,
+        168.0,
+        350.0,
+        40.0
+      ],
+      "native": "docs/native/story-feedback-role-wrong-en.png",
+      "nativeButtonBox": [
+        52.0,
+        169.67,
+        350.0,
+        40.0
+      ]
+    },
+    {
+      "kind": "role",
+      "state": "correct",
+      "language": "en",
+      "source": "docs/reference/story-feedback-role-correct-en.png",
+      "sourceButtonBox": [
+        52.0,
+        108.0,
+        350.0,
+        40.0
+      ],
+      "native": "docs/native/story-feedback-role-correct-en.png",
+      "nativeButtonBox": [
+        52.0,
+        108.0,
+        350.0,
+        40.0
+      ]
+    },
+    {
+      "kind": "checkpoint",
+      "state": "wrong",
+      "language": "ar",
+      "source": "docs/reference/story-feedback-checkpoint-wrong-ar.png",
+      "sourceButtonBox": [
+        0.0,
+        168.0,
+        350.0,
+        40.0
+      ],
+      "native": "docs/native/story-feedback-checkpoint-wrong-ar.png",
+      "nativeButtonBox": [
+        0.33,
+        169.67,
+        349.33,
+        40.0
+      ]
+    },
+    {
+      "kind": "checkpoint",
+      "state": "correct",
+      "language": "ar",
+      "source": "docs/reference/story-feedback-checkpoint-correct-ar.png",
+      "sourceButtonBox": [
+        0.0,
+        108.0,
+        350.0,
+        40.0
+      ],
+      "native": "docs/native/story-feedback-checkpoint-correct-ar.png",
+      "nativeButtonBox": [
+        0.33,
+        108.0,
+        349.33,
+        40.0
+      ]
+    },
+    {
+      "kind": "speaking",
+      "state": "wrong",
+      "language": "ar",
+      "source": "docs/reference/story-feedback-speaking-wrong-ar.png",
+      "sourceButtonBox": null,
+      "native": "docs/native/story-feedback-speaking-wrong-ar.png",
+      "nativeButtonBox": null
+    },
+    {
+      "kind": "speaking",
+      "state": "correct",
+      "language": "ar",
+      "source": "docs/reference/story-feedback-speaking-correct-ar.png",
+      "sourceButtonBox": [
+        0.0,
+        121.0,
+        350.0,
+        40.0
+      ],
+      "native": "docs/native/story-feedback-speaking-correct-ar.png",
+      "nativeButtonBox": [
+        0.33,
+        121.67,
+        349.33,
+        40.0
+      ]
+    },
+    {
+      "kind": "role",
+      "state": "wrong",
+      "language": "ar",
+      "source": "docs/reference/story-feedback-role-wrong-ar.png",
+      "sourceButtonBox": [
+        0.0,
+        168.0,
+        350.0,
+        40.0
+      ],
+      "native": "docs/native/story-feedback-role-wrong-ar.png",
+      "nativeButtonBox": [
+        0.33,
+        169.67,
+        349.33,
+        40.0
+      ]
+    },
+    {
+      "kind": "role",
+      "state": "correct",
+      "language": "ar",
+      "source": "docs/reference/story-feedback-role-correct-ar.png",
+      "sourceButtonBox": [
+        0.0,
+        108.0,
+        350.0,
+        40.0
+      ],
+      "native": "docs/native/story-feedback-role-correct-ar.png",
+      "nativeButtonBox": [
+        0.33,
+        108.0,
+        349.33,
+        40.0
+      ]
+    }
+  ],
+  "scope": "Original compact JSX and native feedback component; explicit public states and fixed allowed portrait. Source/native PNGs retain their sRGB/Display P3 profiles. Button boxes measure fill pixels within five sRGB levels, expressed in 3x iPhone points; shadows are excluded. Wave phase and text rasterization differ."
+}

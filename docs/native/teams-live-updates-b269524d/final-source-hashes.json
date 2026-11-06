@@ -1,0 +1,27 @@
+{
+  "nativeBase": "1ee58f351f292b3ed88821af4562a5e4536e2d70",
+  "nativeFiles": {
+    "Piyali/Features/TeamsDrawerView.swift": "0d57cd0129b0add13eef8a6c99a0ad88cc998dd16e815bd53581dad7ed788046",
+    "Piyali/Services/TeamsMirrorService.swift": "98ebde05d70b2a66094993311fbf964b37886032d9bfe843425b701d5bad8038",
+    "Piyali/Services/TeamsPanelController.swift": "3947b95843b3e7600cd67dcef8a90a7832934b441e5b7ae70d16f02f562cf7e1",
+    "Tests/PiyaliAppTests/TeamsMirrorContractTests.swift": "991ccac96cd9c04e910fc06a732f59beef5318db662d43e19be1d1d0f455393f",
+    "Tests/PiyaliAppTests/TeamsPanelControllerTests.swift": "71c3d828b87444d8568716ee79420980ea3d1a54cc6a6897bd0395fe79493139",
+    "Tests/PiyaliAppTests/TeamsPanelReferenceTests.swift": "7e58094077718f36f46865c6fada8e584e173cb0b3226e40f786fa79b13472a9",
+    "Tests/PiyaliUITests/TeamsTests.swift": "231f3eb3b7062fdeb53f750f3a45dc7252e2b855c2f89ae7897ee15bd2e0a996",
+    "scripts/check-teams-live-updates.mjs": "32beb13ca60ee6f7d7c68771160c7149d3a25cf1a0af89606273c8bffe800e91",
+    "scripts/reference-teams-io.mjs": "6481b9562447b6e3d4edf8b30ea0f84ed3ee27891bc915e265918a7e79b568b7",
+    "scripts/reference-teams.jsx": "098745fbef63cb2c4c6280296a82a092717c9583db84c40fb34ec9cda34b1bb4"
+  },
+  "binaries": {
+    "Piyali": {
+      "built": "1ef6ccbb2a5e6421dee43a24ca776660396eaeba689e41bb3fdc1c63ca0e4a22",
+      "qaInstalled": "1ef6ccbb2a5e6421dee43a24ca776660396eaeba689e41bb3fdc1c63ca0e4a22",
+      "match": true
+    },
+    "Piyali.debug.dylib": {
+      "built": "b144dea7f5c0e51dbef26ae2ae8b9eca5bd0bf0d1282befd6cc257a3d01170a5",
+      "qaInstalled": "b144dea7f5c0e51dbef26ae2ae8b9eca5bd0bf0d1282befd6cc257a3d01170a5",
+      "match": true
+    }
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "sourceRevision": "b269524ddc578027c549616fc47f5954991d9f6f",
+  "nativeBase": "a1ef93fe42cdd4c546747b5252dd9404678ca163",
+  "resultBundle": "/tmp/PiyaliGoalMemoryVerified20261105.xcresult",
+  "journeyResultBundle": "/tmp/PiyaliGoalMemoryPaint20261105.xcresult",
+  "scope": "Original full captureCompanionMemory executes with an explicit valid focus, public missed-answer inputs, fixed clock and recording learning-evidence boundary. Original mergeEvidence/compactSummary then feeds the original NotesDrawer Goals. Native actual grader captures independently; tests compare fields and summaries except opaque event IDs. Source/native pairs use 402x874 canvases in light/dark with sRGB-normalized profiles; their component backgrounds differ and omit surrounding product navigation. Five original native screenshots retain actual onboarding/Start tasks/Goal miss/Memory/retry/cached reentry/ordinary miss/relaunch UI. This is not a complete browser question UI, real provider/cloud, physical speech, RTL or whole-product design approval.",
+  "files": [
+    {
+      "file": "cached-goal-reentry.png",
+      "sha256": "9b748d6519e25e509d66cf63b5508728093e3d487053ba661299f3f5adc77e0d",
+      "bytes": 268183
+    },
+    {
+      "file": "goal-evidence.png",
+      "sha256": "dfdcb4c2e068ebcf15ece812378816937fcea51d2f6d0879854c6044aa74e9cf",
+      "bytes": 320962
+    },
+    {
+      "file": "goal-wrong-answer.png",
+      "sha256": "a66f32ad7f1d03c8ae714d486639e43be14a635a24d657b4e0b1e26558f3cab9",
+      "bytes": 564606
+    },
+    {
+      "file": "goals-dark.png",
+      "sha256": "bb76b4db33aa286a68d705bd97445549f3912b6387748a2bcdae2ba0f04a990e",
+      "bytes": 119908
+    },
+    {
+      "file": "goals-light.png",
+      "sha256": "6ad73eec88863e65ff156ee0443bc8f380492bfce37f42b3413e56a2305c4603",
+      "bytes": 135659
+    },
+    {
+      "file": "native-goal-bucket.json",
+      "sha256": "7f7567523a4479217ac17af5aabb5782cf43d29ca428085ae67978555fce70fd",
+      "bytes": 1641
+    },
+    {
+      "file": "ordinary-repair.png",
+      "sha256": "ce93e8772b180f72da0ed56254e7cf4b133f09d161fe6fe6c4138ce898d96342",
+      "bytes": 281970
+    },
+    {
+      "file": "restored-without-focus.png",
+      "sha256": "9ebf877b9c558390e9096616ccc616398a6db6625f3bd225fb200d3187d60929",
+      "bytes": 321011
+    },
+    {
+      "file": "source-capture-dark.json",
+      "sha256": "87ebd70149e9ed0c9a54222d16ff4f17873f6b991a5f40488c17608e7f813a8c",
+      "bytes": 1177
+    },
+    {
+      "file": "source-capture-light.json",
+      "sha256": "87ebd70149e9ed0c9a54222d16ff4f17873f6b991a5f40488c17608e7f813a8c",
+      "bytes": 1177
+    },
+    {
+      "file": "surface-dark.json",
+      "sha256": "ddf3479f9fc8b64142d180c06351c7a98fcef9aef19abd333aedd9f1004d89ac",
+      "bytes": 103
+    },
+    {
+      "file": "surface-light.json",
+      "sha256": "698126236da8f5752463accb78d52d33ffe3789c0d131b8f3071393b9f14255c",
+      "bytes": 101
+    }
+  ]
+}

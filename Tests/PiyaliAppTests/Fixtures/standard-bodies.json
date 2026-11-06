@@ -1,0 +1,682 @@
+{
+  "vocabulary": {
+    "fill": {
+      "kind": "fill",
+      "question": {
+        "question": "La niña come ___.",
+        "answer": "pan",
+        "hint": "A food made from flour."
+      },
+      "responses": {
+        "idle": {
+          "text": ""
+        },
+        "partial": {
+          "text": "WRONG_FIXTURE"
+        },
+        "filled": {
+          "text": "pan"
+        },
+        "locked": {
+          "text": "pan"
+        }
+      }
+    },
+    "mc-buttons": {
+      "kind": "mc",
+      "question": {
+        "question": "Choose the greeting.",
+        "choices": [
+          "hola",
+          "adiós",
+          "gracias"
+        ],
+        "answer": "hola"
+      },
+      "responses": {
+        "idle": {
+          "indices": []
+        },
+        "partial": {
+          "indices": [
+            1
+          ]
+        },
+        "filled": {
+          "indices": [
+            0
+          ]
+        },
+        "locked": {
+          "indices": [
+            0
+          ]
+        }
+      }
+    },
+    "mc-drag": {
+      "kind": "mc",
+      "question": {
+        "question": "Yo ___ con mi familia.",
+        "choices": [
+          "como",
+          "comes",
+          "comemos"
+        ],
+        "answer": "como"
+      },
+      "responses": {
+        "idle": {
+          "indices": [],
+          "standardState": {
+            "slots": [
+              null
+            ],
+            "bank": [
+              0,
+              1,
+              2
+            ],
+            "pick": ""
+          }
+        },
+        "partial": {
+          "indices": [
+            1
+          ],
+          "standardState": {
+            "slots": [
+              1
+            ],
+            "bank": [
+              0,
+              2
+            ],
+            "pick": "comes"
+          }
+        },
+        "filled": {
+          "indices": [
+            0
+          ],
+          "standardState": {
+            "slots": [
+              0
+            ],
+            "bank": [
+              1,
+              2
+            ],
+            "pick": "como"
+          }
+        },
+        "locked": {
+          "indices": [
+            0
+          ],
+          "standardState": {
+            "slots": [
+              0
+            ],
+            "bank": [
+              1,
+              2
+            ],
+            "pick": "como"
+          }
+        }
+      }
+    },
+    "ma-buttons": {
+      "kind": "ma",
+      "question": {
+        "question": "Choose the family words.",
+        "choices": [
+          "madre",
+          "padre",
+          "perro",
+          "casa"
+        ],
+        "answers": [
+          "madre",
+          "padre"
+        ]
+      },
+      "responses": {
+        "idle": {
+          "indices": []
+        },
+        "partial": {
+          "indices": [
+            1
+          ]
+        },
+        "filled": {
+          "indices": [
+            0,
+            1
+          ]
+        },
+        "locked": {
+          "indices": [
+            0,
+            1
+          ]
+        }
+      }
+    },
+    "ma-drag": {
+      "kind": "ma",
+      "question": {
+        "question": "Mi ___ y mi ___ comen hoy.",
+        "choices": [
+          "madre",
+          "padre",
+          "perro",
+          "casa"
+        ],
+        "answers": [
+          "madre",
+          "padre"
+        ]
+      },
+      "responses": {
+        "idle": {
+          "indices": [],
+          "standardState": {
+            "slots": [
+              null,
+              null
+            ],
+            "bank": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "pick": ""
+          }
+        },
+        "partial": {
+          "indices": [
+            1
+          ],
+          "standardState": {
+            "slots": [
+              1,
+              null
+            ],
+            "bank": [
+              0,
+              2,
+              3
+            ],
+            "pick": ""
+          }
+        },
+        "filled": {
+          "indices": [
+            0,
+            1
+          ],
+          "standardState": {
+            "slots": [
+              0,
+              1
+            ],
+            "bank": [
+              2,
+              3
+            ],
+            "pick": ""
+          }
+        },
+        "locked": {
+          "indices": [
+            0,
+            1
+          ],
+          "standardState": {
+            "slots": [
+              0,
+              1
+            ],
+            "bank": [
+              2,
+              3
+            ],
+            "pick": ""
+          }
+        }
+      }
+    },
+    "match": {
+      "kind": "match",
+      "question": {
+        "stem": "Match the greetings.",
+        "left": [
+          "hola",
+          "adiós",
+          "gracias"
+        ],
+        "right": [
+          "hello",
+          "goodbye",
+          "thank you"
+        ],
+        "map": [
+          0,
+          1,
+          2
+        ]
+      },
+      "responses": {
+        "idle": {
+          "pairs": {},
+          "standardState": {
+            "slots": [
+              null,
+              null,
+              null
+            ],
+            "bank": [
+              2,
+              0,
+              1
+            ],
+            "pick": ""
+          }
+        },
+        "partial": {
+          "pairs": {
+            "0": 0
+          },
+          "standardState": {
+            "slots": [
+              0,
+              null,
+              null
+            ],
+            "bank": [
+              2,
+              1
+            ],
+            "pick": ""
+          }
+        },
+        "filled": {
+          "pairs": {
+            "0": 0,
+            "1": 1,
+            "2": 2
+          },
+          "standardState": {
+            "slots": [
+              0,
+              1,
+              2
+            ],
+            "bank": [],
+            "pick": ""
+          }
+        },
+        "locked": {
+          "pairs": {
+            "0": 0,
+            "1": 1,
+            "2": 2
+          },
+          "standardState": {
+            "slots": [
+              0,
+              1,
+              2
+            ],
+            "bank": [],
+            "pick": ""
+          }
+        }
+      }
+    }
+  },
+  "grammar": {
+    "fill": {
+      "kind": "fill",
+      "question": {
+        "question": "La niña come ___.",
+        "answer": "pan",
+        "hint": "A food made from flour."
+      },
+      "responses": {
+        "idle": {
+          "text": ""
+        },
+        "partial": {
+          "text": "WRONG_FIXTURE"
+        },
+        "filled": {
+          "text": "pan"
+        },
+        "locked": {
+          "text": "pan"
+        }
+      }
+    },
+    "mc-buttons": {
+      "kind": "mc",
+      "question": {
+        "question": "Choose the greeting.",
+        "choices": [
+          "hola",
+          "adiós",
+          "gracias"
+        ],
+        "answer": "hola"
+      },
+      "responses": {
+        "idle": {
+          "indices": []
+        },
+        "partial": {
+          "indices": [
+            1
+          ]
+        },
+        "filled": {
+          "indices": [
+            0
+          ]
+        },
+        "locked": {
+          "indices": [
+            0
+          ]
+        }
+      }
+    },
+    "mc-drag": {
+      "kind": "mc",
+      "question": {
+        "question": "Yo ___ con mi familia.",
+        "choices": [
+          "como",
+          "comes",
+          "comemos"
+        ],
+        "answer": "como"
+      },
+      "responses": {
+        "idle": {
+          "indices": [],
+          "standardState": {
+            "slots": [
+              null
+            ],
+            "bank": [
+              0,
+              1,
+              2
+            ],
+            "pick": ""
+          }
+        },
+        "partial": {
+          "indices": [
+            1
+          ],
+          "standardState": {
+            "slots": [
+              1
+            ],
+            "bank": [
+              0,
+              2
+            ],
+            "pick": "comes"
+          }
+        },
+        "filled": {
+          "indices": [
+            0
+          ],
+          "standardState": {
+            "slots": [
+              0
+            ],
+            "bank": [
+              1,
+              2
+            ],
+            "pick": "como"
+          }
+        },
+        "locked": {
+          "indices": [
+            0
+          ],
+          "standardState": {
+            "slots": [
+              0
+            ],
+            "bank": [
+              1,
+              2
+            ],
+            "pick": "como"
+          }
+        }
+      }
+    },
+    "ma-buttons": {
+      "kind": "ma",
+      "question": {
+        "question": "Choose the family words.",
+        "choices": [
+          "madre",
+          "padre",
+          "perro",
+          "casa"
+        ],
+        "answers": [
+          "madre",
+          "padre"
+        ]
+      },
+      "responses": {
+        "idle": {
+          "indices": []
+        },
+        "partial": {
+          "indices": [
+            1
+          ]
+        },
+        "filled": {
+          "indices": [
+            0,
+            1
+          ]
+        },
+        "locked": {
+          "indices": [
+            0,
+            1
+          ]
+        }
+      }
+    },
+    "ma-drag": {
+      "kind": "ma",
+      "question": {
+        "question": "Mi ___ y mi ___ comen hoy.",
+        "choices": [
+          "madre",
+          "padre",
+          "perro",
+          "casa"
+        ],
+        "answers": [
+          "madre",
+          "padre"
+        ]
+      },
+      "responses": {
+        "idle": {
+          "indices": [],
+          "standardState": {
+            "slots": [
+              null,
+              null
+            ],
+            "bank": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "pick": ""
+          }
+        },
+        "partial": {
+          "indices": [
+            1
+          ],
+          "standardState": {
+            "slots": [
+              1,
+              null
+            ],
+            "bank": [
+              0,
+              2,
+              3
+            ],
+            "pick": ""
+          }
+        },
+        "filled": {
+          "indices": [
+            0,
+            1
+          ],
+          "standardState": {
+            "slots": [
+              0,
+              1
+            ],
+            "bank": [
+              2,
+              3
+            ],
+            "pick": ""
+          }
+        },
+        "locked": {
+          "indices": [
+            0,
+            1
+          ],
+          "standardState": {
+            "slots": [
+              0,
+              1
+            ],
+            "bank": [
+              2,
+              3
+            ],
+            "pick": ""
+          }
+        }
+      }
+    },
+    "match": {
+      "kind": "match",
+      "question": {
+        "stem": "Match the greetings.",
+        "left": [
+          "hola",
+          "adiós",
+          "gracias"
+        ],
+        "right": [
+          "thank you",
+          "hello",
+          "goodbye"
+        ],
+        "map": [
+          1,
+          2,
+          0
+        ]
+      },
+      "responses": {
+        "idle": {
+          "pairs": {},
+          "standardState": {
+            "slots": [
+              null,
+              null,
+              null
+            ],
+            "bank": [
+              2,
+              0,
+              1
+            ],
+            "pick": ""
+          }
+        },
+        "partial": {
+          "pairs": {
+            "0": 1
+          },
+          "standardState": {
+            "slots": [
+              1,
+              null,
+              null
+            ],
+            "bank": [
+              2,
+              0
+            ],
+            "pick": ""
+          }
+        },
+        "filled": {
+          "pairs": {
+            "0": 1,
+            "1": 2,
+            "2": 0
+          },
+          "standardState": {
+            "slots": [
+              1,
+              2,
+              0
+            ],
+            "bank": [],
+            "pick": ""
+          }
+        },
+        "locked": {
+          "pairs": {
+            "0": 1,
+            "1": 2,
+            "2": 0
+          },
+          "standardState": {
+            "slots": [
+              1,
+              2,
+              0
+            ],
+            "bank": [],
+            "pick": ""
+          }
+        }
+      }
+    }
+  }
+}

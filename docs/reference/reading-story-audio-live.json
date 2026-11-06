@@ -1,0 +1,43 @@
+{
+  "resultBundle": "PiyaliReadingStoryAudioLive1.xcresult",
+  "durationSeconds": 21.298,
+  "checks": [
+    {
+      "error": null,
+      "failed": false,
+      "finished": true,
+      "language": "es",
+      "mode": "reading",
+      "positiveAmplitude": true,
+      "receivedBytes": 38244,
+      "speaker": "",
+      "text": "Mi cuaderno está junto a la ventana. Hoy leo con mi familia.",
+      "voice": "ash"
+    },
+    {
+      "error": null,
+      "failed": false,
+      "finished": true,
+      "language": "es",
+      "mode": "story",
+      "positiveAmplitude": true,
+      "receivedBytes": 18039,
+      "speaker": "Sheilfer",
+      "text": "Hola, qué gusto verte.",
+      "voice": "echo"
+    },
+    {
+      "error": null,
+      "failed": false,
+      "finished": true,
+      "language": "ar",
+      "mode": "story",
+      "positiveAmplitude": true,
+      "receivedBytes": 17228,
+      "speaker": "You",
+      "text": "مرحباً، كيف حالك؟",
+      "voice": "marin"
+    }
+  ],
+  "scope": "Original source request/session, actual Reading/Story adapters and native receive-only RTC; positive amplitude, successful playout and isolated Firebase/App Check identity cleanup. No learner-progress writes or microphone capture."
+}

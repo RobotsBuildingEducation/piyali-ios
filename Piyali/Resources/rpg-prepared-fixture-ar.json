@@ -1,0 +1,144 @@
+{
+  "title": "La ayuda",
+  "intro": {
+    "target": "Una amiga necesita ayuda.",
+    "support": "تحتاج صديقة إلى المساعدة."
+  },
+  "personas": [
+    "بائع ودود",
+    "زبون هادئ",
+    "جار فضولي"
+  ],
+  "beats": [
+    {
+      "mode": "choice",
+      "npcLine": "¡Hola! ¿Cómo te llamas?",
+      "sceneLine": "يرحب بك شخص ودود.",
+      "coverage": "عرّف بنفسك",
+      "options": [
+        "Hola",
+        "Adiós",
+        "Gracias"
+      ],
+      "correctIndex": 0,
+      "speechExample": "Hola, soy Ana.",
+      "speechGoal": "عرّف بنفسك",
+      "concept": "تحية",
+      "expectedAnswer": "Hola",
+      "right": "[يبتسم] ¡Muy bien!",
+      "wrong": "[يبدو حائراً] Hola, por favor."
+    },
+    {
+      "mode": "choice",
+      "npcLine": "¡Hola! ¿Cómo te llamas?",
+      "sceneLine": "يرحب بك شخص ودود.",
+      "coverage": "عرّف بنفسك",
+      "options": [
+        "Hola",
+        "Adiós",
+        "Gracias"
+      ],
+      "correctIndex": 0,
+      "speechExample": "Hola, soy Ana.",
+      "speechGoal": "عرّف بنفسك",
+      "concept": "تحية",
+      "expectedAnswer": "Hola",
+      "right": "[يبتسم] ¡Muy bien!",
+      "wrong": "[يبدو حائراً] Hola, por favor."
+    },
+    {
+      "mode": "speech",
+      "npcLine": "¡Hola! ¿Cómo te llamas?",
+      "sceneLine": "يرحب بك شخص ودود.",
+      "coverage": "عرّف بنفسك",
+      "options": [
+        "Hola",
+        "Adiós",
+        "Gracias"
+      ],
+      "correctIndex": 0,
+      "speechExample": "Hola, soy Ana.",
+      "speechGoal": "عرّف بنفسك",
+      "concept": "تحية",
+      "expectedAnswer": "Hola",
+      "right": "[يبتسم] ¡Muy bien!",
+      "wrong": "[يبدو حائراً] Hola, por favor."
+    },
+    {
+      "mode": "choice",
+      "npcLine": "¡Hola! ¿Cómo te llamas?",
+      "sceneLine": "يرحب بك شخص ودود.",
+      "coverage": "عرّف بنفسك",
+      "options": [
+        "Hola",
+        "Adiós",
+        "Gracias"
+      ],
+      "correctIndex": 0,
+      "speechExample": "Hola, soy Ana.",
+      "speechGoal": "عرّف بنفسك",
+      "concept": "تحية",
+      "expectedAnswer": "Hola",
+      "right": "[يبتسم] ¡Muy bien!",
+      "wrong": "[يبدو حائراً] Hola, por favor."
+    },
+    {
+      "mode": "choice",
+      "npcLine": "¡Hola! ¿Cómo te llamas?",
+      "sceneLine": "يرحب بك شخص ودود.",
+      "coverage": "عرّف بنفسك",
+      "options": [
+        "Hola",
+        "Adiós",
+        "Gracias"
+      ],
+      "correctIndex": 0,
+      "speechExample": "Hola, soy Ana.",
+      "speechGoal": "عرّف بنفسك",
+      "concept": "تحية",
+      "expectedAnswer": "Hola",
+      "right": "[يبتسم] ¡Muy bien!",
+      "wrong": "[يبدو حائراً] Hola, por favor."
+    },
+    {
+      "mode": "choice",
+      "npcLine": "¡Hola! ¿Cómo te llamas?",
+      "sceneLine": "يرحب بك شخص ودود.",
+      "coverage": "عرّف بنفسك",
+      "options": [
+        "Hola",
+        "Adiós",
+        "Gracias"
+      ],
+      "correctIndex": 0,
+      "speechExample": "Hola, soy Ana.",
+      "speechGoal": "عرّف بنفسك",
+      "concept": "تحية",
+      "expectedAnswer": "Hola",
+      "right": "[يبتسم] ¡Muy bien!",
+      "wrong": "[يبدو حائراً] Hola, por favor."
+    },
+    {
+      "mode": "speech",
+      "npcLine": "¡Hola! ¿Cómo te llamas?",
+      "sceneLine": "يرحب بك شخص ودود.",
+      "coverage": "عرّف بنفسك",
+      "options": [
+        "Hola",
+        "Adiós",
+        "Gracias"
+      ],
+      "correctIndex": 0,
+      "speechExample": "Hola, soy Ana.",
+      "speechGoal": "عرّف بنفسك",
+      "concept": "تحية",
+      "expectedAnswer": "Hola",
+      "right": "[يبتسم] ¡Muy bien!",
+      "wrong": "[يبدو حائراً] Hola, por favor."
+    }
+  ],
+  "epilogue": {
+    "target": "Gracias por tu ayuda.",
+    "support": "شكراً لمساعدتك."
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "devices" : [
+    {
+      "architecture" : "arm64",
+      "deviceId" : "CE8248B6-7171-4FD4-97DE-89E499107F82",
+      "deviceName" : "Piyali Parity QA",
+      "modelName" : "iPhone 17 Pro",
+      "osBuildNumber" : "23E254a",
+      "osVersion" : "26.4.1",
+      "platform" : "iOS Simulator"
+    }
+  ],
+  "duration" : "Ran for 41 seconds",
+  "durationInSeconds" : 41.15343499183655,
+  "hasMediaAttachments" : true,
+  "hasPerformanceMetrics" : false,
+  "startTime" : 1793964631.1,
+  "testDescription" : "Test case with 1 run",
+  "testIdentifier" : "TeamsPanelReferenceTests/testOriginalTeamToastActionsAndNativePresentationInEnglishAndArabic()",
+  "testIdentifierURL" : "test://com.apple.xcode/Piyali/PiyaliTests/TeamsPanelReferenceTests/testOriginalTeamToastActionsAndNativePresentationInEnglishAndArabic",
+  "testName" : "testOriginalTeamToastActionsAndNativePresentationInEnglishAndArabic()",
+  "testPlanConfigurations" : [
+    {
+      "configurationId" : "1",
+      "configurationName" : "Test Scheme Action"
+    }
+  ],
+  "testResult" : "Passed",
+  "testRuns" : [
+    {
+      "children" : [
+        {
+          "duration" : "41s",
+          "durationInSeconds" : 41.15343499183655,
+          "name" : "Test Scheme Action",
+          "nodeIdentifier" : "1",
+          "nodeType" : "Test Plan Configuration",
+          "result" : "Passed"
+        }
+      ],
+      "details" : "iOS Simulator 26.4.1",
+      "duration" : "41s",
+      "durationInSeconds" : 41.15343499183655,
+      "name" : "iPhone 17 Pro",
+      "nodeIdentifier" : "CE8248B6-7171-4FD4-97DE-89E499107F82",
+      "nodeType" : "Device",
+      "result" : "Passed"
+    }
+  ]
+}

@@ -1,0 +1,777 @@
+{
+  "cases": [
+    {
+      "input": {
+        "id": "r",
+        "messages": [
+          {
+            "id": "r",
+            "role": "assistant",
+            "textFinal": "Hola <pause> mamá.",
+            "lang": "es_MX"
+          }
+        ],
+        "voice": "Vindemiatrix",
+        "target": "en-US"
+      },
+      "expected": {
+        "text": "Hola mamá.",
+        "voice": "ash",
+        "langTag": "es-MX",
+        "language": "es"
+      }
+    },
+    {
+      "input": {
+        "id": "r",
+        "messages": [
+          {
+            "id": "r",
+            "role": "assistant",
+            "textFinal": "Hola <pause> mamá.",
+            "lang": "es_MX"
+          }
+        ],
+        "voice": "cedar",
+        "target": "en-US"
+      },
+      "expected": {
+        "text": "Hola mamá.",
+        "voice": "cedar",
+        "langTag": "es-MX",
+        "language": "es"
+      }
+    },
+    {
+      "input": {
+        "id": "r",
+        "messages": [
+          {
+            "id": "r",
+            "role": "assistant",
+            "textFinal": "Hola <pause> mamá.",
+            "lang": "es_MX"
+          }
+        ],
+        "voice": "marin",
+        "target": "en-US"
+      },
+      "expected": {
+        "text": "Hola mamá.",
+        "voice": "marin",
+        "langTag": "es-MX",
+        "language": "es"
+      }
+    },
+    {
+      "input": {
+        "id": "r",
+        "messages": [
+          {
+            "id": "r",
+            "role": "assistant",
+            "textFinal": "Hola <pause> mamá.",
+            "lang": "es_MX"
+          }
+        ],
+        "voice": "invalid",
+        "target": "en-US"
+      },
+      "expected": {
+        "text": "Hola mamá.",
+        "voice": "ash",
+        "langTag": "es-MX",
+        "language": "es"
+      }
+    },
+    {
+      "input": {
+        "id": "r",
+        "messages": [
+          {
+            "id": "r",
+            "role": "assistant",
+            "textFinal": "",
+            "textStream": " Bonjour ",
+            "lang": "fr-FR"
+          }
+        ],
+        "voice": "Vindemiatrix",
+        "target": "en-US"
+      },
+      "expected": {
+        "text": "Bonjour",
+        "voice": "ash",
+        "langTag": "fr-FR",
+        "language": "fr"
+      }
+    },
+    {
+      "input": {
+        "id": "r",
+        "messages": [
+          {
+            "id": "r",
+            "role": "assistant",
+            "textFinal": "",
+            "textStream": " Bonjour ",
+            "lang": "fr-FR"
+          }
+        ],
+        "voice": "cedar",
+        "target": "en-US"
+      },
+      "expected": {
+        "text": "Bonjour",
+        "voice": "cedar",
+        "langTag": "fr-FR",
+        "language": "fr"
+      }
+    },
+    {
+      "input": {
+        "id": "r",
+        "messages": [
+          {
+            "id": "r",
+            "role": "assistant",
+            "textFinal": "",
+            "textStream": " Bonjour ",
+            "lang": "fr-FR"
+          }
+        ],
+        "voice": "marin",
+        "target": "en-US"
+      },
+      "expected": {
+        "text": "Bonjour",
+        "voice": "marin",
+        "langTag": "fr-FR",
+        "language": "fr"
+      }
+    },
+    {
+      "input": {
+        "id": "r",
+        "messages": [
+          {
+            "id": "r",
+            "role": "assistant",
+            "textFinal": "",
+            "textStream": " Bonjour ",
+            "lang": "fr-FR"
+          }
+        ],
+        "voice": "invalid",
+        "target": "en-US"
+      },
+      "expected": {
+        "text": "Bonjour",
+        "voice": "ash",
+        "langTag": "fr-FR",
+        "language": "fr"
+      }
+    },
+    {
+      "input": {
+        "id": "r",
+        "messages": [
+          {
+            "id": "r",
+            "role": "assistant",
+            "textFinal": "مرحبا",
+            "lang": "ar"
+          }
+        ],
+        "voice": "Vindemiatrix",
+        "target": "en-US"
+      },
+      "expected": {
+        "text": "مرحبا",
+        "voice": "ash",
+        "langTag": "ar-EG",
+        "language": "ar"
+      }
+    },
+    {
+      "input": {
+        "id": "r",
+        "messages": [
+          {
+            "id": "r",
+            "role": "assistant",
+            "textFinal": "مرحبا",
+            "lang": "ar"
+          }
+        ],
+        "voice": "cedar",
+        "target": "en-US"
+      },
+      "expected": {
+        "text": "مرحبا",
+        "voice": "cedar",
+        "langTag": "ar-EG",
+        "language": "ar"
+      }
+    },
+    {
+      "input": {
+        "id": "r",
+        "messages": [
+          {
+            "id": "r",
+            "role": "assistant",
+            "textFinal": "مرحبا",
+            "lang": "ar"
+          }
+        ],
+        "voice": "marin",
+        "target": "en-US"
+      },
+      "expected": {
+        "text": "مرحبا",
+        "voice": "marin",
+        "langTag": "ar-EG",
+        "language": "ar"
+      }
+    },
+    {
+      "input": {
+        "id": "r",
+        "messages": [
+          {
+            "id": "r",
+            "role": "assistant",
+            "textFinal": "مرحبا",
+            "lang": "ar"
+          }
+        ],
+        "voice": "invalid",
+        "target": "en-US"
+      },
+      "expected": {
+        "text": "مرحبا",
+        "voice": "ash",
+        "langTag": "ar-EG",
+        "language": "ar"
+      }
+    },
+    {
+      "input": {
+        "id": "r",
+        "messages": [
+          {
+            "id": "r",
+            "role": "assistant",
+            "textFinal": "nil language",
+            "lang": "unknown"
+          }
+        ],
+        "voice": "Vindemiatrix",
+        "target": "en-US"
+      },
+      "expected": {
+        "text": "nil language",
+        "voice": "ash",
+        "langTag": "es-MX",
+        "language": "es"
+      }
+    },
+    {
+      "input": {
+        "id": "r",
+        "messages": [
+          {
+            "id": "r",
+            "role": "assistant",
+            "textFinal": "nil language",
+            "lang": "unknown"
+          }
+        ],
+        "voice": "cedar",
+        "target": "en-US"
+      },
+      "expected": {
+        "text": "nil language",
+        "voice": "cedar",
+        "langTag": "es-MX",
+        "language": "es"
+      }
+    },
+    {
+      "input": {
+        "id": "r",
+        "messages": [
+          {
+            "id": "r",
+            "role": "assistant",
+            "textFinal": "nil language",
+            "lang": "unknown"
+          }
+        ],
+        "voice": "marin",
+        "target": "en-US"
+      },
+      "expected": {
+        "text": "nil language",
+        "voice": "marin",
+        "langTag": "es-MX",
+        "language": "es"
+      }
+    },
+    {
+      "input": {
+        "id": "r",
+        "messages": [
+          {
+            "id": "r",
+            "role": "assistant",
+            "textFinal": "nil language",
+            "lang": "unknown"
+          }
+        ],
+        "voice": "invalid",
+        "target": "en-US"
+      },
+      "expected": {
+        "text": "nil language",
+        "voice": "ash",
+        "langTag": "es-MX",
+        "language": "es"
+      }
+    },
+    {
+      "input": {
+        "id": "r",
+        "messages": [
+          {
+            "id": "r",
+            "role": "assistant",
+            "textFinal": "Nahuatl",
+            "lang": "nah"
+          }
+        ],
+        "voice": "Vindemiatrix",
+        "target": "en-US"
+      },
+      "expected": {
+        "text": "Nahuatl",
+        "voice": "ash",
+        "langTag": "es-MX",
+        "language": "es"
+      }
+    },
+    {
+      "input": {
+        "id": "r",
+        "messages": [
+          {
+            "id": "r",
+            "role": "assistant",
+            "textFinal": "Nahuatl",
+            "lang": "nah"
+          }
+        ],
+        "voice": "cedar",
+        "target": "en-US"
+      },
+      "expected": {
+        "text": "Nahuatl",
+        "voice": "cedar",
+        "langTag": "es-MX",
+        "language": "es"
+      }
+    },
+    {
+      "input": {
+        "id": "r",
+        "messages": [
+          {
+            "id": "r",
+            "role": "assistant",
+            "textFinal": "Nahuatl",
+            "lang": "nah"
+          }
+        ],
+        "voice": "marin",
+        "target": "en-US"
+      },
+      "expected": {
+        "text": "Nahuatl",
+        "voice": "marin",
+        "langTag": "es-MX",
+        "language": "es"
+      }
+    },
+    {
+      "input": {
+        "id": "r",
+        "messages": [
+          {
+            "id": "r",
+            "role": "assistant",
+            "textFinal": "Nahuatl",
+            "lang": "nah"
+          }
+        ],
+        "voice": "invalid",
+        "target": "en-US"
+      },
+      "expected": {
+        "text": "Nahuatl",
+        "voice": "ash",
+        "langTag": "es-MX",
+        "language": "es"
+      }
+    },
+    {
+      "input": {
+        "id": "r",
+        "messages": [
+          {
+            "id": "r",
+            "role": "assistant",
+            "textFinal": "  "
+          }
+        ],
+        "voice": "Vindemiatrix",
+        "target": "en-US"
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "id": "r",
+        "messages": [
+          {
+            "id": "r",
+            "role": "assistant",
+            "textFinal": "  "
+          }
+        ],
+        "voice": "cedar",
+        "target": "en-US"
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "id": "r",
+        "messages": [
+          {
+            "id": "r",
+            "role": "assistant",
+            "textFinal": "  "
+          }
+        ],
+        "voice": "marin",
+        "target": "en-US"
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "id": "r",
+        "messages": [
+          {
+            "id": "r",
+            "role": "assistant",
+            "textFinal": "  "
+          }
+        ],
+        "voice": "invalid",
+        "target": "en-US"
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "id": "r",
+        "messages": [
+          {
+            "id": "r",
+            "role": "user",
+            "textFinal": "user"
+          }
+        ],
+        "voice": "Vindemiatrix",
+        "target": "en-US"
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "id": "r",
+        "messages": [
+          {
+            "id": "r",
+            "role": "user",
+            "textFinal": "user"
+          }
+        ],
+        "voice": "cedar",
+        "target": "en-US"
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "id": "r",
+        "messages": [
+          {
+            "id": "r",
+            "role": "user",
+            "textFinal": "user"
+          }
+        ],
+        "voice": "marin",
+        "target": "en-US"
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "id": "r",
+        "messages": [
+          {
+            "id": "r",
+            "role": "user",
+            "textFinal": "user"
+          }
+        ],
+        "voice": "invalid",
+        "target": "en-US"
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "id": "r",
+        "messages": [],
+        "voice": "Vindemiatrix",
+        "target": "en-US"
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "id": "r",
+        "messages": [],
+        "voice": "cedar",
+        "target": "en-US"
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "id": "r",
+        "messages": [],
+        "voice": "marin",
+        "target": "en-US"
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "id": "r",
+        "messages": [],
+        "voice": "invalid",
+        "target": "en-US"
+      },
+      "expected": null
+    }
+  ],
+  "traces": [
+    {
+      "mode": "cached",
+      "log": [
+        [
+          "active",
+          "r"
+        ],
+        [
+          "lookup",
+          "r"
+        ],
+        [
+          "url"
+        ],
+        [
+          "recorded"
+        ],
+        [
+          "revoke"
+        ],
+        [
+          "active",
+          null
+        ]
+      ]
+    },
+    {
+      "mode": "fallback",
+      "log": [
+        [
+          "active",
+          "r"
+        ],
+        [
+          "lookup",
+          "r"
+        ],
+        [
+          "tts",
+          {
+            "text": "Hola",
+            "voice": "cedar",
+            "langTag": "es-MX"
+          }
+        ],
+        [
+          "synthesized"
+        ],
+        [
+          "cleanup"
+        ],
+        [
+          "active",
+          null
+        ]
+      ]
+    },
+    {
+      "mode": "missing",
+      "log": [
+        [
+          "active",
+          "r"
+        ],
+        [
+          "lookup",
+          "r"
+        ],
+        [
+          "active",
+          null
+        ]
+      ]
+    },
+    {
+      "mode": "user",
+      "log": [
+        [
+          "active",
+          "r"
+        ],
+        [
+          "lookup",
+          "r"
+        ],
+        [
+          "active",
+          null
+        ]
+      ]
+    },
+    {
+      "mode": "empty",
+      "log": [
+        [
+          "active",
+          "r"
+        ],
+        [
+          "lookup",
+          "r"
+        ],
+        [
+          "active",
+          null
+        ]
+      ]
+    },
+    {
+      "mode": "same",
+      "log": [
+        [
+          "active",
+          null
+        ]
+      ]
+    },
+    {
+      "mode": "audio-error",
+      "log": [
+        [
+          "active",
+          "r"
+        ],
+        [
+          "lookup",
+          "r"
+        ],
+        [
+          "url"
+        ],
+        [
+          "recorded"
+        ],
+        [
+          "revoke"
+        ],
+        [
+          "active",
+          null
+        ]
+      ]
+    },
+    {
+      "mode": "tts-error",
+      "log": [
+        [
+          "active",
+          "r"
+        ],
+        [
+          "lookup",
+          "r"
+        ],
+        [
+          "tts",
+          {
+            "text": "Hola",
+            "voice": "cedar",
+            "langTag": "es-MX"
+          }
+        ],
+        [
+          "active",
+          null
+        ]
+      ]
+    },
+    {
+      "mode": "play-error",
+      "log": [
+        [
+          "active",
+          "r"
+        ],
+        [
+          "lookup",
+          "r"
+        ],
+        [
+          "url"
+        ],
+        [
+          "recorded"
+        ],
+        [
+          "active",
+          null
+        ]
+      ]
+    }
+  ]
+}

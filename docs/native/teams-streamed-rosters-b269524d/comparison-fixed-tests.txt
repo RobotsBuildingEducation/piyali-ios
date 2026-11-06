@@ -1,0 +1,30 @@
+Test Case '-[PiyaliTests.PrivateTeamsContractTests testCachedLegacyRostersAndConcurrentMemberReadsKeepEachTeamsProgressIndependent]' passed (0.332 seconds).
+Test Case '-[PiyaliTests.PrivateTeamsContractTests testInviteAcceptProgressRenameConcurrentAddsLeaveAndDeleteUseActualSDK]' passed (1.350 seconds).
+Test Case '-[PiyaliTests.PrivateTeamsContractTests testLegacyInvitesDeclineWithoutChangingOtherMembersAndRejectInvalidOrStaleRoster]' passed (0.239 seconds).
+	 Executed 3 tests, with 0 failures (0 unexpected) in 1.920 (1.922) seconds
+Test Case '-[PiyaliTests.TeamsMirrorContractTests testActualFirebaseFirstWatchSnapshotCatchesARosterChangeAfterItsInitialRead]' passed (0.092 seconds).
+Test Case '-[PiyaliTests.TeamsMirrorContractTests testActualFirebaseSDKPublicMirrorCreationMembershipRenameAddsAndDeparture]' passed (0.213 seconds).
+Test Case '-[PiyaliTests.TeamsMirrorContractTests testOpenNativeCachedRosterShowsFirstMirrorSnapshotWithoutAServerRead]' passed (0.571 seconds).
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.876 (0.877) seconds
+Test Case '-[PiyaliTests.TeamsPanelControllerTests testAlreadyQueuedWatchCallbackCannotReloadOrPublishAfterDrawerCloses]' passed (1.038 seconds).
+Test Case '-[PiyaliTests.TeamsPanelControllerTests testCachedRosterStreamChangesTheCardImmediatelyWhileRowsAreHeldWithoutAFullReload]' passed (0.112 seconds).
+Test Case '-[PiyaliTests.TeamsPanelControllerTests testFailedStreamMemberReadKeepsPreviousRowsAndManagementErrorUntilANewSnapshotRecovers]' passed (0.120 seconds).
+Test Case '-[PiyaliTests.TeamsPanelControllerTests testLegacyOnlyTeamsDoNotPublishAndLateLoadCannotRestoreClosedAccountData]' passed (0.831 seconds).
+Test Case '-[PiyaliTests.TeamsPanelControllerTests testLiveInvitationsStayCurrentThroughAHeldReadAndFailedActionWithoutAFullReload]' passed (0.110 seconds).
+Test Case '-[PiyaliTests.TeamsPanelControllerTests testManagementFailureEmitsToastKeepsEditorAndSurvivesDrawerCloseButNotSignOut]' passed (0.082 seconds).
+Test Case '-[PiyaliTests.TeamsPanelControllerTests testNoticePortalClosesItsOwnItemReleasesEmptyWindowAndKeepsCurrentKeyWindow]' passed (0.073 seconds).
+Test Case '-[PiyaliTests.TeamsPanelControllerTests testNoticeTimersKeepIdenticalMessagesIndependentAndFenceCancelledAccount]' passed (0.100 seconds).
+Test Case '-[PiyaliTests.TeamsPanelControllerTests testOldGrantAndClosedStreamCallbacksCannotApplyOrFinishMemberRows]' passed (0.179 seconds).
+Test Case '-[PiyaliTests.TeamsPanelControllerTests testOriginalDebouncePublishesLatestSnapshotUpdatesOwnRowAndCancelsOnClose]' passed (2.566 seconds).
+Test Case '-[PiyaliTests.TeamsPanelControllerTests testReimportingSameAccountKeyFencesOldReadWatchAndPublisherSession]' passed (0.944 seconds).
+Test Case '-[PiyaliTests.TeamsPanelControllerTests testSameTeamNewAcceptedGrantTimestampReplacesTheRosterWatch]' passed (0.104 seconds).
+Test Case '-[PiyaliTests.TeamsPanelControllerTests testStreamBurstCoalescesLatestRowsAndAHeldFullReadCannotOverwriteNewerPresentation]' passed (0.117 seconds).
+Test Case '-[PiyaliTests.TeamsPanelControllerTests testSuccessfulWatchedRefreshClearsAReadFailureWhileActionErrorsRemainIndependent]' passed (0.073 seconds).
+Test Case '-[PiyaliTests.TeamsPanelControllerTests testWatchedChangeDuringFailedManagementStillArrivesWithoutHidingItsError]' passed (0.250 seconds).
+Test Case '-[PiyaliTests.TeamsPanelControllerTests testWatchedChangeWhileReadIsHeldRefreshesAfterTheStaleReadFinishes]' passed (0.273 seconds).
+	 Executed 16 tests, with 0 failures (0 unexpected) in 6.972 (6.977) seconds
+Test Case '-[PiyaliTests.TeamsPanelReferenceTests testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld]' passed (18.054 seconds).
+	 Executed 1 test, with 0 failures (0 unexpected) in 18.054 (18.055) seconds
+	 Executed 23 tests, with 0 failures (0 unexpected) in 27.823 (27.833) seconds
+	 Executed 23 tests, with 0 failures (0 unexpected) in 27.823 (27.834) seconds
+** TEST SUCCEEDED **

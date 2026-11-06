@@ -1,0 +1,15 @@
+{
+  "sources": [
+    {
+      "file": "src/utils/tts.js",
+      "sha256": "d6b7f16803fa7c88c7e94cd05186d491e8fd7846a08940bf86bf5175a36b7c7d"
+    },
+    {
+      "file": "src/utils/ttsCacheAudio.js",
+      "sha256": "55b6a7e77bdd64fcb789467420accc799e2d4d263fbeab7af60774780e75b5d5"
+    }
+  ],
+  "keyCases": 160,
+  "pcmCases": 6,
+  "scope": "Original exact-input cache key, seven-day TTL, audible-speech validation, trimming and WAV encoding. Explicit Float32 public sine/quiet buffers replace AudioBuffer; no browser store, audio hardware or provider executes."
+}

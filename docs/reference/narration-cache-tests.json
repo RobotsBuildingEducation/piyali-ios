@@ -1,0 +1,46 @@
+[
+  {
+    "bundle": "PiyaliNarrationCacheCompile1.xcresult",
+    "result": "Passed",
+    "passedTests": 8,
+    "failedTests": 0,
+    "failures": []
+  },
+  {
+    "bundle": "PiyaliNarrationCacheCore1.xcresult",
+    "result": "Passed",
+    "passedTests": 19,
+    "failedTests": 0,
+    "failures": []
+  },
+  {
+    "bundle": "PiyaliNarrationCacheLive1.xcresult",
+    "result": "Passed",
+    "passedTests": 1,
+    "failedTests": 0,
+    "failures": []
+  },
+  {
+    "bundle": "PiyaliNarrationCacheUI1.xcresult",
+    "result": "Failed",
+    "passedTests": 1,
+    "failedTests": 1,
+    "failures": [
+      {
+        "failureText": "XCTAssertTrue failed",
+        "targetName": "PiyaliUITests",
+        "testIdentifier": 2,
+        "testIdentifierString": "StandardBodyJourneyTests/testQuestionNarrationLoadingCancelsOnSkipAndMatchingWordToggle()",
+        "testIdentifierURL": "test://com.apple.xcode/Piyali/PiyaliUITests/StandardBodyJourneyTests/testQuestionNarrationLoadingCancelsOnSkipAndMatchingWordToggle",
+        "testName": "testQuestionNarrationLoadingCancelsOnSkipAndMatchingWordToggle()"
+      }
+    ]
+  },
+  {
+    "bundle": "PiyaliNarrationCacheUI2.xcresult",
+    "result": "Passed",
+    "passedTests": 1,
+    "failedTests": 0,
+    "failures": []
+  }
+]

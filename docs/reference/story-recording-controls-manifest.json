@@ -1,0 +1,33 @@
+{
+  "sources": [
+    {
+      "file": "src/components/Stories.jsx",
+      "sha256": "98a951b5e2de6f075b89da93dc99c4c8bfeee5fecd4cb365df2906be4302238c"
+    },
+    {
+      "file": "src/features/stories/StoryComprehension.jsx",
+      "sha256": "05a735aa10caaf25c8e1ea9fad02f29e23d912148e58c6e1a9bed4c2efeff328"
+    },
+    {
+      "file": "src/components/VoiceWaveIcon.jsx",
+      "sha256": "123068a4a50f6de87a3806875f2c4e48cc092453ede8a8c75b77b0fa8bcd4408"
+    },
+    {
+      "file": "src/components/ActivityActionRow.jsx",
+      "sha256": "3c23b2db2865f64c746005d756e4e101432090a95e86902fc6e55f238befbc2f"
+    },
+    {
+      "file": "src/features/stories/storyCopy.js",
+      "sha256": "25531117603c4b1ed5ed0dede754a7b50caa484d93e572bcbd82e61fab800274"
+    },
+    {
+      "file": "src/theme.js",
+      "sha256": "6fe6093ecca51d0debb1314a587d6bd0927e7ac9f8c1ba2c6c744017e3be407e"
+    },
+    {
+      "file": "src/index.css",
+      "sha256": "79a5362dc1b189acd0d2288c0e85ff29c9cc1c8e39b8bb5cabe164ddd1c29030"
+    }
+  ],
+  "scope": "Original recording Buttons inside original ActivityActionRow and source theme/copy/icons. Explicit capture state; callbacks inert, no microphone/provider/user stores. Wave bars freeze at their base pose for geometry; actual spectral motion is not claimed."
+}

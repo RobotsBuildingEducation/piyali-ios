@@ -19,4 +19,4 @@ export PIYALI_TEST_SCHEME=PiyaliStoreKit
 export TEST_RUNNER_PIYALI_STOREKIT_TESTS=1
 export TEST_RUNNER_PIYALI_OFFLINE_TESTS=1
 export TEST_RUNNER_PIYALI_TEST_IDENTITY_SCOPE="$(uuidgen)"
-scripts/test-ios.sh -only-testing:PiyaliTests/StoreKitSubscriptionTests
+scripts/test-ios.sh -only-testing:PiyaliTests/StoreKitSubscriptionTests "$@"

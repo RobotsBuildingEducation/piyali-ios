@@ -1,0 +1,8 @@
+{
+  "nativeBase": "ea75a2251e925d7ff15751cefb1d1f863c73d2a7",
+  "result": "Failed",
+  "failedCases": 2,
+  "assertionFailures": 5,
+  "scope": "Real signed loopback note/profile queries. Both original-raw-cache and original metadata/fallback contracts fail before the implementation change. No source edits or production I/O.",
+  "laterCompletionClock": "A separate source code audit found fetch-start timestamping. Final controlled-clock tests check held post and normalized-empty results after more than a TTL in flight."
+}

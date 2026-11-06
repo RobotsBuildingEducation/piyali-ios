@@ -1,0 +1,41 @@
+{
+  "captures": [
+    {
+      "file": "docs/native/game-handoff-tutor-bonus-product.png",
+      "test": "GameHandoffJourneyTests/testTutorAuthoredGameCompletesThroughItsOwnBonusWithoutLessonCredit()",
+      "sha256": "2aaa249b5ba12ef9e40cad56870e57fceadf78de571f346b8b18bd56e0a7c7b5",
+      "resultBundle": "PiyaliGameHandoffsFlows2.xcresult"
+    },
+    {
+      "file": "docs/native/game-handoff-tutor-recap-product.png",
+      "test": "GameHandoffJourneyTests/testTutorAuthoredGameCompletesThroughItsOwnBonusWithoutLessonCredit()",
+      "sha256": "1db3a713b4591166e98f91a5aa468c3ed7cb983f7c8135220051a73ecf020baa",
+      "resultBundle": "PiyaliGameHandoffsFlows2.xcresult"
+    },
+    {
+      "file": "docs/native/game-handoff-intro-skipped-product.png",
+      "test": "GameHandoffJourneyTests/testTutorialWarmsDuringEarlierStepsShowsPlayableLoaderAndCanSkip()",
+      "sha256": "82ae04cac5e9017868939705b22f05f595e5c29388a9e71251874c74ad5e7c6b",
+      "resultBundle": "PiyaliGameHandoffsFlows2.xcresult"
+    },
+    {
+      "file": "docs/native/game-handoff-intro-loader-product.png",
+      "test": "GameHandoffJourneyTests/testTutorialWarmsDuringEarlierStepsShowsPlayableLoaderAndCanSkip()",
+      "sha256": "b46f6e6bbc8ed37049da0e3224e2265bc3321dc00a318bd9744da566c764a3cf",
+      "resultBundle": "PiyaliGameHandoffsFlows2.xcresult"
+    },
+    {
+      "file": "docs/native/game-handoff-tutor-resumed-ar-product.png",
+      "test": "GameHandoffJourneyTests/testTutorStopsVoiceCanCancelThenRetryHandoffAndResume()",
+      "sha256": "2a6d03558ad7a77921fc56f844cbf2f19f8e95ac323eef2eec57363b0e92e830",
+      "resultBundle": "PiyaliGameHandoffsTutor5.xcresult"
+    },
+    {
+      "file": "docs/native/game-handoff-tutor-loader-ar-product.png",
+      "test": "GameHandoffJourneyTests/testTutorStopsVoiceCanCancelThenRetryHandoffAndResume()",
+      "sha256": "9908326a9625072525b68524136b40c6a23fb144af1dd5cca5339648fb27a5a1",
+      "resultBundle": "PiyaliGameHandoffsTutor5.xcresult"
+    }
+  ],
+  "scope": "Actual native offline QA product journeys on isolated identities. Prepared provider/cache fixtures, native map/tasks and canonical progress paths. Handoff/recap snapshots can intersect UIKit transitions; no claim of completed-game design parity."
+}

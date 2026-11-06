@@ -1,11 +1,11 @@
 import SwiftUI
 import CoreImage.CIFilterBuiltins
 
-struct WalletView:View {
+struct WalletMaintenanceView:View {
     @EnvironmentObject var app:AppModel
-    @StateObject private var service=WalletService()
+    @ObservedObject var service:WalletService
     @State private var amount="10"
-    @State private var recipient=""
+    @State var recipient=""
     @FocusState private var editingAmount:Bool
     @FocusState private var editingRecipient:Bool
     var body:some View {
@@ -54,7 +54,7 @@ struct WalletView:View {
                 }
                 Section("Automatic tips") {
                     if service.automatic.enabled {
-                        Text("1 sat for each new XP-earning activity while the wallet is funded. Approved mint fee: up to \(service.automatic.maximumFee) sat per tip.")
+                        Text("1 sat for each new XP-earning activity while the wallet is funded. Approved mint fee: up to \(service.automatic.maximumFee) sat per tip.").accessibilityIdentifier("walletAutomaticOn")
                         Text(service.automatic.recipient).font(.caption)
                         Text("\(service.automatic.queue.count) queued activities")
                         Button("Stop automatic tips") { perform { try service.configureAutomaticTips(enabled:false,recipient:service.automatic.recipient,maximumFee:service.automatic.maximumFee,identity:app.identity) } }.accessibilityIdentifier("walletStopAutomatic")
@@ -72,22 +72,47 @@ struct WalletView:View {
             if let error=service.error { Text(error).foregroundStyle(.red).accessibilityIdentifier("walletError") }
         }.navigationTitle("Wallet")
             .toolbar { ToolbarItemGroup(placement:.keyboard) { Spacer();Button("Done") { editingAmount=false;editingRecipient=false } } }
-            .task(id:app.identity.hex) { service.cancel(clear:true);try? await service.refresh(identity:app.identity) }
-            .task(id:service.depositID) {
-                guard !service.depositID.isEmpty else { return };var failures=0
-                while !Task.isCancelled,!service.depositID.isEmpty,!service.invoiceExpired,failures < 5 {
-                    do { try await Task.sleep(for:.seconds(3));if !service.busy { try await service.checkDeposit(identity:app.identity);failures=0 } }
-                    catch is CancellationError { return } catch { failures += 1 }
-                }
-            }
-            .onReceive(NotificationCenter.default.publisher(for:.walletAutomaticTipsChanged)) { change in
-                if change.object as? String == app.identity.hex { try? service.refreshAutomaticPreferences(identity:app.identity) }
-            }
-            .onDisappear { service.cancel() }
+
     }
     private func invoiceQR(_ value:String) -> UIImage? {
         let filter=CIFilter.qrCodeGenerator();filter.message=Data(("lightning:"+value).utf8);filter.correctionLevel="M"
         guard let output=filter.outputImage?.transformed(by:CGAffineTransform(scaleX:6,y:6)),let image=CIContext().createCGImage(output,from:output.extent) else { return nil };return UIImage(cgImage:image)
     }
     private func perform(_ action:@escaping @MainActor () async throws -> Void) { Task { try? await action();app.scheduleAutomaticTips() } }
+}
+
+/// Settings keeps the wallet in its Account accordion, matching the web entry point.
+struct WalletView:View {
+    @EnvironmentObject var app:AppModel
+    @StateObject private var service=WalletService()
+    @State private var tools=false
+    @State private var transactions=false
+    @State private var toast=""
+    var inline=false
+    var scholarship=false
+    var onDismiss:()->Void={}
+    private var selected:String{app.learner.settingsSnapshot["identity"].string}
+    private var lang:String{app.learner.support}
+    var body:some View {
+        Group {
+            if scholarship{ScholarshipSupportPanel(language:lang,selected:selected,ready:service.ready,onChoose:choose,onClose:onDismiss){VStack(spacing:12){panelContent;auxiliary}}}
+            else{VStack(alignment:.leading,spacing:12){panelContent;auxiliary}.padding(inline ? 0:16).frame(maxWidth:.infinity,alignment:.leading).navigationTitle(SettingsCopy.inline(lang,"Bitcoin wallet"))}
+        }
+            .sheet(isPresented:$tools){NavigationStack{WalletMaintenanceView(service:service,recipient:selected).toolbar{ToolbarItem(placement:.confirmationAction){Button(SettingsCopy.inline(lang,"Close")){tools=false}.accessibilityIdentifier("walletToolsClose")}}}}
+            .fullScreenCover(isPresented:$transactions){WalletTransactionsView(language:lang,onClose:{transactions=false})}
+            .task(id:app.identity.hex){service.cancel(clear:true);try? await service.refresh(identity:app.identity)}
+            .task(id:service.depositID){guard !service.depositID.isEmpty else{return};var failures=0;while !Task.isCancelled,!service.depositID.isEmpty,!service.invoiceExpired,failures<5{do{try await Task.sleep(for:.seconds(3));if !service.busy{try await service.checkDeposit(identity:app.identity);failures=0}}catch is CancellationError{return}catch{failures += 1}}}
+            .onChange(of:service.ready){_,ready in if ready{if app.learner.settingsSnapshot["createdWallet"] != .bool(true){app.updateSettings(.object(["createdWallet":.bool(true)]))}else{app.scheduleAutomaticTips()}}}
+            .onReceive(NotificationCenter.default.publisher(for:.walletAutomaticTipsChanged)){change in if change.object as? String == app.identity.hex{try? service.refreshAutomaticPreferences(identity:app.identity)}}
+            .onDisappear{service.cancel()}
+    }
+    private var panelContent:some View{WalletPanelView(language:lang,selected:selected,ready:service.ready,hydrating:service.busy && !service.canCreate && !service.canRestore,busy:service.busy,canCreate:service.canCreate,balance:service.balance,invoice:service.invoice,compact:scholarship,showIntro:!scholarship,showRecipients:!scholarship,transparent:scholarship,forcePaper:scholarship,choose:choose,create:{perform{try await service.create(identity:app.identity)}},deposit:{guard !selected.isEmpty else{return};perform{try await service.deposit(amount:100,identity:app.identity)}},copy:{UIPasteboard.general.string=service.invoice;toast=SettingsCopy.inline(lang,"Address copied");Task{try? await Task.sleep(for:.milliseconds(1500));toast=""}},transactions:{transactions=true})}
+    @ViewBuilder private var auxiliary:some View{
+            if service.canRestore {Text("Browser wallet records were found. Restore them to keep existing proofs and receiving keys.").font(PiyaliBrand.productFont(12));Button("Restore browser wallet"){perform{try await service.restoreBrowserWallet(identity:app.identity)}}.accessibilityIdentifier("walletRestoreBrowser").disabled(service.busy)}
+            if let error=service.error{Text(error).font(PiyaliBrand.productFont(12)).foregroundStyle(.red).accessibilityIdentifier("walletError")}
+            if !toast.isEmpty{Text(toast).font(PiyaliBrand.productFont(12)).accessibilityIdentifier("walletToast")}
+            if service.ready && (!scholarship || service.pending || service.invoiceExpired){Button{tools=true}label:{Label("Payment tools and recovery",systemImage:"ellipsis.circle").font(PiyaliBrand.productFont(12)).frame(maxWidth:.infinity,minHeight:36).contentShape(Rectangle())}.accessibilityIdentifier("walletTools")}
+    }
+    private func choose(_ npub:String){guard npub != selected,WalletCopy.recipients.contains(where:{$0["npub"].string == npub}) else{return};do{if service.automatic.enabled && service.automatic.sourceManaged != true{try service.configureAutomaticTips(enabled:false,recipient:service.automatic.recipient,maximumFee:service.automatic.maximumFee,identity:app.identity)};app.updateSettings(.object(["identity":.string(npub)]))}catch{toast="Automatic tips could not be stopped. Your recipient has not changed."}}
+    private func perform(_ action:@escaping @MainActor ()async throws->Void){Task{try? await action();app.scheduleAutomaticTips()}}
 }

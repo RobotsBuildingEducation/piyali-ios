@@ -1,0 +1,19 @@
+{
+  "source": "src/components/Tutor.jsx",
+  "sha256": "bbe9dea6279119ecef32cb69a66a8fb40763642ca05717690dec789a72e088c3",
+  "additionalSources": [
+    {
+      "source": "src/App.jsx",
+      "sha256": "5fd4a87bd5db004c1fc049ff7e8c7e266e6d65d7c42201ef75e923044c4a7dc8"
+    },
+    {
+      "source": "src/theme.js",
+      "sha256": "6fe6093ecca51d0debb1314a587d6bd0927e7ac9f8c1ba2c6c744017e3be407e"
+    },
+    {
+      "source": "src/index.css",
+      "sha256": "79a5362dc1b189acd0d2288c0e85ff29c9cc1c8e39b8bb5cabe164ddd1c29030"
+    }
+  ],
+  "scope": "Two original Tutor completion/review Modal JSX trees and display/copy functions. Original RandomCharacter, XpProgressHeader, bidi and modal motion imports. Public completed-agenda data supplied by native source policy; fixed background and external I/O disabled."
+}

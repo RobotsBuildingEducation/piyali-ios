@@ -1,6 +1,15 @@
 import Foundation
 
 public enum Reading {
+    public static func generationFailure(support:String)->String {
+        let copy=ReadingRules.data["generationUnavailable"]
+        return copy[support].string.isEmpty ? copy["en"].string : copy[support].string
+    }
+    /// History.jsx's session-local last-lecture guard, including its strict 15s boundary.
+    public static func isDuplicateOfLast(title:String,target:String,last:JSONValue?,now:Date)->Bool {
+        guard let last else{return false}
+        return now.timeIntervalSince1970*1000-last["createdAtClient"].number < 15000 && comparison(last["title"].string) == comparison(title) && comparison(last["target"].string) == comparison(target)
+    }
     public static func normalize(_ text:String) -> String { text.precomposedStringWithCompatibilityMapping.lowercased().replacingOccurrences(of:"[^\\p{L}\\p{N}\\s]",with:" ",options:.regularExpression).replacingOccurrences(of:"\\s+",with:" ",options:.regularExpression).trimmingCharacters(in:.whitespacesAndNewlines) }
     public static func comparison(_ text:String) -> String { text.lowercased().replacingOccurrences(of:"\\s+",with:" ",options:.regularExpression).trimmingCharacters(in:.whitespacesAndNewlines) }
     public static func matches(_ text:String,_ pattern:String) -> Bool { text.range(of:pattern,options:[.regularExpression,.caseInsensitive]) != nil }
@@ -13,6 +22,39 @@ public enum Reading {
         normalized.enumerateSubstrings(in:normalized.startIndex...,options:.byWords) { value,_,_,_ in if let value { values.append(value) } };return values
     }
     public static func sentences(_ text:String) -> [String] { groups(text,"[^.!?。！？\\n]+[.!?。！？]*").map { $0.trimmingCharacters(in:.whitespacesAndNewlines) }.filter { !$0.isEmpty } }
+    /// Original History.jsx sentence boundaries for tap-to-read and aligned translation.
+    public static func displaySentences(_ text:String)->[String] {
+        var parts=groups(text,"[^.!?。！？]*[.!?。！？]+")
+        if parts.isEmpty { return text.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty ? [] : [text.trimmingCharacters(in:.whitespacesAndNewlines)] }
+        let remainder=String(text.dropFirst(parts.joined().count)).trimmingCharacters(in:.whitespacesAndNewlines)
+        if !remainder.isEmpty { parts.append(remainder) }
+        return parts.map { $0.trimmingCharacters(in:.whitespacesAndNewlines) }.filter { !$0.isEmpty }
+    }
+    public static func protocolPayload(_ output:String,questionType:String)throws->JSONValue {
+        let objects:[JSONValue]
+        do {objects=try GenerationObjects.parse(output)} catch {
+            // The web skips malformed NDJSON records and continues consuming
+            // later complete lines. Keep the same behavior without weakening
+            // the final done marker and question validation below.
+            guard output.utf8.count <= 100_000 else{throw ReadingFailure.invalid}
+            objects=output.components(separatedBy:.newlines).compactMap { line in
+                guard let object=try? JSONDecoder().decode(JSONValue.self,from:Data(line.trimmingCharacters(in:.whitespacesAndNewlines).utf8)),case .object=object else{return nil};return object
+            }
+            guard objects.count <= 64 else{throw ReadingFailure.invalid}
+        }
+        guard let title=objects.first(where:{$0["type"].string == "title"}),let review=objects.last(where:{$0["type"].string == "review_question"}),objects.last?["type"].string == "done" else { throw ReadingFailure.invalid }
+        let targets=objects.filter { $0["type"].string == "target" }.map { $0["text"].string },takeaways=objects.filter { $0["type"].string == "takeaway" }.map { $0["text"].string }
+        let question=review.setting("questionType",review["questionType"] == .null ? .string(questionType) : review["questionType"])
+        guard ReadingQuestion(question) != nil else { throw ReadingFailure.invalid }
+        return .object(["title":title["text"],"target":.string(targets.joined(separator:" ")),"takeaways":.array(takeaways.map(JSONValue.string)),"reviewQuestion":question,"rawReviewQuestion":review])
+    }
+    /// Source History.jsx's on-demand review prompt for a missing bundled question.
+    public static func reviewPrompt(type:String,text:String,target:String,support:String)->String {
+        let a=target == "pt" ? "Brazilian Portuguese" : target == "hi" ? "hi" : LearningLanguages.names[target] ?? target,b=support == "pt" ? "Brazilian Portuguese" : support == "hi" ? "hi" : LearningLanguages.names[support] ?? support
+        if type == "fill" {return ["Based on this \(a) text, create a short fill-in-the-blank question in \(b).","Write a brief original question (not a sentence from the passage) with a key phrase replaced by \"___\".","The missing answer should be something clearly derivable from the text — use meaningful words or short phrases, not obscure single words.","Return ONLY valid JSON: {\"sentence\":\"<short question with ___>\",\"answer\":\"<the missing word or phrase>\"}","",text].joined(separator:"\n")}
+        if type == "mc" {return ["Based on this \(a) text, create one short multiple-choice comprehension question in \(b).","The question should test genuine understanding — ask about meaning, inference, or context rather than surface-level facts that are obvious from the question itself.","AVOID questions where the answer is already contained in the question (e.g. \"What relationship is the speaker's brother?\" with \"Brother\" as an option).","Instead, ask things like \"What can you infer about...?\", \"Why does the speaker mention...?\", \"What is the main idea?\", or \"What does ___ refer to in context?\"","Make the wrong options plausible but clearly distinguishable. Do NOT repeat or quote the passage. Keep the question to one sentence.","Return ONLY valid JSON: {\"question\":\"<the question>\",\"options\":[\"A\",\"B\",\"C\",\"D\"],\"answer\":\"<the correct option text>\"}","",text].joined(separator:"\n")}
+        return ["Based on this \(a) text, create one short comprehension question in \(b).","The question should be brief (one sentence). Do NOT repeat or quote the passage.","The answer should be a short phrase that any reasonable reader could derive from the text. Accept multiple valid phrasings.","Return ONLY valid JSON: {\"question\":\"<the question>\",\"answer\":\"<short correct answer>\"}","",text].joined(separator:"\n")
+    }
     public static func award(roll:Double) -> Int { 5+Int(floor((roll.isFinite ? max(0,min(1-Double.ulpOfOne,roll)) : 0)*4)) }
     public static func stripPreamble(_ text:String) -> String { var result=text.trimmingCharacters(in:.whitespacesAndNewlines);for pattern in ReadingRules.data["preambles"].array.map(\.string) { result=result.replacingOccurrences(of:pattern,with:"",options:[.regularExpression,.caseInsensitive]).trimmingCharacters(in:.whitespacesAndNewlines) };return result }
     private static func reaction(_ text:String) -> Bool { matches(text.replacingOccurrences(of:"^[¡¿\\s]+",with:"",options:.regularExpression),"^(?:oh\\b|ah\\b|wow\\b|yay\\b|hooray\\b|really\\b|look\\b|how\\s+(?:nice|lovely|wonderful|exciting|great)|what\\s+(?:a|an)\\b|ay\\b|vaya\\b|guau\\b|qué\\s+(?:bien|bonito|bueno|maravilla)|waouh\\b|super\\b|comme\\s+c'est|che\\s+bello|que\\s+(?:bom|legal)|wie\\s+(?:schön|toll)|わあ|すごい|哇)") }
@@ -66,6 +108,7 @@ public struct ReadingQuestion:Codable,Equatable,Sendable {
     public let question:String
     public let options:[String]
     public let answer:String
+    public init(unavailableType:String) {self.type=unavailableType;self.question="";self.options=[];self.answer=""}
     public init?(_ input:JSONValue,expectedType:String = "") {
         let allowed=["text","fill","mc"],type=allowed.contains(expectedType) ? expectedType : allowed.contains(input["questionType"].string) ? input["questionType"].string : input["type"].string
         let question=(input["question"].string.isEmpty ? input["sentence"].string : input["question"].string).trimmingCharacters(in:.whitespacesAndNewlines),answer=input["answer"].string.trimmingCharacters(in:.whitespacesAndNewlines)

@@ -98,6 +98,11 @@ struct WalletVault {
 
 extension WalletVault {
     private func automaticQuery(_ owner:String) throws -> [String:Any] { var result=try query(owner);result[kSecAttrAccount as String]=owner+":automatic-tips";return result }
+    func hasAutomaticPreference(owner:String)throws->Bool {
+        var request=try automaticQuery(owner);request[kSecMatchLimit as String]=kSecMatchLimitOne
+        let status=SecItemCopyMatching(request as CFDictionary,nil)
+        guard status == errSecSuccess || status == errSecItemNotFound else{throw AppError.message("Automatic tip preferences could not be read.")};return status == errSecSuccess
+    }
     func automaticTips(owner:String) throws -> AutomaticTipJournal {
         var request=try automaticQuery(owner);request[kSecReturnData as String]=true;request[kSecMatchLimit as String]=kSecMatchLimitOne
         var item:CFTypeRef?;let status=SecItemCopyMatching(request as CFDictionary,&item)

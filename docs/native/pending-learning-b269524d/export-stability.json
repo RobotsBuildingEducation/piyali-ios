@@ -1,0 +1,11 @@
+{
+  "byteStable": true,
+  "generatedSwiftMtimeUnchanged": true,
+  "memorySourceCases": 411,
+  "files": {
+    "Piyali/Core/CompanionMemory.swift": "8841f7ae20ebbda0493d7a76ed9ea5c2c178d46756637571bec1789910728c2e",
+    "Piyali/Resources/memory-policy.js": "b32b00d7cf9e131cd56d50b4d4e4c70cfcab2bff28e1cdab841b52823aaf4b61",
+    "Tests/PiyaliCoreTests/Fixtures/memory-policy.json.gz": "44659247ddea43ce96097faefff213ce5c701ba3f8a7cab0269cde3ff3e9fb95",
+    "docs/reference/memory-source-manifest.json": "0e1c7311e43c1d78e78a9d16fdd56a76bcf2e9d0ece26be047222432a6f8b161"
+  }
+}

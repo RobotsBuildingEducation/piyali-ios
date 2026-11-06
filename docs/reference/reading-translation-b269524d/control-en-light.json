@@ -1,0 +1,9 @@
+{
+  "background": "rgb(72, 55, 156) none repeat scroll 0% 0% / auto padding-box border-box",
+  "borderRadius": "100px",
+  "boxShadow": "rgb(13, 1, 44) 0px 4px 0px 0px",
+  "cornerShape": "superellipse(2)",
+  "font": "600 14px / 16.8px -apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+  "height": 32,
+  "width": 133.3359375
+}

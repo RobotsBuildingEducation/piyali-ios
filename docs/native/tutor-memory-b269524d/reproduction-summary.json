@@ -1,0 +1,57 @@
+{
+  "devicesAndConfigurations" : [
+    {
+      "device" : {
+        "architecture" : "arm64",
+        "deviceId" : "CE8248B6-7171-4FD4-97DE-89E499107F82",
+        "deviceName" : "Piyali Parity QA",
+        "modelName" : "iPhone 17 Pro",
+        "osBuildNumber" : "23E254a",
+        "osVersion" : "26.4.1",
+        "platform" : "iOS Simulator"
+      },
+      "expectedFailures" : 0,
+      "failedTests" : 2,
+      "passedTests" : 0,
+      "skippedTests" : 0,
+      "testPlanConfiguration" : {
+        "configurationId" : "1",
+        "configurationName" : "Test Scheme Action"
+      }
+    }
+  ],
+  "environmentDescription" : "Piyali · Built with macOS 26.4.1",
+  "expectedFailures" : 0,
+  "failedTests" : 2,
+  "finishTime" : 1793936036.268,
+  "passedTests" : 0,
+  "result" : "Failed",
+  "skippedTests" : 0,
+  "startTime" : 1793935968.199,
+  "statistics" : [
+
+  ],
+  "testFailures" : [
+    {
+      "failureText" : "XCTAssertEqual failed: (\"0\") is not equal to (\"1\") - gemini success=false confidence=0.2",
+      "targetName" : "PiyaliTests",
+      "testIdentifier" : 1,
+      "testIdentifierString" : "TutorSessionTests/testOrdinarySemanticSlipCaptureIsIndependentOfSuccessfulAndLowConfidenceGrades()",
+      "testIdentifierURL" : "test://com.apple.xcode/Piyali/PiyaliTests/TutorSessionTests/testOrdinarySemanticSlipCaptureIsIndependentOfSuccessfulAndLowConfidenceGrades",
+      "testName" : "testOrdinarySemanticSlipCaptureIsIndependentOfSuccessfulAndLowConfidenceGrades()"
+    },
+    {
+      "failureText" : "XCTUnwrap failed: expected non-nil value of type \"MemoryNote\"",
+      "targetName" : "PiyaliTests",
+      "testIdentifier" : 2,
+      "testIdentifierString" : "TutorSessionTests/testOrdinarySemanticSlipTrimsAndFallsBackToCorrectionInsteadOfDroppingIt()",
+      "testIdentifierURL" : "test://com.apple.xcode/Piyali/PiyaliTests/TutorSessionTests/testOrdinarySemanticSlipTrimsAndFallsBackToCorrectionInsteadOfDroppingIt",
+      "testName" : "testOrdinarySemanticSlipTrimsAndFallsBackToCorrectionInsteadOfDroppingIt()"
+    }
+  ],
+  "title" : "Test - Piyali",
+  "topInsights" : [
+
+  ],
+  "totalTestCount" : 2
+}

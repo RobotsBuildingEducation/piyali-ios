@@ -22,13 +22,13 @@ final class RPGTests:XCTestCase {
         let fixture=try JSONDecoder().decode(JSONValue.self,from:Data(contentsOf:URL(fileURLWithPath:#filePath).deletingLastPathComponent().appendingPathComponent("Fixtures/rpg.json")))
         for sample in fixture["stories"].array {
             let base=try JSONDecoder().decode(RPGScenario.self,from:JSONEncoder().encode(sample["base"]))
-            let actual=RPGStory.preparing(base,raw:sample["raw"],target:sample["target"].string,support:sample["support"].string)
+            let actual=RPGStory.preparing(base,raw:sample["raw"],target:sample["target"].string,support:sample["support"].string,policy:try RPGPreparationPolicy(url:root.appendingPathComponent("Piyali/Resources/rpg-preparation-policy.js")))
             if sample["expected"] == .null { XCTAssertNil(actual,sample["mode"].string) }
             else { let expected=try JSONDecoder().decode(RPGScenario.self,from:JSONEncoder().encode(sample["expected"]));XCTAssertEqual(actual?.npcs,expected.npcs,sample["mode"].string);XCTAssertEqual(actual?.quest.storySeed,expected.quest.storySeed,sample["mode"].string);XCTAssertEqual(actual?.quest.intro,expected.quest.intro);XCTAssertEqual(actual?.storyTitle,expected.storyTitle);XCTAssertEqual(actual?.storyIntro,expected.storyIntro);XCTAssertEqual(actual?.storyEpilogue,expected.storyEpilogue);for (a,e) in zip(actual?.quest.steps ?? [],expected.quest.steps) { XCTAssertEqual(a,e,sample["mode"].string) } }
         }
         for sample in fixture["dialogue"].array { let value=RPGDialogue.split(sample["text"].string);XCTAssertEqual(value.spoken,sample["expected"]["spokenText"].string);XCTAssertEqual(value.scene,sample["expected"]["subtext"].string) }
     }
-    func testEveryAuthoredLanguageLevelEpisodeAndUnitReviewHasSevenPlayableTasks() throws {
+    func testEveryAuthoredLanguageLevelEpisodeAndUnitReviewKeepsItsPlayableSourceTasks() throws {
         var count=0,reviews=0
         for target in LearningLanguages.practice+["nah","yua"] {
             let curriculum=try ContentLibrary.decode([String:[LearningUnit]].self,url:root.appendingPathComponent("Piyali/Resources/curriculum-\(target).json.gz"))
@@ -48,8 +48,31 @@ final class RPGTests:XCTestCase {
         XCTAssertEqual(count,11760);XCTAssertEqual(reviews,1246)
     }
     private func verify(_ scenario:RPGScenario,library:RPGLibrary,file:StaticString = #filePath,line:UInt = #line) {
-        XCTAssertEqual(scenario.quest.steps.count,7,file:file,line:line);XCTAssertEqual(scenario.quest.steps.map(\.weight).reduce(0,+),8,file:file,line:line);XCTAssertFalse(scenario.npcs.isEmpty,file:file,line:line);XCTAssertNotNil(library.worlds[scenario.worldKey],file:file,line:line)
+        XCTAssertTrue((1...7).contains(scenario.quest.steps.count),file:file,line:line);XCTAssertTrue(scenario.quest.steps.allSatisfy{$0.weight == ($0.id == "finale" ? 2:1)},file:file,line:line);XCTAssertFalse(scenario.npcs.isEmpty,file:file,line:line);XCTAssertNotNil(library.worlds[scenario.worldKey],file:file,line:line)
         for step in scenario.quest.steps { XCTAssertTrue(scenario.npcs.indices.contains(step.npcIdx),file:file,line:line);XCTAssertEqual(step.nodes.count,1,file:file,line:line);let node=step.nodes[0];XCTAssertFalse(node.npcLine.isEmpty,file:file,line:line);if node.responseMode == "choice" { XCTAssertEqual(node.choices.filter(\.correct).count,1,file:file,line:line) } else { XCTAssertFalse((node.speechTarget ?? "").isEmpty,file:file,line:line) } }
+    }
+    func testAllChapterDecksEqualUnmodifiedSourceTasks()throws {
+        let samples=try ContentLibrary.decode([JSONValue].self,url:root.appendingPathComponent("Tests/PiyaliCoreTests/Fixtures/rpg-decks.json.gz"))
+        XCTAssertEqual(samples.count,12460)
+        var libraries:[String:RPGLibrary]=[:],short=0
+        for sample in samples {
+            let target=sample["target"].string
+            if libraries[target] == nil{libraries[target]=try library(target)}
+            let actual=try XCTUnwrap(libraries[target]?.reviews[sample["lesson"].string]?.bySupport[sample["support"].string])
+            let expected=try JSONDecoder().decode([RPGStep].self,from:JSONEncoder().encode(sample["steps"]))
+            XCTAssertEqual(actual.quest.steps,expected,"\(target) \(sample["lesson"].string) \(sample["support"].string)")
+            if expected.count<7{short += 1}
+        }
+        XCTAssertEqual(short,450)
+    }
+    func testCastUsesOriginalWholeNameRulesAndPersistsAppearance()throws {
+        let samples=try JSONDecoder().decode([JSONValue].self,from:Data(contentsOf:root.appendingPathComponent("Tests/PiyaliCoreTests/Fixtures/rpg-names.json")))
+        for sample in samples {XCTAssertEqual(RPGCast.rename(sample["text"].string,mapping:sample["mapping"].object.mapValues(\.string)),sample["expected"].string)}
+        let original=try makeRun(),members=original.scenario.npcs.enumerated().map{RPGCast.Member(name:"NewName\($0.offset)",image:"sprite\($0.offset)",kind:"cat")}
+        let changed=try RPGCast.applying(members,to:original.scenario)
+        XCTAssertEqual(changed.quest.steps.map(\.weight),original.scenario.quest.steps.map(\.weight))
+        for (index,npc) in changed.npcs.enumerated(){XCTAssertEqual(npc.name,members[index].name);XCTAssertEqual(npc.appearance,members[index].image);XCTAssertEqual(npc.characterKind,"cat")}
+        XCTAssertEqual(try JSONDecoder().decode(RPGScenario.self,from:JSONEncoder().encode(changed)),changed)
     }
     func testRetriesHaveDecliningPointsAndThreeMissesRevealWithoutCompletionXP() throws {
         var run=try makeRun(),state=LearnerState();state.saveRPG(run)
@@ -72,7 +95,9 @@ final class RPGTests:XCTestCase {
         var run=try makeRun(),state=LearnerState();finish(&run);state.saveRPG(run)
         XCTAssertEqual(run.score,800);XCTAssertEqual(run.stars,3);XCTAssertEqual(state.completeRPG(run),30);XCTAssertEqual(state.completeRPG(run),0)
         XCTAssertEqual(state.totalXP,30);XCTAssertEqual(state.pendingChanges?.count,1);XCTAssertEqual(state.pendingChanges?.first?.gameResult?["score"].number,800);XCTAssertTrue(state.completed.contains("es:unit-game"));XCTAssertEqual(state.rating,800)
-        var replay=try self.makeRun();finish(&replay);state.saveRPG(replay);XCTAssertEqual(state.completeRPG(replay),0)
+        let encoder=JSONEncoder();encoder.outputFormatting = .sortedKeys;let originalReceipt=try encoder.encode(state.pendingChanges)
+        var replay=try self.makeRun();finish(&replay);replay.score=700;XCTAssertEqual(replay.stars,2);XCTAssertEqual(replay.reward,22);state.saveRPG(replay);XCTAssertEqual(state.completeRPG(replay),0)
+        state=try JSONDecoder().decode(LearnerState.self,from:encoder.encode(state));XCTAssertEqual(state.totalXP,30);XCTAssertEqual(try encoder.encode(state.pendingChanges),originalReceipt);XCTAssertEqual(state.rpgRuns?["es"]?.score,700);XCTAssertEqual(state.rpgRuns?["es"]?.claimed,true)
         var free=try self.makeRun(lesson:nil);finish(&free);state.saveRPG(free);XCTAssertEqual(state.completeRPG(free),0);XCTAssertEqual(state.totalXP,30)
     }
     func testMapCollisionPathfindingAndSavedRunSurvivePersistence() throws {

@@ -1,0 +1,38 @@
+{
+  "cases": 120,
+  "duration": 5000,
+  "sources": [
+    {
+      "file": "src/App.jsx",
+      "sha256": "eb7e06e1422cac6d205059dc92d68370bec40c1009c1a316f0c2d3eb5f325fd6"
+    },
+    {
+      "file": "src/utils/petTypes.js",
+      "sha256": "e22bacdec1bd9f58bad705b3f4d032adc43ad8799aea5fbf676a77b1a8160770"
+    },
+    {
+      "file": "src/utils/germanCopy.js",
+      "sha256": "c5d8071bc25c6907cf33693b8e6ae274d3796d7f72b80b21a2056946ebba4307"
+    },
+    {
+      "file": "node_modules/@chakra-ui/react/dist/esm/toast/toast.component.mjs",
+      "sha256": "0038cd4a0474923e82f05a694be163690df0ece3ff5d7459386f45d684ce5b05"
+    },
+    {
+      "file": "node_modules/@chakra-ui/react/dist/esm/toast/toast.mjs",
+      "sha256": "7d9e292b8e3896d79aae67df67c767b921bad524d2592fd69f957cee0769cc6a"
+    },
+    {
+      "file": "node_modules/@chakra-ui/react/dist/esm/toast/toast.utils.mjs",
+      "sha256": "978a18ce4676ed14ee7589de76b395ebed15b29a54c319c7e695dc5b6025764f"
+    },
+    {
+      "file": "node_modules/@chakra-ui/react/dist/esm/alert/alert-icons.mjs",
+      "sha256": "b18fce25057e14881ca0aa5591e34a78df08906c005615e409e6d5202fce1fa8"
+    },
+    {
+      "file": "node_modules/@chakra-ui/theme/dist/esm/components/alert.mjs",
+      "sha256": "a64562c8e3273d8cfe210edd4f5483024a7510a7b43556a2f0986778c2ad3c8b"
+    }
+  ]
+}

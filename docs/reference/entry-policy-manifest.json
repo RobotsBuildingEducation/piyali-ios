@@ -1,0 +1,25 @@
+{
+  "sources": [
+    {
+      "file": "src/components/LandingPage.jsx",
+      "sha256": "82cbfbc51eb69bbc4d48f89c648dfb132cadc39a4430794625c84622a8038301"
+    },
+    {
+      "file": "src/utils/nostrKeyDetection.js",
+      "sha256": "4dd7cb4c6792fa377eded49f38ebe4886a57cb5aa60716a09e0db5cf56ecb879"
+    },
+    {
+      "file": "src/components/AnimatedBackground.jsx",
+      "sha256": "11d1e260a9ce2f0e54600be15f51c83f3ba61b1fdfabd895867f19fa11c36b43"
+    },
+    {
+      "file": "src/utils/themeModeToggleStyle.js",
+      "sha256": "e19cf7cf1eba507138da9a52f4624265796846377906be1498aca4508da146f7"
+    },
+    {
+      "file": "src/theme.js",
+      "sha256": "6fe6093ecca51d0debb1314a587d6bd0927e7ac9f8c1ba2c6c744017e3be407e"
+    }
+  ],
+  "scope": "Original create/instant-create and sign-in error callbacks, header scroll visibility callback executed directly. Identity/storage/sound effects are inert fixtures. Floating greeting literals extracted from original JSX; no source checkout changes."
+}

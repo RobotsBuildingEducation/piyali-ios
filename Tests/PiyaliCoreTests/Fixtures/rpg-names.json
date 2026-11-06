@@ -1,0 +1,53 @@
+[
+  {
+    "text": "Ana y Ana María. Ana_María Anabel",
+    "mapping": {
+      "Ana María": "Yoruichi",
+      "Ana": "Neko"
+    },
+    "expected": "Neko y Yoruichi. Ana_María Anabel"
+  },
+  {
+    "text": "(猫) 猫咪 猫_1 猫。",
+    "mapping": {
+      "猫": "Yachiru"
+    },
+    "expected": "(Yachiru) 猫咪 猫_1 Yachiru。"
+  },
+  {
+    "text": "نور، ونور نور-نور",
+    "mapping": {
+      "نور": "Jiraiya"
+    },
+    "expected": "Jiraiya، ونور Jiraiya-Jiraiya"
+  },
+  {
+    "text": "A+B, A+B! A+BC",
+    "mapping": {
+      "A+B": "$& $1"
+    },
+    "expected": "$& $1, $& $1! A+BC"
+  },
+  {
+    "text": "Élodie: Élodie2 _Élodie “Élodie”",
+    "mapping": {
+      "Élodie": "Sheilfer"
+    },
+    "expected": "Sheilfer: Élodie2 _Élodie “Sheilfer”"
+  },
+  {
+    "text": "No name",
+    "mapping": {
+      "": "Neko",
+      "name": ""
+    },
+    "expected": "No name"
+  },
+  {
+    "text": "Ana, Ana.",
+    "mapping": {
+      "Ana": "Neko"
+    },
+    "expected": "Neko, Neko."
+  }
+]

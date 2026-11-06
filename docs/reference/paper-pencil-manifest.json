@@ -1,0 +1,105 @@
+{
+  "sources": [
+    {
+      "file": "src/components/PaperPencilModal.jsx",
+      "sha256": "32ac96a14319fa28a2458fb39fbb063b7241dcccfbcacf5f6558e79071e7e691"
+    },
+    {
+      "file": "src/utils/paperPencilModalTranslations.js",
+      "sha256": "67742403b84c25bd92d6924d3e844ef8e515dfc52612a5c1fa85f528550ab54c"
+    },
+    {
+      "file": "src/utils/translation.jsx",
+      "sha256": "010eb38be8f55e0509b99c209ae4042833057f3e28e0d925636dec42d7fb6fb6"
+    },
+    {
+      "file": "src/utils/translationArStatic.js",
+      "sha256": "1de18d1a33d0fd75344507b06799c9d60d1584ee72facab3cbff19293d5c5bc1"
+    },
+    {
+      "file": "src/utils/SoundManager.js",
+      "sha256": "74b0ae85c6ea2b8a077af4176d6ad5df6f5715ecc7d0bcdf65789a4875fc7471"
+    },
+    {
+      "file": "src/utils/modalMotion.js",
+      "sha256": "6a761b545b8bda646d8ea1783326ed27ac2d8fa61f3061a0c46de28abf702527"
+    },
+    {
+      "file": "src/theme.js",
+      "sha256": "6fe6093ecca51d0debb1314a587d6bd0927e7ac9f8c1ba2c6c744017e3be407e"
+    },
+    {
+      "file": "src/index.css",
+      "sha256": "79a5362dc1b189acd0d2288c0e85ff29c9cc1c8e39b8bb5cabe164ddd1c29030"
+    }
+  ],
+  "locales": [
+    "en",
+    "es",
+    "pt",
+    "it",
+    "fr",
+    "de",
+    "ja",
+    "hi",
+    "ar",
+    "zh",
+    "ru"
+  ],
+  "animations": [],
+  "audio": {
+    "notes": [
+      {
+        "note": "C5",
+        "duration": "32n",
+        "at": 0,
+        "envelope": {
+          "type": "sine",
+          "attack": 0.005,
+          "decay": 0.09,
+          "sustain": 0,
+          "release": 0.08
+        },
+        "volume": -12
+      },
+      {
+        "note": "E5",
+        "duration": "32n",
+        "at": 0.04,
+        "envelope": {
+          "type": "sine",
+          "attack": 0.005,
+          "decay": 0.09,
+          "sustain": 0,
+          "release": 0.08
+        },
+        "volume": -12
+      },
+      {
+        "note": "G5",
+        "duration": "32n",
+        "at": 0.08,
+        "envelope": {
+          "type": "sine",
+          "attack": 0.005,
+          "decay": 0.09,
+          "sustain": 0,
+          "release": 0.08
+        },
+        "volume": -12
+      }
+    ],
+    "seconds": 0.2225170068027211,
+    "rendering": "Original source pitches/timing/gain; PCM approximates Tone sine envelopes at 120 BPM."
+  },
+  "illustration": {
+    "source": "src/assets/paper_pencil_manga.webp",
+    "sha256": "7edb9da3493172cc54b113152e64b1d9748991524f506f008f9c7c0991ffb93a"
+  },
+  "scope": "Current original modal copy and static manga artwork; no animated illustration layers remain. Source modal geometry, initial App state, onboarding close and product acknowledgment are verified separately with only external I/O stubbed.",
+  "character": {
+    "id": "20",
+    "source": "src/assets/21.webp",
+    "sha256": "2636bd60525c5100bfc01dd23360ee757868b33cd01cbfc89930ec8494216c2d"
+  }
+}

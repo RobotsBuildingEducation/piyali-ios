@@ -1,0 +1,22 @@
+Reference read-only b269524ddc578027c549616fc47f5954991d9f6f; native base e0475bb1977d36d3edcd5022e9a3e00a3335d4d5.
+node scripts/start-reference-preview.mjs (owned session 26104, port 5181)
+node scripts/check-teams-streamed-roster.mjs --browser --out /tmp/piyali-teams-streamed-roster-original-browser-20261106.json
+
+Every iOS command uses PIYALI_TEST_DEVICE=CE8248B6-7171-4FD4-97DE-89E499107F82, TEST_RUNNER_PIYALI_OFFLINE_TESTS=1, TEST_RUNNER_PIYALI_TEST_IDENTITY_SCOPE=<fresh uuidgen>, TEST_RUNNER_PIYALI_REFERENCE_PREVIEW_TESTS=1, TEST_RUNNER_PIYALI_FIRESTORE_EMULATOR_TESTS=1.
+
+Final spacing implementation, all affected cases:
+scripts/test-ios.sh -parallel-testing-enabled NO -only-testing:PiyaliTests/TeamsPanelControllerTests -only-testing:PiyaliTests/TeamsMirrorContractTests -only-testing:PiyaliTests/PrivateTeamsContractTests -only-testing:PiyaliTests/TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld -only-testing:PiyaliUITests/TeamsTests/testArabicMirrorCardChangesBeforeAHeldSignedMemberReadThenRestoresFreshProgressAndDeletes -only-testing:PiyaliUITests/TeamsTests/testCreateEditRosterAndDeleteUseSignedLocalRelayAndSurviveRelaunch -resultBundlePath /tmp/piyali-teams-streamed-roster-final-spacing-20261106.xcresult
+
+Historical results (all terminal before later Swift edits):
+baseline: one unprimed-cache SDK failure; invalid as sole proof of native behavior.
+contracts: 20 passed / 1 failed, same unprimed cache.
+trace: failed; cache query and direct first delivery both actually held Signed initial.
+cache-primed: 1 passed after explicit server point-read/assert before disableNetwork.
+app: 22 passed; top-only eight source/native pairs, pre-scroll refinement.
+product: interrupted exit75 before test execution; no passing claim.
+product-wire: 3 passed including new independent legacy cache read and both actual native journeys; pre-scroll refinement.
+delivery: 24 passed / 1 failed; actual journeys passed, lower source capture selector was wrong.
+comparison-fixed: 23 passed, twelve pairs; visual review still found final-member/footer spacing mismatch.
+All bundles/logs share /tmp/piyali-teams-streamed-roster-<name>-20261106 prefix.
+
+Export attachments only from terminal xcresult, sequentially per bundle. Original PNG/geometry retained; paired ICC profiles normalized to sRGB and resized to logical 402x874, source left/native right. Final installed/build executable and dylib hashes must agree. No Swift source edits during any live Swift build/test. Only isolated QA simulator used; regular simulator, preexisting emulators/Vite and learner preserved.

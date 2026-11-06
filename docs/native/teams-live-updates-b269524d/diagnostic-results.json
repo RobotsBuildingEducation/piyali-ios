@@ -1,0 +1,76 @@
+{
+  "runs": [
+    {
+      "bundle": "/tmp/PiyaliTeamsLiveUpdateBaseline20261106.xcresult",
+      "result": "Failed",
+      "totalTests": 4,
+      "passed": 1,
+      "failed": 3,
+      "skipped": 0,
+      "failingTests": [
+        "testAlreadyQueuedWatchCallbackCannotReloadOrPublishAfterDrawerCloses()",
+        "testWatchedChangeDuringFailedManagementStillArrivesWithoutHidingItsError()",
+        "testWatchedChangeWhileReadIsHeldRefreshesAfterTheStaleReadFinishes()"
+      ]
+    },
+    {
+      "bundle": "/tmp/PiyaliTeamsFirstSnapshotOfflineBaseline20261106.xcresult",
+      "result": "Failed",
+      "totalTests": 1,
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "failingTests": [
+        "testActualFirebaseFirstWatchSnapshotCatchesARosterChangeAfterItsInitialRead()"
+      ]
+    },
+    {
+      "bundle": "/tmp/PiyaliTeamsLiveUpdateFirstFix20261106.xcresult",
+      "result": "Passed",
+      "totalTests": 7,
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0,
+      "failingTests": []
+    },
+    {
+      "bundle": "/tmp/PiyaliTeamsLiveUpdateJourneysFirst20261106.xcresult",
+      "result": "Passed",
+      "totalTests": 11,
+      "passed": 11,
+      "failed": 0,
+      "skipped": 0,
+      "failingTests": []
+    },
+    {
+      "bundle": "/tmp/PiyaliTeamsLiveUpdateVerified20261106.xcresult",
+      "result": "Failed",
+      "totalTests": 21,
+      "passed": 20,
+      "failed": 1,
+      "skipped": 0,
+      "failingTests": [
+        "testOriginalLoadingDotsAndNativeHeldReadHidePendingCardsInEnglishAndArabic()"
+      ]
+    },
+    {
+      "bundle": "/tmp/PiyaliTeamsLiveUpdateFinal20261106.xcresult",
+      "result": "Passed",
+      "totalTests": 13,
+      "passed": 13,
+      "failed": 0,
+      "skipped": 0,
+      "failingTests": []
+    },
+    {
+      "bundle": "/tmp/PiyaliTeamsLoadingVisualFinal20261106.xcresult",
+      "result": "Passed",
+      "totalTests": 1,
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "failingTests": []
+    }
+  ],
+  "scope": "The online SDK first-watch baseline passed; the stable cache-only offline variant reproduced the omitted initial notification. The broad run failed its loading test because it asserted the invitation before watch attachment; the final test waits for both held read and live invitation. Failed bundles remain failed."
+}

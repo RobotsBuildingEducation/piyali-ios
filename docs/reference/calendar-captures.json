@@ -1,0 +1,44 @@
+[
+  {
+    "file": "docs/native/calendar-buddhist-initial.png",
+    "calendar": "buddhist",
+    "stage": "initial",
+    "sourceAttachment": "Native canonical Activity under buddhist_0_E28F6AFE-43EA-4EED-987D-5507989CF590.png",
+    "bundle": "PiyaliCalendarJourney2.xcresult"
+  },
+  {
+    "file": "docs/native/calendar-buddhist-restored.png",
+    "calendar": "buddhist",
+    "stage": "restored",
+    "sourceAttachment": "Native calendar Activity after relaunch buddhist_0_04A86F2E-232C-4240-A892-18A597D33CC4.png",
+    "bundle": "PiyaliCalendarJourney2.xcresult"
+  },
+  {
+    "file": "docs/native/calendar-buddhist-switched.png",
+    "calendar": "buddhist",
+    "stage": "switched",
+    "sourceAttachment": "Native Activity retained after calendar switch from buddhist_0_0FD5DB1B-02DE-49B6-B5CF-27B503E48693.png",
+    "bundle": "PiyaliCalendarJourney2.xcresult"
+  },
+  {
+    "file": "docs/native/calendar-islamic-umalqura-initial.png",
+    "calendar": "islamic-umalqura",
+    "stage": "initial",
+    "sourceAttachment": "Native canonical Activity under islamic-umalqura_0_4227F932-98E5-4480-81D7-F9470432A9E5.png",
+    "bundle": "PiyaliCalendarJourney2.xcresult"
+  },
+  {
+    "file": "docs/native/calendar-islamic-umalqura-restored.png",
+    "calendar": "islamic-umalqura",
+    "stage": "restored",
+    "sourceAttachment": "Native calendar Activity after relaunch islamic-umalqura_0_8D4CC0C0-A531-4111-A33F-0B1407F6A80B.png",
+    "bundle": "PiyaliCalendarJourney2.xcresult"
+  },
+  {
+    "file": "docs/native/calendar-islamic-umalqura-switched.png",
+    "calendar": "islamic-umalqura",
+    "stage": "switched",
+    "sourceAttachment": "Native Activity retained after calendar switch from islamic-umalqura_0_B12D096A-CF0C-45FF-AB82-E21E15C77EDC.png",
+    "bundle": "PiyaliCalendarJourney2.xcresult"
+  }
+]

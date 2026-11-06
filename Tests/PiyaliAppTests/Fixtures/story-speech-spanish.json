@@ -1,0 +1,9 @@
+{
+  "text": "Me llamo Ana y vivo con mi familia.",
+  "source": "Synthetic public test phrase, generated locally by macOS Paulina at 160 words/minute; no microphone recording.",
+  "sha256": "f0a81c38ad2abee707a6274e1a73b3443766cdf561481c32744ff4b2660fff26",
+  "channels": 1,
+  "sampleRate": 24000,
+  "sampleWidthBytes": 2,
+  "frames": 49203
+}

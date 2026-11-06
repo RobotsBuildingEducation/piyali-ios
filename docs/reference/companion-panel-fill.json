@@ -1,0 +1,26 @@
+[
+  {
+    "state": "en-402-80",
+    "sourceBluePixels": 21762,
+    "nativeBluePixels": 21980,
+    "ratio": 1.0100174616303648,
+    "bundle": "PiyaliCompanionPanelPaint4.xcresult",
+    "scope": "Color-managed to sRGB using each image ICC profile, then saturated blue pixels in the top 350 points. Rendered health-fill check, not whole-panel pixel equality."
+  },
+  {
+    "state": "ar-402-49",
+    "sourceBluePixels": 13270,
+    "nativeBluePixels": 13371,
+    "ratio": 1.007611152976639,
+    "bundle": "PiyaliCompanionPanelPaint4.xcresult",
+    "scope": "Color-managed to sRGB using each image ICC profile, then saturated blue pixels in the top 350 points. Rendered health-fill check, not whole-panel pixel equality."
+  },
+  {
+    "state": "en-375-24",
+    "sourceBluePixels": 6132,
+    "nativeBluePixels": 6226,
+    "ratio": 1.0153294194390086,
+    "bundle": "PiyaliCompanionPanelPaint4.xcresult",
+    "scope": "Color-managed to sRGB using each image ICC profile, then saturated blue pixels in the top 350 points. Rendered health-fill check, not whole-panel pixel equality."
+  }
+]

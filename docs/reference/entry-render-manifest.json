@@ -1,0 +1,63 @@
+{
+  "sources": [
+    {
+      "file": "src/components/LandingPage.jsx",
+      "sha256": "82cbfbc51eb69bbc4d48f89c648dfb132cadc39a4430794625c84622a8038301"
+    },
+    {
+      "file": "src/components/AnimatedBackground.jsx",
+      "sha256": "11d1e260a9ce2f0e54600be15f51c83f3ba61b1fdfabd895867f19fa11c36b43"
+    },
+    {
+      "file": "src/utils/themeModeToggleStyle.js",
+      "sha256": "e19cf7cf1eba507138da9a52f4624265796846377906be1498aca4508da146f7"
+    },
+    {
+      "file": "src/constants/languages.js",
+      "sha256": "02cb1507cb2ee1b5822ac4dd98cd7faf3e67a5101a13dd6c93826f553201ab32"
+    },
+    {
+      "file": "src/utils/nostrKeyDetection.js",
+      "sha256": "4dd7cb4c6792fa377eded49f38ebe4886a57cb5aa60716a09e0db5cf56ecb879"
+    },
+    {
+      "file": "src/features/publicCopy/landing/en.js",
+      "sha256": "42f0efe5eb314254ecb4b6e86e2abeacd83e359fb38144f5ea0d74131ab708fa"
+    },
+    {
+      "file": "src/features/publicCopy/landing/fr.js",
+      "sha256": "b81efc776a120922c4716515ae5c7b192bd2435b2160b6864930b0175743fc6e"
+    },
+    {
+      "file": "src/features/publicCopy/landing/ar.js",
+      "sha256": "3bd84937f4010b5c436d805055f7c0c78cfe57967abf98f3c10d07daf9ab6da0"
+    },
+    {
+      "file": "src/components/landingPageSections.css",
+      "sha256": "3382f3f4d22bac85464a439d2189775b76cfcbf225b55c19245142155ce10fb3"
+    },
+    {
+      "file": "src/index.css",
+      "sha256": "79a5362dc1b189acd0d2288c0e85ff29c9cc1c8e39b8bb5cabe164ddd1c29030"
+    },
+    {
+      "file": "src/theme.js",
+      "sha256": "6fe6093ecca51d0debb1314a587d6bd0927e7ac9f8c1ba2c6c744017e3be407e"
+    }
+  ],
+  "scope": "Original full signed-out app at / in a same-origin 402 by 874 iframe served by the target-only read-only preview script. Captures include hero/header/key-login, invalid disposable key, theme and public-copy selection. No web account, learner progress or microphone session was created. Source pre-existing App.jsx changes are retained; this task makes no reference edits. Metrics button and output are outside the captured app frame and only inspect public layout/fonts; input values and account state are excluded.",
+  "viewport": {
+    "width": 402,
+    "height": 874
+  },
+  "captureCrop": {
+    "width": 402,
+    "height": 720
+  },
+  "nativeBoundary": "Native screenshots include iOS status/home chrome at 1206 by 2622; source captures contain no browser/OS chrome and show the top 720 CSS pixels. Native NIP-46 replaces optional browser NIP-07; platform menu/icon/font fallback and 3D compositing differ.",
+  "fonts": {
+    "sourceCSS": "https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap",
+    "nativeFonts": "Existing static DM Sans 4.004 regular/medium/semibold/bold retained. Native Core Text and current Google Fonts regular TTF yield the same three paragraph lines at 11.2 points/354 points wide.",
+    "license": "https://raw.githubusercontent.com/google/fonts/main/ofl/dmsans/OFL.txt"
+  }
+}

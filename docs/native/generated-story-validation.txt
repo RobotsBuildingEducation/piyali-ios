@@ -1,0 +1,37 @@
+Live iOS provider validation, 2026-10-22
+Authored lesson: lesson-pre-a1-1-2, extended family, Spanish with English support.
+Speaking requested A1; Radio and Conversation requested the authored Pre-A1 level.
+These are validation samples. Learner content is generated at runtime.
+
+Authored extended-family dialogue - conversation
+Mi tío quiere comer pescado para la cena.
+Pero mi tía quiere comer sopa caliente.
+El abuelo y la abuela prefieren la sopa también.
+Sí, y el bebé necesita leche.
+El abuelo cocina la sopa para el bebé.
+Perfecto, todos tienen comida.
+
+Authored extended-family dialogue - radio
+Hola. Bienvenido a la radio. ¿Quién llama hoy?
+Hola, Sheilfer. Soy yo, tu tío.
+¿Mi tío? Pero mi tío ayuda con el plan de hoy.
+Sí, pero el plan cambia ahora mismo.
+¿Por qué cambia el plan del programa?
+El bebé y la tía están listos en la puerta.
+¿La tía y el bebé? ¡Eso es una sorpresa!
+También el abuelo y la abuela vienen con nosotros.
+¡Toda la familia en la radio! ¿Qué hacemos?
+El abuelo y la abuela necesitan ayuda con el viaje.
+Perfecto, cerramos la estación y salimos ahora.
+Excelente. ¡Nos vemos en la puerta!
+
+Authored extended-family dialogue - speaking
+Mira la foto vieja, Jiraiya. ¿Quién es este señor alto?
+Ese es mi abuelo cuando era joven en el pueblo.
+Ah, entiendo. ¿Y la señora que está con él?
+Es mi abuela. Ella siempre cocinaba pan dulce para todos.
+Qué bonita pareja. ¿Y el niño pequeño que llevan en los brazos?
+Ese bebé soy yo, con unos meses de vida.
+¡Qué gracioso! Oye, ¿y el hombre que está al lado en la otra foto?
+Él es mi tío favorito, el hermano de mi papá.
+Perfecto, ya conozco a casi toda tu familia.

@@ -1,5 +1,5 @@
 {
-  "originHash" : "6a09cb02cadf150bcd1d96d0e1cd2579d515896b972ef323ad2ef54c48451135",
+  "originHash" : "27208becf61e739f6e4324b7480790c095a9371f9c1a69eec6f4a96b803877d7",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -268,6 +268,14 @@
       "state" : {
         "revision" : "fd929a6d8f7651ce0f63fc99397fd5762358cc29",
         "version" : "0.6.0"
+      }
+    },
+    {
+      "identity" : "webrtc",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/jitsi/webrtc.git",
+      "state" : {
+        "revision" : "9edb2100fc29f847b5d01def716a979daf397901"
       }
     }
   ],

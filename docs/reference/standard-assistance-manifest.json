@@ -1,0 +1,71 @@
+{
+  "sources": [
+    {
+      "file": "src/components/Vocabulary.jsx",
+      "sha256": "9aa9d5f74d62ac8fd7b3adb1026bbf0bef3bd48a826053b4c94f6045b1a3431c"
+    },
+    {
+      "file": "src/components/GrammarBook.jsx",
+      "sha256": "0d0407a8a19c14e1cc111958b162c5ca8762f785627c33baea2dd18cdf058b82"
+    },
+    {
+      "file": "src/utils/translationArStatic.js",
+      "sha256": "1de18d1a33d0fd75344507b06799c9d60d1584ee72facab3cbff19293d5c5bc1"
+    },
+    {
+      "file": "src/utils/translationDeStatic.js",
+      "sha256": "3d4a78d541c5a83ebcdc1311b439d00e571c67ffcc56340b071c516c62866c3d"
+    },
+    {
+      "file": "src/utils/translationHiStatic.js",
+      "sha256": "b9ed86bd03ad61b8f3bf98dce81f0036e422b0f7fc9ffd7f0a0541dc1b6fa69d"
+    },
+    {
+      "file": "src/utils/translationPtStatic.js",
+      "sha256": "43b24f81e3e13ab1cb8f8cd0fef6dea511f2cadf2749931caa9097ebf531df74"
+    },
+    {
+      "file": "src/utils/translationZhStatic.js",
+      "sha256": "f0bb3c969fbe68605546341b7e31df97a23f32c652041788a69d4f7e3114709b"
+    },
+    {
+      "file": "src/utils/proficiencyModalTranslations.js",
+      "sha256": "9e85f754905fa228e67935f44021b2b6a126a50e80051b04ddbbe8d0f64a7448"
+    },
+    {
+      "file": "src/utils/translation.jsx",
+      "sha256": "10c6705379ed869d84ece0ec7a829193bb3c9522d742683701de56cb194666b9"
+    }
+  ],
+  "bundled": [
+    {
+      "file": "src/utils/assistantLanguagePolicy.js",
+      "sha256": "4b5e2b255f6ac057c6145ff9700ce76df3263d28690719761b580d6d6baaa807"
+    },
+    {
+      "file": "src/constants/supportLanguages.js",
+      "sha256": "d8e8dc17f353a5106bdc984f2cce9696669bc7216be10e006738cb0a04b40b5a"
+    },
+    {
+      "file": "src/constants/languages.js",
+      "sha256": "02cb1507cb2ee1b5822ac4dd98cd7faf3e67a5101a13dd6c93826f553201ab32"
+    }
+  ],
+  "cases": 240,
+  "checkedCopyKeys": 8349,
+  "editFeedbackReset": {
+    "vocabulary": {
+      "fill": true,
+      "mc": true,
+      "ma": true,
+      "match": true
+    },
+    "grammar": {
+      "fill": true,
+      "mc": true,
+      "ma": true,
+      "match": false
+    }
+  },
+  "adapters": "Original Copy All bundles/translation visibility/toast, localized matching callback, submitted-attempt snapshots and parent request builders before provider I/O. Controlled question/response data, public copy and inert flags; clipboard and provider I/O do not execute in the policy."
+}
