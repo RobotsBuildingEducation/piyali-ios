@@ -1,0 +1,112 @@
+{
+  "PiyaliTests.TeamsMirrorContractTests/testActualFirebaseFirstWatchSnapshotCatchesARosterChangeAfterItsInitialRead": {
+    "result": "passed",
+    "seconds": 0.909,
+    "run": "final"
+  },
+  "PiyaliTests.TeamsPanelControllerTests/testAlreadyQueuedWatchCallbackCannotReloadOrPublishAfterDrawerCloses": {
+    "result": "passed",
+    "seconds": 1.035,
+    "run": "final"
+  },
+  "PiyaliTests.TeamsPanelControllerTests/testWatchedChangeDuringFailedManagementStillArrivesWithoutHidingItsError": {
+    "result": "passed",
+    "seconds": 0.29,
+    "run": "final"
+  },
+  "PiyaliTests.TeamsPanelControllerTests/testWatchedChangeWhileReadIsHeldRefreshesAfterTheStaleReadFinishes": {
+    "result": "passed",
+    "seconds": 0.293,
+    "run": "final"
+  },
+  "PiyaliTests.TeamsMirrorContractTests/testActualFirebaseSDKPublicMirrorCreationMembershipRenameAddsAndDeparture": {
+    "result": "passed",
+    "seconds": 0.268,
+    "run": "final"
+  },
+  "PiyaliTests.TeamsPanelControllerTests/testLegacyOnlyTeamsDoNotPublishAndLateLoadCannotRestoreClosedAccountData": {
+    "result": "passed",
+    "seconds": 0.825,
+    "run": "final"
+  },
+  "PiyaliTests.TeamsPanelControllerTests/testOriginalDebouncePublishesLatestSnapshotUpdatesOwnRowAndCancelsOnClose": {
+    "result": "passed",
+    "seconds": 2.565,
+    "run": "final"
+  },
+  "PiyaliTests.TeamsPanelControllerTests/testLiveInvitationsStayCurrentThroughAHeldReadAndFailedActionWithoutAFullReload": {
+    "result": "passed",
+    "seconds": 0.123,
+    "run": "final"
+  },
+  "PiyaliTests.TeamsPanelControllerTests/testReimportingSameAccountKeyFencesOldReadWatchAndPublisherSession": {
+    "result": "passed",
+    "seconds": 0.937,
+    "run": "final"
+  },
+  "PiyaliTests.TeamsPanelControllerTests/testSameTeamNewAcceptedGrantTimestampReplacesTheRosterWatch": {
+    "result": "passed",
+    "seconds": 0.097,
+    "run": "final"
+  },
+  "PiyaliUITests.TeamsTests/testIncomingInvitationSurvivesHeldRejectedRenameAndRelaunchWithoutAcceptingTheFailedRoster": {
+    "result": "passed",
+    "seconds": 96.754,
+    "run": "final"
+  },
+  "PiyaliTests.TeamsPanelFailureTests/testRejectedFirebaseMirrorRollsBackNewSignedRoster": {
+    "result": "passed",
+    "seconds": 0.258,
+    "run": "verified"
+  },
+  "PiyaliTests.TeamsPanelReferenceTests/testActualSourceAndNativeTeamDrawerFormsCardsFeedAndArabic": {
+    "result": "passed",
+    "seconds": 62.68,
+    "run": "verified"
+  },
+  "PiyaliTests.TeamsPanelReferenceTests/testOriginalLoadingDotsAndNativeHeldReadHidePendingCardsInEnglishAndArabic": {
+    "result": "passed",
+    "seconds": 6.635,
+    "run": "loading-visual-final"
+  },
+  "PiyaliTests.TeamsStartupTests/testAccountReplacementRejectsOldLoadAndSubscriptionWithoutRestartingOnLanguageChanges": {
+    "result": "passed",
+    "seconds": 0.19,
+    "run": "verified"
+  },
+  "PiyaliTests.TeamsStartupTests/testActualFirebaseInvitationWatchIncludesLegacyAndPublicRecordsAndSurvivesDrawerWatchClose": {
+    "result": "passed",
+    "seconds": 0.371,
+    "run": "verified"
+  },
+  "PiyaliTests.TeamsStartupTests/testForegroundRetriesFailedPreparationAndWatchWithoutRepeatingViewedAttentionOrAcceptingOldCallbacks": {
+    "result": "passed",
+    "seconds": 0.155,
+    "run": "verified"
+  },
+  "PiyaliTests.TeamsStartupTests/testOriginalAppBadgeAndNativeMenuControlAcrossViewedAndNewInvitesInEnglishAndArabic": {
+    "result": "passed",
+    "seconds": 8.71,
+    "run": "verified"
+  },
+  "PiyaliTests.TeamsStartupTests/testPreloadedEmptyAndNonemptyDrawersRemainVisibleWhileTheirFirstFreshReadIsHeld": {
+    "result": "passed",
+    "seconds": 0.13,
+    "run": "verified"
+  },
+  "PiyaliTests.TeamsStartupTests/testStartupReadsAndWatchesBeforeDrawerAndViewedSameIDsStayQuietUntilANewInvitation": {
+    "result": "passed",
+    "seconds": 0.091,
+    "run": "verified"
+  },
+  "PiyaliUITests.PrivateTeamsPlayTests/testStartupInvitationBadgeViewedQuietNewIDOnFeedAndPrivateRelaunch": {
+    "result": "passed",
+    "seconds": 99.57,
+    "run": "verified"
+  },
+  "PiyaliTests.TeamsPanelControllerTests/testSuccessfulWatchedRefreshClearsAReadFailureWhileActionErrorsRemainIndependent": {
+    "result": "passed",
+    "seconds": 0.085,
+    "run": "final"
+  }
+}

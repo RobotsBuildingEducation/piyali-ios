@@ -49,3 +49,36 @@ import WebKit
         }}
     }
 }
+
+
+@MainActor private final class TeamsHeldLoadingAccess:TeamsPanelAccess {
+    let invites:[JSONValue];var held:CheckedContinuation<TeamsPanelSnapshot,Never>?
+    init(invites:[JSONValue]){self.invites=invites}
+    func load(_ app:AppModel)async throws->TeamsPanelSnapshot{await withCheckedContinuation{held=$0}}
+    func watchInvites(_ app:AppModel,onChange:@escaping @MainActor([JSONValue])->Void)async{onChange(invites)}
+    func create(name:String,members:[String],app:AppModel)async throws{}
+    func rename(_ team:JSONValue,name:String,app:AppModel)async throws->Bool{true}
+    func add(_ team:JSONValue,members:[String],app:AppModel)async throws->Bool{true}
+    func remove(_ team:JSONValue,app:AppModel)async throws{}
+    func respond(_ invite:JSONValue,accept:Bool,app:AppModel)async throws{}
+    func publish(_ app:AppModel)async throws{XCTFail("Loading a team drawer must not publish")}
+    func feed(_ app:AppModel,force:Bool)async throws->[CommunityPost]{[]}
+    func cancel(){held?.resume(returning:.init());held=nil}
+}
+extension TeamsPanelReferenceTests {
+    func testOriginalLoadingDotsAndNativeHeldReadHidePendingCardsInEnglishAndArabic()async throws {
+        let e=ProcessInfo.processInfo.environment;guard e["PIYALI_OFFLINE_TESTS"] == "1",e["PIYALI_REFERENCE_PREVIEW_TESTS"] == "1",UUID(uuidString:e["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Isolated source preview required")}
+        let app=AppModel(progressService:TeamsNoCloud());try app.identity.create();app.signedIn=true;defer{app.signOut()};let scene=try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap{$0 as? UIWindowScene}.first),old=scene.windows.first{$0.isKeyWindow};defer{old?.makeKey()}
+        let fixture=try JSONDecoder().decode(JSONValue.self,from:Data(contentsOf:try XCTUnwrap(Bundle(for:Self.self).url(forResource:"teams-panel-preview",withExtension:"json"))))
+        for (language,theme) in [("en","light"),("ar","dark")] {
+            app.learner.support=language;let window=UIWindow(windowScene:scene),web=WKWebView(frame:CGRect(x:0,y:0,width:402,height:874)),vc=UIViewController();vc.view=web;window.rootViewController=vc;window.frame=web.frame;window.makeKeyAndVisible();web.scrollView.contentInsetAdjustmentBehavior = .never;defer{web.stopLoading();window.isHidden=true;window.rootViewController=nil}
+            web.load(URLRequest(url:try XCTUnwrap(URL(string:"http://127.0.0.1:5181/__piyali-teams?state=loading&language=\(language)&theme=\(theme)"))))
+            var ready=false;for _ in 0..<500{ready=(try? await web.evaluateJavaScript("document.fonts.status==='loaded' && !!document.querySelector('[role=status]') && typeof window.__releaseTeamLoad==='function'")) as? Bool == true;if ready{break};try await Task.sleep(for:.milliseconds(40))};XCTAssertTrue(ready);guard ready else{return};try await Task.sleep(for:.milliseconds(500))
+            let source=XCTAttachment(image:try await web.takeSnapshot(configuration:nil));source.name="Source Teams held loading dots \(language)";source.lifetime = .keepAlways;add(source)
+            let geometry=try await web.evaluateJavaScript("JSON.stringify([...document.querySelectorAll('[role=status],[role=status] *')].map(e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return {text:e.textContent,x:r.x,y:r.y,width:r.width,height:r.height,color:s.color,fontSize:s.fontSize}}))"),metrics=XCTAttachment(data:Data((geometry as? String ?? "").utf8),uniformTypeIdentifier:"public.json");metrics.name="Source Teams held loading geometry \(language)";metrics.lifetime = .keepAlways;add(metrics)
+            let access=TeamsHeldLoadingAccess(invites:fixture["invites"].array),model=TeamsPanelController(access:access),native=UIWindow(windowScene:scene);native.frame=web.frame;native.rootViewController=UIHostingController(rootView:ZStack{PiyaliBrand(dark:theme == "dark").background;TeamsDrawerView(model:model,onClose:{})}.environmentObject(app).environment(\.scenePhase,.active).preferredColorScheme(theme == "dark" ? .dark:.light).ignoresSafeArea());native.makeKeyAndVisible();native.layoutIfNeeded()
+            for _ in 0..<200 where access.held == nil || model.snapshot.invites.isEmpty{try await Task.sleep(for:.milliseconds(10))};XCTAssertTrue(model.loading);XCTAssertFalse(model.snapshot.invites.isEmpty);try await Task.sleep(for:.milliseconds(500));let shot=XCTAttachment(image:UIGraphicsImageRenderer(bounds:native.bounds).image{_ in native.drawHierarchy(in:native.bounds,afterScreenUpdates:true)});shot.name="Native Teams held loading dots \(language)";shot.lifetime = .keepAlways;add(shot)
+            model.cancel();native.isHidden=true;native.rootViewController=nil;window.makeKeyAndVisible();web.stopLoading();window.isHidden=true;window.rootViewController=nil
+        }
+    }
+}

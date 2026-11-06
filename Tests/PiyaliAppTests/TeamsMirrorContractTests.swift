@@ -14,3 +14,16 @@ import FirebaseFirestore
         try await mirror.delete(id:id,identity:a);let removed=try await mirror.read(identity:a),revoked=try await mirror.read(identity:c);XCTAssertTrue(removed.owned.isEmpty);XCTAssertTrue(revoked.invites.isEmpty)
     }
 }
+
+
+extension TeamsMirrorContractTests {
+    func testActualFirebaseFirstWatchSnapshotCatchesARosterChangeAfterItsInitialRead()async throws {
+        let e=ProcessInfo.processInfo.environment;guard e["PIYALI_OFFLINE_TESTS"] == "1",e["PIYALI_FIRESTORE_EMULATOR_TESTS"] == "1",UUID(uuidString:e["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Isolated local SDK required")}
+        let db=PrivateTeamTestDatabase.database(),mirror=TeamsMirrorService(database:db),a=IdentityService(),b=IdentityService();try a.create();try b.create();defer{mirror.stopWatching();try? a.disconnect();try? b.disconnect()};let id=UUID().uuidString.lowercased()
+        try await mirror.create(id:id,name:"Initial roster",members:[b.npub],creatorName:"Public creator",identity:a);let initial=try await mirror.read(identity:a)
+        _=try await mirror.rename(id:id,name:"Changed before watch",identity:a);try await db.disableNetwork();var updates=0
+        await mirror.watch(initial.owned,identity:a){updates += 1}
+        for _ in 0..<100 where updates==0{try await Task.sleep(for:.milliseconds(10))};XCTAssertGreaterThan(updates,0,"The source onSnapshot applies its first snapshot, including changes after the initial read")
+        mirror.stopWatching();try await db.enableNetwork();try await mirror.delete(id:id,identity:a)
+    }
+}

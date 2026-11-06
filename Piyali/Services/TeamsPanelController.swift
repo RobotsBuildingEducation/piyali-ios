@@ -16,8 +16,14 @@ struct TeamsPanelSnapshot:Equatable {
     func feed(_ app:AppModel,force:Bool)async throws->[CommunityPost]
     func cancel()
     func watch(_ teams:[JSONValue],app:AppModel,onChange:@escaping @MainActor()->Void)async
+    func watchSnapshot(_ snapshot:TeamsPanelSnapshot,app:AppModel,onChange:@escaping @MainActor()->Void)async
+    func watchInvites(_ app:AppModel,onChange:@escaping @MainActor([JSONValue])->Void)async
 }
-extension TeamsPanelAccess{func watch(_ teams:[JSONValue],app:AppModel,onChange:@escaping @MainActor()->Void)async{}}
+extension TeamsPanelAccess {
+    func watch(_ teams:[JSONValue],app:AppModel,onChange:@escaping @MainActor()->Void)async{}
+    func watchSnapshot(_ snapshot:TeamsPanelSnapshot,app:AppModel,onChange:@escaping @MainActor()->Void)async{await watch(snapshot.teams,app:app,onChange:onChange)}
+    func watchInvites(_ app:AppModel,onChange:@escaping @MainActor([JSONValue])->Void)async{}
+}
 @MainActor final class LiveTeamsPanelAccess:TeamsPanelAccess {
     let service:NostrTeamsService,mirror:TeamsMirrorService,legacy:PrivateTeamsService
     let policy:TeamsPanelPolicy?
@@ -73,9 +79,11 @@ extension TeamsPanelAccess{func watch(_ teams:[JSONValue],app:AppModel,onChange:
     }
     func respond(_ invite:JSONValue,accept:Bool,app:AppModel)async throws{if invite["nostr"] != .null{try await mirror.respond(invite,accept:accept,identity:app.identity)}else{try await legacy.respond(PrivateTeamInvite(id:invite["id"].string,data:invite),accept:accept,identity:app.identity)}}
     func watch(_ teams:[JSONValue],app:AppModel,onChange:@escaping @MainActor()->Void)async{await mirror.watch(teams,invites:mirroredInvites,identity:app.identity,onChange:onChange)}
+    func watchSnapshot(_ snapshot:TeamsPanelSnapshot,app:AppModel,onChange:@escaping @MainActor()->Void)async{await mirror.watch(snapshot.teams,invites:snapshot.invites,identity:app.identity,includeInvites:false,onChange:onChange)}
+    func watchInvites(_ app:AppModel,onChange:@escaping @MainActor([JSONValue])->Void)async{try? await mirror.watchInvitations(identity:app.identity,onChange:onChange)}
     func publish(_ app:AppModel)async throws{try await service.publishProgress(app.learner,identity:app.identity,reload:false)}
     func feed(_ app:AppModel,force:Bool)async throws->[CommunityPost]{await app.teamFeed.refresh(account:app.identity.npub,force:force);if let error=app.teamFeed.error{throw AppError.message(error)};return app.teamFeed.posts}
-    func cancel(){mirror.stopWatching();service.cancel();legacy.cancel()}
+    func cancel(){mirror.stopWatching();mirror.stopWatchingInvitations();service.cancel();legacy.cancel()}
 }
 
 @MainActor final class TeamsPanelController:ObservableObject {
@@ -84,31 +92,82 @@ extension TeamsPanelAccess{func watch(_ teams:[JSONValue],app:AppModel,onChange:
     @Published private(set) var loading=false
     @Published private(set) var working=false
     @Published private(set) var feedLoading=false
-    @Published var error:String?
+    @Published var error:String? {didSet{retainErrorOnWatch = error != nil}}
     @Published var sharingError:String?
     @Published var notice:String?
     @Published var noticeKind="success"
     private let access:TeamsPanelAccess
     let policy:TeamsPanelPolicy?
-    private var epoch=UUID(),work:Task<Void,Never>?,sharing:Task<Void,Never>?
-    private var owner="",shareKey="",watchKey=""
-    private var reloading=false,hasInitialSnapshot=false
+    private var epoch=UUID(),work:Task<Void,Never>?,sharing:Task<Void,Never>?,refresh:Task<Void,Never>?,invitationWatch:Task<Void,Never>?
+    private var owner="",ownerSession:UUID?,shareKey="",watchKey=""
+    private var reloading=false,hasInitialSnapshot=false,closed=false,refreshNeeded=false,watchingInvites=false
+    private var inviteRevision=0,retainErrorOnWatch=false
     init(access:TeamsPanelAccess,initial:TeamsPanelSnapshot = .init(),initialOwner:String=""){self.access=access;snapshot=initial;owner=initialOwner;hasInitialSnapshot = !initialOwner.isEmpty;policy=try? TeamsPanelPolicy()}
-    func reload(_ app:AppModel)async {
-        let account=app.identity.npub;guard !reloading || owner != account else{return};reloading=true;defer{if owner == account{reloading=false}}
-        if owner != account{cancel();owner=account;snapshot = .init();posts=[]};let token=epoch;loading = !hasInitialSnapshot && snapshot.teams.isEmpty;hasInitialSnapshot=false;error=nil
-        do{let value=try await access.load(app);guard token == epoch,owner == app.identity.npub,!Task.isCancelled else{return};snapshot=value;error=value.warning;let key=account+value.teams.map(LiveTeamsPanelAccess.key).sorted().joined(separator:",");if key != watchKey{watchKey=key;await access.watch(value.teams,app:app,onChange:{[weak self,weak app] in guard let self,let app,!self.working else{return};Task{await self.reload(app)}})}}catch{if token == epoch,!(error is CancellationError){self.error=error.localizedDescription}};if token == epoch{loading=false;scheduleSharing(app)}
+    private func owned(_ app:AppModel,_ token:UUID)->Bool {epoch == token && !closed && owner == app.identity.npub && ownerSession == app.identity.sessionRevision && !Task.isCancelled}
+    private func bind(_ app:AppModel){
+        if owner != app.identity.npub || ownerSession.map({$0 != app.identity.sessionRevision}) == true{cancel();snapshot = .init();posts=[];hasInitialSnapshot=false}
+        owner=app.identity.npub;ownerSession=app.identity.sessionRevision;closed=false
+    }
+    func reload(_ app:AppModel,preservingError:Bool=false)async {
+        if reloading,owner == app.identity.npub,ownerSession == app.identity.sessionRevision{refreshNeeded=true;return}
+        bind(app);let token=epoch;reloading=true;loading = !preservingError && !hasInitialSnapshot;hasInitialSnapshot=false
+        if !preservingError{error=nil}
+        defer{if owned(app,token){reloading=false;loading=false;drainRefresh(app)}}
+        installInvitations(app,token:token);let before=inviteRevision
+        do{
+            var value=try await access.load(app);guard owned(app,token) else{return}
+            if inviteRevision != before{value.invites=snapshot.invites}
+            snapshot=value;if let warning=value.warning{if !preservingError || !retainErrorOnWatch{error=warning;retainErrorOnWatch=false}}else if !preservingError || !retainErrorOnWatch{error=nil}
+            let grants=value.invites.filter{$0["nostr"] != .null && $0["status"].string == "accepted"}.map{$0["creatorNpub"].string+":"+$0["teamId"].string+":"+$0["createdAt"].string}.sorted()
+            let key=owner+value.teams.map(LiveTeamsPanelAccess.key).sorted().joined(separator:",")+grants.joined(separator:",")
+            if key != watchKey{watchKey=key;await access.watchSnapshot(value,app:app,onChange:{[weak self,weak app] in guard let self,let app,self.owned(app,token) else{return};self.requestRefresh(app)})}
+            guard owned(app,token) else{return};scheduleSharing(app)
+        }catch{if owned(app,token),!(error is CancellationError),!preservingError || !retainErrorOnWatch{self.error=error.localizedDescription;retainErrorOnWatch=false}}
+    }
+    private func installInvitations(_ app:AppModel,token:UUID){
+        guard !watchingInvites else{return};watchingInvites=true
+        invitationWatch=Task{[weak self,weak app] in guard let self,let app,self.owned(app,token) else{return};await access.watchInvites(app,onChange:{[weak self,weak app] values in guard let self,let app,self.owned(app,token) else{return};self.applyInvites(values,app:app)})}
+    }
+    func applyInvites(_ values:[JSONValue],app:AppModel){
+        guard !closed,owner == app.identity.npub,ownerSession == nil || ownerSession == app.identity.sessionRevision else{return}
+        if ownerSession == nil{ownerSession=app.identity.sessionRevision}
+        func grants(_ values:[JSONValue])->[String]{values.filter{$0["status"].string == "accepted"}.map{$0["creatorNpub"].string+":"+$0["teamId"].string+":"+$0["createdAt"].string}.sorted()}
+        let changed=grants(values) != grants(snapshot.invites);inviteRevision += 1;snapshot.invites=values
+        if changed{requestRefresh(app)}
+    }
+    private func requestRefresh(_ app:AppModel){refreshNeeded=true;drainRefresh(app)}
+    private func drainRefresh(_ app:AppModel){
+        guard refreshNeeded,!reloading,!working,!closed,refresh == nil else{return};let token=epoch
+        refresh=Task{[weak self,weak app] in
+            guard let self,let app else{return};defer{if self.epoch == token{self.refresh=nil}}
+            while owned(app,token),refreshNeeded,!working,!reloading{refreshNeeded=false;await reload(app,preservingError:true)}
+        }
     }
     func perform(_ app:AppModel,action:@escaping(TeamsPanelAccess)async throws->String?,onSuccess:@escaping()->Void={}){
-        guard !working else{return};let token=epoch,account=app.identity.npub;working=true;error=nil;noticeKind="success";work=Task{[weak self] in guard let self else{return};defer{if epoch == token{working=false;work=nil}};do{let message=try await action(access);guard epoch == token,app.identity.npub == account,!Task.isCancelled else{return};notice=message;onSuccess();await reload(app)}catch{if epoch == token,app.identity.npub == account,!(error is CancellationError){self.error=error.localizedDescription}}}
+        guard !working,!closed else{return};if owner.isEmpty{bind(app)};let token=epoch;guard owned(app,token) else{return}
+        working=true;error=nil;noticeKind="success"
+        work=Task{[weak self] in
+            guard let self else{return};defer{if owned(app,token){working=false;work=nil;drainRefresh(app)}}
+            do{let message=try await action(access);guard owned(app,token) else{return};notice=message;onSuccess();await reload(app)}
+            catch{if owned(app,token),!(error is CancellationError){self.error=error.localizedDescription}}
+        }
     }
     func scheduleSharing(_ app:AppModel){
+        guard !closed,owner == app.identity.npub,ownerSession == app.identity.sessionRevision else{return}
         guard snapshot.teams.contains(where:{$0["nostr"] != .null}) else{sharing?.cancel();shareKey="";return}
-        let key=app.identity.npub+LearningTeams.snapshot(app.learner).setting("updatedAt",.number(0)).canonicalJSON;guard key != shareKey else{return};shareKey=key;sharing?.cancel();let token=epoch,account=app.identity.npub
-        sharing=Task{[weak self] in do{try await Task.sleep(for:.milliseconds(700));guard let self,self.epoch == token,app.identity.npub == account,!Task.isCancelled else{return};let progress=LearningTeams.snapshot(app.learner);for team in self.snapshot.teams{let key=LiveTeamsPanelAccess.key(team);if let index=self.snapshot.rows[key]?.firstIndex(where:{$0["npub"].string==account}){self.snapshot.rows[key]?[index]=LearningTeams.progressRow(member:account,data:progress,creator:team["createdBy"].string==account)}};try await self.access.publish(app);guard self.epoch == token,app.identity.npub == account else{return};self.sharingError=nil}catch is CancellationError{}catch{if let self,self.epoch == token,app.identity.npub == account{self.sharingError=error.localizedDescription}}}
+        let key=owner+LearningTeams.snapshot(app.learner).setting("updatedAt",.number(0)).canonicalJSON;guard key != shareKey else{return};shareKey=key;sharing?.cancel();let token=epoch
+        sharing=Task{[weak self] in do{
+            try await Task.sleep(for:.milliseconds(700));guard let self,self.owned(app,token) else{return};let progress=LearningTeams.snapshot(app.learner)
+            for team in self.snapshot.teams{let key=LiveTeamsPanelAccess.key(team);if let index=self.snapshot.rows[key]?.firstIndex(where:{$0["npub"].string==self.owner}){self.snapshot.rows[key]?[index]=LearningTeams.progressRow(member:self.owner,data:progress,creator:team["createdBy"].string==self.owner)}}
+            try await self.access.publish(app);guard self.owned(app,token) else{return};self.sharingError=nil
+        }catch is CancellationError{}catch{if let self,self.owned(app,token){self.sharingError=error.localizedDescription}}}
     }
-    func loadFeed(_ app:AppModel,force:Bool=false)async{guard !feedLoading else{return};let token=epoch,account=app.identity.npub;feedLoading=true;error=nil;do{let values=try await access.feed(app,force:force);guard epoch == token,app.identity.npub == account else{return};posts=values}catch{if epoch == token,!(error is CancellationError){self.error=error.localizedDescription}};if epoch == token{feedLoading=false}}
-    func cancel(){epoch=UUID();work?.cancel();sharing?.cancel();work=nil;sharing=nil;loading=false;working=false;feedLoading=false;shareKey="";watchKey="";access.cancel()}
+    func loadFeed(_ app:AppModel,force:Bool=false)async{
+        guard !feedLoading,!closed else{return};if owner.isEmpty{bind(app)};let token=epoch;guard owned(app,token) else{return};feedLoading=true;error=nil
+        defer{if owned(app,token){feedLoading=false}}
+        do{let values=try await access.feed(app,force:force);guard owned(app,token) else{return};posts=values}catch{if owned(app,token),!(error is CancellationError){self.error=error.localizedDescription;retainErrorOnWatch=false}}
+    }
+    func cancel(){epoch=UUID();closed=true;work?.cancel();sharing?.cancel();refresh?.cancel();invitationWatch?.cancel();work=nil;sharing=nil;refresh=nil;invitationWatch=nil;loading=false;working=false;feedLoading=false;reloading=false;refreshNeeded=false;watchingInvites=false;inviteRevision=0;shareKey="";watchKey="";access.cancel()}
 }
 
 private extension Result where Success == TeamsMirrorService.Records,Failure == Error {

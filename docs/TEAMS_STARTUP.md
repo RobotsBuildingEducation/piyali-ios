@@ -45,3 +45,5 @@ The [manifest](native/teams-startup-b269524d/manifest.json) hashes **60 artifact
 ## Remaining work
 
 Broader legacy/public roster variants, large rosters, production relay outage/reconnect and permission-grant combinations, complete loading/error/toast/confirmation presentation, all support languages/sizes, VoiceOver and whole-menu/footer animation/placement remain open. The new scoped foreground tests do not close that matrix. Existing [Teams](TEAMS.md) and [feed](COMMUNITY_FEED.md) records retain their other verified and open scopes. The separate Firebase/Cloudflare services, signed roster verification, creator permissions, limited public progress, explicit community publication and 700 ms drawer-owned progress debounce are preserved. No rules/service deployment, merge or App Store publication is included.
+
+The later [live-update checkpoint](TEAMS_LIVE_UPDATES.md) corrects dropped in-flight signals, omitted initial cached watch notifications and queued work after close, while adding source loading presentation. Its remaining cache/roster/error scopes stay open.

@@ -122,24 +122,23 @@ import NostrSDK
         }
     }
     func stopWatching(){watchGeneration=UUID();listeners.forEach{$0.remove()};listeners=[]}
-    func watch(_ teams:[JSONValue],invites:[JSONValue]=[],identity:IdentityService,onChange:@escaping @MainActor()->Void)async{
-        stopWatching();let token=watchGeneration,owner=identity.npub
-        guard let db=try? await database(identity,owner:owner),token==watchGeneration,identity.npub==owner else{return}
-        for collection in ["teams","teamInvites"]{
-            var first=true
+    func watch(_ teams:[JSONValue],invites:[JSONValue]=[],identity:IdentityService,includeInvites:Bool=true,onChange:@escaping @MainActor()->Void)async{
+        stopWatching();let token=watchGeneration,owner=identity.npub,session=identity.sessionRevision
+        guard let db=try? await database(identity,owner:owner),token==watchGeneration,identity.npub==owner,identity.sessionRevision == session else{return}
+        for collection in (includeInvites ? ["teams","teamInvites"]:["teams"]){
             listeners.append(db.collection("users").document(owner).collection(collection).addSnapshotListener{[weak self] snapshot,error in
-                Task{@MainActor in guard let self,self.watchGeneration==token,identity.npub==owner,snapshot != nil,error==nil else{return};if first{first=false;return};onChange()}
+                Task{@MainActor in guard let self,self.watchGeneration==token,identity.npub==owner,identity.sessionRevision == session,snapshot != nil,error==nil else{return};onChange()}
             })
         }
         for team in teams where team["createdBy"].string != owner{
-            let creator=team["createdBy"].string,id=team["id"].string;guard PrivateTeams.npub(creator),PrivateTeams.identifier(id) else{continue};var first=true
+            let creator=team["createdBy"].string,id=team["id"].string;guard PrivateTeams.npub(creator),PrivateTeams.identifier(id) else{continue}
             if team["nostr"] != .null,let invite=invites.first(where:{$0["creatorNpub"].string==creator && $0["teamId"].string==id}),!invite["createdAt"].string.isEmpty{
                 listeners.append(Self.memberQuery(db,creator:creator,id:id,member:owner,stamp:invite["createdAt"].string).addSnapshotListener{[weak self] snapshot,error in
-                    Task{@MainActor in guard let self,self.watchGeneration==token,identity.npub==owner,snapshot != nil,error==nil else{return};if first{first=false;return};onChange()}
+                    Task{@MainActor in guard let self,self.watchGeneration==token,identity.npub==owner,identity.sessionRevision == session,snapshot != nil,error==nil else{return};onChange()}
                 })
             }else{
                 listeners.append(Self.ref(db,creator,id).addSnapshotListener{[weak self] snapshot,error in
-                    Task{@MainActor in guard let self,self.watchGeneration==token,identity.npub==owner,snapshot != nil,error==nil else{return};if first{first=false;return};onChange()}
+                    Task{@MainActor in guard let self,self.watchGeneration==token,identity.npub==owner,identity.sessionRevision == session,snapshot != nil,error==nil else{return};onChange()}
                 })
             }
         }

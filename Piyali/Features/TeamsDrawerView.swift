@@ -42,8 +42,9 @@ struct TeamsDrawerView:View {
                 if let notice=model.notice{Text(notice).font(.system(size:16,weight:.bold)).foregroundStyle(.white).padding(16).background(c(model.noticeKind == "warning" ? "c05621":"2f855a"),in:RoundedRectangle(cornerRadius:6)).padding(16).onTapGesture{model.notice=nil}.accessibilityIdentifier("teamsNotice")}
             }.frame(width:g.size.width,height:g.size.height)
         }.ignoresSafeArea(.container).foregroundStyle(ink).font(.system(size:16)).buttonStyle(TeamsButtonStyle()).environment(\.layoutDirection,.leftToRight).accessibilityAddTraits(.isModal)
-            .task(id:app.identity.npub){await model.reload(app);if tab == 1{await model.loadFeed(app)}}
+            .task(id:app.identity.npub+app.identity.sessionRevision.uuidString){await model.reload(app);if tab == 1{await model.loadFeed(app)}}
             .onAppear{mounted=true;viewedInvites()}.onReceive(app.teamsStartup.$attention){value in if value.count>0,value.hasUnseen{Task{@MainActor in await Task.yield();viewedInvites()}}}
+            .onReceive(app.teamsStartup.$invites){values in if let values{model.applyInvites(values,app:app)}}
             .onChange(of:editor){_,value in field=value?.isRename == true ? "teamEditName":nil}
             .onChange(of:app.localPracticeRevision){_,_ in model.scheduleSharing(app)}
             .onChange(of:LearningTeams.snapshot(app.learner).setting("updatedAt",.number(0)).canonicalJSON){_,_ in model.scheduleSharing(app)}
@@ -60,8 +61,8 @@ struct TeamsDrawerView:View {
         HStack(spacing:8){Spacer(minLength:0);action(t("teams_create_open","Create team"),id:"teamCreateOpen"){open(.create)};action(t("teams_copy_id","Copy Your ID"),outline:true,id:"teamsCopyID"){UIPasteboard.general.string=app.identity.npub;model.noticeKind="success";model.notice=t("teams_copy_id_success","Your ID was copied")}.accessibilityValue(app.identity.npub)}
         if let error=model.error{Text(error).font(.system(size:14)).foregroundStyle(.red).accessibilityIdentifier("teamsError");action(t("teams_view_retry","Retry"),outline:true){Task{await model.reload(app)}}}
         if let error=model.sharingError{Text("Your Score and companion have not synced to Nostr: "+error).font(.system(size:14)).foregroundStyle(.orange)}
-        if model.loading{ProgressView(t("teams_view_loading","Loading teams..."))}
-        if !pending.isEmpty{VStack(alignment:.leading,spacing:12){
+        if model.loading{TeamsLoadingDots(label:t("teams_view_loading","Loading teams..."),color:light ? muted:c("a0aec0"))}
+        if !model.loading,!pending.isEmpty{VStack(alignment:.leading,spacing:12){
             Text(t("teams_view_pending","Pending invitations")).bold().frame(height:24)
             ForEach(pending,id:\.canonicalJSON){invite in
                 VStack(alignment:.leading,spacing:0){Text(invite["teamName"].string).bold().frame(height:24);Text(t("teams_view_invited_by","Invited by")+": "+(invite["invitedByName"].string.isEmpty ? invite["invitedBy"].string:invite["invitedByName"].string)).font(.system(size:14)).foregroundStyle(muted).frame(height:21);HStack(spacing:8){Spacer();action(t("teams_view_accept","Accept"),outline:true,size:14,height:32){respond(invite,true)};action(t("teams_view_decline","Decline"),outline:true,size:14,height:32,danger:true){respond(invite,false)}}.padding(.top,12)}.padding(17).background(surface,in:RoundedRectangle(cornerRadius:6)).overlay{RoundedRectangle(cornerRadius:6).stroke(c(light ? "9decf9":"086f83"))}
@@ -143,3 +144,20 @@ private struct TeamCompanionStill:View {
 }
 
 private struct TeamsButtonStyle:ButtonStyle {func makeBody(configuration:Configuration)->some View{configuration.label.opacity(configuration.isPressed ? 0.8:1)}}
+
+
+private struct TeamsLoadingDots:View {
+    let label:String,color:Color
+    @Environment(\.accessibilityReduceMotion) private var reducedMotion
+    @Environment(\.scenePhase) private var phase
+    @State private var started=Date()
+    private var title:String{label.replacingOccurrences(of:"[.…]+$",with:"",options:.regularExpression)}
+    var body:some View {
+        TimelineView(.animation(minimumInterval:1/30,paused:reducedMotion || phase != .active)){time in
+            HStack(spacing:8){Text(title).font(.system(size:14)).frame(height:21);HStack(spacing:4){ForEach(0..<3){index in
+                let elapsed=time.date.timeIntervalSince(started)-Double(index)*0.16,t=elapsed<0 ? 0:elapsed.truncatingRemainder(dividingBy:1),wave=reducedMotion || elapsed<0 || t>=0.6 ? 0:t<=0.3 ? 0.5-0.5*cos(.pi*t/0.3):0.5+0.5*cos(.pi*(t-0.3)/0.3)
+                Circle().frame(width:4,height:4).opacity(0.3+0.7*wave).offset(y:-3*wave)
+            }}}.foregroundStyle(color).padding(.vertical,32).frame(maxWidth:.infinity)
+        }.accessibilityElement(children:.ignore).accessibilityLabel(title).accessibilityIdentifier("teamsLoading")
+    }
+}
