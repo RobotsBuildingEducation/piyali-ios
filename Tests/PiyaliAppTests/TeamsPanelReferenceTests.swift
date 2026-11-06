@@ -82,3 +82,54 @@ extension TeamsPanelReferenceTests {
         }
     }
 }
+
+extension TeamsPanelReferenceTests {
+    /// Original component actions supply the source payload; native replay verifies presentation.
+    /// Signed-relay product journeys separately exercise native validation and mutations.
+    func testOriginalTeamToastActionsAndNativePresentationInEnglishAndArabic()async throws {
+        let e=ProcessInfo.processInfo.environment;guard e["PIYALI_OFFLINE_TESTS"] == "1",e["PIYALI_REFERENCE_PREVIEW_TESTS"] == "1",UUID(uuidString:e["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Isolated source preview required")}
+        let fixture=try JSONDecoder().decode(JSONValue.self,from:Data(contentsOf:try XCTUnwrap(Bundle(for:Self.self).url(forResource:"teams-panel-preview",withExtension:"json"))))
+        let app=AppModel(progressService:TeamsNoCloud());try app.identity.create();app.signedIn=true;defer{app.signOut()}
+        let scene=try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap{$0 as? UIWindowScene}.first),old=scene.windows.first{$0.isKeyWindow};defer{old?.makeKey()}
+        for(language,theme)in [("en","light"),("ar","dark")] {for state in ["rename-error","rename-warning","rename-success","queue-error","queue-warning","copy"] {
+            app.learner.support=language;app.teamsNotices.bind("")
+            let window=UIWindow(windowScene:scene);window.frame=CGRect(x:0,y:0,width:402,height:874);let web=WKWebView(frame:window.frame),vc=UIViewController();vc.view=web;window.rootViewController=vc;window.makeKeyAndVisible();web.scrollView.contentInsetAdjustmentBehavior = .never
+            defer{web.stopLoading();window.isHidden=true;window.rootViewController=nil}
+            web.load(URLRequest(url:try XCTUnwrap(URL(string:"http://127.0.0.1:5181/__piyali-teams?state=\(state)&language=\(language)&theme=\(theme)"))))
+            var ready=false;for _ in 0..<400{ready=(try? await web.evaluateJavaScript("document.fonts.status==='loaded' && document.querySelectorAll('[role=tab]').length===2")) as? Bool == true;if ready{break};try await Task.sleep(for:.milliseconds(40))};XCTAssertTrue(ready);guard ready else{return};try await Task.sleep(for:.milliseconds(500))
+            if state.hasPrefix("rename"){
+                _=try await web.evaluateJavaScript("document.querySelector('button[aria-label=\"Edit team\"]').click()")
+                try await Task.sleep(for:.milliseconds(150))
+                _=try await web.evaluateJavaScript("(()=>{const input=[...document.querySelectorAll('[role=dialog]')].at(-1).querySelector('input');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,'Evening practice');input.dispatchEvent(new Event('input',{bubbles:true}));})()")
+                try await Task.sleep(for:.milliseconds(100));_=try await web.evaluateJavaScript("[...document.querySelectorAll('[role=dialog]')].at(-1).querySelectorAll('button')[2].click()")
+            }else if state.hasPrefix("queue"){
+                _=try await web.evaluateJavaScript("[...document.querySelectorAll('button')].find(b=>b.textContent==='\(EntryCopy.ui(language,"teams_create_open"))').click()")
+                for index in 0..<(state == "queue-warning" ? 2:1){
+                    _=try await web.evaluateJavaScript("(()=>{const input=[...document.querySelectorAll('[role=dialog]')].at(-1).querySelectorAll('input')[1];Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,\(state == "queue-error" ? "'bad'":"window.__teamsFixture.creator"));input.dispatchEvent(new Event('input',{bubbles:true}));})()")
+                    try await Task.sleep(for:.milliseconds(100));_=try await web.evaluateJavaScript("[...document.querySelectorAll('[role=dialog]')].at(-1).querySelectorAll('button')[1].click()")
+                    if index == 0{try await Task.sleep(for:.milliseconds(100))}
+                }
+            }else{
+                _=try await web.evaluateJavaScript("Object.defineProperty(navigator,'clipboard',{value:{writeText:async()=>{}},configurable:true});[...document.querySelectorAll('button')].find(b=>b.textContent==='\(EntryCopy.ui(language,"teams_copy_id"))').click()")
+            }
+            var hasToast=false;for _ in 0..<100{hasToast=(try? await web.evaluateJavaScript("!!document.querySelector('.chakra-toast')")) as? Bool == true;if hasToast{break};try await Task.sleep(for:.milliseconds(20))};XCTAssertTrue(hasToast,state);guard hasToast else{return}
+            _=try? await web.evaluateJavaScript("document.activeElement.blur()");web.endEditing(true);try await Task.sleep(for:.milliseconds(500))
+            let rawTitle=try await web.evaluateJavaScript("document.querySelector('.chakra-alert__title').textContent");let title=try XCTUnwrap(rawTitle as? String),description=try await web.evaluateJavaScript("document.querySelector('.chakra-alert__desc')?.textContent||''") as? String ?? ""
+            let expectedTitle=state.hasPrefix("queue") || state == "rename-error" ? "Error":state == "copy" ? "Your ID was copied":"Team renamed"
+            XCTAssertEqual(title,expectedTitle);let status=state.hasSuffix("error") ? "error":state.hasSuffix("warning") ? "warning":"success"
+            let expectedDescription:[String:String] = ["rename-error":"Public rename rejection","rename-warning":"The team name changed, but some local copies may still show the old name","queue-error":"Invalid npub format. npubs begin with 'npub'","queue-warning":"This npub is already on the list"]
+            XCTAssertEqual(description,expectedDescription[state] ?? "")
+            let sourceDirection=try await web.evaluateJavaScript("getComputedStyle(document.querySelector('.chakra-toast')).direction") as? String;XCTAssertEqual(sourceDirection,language == "ar" ? "rtl":"ltr")
+            let source=XCTAttachment(image:try await web.takeSnapshot(configuration:nil));source.name="Source Teams toast \(state) \(language)";source.lifetime = .keepAlways;add(source)
+            let geometry=try await web.evaluateJavaScript("JSON.stringify([...document.querySelectorAll('.chakra-toast,.chakra-toast *')].map(e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return{text:e.textContent,x:r.x,y:r.y,width:r.width,height:r.height,color:s.color,background:s.backgroundColor,fontFamily:s.fontFamily,fontSize:s.fontSize,fontWeight:s.fontWeight,lineHeight:s.lineHeight,direction:s.direction}}))") as? String ?? "[]"
+            let metrics=XCTAttachment(data:Data(geometry.utf8),uniformTypeIdentifier:"public.json");metrics.name="Source Teams toast geometry \(state) \(language)";metrics.lifetime = .keepAlways;add(metrics)
+            // Replays the exact outcome above; this does not claim native actions were exercised here.
+            var nativeFixture=fixture;if state == "rename-warning" || state == "rename-success"{nativeFixture=fixture.setting("teams",.array(fixture["teams"].array.map{$0.setting("teamName",.string("Evening practice"))}))}
+            let access=TeamsPreviewAccess(nativeFixture,state:"single"),model=TeamsPanelController(access:access)
+            let editor:TeamsEditor? = state.hasPrefix("queue") ? .create:state == "rename-error" ? .rename(fixture["teams"].array[0].setting("teamName",.string("Evening practice"))):nil
+            let notice=TeamsNotice(title:title,description:description.isEmpty ? nil:description,status:status,duration:state == "copy" ? 2:5,closable:state == "copy")
+            window.rootViewController=UIHostingController(rootView:ZStack{PiyaliBrand(dark:theme == "dark").background;TeamsDrawerView(model:model,initialEditor:editor,initialMembers:state == "queue-warning" ? [fixture["creator"].string]:[],initialMember:state == "queue-error" ? "bad":"",onClose:{});TeamsNoticeStack(notices:[notice],rtl:language == "ar")}.environmentObject(app).preferredColorScheme(theme == "dark" ? .dark:.light).ignoresSafeArea());window.makeKeyAndVisible();try await Task.sleep(for:.milliseconds(600))
+            let native=XCTAttachment(image:UIGraphicsImageRenderer(bounds:window.bounds).image{_ in window.drawHierarchy(in:window.bounds,afterScreenUpdates:true)});native.name="Native Teams toast \(state) \(language)";native.lifetime = .keepAlways;add(native);model.cancel();web.stopLoading();window.isHidden=true;window.rootViewController=nil
+        }}
+    }
+}

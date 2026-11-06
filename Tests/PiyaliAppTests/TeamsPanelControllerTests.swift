@@ -1,4 +1,5 @@
 import XCTest
+import SwiftUI
 @testable import Piyali
 
 @MainActor private final class TeamControllerAccess:TeamsPanelAccess {
@@ -73,5 +74,41 @@ extension TeamsPanelControllerTests {
     func testSuccessfulWatchedRefreshClearsAReadFailureWhileActionErrorsRemainIndependent()async throws {
         let(app,access,model)=try context();defer{model.cancel();try? app.identity.disconnect()};access.next = .init(teams:[.object(["id":.string("cached")])]);await model.reload(app);let update=try XCTUnwrap(access.watchCallbacks.first)
         access.loadFails=true;await model.reload(app);XCTAssertNotNil(model.error);access.loadFails=false;access.next = .init(teams:[.object(["id":.string("recovered")])]);update();try await settle{model.snapshot.teams.first?["id"].string == "recovered"};XCTAssertNil(model.error)
+    }
+}
+
+extension TeamsPanelControllerTests {
+    func testManagementFailureEmitsToastKeepsEditorAndSurvivesDrawerCloseButNotSignOut()async throws {
+        let(app,_,model)=try context();app.signedIn=true;defer{model.cancel();app.signOut()}
+        await model.reload(app);var closed=false
+        model.perform(app,action:{_ in throw AppError.message("Public rename rejection")},onSuccess:{closed=true})
+        try await settle{!model.working};XCTAssertFalse(closed);XCTAssertEqual(model.error,"Public rename rejection")
+        let notice=try XCTUnwrap(app.teamsNotices.notices.last);XCTAssertEqual(notice.title,"Error");XCTAssertEqual(notice.description,"Public rename rejection");XCTAssertEqual(notice.status,"error");XCTAssertEqual(notice.duration,5);XCTAssertFalse(notice.closable)
+        model.cancel();XCTAssertEqual(app.teamsNotices.notices.last?.id,notice.id)
+        app.signOut();XCTAssertTrue(app.teamsNotices.notices.isEmpty)
+    }
+    func testNoticeTimersKeepIdenticalMessagesIndependentAndFenceCancelledAccount()async throws {
+        var waits:[CheckedContinuation<Void,Error>]=[],durations:[Double]=[]
+        let center=TeamsNoticeCenter(wait:{duration in durations.append(duration);try await withCheckedThrowingContinuation{waits.append($0)}})
+        let first=TeamsNotice(title:"Your ID was copied",duration:2,closable:true),second=TeamsNotice(title:"Your ID was copied",duration:2,closable:true)
+        center.show(first,scope:"first");center.show(second,scope:"first");try await settle{waits.count==2};XCTAssertEqual(durations,[2,2]);XCTAssertEqual(center.notices.map(\.id),[first.id,second.id])
+        waits[0].resume();try await settle{center.notices.count==1};XCTAssertEqual(center.notices.first?.id,second.id)
+        center.bind("second");let replacement=TeamsNotice(title:"Team renamed");center.show(replacement,scope:"second");try await settle{waits.count==3};waits[1].resume();try await Task.sleep(for:.milliseconds(20));XCTAssertEqual(center.notices.map(\.id),[replacement.id]);XCTAssertEqual(durations,[2,2,5])
+        center.dismiss(replacement.id);waits[2].resume();try await Task.sleep(for:.milliseconds(20));XCTAssertTrue(center.notices.isEmpty)
+    }
+}
+
+
+extension TeamsPanelControllerTests {
+    func testNoticePortalClosesItsOwnItemReleasesEmptyWindowAndKeepsCurrentKeyWindow()async throws {
+        let(app,_,model)=try context();defer{model.cancel();app.signOut()}
+        let scene=try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap{$0 as? UIWindowScene}.first),key=scene.windows.first{$0.isKeyWindow}
+        let center=TeamsNoticeCenter(),coordinator=TeamsNoticePresenter.Coordinator();coordinator.scene=scene;coordinator.center=center
+        let notice=TeamsNotice(title:"Your ID was copied",duration:2,closable:true);center.show(notice,scope:"public-fixture");coordinator.render()
+        let portal=try XCTUnwrap(coordinator.portal);XCTAssertFalse(portal.canBecomeKey);XCTAssertFalse(portal.isHidden);XCTAssertTrue(scene.windows.first{$0.isKeyWindow} === key)
+        let confirmation=UUID();center.cover(true,by:confirmation);coordinator.render();XCTAssertNil(coordinator.portal);XCTAssertTrue(portal.isHidden);XCTAssertEqual(center.notices.map(\.id),[notice.id])
+        center.cover(false,by:confirmation);coordinator.render()
+        let host=try XCTUnwrap(coordinator.portal?.rootViewController as? UIHostingController<TeamsNoticeStack>);host.rootView.dismiss(notice.id);XCTAssertTrue(center.notices.isEmpty)
+        coordinator.render();XCTAssertNil(coordinator.portal);XCTAssertTrue(portal.isHidden);XCTAssertNil(portal.rootViewController);XCTAssertTrue(scene.windows.first{$0.isKeyWindow} === key)
     }
 }

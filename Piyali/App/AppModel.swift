@@ -72,7 +72,7 @@ import SwiftUI
     private var achievementRetryUpdates:AnyCancellable?
     private var importedAchievementSnapshots:[String:JSONValue]=[:]
     private var achievementApplicationActive=true
-    @Published var signedIn = false {didSet{if !signedIn{memoryCapture.cancel()}else{memoryCapture.bind(memoryCaptureScope)};bindAchievementDelivery();upcomingGameReviews.revalidate()}}
+    @Published var signedIn = false {didSet{if !signedIn{memoryCapture.cancel();teamsNotices.bind("")}else{memoryCapture.bind(memoryCaptureScope)};bindAchievementDelivery();upcomingGameReviews.revalidate()}}
     @Published private(set) var achievementUnlock=AchievementUnlockState(catalog:Set(((try? ContentLibrary.load([JSONValue].self,name:"achievement-protocol")) ?? []).map{$0["id"].string}))
     @Published var tutorUnits: [LearningUnit] = []
     @Published var units: [LearningUnit] = []
@@ -147,6 +147,7 @@ import SwiftUI
     let subscription = SubscriptionService()
     let teams = NostrTeamsService()
     let teamsStartup=TeamsStartupController()
+    let teamsNotices=TeamsNoticeCenter()
     let teamFeed = CommunityFeedService()
     let automaticProgress=AutomaticProgressController()
     private let automaticWallet:WalletService

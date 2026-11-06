@@ -3,11 +3,11 @@ import Network
 import NostrSDK
 
 @MainActor final class TeamsTests:XCTestCase {
-    private func tap(_ id:String,_ app:XCUIApplication){let e=app.buttons[id];XCTAssertTrue(e.waitForExistence(timeout:15),id);XCTAssertTrue(e.isHittable,id);e.tap()}
+    private func tap(_ id:String,_ app:XCUIApplication){let e=app.buttons[id];XCTAssertTrue(e.waitForExistence(timeout:15),id);XCTAssertTrue(e.isHittable,id);if !e.isEnabled{XCTAssertEqual(XCTWaiter.wait(for:[XCTNSPredicateExpectation(predicate:NSPredicate(format:"enabled == true"),object:e)],timeout:15),.completed,"Action finishes saving before "+id)};e.tap()}
     private func enter(_ value:String,_ id:String,_ app:XCUIApplication){let e=app.textFields[id];XCTAssertTrue(e.waitForExistence(timeout:10));e.tap();e.typeText(value+"\n")}
     private func open(_ app:XCUIApplication){tap("productMenu",app);tap("productPanel-teams",app);XCTAssertTrue(app.buttons["teamsClose"].waitForExistence(timeout:10))}
     private func shot(_ name:String,_ app:XCUIApplication){let a=XCTAttachment(screenshot:app.screenshot());a.name=name;a.lifetime = .keepAlways;add(a)}
-    private func reveal(_ id:String,_ app:XCUIApplication)->XCUIElement{let e=app.descendants(matching:.any)[id];for _ in 0..<6 where !e.isHittable{app.swipeUp(velocity:.slow)};XCTAssertTrue(e.isHittable,id);return e}
+    private func reveal(_ id:String,_ app:XCUIApplication)->XCUIElement{let e=app.descendants(matching:.any)[id];for _ in 0..<6 where !e.isHittable{app.swipeUp(velocity:.slow)};XCTAssertTrue(e.isHittable,id);if !e.isEnabled{XCTAssertEqual(XCTWaiter.wait(for:[XCTNSPredicateExpectation(predicate:NSPredicate(format:"enabled == true"),object:e)],timeout:15),.completed,"Action finishes saving before "+id)};return e}
     func testCreateEditRosterAndDeleteUseSignedLocalRelayAndSurviveRelaunch()async throws {
         continueAfterFailure=false
         let relay=LocalNostrRelay();defer{relay.stop()};var events:[[String:Any]]=[]
@@ -16,8 +16,8 @@ import NostrSDK
         }
         let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_TEAM_TEST_RELAY":relay.url,"PIYALI_PRIVATE_TEAMS_TEST_EMULATOR":"1","PIYALI_HEADLINE_FIXTURE":"failure"];app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"];app.launch();handleInitialPaperPencil(app)
         let entryName=app.textFields["entryName"];XCTAssertTrue(entryName.waitForExistence(timeout:15));entryName.tap();entryName.typeText("Team Learner");tap("entryKeyboardDone",app);tap("createAccount",app);handleInitialPaperPencil(app);chooseEnglishSpanishOnboarding(app);tap("startLearning",app);tap("companionContinue",app);acknowledgePaperPencil(app);tap("gettingStartedGotIt",app);tap("placementNew",app)
-        open(app);XCTAssertTrue(app.staticTexts["My teams (0)"].waitForExistence(timeout:10));shot("Native Teams empty product",app);tap("teamsCopyID",app);if app.staticTexts["teamsNotice"].exists{app.staticTexts["teamsNotice"].tap()};tap("teamCreateOpen",app)
-        enter("Weekend","teamName",app);enter("bad","teamMembers",app);XCTAssertTrue(app.staticTexts["teamFormError"].waitForExistence(timeout:5));let member=app.textFields["teamMembers"];member.tap();member.typeText(String(repeating:XCUIKeyboardKey.delete.rawValue,count:3)+"npub10xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqpkge6d\n");XCTAssertTrue(app.staticTexts["Members to Invite (1)"].waitForExistence(timeout:5));shot("Native Teams queued product",app);tap("teamCreate",app)
+        open(app);XCTAssertTrue(app.staticTexts["My teams (0)"].waitForExistence(timeout:10));shot("Native Teams empty product",app);tap("teamsCopyID",app);let copyClose=app.buttons["teamsNoticeClose"];XCTAssertTrue(copyClose.exists);copyClose.tap();tap("teamCreateOpen",app)
+        enter("Weekend","teamName",app);enter("bad","teamMembers",app);XCTAssertTrue(app.staticTexts.matching(NSPredicate(format:"identifier == %@ AND label CONTAINS %@","teamsNoticeDescription","Invalid npub format")).firstMatch.waitForExistence(timeout:5));XCTAssertFalse(app.staticTexts["teamFormError"].exists);let member=app.textFields["teamMembers"];member.tap();member.typeText(String(repeating:XCUIKeyboardKey.delete.rawValue,count:3)+"npub10xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqpkge6d\n");XCTAssertTrue(app.staticTexts["Members to Invite (1)"].waitForExistence(timeout:5));shot("Native Teams queued product",app);tap("teamCreate",app)
         XCTAssertTrue(app.buttons["learningTeamRow"].waitForExistence(timeout:20));XCTAssertTrue(app.buttons["learningTeamRow"].label.contains("Weekend"));XCTAssertTrue(app.staticTexts["Team Learner"].exists);shot("Native Teams single product",app);tap("teamEdit",app);let name=app.textFields["teamEditName"];XCTAssertTrue(name.waitForExistence(timeout:5));name.tap();name.typeText(String(repeating:XCUIKeyboardKey.delete.rawValue,count:7)+"Evening\n");tap("teamRename",app);XCTAssertTrue(app.buttons["learningTeamRow"].waitForExistence(timeout:15));XCTAssertTrue(app.buttons["learningTeamRow"].label.contains("Evening"))
         tap("teamAddOpen",app);enter("npub1ccz8l9zpa47k6vz9gphftsrumpw80rjt3nhnefat4symjhrsnmjs38mnyd","teamMembers",app);tap("teamAdd",app);XCTAssertTrue(app.buttons["learningTeamRow"].waitForExistence(timeout:15));XCTAssertTrue(app.buttons["learningTeamRow"].label.contains("Evening"))
         app.terminate();app.launch();handleInitialPaperPencil(app);open(app);XCTAssertTrue(app.buttons["learningTeamRow"].waitForExistence(timeout:20));XCTAssertTrue(app.buttons["learningTeamRow"].label.contains("Evening"));shot("Native Teams restored product",app)
@@ -57,9 +57,29 @@ extension TeamsTests {
         let creator=Keypair()!.publicKey.npub,id="incoming-"+UUID().uuidString.lowercased(),stamp="2026-11-06T00:00:00.000Z",entry:[String:Any]=["npub":member,"status":"pending","addedAt":stamp,"name":""]
         try await fixtureWrite("users/\(creator)/teams/\(id)",["teamName":"Incoming while busy","createdBy":creator,"creatorName":"Public inviter","createdAt":stamp,"members":[entry]])
         try await fixtureWrite("users/\(member)/teamInvites/team_\(id)",["teamId":id,"teamName":"Incoming while busy","creatorNpub":creator,"invitedBy":creator,"invitedByName":"Public inviter","status":"pending","createdAt":stamp,"member":entry]);shot("Native Teams invitation delivered during held rename",app)
-        state.reject(relay);XCTAssertTrue(app.staticTexts["teamFormError"].waitForExistence(timeout:15));shot("Native Teams rejected rename retains its error",app);tap("teamEditorClose",app);XCTAssertTrue(app.staticTexts["Incoming while busy"].waitForExistence(timeout:10));XCTAssertTrue(app.buttons["learningTeamRow"].label.contains("Weekend"));XCTAssertFalse(app.buttons["learningTeamRow"].label.contains("Evening"));shot("Native Teams pending invitation remains after failed mutation",app)
+        state.reject(relay);XCTAssertTrue(app.staticTexts.matching(NSPredicate(format:"identifier == %@ AND label CONTAINS %@","teamsNoticeDescription","No relay acknowledged this update.")).firstMatch.waitForExistence(timeout:15));XCTAssertFalse(app.staticTexts["teamFormError"].exists);shot("Native Teams rejected rename retains its error",app);tap("teamEditorClose",app);XCTAssertTrue(app.staticTexts["Incoming while busy"].waitForExistence(timeout:10));XCTAssertTrue(app.buttons["learningTeamRow"].label.contains("Weekend"));XCTAssertFalse(app.buttons["learningTeamRow"].label.contains("Evening"));shot("Native Teams pending invitation remains after failed mutation",app)
         app.terminate();app.launch();open(app);XCTAssertTrue(app.staticTexts["Incoming while busy"].waitForExistence(timeout:15));XCTAssertTrue(app.buttons["learningTeamRow"].label.contains("Weekend"));shot("Native Teams old signed name and incoming invitation restore",app)
-        XCTAssertTrue(app.buttons["Decline"].firstMatch.waitForExistence(timeout:10));app.buttons["Decline"].firstMatch.tap();reveal("teamRemove",app).tap();XCTAssertTrue(app.sheets.buttons["Delete team"].waitForExistence(timeout:10));app.sheets.buttons["Delete team"].tap();XCTAssertTrue(app.staticTexts["My teams (0)"].waitForExistence(timeout:15));try await fixtureWrite("users/\(creator)/teams/\(id)");try await fixtureWrite("users/\(member)/teamInvites/team_\(id)")
+        XCTAssertTrue(app.buttons["Decline"].firstMatch.waitForExistence(timeout:10),"Restored invitation can be declined")
+        app.buttons["Decline"].firstMatch.tap()
+        let declined=app.staticTexts.matching(NSPredicate(format:"identifier == %@ AND label == %@","teamsNoticeTitle","Invite declined")).firstMatch
+        XCTAssertTrue(declined.waitForExistence(timeout:10),"Decline displays the original success notice")
+        let remove=reveal("teamRemove",app),notice=app.otherElements["teamsNotice"].firstMatch
+        let deleteFrame=remove.frame,noticeFrame=notice.exists ? notice.frame:.zero
+        let readiness:[String:Any] = ["enabled":remove.isEnabled,"deleteFrame":String(describing:deleteFrame),"noticeFrame":String(describing:noticeFrame),"overlaps":deleteFrame.intersects(noticeFrame)]
+        let readyTrace=XCTAttachment(data:try JSONSerialization.data(withJSONObject:readiness,options:[.sortedKeys]),uniformTypeIdentifier:"public.json");readyTrace.name="Native Teams bottom action and notice bounds";readyTrace.lifetime = .keepAlways;add(readyTrace)
+        shot("Native Teams decline notice above bottom action",app)
+        // Ordinary source toasts have no close button and cover underlying content.
+        // XCTest's isHittable does not account for our separate non-key notice window.
+        await fulfillment(of:[XCTNSPredicateExpectation(predicate:NSPredicate(format:"exists == false"),object:declined)],timeout:7)
+        XCTAssertFalse(declined.exists,"The five-second notice expires before tapping its covered action")
+        remove.tap()
+        let deletion=app.sheets.buttons["Delete team"]
+        XCTAssertTrue(deletion.waitForExistence(timeout:10),"Native confirmation appears after the notice clears")
+        XCTAssertTrue(deletion.isHittable)
+        shot("Native Teams deletion confirmation after decline notice",app)
+        deletion.tap()
+        XCTAssertTrue(app.staticTexts["My teams (0)"].waitForExistence(timeout:15),"Confirmed deletion removes the old signed team")
+        try await fixtureWrite("users/\(creator)/teams/\(id)");try await fixtureWrite("users/\(member)/teamInvites/team_\(id)")
         let published=relay.frames().filter{$0.first as? String == "EVENT"}.compactMap{$0[1] as? [String:Any]};XCTAssertTrue(published.allSatisfy{($0["kind"] as? Int)==30078});XCTAssertFalse(published.contains{($0["kind"] as? Int)==1})
     }
 }

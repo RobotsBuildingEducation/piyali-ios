@@ -1,0 +1,15 @@
+{
+  "device": "CE8248B6-7171-4FD4-97DE-89E499107F82",
+  "binaries": {
+    "Piyali": {
+      "built": "0626ec176834b869f4e141765c170f22ed2281fb4f0ea018e3f1aac19ec89a68",
+      "installed": "0626ec176834b869f4e141765c170f22ed2281fb4f0ea018e3f1aac19ec89a68",
+      "match": true
+    },
+    "Piyali.debug.dylib": {
+      "built": "733235a4d7826657c2fae246bd572c92ecfcae0da0e63bbdde06a2a970800f62",
+      "installed": "733235a4d7826657c2fae246bd572c92ecfcae0da0e63bbdde06a2a970800f62",
+      "match": true
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "devicesAndConfigurations" : [
+    {
+      "device" : {
+        "architecture" : "arm64",
+        "deviceId" : "CE8248B6-7171-4FD4-97DE-89E499107F82",
+        "deviceName" : "Piyali Parity QA",
+        "modelName" : "iPhone 17 Pro",
+        "osBuildNumber" : "23E254a",
+        "osVersion" : "26.4.1",
+        "platform" : "iOS Simulator"
+      },
+      "expectedFailures" : 0,
+      "failedTests" : 1,
+      "passedTests" : 13,
+      "skippedTests" : 0,
+      "testPlanConfiguration" : {
+        "configurationId" : "1",
+        "configurationName" : "Test Scheme Action"
+      }
+    }
+  ],
+  "environmentDescription" : "Piyali · Built with macOS 26.4.1",
+  "expectedFailures" : 0,
+  "failedTests" : 1,
+  "finishTime" : 1793961902.297,
+  "passedTests" : 13,
+  "result" : "Failed",
+  "skippedTests" : 0,
+  "startTime" : 1793961688.621,
+  "statistics" : [
+
+  ],
+  "testFailures" : [
+    {
+      "failureText" : "XCTAssertTrue failed",
+      "targetName" : "PiyaliUITests",
+      "testIdentifier" : 14,
+      "testIdentifierString" : "TeamsTests/testIncomingInvitationSurvivesHeldRejectedRenameAndRelaunchWithoutAcceptingTheFailedRoster()",
+      "testIdentifierURL" : "test://com.apple.xcode/Piyali/PiyaliUITests/TeamsTests/testIncomingInvitationSurvivesHeldRejectedRenameAndRelaunchWithoutAcceptingTheFailedRoster",
+      "testName" : "testIncomingInvitationSurvivesHeldRejectedRenameAndRelaunchWithoutAcceptingTheFailedRoster()"
+    }
+  ],
+  "title" : "Test - Piyali",
+  "topInsights" : [
+    {
+      "category" : "Longest Test Runs",
+      "impact" : "86% of duration",
+      "text" : "1 longest test run with outlier durations exceeding 36.81s (three standard deviations)"
+    }
+  ],
+  "totalTestCount" : 14
+}

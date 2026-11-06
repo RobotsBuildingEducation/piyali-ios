@@ -1,0 +1,419 @@
+{
+  "reference": "b269524ddc578027c549616fc47f5954991d9f6f",
+  "nativeBase": "0e2a3014a5f48a91484b2cb67c909d2562e74645",
+  "scope": "15 final XCTest cases pass with zero failures/skips: 12 native controller/UIKit, one source/native comparison with 12 pairs, two full native product journeys. Five original browser cases pass. Public source I/O fixtures do not establish authenticated App or production-service parity. Overall goal remains open.",
+  "normalization": "Full-resolution original PNGs retained. Pairs normalize embedded ICC profiles to sRGB and resample each side to 402x874 logical points. Source left, native right. Detail sheets crop the last 170 logical points.",
+  "sourceFiles": {
+    "src/components/Teams/TeamCreation.jsx": "f11087861531d5865539d9c4b3ed041e1cb838ddee578f22335ab8d69566cbe6",
+    "src/components/Teams/TeamView.jsx": "2facc3dd6abc05f079200ee3e903c30415b71aba8078a3fa9d5691f5b0e482d1",
+    "src/components/Teams/TeamsDrawer.jsx": "c9a5782a41cc39d7dac9fca19bdde0a6d8a3f24a4c463dc611f5d9332cee41fc",
+    "node_modules/@chakra-ui/react/dist/esm/toast/toast.component.mjs": "0038cd4a0474923e82f05a694be163690df0ece3ff5d7459386f45d684ce5b05",
+    "node_modules/@chakra-ui/react/dist/esm/toast/toast.mjs": "7d9e292b8e3896d79aae67df67c767b921bad524d2592fd69f957cee0769cc6a",
+    "node_modules/@chakra-ui/react/dist/esm/toast/toast.utils.mjs": "978a18ce4676ed14ee7589de76b395ebed15b29a54c319c7e695dc5b6025764f",
+    "node_modules/@chakra-ui/react/dist/esm/alert/alert-icons.mjs": "b18fce25057e14881ca0aa5591e34a78df08906c005615e409e6d5202fce1fa8",
+    "node_modules/@chakra-ui/react/dist/esm/close-button/close-button.mjs": "a02df119dfc6eb835cf0069eddbdc1aec5bb46d22209efabb8b75a21e1525039"
+  },
+  "implementationFiles": {
+    "Piyali/Features/TeamsNotice.swift": "a58e5e3fdd62643b08e7b47b4928a662dadf348c03bed51e2a89118fcb9b9cab",
+    "Piyali/Features/TeamsDrawerView.swift": "97a3bddc888eaa9d569257f3c13afd92307de310096b83d3a2bff7bc25fbab68",
+    "Piyali/Features/RootView.swift": "49ba50c6a99119ccfa155386ac79ad17337070944eb3cc162999d4ab50044ec0",
+    "Piyali/App/AppModel.swift": "9a30c35f2dfb80613cf07fa9d60c13df527aa216a8d4dcbc6a26d0ea57224c20",
+    "Piyali/Services/TeamsPanelController.swift": "fdd50add3783617423d9c298ef9cac12f01b35082c767264b4b87d9ca70bed55",
+    "Piyali/Resources/BrandAssets.xcassets/Teams-NoticeSuccess.imageset/icon.svg": "61da70017ab3d91fe38258bffaef5cabd23afee049b6fd43f8e1e32694731847",
+    "Piyali/Resources/BrandAssets.xcassets/Teams-NoticeClose.imageset/icon.svg": "4c2f2f11d1be857c07937b4c0540da3b063aae11665f6d939387e8a2dfa66252",
+    "Piyali.xcodeproj/project.pbxproj": "971439c46cb70287157ecbb827f527160b54760afe49cb2af831c077fc684b45",
+    "scripts/reference-teams.jsx": "581467e1e695146e2d3f52d4b70321369baf7d67df3d6aae56b1d93052cd4993",
+    "scripts/reference-teams-io.mjs": "5719945f318ec436206996f3d961f1dd2c88af9ea6f61875ed9e1f51b597f5b2",
+    "scripts/check-teams-notices-browser.mjs": "dfb93a1ac022b58e72f2e0e10c58f287b01e34cccac1ee97615a04e480ece5c9",
+    "Tests/PiyaliAppTests/TeamsPanelControllerTests.swift": "5c5c87d09c6eab096b73ea2c04d7b0c5d1bef2e326264f52dee79bfd33ec4950",
+    "Tests/PiyaliAppTests/TeamsPanelReferenceTests.swift": "851eba5ebf20206b58cb382021bdf6fb9649d205218faf9210112ead72cde4f5",
+    "Tests/PiyaliUITests/TeamsTests.swift": "b679fde96369f7afc4d5c6ed543171902c8c15157fa1c5bc1ff0ee6270388c62"
+  },
+  "artifacts": [
+    {
+      "path": "app-final-pass.json",
+      "sha256": "550267ffe342eeb4a98f3d28a6b9a354f2ff5dcc62873d6dbf7a8c9bed56e4a1",
+      "bytes": 1164
+    },
+    {
+      "path": "before-confirmation-failed.json",
+      "sha256": "fdb24f262b81434daec4c136b3e50b3761a43f9e48cffa624dc2f4e82b6bd598",
+      "bytes": 1718
+    },
+    {
+      "path": "confirmation-readiness-failed.json",
+      "sha256": "bf750a1b78b9a3bd7aea00dcb9110d4c87d46d71ec42886d2b20515833f1a8f6",
+      "bytes": 1582
+    },
+    {
+      "path": "create-final-case-pass.json",
+      "sha256": "bbcfcddd96ff8d5f0976caeef4e22414a192d92847594b8db995a1cbc4f0d684",
+      "bytes": 2107
+    },
+    {
+      "path": "create-pass-other-case-failed.json",
+      "sha256": "e500b3ed2549fe49522f148e28f522caed1bae4a85afcd6eb1ac545c52cf55a0",
+      "bytes": 1579
+    },
+    {
+      "path": "enabled-control-failed-trace.json",
+      "sha256": "f3e07f8fb353193f4493141b5535f970a268231699583b228fe53e037ba5df56",
+      "bytes": 29
+    },
+    {
+      "path": "initial-mixed-failed.json",
+      "sha256": "45d65cb5643a320e7fb1638e84241378d03a43c62fc2155108de6e0d7482e1d6",
+      "bytes": 1665
+    },
+    {
+      "path": "installed-build.json",
+      "sha256": "22f9592e09c77c2509a3f50e33cbd979b4391bd87a85d1ce51f689eb89772b84",
+      "bytes": 513
+    },
+    {
+      "path": "invitation-final-case-pass.json",
+      "sha256": "ad29e14e2a69103348d14ea67ef16b14486671524c3981458a3177777d0a17e8",
+      "bytes": 2179
+    },
+    {
+      "path": "invitation-intermediate-pass.json",
+      "sha256": "7cc4c3e97f30e549fc114c5686819c2b44534b018a258d98f67d9f8380bfeb3a",
+      "bytes": 971
+    },
+    {
+      "path": "journeys-mixed-failed.json",
+      "sha256": "e13737ce84eb23d800abf6e7ee77e5f64dadc779dfedde3fc1baaa1cf961d0be",
+      "bytes": 1523
+    },
+    {
+      "path": "native-teams-bottom-action-and-notice-bounds.json",
+      "sha256": "e28ec8440dce716b8c9c32f623096836924b577b59f62e92d1cf5ee259f146ec",
+      "bytes": 143
+    },
+    {
+      "path": "native-teams-decline-notice-above-bottom-action.png",
+      "sha256": "25af8a5855cd6f33a3718a55a67559750c6fae2ff54c66d79ba86ddcbaf8cc03",
+      "bytes": 508341
+    },
+    {
+      "path": "native-teams-deletion-confirmation-after-decline-notice.png",
+      "sha256": "b7e5dcd8c029851815537b67907c0766f75fbe660221ca81d6dacfdbf527f806",
+      "bytes": 619064
+    },
+    {
+      "path": "native-teams-empty-product.png",
+      "sha256": "2db5a227628d635619b61bf38d9b5b50d8220fac7d8d68218df1c8d47b6fe1ea",
+      "bytes": 412131
+    },
+    {
+      "path": "native-teams-feed-product.png",
+      "sha256": "8a31884256a4d19bf4b7c0edf7825c04f80a35b1f11c36a8c20112a2baaa0a6e",
+      "bytes": 390980
+    },
+    {
+      "path": "native-teams-invitation-delivered-during-held-rename.png",
+      "sha256": "4e2f6c599e6726103e6b8a4187df5068f1e4ed55b11914701e64087d13867630",
+      "bytes": 387695
+    },
+    {
+      "path": "native-teams-old-signed-name-and-incoming-invitation-restore.png",
+      "sha256": "2efd65238eb18513cea10f958da52a9db77bc36f2feabb6f32812c12f656b6c2",
+      "bytes": 496774
+    },
+    {
+      "path": "native-teams-pending-invitation-remains-after-failed-mutation.png",
+      "sha256": "2efd65238eb18513cea10f958da52a9db77bc36f2feabb6f32812c12f656b6c2",
+      "bytes": 496774
+    },
+    {
+      "path": "native-teams-queued-product.png",
+      "sha256": "1c423fd0d48df980990b7ee35f765ea68ee2eeeb18c5de7042f5d7961e0af6ae",
+      "bytes": 369267
+    },
+    {
+      "path": "native-teams-rejected-rename-retains-its-error.png",
+      "sha256": "99cc401b898f9ff5a19e4e8e861c79d7b8b866e756620d9dfbb1469fcb17709d",
+      "bytes": 399762
+    },
+    {
+      "path": "native-teams-restored-product.png",
+      "sha256": "9ca415f7cfe9457fd6867157c09ff868beb99310cc6e30ace8f2988081fb7d8b",
+      "bytes": 498456
+    },
+    {
+      "path": "native-teams-single-product.png",
+      "sha256": "9a638ce554939aafdfa15e7de27ed38924451ebbd5509f6eecfa34a2a00f5ec6",
+      "bytes": 489725
+    },
+    {
+      "path": "native-teams-toast-copy-ar.png",
+      "sha256": "332f45ce5c43e963e98ed141427f388cf64f76059d1c18c78015cdeeda0021de",
+      "bytes": 494611
+    },
+    {
+      "path": "native-teams-toast-copy-en.png",
+      "sha256": "8a71f4659aa2f454bd5172ee7896ce22a9e1c27a7929a4eff8d5f4b542d54722",
+      "bytes": 488350
+    },
+    {
+      "path": "native-teams-toast-queue-error-ar.png",
+      "sha256": "b0b6242375683a8a4146a79e7dca12e6dbab750177581791aceee45ca757ffbc",
+      "bytes": 417270
+    },
+    {
+      "path": "native-teams-toast-queue-error-en.png",
+      "sha256": "a19d5629945b0c891697c7671b8c77f63a441dd8fb1ac7960b0d230dff89ea9a",
+      "bytes": 416408
+    },
+    {
+      "path": "native-teams-toast-queue-warning-ar.png",
+      "sha256": "1f2e3f69cf1f662eb99275c12d66f20fbec8dccaa65b1049078ea0202d15a969",
+      "bytes": 463978
+    },
+    {
+      "path": "native-teams-toast-queue-warning-en.png",
+      "sha256": "1e3675b159985c4801b32066baee98c45457821d277d5073b68c691578c147de",
+      "bytes": 464413
+    },
+    {
+      "path": "native-teams-toast-rename-error-ar.png",
+      "sha256": "8e69482d35acdde6ce418e20e7943b9446ab631a831adb443ea0bb36ba314020",
+      "bytes": 421621
+    },
+    {
+      "path": "native-teams-toast-rename-error-en.png",
+      "sha256": "e9328a1e75dc1d809e5275637e251dffdbb61564ba07390234715525e46c5d01",
+      "bytes": 431176
+    },
+    {
+      "path": "native-teams-toast-rename-success-ar.png",
+      "sha256": "d688cea047801df55b2cf33deabd404f73e7351472247cfde71ec2489314f77f",
+      "bytes": 484509
+    },
+    {
+      "path": "native-teams-toast-rename-success-en.png",
+      "sha256": "e0bc4b73395108309bafc38300c29b53ad10ba26480da91cffc1058ce4eea77e",
+      "bytes": 478368
+    },
+    {
+      "path": "native-teams-toast-rename-warning-ar.png",
+      "sha256": "4aa0ee58f73a056e21340549a1729bd422b42803a227ac476c706373b87e11e0",
+      "bytes": 467295
+    },
+    {
+      "path": "native-teams-toast-rename-warning-en.png",
+      "sha256": "ee30f9e55bc0073c089824ad94df183957942e7d21c97d9ecb739343cf98e511",
+      "bytes": 462813
+    },
+    {
+      "path": "notices-ar-detail.png",
+      "sha256": "d59a01b78dfac8a33fd64710011f81c622471f0eb0224914b2f81d5205526c20",
+      "bytes": 252163
+    },
+    {
+      "path": "notices-en-detail.png",
+      "sha256": "6eb33b30dd2c53903a112922e6594ae2bdd846fee5622419a6b06c27cb93cc0c",
+      "bytes": 255439
+    },
+    {
+      "path": "original-browser-lifecycle.json",
+      "sha256": "e0aca12104abe7fc91afd151f2bbb7e989b851cee09af88703a99c8905598dd9",
+      "bytes": 1665
+    },
+    {
+      "path": "pair-copy-ar.png",
+      "sha256": "a9d5987d5582d4ba2bb0238788fa53c6b8f33618c2b7c40206eb5538bf4e3c2c",
+      "bytes": 143233
+    },
+    {
+      "path": "pair-copy-en.png",
+      "sha256": "d038446bdd8339669ec084adb39a9cef8dd98631523482b47ce0acdcdb759738",
+      "bytes": 141981
+    },
+    {
+      "path": "pair-queue-error-ar.png",
+      "sha256": "3a6e20fadafa4f835b24d8e7d189d85dd4b3951649eb788e658370c0babeadf5",
+      "bytes": 134797
+    },
+    {
+      "path": "pair-queue-error-en.png",
+      "sha256": "d9ed3370a7cd132b435ee8e6488c95d8b875585f3166fb65db7638b3351f2f13",
+      "bytes": 138608
+    },
+    {
+      "path": "pair-queue-warning-ar.png",
+      "sha256": "8f54e23328a6a96a0c7cfc5a30b4ffa2e8bac66afef2b8144b0fbe263d6844c6",
+      "bytes": 161604
+    },
+    {
+      "path": "pair-queue-warning-en.png",
+      "sha256": "73ff210031c8ef58b076699d00984fe8df8fe4262fdbd562e147eeabfac4ea24",
+      "bytes": 163929
+    },
+    {
+      "path": "pair-rename-error-ar.png",
+      "sha256": "50d0011c99ff6515f4b7b2562f4aa312d32324be72462ee2baae13c7e255a4e6",
+      "bytes": 127969
+    },
+    {
+      "path": "pair-rename-error-en.png",
+      "sha256": "fbc86312eca4d3904efeadc925dcaf8ab3f11b9d92f4ac1e7fddc2a212c6b822",
+      "bytes": 130939
+    },
+    {
+      "path": "pair-rename-success-ar.png",
+      "sha256": "351e14d4a6a4d2b718c1da2b5140537382ab03ebac011eb9b0a03e7b172d38f1",
+      "bytes": 139059
+    },
+    {
+      "path": "pair-rename-success-en.png",
+      "sha256": "a191f390bcde69b0c776795181c8dfd64592044f90c20c866329a547e630a848",
+      "bytes": 137007
+    },
+    {
+      "path": "pair-rename-warning-ar.png",
+      "sha256": "7e9f5f7d31503755bdab44690618242cfba3ef73e4fc915f8137fb790ded4cf3",
+      "bytes": 156340
+    },
+    {
+      "path": "pair-rename-warning-en.png",
+      "sha256": "3f53b39acd3ef635876530233b2f3dd7e6c61ac34b28668640dedde93a7cbbce",
+      "bytes": 154714
+    },
+    {
+      "path": "pre-fix-notices-ar-detail.png",
+      "sha256": "8189bfc5fa4a4cf3142fc687c57020dfe8618eb8c92455383972a34b7f7bfb60",
+      "bytes": 251867
+    },
+    {
+      "path": "source-teams-toast-copy-ar.png",
+      "sha256": "d1f7f0c6ed620e10cc03db06ddcd7d39a2d65148004c8224747cf8d977eed6b7",
+      "bytes": 268179
+    },
+    {
+      "path": "source-teams-toast-copy-en.png",
+      "sha256": "239b2bacb96fe30b5dd516299e531d28cd6651c2774aafbc7af41f8c9a293219",
+      "bytes": 272035
+    },
+    {
+      "path": "source-teams-toast-geometry-copy-ar.json",
+      "sha256": "052067bd60b8a7793f90ab64ab03c6ed9a64bc864acb53f76162484c07d8454c",
+      "bytes": 3932
+    },
+    {
+      "path": "source-teams-toast-geometry-copy-en.json",
+      "sha256": "3e590681480e03560938a26fae6e0e5083f5c9e8af5d270ec691bc16a78bd6c9",
+      "bytes": 3923
+    },
+    {
+      "path": "source-teams-toast-geometry-queue-error-ar.json",
+      "sha256": "a95309d4adf74b8d42be0b9c7acb3e51ab7bd4dffe0b00d7739737c1f2abd1de",
+      "bytes": 3398
+    },
+    {
+      "path": "source-teams-toast-geometry-queue-error-en.json",
+      "sha256": "c2ae8e4c6ee9fdcb90c59d1351b3b3b34a82cd0387b5594abf63fffa9736bdcd",
+      "bytes": 3392
+    },
+    {
+      "path": "source-teams-toast-geometry-queue-warning-ar.json",
+      "sha256": "c59e413b94f82a50ce9433fcb14b0eceb575f890f5ee7b184a6bdf41d3ca296b",
+      "bytes": 3339
+    },
+    {
+      "path": "source-teams-toast-geometry-queue-warning-en.json",
+      "sha256": "6b5c5e350c1c47e779abf168d6ef63c138fc6315d93c3bb7f1f1dfaf035e4435",
+      "bytes": 3331
+    },
+    {
+      "path": "source-teams-toast-geometry-rename-error-ar.json",
+      "sha256": "6f0cf9b0b08ec3e20eb099a52cde207ea2b37121acb4146a1b5a87a2fc7ba783",
+      "bytes": 3294
+    },
+    {
+      "path": "source-teams-toast-geometry-rename-error-en.json",
+      "sha256": "cb944266390fa030f30d13d1b3ace7e0c6b44ea4d7a2caad99353446a2f04da8",
+      "bytes": 3286
+    },
+    {
+      "path": "source-teams-toast-geometry-rename-success-ar.json",
+      "sha256": "8f5427c54c92a0fccb3711b8b1b1b9d913e01ecc651cef70826ac49dd5751220",
+      "bytes": 2812
+    },
+    {
+      "path": "source-teams-toast-geometry-rename-success-en.json",
+      "sha256": "747baff4d2ffc8b682132ae89efa9ca1e0de4915ea2f46533e71eaeb9669a93b",
+      "bytes": 2803
+    },
+    {
+      "path": "source-teams-toast-geometry-rename-warning-ar.json",
+      "sha256": "5fa83ac49a8a2e6a2d055fb28e1f819a223e2adbfb39175b15deca58ec7bb130",
+      "bytes": 3573
+    },
+    {
+      "path": "source-teams-toast-geometry-rename-warning-en.json",
+      "sha256": "45d70b996b91b03ec3ab34bfbda060da76ee9f623594725a725f47706e80f1c5",
+      "bytes": 3567
+    },
+    {
+      "path": "source-teams-toast-queue-error-ar.png",
+      "sha256": "08e7116822864d00b5b6876d9c96e668420a9f45c21725c821f0e259ae1af99d",
+      "bytes": 223057
+    },
+    {
+      "path": "source-teams-toast-queue-error-en.png",
+      "sha256": "b791c1a4e895e2ab45a599f7dda40c4b997a06fe0b27f7dca22715125062df64",
+      "bytes": 252005
+    },
+    {
+      "path": "source-teams-toast-queue-warning-ar.png",
+      "sha256": "d7d331cc6a156f08f8282d04c691304ff3bee91593dffa237b3d5ad03a605255",
+      "bytes": 249884
+    },
+    {
+      "path": "source-teams-toast-queue-warning-en.png",
+      "sha256": "59a6f55d44cab00bb5e99f5b8c0df1556e724512ab1803bba32068a09ea2cb42",
+      "bytes": 281961
+    },
+    {
+      "path": "source-teams-toast-rename-error-ar.png",
+      "sha256": "5b23acb1b2d5e1fef1fcaa3a8e41ca126d8310a5bd92e8209ff3bbbd3bfa1737",
+      "bytes": 234376
+    },
+    {
+      "path": "source-teams-toast-rename-error-en.png",
+      "sha256": "cf889e40a93e2e17c989f4b8852e5a2c01f9d708e15e72c55b7b2b607e1a61c2",
+      "bytes": 256291
+    },
+    {
+      "path": "source-teams-toast-rename-success-ar.png",
+      "sha256": "7096e341e0bbc7501d774be560a3bd20cf6ff73e31b5357450c287f524163dc8",
+      "bytes": 262766
+    },
+    {
+      "path": "source-teams-toast-rename-success-en.png",
+      "sha256": "eefc32c93e78a938ed7d956a3cde3db4f5f7d3346ceb52ca8692d2c00170961a",
+      "bytes": 266534
+    },
+    {
+      "path": "source-teams-toast-rename-warning-ar.png",
+      "sha256": "689cbad7641efcdf6381c09b02559b9f42202523fbfe0ddee441b3b7c691bfbb",
+      "bytes": 259195
+    },
+    {
+      "path": "source-teams-toast-rename-warning-en.png",
+      "sha256": "f55c2f72e37fe43e6137fbcaf628cab91c44a3b571d249605b0a1e841e914972",
+      "bytes": 264260
+    },
+    {
+      "path": "ui-final-pass.json",
+      "sha256": "f5e8ba39c380949cf14e4cb5cd949f3f2acb2086b956a00560c04f6bdb298d49",
+      "bytes": 971
+    },
+    {
+      "path": "visual-final-case-pass.json",
+      "sha256": "06b0b0d81fdc4eed1540ffc0b8d38259a1a8e0215fec6eb5e2296a6575bbbd7c",
+      "bytes": 1639
+    }
+  ]
+}

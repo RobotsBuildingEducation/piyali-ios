@@ -41,6 +41,7 @@
 		027B103AC5DEAECEB5556C3E /* RPGProp-bench-1181.png in Resources */ = {isa = PBXBuildFile; fileRef = 27AB7D77EC65728D03895FB3 /* RPGProp-bench-1181.png */; };
 		0280B00479A90835F340E239 /* LessonCompletionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16D6BE54856D741FAF49C52E /* LessonCompletionView.swift */; };
 		02A97897A6AA89D788CBFF10 /* RPGGround-ec9072412ecc003fad803f8f.png in Resources */ = {isa = PBXBuildFile; fileRef = 34251E10C3448BAB7A3BB8FA /* RPGGround-ec9072412ecc003fad803f8f.png */; };
+		02C1D92B709682F348A06430 /* TeamsNotice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9997629700C99FD94A409077 /* TeamsNotice.swift */; };
 		02C1FDB77E7FFB997FC5C3AE /* RPGProp-shelf-981.png in Resources */ = {isa = PBXBuildFile; fileRef = 4EE1F12B5D9ECFBB7077D1CF /* RPGProp-shelf-981.png */; };
 		02CEBCF561D9AFF8B192878B /* course-RiHome4Line@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 0C55DC98E22B0C04E60FE7C0 /* course-RiHome4Line@3x.png */; };
 		02E0EEE5E076D505B455C12E /* TeamsStartupTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86B9DCFF59BE4B60A27155B1 /* TeamsStartupTests.swift */; };
@@ -5920,6 +5921,7 @@
 		9949357A866AE641EAE6FEBE /* RPGProp-desk-3145.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGProp-desk-3145.png"; sourceTree = "<group>"; };
 		996CC16CB11DB719C670CD12 /* RPGPet-alien-right-1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGPet-alien-right-1.png"; sourceTree = "<group>"; };
 		99701D36009EFC6062B80F61 /* course-RiHandHeartLine@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "course-RiHandHeartLine@3x.png"; sourceTree = "<group>"; };
+		9997629700C99FD94A409077 /* TeamsNotice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamsNotice.swift; sourceTree = "<group>"; };
 		999B59B57CB1176646DA03BE /* course-RiArtboardLine@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "course-RiArtboardLine@3x.png"; sourceTree = "<group>"; };
 		99DEF1A910425D2A53579A33 /* PiyaliTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PiyaliTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9A190E3169D1069810C1B2EE /* RPGProp-shelf-809.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGProp-shelf-809.png"; sourceTree = "<group>"; };
@@ -7929,6 +7931,7 @@
 				543CC7F8C37702748DA97A5A /* SubscriptionPanels.swift */,
 				180A6A88F3A91E5A14547D35 /* SubscriptionView.swift */,
 				A730B7461CE6350AB761B612 /* TeamsDrawerView.swift */,
+				9997629700C99FD94A409077 /* TeamsNotice.swift */,
 				EBC46F81727414E31B5066AF /* TodayFocusHomeView.swift */,
 				5406C91619E29FB74D659AE9 /* TutorReplyView.swift */,
 				24760CFD9E5C76776807DC9B /* TutorSourcePathView.swift */,
@@ -15190,6 +15193,7 @@
 				A00BB38F9FFE83D8017E08E1 /* TeamInviteBadge.swift in Sources */,
 				A72742590594912AC5B37C8F /* TeamsDrawerView.swift in Sources */,
 				CE0325456855B75E6375FB33 /* TeamsMirrorService.swift in Sources */,
+				02C1D92B709682F348A06430 /* TeamsNotice.swift in Sources */,
 				3CA77A6D5EB291511746FDCB /* TeamsPanelController.swift in Sources */,
 				FEC32A0784F79436B59AA1FE /* TeamsPanelPolicy.swift in Sources */,
 				C16EF643B44C58586514FDCC /* TeamsStartupController.swift in Sources */,

@@ -94,8 +94,6 @@ extension TeamsPanelAccess {
     @Published private(set) var feedLoading=false
     @Published var error:String? {didSet{retainErrorOnWatch = error != nil}}
     @Published var sharingError:String?
-    @Published var notice:String?
-    @Published var noticeKind="success"
     private let access:TeamsPanelAccess
     let policy:TeamsPanelPolicy?
     private var epoch=UUID(),work:Task<Void,Never>?,sharing:Task<Void,Never>?,refresh:Task<Void,Never>?,invitationWatch:Task<Void,Never>?
@@ -117,12 +115,12 @@ extension TeamsPanelAccess {
         do{
             var value=try await access.load(app);guard owned(app,token) else{return}
             if inviteRevision != before{value.invites=snapshot.invites}
-            snapshot=value;if let warning=value.warning{if !preservingError || !retainErrorOnWatch{error=warning;retainErrorOnWatch=false}}else if !preservingError || !retainErrorOnWatch{error=nil}
+            snapshot=value;if let warning=value.warning{if !preservingError || !retainErrorOnWatch{error=warning;retainErrorOnWatch=false;showError(warning,app:app)}}else if !preservingError || !retainErrorOnWatch{error=nil}
             let grants=value.invites.filter{$0["nostr"] != .null && $0["status"].string == "accepted"}.map{$0["creatorNpub"].string+":"+$0["teamId"].string+":"+$0["createdAt"].string}.sorted()
             let key=owner+value.teams.map(LiveTeamsPanelAccess.key).sorted().joined(separator:",")+grants.joined(separator:",")
             if key != watchKey{watchKey=key;await access.watchSnapshot(value,app:app,onChange:{[weak self,weak app] in guard let self,let app,self.owned(app,token) else{return};self.requestRefresh(app)})}
             guard owned(app,token) else{return};scheduleSharing(app)
-        }catch{if owned(app,token),!(error is CancellationError),!preservingError || !retainErrorOnWatch{self.error=error.localizedDescription;retainErrorOnWatch=false}}
+        }catch{if owned(app,token),!(error is CancellationError),!preservingError || !retainErrorOnWatch{self.error=error.localizedDescription;retainErrorOnWatch=false;showError(error.localizedDescription,app:app)}}
     }
     private func installInvitations(_ app:AppModel,token:UUID){
         guard !watchingInvites else{return};watchingInvites=true
@@ -143,15 +141,16 @@ extension TeamsPanelAccess {
             while owned(app,token),refreshNeeded,!working,!reloading{refreshNeeded=false;await reload(app,preservingError:true)}
         }
     }
-    func perform(_ app:AppModel,action:@escaping(TeamsPanelAccess)async throws->String?,onSuccess:@escaping()->Void={}){
+    func perform(_ app:AppModel,action:@escaping(TeamsPanelAccess)async throws->TeamsNotice?,errorTitle:String?=nil,onSuccess:@escaping()->Void={}){
         guard !working,!closed else{return};if owner.isEmpty{bind(app)};let token=epoch;guard owned(app,token) else{return}
-        working=true;error=nil;noticeKind="success"
+        working=true;error=nil
         work=Task{[weak self] in
             guard let self else{return};defer{if owned(app,token){working=false;work=nil;drainRefresh(app)}}
-            do{let message=try await action(access);guard owned(app,token) else{return};notice=message;onSuccess();await reload(app)}
-            catch{if owned(app,token),!(error is CancellationError){self.error=error.localizedDescription}}
+            do{let message=try await action(access);guard owned(app,token) else{return};if let message{app.showTeamsNotice(message)};onSuccess();await reload(app)}
+            catch{if owned(app,token),!(error is CancellationError){self.error=error.localizedDescription;showError(error.localizedDescription,app:app,title:errorTitle)}}
         }
     }
+    private func showError(_ description:String,app:AppModel,title:String?=nil){let value=EntryCopy.ui(app.learner.support,"teams_view_error");app.showTeamsNotice(.init(title:title ?? (value.isEmpty || value == "teams_view_error" ? "Error":value),description:description,status:"error"))}
     func scheduleSharing(_ app:AppModel){
         guard !closed,owner == app.identity.npub,ownerSession == app.identity.sessionRevision else{return}
         guard snapshot.teams.contains(where:{$0["nostr"] != .null}) else{sharing?.cancel();shareKey="";return}

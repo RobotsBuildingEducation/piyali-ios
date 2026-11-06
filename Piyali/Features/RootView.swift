@@ -9,7 +9,7 @@ struct RootView: View {
         else {
             ProductAccessView(service:app.subscription).id(app.identity.npub)
         }
-        }.task(id:app.signedIn ? app.identity.npub+app.identity.sessionRevision.uuidString:""){app.teamsStartup.bind(app)}.background(SignerAuthorizationPresenter(identity:app.identity)).background(CompanionSaveNoticePresenter())
+        }.task(id:app.signedIn ? app.identity.npub+app.identity.sessionRevision.uuidString:""){app.teamsStartup.bind(app)}.background(SignerAuthorizationPresenter(identity:app.identity)).background(CompanionSaveNoticePresenter()).background(TeamsNoticePresenter(center:app.teamsNotices,closeLabel:EntryCopy.ui(app.learner.support,"close"),rtl:app.learner.support == "ar")).onChange(of:app.teamsNoticeScope,initial:true){_,scope in app.teamsNotices.bind(scope)}
     }
 }
 private struct ProductAccessView:View {
