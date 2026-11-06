@@ -2,7 +2,7 @@
 (function(){const SystemDate=globalThis.Date;let Date=SystemDate,p={},requests=[],index=0;
 const console={error:()=>{}};function callNativeResponses(request){requests.push(request.input);const value=(p.responses||[])[index++];if(value?.nativeFailure)throw Error('provider');return value||'';}
 // src/constants/supportLanguages.js
-const M9=(function(){
+const M6=(function(){
 const SUPPORT_LANGUAGE_CODES = Object.freeze([
   "en",
   "es",
@@ -32,7 +32,7 @@ const japaneseFlag=null;
 const russianFlag=null;
 const polishFlag=null;
 const irishFlag=null;
-const CANONICAL_SUPPORT_LANGUAGE_CODES=M9.SUPPORT_LANGUAGE_CODES;
+const CANONICAL_SUPPORT_LANGUAGE_CODES=M6.SUPPORT_LANGUAGE_CODES;
 const DEFAULT_SUPPORT_LANGUAGE = "en";
 const LANGUAGE_FALLBACK_LABELS = {
   ar: "Egyptian Arabic",
@@ -265,37 +265,24 @@ function getLanguageLocale(code, fallback = "en-US") {
   return LANGUAGE_LOCALES[normalized] || fallback;
 }
 return {getLanguageLocale,normalizeSupportedCode,normalizeCode,SUPPORTED_LANGUAGE_CODES_SET,LANGUAGE_META,egyptianFlag,netherlandsFlag,usaFlag,frenchFlag,germanFlag,italianFlag,indianFlag,chineseFlag,brazilianFlag,mexicanFlag,greekFlag,japaneseFlag,russianFlag,polishFlag,irishFlag,LANGUAGE_LOCALES,getLanguagePromptName,LANGUAGE_PROMPT_LABELS,LANGUAGE_FALLBACK_LABELS,normalizeSupportLanguage,DEFAULT_SUPPORT_LANGUAGE,SUPPORT_LANGUAGE_CODES_SET,SUPPORT_LANGUAGE_CODES_BASE,CANONICAL_SUPPORT_LANGUAGE_CODES};})();
-// src/utils/dailyPlate.js
-const M6=(function(){
-function normalizePlateLang(targetLang) {
-  return typeof targetLang === "string" && targetLang.trim()
-    ? targetLang.trim().toLowerCase()
-    : "es";
+// src/utils/cefrUtils.js
+const M7=(function(){
+function normalizeCEFRLevel(level, fallback = "A1") {
+  const raw = typeof level === "string" ? level.trim() : "";
+  if (!raw) return normalizeCEFRLevel(fallback, "A1");
+
+  const compact = raw.replace(/[\s_]+/g, "-").toUpperCase();
+  if (compact === "A0" || compact === "PRE-A1" || compact === "PREA1") {
+    return "PRE-A1";
+  }
+  if (["A1", "A2", "B1", "B2", "C1", "C2"].includes(compact)) {
+    return compact;
+  }
+  return normalizeCEFRLevel(fallback, "A1");
 }
-return {normalizePlateLang};})();
-// src/utils/userDataSchema.js
-const M8=(function(){
-function getLocalCalendarDayKey(value = new Date()) {
-  const date = value instanceof Date ? value : new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-}
-return {getLocalCalendarDayKey};})();
-// src/utils/flashcardReview.js
-const M7=(function(){const getLocalCalendarDayKey=M8.getLocalCalendarDayKey;
-function coerceDate(value) {
-  if (!value) return null;
-  const date = value instanceof Date ? value : new Date(value);
-  return Number.isNaN(date.getTime()) ? null : date;
-}
-function getLocalDayKey(value) {
-  const date = coerceDate(value);
-  if (!date) return null;
-  return getLocalCalendarDayKey(date) || null;
-}
-return {getLocalDayKey,coerceDate,getLocalCalendarDayKey};})();
+return {normalizeCEFRLevel};})();
 // src/utils/germanCopy.js
-const M10=(function(){
+const M8=(function(){
 const GERMAN_COPY = {
   "Save failed": "Speichern fehlgeschlagen",
   "Error al guardar": "Speichern fehlgeschlagen",
@@ -428,13 +415,33 @@ return {getGermanCopy,GERMAN_COPY};})();
 // src/utils/companionMemoryCopy.js
 const M3=(function(){const normalizeSupportLanguage=M0.normalizeSupportLanguage;
 const DEFAULT_SUPPORT_LANGUAGE=M0.DEFAULT_SUPPORT_LANGUAGE;
-const getGermanCopy=M10.getGermanCopy;
+const getGermanCopy=M8.getGermanCopy;
 const memoryCopy = (lang, copy) => {
   const normalized = normalizeSupportLanguage(lang, DEFAULT_SUPPORT_LANGUAGE);
   if (copy[normalized]) return copy[normalized];
   if (normalized === "de") return getGermanCopy(copy.en) || copy.en;
   return copy.en;
 };
+const fill = (template, vars = {}) =>
+  String(template || "").replace(/\{(\w+)\}/g, (_, key) =>
+    vars[key] != null ? String(vars[key]) : "",
+  );
+const SAVED_FOR_TOMORROW = {
+  en: "Saved for tomorrow: {concept}",
+  es: "Guardado para mañana: {concept}",
+  pt: "Guardado para amanhã: {concept}",
+  fr: "Gardé pour demain : {concept}",
+  it: "Salvato per domani: {concept}",
+  de: "Für morgen gemerkt: {concept}",
+  ja: "明日のために保存：{concept}",
+  zh: "已为明天保存：{concept}",
+  ru: "Сохранено на завтра: {concept}",
+  ar: "محفوظ لبكرة: {concept}",
+  hi: "कल के लिए सहेजा: {concept}",
+};
+function companionMemorySummary(lang, concept) {
+  return fill(memoryCopy(lang, SAVED_FOR_TOMORROW), { concept });
+}
 const MEMORY_CARD_COPY = {
   youSaid: {
     en: "You said",
@@ -626,13 +633,44 @@ const MEMORY_STATUS_COPY = {
 function memoryStatusLabel(lang, status) {
   return memoryCopy(lang, MEMORY_STATUS_COPY[status] || MEMORY_STATUS_COPY.captured);
 }
-return {memoryStatusLabel,memoryCopy,normalizeSupportLanguage,DEFAULT_SUPPORT_LANGUAGE,getGermanCopy,MEMORY_STATUS_COPY,MEMORY_CARD_COPY,MEMORY_DRAWER_COPY};})();
+return {companionMemorySummary,fill,memoryCopy,normalizeSupportLanguage,DEFAULT_SUPPORT_LANGUAGE,getGermanCopy,SAVED_FOR_TOMORROW,memoryStatusLabel,MEMORY_STATUS_COPY,MEMORY_CARD_COPY,MEMORY_DRAWER_COPY};})();
+// src/utils/userDataSchema.js
+const M10=(function(){
+function getLocalCalendarDayKey(value = new Date()) {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+return {getLocalCalendarDayKey};})();
+// src/utils/flashcardReview.js
+const M9=(function(){const getLocalCalendarDayKey=M10.getLocalCalendarDayKey;
+function coerceDate(value) {
+  if (!value) return null;
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+function getLocalDayKey(value) {
+  const date = coerceDate(value);
+  if (!date) return null;
+  return getLocalCalendarDayKey(date) || null;
+}
+return {getLocalDayKey,coerceDate,getLocalCalendarDayKey};})();
+// src/utils/dailyPlate.js
+const M11=(function(){
+function normalizePlateLang(targetLang) {
+  return typeof targetLang === "string" && targetLang.trim()
+    ? targetLang.trim().toLowerCase()
+    : "es";
+}
+return {normalizePlateLang};})();
 // src/utils/companionMemory.js
-const M2=(function(){const getLanguagePromptName=M0.getLanguagePromptName;
-const normalizePlateLang=M6.normalizePlateLang;
-const getLocalDayKey=M7.getLocalDayKey;
-const normalizeSupportLanguage=M0.normalizeSupportLanguage;
+const M2=(function(){const normalizeSupportLanguage=M0.normalizeSupportLanguage;
 const DEFAULT_SUPPORT_LANGUAGE=M0.DEFAULT_SUPPORT_LANGUAGE;
+const normalizeCEFRLevel=M7.normalizeCEFRLevel;
+const companionMemorySummary=M3.companionMemorySummary;
+const getLocalDayKey=M9.getLocalDayKey;
+const getLanguagePromptName=M0.getLanguagePromptName;
+const normalizePlateLang=M11.normalizePlateLang;
 const memoryStatusLabel=M3.memoryStatusLabel;
 const callResponses=callNativeResponses;
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -745,6 +783,38 @@ const MEMORY_STATUS = {
   reinforced: "reinforced",
   expired: "expired",
 };
+function displayCEFRLevel(level, fallback = "Pre-A1") {
+  const normalized = normalizeCEFRLevel(level || fallback, fallback);
+  return normalized === "PRE-A1" ? "Pre-A1" : normalized;
+}
+const MODE_TO_ERROR_TYPE = {
+  flashcard: "vocabulary",
+  vocabulary: "vocabulary",
+  grammar: "grammar",
+  phonics: "phonics",
+  conversation: "conversation_flow",
+  tutor: "conversation_flow",
+  reading: "reading",
+  story: "pronunciation", // story = read a sentence aloud → pronunciation repair
+};
+const ERROR_TYPE_TO_REPAIR_MODE = {
+  vocabulary: "flashcards",
+  grammar: "lesson", // structured → a generated mixed-question mini-lesson
+  reading: "flashcards",
+  writing: "lesson",
+  pronunciation: "phonics",
+  phonics: "phonics",
+  listening: "flashcards",
+  conversation_flow: "tutor",
+  confidence: "tutor",
+  unknown: "flashcards",
+};
+function errorTypeForMode(sourceMode) {
+  return MODE_TO_ERROR_TYPE[sourceMode] || "unknown";
+}
+function repairModeForError(errorType) {
+  return ERROR_TYPE_TO_REPAIR_MODE[errorType] || "review";
+}
 function getCompanionDayKey(now = new Date()) {
   return getLocalDayKey(now) || "";
 }
@@ -764,6 +834,55 @@ function readBucket(user, langKey) {
 }
 function getCompanionNotes(user = {}, targetLang = "es") {
   return readBucket(user, normalizePlateLang(targetLang)).notes;
+}
+function buildMemoryNote({
+  concept,
+  userAnswer,
+  expectedAnswer,
+  targetLang,
+  supportLang,
+  sourceMode,
+  sourceContext,
+  cefrLevel,
+  dayKey,
+  now,
+}) {
+  const errorType = errorTypeForMode(sourceMode);
+  const normalizedSupportLang = normalizeMemorySupportLang(supportLang);
+  const localizedConcept = cleanMemoryConceptForSupportLanguage(
+    concept,
+    normalizedSupportLang,
+  );
+  return {
+    id: `mem-${now.getTime()}-${Math.random().toString(36).slice(2, 9)}`,
+    createdDayKey: dayKey,
+    createdAt: now.getTime(),
+    targetLang,
+    supportLang: normalizedSupportLang,
+    sourceMode,
+    sourceContext: sourceContext || "",
+    concept: localizedConcept.slice(0, 240),
+    userAnswer: String(userAnswer || "").slice(0, 240),
+    expectedAnswer: String(expectedAnswer || "").slice(0, 240),
+    errorType,
+    cefrLevel: displayCEFRLevel(cefrLevel, "Pre-A1"),
+    severity: 1,
+    recommendedRepairMode: repairModeForError(errorType),
+    companionSummary: companionMemorySummary(
+      normalizedSupportLang,
+      localizedConcept,
+    ),
+    // Filled in shortly after capture by a cheap Flash-Lite pass (enrichNote).
+    // Until then they're empty and the UI falls back to companionSummary.
+    mistake: "", // what the learner got wrong (support language)
+    correction: String(expectedAnswer || "").slice(0, 240), // the right form
+    tip: "", // one short improvement tip (support language)
+    enriched: false,
+    // Alive through Day T+1, pruned starting Day T+2.
+    expiresAfterDayKey: getLocalDayKey(new Date(now.getTime() + DAY_MS)) || "",
+    usedInQuestDayKey: null,
+    status: MEMORY_STATUS.captured,
+  };
 }
 function enrichNoteFields({
   concept,
@@ -947,7 +1066,7 @@ function parseBlueprintJson(raw) {
     return null;
   }
 }
-return {generateMemorySummaryText,langName,getLanguagePromptName,BATCH_LANG_NAMES,normalizePlateLang,getCompanionDayKey,getLocalDayKey,getYesterdayKey,DAY_MS,cleanMemoryConceptForSupportLanguage,normalizeMemorySupportLang,normalizeSupportLanguage,DEFAULT_SUPPORT_LANGUAGE,distinctiveEnglishWordCount,DISTINCTIVE_ENGLISH_WORDS,memoryStatusLabel,supportLanguageGuard,SUPPORT_SCRIPT_REQUIREMENTS,callResponses,memoryTextMatchesSupportLanguage,enrichNoteFields,parseBlueprintJson,enrichmentMatchesSupportLanguage,memoryLogSignature,MEMORY_SUMMARY_PROMPT_VERSION,memoryNoteMatchesSupportLanguage,getCompanionNotes,readBucket,MEMORY_STATUS};})();
+return {buildMemoryNote,errorTypeForMode,MODE_TO_ERROR_TYPE,normalizeMemorySupportLang,normalizeSupportLanguage,DEFAULT_SUPPORT_LANGUAGE,cleanMemoryConceptForSupportLanguage,distinctiveEnglishWordCount,DISTINCTIVE_ENGLISH_WORDS,displayCEFRLevel,normalizeCEFRLevel,repairModeForError,ERROR_TYPE_TO_REPAIR_MODE,companionMemorySummary,getLocalDayKey,DAY_MS,MEMORY_STATUS,getCompanionDayKey,generateMemorySummaryText,langName,getLanguagePromptName,BATCH_LANG_NAMES,normalizePlateLang,getYesterdayKey,memoryStatusLabel,supportLanguageGuard,SUPPORT_SCRIPT_REQUIREMENTS,callResponses,memoryTextMatchesSupportLanguage,enrichNoteFields,parseBlueprintJson,enrichmentMatchesSupportLanguage,memoryLogSignature,MEMORY_SUMMARY_PROMPT_VERSION,memoryNoteMatchesSupportLanguage,getCompanionNotes,readBucket};})();
 // src/utils/voiceJourneyCopy.js
 const M4=(function(){
 const en = {
@@ -1200,7 +1319,7 @@ function canRecordJourneyMilestone(journey = {}, milestone) {
 }
 return {JOURNEY_MILESTONES,journeySessionCount,QUESTS_PER_JOURNEY_SESSION,completeJourneyQuest,pendingJourneyMilestone,journeyBaseline,isJourneyMilestoneExpired,canRecordJourneyMilestone};})();
 // src/components/NotesDrawer.jsx
-const M11=(function(){
+const M12=(function(){
 const CEFR_LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"];
 const CEFR_COLORS = {
   A1: "#3B82F6",
@@ -1258,7 +1377,7 @@ const MODULE_LABELS = {
 };
 return {CEFR_LEVELS,CEFR_COLORS,CEFR_TEXT_COLORS,MODULE_LABELS};})();
 // src/components/CompanionMemoryList.jsx
-const M12=(function(){const MEMORY_STATUS=M2.MEMORY_STATUS;
+const M13=(function(){const MEMORY_STATUS=M2.MEMORY_STATUS;
 const SOURCE_LABELS = {
   flashcard: {
     en: "Flashcard",
@@ -1579,15 +1698,16 @@ const deleteNoteLabel=lang === "ja"
                       ? "Eliminar nota"
                       : "Delete note";
 const m=M2,c=M3,j=M5;let value;
-if(operation==='note')value=M1.generateNoteContent({...p,targetLang:p.target||'es',supportLang:lang});
+if(operation==='captureNote')value=m.buildMemoryNote({...p,now,dayKey:m.getCompanionDayKey(now)});
+else if(operation==='note')value=M1.generateNoteContent({...p,targetLang:p.target||'es',supportLang:lang});
 else if(operation==='summary')value=m.generateMemorySummaryText({notes:p.notes||[],langKey:p.target||'es',supportLang:lang});
 else if(operation==='enrich')value=m.enrichNoteFields({...p.note,targetLang:p.target||'es',supportLang:lang});
 else if(operation==='signature')value=m.memoryLogSignature(p.notes||[],lang);
 else if(operation==='localized')value=m.memoryNoteMatchesSupportLanguage(p.note,lang);
 else if(operation==='clean')value=m.cleanMemoryConceptForSupportLanguage(p.text,lang);
-else if(operation==='status')value=M12.resolveStatus(p.note,p.yesterday);
+else if(operation==='status')value=M13.resolveStatus(p.note,p.yesterday);
 else if(operation==='journey')value={count:j.journeySessionCount(p.data),pending:j.pendingJourneyMilestone(p.data),baseline:j.journeyBaseline(p.data),milestones:j.JOURNEY_MILESTONES.map(n=>({number:n,expired:j.isJourneyMilestoneExpired(p.data,n),ready:j.canRecordJourneyMilestone(p.data,n)}))};
-else if(operation==='copy')value={locale,drawer:Object.fromEntries(Object.entries(c.MEMORY_DRAWER_COPY).map(([k,v])=>[k,c.memoryCopy(lang,v)])),card:Object.fromEntries(Object.entries(c.MEMORY_CARD_COPY).map(([k,v])=>[k,c.memoryCopy(lang,v)])),status:Object.fromEntries(['captured','used_in_quest','reinforced','expiring'].map(k=>[k,c.memoryStatusLabel(lang,k)])),source:Object.fromEntries(Object.entries(M12.SOURCE_LABELS).map(([k,v])=>[k,c.memoryCopy(lang,v)])),accent:M12.STATUS_ACCENT,levels:M11.CEFR_LEVELS,colors:M11.CEFR_COLORS,textColors:M11.CEFR_TEXT_COLORS,modules:Object.fromEntries(Object.entries(M11.MODULE_LABELS).map(([k,v])=>[k,v[lang]||v.en])),labels:{clearAllLabel,lessonLabel,noNotesLabel,noteTitleFallback,listenLabel,deleteNoteLabel,count:formatNoteCountLabel(p.count||0)}};
+else if(operation==='copy')value={locale,drawer:Object.fromEntries(Object.entries(c.MEMORY_DRAWER_COPY).map(([k,v])=>[k,c.memoryCopy(lang,v)])),card:Object.fromEntries(Object.entries(c.MEMORY_CARD_COPY).map(([k,v])=>[k,c.memoryCopy(lang,v)])),status:Object.fromEntries(['captured','used_in_quest','reinforced','expiring'].map(k=>[k,c.memoryStatusLabel(lang,k)])),source:Object.fromEntries(Object.entries(M13.SOURCE_LABELS).map(([k,v])=>[k,c.memoryCopy(lang,v)])),accent:M13.STATUS_ACCENT,levels:M12.CEFR_LEVELS,colors:M12.CEFR_COLORS,textColors:M12.CEFR_TEXT_COLORS,modules:Object.fromEntries(Object.entries(M12.MODULE_LABELS).map(([k,v])=>[k,v[lang]||v.en])),labels:{clearAllLabel,lessonLabel,noNotesLabel,noteTitleFallback,listenLabel,deleteNoteLabel,count:formatNoteCountLabel(p.count||0)}};
 else if(operation==='journeyCopy')value=M4.journeyCopy(lang,p.key,p.values||{});
 else throw Error('Unknown Memory policy '+operation);
 return JSON.stringify({value:value??null,requests});}};})()

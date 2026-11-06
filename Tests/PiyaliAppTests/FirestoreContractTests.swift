@@ -1350,3 +1350,18 @@ extension FirestoreContractTests {
         let a=XCTAttachment(data:Data(trace.json.utf8),uniformTypeIdentifier:"public.json");a.name="Firebase SDK Tutor pending worth and stale receipt projection";a.lifetime = .keepAlways;add(a)
     }
 }
+
+extension FirestoreContractTests {
+    func testOriginalTutorPendingMemoryAndEnrichmentPersistWithoutXPOrExtraAssessmentOnRetry()async throws {
+        let(service,db,npub)=try context();try await seed(db,npub);var state=try requireState(await service.load(npub:npub));let initial=state,now=Date()
+        let fields=MemoryUI.value("captureNote",.object(["targetLang":.string("fr"),"supportLang":.string("es"),"sourceMode":.string("tutor"),"sourceContext":.string("tutor"),"concept":.string("Un saludo"),"userAnswer":.string("A public attempt"),"expectedAnswer":.string("Bonjour"),"now":.string(WebProgressContract.iso(now))]))
+        let note=try XCTUnwrap(state.captureMemory(MemoryNote(fields:fields.object),now:now));XCTAssertEqual(note.fields["enriched"],.bool(false));XCTAssertTrue(note.text("mistake").isEmpty)
+        _=try await service.save(state,npub:npub);_=try await service.save(state,npub:npub)
+        state=try requireState(await service.load(npub:npub));let saved=try XCTUnwrap(state.companionMemory?["fr"]?.first);XCTAssertEqual(saved.id,note.id);XCTAssertEqual(saved.severity,1);XCTAssertEqual(saved.text("sourceContext"),"tutor");XCTAssertEqual(saved.text("cefrLevel"),"Pre-A1");XCTAssertEqual(saved.text("companionSummary"),note.text("companionSummary"));XCTAssertEqual(state.totalXP,initial.totalXP);XCTAssertEqual(state.dailyXP,initial.dailyXP);XCTAssertEqual(state.gradedByLanguage,initial.gradedByLanguage)
+        let ref=db.collection("users").document(npub).collection("companion").document("fr"),raw=try await ref.getDocument(source:.server).data() ?? [:];var remote=try XCTUnwrap((raw["notes"]as?[[String:Any]])?.first);remote["status"]="reinforced";remote["publicForeignField"]="preserve";try await ref.setData(["notes":[remote]],merge:true)
+        state.localizeMemory(saved,fields:.object(["mistake":.string("Faltó el saludo."),"correction":.string("Bonjour"),"tip":.string("Empieza con bonjour.")]),support:"es")
+        _=try await service.save(state,npub:npub);_=try await service.save(state,npub:npub)
+        let restored=try requireState(await service.load(npub:npub)),result=try XCTUnwrap(restored.companionMemory?["fr"]?.first)
+        XCTAssertEqual(result.id,note.id);XCTAssertEqual(result.text("status"),"reinforced");XCTAssertEqual(result.text("publicForeignField"),"preserve");XCTAssertEqual(result.text("tip"),"Empieza con bonjour.");XCTAssertEqual(result.fields["enriched"],.bool(true));XCTAssertEqual(result.severity,1);XCTAssertEqual(restored.totalXP,initial.totalXP);XCTAssertEqual(restored.dailyXP,initial.dailyXP);XCTAssertEqual(restored.gradedByLanguage,initial.gradedByLanguage)
+    }
+}

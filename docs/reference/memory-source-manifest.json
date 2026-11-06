@@ -50,21 +50,30 @@
       "file": "src/utils/companionMemory.js",
       "sha256": "05aeb83111145a419b83877ef3335063d55ace85e5a651f865fbf67d6d84bd91",
       "declarations": [
+        "buildMemoryNote",
+        "errorTypeForMode",
+        "MODE_TO_ERROR_TYPE",
+        "normalizeMemorySupportLang",
+        "normalizeSupportLanguage",
+        "DEFAULT_SUPPORT_LANGUAGE",
+        "cleanMemoryConceptForSupportLanguage",
+        "distinctiveEnglishWordCount",
+        "DISTINCTIVE_ENGLISH_WORDS",
+        "displayCEFRLevel",
+        "normalizeCEFRLevel",
+        "repairModeForError",
+        "ERROR_TYPE_TO_REPAIR_MODE",
+        "companionMemorySummary",
+        "getLocalDayKey",
+        "DAY_MS",
+        "MEMORY_STATUS",
+        "getCompanionDayKey",
         "generateMemorySummaryText",
         "langName",
         "getLanguagePromptName",
         "BATCH_LANG_NAMES",
         "normalizePlateLang",
-        "getCompanionDayKey",
-        "getLocalDayKey",
         "getYesterdayKey",
-        "DAY_MS",
-        "cleanMemoryConceptForSupportLanguage",
-        "normalizeMemorySupportLang",
-        "normalizeSupportLanguage",
-        "DEFAULT_SUPPORT_LANGUAGE",
-        "distinctiveEnglishWordCount",
-        "DISTINCTIVE_ENGLISH_WORDS",
         "memoryStatusLabel",
         "supportLanguageGuard",
         "SUPPORT_SCRIPT_REQUIREMENTS",
@@ -77,19 +86,21 @@
         "MEMORY_SUMMARY_PROMPT_VERSION",
         "memoryNoteMatchesSupportLanguage",
         "getCompanionNotes",
-        "readBucket",
-        "MEMORY_STATUS"
+        "readBucket"
       ]
     },
     {
       "file": "src/utils/companionMemoryCopy.js",
       "sha256": "cdfb764934e9372e83c8e8d471d30ff8b942e50d1c29c8f98b17f96526b22777",
       "declarations": [
-        "memoryStatusLabel",
+        "companionMemorySummary",
+        "fill",
         "memoryCopy",
         "normalizeSupportLanguage",
         "DEFAULT_SUPPORT_LANGUAGE",
         "getGermanCopy",
+        "SAVED_FOR_TOMORROW",
+        "memoryStatusLabel",
         "MEMORY_STATUS_COPY",
         "MEMORY_CARD_COPY",
         "MEMORY_DRAWER_COPY"
@@ -130,10 +141,25 @@
       ]
     },
     {
-      "file": "src/utils/dailyPlate.js",
-      "sha256": "a3f4fdc3c618cadc880008646d827812cfe63376252f11af6163883e2a5e6649",
+      "file": "src/constants/supportLanguages.js",
+      "sha256": "d8e8dc17f353a5106bdc984f2cce9696669bc7216be10e006738cb0a04b40b5a",
       "declarations": [
-        "normalizePlateLang"
+        "SUPPORT_LANGUAGE_CODES"
+      ]
+    },
+    {
+      "file": "src/utils/cefrUtils.js",
+      "sha256": "1728261507ff4b90e05e0ccfa0717f4e1b758fc1f908fffb9c5ea3d101ab91b7",
+      "declarations": [
+        "normalizeCEFRLevel"
+      ]
+    },
+    {
+      "file": "src/utils/germanCopy.js",
+      "sha256": "c5d8071bc25c6907cf33693b8e6ae274d3796d7f72b80b21a2056946ebba4307",
+      "declarations": [
+        "getGermanCopy",
+        "GERMAN_COPY"
       ]
     },
     {
@@ -153,18 +179,10 @@
       ]
     },
     {
-      "file": "src/constants/supportLanguages.js",
-      "sha256": "d8e8dc17f353a5106bdc984f2cce9696669bc7216be10e006738cb0a04b40b5a",
+      "file": "src/utils/dailyPlate.js",
+      "sha256": "a3f4fdc3c618cadc880008646d827812cfe63376252f11af6163883e2a5e6649",
       "declarations": [
-        "SUPPORT_LANGUAGE_CODES"
-      ]
-    },
-    {
-      "file": "src/utils/germanCopy.js",
-      "sha256": "c5d8071bc25c6907cf33693b8e6ae274d3796d7f72b80b21a2056946ebba4307",
-      "declarations": [
-        "getGermanCopy",
-        "GERMAN_COPY"
+        "normalizePlateLang"
       ]
     },
     {
@@ -188,6 +206,6 @@
       ]
     }
   ],
-  "adapters": "Only provider awaits become explicit synchronous response snapshots; native code executes their recorded requests and retries. Original prompts, parsers, language guards, signatures, status and copy rules remain. No stores, React, DOM, Firebase or network executes.",
-  "cases": 55
+  "adapters": "Only provider awaits become explicit synchronous response snapshots; native code executes their recorded requests and retries. Original buildMemoryNote creates initial Tutor capture fields, including localized pending summary, blank enrichment, error/repair mode and the Pre-A1 fallback. Only its random note ID is excluded from fixture equality; production keeps the source ID generator. Original prompts, parsers, language guards, signatures, status and copy rules remain. No stores, React, DOM, Firebase or network executes.",
+  "cases": 64
 }

@@ -91,6 +91,14 @@ public extension LearnerState {
         if let sourceContext{note.fields["sourceContext"]=sourceContext}
         applyMemory(MemoryChange(action:.capture,target:target,date:now,dayKey:CalendarDay.key(now),note:note))
     }
+    /// Accepts the original source note builder's fields without replacing its
+    /// localized pending summary or treating a private judge reason as enrichment.
+    @discardableResult mutating func captureMemory(_ note:MemoryNote,now:Date=Date())->MemoryNote? {
+        guard note.text("targetLang") == target,!note.id.isEmpty,!note.text("concept").trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else{return nil}
+        applyMemory(MemoryChange(action:.capture,target:target,date:now,dayKey:CalendarDay.key(now),note:note))
+        func key(_ value:String)->String {value.lowercased().split(whereSeparator:{$0.isWhitespace}).joined(separator:" ")}
+        return companionMemory?[target]?.first{$0.text("createdDayKey") == CalendarDay.key(now) && $0.text("sourceMode") == note.text("sourceMode") && key($0.text("concept")) == key(note.text("concept"))}
+    }
     mutating func localizeMemory(_ original:MemoryNote,fields:JSONValue,support:String,now:Date = Date()) {
         guard let current=companionMemory?[target]?.first(where:{$0.id == original.id}),current.createdAt == original.createdAt else{return}
         var note=original

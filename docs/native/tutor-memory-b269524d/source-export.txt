@@ -1,0 +1,3 @@
+Exported Tutor policy: 500128 bytes from 39 modules.
+Verified 1215 source-executed Tutor cases.
+Memory policy: 64 source cases.

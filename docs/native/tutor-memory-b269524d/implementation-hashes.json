@@ -1,0 +1,24 @@
+{
+  "broadRegression": {
+    "Piyali/App/AppModel.swift": "0f49007245ba997dc785a9d3a7545cd1d605838c294b3b5443101a76523ebe35",
+    "Piyali/App/MemoryDrawerController.swift": "f8b1f5162ae111b6ce51a2dcdf906b186097a5b0719a7ba5678f4b656184dc69",
+    "Piyali/Core/CompanionMemory.swift": "c00093eaf2ef538a383a6261104e9613658d3f48ae02966617c73fde31217f4e",
+    "Piyali/Services/TutorProvider.swift": "af2b10a9ebf65797d1539ac56b8c800eae393f99a193d85ca22f543ff72f0802",
+    "Piyali/Services/TutorSessionController.swift": "e9e6383f1c0425771aa52263fd70987568790745063bcfe891cdca5a2fa47dbd",
+    "Piyali/Resources/tutor-policy.js": "8da30d796fc11529a16fdbf1a352ad6bf4a2b37d7794a421272e467f4cf8bcc1",
+    "Piyali/Resources/memory-policy.js": "b5d5783290a02383e2d9dd414ac7e184362c96ae9efe148f034a2e76a1e2636c"
+  },
+  "finalAffectedRun": {
+    "Piyali/App/AppModel.swift": "0f49007245ba997dc785a9d3a7545cd1d605838c294b3b5443101a76523ebe35",
+    "Piyali/App/MemoryDrawerController.swift": "6045aff605603ae3c1985a4f0c9e56c1563107cffab7e4c44c7f75dfdc6e0bfc",
+    "Piyali/Core/CompanionMemory.swift": "c00093eaf2ef538a383a6261104e9613658d3f48ae02966617c73fde31217f4e",
+    "Piyali/Services/TutorProvider.swift": "af2b10a9ebf65797d1539ac56b8c800eae393f99a193d85ca22f543ff72f0802",
+    "Piyali/Services/TutorSessionController.swift": "e9e6383f1c0425771aa52263fd70987568790745063bcfe891cdca5a2fa47dbd",
+    "Piyali/Resources/tutor-policy.js": "8da30d796fc11529a16fdbf1a352ad6bf4a2b37d7794a421272e467f4cf8bcc1",
+    "Piyali/Resources/memory-policy.js": "b5d5783290a02383e2d9dd414ac7e184362c96ae9efe148f034a2e76a1e2636c"
+  },
+  "productionFilesChangedAfterBroadRun": [
+    "Piyali/App/MemoryDrawerController.swift"
+  ],
+  "scope": "The final affected run includes the owner fence added to MemoryDrawerController after the broader regression. The source comparison wait is a test-only change; all changed Memory behavior is rerun in the final 16-test batch."
+}

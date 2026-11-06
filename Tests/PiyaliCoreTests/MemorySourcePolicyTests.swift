@@ -4,8 +4,8 @@ import XCTest
 final class MemorySourcePolicyTests:XCTestCase {
     @MainActor func testOriginalMemoryCopyPromptsParsersLanguageGuardsAndJourneyRules()throws {
         let root=URL(fileURLWithPath:#filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent(),rows=try ContentLibrary.decode([JSONValue].self,url:root.appendingPathComponent("Tests/PiyaliCoreTests/Fixtures/memory-policy.json.gz")),policy=try MemorySourcePolicy(source:root.appendingPathComponent("Piyali/Resources/memory-policy.js"))
-        XCTAssertEqual(rows.count,55)
-        for row in rows{XCTAssertEqual(try policy.inspect(row["operation"].string,row["input"]),row["expected"],row["operation"].string+row["input"]["language"].string)}
+        XCTAssertEqual(rows.count,64)
+        for row in rows{var actual=try policy.inspect(row["operation"].string,row["input"]);if row["operation"].string == "captureNote"{var fields=actual["value"].object;fields.removeValue(forKey:"id");actual=actual.setting("value",.object(fields))};XCTAssertEqual(actual,row["expected"],row["operation"].string+row["input"]["language"].string)}
     }
     func testLocalizationPreservesLifecycleAndForeignFieldsAndRejectsStaleCapture()throws {
         let now=Date();var note=MemoryContract.capture(target:"es",support:"en",level:"A1",mode:"grammar",concept:"hola",answer:"ola",expected:"hola",feedback:"Missing h",now:now);note.fields["webOwned"] = .string("keep");note.fields["status"] = .string("reinforced");note.fields["severity"] = .number(3)

@@ -26,17 +26,20 @@ import Combine
         let p=input(app),next=p.canonicalJSON
         if task != nil{if next != fingerprint{pendingRefresh=true};return}
         guard next != fingerprint else{return}
-        fingerprint=next;let token=epoch,account=app.identity.npub,target=app.learner.target,support=app.learner.support,provider=self.provider
+        fingerprint=next;let token=epoch,account=app.identity.npub,target=app.learner.target,support=app.learner.support,session=app.identity.sessionRevision,provider=self.provider
         task=Task{[weak self,weak app] in guard let self,let app,let policy=MemoryUI.policy else{return}
             defer{if epoch == token{task=nil;let pending=pendingRefresh;pendingRefresh=false;if pending{fingerprint=""};if pending || input(app).canonicalJSON != fingerprint{refresh(app)}}}
+            @MainActor func valid()->Bool {epoch == token && !Task.isCancelled && app.identity.npub == account && app.identity.sessionRevision == session && app.learner.target == target && app.learner.support == support}
             let respond:@MainActor (String)async throws->String={prompt in
+                guard valid() else{throw CancellationError()}
                 if let provider{return try await provider(prompt)}
                 if let value=MemoryDrawerFixture.response(prompt,language:support){return value}
                 return try await app.ai.responsesText(prompt)
             }
-            @MainActor func valid()->Bool {epoch == token && !Task.isCancelled && app.identity.npub == account && app.learner.target == target && app.learner.support == support}
-            for note in MemoryUI.notes(app.learner) {
+            for original in MemoryUI.notes(app.learner) {
+                await app.tutorMemories.wait(original,app:app)
                 guard valid() else{return}
+                guard let note=app.learner.companionMemory?[target]?.first(where:{$0.id == original.id}) else{continue}
                 let clean=(try? policy.value("clean",.object(["text":.string(note.text("concept")),"language":.string(support)])))?.string ?? note.text("concept")
                 let localized=(try? policy.value("localized",.object(["note":.object(note.fields),"language":.string(support)])))?.boolean == true
                 guard !localized || clean != note.text("concept") || note.text("iosMemoryEnrichedSupport") != support && note.text("tip").isEmpty else{continue}
@@ -53,4 +56,41 @@ import Combine
         }
     }
     func cancel(){task?.cancel();task=nil;pendingRefresh=false;epoch=UUID()}
+}
+
+/// Captured Tutor notes begin enrichment immediately. App ownership lets this
+/// finish after End; a changed identity session cannot publish into a new owner.
+@MainActor final class TutorMemoryDelivery {
+    private var tasks:[String:(id:UUID,task:Task<Void,Never>)]=[:]
+    private func key(_ note:MemoryNote,_ app:AppModel)->String {
+        [app.identity.npub,app.identity.sessionRevision.uuidString,note.text("targetLang"),note.id,String(note.createdAt.timeIntervalSince1970),note.text("supportLang")].joined(separator:":")
+    }
+    @discardableResult func start(_ note:MemoryNote,app:AppModel,respond:@escaping @MainActor (String)async throws->String)->Task<Void,Never>? {
+        if note.fields["enriched"] == .bool(true),MemoryUI.value("localized",.object(["note":.object(note.fields),"language":.string(note.text("supportLang"))])).boolean {return nil}
+        let key=key(note,app);if let task=tasks[key]?.task{return task}
+        let id=UUID(),account=app.identity.npub,session=app.identity.sessionRevision,target=note.text("targetLang"),support=note.text("supportLang")
+        let task=Task{[weak self,weak app] in
+            guard let self,let app else{return}
+            defer{if tasks[key]?.id == id{tasks[key]=nil}}
+            guard let policy=MemoryUI.policy else{return}
+            @MainActor func valid()->Bool {
+                guard !Task.isCancelled,app.signedIn,app.identity.npub == account,app.identity.sessionRevision == session,
+                      let current=app.learner.companionMemory?[target]?.first(where:{$0.id == note.id}) else{return false}
+                return current.createdAt == note.createdAt && current.text("supportLang") == support
+            }
+            guard valid() else{return}
+            let fields=(try? await policy.generate("enrich",.object(["note":.object(note.fields),"target":.string(target),"language":.string(support)])){prompt in
+                guard valid() else{throw CancellationError()};return try await respond(prompt)
+            }) ?? .null
+            guard fields != .null,valid(),let current=app.learner.companionMemory?[target]?.first(where:{$0.id == note.id}) else{return}
+            // Patch the latest note so reinforcement and foreign web fields survive.
+            var patch=JSONValue.object([:])
+            for field in ["mistake","correction","tip"] {patch=patch.setting(field,.string(field == "correction" && fields[field].string.isEmpty ? current.text(field):fields[field].string))}
+            var next=app.learner;let selected=next.target;next.target=target
+            next.localizeMemory(current,fields:patch,support:support);next.target=selected
+            app.learner=next;app.persist()
+        }
+        tasks[key]=(id,task);return task
+    }
+    func wait(_ note:MemoryNote,app:AppModel)async {await tasks[key(note,app)]?.task.value}
 }

@@ -130,3 +130,12 @@ private struct MemoryFooterProbe:View {
     let owner=UUID()
     var body:some View {Text("Practice").activityFooter(owner:owner,revision:state.revision,access:app.subscription,fixtureAllowed:true,correct:state.correct){Text("Feedback")}.environmentObject(app)}
 }
+
+extension MemoryFlowTests {
+    func testDrawerEnrichmentCannotRetryUnderAReplacedIdentitySession()async throws {
+        let app=try model();defer{try? app.identity.disconnect()};app.learner.support="ar";var requests=0,held:CheckedContinuation<String,Error>?
+        let drawer=MemoryDrawerController(provider:{_ in requests += 1;if requests == 1{return try await withCheckedThrowingContinuation{held=$0}};return "invalid"});defer{drawer.cancel()};drawer.refresh(app)
+        for _ in 0..<100 where held == nil{await Task.yield()};XCTAssertNotNil(held);try app.identity.disconnect();try app.identity.create();let original=app.learner.companionMemory;held?.resume(returning:"{\"did\":\"The greeting was missing.\",\"fix\":\"Hola\",\"tip\":\"Start with hola.\"}");held=nil
+        for _ in 0..<200{await Task.yield()};XCTAssertEqual(requests,1);XCTAssertTrue(drawer.summary.isEmpty);XCTAssertEqual(app.learner.companionMemory,original)
+    }
+}

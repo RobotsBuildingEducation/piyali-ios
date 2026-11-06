@@ -18,6 +18,7 @@ import CryptoKit
         let e=ProcessInfo.processInfo.environment
         if e["PIYALI_OFFLINE_TESTS"] == "1",e["PIYALI_MEMORY_CAPTURE_ONLY"] == "1",UUID(uuidString:e["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil {return ""}
         #endif
+        if TutorVoiceFixture.memorySlip {return prompt.contains("digest") ? "Practice hola when greeting someone.":"{\"did\":\"The greeting was missing.\",\"fix\":\"Hola\",\"tip\":\"Start with hola.\"}"}
         guard enabled else{return nil}
         if prompt.contains("study note"){return JSONValue.object(["example":.string("Hola, mamá."),"summary":.string(language == "ar" ? "استخدم hola لتحية العيلة.":"Use hola to greet a family member.")]).canonicalJSON}
         if prompt.contains("digest"){return summary(language)}

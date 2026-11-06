@@ -367,9 +367,16 @@ enum TutorFocus:Equatable {
         }
         if paid{feedback = .init(correct:true)}
         else if mistake,!awardedTurns.contains(c.number){feedback = .init(correct:false)}
-        if mistake,!c.late {app.learner.captureMemory(mode:"tutor",concept:parsed["concept"].string.nilIfEmpty ?? parsed["correction"].string,answer:c.text,expected:parsed["correction"].string,feedback:parsed["reason"].string,context:"tutor",questionLevel:before["level"].string,sourceContext:.string("tutor"))}
-        if c.late,parsed["mistake"].boolean,(realtimeProvider != "openai" || confidence>=0.55),!(parsed["concept"].string+parsed["correction"].string).trimmingCharacters(in:.whitespacesAndNewlines).isEmpty {
-            app.learner.captureMemory(mode:"tutor",concept:parsed["concept"].string.nilIfEmpty ?? parsed["correction"].string,answer:c.text,expected:parsed["correction"].string,feedback:parsed["reason"].string,context:"tutor",questionLevel:before["level"].string,sourceContext:.string("tutor"))
+        var capturedMemory=false
+        if semantic {
+            let effects=try policy.run("judgeEffects",c.payload.setting("parsed",parsed).setting("answer",.string(c.text)).setting("turn",.number(Double(c.number))).setting("questionLevel",c.question["questionLevel"]).setting("turnAwarded",.bool(awardedTurns.contains(c.number))))["effects"].array
+            for effect in effects where effect["kind"].string == "memory" {
+                let now=Date(),fields=MemoryUI.value("captureNote",effect["parameters"].setting("now",.string(WebProgressContract.iso(now))))
+                if fields != .null,let note=app.learner.captureMemory(MemoryNote(fields:fields.object),now:now) {
+                    capturedMemory=true
+                    if let respond=provider?.memory {app.tutorMemories.start(note,app:app,respond:respond)}
+                }
+            }
         }
         if let saved=reviewRecord {
             var progress=saved["tutorAgendaProgress"].setting("items",agenda)
@@ -378,7 +385,7 @@ enum TutorFocus:Equatable {
         }
         refresh(app)
         if history,!c.late,(accepted || mistake) {
-            app.learner.history.insert(.init(date:c.date,target:app.learner.target,mode:"Tutor",question:c.question["textFinal"].string,answer:c.text,feedback:parsed["reason"].string,correct:accepted,repairInMemory:mistake),at:0);app.learner.history=Array(app.learner.history.prefix(500))
+            app.learner.history.insert(.init(date:c.date,target:app.learner.target,mode:"Tutor",question:c.question["textFinal"].string,answer:c.text,feedback:parsed["reason"].string,correct:accepted,repairInMemory:capturedMemory),at:0);app.learner.history=Array(app.learner.history.prefix(500))
         }
         app.persist()
         return TurnResult(accepted:.array(acceptedIDs),verdict:grade["verdict"].string,ready:ready)

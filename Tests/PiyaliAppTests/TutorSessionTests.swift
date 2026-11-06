@@ -828,3 +828,113 @@ extension TutorSessionTests {
         await tutor.stop(app)
     }
 }
+
+extension TutorSessionTests {
+    func testOrdinarySemanticSlipCaptureIsIndependentOfSuccessfulAndLowConfidenceGrades()async throws {
+        for (profile,successful,confidence,wantsNote,wantsXP,wantsAssessment) in [("gemini",false,0.2,true,false,false),("gemini",true,0.9,true,true,true),("openai",true,0.9,true,true,true),("openai",false,0.2,false,false,false),("openai",false,0.55,true,false,true)] {
+            let app=try await app();defer{try? app.identity.disconnect()};let transport=TutorTransport();var called=false,p=provider();p.judge={_ in called=true;return .object(["successful":.bool(successful),"confidence":.number(confidence),"mistake":.bool(true),"concept":.string("A greeting"),"correction":.string("Hola"),"reason":.string("Private judge reason")])}
+            let tutor=TutorSessionController(live:LiveTutorService(permission:{true},transportFactory:{transport}),provider:p,turnXP:{5},realtimeProvider:profile);await tutor.prepare(app);await tutor.start(app);transport.assistant("Welcome!");await tutor.input(input("yes"),app:app);transport.assistant("Give a greeting.",id:"question")
+            let before=transport.events.count;await tutor.input(input("a public complete attempt"),app:app);for _ in 0..<200{await Task.yield()}
+            let label="\(profile) success=\(successful) confidence=\(confidence)"
+            XCTAssertTrue(called,label);XCTAssertEqual(app.learner.companionMemory?["es"]?.count ?? 0,wantsNote ? 1:0,label);XCTAssertEqual(app.learner.totalXP,wantsXP ? 5:0,label);XCTAssertEqual(app.learner.gradedByLanguage?["es"] ?? 0,wantsAssessment ? 1:0,label)
+            XCTAssertEqual(transport.events.dropFirst(before).filter{$0["type"].string == "response.create"}.count,1,label)
+            if wantsNote,let note=app.learner.companionMemory?["es"]?.first {XCTAssertEqual(note.text("concept"),"A greeting",label);XCTAssertEqual(note.text("sourceContext"),"tutor",label);XCTAssertEqual(note.text("mistake"),"",label);XCTAssertEqual(note.fields["enriched"],.bool(false),label)}
+            await tutor.stop(app)
+        }
+    }
+    func testOrdinarySemanticSlipTrimsAndFallsBackToCorrectionInsteadOfDroppingIt()async throws {
+        let app=try await app();defer{try? app.identity.disconnect()};let transport=TutorTransport(),p=provider(.object(["successful":.bool(false),"confidence":.number(1),"mistake":.bool(true),"concept":.string(" \n "),"correction":.string("  Hola  "),"reason":.string("Private judge reason")]))
+        let tutor=TutorSessionController(live:LiveTutorService(permission:{true},transportFactory:{transport}),provider:p,turnXP:{5});await tutor.prepare(app);await tutor.start(app);transport.assistant("Welcome!");await tutor.input(input("yes"),app:app);transport.assistant("Give a greeting.",id:"question");await tutor.input(input("a public incorrect attempt"),app:app);for _ in 0..<200{await Task.yield()}
+        let note=try XCTUnwrap(app.learner.companionMemory?["es"]?.first);XCTAssertEqual(note.text("concept"),"Hola");XCTAssertEqual(note.text("expectedAnswer"),"Hola");XCTAssertEqual(app.learner.totalXP,0);XCTAssertEqual(app.learner.gradedByLanguage?["es"],1);await tutor.stop(app)
+    }
+}
+
+extension TutorSessionTests {
+    func testTutorMemoryEnrichesAfterEndAndTargetChangeWithoutASecondAssessment()async throws {
+        let app=try await app();defer{try? app.identity.disconnect()};let transport=TutorTransport();var held:CheckedContinuation<String,Error>?,requests=0,p=provider(.object(["successful":.bool(false),"confidence":.number(0.2),"mistake":.bool(true),"concept":.string("A greeting"),"correction":.string("Hola")]))
+        p.memory={_ in requests += 1;return try await withCheckedThrowingContinuation{held=$0}}
+        let tutor=TutorSessionController(live:LiveTutorService(permission:{true},transportFactory:{transport}),provider:p,turnXP:{5});await tutor.prepare(app);await tutor.start(app);transport.assistant("Welcome!");await tutor.input(input("yes"),app:app);transport.assistant("Give a greeting.",id:"question");await tutor.input(input("a public complete attempt"),app:app)
+        for _ in 0..<200 where held == nil{await Task.yield()}
+        let original=try XCTUnwrap(app.learner.companionMemory?["es"]?.first);XCTAssertNotNil(held);XCTAssertEqual(original.fields["enriched"],.bool(false));XCTAssertEqual(requests,1)
+        // Opening Memory joins the same in-flight request rather than paying for another.
+        let drawer=MemoryDrawerController(provider:{_ in XCTFail("Drawer duplicated the enrichment");return ""});drawer.refresh(app)
+        for _ in 0..<100{await Task.yield()};XCTAssertEqual(requests,1);drawer.cancel()
+        await tutor.stop(app);app.learner.reinforceMemory(id:original.id);app.learner.target="fr"
+        held?.resume(returning:"{\"did\":\"The greeting was missing.\",\"fix\":\"Hola\",\"tip\":\"Start with hola.\"}");held=nil;await app.tutorMemories.wait(original,app:app)
+        let note=try XCTUnwrap(app.learner.companionMemory?["es"]?.first);XCTAssertEqual(note.text("mistake"),"The greeting was missing.");XCTAssertEqual(note.text("tip"),"Start with hola.");XCTAssertEqual(note.text("status"),"reinforced");XCTAssertEqual(note.fields["enriched"],.bool(true));XCTAssertEqual(app.learner.target,"fr");XCTAssertEqual(app.learner.totalXP,0);XCTAssertNil(app.learner.gradedByLanguage);XCTAssertNil(app.learner.companionMemory?["fr"])
+    }
+    func testTutorMemoryLateEnrichmentRejectsReplacedAccountAndNewerCapture()async throws {
+        for replaceAccount in [true,false] {
+            let app=try await app();defer{try? app.identity.disconnect()};let now=Date(),fields=MemoryUI.value("captureNote",.object(["targetLang":.string("es"),"supportLang":.string("en"),"sourceMode":.string("tutor"),"concept":.string("A greeting"),"now":.string(WebProgressContract.iso(now))]))
+            let original=try XCTUnwrap(app.learner.captureMemory(MemoryNote(fields:fields.object),now:now));var held:CheckedContinuation<String,Error>?
+            app.tutorMemories.start(original,app:app){_ in try await withCheckedThrowingContinuation{held=$0}}
+            for _ in 0..<100 where held == nil{await Task.yield()};XCTAssertNotNil(held)
+            if replaceAccount {try app.identity.disconnect();try app.identity.create();app.learner=LearnerState()}
+            else {var newer=original;newer.fields["createdAt"] = .number(now.addingTimeInterval(1).timeIntervalSince1970*1000);newer.fields["userAnswer"] = .string("newer attempt");_ = app.learner.captureMemory(newer,now:now.addingTimeInterval(1))}
+            held?.resume(returning:"{\"did\":\"Old diagnosis\",\"fix\":\"Hola\",\"tip\":\"Old tip\"}");held=nil
+            // Wait by the original owner snapshot, even when its identity key changed.
+            for _ in 0..<200{await Task.yield()}
+            if replaceAccount {XCTAssertTrue(app.learner.companionMemory?.isEmpty ?? true)}else{let note=try XCTUnwrap(app.learner.companionMemory?["es"]?.first);XCTAssertEqual(note.text("userAnswer"),"newer attempt");XCTAssertTrue(note.text("mistake").isEmpty);XCTAssertEqual(note.fields["enriched"],.bool(false))}
+        }
+    }
+}
+
+extension TutorSessionTests {
+    func testActualSourceOrdinarySemanticMemoryAndRenderedNativeNotesInEnglishAndArabic()async throws {
+        guard ProcessInfo.processInfo.environment["PIYALI_REFERENCE_PREVIEW_TESTS"] == "1" else{throw XCTSkip("Read-only source preview required")}
+        let scene=try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap{$0 as? UIWindowScene}.first),old=scene.windows.first{$0.isKeyWindow};defer{old?.makeKey()}
+        for (support,theme,success,confidence) in [("en","light",false,0.2),("ar","dark",true,0.9)] {
+            let parsed:JSONValue = .object(["successful":.bool(success),"confidence":.number(confidence),"mistake":.bool(true),"concept":.string(" \n "),"correction":.string("  Hola  "),"reason":.string("Private judge reason")])
+            let app=try await app();defer{try? app.identity.disconnect()};app.learner.support=support;await app.reloadContent();let transport=TutorTransport(),tutor=TutorSessionController(live:LiveTutorService(permission:{true},transportFactory:{transport}),provider:provider(parsed),turnXP:{5});await tutor.prepare(app)
+            let web=WKWebView(frame:CGRect(x:0,y:0,width:402,height:874),configuration:WKWebViewConfiguration()),sourceWindow=UIWindow(windowScene:scene),sourceHost=UIViewController();sourceWindow.frame=web.frame;sourceHost.view=web;sourceWindow.rootViewController=sourceHost;web.scrollView.contentInsetAdjustmentBehavior = .never;sourceWindow.makeKeyAndVisible()
+            let nativeWindow=UIWindow(windowScene:scene);nativeWindow.frame=web.frame;let host=UIHostingController(rootView:AnyView(TutorASRComparisonHost(tutor:tutor).environmentObject(app).environment(\.layoutDirection,support == "ar" ? .rightToLeft:.leftToRight).environment(\.dynamicTypeSize,.large).preferredColorScheme(theme == "dark" ? .dark:.light).ignoresSafeArea()));nativeWindow.rootViewController=host;nativeWindow.makeKeyAndVisible();host.view.layoutIfNeeded();defer{web.stopLoading();sourceWindow.isHidden=true;sourceWindow.rootViewController=nil;nativeWindow.isHidden=true;nativeWindow.rootViewController=nil}
+            var url=URLComponents(string:"http://127.0.0.1:5181/__piyali-onboarding")!;url.queryItems=[.init(name:"screen",value:"tutor"),.init(name:"tutorASR",value:"1"),.init(name:"language",value:support),.init(name:"theme",value:theme),.init(name:"tutorLevel",value:"Pre-A1")];web.load(URLRequest(url:try XCTUnwrap(url.url)))
+            let start=JSONValue.string(EntryCopy.ui(support,"ra_btn_start")).json
+            var ready=false;for _ in 0..<500{ready=(try? await web.evaluateJavaScript("(()=>{const s=window.__tutorQAState?.();return s?.lesson===\(JSONValue.string(tutor.id).json)&&s.identity&&s.identity===s.hydrated})()&&document.fonts.status==='loaded'&&[...document.querySelectorAll('button')].some(b=>b.textContent.trim()===\(start)&&!b.disabled)")) as? Bool == true;if ready{break};try await Task.sleep(for:.milliseconds(50))};XCTAssertTrue(ready);guard ready else{return}
+            _=try await web.evaluateJavaScript("[...document.querySelectorAll('button')].find(b=>b.textContent.trim()===\(start)).click()")
+            var connected=false;for _ in 0..<120{connected=(try? await web.evaluateJavaScript("!!window.__tutorASR?.sent.some(e=>e.response?.metadata?.kind==='tutor_welcome')")) as? Bool == true;if connected{break};try await Task.sleep(for:.milliseconds(50))};XCTAssertTrue(connected);guard connected else{return}
+            _=try await web.evaluateJavaScript("Math.random=()=>0.5;window.__tutorASR.judgeResult=\(parsed.json);true")
+            func emit(_ events:[JSONValue])async throws {let values=try JSONSerialization.jsonObject(with:Data(JSONValue.array(events).json.utf8));_=try await web.callAsyncJavaScript("for(const event of events)await window.__tutorASR.emit(event)",arguments:["events":values],in:nil,contentWorld:.page)}
+            func assistant(_ text:String,_ id:String,_ kind:String)async throws {try await emit([.object(["type":.string("response.created"),"response":.object(["id":.string(id),"metadata":.object(["kind":.string(kind)])])]),.object(["type":.string("response.audio_transcript.done"),"response_id":.string(id),"transcript":.string(text)]),.object(["type":.string("response.done"),"response":.object(["id":.string(id),"status":.string("completed")])])]);try await Task.sleep(for:.milliseconds(600))}
+            await tutor.start(app);try await assistant("Welcome!","welcome","tutor_welcome");transport.assistant("Welcome!");try await emit([.object(["type":.string("input_audio_transcription.completed"),"item_id":.string("welcome-input"),"transcript":.string("yes")])]);await tutor.input(input("yes"),app:app)
+            try await assistant("Give a greeting.","question","tutor_followup");transport.assistant("Give a greeting.",id:"question");try await emit([.object(["type":.string("input_audio_transcription.completed"),"item_id":.string("attempt"),"transcript":.string("a public complete attempt")])]);await tutor.input(input("a public complete attempt"),app:app)
+            var trace:JSONValue = .null
+            for _ in 0..<160{let raw=try await web.evaluateJavaScript("JSON.stringify({notes:window.__tutorASR.notes,parameters:window.__tutorASR.memoryInputs?.[0],awardAmounts:window.__tutorASR.awardAmounts,awards:window.__tutorASR.awards,grades:window.__tutorASR.grades,learnerJudges:window.__tutorASR.learnerJudges})");trace=try JSONDecoder().decode(JSONValue.self,from:Data(try XCTUnwrap(raw as? String).utf8));if trace["notes"].number == 1,app.learner.companionMemory?["es"]?.count == 1{break};try await Task.sleep(for:.milliseconds(50))}
+            await app.tutorOutcomes.wait(Set((app.learner.pendingTutorOutcomes ?? []).map(\.id)),app:app)
+            XCTAssertEqual(trace["notes"].number,1);XCTAssertEqual(trace["learnerJudges"].number,1);XCTAssertEqual(trace["awards"].number,success ? 1:0);XCTAssertEqual(trace["awardAmounts"],.array(success ? [.number(5)]:[]));XCTAssertEqual(trace["grades"].number,0);XCTAssertEqual(trace["parameters"]["gradedOutcome"],.bool(false));XCTAssertEqual(trace["parameters"]["concept"],.string("Hola"));XCTAssertEqual(trace["parameters"]["expectedAnswer"],.string("Hola"));XCTAssertEqual(app.learner.totalXP,success ? 5:0);XCTAssertEqual(app.learner.gradedByLanguage?["es"] ?? 0,success ? 1:0)
+            let note=try XCTUnwrap(app.learner.companionMemory?["es"]?.first),sourceFields=MemoryUI.value("captureNote",trace["parameters"].setting("now",.string(WebProgressContract.iso(note.createdAt))))
+            for field in ["concept","expectedAnswer","userAnswer","sourceMode","sourceContext","supportLang","targetLang","cefrLevel","companionSummary","mistake","tip","enriched","recommendedRepairMode"] {XCTAssertEqual(note.fields[field],sourceFields[field],field)}
+            func shot(_ label:String)async throws {try await Task.sleep(for:.milliseconds(900));let source=XCTAttachment(image:try await web.takeSnapshot(configuration:nil));source.name="Source Tutor Memory \(label) \(support)";source.lifetime = .keepAlways;add(source);nativeWindow.makeKeyAndVisible();host.view.layoutIfNeeded();let native=XCTAttachment(image:UIGraphicsImageRenderer(bounds:nativeWindow.bounds).image{_ in nativeWindow.drawHierarchy(in:nativeWindow.bounds,afterScreenUpdates:true)});native.name="Native Tutor Memory \(label) \(support)";native.lifetime = .keepAlways;add(native)}
+            try await shot("captured")
+            let evidence=JSONValue.object(["source":trace,"nativeNote":.object(note.fields),"nativeXP":.number(Double(app.learner.totalXP)),"nativeAssessments":.number(Double(app.learner.gradedByLanguage?["es"] ?? 0))]);let attachment=XCTAttachment(data:Data(evidence.json.utf8),uniformTypeIdentifier:"public.json");attachment.name="Tutor Memory semantic trace \(support)";attachment.lifetime = .keepAlways;add(attachment)
+            await tutor.stop(app)
+            host.rootView=AnyView(MemoryDrawerView(onClose:{}).environmentObject(app).environment(\.layoutDirection,support == "ar" ? .rightToLeft:.leftToRight).environment(\.dynamicTypeSize,.large).preferredColorScheme(theme == "dark" ? .dark:.light).ignoresSafeArea())
+            url.queryItems=[.init(name:"screen",value:"memory"),.init(name:"goal",value:"0"),.init(name:"language",value:support),.init(name:"theme",value:theme),.init(name:"repairNote",value:sourceFields.json)];web.load(URLRequest(url:try XCTUnwrap(url.url)))
+            var drawerReady=false;for _ in 0..<240{drawerReady=(try? await web.evaluateJavaScript("document.fonts.status==='loaded'&&!!document.querySelector('[role=dialog]')&&document.body.textContent.includes('Hola')")) as? Bool == true;if drawerReady{break};try await Task.sleep(for:.milliseconds(50))};XCTAssertTrue(drawerReady);try await shot("drawer")
+        }
+    }
+}
+
+
+extension TutorSessionTests {
+    func testTutorMemoryRepeatedLocalizedSlipReusesItsEnrichment()async throws {
+        let app=try await app();defer{try? app.identity.disconnect()};let now=Date(),fields=MemoryUI.value("captureNote",.object(["targetLang":.string("es"),"supportLang":.string("en"),"sourceMode":.string("tutor"),"concept":.string("A greeting"),"now":.string(WebProgressContract.iso(now))]))
+        let original=try XCTUnwrap(app.learner.captureMemory(MemoryNote(fields:fields.object),now:now));app.learner.localizeMemory(original,fields:.object(["mistake":.string("A greeting was missing."),"correction":.string("Hola"),"tip":.string("Start with hola.")]),support:"en")
+        let repeated=try XCTUnwrap(app.learner.captureMemory(MemoryNote(fields:fields.object),now:now));XCTAssertEqual(repeated.id,original.id);XCTAssertEqual(repeated.severity,2)
+        var requests=0;app.tutorMemories.start(repeated,app:app){_ in requests += 1;return ""};await app.tutorMemories.wait(repeated,app:app)
+        XCTAssertEqual(requests,0);XCTAssertEqual(app.learner.companionMemory?["es"]?.first?.text("tip"),"Start with hola.")
+    }
+}
+
+extension TutorSessionTests {
+    func testTutorMemoryDoesNotStartOrRetryUnderAReplacedIdentitySession()async throws {
+        for replaceBeforeStart in [true,false] {
+            let app=try await app();defer{try? app.identity.disconnect()};let now=Date(),fields=MemoryUI.value("captureNote",.object(["targetLang":.string("es"),"supportLang":.string("ar"),"sourceMode":.string("tutor"),"concept":.string("A greeting"),"now":.string(WebProgressContract.iso(now))]))
+            let note=try XCTUnwrap(app.learner.captureMemory(MemoryNote(fields:fields.object),now:now));var requests=0,held:CheckedContinuation<String,Error>?
+            let job=app.tutorMemories.start(note,app:app){_ in requests += 1;if !replaceBeforeStart && requests == 1{return try await withCheckedThrowingContinuation{held=$0}};return "invalid"}
+            if !replaceBeforeStart {for _ in 0..<100 where held == nil{await Task.yield()};XCTAssertNotNil(held)}
+            try app.identity.disconnect();try app.identity.create();held?.resume(returning:"{\"did\":\"The greeting was missing.\",\"fix\":\"Hola\",\"tip\":\"Start with hola.\"}");held=nil;await job?.value
+            XCTAssertEqual(requests,replaceBeforeStart ? 0:1);XCTAssertEqual(app.learner.companionMemory?["es"]?.first?.fields["enriched"],.bool(false))
+        }
+    }
+}

@@ -48,7 +48,7 @@ async function select(m,name){
 const languageModule=await moduleFor('src/constants/languages.js');await select(languageModule,'getLanguageLocale');
 const study=await moduleFor('src/utils/noteGeneration.js');await select(study,'generateNoteContent');
 const memory=await moduleFor('src/utils/companionMemory.js'),copy=await moduleFor('src/utils/companionMemoryCopy.js'),journey=await moduleFor('src/utils/voiceJourneyCopy.js'),journeyModel=await moduleFor('src/utils/voiceJourneyModel.js');
-const roots=['generateMemorySummaryText','enrichNoteFields','memoryLogSignature','memoryNoteMatchesSupportLanguage','cleanMemoryConceptForSupportLanguage','getCompanionNotes'];
+const roots=['buildMemoryNote','getCompanionDayKey','generateMemorySummaryText','enrichNoteFields','memoryLogSignature','memoryNoteMatchesSupportLanguage','cleanMemoryConceptForSupportLanguage','getCompanionNotes'];
 for(const name of roots)await select(memory,name);
 for(const name of ['memoryCopy','MEMORY_CARD_COPY','MEMORY_DRAWER_COPY','memoryStatusLabel'])await select(copy,name);
 await select(journey,'journeyCopy');
@@ -76,7 +76,8 @@ const console={error:()=>{}};function callNativeResponses(request){requests.push
 ${ordered.join('\n')}
 return {run:function(operation,json){p=JSON.parse(json||'{}');requests=[];index=0;const now=p.now?new SystemDate(p.now):new SystemDate();Date=class extends SystemDate{constructor(...args){super(...(args.length?args:[now.getTime()]));}static now(){return now.getTime();}};const lang=p.language||'en',locale=M${languageModule.index}.getLanguageLocale(lang);${labels}
 const m=M${memory.index},c=M${copy.index},j=M${journeyModel.index};let value;
-if(operation==='note')value=M${study.index}.generateNoteContent({...p,targetLang:p.target||'es',supportLang:lang});
+if(operation==='captureNote')value=m.buildMemoryNote({...p,now,dayKey:m.getCompanionDayKey(now)});
+else if(operation==='note')value=M${study.index}.generateNoteContent({...p,targetLang:p.target||'es',supportLang:lang});
 else if(operation==='summary')value=m.generateMemorySummaryText({notes:p.notes||[],langKey:p.target||'es',supportLang:lang});
 else if(operation==='enrich')value=m.enrichNoteFields({...p.note,targetLang:p.target||'es',supportLang:lang});
 else if(operation==='signature')value=m.memoryLogSignature(p.notes||[],lang);
@@ -96,6 +97,7 @@ const note={id:'mem-public',concept:'hola (the word hello)',sourceMode:'grammar'
 for(const language of ['en','es','ar','ja'])for(const operation of ['signature','localized','clean','summary','enrich','status']){const input={...base,language,note,text:note.concept,notes:[note],responses:operation==='enrich'?['{"did":"Missing h","fix":"hola","tip":"Keep h"}','{"did":"نسيت حرف h","fix":"hola","tip":"افتكر حرف h"}']:['Hola kept its silent h.'],yesterday:true};rows.push({operation,input,expected:JSON.parse(api.run(operation,JSON.stringify(input)))});}
 for(const count of [0,1,4,5,15,149,150]){const input={...base,data:{completedQuests:count,recordings:{1:{createdAt:'2026-01-01T00:00:00Z'}}}};rows.push({operation:'journey',input,expected:JSON.parse(api.run('journey',JSON.stringify(input)))});}
 for(const responses of [[],['{\"example\":\"Hola, mamá.\",\"summary\":\"A family greeting.\"}'],['invalid'],[{nativeFailure:true}]]){const input={...base,concept:'hola',cefrLevel:'A1',moduleType:'grammar',wasCorrect:false,responses};rows.push({operation:'note',input,expected:JSON.parse(api.run('note',JSON.stringify(input)))});}
+for(const language of ['en','ar','es'])for(const [concept,expectedAnswer] of [['A greeting','Hola'],['تحية (a greeting)','  Hola  '],['  A greeting  ','Hola']]){const input={...base,targetLang:'es',supportLang:language,sourceMode:'tutor',sourceContext:'tutor',concept,userAnswer:'a public attempt',expectedAnswer,cefrLevel:'Pre-A1'};const expected=JSON.parse(api.run('captureNote',JSON.stringify(input)));delete expected.value.id;rows.push({operation:'captureNote',input,expected});}
 await fs.writeFile(path.join(root,'Tests/PiyaliCoreTests/Fixtures/memory-policy.json.gz'),gzipSync(JSON.stringify(rows),{level:9}));
-await fs.writeFile(path.join(root,'docs/reference/memory-source-manifest.json'),JSON.stringify({sources:[...modules.values()].filter(m=>m.selected.size).map(m=>({file:m.file,sha256:createHash('sha256').update(m.source).digest('hex'),declarations:[...m.selected]})),adapters:'Only provider awaits become explicit synchronous response snapshots; native code executes their recorded requests and retries. Original prompts, parsers, language guards, signatures, status and copy rules remain. No stores, React, DOM, Firebase or network executes.',cases:rows.length},null,2)+'\n');
+await fs.writeFile(path.join(root,'docs/reference/memory-source-manifest.json'),JSON.stringify({sources:[...modules.values()].filter(m=>m.selected.size).map(m=>({file:m.file,sha256:createHash('sha256').update(m.source).digest('hex'),declarations:[...m.selected]})),adapters:'Only provider awaits become explicit synchronous response snapshots; native code executes their recorded requests and retries. Original buildMemoryNote creates initial Tutor capture fields, including localized pending summary, blank enrichment, error/repair mode and the Pre-A1 fallback. Only its random note ID is excluded from fixture equality; production keeps the source ID generator. Original prompts, parsers, language guards, signatures, status and copy rules remain. No stores, React, DOM, Firebase or network executes.',cases:rows.length},null,2)+'\n');
 console.log('Memory policy: '+rows.length+' source cases.');

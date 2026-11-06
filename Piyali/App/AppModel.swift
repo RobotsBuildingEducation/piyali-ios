@@ -6,6 +6,7 @@ import SwiftUI
     @Published var learner = LearnerState() { didSet {captureMemoryFeedback(previous:oldValue);captureDailyGoalReward(previous:oldValue);captureCompanionUnlock(previous:oldValue);notifyPracticeObservers();subscription.updatePracticeXP(learner.subscriptionXP);bindAchievementDelivery()} }
     let memoryCapture=MemoryCaptureController()
     let tutorOutcomes=TutorOutcomeDelivery()
+    let tutorMemories=TutorMemoryDelivery()
     var memoryCaptureScope:String {[identity.npub,learner.target,learner.support].joined(separator:":")}
     func showMemoryCapture(){guard signedIn,!identity.npub.isEmpty else{return};memoryCapture.capture(memoryCaptureScope)}
     private func captureMemoryFeedback(previous:LearnerState){
