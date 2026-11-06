@@ -1,0 +1,24 @@
+Test Suite 'Selected tests' started at 2026-11-06 00:02:47.716.
+Test Suite 'PiyaliTests.xctest' started at 2026-11-06 00:02:47.717.
+Test Suite 'FirestoreContractTests' started at 2026-11-06 00:02:47.717.
+Test Case '-[PiyaliTests.FirestoreContractTests testCaptureLearningEvidenceUsesSourceIDsAndStableDeliveryAcrossRetryAndWindowEviction]' started.
+Test Case '-[PiyaliTests.FirestoreContractTests testCaptureLearningEvidenceUsesSourceIDsAndStableDeliveryAcrossRetryAndWindowEviction]' passed (5.619 seconds).
+Test Suite 'FirestoreContractTests' passed at 2026-11-06 00:02:53.337.
+	 Executed 1 test, with 0 failures (0 unexpected) in 5.619 (5.620) seconds
+Test Suite 'MemoryFlowTests' started at 2026-11-06 00:02:53.337.
+Test Case '-[PiyaliTests.MemoryFlowTests testActualSourceSharedEnrichmentAndLearningEvidenceInEnglishAndArabic]' started.
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliAppTests/MemoryFlowTests.swift:200: error: -[PiyaliTests.MemoryFlowTests testActualSourceSharedEnrichmentAndLearningEvidenceInEnglishAndArabic] : XCTAssertEqual failed: ("2") is not equal to ("0")
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliAppTests/MemoryFlowTests.swift:202: error: -[PiyaliTests.MemoryFlowTests testActualSourceSharedEnrichmentAndLearningEvidenceInEnglishAndArabic] : XCTAssertEqual failed: ("0") is not equal to ("2")
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliAppTests/MemoryFlowTests.swift:202: error: -[PiyaliTests.MemoryFlowTests testActualSourceSharedEnrichmentAndLearningEvidenceInEnglishAndArabic] : XCTAssertEqual failed: ("null") is not equal to ("array([Piyali.JSONValue.object(["severity": Piyali.JSONValue.number(2.0), "target": Piyali.JSONValue.string("A greeting"), "mode": Piyali.JSONValue.string("lesson"), "example": Piyali.JSONValue.string("another public attempt"), "stage": Piyali.JSONValue.string("prompted"), "demonstratedStage": Piyali.JSONValue.string("production with help"), "lastSeen": Piyali.JSONValue.string("2026-11-06T06:02:54.488Z"), "domain": Piyali.JSONValue.string("grammar"), "recurrence": Piyali.JSONValue.number(2.0)])])")
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliAppTests/MemoryFlowTests.swift:200: error: -[PiyaliTests.MemoryFlowTests testActualSourceSharedEnrichmentAndLearningEvidenceInEnglishAndArabic] : XCTAssertEqual failed: ("2") is not equal to ("0")
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliAppTests/MemoryFlowTests.swift:202: error: -[PiyaliTests.MemoryFlowTests testActualSourceSharedEnrichmentAndLearningEvidenceInEnglishAndArabic] : XCTAssertEqual failed: ("0") is not equal to ("2")
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliAppTests/MemoryFlowTests.swift:202: error: -[PiyaliTests.MemoryFlowTests testActualSourceSharedEnrichmentAndLearningEvidenceInEnglishAndArabic] : XCTAssertEqual failed: ("null") is not equal to ("array([Piyali.JSONValue.object(["stage": Piyali.JSONValue.string("prompted"), "lastSeen": Piyali.JSONValue.string("2026-11-06T06:02:59.382Z"), "domain": Piyali.JSONValue.string("grammar"), "example": Piyali.JSONValue.string("another public attempt"), "demonstratedStage": Piyali.JSONValue.string("production with help"), "recurrence": Piyali.JSONValue.number(2.0), "target": Piyali.JSONValue.string("تحية"), "mode": Piyali.JSONValue.string("lesson"), "severity": Piyali.JSONValue.number(2.0)])])")
+Test Case '-[PiyaliTests.MemoryFlowTests testActualSourceSharedEnrichmentAndLearningEvidenceInEnglishAndArabic]' failed (8.731 seconds).
+Test Case '-[PiyaliTests.MemoryFlowTests testExerciseNoteKeepsSourceGeneratedContentAndPrivateStudyMetadata]' started.
+Test Case '-[PiyaliTests.MemoryFlowTests testExerciseNoteKeepsSourceGeneratedContentAndPrivateStudyMetadata]' passed (0.108 seconds).
+Test Suite 'MemoryFlowTests' failed at 2026-11-06 00:03:02.177.
+	 Executed 2 tests, with 6 failures (0 unexpected) in 8.839 (8.840) seconds
+Test Suite 'PiyaliTests.xctest' failed at 2026-11-06 00:03:02.177.
+	 Executed 3 tests, with 6 failures (0 unexpected) in 14.458 (14.460) seconds
+Test Suite 'Selected tests' failed at 2026-11-06 00:03:02.177.
+	 Executed 3 tests, with 6 failures (0 unexpected) in 14.458 (14.461) seconds

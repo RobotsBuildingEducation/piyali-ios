@@ -4,8 +4,8 @@ import XCTest
 final class MemorySourcePolicyTests:XCTestCase {
     @MainActor func testOriginalMemoryCopyPromptsParsersLanguageGuardsAndJourneyRules()throws {
         let root=URL(fileURLWithPath:#filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent(),rows=try ContentLibrary.decode([JSONValue].self,url:root.appendingPathComponent("Tests/PiyaliCoreTests/Fixtures/memory-policy.json.gz")),policy=try MemorySourcePolicy(source:root.appendingPathComponent("Piyali/Resources/memory-policy.js"))
-        XCTAssertEqual(rows.count,267)
-        for row in rows{var actual=try policy.inspect(row["operation"].string,row["input"]);if row["operation"].string == "captureNote"{var fields=actual["value"].object;fields.removeValue(forKey:"id");actual=actual.setting("value",.object(fields))};XCTAssertEqual(actual,row["expected"],row["operation"].string+row["input"]["language"].string)}
+        XCTAssertEqual(rows.count,411)
+        for row in rows{var actual=try policy.inspect(row["operation"].string,row["input"]);if ["captureNote","initialNote"].contains(row["operation"].string){var fields=actual["value"].object;fields.removeValue(forKey:"id");actual=actual.setting("value",.object(fields))};XCTAssertEqual(actual,row["expected"],row["operation"].string+row["input"]["language"].string)}
     }
     func testLocalizationPreservesLifecycleAndForeignFieldsAndRejectsStaleCapture()throws {
         let now=Date();var note=MemoryContract.capture(target:"es",support:"en",level:"A1",mode:"grammar",concept:"hola",answer:"ola",expected:"hola",feedback:"Missing h",now:now);note.fields["webOwned"] = .string("keep");note.fields["status"] = .string("reinforced");note.fields["severity"] = .number(3)
@@ -48,5 +48,43 @@ extension MemorySourcePolicyTests {
         let restored=try JSONDecoder().decode(LearnerState.self,from:JSONEncoder().encode(state));XCTAssertEqual(restored.pendingMemoryChanges?.first?.captureConcept,concept)
         var next=restored;var later=note;later.fields["id"] = .string("different-public-id");later.fields["createdAt"] = .number(now.addingTimeInterval(1).timeIntervalSince1970*1000);_ = next.captureMemory(later,concept:concept,now:now.addingTimeInterval(1));XCTAssertEqual(next.companionMemory?["es"]?.count,2)
         let encoded=try JSONEncoder().encode(try XCTUnwrap(state.pendingMemoryChanges?.first));var raw=try XCTUnwrap(JSONSerialization.jsonObject(with:encoded) as? [String:Any]);raw.removeValue(forKey:"captureConcept");let legacy=try JSONDecoder().decode(MemoryChange.self,from:JSONSerialization.data(withJSONObject:raw));XCTAssertNil(legacy.captureConcept);XCTAssertEqual(legacy.note.id,note.id)
+    }
+}
+
+extension MemorySourcePolicyTests {
+    @MainActor func testGenericInitialMemoryUsesSourcePendingFieldsAndUTF16Limits()throws {
+        let root=URL(fileURLWithPath:#filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent(),policy=try MemorySourcePolicy(source:root.appendingPathComponent("Piyali/Resources/memory-policy.js")),now=Date(timeIntervalSince1970:1_793_894_400.1234),concept=String(repeating:"😀",count:120)+"x"
+        let source=try policy.value("captureNote",.object(["targetLang":.string("es"),"supportLang":.string("en"),"sourceMode":.string("reading"),"sourceContext":.string("reading"),"concept":.string(concept),"userAnswer":.string(concept),"expectedAnswer":.string(concept),"cefrLevel":.string("pre_a1"),"now":.number(now.timeIntervalSince1970*1000)]))
+        let native=MemoryContract.capture(target:"es",support:"en",level:"pre_a1",mode:"reading",concept:concept,answer:concept,expected:concept,feedback:"Private grader reason",context:"reading",now:now)
+        for field in ["concept","userAnswer","expectedAnswer","correction","mistake","tip","enriched","cefrLevel","createdAt","companionSummary","expiresAfterDayKey"] {XCTAssertEqual(native.fields[field],source[field],field)}
+    }
+    func testAccountBearingCaptureQueuesSourceRepairEvidenceWithoutAdditionalXPOrAssessment()throws {
+        var state=LearnerState();state.captureMemory(mode:"grammar",concept:"A greeting",answer:"ola",expected:"hola",feedback:"Private reason");let note=try XCTUnwrap(state.companionMemory?["es"]?.first),event=try XCTUnwrap(state.pendingRepairEvidence?.first?.event)
+        XCTAssertEqual(event["id"],.string(note.id+":1"));XCTAssertEqual(event["target"],.string("A greeting"));XCTAssertEqual(event["observation"],.string("ola"));XCTAssertEqual(event["expectedAnswer"],.string("hola"));XCTAssertEqual(event["mode"],.string("lesson"));XCTAssertEqual(event["domain"],.string("grammar"));XCTAssertEqual(event["success"],.bool(false));XCTAssertEqual(event["support"],.string("prompted"));XCTAssertEqual(state.totalXP,0);XCTAssertNil(state.gradedByLanguage)
+    }
+}
+
+
+extension MemorySourcePolicyTests {
+    @MainActor func testNativeSharedInitialFieldsMatchAllSourceModesAndNormalizationCases()throws {
+        let root=URL(fileURLWithPath:#filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent(),rows=try ContentLibrary.decode([JSONValue].self,url:root.appendingPathComponent("Tests/PiyaliCoreTests/Fixtures/memory-policy.json.gz"))
+        let initial=rows.filter{$0["operation"].string == "initialNote"};XCTAssertEqual(initial.count,136)
+        for row in initial {
+            let p=row["input"],now=Date(timeIntervalSince1970:p["now"].number/1000);var note=MemoryContract.capture(target:p["targetLang"].string,support:p["supportLang"].string,level:p["cefrLevel"].string,mode:p["sourceMode"].string,concept:p["concept"].string,answer:p["userAnswer"].string,expected:p["expectedAnswer"].string,feedback:"Private grade reason",context:p["sourceContext"].string,now:now);note.fields.removeValue(forKey:"id")
+            XCTAssertEqual(.object(note.fields),row["expected"]["value"],p.canonicalJSON)
+        }
+        for row in rows where row["operation"].string == "captureEvidence" {
+            let p=row["input"],note=MemoryNote(fields:p["note"].object);XCTAssertEqual(MemoryContract.captureEvidence(note),row["expected"]["value"])
+            var state=LearnerState();state.captureMemory(mode:p["mode"].string,concept:"A greeting",answer:"ola",expected:"hola",feedback:"Private grade reason")
+            XCTAssertEqual(state.pendingRepairEvidence?.count ?? 0,p["hasAccount"].boolean ? 1:0,p["mode"].string)
+            if p["hasAccount"].boolean {XCTAssertEqual(state.pendingRepairEvidence?.first?.sourceCaptureID,state.pendingMemoryChanges?.first?.id)}
+        }
+    }
+    func testCaptureEvidenceKeepsSourceContentIDsAndSeparateReplayReceiptsAtSeverityCap()throws {
+        var state=LearnerState();let now=Date()
+        for index in 0..<4{state.captureMemory(mode:"grammar",concept:"A greeting",answer:"attempt \(index)",expected:"hola",feedback:"",now:now.addingTimeInterval(Double(index)))}
+        let events=try XCTUnwrap(state.pendingRepairEvidence);XCTAssertEqual(events.count,4);XCTAssertEqual(Set(events.compactMap(\.sourceCaptureID)).count,4);XCTAssertEqual(events[2].event["id"],events[3].event["id"]);XCTAssertEqual(events[2].event["severity"],.number(3))
+        let restored=try JSONDecoder().decode(LearnerState.self,from:JSONEncoder().encode(state));XCTAssertEqual(restored.pendingRepairEvidence?.last?.sourceCaptureID,events.last?.sourceCaptureID)
+        var raw=try XCTUnwrap(JSONSerialization.jsonObject(with:JSONEncoder().encode(events[0])) as? [String:Any]);raw.removeValue(forKey:"sourceCaptureID");let legacy=try JSONDecoder().decode(RepairEvidenceChange.self,from:JSONSerialization.data(withJSONObject:raw));XCTAssertNil(legacy.sourceCaptureID)
     }
 }

@@ -200,14 +200,14 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
             guard let sourceURL=Bundle.main.url(forResource:"companion-quest-policy",withExtension:"js") else{throw PracticeRecipeFailure.unavailable}
             let source=try String(contentsOf:sourceURL,encoding:.utf8)
             for change in state.pendingRepairEvidence ?? [] {
-                let receipt=user.collection("iosPracticeReceipts").document("repair-evidence-"+SHA256.hash(data:Data((change.target+":"+change.event["id"].string).utf8)).map{String(format:"%02x",$0)}.joined())
+                let receipt=user.collection("iosPracticeReceipts").document("repair-evidence-"+SHA256.hash(data:Data((change.target+":"+change.event["id"].string+(change.sourceCaptureID.map{":capture:"+$0.uuidString} ?? "")).utf8)).map{String(format:"%02x",$0)}.joined())
                 _ = try await database.runTransaction {transaction,error in
                     do {
                         let existing=try transaction.getDocument(receipt),fields=Self.normalized(try transaction.getDocument(user).data() ?? [:])
                         if existing.exists{return false}
                         let summary=JSONValue.foundation((fields["learningIntelligence"] as? [String:[String:Any]])?[change.target]?["repairSummary"] as? [String:Any] ?? [:])
                         let next=try CompanionQuestRuntime.run(source:source,operation:"evidence",input:.object(["summary":summary,"event":change.event,"now":.number(change.date.timeIntervalSince1970*1000)]))
-                        transaction.updateData([FieldPath(["learningIntelligence",change.target,"repairSummary"]):next.foundation],forDocument:user)
+                        transaction.updateData([FieldPath(["learningIntelligence",change.target,"version"]):1,FieldPath(["learningIntelligence",change.target,"repairSummary"]):next.foundation],forDocument:user)
                         transaction.setData(["source":"repair-evidence","eventID":change.event["id"].string,"syncedAt":FieldValue.serverTimestamp()],forDocument:receipt)
                         return true
                     }catch let failure{error?.pointee=failure as NSError;return nil}

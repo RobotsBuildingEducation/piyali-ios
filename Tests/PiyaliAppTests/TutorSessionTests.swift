@@ -860,14 +860,14 @@ extension TutorSessionTests {
         let drawer=MemoryDrawerController(provider:{_ in XCTFail("Drawer duplicated the enrichment");return ""});drawer.refresh(app)
         for _ in 0..<100{await Task.yield()};XCTAssertEqual(requests,1);drawer.cancel()
         await tutor.stop(app);app.learner.reinforceMemory(id:original.id);app.learner.target="fr"
-        held?.resume(returning:"{\"did\":\"The greeting was missing.\",\"fix\":\"Hola\",\"tip\":\"Start with hola.\"}");held=nil;await app.tutorMemories.wait(original,app:app)
+        held?.resume(returning:"{\"did\":\"The greeting was missing.\",\"fix\":\"Hola\",\"tip\":\"Start with hola.\"}");held=nil;await app.memoryEnrichment.wait(original,app:app)
         let note=try XCTUnwrap(app.learner.companionMemory?["es"]?.first);XCTAssertEqual(note.text("mistake"),"The greeting was missing.");XCTAssertEqual(note.text("tip"),"Start with hola.");XCTAssertEqual(note.text("status"),"reinforced");XCTAssertEqual(note.fields["enriched"],.bool(true));XCTAssertEqual(app.learner.target,"fr");XCTAssertEqual(app.learner.totalXP,0);XCTAssertNil(app.learner.gradedByLanguage);XCTAssertNil(app.learner.companionMemory?["fr"])
     }
     func testTutorMemoryLateEnrichmentRejectsReplacedAccountAndNewerCapture()async throws {
         for replaceAccount in [true,false] {
             let app=try await app();defer{try? app.identity.disconnect()};let now=Date(),fields=MemoryUI.value("captureNote",.object(["targetLang":.string("es"),"supportLang":.string("en"),"sourceMode":.string("tutor"),"concept":.string("A greeting"),"now":.string(WebProgressContract.iso(now))]))
             let original=try XCTUnwrap(app.learner.captureMemory(MemoryNote(fields:fields.object),now:now));var held:CheckedContinuation<String,Error>?
-            app.tutorMemories.start(original,app:app){_ in try await withCheckedThrowingContinuation{held=$0}}
+            app.memoryEnrichment.start(original,app:app){_ in try await withCheckedThrowingContinuation{held=$0}}
             for _ in 0..<100 where held == nil{await Task.yield()};XCTAssertNotNil(held)
             if replaceAccount {try app.identity.disconnect();try app.identity.create();app.learner=LearnerState()}
             else {var newer=original;newer.fields["createdAt"] = .number(now.addingTimeInterval(1).timeIntervalSince1970*1000);newer.fields["userAnswer"] = .string("newer attempt");_ = app.learner.captureMemory(newer,now:now.addingTimeInterval(1))}
@@ -921,7 +921,7 @@ extension TutorSessionTests {
         let app=try await app();defer{try? app.identity.disconnect()};let now=Date(),fields=MemoryUI.value("captureNote",.object(["targetLang":.string("es"),"supportLang":.string("en"),"sourceMode":.string("tutor"),"concept":.string("A greeting"),"now":.string(WebProgressContract.iso(now))]))
         let original=try XCTUnwrap(app.learner.captureMemory(MemoryNote(fields:fields.object),now:now));app.learner.localizeMemory(original,fields:.object(["mistake":.string("A greeting was missing."),"correction":.string("Hola"),"tip":.string("Start with hola.")]),support:"en")
         let repeated=try XCTUnwrap(app.learner.captureMemory(MemoryNote(fields:fields.object),now:now));XCTAssertEqual(repeated.id,original.id);XCTAssertEqual(repeated.severity,2)
-        var requests=0;app.tutorMemories.start(repeated,app:app){_ in requests += 1;return ""};await app.tutorMemories.wait(repeated,app:app)
+        var requests=0;app.memoryEnrichment.start(repeated,app:app){_ in requests += 1;return ""};await app.memoryEnrichment.wait(repeated,app:app)
         XCTAssertEqual(requests,0);XCTAssertEqual(app.learner.companionMemory?["es"]?.first?.text("tip"),"Start with hola.")
     }
 }
@@ -931,7 +931,7 @@ extension TutorSessionTests {
         for replaceBeforeStart in [true,false] {
             let app=try await app();defer{try? app.identity.disconnect()};let now=Date(),fields=MemoryUI.value("captureNote",.object(["targetLang":.string("es"),"supportLang":.string("ar"),"sourceMode":.string("tutor"),"concept":.string("A greeting"),"now":.string(WebProgressContract.iso(now))]))
             let note=try XCTUnwrap(app.learner.captureMemory(MemoryNote(fields:fields.object),now:now));var requests=0,held:CheckedContinuation<String,Error>?
-            let job=app.tutorMemories.start(note,app:app){_ in requests += 1;if !replaceBeforeStart && requests == 1{return try await withCheckedThrowingContinuation{held=$0}};return "invalid"}
+            let job=app.memoryEnrichment.start(note,app:app){_ in requests += 1;if !replaceBeforeStart && requests == 1{return try await withCheckedThrowingContinuation{held=$0}};return "invalid"}
             if !replaceBeforeStart {for _ in 0..<100 where held == nil{await Task.yield()};XCTAssertNotNil(held)}
             try app.identity.disconnect();try app.identity.create();held?.resume(returning:"{\"did\":\"The greeting was missing.\",\"fix\":\"Hola\",\"tip\":\"Start with hola.\"}");held=nil;await job?.value
             XCTAssertEqual(requests,replaceBeforeStart ? 0:1);XCTAssertEqual(app.learner.companionMemory?["es"]?.first?.fields["enriched"],.bool(false))
@@ -970,6 +970,6 @@ extension TutorSessionTests {
         let tutor=TutorSessionController(live:LiveTutorService(permission:{true},transportFactory:{transport}),provider:p,turnXP:{5});await tutor.prepare(app);await tutor.start(app);transport.assistant("Welcome!");await tutor.input(input("yes"),app:app);transport.assistant("Give a greeting.",id:"question");await tutor.input(input("a public complete attempt"),app:app)
         for _ in 0..<200 where prompt.isEmpty{await Task.yield()};let note=try XCTUnwrap(app.learner.companionMemory?["es"]?.first),policy=try XCTUnwrap(MemoryUI.policy)
         let expected=try policy.inspect("enrich",.object(["note":.object(note.fields).setting("concept",.string(concept)),"target":.string("es"),"language":.string("en")]))["requests"].array.first?.string
-        XCTAssertEqual(prompt,expected);XCTAssertTrue(prompt.contains(concept));XCTAssertEqual(note.text("concept").count,240);XCTAssertEqual(app.learner.pendingMemoryChanges?.first(where:{$0.action == .capture})?.captureConcept,concept);await app.tutorMemories.wait(note,app:app);await tutor.stop(app)
+        XCTAssertEqual(prompt,expected);XCTAssertTrue(prompt.contains(concept));XCTAssertEqual(note.text("concept").count,240);XCTAssertEqual(app.learner.pendingMemoryChanges?.first(where:{$0.action == .capture})?.captureConcept,concept);await app.memoryEnrichment.wait(note,app:app);await tutor.stop(app)
     }
 }

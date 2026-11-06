@@ -1154,7 +1154,12 @@ function capturePlan(input){const {targetLang,supportLang='en',sourceMode,concep
   const trimmed = notes.slice(0, 40);
 
 return {note:stored,notes:trimmed,shouldEnrich};}
-return {normalizeConceptKey,buildMemoryNote,errorTypeForMode,MODE_TO_ERROR_TYPE,normalizeMemorySupportLang,normalizeSupportLanguage,DEFAULT_SUPPORT_LANGUAGE,cleanMemoryConceptForSupportLanguage,distinctiveEnglishWordCount,DISTINCTIVE_ENGLISH_WORDS,displayCEFRLevel,normalizeCEFRLevel,repairModeForError,ERROR_TYPE_TO_REPAIR_MODE,companionMemorySummary,getLocalDayKey,DAY_MS,MEMORY_STATUS,getCompanionDayKey,generateMemorySummaryText,langName,getLanguagePromptName,BATCH_LANG_NAMES,normalizePlateLang,getYesterdayKey,memoryStatusLabel,supportLanguageGuard,SUPPORT_SCRIPT_REQUIREMENTS,callResponses,memoryTextMatchesSupportLanguage,enrichNoteFields,parseBlueprintJson,enrichmentMatchesSupportLanguage,memoryLogSignature,MEMORY_SUMMARY_PROMPT_VERSION,memoryNoteMatchesSupportLanguage,getCompanionNotes,readBucket,capturePlan};})();
+function captureEvidence(stored){return {
+    id: `${stored.id}:${stored.severity}`, target: stored.concept, expectedAnswer: stored.expectedAnswer,
+    observation: stored.userAnswer, mode: stored.recommendedRepairMode, domain: stored.errorType,
+    severity: stored.severity, success: false, support: "prompted",
+  };}
+return {normalizeConceptKey,buildMemoryNote,errorTypeForMode,MODE_TO_ERROR_TYPE,normalizeMemorySupportLang,normalizeSupportLanguage,DEFAULT_SUPPORT_LANGUAGE,cleanMemoryConceptForSupportLanguage,distinctiveEnglishWordCount,DISTINCTIVE_ENGLISH_WORDS,displayCEFRLevel,normalizeCEFRLevel,repairModeForError,ERROR_TYPE_TO_REPAIR_MODE,companionMemorySummary,getLocalDayKey,DAY_MS,MEMORY_STATUS,getCompanionDayKey,generateMemorySummaryText,langName,getLanguagePromptName,BATCH_LANG_NAMES,normalizePlateLang,getYesterdayKey,memoryStatusLabel,supportLanguageGuard,SUPPORT_SCRIPT_REQUIREMENTS,callResponses,memoryTextMatchesSupportLanguage,enrichNoteFields,parseBlueprintJson,enrichmentMatchesSupportLanguage,memoryLogSignature,MEMORY_SUMMARY_PROMPT_VERSION,memoryNoteMatchesSupportLanguage,getCompanionNotes,readBucket,capturePlan,captureEvidence};})();
 // src/utils/voiceJourneyCopy.js
 const M5=(function(){
 const en = {
@@ -1792,8 +1797,9 @@ const deleteNoteLabel=lang === "ja"
                       : "Delete note";
 const m=M3,c=M4,j=M6;let value;
 if(operation==='capturePlan')value=m.capturePlan(p);
-else if(operation==='captureMetadata')value={supports:M0.SUPPORT_LANGUAGE_CODES,templates:Object.fromEntries(M0.SUPPORT_LANGUAGE_CODES.map(code=>[code,M4.companionMemorySummary(code,'{concept}')])),english:[...m.DISTINCTIVE_ENGLISH_WORDS]};
-else if(operation==='captureNote')value=m.buildMemoryNote({...p,now,dayKey:m.getCompanionDayKey(now)});
+else if(operation==='captureEvidence')value=m.captureEvidence(p.note);
+else if(operation==='captureMetadata')value={evidenceModes:["vocabulary","grammar","story","phonics","reading"],whitespace:Array.from({length:65536},(_,n)=>n).filter(n=>/\s/.test(String.fromCharCode(n))),supports:M0.SUPPORT_LANGUAGE_CODES,templates:Object.fromEntries(M0.SUPPORT_LANGUAGE_CODES.map(code=>[code,M4.companionMemorySummary(code,'{concept}')])),english:[...m.DISTINCTIVE_ENGLISH_WORDS]};
+else if(operation==='captureNote'||operation==='initialNote')value=m.buildMemoryNote({...p,now,dayKey:m.getCompanionDayKey(now)});
 else if(operation==='note')value=M2.generateNoteContent({...p,targetLang:p.target||'es',supportLang:lang});
 else if(operation==='summary')value=m.generateMemorySummaryText({notes:p.notes||[],langKey:p.target||'es',supportLang:lang});
 else if(operation==='enrich')value=m.enrichNoteFields({...p.note,targetLang:p.target||'es',supportLang:lang});

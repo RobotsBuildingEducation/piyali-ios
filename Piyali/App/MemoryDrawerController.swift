@@ -37,16 +37,18 @@ import Combine
                 return try await app.ai.responsesText(prompt)
             }
             for original in MemoryUI.notes(app.learner) {
-                await app.tutorMemories.wait(original,app:app)
+                await app.memoryEnrichment.wait(original,app:app)
                 guard valid() else{return}
                 guard let note=app.learner.companionMemory?[target]?.first(where:{$0.id == original.id}) else{continue}
                 let clean=(try? policy.value("clean",.object(["text":.string(note.text("concept")),"language":.string(support)])))?.string ?? note.text("concept")
                 let localized=(try? policy.value("localized",.object(["note":.object(note.fields),"language":.string(support)])))?.boolean == true
-                guard !localized || clean != note.text("concept") || note.text("iosMemoryEnrichedSupport") != support && note.text("tip").isEmpty else{continue}
+                guard !localized || clean != note.text("concept") else{continue}
                 let fields=(try? await policy.generate("enrich",.object(["note":.object(note.fields),"target":.string(target),"language":.string(support)]),respond:respond)) ?? .null
                 guard valid() else{return}
-                let fallback=JSONValue.object(["mistake":.string(localized ? note.text("mistake"):""),"correction":.string(note.text("expectedAnswer").isEmpty ? note.text("correction"):note.text("expectedAnswer")),"tip":.string(localized ? note.text("tip"):"")])
-                app.learner.localizeMemory(note,fields:(fields == .null ? fallback:fields).setting("concept",.string(clean)),support:support);app.persist()
+                let priorFix=note.text("correction"),expected=note.text("expectedAnswer"),fallbackFix=localized ? (priorFix.isEmpty ? expected:priorFix):(expected.isEmpty ? priorFix:expected)
+                let fallback=JSONValue.object(["mistake":.string(localized ? note.text("mistake"):""),"correction":.string(fallbackFix),"tip":.string(localized ? note.text("tip"):"")]),candidate=fields == .null ? fallback:fields
+                let fix=candidate["correction"].string.isEmpty ? priorFix:candidate["correction"].string
+                app.learner.localizeMemory(note,fields:candidate.setting("correction",.string(fix)).setting("concept",.string(clean)),support:support);app.persist()
             }
             guard valid() else{return};let current=input(app);fingerprint=current.canonicalJSON
             if current["notes"].array.isEmpty {summary="";return}
@@ -58,9 +60,9 @@ import Combine
     func cancel(){task?.cancel();task=nil;pendingRefresh=false;epoch=UUID()}
 }
 
-/// Captured Tutor notes begin enrichment immediately. App ownership lets this
+/// Captured notes begin enrichment immediately. App ownership lets this
 /// finish after End; a changed identity session cannot publish into a new owner.
-@MainActor final class TutorMemoryDelivery {
+@MainActor final class MemoryEnrichmentDelivery {
     private var tasks:[String:(id:UUID,task:Task<Void,Never>)]=[:]
     private func key(_ note:MemoryNote,_ app:AppModel)->String {
         [app.identity.npub,app.identity.sessionRevision.uuidString,note.text("targetLang"),note.id,String(note.createdAt.timeIntervalSince1970),note.text("supportLang")].joined(separator:":")

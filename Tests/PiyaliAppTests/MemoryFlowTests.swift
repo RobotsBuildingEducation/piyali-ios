@@ -4,9 +4,9 @@ import WebKit
 @testable import Piyali
 
 @MainActor final class MemoryFlowTests:XCTestCase {
-    private func model()throws->AppModel {
+    private func model(memoryProvider:((String)async throws->String)?=nil)throws->AppModel {
         let e=ProcessInfo.processInfo.environment;guard e["PIYALI_OFFLINE_TESTS"] == "1",UUID(uuidString:e["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil,MemoryDrawerFixture.enabled else{throw XCTSkip("Isolated Memory fixture required")}
-        let app=AppModel();try app.identity.create();app.signedIn=true;app.subscription.bind(app.identity);app.learner=LearnerState();app.learner.onboardingComplete=true;MemoryDrawerFixture.seed(app);return app
+        let app=AppModel(memoryProvider:memoryProvider);try app.identity.create();app.signedIn=true;app.subscription.bind(app.identity);app.learner=LearnerState();app.learner.onboardingComplete=true;MemoryDrawerFixture.seed(app);return app
     }
     func testDigestIsCachedAndCannotLeakAcrossPracticeLanguages()async throws {
         let app=try model();defer{try? app.identity.disconnect()};var calls=0
@@ -28,7 +28,7 @@ import WebKit
         let key=try await app.identity.decryptWallet(vector["envelope"]["wrappedKey"].string,expectedAuthor:app.identity.hex);XCTAssertEqual(key,vector["key"].string)
     }
     func testRepairArrivingDuringSummaryIsLocalizedBeforeRefreshSettles()async throws {
-        let app=try model();defer{try? app.identity.disconnect()};var resume:CheckedContinuation<String,Error>?,calls=0
+        let app=try model(memoryProvider:{_ in "{\"did\":\"A missing greeting\",\"fix\":\"hola\",\"tip\":\"Keep the h\"}"});defer{try? app.identity.disconnect()};var resume:CheckedContinuation<String,Error>?,calls=0
         let controller=MemoryDrawerController(provider:{prompt in
             calls += 1
             if calls == 1{return try await withCheckedThrowingContinuation{resume=$0}}
@@ -39,14 +39,14 @@ import WebKit
         app.learner.captureMemory(mode:"grammar",concept:"new greeting",answer:"ola",expected:"hola",feedback:"")
         let id=try XCTUnwrap(app.learner.companionMemory?["es"]?.first{$0.text("concept") == "new greeting"}?.id)
         controller.refresh(app);resume?.resume(returning:MemoryDrawerFixture.summary("en"));resume=nil
-        for _ in 0..<200 where app.learner.companionMemory?["es"]?.first(where:{$0.id == id})?.text("iosMemoryEnrichedSupport") != "en"{try await Task.sleep(for:.milliseconds(10))}
+        for _ in 0..<200 where calls<2 || app.learner.companionMemory?["es"]?.first(where:{$0.id == id})?.text("iosMemoryEnrichedSupport") != "en"{try await Task.sleep(for:.milliseconds(10))}
         XCTAssertEqual(app.learner.companionMemory?["es"]?.first(where:{$0.id == id})?.text("iosMemoryEnrichedSupport"),"en");XCTAssertGreaterThanOrEqual(calls,2)
     }
     func testExerciseNoteKeepsSourceGeneratedContentAndPrivateStudyMetadata()async throws {
         let app=try model();defer{try? app.identity.disconnect()}
         let q=try PracticeQuestion(module:.vocabulary,kind:"mc",payload:.object(["question":.string("Choose a greeting"),"choices":.array([.string("hola"),.string("adiós")]),"answer":.string("hola")]),options:.object(["cefrLevel":.string("A1")]),target:"es",support:"en")
         var run=PracticeRun(question:q,lessonID:nil,lessonLevel:"A1",response:.object(["indices":.array([.number(0)])]));run.correct=true;app.learner.savePractice(run)
-        let original=app.learner.notes.count,created=try await app.createStudyNote(run:run,lesson:nil)
+        let original=app.learner.notes.count,created=try await app.createStudyNote(run:run,lesson:nil,respond:{_ in "{\"example\":\"Hola, mamá.\",\"summary\":\"Use hola to greet a family member.\"}"})
         XCTAssertTrue(created);XCTAssertEqual(app.learner.notes.count,original+1)
         let note=try XCTUnwrap(app.learner.notes.first),study=try XCTUnwrap(note.study)
         XCTAssertEqual(study["example"].string,"Hola, mamá.");XCTAssertEqual(study["summary"].string,"Use hola to greet a family member.");XCTAssertEqual(study["targetLang"].string,"es");XCTAssertEqual(study["supportLang"].string,"en");XCTAssertEqual(study["cefrLevel"].string,"A1");XCTAssertEqual(study["moduleType"].string,"vocabulary");XCTAssertEqual(study["wasCorrect"],.bool(true));XCTAssertNotNil(note.createdAt)
@@ -137,5 +137,72 @@ extension MemoryFlowTests {
         let drawer=MemoryDrawerController(provider:{_ in requests += 1;if requests == 1{return try await withCheckedThrowingContinuation{held=$0}};return "invalid"});defer{drawer.cancel()};drawer.refresh(app)
         for _ in 0..<100 where held == nil{await Task.yield()};XCTAssertNotNil(held);try app.identity.disconnect();try app.identity.create();let original=app.learner.companionMemory;held?.resume(returning:"{\"did\":\"The greeting was missing.\",\"fix\":\"Hola\",\"tip\":\"Start with hola.\"}");held=nil
         for _ in 0..<200{await Task.yield()};XCTAssertEqual(requests,1);XCTAssertTrue(drawer.summary.isEmpty);XCTAssertEqual(app.learner.companionMemory,original)
+    }
+}
+
+extension MemoryFlowTests {
+    func testOpeningAnAlreadyLocalizedPendingNoteDoesNotInventEnrichmentOrRetryTheCapture()async throws {
+        let app=try model();defer{try? app.identity.disconnect()};app.learner=LearnerState();app.learner.onboardingComplete=true
+        let now=Date(),fields=MemoryUI.value("captureNote",.object(["targetLang":.string("es"),"supportLang":.string("en"),"sourceMode":.string("grammar"),"concept":.string("A greeting"),"expectedAnswer":.string("Hola"),"now":.string(WebProgressContract.iso(now))]))
+        let note=try XCTUnwrap(app.learner.captureMemory(MemoryNote(fields:fields.object),now:now));var enrichments=0
+        let drawer=MemoryDrawerController(provider:{prompt in if !prompt.contains("digest"){enrichments += 1};return ""});drawer.refresh(app);defer{drawer.cancel()}
+        for _ in 0..<200{await Task.yield()}
+        XCTAssertEqual(enrichments,0);XCTAssertEqual(app.learner.companionMemory?["es"]?.first?.fields["enriched"],.bool(false));XCTAssertEqual(app.learner.pendingMemoryChanges?.filter{$0.action == .localize}.count,0);XCTAssertEqual(app.learner.companionMemory?["es"]?.first?.id,note.id)
+    }
+}
+
+extension MemoryFlowTests {
+    func testSharedCaptureStartsBeforeDrawerAndEnrichesOriginalBucketAcrossModes()async throws {
+        for mode in ["grammar","vocabulary","reading","story","phonics","flashcard","conversation","tutor"] {
+            var held:CheckedContinuation<String,Error>?,requests=0
+            let app=try model(memoryProvider:{_ in requests += 1;return try await withCheckedThrowingContinuation{held=$0}});defer{try? app.identity.disconnect()};app.learner=LearnerState();app.learner.onboardingComplete=true
+            app.learner.captureMemory(mode:mode,concept:"A greeting",answer:"ola",expected:"hola",feedback:"Private grade reason");let note=try XCTUnwrap(app.learner.companionMemory?["es"]?.first)
+            for _ in 0..<200 where held == nil{await Task.yield()};XCTAssertNotNil(held,mode);XCTAssertEqual(requests,1);XCTAssertTrue(note.text("mistake").isEmpty);XCTAssertEqual(note.fields["enriched"],.bool(false));XCTAssertEqual(app.learner.totalXP,0);XCTAssertNil(app.learner.gradedByLanguage)
+            let eligible=["grammar","vocabulary","reading","story","phonics"].contains(mode);XCTAssertEqual(app.learner.pendingRepairEvidence?.count ?? 0,eligible ? 1:0,mode);XCTAssertEqual(app.learner.goalBucket["repairSummary"]["openPatterns"].array.count,eligible ? 1:0,mode)
+            XCTAssertEqual(app.learner.companionQuestUser["learningIntelligence"]["es"]["repairSummary"],app.learner.goalBucket["repairSummary"])
+            app.learner.reinforceMemory(id:note.id);app.learner.target="fr";held?.resume(returning:"{\"did\":\"A missing greeting\",\"fix\":\"hola\",\"tip\":\"Start with hola.\"}");held=nil;await app.memoryEnrichment.wait(note,app:app)
+            let enriched=try XCTUnwrap(app.learner.companionMemory?["es"]?.first);XCTAssertEqual(enriched.text("tip"),"Start with hola.",mode);XCTAssertEqual(enriched.fields["enriched"],.bool(true));XCTAssertEqual(enriched.text("status"),"reinforced");XCTAssertEqual(app.learner.target,"fr");XCTAssertNil(app.learner.companionMemory?["fr"]);XCTAssertEqual(app.learner.totalXP,0)
+        }
+    }
+    func testFailedCaptureStaysPendingAndOnlyANewSlipRetriesEnrichment()async throws {
+        var requests=0;let app=try model(memoryProvider:{_ in requests += 1;return ""});defer{try? app.identity.disconnect()};app.learner=LearnerState();app.learner.onboardingComplete=true
+        app.learner.captureMemory(mode:"grammar",concept:"A greeting",answer:"ola",expected:"hola",feedback:"Private reason");let first=try XCTUnwrap(app.learner.companionMemory?["es"]?.first);await app.memoryEnrichment.wait(first,app:app);XCTAssertEqual(requests,1);XCTAssertEqual(app.learner.companionMemory?["es"]?.first?.fields["enriched"],.bool(false))
+        var drawerEnrichments=0;let drawer=MemoryDrawerController(provider:{p in if !p.contains("digest"){drawerEnrichments += 1};return ""});drawer.refresh(app);defer{drawer.cancel()};for _ in 0..<200{await Task.yield()};XCTAssertEqual(drawerEnrichments,0);XCTAssertEqual(app.learner.pendingMemoryChanges?.filter{$0.action == .localize}.count,0)
+        app.learner.captureMemory(mode:"grammar",concept:"A greeting",answer:"second attempt",expected:"new correction",feedback:"Private reason",now:Date().addingTimeInterval(1));let second=try XCTUnwrap(app.learner.companionMemory?["es"]?.first);await app.memoryEnrichment.wait(second,app:app)
+        XCTAssertEqual(requests,2);XCTAssertEqual(second.id,first.id);XCTAssertEqual(second.severity,2);XCTAssertEqual(second.text("expectedAnswer"),"hola");XCTAssertEqual(app.learner.goalBucket["repairSummary"]["openPatterns"].array.first?["recurrence"],.number(2));XCTAssertEqual(app.learner.totalXP,0)
+    }
+}
+
+extension MemoryFlowTests {
+    func testConceptOnlyLocalizationFailurePreservesAnExistingEnrichedCorrection()async throws {
+        let app=try model();defer{try? app.identity.disconnect()};app.learner=LearnerState();app.learner.onboardingComplete=true;app.learner.support="es"
+        var note=MemoryContract.capture(target:"es",support:"es",level:"A1",mode:"grammar",concept:"hola",answer:"ola",expected:"hola",feedback:"");note.fields["concept"] = .string("hola (the word hello)");note.fields["correction"] = .string("¡Hola!");note.fields["mistake"] = .string("Faltaba un saludo.");note.fields["tip"] = .string("Saluda primero.");note.fields["enriched"] = .bool(true);app.learner.companionMemory=["es":[note]]
+        let drawer=MemoryDrawerController(provider:{_ in ""});drawer.refresh(app);defer{drawer.cancel()};for _ in 0..<200 where app.learner.companionMemory?["es"]?.first?.text("concept") != "hola"{await Task.yield()}
+        let saved=try XCTUnwrap(app.learner.companionMemory?["es"]?.first);XCTAssertEqual(saved.text("concept"),"hola");XCTAssertEqual(saved.text("correction"),"¡Hola!");XCTAssertEqual(saved.text("tip"),"Saluda primero.");XCTAssertEqual(saved.text("expectedAnswer"),"hola")
+    }
+}
+
+
+extension MemoryFlowTests {
+    func testActualSourceSharedEnrichmentAndLearningEvidenceInEnglishAndArabic()async throws {
+        guard ProcessInfo.processInfo.environment["PIYALI_REFERENCE_PREVIEW_TESTS"] == "1" else{throw XCTSkip("Read-only source preview required")}
+        let scene=try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap{$0 as? UIWindowScene}.first),old=scene.windows.first{$0.isKeyWindow};defer{old?.makeKey()}
+        for (support,theme) in [("en","light"),("ar","dark")] {
+            let now=Date(timeIntervalSince1970:floor(Date().timeIntervalSince1970)),concept=support == "ar" ? "تحية":"A greeting",response:JSONValue = .object(["did":.string(support == "ar" ? "كانت التحية ناقصة.":"The greeting was missing."),"fix":.string("Hola"),"tip":.string(support == "ar" ? "ابدأ بالتحية.":"Start with a greeting.")]);var requests=0
+            let app=try model(memoryProvider:{_ in requests += 1;return response.json});defer{try? app.identity.disconnect()};app.learner=LearnerState();app.learner.onboardingComplete=true;app.learner.support=support
+            for (i,answer) in ["ola","another public attempt"].enumerated(){app.learner.captureMemory(mode:"grammar",concept:concept,answer:answer,expected:i == 0 ? "Hola":"Buen día",feedback:"Private grader reason",now:now.addingTimeInterval(Double(i)));let note=try XCTUnwrap(app.learner.companionMemory?["es"]?.first);await app.memoryEnrichment.wait(note,app:app)}
+            let note=try XCTUnwrap(app.learner.companionMemory?["es"]?.first),changes=(app.learner.pendingMemoryChanges ?? []).filter{$0.action == .capture};XCTAssertEqual(changes.count,2);XCTAssertEqual(requests,1);XCTAssertEqual(note.fields["enriched"],.bool(true));XCTAssertEqual(app.learner.pendingRepairEvidence?.count,2);XCTAssertEqual(app.learner.totalXP,0);XCTAssertNil(app.learner.gradedByLanguage)
+            let sequence:JSONValue = .array(changes.enumerated().map{i,c in .object(["npub":.string("piyali-public-fixture"),"targetLang":.string("es"),"supportLang":.string(support),"sourceMode":.string("grammar"),"sourceContext":.string(""),"cefrLevel":.string("Pre-A1"),"concept":.string(concept),"userAnswer":.string(i == 0 ? "ola":"another public attempt"),"expectedAnswer":.string(i == 0 ? "Hola":"Buen día"),"enrichmentResponse":.string(response.json),"now":.string(WebProgressContract.iso(c.date))])})
+            let web=WKWebView(frame:CGRect(x:0,y:0,width:402,height:874),configuration:WKWebViewConfiguration()),window=UIWindow(windowScene:scene),vc=UIViewController();window.frame=web.frame;vc.view=web;window.rootViewController=vc;web.scrollView.contentInsetAdjustmentBehavior = .never;window.makeKeyAndVisible();defer{web.stopLoading();window.isHidden=true;window.rootViewController=nil}
+            var url=URLComponents(string:"http://127.0.0.1:5181/__piyali-onboarding")!;url.queryItems=[.init(name:"screen",value:"memory"),.init(name:"captureSequence",value:sequence.json),.init(name:"language",value:support),.init(name:"theme",value:theme),.init(name:"goal",value:"0")];web.load(URLRequest(url:try XCTUnwrap(url.url)))
+            var ready=false;for _ in 0..<400{ready=(try? await web.evaluateJavaScript("window.__sourceMemorySequence?.notes?.[0]?.severity===2&&!!document.querySelector('[role=dialog]')&&document.fonts.status==='loaded'")) as? Bool == true;if ready{break};try await Task.sleep(for:.milliseconds(50))};let sourceError=(try? await web.evaluateJavaScript("window.__sourceMemorySequenceError||''")) as? String ?? "";XCTAssertTrue(ready,sourceError);guard ready else{return}
+            let raw=try await web.evaluateJavaScript("JSON.stringify(window.__sourceMemorySequence)"),trace=try JSONDecoder().decode(JSONValue.self,from:Data(try XCTUnwrap(raw as? String).utf8)),source=try XCTUnwrap(trace["notes"].array.first)
+            XCTAssertEqual(trace["evidenceErrors"].array.count,0,trace["evidenceErrors"].json);XCTAssertEqual(trace["enrichmentRequests"].number,1);XCTAssertEqual(trace["grades"].number,0)
+            for field in ["concept","userAnswer","expectedAnswer","correction","companionSummary","sourceMode","sourceContext","supportLang","targetLang","cefrLevel","severity","status","mistake","tip","enriched"]{XCTAssertEqual(source[field],note.fields[field],field)}
+            let sourceSummary=trace["learning"]["repairSummary"],nativeSummary=app.learner.goalBucket["repairSummary"];XCTAssertEqual(sourceSummary["eventIds"].array.count,2);XCTAssertEqual(nativeSummary["eventIds"].array.count,2);XCTAssertEqual(sourceSummary["openPatterns"],nativeSummary["openPatterns"]);XCTAssertEqual(sourceSummary["guidance"],nativeSummary["guidance"]);XCTAssertEqual(app.learner.companionQuestUser["learningIntelligence"]["es"]["repairSummary"],nativeSummary)
+            try await Task.sleep(for:.milliseconds(950));let sourceShot=XCTAttachment(image:try await web.takeSnapshot(configuration:nil));sourceShot.name="Source shared enriched Memory \(support)";sourceShot.lifetime = .keepAlways;add(sourceShot)
+            let host=UIHostingController(rootView:ZStack{PiyaliBrand(dark:theme == "dark").background;MemoryDrawerView(onClose:{})}.environmentObject(app).environment(\.layoutDirection,support == "ar" ? .rightToLeft:.leftToRight).environment(\.dynamicTypeSize,.large).preferredColorScheme(theme == "dark" ? .dark:.light).ignoresSafeArea());window.rootViewController=host;window.makeKeyAndVisible();host.view.layoutIfNeeded();try await Task.sleep(for:.milliseconds(500));let nativeShot=XCTAttachment(image:UIGraphicsImageRenderer(bounds:window.bounds).image{_ in window.drawHierarchy(in:window.bounds,afterScreenUpdates:true)});nativeShot.name="Native shared enriched Memory \(support)";nativeShot.lifetime = .keepAlways;add(nativeShot)
+            let a=XCTAttachment(data:Data(JSONValue.object(["source":trace,"native":.object(note.fields),"nativeRepairSummary":nativeSummary,"nativeEnrichmentRequests":.number(Double(requests))]).json.utf8),uniformTypeIdentifier:"public.json");a.name="Shared enriched Memory trace \(support)";a.lifetime = .keepAlways;add(a)
+        }
     }
 }

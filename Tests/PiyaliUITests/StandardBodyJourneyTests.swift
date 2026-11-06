@@ -4,9 +4,9 @@ import XCTest
     private func reveal(_ e:XCUIElement,_ app:XCUIApplication){for _ in 0..<12 where !e.isHittable{if e.exists,e.frame.midY<app.frame.midY{app.swipeDown(velocity:.slow)}else{app.swipeUp(velocity:.slow)}};if !e.isHittable{shot("Missing standard interaction",app)};XCTAssertTrue(e.isHittable)}
     private func tap(_ id:String,_ app:XCUIApplication){let e=element(id,app);XCTAssertTrue(e.waitForExistence(timeout:10));reveal(e,app);e.tap()}
     private func shot(_ name:String,_ app:XCUIApplication){let a=XCTAttachment(screenshot:app.screenshot());a.name=name;a.lifetime = .keepAlways;add(a)}
-    private func launch(_ variant:String,audio:Bool=false,cache:Bool=false,warm:Bool=false)->XCUIApplication {
-        let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_MEMORY_CAPTURE_ONLY":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_HEADLINE_FIXTURE":"failure","PIYALI_PRACTICE_JUDGE_FIXTURE":"offered-reference","PIYALI_PRACTICE_FIXTURE":"standard:"+variant,"PIYALI_QUESTION_HELP_FIXTURE":"stream"];if audio{app.launchEnvironment["PIYALI_LESSON_AUDIO_FIXTURE"]="loading"};if cache{app.launchEnvironment["PIYALI_LESSON_AUDIO_FIXTURE"]="cache"};if warm{app.launchEnvironment["PIYALI_LESSON_AUDIO_FIXTURE"]="warm"};app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"];app.launch();handleInitialPaperPencil(app)
-        let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Standard Learner");tap("entryKeyboardDone",app);tap("createAccount",app);handleInitialPaperPencil(app);chooseEnglishSpanishOnboarding(app);tap("startLearning",app);tap("companionContinue",app);acknowledgePaperPencil(app);tap("gettingStartedGotIt",app);chooseA1Placement(app);open(app);return app
+    private func launch(_ variant:String,audio:Bool=false,cache:Bool=false,warm:Bool=false,memoryEnrichment:Bool=false)->XCUIApplication {
+        let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_MEMORY_CAPTURE_ONLY":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_HEADLINE_FIXTURE":"failure","PIYALI_PRACTICE_JUDGE_FIXTURE":"offered-reference","PIYALI_PRACTICE_FIXTURE":"standard:"+variant,"PIYALI_QUESTION_HELP_FIXTURE":"stream"];if memoryEnrichment{app.launchEnvironment["PIYALI_MEMORY_ENRICHMENT_FIXTURE"]="1";app.launchEnvironment["PIYALI_MEMORY_CAPTURE_ONLY"]="0";app.launchEnvironment["PIYALI_MEMORY_FIXTURE"]="0"};if audio{app.launchEnvironment["PIYALI_LESSON_AUDIO_FIXTURE"]="loading"};if cache{app.launchEnvironment["PIYALI_LESSON_AUDIO_FIXTURE"]="cache"};if warm{app.launchEnvironment["PIYALI_LESSON_AUDIO_FIXTURE"]="warm"};app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"];app.launch();handleInitialPaperPencil(app)
+        let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText(memoryEnrichment ? "Shared Memory Learner":"Standard Learner");tap("entryKeyboardDone",app);tap("createAccount",app);handleInitialPaperPencil(app);chooseEnglishSpanishOnboarding(app);tap("startLearning",app);tap("companionContinue",app);acknowledgePaperPencil(app);tap("gettingStartedGotIt",app);chooseA1Placement(app);open(app);return app
     }
     private func open(_ app:XCUIApplication){tap("productMenu",app);tap("productModeMenu",app);tap("productMode-path",app);if !app.buttons["lessonNode-lesson-pre-a1-1-1"].exists{tap("lessonPreviousLevel",app)};tap("lessonNode-lesson-pre-a1-1-1",app);tap("startLessonFromPreview",app);XCTAssertTrue(element("typedQuestionPrompt",app).waitForExistence(timeout:10))}
     private func checkWrong(_ app:XCUIApplication){tap("checkTypedAnswer",app);XCTAssertTrue(app.staticTexts["practiceVerdict"].waitForExistence(timeout:10));XCTAssertTrue(app.staticTexts["practiceVerdict"].label.contains("Try again"))}
@@ -92,5 +92,19 @@ import XCTest
     }
     func testFillUsesOriginalInputHelpAudioAndTypedRetry() {
         continueAfterFailure=false;let app=launch("fill"),field=app.textFields["typedPracticeAnswer"];XCTAssertFalse(app.buttons["typedPracticeMicrophone"].exists);XCTAssertTrue(app.buttons["typedPracticeListen"].exists);XCTAssertTrue(app.buttons["typedPracticeHelp"].exists);field.tap();field.typeText("WRONG_FIXTURE");tap("practiceKeyboardDone",app);checkWrong(app);field.tap();field.typeText(String(repeating:XCUIKeyboardKey.delete.rawValue,count:13)+"pan");tap("practiceKeyboardDone",app);correct(5,app);XCTAssertFalse(field.isEnabled);shot("Native standard fill correct input",app)
+    }
+}
+
+
+extension StandardBodyJourneyTests {
+    func testOrdinaryWrongAnswerEnrichesSharedMemoryAfterNextAndRestoresWithoutExtraReward() {
+        continueAfterFailure=false;let app=launch("match-no-stem",memoryEnrichment:true)
+        tap("standardMatchBank-1",app);tap("standardMatchBank-0",app);tap("standardMatchBank-2",app);checkWrong(app);tap("skipLessonActivity",app)
+        XCTAssertTrue(element("typedQuestionPrompt",app).waitForExistence(timeout:10));tap("productMenu",app);tap("productPanel-memory",app)
+        let cards=app.descendants(matching:.any).matching(NSPredicate(format:"identifier BEGINSWITH 'memoryRepair-'")),card=cards.firstMatch
+        XCTAssertTrue(card.waitForExistence(timeout:15));XCTAssertEqual(XCTWaiter.wait(for:[XCTNSPredicateExpectation(predicate:NSPredicate(format:"label CONTAINS %@","Match each word to its partner."),object:card)],timeout:12),.completed)
+        XCTAssertEqual(cards.count,1);XCTAssertTrue(card.label.contains("Match the items:"));XCTAssertTrue(card.label.contains("hola → goodbye, adiós → hello, gracias → thank you"));XCTAssertTrue(card.label.contains("Check the correct pairings"));XCTAssertTrue(card.label.contains("The pairings did not match."));let id=card.identifier;shot("Native shared Memory enriched after leaving wrong exercise",app)
+        tap("productPanelClose",app);app.terminate();app.launch();handleInitialPaperPencil(app);tap("productMenu",app);tap("productPanel-memory",app)
+        let restored=app.descendants(matching:.any)[id];XCTAssertTrue(restored.waitForExistence(timeout:10));XCTAssertTrue(restored.label.contains("Match each word to its partner."));XCTAssertEqual(cards.count,1);shot("Native shared Memory and enrichment survive process relaunch",app)
     }
 }

@@ -1380,3 +1380,31 @@ extension FirestoreContractTests {
         let final=try await ref.getDocument(source:.server).data() ?? [:],notes=try XCTUnwrap(final["notes"]as?[[String:Any]]),result=try XCTUnwrap(notes.first{($0["id"]as?String)==first.id});XCTAssertEqual(result["foreignTimestamp"]as?Timestamp,timestamp);XCTAssertEqual(result["tip"]as?String,"");XCTAssertEqual(result["correction"]as?String,"Bonjour");XCTAssertEqual(result["severity"]as?Int,2)
     }
 }
+
+extension FirestoreContractTests {
+    func testCaptureLearningEvidenceUsesSourceIDsAndStableDeliveryAcrossRetryAndWindowEviction()async throws {
+        let(service,db,npub)=try context();try await seed(db,npub);var state=try requireState(await service.load(npub:npub));let user=db.collection("users").document(npub),now=Date()
+        for index in 0..<4 {state.captureMemory(mode:"grammar",concept:"A greeting",answer:"attempt \(index)",expected:"hola",feedback:"Private reason",now:now.addingTimeInterval(Double(index)))}
+        let capture=try XCTUnwrap(state.pendingMemoryChanges?.first),note=try XCTUnwrap(state.companionMemory?["fr"]?.first),evidence=try XCTUnwrap(state.pendingRepairEvidence);XCTAssertEqual(evidence.count,4);XCTAssertEqual(evidence[2].event["id"],evidence[3].event["id"]);XCTAssertEqual(evidence[0].sourceCaptureID,capture.id)
+        _=try await service.save(state,npub:npub);_=try await service.save(state,npub:npub)
+        var fields=JSONValue.foundation((try await user.getDocument(source:.server).data() ?? [:]).filter{["learningIntelligence","xp","patreonVerified","iosStateJSON"].contains($0.key)}),summary=fields["learningIntelligence"]["fr"]["repairSummary"]
+        XCTAssertEqual(fields["learningIntelligence"]["fr"]["version"],.number(1));XCTAssertEqual(summary["eventIds"].array.count,3);XCTAssertEqual(summary["openPatterns"].array.first?["recurrence"],.number(3));XCTAssertEqual(summary["openPatterns"].array.first?["severity"],.number(3));XCTAssertEqual(summary["openPatterns"].array.first?["mode"],.string("lesson"));XCTAssertEqual(fields["xp"],.number(150));XCTAssertEqual(fields["patreonVerified"],.bool(true))
+        let receipts=try await user.collection("iosPracticeReceipts").whereField("source",isEqualTo:"repair-evidence").getDocuments(source:.server);XCTAssertEqual(receipts.documents.count,4)
+        // Source model IDs have a 24-entry dedupe window, separate from the
+        // native durable receipt for a particular capture delivery.
+        try await user.updateData([FieldPath(["learningIntelligence","fr","repairSummary","eventIds"]):[]])
+        state=try requireState(await service.load(npub:npub));state.captureMemory(mode:"grammar",concept:"A greeting",answer:"fresh attempt",expected:"new correction",feedback:"",now:now.addingTimeInterval(5));let retry=state
+        _=try await service.save(state,npub:npub);_=try await service.save(retry,npub:npub)
+        fields=JSONValue.foundation((try await user.getDocument(source:.server).data() ?? [:]).filter{["learningIntelligence","xp","patreonVerified","iosStateJSON"].contains($0.key)});summary=fields["learningIntelligence"]["fr"]["repairSummary"]
+        XCTAssertEqual(summary["eventIds"].array.count,1);XCTAssertEqual(summary["eventIds"].array.first,.string(note.id+":3"));XCTAssertEqual(summary["openPatterns"].array.first?["recurrence"],.number(4));XCTAssertEqual(summary["openPatterns"].array.first?["example"],.string("fresh attempt"));XCTAssertEqual(fields["xp"],.number(150))
+        let result=try requireState(await service.load(npub:npub));XCTAssertTrue(result.pendingRepairEvidence?.isEmpty ?? true);XCTAssertEqual(result.companionMemory?["fr"]?.first?.text("expectedAnswer"),"hola");XCTAssertEqual(result.gradedByLanguage?["fr"],0)
+        let hint=fields["iosStateJSON"].string;XCTAssertFalse(hint.contains("sourceCaptureID"))
+        let trace:JSONValue = .object(["learningIntelligence":fields["learningIntelligence"],"sourceContentID":.string(note.id+":3"),"nativeCaptureReceiptsBeforeEviction":.number(Double(receipts.documents.count)),"totalXP":.number(Double(result.totalXP)),"gradedAttempts":.number(Double(result.gradedByLanguage?["fr"] ?? 0)),"captureMetadataInServerHint":.bool(hint.contains("sourceCaptureID"))]);let a=XCTAttachment(data:Data(trace.json.utf8),uniformTypeIdentifier:"public.json");a.name="Firebase capture evidence retry and source dedupe window";a.lifetime = .keepAlways;add(a)
+    }
+    func testSourceOmittedAccountModesSaveNotesWithoutInventingCaptureLearningEvidence()async throws {
+        let(service,db,npub)=try context();try await seed(db,npub);var state=try requireState(await service.load(npub:npub))
+        for mode in ["flashcard","conversation","tutor"] {state.captureMemory(mode:mode,concept:"A greeting",answer:"ola",expected:"hola",feedback:"Private reason")}
+        XCTAssertTrue(state.pendingRepairEvidence?.isEmpty ?? true);_=try await service.save(state,npub:npub);_=try await service.save(state,npub:npub)
+        let result=try requireState(await service.load(npub:npub)),fields=JSONValue.foundation(try await db.collection("users").document(npub).getDocument(source:.server).data() ?? [:]);XCTAssertEqual(result.companionMemory?["fr"]?.count,3);XCTAssertEqual(fields["learningIntelligence"]["fr"]["repairSummary"],.null);XCTAssertEqual(result.totalXP,150);XCTAssertNil(result.gradedByLanguage)
+    }
+}

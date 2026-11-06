@@ -6,13 +6,46 @@ import SwiftUI
     @Published var learner = LearnerState() { didSet {captureMemoryFeedback(previous:oldValue);captureDailyGoalReward(previous:oldValue);captureCompanionUnlock(previous:oldValue);notifyPracticeObservers();subscription.updatePracticeXP(learner.subscriptionXP);bindAchievementDelivery()} }
     let memoryCapture=MemoryCaptureController()
     let tutorOutcomes=TutorOutcomeDelivery()
-    let tutorMemories=TutorMemoryDelivery()
+    let memoryEnrichment=MemoryEnrichmentDelivery()
+    private enum MemoryResponse {case automatic;case explicit(((String)async throws->String)?)}
+    private var memoryResponse=MemoryResponse.automatic
+    private let memoryProvider:((String)async throws->String)?
+    @discardableResult func captureMemory(_ note:MemoryNote,concept:String,now:Date=Date(),respond:((String)async throws->String)?)->MemoryNote? {
+        let prior=memoryResponse;memoryResponse = .explicit(respond);defer{memoryResponse=prior}
+        return learner.captureMemory(note,concept:concept,now:now)
+    }
+    private func memoryResponder(support:String)->((String)async throws->String)? {
+        if case .explicit(let response)=memoryResponse{return response}
+        if let memoryProvider{return memoryProvider}
+        if ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"] == "1" {
+            guard MemoryDrawerFixture.enrichmentEnabled else{return nil}
+            return {MemoryDrawerFixture.response($0,language:support) ?? ""}
+        }
+        let account=identity.npub,session=identity.sessionRevision
+        return {[weak self] prompt in
+            guard let self,signedIn,identity.npub == account,identity.sessionRevision == session else{throw CancellationError()}
+            try await FirebaseIdentityService.shared.ensure(identity)
+            guard signedIn,identity.npub == account,identity.sessionRevision == session else{throw CancellationError()}
+            return try await ai.responsesText(prompt)
+        }
+    }
     var memoryCaptureScope:String {[identity.npub,learner.target,learner.support].joined(separator:":")}
     func showMemoryCapture(){guard signedIn,!identity.npub.isEmpty else{return};memoryCapture.capture(memoryCaptureScope)}
     private func captureMemoryFeedback(previous:LearnerState){
         guard !restoringLearner else{return};memoryCapture.bind(memoryCaptureScope)
         let old=Set((previous.pendingMemoryChanges ?? []).map(\.id))
-        if (learner.pendingMemoryChanges ?? []).contains(where:{$0.action == .capture && $0.target == learner.target && !old.contains($0.id)}){showMemoryCapture()}
+        let captures=(learner.pendingMemoryChanges ?? []).filter{$0.action == .capture && !old.contains($0.id)}
+        let oldEvidence=Set((previous.pendingRepairEvidence ?? []).map(\.id))
+        for change in learner.pendingRepairEvidence ?? [] where !oldEvidence.contains(change.id) {
+            let bucket=learner.goalIntelligence?[change.target] ?? .object([:])
+            if let summary=try? companionQuestPolicy?.run("evidence",.object(["summary":bucket["repairSummary"],"event":change.event,"now":.number(change.date.timeIntervalSince1970*1000)])) {
+                if learner.goalIntelligence == nil{learner.goalIntelligence=[:]};learner.goalIntelligence?[change.target]=bucket.setting("version",.number(1)).setting("repairSummary",summary)
+            }
+        }
+        if captures.contains(where:{$0.target == learner.target}){showMemoryCapture()}
+        for change in captures {
+            if let note=MemoryContract.storedNote(change,in:learner.companionMemory?[change.target] ?? []),let respond=memoryResponder(support:note.text("supportLang")) {memoryEnrichment.start(note,concept:change.captureConcept,app:self,respond:respond)}
+        }
     }
     @Published private(set) var companionUnlock:CompanionUnlock?
     @Published private(set) var companionUnlockRevision=0
@@ -152,7 +185,8 @@ import SwiftUI
         }
         _ = learner.completeTutor(lesson); persist(); return earned
     }
-    init(automaticWallet:WalletService? = nil,progressService:(any LearnerProgressService)? = nil,nostrAchievements:NostrAchievementsService?=nil,achievementRetries:AchievementRetryController?=nil,gamePreparation:RPGPreparationPool?=nil,gameReviewWriter:((RPGPreparationPolicy.Request)async throws->String)?=nil) {
+    init(automaticWallet:WalletService? = nil,progressService:(any LearnerProgressService)? = nil,nostrAchievements:NostrAchievementsService?=nil,achievementRetries:AchievementRetryController?=nil,gamePreparation:RPGPreparationPool?=nil,gameReviewWriter:((RPGPreparationPolicy.Request)async throws->String)?=nil,memoryProvider:((String)async throws->String)?=nil) {
+        self.memoryProvider=memoryProvider
         let preparation=gamePreparation ?? RPGPreparationPool();self.gamePreparation=preparation;self.upcomingGameReviews=UpcomingGameReviewController(service:RPGService(pool:preparation,writer:gameReviewWriter))
         let recoveryFixture=AchievementDeliveryUIFixture.retryServices()
         self.nostrAchievements=nostrAchievements ?? recoveryFixture?.1 ?? NostrAchievementsService();self.achievementRetries=achievementRetries ?? recoveryFixture?.0 ?? AchievementRetryController()

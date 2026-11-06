@@ -12,6 +12,13 @@ import CryptoKit
         return false
         #endif
     }
+    static var enrichmentEnabled:Bool {
+        #if DEBUG
+        let e=ProcessInfo.processInfo.environment;return e["PIYALI_OFFLINE_TESTS"] == "1" && e["PIYALI_MEMORY_ENRICHMENT_FIXTURE"] == "1" && UUID(uuidString:e["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil
+        #else
+        return false
+        #endif
+    }
     static func summary(_ lang:String)->String {lang == "ar" ? "التحيات فيها حرف h صامت. اتصلحت تحية المساء ولسه تحية الصباح محتاجة مراجعة.":"Greetings kept a silent h. The evening greeting was repaired; the morning greeting remains open."}
     static func response(_ prompt:String,language:String)->String? {
         #if DEBUG
@@ -19,6 +26,7 @@ import CryptoKit
         if e["PIYALI_OFFLINE_TESTS"] == "1",e["PIYALI_MEMORY_CAPTURE_ONLY"] == "1",UUID(uuidString:e["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil {return ""}
         #endif
         if TutorVoiceFixture.memorySlip {return prompt.contains("digest") ? "Practice hola when greeting someone.":"{\"did\":\"The greeting was missing.\",\"fix\":\"Hola\",\"tip\":\"Start with hola.\"}"}
+        if enrichmentEnabled {return prompt.contains("digest") ? "The missed pairings remain open.":"{\"did\":\"The pairings did not match.\",\"fix\":\"Check the correct pairings\",\"tip\":\"Match each word to its partner.\"}"}
         guard enabled else{return nil}
         if prompt.contains("study note"){return JSONValue.object(["example":.string("Hola, mamá."),"summary":.string(language == "ar" ? "استخدم hola لتحية العيلة.":"Use hola to greet a family member.")]).canonicalJSON}
         if prompt.contains("digest"){return summary(language)}

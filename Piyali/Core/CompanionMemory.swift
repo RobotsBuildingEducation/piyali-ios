@@ -23,24 +23,35 @@ public struct MemoryChange: Codable, Identifiable, Sendable {
     public init(action: Action, target: String, date: Date, dayKey: String, note: MemoryNote, captureConcept:String? = nil) { self.action = action; self.target = target; self.date = date; self.dayKey = dayKey; self.note = note;self.captureConcept=captureConcept }
 }
 public enum MemoryContract {
+    private static let whitespace=CharacterSet(charactersIn:String(String.UnicodeScalarView(MemoryCaptureSourceData.whitespace.compactMap(Unicode.Scalar.init))))
+    private static let whitespacePattern="["+MemoryCaptureSourceData.whitespace.map{"\\x{"+String($0,radix:16)+"}"}.joined()+"]"
+    private static func prefix(_ value:String)->String {String(decoding:value.utf16.prefix(240),as:UTF16.self)}
+    private static func displayLevel(_ raw:String)->String {
+        let compact=raw.trimmingCharacters(in:whitespace).replacingOccurrences(of:"["+String(whitespacePattern.dropFirst().dropLast())+"_]+",with:"-",options:.regularExpression).uppercased()
+        return ["A1","A2","B1","B2","C1","C2"].contains(compact) ? compact:"Pre-A1"
+    }
+    static func captureEvidence(_ note:MemoryNote)->JSONValue {.object(["id":.string(note.id+":"+String(note.severity)),"target":.string(note.text("concept")),"expectedAnswer":.string(note.text("expectedAnswer")),"observation":.string(note.text("userAnswer")),"mode":.string(note.text("recommendedRepairMode")),"domain":.string(note.text("errorType")),"severity":.number(Double(note.severity)),"success":.bool(false),"support":.string("prompted")])}
+    static func storedNote(_ change:MemoryChange,in notes:[MemoryNote])->MemoryNote? {
+        notes.first{$0.id == change.note.id} ?? notes.first{$0.text("createdDayKey") == change.dayKey && $0.text("sourceMode") == change.note.text("sourceMode") && conceptKey($0.text("concept")) == conceptKey(cleanConcept(change.captureConcept ?? change.note.text("concept"),support:change.note.text("supportLang")))}
+    }
     static func supportCode(_ raw:String)->String {
-        let code=raw.trimmingCharacters(in:.whitespacesAndNewlines).lowercased(),base=String(code.split(whereSeparator:{$0 == "-" || $0 == "_"}).first ?? "")
+        let code=raw.trimmingCharacters(in:whitespace).lowercased(),base=code.components(separatedBy:CharacterSet(charactersIn:"-_")).first ?? ""
         if MemoryCaptureSourceData.summaries[code] != nil{return code}
         let alias=["arz":"ar","cmn":"zh"][base] ?? base
         return MemoryCaptureSourceData.summaries[alias] == nil ? "en":alias
     }
     static func cleanConcept(_ raw:String,support:String)->String {
-        let trim=CharacterSet.whitespacesAndNewlines.union(CharacterSet(charactersIn:"\u{FEFF}")),text=raw.trimmingCharacters(in:trim)
+        let trim=whitespace,text=raw.trimmingCharacters(in:trim)
         guard supportCode(support) != "en",!text.isEmpty else{return text}
-        let regex=try! NSRegularExpression(pattern:"[\\s\\uFEFF]*\\(([^()]*)\\)"),words=try! NSRegularExpression(pattern:"[a-z]+")
+        let regex=try! NSRegularExpression(pattern:whitespacePattern+"*\\(([^()]*)\\)"),words=try! NSRegularExpression(pattern:"[a-z]+")
         var clean=text
         for match in regex.matches(in:text,range:NSRange(text.startIndex...,in:text)).reversed() {
             guard let range=Range(match.range(at:1),in:text) else{continue};let inside=String(text[range]).lowercased()
             if words.matches(in:inside,range:NSRange(inside.startIndex...,in:inside)).contains(where:{m in Range(m.range,in:inside).map{MemoryCaptureSourceData.english.contains(String(inside[$0]))} ?? false}),let whole=Range(match.range,in:clean){clean.removeSubrange(whole)}
         }
-        return clean.replacingOccurrences(of:"[\\s\\uFEFF]+",with:" ",options:.regularExpression).trimmingCharacters(in:trim)
+        return clean.replacingOccurrences(of:whitespacePattern+"+",with:" ",options:.regularExpression).trimmingCharacters(in:trim)
     }
-    static func conceptKey(_ value:String)->String {value.trimmingCharacters(in:.whitespacesAndNewlines).lowercased().replacingOccurrences(of:"[\\s\\uFEFF]+",with:" ",options:.regularExpression)}
+    static func conceptKey(_ value:String)->String {value.trimmingCharacters(in:whitespace).lowercased().replacingOccurrences(of:whitespacePattern+"+",with:" ",options:.regularExpression)}
     static func summary(_ concept:String,support:String)->String {(MemoryCaptureSourceData.summaries[supportCode(support)] ?? "").replacingOccurrences(of:"{concept}",with:concept)}
     public static func errorType(_ mode: String) -> String {
         ["flashcard":"vocabulary","vocabulary":"vocabulary","grammar":"grammar","phonics":"phonics","conversation":"conversation_flow","tutor":"conversation_flow","reading":"reading","story":"pronunciation"][mode] ?? "unknown"
@@ -55,12 +66,12 @@ public enum MemoryContract {
         let day = CalendarDay.key(now), error = errorType(mode),support=supportCode(support),concept=cleanConcept(concept,support:support)
         return MemoryNote(fields:[
             "id":.string("mem-\(Int(now.timeIntervalSince1970*1000))-\(UUID().uuidString.prefix(7).lowercased())"),
-            "createdDayKey":.string(day),"createdAt":.number(now.timeIntervalSince1970*1000),"targetLang":.string(target),"supportLang":.string(support),
-            "sourceMode":.string(mode),"sourceContext":.string(context),"concept":.string(String(concept.trimmingCharacters(in:.whitespacesAndNewlines).prefix(240))),
-            "userAnswer":.string(String(answer.prefix(240))),"expectedAnswer":.string(String(expected.prefix(240))),"correction":.string(String(expected.prefix(240))),
-            "errorType":.string(error),"cefrLevel":.string(level),"severity":.number(1),"recommendedRepairMode":.string(repairMode(error)),
-            "companionSummary":.string(summary(concept,support:support)),"mistake":.string(feedback),"tip":.string(""),"enriched":.bool(!feedback.isEmpty),
-            "expiresAfterDayKey":.string(CalendarDay.shift(day,by:1)),"usedInQuestDayKey":.null,"status":.string("captured")
+            "createdDayKey":.string(day),"createdAt":.number(Double(Int(now.timeIntervalSince1970*1000))),"targetLang":.string(target),"supportLang":.string(support),
+            "sourceMode":.string(mode),"sourceContext":.string(context),"concept":.string(prefix(concept)),
+            "userAnswer":.string(prefix(answer)),"expectedAnswer":.string(prefix(expected)),"correction":.string(prefix(expected)),
+            "errorType":.string(error),"cefrLevel":.string(displayLevel(level)),"severity":.number(1),"recommendedRepairMode":.string(repairMode(error)),
+            "companionSummary":.string(summary(concept,support:support)),"mistake":.string(""),"tip":.string(""),"enriched":.bool(false),
+            "expiresAfterDayKey":.string(CalendarDay.key(now.addingTimeInterval(86400))),"usedInQuestDayKey":.null,"status":.string("captured")
         ])
     }
     public static func applying(_ change: MemoryChange, to original: [MemoryNote], today: String) -> [MemoryNote] {
@@ -119,7 +130,7 @@ public extension LearnerState {
         let concept=MemoryContract.cleanConcept(concept ?? note.text("concept"),support:note.text("supportLang"))
         guard note.text("targetLang") == target,!note.id.isEmpty,!concept.isEmpty else{return nil}
         applyMemory(MemoryChange(action:.capture,target:target,date:now,dayKey:CalendarDay.key(now),note:note,captureConcept:concept))
-        return companionMemory?[target]?.first{$0.id == note.id} ?? companionMemory?[target]?.first{$0.text("createdDayKey") == CalendarDay.key(now) && $0.text("sourceMode") == note.text("sourceMode") && MemoryContract.conceptKey($0.text("concept")) == MemoryContract.conceptKey(concept)}
+        return MemoryContract.storedNote(MemoryChange(action:.capture,target:target,date:now,dayKey:CalendarDay.key(now),note:note,captureConcept:concept),in:companionMemory?[target] ?? [])
     }
     mutating func localizeMemory(_ original:MemoryNote,fields:JSONValue,support:String,now:Date = Date()) {
         guard let current=companionMemory?[target]?.first(where:{$0.id == original.id}),current.createdAt == original.createdAt else{return}
@@ -141,6 +152,10 @@ public extension LearnerState {
         let notes = MemoryContract.applying(change,to:companionMemory?[change.target] ?? [],today:CalendarDay.key(change.date))
         companionMemory?[change.target] = notes
         if pendingMemoryChanges == nil { pendingMemoryChanges = [] }; pendingMemoryChanges?.append(change)
+        if change.action == .capture,MemoryCaptureSourceData.evidenceModes.contains(change.note.text("sourceMode")),let stored=MemoryContract.storedNote(change,in:notes) {
+            if pendingRepairEvidence == nil{pendingRepairEvidence=[]}
+            pendingRepairEvidence?.append(RepairEvidenceChange(target:change.target,date:change.date,event:MemoryContract.captureEvidence(stored),sourceCaptureID:change.id))
+        }
     }
 }
 
@@ -149,5 +164,7 @@ public extension LearnerState {
 private enum MemoryCaptureSourceData {
     static let summaries:[String:String] = ["en":"Saved for tomorrow: {concept}","es":"Guardado para mañana: {concept}","pt":"Guardado para amanhã: {concept}","it":"Salvato per domani: {concept}","fr":"Gardé pour demain : {concept}","de":"Für morgen gemerkt: {concept}","ja":"明日のために保存：{concept}","hi":"कल के लिए सहेजा: {concept}","ar":"محفوظ لبكرة: {concept}","zh":"已为明天保存：{concept}"]
     static let english:Set<String> = ["answer","answered","captured","correct","ends","exercise","goodbye","greeting","greetings","hello","instead","learner","means","mistake","practice","reinforced","remember","repaired","said","saved","should","starts","tense","today","tomorrow","word","wrong","your"]
+    static let evidenceModes:Set<String> = ["vocabulary","grammar","story","phonics","reading"]
+    static let whitespace:[UInt32] = [9,10,11,12,13,32,160,5760,8192,8193,8194,8195,8196,8197,8198,8199,8200,8201,8202,8232,8233,8239,8287,12288,65279]
 }
 // END GENERATED MEMORY CAPTURE DATA

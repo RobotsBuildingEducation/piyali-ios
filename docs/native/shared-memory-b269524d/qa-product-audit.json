@@ -1,0 +1,21 @@
+{
+  "qaDevice": "CE8248B6-7171-4FD4-97DE-89E499107F82",
+  "startedAt": 1793944590.912407,
+  "scope": "Read-only counters after signup \u2192 ordinary matching miss \u2192 Skip \u2192 enriched Memory \u2192 actual process relaunch. Public provider I/O fixture; no seeded notes or progress. No private identity or full profile exported.",
+  "profiles": [
+    {
+      "snapshotSHA256": "1e019c83b6de7a8cb45ce260053b816d45bc43109b5d119acb76f6466b15f9ec",
+      "totalXP": 0,
+      "dailyXP": 0,
+      "gradedAttempts": 1,
+      "assessmentReceipts": 1,
+      "memoryNotes": 1,
+      "captureReceipts": 1,
+      "enrichmentReceipts": 1,
+      "repairEvidenceReceipts": 1,
+      "studyNotes": 0,
+      "sourceMode": "vocabulary",
+      "openPatternRecurrence": 1
+    }
+  ]
+}

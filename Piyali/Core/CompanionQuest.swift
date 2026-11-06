@@ -151,7 +151,8 @@ public struct RepairEvidenceChange:Codable,Identifiable,Sendable {
     public let target:String
     public let date:Date
     public let event:JSONValue
-    public init(target:String,date:Date,event:JSONValue) {self.id=UUID();self.target=target;self.date=date;self.event=event}
+    public let sourceCaptureID:UUID?
+    public init(target:String,date:Date,event:JSONValue,sourceCaptureID:UUID?=nil) {self.id=UUID();self.target=target;self.date=date;self.event=event;self.sourceCaptureID=sourceCaptureID}
 }
 public extension LearnerState {
     func repairStepIsCurrent(_ step:RepairStep,now:Date = Date())->Bool {

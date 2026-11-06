@@ -18,6 +18,7 @@ final class MemoryTests: XCTestCase {
         var state = LearnerState()
         state.captureMemory(mode:"grammar",concept:"  Verb   order ",answer:"first",expected:"correct",feedback:"A useful explanation",now:now)
         let id = state.companionMemory?["es"]?.first?.id
+        state.localizeMemory(state.companionMemory!["es"]![0],fields:.object(["mistake":.string("A useful explanation")]),support:"en",now:now)
         state.companionMemory?["es"]?[0].fields["tip"] = .string("Web enrichment")
         for index in 1...4 { state.captureMemory(mode:"grammar",concept:"verb order",answer:"later",expected:"correct",feedback:"",now:now.addingTimeInterval(Double(index))) }
         XCTAssertEqual(state.companionMemory?["es"]?.count,1)
@@ -25,7 +26,7 @@ final class MemoryTests: XCTestCase {
         XCTAssertEqual(note?.id,id); XCTAssertEqual(note?.severity,3)
         XCTAssertEqual(note?.text("mistake"),"A useful explanation"); XCTAssertEqual(note?.text("tip"),"Web enrichment")
         XCTAssertEqual(note?.text("userAnswer"),"later"); XCTAssertEqual(state.xp,0)
-        XCTAssertEqual(state.pendingMemoryChanges?.count,5)
+        XCTAssertEqual(state.pendingMemoryChanges?.filter{$0.action == .capture}.count,5)
     }
     func testTargetLanguageIsolationAndReinforcementLifecycle() {
         var state = LearnerState()
