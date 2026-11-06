@@ -67,3 +67,15 @@ extension RealtimeVoiceTests {
         XCTAssertTrue(state.receive(.object(["type":.string("response.done"),"response":.object(["id":.string("recovery"),"output":.array([.object(["content":.array([.object(["transcript":.string("Try hola again.")])])])])])])).isEmpty)
     }
 }
+
+extension RealtimeVoiceTests {
+    func testManualTutorCanCollectSplitCommittedSpeechUntilTheReplyIsActuallyRequested() {
+        var tutor=RealtimeVoiceState(locksOnCommit:false),conversation=RealtimeVoiceState()
+        let committed:JSONValue = .object(["type":.string("input_audio_buffer.committed"),"item_id":.string("first-burst")])
+        _=tutor.receive(committed);_=conversation.receive(committed)
+        XCTAssertTrue(tutor.microphoneEnabled);XCTAssertFalse(conversation.microphoneEnabled)
+        tutor.lockAssistant();XCTAssertFalse(tutor.microphoneEnabled)
+        _=tutor.receive(.object(["type":.string("output_audio_buffer.stopped")]))
+        XCTAssertTrue(tutor.microphoneEnabled)
+    }
+}

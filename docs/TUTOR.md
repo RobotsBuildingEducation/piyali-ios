@@ -81,3 +81,8 @@ Focused Phonics restoration-error handoffs, original ready-header SVG/badge styl
 ## Unexpected-script ASR recovery — 2026-11-05
 
 [TUTOR_ASR_RECOVERY.md](TUTOR_ASR_RECOVERY.md) records the reproduced missing retry, original recovery-event extraction, rejected context removal, reply/welcome boundaries, silent Tutor transcription failures, source/native English/Arabic captures and full native history/private-relaunch journey. The policy corpus now has 651 source-executed cases. Valid split/late ASR grading, setup fallbacks, full design and physical audio remain open.
+
+
+## Valid late speech, input gating and resumed starter — 2026-11-05
+
+[TUTOR_LATE_SPEECH.md](TUTOR_LATE_SPEECH.md) records the reproduced extra chat/replies and duplicate XP, the original source late-input helper, per-turn reward/assessment/regular-agenda guards, additional starter progress without another payout, empty/duplicate input locks, and earned completion through native playback/trial/save retry. Source commit/request gating and the resumed-starter kickoff phase are corrected. The latest source corpus has 831 cases. Actual source/native 10%/100% captures also calibrate the badge’s natural width and source green wave. Ordinary Gemini foreground agenda gating, starter follow-up builder selection, pending question-worth ordering, connection fallback/capture, full design and physical voice remain open.

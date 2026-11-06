@@ -15,6 +15,13 @@ import Foundation
         #endif
         return LiveTutorService(transportFactory:{if TutorRealtime.provider == "gemini"{return GeminiTutorTransport()};return RealtimeRTCTransport()})
     }
+    static var lateSpeech:Bool {
+        #if DEBUG
+        return enabled && ProcessInfo.processInfo.environment["PIYALI_TUTOR_LATE_SPEECH_FIXTURE"] == "1"
+        #else
+        return false
+        #endif
+    }
     static var asrRecovery:Bool {
         #if DEBUG
         return enabled && ProcessInfo.processInfo.environment["PIYALI_TUTOR_ASR_RECOVERY_FIXTURE"] == "1"
@@ -55,14 +62,23 @@ import Foundation
             emission=Task{try? await Task.sleep(for:.milliseconds(recovery ? 1800:200));guard !Task.isCancelled,!closed else{return}
                 let id=prefix+"-r\(index)",text=recovery ? "Please try hola once more.":index == 0 && script.input == 0 ? "Welcome! Ready to learn Spanish?":TutorVoiceFixture.replySample != .null ? TutorVoiceFixture.replySample["primary"].string:"Say hola."
                 captureFixture(id)
-                emit(["type":.string("response.created"),"response":.object(["id":.string(id),"metadata":event["response"]["metadata"]])]);emit(["type":.string("output_audio_buffer.started")]);emit(["type":.string("response.output_audio_transcript.done"),"response_id":.string(id),"transcript":.string(text)]);emit(["type":.string("response.done"),"response":.object(["id":.string(id),"status":.string("completed"),"output":.array([.object(["content":.array([.object(["transcript":.string(text)])])])])])]);responsePending=false;emit(["type":.string("output_audio_buffer.stopped")]);scheduleInput()
+                emit(["type":.string("response.created"),"response":.object(["id":.string(id),"metadata":event["response"]["metadata"]])]);emit(["type":.string("output_audio_buffer.started")])
+                if TutorVoiceFixture.lateSpeech,index == 2 {
+                    emit(["type":.string("response.output_audio_transcript.delta"),"response_id":.string(id),"delta":.string(text)])
+                    for (offset,phrase) in ["hola","me llamo","me llamo"].enumerated(){
+                        do{try await Task.sleep(for:.milliseconds(500))}catch{return};guard !closed,!Task.isCancelled else{return}
+                        emit(["type":.string("conversation.item.input_audio_transcription.completed"),"item_id":.string(prefix+"-late-\(offset)"),"transcript":.string(phrase)])
+                    }
+                    do{try await Task.sleep(for:.milliseconds(1800))}catch{return};guard !closed,!Task.isCancelled else{return}
+                }
+                emit(["type":.string("response.output_audio_transcript.done"),"response_id":.string(id),"transcript":.string(text)]);emit(["type":.string("response.done"),"response":.object(["id":.string(id),"status":.string("completed"),"output":.array([.object(["content":.array([.object(["transcript":.string(text)])])])])])]);responsePending=false;emit(["type":.string("output_audio_buffer.stopped")]);scheduleInput()
             }
         }
         return true
     }
     func setRemoteAudioEnabled(_ enabled:Bool){}
     func setMicrophoneEnabled(_ enabled:Bool){microphone=enabled;if !enabled{speech?.cancel();speech=nil}else{scheduleInput()}}
-    private func scheduleInput(){guard microphone,!closed,!responsePending,script.response>0,speech == nil,script.input<(TutorVoiceFixture.asrRecovery ? 2:TutorVoiceFixture.replySample == .null ? 3:1) else{return}
+    private func scheduleInput(){guard microphone,!closed,!responsePending,script.response>0,speech == nil,script.input<((TutorVoiceFixture.asrRecovery || TutorVoiceFixture.lateSpeech) ? 2:TutorVoiceFixture.replySample == .null ? 3:1) else{return}
         speech=Task{try? await Task.sleep(for:.seconds(script.input == 0 ? 3:5));guard !Task.isCancelled,!closed,microphone,!responsePending else{speech=nil;return};let index=script.input;script.input += 1;speech=nil;let id=prefix+"-u\(index)",text=index == 0 ? "yes":TutorVoiceFixture.asrRecovery ? "नमस्ते":index == 1 ? "I do not know":"hola"
             emit(["type":.string("input_audio_buffer.speech_started")]);emit(["type":.string("input_audio_buffer.speech_stopped")]);emit(["type":.string("input_audio_buffer.committed"),"item_id":.string(id)]);emit(["type":.string("conversation.item.input_audio_transcription.completed"),"item_id":.string(id),"transcript":.string(text)])
         }

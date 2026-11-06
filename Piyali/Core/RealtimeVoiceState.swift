@@ -11,6 +11,7 @@ public struct RealtimeVoiceState: Sendable {
     private var timeline:[(user:Bool,id:String)]=[]
     private var currentResponse="",previousAssistant="",speechAnswer:String?
     private var outputPlaying=false
+    private let locksOnCommit:Bool
     public private(set) var assistantText="",assistantLocked=false
     public private(set) var muted=false
     public var microphoneEnabled:Bool { !muted && !assistantLocked }
@@ -20,7 +21,7 @@ public struct RealtimeVoiceState: Sendable {
             return text.isEmpty ? nil : (item.user ? "You: " : "Piyali: ")+text
         }.joined(separator:"\n").suffix(16000))
     }
-    public init(previousAssistant:String="") { self.previousAssistant=previousAssistant }
+    public init(previousAssistant:String="",locksOnCommit:Bool=true) { self.previousAssistant=previousAssistant;self.locksOnCommit=locksOnCommit }
     public func inputTurn(_ id:String)->InputTurn? { guard let value=inputs[id],let text=value.text else { return nil };return .init(id:id,text:text,answered:value.answered,responseID:value.response) }
     public func completedAssistant(_ id:String)->String? { guard let value=outputs[id],value.complete,!value.text.isEmpty else { return nil };return value.text }
     public mutating func setMuted(_ value:Bool) { muted=value }
@@ -38,7 +39,7 @@ public struct RealtimeVoiceState: Sendable {
         switch type {
         case "input_audio_buffer.speech_started": speechAnswer=previousAssistant
         case "input_audio_buffer.committed":
-            assistantLocked=true
+            if locksOnCommit {assistantLocked=true}
             let id=event["item_id"].string
             if !id.isEmpty,inputs[id] == nil { inputs[id]=Input(answered:speechAnswer ?? previousAssistant);order.append(id);timeline.append((true,id));speechAnswer=nil }
         case "conversation.item.input_audio_transcription.completed","input_audio_transcription.completed":

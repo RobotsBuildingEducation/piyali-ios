@@ -512,3 +512,172 @@ extension TutorSessionTests {
         }
     }
 }
+
+
+extension TutorSessionTests {
+    func testLateCorrectBurstsAdvanceStarterAgendaSilentlyButPayOnlyTheExistingTurnOnce()async throws {
+        let app=try await app();defer{try? app.identity.disconnect()};let transport=TutorTransport(),tutor=TutorSessionController(live:LiveTutorService(permission:{true},transportFactory:{transport}),provider:provider(),turnXP:{5})
+        await tutor.prepare(app);await tutor.start(app);transport.assistant("Welcome!");await tutor.input(input("yes","welcome"),app:app);transport.assistant("Say hola.",id:"practice")
+        await tutor.input(input("I do not know","attempt"),app:app);XCTAssertEqual(app.learner.totalXP,0)
+        transport.onEvent?(.object(["type":.string("response.created"),"response":.object(["id":.string("followup")])]))
+        transport.onEvent?(.object(["type":.string("output_audio_buffer.started")]))
+        let count=tutor.messages.count,before=transport.events.count
+        func burst(_ text:String,_ id:String)async {
+            transport.onEvent?(.object(["type":.string("conversation.item.input_audio_transcription.completed"),"item_id":.string(id),"transcript":.string(text)]))
+            for _ in 0..<100{await Task.yield()}
+        }
+        await burst("hola","late-hello");XCTAssertEqual(app.learner.totalXP,5);XCTAssertEqual(app.learner.gradedByLanguage?["es"],1);XCTAssertEqual(app.learner.tutorProgress(tutor.id).items,["hello"])
+        await burst("me llamo","late-name");await burst("me llamo","late-name-duplicate")
+        XCTAssertEqual(app.learner.totalXP,5);XCTAssertEqual(app.learner.gradedByLanguage?["es"],1);XCTAssertEqual(app.learner.tutorProgress(tutor.id).items,["hello","myNameIs"])
+        XCTAssertEqual(tutor.messages.count,count);XCTAssertFalse(transport.events.dropFirst(before).contains{$0["type"].string == "response.create"})
+        XCTAssertEqual(tutor.live.voiceState,"speaking");XCTAssertFalse(transport.microphone);XCTAssertEqual(app.learner.history.count,0)
+        tutor.flushDraft(app);XCTAssertFalse(tutor.record(app)["conversationDraft"]["messages"].array.contains{$0["role"].string == "user" && ["hola","me llamo"].contains($0["text"].string)})
+        await tutor.stop(app)
+    }
+}
+
+extension TutorSessionTests {
+    private func speaking(_ transport:TutorTransport,_ id:String="followup",text:String="") {
+        transport.onEvent?(.object(["type":.string("response.created"),"response":.object(["id":.string(id)])]))
+        transport.onEvent?(.object(["type":.string("output_audio_buffer.started")]))
+        if !text.isEmpty{transport.onEvent?(.object(["type":.string("response.audio_transcript.delta"),"response_id":.string(id),"delta":.string(text)]))}
+    }
+    private func late(_ text:String,_ id:String,_ transport:TutorTransport) async {
+        transport.onEvent?(.object(["type":.string("input_audio_transcription.completed"),"item_id":.string(id),"transcript":.string(text)]))
+        for _ in 0..<100{await Task.yield()}
+    }
+    func testLateSpeechBeforePracticeDuringWelcomeAndDuringQuizNeverGradesOrConsumesAGreeting()async throws {
+        let app=try await app();defer{try? app.identity.disconnect()};let transport=TutorTransport();var calls=0,p=provider();p.judge={_ in calls += 1;return .object(["successful":.bool(false),"confidence":.number(1),"quizAnswered":.bool(false)])}
+        let tutor=await session(app,transport,provider:p);await tutor.start(app);speaking(transport,"welcome")
+        await late("hola","during-welcome",transport);XCTAssertTrue(tutor.messages.isEmpty);XCTAssertEqual(calls,0)
+        transport.assistant("Welcome!",id:"welcome-finished");await tutor.input(input("yes","greeting"),app:app);speaking(transport,"kickoff")
+        await late("me llamo","before-practice",transport);XCTAssertEqual(calls,0);XCTAssertEqual(app.learner.totalXP,0);XCTAssertEqual(tutor.messages.filter{$0["role"].string == "user"}.count,1)
+        await tutor.stop(app);app.learner.tutorLevels=["es":"A1"];tutor.adoptLevel(app)
+        let unit=try XCTUnwrap(tutor.catalog["A1"].array.first),quiz=try XCTUnwrap(unit["lessons"].array.first{$0["isFinalQuiz"].boolean});tutor.select(app,lesson:quiz,unit:unit)
+        await tutor.start(app);transport.assistant("What should you say?",id:"quiz");await tutor.input(input("Please repeat the question","quiz-help"),app:app)
+        let count=tutor.messages.count,cursor=tutor.state["currentItem"],judged=calls,before=transport.events.count;speaking(transport,"quiz-next")
+        await late("A correct quiz answer","late-quiz",transport)
+        XCTAssertEqual(calls,judged);XCTAssertEqual(tutor.state["currentItem"],cursor);XCTAssertEqual(tutor.messages.count,count);XCTAssertEqual(app.learner.totalXP,0);XCTAssertNil(app.learner.gradedByLanguage)
+        XCTAssertFalse(transport.events.dropFirst(before).contains{$0["type"].string == "response.create"});await tutor.stop(app)
+    }
+    func testLateSemanticRegularSuccessUsesStreamedPromptAdvancesOnceAndRatesTheOriginalQuestion()async throws {
+        let app=try await app();defer{try? app.identity.disconnect()};let transport=TutorTransport();var calls=0,p=provider();p.judge={prompt in calls += 1;if calls == 1{return .object(["successful":.bool(false),"confidence":.number(1)])};XCTAssertTrue(prompt.contains("Say agua."));return .object(["successful":.bool(true),"confidence":.number(1),"objectiveAdvanced":.bool(false)])}
+        let tutor=TutorSessionController(live:LiveTutorService(permission:{true},transportFactory:{transport}),provider:p,turnXP:{5});await tutor.prepare(app);app.learner.tutorLevels=["es":"A1"];tutor.adoptLevel(app)
+        let unit=try XCTUnwrap(tutor.catalog["A1"].array.first),lesson=try XCTUnwrap(unit["lessons"].array.first);tutor.select(app,lesson:lesson,unit:unit);await tutor.start(app);transport.assistant("Say hola.",id:"question")
+        await tutor.input(input("I need more help","ordinary"),app:app);let count=tutor.messages.count,first=tutor.state["currentItem"]["id"].string;speaking(transport,text:"Say agua.")
+        await late("a public complete attempt","semantic",transport);let next=tutor.state["currentItem"]["id"].string;XCTAssertNotEqual(next,first)
+        await late("another public complete attempt","semantic-again",transport)
+        XCTAssertEqual(calls,3);XCTAssertEqual(tutor.state["currentItem"]["id"].string,next);XCTAssertEqual(app.learner.totalXP,5);XCTAssertEqual(app.learner.gradedByLanguage?["es"],1);XCTAssertEqual(tutor.messages.count,count)
+        XCTAssertEqual(app.learner.pendingChanges?.filter{$0.source == .tutorTurn}.count,1);XCTAssertEqual(app.learner.history.count,0);await tutor.stop(app)
+    }
+    func testLateMistakesKeepOneAssessmentAndMemoryWithoutAddingChatOrAnotherReply()async throws {
+        let app=try await app();defer{try? app.identity.disconnect()};let transport=TutorTransport();var calls=0,p=provider();p.judge={_ in calls += 1;return calls == 1 ? .object(["successful":.bool(false),"confidence":.number(1)]):.object(["successful":.bool(false),"confidence":.number(0.9),"mistake":.bool(true),"concept":.string("A greeting"),"correction":.string("Hola"),"reason":.string("Try the greeting")])}
+        let tutor=await session(app,transport,provider:p);await tutor.start(app);transport.assistant("Welcome!");await tutor.input(input("yes","welcome"),app:app);transport.assistant("Say hola.",id:"practice");await tutor.input(input("Please explain","normal"),app:app)
+        speaking(transport);let count=tutor.messages.count,before=transport.events.count
+        await late("a public incorrect attempt","mistake",transport);await late("another public incorrect attempt","mistake-again",transport)
+        XCTAssertEqual(app.learner.totalXP,0);XCTAssertEqual(app.learner.gradedByLanguage?["es"],1);XCTAssertEqual(app.learner.companionMemory?["es"]?.count,1);XCTAssertEqual(tutor.messages.count,count);XCTAssertEqual(app.learner.history.count,0)
+        XCTAssertFalse(transport.events.dropFirst(before).contains{$0["type"].string == "response.create"});XCTAssertEqual(tutor.live.voiceState,"speaking");await tutor.stop(app)
+    }
+    func testLateJudgeCannotCommitAfterPauseStopLanguageAccountOrLessonReplacement()async throws {
+        for boundary in ["pause","stop","support","target","account","lesson"] {
+            let app=try await app();defer{try? app.identity.disconnect()};let transport=TutorTransport();var held:CheckedContinuation<JSONValue,Error>?,calls=0,p=provider();p.judge={_ in calls += 1;if calls == 1{return .object(["successful":.bool(false),"confidence":.number(1)])};return try await withCheckedThrowingContinuation{held=$0}}
+            let tutor=await session(app,transport,provider:p);await tutor.start(app);transport.assistant("Welcome!");await tutor.input(input("yes","welcome"),app:app);transport.assistant("Say hola.",id:"practice");await tutor.input(input("Please explain","normal"),app:app);speaking(transport)
+            let task=Task{await tutor.input(input("a public late attempt","held"),app:app,assistantResponding:true)}
+            for _ in 0..<100 where held == nil{await Task.yield()};XCTAssertNotNil(held,boundary)
+            switch boundary {case "pause":await tutor.pause(app);case "stop":await tutor.stop(app);case "support":app.learner.support="ar";case "target":app.learner.target="fr";case "account":try app.identity.disconnect();try app.identity.create();default:let unit=try XCTUnwrap(tutor.catalog["Pre-A1"].array.last),lesson=try XCTUnwrap(unit["lessons"].array.last);tutor.select(app,lesson:lesson,unit:unit)}
+            held?.resume(returning:.object(["successful":.bool(true),"confidence":.number(1),"mistake":.bool(true),"concept":.string("Old greeting"),"correction":.string("Hola")]));await task.value
+            XCTAssertEqual(app.learner.totalXP,0,boundary);XCTAssertNil(app.learner.gradedByLanguage,boundary);XCTAssertTrue(app.learner.companionMemory?.isEmpty ?? true,boundary);await tutor.stop(app,saveDraft:false)
+        }
+    }
+    func testLateEarnedCompletionKeepsTheReplyAndTrialOwnerUntilPlaybackStopsThenRetriesOnce()async throws {
+        let cloud=TutorAcknowledgment();cloud.fails=true;let app=try await app(progressService:cloud);defer{try? app.identity.disconnect()};let transport=TutorTransport(),tutor=TutorSessionController(live:LiveTutorService(permission:{true},transportFactory:{transport}),provider:provider(),turnXP:{5})
+        await tutor.prepare(app);let lessonID=tutor.id,items=tutor.state["items"].array,last=try XCTUnwrap(items.last),agenda:JSONValue = .object(Dictionary(uniqueKeysWithValues:items.dropLast().map{($0["id"].string,.bool(true))}))
+        app.learner.storeTutorState(lesson:try XCTUnwrap(tutor.typedLesson),data:.object(["earnedXp":.number(45),"agenda":agenda]));
+        // A restored record represents earlier earned XP, not a new reward.
+        app.learner.tutorLessons?[app.learner.tutorKey(lessonID)]=TutorSourceProgress.importing(.object(["status":.string("in_progress"),"earnedXp":.number(45),"tutorAgendaProgress":.object(["schemaVersion":.number(2),"items":agenda])]))
+        app.learner.xpByLanguage=["es":45];app.learner.subscriptionXPAdjustment=254;tutor.refresh(app)
+        let scene=try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap{$0 as? UIWindowScene}.first),old=scene.windows.first{$0.isKeyWindow},window=UIWindow(windowScene:scene);window.rootViewController=UIHostingController(rootView:ProductAccessGate(service:app.subscription){SourceTutorView(controller:tutor)}.environmentObject(app));window.makeKeyAndVisible();defer{window.isHidden=true;window.rootViewController=nil;old?.makeKey()}
+        for _ in 0..<80 where app.activityFooter == nil{try await Task.sleep(for:.milliseconds(25))}
+        await tutor.start(app);transport.assistant("Say the final phrase.",id:"practice");await tutor.input(input("Please explain","normal"),app:app);speaking(transport,text:"Try that final phrase once more.")
+        await late(last["phrase"].string,"earned-late",transport)
+        XCTAssertEqual(tutor.earnedXP(app),50);XCTAssertTrue(tutor.completionPending);XCTAssertTrue(tutor.live.connected);XCTAssertFalse(app.subscription.hasAccess);XCTAssertTrue(app.preservingEarnedPractice);XCTAssertNil(tutor.completion);XCTAssertNil(tutor.error)
+        XCTAssertEqual(app.learner.pendingChanges?.filter{$0.source == .speak}.count,0);XCTAssertEqual(app.learner.totalXP,50)
+        let capture=XCTAttachment(image:UIGraphicsImageRenderer(bounds:window.bounds).image{_ in window.drawHierarchy(in:window.bounds,afterScreenUpdates:true)});capture.name="Native Tutor late completion waits through trial gate";capture.lifetime = .keepAlways;add(capture)
+        transport.onEvent?(.object(["type":.string("response.done"),"response":.object(["id":.string("followup"),"output":.array([.object(["content":.array([.object(["transcript":.string("Try that final phrase once more.")])])])])])]))
+        try await Task.sleep(for:.milliseconds(100));XCTAssertTrue(tutor.live.connected);XCTAssertNil(tutor.error)
+        transport.onEvent?(.object(["type":.string("output_audio_buffer.stopped")]))
+        for _ in 0..<100 where tutor.error == nil{try await Task.sleep(for:.milliseconds(25))}
+        XCTAssertNotNil(tutor.error);XCTAssertTrue(tutor.completionPending);XCTAssertFalse(tutor.live.connected);XCTAssertEqual(app.learner.totalXP,100);XCTAssertEqual(app.learner.pendingChanges?.filter{$0.source == .speak}.count,1)
+        cloud.fails=false;await tutor.complete(app,ready:true);XCTAssertNotNil(tutor.completion);XCTAssertEqual(app.learner.totalXP,100);await tutor.stop(app)
+    }
+}
+
+extension TutorSessionTests {
+    func testOriginalLateBurstProgressAndCompletionGateAgainstRenderedNativeInEnglishAndArabic()async throws {
+        guard ProcessInfo.processInfo.environment["PIYALI_REFERENCE_PREVIEW_TESTS"] == "1" else{throw XCTSkip("Read-only original source preview required")}
+        let scene=try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap{$0 as? UIWindowScene}.first),old=scene.windows.first{$0.isKeyWindow};defer{old?.makeKey()}
+        for (support,theme) in [("en","light"),("ar","dark")] {for finishing in [false,true] {
+            // Distinct private identities prevent an old view's asynchronous
+            // disappearance/draft callback from seeding the next scenario.
+            let app=try await app();defer{try? app.identity.disconnect()}
+            app.learner=LearnerState();app.learner.target="es";app.learner.support=support;app.learner.onboardingComplete=true;await app.reloadContent()
+            let transport=TutorTransport(),tutor=TutorSessionController(live:LiveTutorService(permission:{true},transportFactory:{transport}),provider:provider(),turnXP:{5});await tutor.prepare(app)
+            let items=tutor.state["items"].array,agenda:JSONValue = .object(Dictionary(uniqueKeysWithValues:(finishing ? Array(items.dropLast()):[]).map{($0["id"].string,.bool(true))})),seed:JSONValue = .object(["lessonId":.string(tutor.id),"targetLang":.string("es"),"cefrLevel":.string("Pre-A1"),"status":.string("in_progress"),"earnedXp":.number(finishing ? 45:0),"tutorAgendaProgress":.object(["schemaVersion":.number(2),"items":agenda])])
+            if finishing{app.learner.tutorLessons=[app.learner.tutorKey(tutor.id):TutorSourceProgress.importing(seed)];app.learner.xpByLanguage=["es":45];tutor.refresh(app)}
+            let label=finishing ? "finishing":"fresh",web=WKWebView(frame:CGRect(x:0,y:0,width:402,height:874),configuration:WKWebViewConfiguration()),sourceWindow=UIWindow(windowScene:scene),sourceHost=UIViewController();sourceWindow.frame=web.frame;sourceHost.view=web;sourceWindow.rootViewController=sourceHost;web.scrollView.contentInsetAdjustmentBehavior = .never;sourceWindow.makeKeyAndVisible()
+            let nativeWindow=UIWindow(windowScene:scene);nativeWindow.frame=web.frame;let host=UIHostingController(rootView:TutorASRComparisonHost(tutor:tutor).environmentObject(app).environment(\.layoutDirection,support == "ar" ? .rightToLeft:.leftToRight).environment(\.dynamicTypeSize,.large).preferredColorScheme(theme == "dark" ? .dark:.light).ignoresSafeArea());nativeWindow.rootViewController=host;nativeWindow.makeKeyAndVisible();host.view.layoutIfNeeded();defer{web.stopLoading();sourceWindow.isHidden=true;sourceWindow.rootViewController=nil;nativeWindow.isHidden=true;nativeWindow.rootViewController=nil}
+            var url=URLComponents(string:"http://127.0.0.1:5181/__piyali-onboarding")!;url.queryItems=[.init(name:"screen",value:"tutor"),.init(name:"tutorASR",value:"1"),.init(name:"language",value:support),.init(name:"theme",value:theme)];if finishing{url.queryItems?.append(.init(name:"tutorLateSeed",value:seed.json))};web.load(URLRequest(url:try XCTUnwrap(url.url)))
+            let startLabel=String(decoding:try JSONEncoder().encode(EntryCopy.ui(support,"ra_btn_start")),as:UTF8.self);var ready=false
+            for _ in 0..<500{ready=(try? await web.evaluateJavaScript("document.fonts.status==='loaded' && [...document.querySelectorAll('button')].some(b=>b.textContent.trim()===\(startLabel)&&!b.disabled) && document.querySelector('[role=progressbar]')?.getAttribute('aria-valuenow')==='\(finishing ? 90:0)'")) as? Bool == true;if ready{break};try await Task.sleep(for:.milliseconds(50))}
+            XCTAssertTrue(ready,"\(support) \(label)");guard ready else{return}
+            _=try await web.evaluateJavaScript("[...document.querySelectorAll('button')].find(b=>b.textContent.trim()===\(startLabel)).click()")
+            var connected=false;for _ in 0..<120{connected=(try? await web.evaluateJavaScript("!!window.__tutorASR?.sent.some(e=>e.response?.metadata?.kind==='\(finishing ? "tutor_kickoff":"tutor_welcome")')")) as? Bool == true;if connected{break};try await Task.sleep(for:.milliseconds(50))};XCTAssertTrue(connected);guard connected else{return}
+            func emit(_ events:[JSONValue])async throws {let values=try JSONSerialization.jsonObject(with:Data(JSONValue.array(events).json.utf8));_=try await web.callAsyncJavaScript("for(const event of events)await window.__tutorASR.emit(event)",arguments:["events":values],in:nil,contentWorld:.page)}
+            func assistant(_ text:String,_ id:String,_ kind:String="tutor_followup")async throws {try await emit([.object(["type":.string("response.created"),"response":.object(["id":.string(id),"metadata":.object(["kind":.string(kind)])])]),.object(["type":.string("response.audio_transcript.done"),"response_id":.string(id),"transcript":.string(text)]),.object(["type":.string("response.done"),"response":.object(["id":.string(id),"status":.string("completed")])])]);try await Task.sleep(for:.milliseconds(600))}
+            func shot(_ state:String)async throws {try await Task.sleep(for:.milliseconds(950));let source=XCTAttachment(image:try await web.takeSnapshot(configuration:nil));source.name="Source Tutor late \(label) \(state) \(support)";source.lifetime = .keepAlways;add(source);nativeWindow.makeKeyAndVisible();host.view.layoutIfNeeded();let native=XCTAttachment(image:UIGraphicsImageRenderer(bounds:nativeWindow.bounds).image{_ in nativeWindow.drawHierarchy(in:nativeWindow.bounds,afterScreenUpdates:true)});native.name="Native Tutor late \(label) \(state) \(support)";native.lifetime = .keepAlways;add(native)}
+            await tutor.start(app)
+            if !finishing {
+                try await assistant("Welcome!","welcome","tutor_welcome");transport.assistant("Welcome!")
+                try await emit([.object(["type":.string("conversation.item.input_audio_transcription.completed"),"item_id":.string("greeting"),"transcript":.string("yes")])]);await tutor.input(input("yes","greeting"),app:app)
+            }
+            try await assistant("Say hola.","practice");transport.assistant("Say hola.",id:"practice")
+            try await emit([.object(["type":.string("conversation.item.input_audio_transcription.completed"),"item_id":.string("normal"),"transcript":.string("I do not know")])]);await tutor.input(input("I do not know","normal"),app:app)
+            let before=transport.events.count,count=tutor.messages.count
+            let created:JSONValue = .object(["type":.string("response.created"),"response":.object(["id":.string("followup"),"metadata":.object(["kind":.string("tutor_followup")])])]),delta:JSONValue = .object(["type":.string("response.audio_transcript.delta"),"response_id":.string("followup"),"delta":.string("Try that phrase once more.")])
+            try await emit([created,delta]);speaking(transport,text:"Try that phrase once more.");try await Task.sleep(for:.milliseconds(200));_=try await web.evaluateJavaScript("Math.random=()=>0.5;window.__tutorLateBefore=window.__tutorASR.sent.filter(e=>e.type==='response.create').length")
+            let phrase=finishing ? try XCTUnwrap(items.last?["phrase"].string):"hola",event:JSONValue = .object(["type":.string("input_audio_transcription.completed"),"item_id":.string("late"),"transcript":.string(phrase)])
+            try await emit([event]);await late(phrase,"late",transport);try await shot("credited")
+            if !finishing{let name:JSONValue = .object(["type":.string("conversation.item.input_audio_transcription.completed"),"item_id":.string("late-name"),"transcript":.string("me llamo")]);try await emit([name,name.setting("item_id",.string("duplicate"))]);await late("me llamo","late-name",transport);await late("me llamo","duplicate",transport);try await shot("duplicate")}
+            let sourceRaw=try await web.evaluateJavaScript("JSON.stringify({awards:window.__tutorASR.awards,awardAmounts:window.__tutorASR.awardAmounts,agendaWrites:window.__tutorASR.agendaWrites,earnedWrites:window.__tutorASR.earnedWrites,completed:window.__tutorASR.completed,learnerJudges:window.__tutorASR.learnerJudges,extraResponses:window.__tutorASR.sent.filter(e=>e.type==='response.create').length-window.__tutorLateBefore,microphone:window.__tutorASR.microphone,percent:Number(document.querySelector('[role=progressbar]').getAttribute('aria-valuenow')),badge:{text:document.querySelector('.chakra-badge')?.textContent,width:document.querySelector('.chakra-badge')?.getBoundingClientRect().width}})")
+            let sourceTrace=try JSONDecoder().decode(JSONValue.self,from:Data(try XCTUnwrap(sourceRaw as? String).utf8));XCTAssertEqual(sourceTrace["awards"].number,1);XCTAssertEqual(sourceTrace["awardAmounts"],.array([.number(5)]));XCTAssertEqual(sourceTrace["completed"].number,0);XCTAssertEqual(sourceTrace["extraResponses"].number,0);XCTAssertEqual(sourceTrace["microphone"],.bool(false));XCTAssertEqual(sourceTrace["percent"].number,finishing ? 100:10)
+            XCTAssertEqual(tutor.messages.count,count);XCTAssertFalse(transport.events.dropFirst(before).contains{$0["type"].string == "response.create"});XCTAssertEqual(app.learner.totalXP,finishing ? 50:5);XCTAssertEqual(app.learner.gradedByLanguage?["es"],1);XCTAssertTrue(tutor.live.connected);XCTAssertEqual(tutor.completionPending,finishing)
+            let nativeTrace:JSONValue = .object(["seed":seed,"totalXP":.number(Double(app.learner.totalXP)),"gradedAttempts":.number(Double(app.learner.gradedByLanguage?["es"] ?? 0)),"agenda":tutor.record(app)["tutorAgendaProgress"]["items"],"extraResponses":.number(Double(transport.events.dropFirst(before).filter{$0["type"].string == "response.create"}.count)),"microphone":.bool(transport.microphone),"completionPending":.bool(tutor.completionPending),"completionReceipts":.number(Double(app.learner.pendingChanges?.filter{$0.source == .speak}.count ?? 0)),"learnerMessages":.array(tutor.messages.filter{$0["role"].string == "user"}.map{$0["textFinal"]})])
+            for (side,trace) in [("Source",sourceTrace),("Native",nativeTrace)] {let a=XCTAttachment(data:Data(trace.json.utf8),uniformTypeIdentifier:"public.json");a.name="\(side) Tutor late \(label) trace \(support)";a.lifetime = .keepAlways;add(a)}
+            await tutor.stop(app);web.stopLoading();sourceWindow.isHidden=true;sourceWindow.rootViewController=nil;nativeWindow.isHidden=true;nativeWindow.rootViewController=nil
+        }}
+    }
+}
+
+extension TutorSessionTests {
+    func testLateCompletionSettlesOnExplicitPauseEndAndTimeoutButRejectsAReplacedOwner()async throws {
+        var rows:[JSONValue]=[]
+        for boundary in ["pause","end","timeout","owner"] {
+            let app=try await app();defer{try? app.identity.disconnect()};let transport=TutorTransport(),tutor=TutorSessionController(live:LiveTutorService(permission:{true},transportFactory:{transport}),provider:provider(),turnXP:{5},completionIdleTimeout:boundary == "timeout" ? 0.3:45)
+            await tutor.prepare(app);let lessonID=tutor.id,items=tutor.state["items"].array,agenda:JSONValue = .object(Dictionary(uniqueKeysWithValues:items.dropLast().map{($0["id"].string,.bool(true))})),phrase=try XCTUnwrap(items.last?["phrase"].string)
+            app.learner.tutorLessons=[app.learner.tutorKey(lessonID):TutorSourceProgress.importing(.object(["status":.string("in_progress"),"earnedXp":.number(45),"tutorAgendaProgress":.object(["schemaVersion":.number(2),"items":agenda])]))];app.learner.xpByLanguage=["es":45];tutor.refresh(app)
+            await tutor.start(app);transport.assistant("Try the final phrase.",id:"practice");await tutor.input(input("Please explain","normal"),app:app);speaking(transport,text:"Try once more.");await late(phrase,"earned",transport)
+            if boundary == "pause"{await tutor.pause(app)}else if boundary == "end"{await tutor.stop(app)}else if boundary == "owner"{app.learner.target="fr";await tutor.stop(app,saveDraft:false)}
+            if boundary == "owner" {
+                try await Task.sleep(for:.milliseconds(400));XCTAssertEqual(app.learner.totalXP,50);XCTAssertEqual(app.learner.pendingChanges?.filter{$0.source == .speak}.count,0)
+                app.learner.target="es";let restored=await session(app,TutorTransport());XCTAssertTrue(restored.completionPending);XCTAssertNotNil(restored.error);XCTAssertFalse(restored.live.connected)
+                XCTAssertEqual(app.learner.totalXP,100);XCTAssertEqual(app.learner.pendingChanges?.filter{$0.source == .speak}.count,1);await restored.stop(app)
+            }else {
+                for _ in 0..<100 where tutor.error == nil{try await Task.sleep(for:.milliseconds(25))}
+                XCTAssertNotNil(tutor.error,boundary);XCTAssertFalse(tutor.live.connected,boundary);XCTAssertEqual(app.learner.totalXP,100,boundary);XCTAssertEqual(app.learner.pendingChanges?.filter{$0.source == .speak}.count,1,boundary)
+                await tutor.complete(app,ready:true);XCTAssertEqual(app.learner.totalXP,100,boundary);await tutor.stop(app)
+            }
+            rows.append(.object(["boundary":.string(boundary),"totalXP":.number(Double(app.learner.totalXP)),"completionReceipts":.number(Double(app.learner.pendingChanges?.filter{$0.source == .speak}.count ?? 0)),"tutorTurnReceipts":.number(Double(app.learner.pendingChanges?.filter{$0.source == .tutorTurn}.count ?? 0)),"gradedAttempts":.number(Double(app.learner.gradedByLanguage?["es"] ?? 0))]))
+        }
+        let trace=XCTAttachment(data:Data(JSONValue.array(rows).json.utf8),uniformTypeIdentifier:"public.json");trace.name="Native Tutor late completion close timeout and hydrated recovery";trace.lifetime = .keepAlways;add(trace)
+    }
+}

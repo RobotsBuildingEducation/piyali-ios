@@ -44,6 +44,10 @@ enum TutorFocus:Equatable {
     private var owner="",epoch=UUID(),turn=0,welcomePending=false,mutedWhenPaused=false
     private var seenInputs:Set<String>=[],seenResponses:Set<String>=[]
     private var lastInput="",lastInputAt=Date.distantPast
+    private var practiceStarted=false,practiceQuestion:JSONValue = .null
+    private var awardedTurns:Set<Int>=[],assessedTurns:Set<Int>=[],advancedTurns:Set<Int>=[]
+    private var lateCompletionTask:Task<Void,Never>?
+    private let completionIdleTimeout:TimeInterval
     private var resume:[JSONValue]=[],pausedMessages:[JSONValue]=[]
     private var quiz:JSONValue = .object([:]),quizFeedback:JSONValue = .null,previousQuiz:JSONValue = .null
     private var draftTask:Task<Void,Never>?,worth:[String:Task<JSONValue?,Never>]=[:]
@@ -57,7 +61,7 @@ enum TutorFocus:Equatable {
     private var reviewRecord:JSONValue?
     var practicingCompletedLesson:Bool { reviewRecord != nil }
     private func sessionRecord(_ app:AppModel)->JSONValue { focus != nil ? focusedRecord:reviewRecord ?? record(app) }
-    init(focus:TutorFocus?=nil,live:LiveTutorService?=nil,clips:TutorAudioClips = .shared,provider:TutorProvider?=nil,turnXP:@escaping()->Int={PlatePracticeFixture.turnXP()}){self.clips=clips;self.turnXP=turnXP;self.focus=focus;self.live=live ?? TutorVoiceFixture.service();self.provider=provider;policy=try? TutorSourcePolicy();liveUpdates=self.live.objectWillChange.sink{[weak self] _ in self?.objectWillChange.send()}}
+    init(focus:TutorFocus?=nil,live:LiveTutorService?=nil,clips:TutorAudioClips = .shared,provider:TutorProvider?=nil,turnXP:@escaping()->Int={PlatePracticeFixture.turnXP()},completionIdleTimeout:TimeInterval=45){self.completionIdleTimeout=completionIdleTimeout;self.clips=clips;self.turnXP=turnXP;self.focus=focus;self.live=live ?? TutorVoiceFixture.service();self.provider=provider;policy=try? TutorSourcePolicy();liveUpdates=self.live.objectWillChange.sink{[weak self] _ in self?.objectWillChange.send()}}
     static var fixture:Bool {TutorVoiceFixture.enabled}
     var id:String {lesson["id"].string}
     var required:Int {Int(state["required"].number)}
@@ -149,6 +153,7 @@ enum TutorFocus:Equatable {
     }
     func adoptLevel(_ app:AppModel){owner=scope(app)}
     func select(_ app:AppModel,lesson:JSONValue,unit:JSONValue){
+        lateCompletionTask?.cancel();lateCompletionTask=nil;practiceStarted=false;practiceQuestion = .null;awardedTurns=[];assessedTurns=[];advancedTurns=[]
         self.lesson=lesson;self.unit=unit;messages=[];resume=[];pausedMessages=[];turn=0;quizFeedback = .null;previousQuiz = .null;seenInputs=[];seenResponses=[];lastInput="";lastInputAt = .distantPast
         if lesson["isGoal"].boolean || lesson["isRepair"].boolean {
             focusedRecord = .object(["earnedXp":.number(0)]);repairEvidence = .object([:]);reviewRecord=nil
@@ -162,17 +167,17 @@ enum TutorFocus:Equatable {
         error=nil;draftTask?.cancel()
         if !resuming {
             let privateMessages=messages.isEmpty ? ((try? policy.run("resume",.object(["record":sessionRecord(app)]))) ?? .null)["resumeContextMessages"].array:messages
-            resume=privateMessages;messages=[];pausedMessages=[];turn=0;mutedWhenPaused=false;seenInputs=[];seenResponses=[]
+            resume=privateMessages;messages=[];pausedMessages=[];turn=0;practiceStarted=false;practiceQuestion = .null;awardedTurns=[];assessedTurns=[];advancedTurns=[];mutedWhenPaused=false;seenInputs=[];seenResponses=[]
         }
         paused=false;epoch=UUID();let token=epoch
         if focus == nil,!practicingCompletedLesson {app.learner.storeTutorState(lesson:typedLesson,data:.object(["kind":.string("start"),"agenda":record(app)["tutorAgendaProgress"]["items"]]));app.persist()};refresh(app)
-        welcomePending = focus == nil && !resuming && state["starter"].boolean && resume.isEmpty
+        welcomePending = focus == nil && !resuming && state["starter"].boolean && resume.isEmpty && earnedXP(app) == 0 && sessionRecord(app)["tutorAgendaProgress"]["items"].object.isEmpty
         do {
             if !Self.fixture {try await FirebaseIdentityService.shared.ensure(app.identity)}
             guard valid(app,token) else{return}
             let baseSession=try policy.run(TutorRealtime.provider == "gemini" ? "geminiSession":"session",payload(app))
             let session=TutorRealtime.provider == "gemini" ? baseSession.setting("owner",.string(app.identity.npub)):baseSession
-            await live.start(learner:app.learner,instructions:session["instructions"].string,openingPrompt:nil,inactivityTimeout:30,initiallyMuted:resuming && mutedWhenPaused,onInputTurn:{[weak self,weak app] input in guard let self,let app,self.valid(app,token) else{return};let responding=self.live.outputPending;Task{await self.input(input,app:app,token:token,assistantResponding:responding)}},onAssistantTurn:{[weak self,weak app] response,text in guard let self,let app,self.valid(app,token) else{return};self.assistant(response,text:text,app:app,token:token)},sessionConfiguration:session,externallyControlled:true,previousAssistant:resuming ? messages.last(where:{$0["role"].string == "assistant"})?["textFinal"].string:nil,onResponseRecording:{[weak self,weak app] response,recording in
+            await live.start(learner:app.learner,instructions:session["instructions"].string,openingPrompt:nil,inactivityTimeout:30,initiallyMuted:resuming && mutedWhenPaused,onInputTurn:{[weak self,weak app] input in guard let self,let app,self.valid(app,token) else{return};let responding=self.live.outputPending,number=self.turn,snapshot=self.transcriptSnapshot(app);Task{await self.input(input,app:app,token:token,assistantResponding:responding,lateSnapshot:snapshot,practiceTurn:number)}},onAssistantTurn:{[weak self,weak app] response,text in guard let self,let app,self.valid(app,token) else{return};self.assistant(response,text:text,app:app,token:token)},sessionConfiguration:session,externallyControlled:true,previousAssistant:resuming ? messages.last(where:{$0["role"].string == "assistant"})?["textFinal"].string:nil,onResponseRecording:{[weak self,weak app] response,recording in
                 guard let self,let app,self.valid(app,token)else{return};let scope=self.clipScope(app),clips=self.clips
                 Task{await clips.store(recording,response:response,scope:scope)}
             },onAssistantInterrupted:{[weak self,weak app] response,text in
@@ -201,30 +206,46 @@ enum TutorFocus:Equatable {
         if !welcome && !canceled {worth[response]=Task{try? await p?.quote(question,level,learner)}}
         Task{await translate(response,text:text,app:app,token:token)}
     }
-    func input(_ input:RealtimeVoiceState.InputTurn,app:AppModel,token:UUID?=nil,assistantResponding:Bool?=nil) async {
+    func input(_ input:RealtimeVoiceState.InputTurn,app:AppModel,token:UUID?=nil,assistantResponding:Bool?=nil,lateSnapshot:JSONValue?=nil,practiceTurn:Int?=nil) async {
         let token=token ?? epoch
         guard valid(app,token),focusIsCurrent(app),!paused,!completionPending,let policy,let typedLesson,seenInputs.insert(input.id).inserted else{return}
-        let text=input.text.trimmingCharacters(in:.whitespacesAndNewlines),now=Date()
+        let text=input.text.trimmingCharacters(in:.whitespacesAndNewlines),now=Date(),late=assistantResponding ?? live.outputPending,lessonID=id
+        var number=practiceTurn ?? turn
+        let snapshot=lateSnapshot ?? transcriptSnapshot(app)
         do {
             if !text.isEmpty,try policy.run("script",payload(app).setting("text",.string(text))).boolean {
-                let recovery=(assistantResponding ?? live.outputPending) ? nil:try policy.run("transcriptRecovery",payload(app))
+                let recovery=late ? nil:try policy.run("transcriptRecovery",payload(app))
                 live.rejectTranscript(input.id,recovery:recovery)
                 return
             }
-            guard !grading else{return}
-            let match=try policy.run("matches",payload(app).setting("answer",.string(text)))
-            guard match["meaningful"].boolean,!(text == lastInput && now.timeIntervalSince(lastInputAt)<2) else{live.discardInput(input.id);return}
-            lastInput=text;lastInputAt=now
-            messages.append(.object(["id":.string(input.id),"role":.string("user"),"textFinal":.string(text),"done":.bool(true),"lang":.string(app.learner.target),"ts":.number(now.timeIntervalSince1970*1000)]));scheduleDraft(app)
-            if welcomePending {welcomePending=false;try request(app,kickoff:true);return}
-            turn += 1;grading=true
-            defer{if epoch == token{grading=false}}
-            let before=state,p=payload(app).setting("answer",.string(text)),local=try policy.run("classify",p),isQuiz=lesson["isFinalQuiz"].boolean
-            let needsJudge=focus != nil || isQuiz || !local["local"].boolean || (!before["starter"].boolean && !local["objectiveLocal"].boolean && !before["isComplete"].boolean)
+            let p:JSONValue,before:JSONValue,local:JSONValue,lateEffect:JSONValue
+            if late {
+                // The source updates its textual duplicate window even when a
+                // welcome/quiz/pre-practice transcript is deliberately ignored.
+                guard !text.isEmpty,!(text == lastInput && now.timeIntervalSince(lastInputAt)<2),number == turn else{return}
+                lastInput=text;lastInputAt=now
+                p=snapshot.setting("answer",.string(text));lateEffect=try policy.run("lateInput",p)
+                guard lateEffect != .null else{return}
+                before=try policy.run("state",p);local=try policy.run("classify",p)
+                if lateEffect["kind"].string == "judge",!(try policy.run("matches",p))["meaningful"].boolean{return}
+            }else {
+                guard !grading else{return}
+                let match=try policy.run("matches",payload(app).setting("answer",.string(text)))
+                guard match["meaningful"].boolean,!(text == lastInput && now.timeIntervalSince(lastInputAt)<2) else{live.discardInput(input.id);return}
+                lastInput=text;lastInputAt=now
+                messages.append(.object(["id":.string(input.id),"role":.string("user"),"textFinal":.string(text),"done":.bool(true),"lang":.string(app.learner.target),"ts":.number(now.timeIntervalSince1970*1000)]));scheduleDraft(app)
+                if welcomePending {welcomePending=false;try request(app,kickoff:true);return}
+                turn += 1;number=turn;practiceStarted=true
+                practiceQuestion=messages.last(where:{$0["role"].string == "assistant" && !$0["welcome"].boolean}) ?? .null
+                grading=true;before=state;p=payload(app).setting("answer",.string(text));local=try policy.run("classify",p);lateEffect = .null
+            }
+            defer{if !late,epoch == token{grading=false}}
+            let isQuiz=lesson["isFinalQuiz"].boolean
+            let needsJudge=late ? lateEffect["kind"].string == "judge":focus != nil || isQuiz || !local["local"].boolean || (!before["starter"].boolean && !local["objectiveLocal"].boolean && !before["isComplete"].boolean)
             var parsed:JSONValue = .object([:]),semantic=false
             if needsJudge {
                 var options=local["options"]
-                if isQuiz || local["local"].boolean {options=options.setting("directPhraseAnswer",.bool(false));if isQuiz{options=options.setting("regularPhraseMatch",.bool(false))}}
+                if !late && (isQuiz || local["local"].boolean) {options=options.setting("directPhraseAnswer",.bool(false));if isQuiz{options=options.setting("regularPhraseMatch",.bool(false))}}
                 do {
                     if case .goal(let bp)?=focus {
                         guard let provider else{throw PracticeRecipeFailure.unavailable}
@@ -234,45 +255,58 @@ enum TutorFocus:Equatable {
                     semantic=true
                 }catch{parsed = .object(["confidence":.number(0)])}
             }
-            guard valid(app,token),focusIsCurrent(app),!paused else{return}
-            let grade=try policy.run("grade",.object(["parsed":parsed,"local":.bool(!isQuiz && local["local"].boolean),"attempted":.bool(semantic)]))
+            guard valid(app,token),focusIsCurrent(app),!paused,id == lessonID,(!late || number == turn) else{return}
+            let grade=try policy.run("grade",.object(["parsed":parsed,"local":.bool(!isQuiz && (late ? lateEffect["kind"].string == "local":local["local"].boolean)),"attempted":.bool(semantic)]))
             let confidence=grade["confidence"].number,accepted=grade["verdict"].string == "accepted",mistake=parsed["mistake"].boolean && confidence>=0.55 && !accepted
-            let objective=local["objectiveLocal"].boolean || (grade["successful"].boolean && (parsed["objectiveAdvanced"] == .null || parsed["objectiveAdvanced"].boolean))
+            let semanticObjective=grade["successful"].boolean && (parsed["objectiveAdvanced"] == .null || parsed["objectiveAdvanced"].boolean)
+            let objective=late ? try policy.run("lateObjective",p.setting("semanticObjective",.bool(semanticObjective))).boolean:local["objectiveLocal"].boolean || semanticObjective
             var agenda=sessionRecord(app)["tutorAgendaProgress"]["items"],acceptedIDs:[JSONValue]=[]
             if isQuiz,semantic,confidence>=0.55,parsed["quizAnswered"].boolean {
                 let next=try policy.run("quiz",.object(["items":before["items"],"progress":agenda,"correctItems":quiz["correctItems"],"correct":.bool(accepted)]))
                 agenda=next["progress"];quiz = .object(["correctItems":next["correctItems"],"attemptNumber":.number(max(1,quiz["attemptNumber"].number)+(next["failed"].boolean ? 1:0))]);quizFeedback = .object(["correct":.bool(accepted),"correction":parsed["correction"],"reason":parsed["reason"]]);previousQuiz=next["failed"].boolean ? .object(["score":next["score"],"total":.number(Double(before["items"].array.count))]):.null
             }else if accepted,focus == nil {
                 if before["starter"].boolean {
-                    for candidate in local["candidateIds"].array where before["items"].array.contains(where:{$0["id"] == candidate}) {agenda=agenda.setting(candidate.string,.bool(true));acceptedIDs.append(candidate)}
-                }else if objective,let current=before["currentItem"]["id"].string.nilIfEmpty {agenda=agenda.setting(current,.bool(true))}
+                    for candidate in local["candidateIds"].array where before["items"].array.contains(where:{$0["id"] == candidate}) && !agenda[candidate.string].boolean {agenda=agenda.setting(candidate.string,.bool(true));acceptedIDs.append(candidate)}
+                }else if objective,!advancedTurns.contains(number),let current=before["currentItem"]["id"].string.nilIfEmpty {agenda=agenda.setting(current,.bool(true));advancedTurns.insert(number)}
             }
-            let question=messages.last(where:{$0["role"].string == "assistant" && !$0["welcome"].boolean}),quoted=await worth[question?["id"].string ?? ""]?.value
-            guard valid(app,token),focusIsCurrent(app),!paused else{return}
+            let question=late ? snapshot["practiceQuestion"]:practiceQuestion,quoted=await worth[question["id"].string]?.value
+            guard valid(app,token),focusIsCurrent(app),!paused,id == lessonID,(!late || number == turn) else{return}
             let repairAdvanced:Bool
             if case .repair?=focus {repairAdvanced=parsed["repairAdvanced"].boolean}else{repairAdvanced=false}
             if repairAdvanced {repairEvidence = .object(["success":.bool(true),"support":.string("prompted"),"observation":.string(String(text.prefix(600)))]);completionPending=true}
-            if accepted {
+            let canPay=accepted && (!before["starter"].boolean || !acceptedIDs.isEmpty || before["items"].array.allSatisfy{agenda[$0["id"].string].boolean})
+            let paid=canPay && awardedTurns.insert(number).inserted
+            let awardedXP=paid ? max(3,min(7,turnXP())):0
+            if paid {
                 // A confirmed local phrase remains XP-worthy even when the
                 // capability judge cannot advance the current objective.
                 if focus != nil {
-                    let xp=max(3,min(7,turnXP())),earned=min(required,earnedXP(app)+xp)
+                    let xp=awardedXP,earned=min(required,earnedXP(app)+xp)
                     completionPending=repairAdvanced || earned>=required
                     focusedRecord=focusedRecord.setting("earnedXp",.number(Double(earned)))
                     app.learner.sourceFocusedTutorTurn(level:focus?.level ?? app.learner.tutorLevel,xp:xp)
                 }else if practicingCompletedLesson {
-                    app.learner.sourceTutorReview(lesson:typedLesson,xp:turnXP())
+                    app.learner.sourceTutorReview(lesson:typedLesson,xp:awardedXP)
                 }else {
-                    completionPending=record(app)["earnedXp"].number+7>=Double(required) && (isQuiz || before["items"].array.allSatisfy{agenda[$0["id"].string].boolean})
-                    app.learner.sourceTutorTurn(lesson:typedLesson,required:required,agenda:agenda,xp:turnXP(),quiz:isQuiz ? quiz:nil)
+                    completionPending=record(app)["earnedXp"].number+Double(awardedXP)>=Double(required) && (isQuiz || before["items"].array.allSatisfy{agenda[$0["id"].string].boolean})
+                    app.learner.sourceTutorTurn(lesson:typedLesson,required:required,agenda:agenda,xp:awardedXP,quiz:isQuiz ? quiz:nil)
                 }
-                app.learner.assess(correct:true,independent:true,questionLevel:question?["questionLevel"].string.nilIfEmpty ?? state["level"].string,worth:quoted ?? nil,mode:"tutor",support:"independent");feedback = .init(correct:true)
+                if assessedTurns.insert(number).inserted{app.learner.assess(correct:true,independent:true,questionLevel:question["questionLevel"].string.nilIfEmpty ?? before["level"].string,worth:quoted ?? nil,mode:"tutor",support:"independent")};feedback = .init(correct:true)
             }else {
                 if focus == nil,isQuiz,!practicingCompletedLesson {app.learner.storeTutorState(lesson:typedLesson,data:.object(["agenda":agenda,"quiz":quiz,"replaceAgenda":.bool(true)]))}
                 if mistake {
-                    app.learner.assess(correct:false,independent:false,questionLevel:question?["questionLevel"].string.nilIfEmpty ?? state["level"].string,worth:quoted ?? nil,concept:parsed["concept"].string,mode:"tutor")
-                    app.learner.captureMemory(mode:"tutor",concept:parsed["concept"].string.nilIfEmpty ?? parsed["correction"].string,answer:text,expected:parsed["correction"].string,feedback:parsed["reason"].string,context:"tutor",questionLevel:state["level"].string,sourceContext:.string("tutor"));feedback = .init(correct:false)
+                    if assessedTurns.insert(number).inserted{app.learner.assess(correct:false,independent:false,questionLevel:question["questionLevel"].string.nilIfEmpty ?? state["level"].string,worth:quoted ?? nil,concept:parsed["concept"].string,mode:"tutor")}
+                    if !late {app.learner.captureMemory(mode:"tutor",concept:parsed["concept"].string.nilIfEmpty ?? parsed["correction"].string,answer:text,expected:parsed["correction"].string,feedback:parsed["reason"].string,context:"tutor",questionLevel:state["level"].string,sourceContext:.string("tutor"))};if !awardedTurns.contains(number){feedback = .init(correct:false)}
                 }
+            }
+            if late,accepted,!paid,focus == nil,!practicingCompletedLesson,agenda != sessionRecord(app)["tutorAgendaProgress"]["items"] {
+                app.learner.storeTutorState(lesson:typedLesson,data:.object(["agenda":agenda]))
+            }
+            // The source semantic judge banks slips independently of its XP
+            // verdict. Gemini permits a low-confidence slip in Memory; OpenAI
+            // requires 0.55. Neither path adds a late chat/history message.
+            if late,parsed["mistake"].boolean,(TutorRealtime.provider != "openai" || confidence>=0.55),!(parsed["concept"].string+parsed["correction"].string).trimmingCharacters(in:.whitespacesAndNewlines).isEmpty {
+                app.learner.captureMemory(mode:"tutor",concept:parsed["concept"].string.nilIfEmpty ?? parsed["correction"].string,answer:text,expected:parsed["correction"].string,feedback:parsed["reason"].string,context:"tutor",questionLevel:before["level"].string,sourceContext:.string("tutor"))
             }
             if let saved=reviewRecord {
                 var progress=saved["tutorAgendaProgress"].setting("items",agenda)
@@ -280,12 +314,33 @@ enum TutorFocus:Equatable {
                 reviewRecord=saved.setting("tutorAgendaProgress",progress)
             }
             app.persist();refresh(app)
-            if accepted || mistake {app.learner.history.insert(.init(date:now,target:app.learner.target,mode:"Tutor",question:question?["textFinal"].string ?? "",answer:text,feedback:parsed["reason"].string,correct:accepted,repairInMemory:mistake),at:0);app.learner.history=Array(app.learner.history.prefix(500));app.persist()}
+            if !late && (accepted || mistake) {app.learner.history.insert(.init(date:now,target:app.learner.target,mode:"Tutor",question:question["textFinal"].string,answer:text,feedback:parsed["reason"].string,correct:accepted,repairInMemory:mistake),at:0);app.learner.history=Array(app.learner.history.prefix(500));app.persist()}
             let ready=focus != nil || isQuiz || state["isComplete"].boolean
-            if !practicingCompletedLesson,ready,(repairAdvanced || earnedXP(app)>=required){await complete(app,ready:true);return}
+            if !practicingCompletedLesson,ready,(repairAdvanced || earnedXP(app)>=required){if late && live.outputPending {completeAfterReply(app,token:token)}else{await complete(app,ready:true)};return}
+            if late{return}
             completionPending=false
             if Self.fixture || app.subscription.hasAccess {let session=try policy.run(TutorRealtime.provider == "gemini" ? "geminiSession":"session",payload(app));if TutorRealtime.provider == "gemini"{live.updateTutorContext(session)}else{live.updateTranscription(session["audio"]["input"]["transcription"])};try request(app,answer:text,accepted:.array(acceptedIDs),verdict:grade["verdict"].string)}else{await stop(app)}
-        }catch {if valid(app,token){self.error="This turn could not be checked. Please try again.";grading=false;completionPending=false;live.discardInput(input.id)}}
+        }catch {if valid(app,token){if !late{self.error="This turn could not be checked. Please try again.";grading=false;completionPending=false;live.discardInput(input.id)}}}
+    }
+    private func transcriptSnapshot(_ app:AppModel)->JSONValue {
+        var p=payload(app)
+        if live.outputPending,!live.assistantTurnText.isEmpty,!messages.contains(where:{$0["id"].string == live.assistantResponseID}) {
+            let streaming:JSONValue = .object(["id":.string(live.assistantResponseID),"role":.string("assistant"),"textFinal":.string(live.assistantTurnText),"done":.bool(false),"welcome":.bool(displayingWelcome)])
+            p=p.setting("messages",.array(messages+[streaming]))
+        }
+        return p.setting("practiceStarted",.bool(practiceStarted)).setting("welcomePending",.bool(welcomePending)).setting("practiceQuestion",practiceQuestion)
+    }
+    private func completeAfterReply(_ app:AppModel,token:UUID) {
+        completionPending=true
+        guard lateCompletionTask == nil else{return}
+        let lessonID=id,deadline=Date().addingTimeInterval(max(0,completionIdleTimeout))
+        lateCompletionTask=Task{[weak self,weak app] in
+            while let self,let app,self.valid(app,token),self.id == lessonID,self.live.connected,self.live.outputPending,Date()<deadline {
+                do{try await Task.sleep(for:.milliseconds(50))}catch{return}
+            }
+            guard let self,let app,self.valid(app,token),self.focusIsCurrent(app),self.id == lessonID,!Task.isCancelled else{return}
+            self.lateCompletionTask=nil;await self.complete(app,ready:true)
+        }
     }
     private func uniqueMessages(_ values:[JSONValue])->[JSONValue]{var seen:Set<String>=[];return values.filter{seen.insert($0["id"].string).inserted}}
     private func scheduleDraft(_ app:AppModel){draftTask?.cancel();let token=epoch;draftTask=Task{try? await Task.sleep(for:.milliseconds(900));guard !Task.isCancelled,valid(app,token) else{return};flushDraft(app)}}
@@ -295,20 +350,22 @@ enum TutorFocus:Equatable {
         app.learner.storeTutorState(lesson:typedLesson,data:.object(["draft":.object(["version":.number(1),"messages":draft]) ]));app.persist()
     }
     func pause(_ app:AppModel) async {
-        guard live.connected else{return};mutedWhenPaused=live.muted;paused=true
+        guard live.connected else{return};let finishLate=lateCompletionTask != nil;lateCompletionTask?.cancel();lateCompletionTask=nil;mutedWhenPaused=live.muted;paused=true
         var snapshot=messages
         if live.outputPending,!live.assistantTurnText.isEmpty {
             if let index=snapshot.lastIndex(where:{$0["role"].string == "assistant" && $0["textFinal"].string == live.assistantTurnText}){snapshot[index]=snapshot[index].setting("interrupted",.bool(true))}
             else{snapshot.append(.object(["id":.string(live.assistantResponseID.isEmpty ? "interrupted-"+UUID().uuidString:live.assistantResponseID),"role":.string("assistant"),"textFinal":.string(live.assistantTurnText),"lang":.string(displayingWelcome ? app.learner.support:app.learner.target),"done":.bool(false)]))}
         }
         live.captureCurrentReply()
-        pausedMessages=(try? policy?.run("snapshotMessages",.object(["messages":.array(snapshot)])))?.array ?? snapshot;messages=pausedMessages;epoch=UUID();grading=false;flushDraft(app);await live.stop()
+        pausedMessages=(try? policy?.run("snapshotMessages",.object(["messages":.array(snapshot)])))?.array ?? snapshot;messages=pausedMessages;epoch=UUID();grading=false;flushDraft(app);await live.stop();if finishLate,owner == scope(app),focusIsCurrent(app){await complete(app,ready:true)}
     }
     func stop(_ app:AppModel,saveDraft:Bool=true) async {
+        let finishLate=lateCompletionTask != nil;lateCompletionTask?.cancel();lateCompletionTask=nil
         if live.outputPending,!live.assistantTurnText.isEmpty,!live.assistantResponseID.isEmpty,!messages.contains(where:{$0["id"].string == live.assistantResponseID}){
             messages.append(.object(["id":.string(live.assistantResponseID),"role":.string("assistant"),"textFinal":.string(live.assistantTurnText),"lang":.string(displayingWelcome ? app.learner.support:app.learner.target),"done":.bool(false),"interrupted":.bool(true)]))
         }
         live.captureCurrentReply();if saveDraft{flushDraft(app)};epoch=UUID();draftTask?.cancel();worth.values.forEach{$0.cancel()};worth=[:];paused=false;grading=false;await live.stop()
+        if finishLate,owner == scope(app),focusIsCurrent(app){await complete(app,ready:true)}
         if focusSkipped {focus=nil;focusSkipped=false;owner="";await prepare(app)}
     }
     func skipFocus(_ app:AppModel)async {focusSkipped=true;if !live.connected && !live.connecting{await stop(app)}}

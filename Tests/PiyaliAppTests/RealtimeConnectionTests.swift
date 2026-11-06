@@ -304,3 +304,30 @@ extension RealtimeVoiceControllerTests {
         XCTAssertEqual(service.error,"That speech could not be transcribed. Please try saying it again.");await service.stop()
     }
 }
+
+extension RealtimeVoiceControllerTests {
+    func testEmptyLateTutorTranscriptsPreserveTheReplyAndInputLock()async throws {
+        let transport=VoiceTransportFixture(),service=LiveTutorService(permission:{true},transportFactory:{transport});await service.start(learner:LearnerState(),openingPrompt:nil,inactivityTimeout:0,externallyControlled:true)
+        try transport.receive(#"{"type":"response.created","response":{"id":"speaking"}}"#);try transport.receive(#"{"type":"output_audio_buffer.started"}"#)
+        for (index,type) in ["input_audio_transcription.completed","conversation.item.input_audio_transcription.completed"].enumerated(){try transport.receive("{\"type\":\"\(type)\",\"item_id\":\"empty-\(index)\",\"transcript\":\"  \"}");XCTAssertEqual(service.voiceState,"speaking");XCTAssertFalse(transport.microphone)}
+        try transport.receive(#"{"type":"output_audio_buffer.stopped"}"#);XCTAssertEqual(service.voiceState,"listening");XCTAssertTrue(transport.microphone);await service.stop()
+    }
+}
+
+extension RealtimeVoiceControllerTests {
+    func testTutorKeepsInputThroughCommitLocksAtManualRequestAndPreservesPendingTranscription()async throws {
+        let transport=VoiceTransportFixture(),service=LiveTutorService(permission:{true},transportFactory:{transport});var inputs:[RealtimeVoiceState.InputTurn]=[]
+        await service.start(learner:LearnerState(),openingPrompt:nil,inactivityTimeout:0,onInputTurn:{inputs.append($0)},externallyControlled:true)
+        let before=transport.events.count
+        try transport.receive(#"{"type":"input_audio_buffer.committed","item_id":"split"}"#)
+        XCTAssertTrue(transport.microphone);XCTAssertEqual(service.voiceState,"thinking");XCTAssertEqual(transport.events.count,before)
+        service.requestResponse(.object(["type":.string("response.create"),"response":.object(["output_modalities":.array([.string("audio")]),"instructions":.string("Respond to the learner.")])]))
+        XCTAssertFalse(transport.microphone);XCTAssertEqual(transport.events.count,before+1)
+        try transport.receive(#"{"type":"response.created","response":{"id":"reply"}}"#)
+        XCTAssertEqual(transport.vad,.null);XCTAssertFalse(transport.events.dropFirst(before).contains{$0["type"].string == "input_audio_buffer.clear"})
+        try transport.receive(#"{"type":"conversation.item.input_audio_transcription.completed","item_id":"split","transcript":"hola"}"#)
+        XCTAssertEqual(inputs.count,1);XCTAssertEqual(inputs.first?.text,"hola");XCTAssertFalse(transport.microphone)
+        try transport.receive(#"{"type":"output_audio_buffer.stopped"}"#);XCTAssertTrue(transport.microphone)
+        service.setMuted(true);XCTAssertEqual(transport.events.filter{$0["type"].string == "input_audio_buffer.clear"}.count,1);await service.stop()
+    }
+}

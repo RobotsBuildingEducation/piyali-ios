@@ -26,3 +26,8 @@ The source retry request, context-item rejection, both transcription event spell
 ## Remaining scope
 
 This is a provider/lifecycle correction within the ongoing parity work. Physical iPhone microphone/acoustic behavior, Bluetooth/background route recovery, split/late ASR burst recovery, stored recorded-clip replay, streamed translated tokens, wider completion/review designs, all locales and the remaining product surfaces still require their own checks. The native connection currently fails visibly if its transcription/voice setup is rejected; the source's fallback configurations that omit transcription or selected voice are not used to silently claim a successful learner session.
+
+
+## Valid late speech checkpoint — 2026-11-05
+
+The later [late-speech record](TUTOR_LATE_SPEECH.md) supersedes the broad missing-late-ASR claim for its evidenced cases: real native input gating, original local/semantic late policy, one existing-turn payout, private history, resumed starter and earned completion. Gemini still merges provider bursts before its reply; the retained OpenAI profile can transcribe a committed burst after a reply starts. Native now keeps input through a commit and preserves transcription when locking for a manual reply. This is not physical speech proof or complete provider fallback/capture parity. Ordinary Gemini foreground/follow-up and pending-worth sequencing differences found in that record remain open.

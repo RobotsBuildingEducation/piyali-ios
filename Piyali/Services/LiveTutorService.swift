@@ -58,7 +58,7 @@ import AVFoundation
         let run=UUID();generation=run
         self.onLearnerTurn=onLearnerTurn;self.onConversationTurn=onConversationTurn
         self.onInputTurn=onInputTurn;self.onAssistantTurn=onAssistantTurn;self.onAssistantProgress=onAssistantProgress;resumeMessages=conversationDraft?.messages ?? []
-        state=RealtimeVoiceState(previousAssistant:previousAssistant ?? conversationDraft?.messages.last { $0.role == "assistant" }?.text ?? "")
+        state=RealtimeVoiceState(previousAssistant:previousAssistant ?? conversationDraft?.messages.last { $0.role == "assistant" }?.text ?? "",locksOnCommit:!externallyControlled)
         self.sessionConfiguration=sessionConfiguration;eventObserver=onEvent
         state.setMuted(initiallyMuted);if resumeInterrupted != nil {state.lockAssistant()}
         do {
@@ -123,7 +123,11 @@ import AVFoundation
         if type == "response.created" || type == "output_audio_buffer.started"{outputPending=true}
         if ["output_audio_buffer.stopped","output_audio_buffer.cleared"].contains(type){outputPending=false}
         if type == "error" { error="Live conversation could not continue. Try connecting again.";close();return }
-        if type == "conversation.item.input_audio_transcription.completed",event["transcript"].string.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty {speaking=false;state.discardInput(event["item_id"].string);voiceState="listening";applyMicrophone()}
+        if type == "conversation.item.input_audio_transcription.completed",event["transcript"].string.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty {
+            state.discardInput(event["item_id"].string)
+            if tutorControlled && outputPending {state.lockAssistant()}
+            else {speaking=false;voiceState="listening";applyMicrophone()}
+        }
         if type == "conversation.item.input_audio_transcription.failed" { if !tutorControlled {error="That speech could not be transcribed. Please try saying it again."};speaking=false;state.discardInput(event["item_id"].string);voiceState="listening";applyMicrophone() }
         if type == "input_audio_buffer.speech_started" { speaking=true }
         if type == "input_audio_buffer.speech_stopped" || type == "input_audio_buffer.committed" { speaking=false }
@@ -134,7 +138,7 @@ import AVFoundation
         if type == "input_audio_buffer.local_speech_started" || type == "input_audio_buffer.local_speech_active" || type == "input_audio_buffer.speech_started" || type == "output_audio_buffer.stopped" { voiceState="listening" }
         if type == "input_audio_buffer.committed" || type == "input_audio_buffer.speech_stopped" { voiceState="thinking" }
         if type == "output_audio_buffer.started" { voiceState="speaking" }
-        if state.assistantLocked != wasLocked { applyMicrophone() }
+        if state.assistantLocked != wasLocked || (tutorControlled && type == "response.created") { applyMicrophone() }
         let itemID=event["item_id"].string
         if type == "conversation.item.input_audio_transcription.completed",let input=state.inputTurn(itemID),notifiedInputs.insert(itemID).inserted { onInputTurn?(input) }
         let responseID=event["response"]["id"].string.isEmpty ? event["response_id"].string : event["response"]["id"].string
@@ -170,11 +174,15 @@ import AVFoundation
         let enabled=state.microphoneEnabled && !playbackDucked
         transport?.setMicrophoneEnabled(enabled && connected)
         guard connected else { return }
-        if !enabled { send(.object(["type":.string("input_audio_buffer.clear")])) }
+        if !enabled,(!tutorControlled || muted || playbackDucked) { send(.object(["type":.string("input_audio_buffer.clear")])) }
         let vad=sessionConfiguration?["audio"]["input"]["turn_detection"] ?? RealtimeVoicePolicy.vad(manualResponse:manualResponse)
         send(.object(["type":.string("session.update"),"session":.object(["type":.string("realtime"),"audio":.object(["input":.object(["turn_detection":enabled ? vad : .null])])])]))
     }
-    func requestResponse(_ response:JSONValue) {guard connected else{return};send(response)}
+    func requestResponse(_ response:JSONValue) {
+        guard connected else{return}
+        if tutorControlled {state.lockAssistant();voiceState="thinking";lastActivity=Date();transport?.setMicrophoneEnabled(false)}
+        send(response)
+    }
     func discardInput(_ id:String) {guard connected else{return};state.discardInput(id);voiceState="listening";applyMicrophone()}
     /// Source Tutor rejects unexpected-script ASR before it reaches chat or grading.
     /// Gemini accepts the delete as a no-op, matching its source bridge; OpenAI
