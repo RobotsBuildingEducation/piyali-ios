@@ -151,3 +151,17 @@ import NostrSDK
         await service.refresh(identity:identity);XCTAssertTrue(service.teams.isEmpty)
     }
 }
+
+extension NostrTeamsTests {
+    func testRosterOnlyRefreshVerifiesMembershipBeforeRequestingAnyMemberData()async throws{
+        let identity=try identity();defer{try? identity.disconnect()}
+        let creator=try testNostrEvent(),event=try testNostrEvent(tags:[["d","learning-team:staged"],["t","learning-team"],["p",creator.pubkey],["p",identity.hex]],createdAt:100),relay=try await relay(events:[event]);defer{relay.stop()}
+        let service=NostrTeamsService(client:NostrRelayClient(relays:[relay.url],timeout:.seconds(2)),cacheDirectory:FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString))
+        await service.refreshRoster(identity:identity);XCTAssertNil(service.error);XCTAssertEqual(service.teams.first?.teamID,"staged");XCTAssertTrue(service.progress.isEmpty)
+        let before=relay.frames().filter{$0.first as? String == "REQ"}.compactMap{$0.last as? [String:Any]}
+        XCTAssertFalse(before.contains{($0["#d"] as? [String])==["learning-progress"]});XCTAssertFalse(before.contains{($0["kinds"] as? [Int])==[0]})
+        await service.refresh(identity:identity)
+        let after=relay.frames().filter{$0.first as? String == "REQ"}.compactMap{$0.last as? [String:Any]}
+        XCTAssertTrue(after.contains{($0["#d"] as? [String])==["learning-progress"]});XCTAssertTrue(after.contains{($0["kinds"] as? [Int])==[0]});XCTAssertFalse(relay.frames().contains{$0.first as? String == "EVENT"})
+    }
+}

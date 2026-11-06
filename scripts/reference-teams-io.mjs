@@ -7,9 +7,9 @@ window.__teamRowRequests=rowReads;
 window.__emitTeamRecord=value=>Promise.all([...watchers].map(w=>w.callback(value)));
 window.__releaseTeamRow=(index,rows)=>rowReads[index].resolve(rows);
 window.__rejectTeamRow=index=>rowReads[index].reject(Error('Public member read failure'));
-export const getUserTeams=async()=>state==='loading'?new Promise(resolve=>{window.__releaseTeamLoad=()=>resolve(f().teams)}):state==='stream'?new Promise(resolve=>{window.__releaseRosterRead=()=>resolve(f().teams)}):f().teams,
+export const getUserTeams=async()=>state==='loading'?new Promise(resolve=>{window.__releaseTeamLoad=()=>resolve(f().teams)}):state==='stream'?new Promise(resolve=>{window.__releaseRosterRead=()=>resolve(f().teams)}):state.startsWith('staged')?new Promise(resolve=>{window.__releaseStagedRoster=()=>resolve(f().teams)}):f().teams,
 getUserTeamInvites=async()=>f().invites,
-getTeamMemberProgress=async(creator,id)=>state==='stream'?new Promise((resolve,reject)=>{rowReads.push({creator,id,resolve,reject})}):f().rows[id]||[],
+getTeamMemberProgress=async(creator,id)=>(state==='stream'||state.startsWith('staged'))?new Promise((resolve,reject)=>{rowReads.push({creator,id,resolve,reject})}):f().rows[id]||[],
 getUserData=async()=>({name:'New Learner'}),
 subscribeToTeamInvites=(n,cb)=>{cb(f().invites);return()=>{}},
 subscribeToTeamUpdates=(creator,id,callback)=>{const value={creator,id,callback};watchers.add(value);return()=>watchers.delete(value)},

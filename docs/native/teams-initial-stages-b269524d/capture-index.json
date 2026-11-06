@@ -1,0 +1,242 @@
+[
+  {
+    "path": "native-joined-settled-ar.png",
+    "name": "Native Teams staged joined settled ar",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "source-joined-settled-ar.json",
+    "name": "Source Teams staged joined settled ar geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "source-joined-settled-ar.png",
+    "name": "Source Teams staged joined settled ar",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "native-joined-members-bottom-ar.png",
+    "name": "Native Teams staged joined members-bottom ar",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "source-joined-members-bottom-ar.json",
+    "name": "Source Teams staged joined members-bottom ar geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "source-joined-members-bottom-ar.png",
+    "name": "Source Teams staged joined members-bottom ar",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "native-joined-members-ar.png",
+    "name": "Native Teams staged joined members ar",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "source-joined-members-ar.json",
+    "name": "Source Teams staged joined members ar geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "source-joined-members-ar.png",
+    "name": "Source Teams staged joined members ar",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "native-joined-global-ar.png",
+    "name": "Native Teams staged joined global ar",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "source-joined-global-ar.json",
+    "name": "Source Teams staged joined global ar geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "source-joined-global-ar.png",
+    "name": "Source Teams staged joined global ar",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "native-owner-settled-ar.png",
+    "name": "Native Teams staged owner settled ar",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "source-owner-settled-ar.json",
+    "name": "Source Teams staged owner settled ar geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "source-owner-settled-ar.png",
+    "name": "Source Teams staged owner settled ar",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "native-owner-members-bottom-ar.png",
+    "name": "Native Teams staged owner members-bottom ar",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "source-owner-members-bottom-ar.json",
+    "name": "Source Teams staged owner members-bottom ar geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "source-owner-members-bottom-ar.png",
+    "name": "Source Teams staged owner members-bottom ar",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "native-owner-members-ar.png",
+    "name": "Native Teams staged owner members ar",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "source-owner-members-ar.json",
+    "name": "Source Teams staged owner members ar geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "source-owner-members-ar.png",
+    "name": "Source Teams staged owner members ar",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "native-owner-global-ar.png",
+    "name": "Native Teams staged owner global ar",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "source-owner-global-ar.json",
+    "name": "Source Teams staged owner global ar geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "source-owner-global-ar.png",
+    "name": "Source Teams staged owner global ar",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "native-joined-settled-en.png",
+    "name": "Native Teams staged joined settled en",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "source-joined-settled-en.json",
+    "name": "Source Teams staged joined settled en geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "source-joined-settled-en.png",
+    "name": "Source Teams staged joined settled en",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "native-joined-members-bottom-en.png",
+    "name": "Native Teams staged joined members-bottom en",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "source-joined-members-bottom-en.json",
+    "name": "Source Teams staged joined members-bottom en geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "source-joined-members-bottom-en.png",
+    "name": "Source Teams staged joined members-bottom en",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "native-joined-members-en.png",
+    "name": "Native Teams staged joined members en",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "source-joined-members-en.json",
+    "name": "Source Teams staged joined members en geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "source-joined-members-en.png",
+    "name": "Source Teams staged joined members en",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "native-joined-global-en.png",
+    "name": "Native Teams staged joined global en",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "source-joined-global-en.json",
+    "name": "Source Teams staged joined global en geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "source-joined-global-en.png",
+    "name": "Source Teams staged joined global en",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "native-owner-settled-en.png",
+    "name": "Native Teams staged owner settled en",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "source-owner-settled-en.json",
+    "name": "Source Teams staged owner settled en geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "source-owner-settled-en.png",
+    "name": "Source Teams staged owner settled en",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "native-owner-members-bottom-en.png",
+    "name": "Native Teams staged owner members-bottom en",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "source-owner-members-bottom-en.json",
+    "name": "Source Teams staged owner members-bottom en geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "source-owner-members-bottom-en.png",
+    "name": "Source Teams staged owner members-bottom en",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "native-owner-members-en.png",
+    "name": "Native Teams staged owner members en",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "source-owner-members-en.json",
+    "name": "Source Teams staged owner members en geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "source-owner-members-en.png",
+    "name": "Source Teams staged owner members en",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "native-owner-global-en.png",
+    "name": "Native Teams staged owner global en",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "source-owner-global-en.json",
+    "name": "Source Teams staged owner global en geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "source-owner-global-en.png",
+    "name": "Source Teams staged owner global en",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  }
+]

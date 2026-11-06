@@ -17,6 +17,7 @@ import WebKit
         posts=fixture["posts"].array.compactMap{v in let content=v["content"].string,tags=v["tags"].array.map{$0.array.map(\.string)},name=v["profile"]["name"].string;guard CommunityMilestone.isFeedAuthorVisible(name) else{return nil};let milestone=CommunityMilestone.parse(content:content,tags:tags,name:name);return CommunityPost(event:.init(id:v["id"].string,pubkey:v["pubkey"].string,created_at:1700000000,kind:1,tags:tags,content:content,sig:""),name:name,npub:v["npub"].string,milestone:milestone)}
     }
     func load(_ app:AppModel)async throws->TeamsPanelSnapshot{snapshot}
+    func loadStaged(_ app:AppModel,onRoster:@escaping @MainActor(TeamsPanelSnapshot)async->Void)async throws->TeamsPanelSnapshot{try await load(app)}
     func create(name:String,members:[String],app:AppModel)async throws{throw URLError(.notConnectedToInternet)}
     func rename(_ team:JSONValue,name:String,app:AppModel)async throws->Bool{throw URLError(.notConnectedToInternet)}
     func add(_ team:JSONValue,members:[String],app:AppModel)async throws->Bool{throw URLError(.notConnectedToInternet)}
@@ -303,5 +304,51 @@ extension TeamsPanelReferenceTests {
             _=try await web.evaluateJavaScript("window.__releaseTeamRow(1,window.__teamsFixture.rows[window.__teamsFixture.teams[0].id].map(row=>row.isCreator?row:{...row,totalXp:778}));true");access.finishRows(.success(rows));for _ in 0..<200 where model.rowErrors[key] != nil{try await Task.sleep(for:.milliseconds(10))};XCTAssertEqual(model.snapshot.rows[key],rows);XCTAssertNotNil(access.held);try await capture("member-recovered");try await scroll(true);try await capture("member-recovered-bottom");try await scroll(false)
             model.cancel();sourceWindow.isHidden=true;sourceWindow.rootViewController=nil;nativeWindow.isHidden=true;nativeWindow.rootViewController=nil
         }
+    }
+}
+
+@MainActor private final class TeamsStagedPreviewAccess:TeamsPreviewAccess {
+    let stage:TeamsPanelSnapshot,settled:TeamsPanelSnapshot
+    var roster:CheckedContinuation<Void,Never>?,members:CheckedContinuation<TeamsPanelSnapshot,Never>?
+    init(_ fixture:JSONValue,selfRow:JSONValue,joined:Bool){
+        let team=fixture["teams"].array[0].setting("nostr",.null),key=LiveTeamsPanelAccess.key(team)
+        stage = .init(teams:[team],rows:joined ? [:]:[key:[selfRow]],loadingRows:[key])
+        settled = .init(teams:[team],rows:joined ? [:]:[key:fixture["rows"][team["id"].string].array],failedRows:joined ? [key]:[])
+        super.init(fixture,state:"single")
+    }
+    override func loadStaged(_ app:AppModel,onRoster:@escaping @MainActor(TeamsPanelSnapshot)async->Void)async throws->TeamsPanelSnapshot{await withCheckedContinuation{roster=$0};await onRoster(stage);return await withCheckedContinuation{members=$0}}
+    override func cancel(){roster?.resume();roster=nil;members?.resume(returning:settled);members=nil}
+}
+extension TeamsPanelReferenceTests {
+    func testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()async throws {
+        let env=ProcessInfo.processInfo.environment;guard env["PIYALI_OFFLINE_TESTS"] == "1",env["PIYALI_REFERENCE_PREVIEW_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Isolated reference required")}
+        let fixture=try JSONDecoder().decode(JSONValue.self,from:Data(contentsOf:try XCTUnwrap(Bundle(for:Self.self).url(forResource:"teams-panel-preview",withExtension:"json"))))
+        let app=AppModel(progressService:TeamsNoCloud());try app.identity.create();app.signedIn=true;defer{app.signOut()};let scene=try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap{$0 as? UIWindowScene}.first),old=scene.windows.first{$0.isKeyWindow};defer{old?.makeKey()}
+        for(language,theme)in [("en","light"),("ar","dark")] {for joined in [false,true] {
+            app.learner.support=language;let role=joined ? "joined":"owner",state="staged-"+role
+            let sourceWindow=UIWindow(windowScene:scene);sourceWindow.frame=CGRect(x:0,y:0,width:402,height:874);let web=WKWebView(frame:sourceWindow.frame),vc=UIViewController();vc.view=web;sourceWindow.rootViewController=vc;sourceWindow.makeKeyAndVisible();web.scrollView.contentInsetAdjustmentBehavior = .never
+            web.load(URLRequest(url:try XCTUnwrap(URL(string:"http://127.0.0.1:5181/__piyali-teams?state=\(state)&language=\(language)&theme=\(theme)"))))
+            var ready=false;for _ in 0..<300{ready=(try? await web.evaluateJavaScript("document.fonts.status==='loaded'&&typeof window.__releaseStagedRoster==='function'&&document.querySelectorAll('[role=tab]').length===2")) as? Bool == true;if ready{break};try await Task.sleep(for:.milliseconds(40))};XCTAssertTrue(ready);guard ready else{return}
+            let sourceFixture=try await web.evaluateJavaScript("JSON.stringify(window.__teamsFixture)") as? String ?? "{}",selfJSON=try await web.evaluateJavaScript("JSON.stringify(window.__stageSelf)") as? String ?? "{}"
+            let f=try JSONDecoder().decode(JSONValue.self,from:Data(sourceFixture.utf8)),selfRow=try JSONDecoder().decode(JSONValue.self,from:Data(selfJSON.utf8)),access=TeamsStagedPreviewAccess(f,selfRow:selfRow,joined:joined),model=TeamsPanelController(access:access),nativeWindow=UIWindow(windowScene:scene);nativeWindow.frame=sourceWindow.frame
+            defer{model.cancel();web.stopLoading();sourceWindow.isHidden=true;sourceWindow.rootViewController=nil;nativeWindow.isHidden=true;nativeWindow.rootViewController=nil}
+            nativeWindow.rootViewController=UIHostingController(rootView:ZStack{PiyaliBrand(dark:theme == "dark").background;TeamsDrawerView(model:model,onClose:{})}.environmentObject(app).environment(\.dynamicTypeSize,.large).preferredColorScheme(theme == "dark" ? .dark:.light).ignoresSafeArea());nativeWindow.makeKeyAndVisible()
+            for _ in 0..<200 where access.roster == nil{try await Task.sleep(for:.milliseconds(10))};XCTAssertTrue(model.loading)
+            func capture(_ phase:String)async throws {
+                try await Task.sleep(for:.milliseconds(400));sourceWindow.makeKeyAndVisible();try await Task.sleep(for:.milliseconds(80));let a=XCTAttachment(image:try await web.takeSnapshot(configuration:nil));a.name="Source Teams staged \(role) \(phase) \(language)";a.lifetime = .keepAlways;add(a)
+                let geometry=try await web.evaluateJavaScript("JSON.stringify([...document.querySelectorAll('p,.chakra-skeleton')].map(e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return{text:e.textContent,x:r.x,y:r.y,width:r.width,height:r.height,background:s.backgroundColor,animation:s.animation,color:s.color}}))") as? String ?? "[]",g=XCTAttachment(data:Data(geometry.utf8),uniformTypeIdentifier:"public.json");g.name=(a.name ?? "Source Teams staged")+" geometry";g.lifetime = .keepAlways;add(g)
+                nativeWindow.makeKeyAndVisible();try await Task.sleep(for:.milliseconds(80));let b=XCTAttachment(image:UIGraphicsImageRenderer(bounds:nativeWindow.bounds).image{_ in nativeWindow.drawHierarchy(in:nativeWindow.bounds,afterScreenUpdates:true)});b.name="Native Teams staged \(role) \(phase) \(language)";b.lifetime = .keepAlways;add(b)
+            }
+            try await capture("global")
+            _=try await web.evaluateJavaScript("window.__releaseStagedRoster();true");access.roster?.resume();access.roster=nil
+            for _ in 0..<200 where access.members == nil{try await Task.sleep(for:.milliseconds(10))};XCTAssertFalse(model.loading);XCTAssertEqual(model.snapshot.loadingRows.count,1);try await capture("members")
+            _=try await web.evaluateJavaScript("(()=>{const e=document.querySelector('.chakra-modal__body');e.scrollTop=e.scrollHeight;return true})()")
+            func find(_ v:UIView)->UIScrollView?{if let s=v as? UIScrollView,s.bounds.height>100,s.contentSize.height>s.bounds.height{return s};for c in v.subviews{if let s=find(c){return s}};return nil}
+            let scroll=find(try XCTUnwrap(nativeWindow.rootViewController?.view));scroll?.setContentOffset(CGPoint(x:0,y:max(0,(scroll?.contentSize.height ?? 0)-(scroll?.bounds.height ?? 0))),animated:false);try await capture("members-bottom")
+            _=try await web.evaluateJavaScript(joined ? "window.__rejectTeamRow(0);true":"window.__releaseTeamRow(0,window.__teamsFixture.rows[window.__teamsFixture.teams[0].id]);true");access.members?.resume(returning:access.settled);access.members=nil
+            for _ in 0..<200 where !model.snapshot.loadingRows.isEmpty{try await Task.sleep(for:.milliseconds(10))};XCTAssertTrue(model.snapshot.loadingRows.isEmpty);XCTAssertEqual(model.snapshot.failedRows.count,joined ? 1:0)
+            _=try await web.evaluateJavaScript("document.querySelector('.chakra-modal__body').scrollTop=0;true");scroll?.setContentOffset(.zero,animated:false);try await capture("settled")
+            model.cancel()
+        }}
     }
 }

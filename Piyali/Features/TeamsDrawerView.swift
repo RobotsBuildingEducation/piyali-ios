@@ -82,13 +82,22 @@ struct TeamsDrawerView:View {
             if visible{VStack(alignment:.leading,spacing:16){
                 if team["isCreator"].boolean{HStack{Spacer();action(t("teams_add_member_open","Add new member"),outline:true,id:"teamAddOpen",size:12,height:24){open(.add(team))}}}
                 let rows=(model.snapshot.rows[key] ?? []).sorted{$0["isCreator"].boolean && !$1["isCreator"].boolean}
-                if !rows.isEmpty{VStack(spacing:16){ForEach(rows.map{TeamsDisplayRecord(id:$0["npub"].string,value:$0)}){memberCard($0.value)}}.padding(.bottom,16)}
-                if rows.isEmpty{text(t("teams_view_no_members","No accepted members yet.")).font(.system(size:14)).foregroundStyle(muted)}
+                let rowsLoading=model.snapshot.loadingRows.contains(key),missing=max(0,team["members"].array.filter{$0["status"].string == "accepted"}.count+1-rows.count)
+                if !rows.isEmpty || rowsLoading{VStack(spacing:16){ForEach(rows.map{TeamsDisplayRecord(id:$0["npub"].string,value:$0)}){memberCard($0.value)};if rowsLoading{ForEach(0..<missing,id:\.self){_ in memberSkeleton}}}.padding(.bottom,16)}
+                if rows.isEmpty && !rowsLoading{text(model.snapshot.failedRows.contains(key) ? t("teams_view_error","Unable to load team members"):model.snapshot.rows[key] == nil ? t("teams_view_loading","Loading teams..."):t("teams_view_no_members","No accepted members yet.")).font(.system(size:14)).foregroundStyle(light ? muted:c("879bb4")).accessibilityIdentifier("teamsMemberStatus")}
                 let waiting=team["members"].array.filter{$0["status"].string == "pending"}
                 if !waiting.isEmpty{VStack(alignment:.leading,spacing:4){text(t("teams_view_pending_members","Invites waiting")).font(.system(size:14,weight:.bold)).frame(minHeight:21);ForEach(waiting,id:\.canonicalJSON){text($0["npub"].string).font(.system(size:12)).lineSpacing(4).padding(.vertical,2).foregroundStyle(light ? muted:c("879bb4")).fixedSize(horizontal:false,vertical:true)}}}
                 HStack{Spacer();Button{removal=team}label:{Image(team["isCreator"].boolean ? "Teams-trash":"Teams-exit").resizable().frame(width:14,height:14).frame(width:32,height:32).foregroundStyle(light ? c("c53030"):c("fc8181")).overlay{Capsule().stroke(light ? c("e53e3e"):c("fc8181"))}}.disabled(model.working).accessibilityLabel(team["isCreator"].boolean ? t("teams_view_delete","Delete team"):t("teams_view_leave","Leave team")).accessibilityIdentifier("teamRemove")}
             }.padding(17)}
         }.background(surface,in:RoundedRectangle(cornerRadius:8)).overlay{RoundedRectangle(cornerRadius:8).stroke(cardBorder)}.accessibilityElement(children:.contain).accessibilityIdentifier("teamCard")
+    }
+    private var memberSkeleton:some View{
+        VStack(alignment:.leading,spacing:0){
+            GeometryReader{g in TeamsSkeletonBlock(light:light).frame(width:g.size.width*0.42)}.frame(height:20).padding(.bottom,16)
+            HStack(spacing:8){ForEach(0..<3,id:\.self){_ in TeamsSkeletonBlock(light:light,radius:8).frame(height:58)}}.padding(.bottom,16)
+            TeamsSkeletonBlock(light:light).frame(height:14).padding(.bottom,16)
+            HStack(spacing:12){TeamsSkeletonBlock(light:light,radius:32).frame(width:64,height:64);VStack(alignment:.leading,spacing:8){GeometryReader{g in TeamsSkeletonBlock(light:light).frame(width:g.size.width*0.48)}.frame(height:16);TeamsSkeletonBlock(light:light).frame(height:12);TeamsSkeletonBlock(light:light).frame(height:12)}}.padding(12)
+        }.padding(13).background(light ? c("fffdf9"):.white.opacity(0.04),in:RoundedRectangle(cornerRadius:12)).overlay{RoundedRectangle(cornerRadius:12).stroke(cardBorder)}.accessibilityHidden(true)
     }
     private func memberCard(_ row:JSONValue)->some View {
         VStack(alignment:.leading,spacing:0){
@@ -238,3 +247,10 @@ private struct TeamsFeedRefreshStyle:ButtonStyle {
 }
 
 private struct TeamsDisplayRecord:Identifiable {let id:String,value:JSONValue}
+
+private struct TeamsSkeletonBlock:View {
+    let light:Bool
+    var radius:CGFloat=2
+    @State private var pulse=false
+    var body:some View{RoundedRectangle(cornerRadius:radius).fill(PiyaliBrand.unitColor(light ? (pulse ? "786654":"2f261d"):(pulse ? "a3b4c9":"e5e7eb"))).opacity(0.7).animation(.linear(duration:0.8).repeatForever(autoreverses:true),value:pulse).onAppear{pulse=true}}
+}

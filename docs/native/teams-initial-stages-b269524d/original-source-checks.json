@@ -1,0 +1,421 @@
+{
+  "reference": "b269524ddc578027c549616fc47f5954991d9f6f",
+  "sha256": "2facc3dd6abc05f079200ee3e903c30415b71aba8078a3fa9d5691f5b0e482d1",
+  "scope": "Four unchanged original loadData callback cases with controlled roster/member I/O; creator row helper is a supplied I/O fixture. Not authenticated source App or production transport.",
+  "results": [
+    {
+      "creator": true,
+      "failure": true,
+      "held": {
+        "teams": [
+          {
+            "id": "team",
+            "createdBy": "viewer",
+            "isCreator": true,
+            "members": [
+              {
+                "npub": "peer",
+                "status": "accepted"
+              }
+            ]
+          }
+        ],
+        "invites": [],
+        "rows": {
+          "team": [
+            {
+              "npub": "viewer",
+              "name": "Current creator",
+              "isCreator": true
+            }
+          ]
+        },
+        "loading": false,
+        "loadingRows": {
+          "team": true
+        }
+      },
+      "settled": {
+        "teams": [
+          {
+            "id": "team",
+            "createdBy": "viewer",
+            "isCreator": true,
+            "members": [
+              {
+                "npub": "peer",
+                "status": "accepted"
+              }
+            ]
+          }
+        ],
+        "invites": [],
+        "rows": {
+          "team": [
+            {
+              "npub": "viewer",
+              "name": "Current creator",
+              "isCreator": true
+            }
+          ]
+        },
+        "loading": false,
+        "loadingRows": {
+          "team": false
+        }
+      },
+      "toastCount": 0
+    },
+    {
+      "creator": true,
+      "failure": false,
+      "held": {
+        "teams": [
+          {
+            "id": "team",
+            "createdBy": "viewer",
+            "isCreator": true,
+            "members": [
+              {
+                "npub": "peer",
+                "status": "accepted"
+              }
+            ]
+          }
+        ],
+        "invites": [],
+        "rows": {
+          "team": [
+            {
+              "npub": "viewer",
+              "name": "Current creator",
+              "isCreator": true
+            }
+          ]
+        },
+        "loading": false,
+        "loadingRows": {
+          "team": true
+        }
+      },
+      "settled": {
+        "teams": [
+          {
+            "id": "team",
+            "createdBy": "viewer",
+            "isCreator": true,
+            "members": [
+              {
+                "npub": "peer",
+                "status": "accepted"
+              }
+            ]
+          }
+        ],
+        "invites": [],
+        "rows": {
+          "team": [
+            {
+              "name": "Fresh peer",
+              "npub": "peer"
+            }
+          ]
+        },
+        "loading": false,
+        "loadingRows": {
+          "team": false
+        }
+      },
+      "toastCount": 0
+    },
+    {
+      "creator": false,
+      "failure": true,
+      "held": {
+        "teams": [
+          {
+            "id": "team",
+            "createdBy": "owner",
+            "isCreator": false,
+            "members": [
+              {
+                "npub": "peer",
+                "status": "accepted"
+              }
+            ]
+          }
+        ],
+        "invites": [],
+        "rows": {},
+        "loading": false,
+        "loadingRows": {
+          "team": true
+        }
+      },
+      "settled": {
+        "teams": [
+          {
+            "id": "team",
+            "createdBy": "owner",
+            "isCreator": false,
+            "members": [
+              {
+                "npub": "peer",
+                "status": "accepted"
+              }
+            ]
+          }
+        ],
+        "invites": [],
+        "rows": {
+          "team": null
+        },
+        "loading": false,
+        "loadingRows": {
+          "team": false
+        }
+      },
+      "toastCount": 0
+    },
+    {
+      "creator": false,
+      "failure": false,
+      "held": {
+        "teams": [
+          {
+            "id": "team",
+            "createdBy": "owner",
+            "isCreator": false,
+            "members": [
+              {
+                "npub": "peer",
+                "status": "accepted"
+              }
+            ]
+          }
+        ],
+        "invites": [],
+        "rows": {},
+        "loading": false,
+        "loadingRows": {
+          "team": true
+        }
+      },
+      "settled": {
+        "teams": [
+          {
+            "id": "team",
+            "createdBy": "owner",
+            "isCreator": false,
+            "members": [
+              {
+                "npub": "peer",
+                "status": "accepted"
+              }
+            ]
+          }
+        ],
+        "invites": [],
+        "rows": {
+          "team": [
+            {
+              "name": "Fresh peer",
+              "npub": "peer"
+            }
+          ]
+        },
+        "loading": false,
+        "loadingRows": {
+          "team": false
+        }
+      },
+      "toastCount": 0
+    }
+  ],
+  "browserCases": [
+    {
+      "language": "en",
+      "role": "owner",
+      "failure": false,
+      "phase": "global",
+      "rosterHeld": true
+    },
+    {
+      "language": "en",
+      "role": "owner",
+      "failure": false,
+      "phase": "members",
+      "skeletons": 9,
+      "creatorPresent": true
+    },
+    {
+      "language": "en",
+      "role": "owner",
+      "failure": false,
+      "phase": "settled",
+      "noSkeletons": true,
+      "noToast": true
+    },
+    {
+      "language": "en",
+      "role": "owner",
+      "failure": true,
+      "phase": "global",
+      "rosterHeld": true
+    },
+    {
+      "language": "en",
+      "role": "owner",
+      "failure": true,
+      "phase": "members",
+      "skeletons": 9,
+      "creatorPresent": true
+    },
+    {
+      "language": "en",
+      "role": "owner",
+      "failure": true,
+      "phase": "settled",
+      "noSkeletons": true,
+      "noToast": true
+    },
+    {
+      "language": "en",
+      "role": "joined",
+      "failure": false,
+      "phase": "global",
+      "rosterHeld": true
+    },
+    {
+      "language": "en",
+      "role": "joined",
+      "failure": false,
+      "phase": "members",
+      "skeletons": 18,
+      "creatorPresent": false
+    },
+    {
+      "language": "en",
+      "role": "joined",
+      "failure": false,
+      "phase": "settled",
+      "noSkeletons": true,
+      "noToast": true
+    },
+    {
+      "language": "en",
+      "role": "joined",
+      "failure": true,
+      "phase": "global",
+      "rosterHeld": true
+    },
+    {
+      "language": "en",
+      "role": "joined",
+      "failure": true,
+      "phase": "members",
+      "skeletons": 18,
+      "creatorPresent": false
+    },
+    {
+      "language": "en",
+      "role": "joined",
+      "failure": true,
+      "phase": "settled",
+      "noSkeletons": true,
+      "noToast": true
+    },
+    {
+      "language": "ar",
+      "role": "owner",
+      "failure": false,
+      "phase": "global",
+      "rosterHeld": true
+    },
+    {
+      "language": "ar",
+      "role": "owner",
+      "failure": false,
+      "phase": "members",
+      "skeletons": 9,
+      "creatorPresent": true
+    },
+    {
+      "language": "ar",
+      "role": "owner",
+      "failure": false,
+      "phase": "settled",
+      "noSkeletons": true,
+      "noToast": true
+    },
+    {
+      "language": "ar",
+      "role": "owner",
+      "failure": true,
+      "phase": "global",
+      "rosterHeld": true
+    },
+    {
+      "language": "ar",
+      "role": "owner",
+      "failure": true,
+      "phase": "members",
+      "skeletons": 9,
+      "creatorPresent": true
+    },
+    {
+      "language": "ar",
+      "role": "owner",
+      "failure": true,
+      "phase": "settled",
+      "noSkeletons": true,
+      "noToast": true
+    },
+    {
+      "language": "ar",
+      "role": "joined",
+      "failure": false,
+      "phase": "global",
+      "rosterHeld": true
+    },
+    {
+      "language": "ar",
+      "role": "joined",
+      "failure": false,
+      "phase": "members",
+      "skeletons": 18,
+      "creatorPresent": false
+    },
+    {
+      "language": "ar",
+      "role": "joined",
+      "failure": false,
+      "phase": "settled",
+      "noSkeletons": true,
+      "noToast": true
+    },
+    {
+      "language": "ar",
+      "role": "joined",
+      "failure": true,
+      "phase": "global",
+      "rosterHeld": true
+    },
+    {
+      "language": "ar",
+      "role": "joined",
+      "failure": true,
+      "phase": "members",
+      "skeletons": 18,
+      "creatorPresent": false
+    },
+    {
+      "language": "ar",
+      "role": "joined",
+      "failure": true,
+      "phase": "settled",
+      "noSkeletons": true,
+      "noToast": true
+    }
+  ]
+}

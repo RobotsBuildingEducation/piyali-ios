@@ -1,0 +1,56 @@
+Test Case '-[PiyaliTests.NostrTeamsTests testAccountSwitchDuringRelayReadCannotRestorePreviousAccountRoster]' passed (0.477 seconds).
+Test Case '-[PiyaliTests.NostrTeamsTests testAcknowledgedOwnTeamSurvivesRelayIndexingDelayAndRestart]' passed (0.109 seconds).
+Test Case '-[PiyaliTests.NostrTeamsTests testCreationConcurrentRenameAndAddReadLatestRosterBeforeSigning]' passed (0.238 seconds).
+Test Case '-[PiyaliTests.NostrTeamsTests testExplicitProgressPublicationSignsOnlyPublicSnapshotFields]' passed (0.026 seconds).
+Test Case '-[PiyaliTests.NostrTeamsTests testOtherMembersLeaveIsFilteredAndNewerInvitationRestoresMembership]' passed (0.089 seconds).
+Test Case '-[PiyaliTests.NostrTeamsTests testRefreshAuthenticatesAndAccountChangeClearsOldRoster]' passed (0.037 seconds).
+Test Case '-[PiyaliTests.NostrTeamsTests testRejectedPublicationAndForgedTeamCannotEnterRoster]' passed (0.014 seconds).
+Test Case '-[PiyaliTests.NostrTeamsTests testRosterOnlyRefreshVerifiesMembershipBeforeRequestingAnyMemberData]' passed (0.046 seconds).
+Test Case '-[PiyaliTests.NostrTeamsTests testUnavailableProgressDoesNotRemoveVerifiedTeamMembership]' passed (0.045 seconds).
+	 Executed 9 tests, with 0 failures (0 unexpected) in 1.081 (1.084) seconds
+Test Case '-[PiyaliTests.PrivateTeamsContractTests testCachedLegacyRostersAndConcurrentMemberReadsKeepEachTeamsProgressIndependent]' passed (0.288 seconds).
+Test Case '-[PiyaliTests.PrivateTeamsContractTests testInviteAcceptProgressRenameConcurrentAddsLeaveAndDeleteUseActualSDK]' passed (0.941 seconds).
+Test Case '-[PiyaliTests.PrivateTeamsContractTests testLegacyInvitesDeclineWithoutChangingOtherMembersAndRejectInvalidOrStaleRoster]' passed (0.335 seconds).
+	 Executed 3 tests, with 0 failures (0 unexpected) in 1.564 (1.566) seconds
+Test Case '-[PiyaliTests.TeamsMirrorContractTests testActualFirebaseFirstWatchSnapshotCatchesARosterChangeAfterItsInitialRead]' passed (0.087 seconds).
+Test Case '-[PiyaliTests.TeamsMirrorContractTests testActualFirebaseSDKPublicMirrorCreationMembershipRenameAddsAndDeparture]' passed (0.201 seconds).
+Test Case '-[PiyaliTests.TeamsMirrorContractTests testOpenNativeCachedRosterShowsFirstMirrorSnapshotWithoutAServerRead]' passed (0.729 seconds).
+	 Executed 3 tests, with 0 failures (0 unexpected) in 1.017 (1.019) seconds
+Test Case '-[PiyaliTests.TeamsPanelControllerTests testAlreadyQueuedWatchCallbackCannotReloadOrPublishAfterDrawerCloses]' passed (1.063 seconds).
+Test Case '-[PiyaliTests.TeamsPanelControllerTests testCachedRosterStreamChangesTheCardImmediatelyWhileRowsAreHeldWithoutAFullReload]' passed (0.108 seconds).
+Test Case '-[PiyaliTests.TeamsPanelControllerTests testClosedOrReimportedSessionRejectsLateRosterStageAndMemberBatch]' passed (0.099 seconds).
+Test Case '-[PiyaliTests.TeamsPanelControllerTests testFailedStreamMemberReadKeepsPreviousRowsAndManagementErrorUntilANewSnapshotRecovers]' passed (0.121 seconds).
+Test Case '-[PiyaliTests.TeamsPanelControllerTests testInitialRosterAppearsWithCreatorRowBeforeMemberBatchAndFailureKeepsSourceFallback]' passed (0.094 seconds).
+Test Case '-[PiyaliTests.TeamsPanelControllerTests testLegacyOnlyTeamsDoNotPublishAndLateLoadCannotRestoreClosedAccountData]' passed (0.838 seconds).
+Test Case '-[PiyaliTests.TeamsPanelControllerTests testLiveInvitationsStayCurrentThroughAHeldReadAndFailedActionWithoutAFullReload]' passed (0.120 seconds).
+Test Case '-[PiyaliTests.TeamsPanelControllerTests testManagementFailureEmitsToastKeepsEditorAndSurvivesDrawerCloseButNotSignOut]' passed (0.077 seconds).
+Test Case '-[PiyaliTests.TeamsPanelControllerTests testNewerSuccessfulEmptyRowsCannotInheritAnOlderInitialBatchFailureLabel]' passed (0.084 seconds).
+Test Case '-[PiyaliTests.TeamsPanelControllerTests testNoticePortalClosesItsOwnItemReleasesEmptyWindowAndKeepsCurrentKeyWindow]' passed (0.074 seconds).
+Test Case '-[PiyaliTests.TeamsPanelControllerTests testNoticeTimersKeepIdenticalMessagesIndependentAndFenceCancelledAccount]' passed (0.110 seconds).
+Test Case '-[PiyaliTests.TeamsPanelControllerTests testOldGrantAndClosedStreamCallbacksCannotApplyOrFinishMemberRows]' passed (0.177 seconds).
+Test Case '-[PiyaliTests.TeamsPanelControllerTests testOriginalDebouncePublishesLatestSnapshotUpdatesOwnRowAndCancelsOnClose]' passed (2.573 seconds).
+Test Case '-[PiyaliTests.TeamsPanelControllerTests testReimportingSameAccountKeyFencesOldReadWatchAndPublisherSession]' passed (0.968 seconds).
+Test Case '-[PiyaliTests.TeamsPanelControllerTests testSameTeamNewAcceptedGrantTimestampReplacesTheRosterWatch]' passed (0.108 seconds).
+Test Case '-[PiyaliTests.TeamsPanelControllerTests testStreamBurstCoalescesLatestRowsAndAHeldFullReadCannotOverwriteNewerPresentation]' passed (0.119 seconds).
+Test Case '-[PiyaliTests.TeamsPanelControllerTests testSuccessfulWatchedRefreshClearsAReadFailureWhileActionErrorsRemainIndependent]' passed (0.083 seconds).
+Test Case '-[PiyaliTests.TeamsPanelControllerTests testWatchedChangeDuringFailedManagementStillArrivesWithoutHidingItsError]' passed (0.252 seconds).
+Test Case '-[PiyaliTests.TeamsPanelControllerTests testWatchedChangeWhileReadIsHeldRefreshesAfterTheStaleReadFinishes]' passed (0.265 seconds).
+	 Executed 19 tests, with 0 failures (0 unexpected) in 7.332 (7.338) seconds
+Test Case '-[PiyaliTests.TeamsPanelReferenceTests testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld]' passed (17.202 seconds).
+Test Case '-[PiyaliTests.TeamsPanelReferenceTests testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages]' passed (18.867 seconds).
+	 Executed 2 tests, with 0 failures (0 unexpected) in 36.069 (36.070) seconds
+Test Case '-[PiyaliTests.TeamsStartupTests testAccountReplacementRejectsOldLoadAndSubscriptionWithoutRestartingOnLanguageChanges]' passed (0.164 seconds).
+Test Case '-[PiyaliTests.TeamsStartupTests testActualFirebaseInvitationWatchIncludesLegacyAndPublicRecordsAndSurvivesDrawerWatchClose]' passed (0.421 seconds).
+Test Case '-[PiyaliTests.TeamsStartupTests testForegroundRetriesFailedPreparationAndWatchWithoutRepeatingViewedAttentionOrAcceptingOldCallbacks]' passed (0.143 seconds).
+Test Case '-[PiyaliTests.TeamsStartupTests testOriginalAppBadgeAndNativeMenuControlAcrossViewedAndNewInvitesInEnglishAndArabic]' passed (8.327 seconds).
+Test Case '-[PiyaliTests.TeamsStartupTests testPreloadedEmptyAndNonemptyDrawersRemainVisibleWhileTheirFirstFreshReadIsHeld]' passed (0.128 seconds).
+Test Case '-[PiyaliTests.TeamsStartupTests testStartupReadsAndWatchesBeforeDrawerAndViewedSameIDsStayQuietUntilANewInvitation]' passed (0.092 seconds).
+	 Executed 6 tests, with 0 failures (0 unexpected) in 9.276 (9.278) seconds
+	 Executed 42 tests, with 0 failures (0 unexpected) in 56.339 (56.356) seconds
+	 Executed 42 tests, with 0 failures (0 unexpected) in 56.339 (56.357) seconds
+Test Case '-[PiyaliUITests.TeamsTests testArabicMirrorCardChangesBeforeAHeldSignedMemberReadThenRestoresFreshProgressAndDeletes]' passed (108.901 seconds).
+Test Case '-[PiyaliUITests.TeamsTests testCreateEditRosterAndDeleteUseSignedLocalRelayAndSurviveRelaunch]' passed (127.913 seconds).
+	 Executed 2 tests, with 0 failures (0 unexpected) in 236.814 (236.817) seconds
+	 Executed 2 tests, with 0 failures (0 unexpected) in 236.814 (236.818) seconds
+	 Executed 2 tests, with 0 failures (0 unexpected) in 236.814 (236.819) seconds
+** TEST SUCCEEDED **

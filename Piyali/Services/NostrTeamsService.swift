@@ -83,7 +83,7 @@ struct LearningTeam: Identifiable, Sendable {
         let departed=Set(events.filter { LearningTeams.memberLeft(teamCreatedAt:team.event.created_at,leaveCreatedAt:$0.created_at) }.map(\.pubkey))
         return LearningTeam(id:team.id,creator:team.creator,name:team.name,members:team.members.filter { !departed.contains($0) },event:team.event)
     }
-    private func load(identity: IdentityService, author: String, version: Int) async throws {
+    private func load(identity: IdentityService, author: String, version: Int, includeProgress:Bool=true) async throws {
         let events=try await client.query(filter:["kinds":[LearningTeams.kind],"#t":["learning-team"],"#p":[author],"limit":100],authenticate:authenticate(identity:identity,author:author))
         try valid(identity:identity,author:author,version:version)
         let parsed=latest(events+acknowledged).compactMap(Self.parse)
@@ -95,6 +95,8 @@ struct LearningTeam: Identifiable, Sendable {
             guard !departed.contains(author),team.members.contains(author) else { return nil }
             return LearningTeam(id:team.id,creator:team.creator,name:team.name,members:team.members.filter { !departed.contains($0) },event:team.event)
         }.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+        teams=rosters
+        guard includeProgress else{return}
         let authors=Array(Set(rosters.flatMap(\.members)))
         var snapshots:[String:JSONValue]=[:],names:[String:String]=[:]
         if !authors.isEmpty {
@@ -107,6 +109,7 @@ struct LearningTeam: Identifiable, Sendable {
         }
         teams=rosters;progress=snapshots;profiles=names
     }
+    func refreshRoster(identity:IdentityService)async{do{try await run(identity:identity){author,version in try await self.load(identity:identity,author:author,version:version,includeProgress:false)}}catch{}}
     func refresh(identity: IdentityService) async { do { try await run(identity:identity) { author,version in try await self.load(identity:identity,author:author,version:version) } } catch { } }
     private func keys(_ members: String) throws -> [String] {
         let npubs=members.split(whereSeparator:{ $0.isWhitespace || $0 == "," }).map(String.init)

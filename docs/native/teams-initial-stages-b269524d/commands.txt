@@ -1,0 +1,15 @@
+Read-only reference b269524ddc578027c549616fc47f5954991d9f6f; native base 915ac3f4a0e01286989c2a1ee0d29adb7bab8c1f.
+node scripts/start-reference-preview.mjs (owned 5181 preview; restarted after direct inspection proved the old adapter was still served)
+node scripts/check-teams-staged-load.mjs --browser --out /tmp/piyali-teams-staged-source-browser-20261106.json
+
+Every iOS command pins PIYALI_TEST_DEVICE=CE8248B6-7171-4FD4-97DE-89E499107F82; TEST_RUNNER_PIYALI_OFFLINE_TESTS=1; TEST_RUNNER_PIYALI_TEST_IDENTITY_SCOPE=<fresh uuidgen>; TEST_RUNNER_PIYALI_REFERENCE_PREVIEW_TESTS=1; TEST_RUNNER_PIYALI_FIRESTORE_EMULATOR_TESTS=1.
+first: failed compilation in the wrong test relay helper, no XCTest execution.
+rendered: failed compilation unwrapping an optional attachment name, no XCTest execution.
+checked: 27 cases pass before concurrent legacy member reads (25 app + 2 UI). 16 staged pairs.
+parallel: expanded concurrent member-read/state regression run; source opt-in live relay read explicitly excluded from selection.
+Final run command and exact test results are retained separately from earlier diagnostics. All bundles/logs have /tmp/piyali-teams-staged-<name>-20261106 prefix.
+
+Attachments exported only after terminal completion. No Swift edits during any live Swift/test build. Original PNG/geometry retained; paired ICC profiles normalized to sRGB, each side logical 402x874, source left/native right. Only isolated QA used; regular simulator 5CEE88FE-AE9D-4982-88BE-3FB739281A80 and learner preserved. Existing emulator 8180 demo-piyali-ios, rules 8280 and source Vite remain untouched. Owned preview stopped afterward; only its three unrelated regenerated manifests restored. No production deployment/configuration, merge or publication.
+
+Final command after the environment above:
+/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project Piyali.xcodeproj -scheme Piyali -destination "platform=iOS Simulator,id=CE8248B6-7171-4FD4-97DE-89E499107F82" -derivedDataPath DerivedData CODE_SIGN_IDENTITY=- COMPILER_INDEX_STORE_ENABLE=NO -collect-test-diagnostics never -parallel-testing-enabled NO "-only-testing:PiyaliTests/TeamsPanelControllerTests" "-only-testing:PiyaliTests/TeamsMirrorContractTests" "-only-testing:PiyaliTests/PrivateTeamsContractTests" "-only-testing:PiyaliTests/TeamsStartupTests" "-only-testing:PiyaliTests/NostrTeamsTests" "-skip-testing:PiyaliTests/NostrTeamsTests/testOptInLiveTeamReadDoesNotPublish" "-only-testing:PiyaliTests/TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages" "-only-testing:PiyaliTests/TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld" "-only-testing:PiyaliUITests/TeamsTests/testArabicMirrorCardChangesBeforeAHeldSignedMemberReadThenRestoresFreshProgressAndDeletes" "-only-testing:PiyaliUITests/TeamsTests/testCreateEditRosterAndDeleteUseSignedLocalRelayAndSurviveRelaunch" -resultBundlePath /tmp/piyali-teams-staged-final-20261106.xcresult test

@@ -8,6 +8,7 @@ import SwiftUI
     var delay:CheckedContinuation<Void,Never>?
     var pause=false,loadFails=false
     func load(_ app:AppModel)async throws->TeamsPanelSnapshot{loads += 1;if loadFails{throw URLError(.notConnectedToInternet)};let value=next;if pause{await withCheckedContinuation{delay=$0}};return value}
+    func loadStaged(_ app:AppModel,onRoster:@escaping @MainActor(TeamsPanelSnapshot)async->Void)async throws->TeamsPanelSnapshot{try await load(app)}
     func create(name:String,members:[String],app:AppModel)async throws{}
     func rename(_ team:JSONValue,name:String,app:AppModel)async throws->Bool{false}
     func add(_ team:JSONValue,members:[String],app:AppModel)async throws->Bool{false}
@@ -168,5 +169,41 @@ extension TeamsPanelControllerTests {
         try await Task.sleep(for:.milliseconds(30));XCTAssertEqual(model.snapshot.teams.first?["teamName"].string,"Replacement grant");XCTAssertEqual(model.snapshot.rows[key]?.first?["name"].string,"Previous rows")
         current(team.setting("teamName",.string("Current peer")));try await settle{access.heldRows.count==1};model.cancel();current(team.setting("teamName",.string("Closed peer")));access.finish(.success([.object(["name":.string("Closed rows")])]))
         try await Task.sleep(for:.milliseconds(30));XCTAssertEqual(model.snapshot.teams.first?["teamName"].string,"Current peer");XCTAssertEqual(model.snapshot.rows[key]?.first?["name"].string,"Previous rows");XCTAssertTrue(access.published.isEmpty)
+    }
+}
+
+@MainActor private final class TeamStagedAccess:TeamControllerAccess {
+    var stage=TeamsPanelSnapshot(),receive:(@MainActor(TeamsPanelSnapshot)async->Void)?
+    var receiveRecord:(@MainActor(JSONValue)->Void)?
+    var finish:CheckedContinuation<TeamsPanelSnapshot,Never>?
+    override func watchRoster(_ snapshot:TeamsPanelSnapshot,app:AppModel,onRecord:@escaping @MainActor(JSONValue)->Void,onInvalidate:@escaping @MainActor()->Void)async{receiveRecord=onRecord;await super.watchRoster(snapshot,app:app,onRecord:onRecord,onInvalidate:onInvalidate)}
+    override func loadStaged(_ app:AppModel,onRoster:@escaping @MainActor(TeamsPanelSnapshot)async->Void)async throws->TeamsPanelSnapshot{loads += 1;receive=onRoster;await onRoster(stage);return await withCheckedContinuation{finish=$0}}
+}
+extension TeamsPanelControllerTests {
+    func testInitialRosterAppearsWithCreatorRowBeforeMemberBatchAndFailureKeepsSourceFallback()async throws{
+        let(app,_,_)=try context();let access=TeamStagedAccess(),model=TeamsPanelController(access:access);defer{model.cancel();try? app.identity.disconnect()}
+        let own:JSONValue = .object(["id":.string("owned"),"createdBy":.string(app.identity.npub),"isCreator":.bool(true)]),joined:JSONValue = .object(["id":.string("joined"),"createdBy":.string("other")]),a=LiveTeamsPanelAccess.key(own),b=LiveTeamsPanelAccess.key(joined),row=LearningTeams.progressRow(member:app.identity.npub,data:LearningTeams.snapshot(app.learner),creator:true)
+        access.stage = .init(teams:[own,joined],rows:[a:[row]],loadingRows:[a,b]);let read=Task{await model.reload(app)};try await settle{access.finish != nil}
+        XCTAssertFalse(model.loading);XCTAssertEqual(model.snapshot.teams.count,2);XCTAssertEqual(model.snapshot.rows[a],[row]);XCTAssertNil(model.snapshot.rows[b]);XCTAssertEqual(model.snapshot.loadingRows,[a,b]);XCTAssertFalse(access.watchCallbacks.isEmpty)
+        access.finish?.resume(returning:.init(teams:[own,joined],rows:[a:[row]],failedRows:[b]));access.finish=nil;await read.value
+        XCTAssertTrue(model.snapshot.loadingRows.isEmpty);XCTAssertEqual(model.snapshot.rows[a],[row]);XCTAssertTrue(model.snapshot.failedRows.contains(b));XCTAssertNil(model.error);XCTAssertTrue(app.teamsNotices.notices.isEmpty)
+    }
+    func testClosedOrReimportedSessionRejectsLateRosterStageAndMemberBatch()async throws{
+        let(app,_,_)=try context();let access=TeamStagedAccess(),model=TeamsPanelController(access:access);defer{model.cancel();try? app.identity.disconnect()}
+        let initial:JSONValue = .object(["id":.string("initial")]);access.stage = .init(teams:[initial]);let read=Task{await model.reload(app)};try await settle{access.finish != nil};let callback=try XCTUnwrap(access.receive)
+        model.cancel();await callback(.init(teams:[.object(["id":.string("closed")])]))
+        access.finish?.resume(returning:.init(teams:[]));access.finish=nil;await read.value;XCTAssertEqual(model.snapshot.teams,[initial])
+        let next=Task{await model.reload(app)};try await settle{access.finish != nil};let newCallback=try XCTUnwrap(access.receive),key=app.identity.exportKey();try app.identity.importKey(key);await newCallback(.init(teams:[]));access.finish?.resume(returning:.init(teams:[]));access.finish=nil;await next.value;XCTAssertEqual(model.snapshot.teams,[initial]);XCTAssertTrue(access.published.isEmpty)
+    }
+}
+
+extension TeamsPanelControllerTests {
+    func testNewerSuccessfulEmptyRowsCannotInheritAnOlderInitialBatchFailureLabel()async throws{
+        let(app,_,_)=try context();let access=TeamStagedAccess(),model=TeamsPanelController(access:access);defer{model.cancel();try? app.identity.disconnect()}
+        let team:JSONValue = .object(["id":.string("joined"),"createdBy":.string("other"),"teamName":.string("Joined team")]),key=LiveTeamsPanelAccess.key(team)
+        access.stage = .init(teams:[team],loadingRows:[key]);let read=Task{await model.reload(app)};try await settle{access.finish != nil && access.receiveRecord != nil}
+        access.receiveRecord?(team.setting("teamName",.string("Newer team")));try await settle{model.snapshot.rows[key]?.isEmpty == true}
+        access.finish?.resume(returning:.init(teams:[team],failedRows:[key]));access.finish=nil;await read.value
+        XCTAssertEqual(model.snapshot.teams.first?["teamName"].string,"Newer team");XCTAssertEqual(model.snapshot.rows[key],[]);XCTAssertFalse(model.snapshot.failedRows.contains(key));XCTAssertNil(model.error)
     }
 }

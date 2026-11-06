@@ -48,3 +48,5 @@ Feed loading, empty, rejected-fetch/Refresh, cache and source-default adapter be
 Retained raw feed content, original blank versus empty behavior, filtered-cache expiry and metadata failure/fallback have subsequent scoped evidence in [TEAMS_FEED_CONTENT.md](TEAMS_FEED_CONTENT.md). This does not close wider provider/roster/whole-product acceptance.
 
 Immediate known-team mirror/cache updates, independent retained member reads, signed-action boundaries, stable row identities and body-scrolling tabs now have scoped evidence in [TEAMS_STREAMED_ROSTERS.md](TEAMS_STREAMED_ROSTERS.md). Initial staged roster/member loading, cold public progress caches, broader outage/grant/legacy/large-roster and full design acceptance remain open.
+
+Initial roster-before-member display, creator rows, accepted-member skeletons and joined-team failure/empty/loading distinctions have a subsequent record in [TEAMS_INITIAL_STAGES.md](TEAMS_INITIAL_STAGES.md). Full-shell, cold cache, production transport/grants and large/legacy roster acceptance remain open.

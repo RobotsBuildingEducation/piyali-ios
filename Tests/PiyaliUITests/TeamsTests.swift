@@ -179,7 +179,7 @@ private final class StreamedRosterRelay:@unchecked Sendable {
     private let lock=NSLock()
     private var events:[[String:Any]]=[]
     private var held:[(String,NWConnection)]=[]
-    private var hold=false
+    private var hold=false,holdOnlyMembers=false
     private let member=Keypair(hex:String(repeating:"0",count:63)+"3")!
     private let stamp=Int64(Date().timeIntervalSince1970)
     var memberNpub:String{member.publicKey.npub}
@@ -194,10 +194,12 @@ private final class StreamedRosterRelay:@unchecked Sendable {
         let data=try JSONSerialization.data(withJSONObject:fields,options:[.sortedKeys,.withoutEscapingSlashes]);return try event(kind:30078,tags:[["d","learning-progress"],["t","learning-progress"]],content:String(decoding:data,as:UTF8.self),time:time)
     }
     init()throws{events=[try event(kind:0,tags:[],content:"{\"name\":\"Public teammate\"}",time:stamp),try progress(1234,time:stamp)]}
-    func arm(){lock.withLock{hold=true}}
+    func arm(){lock.withLock{hold=true;holdOnlyMembers=false}}
+    func armMembers(){lock.withLock{hold=true;holdOnlyMembers=true}}
+    func releaseCurrent(_ relay:LocalNostrRelay){let result=lock.withLock{()->([(String,NWConnection)],[[String:Any]]) in hold=false;let pending=held;held=[];return(pending,events)};for(id,connection)in result.0{for event in result.1{relay.send(["EVENT",id,event],to:connection)};relay.send(["EOSE",id],to:connection)}}
     func handle(_ frame:[Any],_ connection:NWConnection,relay:LocalNostrRelay){
         if frame.first as? String == "REQ",let id=frame[1] as? String{
-            let result=lock.withLock{()->[[String:Any]]? in if hold{held.append((id,connection));return nil};return events}
+            let result=lock.withLock{()->[[String:Any]]? in if hold && (!holdOnlyMembers || (frame.dropFirst(2).compactMap{$0 as? [String:Any]}.contains{($0["#d"] as? [String])?.contains("learning-progress") == true})){held.append((id,connection));return nil};return events}
             if let result{for event in result{relay.send(["EVENT",id,event],to:connection)};relay.send(["EOSE",id],to:connection)}
         }else if frame.first as? String == "EVENT",let event=frame[1] as? [String:Any],let id=event["id"] as? String{lock.withLock{events.append(event)};relay.send(["OK",id,true,""],to:connection)}
     }
@@ -215,6 +217,10 @@ extension TeamsTests {
         tap("productMenu",app);tap("productPanel-settings",app);tap("supportLanguagePicker",app);tap("settingsLanguage-support-ar",app);tap("productPanelClose",app)
         open(app);let owner=try XCTUnwrap(app.buttons["teamsCopyID"].value as? String);tap("teamCreateOpen",app);enter("Weekend","teamName",app);enter(state.memberNpub,"teamMembers",app);tap("teamCreate",app)
         let old=app.staticTexts["1234"];for _ in 0..<6 where !old.isHittable{app.swipeUp(velocity:.slow)};XCTAssertTrue(old.waitForExistence(timeout:15));XCTAssertTrue(old.isHittable);shot("Native streamed roster initial signed member",app)
+        tap("teamsClose",app);app.terminate();state.armMembers();app.launch();open(app)
+        XCTAssertTrue(app.staticTexts["Stream Learner"].waitForExistence(timeout:5),"Cold roster exposes the in-memory creator before signed peer progress finishes")
+        XCTAssertFalse(app.staticTexts["1234"].exists);XCTAssertTrue(state.waiting);shot("Native cold roster creator before held member batch",app)
+        state.releaseCurrent(relay);for _ in 0..<6 where !old.isHittable{app.swipeUp(velocity:.slow)};XCTAssertTrue(old.waitForExistence(timeout:15));shot("Native cold roster signed members settled",app)
         let card=app.buttons["learningTeamRow"];for _ in 0..<6 where !card.isHittable{app.swipeDown(velocity:.slow)};XCTAssertTrue(card.isHittable);XCTAssertEqual(card.label,"Weekend")
         let url=try XCTUnwrap(URL(string:"http://127.0.0.1:8180/v1/projects/demo-piyali-ios/databases/(default)/documents/users/\(owner)/teams")),(data,_)=try await URLSession.shared.data(from:url),json=try XCTUnwrap(JSONSerialization.jsonObject(with:data) as? [String:Any]),docs=try XCTUnwrap(json["documents"] as? [[String:Any]]),path=try XCTUnwrap(docs.first?["name"] as? String),id=try XCTUnwrap(path.split(separator:"/").last).description
         state.arm()
