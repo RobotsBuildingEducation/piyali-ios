@@ -1,0 +1,42 @@
+{
+  "devicesAndConfigurations": [
+    {
+      "device": {
+        "architecture": "arm64",
+        "deviceId": "CE8248B6-7171-4FD4-97DE-89E499107F82",
+        "deviceName": "Piyali Parity QA",
+        "modelName": "iPhone 17 Pro",
+        "osBuildNumber": "23E254a",
+        "osVersion": "26.4.1",
+        "platform": "iOS Simulator"
+      },
+      "expectedFailures": 0,
+      "failedTests": 0,
+      "passedTests": 21,
+      "skippedTests": 1,
+      "testPlanConfiguration": {
+        "configurationId": "1",
+        "configurationName": "Test Scheme Action"
+      }
+    }
+  ],
+  "environmentDescription": "Piyali \u00b7 Built with macOS 26.4.1",
+  "expectedFailures": 0,
+  "failedTests": 0,
+  "finishTime": 1793955087.924,
+  "passedTests": 21,
+  "result": "Passed",
+  "skippedTests": 1,
+  "startTime": 1793954672.145,
+  "statistics": [],
+  "testFailures": [],
+  "title": "Test - Piyali",
+  "topInsights": [
+    {
+      "category": "Longest Test Runs",
+      "impact": "79% of duration",
+      "text": "1 longest test run with outlier durations exceeding 49.42s (three standard deviations)"
+    }
+  ],
+  "totalTestCount": 22
+}

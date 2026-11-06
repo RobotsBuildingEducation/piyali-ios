@@ -7,6 +7,7 @@ struct TeamsDrawerView:View {
     @StateObject private var model:TeamsPanelController
     let onClose:()->Void
     @State private var tab=0
+    @State private var mounted=false
     @State private var expanded:Set<String>=[]
     @State private var editor:TeamsEditor?
     @State private var removal:JSONValue?
@@ -24,7 +25,7 @@ struct TeamsDrawerView:View {
     private var surface:Color{light ? c("fdf9f2"):c("0b1220")}
     private var border:Color{light ? brand.border:.white.opacity(0.2)}
     private func t(_ key:String,_ fallback:String)->String{let value=EntryCopy.ui(language,key);return value.isEmpty || value == key ? fallback:value}
-    init(service:NostrTeamsService,onClose:@escaping()->Void){_model=StateObject(wrappedValue:TeamsPanelController(access:LiveTeamsPanelAccess(service:service)));self.onClose=onClose}
+    init(service:NostrTeamsService,initial:TeamsPanelSnapshot?=nil,initialOwner:String="",onClose:@escaping()->Void){_model=StateObject(wrappedValue:TeamsPanelController(access:LiveTeamsPanelAccess(service:service),initial:initial ?? .init(),initialOwner:initial == nil ? "":initialOwner));self.onClose=onClose}
     init(model:TeamsPanelController,initialTab:Int=0,initialEditor:TeamsEditor?=nil,initialMembers:[String]=[],onClose:@escaping()->Void){_model=StateObject(wrappedValue:model);_tab=State(initialValue:initialTab);_editor=State(initialValue:initialEditor);_name=State(initialValue:initialEditor?.team?["teamName"].string ?? "");_queued=State(initialValue:initialMembers);self.onClose=onClose}
     var body:some View {
         GeometryReader{g in
@@ -42,16 +43,18 @@ struct TeamsDrawerView:View {
             }.frame(width:g.size.width,height:g.size.height)
         }.ignoresSafeArea(.container).foregroundStyle(ink).font(.system(size:16)).buttonStyle(TeamsButtonStyle()).environment(\.layoutDirection,.leftToRight).accessibilityAddTraits(.isModal)
             .task(id:app.identity.npub){await model.reload(app);if tab == 1{await model.loadFeed(app)}}
+            .onAppear{mounted=true;viewedInvites()}.onReceive(app.teamsStartup.$attention){value in if value.count>0,value.hasUnseen{Task{@MainActor in await Task.yield();viewedInvites()}}}
             .onChange(of:editor){_,value in field=value?.isRename == true ? "teamEditName":nil}
             .onChange(of:app.localPracticeRevision){_,_ in model.scheduleSharing(app)}
             .onChange(of:LearningTeams.snapshot(app.learner).setting("updatedAt",.number(0)).canonicalJSON){_,_ in model.scheduleSharing(app)}
             .task(id:model.notice){if let saved=model.notice{try? await Task.sleep(for:.seconds(3));if !Task.isCancelled,model.notice==saved{model.notice=nil}}}
-            .onDisappear{model.cancel()}
+            .onDisappear{mounted=false;model.cancel()}
             .toolbar{ToolbarItemGroup(placement:.keyboard){Spacer();Button("Done"){field=nil}.accessibilityIdentifier("teamsKeyboardDone")}}
             .confirmationDialog(removal?["isCreator"].boolean == true ? t("teams_view_delete_confirm","Delete {team}?").replacingOccurrences(of:"{team}",with:removal?["teamName"].string ?? ""):t("teams_view_leave_confirm","Leave {team}?").replacingOccurrences(of:"{team}",with:removal?["teamName"].string ?? ""),isPresented:Binding(get:{removal != nil},set:{if !$0{removal=nil}}),titleVisibility:.visible){if let team=removal{Button(team["isCreator"].boolean ? t("teams_view_delete","Delete team"):t("teams_view_leave","Leave team"),role:.destructive){model.perform(app,action:{access in try await access.remove(team,app:app);return t(team["isCreator"].boolean ? "teams_view_deleted":"teams_view_left",team["isCreator"].boolean ? "Team deleted":"Left team")});removal=nil}}}
     }
+    private func viewedInvites(){if mounted,tab == 0,app.teamsStartup.attention.count>0,app.teamsStartup.attention.hasUnseen{app.teamsStartup.viewed(app)}}
     private func tabButton(_ index:Int,_ title:String)->some View{
-        Button{tab=index;if index == 1{Task{await model.loadFeed(app)}}else{Task{await model.reload(app)}}}label:{Text(title).font(.system(size:14,weight:.semibold)).foregroundStyle(tab == index ? ink:(light ? c("8d7a67"):c("a3b4c9"))).frame(height:21).padding(.bottom,8).overlay(alignment:.bottom){if tab == index{Rectangle().fill(LinearGradient(colors:[c("76e4f7"),c("38b2ac")],startPoint:.leading,endPoint:.trailing)).frame(height:2)}}}.accessibilityIdentifier(index == 0 ? "teamsTab":"teamsFeedTab").accessibilityAddTraits(tab == index ? .isSelected:[])
+        Button{tab=index;if index == 0{app.teamsStartup.viewed(app)};if index == 1{Task{await model.loadFeed(app)}}else{Task{await model.reload(app)}}}label:{Text(title).font(.system(size:14,weight:.semibold)).foregroundStyle(tab == index ? ink:(light ? c("8d7a67"):c("a3b4c9"))).frame(height:21).padding(.bottom,8).overlay(alignment:.bottom){if tab == index{Rectangle().fill(LinearGradient(colors:[c("76e4f7"),c("38b2ac")],startPoint:.leading,endPoint:.trailing)).frame(height:2)}}}.accessibilityIdentifier(index == 0 ? "teamsTab":"teamsFeedTab").accessibilityAddTraits(tab == index ? .isSelected:[])
     }
     @ViewBuilder private var teamList:some View {
         HStack(spacing:8){Spacer(minLength:0);action(t("teams_create_open","Create team"),id:"teamCreateOpen"){open(.create)};action(t("teams_copy_id","Copy Your ID"),outline:true,id:"teamsCopyID"){UIPasteboard.general.string=app.identity.npub;model.noticeKind="success";model.notice=t("teams_copy_id_success","Your ID was copied")}.accessibilityValue(app.identity.npub)}

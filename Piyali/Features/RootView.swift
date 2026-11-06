@@ -9,7 +9,7 @@ struct RootView: View {
         else {
             ProductAccessView(service:app.subscription).id(app.identity.npub)
         }
-        }.background(SignerAuthorizationPresenter(identity:app.identity)).background(CompanionSaveNoticePresenter())
+        }.task(id:app.signedIn ? app.identity.npub+app.identity.sessionRevision.uuidString:""){app.teamsStartup.bind(app)}.background(SignerAuthorizationPresenter(identity:app.identity)).background(CompanionSaveNoticePresenter())
     }
 }
 private struct ProductAccessView:View {

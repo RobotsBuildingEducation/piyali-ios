@@ -1,0 +1,39 @@
+{
+  "CoreFirst": "Compilation failed: new test used an Int JSONValue subscript instead of .array[index]; corrected before the passing Core run.",
+  "runs": [
+    {
+      "bundle": "PiyaliTeamsStartupFirst20261106",
+      "result": "Passed",
+      "total": 8,
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "bundle": "PiyaliTeamsStartupVerified20261106",
+      "result": "Passed",
+      "total": 22,
+      "passed": 21,
+      "failed": 0,
+      "skipped": 1
+    },
+    {
+      "bundle": "PiyaliTeamsStartupReconnect20261106",
+      "result": "Passed",
+      "total": 8,
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "bundle": "PiyaliTeamsStartupDesignFinal20261106",
+      "result": "Passed",
+      "total": 2,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0
+    }
+  ],
+  "AbortedVisualPreparation": "A visual command was explicitly interrupted with exit 75 after its local reference server had been stopped; no visual result was claimed. Server restarted before the passing DesignFinal bundle.",
+  "BroadSkip": "Rollback required PIYALI_RULES_EMULATOR_TESTS=1 on existing isolated 8280. The final reconnect bundle supplies it and passes that check."
+}

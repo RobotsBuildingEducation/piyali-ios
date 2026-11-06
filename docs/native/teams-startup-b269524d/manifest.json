@@ -1,0 +1,247 @@
+{
+  "referenceRevision": "b269524ddc578027c549616fc47f5954991d9f6f",
+  "nativeBase": "8cd15aab348b7a797d8f71fbda9392840638ff83",
+  "scope": "Startup reads, invitation attention, first cached drawer state and native foreground retry. Original App effects/component + explicit public I/O; native signup/setup, closed/open/Feed invitations, viewing, renamed/new IDs, relaunch/decline; real local Firebase SDK; signed loopback roster lifecycle/rollback and no startup public publish. Not production Firebase/relays, large rosters, complete main-route visual parity or a physical device.",
+  "records": [
+    {
+      "file": "PiyaliTeamsStartupDesignFinal20261106-summary.json",
+      "sha256": "46374326fe5fac9e44a96e58d844acb5264e2ce550a15d958c481bd3a9116c15"
+    },
+    {
+      "file": "PiyaliTeamsStartupFirst20261106-summary.json",
+      "sha256": "a13fa0af28eddadd27a562f1329529dfb291c8200ddaa8b74da8c1d62ebf3c4c"
+    },
+    {
+      "file": "PiyaliTeamsStartupReconnect20261106-summary.json",
+      "sha256": "661119de920393e7cad4c95473f4b9bc48133228f410651ec4d2dbc2b2f6eef2"
+    },
+    {
+      "file": "PiyaliTeamsStartupVerified20261106-summary.json",
+      "sha256": "729aea3fbe3de1ae65aaada2c75da534f5603580d56daf445c62a88d5cd1db86"
+    },
+    {
+      "file": "attachment-provenance.json",
+      "sha256": "751a1721dcecbddb762fd88abe509d6b7721c82aa62b9346d2fd03fb9dff4270"
+    },
+    {
+      "file": "before-design-attachment-provenance.json",
+      "sha256": "5adc40d3a66f13386864f678fa54b2e4302af792ec1d70e23270f879efef3f3f"
+    },
+    {
+      "file": "before-design-pair-badge-ar.png",
+      "sha256": "48c45afc99d21d2c28f577f03e6aaca68364299f50d2ee2de8b40693aae4c46b"
+    },
+    {
+      "file": "before-design-pair-badge-en.png",
+      "sha256": "15a81e277223b80b4d1d151b7e3bfb3e8eced8685f0a1bf34f3ae0148b4eb13d"
+    },
+    {
+      "file": "core-tests.txt",
+      "sha256": "ad2710c08d32a83ae69eefae4135d9cf06dcff6c94b0f7159ed7c9449761660d"
+    },
+    {
+      "file": "diagnostic-results.json",
+      "sha256": "ba6e133a7d5c511d66b95765ef54223302f09bfc13c9f9d0a713594b99f53ecf"
+    },
+    {
+      "file": "final-source-hashes.json",
+      "sha256": "d7fdc9c951b2658c7b95f77dbf6e67905ef19a21123f237c3889b9c42b2f8f28"
+    },
+    {
+      "file": "latest-per-test-results.json",
+      "sha256": "43ee47f6340b97f80473b5bdf8a87ebce6ed27b5f9e5d717218658bad4e3acbc"
+    },
+    {
+      "file": "native-app-invitation-badge-new-id-ar.png",
+      "sha256": "35f3eb9f0a06211b9dd95731ffea0590d4162e8c81897cdece75bab28cd2366f"
+    },
+    {
+      "file": "native-app-invitation-badge-new-id-en.png",
+      "sha256": "f31d9ecb6e895b44286109fb42752e546378948d357dc1836731a1f47a80dc9b"
+    },
+    {
+      "file": "native-app-invitation-badge-pending-ar.png",
+      "sha256": "35f3eb9f0a06211b9dd95731ffea0590d4162e8c81897cdece75bab28cd2366f"
+    },
+    {
+      "file": "native-app-invitation-badge-pending-en.png",
+      "sha256": "f31d9ecb6e895b44286109fb42752e546378948d357dc1836731a1f47a80dc9b"
+    },
+    {
+      "file": "native-app-invitation-badge-same-id-ar.png",
+      "sha256": "e9ded3c0131a4f3613fddef5088fe3b389f773da3f0f8f7c732d4f639c42b24d"
+    },
+    {
+      "file": "native-app-invitation-badge-same-id-en.png",
+      "sha256": "ad5c66b5c86db85babc9ec48d0a55718381e96a8c428b4deacd0c81e814c5ae9"
+    },
+    {
+      "file": "native-app-invitation-badge-viewed-ar.png",
+      "sha256": "e9ded3c0131a4f3613fddef5088fe3b389f773da3f0f8f7c732d4f639c42b24d"
+    },
+    {
+      "file": "native-app-invitation-badge-viewed-en.png",
+      "sha256": "ad5c66b5c86db85babc9ec48d0a55718381e96a8c428b4deacd0c81e814c5ae9"
+    },
+    {
+      "file": "native-startup-contact.png",
+      "sha256": "c3615cf3dbd6e794df8556fb479ac10cc323ddf4228f31a472e1587c97c54cf8"
+    },
+    {
+      "file": "native-teams-empty-product.png",
+      "sha256": "7d39ad133029e1eee2fed09b83808e386e9c82bd84211165614fbfb40f1bcfff"
+    },
+    {
+      "file": "native-teams-feed-en.png",
+      "sha256": "9b92fd2135ad08b9170479fb522745bd4e47690618775ce1f76a4787735cdf3e"
+    },
+    {
+      "file": "native-teams-feed-product.png",
+      "sha256": "0e21103b59f65de447400853671f76d2cf9f0a0b681f1b151e3d832bc0420b0b"
+    },
+    {
+      "file": "native-teams-invitation-arrives-while-drawer-closed.png",
+      "sha256": "79fc25702e40ae3107ee116bd825454d0d285465f8c06b957ebf7b2b03cb962b"
+    },
+    {
+      "file": "native-teams-menu-item-and-trigger-show-unseen-invitation.png",
+      "sha256": "b98803ad78d2b6db8bb271e3572f69a8730415b0470e854eac04d5161ba8f8e9"
+    },
+    {
+      "file": "native-teams-new-invitation-remains-unseen-on-global-feed.png",
+      "sha256": "95e24f41109d2711f5665dcfd724a7e994a7e6b5d012a7cb69dd8256e58996bf"
+    },
+    {
+      "file": "native-teams-opening-your-teams-views-the-pending-invitation.png",
+      "sha256": "af4ea24a44c2c77cd55b5bd985a8f7152960d78208ac07f8120ac83d693c46f4"
+    },
+    {
+      "file": "native-teams-pending-ar.png",
+      "sha256": "1effb3759ef77253518235db7990566ee5298611c17a6481ba5e238188410e02"
+    },
+    {
+      "file": "native-teams-pending-invitations-are-unseen-again-on-fresh-app-startup.png",
+      "sha256": "7e0665438d2c6f3371411fcae778368eac1062c38053dad419ba65a4218afc53"
+    },
+    {
+      "file": "native-teams-queued-product.png",
+      "sha256": "9ef2350b7ff944cb330e358eef56281bb8203c55a8822cf40c0c02e1764779b6"
+    },
+    {
+      "file": "native-teams-restored-product.png",
+      "sha256": "b2f19a0dc0767f55b461e7e3a3d023ffcda414ac26d55b820e7c27885a1b801c"
+    },
+    {
+      "file": "native-teams-single-en.png",
+      "sha256": "2ad3ccd2c1ea7b3bf1dbcfbb07b0cf9650c120665a0fc1b5ef3f00494857f770"
+    },
+    {
+      "file": "native-teams-single-product.png",
+      "sha256": "77b6e7c91a007ebd396fbe28863e7683e17fedb79b3646bdff23381226360263"
+    },
+    {
+      "file": "pair-badge-ar.png",
+      "sha256": "a1414ad0e887df55db59dd9dd587f6808736fa513043913fa8276926252cb83f"
+    },
+    {
+      "file": "pair-badge-en.png",
+      "sha256": "2a085af1ac57c3a463e866523420fb3dd56ba6acb27e09165549632caa3f83ba"
+    },
+    {
+      "file": "pair-drawer-feed-en.png",
+      "sha256": "4cb48942a3426d449576527257628aa6929e2c461201afd7fd9b27fefdc5d21e"
+    },
+    {
+      "file": "pair-drawer-pending-ar.png",
+      "sha256": "f4b748852d438bd60a3e71294fc40b6827f90b9f986903879d48ca3ba1337994"
+    },
+    {
+      "file": "pair-drawer-single-en.png",
+      "sha256": "7c139d12212d12402f3e1bd5b336e89a5377a86f2d3d2e119920a742757a3d91"
+    },
+    {
+      "file": "source-app-invitation-badge-new-id-ar-geometry.json",
+      "sha256": "265a6980c8aab5ba6eeabb3ceb85ad64f0f565d37320f1ade6f655274cafc281"
+    },
+    {
+      "file": "source-app-invitation-badge-new-id-ar.png",
+      "sha256": "d82ea75455b27968514ce878bf64f49de2c91c1cb84d75f94bd903f432a2106c"
+    },
+    {
+      "file": "source-app-invitation-badge-new-id-en-geometry.json",
+      "sha256": "8dca5911e691dcc6c0ee36c9a219c80573711e6c48f89e275f80e9a934684d10"
+    },
+    {
+      "file": "source-app-invitation-badge-new-id-en.png",
+      "sha256": "37bc36e603a4522d463f717e692d0ab249afe96160645c91a9c443ac14f60b84"
+    },
+    {
+      "file": "source-app-invitation-badge-pending-ar-geometry.json",
+      "sha256": "265a6980c8aab5ba6eeabb3ceb85ad64f0f565d37320f1ade6f655274cafc281"
+    },
+    {
+      "file": "source-app-invitation-badge-pending-ar.png",
+      "sha256": "d82ea75455b27968514ce878bf64f49de2c91c1cb84d75f94bd903f432a2106c"
+    },
+    {
+      "file": "source-app-invitation-badge-pending-en-geometry.json",
+      "sha256": "8dca5911e691dcc6c0ee36c9a219c80573711e6c48f89e275f80e9a934684d10"
+    },
+    {
+      "file": "source-app-invitation-badge-pending-en.png",
+      "sha256": "37bc36e603a4522d463f717e692d0ab249afe96160645c91a9c443ac14f60b84"
+    },
+    {
+      "file": "source-app-invitation-badge-same-id-ar-geometry.json",
+      "sha256": "f4d43b1dd5fc15d2aa3e9a4e7628eab0cc36f4f8706a90320bfd742e1b086f96"
+    },
+    {
+      "file": "source-app-invitation-badge-same-id-ar.png",
+      "sha256": "e9424d2a7f4d1a07628cef3f0513bc69490de8cfaf22f914ad606c4dfb2f7c30"
+    },
+    {
+      "file": "source-app-invitation-badge-same-id-en-geometry.json",
+      "sha256": "bb6532de8bee3bef4634607194057c9af8ea1719f175623391d8ae0bbc4c1e49"
+    },
+    {
+      "file": "source-app-invitation-badge-same-id-en.png",
+      "sha256": "397ec91ad1f94706bb907c1a43a83759c49d21c9a9abcc99ee8e14d37614a5fc"
+    },
+    {
+      "file": "source-app-invitation-badge-viewed-ar-geometry.json",
+      "sha256": "f4d43b1dd5fc15d2aa3e9a4e7628eab0cc36f4f8706a90320bfd742e1b086f96"
+    },
+    {
+      "file": "source-app-invitation-badge-viewed-ar.png",
+      "sha256": "e9424d2a7f4d1a07628cef3f0513bc69490de8cfaf22f914ad606c4dfb2f7c30"
+    },
+    {
+      "file": "source-app-invitation-badge-viewed-en-geometry.json",
+      "sha256": "bb6532de8bee3bef4634607194057c9af8ea1719f175623391d8ae0bbc4c1e49"
+    },
+    {
+      "file": "source-app-invitation-badge-viewed-en.png",
+      "sha256": "397ec91ad1f94706bb907c1a43a83759c49d21c9a9abcc99ee8e14d37614a5fc"
+    },
+    {
+      "file": "source-startup-oracle.json",
+      "sha256": "a2171ba7edebbef72e0f60e79e10ee109b2f97f9199f797ef2708dad33324a77"
+    },
+    {
+      "file": "source-teams-feed-en.png",
+      "sha256": "3d803cb72868fc55ec8818785dd8a53a6ea1d3721366d1b51bf3acb360a52a82"
+    },
+    {
+      "file": "source-teams-pending-ar.png",
+      "sha256": "24cc7224dbe97bbf3591ee8908b9378523830ea6c9f28303017416c2336f98b0"
+    },
+    {
+      "file": "source-teams-single-en.png",
+      "sha256": "95c311102e932876eb70b70397c53fc168de62fc52f8044a9f1a97e6e2e2ee16"
+    },
+    {
+      "file": "validation-commands.json",
+      "sha256": "969d2a5fd0377d91ac6d2f4df7429ceb26881c81ac090292fcdc2918971724bf"
+    }
+  ]
+}

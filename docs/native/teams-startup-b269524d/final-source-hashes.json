@@ -1,0 +1,38 @@
+{
+  "nativeBase": "8cd15aab348b7a797d8f71fbda9392840638ff83",
+  "nativeFiles": {
+    "Piyali.xcodeproj/project.pbxproj": "3ef1b1f77b4608308283e113463a8bfbc337e50dcede16f4d99d8ac3a93d43fc",
+    "Piyali/App/AppModel.swift": "2a680682807aa07b16e5d66484a5121504442fa835354757e5076cb79152df3f",
+    "Piyali/App/PiyaliApp.swift": "2166e4f165764b2816959242b425a931cbd9f74ce834944c976a1f4604010755",
+    "Piyali/Core/TeamInviteAttention.swift": "f21d536d1652d634f9554464e33443d829f9d5e5061b9ce5f1f05054fa94e275",
+    "Piyali/Design/TeamInviteBadge.swift": "7efe16aa0327875eaa029719a04a9e2e116d1af6092975ed98d38fd9765a5f9b",
+    "Piyali/Features/ProductShellView.swift": "970903f3304d7053e48d033ec203ccdc6c4b55e9c49000421fd8dc43120dbd48",
+    "Piyali/Features/RootView.swift": "22bbfaf419deca1b3c7a9b107c1009087ba99ee9f0a390f4d8e88149e81bf42b",
+    "Piyali/Features/TeamsDrawerView.swift": "e861c73b12c0ac2711f200ee8995b6812a65c9bd6a28d231114d23a0d83075b1",
+    "Piyali/Resources/BrandAssets.xcassets/Teams-menu.imageset/Contents.json": "bf314d9e7a0eb2ef3e08f730e0ef90eb12bf8d2d2bb5603e6b8460f9cabfa8a2",
+    "Piyali/Resources/BrandAssets.xcassets/Teams-menu.imageset/icon.svg": "89bc32768e6bc11f90fa42aa0a7b894b21a9c1789373e81799a235813c0a4ea6",
+    "Piyali/Services/TeamsMirrorService.swift": "41aa03fd5fe316885d30d89c5d1ca198bece03cb99638cc37f93aa388600d88e",
+    "Piyali/Services/TeamsPanelController.swift": "b19e9ff84dde6164b4c233719d9690062c7db513e66631b8a671c1c51b0f0a6b",
+    "Piyali/Services/TeamsStartupController.swift": "a415a376505cd554168bd8558b6077289247dbfac9944ff2fb831bab1a7a740a",
+    "Tests/PiyaliAppTests/TeamsStartupTests.swift": "91b79a4088799ff55c98b8c5a388ef3cc40e5faa39d4efef0f20370aa1ab82ba",
+    "Tests/PiyaliCoreTests/Fixtures/team-invite-attention.json": "a2171ba7edebbef72e0f60e79e10ee109b2f97f9199f797ef2708dad33324a77",
+    "Tests/PiyaliCoreTests/TeamInviteAttentionTests.swift": "80fbf2f3d389406c771e80478f74efdb052ed12ee03440338f7a571de9183f51",
+    "Tests/PiyaliUITests/PrivateTeamsTests.swift": "ab270a72e39bfcb8802bfd64a358e1fe45d718db0548cb813cac7ce8bcf5e5ce",
+    "Tests/PiyaliUITests/TeamsTests.swift": "bd4d3b0367bfefdf8d25f2038fd0addb68b32ade237fb0cce7be94a978550d47",
+    "scripts/export-teams-startup.mjs": "09142d02cca6afccff170e38dd0bdc37d44d7a1fb7fee7002dabcf19e712ad1a",
+    "scripts/reference-teams-startup.mjs": "7d638a62844e2d1f1a29decff210f4d1039f5e069f3bb997aa2d904d13a13d39",
+    "scripts/start-reference-preview.mjs": "3effd863ee12128ab9c72d79883dbe3f57efc7881f3c38b69229fbb45bf803eb"
+  },
+  "binaryHashes": {
+    "Piyali": {
+      "qaInstalled": "edaee67cabfc1af50050b319fe3cf26c9a428888027a6febf9f10f9dd88a0b77",
+      "built": "edaee67cabfc1af50050b319fe3cf26c9a428888027a6febf9f10f9dd88a0b77",
+      "match": true
+    },
+    "Piyali.debug.dylib": {
+      "qaInstalled": "dbe6a1fd2e5230d625084bc7fd62b4d22107a6e4982fa25c3c1c58238a54c516",
+      "built": "dbe6a1fd2e5230d625084bc7fd62b4d22107a6e4982fa25c3c1c58238a54c516",
+      "match": true
+    }
+  }
+}

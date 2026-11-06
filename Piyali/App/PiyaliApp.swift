@@ -12,6 +12,7 @@ import SwiftUI
                 .onChange(of: scenePhase) { _, phase in
                     model.subscription.setApplicationActive(phase == .active);model.setAchievementApplicationActive(phase == .active);model.upcomingGameReviews.setApplicationActive(phase == .active)
                     if phase == .active, model.signedIn {
+                        model.teamsStartup.resumeAfterForeground(model)
                         model.learner.rollDay(); model.subscription.checkExpiry()
                         model.scheduleAutomaticTips(recovering:true)
                         Task { await model.subscription.refresh(); await model.sync() }

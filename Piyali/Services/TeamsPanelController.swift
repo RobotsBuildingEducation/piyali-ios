@@ -92,11 +92,11 @@ extension TeamsPanelAccess{func watch(_ teams:[JSONValue],app:AppModel,onChange:
     let policy:TeamsPanelPolicy?
     private var epoch=UUID(),work:Task<Void,Never>?,sharing:Task<Void,Never>?
     private var owner="",shareKey="",watchKey=""
-    private var reloading=false
-    init(access:TeamsPanelAccess,initial:TeamsPanelSnapshot = .init()){self.access=access;snapshot=initial;policy=try? TeamsPanelPolicy()}
+    private var reloading=false,hasInitialSnapshot=false
+    init(access:TeamsPanelAccess,initial:TeamsPanelSnapshot = .init(),initialOwner:String=""){self.access=access;snapshot=initial;owner=initialOwner;hasInitialSnapshot = !initialOwner.isEmpty;policy=try? TeamsPanelPolicy()}
     func reload(_ app:AppModel)async {
         let account=app.identity.npub;guard !reloading || owner != account else{return};reloading=true;defer{if owner == account{reloading=false}}
-        if owner != account{cancel();owner=account;snapshot = .init();posts=[]};let token=epoch;loading=snapshot.teams.isEmpty;error=nil
+        if owner != account{cancel();owner=account;snapshot = .init();posts=[]};let token=epoch;loading = !hasInitialSnapshot && snapshot.teams.isEmpty;hasInitialSnapshot=false;error=nil
         do{let value=try await access.load(app);guard token == epoch,owner == app.identity.npub,!Task.isCancelled else{return};snapshot=value;error=value.warning;let key=account+value.teams.map(LiveTeamsPanelAccess.key).sorted().joined(separator:",");if key != watchKey{watchKey=key;await access.watch(value.teams,app:app,onChange:{[weak self,weak app] in guard let self,let app,!self.working else{return};Task{await self.reload(app)}})}}catch{if token == epoch,!(error is CancellationError){self.error=error.localizedDescription}};if token == epoch{loading=false;scheduleSharing(app)}
     }
     func perform(_ app:AppModel,action:@escaping(TeamsPanelAccess)async throws->String?,onSuccess:@escaping()->Void={}){

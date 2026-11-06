@@ -10,6 +10,8 @@ import NostrSDK
     private let injected:Firestore?
     private var listeners:[ListenerRegistration]=[]
     private var watchGeneration=UUID()
+    private var invitationListener:ListenerRegistration?
+    private var invitationGeneration=UUID()
     init(database:Firestore?=nil){
         #if DEBUG
         injected=database ?? PrivateTeamsUIEmulator.configured()
@@ -104,6 +106,20 @@ import NostrSDK
             tx.updateData(["status":accept ? "accepted":"rejected"],forDocument:invitation);return true
         }catch let caught{error?.pointee=caught as NSError;return nil}}
         guard identity.npub==owner else{throw CancellationError()}
+    }
+    func stopWatchingInvitations(){invitationGeneration=UUID();invitationListener?.remove();invitationListener=nil}
+    func watchInvitations(identity:IdentityService,onChange:@escaping @MainActor([JSONValue])->Void,onFailure:@escaping @MainActor(Error)->Void = {_ in})async throws {
+        stopWatchingInvitations();let token=invitationGeneration,owner=identity.npub,session=identity.sessionRevision
+        let db=try await database(identity,owner:owner)
+        guard token == invitationGeneration,identity.npub == owner,identity.sessionRevision == session,!Task.isCancelled else{throw CancellationError()}
+        invitationListener=db.collection("users").document(owner).collection("teamInvites").addSnapshotListener{[weak self] snapshot,error in
+            Task{@MainActor in
+                guard let self,self.invitationGeneration == token,identity.npub == owner,identity.sessionRevision == session else{return}
+                if let error{onFailure(error);return};guard let snapshot else{return}
+                let records=snapshot.documents.compactMap{doc in (try? Self.json(doc.data()))?.setting("id",.string(doc.documentID))}
+                onChange(records)
+            }
+        }
     }
     func stopWatching(){watchGeneration=UUID();listeners.forEach{$0.remove()};listeners=[]}
     func watch(_ teams:[JSONValue],invites:[JSONValue]=[],identity:IdentityService,onChange:@escaping @MainActor()->Void)async{
