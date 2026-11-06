@@ -283,3 +283,24 @@ extension RealtimeVoiceControllerTests {
         await Task.yield();XCTAssertEqual(service.audioLevel,0);XCTAssertFalse(service.connected)
     }
 }
+
+
+extension RealtimeVoiceControllerTests {
+    func testTutorAcceptsBothTranscriptionSpellingsAndFailureReturnsToListeningWithoutAnErrorCard() async throws {
+        let transport=VoiceTransportFixture(),service=LiveTutorService(permission:{true},transportFactory:{transport});var inputs:[RealtimeVoiceState.InputTurn]=[]
+        await service.start(learner:LearnerState(),openingPrompt:nil,inactivityTimeout:0,onInputTurn:{inputs.append($0)},externallyControlled:true)
+        for (i,type) in ["input_audio_transcription.completed","conversation.item.input_audio_transcription.completed"].enumerated(){
+            try transport.receive("{\"type\":\"\(type)\",\"item_id\":\"u\(i)\",\"transcript\":\"hola\"}")
+        }
+        XCTAssertEqual(inputs.count,2)
+        for type in ["input_audio_transcription.failed","conversation.item.input_audio_transcription.failed"] {
+            try transport.receive(#"{"type":"input_audio_buffer.committed","item_id":"failed"}"#)
+            try transport.receive("{\"type\":\"\(type)\",\"item_id\":\"failed\"}")
+            XCTAssertEqual(service.voiceState,"listening");XCTAssertTrue(transport.microphone);XCTAssertNil(service.error)
+        }
+        await service.stop()
+        await service.start(learner:LearnerState(),conversationDraft:ConversationDraft(),inactivityTimeout:0)
+        try transport.receive(#"{"type":"conversation.item.input_audio_transcription.failed","item_id":"failed"}"#)
+        XCTAssertEqual(service.error,"That speech could not be transcribed. Please try saying it again.");await service.stop()
+    }
+}

@@ -54,3 +54,16 @@ final class RealtimeVoiceTests:XCTestCase {
         XCTAssertEqual(vad,RealtimeVoicePolicy.vad(manualResponse:true))
     }
 }
+
+
+extension RealtimeVoiceTests {
+    func testRejectedTranscriptCannotReappearOrCompleteATurnWhenProviderRepeatsIt() throws {
+        var state=RealtimeVoiceState(previousAssistant:"Say hola.")
+        let input:JSONValue = .object(["type":.string("input_audio_transcription.completed"),"item_id":.string("rejected"),"transcript":.string("नमस्ते")])
+        _=state.receive(input);XCTAssertNotNil(state.inputTurn("rejected"));state.rejectInput("rejected")
+        XCTAssertNil(state.inputTurn("rejected"));XCTAssertFalse(state.transcript.contains("नमस्ते"))
+        XCTAssertTrue(state.receive(input).isEmpty);XCTAssertNil(state.inputTurn("rejected"));XCTAssertFalse(state.transcript.contains("नमस्ते"))
+        _=state.receive(.object(["type":.string("response.created"),"response":.object(["id":.string("recovery")])]))
+        XCTAssertTrue(state.receive(.object(["type":.string("response.done"),"response":.object(["id":.string("recovery"),"output":.array([.object(["content":.array([.object(["transcript":.string("Try hola again.")])])])])])])).isEmpty)
+    }
+}

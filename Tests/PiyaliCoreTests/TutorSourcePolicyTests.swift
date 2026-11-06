@@ -14,5 +14,12 @@ final class TutorSourcePolicyTests:XCTestCase {
         let raw=try JSONDecoder().decode(JSONValue.self,from:JSONEncoder().encode(lesson)),unit=try JSONDecoder().decode(JSONValue.self,from:JSONEncoder().encode(first)),content=try policy.run("content",.object(["lesson":raw,"unit":unit,"support":.string("en"),"target":.string("es")]))
         XCTAssertEqual(content["preview"].array.count,7);XCTAssertEqual(content["title"].string,"Tutorial - Basic Introductions");XCTAssertEqual(try policy.run("xp",.object(["lesson":raw])),.number(50))
         XCTAssertTrue(library.values.flatMap{$0}.flatMap(\.lessons).contains{$0.modes.contains("game")})
+        let recoveryInput:JSONValue = .object(["lesson":raw,"unit":unit,"target":.string("es"),"support":.string("en")])
+        let gemini=try policy.run("transcriptRecovery",recoveryInput.setting("provider",.string("gemini"))),openAI=try policy.run("transcriptRecovery",recoveryInput.setting("provider",.string("openai")))
+        XCTAssertEqual(gemini["response"]["modalities"],.array([.string("audio"),.string("text")]))
+        XCTAssertEqual(openAI["response"]["modalities"],.null);XCTAssertEqual(openAI["response"]["output_modalities"],.array([.string("audio")]))
+        XCTAssertEqual(openAI["response"]["metadata"],gemini["response"]["metadata"])
+        XCTAssertTrue(openAI["response"]["instructions"].string.contains(gemini["response"]["instructions"].string));XCTAssertNotEqual(openAI["response"]["instructions"],gemini["response"]["instructions"])
+
     }
 }

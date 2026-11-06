@@ -76,3 +76,8 @@ The [live reply checkpoint](TUTOR_REPLIES.md) restores translated phrase cards, 
 Original response recordings, cache-first replay, source voice/language fallback, per-message busy state and interruption ownership are tracked in [Tutor replay](TUTOR_REPLAY.md). The optional OpenAI full-duplex capture and physical-audio boundaries remain open.
 
 Focused Phonics restoration-error handoffs, original ready-header SVG/badge styling, scoped completion at the trial boundary and native reconnect/reentry journeys are recorded in [PHONICS_TUTOR_FALLBACK.md](PHONICS_TUTOR_FALLBACK.md). The source already routed unmatched words to Tutor; the new correction covers mounted deck errors. This does not close split/late ASR, physical audio or full viewport/design gates.
+
+
+## Unexpected-script ASR recovery — 2026-11-05
+
+[TUTOR_ASR_RECOVERY.md](TUTOR_ASR_RECOVERY.md) records the reproduced missing retry, original recovery-event extraction, rejected context removal, reply/welcome boundaries, silent Tutor transcription failures, source/native English/Arabic captures and full native history/private-relaunch journey. The policy corpus now has 651 source-executed cases. Valid split/late ASR grading, setup fallbacks, full design and physical audio remain open.

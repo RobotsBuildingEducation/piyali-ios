@@ -103,3 +103,17 @@ import AVFoundation
         XCTAssertEqual(GeminiTutorWire.input(Data([0,0]))["realtimeInput"]["audio"]["mimeType"],.string("audio/pcm;rate=16000"))
     }
 }
+
+
+extension GeminiTutorTransportTests {
+    func testRejectedGeminiTranscriptKeepsSocketOpenForTheRecoveryResponse() async throws {
+        let socket=TutorSocketFixture(),transport=GeminiTutorTransport(capturesAudio:false,factory:{_ in socket}),live=LiveTutorService(permission:{true},transportFactory:{transport});var input:RealtimeVoiceState.InputTurn?
+        await live.start(learner:LearnerState(),openingPrompt:nil,inactivityTimeout:0,onInputTurn:{input=$0},sessionConfiguration:.object(["provider":.string("gemini")]),externallyControlled:true)
+        socket.feed(.object(["serverContent":.object(["inputTranscription":.object(["text":.string("नमस्ते")]),"turnComplete":.bool(true)])]));await settle()
+        let id=try XCTUnwrap(input?.id),recovery=request("Please try hola once more.").setting("response",.object(["instructions":.string("Please try hola once more."),"metadata":.object(["kind":.string("tutor_transcript_recovery")])]))
+        live.rejectTranscript(id,recovery:recovery);await settle()
+        XCTAssertTrue(live.connected);XCTAssertFalse(socket.closed);XCTAssertNil(live.error);XCTAssertFalse(live.transcript.contains("नमस्ते"))
+        XCTAssertEqual(socket.sent.last?["clientContent"]["turns"].array.first?["parts"].array.first?["text"].string,"Please try hola once more.")
+        socket.feed(output("Please try hola once more."));await settle();XCTAssertEqual(live.assistantResponseKind,"tutor_transcript_recovery");XCTAssertEqual(live.voiceState,"listening");await live.stop()
+    }
+}

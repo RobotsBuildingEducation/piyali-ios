@@ -29,6 +29,10 @@ public struct RealtimeVoiceState: Sendable {
         inputs[id]?.delivered=true
         if !outputPlaying,outputs[currentResponse]?.complete != false {assistantLocked=false}
     }
+    public mutating func rejectInput(_ id:String) {
+        inputs[id]?.text=nil
+        discardInput(id)
+    }
     public mutating func receive(_ event:JSONValue)->[Turn] {
         let type=event["type"].string
         switch type {
@@ -37,11 +41,11 @@ public struct RealtimeVoiceState: Sendable {
             assistantLocked=true
             let id=event["item_id"].string
             if !id.isEmpty,inputs[id] == nil { inputs[id]=Input(answered:speechAnswer ?? previousAssistant);order.append(id);timeline.append((true,id));speechAnswer=nil }
-        case "conversation.item.input_audio_transcription.completed":
+        case "conversation.item.input_audio_transcription.completed","input_audio_transcription.completed":
             let id=event["item_id"].string,text=event["transcript"].string.trimmingCharacters(in:.whitespacesAndNewlines)
             if !id.isEmpty,!text.isEmpty {
                 if inputs[id] == nil { inputs[id]=Input(answered:speechAnswer ?? previousAssistant);order.append(id);timeline.append((true,id));speechAnswer=nil }
-                if inputs[id]?.text == nil { inputs[id]?.text=String(text.prefix(12000)) }
+                if inputs[id]?.text == nil,inputs[id]?.delivered == false { inputs[id]?.text=String(text.prefix(12000)) }
             }
         case "response.created":
             let id=event["response"]["id"].string

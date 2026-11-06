@@ -19,6 +19,10 @@ Settings exposes the four source Gemini voices and 0–4 volume control. Effecti
 - A live isolated learner account received the original welcome through Firebase/App Check: 341,762 PCM bytes, 29 native played buffers and a nonempty transcript. No learner-progress writes or paid-access grants were made.
 - The final six transport/audio checks, both Settings UI journeys, real Charon preview, Firestore races/retries and twelve source/native comparison pairs pass; details are recorded in [VALIDATION.md](VALIDATION.md).
 
+## Unexpected-script recovery checkpoint
+
+The source retry request, context-item rejection, both transcription event spellings and Tutor-only silent transcription-failure recovery are implemented in the later [ASR recovery checkpoint](TUTOR_ASR_RECOVERY.md). The native Gemini adapter accepts the source bridge’s no-op context deletion without dropping its socket. This does not close valid split/late burst grading or rejected-setup connection fallback. Later replay/translation checkpoints supersede those older remaining claims below.
+
 ## Remaining scope
 
 This is a provider/lifecycle correction within the ongoing parity work. Physical iPhone microphone/acoustic behavior, Bluetooth/background route recovery, split/late ASR burst recovery, stored recorded-clip replay, streamed translated tokens, wider completion/review designs, all locales and the remaining product surfaces still require their own checks. The native connection currently fails visibly if its transcription/voice setup is rejected; the source's fallback configurations that omit transcription or selected voice are not used to silently claim a successful learner session.

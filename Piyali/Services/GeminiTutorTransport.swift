@@ -76,6 +76,10 @@ import AVFoundation
         guard !closed else{return false}
         switch event["type"].string{
         case "response.create":bridge.request(event["response"]["instructions"].string,metadata:event["response"]["metadata"] == .null ? .object([:]):event["response"]["metadata"])
+        // The source Gemini bridge ignores context-item deletion: its SDK has
+        // no OpenAI conversation-item endpoint. The local transcript is still
+        // rejected, and a following recovery response must remain connected.
+        case "conversation.item.delete":break
         case "response.cancel":bridge.cancel()
         case "input_audio_buffer.clear":bridge.clearInput()
         case "session.update":let update=event["session"];if update["responseInstructionsSuffix"] != .null{config=config.setting("responseInstructionsSuffix",update["responseInstructionsSuffix"])};if update["instructions"] != .null{config=config.setting("instructions",update["instructions"])};if update["inputLanguageCodes"] != .null{config=config.setting("inputLanguageCodes",update["inputLanguageCodes"])}

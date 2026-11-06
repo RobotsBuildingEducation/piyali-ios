@@ -1,5 +1,6 @@
 import XCTest
 import SwiftUI
+import WebKit
 @testable import Piyali
 
 @MainActor private final class TutorNoCloud:LearnerProgressService {
@@ -11,9 +12,9 @@ import SwiftUI
     var onOpen:(()->Void)?,onEvent:((JSONValue)->Void)?,onFailure:((String)->Void)?
     var recordings:[String:NarrationRecording]=[:]
     func takeResponseRecording(_ id:String)->NarrationRecording?{recordings.removeValue(forKey:id)}
-    var session:JSONValue = .null,events:[JSONValue]=[],closed=false,microphone=false
+    var session:JSONValue = .null,events:[JSONValue]=[],closed=false,microphone=false,rejectDeletes=false
     func connect(session:JSONValue)async throws{self.session=session;closed=false;onOpen?()}
-    func send(_ event:JSONValue)->Bool{events.append(event);return !closed}
+    func send(_ event:JSONValue)->Bool{events.append(event);return !closed && !(rejectDeletes && event["type"].string == "conversation.item.delete")}
     func setRemoteAudioEnabled(_ enabled:Bool){}
     func setMicrophoneEnabled(_ enabled:Bool){microphone=enabled}
     func close(){closed=true}
@@ -363,5 +364,151 @@ extension TutorSessionTests {
         let retry=await restored.completeGame(app);XCTAssertFalse(retry);XCTAssertEqual(app.learner.totalXP,50);XCTAssertEqual(app.learner.pendingChanges?.filter{$0.source == .speak}.map(\.id),[receipt]);XCTAssertFalse(app.learner.rpgRuns?[app.learner.target]?.claimed ?? true)
         cloud.fails=false;let acknowledged=await restored.completeGame(app);XCTAssertTrue(acknowledged);XCTAssertEqual(app.learner.totalXP,50);XCTAssertTrue(app.learner.pendingChanges?.isEmpty ?? true);XCTAssertTrue(app.learner.rpgRuns?[app.learner.target]?.claimed == true)
         restored.closeCompletion();restored.closeReview(app);XCTAssertNotNil(restored.selectPreparedGame(app,lesson:lesson,unit:unit));run.claimed=false;app.learner.saveRPG(run);await service.prepare(app,lesson:typed,episode:nil,tutor:true);let practice=try XCTUnwrap(app.learner.rpgRuns?[app.learner.target]);XCTAssertNotEqual(practice.id,run.id);XCTAssertEqual(practice.stepIndex,0);XCTAssertFalse(practice.completed);XCTAssertEqual(app.learner.totalXP,50);await restored.stop(app,saveDraft:false)
+    }
+}
+
+
+extension TutorSessionTests {
+    func testUnexpectedTranscriptDeletesContextAndRequestsTheSamePhraseWithoutGrading() async throws {
+        let app=try await app();defer{try? app.identity.disconnect()}
+        let transport=TutorTransport();var judged=0,p=provider();p.judge={_ in judged += 1;return .object(["successful":.bool(true),"confidence":.number(1)])}
+        let session=await session(app,transport,provider:p);await session.start(app)
+        transport.assistant("Welcome!");await session.input(input("yes","welcome"),app:app);transport.assistant("Say hola.",id:"practice")
+        let messageCount=session.messages.count,before=transport.events.count
+        transport.onEvent?(.object(["type":.string("input_audio_buffer.committed"),"item_id":.string("bad-script")]))
+        transport.onEvent?(.object(["type":.string("conversation.item.input_audio_transcription.completed"),"item_id":.string("bad-script"),"transcript":.string("नमस्ते")]))
+        for _ in 0..<100 {await Task.yield()}
+        let emitted=Array(transport.events.dropFirst(before))
+        XCTAssertTrue(emitted.contains{$0["type"].string == "conversation.item.delete" && $0["item_id"].string == "bad-script"})
+        let recovery=emitted.first{$0["response"]["metadata"]["kind"].string == "tutor_transcript_recovery"}
+        XCTAssertNotNil(recovery);XCTAssertTrue(recovery?["response"]["instructions"].string.contains("ASR RECOVERY:") == true)
+        XCTAssertTrue(recovery?["response"]["instructions"].string.contains("hola") == true)
+        XCTAssertFalse(recovery?["response"]["instructions"].string.contains("नमस्ते") == true)
+        XCTAssertEqual(session.live.voiceState,"thinking");XCTAssertFalse(transport.microphone)
+        XCTAssertEqual(session.messages.count,messageCount);XCTAssertEqual(judged,0);XCTAssertEqual(app.learner.totalXP,0);XCTAssertNil(app.learner.gradedByLanguage)
+        await session.stop(app)
+    }
+}
+
+
+extension TutorSessionTests {
+    func testUnexpectedScriptDuringReplyDeletesOnlyAndNeverInterruptsOrUnlocksIt() async throws {
+        let app=try await app();defer{try? app.identity.disconnect()};let transport=TutorTransport(),session=await session(app,transport)
+        await session.start(app);transport.assistant("Welcome!");await session.input(input("yes","welcome"),app:app);transport.assistant("Say hola.",id:"practice")
+        transport.onEvent?(.object(["type":.string("response.created"),"response":.object(["id":.string("active")])]))
+        transport.onEvent?(.object(["type":.string("output_audio_buffer.started")]))
+        let count=session.messages.count,before=transport.events.count
+        transport.onEvent?(.object(["type":.string("input_audio_transcription.completed"),"item_id":.string("late-script"),"transcript":.string("नमस्ते")]))
+        for _ in 0..<100{await Task.yield()}
+        let events=Array(transport.events.dropFirst(before))
+        XCTAssertEqual(events.filter{$0["type"].string == "conversation.item.delete"}.count,1);XCTAssertFalse(events.contains{$0["type"].string == "response.create"})
+        XCTAssertEqual(session.live.voiceState,"speaking");XCTAssertFalse(transport.microphone);XCTAssertTrue(session.live.connected);XCTAssertEqual(session.messages.count,count)
+        transport.onEvent?(.object(["type":.string("input_audio_transcription.completed"),"item_id":.string("late-script"),"transcript":.string("नमस्ते")]))
+        for _ in 0..<100{await Task.yield()}
+        XCTAssertFalse(session.live.transcript.contains("नमस्ते"));XCTAssertEqual(app.learner.totalXP,0);XCTAssertNil(app.learner.gradedByLanguage);await session.stop(app)
+    }
+    func testRecoveryBeforeWelcomeReplyKeepsGreetingUngradedAndUsesCurrentAgendaPhrase() async throws {
+        let app=try await app();defer{try? app.identity.disconnect()};let transport=TutorTransport(),session=await session(app,transport)
+        await session.start(app);transport.assistant("Welcome!")
+        await session.input(input("नमस्ते","rejected-welcome"),app:app)
+        let recovery=try XCTUnwrap(transport.events.last{$0["response"]["metadata"]["kind"].string == "tutor_transcript_recovery"})
+        transport.onEvent?(.object(["type":.string("response.created"),"response":.object(["id":.string("recovery"),"metadata":recovery["response"]["metadata"]])]))
+        transport.onEvent?(.object(["type":.string("response.done"),"response":.object(["id":.string("recovery"),"output":.array([.object(["content":.array([.object(["transcript":.string("Please try hola once more.")])])])])])]))
+        transport.onEvent?(.object(["type":.string("output_audio_buffer.stopped")]))
+        XCTAssertEqual(session.messages.last?["welcome"],.bool(false));XCTAssertEqual(session.currentReplyLanguage,"target")
+        await session.input(input("yes","greeting-retry"),app:app);XCTAssertEqual(app.learner.totalXP,0);XCTAssertNil(app.learner.gradedByLanguage)
+        transport.assistant("Say hola.",id:"practice");await session.input(input("hola","earned"),app:app)
+        XCTAssertTrue((3...7).contains(app.learner.totalXP));XCTAssertEqual(app.learner.tutorProgress(session.id).items,["hello"])
+        transport.assistant("Now introduce yourself.",id:"next")
+        transport.rejectDeletes=true;await session.input(input("नमस्ते","next-rejection"),app:app)
+        let next=try XCTUnwrap(transport.events.last{$0["response"]["metadata"]["kind"].string == "tutor_transcript_recovery"})
+        XCTAssertTrue(next["response"]["instructions"].string.contains("me llamo"));XCTAssertTrue(session.live.connected);XCTAssertNil(session.live.error)
+        XCTAssertEqual(app.learner.gradedByLanguage?["es"],1);session.flushDraft(app);XCTAssertFalse(session.record(app)["conversationDraft"].json.contains("नमस्ते"));await session.stop(app)
+    }
+    func testQueuedRecoveryCannotReachStoppedReplacedOrPausedSession() async throws {
+        for boundary in ["stop","pause","support"] {
+            let app=try await app();defer{try? app.identity.disconnect()};let transport=TutorTransport(),session=await session(app,transport)
+            await session.start(app);transport.assistant("Welcome!")
+            transport.onEvent?(.object(["type":.string("conversation.item.input_audio_transcription.completed"),"item_id":.string("old"),"transcript":.string("नमस्ते")]))
+            if boundary == "support"{app.learner.support="ar"}else if boundary == "pause"{await session.pause(app)}else{await session.stop(app)}
+            for _ in 0..<100{await Task.yield()}
+            XCTAssertFalse(transport.events.contains{$0["response"]["metadata"]["kind"].string == "tutor_transcript_recovery"},boundary);XCTAssertEqual(app.learner.totalXP,0);XCTAssertNil(app.learner.gradedByLanguage);await session.stop(app,saveDraft:false)
+        }
+    }
+}
+
+
+private struct TutorASRComparisonHost:View {
+    @EnvironmentObject var app:AppModel
+    let tutor:TutorSessionController
+    var body:some View {SourceTutorView(controller:tutor).ignoresSafeArea().overlay(alignment:.bottom){if let footer=app.activityFooter{footer.content.padding(12).background{SourceActivityDockBackground(correct:footer.correct)}.padding(.horizontal,8).padding(.bottom,12)}}}
+}
+
+extension TutorSessionTests {
+    func testOriginalTutorUnexpectedScriptRecoveryAndLateRejectionAgainstRenderedNativeInEnglishAndArabic() async throws {
+        guard ProcessInfo.processInfo.environment["PIYALI_REFERENCE_PREVIEW_TESTS"] == "1" else{throw XCTSkip("Explicit read-only source preview required")}
+        let app=try await app();defer{try? app.identity.disconnect()}
+        let scene=try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap{$0 as? UIWindowScene}.first),old=scene.windows.first{$0.isKeyWindow};defer{old?.makeKey()}
+        for (support,theme) in [("en","light"),("ar","dark")] {
+            app.learner=LearnerState();app.learner.target="es";app.learner.support=support;app.learner.onboardingComplete=true;await app.reloadContent()
+            let transport=TutorTransport(),tutor=await session(app,transport),web=WKWebView(frame:CGRect(x:0,y:0,width:402,height:874),configuration:WKWebViewConfiguration())
+            let sourceWindow=UIWindow(windowScene:scene),sourceHost=UIViewController();sourceWindow.frame=web.frame;sourceHost.view=web;sourceWindow.rootViewController=sourceHost;web.scrollView.contentInsetAdjustmentBehavior = .never;sourceWindow.makeKeyAndVisible()
+            let nativeWindow=UIWindow(windowScene:scene);nativeWindow.frame=web.frame
+            let host=UIHostingController(rootView:TutorASRComparisonHost(tutor:tutor).environmentObject(app).environment(\.layoutDirection,support == "ar" ? .rightToLeft:.leftToRight).environment(\.dynamicTypeSize,.large).preferredColorScheme(theme == "dark" ? .dark:.light).ignoresSafeArea());nativeWindow.rootViewController=host;nativeWindow.makeKeyAndVisible();host.view.layoutIfNeeded()
+            defer{web.stopLoading();sourceWindow.isHidden=true;sourceWindow.rootViewController=nil;nativeWindow.isHidden=true;nativeWindow.rootViewController=nil}
+            web.load(URLRequest(url:try XCTUnwrap(URL(string:"http://127.0.0.1:5181/__piyali-onboarding?screen=tutor&tutorASR=1&language=\(support)&theme=\(theme)"))))
+            let startLabel=String(decoding:try JSONEncoder().encode(EntryCopy.ui(support,"ra_btn_start")),as:UTF8.self)
+            var ready=false
+            for _ in 0..<500 {ready=(try? await web.evaluateJavaScript("document.fonts.status==='loaded' && [...document.querySelectorAll('button')].some(b=>b.textContent.trim()===\(startLabel) && !b.disabled)")) as? Bool == true;if ready{break};try await Task.sleep(for:.milliseconds(50))}
+            XCTAssertTrue(ready);guard ready else{return}
+            _=try await web.evaluateJavaScript("[...document.querySelectorAll('button')].find(b=>b.textContent.trim()===\(startLabel)).click()")
+            var connected=false
+            for _ in 0..<100 {connected=(try? await web.evaluateJavaScript("!!window.__tutorASR?.sent.some(e=>e.response?.metadata?.kind==='tutor_welcome')")) as? Bool == true;if connected{break};try await Task.sleep(for:.milliseconds(50))}
+            XCTAssertTrue(connected);guard connected else{return}
+            func sourceEmit(_ events:[JSONValue])async throws {let data=JSONValue.array(events).json;_=try await web.callAsyncJavaScript("for(const event of events)await window.__tutorASR.emit(event)",arguments:["events":try JSONSerialization.jsonObject(with:Data(data.utf8))],in:nil,contentWorld:.page)}
+            func sourceAssistant(_ text:String,_ id:String,_ kind:String="tutor_followup")async throws {
+                try await sourceEmit([.object(["type":.string("response.created"),"response":.object(["id":.string(id),"metadata":.object(["kind":.string(kind)])])]),.object(["type":.string("response.audio_transcript.done"),"response_id":.string(id),"transcript":.string(text)]),.object(["type":.string("response.done"),"response":.object(["id":.string(id),"status":.string("completed")])])]);try await Task.sleep(for:.milliseconds(600))
+            }
+            func capture(_ state:String)async throws {
+                try await Task.sleep(for:.milliseconds(400));let source=XCTAttachment(image:try await web.takeSnapshot(configuration:nil));source.name="Source Tutor ASR \(state) \(support)";source.lifetime = .keepAlways;add(source)
+                nativeWindow.makeKeyAndVisible();host.view.layoutIfNeeded();let native=XCTAttachment(image:UIGraphicsImageRenderer(bounds:nativeWindow.bounds).image{_ in nativeWindow.drawHierarchy(in:nativeWindow.bounds,afterScreenUpdates:true)});native.name="Native Tutor ASR \(state) \(support)";native.lifetime = .keepAlways;add(native)
+            }
+            await tutor.start(app);try await sourceAssistant("Welcome!","welcome","tutor_welcome");transport.assistant("Welcome!")
+            try await sourceEmit([.object(["type":.string("conversation.item.input_audio_transcription.completed"),"item_id":.string("greeting"),"transcript":.string("yes")])]);await tutor.input(input("yes","greeting"),app:app)
+            try await sourceAssistant("Say hola.","practice");transport.assistant("Say hola.",id:"practice")
+            let initialCount=tutor.messages.count,sourceBefore=(try await web.evaluateJavaScript("window.__tutorASR.judges")) as? Int ?? -1
+            let rejected:JSONValue = .object(["type":.string("conversation.item.input_audio_transcription.completed"),"item_id":.string("bad-script"),"transcript":.string("नमस्ते")])
+            try await sourceEmit([rejected]);transport.onEvent?(.object(["type":.string("input_audio_buffer.committed"),"item_id":.string("bad-script")]));transport.onEvent?(rejected)
+            for _ in 0..<100{await Task.yield()}
+            let sourceRecoveryRaw=try await web.evaluateJavaScript("JSON.stringify(window.__tutorASR.sent.find(e=>e.response?.metadata?.kind==='tutor_transcript_recovery'))")
+            let sourceRecovery=try JSONDecoder().decode(JSONValue.self,from:Data(try XCTUnwrap(sourceRecoveryRaw as? String).utf8)),nativeRecovery=try XCTUnwrap(transport.events.last{$0["response"]["metadata"]["kind"].string == "tutor_transcript_recovery"})
+            XCTAssertEqual(nativeRecovery,sourceRecovery);XCTAssertEqual(tutor.live.voiceState,"thinking");XCTAssertFalse(transport.microphone);XCTAssertEqual(tutor.messages.count,initialCount)
+            let sourceObserved1=(try await web.evaluateJavaScript("window.__tutorASR.judges")) as? Int
+            XCTAssertEqual(sourceObserved1,sourceBefore)
+            let sourceObserved2=(try await web.evaluateJavaScript("window.__tutorASR.microphone")) as? Bool
+            XCTAssertEqual(sourceObserved2,false)
+            let sourceObserved3=(try await web.evaluateJavaScript("document.body.textContent.includes('नमस्ते')")) as? Bool
+            XCTAssertEqual(sourceObserved3,false)
+            try await capture("waiting")
+            let spoken=support == "ar" ? "حاول مرة أخرى: hola.":"Please try hola once more."
+            try await sourceAssistant(spoken,"recovery","tutor_transcript_recovery")
+            transport.onEvent?(.object(["type":.string("response.created"),"response":.object(["id":.string("recovery"),"metadata":nativeRecovery["response"]["metadata"]])]))
+            transport.onEvent?(.object(["type":.string("response.done"),"response":.object(["id":.string("recovery"),"output":.array([.object(["content":.array([.object(["transcript":.string(spoken)])])])])])]))
+            transport.onEvent?(.object(["type":.string("output_audio_buffer.stopped")]));try await capture("retry")
+            let active:JSONValue = .object(["type":.string("response.created"),"response":.object(["id":.string("active"),"metadata":.object(["kind":.string("tutor_followup")])])])
+            try await sourceEmit([active]);transport.onEvent?(active);transport.onEvent?(.object(["type":.string("output_audio_buffer.started")]))
+            let before=transport.events.count,late:JSONValue = .object(["type":.string("input_audio_transcription.completed"),"item_id":.string("late-script"),"transcript":.string("नमस्ते")])
+            try await sourceEmit([late]);transport.onEvent?(late);for _ in 0..<100{await Task.yield()}
+            XCTAssertFalse(transport.events.dropFirst(before).contains{$0["type"].string == "response.create"});XCTAssertEqual(tutor.live.voiceState,"speaking");XCTAssertFalse(transport.microphone)
+            let sourceObserved4=(try await web.evaluateJavaScript("window.__tutorASR.sent.filter(e=>e.response?.metadata?.kind==='tutor_transcript_recovery').length")) as? Int
+            XCTAssertEqual(sourceObserved4,1)
+            try await capture("late-script")
+            let sourceTrace=try await web.evaluateJavaScript("JSON.stringify({deletes:window.__tutorASR.sent.filter(e=>e.type==='conversation.item.delete'),recovery:window.__tutorASR.sent.filter(e=>e.response?.metadata?.kind==='tutor_transcript_recovery'),microphone:window.__tutorASR.microphone,grades:window.__tutorASR.grades,notes:window.__tutorASR.notes,awards:window.__tutorASR.awards})")
+            let sourceAttachment=XCTAttachment(data:Data(try XCTUnwrap(sourceTrace as? String).utf8),uniformTypeIdentifier:"public.json");sourceAttachment.name="Source Tutor ASR recovery trace \(support)";sourceAttachment.lifetime = .keepAlways;add(sourceAttachment)
+            let trace:JSONValue = .object(["deletes":.array(transport.events.filter{$0["type"].string == "conversation.item.delete"}),"recovery":.array([nativeRecovery]),"microphone":.bool(transport.microphone),"totalXP":.number(Double(app.learner.totalXP)),"gradedAttempts":.number(Double(app.learner.gradedByLanguage?["es"] ?? 0)),"messages":.array(tutor.messages.map{.object(["role":$0["role"],"text":$0["textFinal"],"welcome":$0["welcome"]])})])
+            let nativeAttachment=XCTAttachment(data:Data(trace.json.utf8),uniformTypeIdentifier:"public.json");nativeAttachment.name="Native Tutor ASR recovery trace \(support)";nativeAttachment.lifetime = .keepAlways;add(nativeAttachment)
+            XCTAssertEqual(app.learner.totalXP,0);XCTAssertNil(app.learner.gradedByLanguage);XCTAssertFalse(tutor.messages.contains{$0["textFinal"].string.contains("नमस्ते")});await tutor.stop(app)
+            web.stopLoading();sourceWindow.isHidden=true;sourceWindow.rootViewController=nil;nativeWindow.isHidden=true;nativeWindow.rootViewController=nil
+        }
     }
 }
