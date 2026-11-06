@@ -4,8 +4,8 @@ import XCTest
     private func tap(_ id:String,_ app:XCUIApplication){let button=app.buttons[id];XCTAssertTrue(button.waitForExistence(timeout:15));XCTAssertTrue(button.isHittable);button.tap()}
     private func photo(_ name:String,_ app:XCUIApplication){let shot=XCTAttachment(screenshot:app.screenshot());shot.name=name;shot.lifetime = .keepAlways;add(shot)}
     private func open(_ app:XCUIApplication){tap("productMenu",app);tap("productModeMenu",app);tap("productMode-tutor",app);XCTAssertTrue(app.staticTexts["tutorLessonTitle"].waitForExistence(timeout:15))}
-    private func start(asr:Bool=false,late:Bool=false,memory:Bool=false)->XCUIApplication {
-        continueAfterFailure=false;let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_TUTOR_FIXTURE":"1"];if memory{app.launchEnvironment["PIYALI_MEMORY_FIXTURE"]="0";app.launchEnvironment["PIYALI_TUTOR_MEMORY_FIXTURE"]="1";app.launchEnvironment["PIYALI_MEMORY_CAPTURE_ONLY"]="0"};if asr{app.launchEnvironment["PIYALI_TUTOR_ASR_RECOVERY_FIXTURE"]="1"};if late{app.launchEnvironment["PIYALI_TUTOR_LATE_SPEECH_FIXTURE"]="1"};app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"];app.launch();handleInitialPaperPencil(app)
+    private func start(asr:Bool=false,late:Bool=false,memory:Bool=false,repeatedMemory:Bool=false)->XCUIApplication {
+        continueAfterFailure=false;let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_TUTOR_FIXTURE":"1"];if repeatedMemory{app.launchEnvironment["PIYALI_TUTOR_MEMORY_REPEAT_FIXTURE"]="1"};if memory{app.launchEnvironment["PIYALI_MEMORY_FIXTURE"]="0";app.launchEnvironment["PIYALI_TUTOR_MEMORY_FIXTURE"]="1";app.launchEnvironment["PIYALI_MEMORY_CAPTURE_ONLY"]="0"};if asr{app.launchEnvironment["PIYALI_TUTOR_ASR_RECOVERY_FIXTURE"]="1"};if late{app.launchEnvironment["PIYALI_TUTOR_LATE_SPEECH_FIXTURE"]="1"};app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"];app.launch();handleInitialPaperPencil(app)
         let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText(late ? "Late Speech Learner":asr ? "ASR Recovery Learner":"Tutor Learner");if app.buttons["entryKeyboardDone"].exists{app.buttons["entryKeyboardDone"].tap()};tap("createAccount",app);handleInitialPaperPencil(app);tap("startLearning",app);open(app);return app
     }
     func testSourceVoiceEntryPathLockedPreviewWelcomeMutePauseResumeAndPrivateRelaunch(){
@@ -67,5 +67,20 @@ extension TutorParityTests {
         app.terminate();app.launch();handleInitialPaperPencil(app);XCTAssertTrue(app.buttons["productMenu"].waitForExistence(timeout:15));tap("productMenu",app);tap("productPanel-memory",app)
         let restored=app.descendants(matching:.any)[id];XCTAssertTrue(restored.waitForExistence(timeout:10));XCTAssertTrue(restored.label.contains("Start with hola."));XCTAssertEqual(app.descendants(matching:.any).matching(NSPredicate(format:"identifier BEGINSWITH 'memoryRepair-'")).count,1)
         photo("Native Tutor Memory retained exactly once after process relaunch",app)
+    }
+}
+
+
+extension TutorParityTests {
+    func testRepeatedTutorSlipKeepsOneOriginalCorrectionAndEnrichmentAcrossRelaunch() {
+        let app=start(memory:true,repeatedMemory:true);tap("tutorStart",app)
+        let reply=app.descendants(matching:.any)["tutorLatestReply"]
+        XCTAssertTrue(reply.waitForExistence(timeout:10))
+        // The public protocol emits yes, then two distinct semantic attempts.
+        let until=Date().addingTimeInterval(18);while Date()<until{RunLoop.current.run(until:Date().addingTimeInterval(0.1))}
+        XCTAssertEqual(app.staticTexts["tutorProgressBadge"].label,"0%");XCTAssertFalse(app.descendants(matching:.any)["tutorError"].exists);tap("tutorEnd",app);tap("productMenu",app);tap("productPanel-memory",app)
+        let cards=app.descendants(matching:.any).matching(NSPredicate(format:"identifier BEGINSWITH 'memoryRepair-'")),card=cards.firstMatch
+        XCTAssertTrue(card.waitForExistence(timeout:15));XCTAssertEqual(cards.count,1);XCTAssertTrue(card.label.contains("×2"));XCTAssertTrue(card.label.contains("another public complete attempt"));XCTAssertTrue(card.label.contains("Hola"));XCTAssertFalse(card.label.contains("Buen día"));XCTAssertTrue(card.label.contains("Start with hola."));let id=card.identifier;photo("Native repeated Tutor Memory retains first correction",app)
+        tap("productPanelClose",app);app.terminate();app.launch();handleInitialPaperPencil(app);tap("productMenu",app);tap("productPanel-memory",app);let restored=app.descendants(matching:.any)[id];XCTAssertTrue(restored.waitForExistence(timeout:10));XCTAssertTrue(restored.label.contains("×2"));XCTAssertTrue(restored.label.contains("Hola"));XCTAssertFalse(restored.label.contains("Buen día"));XCTAssertEqual(cards.count,1);photo("Native repeated Tutor Memory survives process relaunch",app)
     }
 }

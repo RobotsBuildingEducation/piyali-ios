@@ -1,13 +1,19 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import{createRequire}from'node:module';
-export function memoryFixture(root,reference){const req=createRequire(path.join(reference,'package.json'));const id=path.join(reference,'__piyali-memory.jsx'),entry=path.join(reference,'__piyali-memory-entry.jsx'),goal=path.join(reference,'__piyali-goal-memory.js');return {name:'piyali-memory-fixture',enforce:'pre',resolveId(request,importer){
+export function memoryFixture(root,reference){const req=createRequire(path.join(reference,'package.json'));const id=path.join(reference,'__piyali-memory.jsx'),entry=path.join(reference,'__piyali-memory-entry.jsx'),goal=path.join(reference,'__piyali-goal-memory.js'),capture=path.join(reference,'__piyali-memory-capture.js');return {name:'piyali-memory-fixture',enforce:'pre',resolveId(request,importer){
  if(request==='/__piyali-memory.jsx')return id;
  if(request==='/__piyali-goal-memory.js')return goal;
+ if(request==='/__piyali-memory-capture.js')return capture;
  if(request==='/__piyali-memory-entry.jsx')return entry;
  if(importer?.endsWith('/CompanionMemoryList.jsx')&&request.endsWith('/companionMemory'))return '\0piyali-memory-io';
  if(['/VoiceJourney.jsx','/JourneyRecordingModal.jsx'].some(v=>importer?.endsWith(v))&&request.endsWith('/voiceJourney'))return '\0piyali-journey-io';
 },async load(request){
+ if(request===capture){
+  const source=await fs.readFile(path.join(reference,'src/utils/companionMemory.js'),'utf8'),ast=req('@babel/parser').parse(source,{sourceType:'module'}),node=ast.program.body.map(n=>n.declaration).find(n=>n?.id?.name==='captureCompanionMemory');if(!node)throw Error('Source capture moved');
+  const manifest=JSON.parse(await fs.readFile(path.join(root,'docs/reference/memory-source-manifest.json'),'utf8'));let policy=await fs.readFile(path.join(root,'Piyali/Resources/memory-policy.js'),'utf8');const marker='return {run:function(operation,json)';if(policy.split(marker).length!==2)throw Error('Memory helper export boundary moved');policy=policy.replace(marker,'return {captureBindings:()=>M'+manifest.captureModule+',run:function(operation,json)');
+  return `import useUserStore from '/src/hooks/useUserStore';import useNotesStore from '/src/hooks/useNotesStore';const api=${policy};export async function captureMemorySequence(inputs){const trace={captures:[],grades:0,enrichmentRequests:0,notes:[]};const adapters={...api.captureBindings(),currentGoalFocus:()=>null,useUserStore,useNotesStore,recordGradedOutcome:async()=>{trace.grades++},recordLearningEvidence:async()=>{},persistBucket:async(_npub,target,bucket)=>{const store=useUserStore.getState();store.patchUser({companionMemory:{...(store.user?.companionMemory||{}),[target]:bucket}})},enrichNoteFields:()=>{trace.enrichmentRequests++;return Promise.resolve(null)},enrichAndPatchNote:async()=>{}};const run=Function(...Object.keys(adapters),'return ('+${JSON.stringify(source.slice(node.start,node.end))}+')')(...Object.values(adapters));for(const input of inputs){const note=await run({...input,now:new Date(input.now),gradedOutcome:false});trace.captures.push(note)}trace.notes=useUserStore.getState().user?.companionMemory?.es?.notes||[];window.__sourceMemorySequence=trace;return trace}`;
+ }
  if(request===goal){
   const source=await fs.readFile(path.join(reference,'src/utils/companionMemory.js'),'utf8'),ast=req('@babel/parser').parse(source,{sourceType:'module'}),node=ast.program.body.map(n=>n.declaration).find(n=>n?.id?.name==='captureCompanionMemory');if(!node)throw Error('Source capture moved');
   const policy=await fs.readFile(path.join(root,'Piyali/Resources/companion-quest-policy.js'),'utf8');

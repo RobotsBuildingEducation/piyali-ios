@@ -372,9 +372,9 @@ enum TutorFocus:Equatable {
             let effects=try policy.run("judgeEffects",c.payload.setting("parsed",parsed).setting("answer",.string(c.text)).setting("turn",.number(Double(c.number))).setting("questionLevel",c.question["questionLevel"]).setting("turnAwarded",.bool(awardedTurns.contains(c.number))))["effects"].array
             for effect in effects where effect["kind"].string == "memory" {
                 let now=Date(),fields=MemoryUI.value("captureNote",effect["parameters"].setting("now",.string(WebProgressContract.iso(now))))
-                if fields != .null,let note=app.learner.captureMemory(MemoryNote(fields:fields.object),now:now) {
+                if fields != .null,let note=app.learner.captureMemory(MemoryNote(fields:fields.object),concept:effect["parameters"]["concept"].string,now:now) {
                     capturedMemory=true
-                    if let respond=provider?.memory {app.tutorMemories.start(note,app:app,respond:respond)}
+                    if let respond=provider?.memory {app.tutorMemories.start(note,concept:MemoryContract.cleanConcept(effect["parameters"]["concept"].string,support:note.text("supportLang")),app:app,respond:respond)}
                 }
             }
         }

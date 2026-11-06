@@ -938,3 +938,38 @@ extension TutorSessionTests {
         }
     }
 }
+
+extension TutorSessionTests {
+    func testActualSourceRepeatedCaptureAndNativeTutorMemoryKeepOriginalCorrectionInEnglishAndArabic()async throws {
+        guard ProcessInfo.processInfo.environment["PIYALI_REFERENCE_PREVIEW_TESTS"] == "1" else{throw XCTSkip("Read-only source preview required")}
+        let scene=try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap{$0 as? UIWindowScene}.first),old=scene.windows.first{$0.isKeyWindow};defer{old?.makeKey()}
+        for (support,theme) in [("en","light"),("ar","dark")] {
+            let app=try await app();defer{try? app.identity.disconnect()};app.learner.support=support;await app.reloadContent();let concept=support == "ar" ? "تحية":"A greeting",transport=TutorTransport();var judges=0,p=provider();p.judge={_ in judges += 1;return .object(["successful":.bool(false),"mistake":.bool(true),"confidence":.number(0.2),"concept":.string(concept),"correction":.string(judges == 1 ? "Hola":"Buen día")])}
+            let tutor=TutorSessionController(live:LiveTutorService(permission:{true},transportFactory:{transport}),provider:p,turnXP:{5});await tutor.prepare(app);await tutor.start(app);transport.assistant("Welcome!");await tutor.input(input("yes"),app:app)
+            for (index,answer) in ["a public complete attempt","another public complete attempt"].enumerated() {transport.assistant("Give a greeting.",id:"question-\(index)");await tutor.input(input(answer),app:app);for _ in 0..<200 where app.learner.companionMemory?["es"]?.first?.severity != index+1{await Task.yield()}}
+            let note=try XCTUnwrap(app.learner.companionMemory?["es"]?.first),changes=(app.learner.pendingMemoryChanges ?? []).filter{$0.action == .capture};XCTAssertEqual(changes.count,2);XCTAssertEqual(note.severity,2);XCTAssertEqual(note.id,changes.first?.note.id);XCTAssertEqual(note.text("correction"),"Hola");XCTAssertEqual(note.text("expectedAnswer"),"Hola");XCTAssertEqual(app.learner.totalXP,0);XCTAssertNil(app.learner.gradedByLanguage);await tutor.stop(app)
+            let sequence:JSONValue = .array(changes.enumerated().map{index,change in .object(["targetLang":.string("es"),"supportLang":.string(support),"sourceMode":.string("tutor"),"sourceContext":.string("tutor"),"concept":.string(concept),"userAnswer":.string(index == 0 ? "a public complete attempt":"another public complete attempt"),"expectedAnswer":.string(index == 0 ? "Hola":"Buen día"),"now":.string(WebProgressContract.iso(change.date))])})
+            let web=WKWebView(frame:CGRect(x:0,y:0,width:402,height:874),configuration:WKWebViewConfiguration()),sourceWindow=UIWindow(windowScene:scene),controller=UIViewController();sourceWindow.frame=web.frame;controller.view=web;sourceWindow.rootViewController=controller;web.scrollView.contentInsetAdjustmentBehavior = .never;sourceWindow.makeKeyAndVisible()
+            let nativeWindow=UIWindow(windowScene:scene);nativeWindow.frame=web.frame;let host=UIHostingController(rootView:ZStack{PiyaliBrand(dark:theme == "dark").background;MemoryDrawerView(onClose:{})}.environmentObject(app).environment(\.layoutDirection,support == "ar" ? .rightToLeft:.leftToRight).environment(\.dynamicTypeSize,.large).preferredColorScheme(theme == "dark" ? .dark:.light).ignoresSafeArea());nativeWindow.rootViewController=host;nativeWindow.makeKeyAndVisible();defer{web.stopLoading();sourceWindow.isHidden=true;sourceWindow.rootViewController=nil;nativeWindow.isHidden=true;nativeWindow.rootViewController=nil}
+            var url=URLComponents(string:"http://127.0.0.1:5181/__piyali-onboarding")!;url.queryItems=[.init(name:"screen",value:"memory"),.init(name:"captureSequence",value:sequence.json),.init(name:"language",value:support),.init(name:"theme",value:theme),.init(name:"goal",value:"0")];web.load(URLRequest(url:try XCTUnwrap(url.url)))
+            var ready=false;for _ in 0..<400{ready=(try? await web.evaluateJavaScript("window.__sourceMemorySequence?.notes?.[0]?.severity===2&&!!document.querySelector('[role=dialog]')&&document.fonts.status==='loaded'")) as? Bool == true;if ready{break};try await Task.sleep(for:.milliseconds(50))};let error=(try? await web.evaluateJavaScript("window.__sourceMemorySequenceError||''")) as? String ?? "";XCTAssertTrue(ready,error);guard ready else{return}
+            let raw=try await web.evaluateJavaScript("JSON.stringify(window.__sourceMemorySequence)"),trace=try JSONDecoder().decode(JSONValue.self,from:Data(try XCTUnwrap(raw as? String).utf8)),source=try XCTUnwrap(trace["notes"].array.first)
+            XCTAssertEqual(trace["notes"].array.count,1);XCTAssertEqual(trace["grades"].number,0);XCTAssertEqual(trace["enrichmentRequests"].number,2);XCTAssertEqual(source["id"],trace["captures"].array.first?["id"])
+            for field in ["concept","userAnswer","expectedAnswer","correction","companionSummary","sourceMode","sourceContext","supportLang","targetLang","cefrLevel","severity","status","mistake","tip","enriched"] {XCTAssertEqual(source[field],note.fields[field],field)}
+            try await Task.sleep(for:.milliseconds(950));let sourceShot=XCTAttachment(image:try await web.takeSnapshot(configuration:nil));sourceShot.name="Source repeated Memory \(support)";sourceShot.lifetime = .keepAlways;add(sourceShot);nativeWindow.makeKeyAndVisible();host.view.layoutIfNeeded();let nativeShot=XCTAttachment(image:UIGraphicsImageRenderer(bounds:nativeWindow.bounds).image{_ in nativeWindow.drawHierarchy(in:nativeWindow.bounds,afterScreenUpdates:true)});nativeShot.name="Native repeated Memory \(support)";nativeShot.lifetime = .keepAlways;add(nativeShot)
+            let evidence=XCTAttachment(data:Data(JSONValue.object(["source":trace,"nativeBeforeDrawer":.object(note.fields),"nativeAfterDrawer":.object(app.learner.companionMemory?["es"]?.first?.fields ?? [:]),"nativeCaptures":.number(Double(changes.count))]).json.utf8),uniformTypeIdentifier:"public.json");evidence.name="Repeated Memory trace \(support)";evidence.lifetime = .keepAlways;add(evidence)
+        }
+    }
+}
+
+
+extension TutorSessionTests {
+    func testTutorEnrichmentReceivesTheFullSourceConceptBeforeNoteTruncation()async throws {
+        let app=try await app();defer{try? app.identity.disconnect()};let concept=String(repeating:"x",count:241),transport=TutorTransport();var prompt="",p=provider(.object(["successful":.bool(false),"mistake":.bool(true),"confidence":.number(0.2),"concept":.string(concept),"correction":.string("Hola")]))
+        p.memory={text in prompt=text;return "{\"did\":\"The greeting was missing.\",\"fix\":\"Hola\",\"tip\":\"Start with hola.\"}"}
+        let tutor=TutorSessionController(live:LiveTutorService(permission:{true},transportFactory:{transport}),provider:p,turnXP:{5});await tutor.prepare(app);await tutor.start(app);transport.assistant("Welcome!");await tutor.input(input("yes"),app:app);transport.assistant("Give a greeting.",id:"question");await tutor.input(input("a public complete attempt"),app:app)
+        for _ in 0..<200 where prompt.isEmpty{await Task.yield()};let note=try XCTUnwrap(app.learner.companionMemory?["es"]?.first),policy=try XCTUnwrap(MemoryUI.policy)
+        let expected=try policy.inspect("enrich",.object(["note":.object(note.fields).setting("concept",.string(concept)),"target":.string("es"),"language":.string("en")]))["requests"].array.first?.string
+        XCTAssertEqual(prompt,expected);XCTAssertTrue(prompt.contains(concept));XCTAssertEqual(note.text("concept").count,240);XCTAssertEqual(app.learner.pendingMemoryChanges?.first(where:{$0.action == .capture})?.captureConcept,concept);await app.tutorMemories.wait(note,app:app);await tutor.stop(app)
+    }
+}

@@ -66,7 +66,8 @@ final class MemoryTests: XCTestCase {
         state.companionMemory?["es"]?[0].fields["tip"] = .string("English tip")
         state.support = "fr"
         state.captureMemory(mode:"grammar",concept:"word",answer:"x",expected:"y",feedback:"Explication",now:now.addingTimeInterval(1))
-        XCTAssertEqual(state.companionMemory?["es"]?.first?.text("mistake"),"Explication")
+        XCTAssertEqual(state.companionMemory?["es"]?.first?.text("mistake"),"")
+        XCTAssertEqual(state.companionMemory?["es"]?.first?.fields["enriched"],.bool(false))
         XCTAssertEqual(state.companionMemory?["es"]?.first?.text("tip"),"")
     }
 }

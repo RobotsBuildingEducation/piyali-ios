@@ -37,9 +37,11 @@ import Foundation
         return false
         #endif
     }
+    static var repeatedMemory:Bool {memorySlip && ProcessInfo.processInfo.environment["PIYALI_TUTOR_MEMORY_REPEAT_FIXTURE"] == "1"}
     static var replySample:JSONValue {guard enabled,ProcessInfo.processInfo.environment["PIYALI_TUTOR_REPLY_FIXTURE"] == "1" else{return .null};guard let url=Bundle.main.url(forResource:"tutor-reply-fixture",withExtension:"json")else{return .null};return (try? ContentLibrary.decode(JSONValue.self,url:url)) ?? .null}
     static func provider(support:String="en")->TutorProvider {
-        var p=TutorProvider(judge:{_ in memorySlip ? .object(["successful":.bool(false),"mistake":.bool(true),"confidence":.number(0.2),"concept":.string("A greeting"),"correction":.string("Hola"),"reason":.string("Private fixture judge reason")]):.object(["successful":.bool(false),"mistake":.bool(false),"confidence":.number(0.9),"reason":.string("Try the lesson phrase.")])},quote:{_,_,_ in .null},translate:{_,text in if replySample != .null,text == replySample["primary"].string{return replySample[support] == .null ? replySample["en"]:replySample[support]};return .object(["translation":.string(text == "Say hola." ? "Di hola.":"Public fixture translation"),"pairs":.array([])])})
+        var judges=0
+        var p=TutorProvider(judge:{_ in judges += 1;return memorySlip ? .object(["successful":.bool(false),"mistake":.bool(true),"confidence":.number(0.2),"concept":.string("A greeting"),"correction":.string(repeatedMemory && judges>1 ? "Buen día":"Hola"),"reason":.string("Private fixture judge reason")]):.object(["successful":.bool(false),"mistake":.bool(false),"confidence":.number(0.9),"reason":.string("Try the lesson phrase.")])},quote:{_,_,_ in .null},translate:{_,text in if replySample != .null,text == replySample["primary"].string{return replySample[support] == .null ? replySample["en"]:replySample[support]};return .object(["translation":.string(text == "Say hola." ? "Di hola.":"Public fixture translation"),"pairs":.array([])])})
         if memorySlip {p.memory={MemoryDrawerFixture.response($0,language:support) ?? ""}}
         return p
     }
@@ -90,8 +92,8 @@ import Foundation
     }
     func setRemoteAudioEnabled(_ enabled:Bool){}
     func setMicrophoneEnabled(_ enabled:Bool){microphone=enabled;if !enabled{speech?.cancel();speech=nil}else{scheduleInput()}}
-    private func scheduleInput(){guard microphone,!closed,!responsePending,script.response>0,speech == nil,script.input<((TutorVoiceFixture.asrRecovery || TutorVoiceFixture.lateSpeech || TutorVoiceFixture.memorySlip) ? 2:TutorVoiceFixture.replySample == .null ? 3:1) else{return}
-        speech=Task{try? await Task.sleep(for:.seconds(script.input == 0 ? 3:5));guard !Task.isCancelled,!closed,microphone,!responsePending else{speech=nil;return};let index=script.input;script.input += 1;speech=nil;let id=prefix+"-u\(index)",text=index == 0 ? "yes":TutorVoiceFixture.asrRecovery ? "नमस्ते":index == 1 ? (TutorVoiceFixture.memorySlip ? "a public complete attempt":"I do not know"):"hola"
+    private func scheduleInput(){guard microphone,!closed,!responsePending,script.response>0,speech == nil,script.input<(TutorVoiceFixture.repeatedMemory ? 3:(TutorVoiceFixture.asrRecovery || TutorVoiceFixture.lateSpeech || TutorVoiceFixture.memorySlip) ? 2:TutorVoiceFixture.replySample == .null ? 3:1) else{return}
+        speech=Task{try? await Task.sleep(for:.seconds(script.input == 0 ? 3:5));guard !Task.isCancelled,!closed,microphone,!responsePending else{speech=nil;return};let index=script.input;script.input += 1;speech=nil;let id=prefix+"-u\(index)",text=index == 0 ? "yes":TutorVoiceFixture.asrRecovery ? "नमस्ते":index == 1 ? (TutorVoiceFixture.memorySlip ? "a public complete attempt":"I do not know"):(TutorVoiceFixture.repeatedMemory ? "another public complete attempt":"hola")
             emit(["type":.string("input_audio_buffer.speech_started")]);emit(["type":.string("input_audio_buffer.speech_stopped")]);emit(["type":.string("input_audio_buffer.committed"),"item_id":.string(id)]);emit(["type":.string("conversation.item.input_audio_transcription.completed"),"item_id":.string(id),"transcript":.string(text)])
         }
     }

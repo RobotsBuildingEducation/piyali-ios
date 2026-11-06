@@ -1,0 +1,128 @@
+{
+  "referenceRevision": "b269524ddc578027c549616fc47f5954991d9f6f",
+  "result": "/tmp/PiyaliMemoryDuplicateVerified20261105.xcresult + /tmp/PiyaliMemoryDuplicateRTL20261105.xcresult",
+  "scope": "Complete original async captureCompanionMemory and NotesDrawer with explicit public local-persistence/evidence/enrichment I/O; native Tutor repeated-slip merge and full native signup \u2192 repeated Tutor slip \u2192 enriched Memory \u2192 process relaunch. Source is not the full authenticated browser route; no source Firebase/network/enrichment quality, physical speech or complete-shell design claim.",
+  "records": [
+    {
+      "file": "source-repeated-en.png",
+      "sha256": "0a21b0dd2c1cf35b7ca893757e2201f80f70ab104ef74dab521fd6355a21976a",
+      "attachment": "Source repeated Memory en_0_748D0CEF-5BF8-4B9B-9069-D0DB4C22ACE0.png"
+    },
+    {
+      "file": "native-repeated-en.png",
+      "sha256": "5b498f41759f6c5e650573b64b098fdce5d916b0867f4a0f15cf86a2fe6ebf89",
+      "attachment": "Native repeated Memory en_0_F9F882EF-DCED-48CC-B5E5-E1D18A68AFA6.png"
+    },
+    {
+      "file": "pair-repeated-en.png",
+      "sha256": "f38d28b2c224f277886fc53c90ea4daddf0cb930cfa3677d8f45e6db3ceb0b0c",
+      "scope": "Actual source async capture twice and NotesDrawer; native Tutor twice and Memory drawer. Component hosts with the same brand backdrop, source left/native right."
+    },
+    {
+      "file": "repeated-trace-en.json",
+      "sha256": "7b998df1cb6b7877343729eea113261caa1684a770723e74019013fc0c9b84d2",
+      "attachment": "Repeated Memory trace en_0_A74AE5AC-F3AF-4EC5-A255-AC23F40DB90F.json"
+    },
+    {
+      "file": "source-repeated-ar.png",
+      "sha256": "c66fdbc0977d78cf576b07f7291e217fef01e5673d96986b2bbc164128872ed4",
+      "attachment": "Source repeated Memory ar_0_8BA4AD25-ED0C-48EA-B2BE-2EBD4373DC45.png"
+    },
+    {
+      "file": "native-repeated-ar.png",
+      "sha256": "99794a73c8bd9fa1259a7294a60f97ee85b979e71e19725b65c6169fc770d9de",
+      "attachment": "Native repeated Memory ar_0_EBE1ABBC-C3F8-46EF-903F-FAE5BB4B2BA8.png"
+    },
+    {
+      "file": "pair-repeated-ar.png",
+      "sha256": "744ea09da09d329b0f20ba778e5e5912bd1bcbccb3ff3aa95789712d4602fd89",
+      "scope": "Actual source async capture twice and NotesDrawer; native Tutor twice and Memory drawer. Component hosts with the same brand backdrop, source left/native right."
+    },
+    {
+      "file": "repeated-trace-ar.json",
+      "sha256": "7c088f7fae84f45052dc9d1a55a2c96165b4c1076acd3f57c87b2db93e09c209",
+      "attachment": "Repeated Memory trace ar_0_26424FD7-32EC-4776-B45E-F4F17AD26789.json"
+    },
+    {
+      "file": "native-product-retained.png",
+      "sha256": "97c898c6bc0b27f1ca802442bd6419665bc8bef3ec049c6da94b1f17ad8dc74e",
+      "attachment": "Native repeated Tutor Memory retains first correction_0_37AA26EE-BF01-4281-BBAB-DF2546D19198.png"
+    },
+    {
+      "file": "native-product-relaunch.png",
+      "sha256": "b425be58a015eb8adaa697e09d89558a73527db3bea5a7d503469c9cc1cbb4ae",
+      "attachment": "Native repeated Tutor Memory survives process relaunch_0_0401A5BE-2F4C-4547-A316-D4FF144B7AE3.png"
+    },
+    {
+      "file": "behavior-test-summary.json",
+      "sha256": "4d0997c0e5dae0d004dcc16f5b5de2ae002886352edf749be2b488b582c67b55"
+    },
+    {
+      "file": "behavior-tests.txt",
+      "sha256": "48158c361b5a0de27e3f706d3393e9ec357465443455c9c7f6cd95af739e4f6f"
+    },
+    {
+      "file": "core-tests.txt",
+      "sha256": "24025926fd8260495e10f220e8377dff65bb99c99f5a82b810eae50d1ec3a627"
+    },
+    {
+      "file": "final-render-summary.json",
+      "sha256": "da9d066393f404160b20c6562f2c58fdef114816cbfdcc28332e4a880759ff40"
+    },
+    {
+      "file": "final-render.txt",
+      "sha256": "17391a4d27309210850a67bb3505b74dfbf2e3d7cc122db85c7ce0264fd27826"
+    },
+    {
+      "file": "final-source-hashes.json",
+      "sha256": "e794f4928c32945091686ed4d274e4252875ff70f5d5071082ada07ba3bf03b5"
+    },
+    {
+      "file": "first-fix-transitional-failures.txt",
+      "sha256": "68629f165d32c80a1b0c9adf447b92c427bf0d1a4b3ce00d3f547da1bf6ebe53"
+    },
+    {
+      "file": "initial-sdk-precision-failure.json",
+      "sha256": "842290e9e479066cefc4da0cc7d7373d33c2fa17a301be0f6c7de726aadfb725"
+    },
+    {
+      "file": "qa-repeated-audit.json",
+      "sha256": "3bd79cf05eb1600f29dab74b25d61fdb927d7f83eb207cc8c9c16c2468b83b6d"
+    },
+    {
+      "file": "qa-single-audit.json",
+      "sha256": "7f24a9ec13c02f842f93b16b70216d06c7b39087984e6bfaae03b248ac685bf6"
+    },
+    {
+      "file": "reproduction.txt",
+      "sha256": "320f691b259a6195ee1105c8211d2881e1b60805c9252dc0b5449da3084313e2"
+    },
+    {
+      "file": "source-case-audit.json",
+      "sha256": "b85d0a45344ea10600d09f8fe220ceb623c956805524d8d901316faaab63ab5b"
+    },
+    {
+      "file": "source-export.txt",
+      "sha256": "0907bd2480e23b196e235d61c9be5d46f9e02560afce70edf54a6f0ef710f601"
+    },
+    {
+      "file": "verification-commands.txt",
+      "sha256": "b47b411433cf695b49b83f44f85fb6ef638f6a8556c757af3a4de586e14098cf"
+    }
+  ],
+  "verification": {
+    "coreTests": 23,
+    "sourceCases": 267,
+    "newFullAsyncCaptureCases": 203,
+    "priorCasesUnchanged": 64,
+    "behaviorTests": 24,
+    "behaviorFailures": 0,
+    "skips": 0,
+    "finalRTLCaptureMethods": 1,
+    "finalRTLLanguages": [
+      "en",
+      "ar"
+    ],
+    "initialSDKBatch": "Failed one fixture nanosecond precision assertion; retained; fixed exact public timestamp passes final six SDK contracts."
+  }
+}

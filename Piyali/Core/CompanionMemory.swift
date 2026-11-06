@@ -19,9 +19,29 @@ public struct MemoryChange: Codable, Identifiable, Sendable {
     public let date: Date
     public let dayKey: String
     public let note: MemoryNote
-    public init(action: Action, target: String, date: Date, dayKey: String, note: MemoryNote) { self.action = action; self.target = target; self.date = date; self.dayKey = dayKey; self.note = note }
+    public let captureConcept:String?
+    public init(action: Action, target: String, date: Date, dayKey: String, note: MemoryNote, captureConcept:String? = nil) { self.action = action; self.target = target; self.date = date; self.dayKey = dayKey; self.note = note;self.captureConcept=captureConcept }
 }
 public enum MemoryContract {
+    static func supportCode(_ raw:String)->String {
+        let code=raw.trimmingCharacters(in:.whitespacesAndNewlines).lowercased(),base=String(code.split(whereSeparator:{$0 == "-" || $0 == "_"}).first ?? "")
+        if MemoryCaptureSourceData.summaries[code] != nil{return code}
+        let alias=["arz":"ar","cmn":"zh"][base] ?? base
+        return MemoryCaptureSourceData.summaries[alias] == nil ? "en":alias
+    }
+    static func cleanConcept(_ raw:String,support:String)->String {
+        let trim=CharacterSet.whitespacesAndNewlines.union(CharacterSet(charactersIn:"\u{FEFF}")),text=raw.trimmingCharacters(in:trim)
+        guard supportCode(support) != "en",!text.isEmpty else{return text}
+        let regex=try! NSRegularExpression(pattern:"[\\s\\uFEFF]*\\(([^()]*)\\)"),words=try! NSRegularExpression(pattern:"[a-z]+")
+        var clean=text
+        for match in regex.matches(in:text,range:NSRange(text.startIndex...,in:text)).reversed() {
+            guard let range=Range(match.range(at:1),in:text) else{continue};let inside=String(text[range]).lowercased()
+            if words.matches(in:inside,range:NSRange(inside.startIndex...,in:inside)).contains(where:{m in Range(m.range,in:inside).map{MemoryCaptureSourceData.english.contains(String(inside[$0]))} ?? false}),let whole=Range(match.range,in:clean){clean.removeSubrange(whole)}
+        }
+        return clean.replacingOccurrences(of:"[\\s\\uFEFF]+",with:" ",options:.regularExpression).trimmingCharacters(in:trim)
+    }
+    static func conceptKey(_ value:String)->String {value.trimmingCharacters(in:.whitespacesAndNewlines).lowercased().replacingOccurrences(of:"[\\s\\uFEFF]+",with:" ",options:.regularExpression)}
+    static func summary(_ concept:String,support:String)->String {(MemoryCaptureSourceData.summaries[supportCode(support)] ?? "").replacingOccurrences(of:"{concept}",with:concept)}
     public static func errorType(_ mode: String) -> String {
         ["flashcard":"vocabulary","vocabulary":"vocabulary","grammar":"grammar","phonics":"phonics","conversation":"conversation_flow","tutor":"conversation_flow","reading":"reading","story":"pronunciation"][mode] ?? "unknown"
     }
@@ -32,14 +52,14 @@ public enum MemoryContract {
         switch note.text("recommendedRepairMode") { case "lesson":.grammar; case "phonics":.speaking; case "tutor":.conversation; default:.vocabulary }
     }
     public static func capture(target: String, support: String, level: String, mode: String, concept: String, answer: String, expected: String, feedback: String, context: String = "", now: Date = Date()) -> MemoryNote {
-        let day = CalendarDay.key(now), error = errorType(mode)
+        let day = CalendarDay.key(now), error = errorType(mode),support=supportCode(support),concept=cleanConcept(concept,support:support)
         return MemoryNote(fields:[
             "id":.string("mem-\(Int(now.timeIntervalSince1970*1000))-\(UUID().uuidString.prefix(7).lowercased())"),
             "createdDayKey":.string(day),"createdAt":.number(now.timeIntervalSince1970*1000),"targetLang":.string(target),"supportLang":.string(support),
             "sourceMode":.string(mode),"sourceContext":.string(context),"concept":.string(String(concept.trimmingCharacters(in:.whitespacesAndNewlines).prefix(240))),
             "userAnswer":.string(String(answer.prefix(240))),"expectedAnswer":.string(String(expected.prefix(240))),"correction":.string(String(expected.prefix(240))),
             "errorType":.string(error),"cefrLevel":.string(level),"severity":.number(1),"recommendedRepairMode":.string(repairMode(error)),
-            "companionSummary":.string(""),"mistake":.string(feedback),"tip":.string(""),"enriched":.bool(!feedback.isEmpty),
+            "companionSummary":.string(summary(concept,support:support)),"mistake":.string(feedback),"tip":.string(""),"enriched":.bool(!feedback.isEmpty),
             "expiresAfterDayKey":.string(CalendarDay.shift(day,by:1)),"usedInQuestDayKey":.null,"status":.string("captured")
         ])
     }
@@ -61,22 +81,23 @@ public enum MemoryContract {
                 notes[index].fields["usedInQuestDayKey"] = .string(change.dayKey)
             }
         } else {
-            func key(_ text: String) -> String { text.lowercased().split(whereSeparator: { $0.isWhitespace }).joined(separator:" ") }
-            if let index = notes.firstIndex(where: { $0.text("createdDayKey") == change.dayKey && $0.text("sourceMode") == change.note.text("sourceMode") && key($0.text("concept")) == key(change.note.text("concept")) }) {
-                var existing = notes[index]
-                let severity = min(3,existing.severity + 1)
+            let support=supportCode(change.note.text("supportLang")),concept=cleanConcept(change.captureConcept ?? change.note.text("concept"),support:support)
+            guard !concept.isEmpty else{return original}
+            if let index = notes.firstIndex(where: { $0.text("createdDayKey") == change.dayKey && $0.text("sourceMode") == change.note.text("sourceMode") && conceptKey($0.text("concept")) == conceptKey(concept) }) {
+                var existing=notes[index];let severity=min(3,existing.severity+1)
                 if change.note.createdAt >= existing.createdAt {
-                    // The existing ID, lifecycle and unknown web fields survive repeated slips.
-                    let changedSupport = existing.text("supportLang") != change.note.text("supportLang")
-                    for field in ["createdAt","supportLang","userAnswer","expectedAnswer","correction"] { existing.fields[field] = change.note.fields[field] }
-                    if changedSupport || (existing.fields["enriched"] != .bool(true) && !change.note.text("mistake").isEmpty) {
-                        for field in ["mistake","tip","enriched"] { existing.fields[field] = change.note.fields[field] }
-                    }
+                    // Preserve newer cross-device answers; source duplicate fields
+                    // otherwise retain the original ID, correction and lifecycle.
+                    let changedSupport=supportCode(existing.text("supportLang")) != support
+                    existing.fields["createdAt"]=change.note.fields["createdAt"];existing.fields["supportLang"] = .string(support)
+                    if !change.note.text("userAnswer").isEmpty{existing.fields["userAnswer"]=change.note.fields["userAnswer"]}
+                    existing.fields["companionSummary"] = .string(summary(concept,support:support))
+                    if changedSupport {existing.fields["mistake"] = .string("");existing.fields["tip"] = .string("");existing.fields["enriched"] = .bool(false)}
                 }
-                existing.fields["severity"] = .number(Double(severity)); notes[index] = existing
-            } else { notes.append(change.note) }
+                existing.fields["severity"] = .number(Double(severity));notes[index]=existing
+            }else{notes.insert(change.note,at:0)}
         }
-        return Array(notes.filter { $0.text("expiresAfterDayKey").isEmpty || $0.text("expiresAfterDayKey") >= today }.sorted { $0.createdAt == $1.createdAt ? $0.id < $1.id : $0.createdAt > $1.createdAt }.prefix(40))
+        return Array(notes.filter { $0.text("expiresAfterDayKey").isEmpty || $0.text("expiresAfterDayKey") >= today }.prefix(40))
     }
 }
 public extension LearnerState {
@@ -86,18 +107,19 @@ public extension LearnerState {
             applyGoal(GoalChange(action:.evidence,target:target,date:now,payload:goalFocus.payload(mode:mode,concept:concept,answer:answer,expected:expected)))
             return
         }
-        guard !concept.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else { return }
+        let concept=MemoryContract.cleanConcept(concept,support:support)
+        guard !concept.isEmpty else { return }
         var note = MemoryContract.capture(target:target,support:support,level:questionLevel ?? level,mode:mode,concept:concept,answer:answer,expected:expected,feedback:feedback,context:context,now:now)
         if let sourceContext{note.fields["sourceContext"]=sourceContext}
-        applyMemory(MemoryChange(action:.capture,target:target,date:now,dayKey:CalendarDay.key(now),note:note))
+        applyMemory(MemoryChange(action:.capture,target:target,date:now,dayKey:CalendarDay.key(now),note:note,captureConcept:concept))
     }
     /// Accepts the original source note builder's fields without replacing its
     /// localized pending summary or treating a private judge reason as enrichment.
-    @discardableResult mutating func captureMemory(_ note:MemoryNote,now:Date=Date())->MemoryNote? {
-        guard note.text("targetLang") == target,!note.id.isEmpty,!note.text("concept").trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else{return nil}
-        applyMemory(MemoryChange(action:.capture,target:target,date:now,dayKey:CalendarDay.key(now),note:note))
-        func key(_ value:String)->String {value.lowercased().split(whereSeparator:{$0.isWhitespace}).joined(separator:" ")}
-        return companionMemory?[target]?.first{$0.text("createdDayKey") == CalendarDay.key(now) && $0.text("sourceMode") == note.text("sourceMode") && key($0.text("concept")) == key(note.text("concept"))}
+    @discardableResult mutating func captureMemory(_ note:MemoryNote,concept:String?=nil,now:Date=Date())->MemoryNote? {
+        let concept=MemoryContract.cleanConcept(concept ?? note.text("concept"),support:note.text("supportLang"))
+        guard note.text("targetLang") == target,!note.id.isEmpty,!concept.isEmpty else{return nil}
+        applyMemory(MemoryChange(action:.capture,target:target,date:now,dayKey:CalendarDay.key(now),note:note,captureConcept:concept))
+        return companionMemory?[target]?.first{$0.id == note.id} ?? companionMemory?[target]?.first{$0.text("createdDayKey") == CalendarDay.key(now) && $0.text("sourceMode") == note.text("sourceMode") && MemoryContract.conceptKey($0.text("concept")) == MemoryContract.conceptKey(concept)}
     }
     mutating func localizeMemory(_ original:MemoryNote,fields:JSONValue,support:String,now:Date = Date()) {
         guard let current=companionMemory?[target]?.first(where:{$0.id == original.id}),current.createdAt == original.createdAt else{return}
@@ -121,3 +143,11 @@ public extension LearnerState {
         if pendingMemoryChanges == nil { pendingMemoryChanges = [] }; pendingMemoryChanges?.append(change)
     }
 }
+
+// BEGIN GENERATED MEMORY CAPTURE DATA
+// Original support codes, capture summaries and English tokens; export-memory.mjs.
+private enum MemoryCaptureSourceData {
+    static let summaries:[String:String] = ["en":"Saved for tomorrow: {concept}","es":"Guardado para mañana: {concept}","pt":"Guardado para amanhã: {concept}","it":"Salvato per domani: {concept}","fr":"Gardé pour demain : {concept}","de":"Für morgen gemerkt: {concept}","ja":"明日のために保存：{concept}","hi":"कल के लिए सहेजा: {concept}","ar":"محفوظ لبكرة: {concept}","zh":"已为明天保存：{concept}"]
+    static let english:Set<String> = ["answer","answered","captured","correct","ends","exercise","goodbye","greeting","greetings","hello","instead","learner","means","mistake","practice","reinforced","remember","repaired","said","saved","should","starts","tense","today","tomorrow","word","wrong","your"]
+}
+// END GENERATED MEMORY CAPTURE DATA

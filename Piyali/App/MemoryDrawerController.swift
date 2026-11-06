@@ -65,7 +65,7 @@ import Combine
     private func key(_ note:MemoryNote,_ app:AppModel)->String {
         [app.identity.npub,app.identity.sessionRevision.uuidString,note.text("targetLang"),note.id,String(note.createdAt.timeIntervalSince1970),note.text("supportLang")].joined(separator:":")
     }
-    @discardableResult func start(_ note:MemoryNote,app:AppModel,respond:@escaping @MainActor (String)async throws->String)->Task<Void,Never>? {
+    @discardableResult func start(_ note:MemoryNote,concept:String?=nil,app:AppModel,respond:@escaping @MainActor (String)async throws->String)->Task<Void,Never>? {
         if note.fields["enriched"] == .bool(true),MemoryUI.value("localized",.object(["note":.object(note.fields),"language":.string(note.text("supportLang"))])).boolean {return nil}
         let key=key(note,app);if let task=tasks[key]?.task{return task}
         let id=UUID(),account=app.identity.npub,session=app.identity.sessionRevision,target=note.text("targetLang"),support=note.text("supportLang")
@@ -79,7 +79,7 @@ import Combine
                 return current.createdAt == note.createdAt && current.text("supportLang") == support
             }
             guard valid() else{return}
-            let fields=(try? await policy.generate("enrich",.object(["note":.object(note.fields),"target":.string(target),"language":.string(support)])){prompt in
+            let fields=(try? await policy.generate("enrich",.object(["note":.object(note.fields).setting("concept",.string(concept ?? note.text("concept"))),"target":.string(target),"language":.string(support)])){prompt in
                 guard valid() else{throw CancellationError()};return try await respond(prompt)
             }) ?? .null
             guard fields != .null,valid(),let current=app.learner.companionMemory?[target]?.first(where:{$0.id == note.id}) else{return}

@@ -45,10 +45,10 @@ async function select(m,name){
  const refs=new Set();p.traverse({ReferencedIdentifier(r){const binding=r.scope.getBinding(r.node.name);if(binding&&binding.scope.path.isProgram())refs.add(r.node.name);else if(!binding&&!globals.has(r.node.name))throw Error(`Unbound global ${m.file}:${name}:${r.node.name}`);}});
  for(const ref of refs)if(ref!==name)await select(m,ref);
 }
-const languageModule=await moduleFor('src/constants/languages.js');await select(languageModule,'getLanguageLocale');
+const languageModule=await moduleFor('src/constants/languages.js');await select(languageModule,'getLanguageLocale');await select(languageModule,'SUPPORT_LANGUAGE_CODES');
 const study=await moduleFor('src/utils/noteGeneration.js');await select(study,'generateNoteContent');
 const memory=await moduleFor('src/utils/companionMemory.js'),copy=await moduleFor('src/utils/companionMemoryCopy.js'),journey=await moduleFor('src/utils/voiceJourneyCopy.js'),journeyModel=await moduleFor('src/utils/voiceJourneyModel.js');
-const roots=['buildMemoryNote','getCompanionDayKey','generateMemorySummaryText','enrichNoteFields','memoryLogSignature','memoryNoteMatchesSupportLanguage','cleanMemoryConceptForSupportLanguage','getCompanionNotes'];
+const roots=['normalizeConceptKey','buildMemoryNote','getCompanionDayKey','generateMemorySummaryText','enrichNoteFields','memoryLogSignature','memoryNoteMatchesSupportLanguage','cleanMemoryConceptForSupportLanguage','getCompanionNotes'];
 for(const name of roots)await select(memory,name);
 for(const name of ['memoryCopy','MEMORY_CARD_COPY','MEMORY_DRAWER_COPY','memoryStatusLabel'])await select(copy,name);
 await select(journey,'journeyCopy');
@@ -56,6 +56,14 @@ for(const name of ['JOURNEY_MILESTONES','journeySessionCount','completeJourneyQu
 const drawer=await moduleFor('src/components/NotesDrawer.jsx'),cards=await moduleFor('src/components/CompanionMemoryList.jsx');
 for(const name of ['CEFR_LEVELS','CEFR_COLORS','CEFR_TEXT_COLORS','MODULE_LABELS'])await select(drawer,name);
 for(const name of ['SOURCE_LABELS','STATUS_ACCENT','resolveStatus'])await select(cards,name);
+// Preserve the actual pre-persistence capture block. Its only store access is
+// an explicit input snapshot; Node also executes the complete async callback.
+const captureNode=memory.bindings.get('captureCompanionMemory').node,captureOriginal=memory.source.slice(captureNode.start,captureNode.end);
+const captureStart=captureOriginal.indexOf('  const langKey = normalizePlateLang(targetLang);'),captureEnd=captureOriginal.indexOf('  await persistBucket(npub, langKey, {');
+if(captureStart<0||captureEnd<captureStart||!captureOriginal.slice(captureStart,captureEnd).includes('const trimmed = notes.slice(0, 40);'))throw Error('Original capture snapshot boundary moved');
+const capturePlan=`function capturePlan(input){const {targetLang,supportLang='en',sourceMode,concept,userAnswer,expectedAnswer,cefrLevel,sourceContext}=input;const now=new Date(input.now),useUserStore={getState:()=>({user:{companionMemory:{[normalizePlateLang(targetLang)]:{notes:input.notes||[],lastPrunedDayKey:''}}}})};
+${captureOriginal.slice(captureStart,captureEnd)}
+return {note:stored,notes:trimmed,shouldEnrich};}`;
 const emitted=new Set(),ordered=[];
 function emit(m){if(emitted.has(m))return;for(const v of m.imports.values())if(v.module)emit(v.module);
  const imports=[...m.imports].map(([name,v])=>`const ${name}=${v.responses?'callNativeResponses':v.model?"'source-default'":v.unusedVisual?'null':`M${v.module.index}.${v.local}`};`).join('\n');
@@ -63,7 +71,7 @@ function emit(m){if(emitted.has(m))return;for(const v of m.imports.values())if(v
   let text=(p.isVariableDeclarator()?'const ':'')+m.source.slice(p.node.start,p.node.end)+(p.isVariableDeclarator()?';':'');
   if(['generateMemorySummaryText','enrichNoteFields','generateNoteContent'].includes(p.node.id.name)){const count=(text.match(/await callResponses/g)||[]).length;if(count!==(p.node.id.name==='generateNoteContent'?1:2))throw Error('Response boundary moved: '+p.node.id.name);text=text.replace('async function','function').replaceAll('await callResponses','callResponses');}
   return text;
- }).join('\n');ordered.push(`// ${m.file}\nconst M${m.index}=(function(){${imports}\n${declarations}\nreturn {${[...m.selected].join(',')}};})();`);emitted.add(m);
+ }).join('\n');ordered.push(`// ${m.file}\nconst M${m.index}=(function(){${imports}\n${declarations}\n${m===memory?capturePlan:''}\nreturn {${[...m.selected].join(',')}${m===memory?',capturePlan':''}};})();`);emitted.add(m);
 }
 for(const m of [memory,copy,journey,journeyModel,drawer,cards,study])emit(m);
 // Inline copy expressions and formatting remain exactly as authored in NotesDrawer.
@@ -71,12 +79,14 @@ const names=['clearAllLabel','lessonLabel','noNotesLabel','noteTitleFallback','f
 traverse(drawer.ast,{FunctionDeclaration(p){if(p.node.id?.name==='NotesDrawer')scope=p.scope;}});
 const labels=names.map(name=>{const node=scope.bindings[name]?.path.node;if(!node)throw Error('Drawer copy moved: '+name);return `const ${name}=${drawer.source.slice(node.init.start,node.init.end)};`}).join('\n');
 const script=`// Generated source policies; Swift owns persistence, provider calls and UI.
-(function(){const SystemDate=globalThis.Date;let Date=SystemDate,p={},requests=[],index=0;
+(function(){const SystemDate=globalThis.Date,SystemMath=globalThis.Math;let Date=SystemDate,Math=SystemMath,p={},requests=[],index=0;
 const console={error:()=>{}};function callNativeResponses(request){requests.push(request.input);const value=(p.responses||[])[index++];if(value?.nativeFailure)throw Error('provider');return value||'';}
 ${ordered.join('\n')}
-return {run:function(operation,json){p=JSON.parse(json||'{}');requests=[];index=0;const now=p.now?new SystemDate(p.now):new SystemDate();Date=class extends SystemDate{constructor(...args){super(...(args.length?args:[now.getTime()]));}static now(){return now.getTime();}};const lang=p.language||'en',locale=M${languageModule.index}.getLanguageLocale(lang);${labels}
+return {run:function(operation,json){p=JSON.parse(json||'{}');requests=[];index=0;Math=p.random===undefined?SystemMath:Object.assign(Object.create(SystemMath),{random:()=>p.random});const now=p.now?new SystemDate(p.now):new SystemDate();Date=class extends SystemDate{constructor(...args){super(...(args.length?args:[now.getTime()]));}static now(){return now.getTime();}};const lang=p.language||'en',locale=M${languageModule.index}.getLanguageLocale(lang);${labels}
 const m=M${memory.index},c=M${copy.index},j=M${journeyModel.index};let value;
-if(operation==='captureNote')value=m.buildMemoryNote({...p,now,dayKey:m.getCompanionDayKey(now)});
+if(operation==='capturePlan')value=m.capturePlan(p);
+else if(operation==='captureMetadata')value={supports:M${languageModule.index}.SUPPORT_LANGUAGE_CODES,templates:Object.fromEntries(M${languageModule.index}.SUPPORT_LANGUAGE_CODES.map(code=>[code,M${copy.index}.companionMemorySummary(code,'{concept}')])),english:[...m.DISTINCTIVE_ENGLISH_WORDS]};
+else if(operation==='captureNote')value=m.buildMemoryNote({...p,now,dayKey:m.getCompanionDayKey(now)});
 else if(operation==='note')value=M${study.index}.generateNoteContent({...p,targetLang:p.target||'es',supportLang:lang});
 else if(operation==='summary')value=m.generateMemorySummaryText({notes:p.notes||[],langKey:p.target||'es',supportLang:lang});
 else if(operation==='enrich')value=m.enrichNoteFields({...p.note,targetLang:p.target||'es',supportLang:lang});
@@ -98,6 +108,22 @@ for(const language of ['en','es','ar','ja'])for(const operation of ['signature',
 for(const count of [0,1,4,5,15,149,150]){const input={...base,data:{completedQuests:count,recordings:{1:{createdAt:'2026-01-01T00:00:00Z'}}}};rows.push({operation:'journey',input,expected:JSON.parse(api.run('journey',JSON.stringify(input)))});}
 for(const responses of [[],['{\"example\":\"Hola, mamá.\",\"summary\":\"A family greeting.\"}'],['invalid'],[{nativeFailure:true}]]){const input={...base,concept:'hola',cefrLevel:'A1',moduleType:'grammar',wasCorrect:false,responses};rows.push({operation:'note',input,expected:JSON.parse(api.run('note',JSON.stringify(input)))});}
 for(const language of ['en','ar','es'])for(const [concept,expectedAnswer] of [['A greeting','Hola'],['تحية (a greeting)','  Hola  '],['  A greeting  ','Hola']]){const input={...base,targetLang:'es',supportLang:language,sourceMode:'tutor',sourceContext:'tutor',concept,userAnswer:'a public attempt',expectedAnswer,cefrLevel:'Pre-A1'};const expected=JSON.parse(api.run('captureNote',JSON.stringify(input)));delete expected.value.id;rows.push({operation:'captureNote',input,expected});}
+// Independent original asynchronous capture with only external I/O replaced.
+const oracleMath=Object.assign(Object.create(Math),{random:()=>0.5}),helpers=vm.runInNewContext(`(()=>{const console={error:()=>{},warn:()=>{}},callNativeResponses=()=>'';${ordered.join('\n')}return M${memory.index};})()`,{Math:oracleMath});
+const duplicateBase={now:new Date(2026,10,5,12).getTime(),random:0.5,targetLang:'es',concept:'  hola  ',sourceMode:'tutor',sourceContext:'changed-context',cefrLevel:'C1',expectedAnswer:'new correction'};
+const day='2026-11-05',previous={id:'public-original',createdDayKey:day,createdAt:duplicateBase.now-1000,targetLang:'es',supportLang:'en',sourceMode:'tutor',sourceContext:'original-context',concept:'Hola',userAnswer:'first attempt',expectedAnswer:'HOLA',correction:'HOLA fixed',errorType:'conversation_flow',cefrLevel:'A1',severity:1,recommendedRepairMode:'tutor',companionSummary:'old summary',mistake:'Original diagnosis',tip:'Original tip',enriched:true,expiresAfterDayKey:'2026-11-06',usedInQuestDayKey:null,status:'captured',foreignField:'keep'};
+const captureInputs=[];
+for(const [oldSupport,supportLang]of [['en','en'],['en','es'],['es','en'],['en','ar'],['ar','ar'],['en-US','EN_us'],['arz','ar'],['unknown','en']])for(const severity of [1,2,3])for(const userAnswer of ['second attempt',''])for(const status of ['captured','reinforced'])for(const sourceMode of ['tutor','grammar']){
+ const old={...previous,supportLang:oldSupport,severity,status,sourceMode,...(['ar','arz'].includes(oldSupport)?{mistake:'التحية ناقصة',tip:'افتكر التحية'}:{})};captureInputs.push({...duplicateBase,supportLang,userAnswer,sourceMode,notes:[old]});
+}
+for(const overrides of [{concept:'Hola (the word hello)',supportLang:'ar'},{concept:'Hola (familia)',supportLang:'es'},{concept:'x'.repeat(241)},{sourceMode:'grammar'},{now:duplicateBase.now+86400000},{concept:''},{concept:'   '},{userAnswer:'answer '.repeat(60)},...['en','es','ar'].map(supportLang=>({supportLang,notes:[{...previous,id:'public-other',concept:'another concept',createdAt:duplicateBase.now-500},previous]}))])captureInputs.push({...duplicateBase,supportLang:'en',userAnswer:'second attempt',notes:[previous],...overrides});
+for(const input of captureInputs){let persisted=null,enrichments=0;const effects={};const context={...helpers,Date,Math:oracleMath,console:{warn:()=>{}},currentGoalFocus:()=>null,useUserStore:{getState:()=>({user:{companionMemory:{es:{notes:input.notes,lastPrunedDayKey:''}}}})},useNotesStore:{getState:()=>({triggerDoneAnimation:()=>{}})},recordGradedOutcome:async()=>{},recordLearningEvidence:async()=>{},persistBucket:async(_npub,_lang,bucket)=>{persisted=bucket.notes},enrichNoteFields:()=>{enrichments++;return Promise.resolve(null)},enrichAndPatchNote:async()=>{}};
+ const execute=vm.runInNewContext('('+captureOriginal+')',context),note=await execute({...input,now:new Date(input.now),gradedOutcome:false});await Promise.resolve();const expected={value:note?{note,notes:persisted,shouldEnrich:enrichments>0}:null,requests:[]},actual=JSON.parse(api.run('capturePlan',JSON.stringify(input)));
+ if(JSON.stringify(actual)!==JSON.stringify(JSON.parse(JSON.stringify(expected))))throw Error('Full original capture differs from snapshot: '+JSON.stringify({input,expected,actual}));rows.push({operation:'capturePlan',input,expected});
+}
+const metadata=JSON.parse(api.run('captureMetadata','{}')).value,swiftPath=path.join(root,'Piyali/Core/CompanionMemory.swift'),begin='// BEGIN GENERATED MEMORY CAPTURE DATA',end='// END GENERATED MEMORY CAPTURE DATA';
+const generated=begin+'\n// Original support codes, capture summaries and English tokens; export-memory.mjs.\nprivate enum MemoryCaptureSourceData {\n    static let summaries:[String:String] = ['+Object.entries(metadata.templates).map(([code,text])=>JSON.stringify(code)+':'+JSON.stringify(text)).join(',')+']\n    static let english:Set<String> = ['+metadata.english.map(JSON.stringify).join(',')+']\n}\n'+end;
+const originalSwift=await fs.readFile(swiftPath,'utf8');let swift=originalSwift;if(swift.includes(begin)){const first=swift.indexOf(begin),last=swift.indexOf(end,first);if(last<0)throw Error('Missing generated Memory data end');swift=swift.slice(0,first)+generated+swift.slice(last+end.length)}else swift+='\n'+generated+'\n';if(swift!==originalSwift)await fs.writeFile(swiftPath,swift);
 await fs.writeFile(path.join(root,'Tests/PiyaliCoreTests/Fixtures/memory-policy.json.gz'),gzipSync(JSON.stringify(rows),{level:9}));
-await fs.writeFile(path.join(root,'docs/reference/memory-source-manifest.json'),JSON.stringify({sources:[...modules.values()].filter(m=>m.selected.size).map(m=>({file:m.file,sha256:createHash('sha256').update(m.source).digest('hex'),declarations:[...m.selected]})),adapters:'Only provider awaits become explicit synchronous response snapshots; native code executes their recorded requests and retries. Original buildMemoryNote creates initial Tutor capture fields, including localized pending summary, blank enrichment, error/repair mode and the Pre-A1 fallback. Only its random note ID is excluded from fixture equality; production keeps the source ID generator. Original prompts, parsers, language guards, signatures, status and copy rules remain. No stores, React, DOM, Firebase or network executes.',cases:rows.length},null,2)+'\n');
+await fs.writeFile(path.join(root,'docs/reference/memory-source-manifest.json'),JSON.stringify({sources:[...modules.values()].filter(m=>m.selected.size).map(m=>({file:m.file,sha256:createHash('sha256').update(m.source).digest('hex'),declarations:[...m.selected]})),captureModule:memory.index,adapters:'The original pre-persistence capture block runs with an explicit note-bucket snapshot; new capture cases are independently checked against the complete original async callback with inert persistence/evidence/enrichment I/O. A fixed random input is used only in the new fixtures. Original summary templates, supported UI codes and English-cleanup tokens are also generated into native Swift. Only provider awaits become explicit synchronous response snapshots; native code executes their recorded requests and retries. Original buildMemoryNote creates initial Tutor capture fields, including localized pending summary, blank enrichment, error/repair mode and the Pre-A1 fallback. Only its random note ID is excluded from fixture equality; production keeps the source ID generator. Original prompts, parsers, language guards, signatures, status and copy rules remain. No stores, React, DOM, Firebase or network executes.',cases:rows.length},null,2)+'\n');
 console.log('Memory policy: '+rows.length+' source cases.');

@@ -25,14 +25,22 @@
         "polishFlag",
         "irishFlag",
         "LANGUAGE_LOCALES",
+        "SUPPORT_LANGUAGE_CODES",
+        "SUPPORT_LANGUAGE_CODES_BASE",
+        "CANONICAL_SUPPORT_LANGUAGE_CODES",
         "getLanguagePromptName",
         "LANGUAGE_PROMPT_LABELS",
         "LANGUAGE_FALLBACK_LABELS",
         "normalizeSupportLanguage",
         "DEFAULT_SUPPORT_LANGUAGE",
-        "SUPPORT_LANGUAGE_CODES_SET",
-        "SUPPORT_LANGUAGE_CODES_BASE",
-        "CANONICAL_SUPPORT_LANGUAGE_CODES"
+        "SUPPORT_LANGUAGE_CODES_SET"
+      ]
+    },
+    {
+      "file": "src/constants/supportLanguages.js",
+      "sha256": "d8e8dc17f353a5106bdc984f2cce9696669bc7216be10e006738cb0a04b40b5a",
+      "declarations": [
+        "SUPPORT_LANGUAGE_CODES"
       ]
     },
     {
@@ -50,6 +58,7 @@
       "file": "src/utils/companionMemory.js",
       "sha256": "05aeb83111145a419b83877ef3335063d55ace85e5a651f865fbf67d6d84bd91",
       "declarations": [
+        "normalizeConceptKey",
         "buildMemoryNote",
         "errorTypeForMode",
         "MODE_TO_ERROR_TYPE",
@@ -141,13 +150,6 @@
       ]
     },
     {
-      "file": "src/constants/supportLanguages.js",
-      "sha256": "d8e8dc17f353a5106bdc984f2cce9696669bc7216be10e006738cb0a04b40b5a",
-      "declarations": [
-        "SUPPORT_LANGUAGE_CODES"
-      ]
-    },
-    {
       "file": "src/utils/cefrUtils.js",
       "sha256": "1728261507ff4b90e05e0ccfa0717f4e1b758fc1f908fffb9c5ea3d101ab91b7",
       "declarations": [
@@ -206,6 +208,7 @@
       ]
     }
   ],
-  "adapters": "Only provider awaits become explicit synchronous response snapshots; native code executes their recorded requests and retries. Original buildMemoryNote creates initial Tutor capture fields, including localized pending summary, blank enrichment, error/repair mode and the Pre-A1 fallback. Only its random note ID is excluded from fixture equality; production keeps the source ID generator. Original prompts, parsers, language guards, signatures, status and copy rules remain. No stores, React, DOM, Firebase or network executes.",
-  "cases": 64
+  "captureModule": 3,
+  "adapters": "The original pre-persistence capture block runs with an explicit note-bucket snapshot; new capture cases are independently checked against the complete original async callback with inert persistence/evidence/enrichment I/O. A fixed random input is used only in the new fixtures. Original summary templates, supported UI codes and English-cleanup tokens are also generated into native Swift. Only provider awaits become explicit synchronous response snapshots; native code executes their recorded requests and retries. Original buildMemoryNote creates initial Tutor capture fields, including localized pending summary, blank enrichment, error/repair mode and the Pre-A1 fallback. Only its random note ID is excluded from fixture equality; production keeps the source ID generator. Original prompts, parsers, language guards, signatures, status and copy rules remain. No stores, React, DOM, Firebase or network executes.",
+  "cases": 267
 }
