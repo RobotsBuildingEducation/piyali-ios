@@ -1,0 +1,13 @@
+{
+  "reference": "b269524ddc578027c549616fc47f5954991d9f6f",
+  "baseline": "671c553a9871339e211cb333c7abbd32b0ecf588",
+  "previousCases": 831,
+  "unchangedCases": 831,
+  "newCases": 160,
+  "total": 991,
+  "newOperations": [
+    "completionGate",
+    "followup",
+    "starterKickoff"
+  ]
+}

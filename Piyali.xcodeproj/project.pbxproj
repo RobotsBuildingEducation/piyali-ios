@@ -1364,6 +1364,7 @@
 		60CF5698B201867414972290 /* AchievementStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21ADBAFCB3D41BDDC9F80C61 /* AchievementStorageTests.swift */; };
 		60D56C268C301EEE94A6F268 /* tutor-curriculum-index.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = CD29440272E25E1BE56A40CA /* tutor-curriculum-index.json.gz */; };
 		60DEE7DCB929CC2570B49692 /* RPGGround-dbd3043f2ab26d37521e3115.png in Resources */ = {isa = PBXBuildFile; fileRef = BC85DBE3A66E75646C7C5966 /* RPGGround-dbd3043f2ab26d37521e3115.png */; };
+		6109540E4E8300830F4D286E /* TutorOutcomeIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 849AE083F1C78F34232E476E /* TutorOutcomeIntent.swift */; };
 		614015916E0515DB49B5C615 /* RPGGround-0f38f7450030c2650899674d.png in Resources */ = {isa = PBXBuildFile; fileRef = B2630625D86117AE50A64885 /* RPGGround-0f38f7450030c2650899674d.png */; };
 		61464DB6EFEA959934D426CC /* GeminiTutorTransportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B4B0E74035F5CBDCF32F081 /* GeminiTutorTransportTests.swift */; };
 		614893E2F3859FC44061B7C6 /* headline-curriculum-it.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 6C170C46C7F3948005217BCF /* headline-curriculum-it.json.gz */; };
@@ -3283,6 +3284,7 @@
 		E251B429692FA18276AF0779 /* course-RiCheckboxLine@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 429E3D2E853F0EF3CF2E2FB0 /* course-RiCheckboxLine@3x.png */; };
 		E25FDB14E22AED90924EBD9E /* IntroTutorialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBF60AB271200BF8C49FC11B /* IntroTutorialView.swift */; };
 		E285D00395BFDEE0F06EB278 /* RPGGround-70a0bfb70ee9b0a071e49299.png in Resources */ = {isa = PBXBuildFile; fileRef = 0629F3C9FA33C0ACB677F3F6 /* RPGGround-70a0bfb70ee9b0a071e49299.png */; };
+		E2A185DFDCBF7FF7A5D06EEB /* TutorOutcomeDelivery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 037F623DE2B43143C2E16318 /* TutorOutcomeDelivery.swift */; };
 		E2C07A712052D720240A76C6 /* RPGGround-43d60e296f29767c91391207.png in Resources */ = {isa = PBXBuildFile; fileRef = 972F50ACC9C7FFAA15D04577 /* RPGGround-43d60e296f29767c91391207.png */; };
 		E2C7316660E0BD9523CCB2FC /* RPGPetPreview-alien-0.png in Resources */ = {isa = PBXBuildFile; fileRef = 7951132465D255BA8AF4BEFB /* RPGPetPreview-alien-0.png */; };
 		E2CA54E93D7E8BF8927CC7A7 /* RPGPet-alien-down-0.png in Resources */ = {isa = PBXBuildFile; fileRef = B2BB0FD57F7AAB2D81D03FB1 /* RPGPet-alien-down-0.png */; };
@@ -3782,6 +3784,7 @@
 		0363EAC9546DD33E3FC48BEB /* course-RiTodoLine@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "course-RiTodoLine@3x.png"; sourceTree = "<group>"; };
 		036EF7638C01B8BEF8026E61 /* RPGProp-freezer-344.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGProp-freezer-344.png"; sourceTree = "<group>"; };
 		0377393D5D571605ABA2D494 /* RPGPetPreview-dog-5.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGPetPreview-dog-5.png"; sourceTree = "<group>"; };
+		037F623DE2B43143C2E16318 /* TutorOutcomeDelivery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorOutcomeDelivery.swift; sourceTree = "<group>"; };
 		039158EC4ADFB8E805722485 /* RPGGround-8e075752d6751fae8d20b124.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGGround-8e075752d6751fae8d20b124.png"; sourceTree = "<group>"; };
 		03972B2F47A590CEFFCA39C6 /* RPGGround-e25237278ba2120bafb05c36.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGGround-e25237278ba2120bafb05c36.png"; sourceTree = "<group>"; };
 		03990BDCD73CB3876A0427F3 /* DMSans-700.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "DMSans-700.ttf"; sourceTree = "<group>"; };
@@ -5583,6 +5586,7 @@
 		8443538CDBAC376DD6570D82 /* RPGPet-robot-up-0.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGPet-robot-up-0.png"; sourceTree = "<group>"; };
 		84765BC95CFB59753006F082 /* story-portrait-19.webp */ = {isa = PBXFileReference; path = "story-portrait-19.webp"; sourceTree = "<group>"; };
 		847BA07228F74FEA22CD912A /* RPGProp-table-230.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGProp-table-230.png"; sourceTree = "<group>"; };
+		849AE083F1C78F34232E476E /* TutorOutcomeIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorOutcomeIntent.swift; sourceTree = "<group>"; };
 		84ACD722ECC5317B8F942A83 /* RPGGround-44c0beda9c7a4880699ac948.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGGround-44c0beda9c7a4880699ac948.png"; sourceTree = "<group>"; };
 		84CEEE81DAC25C184C99CBB3 /* RPGGround-cda6ccd5aed48d32d4f69860.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGGround-cda6ccd5aed48d32d4f69860.png"; sourceTree = "<group>"; };
 		84D1FBE19500FE846E13089A /* RPGPet-robot-right-2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGPet-robot-right-2.png"; sourceTree = "<group>"; };
@@ -8369,6 +8373,7 @@
 				0250508D362907F7F0C8E060 /* SyncChanges.swift */,
 				53DB9F70B4A288B2174A99A5 /* TeamsPanelPolicy.swift */,
 				9674D8B5CAC1CE39C171E452 /* TutorCourse.swift */,
+				849AE083F1C78F34232E476E /* TutorOutcomeIntent.swift */,
 				9D7B51FE8A113F5AF38C0671 /* TutorReplayPolicy.swift */,
 				BC1D92E3D95DFF23A2472154 /* TutorReplyPolicy.swift */,
 				B73B1FC67AACB65D63A10D06 /* TutorResponseAudio.swift */,
@@ -8474,6 +8479,7 @@
 				B174BECF4F0274774A9B3847 /* TeamsMirrorService.swift */,
 				AF23956031FB525518B193BB /* TeamsPanelController.swift */,
 				8A2D0FF69CB1904F2874AD43 /* TutorAudioClips.swift */,
+				037F623DE2B43143C2E16318 /* TutorOutcomeDelivery.swift */,
 				EFFF654F4D263C82108F8096 /* TutorProvider.swift */,
 				CE15A0BAB73E6C9930C7FEE7 /* TutorReplayController.swift */,
 				E46688FFA9CCEF55BA20E9AD /* TutorSessionController.swift */,
@@ -15166,6 +15172,8 @@
 				8DB4D18F2F44A581A2908B42 /* TodayFocusHomeView.swift in Sources */,
 				C97657A06DF9EF745F5B296F /* TutorAudioClips.swift in Sources */,
 				4AD13F5B5979EBA703B650AC /* TutorCourse.swift in Sources */,
+				E2A185DFDCBF7FF7A5D06EEB /* TutorOutcomeDelivery.swift in Sources */,
+				6109540E4E8300830F4D286E /* TutorOutcomeIntent.swift in Sources */,
 				4A15746A945B61B611F933DD /* TutorProvider.swift in Sources */,
 				B1AE8B98A45704CF36DAFCFF /* TutorReplayController.swift in Sources */,
 				C554956736500DFA101F86FA /* TutorReplayPolicy.swift in Sources */,

@@ -1329,3 +1329,24 @@ extension FirestoreContractTests {
         }
     }
 }
+
+extension FirestoreContractTests {
+    func testTutorPendingWorthSavesLessonBeforeAccountAwardAndStaleRetryCannotReplayItsProjection()async throws {
+        let (service,db,npub)=try context();try await seed(db,npub);let user=db.collection("users").document(npub),curriculum=try ContentLibrary.load([String:[LearningUnit]].self,name:"tutor-curriculum-fr"),lesson=try XCTUnwrap(curriculum["Pre-A1"]?.first?.lessons.first)
+        var state=try requireState(await service.load(npub:npub));let day=CalendarDay.key(Date()),initialXP=state.totalXP,initialDaily=state.dailyXP
+        state.storeTutorState(lesson:lesson,data:.object(["earnedXp":.number(5),"required":.number(50),"agenda":.object(["hello":.bool(true)])]))
+        var turn=PracticeChange(dayKey:day,target:state.target,level:"Pre-A1",amount:5,source:.tutorTurn,contentID:lesson.id);turn.tutorData = .object(["required":.number(50),"progressRecorded":.bool(true)])
+        let intent=TutorOutcomeIntent(turn:turn,target:state.target,level:"Pre-A1",correct:true,independent:true,worthParameters:.object(["question":.object(["tutorPrompt":.string("Say bonjour.")]),"targetLang":.string(state.target)]));state.queueTutorOutcome(intent);let pending=state
+        let acknowledged=try requireState(await service.save(pending,npub:npub));state=LearnerState.rebased(current:state,sent:pending,acknowledged:acknowledged)
+        XCTAssertEqual(state.totalXP,initialXP);XCTAssertEqual(state.dailyXP,initialDaily+5);XCTAssertEqual(state.pendingTutorOutcomes?.count,1);XCTAssertEqual(state.tutorProgress(lesson.id).earnedXP,5)
+        let before=try await user.getDocument(source:.server).data() ?? [:],hint=try JSONDecoder().decode(LearnerState.self,from:Data(try XCTUnwrap(before["iosStateJSON"] as? String).utf8)),remote=try requireState(await service.load(npub:npub))
+        XCTAssertEqual(before["xp"] as? Int,initialXP);XCTAssertEqual(before["dailyXp"] as? Int,initialDaily);XCTAssertNil(hint.pendingTutorOutcomes);XCTAssertNil(remote.pendingTutorOutcomes);XCTAssertEqual(remote.dailyXP,initialDaily)
+        XCTAssertTrue(state.deliverTutorOutcome(intent.id,worth:nil));XCTAssertEqual(state.totalXP,initialXP+5);XCTAssertEqual(state.dailyXP,initialDaily+5);let delivered=state
+        _=try await service.save(delivered,npub:npub);_=try await service.save(delivered,npub:npub)
+        let staleAck=try requireState(await service.save(pending,npub:npub));XCTAssertTrue(staleAck.pendingTutorOutcomes?.isEmpty ?? true);XCTAssertEqual(staleAck.dailyXP,initialDaily+5)
+        let final=try requireState(await service.load(npub:npub)),data=try await user.collection("tutorLanguageLessons").document(state.target+"_"+lesson.id).getDocument(source:.server).data() ?? [:]
+        XCTAssertEqual(final.totalXP,initialXP+5);XCTAssertEqual(final.dailyXP,initialDaily+5);XCTAssertEqual(final.gradedByLanguage?[state.target],1);XCTAssertEqual(final.tutorProgress(lesson.id).earnedXP,5);XCTAssertEqual(data["earnedXp"] as? Int,5);XCTAssertEqual(final.plateProgress["speakDailyActivity"][state.target][day].number,0);XCTAssertFalse(final.completed.contains(final.tutorKey(lesson.id)))
+        let trace:JSONValue = .object(["beforeAwardAccountXP":.number(Double(initialXP)),"beforeAwardCanonicalDailyXP":.number(Double(initialDaily)),"beforeAwardLocalDailyXP":.number(Double(initialDaily+5)),"lessonXP":.number(Double(final.tutorProgress(lesson.id).earnedXP)),"finalAccountXP":.number(Double(final.totalXP)),"finalDailyXP":.number(Double(final.dailyXP)),"gradedAttempts":.number(Double(final.gradedByLanguage?[state.target] ?? 0)),"stalePendingCount":.number(Double(staleAck.pendingTutorOutcomes?.count ?? 0)),"privateIntentInServerHint":.bool(hint.pendingTutorOutcomes != nil)])
+        let a=XCTAttachment(data:Data(trace.json.utf8),uniformTypeIdentifier:"public.json");a.name="Firebase SDK Tutor pending worth and stale receipt projection";a.lifetime = .keepAlways;add(a)
+    }
+}

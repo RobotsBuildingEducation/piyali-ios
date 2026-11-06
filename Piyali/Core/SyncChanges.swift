@@ -95,6 +95,7 @@ public extension LearnerState {
     // Merge a completed sync without losing practice performed while the network request was in flight.
     static func rebased(current: LearnerState, sent: LearnerState, acknowledged: LearnerState) -> LearnerState {
         var merged = current
+        merged.reconcileTutorOutcomes(acknowledged:acknowledged.acknowledgedEventIDs ?? [])
         merged.confirmFocusedArtifacts(from:acknowledged)
         let sentRepair=Set((sent.pendingRepairEvidence ?? []).map(\.id))
         merged.pendingRepairEvidence=(current.pendingRepairEvidence ?? []).filter{!sentRepair.contains($0.id)}
@@ -209,7 +210,7 @@ public extension LearnerState {
         merged.xpByLanguage = xp
         if acknowledged.dailyKey >= current.dailyKey {
             merged.dailyKey = acknowledged.dailyKey
-            merged.dailyXP = acknowledged.dailyXP + newer.filter { $0.dayKey == acknowledged.dailyKey }.reduce(0) { $0 + reward($1) }
+            merged.dailyXP = max(0,acknowledged.dailyXP-acknowledged.pendingTutorDailyXP(day:acknowledged.dailyKey))+merged.pendingTutorDailyXP(day:acknowledged.dailyKey) + newer.filter { $0.dayKey == acknowledged.dailyKey }.reduce(0) { $0 + reward($1) }
             merged.dailyXP += newGoalRewards.filter { CalendarDay.key($0.0.date) == acknowledged.dailyKey }.reduce(0) { $0 + $1.1 }
             merged.dailyXP += newImmersionRewards.filter { CalendarDay.key($0.0.date) == acknowledged.dailyKey }.reduce(0) { $0 + $1.1 }
             merged.streak = max(acknowledged.streak,current.dailyKey == acknowledged.dailyKey ? current.streak : 0)
@@ -228,7 +229,9 @@ public extension LearnerState {
         }
         merged.achievementRecords = NostrAchievementCollection.merging([.object(current.achievementRecords ?? [:]),.object(acknowledged.achievementRecords ?? [:]),current.nostrAchievementRecords ?? .object([:])]).object; merged.achievementEvidence = acknowledged.achievementEvidence; merged.achievementLedger = acknowledged.achievementLedger
         merged.companionProgress = acknowledged.companionProgress
-        for change in newer.sorted(by:{ $0.date < $1.date }) where reward(change) > 0 { merged.rewardCompanion(reward(change),now:change.date) }
+        let projectedAckTurns=Set((acknowledged.pendingTutorOutcomes ?? []).compactMap{$0.turn?.id})
+        for outcome in merged.pendingTutorOutcomes ?? [] where outcome.dailyAmount>0 && !(acknowledged.pendingTutorOutcomes ?? []).contains(where:{$0.id == outcome.id}) {merged.rewardCompanion(outcome.dailyAmount,now:outcome.date)}
+        for change in newer.sorted(by:{ $0.date < $1.date }) where reward(change) > 0 && !projectedAckTurns.contains(change.id) { merged.rewardCompanion(reward(change),now:change.date) }
         for (change,reward) in newGoalRewards where reward > 0 { merged.rewardCompanion(reward,now:change.date) }
         for (change,reward) in newImmersionRewards where reward > 0 { merged.rewardCompanion(reward,now:change.date) }
         merged.reconcileCompanion()

@@ -7882,9 +7882,10 @@ const normalizeGeminiLiveVoice=M32.normalizeGeminiLiveVoice;
 const getTutorAgendaSnapshot=M33.getTutorAgendaSnapshot;
 const targetLang=p.target||'es',resolvedSupportLang=p.support||'en',supportLang=resolvedSupportLang,maxProficiencyLevel=p.level||p.lesson?.cefrLevel||'Pre-A1';
 const lateEffects=[],lessonPracticeStartedRef={current:!!p.practiceStarted},tutorWelcomePendingReplyRef={current:!!p.welcomePending},applySuccessfulTutorTurnProgress=options=>lateEffects.push({kind:"local",...options}),validateTutorTurnForXpInBackground=options=>lateEffects.push({kind:"judge",...options});
+const tutorActiveItemIdRef={current:p.activeItemID||''},refreshOpenAITutorTranscriptionContext=()=>{};
 const recoveryEvents=[],aliveRef={current:true},dcRef={current:{readyState:'open',send:raw=>recoveryEvents.push(JSON.parse(raw))}},clearAutoStopTimer=()=>{},setUiState=()=>{},setMood=()=>{},setAssistantInputLocked=()=>{},resumeListeningWithAutoStop=()=>{};
 const inlineFeedbackRef={current:p.feedback||''},pausedMessagesRef={current:p.pausedMessages||[]};
-const selectedTutorLessonRef={current:p.lesson||null},selectedTutorUnitRef={current:p.unit||null},targetLangRef={current:targetLang},supportLangRef={current:resolvedSupportLang},conversationSettingsRef={current:{proficiencyLevel:maxProficiencyLevel,...p.settings}},messagesRef={current:p.messages||[]},realtimeProviderRef={current:p.provider||'openai'},turnCountRef={current:p.turn||0},openAIRegularAgendaRef={current:{progress:p.progress||{},quizLastFeedback:p.quizLastFeedback,quizPreviousAttemptResult:p.quizPreviousAttemptResult}},tutorStarterAgendaProgressRef={current:p.progress||{}},tutorLessonEarnedXpRef={current:p.earned||0},tutorLessonCompletionTriggeredRef={current:!!p.completed},tutorRestoredConversationNeedsContextRef={current:!!p.resume?.length},tutorConversationResumeContextRef={current:p.resume||[]},tutorItemRetryCountRef={current:p.retry||0},voicePersonaRef={current:p.persona||''};
+const selectedTutorLessonRef={current:p.lesson||null},selectedTutorUnitRef={current:p.unit||null},targetLangRef={current:targetLang},supportLangRef={current:resolvedSupportLang},conversationSettingsRef={current:{proficiencyLevel:maxProficiencyLevel,...p.settings}},messagesRef={current:p.messages||[]},realtimeProviderRef={current:p.provider||'openai'},turnCountRef={current:p.turn||0},openAIRegularAgendaRef={current:{progress:p.progress||{},quizLastFeedback:p.quizLastFeedback,quizPreviousAttemptResult:p.quizPreviousAttemptResult}},tutorStarterAgendaProgressRef={current:p.progress||{}},tutorLessonEarnedXpRef={current:p.earned||0},tutorLessonCompletionTriggeredRef={current:!!p.completed},tutorRestoredConversationNeedsContextRef={current:p.needsResumeContext??!!p.resume?.length},tutorConversationResumeContextRef={current:p.resume||[]},tutorItemRetryCountRef={current:p.retry||0},voicePersonaRef={current:p.persona||''};
 const currentGoalFocus=()=>p.goalFocus||null,currentRepairFocus=()=>p.repairFocus||null,useUserStore={getState:()=>({user:p.user||null})};
 function getOpenAIRegularTutorAgendaSnapshot(){const lesson=p.lesson;if(!lesson||lesson.isGoal||lesson.isRepair||isTutorStarterAgendaLesson(lesson))return null;const items=getTutorLessonFocusAgendaItems(lesson,resolvedSupportLang,targetLang,p.unit);return items.length?{lesson,items,...getTutorAgendaSnapshot(items,p.progress||{})}:null;}
 const DEFAULT_TUTOR_PAUSE_MS = 1200;
@@ -7964,6 +7965,7 @@ const TUTOR_STARTER_LESSON_IDS = new Set([
 const TUTOR_STARTER_LESSON_XP_REQUIRED = 50;
 const TUTOR_LESSON_XP_REQUIRED_MIN = 60;
 const TUTOR_LESSON_XP_REQUIRED_MAX = 90;
+const TUTOR_TURN_XP_RANGE = { min: 3, max: 7 };
 const TUTOR_REPAIR_LESSON_XP_REQUIRED = 12;
 const TUTOR_SIGNATURE_EXPERIENCES = {
   microMission: {
@@ -10468,6 +10470,63 @@ function buildTutorAgendaResponseInstructions({
       .filter(Boolean)
       .join("\n");
   }
+function requestRealtimeTutorAgendaResponse({
+    item,
+    kind,
+    isKickoff = false,
+    supportLang = "en",
+    targetLang = "es",
+    userMessage = "",
+    acceptedItemIds = [],
+    turnVerdict,
+  } = {}) {
+    if (!aliveRef.current) return;
+    if (!dcRef.current || dcRef.current.readyState !== "open") return;
+
+    if (item?.id && item.id !== tutorActiveItemIdRef.current) {
+      tutorActiveItemIdRef.current = item.id;
+      tutorItemRetryCountRef.current = 0;
+    }
+
+    const nextPracticePhrase = item
+      ? getTutorStarterItemModelPhrase(item, targetLang)
+      : "";
+    refreshOpenAITutorTranscriptionContext({
+      keywords: nextPracticePhrase
+        ? [nextPracticePhrase]
+        : getCurrentTutorTranscriptionKeywords(),
+    });
+
+    clearAutoStopTimer();
+    setUiState("thinking");
+    setMood("thoughtful");
+    setAssistantInputLocked(true, { clearBuffer: false, updateSession: false });
+
+    try {
+      dcRef.current.send(
+        JSON.stringify({
+          type: "response.create",
+          response: {
+            modalities: ["audio", "text"],
+            instructions: buildTutorAgendaResponseInstructions({
+              item,
+              isKickoff,
+              supportLang,
+              targetLang,
+              userMessage,
+              acceptedItemIds,
+              turnVerdict,
+              kind,
+            }),
+            metadata: { kind },
+          },
+        }),
+      );
+      tutorRestoredConversationNeedsContextRef.current = false;
+    } catch {
+      resumeListeningWithAutoStop();
+    }
+  }
 function buildTutorStarterProgressInstructions(
     latestTranscript = "",
     acceptedItemIds = [],
@@ -10770,6 +10829,78 @@ function buildTutorFollowupInstructions(
       .filter(Boolean)
       .join(" ");
   }
+function requestTutorTurnFollowup(
+    userMessage = "",
+    acceptedItemIds = [],
+    {
+      kind = "tutor_followup",
+      turnVerdict = acceptedItemIds.length
+        ? TUTOR_TURN_VERDICT.ACCEPTED
+        : TUTOR_TURN_VERDICT.REJECTED,
+    } = {},
+  ) {
+    if (!aliveRef.current) return;
+    if (!dcRef.current || dcRef.current.readyState !== "open") return;
+
+    if (turnVerdict === TUTOR_TURN_VERDICT.REJECTED) {
+      tutorItemRetryCountRef.current += 1;
+    } else if (
+      turnVerdict === TUTOR_TURN_VERDICT.ACCEPTED ||
+      acceptedItemIds.length > 0
+    ) {
+      tutorItemRetryCountRef.current = 0;
+    }
+
+    const lesson = selectedTutorLessonRef.current;
+    const isStarterLesson = isTutorStarterAgendaLesson(lesson);
+    const supportCode = normalizeSupportLanguage(
+      supportLangRef.current || resolvedSupportLang,
+      DEFAULT_SUPPORT_LANGUAGE,
+    );
+    const tLang = targetLangRef.current || targetLang || "es";
+    const nextStarterItem = isStarterLesson
+      ? getNextTutorStarterAgendaItem(tutorStarterAgendaProgressRef.current)
+      : null;
+    if (isStarterLesson) {
+      requestRealtimeTutorAgendaResponse({
+        item: nextStarterItem,
+        supportLang: supportCode,
+        targetLang: tLang,
+        userMessage,
+        acceptedItemIds,
+        turnVerdict,
+        kind,
+      });
+      return;
+    }
+
+    const instructions = buildTutorFollowupInstructions(
+      userMessage,
+      acceptedItemIds,
+      turnVerdict,
+    );
+
+    clearAutoStopTimer();
+    setUiState("thinking");
+    setMood("thoughtful");
+    setAssistantInputLocked(true, { clearBuffer: false, updateSession: false });
+
+    try {
+      dcRef.current.send(
+        JSON.stringify({
+          type: "response.create",
+          response: {
+            modalities: ["audio", "text"],
+            instructions,
+            metadata: { kind },
+          },
+        }),
+      );
+      tutorRestoredConversationNeedsContextRef.current = false;
+    } catch {
+      resumeListeningWithAutoStop();
+    }
+  }
 function requestTutorTranscriptRecovery() {
     if (!aliveRef.current) return;
     if (!dcRef.current || dcRef.current.readyState !== "open") return;
@@ -11046,6 +11177,31 @@ function getLocalTutorTurnSuccessfulForXp({
     const candidateIds = new Set(starterCandidateItemIds);
     return exactStarterMatches.some((id) => candidateIds.has(id));
   }
+function couldPotentialTutorTurnCompleteLesson({
+    lesson = selectedTutorLessonRef.current,
+    isStarterLesson = isTutorStarterAgendaLesson(lesson),
+    starterCandidateItemIds = [],
+  } = {}) {
+    if (!lesson || tutorLessonCompletionTriggeredRef.current) return false;
+
+    const xpRequired = getTutorLessonXpRequired(lesson);
+    const earnedXp = Math.max(0, Number(tutorLessonEarnedXpRef.current) || 0);
+    const remainingXp = xpRequired - earnedXp;
+    if (remainingXp <= 0 || remainingXp > TUTOR_TURN_XP_RANGE.max) {
+      return false;
+    }
+
+    if (!isStarterLesson) return true;
+    if (isTutorStarterAgendaComplete(tutorStarterAgendaProgressRef.current)) {
+      return true;
+    }
+
+    const potentialProgress = { ...tutorStarterAgendaProgressRef.current };
+    starterCandidateItemIds.forEach((id) => {
+      potentialProgress[id] = true;
+    });
+    return isTutorStarterAgendaComplete(potentialProgress);
+  }
 function gradeLateTutorUserTranscriptForXp(text) {
     if (!text || !lessonPracticeStartedRef.current) return;
     if (tutorWelcomePendingReplyRef.current) return;
@@ -11110,7 +11266,7 @@ function gradeLateTutorUserTranscriptForXp(text) {
       regularAcceptedPhrases,
     });
   }
-return {buildTutorRepairLessonFromFocus,buildGoalLesson,compactUnique,REPAIR_MAX_ITEMS,REPAIR_COPY,TUTOR_REPAIR_LESSON_XP_REQUIRED,tidyPairs,textIncludesPair,normalizePairText,splitByDelimiters,findLatestTutorUnlockedLesson,SKILL_STATUS,isTutorLessonUnlocked,isContentUnlockedByPlacement,isTutorLessonUnlockedById,findNextTutorLessonAfter,getTutorStarterAgendaCandidateItemIds,isTutorStarterAgendaLesson,TUTOR_STARTER_LESSON_IDS,getNextTutorStarterAgendaItem,TUTOR_STARTER_AGENDA_ITEMS,getLocalTutorTurnSuccessfulForXp,transcriptDemonstratesOpenAIRegularObjective,getOpenAIRegularObjectivePhrases,isTutorPracticePhraseAllowedForTarget,getBaseLanguageCode,isLikelySpanishSourcePhrase,normalizeTutorAgendaSpeech,SPANISH_SOURCE_TOKENS,tutorPhraseMatchesTranscript,anyTutorPhraseIsDirectAnswer,tutorPhraseIsDirectAnswer,buildOpenAIResponseInstructionsPrefix,buildOpenAIResponseInstructionsPrefixBase,liveGoalInstructions,goalInstructions,generationPerformanceContextFor,normalizeSupportLanguage,DEFAULT_SUPPORT_LANGUAGE,getLanguagePromptName,buildTutorLessonContext,getTutorLessonSubjects,getTutorDisplayText,getTutorLessonAgendaTitle,getTutorStarterAgendaTitleText,tutorCopy,getTutorLessonAgendaSubtitle,getTutorStarterAgendaSummary,cleanTutorSubjectText,getTutorAdaptiveLevel,practiceLevelForElo,eloForUser,buildOpenAITutorResponsePolicy,isTutorEarlyLevel,isTutorAdvancedConversationLevel,buildRealtimeResumeContext,normalizeOpenAITutorVoice,buildTutorInputTranscription,hasUnexpectedTutorTranscriptScript,getCurrentTutorInputLanguageCodes,normalizePracticeLanguage,LANGUAGE_LOCALES,getCurrentTutorTranscriptionKeywords,getTutorStarterItemModelPhrase,getTutorStarterModelPhrase,getRegularTutorAcceptedPhrases,extractPromptedTutorPhrases,extractQuotedTutorPhrases,getLatestTutorAssistantText,getTutorMessageVisibleText,sanitizeTutorAssistantText,isTutorRawSourceConceptPhrase,getTutorRawSourceConceptKeys,getLessonAgenda,getTutorLessonFocusAgendaItems,buildUnitQuizBlueprint,getLessonQuizSettings,getAgendaTargetForms,getAgendaGoal,getLocalizedAgendaLabel,buildTutorTurnDetection,normalizeTutorPauseMs,DEFAULT_TUTOR_PAUSE_MS,buildMessageTranslationPrompt,getTutorLessonXpRequired,TUTOR_STARTER_LESSON_XP_REQUIRED,getStableTutorLessonXpRequired,TUTOR_LESSON_XP_REQUIRED_MAX,TUTOR_LESSON_XP_REQUIRED_MIN,getTutorLessonPreviewAgendaItems,getTutorStarterItemSupportTask,getTutorStarterItemSupportMeaning,buildTutorCompletedAgendaData,TUTOR_LEVEL_INFO,getTutorStarterAgendaMatches,getTutorStarterTargetExamples,normalizeTutorStarterAgendaProgress,isTutorStarterAgendaComplete,hasTutorMeaningfulTranscript,buildTutorResponseInstructionsSuffix,buildTutorPersistentResponseSuffix,buildTutorWelcomeInstructions,buildTutorKickoffInstructions,buildTutorCodeSwitchingAudioInstruction,buildTutorTargetLanguageBoundaryInstruction,buildTutorTeacherTalkLanguageInstruction,isOpenAIRegularTutorAgendaIncomplete,getTutorTaskVariationInstruction,getTutorTaskVariationSentence,getLocalizedTutorTaskFormatSentence,getTutorSignatureExperienceInstruction,TUTOR_CEFR_LEVELS,TUTOR_SIGNATURE_EXPERIENCE_POOLS,TUTOR_SIGNATURE_EXPERIENCES,buildRecentTutorSessionContextInstruction,buildRecentTutorConversationContext,buildTutorAgendaResponseInstructions,TUTOR_TURN_VERDICT,buildOpenAIStarterAgendaTurnInstructions,getOpenAITutorSignatureExperienceLine,buildOpenAIRepairTurnInstructions,buildTutorRepairAgendaInstruction,buildOpenAIRegularTutorAgendaInstruction,buildOpenAITutorTurnVerdictDirective,buildOpenAIQuizTurnInstructions,buildOpenAIPurposeReviewLoopInstructions,buildOpenAITargetedReviewTurnInstructions,buildOpenAIIntegratedScenarioTurnInstructions,buildOpenAITeachTurnInstructions,buildOpenAIGoalTurnInstructions,buildTutorFollowupInstructions,buildTutorStarterProgressInstructions,getTutorAgendaItemLabel,buildTutorTurnSuccessJudgePrompt,PAPER_PANEL_SX,MATRIX_PANEL_SX,uiStateLabel,translations,getTutorPathCopy,getTutorLessonLaunchMode,buildLanguageInstructions,buildLanguageInstructionsBase,buildVoicePersonaPolicy,buildTutorLearnerAudioInstruction,getTutorStarterAgendaPromptText,isTutorToolGradingActive,TUTOR_TOOL_GRADING_ENABLED,normalizeGeminiLiveVoice,requestTutorTranscriptRecovery,gradeLateTutorUserTranscriptForXp,getTutorAgendaSnapshot,recoveryEvents,lateEffects};};
+return {buildTutorRepairLessonFromFocus,buildGoalLesson,compactUnique,REPAIR_MAX_ITEMS,REPAIR_COPY,TUTOR_REPAIR_LESSON_XP_REQUIRED,tidyPairs,textIncludesPair,normalizePairText,splitByDelimiters,findLatestTutorUnlockedLesson,SKILL_STATUS,isTutorLessonUnlocked,isContentUnlockedByPlacement,isTutorLessonUnlockedById,findNextTutorLessonAfter,getTutorStarterAgendaCandidateItemIds,isTutorStarterAgendaLesson,TUTOR_STARTER_LESSON_IDS,getNextTutorStarterAgendaItem,TUTOR_STARTER_AGENDA_ITEMS,getLocalTutorTurnSuccessfulForXp,transcriptDemonstratesOpenAIRegularObjective,getOpenAIRegularObjectivePhrases,isTutorPracticePhraseAllowedForTarget,getBaseLanguageCode,isLikelySpanishSourcePhrase,normalizeTutorAgendaSpeech,SPANISH_SOURCE_TOKENS,tutorPhraseMatchesTranscript,anyTutorPhraseIsDirectAnswer,tutorPhraseIsDirectAnswer,buildOpenAIResponseInstructionsPrefix,buildOpenAIResponseInstructionsPrefixBase,liveGoalInstructions,goalInstructions,generationPerformanceContextFor,normalizeSupportLanguage,DEFAULT_SUPPORT_LANGUAGE,getLanguagePromptName,buildTutorLessonContext,getTutorLessonSubjects,getTutorDisplayText,getTutorLessonAgendaTitle,getTutorStarterAgendaTitleText,tutorCopy,getTutorLessonAgendaSubtitle,getTutorStarterAgendaSummary,cleanTutorSubjectText,getTutorAdaptiveLevel,practiceLevelForElo,eloForUser,buildOpenAITutorResponsePolicy,isTutorEarlyLevel,isTutorAdvancedConversationLevel,buildRealtimeResumeContext,normalizeOpenAITutorVoice,buildTutorInputTranscription,hasUnexpectedTutorTranscriptScript,getCurrentTutorInputLanguageCodes,normalizePracticeLanguage,LANGUAGE_LOCALES,getCurrentTutorTranscriptionKeywords,getTutorStarterItemModelPhrase,getTutorStarterModelPhrase,getRegularTutorAcceptedPhrases,extractPromptedTutorPhrases,extractQuotedTutorPhrases,getLatestTutorAssistantText,getTutorMessageVisibleText,sanitizeTutorAssistantText,isTutorRawSourceConceptPhrase,getTutorRawSourceConceptKeys,getLessonAgenda,getTutorLessonFocusAgendaItems,buildUnitQuizBlueprint,getLessonQuizSettings,getAgendaTargetForms,getAgendaGoal,getLocalizedAgendaLabel,buildTutorTurnDetection,normalizeTutorPauseMs,DEFAULT_TUTOR_PAUSE_MS,buildMessageTranslationPrompt,getTutorLessonXpRequired,TUTOR_STARTER_LESSON_XP_REQUIRED,getStableTutorLessonXpRequired,TUTOR_LESSON_XP_REQUIRED_MAX,TUTOR_LESSON_XP_REQUIRED_MIN,getTutorLessonPreviewAgendaItems,getTutorStarterItemSupportTask,getTutorStarterItemSupportMeaning,buildTutorCompletedAgendaData,TUTOR_LEVEL_INFO,getTutorStarterAgendaMatches,getTutorStarterTargetExamples,normalizeTutorStarterAgendaProgress,isTutorStarterAgendaComplete,hasTutorMeaningfulTranscript,buildTutorResponseInstructionsSuffix,buildTutorPersistentResponseSuffix,buildTutorWelcomeInstructions,buildTutorKickoffInstructions,buildTutorCodeSwitchingAudioInstruction,buildTutorTargetLanguageBoundaryInstruction,buildTutorTeacherTalkLanguageInstruction,isOpenAIRegularTutorAgendaIncomplete,getTutorTaskVariationInstruction,getTutorTaskVariationSentence,getLocalizedTutorTaskFormatSentence,getTutorSignatureExperienceInstruction,TUTOR_CEFR_LEVELS,TUTOR_SIGNATURE_EXPERIENCE_POOLS,TUTOR_SIGNATURE_EXPERIENCES,buildRecentTutorSessionContextInstruction,buildRecentTutorConversationContext,buildTutorAgendaResponseInstructions,TUTOR_TURN_VERDICT,buildOpenAIStarterAgendaTurnInstructions,getOpenAITutorSignatureExperienceLine,buildOpenAIRepairTurnInstructions,buildTutorRepairAgendaInstruction,buildOpenAIRegularTutorAgendaInstruction,buildOpenAITutorTurnVerdictDirective,buildOpenAIQuizTurnInstructions,buildOpenAIPurposeReviewLoopInstructions,buildOpenAITargetedReviewTurnInstructions,buildOpenAIIntegratedScenarioTurnInstructions,buildOpenAITeachTurnInstructions,buildOpenAIGoalTurnInstructions,buildTutorFollowupInstructions,buildTutorStarterProgressInstructions,getTutorAgendaItemLabel,buildTutorTurnSuccessJudgePrompt,PAPER_PANEL_SX,MATRIX_PANEL_SX,uiStateLabel,translations,getTutorPathCopy,getTutorLessonLaunchMode,requestTutorTurnFollowup,requestRealtimeTutorAgendaResponse,couldPotentialTutorTurnCompleteLesson,TUTOR_TURN_XP_RANGE,buildLanguageInstructions,buildLanguageInstructionsBase,buildVoicePersonaPolicy,buildTutorLearnerAudioInstruction,getTutorStarterAgendaPromptText,isTutorToolGradingActive,TUTOR_TOOL_GRADING_ENABLED,normalizeGeminiLiveVoice,requestTutorTranscriptRecovery,gradeLateTutorUserTranscriptForXp,getTutorAgendaSnapshot,recoveryEvents,lateEffects,tutorItemRetryCountRef,tutorActiveItemIdRef,tutorRestoredConversationNeedsContextRef};};
 // src/utils/tutorConversationDraft.js
 const M34=(function(){
 
@@ -11513,6 +11669,9 @@ case 'resumeContext':value=M14.buildRealtimeResumeContext(p.messages||[]);break;
 case 'snapshotMessages':value=M14.snapshotRealtimeMessages(p.messages||[]);break;
 case 'resumeSpeech':{const events=[];M14.resumeRealtimeSpeech({channel:{readyState:'open',send:raw=>events.push(JSON.parse(raw))},speech:p.speech,instructions:p.instructions||'',onComplete:()=>{},freshReply:true});value=events[0]||null;break;}
 case 'resumeConversationSpeech':{const events=[];M14.resumeRealtimeSpeech({channel:{readyState:'open',send:raw=>events.push(JSON.parse(raw))},speech:p.speech,instructions:p.instructions||'',onComplete:()=>{}});value=events[0]||null;break;}
+case 'completionGate':value=t.couldPotentialTutorTurnCompleteLesson({starterCandidateItemIds:p.candidateIds||[]});break;
+case 'starterKickoff':{t.requestRealtimeTutorAgendaResponse({item:t.getNextTutorStarterAgendaItem(p.progress||{}),kind:'tutor_kickoff',isKickoff:true,supportLang:p.support||'en',targetLang:p.target||'es'});let event=t.recoveryEvents[0]||null;if(event&&p.provider!=='gemini'){delete event.response.modalities;event.response.output_modalities=['audio'];event.response.instructions=M35.composeOpenAIRealtimeResponseInstructions(t.buildOpenAIResponseInstructionsPrefix(),event.response.instructions,t.buildTutorResponseInstructionsSuffix());}value={event,retry:t.tutorItemRetryCountRef.current,activeItemID:t.tutorActiveItemIdRef.current,needsResumeContext:t.tutorRestoredConversationNeedsContextRef.current};break;}
+case 'followup':{t.requestTutorTurnFollowup(p.answer||'',p.accepted||[],p.verdict?{turnVerdict:p.verdict}:undefined);let event=t.recoveryEvents[0]||null;if(event&&p.provider!=='gemini'){delete event.response.modalities;event.response.output_modalities=['audio'];event.response.instructions=M35.composeOpenAIRealtimeResponseInstructions(t.buildOpenAIResponseInstructionsPrefix(),event.response.instructions,t.buildTutorResponseInstructionsSuffix());}value={event,retry:t.tutorItemRetryCountRef.current,activeItemID:t.tutorActiveItemIdRef.current,needsResumeContext:t.tutorRestoredConversationNeedsContextRef.current};break;}
 case 'response':value=p.provider==='gemini'?(p.welcome?t.buildTutorWelcomeInstructions():p.kickoff?t.buildTutorKickoffInstructions():t.buildTutorFollowupInstructions(p.answer||'',p.accepted||[],p.verdict||'uncertain')):M35.composeOpenAIRealtimeResponseInstructions(t.buildOpenAIResponseInstructionsPrefix(),p.welcome?t.buildTutorWelcomeInstructions():p.kickoff?t.buildTutorKickoffInstructions():t.buildTutorFollowupInstructions(p.answer||'',p.accepted||[],p.verdict||'uncertain'),t.buildTutorResponseInstructionsSuffix());break;
 case 'judge':value=t.buildTutorTurnSuccessJudgePrompt(p.answer||'',p.options||{});break;
 case 'draft':value=d.normalizeTutorConversationDraftMessages(p.messages||[]);break;

@@ -9,11 +9,12 @@ import Foundation
         return false
         #endif
     }
-    static func service()->LiveTutorService {
+    static func service(provider:String?=nil)->LiveTutorService {
+        let provider=provider ?? TutorRealtime.provider
         #if DEBUG
         if enabled {let script=TutorVoiceScript();return LiveTutorService(capturesMicrophone:false,permission:{true},transportFactory:{TutorScriptTransport(script:script)})}
         #endif
-        return LiveTutorService(transportFactory:{if TutorRealtime.provider == "gemini"{return GeminiTutorTransport()};return RealtimeRTCTransport()})
+        return LiveTutorService(transportFactory:{if provider == "gemini"{return GeminiTutorTransport()};return RealtimeRTCTransport()})
     }
     static var lateSpeech:Bool {
         #if DEBUG

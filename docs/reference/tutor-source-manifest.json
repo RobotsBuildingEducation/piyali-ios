@@ -144,6 +144,10 @@
         "translations",
         "getTutorPathCopy",
         "getTutorLessonLaunchMode",
+        "requestTutorTurnFollowup",
+        "requestRealtimeTutorAgendaResponse",
+        "couldPotentialTutorTurnCompleteLesson",
+        "TUTOR_TURN_XP_RANGE",
         "buildLanguageInstructions",
         "buildLanguageInstructionsBase",
         "buildVoicePersonaPolicy",
@@ -635,6 +639,8 @@
     }
   ],
   "adapters": [
+    "tutorActiveItemIdRef",
+    "refreshOpenAITutorTranscriptionContext",
     "lessonPracticeStartedRef",
     "tutorWelcomePendingReplyRef",
     "applySuccessfulTutorTurnProgress",
@@ -673,8 +679,8 @@
     "currentGoalFocus",
     "useUserStore"
   ],
-  "boundary": "Original pure declarations and prompt builders with explicit learner/lesson/agenda/reconnect snapshots. No React, source stores, Firebase, provider or transport executes. Original requestTutorTranscriptRecovery runs with inert UI/timer/lock callbacks and a capture-only channel; original gradeLateTutorUserTranscriptForXp records local-progress/background-judge intents with explicit practice/welcome snapshots. Swift applies those effects. Regular agenda snapshot uses original item and progress helpers without its mount-time ref mutation; Swift owns sequencing and persistence.",
-  "fixtureCount": 831,
+  "boundary": "Original pure declarations and prompt builders with explicit learner/lesson/agenda/reconnect snapshots. No React, source stores, Firebase, provider or transport executes. Original requestTutorTurnFollowup, requestRealtimeTutorAgendaResponse and requestTutorTranscriptRecovery run with inert UI/timer/lock callbacks and a capture-only channel; follow-up/kickoff operations return the original event plus updated retry, active-item and one-use reconnect refs; original gradeLateTutorUserTranscriptForXp records local-progress/background-judge intents with explicit practice/welcome snapshots. Swift applies those effects. Regular agenda snapshot uses original item and progress helpers without its mount-time ref mutation; Swift owns sequencing and persistence.",
+  "fixtureCount": 991,
   "translationAdapter": {
     "resource": "Piyali/Resources/app-copy.json.gz",
     "sha256": "0ea8bc3ce2e566ced7a1f3bb623e912354f714ce849f7f100ed1d8171e215fbe",

@@ -11,9 +11,12 @@ public enum TutorSourceProgress {
         }
         patch=patch.setting("status",.string("in_progress"))
         if record["startedAt"] == .null {patch=patch.setting("startedAt",.string(WebProgressContract.iso(change.date)))}
-        if change.source == .tutorTurn {
+        if change.source == .tutorTurn && !data["progressRecorded"].boolean {
             let required=max(0,Int(data["required"].number)),earned=max(0,Int(record["earnedXp"].number))+max(0,change.amount)
             patch=patch.setting("earnedXp",.number(Double(required>0 ? min(required,earned):earned)))
+        }else if data["earnedXp"] != .null {
+            let required=max(0,Int(data["required"].number)),earned=max(record["earnedXp"].number,data["earnedXp"].number)
+            patch=patch.setting("earnedXp",.number(required>0 ? min(Double(required),earned):earned))
         }else if record["earnedXp"] == .null {patch=patch.setting("earnedXp",.number(0))}
         if data["agenda"] != .null {
             var items=data["replaceAgenda"].boolean ? JSONValue.object([:]):record["tutorAgendaProgress"]["items"]

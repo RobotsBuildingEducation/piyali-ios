@@ -41,6 +41,7 @@ public enum WebProgressContract {
         state.plateHeadlines=(fields["dailyPlateHeadline"] as? [String:Any] ?? [:]).compactMapValues(PlateHeadline.decode)
         for (target,pending) in state.pendingPlateHeadlines ?? [:] {state.plateHeadlines?[target]=pending}
         state.acknowledgedEventIDs = Set((fields["iosRecentEventIDs"] as? [String] ?? []).compactMap(UUID.init(uuidString:)))
+        state.reconcileTutorOutcomes(acknowledged:state.acknowledgedEventIDs ?? [])
         state.completedConversationGoals=(state.completedConversationGoals ?? []).union(fields["iosCompletedConversationGoalIDs"] as? [String] ?? [])
         state.companionProgress = JSONValue.foundation(fields.filter { CompanionHealth.keys.contains($0.key) }.merging(CompanionHealth.reconcileFields(fields,now:now)) { _,new in new })
         state.gettingStartedModalShown = state.gettingStartedModalShown == true || fields["gettingStartedModalShown"] as? Bool == true ? true : state.gettingStartedModalShown
@@ -144,6 +145,10 @@ public enum WebProgressContract {
             let reward=state.applyImmersion(change,enqueue:false,award:false)
             state.xpByLanguage[change.target,default:0] += reward
             if CalendarDay.key(change.date) == today { state.dailyXP += reward;state.rewardCompanion(reward,now:change.date) }
+        }
+        for outcome in state.pendingTutorOutcomes ?? [] where outcome.dailyAmount>0 {
+            if outcome.day == state.dailyKey {state.dailyXP += outcome.dailyAmount}
+            state.rewardCompanion(outcome.dailyAmount,now:outcome.date)
         }
         return state
     }

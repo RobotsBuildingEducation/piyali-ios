@@ -198,6 +198,7 @@ public struct LearnerState: Codable, Sendable {
     public var pendingSettingsChanges:[SettingsChange]?
     public var acknowledgedEventIDs: Set<UUID>?
     public var ratingByLanguage: [String: Double]?
+    public var pendingTutorOutcomes:[TutorOutcomeIntent]?
     public var pendingPhonicsFinishes:[String:PhonicsFinishIntent]?
     public var confirmedFocusedOutcomes:[String:JSONValue]?
     public var goalArtifacts: [String: JSONValue]?
@@ -241,13 +242,13 @@ public struct LearnerState: Codable, Sendable {
     public var rating: Double { ratingByLanguage?[target] ?? 800 }
     public var score: Int { PerformanceScore.score(rating: rating) }
     public var effectiveCompanionType: String { CompanionTypes.effective(companionType, level: companionLevel) }
-    public mutating func assess(correct: Bool, independent: Bool, now: Date = Date(), questionLevel: String? = nil,worth:JSONValue? = nil,concept:String? = nil,mode:String? = nil,support:String? = nil) {
+    public mutating func assess(correct: Bool, independent: Bool, now: Date = Date(), questionLevel: String? = nil,worth:JSONValue? = nil,concept:String? = nil,mode:String? = nil,support:String? = nil,receiptID:UUID=UUID()) {
         if ratingByLanguage == nil { ratingByLanguage = [:] }
         if gradedByLanguage == nil { gradedByLanguage = [:] }; gradedByLanguage?[target, default: 0] += 1
         let baseline=rating
         let updated = QuestionWorth.rating(rating,level:questionLevel ?? level,correct:correct,independent:independent,worth:worth,support:support)
         ratingByLanguage?[target] = updated
-        var change=PracticeChange(date:now,dayKey:CalendarDay.key(now),target:target,level:questionLevel ?? level,amount:0,source:.assessment,correct:correct,independent:independent);change.gradedWorth=worth;change.gradedConcept=concept;change.gradedMode=mode;change.gradedSupport=support
+        var change=PracticeChange(date:now,dayKey:CalendarDay.key(now),target:target,level:questionLevel ?? level,amount:0,source:.assessment,correct:correct,independent:independent);change.id=receiptID;change.gradedWorth=worth;change.gradedConcept=concept;change.gradedMode=mode;change.gradedSupport=support
         if worth != nil {
             let bucket=goalBucket.setting("elo",goalBucket["elo"].setting("rating",.number(baseline)).setting("scaleVersion",.number(4)).setting("totalGraded",.number(Double((gradedByLanguage?[target] ?? 1)-1))))
             if goalIntelligence == nil { goalIntelligence=[:] };goalIntelligence?[target]=JSONValue.foundation(QuestionWorth.gradedBucket(bucket.foundation,change:change))

@@ -2,7 +2,13 @@ import Foundation
 
 @MainActor enum GeneratedQuestionWorth {
     static func assess(question:JSONValue,level:String,mode:String,learner:LearnerState,recipes:PracticeRecipes,ai:AIService) async throws ->JSONValue {
-        var parameters:JSONValue = .object(["question":question,"questionLevel":.string(level),"targetLang":.string(learner.target),"mode":.string(mode),"user":learner.recipeUser])
+        try await assess(parameters:parameters(question:question,level:level,mode:mode,learner:learner),recipes:recipes,ai:ai)
+    }
+    static func parameters(question:JSONValue,level:String,mode:String,learner:LearnerState)->JSONValue {
+        .object(["question":question,"questionLevel":.string(level),"targetLang":.string(learner.target),"mode":.string(mode),"user":learner.recipeUser])
+    }
+    static func assess(parameters original:JSONValue,recipes:PracticeRecipes,ai:AIService)async throws->JSONValue {
+        var parameters=original
         let prompt=try recipes.inspect("difficultyPrompt",parameters:parameters).string
         do {
             let raw=try await ai.text(prompt,json:true);try Task.checkCancellation()

@@ -5,6 +5,7 @@ import SwiftUI
 @MainActor final class AppModel: ObservableObject {
     @Published var learner = LearnerState() { didSet {captureMemoryFeedback(previous:oldValue);captureDailyGoalReward(previous:oldValue);captureCompanionUnlock(previous:oldValue);notifyPracticeObservers();subscription.updatePracticeXP(learner.subscriptionXP);bindAchievementDelivery()} }
     let memoryCapture=MemoryCaptureController()
+    let tutorOutcomes=TutorOutcomeDelivery()
     var memoryCaptureScope:String {[identity.npub,learner.target,learner.support].joined(separator:":")}
     func showMemoryCapture(){guard signedIn,!identity.npub.isEmpty else{return};memoryCapture.capture(memoryCaptureScope)}
     private func captureMemoryFeedback(previous:LearnerState){
@@ -56,7 +57,8 @@ import SwiftUI
     private func captureDailyGoalReward(previous:LearnerState){
         guard !restoringLearner,signedIn,learner.onboardingComplete,learner.companionProgress?["dailyHasCelebrated"].boolean == true,previous.companionProgress?["dailyHasCelebrated"].boolean != true else{return}
         let oldIDs=Set((previous.pendingChanges ?? []).map(\.id))
-        guard (learner.pendingChanges ?? []).contains(where:{!oldIDs.contains($0.id) && $0.amount>0}) else{return}
+        let oldOutcomes=Set((previous.pendingTutorOutcomes ?? []).map(\.id))
+        guard (learner.pendingChanges ?? []).contains(where:{!oldIDs.contains($0.id) && $0.amount>0}) || (learner.pendingTutorOutcomes ?? []).contains(where:{!oldOutcomes.contains($0.id) && $0.dailyAmount>0}) else{return}
         dailyGoalReward=DailyGoalReward(account:identity.npub,day:CalendarDay.key(Date()),goal:learner.dailyGoal,health:learner.companionHealth)
     }
 
@@ -411,6 +413,7 @@ import SwiftUI
             if !Task.isCancelled { self?.loadingContent = false }
         }
         contentTask = task; await task.value
+        tutorOutcomes.resume(self)
     }
     func persistPhonicsRecovery(){do{try writeLocal();syncStatus=synchronizedStatus}catch{self.error="Could not save progress: \(error.localizedDescription)"}}
     private func writeLocal() throws {do{try JSONEncoder().encode(learner).write(to:localURL,options:[.atomic,.completeFileProtection]);if localStorageUnavailable{localStorageUnavailable=false}}catch{if !localStorageUnavailable{localStorageUnavailable=true};throw error}}
@@ -455,7 +458,7 @@ import SwiftUI
     }
     var achievementSyncPending:Bool{achievementRetries.pending || synchronizedStatus != "Synced with Firebase" || syncStatus == "Saved on iPhone; cloud sync pending"}
     private var synchronizedStatus: String {
-        (learner.pendingPhonicsFinishes ?? [:]).isEmpty && (learner.pendingChanges ?? []).isEmpty && (learner.pendingImmersionChanges ?? []).isEmpty && (learner.pendingMemoryChanges ?? []).isEmpty && (learner.pendingSettingsChanges ?? []).isEmpty && (learner.pendingPlacements ?? [:]).isEmpty && (learner.pendingGoalChanges ?? []).isEmpty && (learner.pendingPlateHeadlines ?? [:]).isEmpty && (learner.pendingCompanionQuestDays ?? [:]).isEmpty && (learner.pendingRepairEvidence ?? []).isEmpty ? "Synced with Firebase" : "Saved on iPhone; cloud sync pending"
+        (learner.pendingTutorOutcomes ?? []).isEmpty && (learner.pendingPhonicsFinishes ?? [:]).isEmpty && (learner.pendingChanges ?? []).isEmpty && (learner.pendingImmersionChanges ?? []).isEmpty && (learner.pendingMemoryChanges ?? []).isEmpty && (learner.pendingSettingsChanges ?? []).isEmpty && (learner.pendingPlacements ?? [:]).isEmpty && (learner.pendingGoalChanges ?? []).isEmpty && (learner.pendingPlateHeadlines ?? [:]).isEmpty && (learner.pendingCompanionQuestDays ?? [:]).isEmpty && (learner.pendingRepairEvidence ?? []).isEmpty ? "Synced with Firebase" : "Saved on iPhone; cloud sync pending"
     }
     private func applyAcknowledgment(_ cloud: LearnerState, sent: LearnerState) throws {
         automaticProgress.observe(cloud,identity:identity,locallyAllowed:learner.automaticPostsEnabled)
@@ -473,7 +476,7 @@ import SwiftUI
         if !(learner.pendingPhonicsFinishes ?? [:]).isEmpty{Task{[weak self] in await self?.resumePendingPhonicsFinishes()}}
         if target != learner.target || support != learner.support || level != learner.level || cardLevel != learner.flashcardLevel || tutorLevel != learner.tutorLevel { Task { await reloadContent() } }
     }
-    func sync() async {captureLegacyPhonicsFinishes();await syncProgress();await resumePendingPhonicsFinishes()}
+    func sync() async {tutorOutcomes.resume(self);captureLegacyPhonicsFinishes();await syncProgress();await resumePendingPhonicsFinishes()}
     func syncProgress() async {
         guard signedIn else{return}
         let state = learner, npub = identity.npub,session=identity.sessionRevision

@@ -1,0 +1,27 @@
+{
+  "qaDevice": "CE8248B6-7171-4FD4-97DE-89E499107F82",
+  "startedAt": 1793934352.107,
+  "scope": "Read-only final public late-speech UI journey counters. No private profile, identity, key or note contents exported. One 3\u20137 XP turn, two starter items, one assessment, no late chat, bonus or Memory.",
+  "profiles": [
+    {
+      "snapshotSHA256": "16f3773a43d38f0f8a20a290046033b615be93973e313492c944121c28e8166d",
+      "totalXP": 6,
+      "dailyXP": 6,
+      "pendingTutorOutcomes": 0,
+      "gradedAttempts": 1,
+      "earnedTutorXP": 6,
+      "agenda": [
+        "hello",
+        "myNameIs"
+      ],
+      "tutorTurnReceipts": 1,
+      "assessmentReceipts": 1,
+      "completionReceipts": 0,
+      "lateMessagesInPrivateDraft": 0,
+      "notes": 0,
+      "memoryNotes": 0,
+      "historyEntries": 0,
+      "tutorDailyActivity": 0
+    }
+  ]
+}
