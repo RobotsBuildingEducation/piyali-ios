@@ -1,0 +1,182 @@
+[
+  {
+    "path": "native-member-recovered-bottom-ar.png",
+    "name": "Native Teams streamed member-recovered-bottom ar",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "source-member-recovered-bottom-ar.json",
+    "name": "Source Teams streamed member-recovered-bottom ar geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "source-member-recovered-bottom-ar.png",
+    "name": "Source Teams streamed member-recovered-bottom ar",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "native-member-recovered-ar.png",
+    "name": "Native Teams streamed member-recovered ar",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "source-member-recovered-ar.json",
+    "name": "Source Teams streamed member-recovered ar geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "source-member-recovered-ar.png",
+    "name": "Source Teams streamed member-recovered ar",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "native-member-failed-ar.png",
+    "name": "Native Teams streamed member-failed ar",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "source-member-failed-ar.json",
+    "name": "Source Teams streamed member-failed ar geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "source-member-failed-ar.png",
+    "name": "Source Teams streamed member-failed ar",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "native-member-held-bottom-ar.png",
+    "name": "Native Teams streamed member-held-bottom ar",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "source-member-held-bottom-ar.json",
+    "name": "Source Teams streamed member-held-bottom ar geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "source-member-held-bottom-ar.png",
+    "name": "Source Teams streamed member-held-bottom ar",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "native-member-held-ar.png",
+    "name": "Native Teams streamed member-held ar",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "source-member-held-ar.json",
+    "name": "Source Teams streamed member-held ar geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "source-member-held-ar.png",
+    "name": "Source Teams streamed member-held ar",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "native-cached-ar.png",
+    "name": "Native Teams streamed cached ar",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "source-cached-ar.json",
+    "name": "Source Teams streamed cached ar geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "source-cached-ar.png",
+    "name": "Source Teams streamed cached ar",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "native-member-recovered-bottom-en.png",
+    "name": "Native Teams streamed member-recovered-bottom en",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "source-member-recovered-bottom-en.json",
+    "name": "Source Teams streamed member-recovered-bottom en geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "source-member-recovered-bottom-en.png",
+    "name": "Source Teams streamed member-recovered-bottom en",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "native-member-recovered-en.png",
+    "name": "Native Teams streamed member-recovered en",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "source-member-recovered-en.json",
+    "name": "Source Teams streamed member-recovered en geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "source-member-recovered-en.png",
+    "name": "Source Teams streamed member-recovered en",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "native-member-failed-en.png",
+    "name": "Native Teams streamed member-failed en",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "source-member-failed-en.json",
+    "name": "Source Teams streamed member-failed en geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "source-member-failed-en.png",
+    "name": "Source Teams streamed member-failed en",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "native-member-held-bottom-en.png",
+    "name": "Native Teams streamed member-held-bottom en",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "source-member-held-bottom-en.json",
+    "name": "Source Teams streamed member-held-bottom en geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "source-member-held-bottom-en.png",
+    "name": "Source Teams streamed member-held-bottom en",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "native-member-held-en.png",
+    "name": "Native Teams streamed member-held en",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "source-member-held-en.json",
+    "name": "Source Teams streamed member-held en geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "source-member-held-en.png",
+    "name": "Source Teams streamed member-held en",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "native-cached-en.png",
+    "name": "Native Teams streamed cached en",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "source-cached-en.json",
+    "name": "Source Teams streamed cached en geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "source-cached-en.png",
+    "name": "Source Teams streamed cached en",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  }
+]

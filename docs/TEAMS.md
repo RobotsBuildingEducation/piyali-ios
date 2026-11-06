@@ -46,3 +46,5 @@ Teams direction and forms now have a separate scoped record in [TEAMS_DRAWER_RTL
 Feed loading, empty, rejected-fetch/Refresh, cache and source-default adapter behavior now have scoped work in [TEAMS_FEED_STATES.md](TEAMS_FEED_STATES.md). The default source adapter resolves relay failures to empty; component error fixtures are recorded separately from actual product journeys. Wider feed/provider/roster/design acceptance remains open.
 
 Retained raw feed content, original blank versus empty behavior, filtered-cache expiry and metadata failure/fallback have subsequent scoped evidence in [TEAMS_FEED_CONTENT.md](TEAMS_FEED_CONTENT.md). This does not close wider provider/roster/whole-product acceptance.
+
+Immediate known-team mirror/cache updates, independent retained member reads, signed-action boundaries, stable row identities and body-scrolling tabs now have scoped evidence in [TEAMS_STREAMED_ROSTERS.md](TEAMS_STREAMED_ROSTERS.md). Initial staged roster/member loading, cold public progress caches, broader outage/grant/legacy/large-roster and full design acceptance remain open.

@@ -174,3 +174,58 @@ extension TeamsTests {
         XCTAssertFalse(relay.frames().contains{$0.first as? String == "EVENT"},"Content reads, relaunch and cache recovery never publish")
     }
 }
+
+private final class StreamedRosterRelay:@unchecked Sendable {
+    private let lock=NSLock()
+    private var events:[[String:Any]]=[]
+    private var held:[(String,NWConnection)]=[]
+    private var hold=false
+    private let member=Keypair(hex:String(repeating:"0",count:63)+"3")!
+    private let stamp=Int64(Date().timeIntervalSince1970)
+    var memberNpub:String{member.publicKey.npub}
+    var waiting:Bool{lock.withLock{!held.isEmpty}}
+    var published:[[String:Any]]{lock.withLock{events}}
+    private func event(kind:Int,tags:[[String]],content:String,time:Int64)throws->[String:Any]{
+        let data=try JSONSerialization.data(withJSONObject:[0,member.publicKey.hex,time,kind,tags,content],options:[.withoutEscapingSlashes]),id=SHA256.hash(data:data).map{String(format:"%02x",$0)}.joined()
+        return ["id":id,"pubkey":member.publicKey.hex,"created_at":time,"kind":kind,"tags":tags,"content":content,"sig":try TeamsFeedFixtureCrypto().signatureForContent(id,privateKey:member.privateKey.hex)]
+    }
+    private func progress(_ xp:Int,time:Int64)throws->[String:Any]{
+        let fields:[String:Any] = ["schemaVersion":2,"name":"Public teammate","targetLang":"es","xp":xp,"level":"B1","score":64,"scoreScale":"0-100","goal":30,"dailyGoalXp":30,"dailyXp":15,"progressPercent":50,"companion":["name":"Luna","type":"ghost","level":3,"health":74],"updatedAt":time]
+        let data=try JSONSerialization.data(withJSONObject:fields,options:[.sortedKeys,.withoutEscapingSlashes]);return try event(kind:30078,tags:[["d","learning-progress"],["t","learning-progress"]],content:String(decoding:data,as:UTF8.self),time:time)
+    }
+    init()throws{events=[try event(kind:0,tags:[],content:"{\"name\":\"Public teammate\"}",time:stamp),try progress(1234,time:stamp)]}
+    func arm(){lock.withLock{hold=true}}
+    func handle(_ frame:[Any],_ connection:NWConnection,relay:LocalNostrRelay){
+        if frame.first as? String == "REQ",let id=frame[1] as? String{
+            let result=lock.withLock{()->[[String:Any]]? in if hold{held.append((id,connection));return nil};return events}
+            if let result{for event in result{relay.send(["EVENT",id,event],to:connection)};relay.send(["EOSE",id],to:connection)}
+        }else if frame.first as? String == "EVENT",let event=frame[1] as? [String:Any],let id=event["id"] as? String{lock.withLock{events.append(event)};relay.send(["OK",id,true,""],to:connection)}
+    }
+    func releaseUpdated(_ relay:LocalNostrRelay)throws{
+        let updated=try progress(5678,time:stamp+1),state=lock.withLock{()->([(String,NWConnection)],[[String:Any]]) in hold=false;events.append(updated);let pending=held;held=[];return(pending,events)}
+        for(id,connection)in state.0{for event in state.1{relay.send(["EVENT",id,event],to:connection)};relay.send(["EOSE",id],to:connection)}
+    }
+}
+extension TeamsTests {
+    func testArabicMirrorCardChangesBeforeAHeldSignedMemberReadThenRestoresFreshProgressAndDeletes()async throws {
+        continueAfterFailure=false
+        let relay=LocalNostrRelay(),state=try StreamedRosterRelay();defer{relay.stop()};try await relay.start{state.handle($0,$1,relay:relay)}
+        let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_TEAM_TEST_RELAY":relay.url,"PIYALI_PRIVATE_TEAMS_TEST_EMULATOR":"1","PIYALI_HEADLINE_FIXTURE":"failure"];app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","dark"];app.launch()
+        let entry=app.textFields["entryName"];XCTAssertTrue(entry.waitForExistence(timeout:15));entry.tap();entry.typeText("Stream Learner");tap("entryKeyboardDone",app);tap("createAccount",app);chooseEnglishSpanishOnboarding(app);tap("startLearning",app);tap("companionContinue",app);acknowledgePaperPencil(app);tap("gettingStartedGotIt",app);tap("placementNew",app)
+        tap("productMenu",app);tap("productPanel-settings",app);tap("supportLanguagePicker",app);tap("settingsLanguage-support-ar",app);tap("productPanelClose",app)
+        open(app);let owner=try XCTUnwrap(app.buttons["teamsCopyID"].value as? String);tap("teamCreateOpen",app);enter("Weekend","teamName",app);enter(state.memberNpub,"teamMembers",app);tap("teamCreate",app)
+        let old=app.staticTexts["1234"];for _ in 0..<6 where !old.isHittable{app.swipeUp(velocity:.slow)};XCTAssertTrue(old.waitForExistence(timeout:15));XCTAssertTrue(old.isHittable);shot("Native streamed roster initial signed member",app)
+        let card=app.buttons["learningTeamRow"];for _ in 0..<6 where !card.isHittable{app.swipeDown(velocity:.slow)};XCTAssertTrue(card.isHittable);XCTAssertEqual(card.label,"Weekend")
+        let url=try XCTUnwrap(URL(string:"http://127.0.0.1:8180/v1/projects/demo-piyali-ios/databases/(default)/documents/users/\(owner)/teams")),(data,_)=try await URLSession.shared.data(from:url),json=try XCTUnwrap(JSONSerialization.jsonObject(with:data) as? [String:Any]),docs=try XCTUnwrap(json["documents"] as? [[String:Any]]),path=try XCTUnwrap(docs.first?["name"] as? String),id=try XCTUnwrap(path.split(separator:"/").last).description
+        state.arm()
+        var patch=URLRequest(url:try XCTUnwrap(URL(string:"http://127.0.0.1:8180/v1/projects/demo-piyali-ios/databases/(default)/documents/users/\(owner)/teams/\(id)?updateMask.fieldPaths=teamName")));patch.httpMethod="PATCH";patch.setValue("application/json",forHTTPHeaderField:"Content-Type");patch.httpBody=try JSONSerialization.data(withJSONObject:["fields":["teamName":["stringValue":"Peer cache name"]]])
+        let(_,response)=try await URLSession.shared.data(for:patch);XCTAssertEqual((response as? HTTPURLResponse)?.statusCode,200)
+        XCTAssertEqual(XCTWaiter.wait(for:[XCTNSPredicateExpectation(predicate:NSPredicate(format:"label == %@","Peer cache name"),object:card)],timeout:3),.completed,"The Firebase card update is visible before a relay round trip completes")
+        for _ in 0..<100 where !state.waiting{try await Task.sleep(for:.milliseconds(10))};XCTAssertTrue(state.waiting);XCTAssertFalse(app.staticTexts["5678"].exists);shot("Native streamed roster mirror title before signed member reply",app)
+        try state.releaseUpdated(relay);let fresh=app.staticTexts["5678"];for _ in 0..<6 where !fresh.isHittable{app.swipeUp(velocity:.slow)};XCTAssertTrue(fresh.waitForExistence(timeout:15));XCTAssertTrue(fresh.isHittable);XCTAssertFalse(old.exists);XCTAssertEqual(card.label,"Peer cache name");shot("Native streamed roster signed peer progress settled",app)
+        reveal("teamRemove",app).tap();let deletion=app.sheets.buttons["Delete team"];XCTAssertTrue(deletion.waitForExistence(timeout:5));deletion.tap();XCTAssertTrue(app.staticTexts["My teams (0)"].waitForExistence(timeout:15));app.terminate();app.launch();open(app);XCTAssertTrue(app.staticTexts["My teams (0)"].waitForExistence(timeout:15));shot("Native streamed roster deletion private relaunch",app)
+        let published=relay.frames().filter{$0.first as? String == "EVENT"}.compactMap{$0[1] as? [String:Any]},deleted=published.filter{($0["tags"] as? [[String]])?.contains(["deleted"]) == true}
+        XCTAssertFalse(published.contains{$0["kind"] as? Int == 1});XCTAssertEqual(deleted.count,1)
+        XCTAssertTrue((deleted.first?["tags"] as? [[String]])?.contains(["name","Weekend"]) == true,"Mirror display names never replace the signed roster used for actions")
+    }
+}

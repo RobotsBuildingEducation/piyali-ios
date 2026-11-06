@@ -2,7 +2,7 @@ import XCTest
 import SwiftUI
 @testable import Piyali
 
-@MainActor private final class TeamControllerAccess:TeamsPanelAccess {
+@MainActor private class TeamControllerAccess:TeamsPanelAccess {
     var next=TeamsPanelSnapshot(),published:[JSONValue]=[]
     var watchCallbacks:[@MainActor()->Void]=[],inviteCallbacks:[@MainActor([JSONValue])->Void]=[],loads=0
     var delay:CheckedContinuation<Void,Never>?
@@ -17,6 +17,8 @@ import SwiftUI
     func feed(_ app:AppModel,force:Bool)async throws->[CommunityPost]{[]}
     func watch(_ teams:[JSONValue],app:AppModel,onChange:@escaping @MainActor()->Void)async{watchCallbacks.append(onChange)}
     func watchInvites(_ app:AppModel,onChange:@escaping @MainActor([JSONValue])->Void)async{inviteCallbacks.append(onChange)}
+    func watchRoster(_ snapshot:TeamsPanelSnapshot,app:AppModel,onRecord:@escaping @MainActor(JSONValue)->Void,onInvalidate:@escaping @MainActor()->Void)async{await watchSnapshot(snapshot,app:app,onChange:onInvalidate)}
+    func memberRows(_ team:JSONValue,app:AppModel)async throws->[JSONValue]{[]}
     func cancel(){}
 }
 @MainActor final class TeamsPanelControllerTests:XCTestCase {
@@ -110,5 +112,61 @@ extension TeamsPanelControllerTests {
         center.cover(false,by:confirmation);coordinator.render()
         let host=try XCTUnwrap(coordinator.portal?.rootViewController as? UIHostingController<TeamsNoticeStack>);host.rootView.dismiss(notice.id);XCTAssertTrue(center.notices.isEmpty)
         coordinator.render();XCTAssertNil(coordinator.portal);XCTAssertTrue(portal.isHidden);XCTAssertNil(portal.rootViewController);XCTAssertTrue(scene.windows.first{$0.isKeyWindow} === key)
+    }
+}
+
+
+@MainActor private final class TeamStreamAccess:TeamControllerAccess {
+    var rosterCallbacks:[@MainActor(JSONValue)->Void]=[]
+    var heldRows:[CheckedContinuation<[JSONValue],Error>]=[]
+    var rowLoads=0
+    override func watchRoster(_ snapshot:TeamsPanelSnapshot,app:AppModel,onRecord:@escaping @MainActor(JSONValue)->Void,onInvalidate:@escaping @MainActor()->Void)async{rosterCallbacks.append(onRecord)}
+    override func memberRows(_ team:JSONValue,app:AppModel)async throws->[JSONValue]{rowLoads += 1;return try await withCheckedThrowingContinuation{heldRows.append($0)}}
+    func finish(_ result:Result<[JSONValue],Error>){guard !heldRows.isEmpty else{return};heldRows.removeFirst().resume(with:result)}
+    func finishAll(){for row in heldRows{row.resume(throwing:CancellationError())};heldRows=[];delay?.resume();delay=nil}
+}
+extension TeamsPanelControllerTests {
+    private func streamContext(publicTeam:Bool=false)throws->(AppModel,TeamStreamAccess,TeamsPanelController,JSONValue,String){
+        let env=ProcessInfo.processInfo.environment;guard env["PIYALI_OFFLINE_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Isolated identity required")}
+        let app=AppModel();try app.identity.create();let access=TeamStreamAccess()
+        var team:JSONValue = .object(["id":.string("stream-team"),"createdBy":.string(app.identity.npub),"teamName":.string("Original"),"isCreator":.bool(true),"members":.array([])])
+        if publicTeam{team=team.setting("nostr",.object(["id":.string("stream-team")]))}
+        let key=LiveTeamsPanelAccess.key(team);access.next = .init(teams:[team],rows:[key:[.object(["name":.string("Previous rows")])]])
+        return(app,access,TeamsPanelController(access:access),team,key)
+    }
+    func testCachedRosterStreamChangesTheCardImmediatelyWhileRowsAreHeldWithoutAFullReload()async throws {
+        let(app,access,model,team,key)=try streamContext();defer{model.cancel();access.finishAll();app.signOut()};await model.reload(app);let emit=try XCTUnwrap(access.rosterCallbacks.first);model.error="Unrelated management error"
+        emit(team.setting("teamName",.string("Cached peer name")).setting("isCreator",.bool(false)))
+        XCTAssertEqual(model.snapshot.teams.first?["teamName"].string,"Cached peer name");XCTAssertEqual(model.snapshot.teams.first?["isCreator"],.bool(true),"Display snapshots cannot replace derived ownership")
+        XCTAssertEqual(model.snapshot.rows[key]?.first?["name"].string,"Previous rows");XCTAssertFalse(model.loading);try await settle{access.heldRows.count==1};XCTAssertEqual(access.loads,1)
+        access.finish(.success([.object(["name":.string("Fresh rows")])]));try await settle{model.snapshot.rows[key]?.first?["name"].string == "Fresh rows"};XCTAssertEqual(model.error,"Unrelated management error");XCTAssertTrue(model.rowErrors.isEmpty)
+        emit(team.setting("id",.string("unknown")));emit(team.setting("createdBy",.string("wrong-owner")));emit(team.setting("nostr",.object([:])))
+        XCTAssertEqual(model.snapshot.teams.count,1);XCTAssertEqual(model.snapshot.teams.first?["teamName"].string,"Cached peer name");XCTAssertEqual(access.rowLoads,1)
+    }
+    func testStreamBurstCoalescesLatestRowsAndAHeldFullReadCannotOverwriteNewerPresentation()async throws {
+        let(app,access,model,team,key)=try streamContext();defer{model.cancel();access.finishAll();app.signOut()};await model.reload(app);let emit=try XCTUnwrap(access.rosterCallbacks.first)
+        access.pause=true;let read=Task{await model.reload(app,preservingError:true)};try await settle{access.delay != nil}
+        emit(team.setting("teamName",.string("First peer update")));try await settle{access.heldRows.count==1}
+        for _ in 0..<5{emit(team.setting("teamName",.string("Latest peer update")))}
+        access.finish(.success([.object(["name":.string("Stale rows")])]));try await settle{access.rowLoads==2 && access.heldRows.count==1};XCTAssertEqual(model.snapshot.rows[key]?.first?["name"].string,"Previous rows")
+        access.finish(.success([.object(["name":.string("Latest rows")])]));try await settle{model.snapshot.rows[key]?.first?["name"].string == "Latest rows"}
+        access.pause=false;access.delay?.resume();access.delay=nil;await read.value
+        XCTAssertEqual(model.snapshot.teams.first?["teamName"].string,"Latest peer update");XCTAssertEqual(model.snapshot.rows[key]?.first?["name"].string,"Latest rows");XCTAssertEqual(access.loads,2);XCTAssertEqual(access.rowLoads,2)
+    }
+    func testFailedStreamMemberReadKeepsPreviousRowsAndManagementErrorUntilANewSnapshotRecovers()async throws {
+        let(app,access,model,team,key)=try streamContext();defer{model.cancel();access.finishAll();app.signOut()};await model.reload(app);model.error="Action diagnostic";let emit=try XCTUnwrap(access.rosterCallbacks.first)
+        emit(team.setting("teamName",.string("Peer changed")));try await settle{access.heldRows.count==1};access.finish(.failure(URLError(.notConnectedToInternet)));try await settle{model.rowErrors[key] != nil}
+        XCTAssertEqual(model.snapshot.teams.first?["teamName"].string,"Peer changed");XCTAssertEqual(model.snapshot.rows[key]?.first?["name"].string,"Previous rows");XCTAssertEqual(model.error,"Action diagnostic");XCTAssertTrue(app.teamsNotices.notices.isEmpty)
+        emit(team.setting("teamName",.string("Recovered peer")));try await settle{access.heldRows.count==1};access.finish(.success([.object(["name":.string("Recovered rows")])]));try await settle{model.rowErrors[key] == nil};XCTAssertEqual(model.snapshot.rows[key]?.first?["name"].string,"Recovered rows");XCTAssertEqual(model.error,"Action diagnostic")
+    }
+    func testOldGrantAndClosedStreamCallbacksCannotApplyOrFinishMemberRows()async throws {
+        let(app,access,model,team,key)=try streamContext(publicTeam:true);defer{model.cancel();access.finishAll();app.signOut()}
+        let grant:JSONValue = .object(["id":.string("team_stream-team"),"teamId":.string("stream-team"),"creatorNpub":team["createdBy"],"status":.string("accepted"),"createdAt":.string("old"),"nostr":.object([:])]);access.next.invites=[grant];await model.reload(app);let old=try XCTUnwrap(access.rosterCallbacks.first)
+        old(team.setting("teamName",.string("Old grant peer")));try await settle{access.heldRows.count==1}
+        let replacement=grant.setting("createdAt",.string("new"));access.next.invites=[replacement];access.next.teams=[team.setting("teamName",.string("Replacement grant"))];model.applyInvites([replacement],app:app);try await settle{access.rosterCallbacks.count==2};let current=access.rosterCallbacks[1]
+        old(team.setting("teamName",.string("Queued old grant")));access.finish(.success([.object(["name":.string("Old grant rows")])]))
+        try await Task.sleep(for:.milliseconds(30));XCTAssertEqual(model.snapshot.teams.first?["teamName"].string,"Replacement grant");XCTAssertEqual(model.snapshot.rows[key]?.first?["name"].string,"Previous rows")
+        current(team.setting("teamName",.string("Current peer")));try await settle{access.heldRows.count==1};model.cancel();current(team.setting("teamName",.string("Closed peer")));access.finish(.success([.object(["name":.string("Closed rows")])]))
+        try await Task.sleep(for:.milliseconds(30));XCTAssertEqual(model.snapshot.teams.first?["teamName"].string,"Current peer");XCTAssertEqual(model.snapshot.rows[key]?.first?["name"].string,"Previous rows");XCTAssertTrue(access.published.isEmpty)
     }
 }

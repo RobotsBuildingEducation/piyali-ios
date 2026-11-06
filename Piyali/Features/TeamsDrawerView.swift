@@ -39,8 +39,10 @@ struct TeamsDrawerView:View {
                 VStack(spacing:0){
                     Capsule().fill(ink.opacity(0.24)).frame(width:52,height:5).padding(.top,12).padding(.bottom,8)
                     text(t("teams_drawer_title","Teams")).font(.system(size:20,weight:.semibold)).frame(height:30).frame(maxWidth:.infinity,alignment:.leading).padding(.horizontal,32).padding(.vertical,28)
-                    HStack(spacing:16){tabButton(0,t("teams_tab_view","Teams")+(pending.isEmpty ? "":" (\(pending.count))"));tabButton(1,t("teams_tab_feed","Global feed"))}.padding(.bottom,8)
-                    ScrollView{VStack(alignment:.leading,spacing:16){if tab == 0{teamList}else{feed}}.padding(.vertical,16).padding(.horizontal,28)}
+                    ScrollView{VStack(spacing:0){
+                        HStack(spacing:16){tabButton(0,t("teams_tab_view","Teams")+(pending.isEmpty ? "":" (\(pending.count))"));tabButton(1,t("teams_tab_feed","Global feed"))}.padding(.bottom,8)
+                        VStack(alignment:.leading,spacing:16){if tab == 0{teamList}else{feed}}.padding(.vertical,16).padding(.horizontal,28)
+                    }.padding(.bottom,28)}
                 }.frame(height:g.size.height*0.8).frame(maxWidth:.infinity).background(surface,in:MemoryDrawerShape(radius:48)).overlay(alignment:rtl ? .topLeading:.topTrailing){Button(action:onClose){MemoryIcon(name:"close",size:16).frame(width:32,height:32)}.padding(.top,20).padding(rtl ? .leading:.trailing,20).accessibilityLabel(t("teams_drawer_close","Close")).accessibilityIdentifier("teamsClose")}.overlay{MemoryDrawerShape(radius:48).stroke(c(light ? "604d38":"94a3b8").opacity(light ? 0.3:0.42),lineWidth:3).padding(1.5).padding(.bottom,-3).allowsHitTesting(false)}.accessibilityElement(children:.contain).accessibilityIdentifier("teamsDrawer").accessibilityHidden(editor != nil)
                     .gesture(DragGesture(minimumDistance:30).onEnded{v in if v.startLocation.y<28,v.translation.height>70{onClose()}})
                 if let editor{editorDialog(editor,width:g.size.width).frame(maxHeight:.infinity)}
@@ -71,7 +73,7 @@ struct TeamsDrawerView:View {
                 VStack(alignment:.leading,spacing:0){text(invite["teamName"].string).bold().frame(height:24);text(t("teams_view_invited_by","Invited by")+": "+(invite["invitedByName"].string.isEmpty ? invite["invitedBy"].string:invite["invitedByName"].string)).font(.system(size:14)).foregroundStyle(muted).frame(height:21);HStack(spacing:8){Spacer();action(t("teams_view_accept","Accept"),outline:true,size:14,height:32){respond(invite,true)};action(t("teams_view_decline","Decline"),outline:true,size:14,height:32,danger:true){respond(invite,false)}}.padding(.top,12)}.padding(17).background(surface,in:RoundedRectangle(cornerRadius:6)).overlay{RoundedRectangle(cornerRadius:6).stroke(c(light ? "9decf9":"086f83"))}
             }
         }.padding(.bottom,8)}
-        if !model.loading{VStack(alignment:.leading,spacing:12){text(t("teams_view_my_teams","My teams")+" (\(model.snapshot.teams.count))").bold().frame(height:24);ForEach(model.snapshot.teams,id:\.canonicalJSON){team in teamCard(team)}}}
+        if !model.loading{VStack(alignment:.leading,spacing:12){text(t("teams_view_my_teams","My teams")+" (\(model.snapshot.teams.count))").bold().frame(height:24);ForEach(model.snapshot.teams.map{TeamsDisplayRecord(id:LiveTeamsPanelAccess.key($0),value:$0)}){teamCard($0.value)}}.padding(.bottom,model.snapshot.teams.isEmpty ? 0:12)}
     }
     private func teamCard(_ team:JSONValue)->some View {
         let key=LiveTeamsPanelAccess.key(team),single=model.snapshot.teams.count == 1,visible=single || expanded.contains(key)
@@ -80,10 +82,10 @@ struct TeamsDrawerView:View {
             if visible{VStack(alignment:.leading,spacing:16){
                 if team["isCreator"].boolean{HStack{Spacer();action(t("teams_add_member_open","Add new member"),outline:true,id:"teamAddOpen",size:12,height:24){open(.add(team))}}}
                 let rows=(model.snapshot.rows[key] ?? []).sorted{$0["isCreator"].boolean && !$1["isCreator"].boolean}
-                ForEach(rows,id:\.canonicalJSON){row in memberCard(row)}
+                if !rows.isEmpty{VStack(spacing:16){ForEach(rows.map{TeamsDisplayRecord(id:$0["npub"].string,value:$0)}){memberCard($0.value)}}.padding(.bottom,16)}
                 if rows.isEmpty{text(t("teams_view_no_members","No accepted members yet.")).font(.system(size:14)).foregroundStyle(muted)}
                 let waiting=team["members"].array.filter{$0["status"].string == "pending"}
-                if !waiting.isEmpty{text(t("teams_view_pending_members","Invites waiting")).font(.system(size:14,weight:.bold));ForEach(waiting,id:\.canonicalJSON){text($0["npub"].string).font(.system(size:12)).foregroundStyle(muted)}}
+                if !waiting.isEmpty{VStack(alignment:.leading,spacing:4){text(t("teams_view_pending_members","Invites waiting")).font(.system(size:14,weight:.bold)).frame(minHeight:21);ForEach(waiting,id:\.canonicalJSON){text($0["npub"].string).font(.system(size:12)).lineSpacing(4).padding(.vertical,2).foregroundStyle(light ? muted:c("879bb4")).fixedSize(horizontal:false,vertical:true)}}}
                 HStack{Spacer();Button{removal=team}label:{Image(team["isCreator"].boolean ? "Teams-trash":"Teams-exit").resizable().frame(width:14,height:14).frame(width:32,height:32).foregroundStyle(light ? c("c53030"):c("fc8181")).overlay{Capsule().stroke(light ? c("e53e3e"):c("fc8181"))}}.disabled(model.working).accessibilityLabel(team["isCreator"].boolean ? t("teams_view_delete","Delete team"):t("teams_view_leave","Leave team")).accessibilityIdentifier("teamRemove")}
             }.padding(17)}
         }.background(surface,in:RoundedRectangle(cornerRadius:8)).overlay{RoundedRectangle(cornerRadius:8).stroke(cardBorder)}.accessibilityElement(children:.contain).accessibilityIdentifier("teamCard")
@@ -234,3 +236,5 @@ private struct TeamsFeedRefreshStyle:ButtonStyle {
         configuration.label.font(.system(size:14,weight:.semibold)).foregroundStyle(.white).padding(.horizontal,13).frame(height:32).background{Capsule().fill(PiyaliBrand.unitColor(configuration.isPressed ? "66cdaa":"5dade2")).shadow(color:configuration.isPressed ? .clear:PiyaliBrand.unitColor("2f7cf7"),radius:0,y:4)}.offset(y:configuration.isPressed ? 4:0).animation(.easeOut(duration:0.12),value:configuration.isPressed)
     }
 }
+
+private struct TeamsDisplayRecord:Identifiable {let id:String,value:JSONValue}

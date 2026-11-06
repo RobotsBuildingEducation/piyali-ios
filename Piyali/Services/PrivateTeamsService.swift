@@ -29,18 +29,28 @@ import NostrSDK
         let owner=identity.npub;if account != owner { cancel(clear:true);account=owner }
         let version=generation;busy=true;error=nil
         let task=Task { @MainActor in
-            let db:Firestore
-            if let injected=self.injected { db=injected }
-            else {
-                guard FirebaseService.shared.configured else { throw AppError.message("Connect Firebase to use private teams. Your public Nostr teams remain available.") }
-                try await FirebaseIdentityService.shared.ensure(identity);try self.check(identity,owner,version)
-                guard Auth.auth().currentUser?.uid == owner else { throw CancellationError() };db=Firestore.firestore()
-            }
+            let db=try await self.database(identity,owner:owner,version:version)
             try await action(db,owner,version)
         };pending=task
         defer { if generation == version { busy=false;pending=nil } }
         do { try await withTaskCancellationHandler { try await task.value } onCancel:{ task.cancel() } }
         catch { if generation == version,!(error is CancellationError) { self.error=(error as? PrivateTeams.Failure)?.localizedDescription ?? (error as? AppError)?.localizedDescription ?? "The private team request could not be completed. Refresh to check its current state." };throw error }
+    }
+    private func database(_ identity:IdentityService,owner:String,version:UUID)async throws->Firestore{
+        if let injected{return injected}
+        guard FirebaseService.shared.configured else{throw AppError.message("Connect Firebase to use private teams. Your public Nostr teams remain available.")}
+        try await FirebaseIdentityService.shared.ensure(identity);try check(identity,owner,version)
+        guard Auth.auth().currentUser?.uid == owner else{throw CancellationError()};return Firestore.firestore()
+    }
+    /// Independent read snapshots can overlap without contending with a mutation's busy flag.
+    func readProgress(_ team:PrivateTeam,identity:IdentityService)async throws->[String:JSONValue]{
+        let owner=identity.npub,session=identity.sessionRevision;guard !owner.isEmpty else{throw CancellationError()}
+        if account != owner{cancel(clear:true);account=owner};let version=generation
+        let db=try await database(identity,owner:owner,version:version);try check(identity,owner,version)
+        guard identity.sessionRevision == session else{throw CancellationError()}
+        let docs=try await Self.team(db,team.creator,team.teamID).collection("progress").getDocuments(source:.default)
+        try check(identity,owner,version);guard identity.sessionRevision == session else{throw CancellationError()}
+        return try Dictionary(uniqueKeysWithValues:docs.documents.map{($0.documentID,try Self.json($0.data()))})
     }
     private nonisolated static func json(_ data:[String:Any]) throws -> JSONValue { try JSONDecoder().decode(JSONValue.self,from:JSONSerialization.data(withJSONObject:FirebaseService.normalized(data))) }
     private nonisolated static func fields(_ value:JSONValue) throws -> [String:Any] { guard let fields=try JSONSerialization.jsonObject(with:Data(value.json.utf8)) as? [String:Any] else { throw PrivateTeams.Failure.invalidRecord };return fields }
@@ -51,15 +61,15 @@ import NostrSDK
         guard values.allSatisfy({ PublicKey(npub:$0) != nil && $0 != owner }) else { throw PrivateTeams.Failure.invalidMembers };return values
     }
     private func load(_ db:Firestore,_ owner:String,_ identity:IdentityService,_ version:UUID) async throws {
-        async let own=db.collection("users").document(owner).collection("teams").getDocuments(source:.server)
-        async let receivedRequest=db.collection("users").document(owner).collection("teamInvites").getDocuments(source:.server)
+        async let own=db.collection("users").document(owner).collection("teams").getDocuments(source:.default)
+        async let receivedRequest=db.collection("users").document(owner).collection("teamInvites").getDocuments(source:.default)
         let (owned,received)=try await (own,receivedRequest);try check(identity,owner,version)
         var result:[String:PrivateTeam]=[:]
         for doc in owned.documents { if let team=try? PrivateTeam(id:doc.documentID,creator:owner,data:Self.json(doc.data())) { result[team.id]=team } }
         let invitations=received.documents.compactMap { try? PrivateTeamInvite(id:$0.documentID,data:Self.json($0.data())) }
         for invitation in invitations where invitation.status == "accepted" && invitation.creator != owner {
             do {
-                let snapshot=try await Self.team(db,invitation.creator,invitation.teamID).getDocument(source:.server);try check(identity,owner,version)
+                let snapshot=try await Self.team(db,invitation.creator,invitation.teamID).getDocument(source:.default);try check(identity,owner,version)
                 if let fields=snapshot.data(),let team=try? PrivateTeam(id:invitation.teamID,creator:invitation.creator,data:Self.json(fields)),team.members.contains(where:{ $0["npub"].string == owner && $0["status"].string == "accepted" }) { result[team.id]=team }
             } catch is CancellationError { throw CancellationError() } catch { /* A deleted or revoked invitation cannot grant access to its old team. */ }
         }
@@ -146,7 +156,7 @@ import NostrSDK
     }
     func loadProgress(_ team:PrivateTeam,identity:IdentityService) async throws {
         try await run(identity) { db,owner,version in
-            let docs=try await Self.team(db,team.creator,team.teamID).collection("progress").getDocuments(source:.server);try self.check(identity,owner,version)
+            let docs=try await Self.team(db,team.creator,team.teamID).collection("progress").getDocuments(source:.default);try self.check(identity,owner,version)
             self.progress=try Dictionary(uniqueKeysWithValues:docs.documents.map { ($0.documentID,try Self.json($0.data())) });self.progressTeamID=team.id
         }
     }

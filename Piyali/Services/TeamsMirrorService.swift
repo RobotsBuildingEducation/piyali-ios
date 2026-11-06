@@ -30,10 +30,11 @@ import NostrSDK
     private nonisolated static func ref(_ db:Firestore,_ owner:String,_ id:String)->DocumentReference{db.collection("users").document(owner).collection("teams").document(id)}
     private nonisolated static func invite(_ db:Firestore,_ member:String,_ id:String)->DocumentReference{db.collection("users").document(member).collection("teamInvites").document("team_"+id)}
     private nonisolated static func valid(_ value:JSONValue,_ id:String,_ creator:String)->Bool{PrivateTeams.identifier(id) && PrivateTeams.npub(creator) && value["createdBy"].string == creator && value["nostr"]["id"].string == id && value["members"].array.allSatisfy{PrivateTeams.npub($0["npub"].string)}}
+    /// Ordinary reads retain the SDK cache fallback used by the source.
     /// A previously denied watch-based get can remain stale across a new grant.
     /// Recheck it with a server transaction; the same rules still decide access.
-    private nonisolated static func serverFields(_ reference:DocumentReference,database:Firestore)async throws->[String:Any]?{
-        do{return try await reference.getDocument(source:.server).data()}
+    private nonisolated static func rosterFields(_ reference:DocumentReference,database:Firestore)async throws->[String:Any]?{
+        do{return try await reference.getDocument(source:.default).data()}
         catch let denied as NSError where denied.domain == FirestoreErrorDomain && denied.code == FirestoreErrorCode.permissionDenied.rawValue{
             return try await database.runTransaction{transaction,error->Any? in
                 do{return try transaction.getDocument(reference).data() ?? NSNull()}
@@ -51,13 +52,13 @@ import NostrSDK
     }
     private nonisolated static func memberFields(_ db:Firestore,invite:JSONValue,member:String)async throws->[String:Any]?{
         let creator=invite["creatorNpub"].string,id=invite["teamId"].string,stamp=invite["createdAt"].string
-        if !stamp.isEmpty,let document=try await memberQuery(db,creator:creator,id:id,member:member,stamp:stamp).getDocuments(source:.server).documents.first{return document.data()}
-        return try await serverFields(ref(db,creator,id),database:db)
+        if !stamp.isEmpty,let document=try await memberQuery(db,creator:creator,id:id,member:member,stamp:stamp).getDocuments(source:.default).documents.first{return document.data()}
+        return try await rosterFields(ref(db,creator,id),database:db)
     }
     func read(identity:IdentityService)async throws->Records{
         let owner=identity.npub,db=try await database(identity,owner:owner)
-        async let owned=db.collection("users").document(owner).collection("teams").getDocuments(source:.server)
-        async let invitations=db.collection("users").document(owner).collection("teamInvites").getDocuments(source:.server)
+        async let owned=db.collection("users").document(owner).collection("teams").getDocuments(source:.default)
+        async let invitations=db.collection("users").document(owner).collection("teamInvites").getDocuments(source:.default)
         let(a,b)=try await(owned,invitations);guard identity.npub == owner else{throw CancellationError()};var result=Records()
         for doc in a.documents{let v=try Self.json(doc.data());if Self.valid(v,doc.documentID,owner){result.owned.append(v.setting("id",.string(doc.documentID)).setting("isCreator",.bool(true)))}}
         for doc in b.documents{
@@ -91,7 +92,7 @@ import NostrSDK
     func leave(creator:String,id:String,identity:IdentityService)async throws{
         let owner=identity.npub,db=try await database(identity,owner:owner),invite=Self.invite(db,owner,id),ref=Self.ref(db,creator,id)
         // Relay-only teams may have no readable Firebase mirror.
-        if let fields=try? await Self.serverFields(ref,database:db),let value=try? Self.json(fields),value["members"].array.contains(where:{$0["npub"].string == owner}){
+        if let fields=try? await Self.rosterFields(ref,database:db),let value=try? Self.json(fields),value["members"].array.contains(where:{$0["npub"].string == owner}){
             _=try await db.runTransaction{tx,error->Any? in do{guard let fields=try tx.getDocument(ref).data() else{tx.deleteDocument(invite);return true};let changed=try PrivateTeams.responding(Self.json(fields),member:owner,accept:false),raw=try Self.fields(changed);tx.updateData(["members":raw["members"]!,"_memberChange":raw["_memberChange"]!],forDocument:ref);tx.deleteDocument(invite);return true}catch let caught{error?.pointee=caught as NSError;return nil}}
         }else{try await invite.delete()}
     }
@@ -122,26 +123,48 @@ import NostrSDK
         }
     }
     func stopWatching(){watchGeneration=UUID();listeners.forEach{$0.remove()};listeners=[]}
-    func watch(_ teams:[JSONValue],invites:[JSONValue]=[],identity:IdentityService,includeInvites:Bool=true,onChange:@escaping @MainActor()->Void)async{
+    func watch(_ teams:[JSONValue],invites:[JSONValue]=[],identity:IdentityService,includeInvites:Bool=true,onRoster:(@MainActor(JSONValue)->Void)?=nil,onChange:@escaping @MainActor()->Void)async{
         stopWatching();let token=watchGeneration,owner=identity.npub,session=identity.sessionRevision
         guard let db=try? await database(identity,owner:owner),token==watchGeneration,identity.npub==owner,identity.sessionRevision == session else{return}
         for collection in (includeInvites ? ["teams","teamInvites"]:["teams"]){
             listeners.append(db.collection("users").document(owner).collection(collection).addSnapshotListener{[weak self] snapshot,error in
-                Task{@MainActor in guard let self,self.watchGeneration==token,identity.npub==owner,identity.sessionRevision == session,snapshot != nil,error==nil else{return};onChange()}
+                Task{@MainActor in
+                    guard let self,self.watchGeneration==token,identity.npub==owner,identity.sessionRevision == session,let snapshot,error==nil else{return}
+                    guard let onRoster,collection == "teams" else{onChange();return}
+                    for change in snapshot.documentChanges where change.type != .removed{
+                        let doc=change.document
+                        guard let known=teams.first(where:{$0["id"].string == doc.documentID && $0["createdBy"].string == owner}),let value=Self.streamRecord(doc.data(),id:doc.documentID,creator:owner,publicRoster:known["nostr"] != .null) else{continue}
+                        onRoster(value)
+                    }
+                }
             })
         }
         for team in teams where team["createdBy"].string != owner{
             let creator=team["createdBy"].string,id=team["id"].string;guard PrivateTeams.npub(creator),PrivateTeams.identifier(id) else{continue}
             if team["nostr"] != .null,let invite=invites.first(where:{$0["creatorNpub"].string==creator && $0["teamId"].string==id}),!invite["createdAt"].string.isEmpty{
                 listeners.append(Self.memberQuery(db,creator:creator,id:id,member:owner,stamp:invite["createdAt"].string).addSnapshotListener{[weak self] snapshot,error in
-                    Task{@MainActor in guard let self,self.watchGeneration==token,identity.npub==owner,identity.sessionRevision == session,snapshot != nil,error==nil else{return};onChange()}
+                    Task{@MainActor in
+                        guard let self,self.watchGeneration==token,identity.npub==owner,identity.sessionRevision == session,let snapshot,error==nil else{return}
+                        guard let onRoster else{onChange();return}
+                        if let doc=snapshot.documents.first,let value=Self.streamRecord(doc.data(),id:id,creator:creator,publicRoster:true){onRoster(value)}
+                    }
                 })
             }else{
                 listeners.append(Self.ref(db,creator,id).addSnapshotListener{[weak self] snapshot,error in
-                    Task{@MainActor in guard let self,self.watchGeneration==token,identity.npub==owner,identity.sessionRevision == session,snapshot != nil,error==nil else{return};onChange()}
+                    Task{@MainActor in
+                        guard let self,self.watchGeneration==token,identity.npub==owner,identity.sessionRevision == session,let snapshot,error==nil else{return}
+                        guard let onRoster else{onChange();return}
+                        if let fields=snapshot.data(),let value=Self.streamRecord(fields,id:id,creator:creator,publicRoster:team["nostr"] != .null){onRoster(value)}
+                    }
                 })
             }
         }
+    }
+    private nonisolated static func streamRecord(_ fields:[String:Any],id:String,creator:String,publicRoster:Bool)->JSONValue?{
+        guard let value=try? json(fields) else{return nil}
+        if publicRoster{guard valid(value,id,creator) else{return nil}}
+        else{guard (try? PrivateTeam(id:id,creator:creator,data:value)) != nil else{return nil}}
+        return value.setting("id",.string(id)).setting("createdBy",.string(creator))
     }
     func prune(_ ids:[String],identity:IdentityService)async{let owner=identity.npub;guard let db=try? await database(identity,owner:owner) else{return};for id in ids where identity.npub == owner{try? await Self.invite(db,owner,id).delete()}}
 }

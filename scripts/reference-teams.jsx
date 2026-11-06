@@ -1,6 +1,7 @@
 import{loadGlobalTeamFeed,getCachedGlobalTeamFeed}from'/src/utils/globalTeamFeedCache';
 import{syncDocumentLanguage}from'/src/utils/documentLanguage';import React,{useState}from'react';import{createRoot}from'react-dom/client';import{ChakraProvider}from'@chakra-ui/react';import{theme}from'/src/theme';import{useThemeStore}from'/src/useThemeStore';import TeamsDrawer from'/src/components/Teams/TeamsDrawer.jsx';import{translations}from'/src/utils/translation.jsx';import'/src/index.css';
 const q=new URLSearchParams(location.search),language=q.get('language')||'en',state=q.get('state')||'single',f=window.__teamsFixture;syncDocumentLanguage(language);useThemeStore.getState().syncThemeMode(q.get('theme')==='dark'?'dark':'light');if(state==='empty'||state==='create'||state==='queued'||state==='loading')f.teams=[];if(state==='multi')f.teams.push({...f.teams[0],id:'fixture-two',teamName:'Evening practice'});if(state!=='pending'&&state!=='loading')f.invites=[];localStorage.setItem('local_npub',f.creator);
+if(state==='stream')delete f.teams[0].nostr;
 // Only the fetch boundary is controlled; TeamFeed and its real shared cache remain original.
 if(state==='feed-question')f.posts=f.posts.map(post=>({...post,content:'Finished question 30! https://piyali.app **literal** #LearnWithNostr',tags:[]}));
 const feedBase=f.posts[0],entry=(id,content,name='Ada',createdAt=1700000001)=>({...feedBase,id,content,profile:{name},tags:[],createdAt});

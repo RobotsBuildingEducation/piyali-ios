@@ -25,6 +25,8 @@ import WebKit
     func publish(_ app:AppModel)async throws{}
     func cachedFeed(_ app:AppModel)->[CommunityPost]?{nil}
     func feed(_ app:AppModel,force:Bool)async throws->[CommunityPost]{posts}
+    func watchRoster(_ snapshot:TeamsPanelSnapshot,app:AppModel,onRecord:@escaping @MainActor(JSONValue)->Void,onInvalidate:@escaping @MainActor()->Void)async{}
+    func memberRows(_ team:JSONValue,app:AppModel)async throws->[JSONValue]{[]}
     func cancel(){}
 }
 @MainActor final class TeamsPanelReferenceTests:XCTestCase {
@@ -251,5 +253,55 @@ extension TeamsPanelReferenceTests {
             let native=XCTAttachment(image:UIGraphicsImageRenderer(bounds:window.bounds).image{_ in window.drawHierarchy(in:window.bounds,afterScreenUpdates:true)});native.name="Native Teams content \(state) \(language)";native.lifetime = .keepAlways;add(native)
             model.cancel();web.stopLoading();window.isHidden=true;window.rootViewController=nil
         }}
+    }
+}
+
+
+@MainActor private final class TeamsStreamPreviewAccess:TeamsPreviewAccess {
+    var held:CheckedContinuation<TeamsPanelSnapshot,Never>?
+    var receive:(@MainActor(JSONValue)->Void)?
+    var rowReads:[CheckedContinuation<[JSONValue],Error>]=[]
+    override func load(_ app:AppModel)async throws->TeamsPanelSnapshot{await withCheckedContinuation{held=$0}}
+    override func watchRoster(_ snapshot:TeamsPanelSnapshot,app:AppModel,onRecord:@escaping @MainActor(JSONValue)->Void,onInvalidate:@escaping @MainActor()->Void)async{receive=onRecord}
+    override func memberRows(_ team:JSONValue,app:AppModel)async throws->[JSONValue]{try await withCheckedThrowingContinuation{rowReads.append($0)}}
+    override func cancel(){held?.resume(returning:snapshot);held=nil;for row in rowReads{row.resume(throwing:CancellationError())};rowReads=[];receive=nil}
+    func finishRows(_ result:Result<[JSONValue],Error>){guard !rowReads.isEmpty else{return};rowReads.removeFirst().resume(with:result)}
+}
+extension TeamsPanelReferenceTests {
+    func testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()async throws {
+        let env=ProcessInfo.processInfo.environment;guard env["PIYALI_OFFLINE_TESTS"] == "1",env["PIYALI_REFERENCE_PREVIEW_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Isolated source preview required")}
+        var fixture=try JSONDecoder().decode(JSONValue.self,from:Data(contentsOf:try XCTUnwrap(Bundle(for:Self.self).url(forResource:"teams-panel-preview",withExtension:"json"))))
+        fixture=fixture.setting("teams",.array(fixture["teams"].array.map{$0.setting("nostr",.null)}))
+        let app=AppModel(progressService:TeamsNoCloud());try app.identity.create();app.signedIn=true;defer{app.signOut()};let scene=try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap{$0 as? UIWindowScene}.first),old=scene.windows.first{$0.isKeyWindow};defer{old?.makeKey()}
+        for(language,theme)in [("en","light"),("ar","dark")] {
+            app.learner.support=language;let access=TeamsStreamPreviewAccess(fixture,state:"single"),model=TeamsPanelController(access:access,initial:access.snapshot,initialOwner:app.identity.npub)
+            let sourceWindow=UIWindow(windowScene:scene);sourceWindow.frame=CGRect(x:0,y:0,width:402,height:874);let web=WKWebView(frame:sourceWindow.frame),vc=UIViewController();vc.view=web;sourceWindow.rootViewController=vc;sourceWindow.makeKeyAndVisible();web.scrollView.contentInsetAdjustmentBehavior = .never
+            let nativeWindow=UIWindow(windowScene:scene);nativeWindow.frame=sourceWindow.frame;defer{model.cancel();web.stopLoading();sourceWindow.isHidden=true;sourceWindow.rootViewController=nil;nativeWindow.isHidden=true;nativeWindow.rootViewController=nil}
+            web.load(URLRequest(url:try XCTUnwrap(URL(string:"http://127.0.0.1:5181/__piyali-teams?state=stream&language=\(language)&theme=\(theme)"))))
+            var ready=false;for _ in 0..<400{ready=(try? await web.evaluateJavaScript("document.fonts.status==='loaded'&&typeof window.__releaseRosterRead==='function'&&document.querySelectorAll('[role=tab]').length===2")) as? Bool == true;if ready{break};try await Task.sleep(for:.milliseconds(40))};XCTAssertTrue(ready);guard ready else{return}
+            nativeWindow.rootViewController=UIHostingController(rootView:ZStack{PiyaliBrand(dark:theme == "dark").background;TeamsDrawerView(model:model,onClose:{})}.environmentObject(app).environment(\.dynamicTypeSize,.large).preferredColorScheme(theme == "dark" ? .dark:.light).ignoresSafeArea());nativeWindow.makeKeyAndVisible()
+            for _ in 0..<200 where access.receive == nil || access.held == nil{try await Task.sleep(for:.milliseconds(10))};XCTAssertNotNil(access.receive);XCTAssertNotNil(access.held);XCTAssertFalse(model.loading)
+            func scroll(_ bottom:Bool)async throws {
+                _=try await web.evaluateJavaScript("(()=>{const scroller=document.querySelector('.chakra-modal__body');scroller.scrollTop=\(bottom ? "scroller.scrollHeight":"0");return scroller.scrollTop})()")
+                func findScroll(_ view:UIView)->UIScrollView?{if let value=view as? UIScrollView,value.bounds.height>100,value.contentSize.height>value.bounds.height{return value};for child in view.subviews{if let found=findScroll(child){return found}};return nil}
+                nativeWindow.layoutIfNeeded();let scroller=try XCTUnwrap(findScroll(try XCTUnwrap(nativeWindow.rootViewController?.view)))
+                scroller.setContentOffset(CGPoint(x:0,y:bottom ? max(0,scroller.contentSize.height-scroller.bounds.height+scroller.adjustedContentInset.bottom):-scroller.adjustedContentInset.top),animated:false)
+                try await Task.sleep(for:.milliseconds(120))
+            }
+            func capture(_ phase:String)async throws {
+                try await Task.sleep(for:.milliseconds(400));sourceWindow.makeKeyAndVisible();try await Task.sleep(for:.milliseconds(100));let source=XCTAttachment(image:try await web.takeSnapshot(configuration:nil));source.name="Source Teams streamed \(phase) \(language)";source.lifetime = .keepAlways;add(source)
+                let geometry=try await web.evaluateJavaScript("JSON.stringify({rowReads:window.__teamRowRequests.length,visible:[...document.querySelectorAll('[role=dialog],button,p')].filter(e=>e.getBoundingClientRect().width>0).map(e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return{text:e.textContent,x:r.x,y:r.y,width:r.width,height:r.height,color:s.color,direction:s.direction}})})") as? String ?? "{}";let data=XCTAttachment(data:Data(geometry.utf8),uniformTypeIdentifier:"public.json");data.name="Source Teams streamed \(phase) \(language) geometry";data.lifetime = .keepAlways;add(data)
+                nativeWindow.makeKeyAndVisible();try await Task.sleep(for:.milliseconds(100));let native=XCTAttachment(image:UIGraphicsImageRenderer(bounds:nativeWindow.bounds).image{_ in nativeWindow.drawHierarchy(in:nativeWindow.bounds,afterScreenUpdates:true)});native.name="Native Teams streamed \(phase) \(language)";native.lifetime = .keepAlways;add(native)
+            }
+            try await capture("cached")
+            let team=fixture["teams"].array[0],update=team.setting("teamName",.string("Cached peer roster")).setting("members",.array(team["members"].array+[.object(["npub":fixture["streamPendingNpub"],"status":.string("pending")])]))
+            _=try await web.evaluateJavaScript("void window.__emitTeamRecord({...window.__teamsFixture.teams[0],teamName:'Cached peer roster',members:[...window.__teamsFixture.teams[0].members,{npub:window.__teamsFixture.streamPendingNpub,status:'pending'}]});true")
+            access.receive?(update);for _ in 0..<200 where access.rowReads.isEmpty{try await Task.sleep(for:.milliseconds(10))};XCTAssertEqual(model.snapshot.teams.first?["teamName"].string,"Cached peer roster");XCTAssertNotNil(access.held);XCTAssertFalse(model.loading);try await capture("member-held");try await scroll(true);try await capture("member-held-bottom");try await scroll(false)
+            _=try await web.evaluateJavaScript("window.__rejectTeamRow(0);true");access.finishRows(.failure(AppError.message("Public member read failure")));let key=LiveTeamsPanelAccess.key(team);for _ in 0..<200 where model.rowErrors[key] == nil{try await Task.sleep(for:.milliseconds(10))};XCTAssertNotNil(model.rowErrors[key]);XCTAssertNil(model.error);try await capture("member-failed")
+            _=try await web.evaluateJavaScript("void window.__emitTeamRecord({...window.__teamsFixture.teams[0],teamName:'Cached peer roster',members:[...window.__teamsFixture.teams[0].members,{npub:window.__teamsFixture.streamPendingNpub,status:'pending'}]});true");access.receive?(update);for _ in 0..<200 where access.rowReads.isEmpty{try await Task.sleep(for:.milliseconds(10))}
+            let rows=fixture["rows"][team["id"].string].array.map{$0["isCreator"].boolean ? $0:$0.setting("totalXp",.number(778))}
+            _=try await web.evaluateJavaScript("window.__releaseTeamRow(1,window.__teamsFixture.rows[window.__teamsFixture.teams[0].id].map(row=>row.isCreator?row:{...row,totalXp:778}));true");access.finishRows(.success(rows));for _ in 0..<200 where model.rowErrors[key] != nil{try await Task.sleep(for:.milliseconds(10))};XCTAssertEqual(model.snapshot.rows[key],rows);XCTAssertNotNil(access.held);try await capture("member-recovered");try await scroll(true);try await capture("member-recovered-bottom");try await scroll(false)
+            model.cancel();sourceWindow.isHidden=true;sourceWindow.rootViewController=nil;nativeWindow.isHidden=true;nativeWindow.rootViewController=nil
+        }
     }
 }

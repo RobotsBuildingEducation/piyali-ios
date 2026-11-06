@@ -1,0 +1,10 @@
+Test Case '-[PiyaliTests.PrivateTeamsContractTests testCachedLegacyRostersAndConcurrentMemberReadsKeepEachTeamsProgressIndependent]' passed (1.023 seconds).
+	 Executed 1 test, with 0 failures (0 unexpected) in 1.023 (1.025) seconds
+	 Executed 1 test, with 0 failures (0 unexpected) in 1.023 (1.025) seconds
+	 Executed 1 test, with 0 failures (0 unexpected) in 1.023 (1.026) seconds
+Test Case '-[PiyaliUITests.TeamsTests testArabicMirrorCardChangesBeforeAHeldSignedMemberReadThenRestoresFreshProgressAndDeletes]' passed (91.177 seconds).
+Test Case '-[PiyaliUITests.TeamsTests testCreateEditRosterAndDeleteUseSignedLocalRelayAndSurviveRelaunch]' passed (127.263 seconds).
+	 Executed 2 tests, with 0 failures (0 unexpected) in 218.441 (218.444) seconds
+	 Executed 2 tests, with 0 failures (0 unexpected) in 218.441 (218.445) seconds
+	 Executed 2 tests, with 0 failures (0 unexpected) in 218.441 (218.446) seconds
+** TEST SUCCEEDED **
