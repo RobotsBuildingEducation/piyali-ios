@@ -1408,3 +1408,21 @@ extension FirestoreContractTests {
         let result=try requireState(await service.load(npub:npub)),fields=JSONValue.foundation(try await db.collection("users").document(npub).getDocument(source:.server).data() ?? [:]);XCTAssertEqual(result.companionMemory?["fr"]?.count,3);XCTAssertEqual(fields["learningIntelligence"]["fr"]["repairSummary"],.null);XCTAssertEqual(result.totalXP,150);XCTAssertNil(result.gradedByLanguage)
     }
 }
+
+
+extension FirestoreContractTests {
+    func testPendingMemoryEnrichmentStaysDevicePrivateAcrossCanonicalAckAndRejectsAServerHintContinuation()async throws {
+        let(service,db,npub)=try context();try await seed(db,npub);var state=try requireState(await service.load(npub:npub));let concept=String(repeating:"x",count:241)
+        state.captureMemory(mode:"grammar",concept:concept,answer:"public attempt",expected:"hola",feedback:"");let note=try XCTUnwrap(state.companionMemory?["fr"]?.first),intent=try XCTUnwrap(state.queueMemoryEnrichment(account:npub,note:note,concept:concept)),sent=state
+        let ack=try requireState(await service.save(sent,npub:npub));state=LearnerState.rebased(current:state,sent:sent,acknowledged:ack);XCTAssertTrue(state.pendingMemoryChanges?.isEmpty == true);XCTAssertEqual(state.pendingMemoryEnrichments?.first?.id,intent.id);XCTAssertEqual(state.pendingMemoryEnrichments?.first?.concept,concept)
+        let user=db.collection("users").document(npub),fields=try await user.getDocument(source:.server).data() ?? [:],hint=try JSONDecoder().decode(JSONValue.self,from:Data(try XCTUnwrap(fields["iosStateJSON"] as? String).utf8));XCTAssertEqual(hint["pendingMemoryEnrichments"],.null)
+        let clean=try requireState(await service.load(npub:npub));XCTAssertNil(clean.pendingMemoryEnrichments);XCTAssertEqual(clean.companionMemory?["fr"]?.first?.fields["enriched"],.bool(false))
+        // Legacy/foreign server hints are never authority to restart private AI.
+        let forged=String(data:try JSONEncoder().encode(state),encoding:.utf8)!;try await user.updateData(["iosStateJSON":forged]);let remoteOnly=try requireState(await service.load(npub:npub));XCTAssertNil(remoteOnly.pendingMemoryEnrichments)
+        let local=try requireState(await service.load(npub:npub,local:state));XCTAssertEqual(local.pendingMemoryEnrichments?.first?.id,intent.id)
+        state.localizeMemory(note,fields:.object(["mistake":.string("Faltaba la h."),"correction":.string("hola"),"tip":.string("Empieza con hola.")]),support:state.support);let settled=state;_=try await service.save(settled,npub:npub);_=try await service.save(settled,npub:npub);_=try await service.save(sent,npub:npub)
+        let final=try requireState(await service.load(npub:npub));XCTAssertNil(final.pendingMemoryEnrichments);XCTAssertEqual(final.companionMemory?["fr"]?.first?.id,note.id);XCTAssertEqual(final.companionMemory?["fr"]?.first?.text("tip"),"Empieza con hola.");XCTAssertEqual(final.totalXP,150);XCTAssertEqual(final.gradedByLanguage?["fr"] ?? 0,0)
+        let receipts=try await user.collection("iosPracticeReceipts").whereField("source",isEqualTo:"memory-localize").getDocuments(source:.server);XCTAssertEqual(receipts.documents.count,1)
+        let trace:JSONValue = .object(["pendingAfterCaptureAck":.number(Double(ack.pendingMemoryEnrichments?.count ?? 0)),"privateIntentInServerHint":.bool(hint["pendingMemoryEnrichments"] != .null),"remoteOnlyContinuationCount":.number(Double(remoteOnly.pendingMemoryEnrichments?.count ?? 0)),"retainedLocallyAfterAck":.bool(local.pendingMemoryEnrichments?.first?.id == intent.id),"localizationReceipts":.number(Double(receipts.documents.count)),"totalXP":.number(Double(final.totalXP)),"gradedAttempts":.number(Double(final.gradedByLanguage?["fr"] ?? 0)),"fullConceptLength":.number(Double(concept.count))]);let a=XCTAttachment(data:Data(trace.json.utf8),uniformTypeIdentifier:"public.json");a.name="Firebase device-private pending Memory acknowledgment and stale retry";a.lifetime = .keepAlways;add(a)
+    }
+}

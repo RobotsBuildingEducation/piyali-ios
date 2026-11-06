@@ -18,8 +18,8 @@ import SwiftUI
         if case .explicit(let response)=memoryResponse{return response}
         if let memoryProvider{return memoryProvider}
         if ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"] == "1" {
-            guard MemoryDrawerFixture.enrichmentEnabled else{return nil}
-            return {MemoryDrawerFixture.response($0,language:support) ?? ""}
+            guard MemoryDrawerFixture.enrichmentEnabled || TutorVoiceFixture.memorySlip else{return nil}
+            return {try await MemoryDrawerFixture.enrichmentResponse($0,language:support) ?? ""}
         }
         let account=identity.npub,session=identity.sessionRevision
         return {[weak self] prompt in
@@ -44,7 +44,18 @@ import SwiftUI
         }
         if captures.contains(where:{$0.target == learner.target}){showMemoryCapture()}
         for change in captures {
-            if let note=MemoryContract.storedNote(change,in:learner.companionMemory?[change.target] ?? []),let respond=memoryResponder(support:note.text("supportLang")) {memoryEnrichment.start(note,concept:change.captureConcept,app:self,respond:respond)}
+            if signedIn,let note=MemoryContract.storedNote(change,in:learner.companionMemory?[change.target] ?? []),MemoryEnrichmentDelivery.needsEnrichment(note),let respond=memoryResponder(support:note.text("supportLang")),let intent=learner.queueMemoryEnrichment(account:identity.npub,note:note,concept:change.captureConcept ?? note.text("concept")),persistMemoryRecovery() {memoryEnrichment.start(intent,app:self,respond:respond)}
+        }
+    }
+    @discardableResult func persistMemoryRecovery()->Bool {do{try writeLocal();return true}catch{self.error="Could not save progress: \(error.localizedDescription)";return false}}
+    func resumeMemoryEnrichments() {
+        guard signedIn,!identity.npub.isEmpty else{return}
+        for intent in learner.pendingMemoryEnrichments ?? [] {
+            guard intent.account == identity.npub else{continue}
+            guard let note=learner.companionMemory?[intent.note.text("targetLang")]?.first(where:{intent.matches($0)}),note.text("expiresAfterDayKey")>=CalendarDay.key(Date()),MemoryEnrichmentDelivery.needsEnrichment(note) else {
+                if learner.finishMemoryEnrichment(intent.id){persistMemoryRecovery()};continue
+            }
+            if let respond=memoryResponder(support:intent.note.text("supportLang")),persistMemoryRecovery(){memoryEnrichment.start(intent,app:self,respond:respond)}
         }
     }
     @Published private(set) var companionUnlock:CompanionUnlock?
@@ -294,6 +305,7 @@ import SwiftUI
         } catch { self.error = error.localizedDescription;resumeAchievementSync() }
     }
     private func activateIdentity(newProfile:(name:String,support:String)? = nil) async {
+        memoryEnrichment.cancel()
         cancelPhonicsRecovery()
         upcomingGameReviews.cancel()
         automaticTipTask?.task.cancel();automaticTipTask=nil;automaticWallet.cancel(clear:true)
@@ -326,7 +338,7 @@ import SwiftUI
     func disconnectRemote() {
         upcomingGameReviews.cancel();flushGoalEditor();goalCheck=nil
         do {
-            try writeLocal();cancelPhonicsRecovery();automaticProgress.reset();automaticTipTask?.task.cancel();automaticTipTask=nil;automaticWallet.cancel(clear:true);saveTask?.cancel();contentTask?.cancel();achievementRetries.pause();nostrAchievements.cancel();teams.cancel(clear:true);teamFeed.cancel(clear:true)
+            try writeLocal();memoryEnrichment.cancel();cancelPhonicsRecovery();automaticProgress.reset();automaticTipTask?.task.cancel();automaticTipTask=nil;automaticWallet.cancel(clear:true);saveTask?.cancel();contentTask?.cancel();achievementRetries.pause();nostrAchievements.cancel();teams.cancel(clear:true);teamFeed.cancel(clear:true)
             journeyRecording?.controller.close();journeyRecording=nil;try identity.disconnect();FirebaseIdentityService.shared.clearSession();signedIn=false;lessonActivityActive=false;activityFooter=nil;pendingLessonCompletion=nil;scholarship=ScholarshipPrompt();tutorPath=nil;subscription.bind(identity);learner=LearnerState()
         } catch { self.error=error.localizedDescription }
     }
@@ -448,7 +460,7 @@ import SwiftUI
             if !Task.isCancelled { self?.loadingContent = false }
         }
         contentTask = task; await task.value
-        tutorOutcomes.resume(self)
+        tutorOutcomes.resume(self);resumeMemoryEnrichments()
     }
     func persistPhonicsRecovery(){do{try writeLocal();syncStatus=synchronizedStatus}catch{self.error="Could not save progress: \(error.localizedDescription)"}}
     private func writeLocal() throws {do{try JSONEncoder().encode(learner).write(to:localURL,options:[.atomic,.completeFileProtection]);if localStorageUnavailable{localStorageUnavailable=false}}catch{if !localStorageUnavailable{localStorageUnavailable=true};throw error}}
@@ -511,7 +523,7 @@ import SwiftUI
         if !(learner.pendingPhonicsFinishes ?? [:]).isEmpty{Task{[weak self] in await self?.resumePendingPhonicsFinishes()}}
         if target != learner.target || support != learner.support || level != learner.level || cardLevel != learner.flashcardLevel || tutorLevel != learner.tutorLevel { Task { await reloadContent() } }
     }
-    func sync() async {tutorOutcomes.resume(self);captureLegacyPhonicsFinishes();await syncProgress();await resumePendingPhonicsFinishes()}
+    func sync() async {tutorOutcomes.resume(self);resumeMemoryEnrichments();captureLegacyPhonicsFinishes();await syncProgress();await resumePendingPhonicsFinishes()}
     func syncProgress() async {
         guard signedIn else{return}
         let state = learner, npub = identity.npub,session=identity.sessionRevision

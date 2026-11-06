@@ -22,6 +22,16 @@ public struct MemoryChange: Codable, Identifiable, Sendable {
     public let captureConcept:String?
     public init(action: Action, target: String, date: Date, dayKey: String, note: MemoryNote, captureConcept:String? = nil) { self.action = action; self.target = target; self.date = date; self.dayKey = dayKey; self.note = note;self.captureConcept=captureConcept }
 }
+/// Only an unfinished provider request is resumable. A completed failure retires
+/// this private intent while leaving the source's deterministic pending note.
+public struct MemoryEnrichmentIntent:Codable,Identifiable,Sendable {
+    public let id:UUID
+    public let account:String
+    public let note:MemoryNote
+    public let concept:String
+    public init(id:UUID=UUID(),account:String,note:MemoryNote,concept:String){self.id=id;self.account=account;self.note=note;self.concept=concept}
+    public func matches(_ current:MemoryNote)->Bool {current.id == note.id && current.createdAt == note.createdAt && current.text("targetLang") == note.text("targetLang") && current.text("supportLang") == note.text("supportLang")}
+}
 public enum MemoryContract {
     private static let whitespace=CharacterSet(charactersIn:String(String.UnicodeScalarView(MemoryCaptureSourceData.whitespace.compactMap(Unicode.Scalar.init))))
     private static let whitespacePattern="["+MemoryCaptureSourceData.whitespace.map{"\\x{"+String($0,radix:16)+"}"}.joined()+"]"
@@ -112,6 +122,21 @@ public enum MemoryContract {
     }
 }
 public extension LearnerState {
+    @discardableResult mutating func queueMemoryEnrichment(account:String,note:MemoryNote,concept:String)->MemoryEnrichmentIntent? {
+        guard !account.isEmpty,!note.id.isEmpty,let current=companionMemory?[note.text("targetLang")]?.first(where:{$0.id == note.id}),current.createdAt == note.createdAt,current.text("supportLang") == note.text("supportLang") else{return nil}
+        if let existing=pendingMemoryEnrichments?.first(where:{$0.account == account && $0.matches(current)}){return existing}
+        pendingMemoryEnrichments?.removeAll{$0.account == account && $0.note.id == note.id && $0.note.text("targetLang") == note.text("targetLang")}
+        let intent=MemoryEnrichmentIntent(account:account,note:note,concept:concept)
+        if pendingMemoryEnrichments == nil{pendingMemoryEnrichments=[]};pendingMemoryEnrichments?.append(intent)
+        return intent
+    }
+    @discardableResult mutating func finishMemoryEnrichment(_ id:UUID)->Bool {
+        guard pendingMemoryEnrichments?.contains(where:{$0.id == id}) == true else{return false}
+        pendingMemoryEnrichments?.removeAll{$0.id == id};return true
+    }
+    mutating func reconcileMemoryEnrichments() {
+        pendingMemoryEnrichments=pendingMemoryEnrichments?.filter{intent in companionMemory?[intent.note.text("targetLang")]?.contains(where:{intent.matches($0)}) == true}
+    }
     var activeMemories: [MemoryNote] { (companionMemory?[target] ?? []).filter { $0.active(on:CalendarDay.key(Date())) }.sorted { $0.severity == $1.severity ? $0.createdAt > $1.createdAt : $0.severity > $1.severity } }
     mutating func captureMemory(mode: String, concept: String, answer: String, expected: String, feedback: String, context: String = "", now: Date = Date(), questionLevel:String? = nil,sourceContext:JSONValue? = nil,goalFocus:GoalMemoryFocus? = nil) {
         if let goalFocus,goalFocus.matches(self,now:now) {
@@ -152,6 +177,7 @@ public extension LearnerState {
         let notes = MemoryContract.applying(change,to:companionMemory?[change.target] ?? [],today:CalendarDay.key(change.date))
         companionMemory?[change.target] = notes
         if pendingMemoryChanges == nil { pendingMemoryChanges = [] }; pendingMemoryChanges?.append(change)
+        if change.action == .localize {pendingMemoryEnrichments?.removeAll{$0.note.id == change.note.id && $0.note.text("targetLang") == change.target && $0.note.createdAt == change.note.createdAt}}
         if change.action == .capture,MemoryCaptureSourceData.evidenceModes.contains(change.note.text("sourceMode")),let stored=MemoryContract.storedNote(change,in:notes) {
             if pendingRepairEvidence == nil{pendingRepairEvidence=[]}
             pendingRepairEvidence?.append(RepairEvidenceChange(target:change.target,date:change.date,event:MemoryContract.captureEvidence(stored),sourceCaptureID:change.id))

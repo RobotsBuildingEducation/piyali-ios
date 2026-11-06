@@ -148,6 +148,7 @@ public extension LearnerState {
             let notes = MemoryContract.applying(change,to:merged.companionMemory?[change.target] ?? [],today:CalendarDay.key(Date()))
             merged.companionMemory?[change.target] = notes
         }
+        merged.reconcileMemoryEnrichments()
         let sentGoalIDs = Set((sent.pendingGoalChanges ?? []).map(\.id))
         let newGoals = (current.pendingGoalChanges ?? []).filter { !sentGoalIDs.contains($0.id) && !(acknowledged.acknowledgedEventIDs ?? []).contains($0.id) }
         merged.pendingGoalChanges = newGoals; merged.goalIntelligence = acknowledged.goalIntelligence; merged.goalArtifacts = acknowledged.goalArtifacts

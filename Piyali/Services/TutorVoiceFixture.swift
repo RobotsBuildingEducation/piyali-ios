@@ -41,8 +41,13 @@ import Foundation
     static var replySample:JSONValue {guard enabled,ProcessInfo.processInfo.environment["PIYALI_TUTOR_REPLY_FIXTURE"] == "1" else{return .null};guard let url=Bundle.main.url(forResource:"tutor-reply-fixture",withExtension:"json")else{return .null};return (try? ContentLibrary.decode(JSONValue.self,url:url)) ?? .null}
     static func provider(support:String="en")->TutorProvider {
         var judges=0
-        var p=TutorProvider(judge:{_ in judges += 1;return memorySlip ? .object(["successful":.bool(false),"mistake":.bool(true),"confidence":.number(0.2),"concept":.string("A greeting"),"correction":.string(repeatedMemory && judges>1 ? "Buen día":"Hola"),"reason":.string("Private fixture judge reason")]):.object(["successful":.bool(false),"mistake":.bool(false),"confidence":.number(0.9),"reason":.string("Try the lesson phrase.")])},quote:{_,_,_ in .null},translate:{_,text in if replySample != .null,text == replySample["primary"].string{return replySample[support] == .null ? replySample["en"]:replySample[support]};return .object(["translation":.string(text == "Say hola." ? "Di hola.":"Public fixture translation"),"pairs":.array([])])})
-        if memorySlip {p.memory={MemoryDrawerFixture.response($0,language:support) ?? ""}}
+        var p=TutorProvider(judge:{_ in judges += 1;return memorySlip ? .object(["successful":.bool(false),"mistake":.bool(true),"confidence":.number(0.2),"concept":.string("A greeting"),"correction":.string(repeatedMemory && judges>1 ? "Buen día":"Hola"),"reason":.string("Private fixture judge reason")]):.object(["successful":.bool(false),"mistake":.bool(false),"confidence":.number(0.9),"reason":.string("Try the lesson phrase.")])},quote:{_,_,_ in
+            #if DEBUG
+            if enabled,let delay=Int(ProcessInfo.processInfo.environment["PIYALI_TUTOR_WORTH_DELAY_MS"] ?? ""),(1...120000).contains(delay){try await Task.sleep(for:.milliseconds(delay))}
+            #endif
+            return .null
+        },translate:{_,text in if replySample != .null,text == replySample["primary"].string{return replySample[support] == .null ? replySample["en"]:replySample[support]};return .object(["translation":.string(text == "Say hola." ? "Di hola.":"Public fixture translation"),"pairs":.array([])])})
+        if memorySlip {p.memory={try await MemoryDrawerFixture.enrichmentResponse($0,language:support) ?? ""}}
         return p
     }
 }

@@ -63,36 +63,38 @@ import Combine
 /// Captured notes begin enrichment immediately. App ownership lets this
 /// finish after End; a changed identity session cannot publish into a new owner.
 @MainActor final class MemoryEnrichmentDelivery {
-    private var tasks:[String:(id:UUID,task:Task<Void,Never>)]=[:]
+    private var tasks:[String:(id:UUID,intentID:UUID,task:Task<Void,Never>)]=[:]
     private func key(_ note:MemoryNote,_ app:AppModel)->String {
         [app.identity.npub,app.identity.sessionRevision.uuidString,note.text("targetLang"),note.id,String(note.createdAt.timeIntervalSince1970),note.text("supportLang")].joined(separator:":")
     }
-    @discardableResult func start(_ note:MemoryNote,concept:String?=nil,app:AppModel,respond:@escaping @MainActor (String)async throws->String)->Task<Void,Never>? {
-        if note.fields["enriched"] == .bool(true),MemoryUI.value("localized",.object(["note":.object(note.fields),"language":.string(note.text("supportLang"))])).boolean {return nil}
-        let key=key(note,app);if let task=tasks[key]?.task{return task}
+    static func needsEnrichment(_ note:MemoryNote)->Bool {note.fields["enriched"] != .bool(true) || !MemoryUI.value("localized",.object(["note":.object(note.fields),"language":.string(note.text("supportLang"))])).boolean}
+    @discardableResult func start(_ intent:MemoryEnrichmentIntent,app:AppModel,respond:@escaping @MainActor (String)async throws->String)->Task<Void,Never>? {
+        let note=intent.note
+        guard app.signedIn,intent.account == app.identity.npub,app.learner.pendingMemoryEnrichments?.contains(where:{$0.id == intent.id}) == true,let current=app.learner.companionMemory?[note.text("targetLang")]?.first(where:{intent.matches($0)}) else{return nil}
+        guard Self.needsEnrichment(current) else{if app.learner.finishMemoryEnrichment(intent.id){app.persistMemoryRecovery()};return nil}
+        let key=key(note,app);if let job=tasks[key],job.intentID == intent.id{return job.task}
         let id=UUID(),account=app.identity.npub,session=app.identity.sessionRevision,target=note.text("targetLang"),support=note.text("supportLang")
         let task=Task{[weak self,weak app] in
             guard let self,let app else{return}
             defer{if tasks[key]?.id == id{tasks[key]=nil}}
             guard let policy=MemoryUI.policy else{return}
-            @MainActor func valid()->Bool {
-                guard !Task.isCancelled,app.signedIn,app.identity.npub == account,app.identity.sessionRevision == session,
-                      let current=app.learner.companionMemory?[target]?.first(where:{$0.id == note.id}) else{return false}
-                return current.createdAt == note.createdAt && current.text("supportLang") == support
-            }
+            @MainActor func owned()->Bool { !Task.isCancelled && app.signedIn && app.identity.npub == account && app.identity.sessionRevision == session }
+            @MainActor func valid()->Bool {owned() && app.learner.pendingMemoryEnrichments?.contains(where:{$0.id == intent.id}) == true && app.learner.companionMemory?[target]?.contains(where:{intent.matches($0)}) == true}
             guard valid() else{return}
-            let fields=(try? await policy.generate("enrich",.object(["note":.object(note.fields).setting("concept",.string(concept ?? note.text("concept"))),"target":.string(target),"language":.string(support)])){prompt in
+            let fields=(try? await policy.generate("enrich",.object(["note":.object(note.fields).setting("concept",.string(intent.concept)),"target":.string(target),"language":.string(support)])){prompt in
                 guard valid() else{throw CancellationError()};return try await respond(prompt)
             }) ?? .null
-            guard fields != .null,valid(),let current=app.learner.companionMemory?[target]?.first(where:{$0.id == note.id}) else{return}
+            guard valid(),let current=app.learner.companionMemory?[target]?.first(where:{intent.matches($0)}) else{return}
+            if fields == .null {if app.learner.finishMemoryEnrichment(intent.id){app.persistMemoryRecovery()};return}
             // Patch the latest note so reinforcement and foreign web fields survive.
             var patch=JSONValue.object([:])
             for field in ["mistake","correction","tip"] {patch=patch.setting(field,.string(field == "correction" && fields[field].string.isEmpty ? current.text(field):fields[field].string))}
             var next=app.learner;let selected=next.target;next.target=target
-            next.localizeMemory(current,fields:patch,support:support);next.target=selected
+            next.localizeMemory(current,fields:patch,support:support);next.target=selected;next.finishMemoryEnrichment(intent.id)
             app.learner=next;app.persist()
         }
-        tasks[key]=(id,task);return task
+        tasks[key]=(id,intent.id,task);return task
     }
+    func cancel(){for job in tasks.values{job.task.cancel()};tasks=[:]}
     func wait(_ note:MemoryNote,app:AppModel)async {await tasks[key(note,app)]?.task.value}
 }

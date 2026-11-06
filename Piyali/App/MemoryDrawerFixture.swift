@@ -32,6 +32,13 @@ import CryptoKit
         if prompt.contains("digest"){return summary(language)}
         return JSONValue.object(["did":.string(language == "ar" ? "نسيت حرف h الصامت.":"The silent h was missing."),"fix":.string("hola"),"tip":.string(language == "ar" ? "افتكر حرف h في التحية.":"Keep the h in the greeting.")]).canonicalJSON
     }
+    static func enrichmentResponse(_ prompt:String,language:String)async throws->String? {
+        #if DEBUG
+        let e=ProcessInfo.processInfo.environment
+        if (enrichmentEnabled || TutorVoiceFixture.memorySlip),let delay=Int(e["PIYALI_MEMORY_ENRICHMENT_DELAY_MS"] ?? ""),(1...120000).contains(delay){try await Task.sleep(for:.milliseconds(delay))}
+        #endif
+        return response(prompt,language:language)
+    }
     static func studyNoteResponse(_ prompt:String,language:String)async throws->String? {
         guard enabled else{return nil}
         #if DEBUG

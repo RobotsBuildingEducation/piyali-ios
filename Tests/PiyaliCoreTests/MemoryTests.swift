@@ -72,3 +72,36 @@ final class MemoryTests: XCTestCase {
         XCTAssertEqual(state.companionMemory?["es"]?.first?.text("tip"),"")
     }
 }
+
+
+extension MemoryTests {
+    func testPendingEnrichmentRetainsFullContextAcrossAckAndANewerSlipReplacesItsVersion()throws {
+        let now=Date();var state=LearnerState();let concept=String(repeating:"x",count:241)
+        state.captureMemory(mode:"grammar",concept:concept,answer:"first",expected:"hola",feedback:"private",now:now)
+        let note=try XCTUnwrap(state.companionMemory?["es"]?.first),intent=try XCTUnwrap(state.queueMemoryEnrichment(account:"public-owner",note:note,concept:concept)),sent=state
+        var ack=sent;ack.pendingMemoryChanges=[];ack.pendingMemoryEnrichments=nil
+        let first=LearnerState.rebased(current:state,sent:sent,acknowledged:ack),firstRestored=try JSONDecoder().decode(LearnerState.self,from:JSONEncoder().encode(first))
+        XCTAssertEqual(firstRestored.pendingMemoryEnrichments?.first?.id,intent.id);XCTAssertEqual(firstRestored.pendingMemoryEnrichments?.first?.concept,concept);XCTAssertEqual(firstRestored.pendingMemoryEnrichments?.first?.note.text("userAnswer"),"first")
+        state.captureMemory(mode:"grammar",concept:String(concept.prefix(240)),answer:"second",expected:"new fix",feedback:"private",now:now.addingTimeInterval(1))
+        let newer=try XCTUnwrap(state.companionMemory?["es"]?.first),latest=try XCTUnwrap(state.queueMemoryEnrichment(account:"public-owner",note:newer,concept:String(concept.prefix(240))));XCTAssertNotEqual(latest.id,intent.id)
+        let restored=LearnerState.rebased(current:state,sent:sent,acknowledged:ack)
+        XCTAssertEqual(restored.pendingMemoryEnrichments?.count,1);XCTAssertEqual(restored.pendingMemoryEnrichments?.first?.id,latest.id);XCTAssertEqual(restored.pendingMemoryEnrichments?.first?.note.text("userAnswer"),"second");XCTAssertEqual(restored.companionMemory?["es"]?.first?.text("expectedAnswer"),"hola");XCTAssertEqual(restored.totalXP,0)
+    }
+    func testFinishedFailureAndCompletedEnrichmentCannotBeResurrectedByAnOlderAcknowledgment()throws {
+        for success in [false,true] {
+            let now=Date();var state=LearnerState();state.captureMemory(mode:"grammar",concept:"A greeting",answer:"ola",expected:"hola",feedback:"",now:now)
+            let note=try XCTUnwrap(state.companionMemory?["es"]?.first),intent=try XCTUnwrap(state.queueMemoryEnrichment(account:"public-owner",note:note,concept:"A greeting")),sent=state
+            if success{state.localizeMemory(note,fields:.object(["mistake":.string("The h was missing."),"tip":.string("Start with hola.")]),support:"en",now:now.addingTimeInterval(1))}else{XCTAssertTrue(state.finishMemoryEnrichment(intent.id))}
+            let restored=LearnerState.rebased(current:state,sent:sent,acknowledged:sent)
+            XCTAssertTrue(restored.pendingMemoryEnrichments?.isEmpty == true);XCTAssertEqual(restored.companionMemory?["es"]?.first?.fields["enriched"],.bool(success));XCTAssertEqual(restored.totalXP,0);XCTAssertNil(restored.gradedByLanguage)
+            XCTAssertFalse(state.finishMemoryEnrichment(intent.id))
+        }
+    }
+    func testEnrichmentPrivateSchemaIsOptionalAndStaleNoteVersionsRetire()throws {
+        var state=LearnerState();state.captureMemory(mode:"grammar",concept:"A greeting",answer:"ola",expected:"hola",feedback:"",now:now);let note=try XCTUnwrap(state.companionMemory?["es"]?.first)
+        _=state.queueMemoryEnrichment(account:"public-owner",note:note,concept:"A greeting")
+        var raw=try XCTUnwrap(JSONSerialization.jsonObject(with:JSONEncoder().encode(state)) as? [String:Any]);raw.removeValue(forKey:"pendingMemoryEnrichments");let legacy=try JSONDecoder().decode(LearnerState.self,from:JSONSerialization.data(withJSONObject:raw));XCTAssertNil(legacy.pendingMemoryEnrichments)
+        state.companionMemory?["es"]?[0].fields["supportLang"] = .string("ar");state.reconcileMemoryEnrichments();XCTAssertTrue(state.pendingMemoryEnrichments?.isEmpty == true)
+        let replacement=try XCTUnwrap(state.companionMemory?["es"]?.first);_=state.queueMemoryEnrichment(account:"public-owner",note:replacement,concept:"تحية");XCTAssertEqual(state.pendingMemoryEnrichments?.count,1);state.companionMemory=["es":[]];state.reconcileMemoryEnrichments();XCTAssertTrue(state.pendingMemoryEnrichments?.isEmpty == true)
+    }
+}

@@ -4,9 +4,9 @@ import WebKit
 @testable import Piyali
 
 @MainActor final class MemoryFlowTests:XCTestCase {
-    private func model(memoryProvider:((String)async throws->String)?=nil)throws->AppModel {
+    private func model(memoryProvider:((String)async throws->String)?=nil,progressService:(any LearnerProgressService)?=nil)throws->AppModel {
         let e=ProcessInfo.processInfo.environment;guard e["PIYALI_OFFLINE_TESTS"] == "1",UUID(uuidString:e["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil,MemoryDrawerFixture.enabled else{throw XCTSkip("Isolated Memory fixture required")}
-        let app=AppModel(memoryProvider:memoryProvider);try app.identity.create();app.signedIn=true;app.subscription.bind(app.identity);app.learner=LearnerState();app.learner.onboardingComplete=true;MemoryDrawerFixture.seed(app);return app
+        let app=AppModel(progressService:progressService,memoryProvider:memoryProvider);try app.identity.create();app.signedIn=true;app.subscription.bind(app.identity);app.learner=LearnerState();app.learner.onboardingComplete=true;MemoryDrawerFixture.seed(app);return app
     }
     func testDigestIsCachedAndCannotLeakAcrossPracticeLanguages()async throws {
         let app=try model();defer{try? app.identity.disconnect()};var calls=0
@@ -166,7 +166,7 @@ extension MemoryFlowTests {
     }
     func testFailedCaptureStaysPendingAndOnlyANewSlipRetriesEnrichment()async throws {
         var requests=0;let app=try model(memoryProvider:{_ in requests += 1;return ""});defer{try? app.identity.disconnect()};app.learner=LearnerState();app.learner.onboardingComplete=true
-        app.learner.captureMemory(mode:"grammar",concept:"A greeting",answer:"ola",expected:"hola",feedback:"Private reason");let first=try XCTUnwrap(app.learner.companionMemory?["es"]?.first);await app.memoryEnrichment.wait(first,app:app);XCTAssertEqual(requests,1);XCTAssertEqual(app.learner.companionMemory?["es"]?.first?.fields["enriched"],.bool(false))
+        app.learner.captureMemory(mode:"grammar",concept:"A greeting",answer:"ola",expected:"hola",feedback:"Private reason");let first=try XCTUnwrap(app.learner.companionMemory?["es"]?.first);await app.memoryEnrichment.wait(first,app:app);XCTAssertTrue(app.learner.pendingMemoryEnrichments?.isEmpty == true);app.resumeMemoryEnrichments();await app.reloadContent();XCTAssertEqual(requests,1);XCTAssertEqual(app.learner.companionMemory?["es"]?.first?.fields["enriched"],.bool(false))
         var drawerEnrichments=0;let drawer=MemoryDrawerController(provider:{p in if !p.contains("digest"){drawerEnrichments += 1};return ""});drawer.refresh(app);defer{drawer.cancel()};for _ in 0..<200{await Task.yield()};XCTAssertEqual(drawerEnrichments,0);XCTAssertEqual(app.learner.pendingMemoryChanges?.filter{$0.action == .localize}.count,0)
         app.learner.captureMemory(mode:"grammar",concept:"A greeting",answer:"second attempt",expected:"new correction",feedback:"Private reason",now:Date().addingTimeInterval(1));let second=try XCTUnwrap(app.learner.companionMemory?["es"]?.first);await app.memoryEnrichment.wait(second,app:app)
         XCTAssertEqual(requests,2);XCTAssertEqual(second.id,first.id);XCTAssertEqual(second.severity,2);XCTAssertEqual(second.text("expectedAnswer"),"hola");XCTAssertEqual(app.learner.goalBucket["repairSummary"]["openPatterns"].array.first?["recurrence"],.number(2));XCTAssertEqual(app.learner.totalXP,0)
@@ -204,5 +204,47 @@ extension MemoryFlowTests {
             let host=UIHostingController(rootView:ZStack{PiyaliBrand(dark:theme == "dark").background;MemoryDrawerView(onClose:{})}.environmentObject(app).environment(\.layoutDirection,support == "ar" ? .rightToLeft:.leftToRight).environment(\.dynamicTypeSize,.large).preferredColorScheme(theme == "dark" ? .dark:.light).ignoresSafeArea());window.rootViewController=host;window.makeKeyAndVisible();host.view.layoutIfNeeded();try await Task.sleep(for:.milliseconds(500));let nativeShot=XCTAttachment(image:UIGraphicsImageRenderer(bounds:window.bounds).image{_ in window.drawHierarchy(in:window.bounds,afterScreenUpdates:true)});nativeShot.name="Native shared enriched Memory \(support)";nativeShot.lifetime = .keepAlways;add(nativeShot)
             let a=XCTAttachment(data:Data(JSONValue.object(["source":trace,"native":.object(note.fields),"nativeRepairSummary":nativeSummary,"nativeEnrichmentRequests":.number(Double(requests))]).json.utf8),uniformTypeIdentifier:"public.json");a.name="Shared enriched Memory trace \(support)";a.lifetime = .keepAlways;add(a)
         }
+    }
+}
+
+
+@MainActor private final class MemoryRecoveryNoCloud:LearnerProgressService {
+    func saveCompanionCustomization(_ change:SettingsChange,npub:String)async throws->Bool{false}
+    func load(npub:String,local:LearnerState?)async throws->LearnerState?{nil}
+    func save(_ state:LearnerState,npub:String)async throws->LearnerState?{throw URLError(.notConnectedToInternet)}
+}
+extension MemoryFlowTests {
+    func testInterruptedEnrichmentRestoresFromPrivateAccountFileWithOriginalContextAndRejectsOldSessionResult()async throws {
+        var held:CheckedContinuation<String,Error>?,initialRequests=0
+        let app=try model(memoryProvider:{_ in initialRequests += 1;return try await withCheckedThrowingContinuation{held=$0}},progressService:MemoryRecoveryNoCloud());app.learner=LearnerState();app.learner.onboardingComplete=true
+        let concept=String(repeating:"x",count:241);app.learner.captureMemory(mode:"grammar",concept:concept,answer:"first attempt",expected:"hola",feedback:"Private grade reason")
+        for _ in 0..<200 where held == nil{await Task.yield()};XCTAssertNotNil(held);let note=try XCTUnwrap(app.learner.companionMemory?["es"]?.first),intent=try XCTUnwrap(app.learner.pendingMemoryEnrichments?.first)
+        app.learner.reinforceMemory(id:note.id);app.learner.target="fr";app.persist();let key=app.identity.exportKey();app.signOut()
+        var recoveredRequests=0,prompt="";let recovered=AppModel(progressService:MemoryRecoveryNoCloud(),memoryProvider:{text in recoveredRequests += 1;prompt=text;return "{\"did\":\"The h was missing.\",\"fix\":\"hola\",\"tip\":\"Start with hola.\"}"});defer{recovered.signOut()}
+        await recovered.signIn(nsec:key);recovered.resumeMemoryEnrichments();recovered.resumeMemoryEnrichments();await recovered.memoryEnrichment.wait(note,app:recovered)
+        let result=try XCTUnwrap(recovered.learner.companionMemory?["es"]?.first);XCTAssertEqual(initialRequests,1);XCTAssertEqual(recoveredRequests,1);XCTAssertTrue(prompt.contains(concept));XCTAssertEqual(intent.concept,concept);XCTAssertEqual(result.id,note.id);XCTAssertEqual(result.text("tip"),"Start with hola.");XCTAssertEqual(result.text("status"),"reinforced");XCTAssertEqual(recovered.learner.target,"fr");XCTAssertTrue(recovered.learner.pendingMemoryEnrichments?.isEmpty == true);XCTAssertEqual(recovered.learner.pendingMemoryChanges?.filter{$0.action == .localize}.count,1);XCTAssertEqual(recovered.learner.pendingRepairEvidence?.count,1);XCTAssertEqual(recovered.learner.totalXP,0);XCTAssertNil(recovered.learner.gradedByLanguage)
+        held?.resume(returning:"{\"did\":\"Stale\",\"fix\":\"Wrong\",\"tip\":\"Stale\"}");held=nil;for _ in 0..<200{await Task.yield()};XCTAssertEqual(recovered.learner.companionMemory?["es"]?.first?.text("tip"),"Start with hola.");recovered.resumeMemoryEnrichments();XCTAssertEqual(recoveredRequests,1)
+    }
+    func testRestoreDoesNotRetryUntrackedPendingFailuresOrExpiredAndReplacedNotes()async throws {
+        var calls=0;let app=try model(memoryProvider:{_ in calls += 1;return ""},progressService:MemoryRecoveryNoCloud());defer{app.signOut()};app.learner=LearnerState();app.learner.onboardingComplete=true
+        let note=MemoryContract.capture(target:"es",support:"en",level:"A1",mode:"grammar",concept:"A greeting",answer:"ola",expected:"hola",feedback:"")
+        app.learner.companionMemory=["es":[note]];app.resumeMemoryEnrichments();await app.reloadContent();XCTAssertEqual(calls,0);XCTAssertEqual(app.learner.companionMemory?["es"]?.first?.fields["enriched"],.bool(false));XCTAssertNil(app.learner.pendingMemoryEnrichments)
+        for kind in ["expired","replaced","enriched"] {
+            app.learner.companionMemory=["es":[note]];_=app.learner.queueMemoryEnrichment(account:app.identity.npub,note:note,concept:"A greeting")
+            if kind == "expired"{app.learner.companionMemory?["es"]?[0].fields["expiresAfterDayKey"] = .string("2000-01-01")}
+            else if kind == "replaced"{app.learner.companionMemory?["es"]?[0].fields["createdAt"] = .number(note.createdAt.timeIntervalSince1970*1000+1000)}
+            else{app.learner.companionMemory?["es"]?[0].fields["enriched"] = .bool(true)}
+            app.resumeMemoryEnrichments();XCTAssertTrue(app.learner.pendingMemoryEnrichments?.isEmpty == true,kind);XCTAssertEqual(calls,0,kind)
+        }
+    }
+    func testNewerSlipReplacesPendingVersionWhileRepeatedResumeCoalescesAndRejectsOldReply()async throws {
+        var calls=0,firstHeld:CheckedContinuation<String,Error>?,secondHeld:CheckedContinuation<String,Error>?
+        let app=try model(memoryProvider:{_ in calls += 1;return try await withCheckedThrowingContinuation{if calls == 1{firstHeld=$0}else{secondHeld=$0}}},progressService:MemoryRecoveryNoCloud());defer{app.signOut()};app.learner=LearnerState();app.learner.onboardingComplete=true
+        let now=Date();app.learner.captureMemory(mode:"grammar",concept:"A greeting",answer:"first attempt",expected:"hola",feedback:"",now:now);for _ in 0..<200 where firstHeld == nil{await Task.yield()};let first=try XCTUnwrap(app.learner.pendingMemoryEnrichments?.first)
+        app.resumeMemoryEnrichments();app.resumeMemoryEnrichments();XCTAssertEqual(calls,1)
+        app.learner.captureMemory(mode:"grammar",concept:"A greeting",answer:"second attempt",expected:"new fix",feedback:"",now:now.addingTimeInterval(1));for _ in 0..<200 where secondHeld == nil{await Task.yield()};let latest=try XCTUnwrap(app.learner.pendingMemoryEnrichments?.first);app.resumeMemoryEnrichments();XCTAssertEqual(app.learner.pendingMemoryEnrichments?.count,1);XCTAssertNotEqual(latest.id,first.id);XCTAssertEqual(latest.note.text("userAnswer"),"second attempt");XCTAssertEqual(calls,2)
+        firstHeld?.resume(returning:"{\"did\":\"Stale\",\"fix\":\"Wrong\",\"tip\":\"Stale\"}");firstHeld=nil;await app.memoryEnrichment.wait(first.note,app:app);XCTAssertEqual(app.learner.companionMemory?["es"]?.first?.text("tip"),"");XCTAssertEqual(app.learner.pendingMemoryEnrichments?.first?.id,latest.id)
+        secondHeld?.resume(returning:"{\"did\":\"The h was missing.\",\"fix\":\"hola\",\"tip\":\"Start with hola.\"}");secondHeld=nil;await app.memoryEnrichment.wait(latest.note,app:app)
+        XCTAssertTrue(app.learner.pendingMemoryEnrichments?.isEmpty == true);XCTAssertEqual(app.learner.companionMemory?["es"]?.first?.severity,2);XCTAssertEqual(app.learner.companionMemory?["es"]?.first?.text("userAnswer"),"second attempt");XCTAssertEqual(app.learner.pendingMemoryChanges?.filter{$0.action == .localize}.count,1);XCTAssertEqual(app.learner.pendingRepairEvidence?.count,2);XCTAssertEqual(app.learner.totalXP,0)
     }
 }
