@@ -37,16 +37,18 @@ import Foundation
         return false
         #endif
     }
+    static var focusedRecovery:Bool {enabled && ProcessInfo.processInfo.environment["PIYALI_FOCUSED_TUTOR_RECOVERY_FIXTURE"] == "1"}
     static var repeatedMemory:Bool {memorySlip && ProcessInfo.processInfo.environment["PIYALI_TUTOR_MEMORY_REPEAT_FIXTURE"] == "1"}
     static var replySample:JSONValue {guard enabled,ProcessInfo.processInfo.environment["PIYALI_TUTOR_REPLY_FIXTURE"] == "1" else{return .null};guard let url=Bundle.main.url(forResource:"tutor-reply-fixture",withExtension:"json")else{return .null};return (try? ContentLibrary.decode(JSONValue.self,url:url)) ?? .null}
     static func provider(support:String="en")->TutorProvider {
         var judges=0
-        var p=TutorProvider(judge:{_ in judges += 1;return memorySlip ? .object(["successful":.bool(false),"mistake":.bool(true),"confidence":.number(0.2),"concept":.string("A greeting"),"correction":.string(repeatedMemory && judges>1 ? "Buen día":"Hola"),"reason":.string("Private fixture judge reason")]):.object(["successful":.bool(false),"mistake":.bool(false),"confidence":.number(0.9),"reason":.string("Try the lesson phrase.")])},quote:{_,_,_ in
+        var p=TutorProvider(judge:{_ in judges += 1;if focusedRecovery{return .object(["successful":.bool(true),"confidence":.number(1),"repairAdvanced":.bool(true)])};return memorySlip ? .object(["successful":.bool(false),"mistake":.bool(true),"confidence":.number(0.2),"concept":.string("A greeting"),"correction":.string(repeatedMemory && judges>1 ? "Buen día":"Hola"),"reason":.string("Private fixture judge reason")]):.object(["successful":.bool(false),"mistake":.bool(false),"confidence":.number(0.9),"reason":.string("Try the lesson phrase.")])},quote:{_,_,learner in
             #if DEBUG
-            if enabled,let delay=Int(ProcessInfo.processInfo.environment["PIYALI_TUTOR_WORTH_DELAY_MS"] ?? ""),(1...120000).contains(delay){try await Task.sleep(for:.milliseconds(delay))}
+            if enabled,let delay=Int(ProcessInfo.processInfo.environment["PIYALI_TUTOR_WORTH_DELAY_MS"] ?? ""),(1...120000).contains(delay),!focusedRecovery || FocusedPhonicsFixture.scenario == "repair" || (learner.focusedTutorRuns ?? [:]).values.contains(where:{$0.goal != nil && $0.earnedXP>=20}){try await Task.sleep(for:.milliseconds(delay))}
             #endif
             return .null
         },translate:{_,text in if replySample != .null,text == replySample["primary"].string{return replySample[support] == .null ? replySample["en"]:replySample[support]};return .object(["translation":.string(text == "Say hola." ? "Di hola.":"Public fixture translation"),"pairs":.array([])])})
+        if focusedRecovery {p.goal={_,answer,_,_ in .init(success:answer == "casa y mesa",support:"prompted",feedback:"Public pronunciation feedback",observation:"Produced the requested casa and mesa pronunciation")}}
         if memorySlip {p.memory={try await MemoryDrawerFixture.enrichmentResponse($0,language:support) ?? ""}}
         return p
     }
@@ -79,7 +81,7 @@ import Foundation
             let index=script.response;script.response += 1
             let recovery=TutorVoiceFixture.asrRecovery && event["response"]["metadata"]["kind"].string == "tutor_transcript_recovery"
             emission=Task{try? await Task.sleep(for:.milliseconds(recovery ? 1800:200));guard !Task.isCancelled,!closed else{return}
-                let id=prefix+"-r\(index)",text=recovery ? "Please try hola once more.":index == 0 && script.input == 0 ? "Welcome! Ready to learn Spanish?":TutorVoiceFixture.replySample != .null ? TutorVoiceFixture.replySample["primary"].string:"Say hola."
+                let id=prefix+"-r\(index)",text=TutorVoiceFixture.focusedRecovery ? (FocusedPhonicsFixture.scenario == "goal" ? "Di casa y mesa con claridad.":"Di casa con claridad."):recovery ? "Please try hola once more.":index == 0 && script.input == 0 ? "Welcome! Ready to learn Spanish?":TutorVoiceFixture.replySample != .null ? TutorVoiceFixture.replySample["primary"].string:"Say hola."
                 captureFixture(id)
                 emit(["type":.string("response.created"),"response":.object(["id":.string(id),"metadata":event["response"]["metadata"]])]);emit(["type":.string("output_audio_buffer.started")])
                 if TutorVoiceFixture.lateSpeech,index == 2 {
@@ -97,8 +99,8 @@ import Foundation
     }
     func setRemoteAudioEnabled(_ enabled:Bool){}
     func setMicrophoneEnabled(_ enabled:Bool){microphone=enabled;if !enabled{speech?.cancel();speech=nil}else{scheduleInput()}}
-    private func scheduleInput(){guard microphone,!closed,!responsePending,script.response>0,speech == nil,script.input<(TutorVoiceFixture.repeatedMemory ? 3:(TutorVoiceFixture.asrRecovery || TutorVoiceFixture.lateSpeech || TutorVoiceFixture.memorySlip) ? 2:TutorVoiceFixture.replySample == .null ? 3:1) else{return}
-        speech=Task{try? await Task.sleep(for:.seconds(script.input == 0 ? 3:5));guard !Task.isCancelled,!closed,microphone,!responsePending else{speech=nil;return};let index=script.input;script.input += 1;speech=nil;let id=prefix+"-u\(index)",text=index == 0 ? "yes":TutorVoiceFixture.asrRecovery ? "नमस्ते":index == 1 ? (TutorVoiceFixture.memorySlip ? "a public complete attempt":"I do not know"):(TutorVoiceFixture.repeatedMemory ? "another public complete attempt":"hola")
+    private func scheduleInput(){guard microphone,!closed,!responsePending,script.response>0,speech == nil,script.input<(TutorVoiceFixture.focusedRecovery ? (FocusedPhonicsFixture.scenario == "goal" ? 5:1):TutorVoiceFixture.repeatedMemory ? 3:(TutorVoiceFixture.asrRecovery || TutorVoiceFixture.lateSpeech || TutorVoiceFixture.memorySlip) ? 2:TutorVoiceFixture.replySample == .null ? 3:1) else{return}
+        speech=Task{try? await Task.sleep(for:.seconds(script.input == 0 ? 3:5));guard !Task.isCancelled,!closed,microphone,!responsePending else{speech=nil;return};let index=script.input;script.input += 1;speech=nil;let id=prefix+"-u\(index)",text=TutorVoiceFixture.focusedRecovery ? (FocusedPhonicsFixture.scenario == "goal" ? "casa y mesa":"casa"):index == 0 ? "yes":TutorVoiceFixture.asrRecovery ? "नमस्ते":index == 1 ? (TutorVoiceFixture.memorySlip ? "a public complete attempt":"I do not know"):(TutorVoiceFixture.repeatedMemory ? "another public complete attempt":"hola")
             emit(["type":.string("input_audio_buffer.speech_started")]);emit(["type":.string("input_audio_buffer.speech_stopped")]);emit(["type":.string("input_audio_buffer.committed"),"item_id":.string(id)]);emit(["type":.string("conversation.item.input_audio_transcription.completed"),"item_id":.string(id),"transcript":.string(text)])
         }
     }

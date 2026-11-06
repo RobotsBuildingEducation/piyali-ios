@@ -200,6 +200,7 @@ public struct LearnerState: Codable, Sendable {
     public var acknowledgedEventIDs: Set<UUID>?
     public var ratingByLanguage: [String: Double]?
     public var pendingTutorOutcomes:[TutorOutcomeIntent]?
+    public var focusedTutorRuns:[String:FocusedTutorRun]?
     public var pendingPhonicsFinishes:[String:PhonicsFinishIntent]?
     public var confirmedFocusedOutcomes:[String:JSONValue]?
     public var goalArtifacts: [String: JSONValue]?

@@ -1,0 +1,82 @@
+[
+  {
+    "test": "PiyaliTests.CompanionQuestFlowTests/testAuthoredPhonicsRepairKeepsOriginalAndTransferOutcomesSeparateFromNormalPhonics",
+    "result": "passed",
+    "seconds": 0.631
+  },
+  {
+    "test": "PiyaliTests.CompanionQuestFlowTests/testEarnedRecoveryAccessDoesNotGenerateANewCompanionPlanBeyondTrial",
+    "result": "passed",
+    "seconds": 0.105
+  },
+  {
+    "test": "PiyaliTests.CompanionQuestFlowTests/testFirstQuestUsesWelcomeButClearingItPreparesTomorrowsMemoryAndGoal",
+    "result": "passed",
+    "seconds": 0.083
+  },
+  {
+    "test": "PiyaliTests.CompanionQuestFlowTests/testReadyAIMessageWinsReturningBubbleAndClearedRepairKeepsSourceRecapRule",
+    "result": "passed",
+    "seconds": 2.727
+  },
+  {
+    "test": "PiyaliTests.CompanionQuestFlowTests/testReturningQuestBuildsOnceRestoresAndCompletesSavedStepsWithoutBonusXP",
+    "result": "passed",
+    "seconds": 0.219
+  },
+  {
+    "test": "PiyaliTests.FirestoreContractTests/testFocusedTutorCompletionLostResponseRestoresPrivateReceiptAndBanksGoalOrRepairOnceBeyondTrial",
+    "result": "passed",
+    "seconds": 23.916
+  },
+  {
+    "test": "PiyaliTests.TutorReferenceScreensTests/testOriginalFocusedTutorGoalAndRepairInEnglishAndArabic",
+    "result": "passed",
+    "seconds": 25.647
+  },
+  {
+    "test": "PiyaliTests.TutorSessionTests/testEarnedFocusedTutorFinishRestoresFromPrivateAccountFileWhileFinalWorthIsPendingAtTrialBoundary",
+    "result": "passed",
+    "seconds": 19.876
+  },
+  {
+    "test": "PiyaliTests.TutorSessionTests/testFocusedRecoveryCannotBypassTrialOrBankForAnotherAccountLanguageGoalOrDay",
+    "result": "passed",
+    "seconds": 4.102
+  },
+  {
+    "test": "PiyaliTests.TutorSessionTests/testGoalTutorUsesOriginalRubricAndOnlyFinishesAt25XPWithoutTutorPathOrBonus",
+    "result": "passed",
+    "seconds": 4.226
+  },
+  {
+    "test": "PiyaliTests.TutorSessionTests/testPartialFocusedGoalRestoresDisconnectedWithoutInventingCompletionOrSpeech",
+    "result": "passed",
+    "seconds": 11.193
+  },
+  {
+    "test": "PiyaliTests.TutorSessionTests/testPhonicsFallbackTutorKeepsOriginalModeAndOnlyRoutesAfterEarnedCompletionAcknowledges",
+    "result": "passed",
+    "seconds": 9.625
+  },
+  {
+    "test": "PiyaliTests.TutorSessionTests/testRepairTutorOneGoodRepCommitsOneRepairAndBonusWithoutOrdinaryTutorWrites",
+    "result": "passed",
+    "seconds": 4.264
+  },
+  {
+    "test": "PiyaliTests.TutorSessionTests/testRestoredRepairTutorKeepsItsEarnedLessonWhileRawCompletionWaitsForAcknowledgment",
+    "result": "passed",
+    "seconds": 5.352
+  },
+  {
+    "test": "PiyaliUITests.FocusedPhonicsJourneyTests/testGoalPhonicsFallbackEarnedTutorRestoresPendingWorthAndSaveRetryBeyondTrial",
+    "result": "passed",
+    "seconds": 108.912
+  },
+  {
+    "test": "PiyaliUITests.FocusedPhonicsJourneyTests/testRepairPhonicsFallbackEarnedTutorRestoresPendingWorthAndSaveRetryBeyondTrial",
+    "result": "passed",
+    "seconds": 85.66
+  }
+]

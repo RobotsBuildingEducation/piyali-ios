@@ -62,11 +62,10 @@ enum TutorFocus:Equatable {
     private var savingRevision=UUID()
     private var scholarshipCompletion:ScholarshipPrompt.Scope?
     private var focusedRecord:JSONValue = .object([:]),repairEvidence:JSONValue = .object([:])
-    private var focusedGoalChange:UUID?,focusedRepairChange:UUID?
     private var reviewRecord:JSONValue?
     var practicingCompletedLesson:Bool { reviewRecord != nil }
     private func sessionRecord(_ app:AppModel)->JSONValue { focus != nil ? focusedRecord:reviewRecord ?? record(app) }
-    init(focus:TutorFocus?=nil,live:LiveTutorService?=nil,clips:TutorAudioClips = .shared,provider:TutorProvider?=nil,turnXP:@escaping()->Int={PlatePracticeFixture.turnXP()},completionIdleTimeout:TimeInterval=45,realtimeProvider:String?=nil){self.realtimeProvider=(realtimeProvider ?? TutorRealtime.provider) == "openai" ? "openai":"gemini";self.completionIdleTimeout=completionIdleTimeout;self.clips=clips;self.turnXP=turnXP;self.focus=focus;self.live=live ?? TutorVoiceFixture.service(provider:realtimeProvider);self.provider=provider;policy=try? TutorSourcePolicy();liveUpdates=self.live.objectWillChange.sink{[weak self] _ in self?.objectWillChange.send()}}
+    init(focus:TutorFocus?=nil,live:LiveTutorService?=nil,clips:TutorAudioClips = .shared,provider:TutorProvider?=nil,turnXP:@escaping()->Int={PlatePracticeFixture.turnXP()},completionIdleTimeout:TimeInterval=45,realtimeProvider:String?=nil){self.realtimeProvider=(realtimeProvider ?? TutorRealtime.provider) == "openai" ? "openai":"gemini";self.completionIdleTimeout=completionIdleTimeout;self.clips=clips;self.turnXP=TutorVoiceFixture.focusedRecovery ? {5}:turnXP;self.focus=focus;self.live=live ?? TutorVoiceFixture.service(provider:realtimeProvider);self.provider=provider;policy=try? TutorSourcePolicy();liveUpdates=self.live.objectWillChange.sink{[weak self] _ in self?.objectWillChange.send()}}
     static var fixture:Bool {TutorVoiceFixture.enabled}
     var id:String {lesson["id"].string}
     var required:Int {Int(state["required"].number)}
@@ -130,7 +129,7 @@ enum TutorFocus:Equatable {
     func prepare(_ app:AppModel) async {
         if owner == scope(app),!id.isEmpty {refresh(app);return}
         await stop(app,saveDraft:false)
-        completionPending=false;completion=nil;review=nil;saving=false;savingRevision=UUID();focusedFinished=false;focusedGoalChange=nil;focusedRepairChange=nil;completionChange=nil;completionLesson=nil;reviewRecord=nil;scholarshipCompletion=nil
+        completionPending=false;completion=nil;review=nil;saving=false;savingRevision=UUID();focusedFinished=false;completionChange=nil;completionLesson=nil;reviewRecord=nil;scholarshipCompletion=nil
         owner=scope(app);ownerRevision=app.identity.sessionRevision;let token=epoch,target=app.learner.target;loading=true;error=nil
         defer {if epoch == token{loading=false}}
         do {
@@ -139,10 +138,10 @@ enum TutorFocus:Equatable {
             if provider == nil {provider=Self.fixture ? TutorVoiceFixture.provider(support:app.learner.support):.native(app.ai)}
             guard policy != nil else{throw PracticeRecipeFailure.unavailable}
             if let focus {
-                guard focus.isCurrent(app) else{throw AppError.message("Return to today's current focused task.")}
+                guard focus.isCurrent(app) || app.focusedTutorRun(focus)?.ready == true else{throw AppError.message("Return to today's current focused task.")}
                 let lesson=try policy!.run("focusLesson",.object(["focus":focus.snapshot(app)]))
                 guard lesson != .null else{throw PracticeRecipeFailure.invalidRecipe}
-                select(app,lesson:lesson,unit:.object(["cefrLevel":lesson["cefrLevel"]]));return
+                select(app,lesson:lesson,unit:.object(["cefrLevel":lesson["cefrLevel"]]));if completionPending{await complete(app,ready:true)};return
             }
             let level=app.learner.tutorLevel,stored=app.learner.plateProgress["currentTutorLesson"].string
             let units=catalog[level].array
@@ -162,7 +161,8 @@ enum TutorFocus:Equatable {
         outcomeIDs=[];followupRetry=0;activeItemID="";needsResumeContext=false
         self.lesson=lesson;self.unit=unit;messages=[];resume=[];pausedMessages=[];turn=0;quizFeedback = .null;previousQuiz = .null;seenInputs=[];seenResponses=[];lastInput="";lastInputAt = .distantPast
         if lesson["isGoal"].boolean || lesson["isRepair"].boolean {
-            focusedRecord = .object(["earnedXp":.number(0)]);repairEvidence = .object([:]);reviewRecord=nil
+            let saved=focus.flatMap{app.focusedTutorRun($0)}
+            focusedRecord = .object(["earnedXp":.number(Double(saved?.earnedXP ?? 0))]);repairEvidence=saved?.evidence ?? .object([:]);outcomeIDs=saved?.outcomeIDs ?? [];completionPending=saved?.ready ?? false;reviewRecord=nil
         }else{focus=nil;focusSkipped=false;focusedFinished=false;owner=scope(app);ownerRevision=app.identity.sessionRevision}
         let saved=focus == nil ? record(app):focusedRecord
         reviewRecord=focus == nil && saved["status"].string == "completed" ? saved.setting("earnedXp",.number(Double(xpRequired(lesson)))):nil
@@ -359,12 +359,14 @@ enum TutorFocus:Equatable {
             let level=c.question["questionLevel"].string.nilIfEmpty ?? before["level"].string
             let parameters=worthParameters[c.question["id"].string] ?? GeneratedQuestionWorth.parameters(question:.object(["tutorPrompt":c.question["textFinal"],"lesson":lesson["title"]]),level:level,mode:"tutor",learner:app.learner)
             let outcome=TutorOutcomeIntent(turn:planned,target:app.learner.target,level:level,date:c.date,correct:paid,independent:paid,support:paid ? "independent":nil,concept:mistake ? parsed["concept"].string:nil,recordsAssessment:assesses,worthParameters:parameters)
-            app.learner.queueTutorOutcome(outcome);outcomeIDs.insert(outcome.id)
+            var next=app.learner;next.queueTutorOutcome(outcome);outcomeIDs.insert(outcome.id)
+            storeFocusedRun(app,in:&next,earned:earned,ready:ready);app.learner=next
             // Ownership transfers to AppModel; End/Pause cancels only unused quotes.
             claimedWorth.insert(c.question["id"].string)
             let quote=worth[c.question["id"].string] ?? Task<JSONValue?,Never>{nil}
             app.persist();app.tutorOutcomes.start(outcome,app:app,quote:quote)
         }
+        if focus != nil,ready,!paid,!assesses {var next=app.learner;storeFocusedRun(app,in:&next,earned:earned,ready:true);app.learner=next;app.persist()}
         if paid{feedback = .init(correct:true)}
         else if mistake,!awardedTurns.contains(c.number){feedback = .init(correct:false)}
         var capturedMemory=false
@@ -505,32 +507,23 @@ enum TutorFocus:Equatable {
         if next["lesson"] != .null{select(app,lesson:next["lesson"],unit:next["unit"])}else{refresh(app)}
         completionChange=nil;completionLesson=nil;error=nil
     }
+    private func storeFocusedRun(_ app:AppModel,in next:inout LearnerState,earned:Int,ready:Bool) {
+        guard let focus else{return}
+        var run=app.focusedTutorRun(focus)
+        if run == nil {switch focus{case .goal(let bp):run=FocusedTutorRun(account:app.identity.npub,target:app.learner.target,support:app.learner.support,goal:bp,repair:nil,lesson:lesson,required:required);case .repair(let step):run=FocusedTutorRun(account:app.identity.npub,target:app.learner.target,support:app.learner.support,goal:nil,repair:step,lesson:lesson,required:required)}}
+        guard var run else{return};run.earnedXP=earned;run.evidence=repairEvidence;run.ready=run.ready || ready;run.outcomeIDs.formUnion(outcomeIDs);next.storeFocusedTutorRun(run)
+    }
     private func completeFocus(_ app:AppModel,focus:TutorFocus,ready:Bool)async {
         guard ready,!saving,!focusedFinished,(completionPending || focus.isCurrent(app)),(earnedXP(app)>=required || repairEvidence["success"].boolean) else{return}
         completionPending=true;saving=true;draftTask?.cancel();let saveID=UUID(),account=app.identity.npub,session=app.identity.sessionRevision,lessonID=id
         savingRevision=saveID;defer{if savingRevision == saveID{saving=false}}
+        var next=app.learner;storeFocusedRun(app,in:&next,earned:earnedXP(app),ready:true);app.learner=next
+        guard app.persistFocusedTutorRecovery(),let run=app.focusedTutorRun(focus) else{return}
         await live.stop();paused=false
-        await app.tutorOutcomes.wait(earnedOutcomeIDs(app),app:app)
+        let finished=await app.finishFocusedTutor(run.key)
         guard owner == scope(app),app.identity.npub == account,app.identity.sessionRevision == session,id == lessonID,self.focus?.key == focus.key else{return}
-        let token=epoch
-        switch focus {
-        case .goal(let bp):
-            if focusedGoalChange == nil {
-                app.recordGoalAttempt(bp,mode:bp["mode"].string,success:true,support:"prompted",observation:"Completed \(required) XP of goal-specific Tutor practice with successful spoken turns.",domain:"production")
-                focusedGoalChange=app.learner.pendingGoalChanges?.last(where:{$0.action == .attempt && $0.payload["goalId"] == bp["goalId"] && $0.payload["dayKey"] == bp["dayKey"] && $0.payload["mode"] == bp["mode"]})?.id
-            }
-        case .repair(let step):
-            if focusedRepairChange == nil {
-                guard app.completeSourceTutorRepair(step,bonus:required,evidence:repairEvidence) else{error="Return to today's current repair task.";return}
-                focusedRepairChange=app.learner.pendingChanges?.last(where:{$0.source == .repair && $0.contentID == step.id})?.id
-            }
-        }
-        await app.sync();guard valid(app,token) else{return}
-        let pendingGoal=focusedGoalChange.map{id in app.learner.pendingGoalChanges?.contains(where:{$0.id == id}) == true} ?? false
-        let pendingRepair=focusedRepairChange.map{id in app.learner.pendingChanges?.contains(where:{$0.id == id}) == true} ?? false
-        if !Self.fixture,(pendingGoal || pendingRepair) {error="Focused practice is saved on this iPhone. Retry when you’re connected to finish saving.";return}
-        focusedFinished=true;completionPending=false;error=nil
-        onFocusedCompletion?()
+        guard finished else{error="Focused practice is saved on this iPhone. Retry when you’re connected to finish saving.";return}
+        focusedFinished=true;completionPending=false;error=nil;onFocusedCompletion?()
     }
     func closeCompletion(){review=completion;completion=nil}
     func closeReview(_ app:AppModel?=nil){if let app,scholarshipCompletion == .init(account:app.identity.npub,target:app.learner.target){app.requestScholarship()};scholarshipCompletion=nil;review=nil;completionPending=false}

@@ -4,15 +4,15 @@ import UIKit
 @testable import Piyali
 
 @MainActor final class CompanionQuestFlowTests:XCTestCase {
-    private func model()throws->AppModel {
+    private func model(progressService:(any LearnerProgressService)?=nil)throws->AppModel {
         guard ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"] == "1",UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Requires isolated offline identity.")}
-        let app=AppModel();try app.identity.create();app.subscription.bind(app.identity);app.learner=LearnerState();app.learner.onboardingComplete=true;app.signedIn=true;return app
+        let app=AppModel(progressService:progressService);try app.identity.create();app.subscription.bind(app.identity);app.learner=LearnerState();app.learner.onboardingComplete=true;app.signedIn=true;return app
     }
     private func note(_ id:String,day:String,type:String,concept:String,answer:String)->MemoryNote {
         MemoryNote(fields:["id":.string(id),"createdDayKey":.string(day),"createdAt":.number(Date().timeIntervalSince1970*1000),"status":.string("captured"),"concept":.string(concept),"expectedAnswer":.string(answer),"errorType":.string(type),"severity":.number(2),"cefrLevel":.string("Pre-A1")])
     }
     func testReturningQuestBuildsOnceRestoresAndCompletesSavedStepsWithoutBonusXP() async throws {
-        let app=try model();defer{try? app.identity.disconnect()};let today=CalendarDay.key(Date()),yesterday=CalendarDay.shift(today,by:-1)
+        let app=try model(progressService:CompanionQuestAcknowledgment());defer{try? app.identity.disconnect()};let today=CalendarDay.key(Date()),yesterday=CalendarDay.shift(today,by:-1)
         app.learner.questProgress = .object(["dailyQuestFirstSeen":.bool(true),"dailyQuestFirstDayKey":.string(yesterday)])
         app.learner.questPlans=["es":DailyQuestPlan(day:today,kinds:["learn","review"])];app.learner.companionMemory=["es":[note("greeting",day:yesterday,type:"vocabulary",concept:"A greeting",answer:"Hola"),note("agreement",day:yesterday,type:"grammar",concept:"Use a simple agreement",answer:"Soy estudiante")]]
         await app.prepareCompanionQuest()
@@ -23,14 +23,14 @@ import UIKit
         try await app.prepareRepairDeck(first);let card=try XCTUnwrap(try JSONDecoder().decode([Flashcard].self,from:Data(app.learner.repairArtifact(first,mode:"flashcards")["cards"].json.utf8)).first)
         XCTAssertEqual(card.concept["es"],"Hola");XCTAssertEqual(card.id,"repair-es-\(today)-s0-c0")
         app.recordRepairOutcome(first,mode:"flashcards",cardID:card.id,success:false,item:"Hola");XCTAssertEqual(app.plateCourses.first?.count,0);XCTAssertEqual(app.learner.totalXP,0)
-        app.recordRepairOutcome(first,mode:"flashcards",cardID:card.id,success:true,item:"Hola");XCTAssertEqual(app.plateCourses.first?.count,1);XCTAssertEqual(app.learner.totalXP,2);XCTAssertEqual(app.learner.plateProgress["flashcardDailyActivity"]["es"][today].number,0)
+        app.recordRepairOutcome(first,mode:"flashcards",cardID:card.id,success:true,item:"Hola");XCTAssertEqual(app.plateCourses.first?.count,0,"Routing waits for its completion acknowledgment");await app.sync();XCTAssertEqual(app.plateCourses.first?.count,1);XCTAssertEqual(app.learner.totalXP,2);XCTAssertEqual(app.learner.plateProgress["flashcardDailyActivity"]["es"][today].number,0)
         XCTAssertNil(app.learner.cardReviews)
         app.finishRepair(first,observation:"Stale duplicate");XCTAssertEqual(app.plateCourses.first?.count,1)
         let second=try XCTUnwrap(app.currentRepairStep);XCTAssertEqual(second.mode,"lesson");let lesson=try XCTUnwrap(app.repairLesson(second));XCTAssertTrue(lesson.isRepair == true);XCTAssertEqual(lesson.xpReward,10);XCTAssertEqual(lesson.modes,["vocabulary","grammar","reading","stories","realtime"])
-        app.beginLesson(lesson);app.learner.award(6,lesson:lesson);XCTAssertFalse(app.canComplete(lesson));app.learner.award(5,lesson:lesson);XCTAssertTrue(app.canComplete(lesson));app.complete(lesson)
+        app.beginLesson(lesson);app.learner.award(6,lesson:lesson);XCTAssertFalse(app.canComplete(lesson));app.learner.award(5,lesson:lesson);XCTAssertTrue(app.canComplete(lesson));app.complete(lesson);XCTAssertEqual(app.plateCourses.first?.count,1);XCTAssertEqual(app.learner.pendingRepairEvidence?.count,1);await app.sync()
         XCTAssertEqual(app.plateCourses.first?.count,2);XCTAssertEqual(app.plateCourses.first?.target,2);XCTAssertNil(app.currentRepairStep);XCTAssertEqual(app.learner.totalXP,13,"The 10-XP threshold completes a repair; completion must not award another 10 or 20 XP.")
         XCTAssertEqual(app.learner.companionMemory?["es"]?.filter{$0.text("status") == "reinforced"}.count,2)
-        XCTAssertEqual(app.learner.goalBucket["repairSummary"]["eventIds"].array.count,2);XCTAssertEqual(app.learner.pendingRepairEvidence?.count,2)
+        XCTAssertEqual(app.learner.goalBucket["repairSummary"]["eventIds"].array.count,2);XCTAssertEqual(app.learner.pendingRepairEvidence?.count,0)
         app.persist();let ready=app.learner.questDay(day:today);app.learner=LearnerState();app.loadLocal();XCTAssertEqual(app.learner.questDay(day:today),ready);XCTAssertEqual(app.plateCourses.first?.count,2)
     }
     func testAuthoredPhonicsRepairKeepsOriginalAndTransferOutcomesSeparateFromNormalPhonics() async throws {
@@ -89,5 +89,28 @@ import UIKit
         let doc=app.learner.questDay(day:today);app.learner.companionQuestDays?[CompanionQuestDay.key("es",today)]=doc.setting("blueprint",doc["blueprint"].setting("message",.object(["long":.string("A warm-up for greetings, then keep moving forward.")])))
         var progress=app.learner.plateProgress;for kind in ["speak","learn","review","repair"] {progress=progress.setting(DailyPlate.fields[kind]!, .object(["es":.object([today:.number(10)])]))};app.learner.questProgress=progress
         XCTAssertEqual(app.companionBubble()["display"].string,"A warm-up for greetings, then keep moving forward.","The source still prefers a ready AI message on a cleared repair day.")
+    }
+}
+
+extension CompanionQuestFlowTests {
+    func testEarnedRecoveryAccessDoesNotGenerateANewCompanionPlanBeyondTrial()async throws {
+        let app=try model();defer{app.signOut()};let day=CalendarDay.key(Date())
+        app.learner.questProgress = .object(["dailyQuestFirstSeen":.bool(true),"dailyQuestFirstDayKey":.string(CalendarDay.shift(day,by:-1))])
+        app.learner.questPlans=["es":DailyQuestPlan(day:day,kinds:["speak","learn","review"])]
+        app.learner.companionMemory=["es":[note("public-greeting",day:CalendarDay.shift(day,by:-1),type:"vocabulary",concept:"A greeting",answer:"Hola")]]
+        app.learner.subscriptionXPAdjustment=300;XCTAssertFalse(app.subscription.hasAccess)
+        let owner=UUID();app.retainEarnedPractice(owner:owner,active:true,account:app.identity.npub,target:"es",day:day);XCTAssertTrue(app.preservingEarnedPractice)
+        await app.prepareCompanionQuest();XCTAssertEqual(app.learner.questDay(day:day)["blueprint"],.null);XCTAssertNil(app.learner.repairPlan(day:day));XCTAssertEqual(app.learner.totalXP,0)
+        app.learner.subscriptionXPAdjustment=299;XCTAssertTrue(app.subscription.hasAccess);await app.prepareCompanionQuest()
+        XCTAssertEqual(app.learner.questDay(day:day)["blueprint"]["status"].string,"ready");XCTAssertNotNil(app.learner.repairPlan(day:day));XCTAssertEqual(app.learner.totalXP,0)
+        app.releaseEarnedPractice(owner:owner)
+    }
+}
+
+@MainActor private final class CompanionQuestAcknowledgment:LearnerProgressService {
+    func saveCompanionCustomization(_ change:SettingsChange,npub:String)async throws->Bool{false}
+    func load(npub:String,local:LearnerState?)async throws->LearnerState?{nil}
+    func save(_ state:LearnerState,npub:String)async throws->LearnerState? {
+        var acknowledged=state;acknowledged.acknowledgedEventIDs=Set((state.pendingChanges ?? []).map(\.id));acknowledged.pendingChanges=[];acknowledged.pendingGoalChanges=[];acknowledged.pendingRepairEvidence=[];acknowledged.pendingMemoryChanges=[];return acknowledged
     }
 }

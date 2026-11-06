@@ -76,3 +76,15 @@ extension TutorOutcomeIntentTests {
     }
 
 }
+
+
+extension TutorOutcomeIntentTests {
+    func testPrivateFocusedRunSurvivesAckAndReceiptIdentityWithoutReappearingAfterRetirement()throws {
+        let day=CalendarDay.key(Date()),bp:JSONValue = .object(["goalId":.string("public-goal"),"dayKey":.string(day),"mode":.string("phonics"),"lang":.string("es")]),lesson:JSONValue = .object(["id":.string("public-focused-lesson"),"isGoal":.bool(true)])
+        var state=LearnerState(),run=try XCTUnwrap(FocusedTutorRun(account:"public-owner",target:"es",support:"en",goal:bp,repair:nil,lesson:lesson,required:25));run.earnedXP=25;run.ready=true;run.outcomeIDs=[UUID()];run.completionID=UUID();state.storeFocusedTutorRun(run)
+        let sent=state;var ack=sent;ack.focusedTutorRuns=nil
+        let restored=try JSONDecoder().decode(LearnerState.self,from:JSONEncoder().encode(LearnerState.rebased(current:state,sent:sent,acknowledged:ack)));XCTAssertEqual(restored.focusedTutorRuns?[run.key]?.id,run.id);XCTAssertEqual(restored.focusedTutorRuns?[run.key]?.completionID,run.completionID);XCTAssertEqual(restored.focusedTutorRuns?[run.key]?.outcomeIDs,run.outcomeIDs);XCTAssertTrue(restored.focusedTutorRuns?[run.key]?.ready == true)
+        XCTAssertTrue(state.retireFocusedTutorRun(run));let finished=LearnerState.rebased(current:state,sent:sent,acknowledged:sent);XCTAssertTrue(finished.focusedTutorRuns?.isEmpty == true);XCTAssertEqual(finished.totalXP,0);XCTAssertNil(finished.gradedByLanguage)
+        var raw=try XCTUnwrap(JSONSerialization.jsonObject(with:JSONEncoder().encode(sent)) as? [String:Any]);raw.removeValue(forKey:"focusedTutorRuns");let legacy=try JSONDecoder().decode(LearnerState.self,from:JSONSerialization.data(withJSONObject:raw));XCTAssertNil(legacy.focusedTutorRuns)
+    }
+}

@@ -36,7 +36,7 @@ import Foundation
             if !fresh,unavailable != "unmatched",let raw=try? app.companionQuestPolicy?.run("next",.object(["plan":plan,"completedCount":.number(0)])),let step=try? JSONDecoder().decode(RepairStep.self,from:Data(raw.json.utf8)),let artifact=try? app.focusedPhonicsDeck(repair:step){state.storeRepairArtifact(unavailable == "malformed" ? artifact.setting("cards",.array([.null])):artifact,step:step,mode:"phonics")}
             state.questPlans=[state.target:.init(day:day,kinds:["repair","review"])]
         }
-        if ProcessInfo.processInfo.environment["PIYALI_FOCUSED_PHONICS_TRIAL"] == "1" {state.subscriptionXPAdjustment=scenario == "goal" ? 297:295}
+        if ProcessInfo.processInfo.environment["PIYALI_FOCUSED_PHONICS_TRIAL"] == "1" {state.subscriptionXPAdjustment=TutorVoiceFixture.focusedRecovery ? (scenario == "goal" ? 279:299):(scenario == "goal" ? 297:295)}
         state.questProgress=state.plateProgress.setting("dailyQuestFirstSeen",.bool(true)).setting("dailyQuestFirstDayKey",.string(yesterday));state.pendingGoalChanges=[];state.pendingCompanionQuestDays=[:];state.pendingMemoryChanges=[];app.learner=state;UserDefaults.standard.set(true,forKey:key)
         #endif
     }

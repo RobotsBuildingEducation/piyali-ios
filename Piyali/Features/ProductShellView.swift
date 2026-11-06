@@ -136,6 +136,7 @@ struct ProductShellView:View {
                 if let guided=practice.guided,!guided.matches(account:app.identity.npub,target:app.learner.target,day:CalendarDay.key(now)){specialCourse=nil}
                 configurePractice()
                 practice.bind(app)
+                restorePendingFocusedTutor()
                 presentPendingLessonCompletion()
             }
     }
@@ -144,6 +145,7 @@ struct ProductShellView:View {
             .onChange(of:app.flashcardSession?.id){_,id in if id == nil {presentPendingLessonCompletion();updatePracticePresentation()}}
             .onChange(of:app.goalCheck?.id){_,value in if value == nil {presentPendingLessonCompletion();updatePracticePresentation()}}
             .onChange(of:app.goalCourseScope,goalScopeChanged)
+            .onChange(of:app.subscription.hasAccess){_,allowed in if !allowed{restorePendingFocusedTutor()}}
             .onDisappear{cancelPracticeLaunch();practice.unbind();practiceSounds.stop()}
             .onChange(of:app.readyGoal?["modeProgress"]){_,_ in if let check=app.goalCheck,let daily=app.readyGoal,let next=GoalPractice.nextMode(daily),next != check.blueprint["mode"].string {app.goalCheck=nil}}
             .onChange(of:goalOpen){_,open in if !open {presentPendingLessonCompletion();updatePracticePresentation()}}
@@ -237,6 +239,7 @@ struct ProductShellView:View {
         case .goal: DailyGoalManagerView(onClose:{self.panel=nil})
         }
     }
+    private func restorePendingFocusedTutor(){if specialCourse == nil,let course=app.pendingFocusedTutorCourse{specialCourse=course;mode = .tutor;revision=UUID()}}
     private func switchMode(_ value:ProductMode) { cancelPracticeLaunch();practice.cancel(app);specialCourse=nil;mode=value;menuOpen=false;revision=UUID() }
     private func configurePractice(){
                 practice.onNavigate={openPlateCourse($0)}

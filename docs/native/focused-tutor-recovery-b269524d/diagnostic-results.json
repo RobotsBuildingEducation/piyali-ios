@@ -1,0 +1,90 @@
+[
+  {
+    "bundle": "/tmp/PiyaliFocusedTutorRestoreBaseline20261106.xcresult",
+    "result": "Failed",
+    "totalTests": 1,
+    "passedTests": 0,
+    "failedTests": 1,
+    "skippedTests": 0,
+    "wallSeconds": 50.976,
+    "failingTests": [
+      "testEarnedFocusedTutorFinishRestoresFromPrivateAccountFileWhileFinalWorthIsPendingAtTrialBoundary()"
+    ]
+  },
+  {
+    "bundle": "/tmp/PiyaliFocusedTutorRestoreFirstFix20261106.xcresult",
+    "result": "Failed",
+    "totalTests": 7,
+    "passedTests": 6,
+    "failedTests": 1,
+    "skippedTests": 0,
+    "wallSeconds": 152.642,
+    "failingTests": [
+      "testPhonicsFallbackTutorKeepsOriginalModeAndOnlyRoutesAfterEarnedCompletionAcknowledges()"
+    ]
+  },
+  {
+    "bundle": "/tmp/PiyaliFocusedTutorRecoveryContracts20261106.xcresult",
+    "result": "Failed",
+    "totalTests": 4,
+    "passedTests": 3,
+    "failedTests": 1,
+    "skippedTests": 0,
+    "wallSeconds": 106.399,
+    "failingTests": [
+      "testFocusedTutorCompletionLostResponseRestoresPrivateReceiptAndBanksGoalOrRepairOnceBeyondTrial()"
+    ]
+  },
+  {
+    "bundle": "/tmp/PiyaliFocusedTutorRecoveryRoute20261106.xcresult",
+    "result": "Failed",
+    "totalTests": 3,
+    "passedTests": 1,
+    "failedTests": 2,
+    "skippedTests": 0,
+    "wallSeconds": 261.129,
+    "failingTests": [
+      "testGoalPhonicsFallbackEarnedTutorRestoresPendingWorthAndSaveRetryBeyondTrial()",
+      "testRepairPhonicsFallbackEarnedTutorRestoresPendingWorthAndSaveRetryBeyondTrial()"
+    ]
+  },
+  {
+    "bundle": "/tmp/PiyaliFocusedTutorRecoveryStartup20261106.xcresult",
+    "result": "Failed",
+    "totalTests": 2,
+    "passedTests": 0,
+    "failedTests": 2,
+    "skippedTests": 0,
+    "wallSeconds": 259.963,
+    "failingTests": [
+      "testGoalPhonicsFallbackEarnedTutorRestoresPendingWorthAndSaveRetryBeyondTrial()",
+      "testRepairPhonicsFallbackEarnedTutorRestoresPendingWorthAndSaveRetryBeyondTrial()"
+    ]
+  },
+  {
+    "bundle": "/tmp/PiyaliFocusedTutorRecoveryDiagnostic20261106.xcresult",
+    "result": "Failed",
+    "totalTests": 1,
+    "passedTests": 0,
+    "failedTests": 1,
+    "skippedTests": 0,
+    "wallSeconds": 260.32,
+    "failingTests": [
+      "testGoalPhonicsFallbackEarnedTutorRestoresPendingWorthAndSaveRetryBeyondTrial()"
+    ]
+  },
+  {
+    "bundle": "/tmp/PiyaliFocusedTutorRecoveryVerified20261106.xcresult",
+    "result": "Failed",
+    "totalTests": 28,
+    "passedTests": 25,
+    "failedTests": 3,
+    "skippedTests": 0,
+    "wallSeconds": 490.484,
+    "failingTests": [
+      "testEarnedRecoveryAccessDoesNotGenerateANewCompanionPlanBeyondTrial()",
+      "testReturningQuestBuildsOnceRestoresAndCompletesSavedStepsWithoutBonusXP()",
+      "testRepairPhonicsFallbackEarnedTutorRestoresPendingWorthAndSaveRetryBeyondTrial()"
+    ]
+  }
+]

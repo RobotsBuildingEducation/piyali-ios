@@ -4,14 +4,15 @@ import XCTest
     private func element(_ id:String,_ app:XCUIApplication)->XCUIElement{app.descendants(matching:.any).matching(identifier:id).firstMatch}
     private func tap(_ id:String,_ app:XCUIApplication){let e=element(id,app);XCTAssertTrue(e.waitForExistence(timeout:15),id);XCTAssertEqual(XCTWaiter.wait(for:[XCTNSPredicateExpectation(predicate:NSPredicate(format:"enabled == true"),object:e)],timeout:15),.completed,id);for _ in 0..<6 where !e.isHittable{app.swipeUp(velocity:.slow)};XCTAssertTrue(e.isHittable,id);e.tap()}
     private func shot(_ name:String,_ app:XCUIApplication){let a=XCTAttachment(screenshot:app.screenshot());a.name=name;a.lifetime = .keepAlways;add(a)}
-    private func start(_ scenario:String,trial:Bool=false,fresh:Bool=false,deferred:Bool=false,unavailable:String="")->XCUIApplication {
+    private func start(_ scenario:String,trial:Bool=false,fresh:Bool=false,deferred:Bool=false,unavailable:String="",recovery:Bool=false)->XCUIApplication {
         let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_FOCUSED_PHONICS_FIXTURE":scenario,"PIYALI_FOCUSED_PHONICS_COMPLETION_OFFLINE":scenario == "repair" ? "1":"0","PIYALI_PHONICS_FIXTURE":"1","PIYALI_MEMORY_CAPTURE_ONLY":"1","PIYALI_HEADLINE_FIXTURE":"failure","PIYALI_PRACTICE_FIXTURE":"standard:fill","PIYALI_PRACTICE_JUDGE_FIXTURE":"offered-reference"]
         if fresh{app.launchEnvironment["PIYALI_FOCUSED_PHONICS_FRESH"]="1";app.launchEnvironment["PIYALI_FOCUSED_PHONICS_PREPARATION_OFFLINE"]="1";app.launchEnvironment["PIYALI_FOCUSED_PHONICS_COMPLETION_OFFLINE"]="0"}
         if trial{app.launchEnvironment["PIYALI_FOCUSED_PHONICS_TRIAL"]="1";app.launchEnvironment["PIYALI_FOCUSED_PHONICS_COMPLETION_OFFLINE"]="0";app.launchEnvironment["PIYALI_FOCUSED_PHONICS_FAIL_COMPLETION_ONCE"]="1"}
         if deferred{app.launchEnvironment["PIYALI_FOCUSED_PHONICS_SAVE_OFFLINE_AT_TRIAL"]="1";app.launchEnvironment["PIYALI_FOCUSED_PHONICS_FAIL_COMPLETION_ONCE"]="0"}
         if !unavailable.isEmpty{app.launchEnvironment["PIYALI_FOCUSED_PHONICS_UNAVAILABLE"]=unavailable;app.launchEnvironment["PIYALI_TUTOR_FIXTURE"]="1";app.launchEnvironment["PIYALI_FOCUSED_PHONICS_COMPLETION_OFFLINE"]="0"}
+        if recovery{app.launchEnvironment["PIYALI_FOCUSED_TUTOR_RECOVERY_FIXTURE"]="1";app.launchEnvironment["PIYALI_TUTOR_WORTH_DELAY_MS"]="120000";app.launchEnvironment["PIYALI_FOCUSED_PHONICS_SAVE_OFFLINE_AT_TRIAL"]="1";app.launchEnvironment["PIYALI_FOCUSED_PHONICS_FAIL_COMPLETION_ONCE"]="0"}
         app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"];app.launch();handleInitialPaperPencil(app)
-        let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Focused Phonics Learner");tap("entryKeyboardDone",app);tap("createAccount",app);handleInitialPaperPencil(app);chooseEnglishSpanishOnboarding(app);tap("startLearning",app);tap("companionContinue",app);acknowledgePaperPencil(app);tap("gettingStartedGotIt",app);chooseA1Placement(app);tap("startDailyPractice",app);XCTAssertTrue(app.buttons[unavailable.isEmpty ? "phonicsPrimary":"tutorStart"].waitForExistence(timeout:15));return app
+        let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText(recovery ? (scenario == "goal" ? "Goal Tutor Recovery Learner":"Repair Tutor Recovery Learner"):"Focused Phonics Learner");tap("entryKeyboardDone",app);tap("createAccount",app);handleInitialPaperPencil(app);chooseEnglishSpanishOnboarding(app);tap("startLearning",app);tap("companionContinue",app);acknowledgePaperPencil(app);tap("gettingStartedGotIt",app);chooseA1Placement(app);tap("startDailyPractice",app);XCTAssertTrue(app.buttons[unavailable.isEmpty ? "phonicsPrimary":"tutorStart"].waitForExistence(timeout:15));return app
     }
     func testGoalPhonicsLoadFailureOffersTheSameTutorThenReopensWithoutAutoConnecting(){unavailableJourney("goal")}
     func testRepairPhonicsLoadFailureOffersTheSameTutorThenReopensWithoutAutoConnecting(){unavailableJourney("repair")}
@@ -83,5 +84,19 @@ extension FocusedPhonicsJourneyTests {
         correct(app,firstCapture:false);XCTAssertTrue(element("phonicsFooterError",app).waitForExistence(timeout:15));shot("Native \(scenario) earned pronunciation pending before termination",app)
         app.terminate();app.launch();XCTAssertTrue(app.buttons["subscriptionNativeTools"].waitForExistence(timeout:15));XCTAssertFalse(app.buttons["phonicsPrimary"].exists);XCTAssertFalse(app.textFields["typedPracticeAnswer"].exists);shot("Native \(scenario) pending earned work stays gated while offline after relaunch",app)
         app.terminate();app.launchEnvironment["PIYALI_FOCUSED_PHONICS_SAVE_OFFLINE_AT_TRIAL"]="0";app.launch();XCTAssertTrue(app.buttons["subscriptionNativeTools"].waitForExistence(timeout:15));XCTAssertFalse(app.buttons["phonicsPrimary"].exists);XCTAssertFalse(app.textFields["typedPracticeAnswer"].exists);shot("Native \(scenario) earned work recovers online behind subscription after relaunch",app)
+    }
+}
+
+
+extension FocusedPhonicsJourneyTests {
+    func testGoalPhonicsFallbackEarnedTutorRestoresPendingWorthAndSaveRetryBeyondTrial(){focusedTutorRecovery("goal")}
+    func testRepairPhonicsFallbackEarnedTutorRestoresPendingWorthAndSaveRetryBeyondTrial(){focusedTutorRecovery("repair")}
+    private func focusedTutorRecovery(_ kind:String){
+        continueAfterFailure=false;let app=start(kind,trial:true,unavailable:"malformed",recovery:true);tap("tutorStart",app);let expected=kind == "goal" ? "100%":"42%",badge=element("tutorProgressBadge",app)
+        XCTAssertEqual(XCTWaiter.wait(for:[XCTNSPredicateExpectation(predicate:NSPredicate(format:"label == %@",expected),object:badge)],timeout:75),.completed);XCTAssertFalse(app.buttons["subscriptionNativeTools"].exists);shot("Native \(kind) focused Tutor earned completion waits for original worth",app)
+        app.terminate();app.launchEnvironment["PIYALI_TUTOR_WORTH_DELAY_MS"]="0";app.launch();handleInitialPaperPencil(app);XCTAssertTrue(app.buttons["tutorRetrySaving"].waitForExistence(timeout:20));XCTAssertEqual(element("tutorProgressBadge",app).label,expected);XCTAssertFalse(app.buttons["subscriptionNativeTools"].exists);XCTAssertFalse(app.buttons["tutorEnd"].exists);shot("Native \(kind) focused Tutor restores earned save Retry at trial end",app)
+        tap("tutorRetrySaving",app);XCTAssertTrue(app.buttons["tutorRetrySaving"].waitForExistence(timeout:15));XCTAssertEqual(element("tutorProgressBadge",app).label,expected)
+        app.terminate();app.launchEnvironment["PIYALI_FOCUSED_PHONICS_SAVE_OFFLINE_AT_TRIAL"]="0";app.launch();handleInitialPaperPencil(app);XCTAssertTrue(app.buttons["subscriptionNativeTools"].waitForExistence(timeout:20));XCTAssertFalse(app.buttons["tutorStart"].exists);XCTAssertFalse(app.textFields["typedPracticeAnswer"].exists);shot("Native \(kind) acknowledged focused Tutor finish blocks the next activity",app)
+        app.terminate();app.launch();handleInitialPaperPencil(app);XCTAssertTrue(app.buttons["subscriptionNativeTools"].waitForExistence(timeout:20));shot("Native \(kind) recovered focused finish stays gated after another relaunch",app)
     }
 }

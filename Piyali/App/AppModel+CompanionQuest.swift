@@ -35,7 +35,7 @@ extension AppModel {
             learner.storeQuestExplanation(.object(["questDayKey":.string(day),"targetLang":.string(target),"questKinds":.array(courses.map{.string($0.kind)}),"repairMemoryIds":learner.repairPlan(day:day)?["memoryIds"] ?? .array([]),"shortBubbleText":bubble["short"],"explanation":bubble["long"],"companionMood":.string(bubble["leadKind"].string == "fresh" ? "neutral":"focused"),"sourceMemorySummary":.string(summary),"createdAt":.number(now.timeIntervalSince1970*1000)]),target:target,day:day,now:now)
             persist()
         }
-        guard cleared || !learner.introductoryQuest(day:day) else{return}
+        guard subscription.hasAccess,cleared || !learner.introductoryQuest(day:day) else{return}
         let consumptionDay=cleared ? CalendarDay.shift(day,by:1):day
         let input:JSONValue = .object(["user":learner.companionQuestUser,"targetLang":.string(target),"dayKey":.string(consumptionDay),"now":.number(now.timeIntervalSince1970*1000)])
         guard (try? policy.run("stored",input))?["shouldRun"].boolean == true else{return}

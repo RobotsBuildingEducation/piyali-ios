@@ -1,0 +1,28 @@
+{
+  "qaDevice": "CE8248B6-7171-4FD4-97DE-89E499107F82",
+  "startedAt": 1793952362.5070856,
+  "kind": "goal",
+  "phase": "worth",
+  "scope": "Read-only counters of normal signup/setup \u2192 acknowledged public Phonics plan/cache failure \u2192 real focused Tutor inputs \u2192 held worth \u2192 actual termination \u2192 save Retry at trial \u2192 acknowledged completion. Source prerequisites and external I/O are public fixtures; no earned progress, answers or completion were seeded. No account key, private identity or full profile exported.",
+  "profile": {
+    "snapshotSHA256": "0506e65cf4be9c92e03ea106d87ba31c294f882e071e14bbbb2a024e8edd46f9",
+    "totalXP": 20,
+    "dailyXP": 25,
+    "gradedAttempts": 4,
+    "subscriptionXP": 299,
+    "pendingWorth": 1,
+    "focusedRuns": 1,
+    "pendingGoalAttempts": 0,
+    "pendingRepairCompletions": 0,
+    "goalPhonicsProgress": 0,
+    "repairCount": 0,
+    "speakCount": 0,
+    "ordinaryTutorRecords": 0,
+    "ordinaryPhonicsRecords": 0,
+    "repairMemoryReinforced": false,
+    "earnedFocusedXP": 25,
+    "requiredFocusedXP": 25,
+    "runHash": "4257395a32d0bb65b7de5e4127cb7b4069d1019562343211e573c5ba8ad361fa",
+    "completionReceiptHash": null
+  }
+}

@@ -973,3 +973,73 @@ extension TutorSessionTests {
         XCTAssertEqual(prompt,expected);XCTAssertTrue(prompt.contains(concept));XCTAssertEqual(note.text("concept").count,240);XCTAssertEqual(app.learner.pendingMemoryChanges?.first(where:{$0.action == .capture})?.captureConcept,concept);await app.memoryEnrichment.wait(note,app:app);await tutor.stop(app)
     }
 }
+
+
+extension TutorSessionTests {
+    func testEarnedFocusedTutorFinishRestoresFromPrivateAccountFileWhileFinalWorthIsPendingAtTrialBoundary()async throws {
+        for kind in ["goal","repair"] {
+            let cloud=TutorAcknowledgment(),app=try await app(progressService:cloud);var hold=kind == "repair",held:CheckedContinuation<JSONValue,Error>?,judges=0
+            let bp=kind == "goal" ? goal(app):nil,step=kind == "repair" ? repair(app):nil,focus:TutorFocus=try bp.map(TutorFocus.goal) ?? .repair(XCTUnwrap(step)),transport=TutorTransport()
+            var p=provider(.object(["successful":.bool(true),"confidence":.number(1),"repairAdvanced":.bool(true)]));p.quote={_,_,_ in if hold{return try await withCheckedThrowingContinuation{held=$0}};return .null};p.goal={_,_,_,_ in judges += 1;return GoalVerdict(success:true,support:"prompted",feedback:"Public goal feedback",observation:"Produced the family greeting")}
+            let session=await focused(app,transport,focus:focus,provider:p);if kind == "repair"{app.learner.subscriptionXPAdjustment=299};await session.start(app);transport.assistant("Give the requested greeting.",id:"initial-focused-question")
+            if kind == "goal" {for i in 0..<4{await session.input(input("Public greeting \(i)"),app:app)};await app.sync();XCTAssertEqual(session.earnedXP(app),20);app.learner.subscriptionXPAdjustment=279;hold=true;transport.assistant("Give the final greeting.",id:"final-focused-question")}
+            for _ in 0..<200 where held == nil{await Task.yield()};XCTAssertNotNil(held,kind)
+            let work=Task{await session.input(input("Hola"),app:app)};for _ in 0..<300 where !session.completionPending || app.learner.pendingTutorOutcomes?.isEmpty != false{await Task.yield()}
+            XCTAssertTrue(session.completionPending,kind);XCTAssertEqual(app.learner.pendingTutorOutcomes?.count,1,kind);XCTAssertTrue(app.subscription.hasAccess,kind);let earned=session.earnedXP(app),outcomes=Set((app.learner.pendingTutorOutcomes ?? []).map(\.id)),key=app.identity.exportKey();app.persist();app.signOut()
+            let restored=AppModel(progressService:cloud);defer{restored.signOut()};await restored.signIn(nsec:key);await restored.boot();await restored.tutorOutcomes.wait(outcomes,app:restored);await restored.sync()
+            XCTAssertFalse(restored.subscription.hasAccess,kind);XCTAssertEqual(restored.learner.totalXP,kind == "goal" ? 25:17,kind);XCTAssertEqual(restored.learner.dailyXP,kind == "goal" ? 25:17,kind);XCTAssertEqual(restored.learner.gradedByLanguage?["es"],kind == "goal" ? 5:1,kind);XCTAssertTrue(restored.learner.tutorLessons?.isEmpty ?? true,kind);XCTAssertEqual(restored.learner.plateProgress["speakDailyActivity"]["es"][CalendarDay.key(Date())].number,0,kind)
+            if kind == "goal" {XCTAssertEqual(earned,25);XCTAssertEqual(restored.readyGoal?["modeProgress"]["tutor"].number,25);XCTAssertEqual(restored.readyGoal.flatMap(GoalPractice.nextMode),"flashcards");XCTAssertEqual(judges,5)}
+            else {XCTAssertEqual(earned,5);XCTAssertEqual(restored.learner.plateProgress["repairDailyActivity"]["es"][try XCTUnwrap(step).day].number,1);XCTAssertEqual(restored.learner.companionMemory?["es"]?.first?.text("status"),"reinforced")}
+            held?.resume(returning:.null);held=nil;await work.value;await restored.sync();XCTAssertEqual(restored.learner.totalXP,kind == "goal" ? 25:17,kind)
+        }
+    }
+}
+
+
+extension TutorSessionTests {
+    func testPartialFocusedGoalRestoresDisconnectedWithoutInventingCompletionOrSpeech()async throws {
+        let cloud=TutorAcknowledgment(),app=try await app(progressService:cloud),bp=goal(app),transport=TutorTransport();var checks=0,p=provider();p.goal={_,_,_,_ in checks += 1;return .init(success:true,support:"prompted",feedback:"Public feedback",observation:"Produced a greeting")}
+        let session=await focused(app,transport,focus:.goal(bp),provider:p);await session.start(app);transport.assistant("Greet a relative.");for i in 0..<2{await session.input(input("Public greeting \(i)"),app:app)};XCTAssertEqual(session.earnedXP(app),10);await session.stop(app);app.persist();let key=app.identity.exportKey();app.signOut()
+        let recovered=AppModel(progressService:cloud);defer{recovered.signOut()};await recovered.signIn(nsec:key);await recovered.boot();let freshTransport=TutorTransport(),fresh=await focused(recovered,freshTransport,focus:.goal(bp),provider:p)
+        XCTAssertEqual(fresh.earnedXP(recovered),10);XCTAssertFalse(fresh.completionPending);XCTAssertFalse(fresh.live.connected);XCTAssertTrue(fresh.messages.isEmpty);XCTAssertEqual(checks,2);XCTAssertEqual(recovered.learner.totalXP,10);XCTAssertEqual(recovered.readyGoal?["modeProgress"]["tutor"].number,0);XCTAssertEqual(recovered.learner.focusedTutorRuns?.count,1)
+        await fresh.start(recovered);freshTransport.assistant("Continue with a fresh family greeting.");await fresh.input(input("A fresh greeting"),app:recovered);XCTAssertEqual(fresh.earnedXP(recovered),15);XCTAssertEqual(recovered.learner.totalXP,15);XCTAssertEqual(checks,3);XCTAssertEqual(recovered.readyGoal?["modeProgress"]["tutor"].number,0);await fresh.stop(recovered)
+    }
+}
+
+extension TutorSessionTests {
+    func testFocusedRecoveryCannotBypassTrialOrBankForAnotherAccountLanguageGoalOrDay()async throws {
+        let app=try await app();defer{app.signOut()};let bp=goal(app),session=await focused(app,TutorTransport(),focus:.goal(bp),provider:provider())
+        app.learner.subscriptionXPAdjustment=300
+        var run=try XCTUnwrap(FocusedTutorRun(account:app.identity.npub,target:"es",support:"en",goal:bp,repair:nil,lesson:session.lesson,required:25))
+        run.earnedXP=20;app.learner.storeFocusedTutorRun(run)
+        XCTAssertFalse(app.subscription.hasAccess);XCTAssertFalse(app.preservingEarnedPractice);XCTAssertNil(app.pendingFocusedTutorCourse)
+        run.earnedXP=25;run.ready=true;app.learner.storeFocusedTutorRun(run);let original=app.learner
+        XCTAssertTrue(app.preservingEarnedPractice);XCTAssertEqual(app.pendingFocusedTutorCourse,"goal")
+        for mismatch in ["account","target","support","goal","day"] {
+            app.learner=original
+            switch mismatch {
+            case "target":app.learner.target="fr"
+            case "support":app.learner.support="ar"
+            case "goal":app.learner.goalIntelligence?["es"]=app.learner.goalBucket.setting("activeGoal",app.learner.goalBucket["activeGoal"].setting("id",.string("replacement-goal")))
+            default:
+                let candidate=try XCTUnwrap(FocusedTutorRun(account:mismatch == "account" ? "public-other-account":app.identity.npub,target:"es",support:"en",goal:mismatch == "day" ? bp.setting("dayKey",.string(CalendarDay.shift(CalendarDay.key(Date()),by:-1))):bp,repair:nil,lesson:session.lesson,required:25))
+                var stale=candidate;stale.ready=true;stale.earnedXP=25;app.learner.focusedTutorRuns=[run.key:stale]
+            }
+            XCTAssertFalse(app.preservingEarnedPractice,mismatch);XCTAssertNil(app.pendingFocusedTutorCourse,mismatch);let finished=await app.finishFocusedTutor(run.key);XCTAssertFalse(finished,mismatch)
+            XCTAssertEqual(app.learner.totalXP,0,mismatch);XCTAssertTrue(app.learner.pendingGoalChanges?.isEmpty ?? true,mismatch);XCTAssertFalse(session.live.connected,mismatch)
+        }
+    }
+}
+
+extension TutorSessionTests {
+    func testRestoredRepairTutorKeepsItsEarnedLessonWhileRawCompletionWaitsForAcknowledgment()async throws {
+        let cloud=TutorAcknowledgment();cloud.fails=true;let app=try await app(progressService:cloud);defer{app.signOut()};let step=repair(app),transport=TutorTransport(),p=provider(.object(["successful":.bool(true),"confidence":.number(1),"repairAdvanced":.bool(true)]))
+        let original=await focused(app,transport,focus:.repair(step),provider:p);await original.start(app);transport.assistant("Greet a relative.");await original.input(input("Hola"),app:app)
+        XCTAssertEqual(app.learner.plateProgress["repairDailyActivity"]["es"][step.day].number,1);XCTAssertFalse(app.learner.repairStepIsCurrent(step));XCTAssertEqual(app.currentRepairStep?.index,0)
+        let receipt=try XCTUnwrap(app.learner.focusedTutorRuns?.values.first?.completionID);await original.stop(app)
+        let restored=await focused(app,TutorTransport(),focus:.repair(step),provider:p)
+        XCTAssertEqual(restored.id,original.id);XCTAssertEqual(restored.earnedXP(app),5);XCTAssertEqual(restored.required,12);XCTAssertTrue(restored.completionPending);XCTAssertNotNil(restored.error);XCTAssertFalse(restored.live.connected);XCTAssertEqual(app.learner.focusedTutorRuns?.values.first?.completionID,receipt);XCTAssertEqual(app.learner.totalXP,17)
+        cloud.fails=false;await restored.complete(app,ready:true)
+        XCTAssertTrue(restored.focusedFinished);XCTAssertEqual(app.learner.totalXP,17);XCTAssertEqual(app.learner.gradedByLanguage?["es"],1);XCTAssertTrue(app.learner.focusedTutorRuns?.isEmpty == true);XCTAssertNil(app.currentRepairStep)
+    }
+}

@@ -1,0 +1,43 @@
+{
+  "nativeBase": "574929b904ae95ed8df05588ea382fcbb3452d99",
+  "nativeFiles": {
+    "Piyali.xcodeproj/project.pbxproj": "6530a4456ade1d0e5bae1526df0b7033c01468f2a5e6d7e5b87efd76d67a820a",
+    "Piyali/App/AppModel+CompanionQuest.swift": "83f862c9866736c506ba6d2ab23a2f94451da3850bfa34fcda7dee47e775d071",
+    "Piyali/App/AppModel+FocusedTutorRecovery.swift": "111afac32af5c413d2ee3701d590d69f39db14ff268ccfa64f0d37e60e486bfa",
+    "Piyali/App/AppModel.swift": "3e129b8961f9a2073fa07875781095cddd2769b2fde7cdef8386ec23d2d818c3",
+    "Piyali/App/FocusedPhonicsFixture.swift": "5dd9d098610ba050d48ef501198a7e48472880137523417a210d6cdfef2ab9f2",
+    "Piyali/Core/FocusedTutorRun.swift": "30504837287050a0db172d61ddd10bbf9064ced87a3fa9904c01a80f16b9498f",
+    "Piyali/Core/Models.swift": "8ff3852084edac1b4e868fe6b94727e815f4f58de253e2902639c10ed0760e21",
+    "Piyali/Features/FocusedGoalCourseView.swift": "37aa4833e8ea8505e888de164c8eac06e77e2a79b117885f0696929458df10b2",
+    "Piyali/Features/FocusedLearningViews.swift": "a46b3f6ffaaa5256279cb09fcfd0e352e051d67473d73604a40cdf8b30eb862e",
+    "Piyali/Features/ProductShellView.swift": "a85f3d193621e960cac75395de632a4e9f61bad6767cbccdd361928b872885ed",
+    "Piyali/Features/SourceTutorView.swift": "3c8606f4deafe6ea6612f843b10ada5904daafedee9bc269fefb16873a5c0243",
+    "Piyali/Services/FirebaseService.swift": "fda1e5ea739146ae0e79d205d4edf0abc397c6146e061f88c21ea5f30f2c9394",
+    "Piyali/Services/TutorSessionController.swift": "0b13ed57463068218dcd686a4033f2f46eef01f32ee020a02392820869776244",
+    "Piyali/Services/TutorVoiceFixture.swift": "7c683ea48f1eea9720f63801a01dea2c7a5f9fbd892bef8a08ae03e0cffaacdf",
+    "Tests/PiyaliAppTests/CompanionQuestFlowTests.swift": "e9e9fd21adc4020e3ab35abde1523d17d977a85434dceda62cb66d32fc812a67",
+    "Tests/PiyaliAppTests/FirestoreContractTests.swift": "8521e240891c138398b93e9fe950a841361008c40a3254ead175970673bb8976",
+    "Tests/PiyaliAppTests/TutorSessionTests.swift": "b362df315680f6f34c446ad5a932d272049b95403bd527eaa0ff97851fe63ed3",
+    "Tests/PiyaliCoreTests/TutorOutcomeIntentTests.swift": "cd7f5ee35049aee68890eb74783951660bfe6ada3639709888ffb49027a097ee",
+    "Tests/PiyaliUITests/FocusedPhonicsJourneyTests.swift": "a11fb4d4f07e6e9c0b923913002ed366fd14409014cc749dbae2fc4674052755",
+    "scripts/audit-focused-tutor-recovery-qa.py": "dac8dce0b204a12142603a6dcd6da2c61ea5b73bcbe5e70a9d04a65e3f0aedc0",
+    "scripts/check-focused-tutor-completion.mjs": "c177252ae021ffdd13e244d3febf12ce684cf6ac1c459c2e3bb45e8b7827568c"
+  },
+  "readOnlySourceFiles": {
+    "src/components/Tutor.jsx": "bbe9dea6279119ecef32cb69a66a8fb40763642ca05717690dec789a72e088c3",
+    "src/App.jsx": "9e6447368ce10a647025f76daf1b730fb20073590c586f8a3bed8a6d4f2ab948"
+  },
+  "tutorSourceCases": 1215,
+  "installedBinary": {
+    "Piyali": {
+      "builtSHA256": "f2063f8137519de2473caed84d5d6f3b41c928bbd3acacb9f813302cc6751648",
+      "qaInstalledSHA256": "f2063f8137519de2473caed84d5d6f3b41c928bbd3acacb9f813302cc6751648",
+      "match": true
+    },
+    "Piyali.debug.dylib": {
+      "builtSHA256": "65896e656f9f31db497c99e78f2dd41afbad3cfd81e8055c0fa584f94f088fce",
+      "qaInstalledSHA256": "65896e656f9f31db497c99e78f2dd41afbad3cfd81e8055c0fa584f94f088fce",
+      "match": true
+    }
+  }
+}

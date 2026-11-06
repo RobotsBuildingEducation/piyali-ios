@@ -13,7 +13,7 @@ struct FocusedGoalCourseView:View {
     @State private var phonicsFinishing=false
     @State private var unavailablePhonicsScope:String?
     private var next:String? {app.readyGoal.flatMap(GoalPractice.nextMode)}
-    private var preserveEarnedWork:Bool {if tutorFinishing || phonicsFinishing{return true};guard let routed,routed["mode"].string == "lesson",let lesson=try? app.sourceGoalLesson(routed) else{return false};return app.preserveEarnedGoalLesson(lesson)}
+    private var preserveEarnedWork:Bool {if tutorFinishing || phonicsFinishing || app.hasPendingFocusedTutorCompletion{return true};guard let routed,routed["mode"].string == "lesson",let lesson=try? app.sourceGoalLesson(routed) else{return false};return app.preserveEarnedGoalLesson(lesson)}
     var body:some View {
         SubscriptionRequiredView(service:app.subscription,preserveEarnedWork:preserveEarnedWork){content}
             .task(id:app.goalPreparationKey+request.uuidString){await prepare()}
@@ -29,7 +29,7 @@ struct FocusedGoalCourseView:View {
         switch blueprint["mode"].string {
         case "lesson":if let lesson=try? app.sourceGoalLesson(blueprint){LessonView(lesson:lesson)}
         case "flashcards":FlashcardsView(goalBlueprint:blueprint)
-        case "phonics":if app.authoredGoalPhonics(blueprint).isEmpty || unavailablePhonicsScope == phonicsScope(blueprint) {focusedTutor(blueprint)}else{PhonicsView(goalBlueprint:blueprint,controller:phonicsControllerFactory?(blueprint),onEarnedWorkChanged:{phonicsFinishing=$0},onFocusedPracticeUnavailable:{phonicsUnavailable(blueprint)})}
+        case "phonics":if app.focusedTutorRun(.goal(blueprint)) != nil || app.authoredGoalPhonics(blueprint).isEmpty || unavailablePhonicsScope == phonicsScope(blueprint) {focusedTutor(blueprint)}else{PhonicsView(goalBlueprint:blueprint,controller:phonicsControllerFactory?(blueprint),onEarnedWorkChanged:{phonicsFinishing=$0},onFocusedPracticeUnavailable:{phonicsUnavailable(blueprint)})}
         default:focusedTutor(blueprint)
         }
     }
@@ -49,6 +49,6 @@ struct FocusedGoalCourseView:View {
         let blueprint=daily["blueprint"].setting("mode",.string(mode))
         guard routed != blueprint else{return}
         tutorFinishing=false;phonicsFinishing=false;routed=blueprint
-        onSurface(mode == "lesson" ? .path:mode == "flashcards" ? .cards:mode == "phonics" && !app.authoredGoalPhonics(blueprint).isEmpty ? .phonics:.tutor)
+        onSurface(mode == "lesson" ? .path:mode == "flashcards" ? .cards:mode == "phonics" && app.focusedTutorRun(.goal(blueprint)) == nil && !app.authoredGoalPhonics(blueprint).isEmpty ? .phonics:.tutor)
     }
 }

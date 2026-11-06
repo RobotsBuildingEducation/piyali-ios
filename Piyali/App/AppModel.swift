@@ -108,15 +108,16 @@ import SwiftUI
     }
 
     @Published private var earnedPracticeOwners:[UUID:String]=[:]
-    var preservingEarnedPractice:Bool {earnedPracticeOwners.values.contains([identity.npub,learner.target,CalendarDay.key(Date())].joined(separator:":"))}
+    var preservingEarnedPractice:Bool {hasPendingFocusedTutorCompletion || earnedPracticeOwners.values.contains([identity.npub,learner.target,CalendarDay.key(Date())].joined(separator:":"))}
     func retainEarnedPractice(owner:UUID,active:Bool,account:String,target:String,day:String) {
         let value=active && !account.isEmpty ? [account,target,day].joined(separator:":"):nil
         guard earnedPracticeOwners[owner] != value else{return}
         earnedPracticeOwners[owner]=value;notifyPracticeObservers()
     }
     func releaseEarnedPractice(owner:UUID){guard earnedPracticeOwners.removeValue(forKey:owner) != nil else{return};notifyPracticeObservers()}
-    func hasEarnedPractice(excluding owner:UUID)->Bool {let scope=[identity.npub,learner.target,CalendarDay.key(Date())].joined(separator:":");return earnedPracticeOwners.contains{$0.key != owner && $0.value == scope}}
+    func hasEarnedPractice(excluding owner:UUID)->Bool {let scope=[identity.npub,learner.target,CalendarDay.key(Date())].joined(separator:":");return hasPendingFocusedTutorCompletion || earnedPracticeOwners.contains{$0.key != owner && $0.value == scope}}
     var phonicsFinishTasks:[String:(id:UUID,task:Task<Void,Error>)]=[:]
+    var focusedTutorFinishTasks:[String:(id:UUID,task:Task<Bool,Never>)]=[:]
     var phonicsRecoveryTask:(id:UUID,task:Task<Void,Never>)?
     @Published var lessonActivityActive=false
     @Published var activityFooter:ActivityFooterPresentation?
@@ -305,7 +306,7 @@ import SwiftUI
         } catch { self.error = error.localizedDescription;resumeAchievementSync() }
     }
     private func activateIdentity(newProfile:(name:String,support:String)? = nil) async {
-        memoryEnrichment.cancel()
+        memoryEnrichment.cancel();cancelFocusedTutorRecovery()
         cancelPhonicsRecovery()
         upcomingGameReviews.cancel()
         automaticTipTask?.task.cancel();automaticTipTask=nil;automaticWallet.cancel(clear:true)
@@ -338,7 +339,7 @@ import SwiftUI
     func disconnectRemote() {
         upcomingGameReviews.cancel();flushGoalEditor();goalCheck=nil
         do {
-            try writeLocal();memoryEnrichment.cancel();cancelPhonicsRecovery();automaticProgress.reset();automaticTipTask?.task.cancel();automaticTipTask=nil;automaticWallet.cancel(clear:true);saveTask?.cancel();contentTask?.cancel();achievementRetries.pause();nostrAchievements.cancel();teams.cancel(clear:true);teamFeed.cancel(clear:true)
+            try writeLocal();memoryEnrichment.cancel();cancelFocusedTutorRecovery();cancelPhonicsRecovery();automaticProgress.reset();automaticTipTask?.task.cancel();automaticTipTask=nil;automaticWallet.cancel(clear:true);saveTask?.cancel();contentTask?.cancel();achievementRetries.pause();nostrAchievements.cancel();teams.cancel(clear:true);teamFeed.cancel(clear:true)
             journeyRecording?.controller.close();journeyRecording=nil;try identity.disconnect();FirebaseIdentityService.shared.clearSession();signedIn=false;lessonActivityActive=false;activityFooter=nil;pendingLessonCompletion=nil;scholarship=ScholarshipPrompt();tutorPath=nil;subscription.bind(identity);learner=LearnerState()
         } catch { self.error=error.localizedDescription }
     }
@@ -460,8 +461,9 @@ import SwiftUI
             if !Task.isCancelled { self?.loadingContent = false }
         }
         contentTask = task; await task.value
-        tutorOutcomes.resume(self);resumeMemoryEnrichments()
+        tutorOutcomes.resume(self);resumeMemoryEnrichments();Task{[weak self] in await self?.resumeFocusedTutorFinishes()}
     }
+    func persistPrivateTutorRun()throws {try writeLocal()}
     func persistPhonicsRecovery(){do{try writeLocal();syncStatus=synchronizedStatus}catch{self.error="Could not save progress: \(error.localizedDescription)"}}
     private func writeLocal() throws {do{try JSONEncoder().encode(learner).write(to:localURL,options:[.atomic,.completeFileProtection]);if localStorageUnavailable{localStorageUnavailable=false}}catch{if !localStorageUnavailable{localStorageUnavailable=true};throw error}}
     func acknowledgeFirstRun(_ acknowledgment:FirstRunAcknowledgment){
@@ -523,7 +525,7 @@ import SwiftUI
         if !(learner.pendingPhonicsFinishes ?? [:]).isEmpty{Task{[weak self] in await self?.resumePendingPhonicsFinishes()}}
         if target != learner.target || support != learner.support || level != learner.level || cardLevel != learner.flashcardLevel || tutorLevel != learner.tutorLevel { Task { await reloadContent() } }
     }
-    func sync() async {tutorOutcomes.resume(self);resumeMemoryEnrichments();captureLegacyPhonicsFinishes();await syncProgress();await resumePendingPhonicsFinishes()}
+    func sync() async {tutorOutcomes.resume(self);resumeMemoryEnrichments();captureLegacyPhonicsFinishes();await syncProgress();await resumeFocusedTutorFinishes();await resumePendingPhonicsFinishes()}
     func syncProgress() async {
         guard signedIn else{return}
         let state = learner, npub = identity.npub,session=identity.sessionRevision
