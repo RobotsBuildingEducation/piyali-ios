@@ -9,7 +9,7 @@ struct TeamsPanelSnapshot:Equatable {
 @MainActor protocol TeamsPanelAccess:AnyObject {
     func load(_ app:AppModel)async throws->TeamsPanelSnapshot
     func loadStaged(_ app:AppModel,onRoster:@escaping @MainActor(TeamsPanelSnapshot)async->Void)async throws->TeamsPanelSnapshot
-    func create(name:String,members:[String],app:AppModel)async throws
+    func create(name:String,members:[String],app:AppModel)async throws->JSONValue
     func rename(_ team:JSONValue,name:String,app:AppModel)async throws->Bool
     func add(_ team:JSONValue,members:[String],app:AppModel)async throws->Bool
     func remove(_ team:JSONValue,app:AppModel)async throws
@@ -39,6 +39,7 @@ extension TeamsPanelAccess {
     let policy:TeamsPanelPolicy?
     private var privateTeams:[PrivateTeam]=[]
     private var mirroredInvites:[JSONValue]=[]
+    private var recentlyCreated:JSONValue?
     init(service:NostrTeamsService,mirror:TeamsMirrorService?=nil,legacy:PrivateTeamsService?=nil){self.service=service;self.mirror=mirror ?? TeamsMirrorService();self.legacy=legacy ?? PrivateTeamsService();policy=try? TeamsPanelPolicy()}
     private func publicTeam(_ value:JSONValue)throws->LearningTeam{guard let team=service.teams.first(where:{$0.teamID == value["id"].string && PublicKey(hex:$0.creator)?.npub == value["createdBy"].string}) else{throw AppError.message("This team is no longer available. Refresh teams.")};return team}
     private func privateTeam(_ value:JSONValue)throws->PrivateTeam{guard let team=privateTeams.first(where:{$0.teamID == value["id"].string && $0.creator == value["createdBy"].string}) else{throw PrivateTeams.Failure.missingTeam};return team}
@@ -63,6 +64,7 @@ extension TeamsPanelAccess {
         var records=merged["teams"].array,rows:[String:[JSONValue]]=[:]
         // Acknowledged relay-only groups remain visible while a refresh is unavailable.
         if service.error != nil{for team in service.teams{let input:JSONValue = .object(["nostrTeams":.array([publicRecord(team,viewer:owner)]),"userNpub":.string(owner)]);for value in try policy.run("reconcile",input)["teams"].array where !records.contains(where:{Self.key($0)==Self.key(value)}){records.append(value)}}}
+        if let created=recentlyCreated,created["createdBy"].string == owner,!records.contains(where:{Self.key($0)==Self.key(created)}){records.insert(created,at:0)}
         for record in records where record["isCreator"].boolean{rows[Self.key(record)]=[LearningTeams.progressRow(member:owner,data:LearningTeams.snapshot(app.learner),creator:true)]}
         let stage=TeamsPanelSnapshot(teams:records,invites:invites,rows:rows,loadingRows:Set(records.map(Self.key)),warning:warning ?? service.error ?? legacy.error)
         await onRoster(stage)
@@ -100,10 +102,17 @@ extension TeamsPanelAccess {
     }
 
     private func refreshPublicMembers(_ records:[JSONValue],app:AppModel)async{if records.contains(where:{$0["nostr"] != .null}){await service.refresh(identity:app.identity)}}
-    func create(name:String,members:[String],app:AppModel)async throws{
-        let owner=app.identity.npub,id=UUID().uuidString.replacingOccurrences(of:"-",with:"").lowercased()
+    func create(name:String,members:[String],app:AppModel)async throws->JSONValue{
+        let owner=app.identity.npub,session=app.identity.sessionRevision,id=UUID().uuidString.replacingOccurrences(of:"-",with:"").lowercased(),creatorName=app.learner.name
         try await service.create(name:name,members:members.joined(separator:","),identity:app.identity,id:id,reload:false)
-        do{guard app.identity.npub == owner else{throw CancellationError()};try await mirror.create(id:id,name:name,members:members,creatorName:app.learner.name,identity:app.identity)}catch{if app.identity.npub == owner,let team=service.teams.first(where:{$0.teamID == id}){try? await service.leave(team,identity:app.identity)};throw error}
+        guard let receipt=service.teams.first(where:{$0.teamID == id && $0.creator == app.identity.hex}) else{throw CancellationError()}
+        do{
+            guard app.identity.npub == owner,app.identity.sessionRevision == session else{throw CancellationError()}
+            try await mirror.create(id:id,name:name,members:members,creatorName:creatorName,identity:app.identity)
+            guard app.identity.npub == owner,app.identity.sessionRevision == session else{throw CancellationError()}
+        }catch{if app.identity.npub == owner,app.identity.sessionRevision == session{try? await service.leave(receipt,identity:app.identity)};throw error}
+        let record:JSONValue = .object(["id":.string(id),"teamName":.string(receipt.name),"creatorName":.string(creatorName),"createdBy":.string(owner),"isCreator":.bool(true),"members":.array(receipt.members.filter{$0 != receipt.creator}.compactMap{PublicKey(hex:$0)?.npub}.map{.object(["npub":.string($0),"status":.string("accepted"),"name":.string("")])}),"nostr":.object(["id":.string(id)])])
+        recentlyCreated=record;return record
     }
     func rename(_ team:JSONValue,name:String,app:AppModel)async throws->Bool{
         if team["nostr"] == .null{try await legacy.rename(privateTeam(team),name:name,identity:app.identity);return true}
@@ -116,6 +125,7 @@ extension TeamsPanelAccess {
     func remove(_ team:JSONValue,app:AppModel)async throws{
         if team["nostr"] == .null{try await legacy.leave(privateTeam(team),identity:app.identity);return}
         let value=try publicTeam(team);try await service.leave(value,identity:app.identity)
+        if recentlyCreated.map(Self.key) == Self.key(team){recentlyCreated=nil}
         if team["isCreator"].boolean{try await mirror.delete(id:value.teamID,identity:app.identity)}else{try await mirror.leave(creator:team["createdBy"].string,id:value.teamID,identity:app.identity)}
     }
     func respond(_ invite:JSONValue,accept:Bool,app:AppModel)async throws{if invite["nostr"] != .null{try await mirror.respond(invite,accept:accept,identity:app.identity)}else{try await legacy.respond(PrivateTeamInvite(id:invite["id"].string,data:invite),accept:accept,identity:app.identity)}}
@@ -143,11 +153,12 @@ extension TeamsPanelAccess {
     func publish(_ app:AppModel)async throws{try await service.publishProgress(app.learner,identity:app.identity,reload:false)}
     func cachedFeed(_ app:AppModel)->[CommunityPost]?{app.teamFeed.cachedPosts(account:app.identity.npub)}
     func feed(_ app:AppModel,force:Bool)async throws->[CommunityPost]{await app.teamFeed.refresh(account:app.identity.npub,force:force,failureAsEmpty:true);return app.teamFeed.posts}
-    func cancel(){mirror.stopWatching();mirror.stopWatchingInvitations();service.cancel();legacy.cancel()}
+    func cancel(){recentlyCreated=nil;mirror.stopWatching();mirror.stopWatchingInvitations();service.cancel();legacy.cancel()}
 }
 
 @MainActor final class TeamsPanelController:ObservableObject {
     @Published private(set) var snapshot=TeamsPanelSnapshot()
+    @Published private(set) var creationRevision=0
     @Published private(set) var posts:[CommunityPost]=[]
     @Published private(set) var loading=false
     @Published private(set) var working=false
@@ -163,6 +174,7 @@ extension TeamsPanelAccess {
     private var owner="",ownerSession:UUID?,shareKey="",watchKey=""
     private var reloading=false,hasInitialSnapshot=false,closed=false,refreshNeeded=false,watchingInvites=false
     private var inviteRevision=0,retainErrorOnWatch=false
+    private var justCreated:JSONValue?
     private var rosterRevision=0,rowRevision=0
     private var rosterPatches:[String:(revision:Int,value:JSONValue)]=[:],rowVersions:[String:Int]=[:]
     private var rowTasks:[String:Task<Void,Never>]=[:],rowTaskIDs:[String:UUID]=[:]
@@ -176,7 +188,7 @@ extension TeamsPanelAccess {
     }
     func reload(_ app:AppModel,preservingError:Bool=false)async {
         if reloading,owner == app.identity.npub,ownerSession == app.identity.sessionRevision{refreshNeeded=true;return}
-        bind(app);let token=epoch;reloading=true;loading = !preservingError && !hasInitialSnapshot;hasInitialSnapshot=false
+        bind(app);let token=epoch;reloading=true;loading = !preservingError && !hasInitialSnapshot && justCreated == nil;hasInitialSnapshot=false
         if !preservingError{error=nil}
         defer{if owned(app,token){reloading=false;loading=false;drainRefresh(app)}}
         installInvitations(app,token:token);let before=inviteRevision,beforeRoster=rosterRevision,beforeRows=rowRevision
@@ -185,7 +197,7 @@ extension TeamsPanelAccess {
         do{
             var value=try await access.loadStaged(app,onRoster:{[weak self,weak app] stage in
                 guard let self,let app,self.owned(app,token) else{return}
-                var stage=stage
+                var stage=stage;self.retainCreated(in:&stage,app:app)
                 if self.inviteRevision != before{stage.invites=self.snapshot.invites}
                 for index in stage.teams.indices{
                     let key=LiveTeamsPanelAccess.key(stage.teams[index])
@@ -198,6 +210,7 @@ extension TeamsPanelAccess {
                 await self.installRosterWatch(app,token:token)
                 guard self.owned(app,token) else{return};self.scheduleSharing(app)
             });guard owned(app,token) else{return}
+            retainCreated(in:&value,app:app)
             if inviteRevision != before{value.invites=snapshot.invites}
             for index in value.teams.indices{
                 let key=LiveTeamsPanelAccess.key(value.teams[index])
@@ -209,6 +222,19 @@ extension TeamsPanelAccess {
             guard owned(app,token) else{return};scheduleSharing(app)
         }catch{if owned(app,token),!(error is CancellationError),!preservingError || !retainErrorOnWatch{self.error=error.localizedDescription;retainErrorOnWatch=false;showError(error.localizedDescription,app:app)}}
     }
+    func didCreate(_ record:JSONValue,app:AppModel){
+        guard !closed,owner == app.identity.npub,ownerSession == app.identity.sessionRevision,record["createdBy"].string == owner,record["isCreator"].boolean,PrivateTeams.identifier(record["id"].string),record["nostr"]["id"].string == record["id"].string else{return}
+        creationRevision += 1;justCreated=record;let key=LiveTeamsPanelAccess.key(record)
+        if !snapshot.teams.contains(where:{LiveTeamsPanelAccess.key($0)==key}){snapshot.teams.insert(record,at:0)}
+        snapshot.rows[key]=[LearningTeams.progressRow(member:owner,data:LearningTeams.snapshot(app.learner),creator:true)];snapshot.loadingRows.insert(key);snapshot.failedRows.remove(key);loading=false
+        scheduleSharing(app)
+    }
+    private func retainCreated(in value:inout TeamsPanelSnapshot,app:AppModel){
+        guard let created=justCreated,!value.teams.contains(where:{LiveTeamsPanelAccess.key($0)==LiveTeamsPanelAccess.key(created)}) else{return}
+        let key=LiveTeamsPanelAccess.key(created);value.teams.insert(created,at:0);value.rows[key]=snapshot.rows[key] ?? [LearningTeams.progressRow(member:owner,data:LearningTeams.snapshot(app.learner),creator:true)]
+        if snapshot.loadingRows.contains(key){value.loadingRows.insert(key)}
+    }
+    func didRemove(_ team:JSONValue){if justCreated.map(LiveTeamsPanelAccess.key) == LiveTeamsPanelAccess.key(team){justCreated=nil}}
     private func mergeRoster(_ current:JSONValue,_ update:JSONValue)->JSONValue{
         guard LiveTeamsPanelAccess.key(current) == LiveTeamsPanelAccess.key(update),(current["nostr"] != .null) == (update["nostr"] != .null) else{return current}
         var next=current
@@ -266,12 +292,12 @@ extension TeamsPanelAccess {
             while owned(app,token),refreshNeeded,!working,!reloading{refreshNeeded=false;await reload(app,preservingError:true)}
         }
     }
-    func perform(_ app:AppModel,action:@escaping(TeamsPanelAccess)async throws->TeamsNotice?,errorTitle:String?=nil,onSuccess:@escaping()->Void={}){
+    func perform(_ app:AppModel,action:@escaping(TeamsPanelAccess)async throws->TeamsNotice?,errorTitle:String?=nil,onSuccess:@escaping()->Void={},refreshInBackground:Bool=false){
         guard !working,!closed else{return};if owner.isEmpty{bind(app)};let token=epoch;guard owned(app,token) else{return}
         working=true;error=nil
         work=Task{[weak self] in
             guard let self else{return};defer{if owned(app,token){working=false;work=nil;drainRefresh(app)}}
-            do{let message=try await action(access);guard owned(app,token) else{return};if let message{app.showTeamsNotice(message)};onSuccess();await reload(app)}
+            do{let message=try await action(access);guard owned(app,token) else{return};if let message{app.showTeamsNotice(message)};onSuccess();if refreshInBackground{working=false;refreshNeeded=true;drainRefresh(app)}else{await reload(app)}}
             catch{if owned(app,token),!(error is CancellationError){self.error=error.localizedDescription;showError(error.localizedDescription,app:app,title:errorTitle)}}
         }
     }
@@ -293,7 +319,7 @@ extension TeamsPanelAccess {
         defer{if owned(app,token){feedLoading=false;feedInFlight=false}}
         do{let values=try await access.feed(app,force:force);guard owned(app,token) else{return};posts=values}catch{if owned(app,token),!(error is CancellationError){feedError=error.localizedDescription}}
     }
-    func cancel(){epoch=UUID();closed=true;work?.cancel();sharing?.cancel();refresh?.cancel();invitationWatch?.cancel();work=nil;sharing=nil;refresh=nil;invitationWatch=nil;loading=false;working=false;feedLoading=false;feedInFlight=false;reloading=false;refreshNeeded=false;watchingInvites=false;inviteRevision=0;shareKey="";watchKey="";rowTasks.values.forEach{$0.cancel()};rowTasks=[:];rowTaskIDs=[:];rowNeeded=[];rowRequests=[:];rosterPatches=[:];rowVersions=[:];rowErrors=[:];rosterRevision=0;rowRevision=0;access.cancel()}
+    func cancel(){epoch=UUID();closed=true;work?.cancel();sharing?.cancel();refresh?.cancel();invitationWatch?.cancel();work=nil;sharing=nil;refresh=nil;invitationWatch=nil;loading=false;working=false;feedLoading=false;feedInFlight=false;reloading=false;refreshNeeded=false;watchingInvites=false;inviteRevision=0;shareKey="";watchKey="";rowTasks.values.forEach{$0.cancel()};rowTasks=[:];rowTaskIDs=[:];rowNeeded=[];rowRequests=[:];rosterPatches=[:];rowVersions=[:];rowErrors=[:];rosterRevision=0;rowRevision=0;justCreated=nil;access.cancel()}
 }
 
 private extension Result where Success == TeamsMirrorService.Records,Failure == Error {

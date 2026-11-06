@@ -18,7 +18,7 @@ import FirebaseFirestore
 @MainActor private final class StartupDrawerAccess:TeamsPanelAccess {
     var held:CheckedContinuation<TeamsPanelSnapshot,Never>?
     func load(_ app:AppModel)async throws->TeamsPanelSnapshot{await withCheckedContinuation{held=$0}}
-    func create(name:String,members:[String],app:AppModel)async throws{}
+    func create(name:String,members:[String],app:AppModel)async throws->JSONValue{.null}
     func rename(_ team:JSONValue,name:String,app:AppModel)async throws->Bool{true}
     func add(_ team:JSONValue,members:[String],app:AppModel)async throws->Bool{true}
     func remove(_ team:JSONValue,app:AppModel)async throws{}

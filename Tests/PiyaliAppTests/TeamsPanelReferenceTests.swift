@@ -18,7 +18,7 @@ import WebKit
     }
     func load(_ app:AppModel)async throws->TeamsPanelSnapshot{snapshot}
     func loadStaged(_ app:AppModel,onRoster:@escaping @MainActor(TeamsPanelSnapshot)async->Void)async throws->TeamsPanelSnapshot{try await load(app)}
-    func create(name:String,members:[String],app:AppModel)async throws{throw URLError(.notConnectedToInternet)}
+    func create(name:String,members:[String],app:AppModel)async throws->JSONValue{throw URLError(.notConnectedToInternet)}
     func rename(_ team:JSONValue,name:String,app:AppModel)async throws->Bool{throw URLError(.notConnectedToInternet)}
     func add(_ team:JSONValue,members:[String],app:AppModel)async throws->Bool{throw URLError(.notConnectedToInternet)}
     func remove(_ team:JSONValue,app:AppModel)async throws{throw URLError(.notConnectedToInternet)}
@@ -61,7 +61,7 @@ import WebKit
     init(invites:[JSONValue]){self.invites=invites}
     func load(_ app:AppModel)async throws->TeamsPanelSnapshot{await withCheckedContinuation{held=$0}}
     func watchInvites(_ app:AppModel,onChange:@escaping @MainActor([JSONValue])->Void)async{onChange(invites)}
-    func create(name:String,members:[String],app:AppModel)async throws{}
+    func create(name:String,members:[String],app:AppModel)async throws->JSONValue{.null}
     func rename(_ team:JSONValue,name:String,app:AppModel)async throws->Bool{true}
     func add(_ team:JSONValue,members:[String],app:AppModel)async throws->Bool{true}
     func remove(_ team:JSONValue,app:AppModel)async throws{}
@@ -350,5 +350,61 @@ extension TeamsPanelReferenceTests {
             _=try await web.evaluateJavaScript("document.querySelector('.chakra-modal__body').scrollTop=0;true");scroll?.setContentOffset(.zero,animated:false);try await capture("settled")
             model.cancel()
         }}
+    }
+}
+
+@MainActor private final class TeamsCreatedPreviewAccess:TeamsPreviewAccess {
+    var loads=0
+    var write:CheckedContinuation<JSONValue,Error>?,roster:CheckedContinuation<Void,Never>?,members:CheckedContinuation<TeamsPanelSnapshot,Never>?
+    let receipt:JSONValue,peer:JSONValue
+    init(_ fixture:JSONValue,owner:String){
+        receipt = .object(["id":.string("fixture-new"),"teamName":.string("Acknowledged team"),"createdBy":.string(owner),"creatorName":.string("New Learner"),"isCreator":.bool(true),"members":.array([.object(["npub":fixture["streamPendingNpub"],"status":.string("accepted"),"name":.string("")])]),"nostr":.object(["id":.string("fixture-new")])])
+        peer=fixture["rows"]["fixture-one"].array[1].setting("npub",fixture["streamPendingNpub"]);super.init(fixture,state:"empty")
+    }
+    override func create(name:String,members:[String],app:AppModel)async throws->JSONValue{try await withCheckedThrowingContinuation{write=$0}}
+    override func loadStaged(_ app:AppModel,onRoster:@escaping @MainActor(TeamsPanelSnapshot)async->Void)async throws->TeamsPanelSnapshot{
+        loads += 1;if loads==1{return .init()};await withCheckedContinuation{roster=$0}
+        let key=LiveTeamsPanelAccess.key(receipt),row=LearningTeams.progressRow(member:app.identity.npub,data:LearningTeams.snapshot(app.learner),creator:true)
+        await onRoster(.init(teams:[receipt],rows:[key:[row]],loadingRows:[key]));return await withCheckedContinuation{members=$0}
+    }
+    func settled(_ app:AppModel)->TeamsPanelSnapshot{.init(teams:[receipt],rows:[LiveTeamsPanelAccess.key(receipt):[LearningTeams.progressRow(member:app.identity.npub,data:LearningTeams.snapshot(app.learner),creator:true),peer]])}
+    override func cancel(){write?.resume(throwing:CancellationError());write=nil;roster?.resume();roster=nil;members?.resume(returning:.init());members=nil}
+}
+extension TeamsPanelReferenceTests {
+    func testOriginalCreatingAndAcknowledgedCardBeforeFreshRosterAndMemberReplies()async throws{
+        let env=ProcessInfo.processInfo.environment;guard env["PIYALI_OFFLINE_TESTS"] == "1",env["PIYALI_REFERENCE_PREVIEW_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Isolated source preview required")}
+        let fixture=try JSONDecoder().decode(JSONValue.self,from:Data(contentsOf:try XCTUnwrap(Bundle(for:Self.self).url(forResource:"teams-panel-preview",withExtension:"json"))))
+        let app=AppModel(progressService:TeamsNoCloud());try app.identity.create();app.signedIn=true;app.learner.onboardingComplete=true;app.learner.name="Creator Learner";defer{app.signOut()};let scene=try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap{$0 as? UIWindowScene}.first),old=scene.windows.first{$0.isKeyWindow};defer{old?.makeKey()}
+        for(language,theme)in [("en","light"),("ar","dark")] {
+            app.learner.support=language;let sourceWindow=UIWindow(windowScene:scene);sourceWindow.frame=CGRect(x:0,y:0,width:402,height:874);let web=WKWebView(frame:sourceWindow.frame),vc=UIViewController();vc.view=web;sourceWindow.rootViewController=vc;sourceWindow.makeKeyAndVisible();web.scrollView.contentInsetAdjustmentBehavior = .never
+            web.load(URLRequest(url:try XCTUnwrap(URL(string:"http://127.0.0.1:5181/__piyali-teams?state=created&language=\(language)&theme=\(theme)"))))
+            var ready=false;for _ in 0..<300{ready=(try? await web.evaluateJavaScript("document.fonts.status==='loaded'&&!!window.__createdSelf&&document.querySelectorAll('[role=tab]').length===2")) as? Bool == true;if ready{break};try await Task.sleep(for:.milliseconds(40))};XCTAssertTrue(ready);guard ready else{return}
+            _=try await web.evaluateJavaScript("[...document.querySelectorAll('button')].find(e=>e.textContent==='Create team').click();true");try await Task.sleep(for:.milliseconds(250))
+            _=try await web.evaluateJavaScript("(()=>{const inputs=[...document.querySelectorAll('input')];for(const[i,value]of ['Acknowledged team',window.__teamsFixture.streamPendingNpub].entries()){Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(inputs[i],value);inputs[i].dispatchEvent(new Event('input',{bubbles:true}))}return true})()")
+            try await Task.sleep(for:.milliseconds(100));_=try await web.evaluateJavaScript("[...document.querySelectorAll('[role=dialog]')].at(-1).querySelectorAll('button')[1].click();document.activeElement.blur();true")
+            let access=TeamsCreatedPreviewAccess(fixture,owner:app.identity.npub),model=TeamsPanelController(access:access),nativeWindow=UIWindow(windowScene:scene);nativeWindow.frame=sourceWindow.frame
+            defer{model.cancel();web.stopLoading();sourceWindow.isHidden=true;sourceWindow.rootViewController=nil;nativeWindow.isHidden=true;nativeWindow.rootViewController=nil}
+            nativeWindow.rootViewController=UIHostingController(rootView:ZStack{PiyaliBrand(dark:theme == "dark").background;TeamsDrawerView(model:model,initialEditor:.create,initialMembers:[fixture["streamPendingNpub"].string],initialName:"Acknowledged team",onClose:{})}.environmentObject(app).environment(\.dynamicTypeSize,.large).preferredColorScheme(theme == "dark" ? .dark:.light).ignoresSafeArea());nativeWindow.makeKeyAndVisible()
+            for _ in 0..<200 where access.loads==0{try await Task.sleep(for:.milliseconds(10))}
+            func capture(_ phase:String)async throws{
+                try await Task.sleep(for:.milliseconds(400));sourceWindow.makeKeyAndVisible();try await Task.sleep(for:.milliseconds(80));let a=XCTAttachment(image:try await web.takeSnapshot(configuration:nil));a.name="Source Teams created \(phase) \(language)";a.lifetime = .keepAlways;add(a)
+                let raw=try await web.evaluateJavaScript("JSON.stringify({reads:window.__createdRosterReads.length,rowReads:window.__teamRowRequests.length,fields:[...document.querySelectorAll('input,button,p,.chakra-spinner')].map(e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return{text:e.textContent,value:e.value,label:e.getAttribute('aria-label'),disabled:e.disabled,x:r.x,y:r.y,width:r.width,height:r.height,color:s.color,opacity:s.opacity,animation:s.animation}})})") as? String ?? "{}",g=XCTAttachment(data:Data(raw.utf8),uniformTypeIdentifier:"public.json");g.name="Source Teams created \(phase) \(language) geometry";g.lifetime = .keepAlways;add(g)
+                nativeWindow.makeKeyAndVisible();try await Task.sleep(for:.milliseconds(80));let b=XCTAttachment(image:UIGraphicsImageRenderer(bounds:nativeWindow.bounds).image{_ in nativeWindow.drawHierarchy(in:nativeWindow.bounds,afterScreenUpdates:true)});b.name="Native Teams created \(phase) \(language)";b.lifetime = .keepAlways;add(b)
+            }
+            _=try await web.evaluateJavaScript("[...document.querySelectorAll('[role=dialog]')].at(-1).querySelectorAll('button').item(3).click();true")
+            var receipt:JSONValue = .null;model.perform(app,action:{value in receipt=try await value.create(name:"Acknowledged team",members:[fixture["streamPendingNpub"].string],app:app);return nil},onSuccess:{model.didCreate(receipt,app:app)},refreshInBackground:true)
+            for _ in 0..<200 where access.write == nil{try await Task.sleep(for:.milliseconds(10))};XCTAssertTrue(model.working)
+            func fields(_ view:UIView)->[UITextField]{(view as? UITextField).map{[$0]} ?? view.subviews.flatMap(fields)}
+            let inputs=fields(try XCTUnwrap(nativeWindow.rootViewController?.view));XCTAssertEqual(inputs.count,2);XCTAssertTrue(inputs.allSatisfy(\.isEnabled));try await capture("creating")
+            _=try await web.evaluateJavaScript("window.__resolveCreate();true");access.write?.resume(returning:access.receipt);access.write=nil
+            for _ in 0..<200 where access.roster == nil || model.working{try await Task.sleep(for:.milliseconds(10))};XCTAssertFalse(model.loading);XCTAssertFalse(model.working);XCTAssertEqual(model.snapshot.teams.count,1)
+            // Use the ordinary post-notice screen; actual product captures retain immediate feedback.
+            try await Task.sleep(for:.milliseconds(5200));try await capture("roster-held")
+            _=try await web.evaluateJavaScript("window.__resolveCreatedRoster(0,[]);true");access.roster?.resume();access.roster=nil
+            for _ in 0..<200 where access.members == nil{try await Task.sleep(for:.milliseconds(10))};XCTAssertEqual(model.snapshot.teams.count,1);XCTAssertEqual(model.snapshot.loadingRows.count,1);try await capture("members-held")
+            _=try await web.evaluateJavaScript("window.__releaseTeamRow(0,window.__createdRows);true");access.members?.resume(returning:access.settled(app));access.members=nil
+            for _ in 0..<200 where !model.snapshot.loadingRows.isEmpty{try await Task.sleep(for:.milliseconds(10))};XCTAssertEqual(model.snapshot.rows[LiveTeamsPanelAccess.key(access.receipt)]?.count,2);try await capture("settled")
+            model.cancel()
+        }
     }
 }

@@ -1,0 +1,221 @@
+{
+  "reference": "b269524ddc578027c549616fc47f5954991d9f6f",
+  "sourceHashes": {
+    "TeamCreation.jsx": "f11087861531d5865539d9c4b3ed041e1cb838ddee578f22335ab8d69566cbe6",
+    "TeamView.jsx": "2facc3dd6abc05f079200ee3e903c30415b71aba8078a3fa9d5691f5b0e482d1",
+    "TeamsDrawer.jsx": "c9a5782a41cc39d7dac9fca19bdde0a6d8a3f24a4c463dc611f5d9332cee41fc"
+  },
+  "scope": "Unchanged original submit and just-created effect with supplied I/O; actual mounted original creation success/failure, editable pending controls and fresh/member read holds. Not authenticated production source App.",
+  "results": [
+    {
+      "failure": false,
+      "state": {
+        "creating": false,
+        "name": "",
+        "members": [],
+        "open": false,
+        "created": {
+          "id": "new-team",
+          "teamName": "Submitted name",
+          "creatorName": "Public creator",
+          "createdBy": "viewer",
+          "isCreator": true,
+          "members": [
+            {
+              "npub": "npub-peer",
+              "status": "accepted",
+              "name": ""
+            }
+          ],
+          "nostr": {
+            "id": "new-team"
+          }
+        },
+        "teams": [
+          {
+            "id": "new-team",
+            "teamName": "Submitted name",
+            "creatorName": "Public creator",
+            "createdBy": "viewer",
+            "isCreator": true,
+            "members": [
+              {
+                "npub": "npub-peer",
+                "status": "accepted",
+                "name": ""
+              }
+            ],
+            "nostr": {
+              "id": "new-team"
+            }
+          }
+        ],
+        "rows": {
+          "new-team": [
+            {
+              "npub": "viewer",
+              "name": "Current creator",
+              "isCreator": true
+            }
+          ]
+        },
+        "rowLoading": {
+          "new-team": true
+        },
+        "loading": false
+      },
+      "events": [
+        {
+          "write": [
+            "viewer",
+            "Submitted name",
+            "Public creator",
+            [
+              "npub-peer"
+            ]
+          ]
+        },
+        {
+          "toast": {
+            "title": "Team created",
+            "description": "Teammates can see this team in either app",
+            "status": "success"
+          }
+        },
+        "close",
+        "created"
+      ]
+    },
+    {
+      "failure": true,
+      "state": {
+        "creating": false,
+        "name": "Submitted name",
+        "members": [
+          "npub-peer"
+        ],
+        "open": true,
+        "created": null,
+        "teams": [],
+        "rows": {},
+        "rowLoading": {},
+        "loading": true
+      },
+      "events": [
+        {
+          "write": [
+            "viewer",
+            "Submitted name",
+            "Public creator",
+            [
+              "npub-peer"
+            ]
+          ]
+        },
+        {
+          "toast": {
+            "title": "Error",
+            "description": "Public creation rejection",
+            "status": "error"
+          }
+        }
+      ]
+    }
+  ],
+  "browserCases": [
+    {
+      "language": "en",
+      "failure": false,
+      "phase": "creating",
+      "inputsEditable": true,
+      "closeEnabled": true
+    },
+    {
+      "language": "en",
+      "failure": false,
+      "phase": "acknowledged",
+      "freshReadHeld": true,
+      "submittedNamePreserved": true,
+      "skeletons": 9
+    },
+    {
+      "language": "en",
+      "failure": false,
+      "phase": "stale-roster",
+      "teamRetained": true
+    },
+    {
+      "language": "en",
+      "failure": false,
+      "phase": "members",
+      "rowsSettled": true
+    },
+    {
+      "language": "en",
+      "failure": false,
+      "phase": "deleted-tab-reentry",
+      "sourceStaleCreatedPropReinsertsDeletedCard": true,
+      "scope": "Observed original component defect with successful delete I/O and empty fresh roster; native retires its transient placeholder after explicit deletion."
+    },
+    {
+      "language": "en",
+      "failure": true,
+      "phase": "creating",
+      "inputsEditable": true,
+      "closeEnabled": true
+    },
+    {
+      "language": "en",
+      "failure": true,
+      "phase": "failed",
+      "editorRetained": true
+    },
+    {
+      "language": "ar",
+      "failure": false,
+      "phase": "creating",
+      "inputsEditable": true,
+      "closeEnabled": true
+    },
+    {
+      "language": "ar",
+      "failure": false,
+      "phase": "acknowledged",
+      "freshReadHeld": true,
+      "submittedNamePreserved": true,
+      "skeletons": 9
+    },
+    {
+      "language": "ar",
+      "failure": false,
+      "phase": "stale-roster",
+      "teamRetained": true
+    },
+    {
+      "language": "ar",
+      "failure": false,
+      "phase": "members",
+      "rowsSettled": true
+    },
+    {
+      "language": "ar",
+      "failure": false,
+      "phase": "deleted-tab-reentry",
+      "sourceStaleCreatedPropReinsertsDeletedCard": true,
+      "scope": "Observed original component defect with successful delete I/O and empty fresh roster; native retires its transient placeholder after explicit deletion."
+    },
+    {
+      "language": "ar",
+      "failure": true,
+      "phase": "creating",
+      "inputsEditable": true,
+      "closeEnabled": true
+    },
+    {
+      "language": "ar",
+      "failure": true,
+      "phase": "failed",
+      "editorRetained": true
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "reference": "b269524ddc578027c549616fc47f5954991d9f6f",
+  "referenceStatus": "",
+  "nativeBase": "2309b4c14ee39c96bfdef0ae6b8f6cc4ec84dd7c",
+  "branch": "codex/functional-design-parity",
+  "qaDevice": "CE8248B6-7171-4FD4-97DE-89E499107F82",
+  "regularDevice": "5CEE88FE-AE9D-4982-88BE-3FB739281A80",
+  "services": "Separate native Firebase/Cloudflare configuration unchanged. Existing local demo emulators and signed loopback relay used. Owned preview stopped; three unrelated generated manifests restored; preexisting Vite/emulators preserved.",
+  "limitations": "Current-drawer acknowledged creation and controlled pending-form comparisons; source deleted-card reentry defect explicitly differs from native retirement. Drawer-close/reentry continuity, held-read mutation latency, broader input/profile/legacy/scale, production outage/wire-count equivalence and full product/device/payment/release acceptance remain open."
+}

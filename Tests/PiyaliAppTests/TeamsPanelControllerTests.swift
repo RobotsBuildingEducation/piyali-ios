@@ -9,7 +9,7 @@ import SwiftUI
     var pause=false,loadFails=false
     func load(_ app:AppModel)async throws->TeamsPanelSnapshot{loads += 1;if loadFails{throw URLError(.notConnectedToInternet)};let value=next;if pause{await withCheckedContinuation{delay=$0}};return value}
     func loadStaged(_ app:AppModel,onRoster:@escaping @MainActor(TeamsPanelSnapshot)async->Void)async throws->TeamsPanelSnapshot{try await load(app)}
-    func create(name:String,members:[String],app:AppModel)async throws{}
+    func create(name:String,members:[String],app:AppModel)async throws->JSONValue{.null}
     func rename(_ team:JSONValue,name:String,app:AppModel)async throws->Bool{false}
     func add(_ team:JSONValue,members:[String],app:AppModel)async throws->Bool{false}
     func remove(_ team:JSONValue,app:AppModel)async throws{}
@@ -205,5 +205,29 @@ extension TeamsPanelControllerTests {
         access.receiveRecord?(team.setting("teamName",.string("Newer team")));try await settle{model.snapshot.rows[key]?.isEmpty == true}
         access.finish?.resume(returning:.init(teams:[team],failedRows:[key]));access.finish=nil;await read.value
         XCTAssertEqual(model.snapshot.teams.first?["teamName"].string,"Newer team");XCTAssertEqual(model.snapshot.rows[key],[]);XCTAssertFalse(model.snapshot.failedRows.contains(key));XCTAssertNil(model.error)
+    }
+}
+
+@MainActor private final class TeamCreationAccess:TeamControllerAccess {
+    var receipt:JSONValue = .null,createFails=false
+    var creation:CheckedContinuation<Void,Never>?
+    var holdCreate=false
+    override func create(name:String,members:[String],app:AppModel)async throws->JSONValue{if holdCreate{await withCheckedContinuation{creation=$0}};if createFails{throw AppError.message("Public creation rejection")};return receipt}
+}
+extension TeamsPanelControllerTests {
+    func testAcknowledgedCreationShowsSelfAndReleasesControlsBeforeAHeldFreshRosterWithoutDuplicatingTheTeam()async throws{
+        let(app,_,_)=try context();let access=TeamCreationAccess(),model=TeamsPanelController(access:access);defer{model.cancel();try? app.identity.disconnect()};app.learner.name="Creator in memory";await model.reload(app)
+        let team:JSONValue = .object(["id":.string("new-team"),"teamName":.string("Created team"),"createdBy":.string(app.identity.npub),"isCreator":.bool(true),"members":.array([.object(["npub":.string("peer"),"status":.string("accepted")])]),"nostr":.object(["id":.string("new-team")])]),key=LiveTeamsPanelAccess.key(team);access.receipt=team;access.pause=true;var closed=false,created:JSONValue = .null
+        model.perform(app,action:{value in created=try await value.create(name:"Created team",members:[],app:app);return nil},onSuccess:{model.didCreate(created,app:app);closed=true},refreshInBackground:true)
+        try await settle{access.delay != nil && !model.working};XCTAssertTrue(closed);XCTAssertFalse(model.loading);XCTAssertEqual(model.snapshot.teams,[team]);XCTAssertEqual(model.snapshot.rows[key]?.first?["name"].string,"Creator in memory");XCTAssertTrue(model.snapshot.loadingRows.contains(key))
+        access.pause=false;access.delay?.resume();access.delay=nil;try await Task.sleep(for:.milliseconds(100));XCTAssertEqual(model.snapshot.teams,[team],"An older empty read cannot hide the acknowledged creation")
+        let own=try XCTUnwrap(model.snapshot.rows[key]?.first);access.next = .init(teams:[team],rows:[key:[own]]);await model.reload(app);XCTAssertEqual(model.snapshot.teams.count,1);XCTAssertFalse(model.snapshot.loadingRows.contains(key))
+        model.didRemove(team);access.next = .init();await model.reload(app);XCTAssertTrue(model.snapshot.teams.isEmpty,"Successful deletion retires the native creation placeholder")
+    }
+    func testFailedCreationAndLateClosedReceiptCannotInsertACardOrCloseTheEditor()async throws{
+        let(app,_,_)=try context();let access=TeamCreationAccess(),model=TeamsPanelController(access:access);defer{model.cancel();try? app.identity.disconnect()};await model.reload(app);access.createFails=true;var closed=false
+        model.perform(app,action:{value in _=try await value.create(name:"Rejected",members:[],app:app);return nil},onSuccess:{closed=true},refreshInBackground:true);try await settle{!model.working};XCTAssertFalse(closed);XCTAssertTrue(model.snapshot.teams.isEmpty);XCTAssertEqual(model.error,"Public creation rejection")
+        access.createFails=false;access.holdCreate=true;var receipt:JSONValue = .null
+        model.perform(app,action:{value in receipt=try await value.create(name:"Late",members:[],app:app);return nil},onSuccess:{model.didCreate(receipt,app:app);closed=true},refreshInBackground:true);try await settle{access.creation != nil};model.cancel();access.creation?.resume();access.creation=nil;try await Task.sleep(for:.milliseconds(80));XCTAssertFalse(closed);XCTAssertTrue(model.snapshot.teams.isEmpty)
     }
 }

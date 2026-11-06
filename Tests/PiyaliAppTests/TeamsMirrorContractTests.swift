@@ -64,3 +64,22 @@ extension TeamsMirrorContractTests {
         model.cancel();try await db.enableNetwork();try await mirror.delete(id:id,identity:app.identity)
     }
 }
+
+extension TeamsMirrorContractTests {
+    func testSuccessfulCreationReturnsItsAcknowledgedRecordBeforeAnyFreshRelayRead()async throws{
+        let env=ProcessInfo.processInfo.environment;guard env["PIYALI_OFFLINE_TESTS"] == "1",env["PIYALI_FIRESTORE_EMULATOR_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Isolated local SDK required")}
+        let app=AppModel();try app.identity.create();app.learner.name="SDK Creator";defer{try? app.identity.disconnect()}
+        let relay=LocalNostrRelay();defer{relay.stop()};try await relay.start{frame,connection in
+            if frame.first as? String == "EVENT",let event=frame[1] as? [String:Any],let id=event["id"] as? String{relay.send(["OK",id,true,""],to:connection)}
+            else if frame.first as? String == "REQ",let id=frame[1] as? String{relay.send(["EOSE",id],to:connection)}
+        }
+        let db=PrivateTeamTestDatabase.database(),service=NostrTeamsService(client:NostrRelayClient(relays:[relay.url],timeout:.seconds(2)),cacheDirectory:FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)),access=LiveTeamsPanelAccess(service:service,mirror:TeamsMirrorService(database:db),legacy:PrivateTeamsService(database:db)),member=Keypair()!.publicKey.npub
+        let record=try await access.create(name:"Acknowledged SDK",members:[member],app:app)
+        XCTAssertEqual(record["teamName"].string,"Acknowledged SDK");XCTAssertEqual(record["createdBy"].string,app.identity.npub);XCTAssertTrue(record["isCreator"].boolean);XCTAssertEqual(record["creatorName"].string,"SDK Creator");XCTAssertEqual(record["nostr"]["id"],record["id"]);XCTAssertEqual(record["members"].array.first?["npub"].string,member);XCTAssertEqual(record["members"].array.first?["status"].string,"accepted")
+        XCTAssertFalse(relay.frames().contains{$0.first as? String == "REQ"},"No second relay read delays a successful creation receipt")
+        let stored=try await db.collection("users").document(app.identity.npub).collection("teams").document(record["id"].string).getDocument(source:.server);XCTAssertEqual(stored.data()?["teamName"] as? String,"Acknowledged SDK")
+        let events=try relay.frames().filter{$0.first as? String == "EVENT"}.map{try JSONDecoder().decode(NostrEventPayload.self,from:JSONSerialization.data(withJSONObject:$0[1]))};XCTAssertEqual(events.count,1);XCTAssertTrue(events.allSatisfy{IdentityService.verify($0)});XCTAssertEqual(events.first?.tag("d"),"learning-team:"+record["id"].string)
+        let fresh=try await access.load(app);XCTAssertEqual(fresh.teams.count,1);XCTAssertEqual(fresh.teams.first?["id"],record["id"])
+        try await access.remove(record,app:app);let gone=try await access.load(app);XCTAssertTrue(gone.teams.isEmpty,"A successful deletion cannot be resurrected by the native creation placeholder");access.cancel()
+    }
+}

@@ -1,0 +1,542 @@
+[
+  {
+    "path": "stream-native-member-recovered-bottom-ar.png",
+    "name": "Native Teams streamed member-recovered-bottom ar",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "stream-source-member-recovered-bottom-ar.json",
+    "name": "Source Teams streamed member-recovered-bottom ar geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "stream-source-member-recovered-bottom-ar.png",
+    "name": "Source Teams streamed member-recovered-bottom ar",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "stream-native-member-recovered-ar.png",
+    "name": "Native Teams streamed member-recovered ar",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "stream-source-member-recovered-ar.json",
+    "name": "Source Teams streamed member-recovered ar geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "stream-source-member-recovered-ar.png",
+    "name": "Source Teams streamed member-recovered ar",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "stream-native-member-failed-ar.png",
+    "name": "Native Teams streamed member-failed ar",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "stream-source-member-failed-ar.json",
+    "name": "Source Teams streamed member-failed ar geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "stream-source-member-failed-ar.png",
+    "name": "Source Teams streamed member-failed ar",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "stream-native-member-held-bottom-ar.png",
+    "name": "Native Teams streamed member-held-bottom ar",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "stream-source-member-held-bottom-ar.json",
+    "name": "Source Teams streamed member-held-bottom ar geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "stream-source-member-held-bottom-ar.png",
+    "name": "Source Teams streamed member-held-bottom ar",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "stream-native-member-held-ar.png",
+    "name": "Native Teams streamed member-held ar",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "stream-source-member-held-ar.json",
+    "name": "Source Teams streamed member-held ar geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "stream-source-member-held-ar.png",
+    "name": "Source Teams streamed member-held ar",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "stream-native-cached-ar.png",
+    "name": "Native Teams streamed cached ar",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "stream-source-cached-ar.json",
+    "name": "Source Teams streamed cached ar geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "stream-source-cached-ar.png",
+    "name": "Source Teams streamed cached ar",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "stream-native-member-recovered-bottom-en.png",
+    "name": "Native Teams streamed member-recovered-bottom en",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "stream-source-member-recovered-bottom-en.json",
+    "name": "Source Teams streamed member-recovered-bottom en geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "stream-source-member-recovered-bottom-en.png",
+    "name": "Source Teams streamed member-recovered-bottom en",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "stream-native-member-recovered-en.png",
+    "name": "Native Teams streamed member-recovered en",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "stream-source-member-recovered-en.json",
+    "name": "Source Teams streamed member-recovered en geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "stream-source-member-recovered-en.png",
+    "name": "Source Teams streamed member-recovered en",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "stream-native-member-failed-en.png",
+    "name": "Native Teams streamed member-failed en",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "stream-source-member-failed-en.json",
+    "name": "Source Teams streamed member-failed en geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "stream-source-member-failed-en.png",
+    "name": "Source Teams streamed member-failed en",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "stream-native-member-held-bottom-en.png",
+    "name": "Native Teams streamed member-held-bottom en",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "stream-source-member-held-bottom-en.json",
+    "name": "Source Teams streamed member-held-bottom en geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "stream-source-member-held-bottom-en.png",
+    "name": "Source Teams streamed member-held-bottom en",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "stream-native-member-held-en.png",
+    "name": "Native Teams streamed member-held en",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "stream-source-member-held-en.json",
+    "name": "Source Teams streamed member-held en geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "stream-source-member-held-en.png",
+    "name": "Source Teams streamed member-held en",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "stream-native-cached-en.png",
+    "name": "Native Teams streamed cached en",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "stream-source-cached-en.json",
+    "name": "Source Teams streamed cached en geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "stream-source-cached-en.png",
+    "name": "Source Teams streamed cached en",
+    "test": "TeamsPanelReferenceTests/testOriginalCachedRosterCardUpdatesWhileFreshRosterAndMemberReadsAreHeld()"
+  },
+  {
+    "path": "stage-joined-native-settled-ar.png",
+    "name": "Native Teams staged joined settled ar",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-joined-source-settled-ar.json",
+    "name": "Source Teams staged joined settled ar geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-joined-source-settled-ar.png",
+    "name": "Source Teams staged joined settled ar",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-joined-native-members-bottom-ar.png",
+    "name": "Native Teams staged joined members-bottom ar",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-joined-source-members-bottom-ar.json",
+    "name": "Source Teams staged joined members-bottom ar geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-joined-source-members-bottom-ar.png",
+    "name": "Source Teams staged joined members-bottom ar",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-joined-native-members-ar.png",
+    "name": "Native Teams staged joined members ar",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-joined-source-members-ar.json",
+    "name": "Source Teams staged joined members ar geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-joined-source-members-ar.png",
+    "name": "Source Teams staged joined members ar",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-joined-native-global-ar.png",
+    "name": "Native Teams staged joined global ar",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-joined-source-global-ar.json",
+    "name": "Source Teams staged joined global ar geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-joined-source-global-ar.png",
+    "name": "Source Teams staged joined global ar",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-owner-native-settled-ar.png",
+    "name": "Native Teams staged owner settled ar",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-owner-source-settled-ar.json",
+    "name": "Source Teams staged owner settled ar geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-owner-source-settled-ar.png",
+    "name": "Source Teams staged owner settled ar",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-owner-native-members-bottom-ar.png",
+    "name": "Native Teams staged owner members-bottom ar",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-owner-source-members-bottom-ar.json",
+    "name": "Source Teams staged owner members-bottom ar geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-owner-source-members-bottom-ar.png",
+    "name": "Source Teams staged owner members-bottom ar",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-owner-native-members-ar.png",
+    "name": "Native Teams staged owner members ar",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-owner-source-members-ar.json",
+    "name": "Source Teams staged owner members ar geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-owner-source-members-ar.png",
+    "name": "Source Teams staged owner members ar",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-owner-native-global-ar.png",
+    "name": "Native Teams staged owner global ar",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-owner-source-global-ar.json",
+    "name": "Source Teams staged owner global ar geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-owner-source-global-ar.png",
+    "name": "Source Teams staged owner global ar",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-joined-native-settled-en.png",
+    "name": "Native Teams staged joined settled en",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-joined-source-settled-en.json",
+    "name": "Source Teams staged joined settled en geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-joined-source-settled-en.png",
+    "name": "Source Teams staged joined settled en",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-joined-native-members-bottom-en.png",
+    "name": "Native Teams staged joined members-bottom en",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-joined-source-members-bottom-en.json",
+    "name": "Source Teams staged joined members-bottom en geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-joined-source-members-bottom-en.png",
+    "name": "Source Teams staged joined members-bottom en",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-joined-native-members-en.png",
+    "name": "Native Teams staged joined members en",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-joined-source-members-en.json",
+    "name": "Source Teams staged joined members en geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-joined-source-members-en.png",
+    "name": "Source Teams staged joined members en",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-joined-native-global-en.png",
+    "name": "Native Teams staged joined global en",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-joined-source-global-en.json",
+    "name": "Source Teams staged joined global en geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-joined-source-global-en.png",
+    "name": "Source Teams staged joined global en",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-owner-native-settled-en.png",
+    "name": "Native Teams staged owner settled en",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-owner-source-settled-en.json",
+    "name": "Source Teams staged owner settled en geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-owner-source-settled-en.png",
+    "name": "Source Teams staged owner settled en",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-owner-native-members-bottom-en.png",
+    "name": "Native Teams staged owner members-bottom en",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-owner-source-members-bottom-en.json",
+    "name": "Source Teams staged owner members-bottom en geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-owner-source-members-bottom-en.png",
+    "name": "Source Teams staged owner members-bottom en",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-owner-native-members-en.png",
+    "name": "Native Teams staged owner members en",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-owner-source-members-en.json",
+    "name": "Source Teams staged owner members en geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-owner-source-members-en.png",
+    "name": "Source Teams staged owner members en",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-owner-native-global-en.png",
+    "name": "Native Teams staged owner global en",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-owner-source-global-en.json",
+    "name": "Source Teams staged owner global en geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "stage-owner-source-global-en.png",
+    "name": "Source Teams staged owner global en",
+    "test": "TeamsPanelReferenceTests/testOriginalInitialRosterCreatorSkeletonAndJoinedFailureStages()"
+  },
+  {
+    "path": "badge-native-new-id-ar.png",
+    "name": "Native App invitation badge new-id ar",
+    "test": "TeamsStartupTests/testOriginalAppBadgeAndNativeMenuControlAcrossViewedAndNewInvitesInEnglishAndArabic()"
+  },
+  {
+    "path": "badge-source-new-id-ar.json",
+    "name": "Source App invitation badge new-id ar geometry",
+    "test": "TeamsStartupTests/testOriginalAppBadgeAndNativeMenuControlAcrossViewedAndNewInvitesInEnglishAndArabic()"
+  },
+  {
+    "path": "badge-source-new-id-ar.png",
+    "name": "Source App invitation badge new-id ar",
+    "test": "TeamsStartupTests/testOriginalAppBadgeAndNativeMenuControlAcrossViewedAndNewInvitesInEnglishAndArabic()"
+  },
+  {
+    "path": "badge-native-same-id-ar.png",
+    "name": "Native App invitation badge same-id ar",
+    "test": "TeamsStartupTests/testOriginalAppBadgeAndNativeMenuControlAcrossViewedAndNewInvitesInEnglishAndArabic()"
+  },
+  {
+    "path": "badge-source-same-id-ar.json",
+    "name": "Source App invitation badge same-id ar geometry",
+    "test": "TeamsStartupTests/testOriginalAppBadgeAndNativeMenuControlAcrossViewedAndNewInvitesInEnglishAndArabic()"
+  },
+  {
+    "path": "badge-source-same-id-ar.png",
+    "name": "Source App invitation badge same-id ar",
+    "test": "TeamsStartupTests/testOriginalAppBadgeAndNativeMenuControlAcrossViewedAndNewInvitesInEnglishAndArabic()"
+  },
+  {
+    "path": "badge-native-viewed-ar.png",
+    "name": "Native App invitation badge viewed ar",
+    "test": "TeamsStartupTests/testOriginalAppBadgeAndNativeMenuControlAcrossViewedAndNewInvitesInEnglishAndArabic()"
+  },
+  {
+    "path": "badge-source-viewed-ar.json",
+    "name": "Source App invitation badge viewed ar geometry",
+    "test": "TeamsStartupTests/testOriginalAppBadgeAndNativeMenuControlAcrossViewedAndNewInvitesInEnglishAndArabic()"
+  },
+  {
+    "path": "badge-source-viewed-ar.png",
+    "name": "Source App invitation badge viewed ar",
+    "test": "TeamsStartupTests/testOriginalAppBadgeAndNativeMenuControlAcrossViewedAndNewInvitesInEnglishAndArabic()"
+  },
+  {
+    "path": "badge-native-pending-ar.png",
+    "name": "Native App invitation badge pending ar",
+    "test": "TeamsStartupTests/testOriginalAppBadgeAndNativeMenuControlAcrossViewedAndNewInvitesInEnglishAndArabic()"
+  },
+  {
+    "path": "badge-source-pending-ar.json",
+    "name": "Source App invitation badge pending ar geometry",
+    "test": "TeamsStartupTests/testOriginalAppBadgeAndNativeMenuControlAcrossViewedAndNewInvitesInEnglishAndArabic()"
+  },
+  {
+    "path": "badge-source-pending-ar.png",
+    "name": "Source App invitation badge pending ar",
+    "test": "TeamsStartupTests/testOriginalAppBadgeAndNativeMenuControlAcrossViewedAndNewInvitesInEnglishAndArabic()"
+  },
+  {
+    "path": "badge-native-new-id-en.png",
+    "name": "Native App invitation badge new-id en",
+    "test": "TeamsStartupTests/testOriginalAppBadgeAndNativeMenuControlAcrossViewedAndNewInvitesInEnglishAndArabic()"
+  },
+  {
+    "path": "badge-source-new-id-en.json",
+    "name": "Source App invitation badge new-id en geometry",
+    "test": "TeamsStartupTests/testOriginalAppBadgeAndNativeMenuControlAcrossViewedAndNewInvitesInEnglishAndArabic()"
+  },
+  {
+    "path": "badge-source-new-id-en.png",
+    "name": "Source App invitation badge new-id en",
+    "test": "TeamsStartupTests/testOriginalAppBadgeAndNativeMenuControlAcrossViewedAndNewInvitesInEnglishAndArabic()"
+  },
+  {
+    "path": "badge-native-same-id-en.png",
+    "name": "Native App invitation badge same-id en",
+    "test": "TeamsStartupTests/testOriginalAppBadgeAndNativeMenuControlAcrossViewedAndNewInvitesInEnglishAndArabic()"
+  },
+  {
+    "path": "badge-source-same-id-en.json",
+    "name": "Source App invitation badge same-id en geometry",
+    "test": "TeamsStartupTests/testOriginalAppBadgeAndNativeMenuControlAcrossViewedAndNewInvitesInEnglishAndArabic()"
+  },
+  {
+    "path": "badge-source-same-id-en.png",
+    "name": "Source App invitation badge same-id en",
+    "test": "TeamsStartupTests/testOriginalAppBadgeAndNativeMenuControlAcrossViewedAndNewInvitesInEnglishAndArabic()"
+  },
+  {
+    "path": "badge-native-viewed-en.png",
+    "name": "Native App invitation badge viewed en",
+    "test": "TeamsStartupTests/testOriginalAppBadgeAndNativeMenuControlAcrossViewedAndNewInvitesInEnglishAndArabic()"
+  },
+  {
+    "path": "badge-source-viewed-en.json",
+    "name": "Source App invitation badge viewed en geometry",
+    "test": "TeamsStartupTests/testOriginalAppBadgeAndNativeMenuControlAcrossViewedAndNewInvitesInEnglishAndArabic()"
+  },
+  {
+    "path": "badge-source-viewed-en.png",
+    "name": "Source App invitation badge viewed en",
+    "test": "TeamsStartupTests/testOriginalAppBadgeAndNativeMenuControlAcrossViewedAndNewInvitesInEnglishAndArabic()"
+  },
+  {
+    "path": "badge-native-pending-en.png",
+    "name": "Native App invitation badge pending en",
+    "test": "TeamsStartupTests/testOriginalAppBadgeAndNativeMenuControlAcrossViewedAndNewInvitesInEnglishAndArabic()"
+  },
+  {
+    "path": "badge-source-pending-en.json",
+    "name": "Source App invitation badge pending en geometry",
+    "test": "TeamsStartupTests/testOriginalAppBadgeAndNativeMenuControlAcrossViewedAndNewInvitesInEnglishAndArabic()"
+  },
+  {
+    "path": "badge-source-pending-en.png",
+    "name": "Source App invitation badge pending en",
+    "test": "TeamsStartupTests/testOriginalAppBadgeAndNativeMenuControlAcrossViewedAndNewInvitesInEnglishAndArabic()"
+  }
+]

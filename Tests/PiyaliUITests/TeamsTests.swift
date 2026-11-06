@@ -179,7 +179,7 @@ private final class StreamedRosterRelay:@unchecked Sendable {
     private let lock=NSLock()
     private var events:[[String:Any]]=[]
     private var held:[(String,NWConnection)]=[]
-    private var hold=false,holdOnlyMembers=false
+    private var hold=false,holdOnlyMembers=false,holdAfterCreation=false
     private let member=Keypair(hex:String(repeating:"0",count:63)+"3")!
     private let stamp=Int64(Date().timeIntervalSince1970)
     var memberNpub:String{member.publicKey.npub}
@@ -194,6 +194,7 @@ private final class StreamedRosterRelay:@unchecked Sendable {
         let data=try JSONSerialization.data(withJSONObject:fields,options:[.sortedKeys,.withoutEscapingSlashes]);return try event(kind:30078,tags:[["d","learning-progress"],["t","learning-progress"]],content:String(decoding:data,as:UTF8.self),time:time)
     }
     init()throws{events=[try event(kind:0,tags:[],content:"{\"name\":\"Public teammate\"}",time:stamp),try progress(1234,time:stamp)]}
+    func armAfterCreation(){lock.withLock{holdAfterCreation=true}}
     func arm(){lock.withLock{hold=true;holdOnlyMembers=false}}
     func armMembers(){lock.withLock{hold=true;holdOnlyMembers=true}}
     func releaseCurrent(_ relay:LocalNostrRelay){let result=lock.withLock{()->([(String,NWConnection)],[[String:Any]]) in hold=false;let pending=held;held=[];return(pending,events)};for(id,connection)in result.0{for event in result.1{relay.send(["EVENT",id,event],to:connection)};relay.send(["EOSE",id],to:connection)}}
@@ -201,7 +202,7 @@ private final class StreamedRosterRelay:@unchecked Sendable {
         if frame.first as? String == "REQ",let id=frame[1] as? String{
             let result=lock.withLock{()->[[String:Any]]? in if hold && (!holdOnlyMembers || (frame.dropFirst(2).compactMap{$0 as? [String:Any]}.contains{($0["#d"] as? [String])?.contains("learning-progress") == true})){held.append((id,connection));return nil};return events}
             if let result{for event in result{relay.send(["EVENT",id,event],to:connection)};relay.send(["EOSE",id],to:connection)}
-        }else if frame.first as? String == "EVENT",let event=frame[1] as? [String:Any],let id=event["id"] as? String{lock.withLock{events.append(event)};relay.send(["OK",id,true,""],to:connection)}
+        }else if frame.first as? String == "EVENT",let event=frame[1] as? [String:Any],let id=event["id"] as? String{lock.withLock{events.append(event);if holdAfterCreation,(event["tags"] as? [[String]])?.contains(where:{$0.first == "d" && $0.last?.hasPrefix("learning-team:")==true}) == true{holdAfterCreation=false;hold=true;holdOnlyMembers=false}};relay.send(["OK",id,true,""],to:connection)}
     }
     func releaseUpdated(_ relay:LocalNostrRelay)throws{
         let updated=try progress(5678,time:stamp+1),state=lock.withLock{()->([(String,NWConnection)],[[String:Any]]) in hold=false;events.append(updated);let pending=held;held=[];return(pending,events)}
@@ -215,7 +216,10 @@ extension TeamsTests {
         let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_TEAM_TEST_RELAY":relay.url,"PIYALI_PRIVATE_TEAMS_TEST_EMULATOR":"1","PIYALI_HEADLINE_FIXTURE":"failure"];app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","dark"];app.launch()
         let entry=app.textFields["entryName"];XCTAssertTrue(entry.waitForExistence(timeout:15));entry.tap();entry.typeText("Stream Learner");tap("entryKeyboardDone",app);tap("createAccount",app);chooseEnglishSpanishOnboarding(app);tap("startLearning",app);tap("companionContinue",app);acknowledgePaperPencil(app);tap("gettingStartedGotIt",app);tap("placementNew",app)
         tap("productMenu",app);tap("productPanel-settings",app);tap("supportLanguagePicker",app);tap("settingsLanguage-support-ar",app);tap("productPanelClose",app)
-        open(app);let owner=try XCTUnwrap(app.buttons["teamsCopyID"].value as? String);tap("teamCreateOpen",app);enter("Weekend","teamName",app);enter(state.memberNpub,"teamMembers",app);tap("teamCreate",app)
+        open(app);let owner=try XCTUnwrap(app.buttons["teamsCopyID"].value as? String);tap("teamCreateOpen",app);enter("Weekend","teamName",app);enter(state.memberNpub,"teamMembers",app);state.armAfterCreation();tap("teamCreate",app)
+        XCTAssertTrue(app.buttons["learningTeamRow"].waitForExistence(timeout:3),"Acknowledged team appears before a fresh roster reply")
+        XCTAssertEqual(app.buttons["learningTeamRow"].label,"Weekend");XCTAssertTrue(app.staticTexts["Stream Learner"].exists);XCTAssertTrue(app.buttons["teamCreateOpen"].isEnabled);XCTAssertFalse(app.otherElements["teamEditor"].exists);XCTAssertFalse(app.staticTexts["1234"].exists);shot("Native acknowledged creation before held roster reply",app)
+        state.releaseCurrent(relay)
         let old=app.staticTexts["1234"];for _ in 0..<6 where !old.isHittable{app.swipeUp(velocity:.slow)};XCTAssertTrue(old.waitForExistence(timeout:15));XCTAssertTrue(old.isHittable);shot("Native streamed roster initial signed member",app)
         tap("teamsClose",app);app.terminate();state.armMembers();app.launch();open(app)
         XCTAssertTrue(app.staticTexts["Stream Learner"].waitForExistence(timeout:5),"Cold roster exposes the in-memory creator before signed peer progress finishes")
