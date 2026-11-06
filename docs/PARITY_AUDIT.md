@@ -78,3 +78,8 @@ Current reference working-tree update (2026-10-29): the new manga Paper & Pencil
 ## Teams transient notices — 2026-11-06
 
 [TEAMS_NOTICES.md](TEAMS_NOTICES.md) advances FUNC-10 / DES-08 against read-only `b269524d`. Fifteen affected XCTest cases pass, zero failures/skips, on the final implementation: 13 clean app/source checks (47.703 s), plus both native signed-relay product journeys together in a clean two-test run (221.710 s). Five real original-component browser checks include source pointer interception by a bottom toast. Twelve source/native pairs include the corrected Arabic RTL notice/paragraph layout and reused source check/close glyphs. Actual product captures, all mixed failures, a retained pre-fix design sheet, bounds, commands and installed/build hashes are retained. Notice motion, feed states, wider Teams lifecycle/design and the overall main-product goal remain **In progress**. No production deployment, merge or publication is included.
+
+
+## Teams drawer direction and forms — 2026-11-06
+
+[TEAMS_DRAWER_RTL.md](TEAMS_DRAWER_RTL.md) advances FUNC-10 / DES-08 with source-directed cards/forms/controls and physical progress/close exceptions. Five final affected XCTest cases pass, zero failures/skips: three source/native component checks with 30 scene pairs, plus actual Arabic Settings → signed management → two private relaunches and its English counterpart. Exact raw inputs/saved names and restored control order are asserted. Source alpha tokens and queued-ID rendering are reconciled. Baseline design failures, compile/caret/edit-menu diagnostics, actual captures and hashes remain recorded. Broader feed, motion, lifecycle, device/accessibility and full-product gates remain **In progress**.

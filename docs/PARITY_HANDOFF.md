@@ -4,6 +4,8 @@
 
 > **Teams notice continuation, 2026-11-06:** [TEAMS_NOTICES.md](TEAMS_NOTICES.md) records source-shaped transient validation/mutation/read notices, independent timers and native portal lifecycle, 12 rendered source/native pairs, five original-browser checks and both signed-relay native journeys. It retains failed diagnostics and the source-confirmed covered-control interaction. Notice motion, feed error/loading/empty presentation, wider Teams lifecycle/design and the overall goal remain open.
 
+> **Teams drawer continuation, 2026-11-06:** [TEAMS_DRAWER_RTL.md](TEAMS_DRAWER_RTL.md) advances the actual Arabic drawer/card/form layout, fixed physical controls, queued identifiers and source alpha tokens. It records exact-value native editing/relaunch checks, source/native captures and failed diagnostics. Feed states, broader Teams lifecycle/design and the overall objective remain open.
+
 Prepared **2026-11-04** for a later Terra continuation. The objective is still **complete functional and design parity with the main web product**, implemented natively for iPhone. This is a completion plan, not a declaration that the app is finished. Substantial implementation and scoped verification already exist; preserve that work and close the remaining differences.
 
 This handoff was assembled from the current checkouts, implementation, feature records and test scripts. **No application changes, new test runs, deployments or model transfer were performed while preparing it.** Older passing results retain their original source revision and test scope.
