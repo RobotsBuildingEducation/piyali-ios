@@ -1,0 +1,15 @@
+{
+  "device": "CE8248B6-7171-4FD4-97DE-89E499107F82",
+  "files": {
+    "Piyali": {
+      "builtSHA256": "b3ef4263b39d33b119d0a21ecb74aba8a931eee7fc8083d46607816bfaf0d2f4",
+      "installedSHA256": "b3ef4263b39d33b119d0a21ecb74aba8a931eee7fc8083d46607816bfaf0d2f4",
+      "match": true
+    },
+    "Piyali.debug.dylib": {
+      "builtSHA256": "0be19668d933bbcf2c6d5778ed3c779e6f4943a9891ff16076ad6fd361e5051d",
+      "installedSHA256": "0be19668d933bbcf2c6d5778ed3c779e6f4943a9891ff16076ad6fd361e5051d",
+      "match": true
+    }
+  }
+}

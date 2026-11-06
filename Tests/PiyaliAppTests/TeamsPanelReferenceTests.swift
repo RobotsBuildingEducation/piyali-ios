@@ -14,7 +14,7 @@ import WebKit
         var teams=["empty","create","queued"].contains(state) ? []:fixture["teams"].array
         if state == "multi",let first=teams.first{teams.append(first.setting("id",.string("fixture-two")).setting("teamName",.string("Evening practice")))}
         snapshot = .init(teams:teams,invites:state == "pending" ? fixture["invites"].array:[],rows:Dictionary(uniqueKeysWithValues:teams.map{(LiveTeamsPanelAccess.key($0),fixture["rows"][$0["id"].string].array)}))
-        posts=fixture["posts"].array.compactMap{v in let content=v["content"].string,tags=v["tags"].array.map{$0.array.map(\.string)},name=v["profile"]["name"].string;guard let milestone=CommunityMilestone.parse(content:content,tags:tags,name:name) else{return nil};return CommunityPost(event:.init(id:v["id"].string,pubkey:v["pubkey"].string,created_at:1700000000,kind:1,tags:tags,content:content,sig:""),name:name,npub:v["npub"].string,milestone:milestone)}
+        posts=fixture["posts"].array.compactMap{v in let content=v["content"].string,tags=v["tags"].array.map{$0.array.map(\.string)},name=v["profile"]["name"].string;guard CommunityMilestone.isFeedAuthorVisible(name) else{return nil};let milestone=CommunityMilestone.parse(content:content,tags:tags,name:name);return CommunityPost(event:.init(id:v["id"].string,pubkey:v["pubkey"].string,created_at:1700000000,kind:1,tags:tags,content:content,sig:""),name:name,npub:v["npub"].string,milestone:milestone)}
     }
     func load(_ app:AppModel)async throws->TeamsPanelSnapshot{snapshot}
     func create(name:String,members:[String],app:AppModel)async throws{throw URLError(.notConnectedToInternet)}
@@ -220,5 +220,36 @@ extension TeamsPanelReferenceTests {
         await model.reload(app);let old=Task{await model.loadFeed(app)};for _ in 0..<200 where access.held == nil{try await Task.sleep(for:.milliseconds(10))};let reply=try XCTUnwrap(access.held);access.held=nil
         try app.identity.create();await model.reload(app);let next=Task{await model.loadFeed(app)};for _ in 0..<200 where access.held == nil{try await Task.sleep(for:.milliseconds(10))};XCTAssertNotNil(access.held);reply.resume(throwing:AppError.message("Stale account failure"));await old.value
         XCTAssertTrue(model.feedLoading);XCTAssertNil(model.feedError);XCTAssertTrue(model.posts.isEmpty);access.complete(access.posts);await next.value;XCTAssertFalse(model.feedLoading);XCTAssertEqual(model.posts.count,1);XCTAssertNil(model.feedError)
+    }
+}
+
+
+extension TeamsPanelReferenceTests {
+    func testOriginalRetainedNonMilestoneFilteredMixedAndFallbackFeedScreens()async throws {
+        let env=ProcessInfo.processInfo.environment;guard env["PIYALI_OFFLINE_TESTS"] == "1",env["PIYALI_REFERENCE_PREVIEW_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Isolated source preview required")}
+        let fixture=try JSONDecoder().decode(JSONValue.self,from:Data(contentsOf:try XCTUnwrap(Bundle(for:Self.self).url(forResource:"teams-panel-preview",withExtension:"json"))))
+        let app=AppModel(progressService:TeamsNoCloud());try app.identity.create();app.signedIn=true;defer{app.signOut()}
+        let scene=try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap{$0 as? UIWindowScene}.first),old=scene.windows.first{$0.isKeyWindow};defer{old?.makeKey()}
+        let base=try XCTUnwrap(fixture["posts"].array.first)
+        func entry(_ id:String,_ content:String,name:String="Ada",time:Double=1700000001)->JSONValue{base.setting("id",.string(id)).setting("content",.string(content)).setting("profile",.object(["name":.string(name)])).setting("tags",.array([])).setting("createdAt",.number(time))}
+        for(language,theme)in [("en","light"),("ar","dark")] {for state in ["feed-ordinary","feed-zero","feed-scholarship","feed-banned","feed-mixed","feed-fallback"] {
+            app.learner.support=language;let values:[JSONValue]
+            switch state{case "feed-ordinary":values=[entry("ordinary","A community greeting")];case "feed-zero":values=[entry("zero","Finished question 0")];case "feed-scholarship":values=[entry("scholarship","A new scholarship")];case "feed-banned":values=[base.setting("profile",.object(["name":.string("TEST")]))];case "feed-mixed":values=[entry("ordinary","A community greeting",time:1700000003),base.setting("id",.string("blocked")).setting("profile",.object(["name":.string("TEST")])).setting("createdAt",.number(1700000004)),base.setting("id",.string("visible")).setting("createdAt",.number(1700000001))];default:values=[base.setting("profile",.object(["name":.string("New Private User")]))]}
+            let access=TeamsPreviewAccess(fixture.setting("posts",.array(values)),state:"empty"),model=TeamsPanelController(access:access);let policy=try XCTUnwrap(model.policy)
+            let window=UIWindow(windowScene:scene);window.frame=CGRect(x:0,y:0,width:402,height:874);let web=WKWebView(frame:window.frame),vc=UIViewController();vc.view=web;window.rootViewController=vc;window.makeKeyAndVisible();web.scrollView.contentInsetAdjustmentBehavior = .never
+            defer{model.cancel();web.stopLoading();window.isHidden=true;window.rootViewController=nil}
+            web.load(URLRequest(url:try XCTUnwrap(URL(string:"http://127.0.0.1:5181/__piyali-teams?state=\(state)&language=\(language)&theme=\(theme)"))))
+            var ready=false;for _ in 0..<400{ready=(try? await web.evaluateJavaScript("document.fonts.status==='loaded'&&document.querySelectorAll('[role=tab]').length===2&&window.__teamsCachedFeed?.()!==null")) as? Bool == true;if ready{break};try await Task.sleep(for:.milliseconds(40))};XCTAssertTrue(ready);guard ready else{return}
+            _=try await web.evaluateJavaScript("document.querySelectorAll('[role=tab]')[1].click()");try await Task.sleep(for:.milliseconds(600))
+            let stats=try await web.evaluateJavaScript("JSON.stringify((()=>{const p=[...document.querySelectorAll('[role=tabpanel]')].find(e=>!e.hidden);return{rawCount:window.__teamsCachedFeed().length,posts:p.querySelectorAll('a[href^=\"https://ditto.pub/\"]').length,empty:p.textContent.includes('No posts yet. Start the conversation!'),text:p.textContent,geometry:[p,...p.querySelectorAll('*')].map(e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return {tag:e.tagName,text:e.textContent,x:r.x,y:r.y,width:r.width,height:r.height,color:s.color,direction:s.direction}})}})())") as? String ?? "{}"
+            let observed=try JSONDecoder().decode(JSONValue.self,from:Data(stats.utf8));XCTAssertEqual(observed["rawCount"].number,Double(values.count));XCTAssertEqual(observed["posts"].number,["feed-mixed","feed-fallback"].contains(state) ? 1:0);XCTAssertEqual(observed["empty"].boolean,state == "feed-banned")
+            let source=XCTAttachment(image:try await web.takeSnapshot(configuration:nil));source.name="Source Teams content \(state) \(language)";source.lifetime = .keepAlways;add(source);let geometry=XCTAttachment(data:Data(stats.utf8),uniformTypeIdentifier:"public.json");geometry.name="Source Teams content \(state) \(language) geometry";geometry.lifetime = .keepAlways;add(geometry)
+            window.rootViewController=UIHostingController(rootView:ZStack{PiyaliBrand(dark:theme == "dark").background;TeamsDrawerView(model:model,initialTab:1,onClose:{})}.environmentObject(app).environment(\.dynamicTypeSize,.large).preferredColorScheme(theme == "dark" ? .dark:.light).ignoresSafeArea());window.makeKeyAndVisible();try await Task.sleep(for:.milliseconds(600))
+            let expected=try policy.run("feedSanitize",.object(["profiles":.array(values)]));XCTAssertEqual(model.posts.map(\.id),expected.array.map{$0["id"].string});XCTAssertFalse(model.feedLoading);XCTAssertNil(model.feedError)
+            let nativeCards=try model.posts.filter{post in try policy.run("feedCard",.object(["profile":.object(["content":.string(post.event.content),"tags":.array(post.event.tags.map{.array($0.map(JSONValue.string))})])])) != .null}.count
+            XCTAssertEqual(Double(nativeCards),observed["posts"].number);XCTAssertEqual(model.posts.isEmpty,observed["empty"].boolean)
+            let native=XCTAttachment(image:UIGraphicsImageRenderer(bounds:window.bounds).image{_ in window.drawHierarchy(in:window.bounds,afterScreenUpdates:true)});native.name="Native Teams content \(state) \(language)";native.lifetime = .keepAlways;add(native)
+            model.cancel();web.stopLoading();window.isHidden=true;window.rootViewController=nil
+        }}
     }
 }

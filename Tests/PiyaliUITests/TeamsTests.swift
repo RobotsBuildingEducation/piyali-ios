@@ -100,10 +100,10 @@ extension TeamsTests {
 
 private struct TeamsFeedFixtureCrypto:ContentSigning {}
 private final class ControlledTeamFeedRelay:@unchecked Sendable {
-    enum Mode{case failure,posts}
+    enum Mode{case failure,posts,ordinary,banned,missingProfile,metadataFailure,mixed}
     private let lock=NSLock()
     private var mode:Mode = .failure
-    private(set) var post:[String:Any]=[:],profile:[String:Any]=[:]
+    private(set) var post:[String:Any]=[:],profile:[String:Any]=[:],ordinary:[String:Any]=[:],banned:[String:Any]=[:]
     init()throws {
         let keys=Keypair()!
         func event(kind:Int,tags:[[String]],content:String)throws->[String:Any]{
@@ -112,14 +112,22 @@ private final class ControlledTeamFeedRelay:@unchecked Sendable {
         }
         post=try event(kind:1,tags:[["t","LearnWithNostr"],["purpose","nosaboProgress"],["total_xp","1250"],["daily_goal_percent","67"]],content:"I just reached 1250 XP! https://piyali.app #LearnWithNostr")
         profile=try event(kind:0,tags:[],content:"{\"name\":\"Community learner\"}")
+        ordinary=try event(kind:1,tags:[["t","LearnWithNostr"]],content:"A community greeting")
+        banned=try event(kind:0,tags:[],content:"{\"name\":\"TEST\"}")
     }
     func set(_ next:Mode){lock.withLock{mode=next}}
     func handle(_ frame:[Any],_ connection:NWConnection,relay:LocalNostrRelay){
         guard frame.first as? String == "REQ",let id=frame[1] as? String,let filter=frame.last as? [String:Any] else{return}
         if (filter["kinds"] as? [Int]) == [1]{
             let current=lock.withLock{mode}
-            switch current{case .failure:relay.send(["CLOSED",id,"Community relay unavailable"],to:connection);case .posts:relay.send(["EVENT",id,post],to:connection);relay.send(["EOSE",id],to:connection)}
-        }else{if (filter["kinds"] as? [Int]) == [0]{relay.send(["EVENT",id,profile],to:connection)};relay.send(["EOSE",id],to:connection)}
+            switch current{case .failure:relay.send(["CLOSED",id,"Community relay unavailable"],to:connection);default:
+                if case .ordinary=current{relay.send(["EVENT",id,ordinary],to:connection)}else{relay.send(["EVENT",id,post],to:connection);if case .mixed=current{relay.send(["EVENT",id,ordinary],to:connection)}}
+                relay.send(["EOSE",id],to:connection)
+            }
+        }else{
+            if (filter["kinds"] as? [Int]) == [0]{let current=lock.withLock{mode};switch current{case .metadataFailure:relay.send(["CLOSED",id,"Metadata unavailable"],to:connection);return;case .missingProfile:break;case .banned:relay.send(["EVENT",id,banned],to:connection);default:relay.send(["EVENT",id,profile],to:connection)}}
+            relay.send(["EOSE",id],to:connection)
+        }
     }
 
 }
@@ -140,5 +148,29 @@ extension TeamsTests {
         tap("teamsClose",app);XCTAssertEqual(XCTWaiter.wait(for:[XCTNSPredicateExpectation(predicate:NSPredicate(format:"exists == false"),object:app.buttons["teamsClose"])],timeout:5),.completed,"The actual drawer close control must dismiss before reopening");let reads=relay.frames().filter{($0.last as? [String:Any])?["kinds"] as? [Int] == [1]}.count;feed.set(.failure);open(app);tap("teamsFeedTab",app);XCTAssertTrue(app.staticTexts["Total XP: 1250"].waitForExistence(timeout:5));XCTAssertFalse(loading.exists,"A successful cached feed stays visible without a spinner");XCTAssertEqual(relay.frames().filter{($0.last as? [String:Any])?["kinds"] as? [Int] == [1]}.count,reads,"The fresh cache must avoid another relay read");shot("Native Teams feed cached reopen \(arabic ? "ar":"en")",app)
         app.terminate();app.launch();open(app);tap("teamsFeedTab",app);XCTAssertTrue(empty.waitForExistence(timeout:15));XCTAssertEqual(empty.label,"No posts yet. Start the conversation!");XCTAssertFalse(error.exists);XCTAssertFalse(app.buttons["teamsFeedRefresh"].exists);XCTAssertFalse(content.exists);shot("Native Teams feed relaunch failure is empty \(arabic ? "ar":"en")",app)
         XCTAssertFalse(relay.frames().contains{$0.first as? String == "EVENT"},"Opening, retrying and reading community posts never publishes")
+    }
+}
+
+
+extension TeamsTests {
+    func testRawFeedBlankCacheFilteredMetadataAndMixedRecoveryInEnglishProduct()async throws{try await rawFeedJourney(arabic:false)}
+    func testRawFeedBlankCacheFilteredMetadataAndMixedRecoveryInArabicProduct()async throws{try await rawFeedJourney(arabic:true)}
+    private func rawFeedJourney(arabic:Bool)async throws {
+        continueAfterFailure=false
+        let relay=LocalNostrRelay(),feed=try ControlledTeamFeedRelay();feed.set(.ordinary);defer{relay.stop()};try await relay.start{feed.handle($0,$1,relay:relay)}
+        let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_TEAM_TEST_RELAY":relay.url,"PIYALI_PRIVATE_TEAMS_TEST_EMULATOR":"1","PIYALI_HEADLINE_FIXTURE":"failure"];app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme",arabic ? "dark":"light"];app.launch()
+        let entry=app.textFields["entryName"];XCTAssertTrue(entry.waitForExistence(timeout:15));entry.tap();entry.typeText("Content Learner");tap("entryKeyboardDone",app);tap("createAccount",app);chooseEnglishSpanishOnboarding(app);tap("startLearning",app);tap("companionContinue",app);acknowledgePaperPencil(app);tap("gettingStartedGotIt",app);tap("placementNew",app)
+        if arabic{tap("productMenu",app);tap("productPanel-settings",app);tap("supportLanguagePicker",app);tap("settingsLanguage-support-ar",app);tap("productPanelClose",app)}
+        func showFeed(){open(app);tap("teamsFeedTab",app);XCTAssertTrue(app.buttons["teamsFeedTab"].isSelected)}
+        func empty(){XCTAssertTrue(app.staticTexts["teamsFeedEmpty"].waitForExistence(timeout:15));XCTAssertFalse(app.staticTexts["teamsFeedError"].exists);XCTAssertFalse(app.staticTexts["teamsFeedContent"].exists)}
+        showFeed();XCTAssertFalse(app.otherElements["teamsFeedLoading"].exists);XCTAssertFalse(app.staticTexts["teamsFeedEmpty"].exists,"An ordinary retained note produces the original blank feed, not an empty message");XCTAssertFalse(app.staticTexts["teamsFeedError"].exists);XCTAssertFalse(app.staticTexts["teamsFeedContent"].exists);shot("Native Teams content ordinary blank \(arabic ? "ar":"en")",app)
+        XCTAssertTrue(relay.frames().contains{($0.last as? [String:Any])?["kinds"] as? [Int] == [0]},"The signed ordinary note completes its metadata read")
+        tap("teamsClose",app);XCTAssertEqual(XCTWaiter.wait(for:[XCTNSPredicateExpectation(predicate:NSPredicate(format:"exists == false"),object:app.buttons["teamsClose"])],timeout:5),.completed)
+        let reads=relay.frames().filter{($0.last as? [String:Any])?["kinds"] as? [Int] == [1]}.count;feed.set(.failure);showFeed();XCTAssertFalse(app.staticTexts["teamsFeedEmpty"].exists);XCTAssertFalse(app.staticTexts["teamsFeedContent"].exists);XCTAssertEqual(relay.frames().filter{($0.last as? [String:Any])?["kinds"] as? [Int] == [1]}.count,reads);shot("Native Teams content raw cache reopen \(arabic ? "ar":"en")",app)
+        app.terminate();feed.set(.banned);app.launch();showFeed();empty();shot("Native Teams content filtered author empty \(arabic ? "ar":"en")",app)
+        app.terminate();feed.set(.metadataFailure);app.launch();showFeed();empty();shot("Native Teams content metadata failure empty \(arabic ? "ar":"en")",app)
+        app.terminate();feed.set(.missingProfile);app.launch();showFeed();XCTAssertTrue(app.buttons["New Private User"].waitForExistence(timeout:15));XCTAssertTrue(app.staticTexts["Total XP: 1250"].exists);XCTAssertFalse(app.staticTexts["teamsFeedEmpty"].exists);shot("Native Teams content missing profile fallback \(arabic ? "ar":"en")",app)
+        app.terminate();feed.set(.mixed);app.launch();showFeed();XCTAssertTrue(app.buttons["Community learner"].waitForExistence(timeout:15));XCTAssertEqual(app.staticTexts.matching(identifier:"teamsFeedContent").count,1);XCTAssertTrue(app.staticTexts["teamsFeedContent"].label.contains("1250 XP"));XCTAssertFalse(app.staticTexts["A community greeting"].exists);XCTAssertFalse(app.staticTexts["teamsFeedEmpty"].exists);shot("Native Teams content mixed signed recovery \(arabic ? "ar":"en")",app)
+        XCTAssertFalse(relay.frames().contains{$0.first as? String == "EVENT"},"Content reads, relaunch and cache recovery never publish")
     }
 }

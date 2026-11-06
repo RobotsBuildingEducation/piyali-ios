@@ -1,0 +1,24 @@
+Test Suite 'Selected tests' started at 2026-11-06 07:52:13.375.
+Test Suite 'PiyaliCorePackageTests.xctest' started at 2026-11-06 07:52:13.377.
+Test Suite 'CommunityFeedTests' started at 2026-11-06 07:52:13.377.
+Test Case '-[PiyaliCoreTests.CommunityFeedTests testMilestoneFilteringAndNumericBounds]' started.
+Test Case '-[PiyaliCoreTests.CommunityFeedTests testMilestoneFilteringAndNumericBounds]' passed (0.003 seconds).
+Test Case '-[PiyaliCoreTests.CommunityFeedTests testPublisherUsesWebContentAndLowercaseTagWithoutPrivateState]' started.
+Test Case '-[PiyaliCoreTests.CommunityFeedTests testPublisherUsesWebContentAndLowercaseTagWithoutPrivateState]' passed (0.000 seconds).
+Test Case '-[PiyaliCoreTests.CommunityFeedTests testSourceFilterAndQuestionFixtures]' started.
+Test Case '-[PiyaliCoreTests.CommunityFeedTests testSourceFilterAndQuestionFixtures]' passed (0.002 seconds).
+Test Suite 'CommunityFeedTests' passed at 2026-11-06 07:52:13.382.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.005 (0.005) seconds
+Test Suite 'TeamsPanelPolicyTests' started at 2026-11-06 07:52:13.382.
+Test Case '-[PiyaliCoreTests.TeamsPanelPolicyTests testActualTeamsPanelPolicies]' started.
+Test Case '-[PiyaliCoreTests.TeamsPanelPolicyTests testActualTeamsPanelPolicies]' passed (0.057 seconds).
+Test Suite 'TeamsPanelPolicyTests' passed at 2026-11-06 07:52:13.439.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.057 (0.057) seconds
+Test Suite 'PiyaliCorePackageTests.xctest' passed at 2026-11-06 07:52:13.439.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.061 (0.062) seconds
+Test Suite 'Selected tests' passed at 2026-11-06 07:52:13.439.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.061 (0.064) seconds
+◇ Test run started.
+↳ Testing Library Version: 1743
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

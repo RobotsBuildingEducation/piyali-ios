@@ -5,8 +5,9 @@ public struct CommunityMilestone: Equatable, Sendable {
     public let totalXP: Double?
     public let goalPercent: Double?
     public var questionPercent: Double? { question.map { min(100,$0/120*100) } }
+    public static func isFeedAuthorVisible(_ name:String)->Bool { !["data","test","hi","text","hii"].contains(name.lowercased()) }
     public static func parse(content:String,tags:[[String]],name:String) -> Self? {
-        guard !["data","test","hi","text","hii"].contains(name.lowercased()) else { return nil }
+        guard isFeedAuthorVisible(name) else { return nil }
         let expression=try! NSRegularExpression(pattern:"question ([0-9]+)",options:.caseInsensitive)
         let range=NSRange(content.startIndex...,in:content)
         let question=expression.firstMatch(in:content,range:range).flatMap { Range($0.range(at:1),in:content) }.flatMap { Double(content[$0]) }.flatMap { $0.isFinite && $0 > 0 ? $0 : nil }

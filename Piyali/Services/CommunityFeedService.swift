@@ -5,7 +5,7 @@ struct CommunityPost:Identifiable {
     let event:NostrEventPayload
     let name:String
     let npub:String
-    let milestone:CommunityMilestone
+    let milestone:CommunityMilestone?
     var id:String { event.id }
 }
 @MainActor final class CommunityFeedService:ObservableObject {
@@ -13,24 +13,27 @@ struct CommunityPost:Identifiable {
     @Published private(set) var busy=false
     @Published var error:String?
     let client:NostrRelayClient
+    private let clock:()->Date
     private var cachedAt:Date?
+    private var cachedContainsNotes=false
     private var account=""
     private var generation=0
     private var pending:Task<Void,Never>?
-    init(client:NostrRelayClient? = nil) {
+    init(client:NostrRelayClient? = nil,clock:@escaping()->Date={Date()}) {
+        self.clock=clock
         var selected=client ?? NostrRelayClient(relays:LearningTeams.relays)
         #if DEBUG
         if client == nil,ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"] == "1",UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil,let relay=ProcessInfo.processInfo.environment["PIYALI_TEAM_TEST_RELAY"],let url=URL(string:relay),url.scheme == "ws",url.host == "127.0.0.1",url.port != nil,url.user == nil,url.password == nil,url.fragment == nil { selected=NostrRelayClient(relays:[relay]) }
         #endif
         self.client=selected
     }
-    func cancel(clear:Bool=false) { generation += 1;pending?.cancel();pending=nil;busy=false;if clear { posts=[];cachedAt=nil;account="";error=nil } }
+    func cancel(clear:Bool=false) { generation += 1;pending?.cancel();pending=nil;busy=false;if clear { posts=[];cachedAt=nil;cachedContainsNotes=false;account="";error=nil } }
     /// A successful empty cache is distinct from a feed that has never loaded.
     func cachedPosts(account:String)->[CommunityPost]? { self.account == account && cachedAt != nil ? posts:nil }
-    func refresh(account:String,force:Bool=false,now:Date=Date(),failureAsEmpty:Bool=false) async {
+    func refresh(account:String,force:Bool=false,now:Date?=nil,failureAsEmpty:Bool=false) async {
         if self.account != account { cancel(clear:true);self.account=account }
         if let pending { await pending.value;return }
-        if !force,let cachedAt,now.timeIntervalSince(cachedAt) < (posts.isEmpty ? 15 : 120) { error=nil;return }
+        if !force,let cachedAt,(now ?? clock()).timeIntervalSince(cachedAt) < (cachedContainsNotes ? 120 : 15) { error=nil;return }
         let version=generation;busy=true;error=nil
         let request=Task { @MainActor in
             defer { if version == self.generation { self.busy=false;self.pending=nil } }
@@ -41,20 +44,26 @@ struct CommunityPost:Identifiable {
                 var unique:[String:NostrEventPayload]=[:];for event in notes where event.content.utf8.count <= 65536 { unique[event.id]=event }
                 let sorted=unique.values.sorted { $0.created_at == $1.created_at ? $0.id < $1.id : $0.created_at > $1.created_at }.prefix(50)
                 let authors=Array(Set(sorted.map(\.pubkey)))
-                let metadata=authors.isEmpty ? [] : (try? await self.client.query(filter:["kinds":[0],"authors":authors,"limit":authors.count])) ?? []
+                let metadata:[NostrEventPayload]
+                if authors.isEmpty{metadata=[]}
+                else if failureAsEmpty{
+                    // The original main-product adapter resolves note and profile fetches
+                    // together; failed metadata setup resolves the entire result to [].
+                    metadata=try await self.client.query(filter:["kinds":[0],"authors":authors,"limit":authors.count])
+                }else{metadata=(try? await self.client.query(filter:["kinds":[0],"authors":authors,"limit":authors.count])) ?? []}
                 try Task.checkCancellation();guard version == self.generation,self.account == account else { return }
                 var names:[String:String]=[:]
                 for event in metadata.sorted(by:{ $0.created_at == $1.created_at ? $0.id > $1.id : $0.created_at < $1.created_at }) { if let json=try? JSONDecoder().decode(JSONValue.self,from:Data(event.content.utf8)) { names[event.pubkey]=json["name"].string.isEmpty ? "New Private User" : String(json["name"].string.prefix(80)) } }
                 self.posts=sorted.compactMap { event in
                     let name=names[event.pubkey] ?? "New Private User"
-                    guard let milestone=CommunityMilestone.parse(content:event.content,tags:event.tags,name:name),let npub=PublicKey(hex:event.pubkey)?.npub else { return nil }
-                    return CommunityPost(event:event,name:name,npub:npub,milestone:milestone)
-                };self.cachedAt=now
+                    guard CommunityMilestone.isFeedAuthorVisible(name),let npub=PublicKey(hex:event.pubkey)?.npub else { return nil }
+                    return CommunityPost(event:event,name:name,npub:npub,milestone:CommunityMilestone.parse(content:event.content,tags:event.tags,name:name))
+                };self.cachedAt=now ?? self.clock();self.cachedContainsNotes = !sorted.isEmpty
             } catch { if version == self.generation,!(error is CancellationError) {
                 self.error=error.localizedDescription
                 // The main product's original Nostr adapter catches fetch failures and
                 // resolves []; its shared cache treats that as a successful empty result.
-                if failureAsEmpty{self.posts=[];self.cachedAt=now}
+                if failureAsEmpty{self.posts=[];self.cachedAt=now ?? self.clock();self.cachedContainsNotes=false}
             } }
         };pending=request;await request.value
     }

@@ -1,0 +1,57 @@
+{
+  "devicesAndConfigurations" : [
+    {
+      "device" : {
+        "architecture" : "arm64",
+        "deviceId" : "CE8248B6-7171-4FD4-97DE-89E499107F82",
+        "deviceName" : "Piyali Parity QA",
+        "modelName" : "iPhone 17 Pro",
+        "osBuildNumber" : "23E254a",
+        "osVersion" : "26.4.1",
+        "platform" : "iOS Simulator"
+      },
+      "expectedFailures" : 0,
+      "failedTests" : 2,
+      "passedTests" : 0,
+      "skippedTests" : 0,
+      "testPlanConfiguration" : {
+        "configurationId" : "1",
+        "configurationName" : "Test Scheme Action"
+      }
+    }
+  ],
+  "environmentDescription" : "Piyali · Built with macOS 26.4.1",
+  "expectedFailures" : 0,
+  "failedTests" : 2,
+  "finishTime" : 1793973056.39,
+  "passedTests" : 0,
+  "result" : "Failed",
+  "skippedTests" : 0,
+  "startTime" : 1793973027.732,
+  "statistics" : [
+
+  ],
+  "testFailures" : [
+    {
+      "failureText" : "XCTAssertTrue failed - The default source adapter catches metadata subscription setup failure too",
+      "targetName" : "PiyaliTests",
+      "testIdentifier" : 1,
+      "testIdentifierString" : "CommunityFeedTests/testOriginalDefaultMetadataFailureResolvesEmptyButSuccessfulMissingProfileUsesFallback()",
+      "testIdentifierURL" : "test://com.apple.xcode/Piyali/PiyaliTests/CommunityFeedTests/testOriginalDefaultMetadataFailureResolvesEmptyButSuccessfulMissingProfileUsesFallback",
+      "testName" : "testOriginalDefaultMetadataFailureResolvesEmptyButSuccessfulMissingProfileUsesFallback()"
+    },
+    {
+      "failureText" : "XCTAssertEqual failed: (\"[]\") is not equal to (\"[\"ddee432f4a9b8f79848ae2b0936d6fe9f4e1430593203b32967cabfc11dcbcd2\"]\") - The original cache and sanitized profiles retain an ordinary note even when renderPost returns null",
+      "targetName" : "PiyaliTests",
+      "testIdentifier" : 2,
+      "testIdentifierString" : "CommunityFeedTests/testOriginalRawNonMilestoneAndFilteredResultsKeepNonemptyCacheTTL()",
+      "testIdentifierURL" : "test://com.apple.xcode/Piyali/PiyaliTests/CommunityFeedTests/testOriginalRawNonMilestoneAndFilteredResultsKeepNonemptyCacheTTL",
+      "testName" : "testOriginalRawNonMilestoneAndFilteredResultsKeepNonemptyCacheTTL()"
+    }
+  ],
+  "title" : "Test - Piyali",
+  "topInsights" : [
+
+  ],
+  "totalTestCount" : 2
+}

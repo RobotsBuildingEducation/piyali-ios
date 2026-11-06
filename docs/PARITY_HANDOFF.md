@@ -8,6 +8,8 @@
 
 > **Teams feed continuation, 2026-11-06:** [TEAMS_FEED_STATES.md](TEAMS_FEED_STATES.md) records exclusive loading/error/empty/post branches, original-cache comparisons, source-shaped card/link presentation and the important default Nostr adapter boundary: ordinary relay failure resolves to empty. Component rejected-fetch/Refresh checks and real native signed-feed journeys retain separate scopes. Broader Teams/product acceptance remains open.
 
+> **Teams retained feed continuation, 2026-11-06:** [TEAMS_FEED_CONTENT.md](TEAMS_FEED_CONTENT.md) advances ordinary/question-zero/scholarship-only blank states, exact author filtering, raw nonempty cache expiry, mixed content and profile fetch/fallback behavior. It retains failing signed-relay baseline evidence and distinguishes original metadata setup rejection from unverified production NDK/EOSE hangs. The broader Teams/product goal remains open.
+
 Prepared **2026-11-04** for a later Terra continuation. The objective is still **complete functional and design parity with the main web product**, implemented natively for iPhone. This is a completion plan, not a declaration that the app is finished. Substantial implementation and scoped verification already exist; preserve that work and close the remaining differences.
 
 This handoff was assembled from the current checkouts, implementation, feature records and test scripts. **No application changes, new test runs, deployments or model transfer were performed while preparing it.** Older passing results retain their original source revision and test scope.

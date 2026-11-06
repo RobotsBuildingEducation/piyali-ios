@@ -44,3 +44,5 @@ Live read/action/close races, first cached watch notification, replacement grant
 Teams direction and forms now have a separate scoped record in [TEAMS_DRAWER_RTL.md](TEAMS_DRAWER_RTL.md), including actual Settings → Arabic → signed management → private relaunch and the source's physical close/progress exceptions. Source feed states, wider roster lifecycle, motion, script/size/accessibility and full product parity remain open.
 
 Feed loading, empty, rejected-fetch/Refresh, cache and source-default adapter behavior now have scoped work in [TEAMS_FEED_STATES.md](TEAMS_FEED_STATES.md). The default source adapter resolves relay failures to empty; component error fixtures are recorded separately from actual product journeys. Wider feed/provider/roster/design acceptance remains open.
+
+Retained raw feed content, original blank versus empty behavior, filtered-cache expiry and metadata failure/fallback have subsequent scoped evidence in [TEAMS_FEED_CONTENT.md](TEAMS_FEED_CONTENT.md). This does not close wider provider/roster/whole-product acceptance.
