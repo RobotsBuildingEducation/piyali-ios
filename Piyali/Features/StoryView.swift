@@ -223,9 +223,8 @@ struct StoryView:View {
                     let tips=(try? StoryFeedbackPolicy.shared?.tips(result.reasons,language:run.support,targetLabel:ui("language_"+run.target))) ?? []
                     StoryFeedbackView(correct:result.pass,label:run.mode == .speaking ? ui(result.pass ? "story_well_done":"story_almost"):t(result.pass ? "correct":"speechIncorrect"),subtext:run.mode == .speaking && result.pass ? ui("story_score")+": \(result.score)%":"",explanation:result.pass ? "":tips.joined(separator:run.mode == .speaking ? " ":"\n\n"),progress:percent,progressLabel:ui("story_progress"),xp:run.mode == .speaking && result.pass ? 2:0,portrait:feedbackPortrait,speaking:true)
                 } else if let correct=run.result,let question=run.currentSegment?.question {
-                    let answer=question.answer.map{question.options[$0]}.joined(separator:question.type == "order_words" ? " ":" · ")
                     let percent=Int(Double(run.index+(correct ? 1:0))/Double(max(1,run.count))*100.0+0.5)
-                    StoryFeedbackView(correct:correct,label:t(correct ? "correct":"incorrect"),subtext:"",explanation:correct ? "":answer+"\n\n"+question.explanation,progress:percent,progressLabel:ui("story_progress"),portrait:feedbackPortrait)
+                    StoryFeedbackView(correct:correct,label:t(correct ? "correct":"incorrect"),subtext:"",explanation:correct ? "":question.incorrectFeedback,progress:percent,progressLabel:ui("story_progress"),portrait:feedbackPortrait)
                 }
             }
         },actions:{

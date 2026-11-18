@@ -30,7 +30,14 @@ public struct StoryQuestion:Codable,Equatable,Sendable {
     public let prompt:String
     public var options:[String]
     public var answer:[Int]
-    public let explanation:String
+    public let explanation:String?
+    // The web feedback template distinguishes an omitted field from a JSON null.
+    public var explicitNullExplanation:Bool? = nil
+    public var incorrectFeedback:String {
+        let answerText=answer.compactMap { options.indices.contains($0) ? options[$0] : nil }
+            .joined(separator:type == "order_words" ? " " : " · ")
+        return answerText+"\n\n"+(explanation ?? (explicitNullExplanation == true ? "null" : "undefined"))
+    }
     public var audioTurn:Int?
     public func correct(_ selected:[Int]) -> Bool {
         guard selected.count == answer.count,Set(selected).count == selected.count else { return false }
@@ -47,7 +54,7 @@ public struct StoryEpisode:Codable,Equatable,Sendable {
         guard (1...4).contains(segments.count),segments.first?.turns.isEmpty == false,title.utf8.count <= 8_000 else{return false}
         return segments.allSatisfy { segment in
             let q=segment.question
-            return segment.turns.count <= 6 && segment.turns.allSatisfy {$0.target.utf8.count <= 8_000 && $0.speaker.utf8.count <= 8_000 && ($0.support?.utf8.count ?? 0) <= 8_000} && q.type.utf8.count <= 8_000 && q.prompt.utf8.count <= 8_000 && q.explanation.utf8.count <= 8_000 && q.options.count <= 8 && q.options.allSatisfy {$0.utf8.count <= 8_000} && q.answer.count <= 8
+            return segment.turns.count <= 6 && segment.turns.allSatisfy {$0.target.utf8.count <= 8_000 && $0.speaker.utf8.count <= 8_000 && ($0.support?.utf8.count ?? 0) <= 8_000} && q.type.utf8.count <= 8_000 && q.prompt.utf8.count <= 8_000 && (q.explanation?.utf8.count ?? 0) <= 8_000 && q.options.count <= 8 && q.options.allSatisfy {$0.utf8.count <= 8_000} && q.answer.count <= 8
         }
     }
     public static func parse(_ raw:JSONValue,target:String = "",prepare:Bool = false) throws -> StoryEpisode {
@@ -72,7 +79,7 @@ public struct StoryEpisode:Codable,Equatable,Sendable {
         for segment in segments {
             guard (2...6).contains(segment.turns.count),segment.turns.allSatisfy({ text($0.speaker) && text($0.target) }) else { throw StoryFailure.invalid }
             speakers.formUnion(segment.turns.map(\.speaker));let q=segment.question
-            guard ["choice","true_false","select_words","order_words","reply"].contains(q.type),text(q.prompt),text(q.explanation),(2...8).contains(q.options.count),q.options.allSatisfy(text),Set(q.options).count == q.options.count,!q.answer.isEmpty,Set(q.answer).count == q.answer.count,q.answer.allSatisfy({ q.options.indices.contains($0) }) else { throw StoryFailure.invalid }
+            guard ["choice","true_false","select_words","order_words","reply"].contains(q.type),text(q.prompt),text(q.explanation ?? ""),(2...8).contains(q.options.count),q.options.allSatisfy(text),Set(q.options).count == q.options.count,!q.answer.isEmpty,Set(q.answer).count == q.answer.count,q.answer.allSatisfy({ q.options.indices.contains($0) }) else { throw StoryFailure.invalid }
             if ["choice","true_false","reply"].contains(q.type),q.answer.count != 1 { throw StoryFailure.invalid }
             if q.type == "true_false",q.options.count != 2 { throw StoryFailure.invalid }
             if ["select_words","order_words"].contains(q.type) {

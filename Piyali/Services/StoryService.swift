@@ -137,14 +137,19 @@ import FirebaseAILogic
                     provisional=Self.makeProvisionalEpisode(previous:nil,id:UUID(),draft:.init(value:.init(title:episode.title,segments:[first]),ready:[0]),mode:mode,state:state,level:level,lesson:lesson)
                     try await Task.sleep(for:.seconds(45));try Task.checkCancellation()
                     #endif
-                } else if let outcome=ProcessInfo.processInfo.environment["PIYALI_STORY_SOURCE_EPISODE_FIXTURE"], ["completed","interrupted"].contains(outcome) {
+                } else if let outcome=ProcessInfo.processInfo.environment["PIYALI_STORY_SOURCE_EPISODE_FIXTURE"], ["completed","interrupted","missing-explanation"].contains(outcome) {
                     #if DEBUG
-                    guard let first=payload["segments"].array.first?["turns"].array.first else {throw StoryFailure.invalid}
-                    let record=JSONValue.object(["type":.string("turn"),"segment":.number(0),"speaker":first["speaker"],"target":first["target"],"support":first["support"]]).json+"\n"
+                    guard let segment=payload["segments"].array.first,let first=segment["turns"].array.first else {throw StoryFailure.invalid}
+                    var record=JSONValue.object(["type":.string("turn"),"segment":.number(0),"speaker":first["speaker"],"target":first["target"],"support":first["support"]]).json+"\n"
+                    if outcome == "missing-explanation" {
+                        var question=segment["question"].object
+                        question.removeValue(forKey:"explanation")
+                        record += JSONValue.object(["type":.string("question"),"segment":.number(0),"question":.object(question)]).json+"\n"
+                    }
                     guard let draft=StoryStreamDraft.episode(record) else {throw StoryFailure.invalid}
                     provisional=Self.makeProvisionalEpisode(previous:nil,id:UUID(),draft:draft,mode:mode,state:state,level:level,lesson:lesson)
                     try await Task.sleep(for:.seconds(8));guard generation == token,app.identity.npub == account,app.learner.target == target,app.learner.support == support else{return false}
-                    guard let accepted=StoryStreamDraft.episodePayload(record,completed:outcome == "completed") else {throw StoryFailure.invalid};payload=accepted
+                    guard let accepted=StoryStreamDraft.episodePayload(record,completed:outcome != "interrupted") else {throw StoryFailure.invalid};payload=accepted
                     #endif
                 } else if ProcessInfo.processInfo.environment["PIYALI_STORY_STREAM_FIXTURE"] == "1" {
                     let episode=try StoryEpisode.parse(payload,target:target,prepare:true),id=UUID()

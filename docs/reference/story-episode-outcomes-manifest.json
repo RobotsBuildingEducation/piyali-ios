@@ -9,6 +9,6 @@
       "sha256": "f05815923df5191d4be7c63fffe95b897d5bcc056c3c6634ba31dc5ed891e22d"
     }
   ],
-  "cases": 10,
+  "cases": 12,
   "scope": "Original StoryComprehension generation callback and applyStoryStreamLine executed with fake streams and in-memory episode setters; no provider, user, audio or network."
 }

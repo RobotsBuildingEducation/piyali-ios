@@ -414,5 +414,90 @@
       "discard": 0,
       "error": false
     }
+  },
+  {
+    "input": {
+      "name": "missing-explanation",
+      "chunks": [
+        "{\"type\":\"turn\",\"segment\":0,\"speaker\":\"Ana\",\"target\":\"Hola.\",\"support\":\"Hello.\"}\n",
+        "{\"type\":\"question\",\"segment\":0,\"question\":{\"type\":\"choice\",\"prompt\":\"Who?\",\"options\":[\"Ana\",\"Luis\"],\"answer\":[0],\"audioTurn\":0}}\n"
+      ]
+    },
+    "expected": {
+      "incorrectFeedback": "Ana\n\nundefined",
+      "episode": {
+        "title": "",
+        "segments": [
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "Hola.",
+                "support": "Hello."
+              }
+            ],
+            "question": {
+              "type": "choice",
+              "prompt": "Who?",
+              "options": [
+                "Ana",
+                "Luis"
+              ],
+              "answer": [
+                0
+              ],
+              "audioTurn": 0
+            }
+          }
+        ]
+      },
+      "fallback": 0,
+      "history": 1,
+      "discard": 0,
+      "error": false
+    }
+  },
+  {
+    "input": {
+      "name": "null-explanation",
+      "chunks": [
+        "{\"type\":\"turn\",\"segment\":0,\"speaker\":\"Ana\",\"target\":\"Hola.\",\"support\":\"Hello.\"}\n",
+        "{\"type\":\"question\",\"segment\":0,\"question\":{\"type\":\"choice\",\"prompt\":\"Who?\",\"options\":[\"Ana\",\"Luis\"],\"answer\":[0],\"explanation\":null,\"audioTurn\":0}}\n"
+      ]
+    },
+    "expected": {
+      "incorrectFeedback": "Ana\n\nnull",
+      "episode": {
+        "title": "",
+        "segments": [
+          {
+            "turns": [
+              {
+                "speaker": "Ana",
+                "target": "Hola.",
+                "support": "Hello."
+              }
+            ],
+            "question": {
+              "type": "choice",
+              "prompt": "Who?",
+              "options": [
+                "Ana",
+                "Luis"
+              ],
+              "answer": [
+                0
+              ],
+              "explanation": null,
+              "audioTurn": 0
+            }
+          }
+        ]
+      },
+      "fallback": 0,
+      "history": 1,
+      "discard": 0,
+      "error": false
+    }
   }
 ]

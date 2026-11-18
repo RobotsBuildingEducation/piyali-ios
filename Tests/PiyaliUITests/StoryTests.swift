@@ -112,6 +112,24 @@ import XCTest
         app.terminate();app.launchEnvironment.removeValue(forKey:"PIYALI_STORY_SOURCE_EPISODE_FIXTURE");app.launch();handleInitialPaperPencil(app);open(app,expectStory:false)
         XCTAssertTrue(app.staticTexts["realtimeGoal"].waitForExistence(timeout:10));xp(6,app)
     }
+    func testRadioQuestionWithoutExplanationCanFinishAndRestoresItsReward() {
+        let app=start("radio",narration:true,sourceEpisodeOutcome:"missing-explanation")
+        tap("storyPlay",app)
+        XCTAssertTrue(app.staticTexts["storyQuestion"].waitForExistence(timeout:18))
+        option("His mother",app)
+        tap("storyCheck",app)
+        XCTAssertTrue(app.staticTexts["storyFeedback"].waitForExistence(timeout:5))
+        XCTAssertTrue(app.staticTexts["storyFeedback"].label.contains("right"))
+        tap("storyNext",app)
+        XCTAssertTrue(app.staticTexts["realtimeGoal"].waitForExistence(timeout:10))
+        xp(6,app)
+        app.terminate()
+        app.launch()
+        handleInitialPaperPencil(app)
+        open(app,expectStory:false)
+        XCTAssertTrue(app.staticTexts["realtimeGoal"].waitForExistence(timeout:10))
+        xp(6,app)
+    }
     func testInterruptedRadioStreamRetainsTurnWithoutInventingQuestionOrReward() {
         let app=start("radio",narration:true,sourceEpisodeOutcome:"interrupted");tap("storyPlay",app)
         XCTAssertTrue(app.buttons["storyCheck"].waitForExistence(timeout:18),app.debugDescription)

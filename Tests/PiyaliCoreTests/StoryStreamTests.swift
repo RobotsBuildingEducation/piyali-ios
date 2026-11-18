@@ -86,7 +86,7 @@ extension StoryStreamTests {
     }
     func testSourceEpisodeOutcomesExposeEmergencyQuestionsOnlyAfterNormalCompletion() throws {
         let url=URL(fileURLWithPath:#filePath).deletingLastPathComponent().appendingPathComponent("Fixtures/story-episode-outcomes.json")
-        let rows=try JSONDecoder().decode([JSONValue].self,from:Data(contentsOf:url));XCTAssertEqual(rows.count,10)
+        let rows=try JSONDecoder().decode([JSONValue].self,from:Data(contentsOf:url));XCTAssertEqual(rows.count,12)
         for row in rows {
             let input=row["input"],expected=row["expected"],snapshot=input["chunks"].array.map(\.string).joined(),completed = !input["fail"].boolean,sourceUsedStream=expected["fallback"].number == 0
             let draft=StoryStreamDraft.episodeOutcome(snapshot,completed:completed)
@@ -98,6 +98,14 @@ extension StoryStreamTests {
             XCTAssertEqual(draft.value.segments.count,source.count,input["name"].string)
             for index in source.indices where draft.value.segments.indices.contains(index) {
                 XCTAssertEqual(draft.value.segments[index].turns.map(\.target),source[index]["turns"].array.map{$0["target"].string},input["name"].string)
+                if case .string(let feedback)=expected["incorrectFeedback"] {
+                    XCTAssertTrue(draft.ready.contains(index))
+                    let question=try XCTUnwrap(run.currentSegment?.question)
+                    XCTAssertEqual(question.options,source[index]["question"]["options"].array.map(\.string))
+                    XCTAssertTrue(question.correct([0]))
+                    XCTAssertNil(question.explanation)
+                    XCTAssertEqual(question.incorrectFeedback,feedback)
+                }
                 if source[index]["question"]["prompt"].string == "Comprehension check" {XCTAssertTrue(draft.ready.contains(index),input["name"].string);XCTAssertEqual(draft.value.segments[index].question.options,["Yes","No"]);XCTAssertEqual(draft.value.segments[index].question.answer,[0])}
                 if source[index]["question"] == .null || input["name"].string == "malformed-question-present" {XCTAssertTrue(run.sourceUnavailableQuestions?.contains(index) == true,input["name"].string)}
             }

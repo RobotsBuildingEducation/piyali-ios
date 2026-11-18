@@ -43,9 +43,11 @@ public enum StoryStreamDraft {
             } else {
                 switch object["question"] {case .object,.array:break;default:continue}
                 received.insert(index);ready.remove(index);segments[index].question=empty
-                guard var q=try? JSONDecoder().decode(StoryQuestion.self,from:JSONEncoder().encode(normalizeSingleAnswer(object["question"]))) else{continue}
+                let question=normalizeSingleAnswer(object["question"])
+                guard var q=try? JSONDecoder().decode(StoryQuestion.self,from:JSONEncoder().encode(question)) else{continue}
+                q.explicitNullExplanation = question.object["explanation"] == JSONValue.null ? true : nil
                 if q.type == "order_words" {let turn=q.audioTurn ?? 0;if segments[index].turns.indices.contains(turn) {let tiles=StoryEpisode.tiles(segments[index].turns[turn].target);q.options=tiles.options;q.answer=tiles.answer}}
-                guard ["choice","true_false","select_words","order_words","reply"].contains(q.type),!q.prompt.isEmpty,q.prompt.utf8.count <= 8_000,q.explanation.utf8.count <= 8_000,(2...8).contains(q.options.count),q.options.allSatisfy({ !$0.isEmpty && $0.utf8.count <= 8_000 }),Set(q.options).count == q.options.count,!q.answer.isEmpty,Set(q.answer).count == q.answer.count,q.answer.allSatisfy({q.options.indices.contains($0)}) else{continue}
+                guard ["choice","true_false","select_words","order_words","reply"].contains(q.type),!q.prompt.isEmpty,q.prompt.utf8.count <= 8_000,(q.explanation?.utf8.count ?? 0) <= 8_000,(2...8).contains(q.options.count),q.options.allSatisfy({ !$0.isEmpty && $0.utf8.count <= 8_000 }),Set(q.options).count == q.options.count,!q.answer.isEmpty,Set(q.answer).count == q.answer.count,q.answer.allSatisfy({q.options.indices.contains($0)}) else{continue}
                 segments[index].question=q;ready.insert(index)
             }
         }
