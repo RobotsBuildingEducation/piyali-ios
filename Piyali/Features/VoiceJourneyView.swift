@@ -105,7 +105,17 @@ struct JourneyRecordingView:View {
     private var player:AVAudioPlayer?,ticker:Task<Void,Never>?
     private static weak var active:JourneyPlayback?
     var duration:Double{player?.duration ?? 0}
-    func load(_ data:Data){stop();do{player=try AVAudioPlayer(data:data);player?.delegate=self;player?.prepareToPlay();failed=false}catch{failed=true}}
+    func load(_ data: Data) {
+        stop()
+        do {
+            let audio = try AVAudioPlayer(data: JourneyWebMAudio.playbackData(data))
+            audio.delegate = self
+            failed = !audio.prepareToPlay()
+            player = audio
+        } catch {
+            failed = true
+        }
+    }
     func toggle(){guard let player else{return};if player.isPlaying{player.pause();playing=false;ticker?.cancel()}else{if let other=Self.active,other !== self{other.pause()};Self.active=self;if player.currentTime>=player.duration{player.currentTime=0};do{try AVAudioSession.sharedInstance().setCategory(.playback,mode:.spokenAudio);try AVAudioSession.sharedInstance().setActive(true);playing=player.play()}catch{failed=true};ticker=Task{while !Task.isCancelled,playing{position=player.currentTime;try? await Task.sleep(for:.milliseconds(100))}}}}
     func seek(_ value:Double){position=value;player?.currentTime=value}
     private func pause(){player?.pause();playing=false;ticker?.cancel()}

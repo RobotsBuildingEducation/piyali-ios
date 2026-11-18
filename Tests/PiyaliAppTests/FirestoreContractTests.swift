@@ -1,4 +1,5 @@
 import XCTest
+import AVFoundation
 import FirebaseCore
 import FirebaseAppCheck
 import FirebaseFirestore
@@ -274,7 +275,9 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
         let ref=db.collection("users").document(npub).collection("voiceJourney").document("fr")
         try await ref.setData(["completedQuests":5,"foreignJourneyField":"preserve","recordings":[:]])
         let store=VoiceJourneyStore(database:db),key=Data(repeating:7,count:32),nonce=Data(repeating:8,count:12)
-        let payload:JSONValue = .object(["audio":.string(MemoryDrawerFixture.audio().base64EncodedString()),"mimeType":.string("audio/wav"),"duration":.number(1.5),"prompt":.string("Bonjour"),"support":.string("independent")])
+        let url = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "journey-chrome", withExtension: "webm"))
+        let original = try Data(contentsOf: url)
+        let payload: JSONValue = .object(["audio": .string(original.base64EncodedString()), "mimeType": .string("audio/webm;codecs=opus"), "duration": .number(1.503), "prompt": .string("Bonjour"), "support": .string("independent")])
         let ciphertext=try JourneyCryptography.seal(payload,key:key,nonce:nonce,account:npub,target:"fr",milestone:5),envelope=JourneyEnvelope(wrappedKey:"public-test-wrapper",iv:nonce,ciphertext:ciphertext)
         do {try await store.save(envelope,account:npub,target:"fr",milestone:1);XCTFail("Expired milestone accepted")}catch{}
         try await store.acknowledge(account:npub,target:"fr",milestone:1)
@@ -284,7 +287,15 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
         try await store.save(envelope,account:npub,target:"fr",milestone:5)
         do {try await store.save(envelope,account:npub,target:"fr",milestone:5);XCTFail("Duplicate recording accepted")}catch{}
         let loaded=try await store.load(account:npub,target:"fr",milestone:5)
-        XCTAssertEqual(try JourneyCryptography.open(loaded,key:key,account:npub,target:"fr",milestone:5),payload)
+        let opened = try JourneyCryptography.open(loaded, key: key, account: npub, target: "fr", milestone: 5)
+        XCTAssertEqual(opened, payload)
+        let restored = try JourneyCryptography.validate(opened)
+        XCTAssertEqual(restored, original)
+        let player = try AVAudioPlayer(data: JourneyWebMAudio.playbackData(restored))
+        XCTAssertTrue(player.prepareToPlay())
+        XCTAssertEqual(player.duration, 1.503, accuracy: 0.1)
+        XCTAssertThrowsError(try JourneyWebMAudio.playbackData(Data(original.prefix(150))))
+        XCTAssertEqual(try JourneyWebMAudio.playbackData(MemoryDrawerFixture.audio()), MemoryDrawerFixture.audio())
         let saved=try await ref.getDocument(source:.server).data() ?? [:],raw=try await ref.collection("recordings").document("5").getDocument(source:.server).data() ?? [:]
         XCTAssertEqual(saved["completedQuests"] as? Int,5);XCTAssertEqual(saved["lastPromptedMilestone"] as? Int,5);XCTAssertEqual(saved["foreignJourneyField"] as? String,"preserve")
         XCTAssertEqual(Set(raw.keys),Set(["version","wrappedKey","iv","ciphertext"]));XCTAssertNil(raw["audio"])
