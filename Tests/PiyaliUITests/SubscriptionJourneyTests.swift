@@ -7,6 +7,55 @@ import XCTest
  private func open(_ app:XCUIApplication){tap("productMenu",app);tap("productPanel-settings",app);tap("settingsTab-subscription",app)}
  private func safariDone(_ app:XCUIApplication,title:String)->Bool{let heading=app.webViews.staticTexts[title];guard heading.waitForExistence(timeout:20) else{let tree=XCTAttachment(string:app.debugDescription);tree.name="Subscription browser tree";tree.lifetime = .keepAlways;add(tree);XCTFail("Inert membership browser must load");return false};photo(title,app);let done=app.buttons.matching(NSPredicate(format:"label IN %@",["Done","Close"])).firstMatch;guard done.waitForExistence(timeout:10) else{let tree=XCTAttachment(string:app.debugDescription);tree.name="Subscription browser dismiss tree";tree.lifetime = .keepAlways;add(tree);XCTFail("Safari return control must exist");return false};done.tap();return true}
 
+ func testExpiredMembershipRefreshReturnsFromSafariToConfirmedStatus() async throws {
+  continueAfterFailure = false
+  let server = LocalMembershipServer()
+  try await server.start()
+  defer { server.stop() }
+  let expired: [String: Any] = ["authorized": false, "linked": true, "configured": true, "subscription": ["status": "expired"]]
+  server.status(expired)
+  let app = XCUIApplication()
+  app.launchEnvironment = ["PIYALI_OFFLINE_TESTS": "1", "PIYALI_TEST_IDENTITY_SCOPE": UUID().uuidString,
+                           "PIYALI_SETTINGS_FIXTURE": "1", "PIYALI_SUBSCRIPTION_TEST_URL": server.url]
+  app.launchArguments = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US", "-piyali.interfaceLanguage", "en"]
+  app.launch()
+  handleInitialPaperPencil(app)
+  let name = app.textFields["entryName"]
+  XCTAssertTrue(name.waitForExistence(timeout: 15))
+  name.tap()
+  name.typeText("Returning Learner")
+  tap("entryKeyboardDone", app)
+  tap("createAccount", app)
+  handleInitialPaperPencil(app)
+  tap("startLearning", app)
+  open(app)
+  XCTAssertTrue(app.buttons["subscriptionReconnect"].waitForExistence(timeout: 15))
+
+  for restored in [false, true] {
+   let before = server.requests().count
+   tap("settingsSubscriptionRefresh", app)
+   let heading = app.webViews.staticTexts["Local membership authorization"]
+   guard heading.waitForExistence(timeout: 15) else { XCTFail("Refresh should reconnect an expired membership"); return }
+   server.status(restored ? ["authorized": true, "linked": true, "configured": true, "subscription": ["status": "active"]] : expired)
+   guard safariDone(app, title: "Local membership authorization") else { return }
+   if restored {
+    let refreshed = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+     server.requests().dropFirst(before).contains {
+      ($0["path"] as? String)?.hasSuffix("/refresh-status") == true &&
+      ($0["headers"] as? String)?.contains("auth-session.local-fixture") == true
+     }
+    }, object: nil)
+    XCTAssertEqual(XCTWaiter.wait(for: [refreshed], timeout: 12), .completed)
+    XCTAssertTrue(app.staticTexts["Active membership"].waitForExistence(timeout: 10))
+   } else {
+    XCTAssertTrue(app.staticTexts["Membership inactive"].waitForExistence(timeout: 10))
+    XCTAssertTrue(app.buttons["subscriptionReconnect"].exists)
+    XCTAssertFalse(app.buttons["subscriptionCheckout"].exists)
+    XCTAssertFalse(server.requests().dropFirst(before).contains { ($0["path"] as? String)?.hasSuffix("/refresh-status") == true })
+   }
+  }
+ }
+
  func testRecoveryCancellationUsesBrowserCookieAndVerifiesReturn()async throws{
   continueAfterFailure=false;let server=LocalMembershipServer();try await server.start();defer{server.stop()};server.status(["authorized":false,"linked":false,"configured":true,"replacementRequired":true])
   let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_SETTINGS_FIXTURE":"1","PIYALI_SUBSCRIPTION_TEST_URL":server.url];app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en"];app.launch();handleInitialPaperPencil(app)

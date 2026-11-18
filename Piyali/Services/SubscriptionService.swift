@@ -80,7 +80,7 @@ import StoreKit
             practiceXP=nil;webAuthorized = false; appleAuthorized = false; authorized = false; webExpiry = nil; appleExpiry = nil; pendingAppleProduct = nil; entitlementCheck += 1 }
         self.identity = identity; accountID = identity.npub
     }
-    func refresh(forceWeb:Bool=false) async {
+    func refresh(forceWeb:Bool=false, reconnectLanguage: String? = nil) async {
         guard !busy,let identity, !identity.npub.isEmpty else { return }
         if suppressNetwork{statusResolved=true;return}
         let token=revision
@@ -96,6 +96,12 @@ import StoreKit
         guard token == revision else{return}
         do { try await refreshWeb(force:forceWeb) } catch { if token == revision{self.error = error.localizedDescription;statusError="unavailable";statusResolved=true} }
         recomputeAccess()
+        if let reconnectLanguage, forceWeb, token == revision, externalPaymentAllowed,
+           statusError.isEmpty, statusPayload["linked"].boolean, !webAuthorized,
+           !hasWebSession, !replacementRequired {
+            busy = false
+            await connect(language: reconnectLanguage, forRefresh: true)
+        }
     }
     func checkExpiry() { recomputeAccess() }
     private func recomputeAccess() {
@@ -195,7 +201,7 @@ import StoreKit
         if !granted{webAuthorized=false;webExpiry=nil}
         else if renewLease{webAuthorized=true;webExpiry=now().addingTimeInterval(15*60);webRetryAt=nil}
         else{webAuthorized=webAuthorized && (webExpiry ?? .distantPast)>now()}
-        if webAuthorized || replacementRequired{awaitingCheckout=false}
+        if webAuthorized || replacementRequired || statusPayload["linked"].boolean { awaitingCheckout = false }
         recomputeAccess()
     }
     private func invalidateWebChecks(){webEpoch=UUID();webTask?.task.cancel();webTask=nil}
@@ -285,7 +291,7 @@ import StoreKit
         guard token == revision else{return};busy=false
         if awaiting,!webAuthorized,!replacementRequired{await connect(language:language)}
     }
-    func connect(language:String)async{
+    func connect(language:String, forRefresh: Bool = false)async{
         guard !busy,let account=accountID,!account.isEmpty else{return};let token=revision
         busy=true;statusError="";error=nil;defer{if token == revision{busy=false}}
         do{
@@ -293,7 +299,10 @@ import StoreKit
             let value=try await post("link-start",body:body)
             guard token == revision else{return}
             let url=try SubscriptionBrowserRequest.authorizeURL(value["authorizeUrl"] as? String ?? "",web:config.web,allowLoopback:suppressLoopback)
-            let request=SubscriptionBrowserRequest(url:url,account:account,revision:token,kind:.connect);browserReturn=request;browser=request;awaitingCheckout=true
+            let request = SubscriptionBrowserRequest(url: url, account: account, revision: token, kind: forRefresh ? .refreshMembership : .connect)
+            browserReturn = request
+            browser = request
+            awaitingCheckout = !statusPayload["linked"].boolean
         }catch{if token == revision{statusError="unavailable";self.error=error.localizedDescription}}
     }
     private var suppressLoopback:Bool{
@@ -304,7 +313,23 @@ import StoreKit
         #endif
     }
     func checkout(){guard let account=accountID else{return};let url=suppressLoopback ? config.web.appendingPathComponent("checkout"):URL(string:"https://subscribe.piyali.app/")!;let request=SubscriptionBrowserRequest(url:url,account:account,revision:revision,kind:.checkout);browserReturn=request;browser=request;awaitingCheckout=true}
-    func browserClosed(){guard let request=browserReturn else{return};browser=nil;browserReturn=nil;guard request.account == accountID,request.revision == revision else{return};Task{[weak self]in guard let self,self.revision == request.revision,self.accountID == request.account else{return};do{try await self.restoreWeb()}catch{}}}
+    func browserClosed() {
+        guard let request = browserReturn else { return }
+        browser = nil
+        browserReturn = nil
+        Task { [weak self] in
+            guard let self, revision == request.revision, accountID == request.account else { return }
+            do {
+                try await restoreWeb()
+                if request.kind == .refreshMembership, revision == request.revision,
+                   accountID == request.account, hasWebSession, webAuthorized {
+                    try await refreshWeb(force: true)
+                }
+            } catch {
+                // The status check reports failures on the current account's panel.
+            }
+        }
+    }
     func replaceLinkedKey()async{await signedAction("replace",endpoint:"replace-link")}
     func disconnectWeb()async{await signedAction("disconnect",endpoint:"disconnect")}
     private func signedAction(_ action:String,endpoint:String)async{

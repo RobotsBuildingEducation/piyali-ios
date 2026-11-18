@@ -1,7 +1,7 @@
 import Foundation
 
 struct SubscriptionBrowserRequest:Identifiable {
- enum Kind{case connect,checkout,cancelReplacement}
+ enum Kind{case connect,checkout,cancelReplacement,refreshMembership}
  let id=UUID()
  let url:URL,account:String,revision:UUID,kind:Kind
  static func authorizeURL(_ raw:String,web:URL,allowLoopback:Bool=false)throws->URL{
