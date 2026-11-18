@@ -81,7 +81,7 @@ struct AccountView: View {
                 NavigationLink("Achievements") { AchievementsView() }
                 NavigationLink("Voice journey") { VoiceJourneyView() }
                 NavigationLink("Wallet") { WalletView() }.accessibilityIdentifier("walletLink")
-                NavigationLink("Learning teams") { TeamsView(service: app.teams) }
+                NavigationLink("Learning teams") { TeamsView() }
                 NavigationLink("Subscription") { SubscriptionView(service: app.subscription) }
             }
             Section("Progress") {
@@ -126,6 +126,6 @@ struct AccountView: View {
 }
 struct TeamsView:View {
     @Environment(\.dismiss) private var dismiss
-    let service:NostrTeamsService
-    var body:some View{TeamsDrawerView(service:service,onClose:{dismiss()}).toolbar(.hidden,for:.navigationBar)}
+    @EnvironmentObject private var app:AppModel
+    var body:some View{TeamsDrawerView(app:app,onClose:{dismiss()}).toolbar(.hidden,for:.navigationBar)}
 }

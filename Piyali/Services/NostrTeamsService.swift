@@ -20,6 +20,21 @@ struct LearningTeam: Identifiable, Sendable {
     private var account=""
     private var pending: Task<Void,Error>?
     private var acknowledged: [NostrEventPayload]=[]
+    // A drawer may close between the mirror acknowledgment and the next roster read.
+    private var createdTeam: (record: JSONValue, session: UUID)?
+
+    func rememberCreatedTeam(_ record: JSONValue, identity: IdentityService) {
+        createdTeam = (record, identity.sessionRevision)
+    }
+
+    func createdTeam(for identity: IdentityService) -> JSONValue? {
+        guard let receipt = createdTeam, receipt.session == identity.sessionRevision,
+              receipt.record["createdBy"].string == identity.npub,
+              teams.contains(where: { $0.creator == identity.hex && $0.teamID == receipt.record["id"].string })
+        else { return nil }
+        return receipt.record
+    }
+
     private let cacheDirectory: URL
     init(client: NostrRelayClient? = nil, cacheDirectory: URL? = nil) {
         var selected=client ?? NostrRelayClient(relays:LearningTeams.relays)
@@ -33,7 +48,7 @@ struct LearningTeam: Identifiable, Sendable {
         #endif
         self.cacheDirectory=directory
     }
-    func cancel(clear: Bool = false) { generation += 1;pending?.cancel();pending=nil;busy=false;error=nil;if clear { account="";teams=[];progress=[:];profiles=[:];acknowledged=[] } }
+    func cancel(clear: Bool = false) { generation += 1;pending?.cancel();pending=nil;busy=false;error=nil;if clear { createdTeam=nil;account="";teams=[];progress=[:];profiles=[:];acknowledged=[] } }
     private func restoreAcknowledged(author: String) {
         let url=cacheDirectory.appendingPathComponent(author+".json")
         acknowledged=((try? Data(contentsOf:url)).flatMap { try? JSONDecoder().decode([NostrEventPayload].self,from:$0) } ?? []).filter { $0.pubkey == author && $0.kind == LearningTeams.kind && $0.tag("d").hasPrefix("learning-team:") && IdentityService.verify($0) }

@@ -120,7 +120,7 @@ struct ProductShellView:View {
             .sheet(item:Binding(get:{panel == .memory || panel == .settings || panel == .assistant || panel == .teams || panel == .achievements ? nil:panel},set:{panel=$0})) { selected in NavigationStack { panelContent(selected).toolbar { ToolbarItem(placement:.confirmationAction) { Button(EntryCopy.text(language,"back_button")) { panel=nil }.accessibilityIdentifier("productPanelClose") } } }.tint(PiyaliBrand.teal) }
             .fullScreenCover(item:Binding(get:{panel == .achievements ? panel:nil},set:{if $0 == nil,panel == .achievements{panel=nil}})){_ in AchievementsView(onClose:{panel=nil}).presentationBackground(.clear)}
             .overlay{if panel == .assistant{HelpChatView(controller:help,onClose:{panel=nil})}}
-            .overlay{if panel == .teams{TeamsDrawerView(service:app.teams,initial:app.teamsStartup.snapshot(app),initialOwner:app.identity.npub,onClose:{panel=nil})}}
+            .overlay{if panel == .teams{TeamsDrawerView(app:app,onClose:{panel=nil})}}
             .overlay {if let reward=practice.dailyGoalVisible{DailyGoalCelebrationView(reward:reward,onContinue:{practice.closeDailyGoal(app)})}}
             .overlay {if let data=practice.visible {PlateCelebrationView(data:data,language:language,onContinue:{practice.continuePractice(app,ephemeralLesson:specialCourse != nil && mode == .path)},onNotes:{practice.continuePractice(app,viewNotes:true,ephemeralLesson:specialCourse != nil && mode == .path)}).environment(\.layoutDirection,language == "ar" ? .rightToLeft:.leftToRight)}}
     }
@@ -231,7 +231,7 @@ struct ProductShellView:View {
     @ViewBuilder private func panelContent(_ panel:ProductPanel)->some View {
         switch panel {
         case .settings: AccountView()
-        case .teams: TeamsView(service:app.teams)
+        case .teams: TeamsView()
         case .assistant: EmptyView()
         case .memory: MemoryDrawerView(onClose:{self.panel=nil})
         case .achievements: AchievementsView()

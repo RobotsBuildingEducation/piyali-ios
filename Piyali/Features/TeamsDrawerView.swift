@@ -30,7 +30,10 @@ struct TeamsDrawerView:View {
     private var border:Color{light ? brand.border:.white.opacity(0.2)}
     private var cardBorder:Color{light ? border:.white.opacity(0.08)}
     private func t(_ key:String,_ fallback:String)->String{let value=EntryCopy.ui(language,key);return value.isEmpty || value == key ? fallback:value}
-    init(service:NostrTeamsService,initial:TeamsPanelSnapshot?=nil,initialOwner:String="",onClose:@escaping()->Void){_model=StateObject(wrappedValue:TeamsPanelController(access:LiveTeamsPanelAccess(service:service),initial:initial ?? .init(),initialOwner:initial == nil ? "":initialOwner));self.onClose=onClose}
+    init(app: AppModel, onClose: @escaping () -> Void) {
+        _model = StateObject(wrappedValue: TeamsPanelController(app: app))
+        self.onClose = onClose
+    }
     init(model:TeamsPanelController,initialTab:Int=0,initialEditor:TeamsEditor?=nil,initialMembers:[String]=[],initialMember:String="",initialName:String?=nil,onClose:@escaping()->Void){_model=StateObject(wrappedValue:model);_tab=State(initialValue:initialTab);_editor=State(initialValue:initialEditor);_name=State(initialValue:initialName ?? initialEditor?.team?["teamName"].string ?? "");_queued=State(initialValue:initialMembers);_member=State(initialValue:initialMember);self.onClose=onClose}
     var body:some View {
         GeometryReader{g in
