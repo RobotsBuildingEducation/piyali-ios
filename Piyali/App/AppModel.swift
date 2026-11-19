@@ -76,6 +76,9 @@ import SwiftUI
     @Published private(set) var achievementUnlock=AchievementUnlockState(catalog:Set(((try? ContentLibrary.load([JSONValue].self,name:"achievement-protocol")) ?? []).map{$0["id"].string}))
     @Published var tutorUnits: [LearningUnit] = []
     @Published var units: [LearningUnit] = []
+    private var loadedLessonCourse:String?
+    var lessonCourseKey:String {learner.target+":"+learner.level}
+    var hasLoadedLessonCourse:Bool {loadedLessonCourse == lessonCourseKey && !loadingContent}
     @Published var introLibrary:IntroLibrary?
     @Published var cards: [Flashcard] = []
     @Published var phonics: [PhonicsCard] = []
@@ -458,6 +461,7 @@ import SwiftUI
                     return (curriculum[level] ?? [], cards, allPhonics["\(target):\(support):\(level)"] ?? [], allPhonics, tutor[tutorLevel] ?? [],try ContentLibrary.load(IntroLibrary.self,name:"intro-"+target))
                 }.value
                 guard !Task.isCancelled else { return }
+                self?.loadedLessonCourse=target+":"+level
                 self?.units = data.0; self?.cards = data.1; self?.phonics = data.2; self?.phonicsLibrary = data.3; self?.tutorUnits = data.4;self?.introLibrary=data.5
             } catch { if !Task.isCancelled { self?.error = error.localizedDescription } }
             if !Task.isCancelled { self?.loadingContent = false }

@@ -5,7 +5,14 @@ import XCTest
     private func photo(_ name:String,_ app:XCUIApplication){let shot=XCTAttachment(screenshot:app.screenshot());shot.name=name;shot.lifetime = .keepAlways;add(shot)}
     private func launch(_ scenario:String,walletRelay:String?=nil)->XCUIApplication {
         continueAfterFailure=false;let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_TUTOR_FIXTURE":"1","PIYALI_FLASHCARD_FIXTURE":"1","PIYALI_PLATE_JOURNEY_FIXTURE":scenario,"PIYALI_CONVERSATION_FIXTURE":scenario == "conversation" ? "1":"0"];if let walletRelay{app.launchEnvironment["PIYALI_WALLET_TEST_RELAY"]=walletRelay};app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"];app.launch();handleInitialPaperPencil(app)
-        let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Quest Learner");if app.buttons["entryKeyboardDone"].exists{app.buttons["entryKeyboardDone"].tap()};tap("createAccount",app);handleInitialPaperPencil(app);tap("startLearning",app);return app
+        let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Quest Learner");if app.buttons["entryKeyboardDone"].exists{app.buttons["entryKeyboardDone"].tap()};tap("createAccount",app);handleInitialPaperPencil(app);tap("startLearning",app)
+        if scenario != "returning-learn" {
+            tap("companionContinue",app)
+            acknowledgePaperPencil(app)
+            tap("gettingStartedGotIt",app)
+            tap("placementNew",app)
+        }
+        return app
     }
     private func completeTutor(_ app:XCUIApplication){
         tap("startDailyPractice",app);photo("Native daily practice route",app);XCTAssertTrue(app.staticTexts["tutorLessonTitle"].waitForExistence(timeout:15));tap("tutorStart",app)
@@ -26,6 +33,29 @@ import XCTest
         let app=launch("conversation");tap("startDailyPractice",app);XCTAssertTrue(app.staticTexts["conversationGoal"].waitForExistence(timeout:15));tap("conversationStart",app)
         XCTAssertTrue(app.buttons["guidedContinue"].waitForExistence(timeout:25));XCTAssertFalse(app.buttons["conversationSummaryDone"].exists);XCTAssertFalse(app.buttons["conversationEnd"].exists);photo("Native guided conversation stopped at course completion",app)
         tap("guidedContinue",app);XCTAssertTrue(app.buttons["flashcardTile-pre-a1-people-1"].waitForExistence(timeout:15));XCTAssertFalse(app.buttons["conversationSummaryDone"].exists)
+    }
+    func testReturningFocusCentersTheLatestLessonAfterRelaunch(){
+        let app=launch("returning-learn")
+        XCTAssertTrue(app.staticTexts["todayFocusTitle"].waitForExistence(timeout:15))
+        app.terminate();app.launch();handleInitialPaperPencil(app)
+        tap("startDailyPractice",app)
+        let lesson=app.buttons["lessonNode-lesson-pre-a1-3-1"],path=app.scrollViews.firstMatch
+        let centered=NSPredicate { _,_ in
+            lesson.isHittable && abs(lesson.frame.midY-path.frame.midY) < 50
+        }
+        func expectCentered(){
+            XCTAssertEqual(XCTWaiter.wait(for:[XCTNSPredicateExpectation(predicate:centered,object:nil)],timeout:15),.completed)
+            XCTAssertEqual(lesson.value as? String,"in_progress")
+            XCTAssertFalse(app.buttons["startLessonFromPreview"].exists)
+        }
+        expectCentered()
+        photo("Native Focus Learn resumes centered on the latest lesson",app)
+        lesson.tap();XCTAssertTrue(app.buttons["startLessonFromPreview"].waitForExistence(timeout:10));tap("closeLessonPreview",app)
+        for _ in 0..<3 { app.swipeDown(velocity:.fast) }
+        XCTAssertFalse(centered.evaluate(with:nil))
+        tap("productMenu",app);tap("productModeMenu",app);tap("productMode-path",app)
+        expectCentered()
+        photo("Native selecting the current Course recenters the next lesson",app)
     }
     func testTutorDailyGoalReviewAndCourseCelebrationSurviveRootTrialLimit()async throws{
         let relay=LocalNostrRelay();try await relay.start{frame,connection in if frame.first as? String == "REQ",let sub=frame[1] as? String{relay.send(["EOSE",sub],to:connection)}};defer{relay.stop()};let app=launch("tutor-trial",walletRelay:relay.url);completeTutor(app);tap("guidedContinue",app)

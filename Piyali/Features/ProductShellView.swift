@@ -40,6 +40,7 @@ struct ProductShellView:View {
     @State private var panel:ProductPanel?
     @State private var memoryInitialTab="repairs"
     @State private var revision=UUID()
+    @State private var lessonScrollRequest:UUID?
     @StateObject private var practice:PlatePracticeController
     @State private var lessonCompletion:LessonCompletionPresentation?
     @State private var presentedLessonCompletionID:UUID?
@@ -169,7 +170,7 @@ struct ProductShellView:View {
             .overlay{if let item=app.companionUnlock{CompanionUnlockView(item:item,language:language,onEquip:{app.finishCompanionUnlock(item,equip:true)},onKeep:{app.finishCompanionUnlock(item,equip:false)})}}
             // The value publisher replays a footer created while NavigationStack is mounting.
             .onReceive(app.$activityFooter) { footer in activityFooter=footer;if footer == nil,app.achievementUnlock.current == nil {app.activityFooterHeight=0} }
-            .onChange(of:app.learner.target) { _,_ in revision=UUID() }
+            .onChange(of:app.learner.target) { _,_ in lessonScrollRequest=nil;revision=UUID() }
             .onChange(of:app.localPracticeRevision) { _,_ in updatePracticePresentation() }
             .onChange(of:app.companionUnlock?.id){_,value in updatePracticePresentation();if value == nil{presentPendingLessonCompletion()}}
             .onChange(of:panel) { _,value in if value == nil { memoryInitialTab="repairs";practice.closeNotes(app);presentPendingLessonCompletion();updatePracticePresentation() } }
@@ -203,7 +204,7 @@ struct ProductShellView:View {
         else if specialCourse == "repair" { RepairPracticeView(onSurface:{mode=$0}) }
         else { switch mode {
         case .focus: TodayFocusHomeView(now:now,sessionActive:practice.guided != nil,startingPractice:launchID != nil,onStart:startPractice,onPanel:{ panel=$0 },onCompanionContinue:{firstRun.request(scope:firstRunScope,shown:app.learner.gettingStartedModalShown == true,paperShown:app.learner.paperPencilModalShown == true,hasPlacement:app.learner.hasFirstRunPlacement)})
-        case .path: LessonPathView()
+        case .path: LessonPathView(scrollRequest:lessonScrollRequest)
         case .cards: FlashcardsView()
         case .phonics: PhonicsView()
         case .conversation: ConversationView()
@@ -240,7 +241,12 @@ struct ProductShellView:View {
         }
     }
     private func restorePendingFocusedTutor(){if specialCourse == nil,let course=app.pendingFocusedTutorCourse{specialCourse=course;mode = .tutor;revision=UUID()}}
-    private func switchMode(_ value:ProductMode) { cancelPracticeLaunch();practice.cancel(app);specialCourse=nil;mode=value;menuOpen=false;revision=UUID() }
+    private func switchMode(_ value:ProductMode) {
+        if value == .path,mode == .path,specialCourse == nil,!app.lessonActivityActive {
+            menuOpen=false;lessonScrollRequest=UUID();return
+        }
+        cancelPracticeLaunch();practice.cancel(app);specialCourse=nil;mode=value;menuOpen=false;lessonScrollRequest=nil;revision=UUID()
+    }
     private func configurePractice(){
                 practice.onNavigate={openPlateCourse($0)}
                 practice.onHome={specialCourse=nil;mode = .focus;revision=UUID()}
@@ -267,10 +273,10 @@ struct ProductShellView:View {
             }
             return
         }
-        specialCourse=nil
+        specialCourse=nil;lessonScrollRequest=nil
         switch kind {
         case "goal","repair": specialCourse=kind
-        case "learn": mode = .path
+        case "learn": mode = .path;lessonScrollRequest=UUID()
         case "review": mode = .cards
         case "phonics": mode = .phonics
         case "conversation": mode = .conversation

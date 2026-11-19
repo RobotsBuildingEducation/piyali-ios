@@ -106,11 +106,14 @@ struct CourseUnitPath:View {
                             context.stroke(p,with:.linearGradient(Gradient(colors:[c.opacity(a),c.opacity(b)]),startPoint:CGPoint(x:0,y:y),endPoint:CGPoint(x:0,y:y+95)),style:StrokeStyle(lineWidth:5,lineCap:.round))
                         }
                     }.allowsHitTesting(false)
-                    ForEach(Array(unit.lessons.enumerated()),id:\.element.id) {index,lesson in
-                        let status=statuses[lesson.id] ?? .locked
-                        CoursePathNode(style:CoursePathSource.node(lesson,unit:unit,status:status,percent:percentages[lesson.id] ?? 0,language:language,dark:scheme == .dark),status:status){onSelect(lesson)}
-                            .accessibilityIdentifier(lesson.id == IntroTutorial.lessonID ? "introLink":"lessonNode-"+lesson.id)
-                            .frame(width:140,alignment:.top).offset(x:geometry.size.width/2-70+(index.isMultiple(of:2) ? 0:offset),y:CGFloat(index)*140).id(lesson.id)
+                    VStack(spacing:0) {
+                        ForEach(Array(unit.lessons.enumerated()),id:\.element.id) {index,lesson in
+                            let status=statuses[lesson.id] ?? .locked
+                            CoursePathNode(style:CoursePathSource.node(lesson,unit:unit,status:status,percent:percentages[lesson.id] ?? 0,language:language,dark:scheme == .dark),status:status){onSelect(lesson)}
+                                .accessibilityIdentifier(lesson.id == IntroTutorial.lessonID ? "introLink":"lessonNode-"+lesson.id)
+                                .frame(width:140).offset(x:geometry.size.width/2-70+(index.isMultiple(of:2) ? 0:offset)).id(lesson.id)
+                                .frame(width:geometry.size.width,height:140,alignment:.topLeading)
+                        }
                     }
                 }
             }.frame(height:max(200,CGFloat(unit.lessons.count)*140+32))
