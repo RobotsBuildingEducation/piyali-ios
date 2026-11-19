@@ -17,6 +17,4 @@ struct AppConfiguration {
     var auth: URL { URL(string: string("AuthBaseURL", default: "https://piyali-ios-api.robotsbuildingeducation.workers.dev"))! }
     var worker: URL { URL(string: string("WorkerBaseURL", default: "https://piyali-ios-api.robotsbuildingeducation.workers.dev"))! }
     var web: URL { URL(string: string("WebBaseURL", default: "https://piyali.app"))! }
-    // The reference app's actual payment route is /subscribe.
-    var subscriptionURL: URL { web.appendingPathComponent("subscribe") }
 }

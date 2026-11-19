@@ -30,11 +30,10 @@ private struct SettingsSubscriptionContent:View {
 }
 struct SubscriptionNativeTools:View {
  @ObservedObject var service:SubscriptionService
- private let config=AppConfiguration()
  var body:some View{List{
   if service.appleAuthorized{Text("Verified Apple subscription")}
   Section("Subscribe on iPhone"){ForEach(service.products){product in Button("\(product.displayName) · \(product.displayPrice)"){Task{await service.buy(product)}}.disabled(service.busy)};if service.products.isEmpty{Text("App Store plans are not available yet.")};Button("Restore purchases and web access"){Task{await service.restore()}}.disabled(service.busy);Button("Refresh subscription"){Task{await service.refresh(forceWeb:true)}}.disabled(service.busy);Link("Manage Apple subscription",destination:URL(string:"https://apps.apple.com/account/subscriptions")!)}
-  if service.externalPaymentAllowed{Section("Subscribe on the web"){Link("Open Piyali web subscriptions",destination:config.subscriptionURL).accessibilityIdentifier("subscriptionWebLink");Text("Return to Piyali after subscribing and refresh access.").font(.footnote)}}
+  if service.externalPaymentAllowed{Section("Subscribe on the web"){Link("Open Patreon checkout",destination:service.webCheckoutURL).accessibilityIdentifier("subscriptionWebLink");Text("Return to Piyali after subscribing and refresh access.").font(.footnote)}}
   Section{NavigationLink("Subscription terms"){SubscriptionTermsView()};NavigationLink("Privacy"){PrivacyDisclosureView()}}
   if let error=service.error{Text(error).foregroundStyle(.red)}
  }.navigationTitle("Subscription")}

@@ -312,7 +312,11 @@ import StoreKit
         return false
         #endif
     }
-    func checkout(){guard let account=accountID else{return};let url=suppressLoopback ? config.web.appendingPathComponent("checkout"):URL(string:"https://subscribe.piyali.app/")!;let request=SubscriptionBrowserRequest(url:url,account:account,revision:revision,kind:.checkout);browserReturn=request;browser=request;awaitingCheckout=true}
+    var webCheckoutURL: URL {
+        if suppressLoopback { return config.web.appendingPathComponent("checkout") }
+        return URL(string:"https://subscribe.piyali.app/")!
+    }
+    func checkout(){guard let account=accountID else{return};let request=SubscriptionBrowserRequest(url:webCheckoutURL,account:account,revision:revision,kind:.checkout);browserReturn=request;browser=request;awaitingCheckout=true}
     func browserClosed() {
         guard let request = browserReturn else { return }
         browser = nil

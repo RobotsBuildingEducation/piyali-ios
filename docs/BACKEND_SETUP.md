@@ -41,11 +41,11 @@ Native `URLSession` calls use `X-Firebase-AppCheck` and `Authorization: Bearer <
 
 ## Subscriptions
 
-The actual web route in the reference app is `/subscribe`. The iOS screen is named Subscription and opens `https://piyali.app/subscribe`; no `/subscription` server route is invented. It also handles `piyali://subscription` to refresh access, but no web callback changes were made.
+The web app uses `/subscribe` for its signed-in subscription screen. The checkout action and the iPhone purchase tools link open the web app’s Patreon payment destination, `https://subscribe.piyali.app/`. The iPhone app also handles `piyali://subscription` to refresh access after a return.
 
 Web subscription restore uses the existing `/api/patreon/link-challenge` (`action: restore`) and `/api/patreon/key-status` endpoints. The server-provided event's exact timestamp, kind, tags and content are signed with the learner's Nostr key. No Firestore boolean or user-entered passcode grants paid access. Web authorization is held in memory for at most 15 minutes and rechecked on foreground.
 
-To subscribe or link Patreon, sign in on the website with the same key, complete its existing linking/payment flow, return to iOS, and refresh. Private keys are never placed in URLs, logs, UserDefaults or Firestore. The current app does not automate cross-browser Patreon cookies.
+To link Patreon, start Connect in the iPhone app and complete Patreon authorization in Safari. After web checkout, return to iOS and refresh membership. The app signs a challenge with the current Piyali key. Private keys stay out of URLs, logs, UserDefaults and Firestore.
 
 Configure auto-renewing subscription products in App Store Connect. Defaults are `app.piyali.ios.monthly` and `app.piyali.ios.annual`; change the configuration to your real product IDs. Native purchases use `appAccountToken` derived from the npub. Only StoreKit-verified, unrevoked, unexpired transactions with that matching token grant access on that account. Refunds and renewals are observed with `Transaction.updates`. Configure your StoreKit sandbox for purchase testing.
 

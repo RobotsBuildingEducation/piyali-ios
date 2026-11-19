@@ -69,6 +69,39 @@ import XCTest
   XCTAssertTrue(app.buttons["subscriptionConnect"].waitForExistence(timeout:15),app.debugDescription);XCTAssertFalse(app.buttons["subscriptionReplace"].exists);photo("Native verified cancelled recovery",app)
   let calls=server.requests(),posts=calls.filter{($0["path"] as? String)?.hasSuffix("/cancel-replacement") == true};XCTAssertEqual(posts.count,1);XCTAssertTrue((posts.first?["headers"] as? String ?? "").contains("__session=oauth-recovery.local-fixture"))
  }
+ func testNativePurchaseToolsWebLinkOpensCheckout() async throws {
+  continueAfterFailure=false
+  let server=LocalMembershipServer()
+  try await server.start()
+  defer{server.stop()}
+  let app=XCUIApplication()
+  app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_SETTINGS_FIXTURE":"1","PIYALI_SUBSCRIPTION_TEST_URL":server.url]
+  app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"]
+  app.launch()
+  handleInitialPaperPencil(app)
+  let name=app.textFields["entryName"]
+  XCTAssertTrue(name.waitForExistence(timeout:15))
+  name.tap()
+  name.typeText("Checkout Learner")
+  tap("entryKeyboardDone",app)
+  tap("createAccount",app)
+  handleInitialPaperPencil(app)
+  tap("startLearning",app)
+  open(app)
+  tap("subscriptionNativeTools",app)
+  let link=app.descendants(matching:.any).matching(identifier:"subscriptionWebLink").firstMatch
+  XCTAssertTrue(link.waitForExistence(timeout:10))
+  reveal(link,app)
+  link.tap()
+
+  let checkout=NSPredicate { _,_ in
+   server.requests().contains { $0["path"] as? String == "/checkout" }
+  }
+  await fulfillment(of:[expectation(for:checkout,evaluatedWith:nil)],timeout:20)
+  XCTAssertFalse(server.requests().contains { $0["path"] as? String == "/subscribe" })
+  app.activate()
+  XCTAssertTrue(app.navigationBars["Subscription"].waitForExistence(timeout:10))
+ }
  func testSettingsConnectCheckoutStatusDisconnectAndRelaunch()async throws{
   continueAfterFailure=false;let server=LocalMembershipServer();try await server.start();defer{server.stop()};let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_SETTINGS_FIXTURE":"1","PIYALI_SUBSCRIPTION_TEST_URL":server.url];app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"];app.launch();handleInitialPaperPencil(app)
   let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Membership Learner");tap("entryKeyboardDone",app);tap("createAccount",app);handleInitialPaperPencil(app);tap("startLearning",app);open(app);XCTAssertTrue(app.buttons["subscriptionConnect"].waitForExistence(timeout:15));photo("Native subscription offer in Settings",app)
