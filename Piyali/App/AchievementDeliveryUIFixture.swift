@@ -64,14 +64,24 @@ private final class AchievementDemoCheckFactory:NSObject,AppCheckProviderFactory
     func importAchievements(_ records:JSONValue,npub:String)async throws->[String:JSONValue]?{try await service.importAchievements(records,npub:npub)}
     func load(npub:String,local:LearnerState?)async throws->LearnerState?{guard let local,local.onboardingComplete else{return nil};try await seed(local,npub:npub);return try await service.load(npub:npub,local:local)}
     func saveCompanionCustomization(_ change:SettingsChange,npub:String)async throws->Bool{try await service.saveCompanionCustomization(change,npub:npub)}
-    func save(_ state:LearnerState,npub:String)async throws->LearnerState?{guard state.onboardingComplete else{return nil};try await seed(state,npub:npub);let saved=try await service.save(state,npub:npub)
-        // Explicit loopback-only lost-response injection AFTER the real SDK commit.
-        let e=ProcessInfo.processInfo.environment
-        if e["PIYALI_ACHIEVEMENT_RETRY_UI"]=="1",!(state.pendingChanges ?? []).filter({$0.source == .review}).isEmpty{
-            guard let url=URL(string:e["PIYALI_ACHIEVEMENT_RETRY_GATE"] ?? ""),url.scheme=="http",url.host=="127.0.0.1",url.port != nil,url.path=="/status",url.user==nil,url.password==nil else{throw CancellationError()}
-            var request=URLRequest(url:url);request.timeoutInterval=2;let(data,_)=try await URLSession.shared.data(for:request)
-            guard let result=try JSONSerialization.jsonObject(with:data)as?[String:Any],result["allow"]as?Bool==true else{throw URLError(.networkConnectionLost)}
-        }
-        return saved}
+    private func checkGate() async throws {
+        guard let url=URL(string:ProcessInfo.processInfo.environment["PIYALI_ACHIEVEMENT_RETRY_GATE"] ?? ""),url.scheme=="http",url.host=="127.0.0.1",url.port != nil,url.path=="/status",url.user==nil,url.password==nil else{throw CancellationError()}
+        var request=URLRequest(url:url)
+        request.timeoutInterval=2
+        let(data,_)=try await URLSession.shared.data(for:request)
+        guard let result=try JSONSerialization.jsonObject(with:data) as? [String:Any],result["allow"] as? Bool == true else{throw URLError(.networkConnectionLost)}
+    }
+
+    func save(_ state:LearnerState,npub:String)async throws->LearnerState? {
+        guard state.onboardingComplete else { return nil }
+        try await seed(state,npub:npub)
+        let env=ProcessInfo.processInfo.environment
+        let gating=env["PIYALI_ACHIEVEMENT_RETRY_UI"] == "1" && (state.pendingChanges ?? []).contains { $0.source == .review }
+        let beforeCommit=env["PIYALI_ACHIEVEMENT_PRECOMMIT_UI"] == "1"
+        if gating && beforeCommit { try await checkGate() }
+        let saved=try await service.save(state,npub:npub)
+        if gating && !beforeCommit { try await checkGate() }
+        return saved
+    }
 }
 #endif

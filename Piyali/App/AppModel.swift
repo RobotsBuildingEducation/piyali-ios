@@ -236,7 +236,7 @@ import SwiftUI
         learner.achievementRecords=NostrAchievementCollection.merging([.object(prior ?? [:]),event.records]).object
         if prior != learner.achievementRecords{achievementUnlock.recordsChanged()}
         try? writeLocal()
-        for id in event.ids where NostrAchievementCollection.merging([event.records])[id] != .null{achievementUnlock.enqueue(identity:event.account,id:id,test:NostrAchievementCollection.truthy(event.records[id]["test"]))}
+        for id in event.ids where learner.localReviewAchievementIDs?.contains(id) != true && NostrAchievementCollection.merging([event.records])[id] != .null{achievementUnlock.enqueue(identity:event.account,id:id,test:NostrAchievementCollection.truthy(event.records[id]["test"]))}
     }
     func dismissAchievement(_ key:Int){achievementUnlock.dismiss(key)}
     private func publishCompanionDelivery(){if companionUnlockRevision != companionDelivery.revision{companionUnlockRevision=companionDelivery.revision};if companionUnlock != companionDelivery.visible{companionUnlock=companionDelivery.visible}}
@@ -475,6 +475,29 @@ import SwiftUI
         do{try writeLocal()}catch{self.error="Could not save progress: \(error.localizedDescription)"}
         Task{[weak self] in guard let self else{return};do{try await FirebaseIdentityService.shared.ensure(identity);guard signedIn,identity.npub == account else{return};try await progressService.saveFirstRunAcknowledgment(acknowledgment,npub:account)}catch{guard signedIn,identity.npub == account else{return};syncStatus="Saved on iPhone; cloud sync pending"}}
     }
+    /// The web evaluates a normal review against its owner’s completion journal before uploading XP.
+    private func recordReviewAchievements(_ changes: [PracticeChange], state: inout LearnerState) -> [String] {
+        let languages = Set(changes.filter { AchievementProgress.flashcardEvent(for:$0) != nil }.map(\.target))
+        guard !languages.isEmpty else { return [] }
+
+        let pending = (state.pendingChanges ?? []).compactMap { AchievementProgress.flashcardEvent(for:$0) }
+        let ledger = AchievementProgress.recording(pending,ledger:state.achievementLedger ?? .object([:]))
+        let evidence = languages.map { AchievementProgress.flashcardEvidence(ledger:ledger,language:$0) }
+        var records = state.achievementRecords ?? [:]
+        let timestamp = floor(Date().timeIntervalSince1970)
+        var awarded: [String] = []
+        for achievement in achievements where achievement.progression == true && achievement.requirement["metric"].string == "flashcards_completed" {
+            if let record = records[achievement.id], record["unlockedAt"].number > 0, !NostrAchievementCollection.truthy(record["test"]) { continue }
+            guard evidence.contains(where:{ AchievementProgress.meets(achievement.requirement,evidence:$0) }) else { continue }
+            records[achievement.id] = .object(["unlockedAt":.number(timestamp),"source":.string("nosabos"),"catalogVersion":.number(Double(achievement.catalogVersion ?? 8))])
+            awarded.append(achievement.id)
+        }
+        if !awarded.isEmpty {
+            state.achievementRecords = records
+            state.localReviewAchievementIDs = (state.localReviewAchievementIDs ?? []).union(awarded)
+        }
+        return awarded
+    }
     func persist() {
         learner.migrateCompanionCustomization()
         if learner.companionName != lastPersisted.companionName || learner.companionType != lastPersisted.companionType{
@@ -486,8 +509,21 @@ import SwiftUI
         if learner.onboardingComplete { learner.preparePlate(user:identity.npub,available:availablePlateKinds); _ = learner.claimPlate(user:identity.npub) }
         if learner.name != lastPersisted.name || learner.target != lastPersisted.target || learner.support != lastPersisted.support || learner.level != lastPersisted.level || learner.dailyGoal != lastPersisted.dailyGoal || learner.onboardingComplete != lastPersisted.onboardingComplete || learner.flashcardLevels != lastPersisted.flashcardLevels || learner.lessonLevels != lastPersisted.lessonLevels || learner.tutorLevels != lastPersisted.tutorLevels { learner.preferencesModifiedAt = Date() }
         let prior=Set((lastPersisted.pendingChanges ?? []).map(\.id)),newPractice=(learner.pendingChanges ?? []).filter { !prior.contains($0.id) }
+        let beforeAwards = learner
+        var candidate = learner
+        let awarded = signedIn ? recordReviewAchievements(newPractice,state:&candidate) : []
+        if !awarded.isEmpty { learner = candidate }
         do { try writeLocal(); lastPersisted = learner }
-        catch { self.error = "Could not save progress: \(error.localizedDescription)"; return }
+        catch {
+            if !awarded.isEmpty { learner = beforeAwards }
+            self.error = "Could not save progress: \(error.localizedDescription)"
+            return
+        }
+        if !awarded.isEmpty {
+            achievementUnlock.recordsChanged()
+            for id in awarded { achievementUnlock.enqueue(identity:identity.npub,id:id) }
+            if learner.shareNostrAchievements == true { scheduleNostrAchievements() }
+        }
         if newPractice.contains(where:{ $0.amount > 0 || $0.source == .repair }) { localPracticeRevision=UUID() }
         scheduleAutomaticTips(changes:newPractice)
         saveTask?.cancel()

@@ -185,6 +185,7 @@ public struct LearnerState: Codable, Sendable {
     public var companionType = "ghost"
     public var companionProgress: JSONValue?
     public var achievementRecords: [String:JSONValue]?
+    public var localReviewAchievementIDs: Set<String>?
     public var achievementEvidence: [String:JSONValue]?
     public var achievementLedger: JSONValue?
     public var nostrAchievementRecords: JSONValue?

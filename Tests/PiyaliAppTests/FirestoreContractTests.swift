@@ -599,11 +599,18 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
         XCTAssertNil(saved.achievementRecords?["nosabos_flashcards_completed_10"]);XCTAssertTrue(saved.flashcardMastery.isEmpty)
         local=saved
         for i in 6...10 { local.review(cardID:"a1-achievement-\(i)",rating:.good) }
+        // The first success stays earned when a later lapse replaces the saved rating.
+        local.review(cardID:"a1-achievement-10",rating:.again,now:Date().addingTimeInterval(1))
+        let earnedAt = Int(Date().timeIntervalSince1970) - 60
+        local.localReviewAchievementIDs = ["nosabos_flashcards_completed_10"]
+        local.achievementRecords?["nosabos_flashcards_completed_10"] = .object(["unlockedAt":.number(Double(earnedAt)),"source":.string("nosabos")])
         async let first=service.save(local,npub:npub)
         async let second=service.save(local,npub:npub)
         _=try await (first,second)
         let result=try requireState(try await service.load(npub:npub))
-        XCTAssertGreaterThan(result.achievementRecords?["nosabos_flashcards_completed_10"]?["unlockedAt"].number ?? 0,0)
+        XCTAssertEqual(result.achievementRecords?["nosabos_flashcards_completed_10"]?["unlockedAt"].number,Double(earnedAt))
+        let card = try await user.collection("languageFlashcards").document("fr_a1-achievement-10").getDocument(source:.server)
+        XCTAssertEqual(card.data()?["lastReviewOutcome"] as? String,"again")
         let events=try await user.collection("achievementProgress").document("nosabos").collection("events").getDocuments(source:.server)
         XCTAssertEqual(events.documents.count,10);XCTAssertTrue(result.flashcardMastery.isEmpty)
     }

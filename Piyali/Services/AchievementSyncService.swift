@@ -128,7 +128,7 @@ import FirebaseFirestore
         }
         return .object(result)
     }
-    func sync(user: DocumentReference, changes: [PracticeChange]) async throws {
+    func sync(user: DocumentReference, changes: [PracticeChange], localReviewTimestamps: [String:Int] = [:]) async throws {
         let profile=value(try await user.getDocument(source:.server).data())
         let marker=user.collection("achievementMigrations").document("nosabos_v1")
         let migration=value(try await marker.getDocument(source:.server).data())
@@ -168,7 +168,11 @@ import FirebaseFirestore
             }}}
         }
         var state=LearnerState();try await load(user:user,state:&state)
-        var ledger=state.achievementLedger ?? .object([:]),evidences:[JSONValue]=[],legacyIDs:Set<String>=[]
+        // The review receipts have committed before sync is called. Keep each
+        // successful rating even if a later rating replaced the card document.
+        let reviewEvents=changes.compactMap { AchievementProgress.flashcardEvent(for:$0) }
+        var ledger=AchievementProgress.recording(reviewEvents,ledger:state.achievementLedger ?? .object([:]))
+        var evidences:[JSONValue]=[],legacyIDs:Set<String>=[]
         let cache=try await cache(user)
         let priorLedger=cache.ledger
         let otherLanguages=Set((records["alphabetPractice"] ?? []).map { $0["data"]["targetLang"].string }).union(profile["dailyQuestRepair"].object.keys)
@@ -217,7 +221,10 @@ import FirebaseFirestore
         cache.ledger=AchievementProgress.mergedLedger([cache.ledger,ledger],allowed:allowed)
         ledger=cache.ledger
         // A saved successful card remains proof after switching devices or languages.
-        for (metric,entries) in ledger.object where metric.hasPrefix("flashcards_completed:") { evidences.append(.object(["language":.string(String(metric.dropFirst("flashcards_completed:".count))),"counters":.object(["flashcards_completed":.number(Double(entries.object.count))])])) }
+        let reviewPrefix = "flashcards_completed:"
+        for metric in ledger.object.keys where metric.hasPrefix(reviewPrefix) {
+            evidences.append(AchievementProgress.flashcardEvidence(ledger:ledger,language:String(metric.dropFirst(reviewPrefix.count))))
+        }
         evidences.append(.object([:]))
         var earned=legacyIDs
         for evidence in evidences { let snapshot=AchievementProgress.snapshot(ledger:ledger,evidence:evidence);for a in catalog where a.progression == true && AchievementProgress.meets(a.requirement,evidence:snapshot) { earned.insert(a.id) } }
@@ -226,10 +233,12 @@ import FirebaseFirestore
             let known=cache.records[a.id] ?? .null
             if known["unlockedAt"].number > 0 && !NostrAchievementCollection.truthy(known["test"]) { continue }
             let before=NostrAchievementCollection.completed(.object(cache.records),catalog:fullCatalog),ref=user.collection("achievements").document(a.id)
+            let localTimestamp = localReviewTimestamps[a.id] ?? timestamp
+            let earnedAt = localTimestamp > 0 && localTimestamp <= timestamp ? localTimestamp : timestamp
             let saved = try await user.firestore.runTransaction { tx,error -> Any? in do {
                 let current=try tx.getDocument(ref).data() ?? [:]
                 if WebProgressContract.number(current["unlockedAt"]) > 0 && !NostrAchievementCollection.truthy(Self.jsonFields(current)["test"]) { return ["created":false,"record":current] }
-                let record:[String:Any]=["unlockedAt":timestamp,"catalogVersion":a.catalogVersion ?? 8,"achievementId":a.id,"source":"nosabos","title":a.title.localized("en"),"description":a.description.localized("en"),"orb":a.orb?.foundation ?? [:],"number":a.number ?? 0,"test":false]
+                let record:[String:Any]=["unlockedAt":earnedAt,"catalogVersion":a.catalogVersion ?? 8,"achievementId":a.id,"source":"nosabos","title":a.title.localized("en"),"description":a.description.localized("en"),"orb":a.orb?.foundation ?? [:],"number":a.number ?? 0,"test":false]
                 tx.setData(record,forDocument:ref);return ["created":true,"record":record]
             } catch let failure { error?.pointee=failure as NSError;return nil } }
             if let result=saved as? [String:Any],let fields=result["record"] as? [String:Any] {

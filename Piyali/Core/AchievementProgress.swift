@@ -62,6 +62,16 @@ public enum AchievementProgress {
         let succeeded=progress["completed"].boolean || (integer(progress["successfulReviews"]) && progress["successfulReviews"].number > 0 && (["good","easy","hard"].contains(progress["lastReviewOutcome"].string) || integer(progress["consecutiveCorrect"]) && progress["consecutiveCorrect"].number > 0))
         return succeeded ? .object(["metric":.string("flashcards_completed:"+language),"id":.string(id)]) : nil
     }
+    public static func flashcardEvent(for change: PracticeChange) -> JSONValue? {
+        guard change.source == .review, let id = change.contentID, let review = change.reviewPatch else { return nil }
+        return flashcardEvent(language:change.target,id:id,progress:JSONValue.foundation(WebProgressContract.reviewFields(review)))
+    }
+
+    public static func flashcardEvidence(ledger: JSONValue, language: String) -> JSONValue {
+        let count = ledger["flashcards_completed:"+language].object.count
+        return .object(["language":.string(language),"counters":.object(["flashcards_completed":.number(Double(count))])])
+    }
+
     public static func completionProof(profile: JSONValue, summary: JSONValue, quest: JSONValue, language: String, day: String) -> (events:[JSONValue],evidence:JSONValue) {
         var events:[JSONValue]=[]
         let goal=profile["learningIntelligence"][language]["dailyGoal"],modes=goal["blueprint"]["modes"].array.map(\.string).filter { GoalPractice.targets[$0] != nil }
