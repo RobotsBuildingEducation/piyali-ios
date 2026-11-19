@@ -1,0 +1,130 @@
+import Foundation
+import Combine
+
+@MainActor final class PhonicsSessionController:ObservableObject {
+    let id=UUID(),card:JSONValue,collects:Bool,account,target,support:String,goal:JSONValue?,repair:RepairStep?,policy:PhonicsPolicy,provider:PhonicsProvider
+    @Published private(set) var practicing=false
+    @Published private(set) var flipped=false
+    @Published private(set) var grading=false
+    @Published private(set) var saving=false
+    @Published private(set) var grade:PhonicsGrade?
+    @Published private(set) var correctCount:Int
+    @Published private(set) var error:String?
+    @Published private(set) var transcript=""
+    let recorder:SpeechPracticeService
+    let playback:RealtimeNarrationService
+    @Published private(set) var playingKind:String?
+    @Published private(set) var earnedWorkPending=false
+    var onEarnedWorkChanged:((Bool)->Void)?
+    private weak var earnedApp:AppModel?
+    private let day=CalendarDay.key(Date())
+    private let identitySession:UUID
+    private var subscriptions:Set<AnyCancellable>=[]
+    private var generation=UUID(),work:Task<Void,Never>?,quote:Task<JSONValue,Error>?,submitted=false,closed=false
+    init(app:AppModel,card:JSONValue,correctCount:Int=0,collects:Bool=true,goal:JSONValue?=nil,repair:RepairStep?=nil,provider:PhonicsProvider?=nil,recorder:SpeechPracticeService?=nil,playback:RealtimeNarrationService?=nil)throws {
+        identitySession=app.identity.sessionRevision;self.card=card;self.collects=collects;self.correctCount=correctCount;self.goal=goal;self.repair=repair;account=app.identity.npub;target=app.learner.target;support=app.learner.support;policy=try PhonicsPolicy(engine:app.companionQuestPolicy);self.provider=provider ?? .native(app.ai);self.recorder=recorder ?? PhonicsSpeechFixture.recorder();self.playback=playback ?? RealtimeNarrationService()
+        self.recorder.objectWillChange.sink{[weak self] _ in self?.objectWillChange.send()}.store(in:&subscriptions);self.playback.objectWillChange.sink{[weak self] _ in self?.objectWillChange.send()}.store(in:&subscriptions)
+    }
+    var focused:Bool {goal != nil || repair != nil}
+    var busy:Bool {grading || saving}
+    var needsSaveRetry:Bool {submitted && focused && error != nil}
+    func text(_ key:String)->String {policy.copy(key,language:support,target:target)}
+    func matches(_ app:AppModel)->Bool {
+        guard app.signedIn,identitySession == app.identity.sessionRevision,!closed,account == app.identity.npub,target == app.learner.target,support == app.learner.support else{return false}
+        if let goal{return app.goalIsCurrent(goal)}
+        if let repair {let plan=app.learner.repairPlan(day:repair.day);return repair.day == CalendarDay.key(Date()) && plan?["items"].array.indices.contains(repair.index) == true && plan?["items"].array[repair.index] == repair.item}
+        return true
+    }
+    func practice(_ app:AppModel){guard app.subscription.hasAccess,matches(app),!busy,!needsSaveRetry else{return};finishReview();practicing=true;flipped=true;grade=nil;error=nil;submitted=false;startQuote(app)}
+    func back(){guard !busy,!needsSaveRetry else{return};finishReview();flipped=false;practicing=false;grade=nil;error=nil;submitted=false;transcript=""}
+    func retry(){guard !busy,!needsSaveRetry else{return};finishReview();grade=nil;error=nil;submitted=false;transcript=""}
+    private func startQuote(_ app:AppModel){if quote == nil{let provider=self.provider,card=self.card,state=app.learner;quote=Task{try await provider.quote(card,state)}}}
+    func submit(_ text:String,app:AppModel){
+        guard app.subscription.hasAccess,matches(app),!busy,grade == nil,!text.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else{return};startQuote(app);grading=true;error=nil;transcript=text;let token=generation
+        work=Task{defer{if generation == token{grading=false}};do {
+            let prompt=try policy.run("ph_judge",.object(["practiceWord":card["practiceWord"],"phoneme":card["phoneme"],"userAnswer":.string(text),"targetLang":.string(target),"cefrLevel":card["cefrLevel"]])).string
+            let verdict=try policy.grade(await provider.judge(prompt));try Task.checkCancellation();guard matches(app),token == generation else{return}
+            let worth:JSONValue
+            if let quoted=try? await quote?.value{worth=quoted}else{worth=try GeneratedQuestionWorth.fallback(level:card["cefrLevel"].string,learner:app.learner,recipes:PracticeRecipes())}
+            try Task.checkCancellation();guard matches(app),token == generation else{return}
+            if verdict.correct {retainEarnedWork(app)}
+            app.learner.assess(correct:verdict.correct,independent:false,questionLevel:card["cefrLevel"].string,worth:worth,concept:card["practiceWord"].string,mode:"phonics",support:"modeled")
+            if !verdict.correct,goal == nil {
+                let capture=try policy.run("focusedPhonicsCapture",.object(["card":card,"answer":.string(text),"level":.string(app.learner.level),"npub":.string(account),"targetLang":.string(target),"supportLang":.string(support),"worth":worth]))
+                app.learner.captureMemory(mode:capture["sourceMode"].string,concept:capture["concept"].string,answer:capture["userAnswer"].string,expected:capture["expectedAnswer"].string,feedback:"",questionLevel:capture["cefrLevel"].string,sourceContext:capture["sourceContext"])
+            }
+            let attempt=app.learner.attemptPhonics(card:card,grade:verdict,focused:focused)
+            if let goal {
+                let payload=goal.setting("mode",.string("phonics")).setting("cardID",card["id"]).setting("success",.bool(verdict.correct)).setting("support",.string("modeled")).setting("item",card["practiceWord"]).setting("transfer",.bool(card["practiceRole"].string == "transfer")).setting("externalReward",.bool(true))
+                app.learner.applyGoal(GoalChange(action:.outcome,target:target,payload:payload))
+            }else if let repair {
+                let artifact=app.learner.repairArtifact(repair,mode:"phonics"),outcome:JSONValue = .object(["success":.bool(verdict.correct),"support":.string("modeled"),"item":card["practiceWord"],"transfer":.bool(card["practiceRole"].string == "transfer"),"iosAttemptID":.string(attempt.uuidString),"iosUpdatedAt":.string(WebProgressContract.iso(Date()))])
+                let field=CompanionQuestDay.artifactField(repair,mode:"phonics"),key=CompanionQuestDay.key(target,repair.day)
+                app.learner.rememberFocusedBase(artifact,pending:(app.learner.pendingCompanionQuestDays?[key]?[field] ?? .null) != .null)
+                app.learner.storeRepairArtifact(artifact.setting("outcomes",artifact["outcomes"].setting(card["id"].string,outcome)),step:repair,mode:"phonics")
+            }
+            if verdict.correct,let intent=PhonicsFinishIntent(id:attempt,account:account,target:target,support:support,goal:goal,repair:repair){app.learner.queuePhonicsFinish(intent)}
+            submitted=true;grade=verdict;if verdict.correct{correctCount += 1};app.persist()
+            if focused {saving=true;defer{saving=false};try await app.finishPhonicsFocus(goal:goal,repair:repair,completionAllowed:verdict.correct)}
+        }catch is CancellationError{}catch{if generation == token,matches(app){self.error=self.text("gradingErrorDescription")}}}
+    }
+    func retrySave(_ app:AppModel){guard needsSaveRetry,!busy,matches(app) else{return};saving=true;error=nil;let token=generation
+        work=Task{defer{saving=false};do{try await app.finishPhonicsFocus(goal:goal,repair:repair,completionAllowed:grade?.correct == true)}catch is CancellationError{}catch{if generation == token,matches(app){self.error=self.text("gradingErrorDescription")}}}
+    }
+    func record(_ app:AppModel){
+        guard app.subscription.hasAccess,matches(app),!busy,!needsSaveRetry else{return};playback.stopAll();playingKind=nil
+        if recorder.recording || recorder.evaluating{recorder.stop();return}
+        retry()
+        do{let policy=try FlashcardPolicy(engine:app.companionQuestPolicy),pause=Int(app.learner.plateProgress["pauseMs"].number)
+            recorder.start(target:target,policy:policy,transcriptionHint:card["practiceWord"].string,timeoutMs:pause>0 ? pause:2000){[weak self,weak app] text in guard let self,let app else{return};self.submit(text,app:app)}
+        }catch{self.error=text("gradingErrorDescription")}
+    }
+    func speak(_ kind:String,app:AppModel){
+        guard matches(app) else{return};recorder.cancel()
+        if playingKind == kind && (playback.loading || playback.playing){playback.stopAll();playingKind=nil;return}
+        guard app.subscription.hasAccess else{return}
+        playingKind=kind;playback.play(kind == "letter" ? card["tts"].string:card["practiceWord"].string,language:target,engine:app.companionQuestPolicy){[weak self] in self?.playingKind=nil}
+    }
+    private func retainEarnedWork(_ app:AppModel){
+        earnedApp=app;earnedWorkPending=true
+        app.retainEarnedPractice(owner:id,active:true,account:account,target:target,day:day);onEarnedWorkChanged?(true)
+    }
+    func finishReview(){guard !busy,!needsSaveRetry else{return};releaseEarnedWork()}
+    private func releaseEarnedWork(){guard earnedWorkPending else{return};earnedWorkPending=false;earnedApp?.releaseEarnedPractice(owner:id);onEarnedWorkChanged?(false)}
+    func stopAudio(){recorder.cancel();playback.stopAll();playingKind=nil}
+    func cancel(){releaseEarnedWork();stopAudio();closed=true;generation=UUID();work?.cancel();quote?.cancel();grading=false;saving=false}
+}
+
+extension AppModel {
+    /// Focused pronunciation waits for the saved outcome/XP before dependent completion.
+    func performPhonicsFinish(goal:JSONValue?,repair:RepairStep?,completionAllowed:Bool)async throws {
+        let intent=phonicsFinishIntent(goal:goal,repair:repair)
+        let account=identity.npub,session=identity.sessionRevision,target=learner.target,support=learner.support
+        func ownsFocus()->Bool {
+            guard signedIn,identity.sessionRevision == session,account == identity.npub,target == learner.target,support == learner.support else{return false}
+            if let goal{return goalIsCurrent(goal)}
+            if let repair{return repair.day == CalendarDay.key(Date()) && learner.repairPlan(day:repair.day)?["items"].array.indices.contains(repair.index) == true && learner.repairPlan(day:repair.day)?["items"].array[repair.index] == repair.item}
+            return false
+        }
+        guard ownsFocus() else{throw CancellationError()}
+        await syncProgress();try Task.checkCancellation();guard ownsFocus() else{throw CancellationError()}
+        let hasAttempt=(learner.pendingChanges ?? []).contains{$0.source == .phonicsAttempt && $0.target == target && $0.phonicsData?["focused"].boolean == true}
+        if hasAttempt {throw AppError.message("Could not save pronunciation. Please try again.")}
+        if let goal {
+            guard goalIsCurrent(goal) else{throw CancellationError()}
+            guard !(learner.pendingGoalChanges ?? []).contains(where:{$0.target == target && $0.payload["goalId"] == goal["goalId"]}) else{throw AppError.message("Could not save pronunciation. Please try again.")}
+            let artifact=goalArtifact(goal,mode:"phonics"),completion=try companionQuestPolicy?.run("focusedPhonicsCompletion",.object(["goal":.bool(true),"artifact":artifact]))
+            if completionAllowed,completion?["complete"].boolean == true,(readyGoal?["modeProgress"]["phonics"].number ?? 0)<2 {
+                recordGoalAttempt(goal,mode:"phonics",success:true,support:"modeled",observation:completion?["observation"].string ?? "",domain:"pronunciation")
+                await syncProgress();try Task.checkCancellation();guard ownsFocus() else{throw CancellationError()}
+                guard (readyGoal?["modeProgress"]["phonics"].number ?? 0)>=2 else{throw AppError.message("Could not finish pronunciation. Please try again.")}
+            }
+        }else if let repair {
+            let field=CompanionQuestDay.artifactField(repair,mode:"phonics"),key=CompanionQuestDay.key(target,repair.day)
+            guard (learner.pendingCompanionQuestDays?[key]?[field] ?? .null) == .null else{throw AppError.message("Could not save pronunciation. Please try again.")}
+            if completionAllowed{checkRepairPracticeCompletion(repair,mode:"phonics")};await syncProgress();try Task.checkCancellation();guard ownsFocus() else{throw CancellationError()}
+            guard !(learner.pendingRepairEvidence ?? []).contains(where:{$0.target == target && $0.event["dayKey"].string == repair.day}),!(learner.pendingChanges ?? []).contains(where:{$0.source == .repair && $0.target == target && $0.dayKey == repair.day}) else{throw AppError.message("Could not finish pronunciation. Please try again.")}
+        }
+        if completionAllowed,let intent,learner.retirePhonicsFinish(intent){persistPhonicsRecovery()}
+    }
+}

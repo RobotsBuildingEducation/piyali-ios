@@ -1,0 +1,20 @@
+{
+  "notice": "Public test secret (32 bytes of 01). Never funded or used for a real account.",
+  "nsec": "nsec1qyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqstywftw",
+  "npub": "npub1rwzv24nmzfjypx2a8m264ws9vht3uxp5vpypnluuzl67n4waq78suk0wul",
+  "pubkey": "1b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+  "payload": {
+    "audio": "cHVibGljIGF1ZGlvIGZpeHR1cmU=",
+    "duration": 1.5,
+    "mimeType": "audio/wav",
+    "prompt": "Hola, mamá.",
+    "support": "independent"
+  },
+  "key": "6e5c2a3ae946a5e538511fd887f38bbdca3a2602107d4eac12b160aca9b84e14",
+  "envelope": {
+    "version": 1,
+    "wrappedKey": "AniTkm9mybxKQ4N6F7qIrM33izt6visypDJaViw6CwUq+oaPq1ni/GXtyhf2hPBvLEkmOsVYAwDd6LUHtM57zAi951UD9nEEwc9lmY70X4BFJoAFHiDhB7yzY3NJ89ySFuzJYC+qcuUZWZV6YTvqyqMl/uOVWr8orbFPJMcRFoRAyoM=",
+    "iv": "CtSyG7pqSM3LgX6j",
+    "ciphertext": "hhLHV7JzTlVpB9fOn7Q0ljAdNhZvSiC/20bM6bJeHLIdCqdMKGimbptuBmZ6TNZh0dcy6aBaTKDK8lBrexw9l8pFSdYI6pXmh9f54K5DwSOxCHdLb7gckZiXKCgtIhAGjYsDYhlE3LpCwYPZKK0o6QuQEkPukZHITbbksmu1MC4ad0VzveexW36vLit5EA=="
+  }
+}

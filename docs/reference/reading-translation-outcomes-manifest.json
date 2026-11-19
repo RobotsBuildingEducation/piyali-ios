@@ -1,0 +1,8 @@
+{
+  "source": {
+    "file": "src/components/History.jsx",
+    "sha256": "ceca67f29b27ebc41c300c29e6ea92240bda1020fb23c3e505a06b65842832a9"
+  },
+  "cases": 13,
+  "scope": "Original translateLectureLines, LANG_NAME and sentence splitter executed with synthetic provider chunks and in-memory setters. Source support fallback cases are conditional; current main-product creation paths set support to an empty string."
+}

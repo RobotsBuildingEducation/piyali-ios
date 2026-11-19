@@ -1,0 +1,784 @@
+[
+  {
+    "input": {
+      "name": "complete",
+      "chunks": [
+        "1. One.\n2) Two.\n",
+        "3: Three."
+      ]
+    },
+    "expected": {
+      "loading": false,
+      "visible": true,
+      "lines": [
+        "One.",
+        "Two.",
+        "Three."
+      ],
+      "requests": 1,
+      "trace": [
+        {
+          "loading": true,
+          "visible": false,
+          "lines": null
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": null
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": [
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": [
+            "One.",
+            "",
+            ""
+          ]
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": [
+            "One.",
+            "Two.",
+            ""
+          ]
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": [
+            "One.",
+            "Two.",
+            "Three."
+          ]
+        },
+        {
+          "loading": false,
+          "visible": true,
+          "lines": [
+            "One.",
+            "Two.",
+            "Three."
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "input": {
+      "name": "incomplete",
+      "chunks": [
+        "One.\nTwo.\n"
+      ]
+    },
+    "expected": {
+      "loading": false,
+      "visible": false,
+      "lines": null,
+      "requests": 1,
+      "trace": [
+        {
+          "loading": true,
+          "visible": false,
+          "lines": null
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": null
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": [
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": [
+            "One.",
+            "",
+            ""
+          ]
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": [
+            "One.",
+            "Two.",
+            ""
+          ]
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": null
+        },
+        {
+          "loading": true,
+          "visible": false,
+          "lines": null
+        },
+        {
+          "loading": false,
+          "visible": false,
+          "lines": null
+        }
+      ]
+    }
+  },
+  {
+    "input": {
+      "name": "empty",
+      "chunks": [
+        "\n  \n"
+      ]
+    },
+    "expected": {
+      "loading": false,
+      "visible": false,
+      "lines": null,
+      "requests": 1,
+      "trace": [
+        {
+          "loading": true,
+          "visible": false,
+          "lines": null
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": null
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": [
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": null
+        },
+        {
+          "loading": true,
+          "visible": false,
+          "lines": null
+        },
+        {
+          "loading": false,
+          "visible": false,
+          "lines": null
+        }
+      ]
+    }
+  },
+  {
+    "input": {
+      "name": "extra-lines",
+      "chunks": [
+        "One.\nTwo.\nThree.\nFour.\n"
+      ]
+    },
+    "expected": {
+      "loading": false,
+      "visible": true,
+      "lines": [
+        "One.",
+        "Two.",
+        "Three."
+      ],
+      "requests": 1,
+      "trace": [
+        {
+          "loading": true,
+          "visible": false,
+          "lines": null
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": null
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": [
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": [
+            "One.",
+            "",
+            ""
+          ]
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": [
+            "One.",
+            "Two.",
+            ""
+          ]
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": [
+            "One.",
+            "Two.",
+            "Three."
+          ]
+        },
+        {
+          "loading": false,
+          "visible": true,
+          "lines": [
+            "One.",
+            "Two.",
+            "Three."
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "input": {
+      "name": "throw-after-line",
+      "chunks": [
+        "One.\n"
+      ],
+      "fail": true
+    },
+    "expected": {
+      "loading": false,
+      "visible": true,
+      "lines": null,
+      "requests": 1,
+      "trace": [
+        {
+          "loading": true,
+          "visible": false,
+          "lines": null
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": null
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": [
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": [
+            "One.",
+            "",
+            ""
+          ]
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": null
+        },
+        {
+          "loading": false,
+          "visible": true,
+          "lines": null
+        }
+      ]
+    }
+  },
+  {
+    "input": {
+      "name": "throw-after-all-lines",
+      "chunks": [
+        "One.\nTwo.\nThree.\n"
+      ],
+      "fail": true
+    },
+    "expected": {
+      "loading": false,
+      "visible": true,
+      "lines": null,
+      "requests": 1,
+      "trace": [
+        {
+          "loading": true,
+          "visible": false,
+          "lines": null
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": null
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": [
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": [
+            "One.",
+            "",
+            ""
+          ]
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": [
+            "One.",
+            "Two.",
+            ""
+          ]
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": [
+            "One.",
+            "Two.",
+            "Three."
+          ]
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": null
+        },
+        {
+          "loading": false,
+          "visible": true,
+          "lines": null
+        }
+      ]
+    }
+  },
+  {
+    "input": {
+      "name": "throw-before-line",
+      "chunks": [],
+      "fail": true
+    },
+    "expected": {
+      "loading": false,
+      "visible": true,
+      "lines": null,
+      "requests": 1,
+      "trace": [
+        {
+          "loading": true,
+          "visible": false,
+          "lines": null
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": null
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": [
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": null
+        },
+        {
+          "loading": false,
+          "visible": true,
+          "lines": null
+        }
+      ]
+    }
+  },
+  {
+    "input": {
+      "name": "throw-unterminated-line",
+      "chunks": [
+        "One."
+      ],
+      "fail": true
+    },
+    "expected": {
+      "loading": false,
+      "visible": true,
+      "lines": null,
+      "requests": 1,
+      "trace": [
+        {
+          "loading": true,
+          "visible": false,
+          "lines": null
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": null
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": [
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": null
+        },
+        {
+          "loading": false,
+          "visible": true,
+          "lines": null
+        }
+      ]
+    }
+  },
+  {
+    "input": {
+      "name": "no-provider",
+      "chunks": [],
+      "noProvider": true
+    },
+    "expected": {
+      "loading": false,
+      "visible": true,
+      "lines": null,
+      "requests": 0,
+      "trace": [
+        {
+          "loading": true,
+          "visible": false,
+          "lines": null
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": null
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": [
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": null
+        },
+        {
+          "loading": false,
+          "visible": true,
+          "lines": null
+        }
+      ]
+    }
+  },
+  {
+    "input": {
+      "name": "incomplete-with-support",
+      "chunks": [
+        "Partial.\n"
+      ],
+      "support": "One. Two. Three."
+    },
+    "expected": {
+      "loading": false,
+      "visible": true,
+      "lines": [
+        "One.",
+        "Two.",
+        "Three."
+      ],
+      "requests": 1,
+      "trace": [
+        {
+          "loading": true,
+          "visible": false,
+          "lines": null
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": null
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": [
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": [
+            "Partial.",
+            "",
+            ""
+          ]
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": [
+            "One.",
+            "Two.",
+            "Three."
+          ]
+        },
+        {
+          "loading": false,
+          "visible": true,
+          "lines": [
+            "One.",
+            "Two.",
+            "Three."
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "input": {
+      "name": "throw-with-support",
+      "chunks": [
+        "Partial.\n"
+      ],
+      "support": "One. Two. Three.",
+      "fail": true
+    },
+    "expected": {
+      "loading": false,
+      "visible": true,
+      "lines": [
+        "One.",
+        "Two.",
+        "Three."
+      ],
+      "requests": 1,
+      "trace": [
+        {
+          "loading": true,
+          "visible": false,
+          "lines": null
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": null
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": [
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": [
+            "Partial.",
+            "",
+            ""
+          ]
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": [
+            "One.",
+            "Two.",
+            "Three."
+          ]
+        },
+        {
+          "loading": false,
+          "visible": true,
+          "lines": [
+            "One.",
+            "Two.",
+            "Three."
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "input": {
+      "name": "incomplete-bad-support",
+      "chunks": [
+        "Partial.\n"
+      ],
+      "support": "Only one."
+    },
+    "expected": {
+      "loading": false,
+      "visible": false,
+      "lines": null,
+      "requests": 1,
+      "trace": [
+        {
+          "loading": true,
+          "visible": false,
+          "lines": null
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": null
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": [
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": [
+            "Partial.",
+            "",
+            ""
+          ]
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": null
+        },
+        {
+          "loading": true,
+          "visible": false,
+          "lines": null
+        },
+        {
+          "loading": false,
+          "visible": false,
+          "lines": null
+        }
+      ]
+    }
+  },
+  {
+    "input": {
+      "name": "throw-bad-support",
+      "chunks": [
+        "Partial.\n"
+      ],
+      "support": "Only one.",
+      "fail": true
+    },
+    "expected": {
+      "loading": false,
+      "visible": true,
+      "lines": null,
+      "requests": 1,
+      "trace": [
+        {
+          "loading": true,
+          "visible": false,
+          "lines": null
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": null
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": [
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": [
+            "Partial.",
+            "",
+            ""
+          ]
+        },
+        {
+          "loading": true,
+          "visible": true,
+          "lines": null
+        },
+        {
+          "loading": false,
+          "visible": true,
+          "lines": null
+        }
+      ]
+    }
+  }
+]

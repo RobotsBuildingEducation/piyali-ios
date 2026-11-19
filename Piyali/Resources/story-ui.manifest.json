@@ -1,0 +1,178 @@
+[
+  {
+    "file": "src/features/stories/storyCopy.js",
+    "sha256": "25531117603c4b1ed5ed0dede754a7b50caa484d93e572bcbd82e61fab800274"
+  },
+  {
+    "file": "src/features/stories/storyCharacters.js",
+    "sha256": "fbe1d229c53880b2e57f5ad266a4ef6170dd204c8cb2e8039b4fd6847c06ca9d"
+  },
+  {
+    "file": "src/components/rpgCompanionSprites.js",
+    "sha256": "9b2e8ebb287b271936959b1dcc02b2841bd92cb81c006ae4a513cefaafdae23f"
+  },
+  {
+    "file": "src/components/RandomCharacter.jsx",
+    "sha256": "926ca4aa285166d5b47908dfe92c135ed25eaba567ffd5d2476204af5980b729"
+  },
+  {
+    "file": "src/assets/1.webp",
+    "sha256": "03f66813584107dd5e79d5a51852019f66918f9a934d0d5ad378ffb7afc5ecde"
+  },
+  {
+    "file": "src/assets/3.webp",
+    "sha256": "95b4b4fe450b60fd1191e6b1986697a60e6ccb7cdf14dd4f9ea54dd7d94dec2a"
+  },
+  {
+    "file": "src/assets/4.webp",
+    "sha256": "821f6a108c016ab396682abababb522b7da032e6bbc4d1a3cc8b0559aff28d64"
+  },
+  {
+    "file": "src/assets/5.webp",
+    "sha256": "b7078256c1d271f52660db29693e073aa56c6d71536c74991c1e664c5a5a2469"
+  },
+  {
+    "file": "src/assets/6.webp",
+    "sha256": "cf5de4e324b2bbefd45d288edb6853f84a7ebd0b6f230c93018ada1889cb93ec"
+  },
+  {
+    "file": "src/assets/7.webp",
+    "sha256": "7a8e755168ffca09cc216861c3e27a0cb5fe1dee24cc10104a1633e3a8e2bc71"
+  },
+  {
+    "file": "src/assets/8.webp",
+    "sha256": "733360890bf8860c72ac9df548e21470990854cdee4f0f68a382f5da1203144e"
+  },
+  {
+    "file": "src/assets/9.webp",
+    "sha256": "b32cdf7be88c1d5eb6df98dea5f9d72c6c1e49d55c1dee5bfca13619a803b1dc"
+  },
+  {
+    "file": "src/assets/10.webp",
+    "sha256": "a56b632cfc8cb63c2d1cd7265c032d5934539bb5a2b40208c33de8284adf4130"
+  },
+  {
+    "file": "src/assets/11.webp",
+    "sha256": "cae80d773c7ed1fd6afa393b6b20860aa6c6afe578cd97248eab64ab2d4cdccb"
+  },
+  {
+    "file": "src/assets/12.webp",
+    "sha256": "bb88426ee7593019c451183252a5ad35edff0308364c995eee88d4bb73953747"
+  },
+  {
+    "file": "src/assets/13.webp",
+    "sha256": "33959912b070d8902615ad8d366354b95886eca4ef2b6a6d064f9fc15c739908"
+  },
+  {
+    "file": "src/assets/14.webp",
+    "sha256": "3a6c875b5ef043c19d9a0cd9542a0bf970af24adb64a7152af915353fcdc7bb0"
+  },
+  {
+    "file": "src/assets/15.webp",
+    "sha256": "58cd4e0f293fe6144f861df4115b212638b2d5b8ec74c8013d0586179769f42f"
+  },
+  {
+    "file": "src/assets/16.webp",
+    "sha256": "5baba7a6495f98a8486cc11eb22eda15808929af83d8e8ba8cd0857891259ce0"
+  },
+  {
+    "file": "src/assets/17.webp",
+    "sha256": "5b2af77765dee70fd4a4874da7438e4f149ad57d6f84fcebc0ae581599790d02"
+  },
+  {
+    "file": "src/assets/18.webp",
+    "sha256": "c963fe95fa0f7bd4dbd2996075a80608b454a676496ec91f67ea60ce3c9fcb1a"
+  },
+  {
+    "file": "src/assets/19.webp",
+    "sha256": "74e9e527fe775dd45f32c4fc83c65828993aa3e82dae586d1efda97218ac968f"
+  },
+  {
+    "file": "src/assets/20.webp",
+    "sha256": "fc9ffec600479152e497ef5a4f00f0437e72730df8776c7adbb0695a43f13fd2"
+  },
+  {
+    "file": "src/assets/21.webp",
+    "sha256": "2636bd60525c5100bfc01dd23360ee757868b33cd01cbfc89930ec8494216c2d"
+  },
+  {
+    "file": "src/assets/22.webp",
+    "sha256": "6be7af9cdbcbce20a2136e40e788692d349637f510744d4675c36c794513b4dd"
+  },
+  {
+    "file": "src/assets/23.webp",
+    "sha256": "e4371a4c50532348fd0a3f9e90175cef3514cbb70c765668bdd6604f1fd35d1a"
+  },
+  {
+    "file": "src/assets/24.webp",
+    "sha256": "6aed4ddb83e010dfc187e119c667bbb8bd7e51ce4d1d887baa41fd6b0ea84ab3"
+  },
+  {
+    "file": "src/assets/25.webp",
+    "sha256": "be38b46785ba22d9b679cf66f3989921a8efde835a07707e26e9208938c90156"
+  },
+  {
+    "file": "src/assets/26.webp",
+    "sha256": "f3439cae1139de54f38e5c8b02e9b2cd59c9543981ec6b891e39c167d9bbd76e"
+  },
+  {
+    "file": "src/assets/27.webp",
+    "sha256": "82a65212297a489cadc26c97db086eaf9f4e242891e08bdd175792087352ba50"
+  },
+  {
+    "file": "src/assets/28.webp",
+    "sha256": "79d5ccf4e319729bcc4fb48872d3532fa579e727c78bd0cd17e27836d9c280ca"
+  },
+  {
+    "file": "src/assets/29.webp",
+    "sha256": "9f89bbeb1d0d9c819475b19e3dd581b01f82e18184c12b247f4eb0331116285c"
+  },
+  {
+    "file": "src/assets/30.webp",
+    "sha256": "42f527a042f22d7634bbccdc0e58c1f8f6e08eae2d7f00e8a9bbe9879d3ee034"
+  },
+  {
+    "file": "src/assets/31.webp",
+    "sha256": "e0e43aadaa69f27c45ba9e0c6fb3313473838d3d1add80b6e12a28ecac60cbc1"
+  },
+  {
+    "file": "src/assets/32.webp",
+    "sha256": "20c70356d5a7599191bac181fac37d6a4c9310ceaa2bba50cee660cbc06bc974"
+  },
+  {
+    "file": "src/assets/33.webp",
+    "sha256": "f3ed60b76b70bc38f0f9de6ef6aa8907af0378ef9d693092c87faa7e3db34d68"
+  },
+  {
+    "file": "src/assets/34.webp",
+    "sha256": "bfe4fc6b18773ea5b625bca7436b50a40dadcac66e8d1409fb9097ca48876cce"
+  },
+  {
+    "file": "src/assets/35.webp",
+    "sha256": "8a547c6fb3c61fa0a045520741f4e4722facf542f62b4859b10ba1140c7f8e6e"
+  },
+  {
+    "file": "src/assets/36.webp",
+    "sha256": "0ca997c52dd9a5918cee272ffa025555ff360700110299eade91d2103081dd60"
+  },
+  {
+    "file": "src/assets/37.webp",
+    "sha256": "56e7d1b9394c4d4743915617790961553f2db32030b7fb2e711035d48407812b"
+  },
+  {
+    "file": "src/assets/38.webp",
+    "sha256": "3ca577ae582dd1ecacadef09b7f9aeff45392060fc2de71ce37abec1de936390"
+  },
+  {
+    "file": "src/assets/39.webp",
+    "sha256": "987ee3c17034f4db01f4c2bb567e838c78763d0b7ffa3cac2c7aceafc198863d"
+  },
+  {
+    "file": "src/assets/40.webp",
+    "sha256": "607f7c208ed11ee9f47738e1b73e1171933e7a53d858726e225ef7e5a1d1f083"
+  },
+  {
+    "file": "src/assets/41.webp",
+    "sha256": "a8dfa92d061a3c16f313dffee78ad859cb5000dcbec4a5f91c035c2303bb64c4"
+  }
+]

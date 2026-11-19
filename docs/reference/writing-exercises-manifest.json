@@ -1,0 +1,64 @@
+{
+  "keys": 70,
+  "clues": 60,
+  "layouts": 10,
+  "widths": 312,
+  "widthCapture": {
+    "file": "docs/reference/writing-keyboard-widths.json",
+    "sha256": "6e98c38321a135c9d14e6b823befa56b58a698e5c12afc49986926e124b168c6"
+  },
+  "icons": {
+    "FaMicrophone": "react-icons/fa",
+    "MdKeyboard": "react-icons/md",
+    "MdClose": "react-icons/md",
+    "MdBackspace": "react-icons/md",
+    "MdSpaceBar": "react-icons/md"
+  },
+  "sources": [
+    {
+      "file": "src/components/DelightQuestionLab.jsx",
+      "sha256": "71dd9be7177c308537972537e26734f6bdbca4411a737f471b1a9be442aa8798"
+    },
+    {
+      "file": "src/components/VirtualKeyboard.jsx",
+      "sha256": "cb6fd7f74454cdb33d8301ae12b097f410e45056c3d8eec0abe28569fa27bde5"
+    },
+    {
+      "file": "src/constants/languages.js",
+      "sha256": "02cb1507cb2ee1b5822ac4dd98cd7faf3e67a5101a13dd6c93826f553201ab32"
+    },
+    {
+      "file": "src/hooks/useSpeechPractice.js",
+      "sha256": "22b8562a05705b4c1df72f4ed5c2e466c947d95385dfe74c5a803af37ceb8099"
+    },
+    {
+      "file": "src/utils/speechPracticeFeedback.js",
+      "sha256": "b71bce9e77d450d920814514d6ea29c3ed164939c88ba90e921f8af944c970dd"
+    },
+    {
+      "file": "src/utils/threeClueMysteryI18n.js",
+      "sha256": "845534bd0732982902e50205c75b265fdfca8c4d15dc676b620399e7431d74c8"
+    },
+    {
+      "file": "src/utils/threeWordChallengeI18n.js",
+      "sha256": "a11224719653958ee41c1ff11d124c6377a1e699626eed9a6ac6b80a477f052d"
+    },
+    {
+      "file": "src/utils/sentenceShapeshifterI18n.js",
+      "sha256": "9a34ca279a68b97c3ecea969a2cc266129d9f7d1f47852db3c0b3a054bcb3eaa"
+    },
+    {
+      "file": "src/components/questionUiStyles.js",
+      "sha256": "5a3389380c6df57642d750220ef6c12f64326a73de92134ea6f2b365a00e5b97"
+    },
+    {
+      "file": "src/theme.js",
+      "sha256": "6fe6093ecca51d0debb1314a587d6bd0927e7ac9f8c1ba2c6c744017e3be407e"
+    },
+    {
+      "file": "src/index.css",
+      "sha256": "79a5362dc1b189acd0d2288c0e85ff29c9cc1c8e39b8bb5cabe164ddd1c29030"
+    }
+  ],
+  "adapters": "Original keyboard constants, label/layout functions, BetaVirtualKeyboard key handler and ThreeClueMystery display/reveal calculations. Pure callbacks only. Unpaired UTF-16 surrogates from source backspace are normalized to their visible replacement character at the native String boundary."
+}

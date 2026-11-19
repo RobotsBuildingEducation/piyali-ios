@@ -1,0 +1,59 @@
+[
+  {
+    "snapshot": "1. First line\n2",
+    "expected": [
+      "First line"
+    ]
+  },
+  {
+    "snapshot": "1. First line\n2) Second line\r\n\n",
+    "expected": [
+      "First line",
+      "Second line"
+    ]
+  },
+  {
+    "snapshot": "1. First line\n2) Second line\r\n\n3: Third line",
+    "expected": [
+      "First line",
+      "Second line"
+    ]
+  },
+  {
+    "snapshot": "1. First line\n2) Second line\r\n\n3: Third line\n4. extra\n",
+    "expected": [
+      "First line",
+      "Second line",
+      "Third line"
+    ]
+  },
+  {
+    "snapshot": "uno\r\n",
+    "expected": [
+      "uno"
+    ]
+  },
+  {
+    "snapshot": "uno\r\n2- dos\n",
+    "expected": [
+      "uno",
+      "dos"
+    ]
+  },
+  {
+    "snapshot": "uno\r\n2- dos\n incomplete",
+    "expected": [
+      "uno",
+      "dos"
+    ]
+  },
+  {
+    "snapshot": "uno\r\n2- dos\n incomplete",
+    "includeTrailing": true,
+    "expected": [
+      "uno",
+      "dos",
+      "incomplete"
+    ]
+  }
+]

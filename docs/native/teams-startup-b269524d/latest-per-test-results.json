@@ -1,0 +1,117 @@
+{
+  "PiyaliTests.TeamsMirrorContractTests/testActualFirebaseSDKPublicMirrorCreationMembershipRenameAddsAndDeparture": {
+    "result": "passed",
+    "seconds": 0.683,
+    "run": "verified"
+  },
+  "PiyaliTests.TeamsPanelControllerTests/testLegacyOnlyTeamsDoNotPublishAndLateLoadCannotRestoreClosedAccountData": {
+    "result": "passed",
+    "seconds": 0.838,
+    "run": "verified"
+  },
+  "PiyaliTests.TeamsPanelControllerTests/testOriginalDebouncePublishesLatestSnapshotUpdatesOwnRowAndCancelsOnClose": {
+    "result": "passed",
+    "seconds": 2.537,
+    "run": "verified"
+  },
+  "PiyaliTests.TeamsStartupTests/testAccountReplacementRejectsOldLoadAndSubscriptionWithoutRestartingOnLanguageChanges": {
+    "result": "passed",
+    "seconds": 0.189,
+    "run": "reconnect"
+  },
+  "PiyaliTests.TeamsStartupTests/testActualFirebaseInvitationWatchIncludesLegacyAndPublicRecordsAndSurvivesDrawerWatchClose": {
+    "result": "passed",
+    "seconds": 0.485,
+    "run": "reconnect"
+  },
+  "PiyaliTests.TeamsStartupTests/testPreloadedEmptyAndNonemptyDrawersRemainVisibleWhileTheirFirstFreshReadIsHeld": {
+    "result": "passed",
+    "seconds": 0.149,
+    "run": "reconnect"
+  },
+  "PiyaliTests.TeamsStartupTests/testStartupReadsAndWatchesBeforeDrawerAndViewedSameIDsStayQuietUntilANewInvitation": {
+    "result": "passed",
+    "seconds": 0.097,
+    "run": "reconnect"
+  },
+  "PiyaliUITests.PrivateTeamsPlayTests/testStartupInvitationBadgeViewedQuietNewIDOnFeedAndPrivateRelaunch": {
+    "result": "passed",
+    "seconds": 99.452,
+    "run": "design-final"
+  },
+  "PiyaliTests.CommunityFeedTests/testCancellationCannotPopulateAnotherAccountOrKeepBusy": {
+    "result": "passed",
+    "seconds": 0.137,
+    "run": "verified"
+  },
+  "PiyaliTests.CommunityFeedTests/testEmptyFeedExpiresQuicklyAndDoesNotFetchAllProfiles": {
+    "result": "passed",
+    "seconds": 0.023,
+    "run": "verified"
+  },
+  "PiyaliTests.CommunityFeedTests/testPublicationCannotUseAChangedPreviewIdentity": {
+    "result": "passed",
+    "seconds": 0.039,
+    "run": "verified"
+  },
+  "PiyaliTests.CommunityFeedTests/testSignedPostsKeepMultipleNotesPerAuthorFilterMetadataAndCache": {
+    "result": "passed",
+    "seconds": 0.088,
+    "run": "verified"
+  },
+  "PiyaliTests.NostrTeamsTests/testAccountSwitchDuringRelayReadCannotRestorePreviousAccountRoster": {
+    "result": "passed",
+    "seconds": 0.313,
+    "run": "verified"
+  },
+  "PiyaliTests.NostrTeamsTests/testAcknowledgedOwnTeamSurvivesRelayIndexingDelayAndRestart": {
+    "result": "passed",
+    "seconds": 0.135,
+    "run": "verified"
+  },
+  "PiyaliTests.NostrTeamsTests/testCreationConcurrentRenameAndAddReadLatestRosterBeforeSigning": {
+    "result": "passed",
+    "seconds": 0.295,
+    "run": "verified"
+  },
+  "PiyaliTests.NostrTeamsTests/testOtherMembersLeaveIsFilteredAndNewerInvitationRestoresMembership": {
+    "result": "passed",
+    "seconds": 0.123,
+    "run": "verified"
+  },
+  "PiyaliTests.NostrTeamsTests/testRefreshAuthenticatesAndAccountChangeClearsOldRoster": {
+    "result": "passed",
+    "seconds": 0.047,
+    "run": "verified"
+  },
+  "PiyaliTests.TeamsPanelFailureTests/testRejectedFirebaseMirrorRollsBackNewSignedRoster": {
+    "result": "passed",
+    "seconds": 0.887,
+    "run": "reconnect"
+  },
+  "PiyaliTests.TeamsPanelReferenceTests/testActualSourceAndNativeTeamDrawerFormsCardsFeedAndArabic": {
+    "result": "passed",
+    "seconds": 67.18,
+    "run": "verified"
+  },
+  "PiyaliTests.TeamsStartupTests/testOriginalAppBadgeAndNativeMenuControlAcrossViewedAndNewInvitesInEnglishAndArabic": {
+    "result": "passed",
+    "seconds": 13.911,
+    "run": "design-final"
+  },
+  "PiyaliUITests.PrivateTeamsPlayTests/testIncomingLegacyInvitationsAcceptDeclineAndLeaveInMainDrawer": {
+    "result": "passed",
+    "seconds": 60.544,
+    "run": "verified"
+  },
+  "PiyaliUITests.TeamsTests/testCreateEditRosterAndDeleteUseSignedLocalRelayAndSurviveRelaunch": {
+    "result": "passed",
+    "seconds": 120.018,
+    "run": "verified"
+  },
+  "PiyaliTests.TeamsStartupTests/testForegroundRetriesFailedPreparationAndWatchWithoutRepeatingViewedAttentionOrAcceptingOldCallbacks": {
+    "result": "passed",
+    "seconds": 0.137,
+    "run": "reconnect"
+  }
+}

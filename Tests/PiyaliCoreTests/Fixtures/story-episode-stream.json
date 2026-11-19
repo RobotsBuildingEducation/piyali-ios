@@ -1,0 +1,239 @@
+[
+  {
+    "snapshot": "{\"type\":\"title\",\"title\":\"El mercado\"}\n{\"type\":\"turn\",\"segment\":0,\"speaker\":\"Sheilfer\",\"target\":\"Hola",
+    "expected": null
+  },
+  {
+    "snapshot": "{\"type\":\"title\",\"title\":\"El mercado\"}\n{\"type\":\"turn\",\"segment\":0,\"speaker\":\"Sheilfer\",\"target\":\"Hola amigo.\",\"support\":\"Hello friend.\"}\n",
+    "expected": {
+      "title": "El mercado",
+      "segments": [
+        {
+          "turns": [
+            {
+              "speaker": "Sheilfer",
+              "target": "Hola amigo.",
+              "support": "Hello friend."
+            }
+          ],
+          "question": null
+        }
+      ]
+    }
+  },
+  {
+    "snapshot": "{\"type\":\"title\",\"title\":\"El mercado\"}\n{\"type\":\"turn\",\"segment\":0,\"speaker\":\"Sheilfer\",\"target\":\"Hola amigo.\",\"support\":\"Hello friend.\"}\n{broken}\n{\"type\":\"turn\",\"segment\":0,\"speaker\":\"Yoruichi\",\"target\":\"Buenos días.\",\"support\":\"Good morning.\"}\n",
+    "expected": {
+      "title": "El mercado",
+      "segments": [
+        {
+          "turns": [
+            {
+              "speaker": "Sheilfer",
+              "target": "Hola amigo.",
+              "support": "Hello friend."
+            },
+            {
+              "speaker": "Yoruichi",
+              "target": "Buenos días.",
+              "support": "Good morning."
+            }
+          ],
+          "question": null
+        }
+      ]
+    }
+  },
+  {
+    "snapshot": "{\"type\":\"title\",\"title\":\"El mercado\"}\n{\"type\":\"turn\",\"segment\":0,\"speaker\":\"Sheilfer\",\"target\":\"Hola amigo.\",\"support\":\"Hello friend.\"}\n{broken}\n{\"type\":\"turn\",\"segment\":0,\"speaker\":\"Yoruichi\",\"target\":\"Buenos días.\",\"support\":\"Good morning.\"}\n{\"type\":\"question\",\"segment\":0,\"question\":{\"type\":\"choice\",\"prompt\":\"Who?\",\"options\":[\"Sheilfer\",\"Yoruichi\"],\"answer\":[0],\"explanation\":\"First.\",\"audioTurn\":0}}\n",
+    "expected": {
+      "title": "El mercado",
+      "segments": [
+        {
+          "turns": [
+            {
+              "speaker": "Sheilfer",
+              "target": "Hola amigo.",
+              "support": "Hello friend."
+            },
+            {
+              "speaker": "Yoruichi",
+              "target": "Buenos días.",
+              "support": "Good morning."
+            }
+          ],
+          "question": {
+            "type": "choice",
+            "prompt": "Who?",
+            "options": [
+              "Sheilfer",
+              "Yoruichi"
+            ],
+            "answer": [
+              0
+            ],
+            "explanation": "First.",
+            "audioTurn": 0
+          }
+        }
+      ]
+    }
+  },
+  {
+    "snapshot": "{\"type\":\"title\",\"title\":\"El mercado\"}\n{\"type\":\"turn\",\"segment\":0,\"speaker\":\"Sheilfer\",\"target\":\"Hola amigo.\",\"support\":\"Hello friend.\"}\n{broken}\n{\"type\":\"turn\",\"segment\":0,\"speaker\":\"Yoruichi\",\"target\":\"Buenos días.\",\"support\":\"Good morning.\"}\n{\"type\":\"question\",\"segment\":0,\"question\":{\"type\":\"choice\",\"prompt\":\"Who?\",\"options\":[\"Sheilfer\",\"Yoruichi\"],\"answer\":[0],\"explanation\":\"First.\",\"audioTurn\":0}}\n{\"type\":\"turn\",\"segment\":1,\"speaker\":\"Yoruichi\",\"target\":\"Vamos.\",\"support\":\"Let us go.\"}",
+    "expected": {
+      "title": "El mercado",
+      "segments": [
+        {
+          "turns": [
+            {
+              "speaker": "Sheilfer",
+              "target": "Hola amigo.",
+              "support": "Hello friend."
+            },
+            {
+              "speaker": "Yoruichi",
+              "target": "Buenos días.",
+              "support": "Good morning."
+            }
+          ],
+          "question": {
+            "type": "choice",
+            "prompt": "Who?",
+            "options": [
+              "Sheilfer",
+              "Yoruichi"
+            ],
+            "answer": [
+              0
+            ],
+            "explanation": "First.",
+            "audioTurn": 0
+          }
+        }
+      ]
+    }
+  },
+  {
+    "snapshot": "{\"type\":\"title\",\"title\":\"El mercado\"}\n{\"type\":\"turn\",\"segment\":0,\"speaker\":\"Sheilfer\",\"target\":\"Hola amigo.\",\"support\":\"Hello friend.\"}\n{broken}\n{\"type\":\"turn\",\"segment\":0,\"speaker\":\"Yoruichi\",\"target\":\"Buenos días.\",\"support\":\"Good morning.\"}\n{\"type\":\"question\",\"segment\":0,\"question\":{\"type\":\"choice\",\"prompt\":\"Who?\",\"options\":[\"Sheilfer\",\"Yoruichi\"],\"answer\":[0],\"explanation\":\"First.\",\"audioTurn\":0}}\n{\"type\":\"turn\",\"segment\":1,\"speaker\":\"Yoruichi\",\"target\":\"Vamos.\",\"support\":\"Let us go.\"}",
+    "includeTrailing": true,
+    "expected": {
+      "title": "El mercado",
+      "segments": [
+        {
+          "turns": [
+            {
+              "speaker": "Sheilfer",
+              "target": "Hola amigo.",
+              "support": "Hello friend."
+            },
+            {
+              "speaker": "Yoruichi",
+              "target": "Buenos días.",
+              "support": "Good morning."
+            }
+          ],
+          "question": {
+            "type": "choice",
+            "prompt": "Who?",
+            "options": [
+              "Sheilfer",
+              "Yoruichi"
+            ],
+            "answer": [
+              0
+            ],
+            "explanation": "First.",
+            "audioTurn": 0
+          }
+        },
+        {
+          "turns": [
+            {
+              "speaker": "Yoruichi",
+              "target": "Vamos.",
+              "support": "Let us go."
+            }
+          ],
+          "question": null
+        }
+      ]
+    }
+  },
+  {
+    "snapshot": "```json\n{\"type\":\"turn\",\"target\":\"مرحبا\"}\n",
+    "expected": {
+      "title": "",
+      "segments": [
+        {
+          "turns": [
+            {
+              "speaker": "Sheilfer",
+              "target": "مرحبا",
+              "support": ""
+            }
+          ],
+          "question": null
+        }
+      ]
+    }
+  },
+  {
+    "snapshot": "```json\n{\"type\":\"turn\",\"target\":\"مرحبا\"}\n{\"type\":\"turn\",\"speaker\":\"You\",\"target\":\"أهلاً\"}\n",
+    "expected": {
+      "title": "",
+      "segments": [
+        {
+          "turns": [
+            {
+              "speaker": "Sheilfer",
+              "target": "مرحبا",
+              "support": ""
+            },
+            {
+              "speaker": "You",
+              "target": "أهلاً",
+              "support": ""
+            }
+          ],
+          "question": null
+        }
+      ]
+    }
+  },
+  {
+    "snapshot": "```json\n{\"type\":\"turn\",\"target\":\"مرحبا\"}\n{\"type\":\"turn\",\"speaker\":\"You\",\"target\":\"أهلاً\"}\n{\"type\":\"question\",\"question\":{\"type\":\"true_false\",\"prompt\":\"Right?\",\"options\":[\"Yes\",\"No\"],\"answer\":[0],\"explanation\":\"Yes.\",\"audioTurn\":0}}\n",
+    "expected": {
+      "title": "",
+      "segments": [
+        {
+          "turns": [
+            {
+              "speaker": "Sheilfer",
+              "target": "مرحبا",
+              "support": ""
+            },
+            {
+              "speaker": "You",
+              "target": "أهلاً",
+              "support": ""
+            }
+          ],
+          "question": {
+            "type": "true_false",
+            "prompt": "Right?",
+            "options": [
+              "Yes",
+              "No"
+            ],
+            "answer": [
+              0
+            ],
+            "explanation": "Yes.",
+            "audioTurn": 0
+          }
+        }
+      ]
+    }
+  }
+]

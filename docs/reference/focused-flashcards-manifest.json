@@ -1,0 +1,10 @@
+{
+  "file": "src/utils/focusedPracticeDecks.js",
+  "tree": {
+    "file": "src/components/FlashcardSkillTree.jsx",
+    "sha256": "953b1553e067d2cd7dfec1cb87e20798336c6a9ec78eaed0136efbbd4c1b644f"
+  },
+  "sha256": "bb5f8e54a4ad8db64bfb5e725f8fec4e37f538b4aa26a20714d18e825d6ad59d",
+  "cases": 13,
+  "scope": "Original full async getGoalFlashcards, original goalPromptData and independently bundled pure performanceEloModel execute with public canonical snapshots, recording provider and create-only artifact boundary. No Firebase, stores or network execute. Native production policy replaces the single provider await with an explicit reply/failure; fixture oracle retains the original async factory."
+}

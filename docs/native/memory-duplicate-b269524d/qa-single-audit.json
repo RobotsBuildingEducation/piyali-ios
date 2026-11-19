@@ -1,0 +1,24 @@
+{
+  "qaDevice": "CE8248B6-7171-4FD4-97DE-89E499107F82",
+  "startedAt": 1793940541.9343581,
+  "captures": 1,
+  "scope": "Read-only counters from final signup \u2192 Tutor Gemini low-confidence semantic slip \u2192 End \u2192 enriched Memory \u2192 process relaunch. Public I/O fixture, no seeded progress or notes. No private identity, keys or profile contents exported.",
+  "profiles": [
+    {
+      "snapshotSHA256": "bf9e6f1edf9efcad576ce0ddbc06ced26aee89ba9a5dcdb3c28105e2949ebb6b",
+      "totalXP": 0,
+      "dailyXP": 0,
+      "gradedAttempts": 0,
+      "earnedTutorXP": 0,
+      "agenda": [],
+      "pendingTutorOutcomes": 0,
+      "tutorTurnReceipts": 0,
+      "assessmentReceipts": 0,
+      "completionReceipts": 0,
+      "memoryNotes": 1,
+      "captureReceipts": 1,
+      "enrichmentReceipts": 1,
+      "studyNotes": 0
+    }
+  ]
+}

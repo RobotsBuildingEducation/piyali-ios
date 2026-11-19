@@ -1,0 +1,21 @@
+{
+  "sources": [
+    {
+      "file": "src/utils/realtimeTTSConnection.js",
+      "sha256": "c3785ec8c43d45ef20ae79e6af6f47daa61b1c25684da6f2a9106bc4b19c6ccf"
+    },
+    {
+      "file": "src/utils/tts.js",
+      "sha256": "d6b7f16803fa7c88c7e94cd05186d491e8fd7846a08940bf86bf5175a36b7c7d"
+    }
+  ],
+  "rules": {
+    "idleMilliseconds": 240000,
+    "connectTimeoutMilliseconds": 15000,
+    "retryMilliseconds": 30000,
+    "defaultVoice": "ash"
+  },
+  "voiceCases": 10,
+  "sourceTraceCases": 4,
+  "scope": "Original unused-connection expiry, connection deadline, retry backoff, default voice and literal prepared-session GA voice update. Four traces execute the actual source pool with fake peers and a controlled clock; no browser, provider, media or store runs."
+}

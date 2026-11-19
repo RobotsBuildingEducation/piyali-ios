@@ -1,0 +1,49 @@
+{
+  "devicesAndConfigurations" : [
+    {
+      "device" : {
+        "architecture" : "arm64",
+        "deviceId" : "CE8248B6-7171-4FD4-97DE-89E499107F82",
+        "deviceName" : "Piyali Parity QA",
+        "modelName" : "iPhone 17 Pro",
+        "osBuildNumber" : "23E254a",
+        "osVersion" : "26.4.1",
+        "platform" : "iOS Simulator"
+      },
+      "expectedFailures" : 0,
+      "failedTests" : 1,
+      "passedTests" : 2,
+      "skippedTests" : 0,
+      "testPlanConfiguration" : {
+        "configurationId" : "1",
+        "configurationName" : "Test Scheme Action"
+      }
+    }
+  ],
+  "environmentDescription" : "Piyali · Built with macOS 26.4.1",
+  "expectedFailures" : 0,
+  "failedTests" : 1,
+  "finishTime" : 1793940468.844,
+  "passedTests" : 2,
+  "result" : "Failed",
+  "skippedTests" : 0,
+  "startTime" : 1793940270.806,
+  "statistics" : [
+
+  ],
+  "testFailures" : [
+    {
+      "failureText" : "XCTAssertEqual failed: (\"Optional(<FIRTimestamp: seconds=1793940380 nanoseconds=527933000>)\") is not equal to (\"Optional(<FIRTimestamp: seconds=1793940380 nanoseconds=527933120>)\")",
+      "targetName" : "PiyaliTests",
+      "testIdentifier" : 1,
+      "testIdentifierString" : "FirestoreContractTests/testRepeatedMemoryKeepsFirstCorrectionOrderAndLifecycleAcrossLanguageRetryAndStaleEnrichment()",
+      "testIdentifierURL" : "test://com.apple.xcode/Piyali/PiyaliTests/FirestoreContractTests/testRepeatedMemoryKeepsFirstCorrectionOrderAndLifecycleAcrossLanguageRetryAndStaleEnrichment",
+      "testName" : "testRepeatedMemoryKeepsFirstCorrectionOrderAndLifecycleAcrossLanguageRetryAndStaleEnrichment()"
+    }
+  ],
+  "title" : "Test - Piyali",
+  "topInsights" : [
+
+  ],
+  "totalTestCount" : 3
+}

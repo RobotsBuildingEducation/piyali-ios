@@ -1,0 +1,493 @@
+{
+  "reference": "b269524ddc578027c549616fc47f5954991d9f6f",
+  "source": "src/components/Teams/TeamView.jsx",
+  "sourceSHA256": "2facc3dd6abc05f079200ee3e903c30415b71aba8078a3fa9d5691f5b0e482d1",
+  "callbackHashes": {
+    "sharing": "7c189c2f8bd486de0a545b9a2b71734d9321e21ad52d18e43959bcf5c6156064",
+    "invites": "da8377af3801111e267309278482135bb41d68f0ffe2ff59fa7a48a88a675858",
+    "roster": "633217bfc3df5a222eba649eec9fdb9ad73fbef76a3d81af94e5bb050120d026",
+    "rename": "86c233103713e0a1549b0665a622ad316b325a27a19ce1677f542207799c37df"
+  },
+  "scope": "Unmodified original subscription effects/rename handler; public subscription, progress, persistence, toast and timer I/O. Source first snapshots and live updates during held rename success/failure/partial mirror are exercised. No authenticated browser, production services or stronger source queued-task fencing claim.",
+  "cases": [
+    {
+      "input": {
+        "failure": false,
+        "mirrorSynced": false
+      },
+      "during": {
+        "teams": [
+          {
+            "id": "public-team",
+            "createdBy": "public-learner",
+            "isCreator": true,
+            "teamName": "Peer update while saving"
+          }
+        ],
+        "invites": [
+          {
+            "id": "first",
+            "status": "pending"
+          },
+          {
+            "id": "new-during-action",
+            "status": "pending"
+          }
+        ],
+        "progress": {
+          "public-team": [
+            {
+              "name": "Public teammate",
+              "xp": 42
+            }
+          ]
+        },
+        "saving": true,
+        "editing": {
+          "id": "public-team",
+          "createdBy": "public-learner",
+          "isCreator": true,
+          "teamName": "Original"
+        },
+        "notices": []
+      },
+      "finished": {
+        "teams": [
+          {
+            "id": "public-team",
+            "createdBy": "public-learner",
+            "isCreator": true,
+            "teamName": "Requested rename"
+          }
+        ],
+        "invites": [
+          {
+            "id": "first",
+            "status": "pending"
+          },
+          {
+            "id": "new-during-action",
+            "status": "pending"
+          }
+        ],
+        "progress": {
+          "public-team": [
+            {
+              "name": "Public teammate",
+              "xp": 42
+            }
+          ]
+        },
+        "saving": false,
+        "editing": null,
+        "notices": [
+          {
+            "title": "Team renamed",
+            "description": "The team name changed, but some local copies may still show the old name",
+            "status": "warning"
+          }
+        ]
+      },
+      "trace": [
+        [
+          "readProgress",
+          "public-learner",
+          "public-team",
+          "public-learner",
+          {
+            "name": "Public learner"
+          },
+          "es"
+        ],
+        [
+          "rename",
+          "public-learner",
+          {
+            "id": "public-team",
+            "createdBy": "public-learner",
+            "isCreator": true,
+            "teamName": "Original"
+          },
+          "Requested rename"
+        ],
+        [
+          "readProgress",
+          "public-learner",
+          "public-team",
+          "public-learner",
+          {
+            "name": "Public learner"
+          },
+          "es"
+        ],
+        "unsubscribeInvites",
+        "unsubscribeRoster"
+      ]
+    },
+    {
+      "input": {
+        "failure": false,
+        "mirrorSynced": true
+      },
+      "during": {
+        "teams": [
+          {
+            "id": "public-team",
+            "createdBy": "public-learner",
+            "isCreator": true,
+            "teamName": "Peer update while saving"
+          }
+        ],
+        "invites": [
+          {
+            "id": "first",
+            "status": "pending"
+          },
+          {
+            "id": "new-during-action",
+            "status": "pending"
+          }
+        ],
+        "progress": {
+          "public-team": [
+            {
+              "name": "Public teammate",
+              "xp": 42
+            }
+          ]
+        },
+        "saving": true,
+        "editing": {
+          "id": "public-team",
+          "createdBy": "public-learner",
+          "isCreator": true,
+          "teamName": "Original"
+        },
+        "notices": []
+      },
+      "finished": {
+        "teams": [
+          {
+            "id": "public-team",
+            "createdBy": "public-learner",
+            "isCreator": true,
+            "teamName": "Requested rename"
+          }
+        ],
+        "invites": [
+          {
+            "id": "first",
+            "status": "pending"
+          },
+          {
+            "id": "new-during-action",
+            "status": "pending"
+          }
+        ],
+        "progress": {
+          "public-team": [
+            {
+              "name": "Public teammate",
+              "xp": 42
+            }
+          ]
+        },
+        "saving": false,
+        "editing": null,
+        "notices": [
+          {
+            "title": "Team renamed",
+            "status": "success"
+          }
+        ]
+      },
+      "trace": [
+        [
+          "readProgress",
+          "public-learner",
+          "public-team",
+          "public-learner",
+          {
+            "name": "Public learner"
+          },
+          "es"
+        ],
+        [
+          "rename",
+          "public-learner",
+          {
+            "id": "public-team",
+            "createdBy": "public-learner",
+            "isCreator": true,
+            "teamName": "Original"
+          },
+          "Requested rename"
+        ],
+        [
+          "readProgress",
+          "public-learner",
+          "public-team",
+          "public-learner",
+          {
+            "name": "Public learner"
+          },
+          "es"
+        ],
+        "unsubscribeInvites",
+        "unsubscribeRoster"
+      ]
+    },
+    {
+      "input": {
+        "failure": true,
+        "mirrorSynced": false
+      },
+      "during": {
+        "teams": [
+          {
+            "id": "public-team",
+            "createdBy": "public-learner",
+            "isCreator": true,
+            "teamName": "Peer update while saving"
+          }
+        ],
+        "invites": [
+          {
+            "id": "first",
+            "status": "pending"
+          },
+          {
+            "id": "new-during-action",
+            "status": "pending"
+          }
+        ],
+        "progress": {
+          "public-team": [
+            {
+              "name": "Public teammate",
+              "xp": 42
+            }
+          ]
+        },
+        "saving": true,
+        "editing": {
+          "id": "public-team",
+          "createdBy": "public-learner",
+          "isCreator": true,
+          "teamName": "Original"
+        },
+        "notices": []
+      },
+      "finished": {
+        "teams": [
+          {
+            "id": "public-team",
+            "createdBy": "public-learner",
+            "isCreator": true,
+            "teamName": "Peer update while saving"
+          }
+        ],
+        "invites": [
+          {
+            "id": "first",
+            "status": "pending"
+          },
+          {
+            "id": "new-during-action",
+            "status": "pending"
+          }
+        ],
+        "progress": {
+          "public-team": [
+            {
+              "name": "Public teammate",
+              "xp": 42
+            }
+          ]
+        },
+        "saving": false,
+        "editing": {
+          "id": "public-team",
+          "createdBy": "public-learner",
+          "isCreator": true,
+          "teamName": "Original"
+        },
+        "notices": [
+          {
+            "title": "Error",
+            "description": "Public rename rejection",
+            "status": "error"
+          }
+        ]
+      },
+      "trace": [
+        [
+          "readProgress",
+          "public-learner",
+          "public-team",
+          "public-learner",
+          {
+            "name": "Public learner"
+          },
+          "es"
+        ],
+        [
+          "rename",
+          "public-learner",
+          {
+            "id": "public-team",
+            "createdBy": "public-learner",
+            "isCreator": true,
+            "teamName": "Original"
+          },
+          "Requested rename"
+        ],
+        [
+          "readProgress",
+          "public-learner",
+          "public-team",
+          "public-learner",
+          {
+            "name": "Public learner"
+          },
+          "es"
+        ],
+        "unsubscribeInvites",
+        "unsubscribeRoster"
+      ]
+    },
+    {
+      "input": {
+        "failure": true,
+        "mirrorSynced": true
+      },
+      "during": {
+        "teams": [
+          {
+            "id": "public-team",
+            "createdBy": "public-learner",
+            "isCreator": true,
+            "teamName": "Peer update while saving"
+          }
+        ],
+        "invites": [
+          {
+            "id": "first",
+            "status": "pending"
+          },
+          {
+            "id": "new-during-action",
+            "status": "pending"
+          }
+        ],
+        "progress": {
+          "public-team": [
+            {
+              "name": "Public teammate",
+              "xp": 42
+            }
+          ]
+        },
+        "saving": true,
+        "editing": {
+          "id": "public-team",
+          "createdBy": "public-learner",
+          "isCreator": true,
+          "teamName": "Original"
+        },
+        "notices": []
+      },
+      "finished": {
+        "teams": [
+          {
+            "id": "public-team",
+            "createdBy": "public-learner",
+            "isCreator": true,
+            "teamName": "Peer update while saving"
+          }
+        ],
+        "invites": [
+          {
+            "id": "first",
+            "status": "pending"
+          },
+          {
+            "id": "new-during-action",
+            "status": "pending"
+          }
+        ],
+        "progress": {
+          "public-team": [
+            {
+              "name": "Public teammate",
+              "xp": 42
+            }
+          ]
+        },
+        "saving": false,
+        "editing": {
+          "id": "public-team",
+          "createdBy": "public-learner",
+          "isCreator": true,
+          "teamName": "Original"
+        },
+        "notices": [
+          {
+            "title": "Error",
+            "description": "Public rename rejection",
+            "status": "error"
+          }
+        ]
+      },
+      "trace": [
+        [
+          "readProgress",
+          "public-learner",
+          "public-team",
+          "public-learner",
+          {
+            "name": "Public learner"
+          },
+          "es"
+        ],
+        [
+          "rename",
+          "public-learner",
+          {
+            "id": "public-team",
+            "createdBy": "public-learner",
+            "isCreator": true,
+            "teamName": "Original"
+          },
+          "Requested rename"
+        ],
+        [
+          "readProgress",
+          "public-learner",
+          "public-team",
+          "public-learner",
+          {
+            "name": "Public learner"
+          },
+          "es"
+        ],
+        "unsubscribeInvites",
+        "unsubscribeRoster"
+      ]
+    }
+  ],
+  "close": [
+    {
+      "isOpen": false,
+      "timerCreated": false,
+      "delay": null,
+      "cleanupCancelled": false
+    },
+    {
+      "isOpen": true,
+      "timerCreated": true,
+      "delay": 700,
+      "cleanupCancelled": true
+    }
+  ]
+}

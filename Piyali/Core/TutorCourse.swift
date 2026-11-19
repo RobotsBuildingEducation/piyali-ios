@@ -1,8 +1,9 @@
 import Foundation
 
-public struct TutorLessonProgress: Codable, Sendable {
+public struct TutorLessonProgress: Codable, Equatable, Sendable {
     public var earnedXP = 0
     public var items: Set<String> = []
+    public var sourceState:JSONValue? = nil
     public init() {}
 }
 public struct TutorTurnVerdict: Codable, Sendable {

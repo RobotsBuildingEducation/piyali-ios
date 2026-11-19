@@ -1,0 +1,106 @@
+[
+  {
+    "snapshot": "{\"type\":\"sentence\",\"character\":\"Sheilfer\",\"tgt\":\"Hola,",
+    "expected": []
+  },
+  {
+    "snapshot": "{\"type\":\"sentence\",\"character\":\"Sheilfer\",\"tgt\":\"Hola, ¿cómo estás?\",\"sup\":\"Hello\",\"gender\":\"female\"}\n",
+    "expected": [
+      {
+        "tgt": "Hola, ¿cómo estás?",
+        "sup": "Hello",
+        "character": "Sheilfer",
+        "gender": "female"
+      }
+    ]
+  },
+  {
+    "snapshot": "{\"type\":\"sentence\",\"character\":\"Sheilfer\",\"tgt\":\"Hola, ¿cómo estás?\",\"sup\":\"Hello\",\"gender\":\"female\"}\n{broken}\n{\"type\":\"sentence\",\"character\":\"Fernanda\",\"tgt\":\"Muy bien.\"}\n",
+    "expected": [
+      {
+        "tgt": "Hola, ¿cómo estás?",
+        "sup": "Hello",
+        "character": "Sheilfer",
+        "gender": "female"
+      },
+      {
+        "tgt": "Muy bien.",
+        "sup": "",
+        "character": "Fernanda"
+      }
+    ]
+  },
+  {
+    "snapshot": "{\"type\":\"sentence\",\"character\":\"Sheilfer\",\"tgt\":\"Hola, ¿cómo estás?\",\"sup\":\"Hello\",\"gender\":\"female\"}\n{broken}\n{\"type\":\"sentence\",\"character\":\"Fernanda\",\"tgt\":\"Muy bien.\"}\n{\"type\":\"sentence\",\"tgt\":\"Hasta luego.\"}",
+    "expected": [
+      {
+        "tgt": "Hola, ¿cómo estás?",
+        "sup": "Hello",
+        "character": "Sheilfer",
+        "gender": "female"
+      },
+      {
+        "tgt": "Muy bien.",
+        "sup": "",
+        "character": "Fernanda"
+      }
+    ]
+  },
+  {
+    "snapshot": "{\"type\":\"sentence\",\"character\":\"Sheilfer\",\"tgt\":\"Hola, ¿cómo estás?\",\"sup\":\"Hello\",\"gender\":\"female\"}\n{broken}\n{\"type\":\"sentence\",\"character\":\"Fernanda\",\"tgt\":\"Muy bien.\"}\n{\"type\":\"sentence\",\"tgt\":\"Hasta luego.\"}",
+    "includeTrailing": true,
+    "expected": [
+      {
+        "tgt": "Hola, ¿cómo estás?",
+        "sup": "Hello",
+        "character": "Sheilfer",
+        "gender": "female"
+      },
+      {
+        "tgt": "Muy bien.",
+        "sup": "",
+        "character": "Fernanda"
+      },
+      {
+        "tgt": "Hasta luego.",
+        "sup": "",
+        "character": "Sheilfer"
+      }
+    ]
+  },
+  {
+    "snapshot": "```json\n{\"type\":\"sentence\",\"tgt\":\"مرحبا\"}\n",
+    "expected": [
+      {
+        "tgt": "مرحبا",
+        "sup": "",
+        "character": "Sheilfer"
+      }
+    ]
+  },
+  {
+    "snapshot": "```json\n{\"type\":\"sentence\",\"tgt\":\"مرحبا\"}\n{\"type\":\"done\"}\n",
+    "expected": [
+      {
+        "tgt": "مرحبا",
+        "sup": "",
+        "character": "Sheilfer"
+      }
+    ]
+  },
+  {
+    "snapshot": "```json\n{\"type\":\"sentence\",\"tgt\":\"مرحبا\"}\n{\"type\":\"done\"}\n{\"type\":\"sentence\",\"character\":\"Fernanda\",\"tgt\":\"أهلاً\"}\n",
+    "expected": [
+      {
+        "tgt": "مرحبا",
+        "sup": "",
+        "character": "Sheilfer"
+      },
+      {
+        "tgt": "أهلاً",
+        "sup": "",
+        "character": "Fernanda"
+      }
+    ]
+  }
+]

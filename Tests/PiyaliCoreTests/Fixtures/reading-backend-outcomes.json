@@ -1,0 +1,126 @@
+[
+  {
+    "input": {
+      "title": "Spanish: El jardín",
+      "target": "Spanish: María: La flor crece.\nTarget: La planta es verde.",
+      "takeaways": [
+        "English: A flower grows.",
+        "• The plant is green.",
+        "Third",
+        "Fourth"
+      ],
+      "reviewQuestion": {
+        "type": "text",
+        "question": "Ignored?",
+        "answer": "Ignored"
+      }
+    },
+    "expected": {
+      "lectures": [
+        {
+          "id": "fixture-id",
+          "title": "El jardín",
+          "target": "La flor crece. La planta es verde.",
+          "support": "",
+          "takeaways": [
+            "A flower grows.",
+            "The plant is green.",
+            "Third"
+          ],
+          "targetLang": "es",
+          "supportLang": "en",
+          "xpAward": 6,
+          "xpReason": "Immediate random 5–8 XP award.",
+          "reviewFormat": "question",
+          "questionLevel": "A1",
+          "worth": {
+            "rating": 1
+          },
+          "createdAtClient": 1700000000000,
+          "awarded": false
+        }
+      ],
+      "history": 1,
+      "error": false
+    }
+  },
+  {
+    "input": {
+      "target": "Una flor."
+    },
+    "expected": {
+      "lectures": [
+        {
+          "id": "fixture-id",
+          "title": "",
+          "target": "Una flor.",
+          "support": "",
+          "takeaways": [],
+          "targetLang": "es",
+          "supportLang": "en",
+          "xpAward": 6,
+          "xpReason": "Immediate random 5–8 XP award.",
+          "reviewFormat": "question",
+          "questionLevel": "A1",
+          "worth": {
+            "rating": 1
+          },
+          "createdAtClient": 1700000000000,
+          "awarded": false
+        }
+      ],
+      "history": 1,
+      "error": false
+    }
+  },
+  {
+    "input": {
+      "title": "Empty",
+      "target": ""
+    },
+    "expected": {
+      "lectures": [],
+      "history": 0,
+      "error": true
+    }
+  },
+  {
+    "input": {
+      "title": "No target"
+    },
+    "expected": {
+      "lectures": [],
+      "history": 0,
+      "error": true
+    }
+  },
+  {
+    "input": {
+      "target": "Spanish: "
+    },
+    "expected": {
+      "lectures": [
+        {
+          "id": "fixture-id",
+          "title": "",
+          "target": "",
+          "support": "",
+          "takeaways": [],
+          "targetLang": "es",
+          "supportLang": "en",
+          "xpAward": 6,
+          "xpReason": "Immediate random 5–8 XP award.",
+          "reviewFormat": "question",
+          "questionLevel": "A1",
+          "worth": {
+            "rating": 1
+          },
+          "createdAtClient": 1700000000000,
+          "awarded": false
+        }
+      ],
+      "history": 1,
+      "error": false
+    }
+  }
+]

@@ -1,0 +1,16 @@
+{
+  "qaDevice": "CE8248B6-7171-4FD4-97DE-89E499107F82",
+  "products": {
+    "Piyali": {
+      "builtSHA256": "480e817ec63a97ef6f3722fef16296654e3fe6b07b06db2188cffdbc215e92e4",
+      "installedQASHA256": "480e817ec63a97ef6f3722fef16296654e3fe6b07b06db2188cffdbc215e92e4",
+      "match": true
+    },
+    "Piyali.debug.dylib": {
+      "builtSHA256": "ac513c20b411e34dfd496dc5eb2945a0248395b76c5dff7e818af2b67bc0ebdd",
+      "installedQASHA256": "ac513c20b411e34dfd496dc5eb2945a0248395b76c5dff7e818af2b67bc0ebdd",
+      "match": true
+    }
+  },
+  "scope": "Final built native executable/dylib match the app used on the isolated QA simulator; regular simulator was not accessed."
+}

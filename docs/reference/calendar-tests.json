@@ -1,0 +1,59 @@
+[
+  {
+    "bundle": "PiyaliCalendarSystem1.xcresult",
+    "result": "Passed",
+    "passedTests": 1,
+    "failedTests": 0,
+    "skippedTests": 0,
+    "testFailures": []
+  },
+  {
+    "bundle": "PiyaliCalendarSDK1.xcresult",
+    "result": "Failed",
+    "passedTests": 3,
+    "failedTests": 1,
+    "skippedTests": 0,
+    "testFailures": [
+      {
+        "failureText": "XCTAssertEqual failed: (\"0\") is not equal to (\"3\")",
+        "targetName": "PiyaliTests",
+        "testIdentifier": 4,
+        "testIdentifierString": "FirestoreContractTests/testXPActivityMonthlyReadLegacyImportAndSnapshotSeparation()",
+        "testIdentifierURL": "test://com.apple.xcode/Piyali/PiyaliTests/FirestoreContractTests/testXPActivityMonthlyReadLegacyImportAndSnapshotSeparation",
+        "testName": "testXPActivityMonthlyReadLegacyImportAndSnapshotSeparation()"
+      }
+    ]
+  },
+  {
+    "bundle": "PiyaliCalendarSDK2.xcresult",
+    "result": "Passed",
+    "passedTests": 4,
+    "failedTests": 0,
+    "skippedTests": 0,
+    "testFailures": []
+  },
+  {
+    "bundle": "PiyaliCalendarSDK3.xcresult",
+    "result": "Passed",
+    "passedTests": 4,
+    "failedTests": 0,
+    "skippedTests": 0,
+    "testFailures": []
+  },
+  {
+    "bundle": "PiyaliCalendarJourney1.xcresult",
+    "result": "Passed",
+    "passedTests": 5,
+    "failedTests": 0,
+    "skippedTests": 0,
+    "testFailures": []
+  },
+  {
+    "bundle": "PiyaliCalendarJourney2.xcresult",
+    "result": "Passed",
+    "passedTests": 1,
+    "failedTests": 0,
+    "skippedTests": 0,
+    "testFailures": []
+  }
+]

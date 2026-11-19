@@ -1,0 +1,10 @@
+{
+  "TeamsPanelReferenceTests/testActualFeedCacheLoadingEmptyFailureRefreshAndQuestionCardsInBothDirections()": {
+    "originalAttachments": 54,
+    "pairs": 18
+  },
+  "TeamsPanelReferenceTests/testActualSourceAndNativeTeamDrawerFormsCardsFeedAndArabic()": {
+    "originalAttachments": 48,
+    "pairs": 16
+  }
+}

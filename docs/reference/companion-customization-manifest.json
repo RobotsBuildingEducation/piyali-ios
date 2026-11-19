@@ -1,0 +1,21 @@
+{
+  "cases": 672,
+  "sources": [
+    {
+      "file": "src/components/PlatePetPanel.jsx",
+      "sha256": "4b06f3cd701d2ea1b0766af46010b88726149b97fb2573966fa952b1b449ed21"
+    },
+    {
+      "file": "src/components/CompanionCustomizeModal.jsx",
+      "sha256": "d821768fe784072abbedddf4c2e5585a8d092413e6d10ac20b51f65d788816cf"
+    },
+    {
+      "file": "src/utils/petTypes.js",
+      "sha256": "e22bacdec1bd9f58bad705b3f4d032adc43ad8799aea5fbf676a77b1a8160770"
+    },
+    {
+      "file": "src/components/companionCustomizeCopy.js",
+      "sha256": "c19a19833729f12bba84998c8258df86643b0d450be598aadd9e388b2f5d536a"
+    }
+  ]
+}

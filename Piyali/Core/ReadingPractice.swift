@@ -6,23 +6,35 @@ public struct ReadingRun:Codable,Equatable,Sendable {
     public let support:String
     public let level:String
     public let lessonID:String?
+    public var lessonLevel:String?
     public let title:String
     public let text:String
     public let takeaways:[String]
-    public let question:ReadingQuestion
+    public var question:ReadingQuestion
+    public var pendingQuestionType:String?
     public let selection:JSONValue
-    public let worth:JSONValue
+    public var worth:JSONValue
     public let reward:Int
     public var awarded=false
     public var method:String
     public var answer=""
     public var correct:Bool?
     public var feedback=""
+    public var explanation:String?
     public var translation:String?
+    public var lineTranslations:[String]?
+    public var speechFeedback:ReadingSpeechFeedback?
     public var updatedAt=Date()
     public init(payload:JSONValue,target:String,support:String,level:String,lessonID:String?,selection:JSONValue,worth:JSONValue,roll:Double,method:String = "question",tutorial:Bool = false,recent:[JSONValue] = []) throws {
-        guard payload.json.utf8.count <= 40_000,Reading.issues(candidate:payload,recent:recent,selection:selection,tutorial:tutorial).isEmpty,let question=ReadingQuestion(payload["reviewQuestion"]),payload["takeaways"].array.count == 3,payload["takeaways"].array.allSatisfy({ !$0.string.isEmpty }),StoryEpisode.compatible([payload["target"].string],target:target) else { throw ReadingFailure.invalid }
-        guard !tutorial || Reading.sentences(payload["target"].string).count == 4 else { throw ReadingFailure.invalid }
+        guard payload.json.utf8.count <= 40_000 else{throw ReadingFailure.invalid}
+        let question:ReadingQuestion
+        if payload["nativeReadingStream"].boolean {
+            guard payload["title"].string.utf8.count <= 8000,payload["target"].string.utf8.count <= 24000,payload["takeaways"].array.count <= 3,payload["takeaways"].array.allSatisfy({$0.string.utf8.count <= 8000}),["text","fill","mc"].contains(payload["reviewQuestionType"].string) else{throw ReadingFailure.invalid}
+            if let ready=ReadingQuestion(payload["reviewQuestion"]) {question=ready}
+            else {let type=payload["reviewQuestionType"].string;question=ReadingQuestion(unavailableType:type);pendingQuestionType=type}
+        } else {
+            guard Reading.issues(candidate:payload,recent:recent,selection:selection,tutorial:tutorial).isEmpty,let valid=ReadingQuestion(payload["reviewQuestion"]),payload["takeaways"].array.count == 3,payload["takeaways"].array.allSatisfy({ !$0.string.isEmpty }),StoryEpisode.compatible([payload["target"].string],target:target),!tutorial || Reading.sentences(payload["target"].string).count == 4 else {throw ReadingFailure.invalid};question=valid
+        }
         self.target=target;self.support=support;self.level=level;self.lessonID=lessonID;self.title=payload["title"].string;self.text=payload["target"].string;self.takeaways=payload["takeaways"].array.map(\.string);self.question=question;self.selection=selection;self.worth=worth;self.reward=Reading.award(roll:roll);self.method=method
     }
     public var contentID:String { id.uuidString.lowercased() }
@@ -35,11 +47,13 @@ public extension LearnerState {
         var saved=run;saved.updatedAt=Date();if readingRuns == nil { readingRuns=[:] };readingRuns?[run.target]=saved
         while readingRuns!.count > 1,(readingRuns!.count > 3 || (try? JSONEncoder().encode(readingRuns).count) ?? 0 > 96_000) { let old=readingRuns!.values.filter { $0.target != run.target }.min { $0.updatedAt < $1.updatedAt }!.target;readingRuns?.removeValue(forKey:old) }
     }
-    @discardableResult mutating func reviewReading(answer:String,correct:Bool,feedback:String,speech:Bool = false,now:Date = Date()) -> Int {
-        guard var run=reading,run.support == support,!run.awarded,!answer.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else { return 0 }
-        run.answer=String(answer.prefix(4000));run.correct=correct;run.feedback=String(feedback.prefix(2000))
+    @discardableResult mutating func reviewReading(answer:String,correct:Bool,feedback:String,speech:Bool = false,speechFeedback:ReadingSpeechFeedback? = nil,now:Date = Date(),goalFocus:GoalMemoryFocus? = nil) -> Int {
+        guard var run=reading,run.support == support,!run.awarded,(speech || run.pendingQuestionType == nil),!answer.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else { return 0 }
+        run.answer=speech ? ReadingSpeechCapture.boundedTranscript(answer) : String(answer.prefix(4000));run.correct=correct;run.feedback=String(feedback.prefix(2000))
+        if speech { run.speechFeedback=speechFeedback }
         let success=speech || correct,amount=success ? run.reward : 0
         var change=PracticeChange(date:now,dayKey:CalendarDay.key(now),target:target,level:run.level,amount:amount,source:success ? (speech ? .readingSpeech : .readingTurn) : .practice,contentID:success ? run.contentID : run.contentID+":miss:"+UUID().uuidString)
+        change.attachCurriculumLesson(id:run.lessonID,level:run.lessonLevel ?? run.level)
         if success {
             run.awarded=true;addXP(amount,now:now,calendar:.current)
             if !speech {
@@ -49,8 +63,9 @@ public extension LearnerState {
                 if gradedByLanguage == nil { gradedByLanguage=[:] };gradedByLanguage?[target,default:0] += 1
             }
             if let lesson=run.lessonID { practicedModes.insert(modeKey(lesson,PracticeMode.reading.rawValue)) }
-        } else { captureMemory(mode:"reading",concept:run.question.question,answer:answer,expected:run.question.answer,feedback:feedback,context:run.lessonID ?? "reading",now:now) }
+        } else { captureMemory(mode:"reading",concept:run.question.question,answer:answer,expected:run.question.answer,feedback:feedback,context:run.lessonID ?? "reading",now:now,goalFocus:goalFocus) }
         change.readingProof = .object(["lang":.string(target),"supportLang":.string(support),"readingID":.string(run.contentID),"title":.string(run.title),"method":.string(speech ? "speech-transcript" : "question"),"answer":.string(run.answer),"ok":.bool(correct),"feedback":.string(run.feedback),"xpAwarded":.number(Double(amount))])
+        if speech,let speechFeedback { change.readingProof=change.readingProof?.setting("speechFeedback",speechFeedback.value) }
         enqueue(change);saveReading(run);return amount
     }
 }

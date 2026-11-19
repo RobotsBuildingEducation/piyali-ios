@@ -1,0 +1,14 @@
+{
+  "core": "swift test --filter 'TutorOutcomeIntentTests|TutorSourcePolicyTests|TutorSourceProgressTests|SyncContractTests|GoalPracticeTests|CompanionQuestTests|ConfirmedRepairProgressTests'",
+  "nativeEnvironment": {
+    "TEST_RUNNER_PIYALI_OFFLINE_TESTS": "1",
+    "TEST_RUNNER_PIYALI_FIRESTORE_EMULATOR_TESTS": "1",
+    "TEST_RUNNER_PIYALI_REFERENCE_PREVIEW_TESTS": "1",
+    "TEST_RUNNER_PIYALI_TEST_IDENTITY_SCOPE": "fresh UUID via uuidgen",
+    "PIYALI_TEST_DEVICE": "CE8248B6-7171-4FD4-97DE-89E499107F82"
+  },
+  "nativeWrapper": "scripts/test-ios.sh",
+  "xcodebuild": "/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project Piyali.xcodeproj -scheme Piyali -destination \"platform=iOS Simulator,id=CE8248B6-7171-4FD4-97DE-89E499107F82\" -derivedDataPath DerivedData CODE_SIGN_IDENTITY=- COMPILER_INDEX_STORE_ENABLE=NO -collect-test-diagnostics never -parallel-testing-enabled NO \"-only-testing:PiyaliTests/CompanionQuestFlowTests\" \"-only-testing:PiyaliTests/FirestoreContractTests/testFocusedTutorCompletionLostResponseRestoresPrivateReceiptAndBanksGoalOrRepairOnceBeyondTrial\" \"-only-testing:PiyaliTests/TutorSessionTests/testRestoredRepairTutorKeepsItsEarnedLessonWhileRawCompletionWaitsForAcknowledgment\" \"-only-testing:PiyaliTests/TutorSessionTests/testGoalTutorUsesOriginalRubricAndOnlyFinishesAt25XPWithoutTutorPathOrBonus\" \"-only-testing:PiyaliTests/TutorSessionTests/testRepairTutorOneGoodRepCommitsOneRepairAndBonusWithoutOrdinaryTutorWrites\" \"-only-testing:PiyaliTests/TutorSessionTests/testEarnedFocusedTutorFinishRestoresFromPrivateAccountFileWhileFinalWorthIsPendingAtTrialBoundary\" \"-only-testing:PiyaliTests/TutorSessionTests/testPartialFocusedGoalRestoresDisconnectedWithoutInventingCompletionOrSpeech\" \"-only-testing:PiyaliTests/TutorSessionTests/testFocusedRecoveryCannotBypassTrialOrBankForAnotherAccountLanguageGoalOrDay\" \"-only-testing:PiyaliTests/TutorSessionTests/testPhonicsFallbackTutorKeepsOriginalModeAndOnlyRoutesAfterEarnedCompletionAcknowledges\" \"-only-testing:PiyaliTests/TutorReferenceScreensTests/testOriginalFocusedTutorGoalAndRepairInEnglishAndArabic\" \"-only-testing:PiyaliUITests/FocusedPhonicsJourneyTests/testGoalPhonicsFallbackEarnedTutorRestoresPendingWorthAndSaveRetryBeyondTrial\" \"-only-testing:PiyaliUITests/FocusedPhonicsJourneyTests/testRepairPhonicsFallbackEarnedTutorRestoresPendingWorthAndSaveRetryBeyondTrial\" -resultBundlePath /tmp/PiyaliFocusedTutorRecoveryFinal20261106.xcresult test",
+  "sourceCallback": "node scripts/check-focused-tutor-completion.mjs --out /tmp/piyali-focused-tutor-source-oracle-20261106.json",
+  "qaAudit": "python3 scripts/audit-focused-tutor-recovery-qa.py --since /tmp/piyali-focused-tutor-final-start-20261106.json --kind goal|repair --phase worth|save|settled --output <public artifact JSON>"
+}

@@ -1,0 +1,1501 @@
+[
+  {
+    "recall": [
+      {
+        "id": "recall:goal-public-deck-2026-11-05-c0:false",
+        "goalId": "public-deck",
+        "target": "Hola",
+        "mode": "flashcards",
+        "domain": "recall",
+        "support": "prompted",
+        "success": false,
+        "observation": "Unsuccessful recall; not independent production",
+        "expectedAnswer": "Hola"
+      },
+      {
+        "id": "recall:goal-public-deck-2026-11-05-c0:true",
+        "goalId": "public-deck",
+        "target": "Hola",
+        "mode": "flashcards",
+        "domain": "recall",
+        "support": "prompted",
+        "success": true,
+        "observation": "Correct recall; not independent production",
+        "expectedAnswer": "Hola"
+      }
+    ],
+    "completion": {
+      "id": "flashcards:es_2026-11-05_flashcards_public-deck",
+      "success": true,
+      "support": "prompted",
+      "domain": "recall",
+      "observation": "Completed three goal-specific recall cards: Hola; Gracias; Adiós"
+    },
+    "name": "exact-three",
+    "input": {
+      "focus": {
+        "blueprint": {
+          "cefrLevel": "A1",
+          "dayKey": "2026-11-05",
+          "goalId": "public-deck",
+          "goalText": "Speak with family",
+          "lang": "es",
+          "mode": "flashcards",
+          "objective": "Greet a relative",
+          "scoreAtGeneration": 99,
+          "targetLanguage": [
+            "Hola",
+            "¿Cómo estás?"
+          ]
+        },
+        "npub": "public-source-fixture",
+        "supportLang": "en",
+        "targetLang": "es"
+      },
+      "user": {
+        "learningIntelligence": {
+          "es": {
+            "elo": {
+              "gradedCount": 4,
+              "rating": 1120
+            },
+            "goalProgress": {
+              "openCapabilities": [
+                {
+                  "example": "Hola",
+                  "stage": "prompted",
+                  "target": "Greeting"
+                }
+              ]
+            }
+          }
+        },
+        "progress": {
+          "cefrLevel": "A1",
+          "targetLang": "es"
+        }
+      },
+      "raw": "[{\"target\":\"Hola\",\"support\":\"Hello\"},{\"target\":\"Gracias\",\"support\":\"Thanks\"},{\"target\":\"Adiós\",\"support\":\"Goodbye\"}]",
+      "providerFailed": false
+    },
+    "prompt": "Generate exactly 3 recall cards preparing this goal: {\"cefrLevel\":\"A1\",\"dayKey\":\"2026-11-05\",\"goalId\":\"public-deck\",\"goalText\":\"Speak with family\",\"lang\":\"es\",\"mode\":\"flashcards\",\"objective\":\"Greet a relative\",\"targetLanguage\":[\"Hola\",\"¿Cómo estás?\"]}. Live internal Elo, curriculum CEFR and performance memory: {\"eloRating\":1171,\"eloScale\":\"800–2200; higher means stronger performance across CEFR levels\",\"curriculumCefrLevel\":\"Pre-A1\",\"curriculumLevels\":{\"skillTree\":\"Pre-A1\",\"flashcards\":\"Pre-A1\",\"tutor\":\"Pre-A1\",\"overall\":\"Pre-A1\"},\"suggestedQuestionLevel\":\"A1\",\"recentAccuracy\":null,\"recentAccuracySampleCount\":0,\"weakConcepts\":[],\"byLevel\":{},\"selfReportedStatements\":[]}. Adapt recall challenge and support to this evidence. Needed language may exceed CEFR with simple cues in en. Return only JSON array [{target:\"answer in es\",support:\"cue in en\"}].",
+    "cards": [
+      {
+        "id": "goal-public-deck-2026-11-05-c0",
+        "isGoal": true,
+        "category": "goal",
+        "type": "phrase",
+        "cefrLevel": "A1",
+        "concept": {
+          "en": "Hello",
+          "es": "Hola"
+        }
+      },
+      {
+        "id": "goal-public-deck-2026-11-05-c1",
+        "isGoal": true,
+        "category": "goal",
+        "type": "phrase",
+        "cefrLevel": "A1",
+        "concept": {
+          "en": "Thanks",
+          "es": "Gracias"
+        }
+      },
+      {
+        "id": "goal-public-deck-2026-11-05-c2",
+        "isGoal": true,
+        "category": "goal",
+        "type": "phrase",
+        "cefrLevel": "A1",
+        "concept": {
+          "en": "Goodbye",
+          "es": "Adiós"
+        }
+      }
+    ]
+  },
+  {
+    "recall": [
+      {
+        "id": "recall:goal-public-deck-2026-11-05-c0:false",
+        "goalId": "public-deck",
+        "target": "Hola",
+        "mode": "flashcards",
+        "domain": "recall",
+        "support": "prompted",
+        "success": false,
+        "observation": "Unsuccessful recall; not independent production",
+        "expectedAnswer": "Hola"
+      },
+      {
+        "id": "recall:goal-public-deck-2026-11-05-c0:true",
+        "goalId": "public-deck",
+        "target": "Hola",
+        "mode": "flashcards",
+        "domain": "recall",
+        "support": "prompted",
+        "success": true,
+        "observation": "Correct recall; not independent production",
+        "expectedAnswer": "Hola"
+      }
+    ],
+    "completion": {
+      "id": "flashcards:es_2026-11-05_flashcards_public-deck",
+      "success": true,
+      "support": "prompted",
+      "domain": "recall",
+      "observation": "Completed three goal-specific recall cards: Hola; Hola; Hola"
+    },
+    "name": "one-numbered-repeat",
+    "input": {
+      "focus": {
+        "blueprint": {
+          "cefrLevel": "A1",
+          "dayKey": "2026-11-05",
+          "goalId": "public-deck",
+          "goalText": "Speak with family",
+          "lang": "es",
+          "mode": "flashcards",
+          "objective": "Greet a relative",
+          "scoreAtGeneration": 99,
+          "targetLanguage": [
+            "Hola",
+            "¿Cómo estás?"
+          ]
+        },
+        "npub": "public-source-fixture",
+        "supportLang": "en",
+        "targetLang": "es"
+      },
+      "user": {
+        "learningIntelligence": {
+          "es": {
+            "elo": {
+              "gradedCount": 4,
+              "rating": 1120
+            },
+            "goalProgress": {
+              "openCapabilities": [
+                {
+                  "example": "Hola",
+                  "stage": "prompted",
+                  "target": "Greeting"
+                }
+              ]
+            }
+          }
+        },
+        "progress": {
+          "cefrLevel": "A1",
+          "targetLang": "es"
+        }
+      },
+      "raw": "prefix [{\"target\":\"Hola\",\"support\":\"Hello\"}] suffix",
+      "providerFailed": false
+    },
+    "prompt": "Generate exactly 3 recall cards preparing this goal: {\"cefrLevel\":\"A1\",\"dayKey\":\"2026-11-05\",\"goalId\":\"public-deck\",\"goalText\":\"Speak with family\",\"lang\":\"es\",\"mode\":\"flashcards\",\"objective\":\"Greet a relative\",\"targetLanguage\":[\"Hola\",\"¿Cómo estás?\"]}. Live internal Elo, curriculum CEFR and performance memory: {\"eloRating\":1171,\"eloScale\":\"800–2200; higher means stronger performance across CEFR levels\",\"curriculumCefrLevel\":\"Pre-A1\",\"curriculumLevels\":{\"skillTree\":\"Pre-A1\",\"flashcards\":\"Pre-A1\",\"tutor\":\"Pre-A1\",\"overall\":\"Pre-A1\"},\"suggestedQuestionLevel\":\"A1\",\"recentAccuracy\":null,\"recentAccuracySampleCount\":0,\"weakConcepts\":[],\"byLevel\":{},\"selfReportedStatements\":[]}. Adapt recall challenge and support to this evidence. Needed language may exceed CEFR with simple cues in en. Return only JSON array [{target:\"answer in es\",support:\"cue in en\"}].",
+    "cards": [
+      {
+        "id": "goal-public-deck-2026-11-05-c0",
+        "isGoal": true,
+        "category": "goal",
+        "type": "phrase",
+        "cefrLevel": "A1",
+        "concept": {
+          "en": "Hello",
+          "es": "Hola"
+        }
+      },
+      {
+        "id": "goal-public-deck-2026-11-05-c1",
+        "isGoal": true,
+        "category": "goal",
+        "type": "phrase",
+        "cefrLevel": "A1",
+        "concept": {
+          "en": "Hello (2)",
+          "es": "Hola"
+        }
+      },
+      {
+        "id": "goal-public-deck-2026-11-05-c2",
+        "isGoal": true,
+        "category": "goal",
+        "type": "phrase",
+        "cefrLevel": "A1",
+        "concept": {
+          "en": "Hello (3)",
+          "es": "Hola"
+        }
+      }
+    ]
+  },
+  {
+    "recall": [
+      {
+        "id": "recall:goal-public-deck-2026-11-05-c0:false",
+        "goalId": "public-deck",
+        "target": "Hola",
+        "mode": "flashcards",
+        "domain": "recall",
+        "support": "prompted",
+        "success": false,
+        "observation": "Unsuccessful recall; not independent production",
+        "expectedAnswer": "Hola"
+      },
+      {
+        "id": "recall:goal-public-deck-2026-11-05-c0:true",
+        "goalId": "public-deck",
+        "target": "Hola",
+        "mode": "flashcards",
+        "domain": "recall",
+        "support": "prompted",
+        "success": true,
+        "observation": "Correct recall; not independent production",
+        "expectedAnswer": "Hola"
+      }
+    ],
+    "completion": {
+      "id": "flashcards:es_2026-11-05_flashcards_public-deck",
+      "success": true,
+      "support": "prompted",
+      "domain": "recall",
+      "observation": "Completed three goal-specific recall cards: Hola; Hola; Hola"
+    },
+    "name": "filter-invalid",
+    "input": {
+      "focus": {
+        "blueprint": {
+          "cefrLevel": "A1",
+          "dayKey": "2026-11-05",
+          "goalId": "public-deck",
+          "goalText": "Speak with family",
+          "lang": "es",
+          "mode": "flashcards",
+          "objective": "Greet a relative",
+          "scoreAtGeneration": 99,
+          "targetLanguage": [
+            "Hola",
+            "¿Cómo estás?"
+          ]
+        },
+        "npub": "public-source-fixture",
+        "supportLang": "en",
+        "targetLang": "es"
+      },
+      "user": {
+        "learningIntelligence": {
+          "es": {
+            "elo": {
+              "gradedCount": 4,
+              "rating": 1120
+            },
+            "goalProgress": {
+              "openCapabilities": [
+                {
+                  "example": "Hola",
+                  "stage": "prompted",
+                  "target": "Greeting"
+                }
+              ]
+            }
+          }
+        },
+        "progress": {
+          "cefrLevel": "A1",
+          "targetLang": "es"
+        }
+      },
+      "raw": "[{\"target\":\"\",\"support\":\"Empty\"},{\"target\":\"Hola\",\"support\":\"Hello\"},{\"support\":\"missing\"}]",
+      "providerFailed": false
+    },
+    "prompt": "Generate exactly 3 recall cards preparing this goal: {\"cefrLevel\":\"A1\",\"dayKey\":\"2026-11-05\",\"goalId\":\"public-deck\",\"goalText\":\"Speak with family\",\"lang\":\"es\",\"mode\":\"flashcards\",\"objective\":\"Greet a relative\",\"targetLanguage\":[\"Hola\",\"¿Cómo estás?\"]}. Live internal Elo, curriculum CEFR and performance memory: {\"eloRating\":1171,\"eloScale\":\"800–2200; higher means stronger performance across CEFR levels\",\"curriculumCefrLevel\":\"Pre-A1\",\"curriculumLevels\":{\"skillTree\":\"Pre-A1\",\"flashcards\":\"Pre-A1\",\"tutor\":\"Pre-A1\",\"overall\":\"Pre-A1\"},\"suggestedQuestionLevel\":\"A1\",\"recentAccuracy\":null,\"recentAccuracySampleCount\":0,\"weakConcepts\":[],\"byLevel\":{},\"selfReportedStatements\":[]}. Adapt recall challenge and support to this evidence. Needed language may exceed CEFR with simple cues in en. Return only JSON array [{target:\"answer in es\",support:\"cue in en\"}].",
+    "cards": [
+      {
+        "id": "goal-public-deck-2026-11-05-c0",
+        "isGoal": true,
+        "category": "goal",
+        "type": "phrase",
+        "cefrLevel": "A1",
+        "concept": {
+          "en": "Hello",
+          "es": "Hola"
+        }
+      },
+      {
+        "id": "goal-public-deck-2026-11-05-c1",
+        "isGoal": true,
+        "category": "goal",
+        "type": "phrase",
+        "cefrLevel": "A1",
+        "concept": {
+          "en": "Hello (2)",
+          "es": "Hola"
+        }
+      },
+      {
+        "id": "goal-public-deck-2026-11-05-c2",
+        "isGoal": true,
+        "category": "goal",
+        "type": "phrase",
+        "cefrLevel": "A1",
+        "concept": {
+          "en": "Hello (3)",
+          "es": "Hola"
+        }
+      }
+    ]
+  },
+  {
+    "recall": [
+      {
+        "id": "recall:goal-public-deck-2026-11-05-c0:false",
+        "goalId": "public-deck",
+        "target": "Hola",
+        "mode": "flashcards",
+        "domain": "recall",
+        "support": "prompted",
+        "success": false,
+        "observation": "Unsuccessful recall; not independent production",
+        "expectedAnswer": "Hola"
+      },
+      {
+        "id": "recall:goal-public-deck-2026-11-05-c0:true",
+        "goalId": "public-deck",
+        "target": "Hola",
+        "mode": "flashcards",
+        "domain": "recall",
+        "support": "prompted",
+        "success": true,
+        "observation": "Correct recall; not independent production",
+        "expectedAnswer": "Hola"
+      }
+    ],
+    "completion": {
+      "id": "flashcards:es_2026-11-05_flashcards_public-deck",
+      "success": true,
+      "support": "prompted",
+      "domain": "recall",
+      "observation": "Completed three goal-specific recall cards: Hola; ¿Cómo estás?; Hola"
+    },
+    "name": "provider-failure",
+    "input": {
+      "focus": {
+        "blueprint": {
+          "cefrLevel": "A1",
+          "dayKey": "2026-11-05",
+          "goalId": "public-deck",
+          "goalText": "Speak with family",
+          "lang": "es",
+          "mode": "flashcards",
+          "objective": "Greet a relative",
+          "scoreAtGeneration": 99,
+          "targetLanguage": [
+            "Hola",
+            "¿Cómo estás?"
+          ]
+        },
+        "npub": "public-source-fixture",
+        "supportLang": "en",
+        "targetLang": "es"
+      },
+      "user": {
+        "learningIntelligence": {
+          "es": {
+            "elo": {
+              "gradedCount": 4,
+              "rating": 1120
+            },
+            "goalProgress": {
+              "openCapabilities": [
+                {
+                  "example": "Hola",
+                  "stage": "prompted",
+                  "target": "Greeting"
+                }
+              ]
+            }
+          }
+        },
+        "progress": {
+          "cefrLevel": "A1",
+          "targetLang": "es"
+        }
+      },
+      "raw": null,
+      "providerFailed": true
+    },
+    "prompt": "Generate exactly 3 recall cards preparing this goal: {\"cefrLevel\":\"A1\",\"dayKey\":\"2026-11-05\",\"goalId\":\"public-deck\",\"goalText\":\"Speak with family\",\"lang\":\"es\",\"mode\":\"flashcards\",\"objective\":\"Greet a relative\",\"targetLanguage\":[\"Hola\",\"¿Cómo estás?\"]}. Live internal Elo, curriculum CEFR and performance memory: {\"eloRating\":1171,\"eloScale\":\"800–2200; higher means stronger performance across CEFR levels\",\"curriculumCefrLevel\":\"Pre-A1\",\"curriculumLevels\":{\"skillTree\":\"Pre-A1\",\"flashcards\":\"Pre-A1\",\"tutor\":\"Pre-A1\",\"overall\":\"Pre-A1\"},\"suggestedQuestionLevel\":\"A1\",\"recentAccuracy\":null,\"recentAccuracySampleCount\":0,\"weakConcepts\":[],\"byLevel\":{},\"selfReportedStatements\":[]}. Adapt recall challenge and support to this evidence. Needed language may exceed CEFR with simple cues in en. Return only JSON array [{target:\"answer in es\",support:\"cue in en\"}].",
+    "cards": [
+      {
+        "id": "goal-public-deck-2026-11-05-c0",
+        "isGoal": true,
+        "category": "goal",
+        "type": "phrase",
+        "cefrLevel": "A1",
+        "concept": {
+          "en": "Greet a relative",
+          "es": "Hola"
+        }
+      },
+      {
+        "id": "goal-public-deck-2026-11-05-c1",
+        "isGoal": true,
+        "category": "goal",
+        "type": "phrase",
+        "cefrLevel": "A1",
+        "concept": {
+          "en": "Greet a relative",
+          "es": "¿Cómo estás?"
+        }
+      },
+      {
+        "id": "goal-public-deck-2026-11-05-c2",
+        "isGoal": true,
+        "category": "goal",
+        "type": "phrase",
+        "cefrLevel": "A1",
+        "concept": {
+          "en": "Greet a relative (3)",
+          "es": "Hola"
+        }
+      }
+    ]
+  },
+  {
+    "recall": [
+      {
+        "id": "recall:goal-public-deck-2026-11-05-c0:false",
+        "goalId": "public-deck",
+        "target": "Hola",
+        "mode": "flashcards",
+        "domain": "recall",
+        "support": "prompted",
+        "success": false,
+        "observation": "Unsuccessful recall; not independent production",
+        "expectedAnswer": "Hola"
+      },
+      {
+        "id": "recall:goal-public-deck-2026-11-05-c0:true",
+        "goalId": "public-deck",
+        "target": "Hola",
+        "mode": "flashcards",
+        "domain": "recall",
+        "support": "prompted",
+        "success": true,
+        "observation": "Correct recall; not independent production",
+        "expectedAnswer": "Hola"
+      }
+    ],
+    "completion": {
+      "id": "flashcards:es_2026-11-05_flashcards_public-deck",
+      "success": true,
+      "support": "prompted",
+      "domain": "recall",
+      "observation": "Completed three goal-specific recall cards: Hola; ¿Cómo estás?; Hola"
+    },
+    "name": "empty-stream",
+    "input": {
+      "focus": {
+        "blueprint": {
+          "cefrLevel": "A1",
+          "dayKey": "2026-11-05",
+          "goalId": "public-deck",
+          "goalText": "Speak with family",
+          "lang": "es",
+          "mode": "flashcards",
+          "objective": "Greet a relative",
+          "scoreAtGeneration": 99,
+          "targetLanguage": [
+            "Hola",
+            "¿Cómo estás?"
+          ]
+        },
+        "npub": "public-source-fixture",
+        "supportLang": "en",
+        "targetLang": "es"
+      },
+      "user": {
+        "learningIntelligence": {
+          "es": {
+            "elo": {
+              "gradedCount": 4,
+              "rating": 1120
+            },
+            "goalProgress": {
+              "openCapabilities": [
+                {
+                  "example": "Hola",
+                  "stage": "prompted",
+                  "target": "Greeting"
+                }
+              ]
+            }
+          }
+        },
+        "progress": {
+          "cefrLevel": "A1",
+          "targetLang": "es"
+        }
+      },
+      "raw": "",
+      "providerFailed": false
+    },
+    "prompt": "Generate exactly 3 recall cards preparing this goal: {\"cefrLevel\":\"A1\",\"dayKey\":\"2026-11-05\",\"goalId\":\"public-deck\",\"goalText\":\"Speak with family\",\"lang\":\"es\",\"mode\":\"flashcards\",\"objective\":\"Greet a relative\",\"targetLanguage\":[\"Hola\",\"¿Cómo estás?\"]}. Live internal Elo, curriculum CEFR and performance memory: {\"eloRating\":1171,\"eloScale\":\"800–2200; higher means stronger performance across CEFR levels\",\"curriculumCefrLevel\":\"Pre-A1\",\"curriculumLevels\":{\"skillTree\":\"Pre-A1\",\"flashcards\":\"Pre-A1\",\"tutor\":\"Pre-A1\",\"overall\":\"Pre-A1\"},\"suggestedQuestionLevel\":\"A1\",\"recentAccuracy\":null,\"recentAccuracySampleCount\":0,\"weakConcepts\":[],\"byLevel\":{},\"selfReportedStatements\":[]}. Adapt recall challenge and support to this evidence. Needed language may exceed CEFR with simple cues in en. Return only JSON array [{target:\"answer in es\",support:\"cue in en\"}].",
+    "cards": [
+      {
+        "id": "goal-public-deck-2026-11-05-c0",
+        "isGoal": true,
+        "category": "goal",
+        "type": "phrase",
+        "cefrLevel": "A1",
+        "concept": {
+          "en": "Greet a relative",
+          "es": "Hola"
+        }
+      },
+      {
+        "id": "goal-public-deck-2026-11-05-c1",
+        "isGoal": true,
+        "category": "goal",
+        "type": "phrase",
+        "cefrLevel": "A1",
+        "concept": {
+          "en": "Greet a relative",
+          "es": "¿Cómo estás?"
+        }
+      },
+      {
+        "id": "goal-public-deck-2026-11-05-c2",
+        "isGoal": true,
+        "category": "goal",
+        "type": "phrase",
+        "cefrLevel": "A1",
+        "concept": {
+          "en": "Greet a relative (3)",
+          "es": "Hola"
+        }
+      }
+    ]
+  },
+  {
+    "recall": [
+      {
+        "id": "recall:goal-public-deck-2026-11-05-c0:false",
+        "goalId": "public-deck",
+        "target": "Hola",
+        "mode": "flashcards",
+        "domain": "recall",
+        "support": "prompted",
+        "success": false,
+        "observation": "Unsuccessful recall; not independent production",
+        "expectedAnswer": "Hola"
+      },
+      {
+        "id": "recall:goal-public-deck-2026-11-05-c0:true",
+        "goalId": "public-deck",
+        "target": "Hola",
+        "mode": "flashcards",
+        "domain": "recall",
+        "support": "prompted",
+        "success": true,
+        "observation": "Correct recall; not independent production",
+        "expectedAnswer": "Hola"
+      }
+    ],
+    "completion": {
+      "id": "flashcards:es_2026-11-05_flashcards_public-deck",
+      "success": true,
+      "support": "prompted",
+      "domain": "recall",
+      "observation": "Completed three goal-specific recall cards: Hola; ¿Cómo estás?; Hola"
+    },
+    "name": "malformed",
+    "input": {
+      "focus": {
+        "blueprint": {
+          "cefrLevel": "A1",
+          "dayKey": "2026-11-05",
+          "goalId": "public-deck",
+          "goalText": "Speak with family",
+          "lang": "es",
+          "mode": "flashcards",
+          "objective": "Greet a relative",
+          "scoreAtGeneration": 99,
+          "targetLanguage": [
+            "Hola",
+            "¿Cómo estás?"
+          ]
+        },
+        "npub": "public-source-fixture",
+        "supportLang": "en",
+        "targetLang": "es"
+      },
+      "user": {
+        "learningIntelligence": {
+          "es": {
+            "elo": {
+              "gradedCount": 4,
+              "rating": 1120
+            },
+            "goalProgress": {
+              "openCapabilities": [
+                {
+                  "example": "Hola",
+                  "stage": "prompted",
+                  "target": "Greeting"
+                }
+              ]
+            }
+          }
+        },
+        "progress": {
+          "cefrLevel": "A1",
+          "targetLang": "es"
+        }
+      },
+      "raw": "[broken]",
+      "providerFailed": false
+    },
+    "prompt": "Generate exactly 3 recall cards preparing this goal: {\"cefrLevel\":\"A1\",\"dayKey\":\"2026-11-05\",\"goalId\":\"public-deck\",\"goalText\":\"Speak with family\",\"lang\":\"es\",\"mode\":\"flashcards\",\"objective\":\"Greet a relative\",\"targetLanguage\":[\"Hola\",\"¿Cómo estás?\"]}. Live internal Elo, curriculum CEFR and performance memory: {\"eloRating\":1171,\"eloScale\":\"800–2200; higher means stronger performance across CEFR levels\",\"curriculumCefrLevel\":\"Pre-A1\",\"curriculumLevels\":{\"skillTree\":\"Pre-A1\",\"flashcards\":\"Pre-A1\",\"tutor\":\"Pre-A1\",\"overall\":\"Pre-A1\"},\"suggestedQuestionLevel\":\"A1\",\"recentAccuracy\":null,\"recentAccuracySampleCount\":0,\"weakConcepts\":[],\"byLevel\":{},\"selfReportedStatements\":[]}. Adapt recall challenge and support to this evidence. Needed language may exceed CEFR with simple cues in en. Return only JSON array [{target:\"answer in es\",support:\"cue in en\"}].",
+    "cards": [
+      {
+        "id": "goal-public-deck-2026-11-05-c0",
+        "isGoal": true,
+        "category": "goal",
+        "type": "phrase",
+        "cefrLevel": "A1",
+        "concept": {
+          "en": "Greet a relative",
+          "es": "Hola"
+        }
+      },
+      {
+        "id": "goal-public-deck-2026-11-05-c1",
+        "isGoal": true,
+        "category": "goal",
+        "type": "phrase",
+        "cefrLevel": "A1",
+        "concept": {
+          "en": "Greet a relative",
+          "es": "¿Cómo estás?"
+        }
+      },
+      {
+        "id": "goal-public-deck-2026-11-05-c2",
+        "isGoal": true,
+        "category": "goal",
+        "type": "phrase",
+        "cefrLevel": "A1",
+        "concept": {
+          "en": "Greet a relative (3)",
+          "es": "Hola"
+        }
+      }
+    ]
+  },
+  {
+    "recall": [
+      {
+        "id": "recall:goal-public-deck-2026-11-05-c0:false",
+        "goalId": "public-deck",
+        "target": "Hola",
+        "mode": "flashcards",
+        "domain": "recall",
+        "support": "prompted",
+        "success": false,
+        "observation": "Unsuccessful recall; not independent production",
+        "expectedAnswer": "Hola"
+      },
+      {
+        "id": "recall:goal-public-deck-2026-11-05-c0:true",
+        "goalId": "public-deck",
+        "target": "Hola",
+        "mode": "flashcards",
+        "domain": "recall",
+        "support": "prompted",
+        "success": true,
+        "observation": "Correct recall; not independent production",
+        "expectedAnswer": "Hola"
+      }
+    ],
+    "completion": {
+      "id": "flashcards:es_2026-11-05_flashcards_public-deck",
+      "success": true,
+      "support": "prompted",
+      "domain": "recall",
+      "observation": "Completed three goal-specific recall cards: Hola; ¿Cómo estás?; Hola"
+    },
+    "name": "empty-array",
+    "input": {
+      "focus": {
+        "blueprint": {
+          "cefrLevel": "A1",
+          "dayKey": "2026-11-05",
+          "goalId": "public-deck",
+          "goalText": "Speak with family",
+          "lang": "es",
+          "mode": "flashcards",
+          "objective": "Greet a relative",
+          "scoreAtGeneration": 99,
+          "targetLanguage": [
+            "Hola",
+            "¿Cómo estás?"
+          ]
+        },
+        "npub": "public-source-fixture",
+        "supportLang": "en",
+        "targetLang": "es"
+      },
+      "user": {
+        "learningIntelligence": {
+          "es": {
+            "elo": {
+              "gradedCount": 4,
+              "rating": 1120
+            },
+            "goalProgress": {
+              "openCapabilities": [
+                {
+                  "example": "Hola",
+                  "stage": "prompted",
+                  "target": "Greeting"
+                }
+              ]
+            }
+          }
+        },
+        "progress": {
+          "cefrLevel": "A1",
+          "targetLang": "es"
+        }
+      },
+      "raw": "[]",
+      "providerFailed": false
+    },
+    "prompt": "Generate exactly 3 recall cards preparing this goal: {\"cefrLevel\":\"A1\",\"dayKey\":\"2026-11-05\",\"goalId\":\"public-deck\",\"goalText\":\"Speak with family\",\"lang\":\"es\",\"mode\":\"flashcards\",\"objective\":\"Greet a relative\",\"targetLanguage\":[\"Hola\",\"¿Cómo estás?\"]}. Live internal Elo, curriculum CEFR and performance memory: {\"eloRating\":1171,\"eloScale\":\"800–2200; higher means stronger performance across CEFR levels\",\"curriculumCefrLevel\":\"Pre-A1\",\"curriculumLevels\":{\"skillTree\":\"Pre-A1\",\"flashcards\":\"Pre-A1\",\"tutor\":\"Pre-A1\",\"overall\":\"Pre-A1\"},\"suggestedQuestionLevel\":\"A1\",\"recentAccuracy\":null,\"recentAccuracySampleCount\":0,\"weakConcepts\":[],\"byLevel\":{},\"selfReportedStatements\":[]}. Adapt recall challenge and support to this evidence. Needed language may exceed CEFR with simple cues in en. Return only JSON array [{target:\"answer in es\",support:\"cue in en\"}].",
+    "cards": [
+      {
+        "id": "goal-public-deck-2026-11-05-c0",
+        "isGoal": true,
+        "category": "goal",
+        "type": "phrase",
+        "cefrLevel": "A1",
+        "concept": {
+          "en": "Greet a relative",
+          "es": "Hola"
+        }
+      },
+      {
+        "id": "goal-public-deck-2026-11-05-c1",
+        "isGoal": true,
+        "category": "goal",
+        "type": "phrase",
+        "cefrLevel": "A1",
+        "concept": {
+          "en": "Greet a relative",
+          "es": "¿Cómo estás?"
+        }
+      },
+      {
+        "id": "goal-public-deck-2026-11-05-c2",
+        "isGoal": true,
+        "category": "goal",
+        "type": "phrase",
+        "cefrLevel": "A1",
+        "concept": {
+          "en": "Greet a relative (3)",
+          "es": "Hola"
+        }
+      }
+    ]
+  },
+  {
+    "recall": [
+      {
+        "id": "recall:goal-public-deck-2026-11-05-c0:false",
+        "goalId": "public-deck",
+        "target": "Speak with family",
+        "mode": "flashcards",
+        "domain": "recall",
+        "support": "prompted",
+        "success": false,
+        "observation": "Unsuccessful recall; not independent production",
+        "expectedAnswer": "Speak with family"
+      },
+      {
+        "id": "recall:goal-public-deck-2026-11-05-c0:true",
+        "goalId": "public-deck",
+        "target": "Speak with family",
+        "mode": "flashcards",
+        "domain": "recall",
+        "support": "prompted",
+        "success": true,
+        "observation": "Correct recall; not independent production",
+        "expectedAnswer": "Speak with family"
+      }
+    ],
+    "completion": {
+      "id": "flashcards:es_2026-11-05_flashcards_public-deck",
+      "success": true,
+      "support": "prompted",
+      "domain": "recall",
+      "observation": "Completed three goal-specific recall cards: Speak with family; Speak with family; Speak with family"
+    },
+    "name": "no-targets",
+    "input": {
+      "focus": {
+        "blueprint": {
+          "cefrLevel": "A1",
+          "dayKey": "2026-11-05",
+          "goalId": "public-deck",
+          "goalText": "Speak with family",
+          "lang": "es",
+          "mode": "flashcards",
+          "objective": "Greet a relative",
+          "scoreAtGeneration": 99,
+          "targetLanguage": []
+        },
+        "npub": "public-source-fixture",
+        "supportLang": "en",
+        "targetLang": "es"
+      },
+      "user": {
+        "learningIntelligence": {
+          "es": {
+            "elo": {
+              "gradedCount": 4,
+              "rating": 1120
+            },
+            "goalProgress": {
+              "openCapabilities": [
+                {
+                  "example": "Hola",
+                  "stage": "prompted",
+                  "target": "Greeting"
+                }
+              ]
+            }
+          }
+        },
+        "progress": {
+          "cefrLevel": "A1",
+          "targetLang": "es"
+        }
+      },
+      "raw": null,
+      "providerFailed": true
+    },
+    "prompt": "Generate exactly 3 recall cards preparing this goal: {\"cefrLevel\":\"A1\",\"dayKey\":\"2026-11-05\",\"goalId\":\"public-deck\",\"goalText\":\"Speak with family\",\"lang\":\"es\",\"mode\":\"flashcards\",\"objective\":\"Greet a relative\",\"targetLanguage\":[]}. Live internal Elo, curriculum CEFR and performance memory: {\"eloRating\":1171,\"eloScale\":\"800–2200; higher means stronger performance across CEFR levels\",\"curriculumCefrLevel\":\"Pre-A1\",\"curriculumLevels\":{\"skillTree\":\"Pre-A1\",\"flashcards\":\"Pre-A1\",\"tutor\":\"Pre-A1\",\"overall\":\"Pre-A1\"},\"suggestedQuestionLevel\":\"A1\",\"recentAccuracy\":null,\"recentAccuracySampleCount\":0,\"weakConcepts\":[],\"byLevel\":{},\"selfReportedStatements\":[]}. Adapt recall challenge and support to this evidence. Needed language may exceed CEFR with simple cues in en. Return only JSON array [{target:\"answer in es\",support:\"cue in en\"}].",
+    "cards": [
+      {
+        "id": "goal-public-deck-2026-11-05-c0",
+        "isGoal": true,
+        "category": "goal",
+        "type": "phrase",
+        "cefrLevel": "A1",
+        "concept": {
+          "en": "Greet a relative",
+          "es": "Speak with family"
+        }
+      },
+      {
+        "id": "goal-public-deck-2026-11-05-c1",
+        "isGoal": true,
+        "category": "goal",
+        "type": "phrase",
+        "cefrLevel": "A1",
+        "concept": {
+          "en": "Greet a relative (2)",
+          "es": "Speak with family"
+        }
+      },
+      {
+        "id": "goal-public-deck-2026-11-05-c2",
+        "isGoal": true,
+        "category": "goal",
+        "type": "phrase",
+        "cefrLevel": "A1",
+        "concept": {
+          "en": "Greet a relative (3)",
+          "es": "Speak with family"
+        }
+      }
+    ]
+  },
+  {
+    "recall": [
+      {
+        "id": "recall:goal-public-deck-2026-11-05-c0:false",
+        "goalId": "public-deck",
+        "target": "Greet a relative",
+        "mode": "flashcards",
+        "domain": "recall",
+        "support": "prompted",
+        "success": false,
+        "observation": "Unsuccessful recall; not independent production",
+        "expectedAnswer": "Greet a relative"
+      },
+      {
+        "id": "recall:goal-public-deck-2026-11-05-c0:true",
+        "goalId": "public-deck",
+        "target": "Greet a relative",
+        "mode": "flashcards",
+        "domain": "recall",
+        "support": "prompted",
+        "success": true,
+        "observation": "Correct recall; not independent production",
+        "expectedAnswer": "Greet a relative"
+      }
+    ],
+    "completion": {
+      "id": "flashcards:es_2026-11-05_flashcards_public-deck",
+      "success": true,
+      "support": "prompted",
+      "domain": "recall",
+      "observation": "Completed three goal-specific recall cards: Greet a relative; Greet a relative; Greet a relative"
+    },
+    "name": "objective-floor",
+    "input": {
+      "focus": {
+        "blueprint": {
+          "cefrLevel": "A1",
+          "dayKey": "2026-11-05",
+          "goalId": "public-deck",
+          "goalText": "",
+          "lang": "es",
+          "mode": "flashcards",
+          "objective": "Greet a relative",
+          "scoreAtGeneration": 99,
+          "targetLanguage": []
+        },
+        "npub": "public-source-fixture",
+        "supportLang": "en",
+        "targetLang": "es"
+      },
+      "user": {
+        "learningIntelligence": {
+          "es": {
+            "elo": {
+              "gradedCount": 4,
+              "rating": 1120
+            },
+            "goalProgress": {
+              "openCapabilities": [
+                {
+                  "example": "Hola",
+                  "stage": "prompted",
+                  "target": "Greeting"
+                }
+              ]
+            }
+          }
+        },
+        "progress": {
+          "cefrLevel": "A1",
+          "targetLang": "es"
+        }
+      },
+      "raw": null,
+      "providerFailed": true
+    },
+    "prompt": "Generate exactly 3 recall cards preparing this goal: {\"cefrLevel\":\"A1\",\"dayKey\":\"2026-11-05\",\"goalId\":\"public-deck\",\"goalText\":\"\",\"lang\":\"es\",\"mode\":\"flashcards\",\"objective\":\"Greet a relative\",\"targetLanguage\":[]}. Live internal Elo, curriculum CEFR and performance memory: {\"eloRating\":1171,\"eloScale\":\"800–2200; higher means stronger performance across CEFR levels\",\"curriculumCefrLevel\":\"Pre-A1\",\"curriculumLevels\":{\"skillTree\":\"Pre-A1\",\"flashcards\":\"Pre-A1\",\"tutor\":\"Pre-A1\",\"overall\":\"Pre-A1\"},\"suggestedQuestionLevel\":\"A1\",\"recentAccuracy\":null,\"recentAccuracySampleCount\":0,\"weakConcepts\":[],\"byLevel\":{},\"selfReportedStatements\":[]}. Adapt recall challenge and support to this evidence. Needed language may exceed CEFR with simple cues in en. Return only JSON array [{target:\"answer in es\",support:\"cue in en\"}].",
+    "cards": [
+      {
+        "id": "goal-public-deck-2026-11-05-c0",
+        "isGoal": true,
+        "category": "goal",
+        "type": "phrase",
+        "cefrLevel": "A1",
+        "concept": {
+          "en": "Greet a relative",
+          "es": "Greet a relative"
+        }
+      },
+      {
+        "id": "goal-public-deck-2026-11-05-c1",
+        "isGoal": true,
+        "category": "goal",
+        "type": "phrase",
+        "cefrLevel": "A1",
+        "concept": {
+          "en": "Greet a relative (2)",
+          "es": "Greet a relative"
+        }
+      },
+      {
+        "id": "goal-public-deck-2026-11-05-c2",
+        "isGoal": true,
+        "category": "goal",
+        "type": "phrase",
+        "cefrLevel": "A1",
+        "concept": {
+          "en": "Greet a relative (3)",
+          "es": "Greet a relative"
+        }
+      }
+    ]
+  },
+  {
+    "recall": [
+      {
+        "id": "recall:goal-public-deck-2026-11-05-c0:false",
+        "goalId": "public-deck",
+        "target": "Hola",
+        "mode": "flashcards",
+        "domain": "recall",
+        "support": "prompted",
+        "success": false,
+        "observation": "Unsuccessful recall; not independent production",
+        "expectedAnswer": "Hola"
+      },
+      {
+        "id": "recall:goal-public-deck-2026-11-05-c0:true",
+        "goalId": "public-deck",
+        "target": "Hola",
+        "mode": "flashcards",
+        "domain": "recall",
+        "support": "prompted",
+        "success": true,
+        "observation": "Correct recall; not independent production",
+        "expectedAnswer": "Hola"
+      }
+    ],
+    "completion": {
+      "id": "flashcards:es_2026-11-05_flashcards_public-deck",
+      "success": true,
+      "support": "prompted",
+      "domain": "recall",
+      "observation": "Completed three goal-specific recall cards: Hola; ¿Cómo estás?; Hola"
+    },
+    "name": "same-support-target",
+    "input": {
+      "focus": {
+        "blueprint": {
+          "cefrLevel": "A1",
+          "dayKey": "2026-11-05",
+          "goalId": "public-deck",
+          "goalText": "Speak with family",
+          "lang": "es",
+          "mode": "flashcards",
+          "objective": "Greet a relative",
+          "scoreAtGeneration": 99,
+          "targetLanguage": [
+            "Hola",
+            "¿Cómo estás?"
+          ]
+        },
+        "npub": "public-source-fixture",
+        "supportLang": "es",
+        "targetLang": "es"
+      },
+      "user": {
+        "learningIntelligence": {
+          "es": {
+            "elo": {
+              "gradedCount": 4,
+              "rating": 1120
+            },
+            "goalProgress": {
+              "openCapabilities": [
+                {
+                  "example": "Hola",
+                  "stage": "prompted",
+                  "target": "Greeting"
+                }
+              ]
+            }
+          }
+        },
+        "progress": {
+          "cefrLevel": "A1",
+          "targetLang": "es"
+        }
+      },
+      "raw": null,
+      "providerFailed": true
+    },
+    "prompt": "Generate exactly 3 recall cards preparing this goal: {\"cefrLevel\":\"A1\",\"dayKey\":\"2026-11-05\",\"goalId\":\"public-deck\",\"goalText\":\"Speak with family\",\"lang\":\"es\",\"mode\":\"flashcards\",\"objective\":\"Greet a relative\",\"targetLanguage\":[\"Hola\",\"¿Cómo estás?\"]}. Live internal Elo, curriculum CEFR and performance memory: {\"eloRating\":1171,\"eloScale\":\"800–2200; higher means stronger performance across CEFR levels\",\"curriculumCefrLevel\":\"Pre-A1\",\"curriculumLevels\":{\"skillTree\":\"Pre-A1\",\"flashcards\":\"Pre-A1\",\"tutor\":\"Pre-A1\",\"overall\":\"Pre-A1\"},\"suggestedQuestionLevel\":\"A1\",\"recentAccuracy\":null,\"recentAccuracySampleCount\":0,\"weakConcepts\":[],\"byLevel\":{},\"selfReportedStatements\":[]}. Adapt recall challenge and support to this evidence. Needed language may exceed CEFR with simple cues in es. Return only JSON array [{target:\"answer in es\",support:\"cue in es\"}].",
+    "cards": [
+      {
+        "id": "goal-public-deck-2026-11-05-c0",
+        "isGoal": true,
+        "category": "goal",
+        "type": "phrase",
+        "cefrLevel": "A1",
+        "concept": {
+          "es": "Hola"
+        }
+      },
+      {
+        "id": "goal-public-deck-2026-11-05-c1",
+        "isGoal": true,
+        "category": "goal",
+        "type": "phrase",
+        "cefrLevel": "A1",
+        "concept": {
+          "es": "¿Cómo estás?"
+        }
+      },
+      {
+        "id": "goal-public-deck-2026-11-05-c2",
+        "isGoal": true,
+        "category": "goal",
+        "type": "phrase",
+        "cefrLevel": "A1",
+        "concept": {
+          "es": "Hola"
+        }
+      }
+    ]
+  },
+  {
+    "recall": [
+      {
+        "id": "recall:goal-public-deck-2026-11-05-c0:false",
+        "goalId": "public-deck",
+        "target": "1",
+        "mode": "flashcards",
+        "domain": "recall",
+        "support": "prompted",
+        "success": false,
+        "observation": "Unsuccessful recall; not independent production",
+        "expectedAnswer": "1"
+      },
+      {
+        "id": "recall:goal-public-deck-2026-11-05-c0:true",
+        "goalId": "public-deck",
+        "target": "1",
+        "mode": "flashcards",
+        "domain": "recall",
+        "support": "prompted",
+        "success": true,
+        "observation": "Correct recall; not independent production",
+        "expectedAnswer": "1"
+      }
+    ],
+    "completion": {
+      "id": "flashcards:es_2026-11-05_flashcards_public-deck",
+      "success": true,
+      "support": "prompted",
+      "domain": "recall",
+      "observation": "Completed three goal-specific recall cards: 1; 1; 1"
+    },
+    "name": "truthy-values",
+    "input": {
+      "focus": {
+        "blueprint": {
+          "cefrLevel": "A1",
+          "dayKey": "2026-11-05",
+          "goalId": "public-deck",
+          "goalText": "Speak with family",
+          "lang": "es",
+          "mode": "flashcards",
+          "objective": "Greet a relative",
+          "scoreAtGeneration": 99,
+          "targetLanguage": [
+            "Hola",
+            "¿Cómo estás?"
+          ]
+        },
+        "npub": "public-source-fixture",
+        "supportLang": "en",
+        "targetLang": "es"
+      },
+      "user": {
+        "learningIntelligence": {
+          "es": {
+            "elo": {
+              "gradedCount": 4,
+              "rating": 1120
+            },
+            "goalProgress": {
+              "openCapabilities": [
+                {
+                  "example": "Hola",
+                  "stage": "prompted",
+                  "target": "Greeting"
+                }
+              ]
+            }
+          }
+        },
+        "progress": {
+          "cefrLevel": "A1",
+          "targetLang": "es"
+        }
+      },
+      "raw": "[{\"target\":1,\"support\":true}]",
+      "providerFailed": false
+    },
+    "prompt": "Generate exactly 3 recall cards preparing this goal: {\"cefrLevel\":\"A1\",\"dayKey\":\"2026-11-05\",\"goalId\":\"public-deck\",\"goalText\":\"Speak with family\",\"lang\":\"es\",\"mode\":\"flashcards\",\"objective\":\"Greet a relative\",\"targetLanguage\":[\"Hola\",\"¿Cómo estás?\"]}. Live internal Elo, curriculum CEFR and performance memory: {\"eloRating\":1171,\"eloScale\":\"800–2200; higher means stronger performance across CEFR levels\",\"curriculumCefrLevel\":\"Pre-A1\",\"curriculumLevels\":{\"skillTree\":\"Pre-A1\",\"flashcards\":\"Pre-A1\",\"tutor\":\"Pre-A1\",\"overall\":\"Pre-A1\"},\"suggestedQuestionLevel\":\"A1\",\"recentAccuracy\":null,\"recentAccuracySampleCount\":0,\"weakConcepts\":[],\"byLevel\":{},\"selfReportedStatements\":[]}. Adapt recall challenge and support to this evidence. Needed language may exceed CEFR with simple cues in en. Return only JSON array [{target:\"answer in es\",support:\"cue in en\"}].",
+    "cards": [
+      {
+        "id": "goal-public-deck-2026-11-05-c0",
+        "isGoal": true,
+        "category": "goal",
+        "type": "phrase",
+        "cefrLevel": "A1",
+        "concept": {
+          "en": "true",
+          "es": "1"
+        }
+      },
+      {
+        "id": "goal-public-deck-2026-11-05-c1",
+        "isGoal": true,
+        "category": "goal",
+        "type": "phrase",
+        "cefrLevel": "A1",
+        "concept": {
+          "en": "true (2)",
+          "es": "1"
+        }
+      },
+      {
+        "id": "goal-public-deck-2026-11-05-c2",
+        "isGoal": true,
+        "category": "goal",
+        "type": "phrase",
+        "cefrLevel": "A1",
+        "concept": {
+          "en": "true (3)",
+          "es": "1"
+        }
+      }
+    ]
+  },
+  {
+    "recall": [
+      {
+        "id": "recall:goal-public-deck-2026-11-05-c0:false",
+        "goalId": "public-deck",
+        "target": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "mode": "flashcards",
+        "domain": "recall",
+        "support": "prompted",
+        "success": false,
+        "observation": "Unsuccessful recall; not independent production",
+        "expectedAnswer": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      {
+        "id": "recall:goal-public-deck-2026-11-05-c0:true",
+        "goalId": "public-deck",
+        "target": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "mode": "flashcards",
+        "domain": "recall",
+        "support": "prompted",
+        "success": true,
+        "observation": "Correct recall; not independent production",
+        "expectedAnswer": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    ],
+    "completion": {
+      "id": "flashcards:es_2026-11-05_flashcards_public-deck",
+      "success": true,
+      "support": "prompted",
+      "domain": "recall",
+      "observation": "Completed three goal-specific recall cards: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa; aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa; aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "name": "bounded-cues",
+    "input": {
+      "focus": {
+        "blueprint": {
+          "cefrLevel": "A1",
+          "dayKey": "2026-11-05",
+          "goalId": "public-deck",
+          "goalText": "Speak with family",
+          "lang": "es",
+          "mode": "flashcards",
+          "objective": "Greet a relative",
+          "scoreAtGeneration": 99,
+          "targetLanguage": [
+            "Hola",
+            "¿Cómo estás?"
+          ]
+        },
+        "npub": "public-source-fixture",
+        "supportLang": "en",
+        "targetLang": "es"
+      },
+      "user": {
+        "learningIntelligence": {
+          "es": {
+            "elo": {
+              "gradedCount": 4,
+              "rating": 1120
+            },
+            "goalProgress": {
+              "openCapabilities": [
+                {
+                  "example": "Hola",
+                  "stage": "prompted",
+                  "target": "Greeting"
+                }
+              ]
+            }
+          }
+        },
+        "progress": {
+          "cefrLevel": "A1",
+          "targetLang": "es"
+        }
+      },
+      "raw": "[{\"target\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"support\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"}]",
+      "providerFailed": false
+    },
+    "prompt": "Generate exactly 3 recall cards preparing this goal: {\"cefrLevel\":\"A1\",\"dayKey\":\"2026-11-05\",\"goalId\":\"public-deck\",\"goalText\":\"Speak with family\",\"lang\":\"es\",\"mode\":\"flashcards\",\"objective\":\"Greet a relative\",\"targetLanguage\":[\"Hola\",\"¿Cómo estás?\"]}. Live internal Elo, curriculum CEFR and performance memory: {\"eloRating\":1171,\"eloScale\":\"800–2200; higher means stronger performance across CEFR levels\",\"curriculumCefrLevel\":\"Pre-A1\",\"curriculumLevels\":{\"skillTree\":\"Pre-A1\",\"flashcards\":\"Pre-A1\",\"tutor\":\"Pre-A1\",\"overall\":\"Pre-A1\"},\"suggestedQuestionLevel\":\"A1\",\"recentAccuracy\":null,\"recentAccuracySampleCount\":0,\"weakConcepts\":[],\"byLevel\":{},\"selfReportedStatements\":[]}. Adapt recall challenge and support to this evidence. Needed language may exceed CEFR with simple cues in en. Return only JSON array [{target:\"answer in es\",support:\"cue in en\"}].",
+    "cards": [
+      {
+        "id": "goal-public-deck-2026-11-05-c0",
+        "isGoal": true,
+        "category": "goal",
+        "type": "phrase",
+        "cefrLevel": "A1",
+        "concept": {
+          "en": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "es": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      },
+      {
+        "id": "goal-public-deck-2026-11-05-c1",
+        "isGoal": true,
+        "category": "goal",
+        "type": "phrase",
+        "cefrLevel": "A1",
+        "concept": {
+          "en": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "es": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      },
+      {
+        "id": "goal-public-deck-2026-11-05-c2",
+        "isGoal": true,
+        "category": "goal",
+        "type": "phrase",
+        "cefrLevel": "A1",
+        "concept": {
+          "en": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "es": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      }
+    ]
+  },
+  {
+    "recall": [
+      {
+        "id": "recall:goal-public-deck-2026-11-05-c0:false",
+        "goalId": "public-deck",
+        "target": "Hola",
+        "mode": "flashcards",
+        "domain": "recall",
+        "support": "prompted",
+        "success": false,
+        "observation": "Unsuccessful recall; not independent production",
+        "expectedAnswer": "Hola"
+      },
+      {
+        "id": "recall:goal-public-deck-2026-11-05-c0:true",
+        "goalId": "public-deck",
+        "target": "Hola",
+        "mode": "flashcards",
+        "domain": "recall",
+        "support": "prompted",
+        "success": true,
+        "observation": "Correct recall; not independent production",
+        "expectedAnswer": "Hola"
+      }
+    ],
+    "completion": {
+      "id": "flashcards:es_2026-11-05_flashcards_public-deck",
+      "success": true,
+      "support": "prompted",
+      "domain": "recall",
+      "observation": "Completed three goal-specific recall cards: Hola; Hola; Hola"
+    },
+    "name": "arabic-cues",
+    "input": {
+      "focus": {
+        "blueprint": {
+          "cefrLevel": "A1",
+          "dayKey": "2026-11-05",
+          "goalId": "public-deck",
+          "goalText": "Speak with family",
+          "lang": "es",
+          "mode": "flashcards",
+          "objective": "Greet a relative",
+          "scoreAtGeneration": 99,
+          "targetLanguage": [
+            "Hola",
+            "¿Cómo estás?"
+          ]
+        },
+        "npub": "public-source-fixture",
+        "supportLang": "ar",
+        "targetLang": "es"
+      },
+      "user": {
+        "learningIntelligence": {
+          "es": {
+            "elo": {
+              "gradedCount": 4,
+              "rating": 1120
+            },
+            "goalProgress": {
+              "openCapabilities": [
+                {
+                  "example": "Hola",
+                  "stage": "prompted",
+                  "target": "Greeting"
+                }
+              ]
+            }
+          }
+        },
+        "progress": {
+          "cefrLevel": "A1",
+          "targetLang": "es"
+        }
+      },
+      "raw": "[{\"target\":\"Hola\",\"support\":\"أهلاً\"}]",
+      "providerFailed": false
+    },
+    "prompt": "Generate exactly 3 recall cards preparing this goal: {\"cefrLevel\":\"A1\",\"dayKey\":\"2026-11-05\",\"goalId\":\"public-deck\",\"goalText\":\"Speak with family\",\"lang\":\"es\",\"mode\":\"flashcards\",\"objective\":\"Greet a relative\",\"targetLanguage\":[\"Hola\",\"¿Cómo estás?\"]}. Live internal Elo, curriculum CEFR and performance memory: {\"eloRating\":1171,\"eloScale\":\"800–2200; higher means stronger performance across CEFR levels\",\"curriculumCefrLevel\":\"Pre-A1\",\"curriculumLevels\":{\"skillTree\":\"Pre-A1\",\"flashcards\":\"Pre-A1\",\"tutor\":\"Pre-A1\",\"overall\":\"Pre-A1\"},\"suggestedQuestionLevel\":\"A1\",\"recentAccuracy\":null,\"recentAccuracySampleCount\":0,\"weakConcepts\":[],\"byLevel\":{},\"selfReportedStatements\":[]}. Adapt recall challenge and support to this evidence. Needed language may exceed CEFR with simple cues in ar. Return only JSON array [{target:\"answer in es\",support:\"cue in ar\"}].",
+    "cards": [
+      {
+        "id": "goal-public-deck-2026-11-05-c0",
+        "isGoal": true,
+        "category": "goal",
+        "type": "phrase",
+        "cefrLevel": "A1",
+        "concept": {
+          "ar": "أهلاً",
+          "es": "Hola"
+        }
+      },
+      {
+        "id": "goal-public-deck-2026-11-05-c1",
+        "isGoal": true,
+        "category": "goal",
+        "type": "phrase",
+        "cefrLevel": "A1",
+        "concept": {
+          "ar": "أهلاً (2)",
+          "es": "Hola"
+        }
+      },
+      {
+        "id": "goal-public-deck-2026-11-05-c2",
+        "isGoal": true,
+        "category": "goal",
+        "type": "phrase",
+        "cefrLevel": "A1",
+        "concept": {
+          "ar": "أهلاً (3)",
+          "es": "Hola"
+        }
+      }
+    ]
+  }
+]

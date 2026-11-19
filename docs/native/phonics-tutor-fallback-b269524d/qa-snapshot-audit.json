@@ -1,0 +1,31 @@
+{
+  "qaDevice": "CE8248B6-7171-4FD4-97DE-89E499107F82",
+  "startedAt": 1793922122.757024,
+  "scope": "Read-only final QA snapshots after actual signup/setup, failed Phonics load, explicit Tutor connect/pause/end and private relaunch. UI verifies disconnected controls/objective; counts verify navigation did not award or advance learning. No names, keys, notes or full profiles are exported.",
+  "profiles": {
+    "repair": {
+      "snapshotSHA256": "2aefabc111d33389a1573ed7583758b4fe171c20aa18a3a89c2007e3764dcaad",
+      "totalXP": 0,
+      "gradedAttempts": 0,
+      "goalPhonicsModeProgress": 0,
+      "repairCompletedCount": 0,
+      "ordinaryTutorLessonCount": 0,
+      "pendingPracticeReceipts": 0,
+      "pendingGoalReceipts": 0,
+      "pendingRepairEvidence": 0,
+      "malformedArtifactPreserved": true
+    },
+    "goal": {
+      "snapshotSHA256": "bce420eddc8038ea3b97cd02f9dc6863f6ba62f98727f901af9ab3dd49080121",
+      "totalXP": 0,
+      "gradedAttempts": 0,
+      "goalPhonicsModeProgress": 0,
+      "repairCompletedCount": 0,
+      "ordinaryTutorLessonCount": 0,
+      "pendingPracticeReceipts": 0,
+      "pendingGoalReceipts": 0,
+      "pendingRepairEvidence": 0,
+      "malformedArtifactPreserved": true
+    }
+  }
+}

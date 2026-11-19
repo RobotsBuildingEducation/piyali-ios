@@ -55,6 +55,26 @@ final class ExplorationTests:XCTestCase {
         var learner=LearnerState();let xp=learner.totalXP;learner.saveExploration(run);XCTAssertEqual(learner.totalXP,xp);XCTAssertTrue(learner.pendingChanges?.isEmpty ?? true)
         let restored=try JSONDecoder().decode(LearnerState.self,from:JSONEncoder().encode(learner));XCTAssertEqual(restored.explorationRuns?["es"],run)
     }
+    func testCanvasMovementAndAutomaticRoomEntryMatchActualSourceClosure()throws {
+        struct Case:Decodable {struct Expected:Decodable{let moved:Bool;let mapID:String;let position:RPGPoint};let template:Int;let mapID:String;let from:RPGPoint;let target:RPGPoint;let expected:Expected}
+        struct Fixture:Decodable{let cases:[Case]}
+        let library=try ContentLibrary.decode(ExplorationLibrary.self,url:root.appendingPathComponent("Piyali/Resources/exploration.json.gz")),fixture=try JSONDecoder().decode(Fixture.self,from:Data(contentsOf:root.appendingPathComponent("Tests/PiyaliCoreTests/Fixtures/exploration-controls.json")))
+        XCTAssertGreaterThan(fixture.cases.count,2000)
+        for (index,entry) in fixture.cases.enumerated(){var run=try ExplorationRun(target:library.templates[entry.template].baseLanguage,support:"en",scenario:library.templates[entry.template]);run.mapID=entry.mapID;run.position=entry.from;XCTAssertNil(run.tap(entry.target),"Unexpected object hit \(index)");XCTAssertEqual(run.mapID,entry.expected.mapID,"Source room case \(index)");XCTAssertEqual(run.position,entry.expected.position,"Source position case \(index)")}
+    }
+    func testDistantSearchInventoryDropAndDurableSuccessKeepOnlyCurrentQuestOwnership()throws {
+        var run=try ExplorationRun(target:"es",support:"ar",scenario:sample().searchingObjects());run.stepIndex=try XCTUnwrap(run.scenario.quest["steps"].array.firstIndex{$0["nodes"].array.contains{$0["responseMode"].string == "objectSearch"}});run.nodeID=try XCTUnwrap(run.step["nodes"].array.first{$0["responseMode"].string == "objectSearch"})["id"].string
+        let assignments=run.objectAssignments
+        func find(_ correct:Bool)throws->(ExplorationMap,Int){let key=try XCTUnwrap(assignments.first{$0.value["isCorrect"].boolean == correct}?.key),map=try XCTUnwrap(run.scenario.maps.first{m in m.world.objects.contains{ExplorationRun.objectKey(mapID:m.id,object:$0)==key}});return(map,try XCTUnwrap(map.world.objects.firstIndex{ExplorationRun.objectKey(mapID:map.id,object:$0)==key}))}
+        let (wrongArea,wrongIndex)=try find(false),(rightArea,rightIndex)=try find(true)
+        run.mapID=wrongArea.id;run.position=wrongArea.world.start;XCTAssertFalse(run.examine(wrongIndex));XCTAssertTrue(run.inventory.isEmpty)
+        try talk(&run);run.talking=false;run.mapID=wrongArea.id;run.position=wrongArea.world.start;let before=run.position,object=wrongArea.world.objects[wrongIndex]
+        XCTAssertEqual(run.tap(.init(x:object.tx,y:object.ty)),wrongIndex);XCTAssertEqual(run.position,before);XCTAssertTrue(run.examine(wrongIndex));XCTAssertFalse(run.examine(wrongIndex))
+        try talk(&run);XCTAssertFalse(run.handIn(0));XCTAssertEqual(run.inventory.count,1);XCTAssertTrue(run.drop(0));run.mapID=wrongArea.id;XCTAssertTrue(run.examine(wrongIndex))
+        run.mapID=rightArea.id;run.position=rightArea.world.start;XCTAssertTrue(run.examine(rightIndex));XCTAssertEqual(run.inventory.count,2);try talk(&run)
+        let step=run.stepIndex;XCTAssertTrue(run.handIn(1,successReply:"Perfect."));XCTAssertEqual(run.pendingTurnIn,true);XCTAssertEqual(run.stepIndex,step);XCTAssertFalse(run.handIn(0));run.talking=false;run=try JSONDecoder().decode(ExplorationRun.self,from:JSONEncoder().encode(run));XCTAssertEqual(run.feedback,"Perfect.");run.completeTurnIn();XCTAssertEqual(run.stepIndex,step+1);XCTAssertTrue(run.inventory.isEmpty);XCTAssertFalse(run.searched.contains{$0.hasPrefix(run.scenario.id+":object-search:"+String(step)+":")});run.completeTurnIn();XCTAssertEqual(run.stepIndex,step+1)
+        var learner=LearnerState();learner.saveExploration(run);XCTAssertEqual(learner.totalXP,0);XCTAssertTrue(learner.pendingChanges?.isEmpty ?? true)
+    }
     func testLocalizationPreservesGraphPlaceholdersAndConsistentItems() throws {
         let original=try sample(),protected=ExplorationText.protectedQuest(original)
         _=try ExplorationText.applying(protected,to:original,target:"es")

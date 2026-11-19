@@ -1,0 +1,11 @@
+{
+  "revision": "b269524ddc578027c549616fc47f5954991d9f6f",
+  "files": {
+    "src/utils/companionMemory.js": "05aeb83111145a419b83877ef3335063d55ace85e5a651f865fbf67d6d84bd91",
+    "src/utils/learningIntelligence.js": "224601a49ac60a341fb2b654de2284facb5da9f2c5053ff1ad400ab2a24aa66d",
+    "src/components/Tutor.jsx": "bbe9dea6279119ecef32cb69a66a8fb40763642ca05717690dec789a72e088c3",
+    "src/components/NotesDrawer.jsx": "ef36fd9a00b83ee5a2061e7690aeeced5037d295368ed9b26a0a2cf3a0ba1979",
+    "src/components/CompanionMemoryList.jsx": "ed3c49235f718abcabaae4506d75d40ca1f0b5b8f180e5c7da4818983ad55153"
+  },
+  "lifecycleScope": "Original source keeps a pending base note after capture and on completed AI failure; a refreshed duplicate changes createdAt and can request enrichment. Native adds explicit device-private continuation for iOS process interruption, with no retry of a completed failure. Existing original callback/component comparisons are rerun in the final batch."
+}

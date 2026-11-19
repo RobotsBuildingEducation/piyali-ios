@@ -27,6 +27,11 @@ public enum IntroTutorial {
 public extension LearnerState {
     var introSession:IntroSession { introSessions?[target].flatMap { $0.level == level ? $0 : nil } ?? IntroSession(level:level) }
     var needsIntro:Bool { level == "Pre-A1" || IntroTutorial.needed(level:level,completed:completed.contains(completionKey(IntroTutorial.lessonID)),hasFirstQuest:(journeyQuestCounts?[target] ?? 0)>0) }
+    /// A completed tutorial remains reviewable; its existing reward receipt is retained.
+    mutating func restartIntroReview() {
+        guard completed.contains(completionKey(IntroTutorial.lessonID)),introSession.ready else { return }
+        if introSessions == nil { introSessions=[:] };introSessions?[target]=IntroSession(level:level)
+    }
     @discardableResult mutating func visitIntro(_ mode:String,expectedLevel:String,now:Date = Date()) -> Bool {
         guard level == expectedLevel else { return false };var session=introSession;guard session.next == mode else { return false }
         session.visited.append(mode);session.updatedAt=now

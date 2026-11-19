@@ -1,0 +1,417 @@
+{
+  "date": "2026-11-05",
+  "referenceCommit": "b269524ddc578027c549616fc47f5954991d9f6f",
+  "nativeImplementationBase": "671c553a9871339e211cb333c7abbd32b0ecf588",
+  "qaDevice": "CE8248B6-7171-4FD4-97DE-89E499107F82",
+  "scope": "Ordinary Tutor provider sequencing; original starter kickoff/follow-up/retries; immediate lesson/day vs deferred question-worth account award; private stable award/assessment intents and owner recovery; actual source/native English/light and Arabic/dark states plus Gemini background success; local Firebase SDK save/retry contracts and final full native history/relaunch regression.",
+  "bundle": "/tmp/PiyaliTutorOrdinaryAgendaVerified20261105.xcresult",
+  "summary": {
+    "result": "Passed",
+    "passedTests": 52,
+    "failedTests": 0,
+    "skippedTests": 0,
+    "totalTestCount": 52,
+    "startTime": 1793934352.107,
+    "finishTime": 1793934937.369
+  },
+  "core": {
+    "tests": 28,
+    "failures": 0,
+    "seconds": 31.155,
+    "sourceCases": 991,
+    "previousUnchanged": 831,
+    "newCases": 160
+  },
+  "retainedRuns": [
+    {
+      "bundle": "/tmp/PiyaliTutorOrdinaryReproduction20261105.xcresult",
+      "scope": "Real pending-worth stall. First Gemini warm-up fixture used unsupported single curly quotes, so that part did not demonstrate a local phrase."
+    },
+    {
+      "bundle": "/tmp/PiyaliTutorOrdinaryFirstFix20261105.xcresult",
+      "scope": "Compile failure: actor-isolated provider default argument."
+    },
+    {
+      "bundle": "/tmp/PiyaliTutorOrdinaryFirstVerified20261105.xcresult",
+      "scope": "Compile failure: catch-local error shadowing."
+    },
+    {
+      "bundle": "/tmp/PiyaliTutorOrdinaryModelCheck20261105.xcresult",
+      "scope": "Two checks pass; warm-up fixture still used unsupported quote characters."
+    },
+    {
+      "bundle": "/tmp/PiyaliTutorOrdinaryBoundaries20261105.xcresult",
+      "scope": "Native UI passes; introduced saving-state cleanup and earned repair retry bugs exposed and corrected. Completed review test needed eventual Gemini background result. New source fixture returned a JS function to WKWebView. Host load inflated durations."
+    },
+    {
+      "bundle": "/tmp/PiyaliTutorOrdinaryVerified20261105.xcresult",
+      "scope": "46 checks pass; source fixture lacked a public profile and running preview lacked newly added judge-hold hook."
+    },
+    {
+      "log": "/tmp/piyali-tutor-outcome-ack-reproduction-20261105.log",
+      "scope": "One Core case/four failed assertions: stale canonical acknowledgment double-projects daily award. Receipt-aware retirement/remaining-assessment normalization fixes it."
+    },
+    {
+      "bundle": "/tmp/PiyaliTutorOrdinaryFinalReceipts20261105.xcresult",
+      "scope": "50 passing checks; new source comparison fails two Arabic assertions."
+    },
+    {
+      "bundle": "/tmp/PiyaliTutorOrdinarySourceIsolation20261105.xcresult",
+      "scope": "Existing two source comparisons pass; Arabic ordinary mismatch remains after profile preinitialization."
+    },
+    {
+      "bundle": "/tmp/PiyaliTutorOrdinaryPhaseDiagnostic20261105.xcresult",
+      "scope": "Read-only ref diagnostics identify source conversation hydration after connect, clearing welcome/question."
+    },
+    {
+      "bundle": "/tmp/PiyaliTutorOrdinaryHydratedSource20261105.xcresult",
+      "scope": "Actual four-scenario source/native comparison plus background transition passes after waiting for source conversation hydration (67.293s). Precedes final original-kickoff/counter correction."
+    }
+  ],
+  "versionScopes": "All recorded code/test/fixture hashes precede the final combined app/SDK/source/UI run. Final source callbacks are unmodified apart from a read-only getter exposing hydration readiness; temporary per-assignment diagnostics were removed. Failed diagnostic phases are retained separately. Source web model/microphone/persistence I/O remains public fixtures. All final captures are from this one passing combined run.",
+  "remaining": "Ordinary semantic Memory side effects; setup fallback; interrupted partial PCM/retained OpenAI capture; broader concurrent turns/day/target/support/pending-quote process/focused-completion restoration; physical voice; orb/feedback/glyph/shadow/full-shell/accessibility design; all other open PARITY_HANDOFF rows. Source fast-start hydration race is recorded, not reproduced as a native greeting award. No actual web Firebase, complete authenticated browser routing, physical acoustics or release-readiness claim.",
+  "nativeFileHashes": {
+    "Piyali/App/AppModel.swift": "c4ae8c042693a14ff624d6653116c41fe8b6e41b3b46487b0243a22edcea6a83",
+    "Piyali/Core/Models.swift": "aa47e446d0f4de3a4ff2e71afd232a55d6703af8f89cfa3a7299dc69fdd0e31a",
+    "Piyali/Core/SyncChanges.swift": "de8c0e281b9e9b7c8e2c4c11188d95b86af58263dd1f52934bce55671735935c",
+    "Piyali/Core/TutorOutcomeIntent.swift": "262a444990a435e5d269a58cb7a85e65dfa5c529b6ff9ecf8431d6c5422a54a0",
+    "Piyali/Core/TutorSourceProgress.swift": "5cee64c4bb4528b436bfb3182d416a20bb9f8adca8a6d819cc437fadb8822b8d",
+    "Piyali/Core/WebProgressContract.swift": "53480e6f7d9898b0f9119a2e14b3f3c457943226e9407505921dda5daf2b7be7",
+    "Piyali/Services/TutorOutcomeDelivery.swift": "7e899872b795cdf7d428820b70f33eb1387bcd50eba27eec9fa96d0fda638a1f",
+    "Piyali/Services/TutorSessionController.swift": "353abcc90bff89625302db4a532b6c79ee54d9a9466452979b89e4036a30ca58",
+    "Piyali/Services/TutorVoiceFixture.swift": "e67a1bd850042c2dbdbaa3cc30b4d5f87774abf320c2bdd1ece63df22a5f752b",
+    "Piyali/Services/FirebaseService.swift": "07d957af650ba5080dc78e0a664da1791abbae25209d01f4df4f0b5d5a8e18de",
+    "Piyali/Services/GeneratedQuestionWorth.swift": "12f83d85fe233d56e49858cb6c40a0c9a193165b0741704199b62631690abc8a",
+    "Piyali/Resources/tutor-policy.js": "f882f8f9dae35639bc406f807bc2c46b83e6e89751f5d7e07a414a66db31277e",
+    "Tests/PiyaliAppTests/TutorSessionTests.swift": "51e31d1d9d1a75043fa0552ee5d5e5049a072eaec113655349c7311d8632b1e8",
+    "Tests/PiyaliAppTests/FirestoreContractTests.swift": "773e4a692f19994fbb28c95232fdc468f6dd1a8066d4f83f19377c2610689b8c",
+    "Tests/PiyaliCoreTests/TutorOutcomeIntentTests.swift": "3563f37fe44f7e2bfb87b4ee8ceaf4747b3194c80829f494c0b390366d7816e8",
+    "scripts/export-tutor-policy.mjs": "082e86aa3cc0cd25d187574ccb71fefc2320f8dd45af6372bca7ed282c38fb42",
+    "scripts/reference-onboarding.jsx": "d7f3997936bc9bcc06a4f71630cd883f665c1e86e0a6ba818a9a101c8d151a36",
+    "scripts/reference-tutor-fixtures.mjs": "148532ce3a5720a1e21fba9f04bc89a231824e39cbb765447d25af1db4496c0e",
+    "scripts/reference-tutor-asr-bridge.js": "915cc569c6656db313a42d8d9191863da7aa06c5521638f198c861daa017b417",
+    "scripts/audit-tutor-late-speech-qa.py": "266cd8ae578e7d16ebbf5006aa9d8da85b6fe7fa50cd771e24c1bba7a51fa55c"
+  },
+  "referenceFileHashes": {
+    "src/components/Tutor.jsx": "bbe9dea6279119ecef32cb69a66a8fb40763642ca05717690dec789a72e088c3",
+    "src/utils/tutorAgendaFlow.js": "f17a32ed88633f068e505063d8b9fc78a37945061ca7eaf62547e8eb43709253",
+    "src/utils/tutorTurnVerdict.js": "2b2d5fe72811be1b47dd580c6d3ea78d97b28cf3099eeb431e01c665609f086a",
+    "src/utils/questionDifficultyAssessment.js": "8d0c4393281a30bb3ee6c3ca7926a73fa993e3d6e1251732a9a301614a1cefc5",
+    "src/components/XpProgressHeader.jsx": "abfebc2b4b2362c92990fb330a45aafa046d3b4de292a37d2f334eb58e011878",
+    "src/components/WaveBar.jsx": "619c6d05f99488316facec96f2b35fa46544910a5b1fd0d0584e529af756c536"
+  },
+  "artifacts": [
+    {
+      "file": "source-starter-worth-pending-en.png",
+      "sha256": "9fb48825565faaf4063b0564142dbd8b951e0adf8b9829020d18941cba52c3d8",
+      "bytes": 752906,
+      "scope": "Original actual component PNG at 402×874 logical points. Public protocol/model/persistence I/O fixtures; surrounding product menu reservations omitted."
+    },
+    {
+      "file": "native-starter-worth-pending-en.png",
+      "sha256": "4ecf42bca06a9242e675454511d4badda04ec91a399dcc0f52d0d403cce80647",
+      "bytes": 1469834,
+      "scope": "Original actual component PNG at 402×874 logical points. Public protocol/model/persistence I/O fixtures; surrounding product menu reservations omitted."
+    },
+    {
+      "file": "pair-starter-worth-pending-en.png",
+      "sha256": "910619356837b55a49a3bd0bed63a333c2ba435a24b5caeb3d0d065a879a080c",
+      "bytes": 138775,
+      "scope": "ICC-normalized sRGB: original source left, actual native view right."
+    },
+    {
+      "file": "source-starter-worth-delivered-en.png",
+      "sha256": "2c3df9f512c4d013ae3768a76d56d9775ef2e8ae65e4c93435e049adc5d08640",
+      "bytes": 753414,
+      "scope": "Original actual component PNG at 402×874 logical points. Public protocol/model/persistence I/O fixtures; surrounding product menu reservations omitted."
+    },
+    {
+      "file": "native-starter-worth-delivered-en.png",
+      "sha256": "64f4df80fce921050711d9555921d2f6c4aa4a1c6f18f11b3152f604fa9faac4",
+      "bytes": 1469869,
+      "scope": "Original actual component PNG at 402×874 logical points. Public protocol/model/persistence I/O fixtures; surrounding product menu reservations omitted."
+    },
+    {
+      "file": "pair-starter-worth-delivered-en.png",
+      "sha256": "b8b675e1820dbaaea986b9a2e1806851ec790fec126fd1c444742d6c55061bbf",
+      "bytes": 138817,
+      "scope": "ICC-normalized sRGB: original source left, actual native view right."
+    },
+    {
+      "file": "source-pending-starter-en.json",
+      "sha256": "b54aa9a6107d6bfddc6944151b14eb0aa4e1f64b83ffc73fc01683d020d86416",
+      "bytes": 6240,
+      "scope": "Actual public component/controller trace: frozen question, agenda, next prompt, immediate lesson/day progress and deferred account award."
+    },
+    {
+      "file": "source-delivered-starter-en.json",
+      "sha256": "d7a520bdbac218ee874f77f37b43e3c8f6d7e3e4b53155a1b1fbc3a64d1c684a",
+      "bytes": 6241,
+      "scope": "Actual public component/controller trace: frozen question, agenda, next prompt, immediate lesson/day progress and deferred account award."
+    },
+    {
+      "file": "native-delivered-starter-en.json",
+      "sha256": "08586043d22166d9594f4fa144092b101041d8a7ea574d5adfb3f079e7834d4a",
+      "bytes": 6015,
+      "scope": "Actual public component/controller trace: frozen question, agenda, next prompt, immediate lesson/day progress and deferred account award."
+    },
+    {
+      "file": "source-regular-worth-pending-en.png",
+      "sha256": "667156fe5e70ad788b828e533f8604615e8ba974ec32c47239e98de90cdfc979",
+      "bytes": 750722,
+      "scope": "Original actual component PNG at 402×874 logical points. Public protocol/model/persistence I/O fixtures; surrounding product menu reservations omitted."
+    },
+    {
+      "file": "native-regular-worth-pending-en.png",
+      "sha256": "811315eea0eeaa569e276250d82b9858bee51d5bfe4afcb84e56b8c0c778eeb0",
+      "bytes": 1465927,
+      "scope": "Original actual component PNG at 402×874 logical points. Public protocol/model/persistence I/O fixtures; surrounding product menu reservations omitted."
+    },
+    {
+      "file": "pair-regular-worth-pending-en.png",
+      "sha256": "468cb69f161837aacabc6eda81f2462ed5e0e9ebc18eb0797f56bb80941171be",
+      "bytes": 135582,
+      "scope": "ICC-normalized sRGB: original source left, actual native view right."
+    },
+    {
+      "file": "source-regular-worth-delivered-en.png",
+      "sha256": "9e930c15d9b5837819adb842ed76c6d55e7eea65553157b95719fc1866de4882",
+      "bytes": 750808,
+      "scope": "Original actual component PNG at 402×874 logical points. Public protocol/model/persistence I/O fixtures; surrounding product menu reservations omitted."
+    },
+    {
+      "file": "native-regular-worth-delivered-en.png",
+      "sha256": "dcdd683687bb4bd26047dbeeba41288f1c25822454b8566373bd2da1b8f4d42a",
+      "bytes": 1465704,
+      "scope": "Original actual component PNG at 402×874 logical points. Public protocol/model/persistence I/O fixtures; surrounding product menu reservations omitted."
+    },
+    {
+      "file": "pair-regular-worth-delivered-en.png",
+      "sha256": "0da34a4cf1c16d0d6ac22c90fd7ba88067f7bfa6e0589a4c1652f3935f1e6ab9",
+      "bytes": 135454,
+      "scope": "ICC-normalized sRGB: original source left, actual native view right."
+    },
+    {
+      "file": "source-pending-regular-en.json",
+      "sha256": "602312be4659d17973ae14f50813002b2cb3a1ce56d07eb203f7ccf67699a86c",
+      "bytes": 8108,
+      "scope": "Actual public component/controller trace: frozen question, agenda, next prompt, immediate lesson/day progress and deferred account award."
+    },
+    {
+      "file": "source-delivered-regular-en.json",
+      "sha256": "bd1b6ba3b7735b50518185a05db86cd3c7df7ccbc5ddddcb7b251b1444ad98be",
+      "bytes": 8109,
+      "scope": "Actual public component/controller trace: frozen question, agenda, next prompt, immediate lesson/day progress and deferred account award."
+    },
+    {
+      "file": "native-delivered-regular-en.json",
+      "sha256": "aa2bdddffa80864ef5908e8384b5acf53733bdd46d01a8765eba511f9668833d",
+      "bytes": 7356,
+      "scope": "Actual public component/controller trace: frozen question, agenda, next prompt, immediate lesson/day progress and deferred account award."
+    },
+    {
+      "file": "source-starter-worth-pending-ar.png",
+      "sha256": "2a437f6758c60f720b6e5335182a64774f63dcc88069df3b2204879e9c04f91d",
+      "bytes": 571759,
+      "scope": "Original actual component PNG at 402×874 logical points. Public protocol/model/persistence I/O fixtures; surrounding product menu reservations omitted."
+    },
+    {
+      "file": "native-starter-worth-pending-ar.png",
+      "sha256": "586aae5fa9341255163a9532bfdd3b15a32630d935ae76fdddf9e56c9fd8bfcb",
+      "bytes": 1657282,
+      "scope": "Original actual component PNG at 402×874 logical points. Public protocol/model/persistence I/O fixtures; surrounding product menu reservations omitted."
+    },
+    {
+      "file": "pair-starter-worth-pending-ar.png",
+      "sha256": "1d055df5d0d84e5228a80d1193688ecd517536a240a74b15416295cab4758e68",
+      "bytes": 119174,
+      "scope": "ICC-normalized sRGB: original source left, actual native view right."
+    },
+    {
+      "file": "source-starter-worth-delivered-ar.png",
+      "sha256": "c6fa4ccd73378f07ceee9439d039bf1e81a9ecf3caeb725c59aef757d3eddfa5",
+      "bytes": 571928,
+      "scope": "Original actual component PNG at 402×874 logical points. Public protocol/model/persistence I/O fixtures; surrounding product menu reservations omitted."
+    },
+    {
+      "file": "native-starter-worth-delivered-ar.png",
+      "sha256": "6776670a4b00d033e7794f103526999cc1c66fc3a5dbc6889814d981357e7923",
+      "bytes": 1657183,
+      "scope": "Original actual component PNG at 402×874 logical points. Public protocol/model/persistence I/O fixtures; surrounding product menu reservations omitted."
+    },
+    {
+      "file": "pair-starter-worth-delivered-ar.png",
+      "sha256": "40a52aacc0481fa27b90ac328d9767d0729d1d40dec9677c0f5f18bed9f7c5e4",
+      "bytes": 119281,
+      "scope": "ICC-normalized sRGB: original source left, actual native view right."
+    },
+    {
+      "file": "source-pending-starter-ar.json",
+      "sha256": "42c00e168e2fb4f4853c5bd2d6c254bd3dade462f0a0b656d5c37d3214002b4e",
+      "bytes": 6631,
+      "scope": "Actual public component/controller trace: frozen question, agenda, next prompt, immediate lesson/day progress and deferred account award."
+    },
+    {
+      "file": "source-delivered-starter-ar.json",
+      "sha256": "a19eaaa734ba32c608b130b9010dd915284f19ed9aa3b15bc237b3990ff5b300",
+      "bytes": 6632,
+      "scope": "Actual public component/controller trace: frozen question, agenda, next prompt, immediate lesson/day progress and deferred account award."
+    },
+    {
+      "file": "native-delivered-starter-ar.json",
+      "sha256": "005ce43f26babd04baf4be822ec5126512a46c698531943f4e05d443ceb2521a",
+      "bytes": 6406,
+      "scope": "Actual public component/controller trace: frozen question, agenda, next prompt, immediate lesson/day progress and deferred account award."
+    },
+    {
+      "file": "source-regular-worth-pending-ar.png",
+      "sha256": "f5fcf9f28c2c381d481d1795444b6aad5fe25c2dc0bbedac8989999f24adbd7c",
+      "bytes": 567913,
+      "scope": "Original actual component PNG at 402×874 logical points. Public protocol/model/persistence I/O fixtures; surrounding product menu reservations omitted."
+    },
+    {
+      "file": "native-regular-worth-pending-ar.png",
+      "sha256": "905ec90d1ebf0e9d488fc35175f4a291e05a028075e69e6b1f392ce93f8417d7",
+      "bytes": 1647130,
+      "scope": "Original actual component PNG at 402×874 logical points. Public protocol/model/persistence I/O fixtures; surrounding product menu reservations omitted."
+    },
+    {
+      "file": "pair-regular-worth-pending-ar.png",
+      "sha256": "79f93c49971396fb7b9aa0500c7caf92e33ed5efc0a5b5debc4e53cbbc5f6909",
+      "bytes": 116435,
+      "scope": "ICC-normalized sRGB: original source left, actual native view right."
+    },
+    {
+      "file": "source-regular-worth-delivered-ar.png",
+      "sha256": "444bad142d08f49f585a585bdc96e3030b408f1ee816cdb2a62488dfb6828cda",
+      "bytes": 568171,
+      "scope": "Original actual component PNG at 402×874 logical points. Public protocol/model/persistence I/O fixtures; surrounding product menu reservations omitted."
+    },
+    {
+      "file": "native-regular-worth-delivered-ar.png",
+      "sha256": "2929685724161d5328b0137ab57041a9674dbb956f2d7f4d66136c11541dc6f5",
+      "bytes": 1647132,
+      "scope": "Original actual component PNG at 402×874 logical points. Public protocol/model/persistence I/O fixtures; surrounding product menu reservations omitted."
+    },
+    {
+      "file": "pair-regular-worth-delivered-ar.png",
+      "sha256": "7cdd308606bb522da1201c0f41792e674485008cc74ba9a35d485a7b5ba1a644",
+      "bytes": 116517,
+      "scope": "ICC-normalized sRGB: original source left, actual native view right."
+    },
+    {
+      "file": "source-pending-regular-ar.json",
+      "sha256": "8dea97f7b35bfb5eb1bec8326d50fcc7d4f870c2192cfecdaf9e0ffd096deebc",
+      "bytes": 8431,
+      "scope": "Actual public component/controller trace: frozen question, agenda, next prompt, immediate lesson/day progress and deferred account award."
+    },
+    {
+      "file": "source-delivered-regular-ar.json",
+      "sha256": "ef242396073703fc3878ff35606ebbd9c7eb7de94f2d083d6e46c9e1ef984b6e",
+      "bytes": 8432,
+      "scope": "Actual public component/controller trace: frozen question, agenda, next prompt, immediate lesson/day progress and deferred account award."
+    },
+    {
+      "file": "native-delivered-regular-ar.json",
+      "sha256": "191b8729265ca2f183eafb321e5b51db2256d40eb2063e8c71dd0f800bc7530b",
+      "bytes": 7678,
+      "scope": "Actual public component/controller trace: frozen question, agenda, next prompt, immediate lesson/day progress and deferred account award."
+    },
+    {
+      "file": "source-starter-semantic-pending-en.png",
+      "sha256": "6a91b2cdbaae481bfa0bd693290db374e125bfcf89da3791c08c79d103897e8a",
+      "bytes": 753069,
+      "scope": "Original actual component PNG at 402×874 logical points. Public protocol/model/persistence I/O fixtures; surrounding product menu reservations omitted."
+    },
+    {
+      "file": "native-starter-semantic-pending-en.png",
+      "sha256": "f9e27b72e2dc74bdc3cdca5fbe25085459de7e7aca1c249e2c67c4a271a2b66e",
+      "bytes": 1471580,
+      "scope": "Original actual component PNG at 402×874 logical points. Public protocol/model/persistence I/O fixtures; surrounding product menu reservations omitted."
+    },
+    {
+      "file": "pair-starter-semantic-pending-en.png",
+      "sha256": "f176dec19a990232bebb5f3cbd4b6d248db268c59bab7cf5346b5dc57a13bfac",
+      "bytes": 140118,
+      "scope": "ICC-normalized sRGB: original source left, actual native view right."
+    },
+    {
+      "file": "source-starter-semantic-delivered-en.png",
+      "sha256": "1a3d1c96565885aee33837c3e757fbb90ff93db1708c26f76a06648ff8713484",
+      "bytes": 757584,
+      "scope": "Original actual component PNG at 402×874 logical points. Public protocol/model/persistence I/O fixtures; surrounding product menu reservations omitted."
+    },
+    {
+      "file": "native-starter-semantic-delivered-en.png",
+      "sha256": "d9d15ce953521d0ec65ba895a81dcf3f63ef9a7fcc72ee0acc1c629a3453efdb",
+      "bytes": 1480337,
+      "scope": "Original actual component PNG at 402×874 logical points. Public protocol/model/persistence I/O fixtures; surrounding product menu reservations omitted."
+    },
+    {
+      "file": "pair-starter-semantic-delivered-en.png",
+      "sha256": "9f6d4efa51b9ef33e43b54e754ab0ebf55e05ce032aa78bfcd20174f8c63c40f",
+      "bytes": 140787,
+      "scope": "ICC-normalized sRGB: original source left, actual native view right."
+    },
+    {
+      "file": "source-background-pending-en.json",
+      "sha256": "5986376bb21da99b5514424750e832abe37207ff0fdb6140491d6bc3744de9e7",
+      "bytes": 8094,
+      "scope": "Original Gemini fallback with its judge held: next prompt already requested; account award unchanged."
+    },
+    {
+      "file": "source-background-delivered-en.json",
+      "sha256": "796a2773221cea52a1ff93d2c842831613cf8be1ce9a98cdd1cf701cf1dc94ca",
+      "bytes": 8185,
+      "scope": "Later original semantic success awards silently without another response request."
+    },
+    {
+      "file": "firebase-sdk-pending-worth.json",
+      "sha256": "6a793a75261a87b0fe11759049694b58a9ef723f90cf7c2617140aff773dbb6b",
+      "bytes": 216,
+      "scope": "Real local Firebase SDK: early lesson-only save, deferred account award/rating, private server-hint exclusion and repeated/stale save idempotency."
+    },
+    {
+      "file": "native-product-credit.png",
+      "sha256": "797952f5dfb4e0b8c7f1b9ad42eb635030758c2d9c05522b38f28de811d109af",
+      "bytes": 785512,
+      "scope": "Actual final native signup/setup → menu/Tutor → scripted late speech → End/private history → process relaunch."
+    },
+    {
+      "file": "native-product-history.png",
+      "sha256": "d4d1d92e3d152c16dae9832b7440b8b03db3fb61eeff5ca70d06d52481f3365b",
+      "bytes": 545496,
+      "scope": "Actual final native signup/setup → menu/Tutor → scripted late speech → End/private history → process relaunch."
+    },
+    {
+      "file": "native-product-relaunch.png",
+      "sha256": "a0ff24e604dadfdacbecfb38597f4109d4d5303c9c30f12aa77e58886d421e74",
+      "bytes": 665922,
+      "scope": "Actual final native signup/setup → menu/Tutor → scripted late speech → End/private history → process relaunch."
+    },
+    {
+      "file": "qa-audit.json",
+      "sha256": "49a6ecee19c2c1df2e9a169fed12fb387589c2ffe3f55eae0d38c957da0e2cc0",
+      "bytes": 851,
+      "scope": "Read-only final full-UI profile counters and snapshot hash; no private profile, keys or notes exported."
+    },
+    {
+      "file": "policy-existing-case-audit.json",
+      "sha256": "b7b41c0f074a4904443400bd21284d0aaec1abb35109b7dd7129b73bbb08a6cd",
+      "bytes": 289,
+      "scope": "831 prior source-executed rows unchanged; 160 new original follow-up/completion-gate/kickoff rows; total 991."
+    },
+    {
+      "file": "core-results.log",
+      "sha256": "b91a869c95a4c1dae273c8ac6a4a75d45cea68ab562b3ec9ed4aeb8210d6ee6e",
+      "bytes": 9101,
+      "scope": "28 passing Core checks: original source corpus; pending/partial/stale receipts; XP/daily goal/companion/streak and sync."
+    },
+    {
+      "file": "source-hydration-race.json",
+      "sha256": "36831ccfc50f90e33b8039de6549ed24628c0cb47db75498215b5199c1a4ffd6",
+      "bytes": 5720,
+      "scope": "Retained failed-run diagnostic: original conversation hydration after connect clears welcome or current question. Read-only hooks; public inputs; not final matched-state evidence."
+    }
+  ]
+}

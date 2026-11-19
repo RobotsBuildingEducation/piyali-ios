@@ -1,0 +1,51 @@
+{
+  "result": "/tmp/PiyaliRPGCompletionFlows8.xcresult",
+  "scope": "Normal entry, onboarding and self-reported A1 placement; public prepared seven-task review, pending speech cancellation, Back/process resume, one lesson reward and daily-goal celebration, offline cached full replay with three deliberate first-task misses, two-star recap, completed path and relaunch. Explicit isolated QA identity; no prefilled progress, physical audio or live provider claim.",
+  "records": [
+    {
+      "file": "docs/native/rpg-completion-world-product.png",
+      "sha256": "83f02e00c4884555a26b5b930eacc24e5b6d5de9851264bd3bd328d5bcf12df1",
+      "attachment": "Native prepared chapter world_0_7F2E41E8-9F5A-4FA8-928A-4837E52A9A7B.png"
+    },
+    {
+      "file": "docs/native/rpg-completion-cancel-product.png",
+      "sha256": "61d6316e04c3e27b29c27aa1e7b0cf4c6d986bca3a1c504616969c6bc5d96261",
+      "attachment": "Native prepared speech cancellation_0_8D212716-AEFD-4E36-9A67-AEB052707B61.png"
+    },
+    {
+      "file": "docs/native/rpg-completion-resume-product.png",
+      "sha256": "ec986462e619301b27dc08f690c87e07cdc8e3284c1ba8967f135aeaa6864872",
+      "attachment": "Native prepared chapter restored_0_CF244574-CD2E-48A8-86F6-10EDCE236A00.png"
+    },
+    {
+      "file": "docs/native/rpg-completion-recap-product.png",
+      "sha256": "a1c4305b2d642bdd12cfa857cd3553645e215a81c2304ca379d2c733e47c4c30",
+      "attachment": "Native prepared chapter recap_0_9BE6AEBE-B4F4-486A-9720-EEB999A28B38.png"
+    },
+    {
+      "file": "docs/native/rpg-completion-reward-product.png",
+      "sha256": "d3ba85420e63bd73c1a10ffa64b32dc2c063548d317d26147d14158c3e50aaf4",
+      "attachment": "Native prepared lesson reward precedes celebration_0_D8D10AE3-FA3E-4DF9-A5C7-58E98302ED8B.png"
+    },
+    {
+      "file": "docs/native/rpg-completion-goal-product.png",
+      "sha256": "56af693d97841fabb2a8893046fc7c5d693af7cdd93572879800ba3849290c7c",
+      "attachment": "Native prepared daily goal celebration_0_DD5B8339-DA60-4C94-AB1A-CF6D4C887127.png"
+    },
+    {
+      "file": "docs/native/rpg-completion-replay-product.png",
+      "sha256": "bf3ce54ed19e42a7f77cc4907081dee3904c559d9fa341551ae88f5df4b0d499",
+      "attachment": "Native cached prepared replay_0_51ED9C5B-D8AD-4C7D-86EE-B0B30659E43A.png"
+    },
+    {
+      "file": "docs/native/rpg-completion-replay-recap-product.png",
+      "sha256": "66a2bc23d399d1d1dc7814c22b8a61369a41a776221b92626c9397eee04972de",
+      "attachment": "Native cached replay two star recap_0_02B05AB5-C79E-4891-A4EE-2FE3AA0FD23B.png"
+    },
+    {
+      "file": "docs/native/rpg-completion-relaunch-product.png",
+      "sha256": "9ad65f85eaa85cc1225c4c71554eff8638b21ee6754c202fd913f05dfd73af7f",
+      "attachment": "Native replay returns to completed path after relaunch_0_90459E33-AF11-4366-9E61-505734E4BAA4.png"
+    }
+  ]
+}

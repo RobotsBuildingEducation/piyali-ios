@@ -22,6 +22,9 @@ struct SignerAuthorization:Identifiable { let id:UUID;let url:URL }
     private(set) var remoteRecord:RemoteSignerRecord?
     private var remote:RemoteSignerService?
     private var generation=UUID()
+    // Identity replacement fences pending notes, including reuse of the same key.
+    // Cancelling an individual signing operation leaves this ownership unchanged.
+    private(set) var sessionRevision=UUID()
     private var connecting:Task<RemoteSignerRecord,Error>?
     private var signing:[UUID:Task<NostrEventPayload,Error>]=[:]
     private var crypting:[UUID:Task<String,Error>]=[:]
@@ -56,7 +59,7 @@ struct SignerAuthorization:Identifiable { let id:UUID;let url:URL }
         try store(keys)
     }
     private func store(_ keys: Keypair) throws {
-        try storeData(Data(keys.privateKey.nsec.utf8));cancelSigning();remoteRecord=nil;remote=nil;keypair=keys
+        try storeData(Data(keys.privateKey.nsec.utf8));cancelSigning();remoteRecord=nil;remote=nil;keypair=keys;sessionRevision=UUID()
     }
     private func storeData(_ data:Data) throws {
         let status = SecItemUpdate(baseQuery as CFDictionary, [kSecValueData as String: data] as CFDictionary)
@@ -90,10 +93,10 @@ struct SignerAuthorization:Identifiable { let id:UUID;let url:URL }
         do {
             let record=try await withTaskCancellationHandler { try await task.value } onCancel:{ task.cancel() }
             try Task.checkCancellation();guard generation == token else { throw CancellationError() }
-            try storeData(JSONEncoder().encode(record));keypair=nil;remoteRecord=record;remote=candidate
+            try storeData(JSONEncoder().encode(record));keypair=nil;remoteRecord=record;remote=candidate;sessionRevision=UUID()
         } catch { await candidate.cancel();throw error }
     }
-    func disconnect() throws { let status=SecItemDelete(baseQuery as CFDictionary);guard status == errSecSuccess || status == errSecItemNotFound else { throw AppError.message("Keychain could not remove this session.") };cancelSigning();remote=nil;remoteRecord=nil;keypair=nil }
+    func disconnect() throws { let status=SecItemDelete(baseQuery as CFDictionary);guard status == errSecSuccess || status == errSecItemNotFound else { throw AppError.message("Keychain could not remove this session.") };cancelSigning();remote=nil;remoteRecord=nil;keypair=nil;sessionRevision=UUID() }
     func exportKey() -> String { keypair?.privateKey.nsec ?? "" }
     func sign(kind: Int, tags: [[String]], content: String, createdAt: Int64 = Int64(Date().timeIntervalSince1970)) throws -> NostrEventPayload {
         guard let keys = keypair else { throw AppError.message("Sign in first.") }

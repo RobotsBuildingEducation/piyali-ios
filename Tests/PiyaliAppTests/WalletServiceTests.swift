@@ -241,7 +241,7 @@ import Bolt11
         try await wallet.previewTip(to:receiver.npub,identity:sender);XCTAssertEqual(wallet.tipPreview?.fee,0)
         try await wallet.sendOneSat(to:receiver.npub,maximumFee:0,identity:sender);XCTAssertEqual(wallet.balance,249999)
         let sent=try XCTUnwrap(WalletVault().load(owner:a)?.sentReceipts?.last),receiverKey=try XCTUnwrap(WalletVault().load(owner:b)?.walletPrivateKey)
-        XCTAssertEqual(sent.kind,9321);XCTAssertEqual(sent.tag("p"),b);XCTAssertEqual(sent.tag("u"),WalletContract.defaultMint)
+        XCTAssertEqual(sent.content,WalletCopy.publicNote);XCTAssertEqual(sent.tag("alt"),"This is a nutzap");XCTAssertNotNil(WalletPublicTransaction.parse(sent));XCTAssertEqual(sent.kind,9321);XCTAssertEqual(sent.tag("p"),b);XCTAssertEqual(sent.tag("u"),WalletContract.defaultMint)
         let proof=try WalletProof(JSONDecoder().decode(JSONValue.self,from:Data(sent.tag("proof").utf8)));XCTAssertTrue(proof.locked(to:"02"+Keypair(hex:receiverKey)!.publicKey.hex));XCTAssertFalse(proof.locked(to:"02"+b))
         let forged=proof.wire.setting("C",.string("02"+String(repeating:"1",count:64)))
         try await client.publish(sender.sign(kind:9321,tags:[["proof",forged.json],["p",b],["u",WalletContract.defaultMint],["unit","sat"]],content:"invalid proof fixture"))
@@ -397,5 +397,37 @@ import Bolt11
         XCTAssertThrowsError(try CashuHTTPClient.validateQuote(quote,amount:10,now:mint.date))
         XCTAssertThrowsError(try CashuHTTPClient.validateQuote(quote,amount:250000,now:Date()))
         XCTAssertThrowsError(try CashuHTTPClient.validateQuote(quote.setting("request",.string(String(mint.invoice.dropLast())+"q")),amount:250000,now:mint.date))
+    }
+}
+
+extension WalletServiceTests {
+    func testSourceSupportAdoptsFundedWalletRetargetsAndKeepsExplicitStop()async throws {
+        let mint=WalletFixtureMint(),relay=try await relay(),client=NostrRelayClient(relays:[relay.url],timeout:.seconds(2));defer{relay.stop()}
+        let(sender,wallet)=try await funded(mint,client:client),owner=sender.hex,receiver=try identity(),target=receiver.hex
+        defer{try? WalletVault().removeTestState(owner:owner);try? WalletVault().removeTestState(owner:target);try? sender.disconnect();try? receiver.disconnect()}
+        let destination=WalletService(client:client,mint:mint,now:{mint.date});try await destination.refresh(identity:receiver);try await destination.create(identity:receiver)
+        XCTAssertFalse(try WalletVault().hasAutomaticPreference(owner:owner));try wallet.adoptSourceSupport(identity:sender,recipient:receiver.npub)
+        var historical=practiceChange();historical.date=Date(timeIntervalSinceNow:-3600);try wallet.enqueueAutomaticTips([historical],identity:sender,resuming:true);XCTAssertTrue(try WalletVault().automaticTips(owner:owner).queue.isEmpty);XCTAssertEqual(mint.swapCalls,0)
+        var journal=try WalletVault().automaticTips(owner:owner);XCTAssertTrue(journal.enabled);XCTAssertEqual(journal.sourceManaged,true);XCTAssertEqual(journal.maximumFee,0)
+        let change=practiceChange();try wallet.enqueueAutomaticTips([change,change],identity:sender);let processed=try await wallet.processAutomaticTip(identity:sender);XCTAssertTrue(processed);XCTAssertEqual(mint.swapCalls,1)
+        let restored=WalletService(client:client,mint:mint,now:{mint.date});try restored.adoptSourceSupport(identity:sender,recipient:WalletContract.defaultRecipient);journal=try WalletVault().automaticTips(owner:owner);XCTAssertEqual(journal.recipient,WalletContract.defaultRecipient);XCTAssertEqual(journal.maximumFee,0);try restored.enqueueAutomaticTips([change],identity:sender);XCTAssertTrue(try WalletVault().automaticTips(owner:owner).queue.isEmpty)
+        try restored.configureAutomaticTips(enabled:false,recipient:journal.recipient,maximumFee:0,identity:sender);try restored.adoptSourceSupport(identity:sender,recipient:receiver.npub);XCTAssertFalse(try WalletVault().automaticTips(owner:owner).enabled)
+    }
+}
+
+extension WalletServiceTests {
+    func testSourceRecipientChangeRecoversSubmittedTipToOriginalRecipientOnce()async throws {
+        let mint=WalletFixtureMint(),relay=try await relay(),client=NostrRelayClient(relays:[relay.url],timeout:.seconds(2));defer{relay.stop()}
+        let(sender,wallet)=try await funded(mint,client:client),owner=sender.hex,receiver=try identity(),target=receiver.hex
+        defer{try? WalletVault().removeTestState(owner:owner);try? WalletVault().removeTestState(owner:target);try? sender.disconnect();try? receiver.disconnect()}
+        let destination=WalletService(client:client,mint:mint,now:{mint.date});try await destination.refresh(identity:receiver);try await destination.create(identity:receiver)
+        try wallet.adoptSourceSupport(identity:sender,recipient:receiver.npub);let change=practiceChange();try wallet.enqueueAutomaticTips([change],identity:sender);mint.loseSwapResponse=true
+        do{_=try await wallet.processAutomaticTip(identity:sender);XCTFail("The submitted swap response must be lost")}catch{}
+        XCTAssertNotNil(try WalletVault().load(owner:owner)?.pending)
+        try wallet.adoptSourceSupport(identity:sender,recipient:WalletContract.defaultRecipient);let journal=try WalletVault().automaticTips(owner:owner)
+        XCTAssertEqual(journal.recipient,WalletContract.defaultRecipient);XCTAssertEqual(journal.queue.first?.recipient,receiver.npub)
+        XCTAssertTrue(wallet.hasAutomaticWork(identity:sender));let recovered=try await wallet.processAutomaticTip(identity:sender);XCTAssertTrue(recovered);XCTAssertEqual(mint.swapCalls,1)
+        let receipts=try XCTUnwrap(WalletVault().load(owner:owner)?.sentReceipts);XCTAssertEqual(receipts.count,1);XCTAssertEqual(receipts[0].tag("p"),target)
+        try wallet.enqueueAutomaticTips([change],identity:sender);XCTAssertTrue(try WalletVault().automaticTips(owner:owner).queue.isEmpty)
     }
 }

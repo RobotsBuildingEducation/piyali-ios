@@ -8,10 +8,11 @@ final class CompanionHealthTests: XCTestCase {
         XCTAssertEqual(fixtures.count,150)
         for fixture in fixtures {
             let fields=fixture["data"] as! [String:Any], now=WebProgressContract.date(fixture["now"])!
-            var calendar=Calendar(identifier:.gregorian);calendar.timeZone=TimeZone(identifier:fixture["timezone"] as! String)!
+            for id in CalendarDayTests.calendars{var calendar=Calendar(identifier:id);calendar.timeZone=TimeZone(identifier:fixture["timezone"] as! String)!
             XCTAssertEqual(CompanionHealth.missed(fields,now:now,calendar:calendar),fixture["missed"] as? Int,fixture["name"] as! String)
             let actual=CompanionHealth.resetFields(fields,now:now,resetWindow:fixture["resetWindow"] as! Bool,calendar:calendar)
             XCTAssertEqual(JSONValue.foundation(actual),JSONValue.foundation(fixture["expected"]!),fixture["name"] as! String)
+            }
         }
     }
     func testRecoveryRequiresGoalAndOnlyOncePerWindow() {

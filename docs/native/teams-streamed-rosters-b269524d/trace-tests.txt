@@ -1,0 +1,8 @@
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliAppTests/TeamsMirrorContractTests.swift:47: error: -[PiyaliTests.TeamsMirrorContractTests testOpenNativeCachedRosterShowsFirstMirrorSnapshotWithoutAServerRead] : XCTAssertEqual failed: ("Optional("Signed initial")") is not equal to ("Optional("Cached peer change")")
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliAppTests/TeamsMirrorContractTests.swift:51: error: -[PiyaliTests.TeamsMirrorContractTests testOpenNativeCachedRosterShowsFirstMirrorSnapshotWithoutAServerRead] : XCTAssertEqual failed: ("Optional("Signed initial")") is not equal to ("Optional("Cached peer change")") - Typed SDK delivery must preserve cached snapshot data
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliAppTests/TeamsMirrorContractTests.swift:59: error: -[PiyaliTests.TeamsMirrorContractTests testOpenNativeCachedRosterShowsFirstMirrorSnapshotWithoutAServerRead] : XCTAssertEqual failed: ("Optional("Signed initial")") is not equal to ("Optional("Cached peer change")") - The original TeamView applies the cached snapshot directly while fresh reads are unavailable
+Test Case '-[PiyaliTests.TeamsMirrorContractTests testOpenNativeCachedRosterShowsFirstMirrorSnapshotWithoutAServerRead]' failed (3.629 seconds).
+	 Executed 1 test, with 3 failures (0 unexpected) in 3.629 (3.630) seconds
+	 Executed 1 test, with 3 failures (0 unexpected) in 3.629 (3.631) seconds
+	 Executed 1 test, with 3 failures (0 unexpected) in 3.629 (3.631) seconds
+** TEST FAILED **

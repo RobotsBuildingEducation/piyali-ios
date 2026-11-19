@@ -5,6 +5,7 @@ public struct ExplorationMap:Codable,Equatable,Sendable {
     public let name:JSONValue?
     public let world:RPGWorld
     public let portals:[JSONValue]
+    public var worldKey:String?
 }
 public struct ExplorationTemplate:Codable,Equatable,Sendable {
     public let id:String
@@ -98,6 +99,7 @@ public struct ExplorationRun:Codable,Equatable,Identifiable,Sendable {
     public var searched=Set<String>()
     public var searchStarted:String?
     public var dialogue:[String]=[]
+    public var pendingTurnIn:Bool?
     public var feedback=""
     public var tip:String?
     public var objectNotes:[String:JSONValue]?
@@ -122,7 +124,27 @@ public struct ExplorationRun:Codable,Equatable,Identifiable,Sendable {
     private mutating func log(_ text:String) { if !text.isEmpty { dialogue.append(String(text.prefix(1500)));dialogue=Array(dialogue.suffix(24)) };updatedAt=Date() }
     public mutating func move(dx:Int,dy:Int) -> Bool {
         guard abs(dx)+abs(dy) == 1,let area else { return false };let next=RPGPoint(x:position.x+dx,y:position.y+dy)
-        guard area.world.walkable(next) else { return false };position=next;talking=false;updatedAt=Date();return true
+        guard area.world.walkable(next),!scenario.npcs.contains(where:{ $0["mapId"].string == mapID && Self.npcPosition($0) == next }) else { return false }
+        position=next;talking=false;updatedAt=Date()
+        if let index=area.portals.firstIndex(where:{ ExplorationTemplate.position($0) == next }) { _=enter(index) }
+        if gatherUnlocked { for index in scenario.gatherPlacements.indices where placement(index)["mapId"].string == mapID && ExplorationTemplate.position(placement(index)) == position { _=pickUp(index) } }
+        return true
+    }
+    private static func npcPosition(_ npc:JSONValue)->RPGPoint { ExplorationTemplate.position(npc) }
+    /// Canvas taps follow the source primary-axis/secondary-axis one-step movement.
+    /// Object examination is returned to the presentation layer and never moves the player.
+    public mutating func tap(_ point:RPGPoint)->Int? {
+        guard pendingTurnIn != true,!completed,!talking,let area else { return nil }
+        if let object=area.world.objects.firstIndex(where:{ $0.tx == point.x && $0.ty == point.y }) { return object }
+        if let index=scenario.npcs.firstIndex(where:{ $0["mapId"].string == mapID && Self.npcPosition($0) == point }) {
+            guard index == ExplorationTemplate.integer(step["npcIdx"]) else { return nil }
+            if nearby(point) { _=talk();return nil }
+        }
+        let dx=point.x-position.x,dy=point.y-position.y
+        let horizontal=(dx.signum(),0),vertical=(0,dy.signum())
+        let candidates=abs(dx)>=abs(dy) ? [horizontal,vertical]:[vertical,horizontal]
+        for (x,y) in candidates where x != 0 || y != 0 { if move(dx:x,dy:y) { break } }
+        return nil
     }
     public mutating func approach(_ point:RPGPoint) -> Bool {
         guard let path=area?.world.path(from:position,to:point),let end=path.last else { return false };position=end;talking=false;updatedAt=Date();return true
@@ -134,23 +156,27 @@ public struct ExplorationRun:Codable,Equatable,Identifiable,Sendable {
     }
     public mutating func talk() -> Bool {
         guard !completed,npc["mapId"].string == mapID,nearby(ExplorationTemplate.position(npc)) else { return false }
-        talking=true;if mode == "objectSearch" { searchStarted=searchKey };log(node["npcLine"].string);return true
+        talking=true;feedback="";tip=nil;if mode == "objectSearch" { searchStarted=searchKey };log(node["npcLine"].string);return true
     }
     private mutating func next(_ id:String) {
         if step["nodes"].array.contains(where:{ $0["id"].string == id }) { nodeID=id;if mode == "objectSearch" { searchStarted=searchKey } }
         else { finishStep() };updatedAt=Date()
     }
     public mutating func finishStep() {
-        guard talking,!completed else { return };stepIndex += 1;nodeID=nil;talking=false;searchStarted=nil;feedback="";updatedAt=Date()
+        guard (talking || pendingTurnIn == true),!completed else { return }
+        let finishedSearch=mode == "objectSearch" ? searchKey:nil
+        if let finishedSearch { inventory.removeAll { $0.stepKey == finishedSearch };searched=searched.filter { !$0.hasPrefix(finishedSearch+":") } }
+        pendingTurnIn=nil;stepIndex += 1;nodeID=nil;talking=false;searchStarted=nil;feedback="";updatedAt=Date()
     }
     public mutating func choose(_ index:Int) -> Bool {
         guard talking,mode == "choice",node["choices"].array.indices.contains(index) else { return false };let choice=node["choices"].array[index]
-        log(choice["text"].string);log(choice["npcReply"].string);feedback=choice["npcReply"].string;next(choice["nextNodeId"].string);return true
+        log(choice["text"].string);log(choice["npcReply"].string);feedback=choice["npcReply"].string;next(choice["nextNodeId"].string);appendNextInstruction();return true
     }
     public mutating func speak(_ answer:String,reply:String) -> Bool {
         guard talking,mode == "speech",!answer.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else { return false }
-        log(answer);log(reply);feedback=reply;next(node["nextNodeId"].string);return true
+        log(answer);log(reply);feedback=reply;next(node["nextNodeId"].string);appendNextInstruction();return true
     }
+    private mutating func appendNextInstruction(){if talking,mode != "speech",!feedback.isEmpty,!node["npcLine"].string.isEmpty{feedback += "\n\n"+node["npcLine"].string}}
     public mutating func continueDialogue() -> Bool {
         guard talking,mode == "none" else { return false };if node["terminal"].boolean { finishStep() } else { next(node["nextNodeId"].string) };return true
     }
@@ -196,12 +222,13 @@ public struct ExplorationRun:Codable,Equatable,Identifiable,Sendable {
             drops[item.id]=item.item.setting("mapId",.string(mapID)).setting("tx",.number(Double(point.x))).setting("ty",.number(Double(point.y)))
         } else { searched.remove(item.id) };updatedAt=Date();return true
     }
-    public mutating func handIn(_ index:Int) -> Bool {
-        guard talking,["gather","objectSearch"].contains(mode),inventory.indices.contains(index) else { return false };let item=inventory[index]
+    public mutating func completeTurnIn(){guard pendingTurnIn == true else{return};finishStep()}
+    public mutating func handIn(_ index:Int,successReply:String?=nil) -> Bool {
+        guard pendingTurnIn != true,talking,["gather","objectSearch"].contains(mode),inventory.indices.contains(index) else { return false };let item=inventory[index]
         let valid=item.item["isCorrect"].boolean && (mode == "objectSearch" ? item.stepKey == searchKey : item.item["name"] == node["gatherItem"]["name"])
         guard valid else { feedback=node["gatherWrongItemTemplate"].string.replacingOccurrences(of:"{{wrongItem}}",with:item.item["name"].string).replacingOccurrences(of:"{{correctItem}}",with:node["gatherItem"]["name"].string);if item.source == "gather" { _=drop(index) };return false }
         inventory.remove(at:index)
-        if mode == "objectSearch" { finishStep() } else { next(node["nextNodeId"].string) };return true
+        if mode == "objectSearch" {if let successReply{feedback=successReply;pendingTurnIn=true;updatedAt=Date()}else{finishStep()}} else { feedback="";next(node["nextNodeId"].string) };return true
     }
 }
 public extension LearnerState {

@@ -1,0 +1,30 @@
+{
+  "sources": [
+    {
+      "file": "src/utils/speechEvaluation.js",
+      "sha256": "f1f32f653b8ea3e408ae11e85883b1fbd2860f769902130789c495541d8dd1ba"
+    },
+    {
+      "file": "src/constants/languages.js",
+      "sha256": "02cb1507cb2ee1b5822ac4dd98cd7faf3e67a5101a13dd6c93826f553201ab32"
+    },
+    {
+      "file": "src/constants/supportLanguages.js",
+      "sha256": "d8e8dc17f353a5106bdc984f2cce9696669bc7216be10e006738cb0a04b40b5a"
+    },
+    {
+      "file": "src/components/FeedbackRail.jsx",
+      "sha256": "26288744a05d113aa27eca7922426532b1a06664ca4689982e3c463c914f7dba"
+    },
+    {
+      "file": "src/components/Stories.jsx",
+      "sha256": "98a951b5e2de6f075b89da93dc99c4c8bfeee5fecd4cb365df2906be4302238c"
+    },
+    {
+      "file": "src/features/stories/StoryComprehension.jsx",
+      "sha256": "05a735aa10caaf25c8e1ea9fad02f29e23d912148e58c6e1a9bed4c2efeff328"
+    }
+  ],
+  "cases": 208,
+  "scope": "Original speechReasonTips and its actual language normalization dependencies, tree-shaken by esbuild. Pure UI copy only; no evaluation, microphone, store or provider effects."
+}

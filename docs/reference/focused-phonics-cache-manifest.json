@@ -1,0 +1,15 @@
+{
+  "cases": 14,
+  "source": {
+    "file": "src/utils/focusedPracticeDecks.js",
+    "sha256": "bb5f8e54a4ad8db64bfb5e725f8fec4e37f538b4aa26a20714d18e825d6ad59d",
+    "functions": [
+      "practiceArtifactKey",
+      "artifactField",
+      "practiceArtifact",
+      "getFocusedPhonicsDeck"
+    ]
+  },
+  "authoredBundleSha256": "1ff20fa3e0742b40231e3ea2c9a0dd944105352345b5c29d52173d5f69ad7896",
+  "scope": "Unmodified original practiceArtifactKey/artifactField/practiceArtifact/getFocusedPhonicsDeck and independently bundled original authored module; public in-memory local/read/transaction boundaries, including read/transaction failures and authoritative winners. No external I/O."
+}

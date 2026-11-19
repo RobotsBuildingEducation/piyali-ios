@@ -1,0 +1,3 @@
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliAppTests/TeamsPanelReferenceTests.swift:339:441: error: value of optional type 'String?' must be unwrapped to a value of type 'String'
+Testing failed:
+** TEST FAILED **

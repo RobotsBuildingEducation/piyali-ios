@@ -1,0 +1,15 @@
+{
+  "device": "CE8248B6-7171-4FD4-97DE-89E499107F82",
+  "installed": "/Users/sheilferzepeda/Library/Developer/CoreSimulator/Devices/CE8248B6-7171-4FD4-97DE-89E499107F82/data/Containers/Bundle/Application/AC0D03AB-1D49-442F-B7E4-A2EBEB88E7B2/Piyali.app",
+  "build": "/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/DerivedData/Build/Products/Debug-iphonesimulator/Piyali.app",
+  "hashes": {
+    "Piyali": {
+      "installed": "0f8e11ea95721edec5e4a335379bec477c458049c1ea1bb4f6ace3459f1da7f2",
+      "built": "0f8e11ea95721edec5e4a335379bec477c458049c1ea1bb4f6ace3459f1da7f2"
+    },
+    "Piyali.debug.dylib": {
+      "installed": "4f01f8604d73218972a4e447af1e94c7c0ae678f88bdaeccd46124e615174368",
+      "built": "4f01f8604d73218972a4e447af1e94c7c0ae678f88bdaeccd46124e615174368"
+    }
+  }
+}

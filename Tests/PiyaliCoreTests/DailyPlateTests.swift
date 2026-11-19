@@ -47,8 +47,10 @@ final class DailyPlateTests: XCTestCase {
         state.questPlans = ["es":DailyQuestPlan(day:yesterday,kinds:["speak","learn","review"])]
         state.editGoal("Order a meal")
         state.preparePlate(user:"learner",available:["review","conversation","phonics"],now:now)
-        XCTAssertEqual(state.questPlans?["es"]?.carry,["speak","learn"])
-        XCTAssertEqual(Array(state.plateCourses(user:"learner").map(\.kind).prefix(3)),["goal","speak","learn"])
+        // Source App.jsx carries the first two unfinished courses except repair, including an active Goal.
+        XCTAssertEqual(state.questPlans?["es"]?.carry,["goal","speak"])
+        state.storeCompanionBlueprint(.object(["status":.string("ready"),"carryOverKinds":.array((state.questPlans?["es"]?.carry ?? []).map(JSONValue.string))]),target:"es",day:CalendarDay.key(now))
+        XCTAssertEqual(Array(state.plateCourses(user:"learner").map(\.kind).prefix(3)),["goal","speak","review"])
         XCTAssertEqual(state.plateProgress["dailyQuestFirstDayKey"].string,"2026-01-01")
         var legacy = LearnerState(); legacy.xpByLanguage = ["es":10]
         legacy.questProgress = .object(["dailyQuestFirstSeen":.bool(true)])

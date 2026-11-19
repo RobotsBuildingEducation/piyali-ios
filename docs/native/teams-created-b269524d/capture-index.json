@@ -1,0 +1,122 @@
+[
+  {
+    "path": "native-settled-ar.png",
+    "name": "Native Teams created settled ar",
+    "test": "TeamsPanelReferenceTests/testOriginalCreatingAndAcknowledgedCardBeforeFreshRosterAndMemberReplies()"
+  },
+  {
+    "path": "source-settled-ar.json",
+    "name": "Source Teams created settled ar geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalCreatingAndAcknowledgedCardBeforeFreshRosterAndMemberReplies()"
+  },
+  {
+    "path": "source-settled-ar.png",
+    "name": "Source Teams created settled ar",
+    "test": "TeamsPanelReferenceTests/testOriginalCreatingAndAcknowledgedCardBeforeFreshRosterAndMemberReplies()"
+  },
+  {
+    "path": "native-members-held-ar.png",
+    "name": "Native Teams created members-held ar",
+    "test": "TeamsPanelReferenceTests/testOriginalCreatingAndAcknowledgedCardBeforeFreshRosterAndMemberReplies()"
+  },
+  {
+    "path": "source-members-held-ar.json",
+    "name": "Source Teams created members-held ar geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalCreatingAndAcknowledgedCardBeforeFreshRosterAndMemberReplies()"
+  },
+  {
+    "path": "source-members-held-ar.png",
+    "name": "Source Teams created members-held ar",
+    "test": "TeamsPanelReferenceTests/testOriginalCreatingAndAcknowledgedCardBeforeFreshRosterAndMemberReplies()"
+  },
+  {
+    "path": "native-roster-held-ar.png",
+    "name": "Native Teams created roster-held ar",
+    "test": "TeamsPanelReferenceTests/testOriginalCreatingAndAcknowledgedCardBeforeFreshRosterAndMemberReplies()"
+  },
+  {
+    "path": "source-roster-held-ar.json",
+    "name": "Source Teams created roster-held ar geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalCreatingAndAcknowledgedCardBeforeFreshRosterAndMemberReplies()"
+  },
+  {
+    "path": "source-roster-held-ar.png",
+    "name": "Source Teams created roster-held ar",
+    "test": "TeamsPanelReferenceTests/testOriginalCreatingAndAcknowledgedCardBeforeFreshRosterAndMemberReplies()"
+  },
+  {
+    "path": "native-creating-ar.png",
+    "name": "Native Teams created creating ar",
+    "test": "TeamsPanelReferenceTests/testOriginalCreatingAndAcknowledgedCardBeforeFreshRosterAndMemberReplies()"
+  },
+  {
+    "path": "source-creating-ar.json",
+    "name": "Source Teams created creating ar geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalCreatingAndAcknowledgedCardBeforeFreshRosterAndMemberReplies()"
+  },
+  {
+    "path": "source-creating-ar.png",
+    "name": "Source Teams created creating ar",
+    "test": "TeamsPanelReferenceTests/testOriginalCreatingAndAcknowledgedCardBeforeFreshRosterAndMemberReplies()"
+  },
+  {
+    "path": "native-settled-en.png",
+    "name": "Native Teams created settled en",
+    "test": "TeamsPanelReferenceTests/testOriginalCreatingAndAcknowledgedCardBeforeFreshRosterAndMemberReplies()"
+  },
+  {
+    "path": "source-settled-en.json",
+    "name": "Source Teams created settled en geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalCreatingAndAcknowledgedCardBeforeFreshRosterAndMemberReplies()"
+  },
+  {
+    "path": "source-settled-en.png",
+    "name": "Source Teams created settled en",
+    "test": "TeamsPanelReferenceTests/testOriginalCreatingAndAcknowledgedCardBeforeFreshRosterAndMemberReplies()"
+  },
+  {
+    "path": "native-members-held-en.png",
+    "name": "Native Teams created members-held en",
+    "test": "TeamsPanelReferenceTests/testOriginalCreatingAndAcknowledgedCardBeforeFreshRosterAndMemberReplies()"
+  },
+  {
+    "path": "source-members-held-en.json",
+    "name": "Source Teams created members-held en geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalCreatingAndAcknowledgedCardBeforeFreshRosterAndMemberReplies()"
+  },
+  {
+    "path": "source-members-held-en.png",
+    "name": "Source Teams created members-held en",
+    "test": "TeamsPanelReferenceTests/testOriginalCreatingAndAcknowledgedCardBeforeFreshRosterAndMemberReplies()"
+  },
+  {
+    "path": "native-roster-held-en.png",
+    "name": "Native Teams created roster-held en",
+    "test": "TeamsPanelReferenceTests/testOriginalCreatingAndAcknowledgedCardBeforeFreshRosterAndMemberReplies()"
+  },
+  {
+    "path": "source-roster-held-en.json",
+    "name": "Source Teams created roster-held en geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalCreatingAndAcknowledgedCardBeforeFreshRosterAndMemberReplies()"
+  },
+  {
+    "path": "source-roster-held-en.png",
+    "name": "Source Teams created roster-held en",
+    "test": "TeamsPanelReferenceTests/testOriginalCreatingAndAcknowledgedCardBeforeFreshRosterAndMemberReplies()"
+  },
+  {
+    "path": "native-creating-en.png",
+    "name": "Native Teams created creating en",
+    "test": "TeamsPanelReferenceTests/testOriginalCreatingAndAcknowledgedCardBeforeFreshRosterAndMemberReplies()"
+  },
+  {
+    "path": "source-creating-en.json",
+    "name": "Source Teams created creating en geometry",
+    "test": "TeamsPanelReferenceTests/testOriginalCreatingAndAcknowledgedCardBeforeFreshRosterAndMemberReplies()"
+  },
+  {
+    "path": "source-creating-en.png",
+    "name": "Source Teams created creating en",
+    "test": "TeamsPanelReferenceTests/testOriginalCreatingAndAcknowledgedCardBeforeFreshRosterAndMemberReplies()"
+  }
+]

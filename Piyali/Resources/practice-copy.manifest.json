@@ -1,0 +1,52 @@
+[
+  {
+    "id": "sentence_detective",
+    "file": "src/utils/sentenceDetectiveI18n.js",
+    "sha256": "da38dd980182de120d61bd70771951fa77bdaa02357bd83d91e076bb02275c1f"
+  },
+  {
+    "id": "dialogue_fork",
+    "file": "src/utils/dialogueForkI18n.js",
+    "sha256": "45273e537d84c83dcefef25cd34c755fb194727082b60595929d365b8c0f2eba"
+  },
+  {
+    "id": "sentence_shapeshifter",
+    "file": "src/utils/sentenceShapeshifterI18n.js",
+    "sha256": "9a34ca279a68b97c3ecea969a2cc266129d9f7d1f47852db3c0b3a054bcb3eaa"
+  },
+  {
+    "id": "word_neighborhoods",
+    "file": "src/utils/wordNeighborhoodsI18n.js",
+    "sha256": "83f411b0b56d6cb6f8a45ab76133225d4bd0e82f22f05867ca1207865ab7cec9"
+  },
+  {
+    "id": "morphology_forge",
+    "file": "src/utils/morphologyForgeI18n.js",
+    "sha256": "842c2a654b10234c01b47bf7fd2995577028eb41addf3b190e5d336e44c9f024"
+  },
+  {
+    "id": "three_clue_mystery",
+    "file": "src/utils/threeClueMysteryI18n.js",
+    "sha256": "845534bd0732982902e50205c75b265fdfca8c4d15dc676b620399e7431d74c8"
+  },
+  {
+    "id": "listen_difference",
+    "file": "src/utils/listenDifferenceI18n.js",
+    "sha256": "8e90940a788542699413df1a9216de5e38672e5991044f885566a00c0acfd3ef"
+  },
+  {
+    "id": "three_word_challenge",
+    "file": "src/utils/threeWordChallengeI18n.js",
+    "sha256": "a11224719653958ee41c1ff11d124c6377a1e699626eed9a6ac6b80a477f052d"
+  },
+  {
+    "id": "natural_or_weird",
+    "file": "src/utils/naturalOrWeirdI18n.js",
+    "sha256": "cf174dca43a7f4fdc65910ab4d0bc5141414be5b64274eef0e352b61f78974a1"
+  },
+  {
+    "id": "flashcard",
+    "file": "src/components/LessonFlashcard.jsx",
+    "sha256": "c8e4fc88a560a74121c4adb8c9d3aefa17be46f759fd526829f8924d5cac01a6"
+  }
+]

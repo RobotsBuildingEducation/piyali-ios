@@ -1,0 +1,94 @@
+{
+  "sentence_shapeshifter": {
+    "question": {
+      "acceptableAnswers": [
+        "Ella comió con su familia ayer."
+      ],
+      "answer": "Ayer ella comió con su familia.",
+      "constraint": "Make it happen yesterday.",
+      "explanation": "The completed past form of comer is comió.",
+      "hint": "Look for the form that fits the time cue.",
+      "instruction": "Transform the complete sentence.",
+      "source": "Ella come con su familia.",
+      "variant": "sentence_shapeshifter"
+    },
+    "responses": {
+      "idle": {
+        "text": ""
+      },
+      "typed": {
+        "text": "Ayer ella comió con su familia."
+      },
+      "extra": {
+        "text": "WRONG_FIXTURE"
+      },
+      "locked": {
+        "text": "Ayer ella comió con su familia."
+      }
+    }
+  },
+  "three_clue_mystery": {
+    "question": {
+      "acceptableAnswers": [
+        "el paraguas"
+      ],
+      "answer": "paraguas",
+      "clues": [
+        "You often need me outside.",
+        "You use me when water falls from the sky.",
+        "I open above your head."
+      ],
+      "example": "Olvidé mi paraguas y llegué mojado.",
+      "explanation": "Paraguas means umbrella.",
+      "hint": "Look for the form that fits the time cue.",
+      "instruction": "Solve the mystery with as few clues as possible.",
+      "variant": "three_clue_mystery"
+    },
+    "responses": {
+      "idle": {
+        "text": ""
+      },
+      "typed": {
+        "text": "paraguas"
+      },
+      "extra": {
+        "text": "WRONG_FIXTURE"
+      },
+      "locked": {
+        "text": "paraguas"
+      }
+    }
+  },
+  "three_word_challenge": {
+    "question": {
+      "cues": [
+        "ayer",
+        "amigos",
+        "parque"
+      ],
+      "explanation": "Many original answers can work here.",
+      "hint": "Look for the form that fits the time cue.",
+      "instruction": "Create one sentence using all three cues.",
+      "reaction": "That sounds like a good sentence!",
+      "sampleAnswers": [
+        "Ayer fui al parque con mis amigos.",
+        "Ayer mis amigos jugaron en el parque."
+      ],
+      "variant": "three_word_challenge"
+    },
+    "responses": {
+      "idle": {
+        "text": ""
+      },
+      "typed": {
+        "text": "Ayer fui al parque con mis amigos."
+      },
+      "extra": {
+        "text": "WRONG_FIXTURE"
+      },
+      "locked": {
+        "text": "Ayer fui al parque con mis amigos."
+      }
+    }
+  }
+}

@@ -1,0 +1,37 @@
+# Shared initial Memory, enrichment and capture evidence — 2026-11-05–06
+
+Reference: read-only `RobotsBuildingEducation/nosabos` at **`b269524ddc578027c549616fc47f5954991d9f6f`**. Native base: `833be94`. This advances the shared Memory portion of FUNC-03. The full functional/design parity goal remains **In progress**.
+
+## Behavior
+
+Generic native captures previously treated grader feedback as finished enrichment. They now start with the original source's localized deterministic summary, blank mistake/tip and `enriched: false`. Support normalization, CEFR fallback, ECMAScript whitespace, integer millisecond creation time and UTF-16 display limits follow original initial-note fixtures. Grader feedback remains outside these public Memory fields. This does not reconcile every mode's caller context merely by making the shared factory correct.
+
+Every ordinary capture now starts app-owned enrichment immediately through the existing dedicated native AI service. Tutor uses the same delivery machinery with its own provider boundary. The result may finish after leaving an exercise or ending Tutor, and patches the original target bucket while retaining reinforcement. Identity-session and note-version guards reject stale results. Duplicate localized enriched slips retain their first enrichment. Failed/empty enrichment leaves the base note pending; opening an already localized blank-tip note does not invent enrichment or retry it. A later slip can retry. Concept-only drawer cleanup retains an existing correction when generation fails.
+
+The source has a caller distinction: Vocabulary, GrammarBook, Delight, History, Stories and AlphabetBootcamp provide `npub` to capture; Flashcards, Tutor and RealTimeTest omit it. Note persistence can resolve a local account, but original `recordLearningEvidence` rejects an omitted account. Native preserves that actual behavior: grammar/vocabulary/reading/story/phonics captures update repair learning evidence; flashcard/tutor/conversation captures save notes without inventing that evidence. AST extraction records active callers and rejects a mixed ownership contract. The original evidence entry/update functions independently verify this distinction.
+
+Capture evidence uses the merged note ID and severity, its original expected answer and latest observation. It updates the local companion planning context and the canonical Firebase learning bucket without adding XP or an assessment. Source content IDs have a 24-entry dedupe window; the native durable retry receipt is separately tied to each capture delivery. At severity three, a new capture retains the same source content ID and can apply again after it leaves that window; retrying the same native delivery remains idempotent. Existing repair-completion receipt IDs are retained.
+
+## Verification record
+
+The baseline Core reproduction fails two tests with nine assertions (0.168 seconds). A separate real drawer reproduction fails one test with three assertions (0.397 seconds). The corrected Core run passes **70 affected tests in 38.963 seconds**, covering Memory, source fixtures, Goal capture, sync, exercises, Reading, Story and final quizzes. The source fixture corpus now has **411 cases**: all **267 previous cases remain unchanged**, with 136 initial-note and eight evidence-payload cases added. Caller account gating independently executes the original asynchronous learning-evidence entry/update functions.
+
+The ordinary product journey passes in **98.235 seconds**: fresh account, normal onboarding/setup/placement/course, wrong stemless matching, Skip, enriched Memory, actual process termination and the restored note. It seeds no notes or progress. A read-only QA audit finds exactly one capture, enrichment, assessment and repair-evidence event, one open-pattern recurrence, zero study notes and zero account/day XP. The source-mode counter is Vocabulary, as selected by the actual course exercise.
+
+The first integrated bundle contains **17 passing and three failing tests, zero skips**. Its failures are retained: the new source adapter omitted the record function's `mergeEvidence` binding; raw Firestore root timestamps made a JSON-only assertion snapshot empty; and a capture-only fixture flag suppressed an older study-note response. The comparison supplies the matching native context, uses exact-second public times, binds original learning helpers explicitly, and the study-note test injects its own provider response. A second diagnostic retained the preview server's cached old adapter; restarting the owned preview serves the corrected closure. No production behavior was changed to satisfy these adapter failures.
+
+The final `/tmp/PiyaliSharedMemoryVerified20261106.xcresult` passes **32 tests in 128.992 seconds, zero failures or skips**: 16 shared Memory/notes checks, eight real local Firebase SDK contracts and eight Tutor capture/owner/source regressions. SDK checks include retry, source severity-three dedupe and window eviction, canonical version/repair summary, omitted-account modes, foreign data and concurrent lifecycle retention. Original source capture/enrichment/learning evidence and rendered drawers match in English/light and Arabic/dark; the previous single/repeated Tutor comparisons also pass. The separate ordinary UI journey above passes on the same production Swift changes; later changes only correct test inputs/adapters. It is not relabeled as a wholly green integrated bundle.
+
+I inspected both final color-managed pairs and the full native relaunch frame. Content, ordering and bidi severity are aligned; small card/header vertical spacing, glyph and shadow differences remain. The paired hosts omit the surrounding product shell and do not establish full viewport/accessibility parity.
+
+[The evidence manifest](native/shared-memory-b269524d/manifest.json) hashes **27 artifacts**, including original/native pairs and traces, Firebase dedupe trace, QA counters, source-case/stability audits, passing and failed summaries, exact commands and final source hashes. Regenerating the 411-case policy is byte-stable and leaves generated Swift's modification time unchanged.
+
+- [English/light — source left, native right](native/shared-memory-b269524d/pair-enriched-en.png)
+- [Arabic/dark — source left, native right](native/shared-memory-b269524d/pair-enriched-ar.png)
+- [Full native Memory after actual relaunch](native/shared-memory-b269524d/native-product-relaunch.png)
+
+## Scope
+
+The browser comparison executes original capture, enrichment patch and learning-evidence entry/update functions with public provider responses and explicit local persistence/transaction adapters. It mounts the original NotesDrawer and children. Grading is deliberately disabled at that capture boundary to isolate Memory side effects. It does not call source Firebase or live AI. Native SDK checks use the separate local Firebase project; native product journeys use scoped public I/O fixtures with empty progress/Memory on signup.
+
+Actual process death during pending Memory/Tutor worth now has scoped evidence in [PENDING_LEARNING_RECOVERY.md](PENDING_LEARNING_RECOVERY.md). Dependent focused completion restoration, broader day/concurrent/support changes, whole-shell motion/keyboard/RTL/accessibility, physical audio and the other main-product/service/payment/release handoff rows remain open. This work does not alter the reference, deploy services, merge the draft PR or complete the overall goal.

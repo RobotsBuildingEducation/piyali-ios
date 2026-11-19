@@ -20,6 +20,21 @@ struct LearningTeam: Identifiable, Sendable {
     private var account=""
     private var pending: Task<Void,Error>?
     private var acknowledged: [NostrEventPayload]=[]
+    // A drawer may close between the mirror acknowledgment and the next roster read.
+    private var createdTeam: (record: JSONValue, session: UUID)?
+
+    func rememberCreatedTeam(_ record: JSONValue, identity: IdentityService) {
+        createdTeam = (record, identity.sessionRevision)
+    }
+
+    func createdTeam(for identity: IdentityService) -> JSONValue? {
+        guard let receipt = createdTeam, receipt.session == identity.sessionRevision,
+              receipt.record["createdBy"].string == identity.npub,
+              teams.contains(where: { $0.creator == identity.hex && $0.teamID == receipt.record["id"].string })
+        else { return nil }
+        return receipt.record
+    }
+
     private let cacheDirectory: URL
     init(client: NostrRelayClient? = nil, cacheDirectory: URL? = nil) {
         var selected=client ?? NostrRelayClient(relays:LearningTeams.relays)
@@ -33,7 +48,7 @@ struct LearningTeam: Identifiable, Sendable {
         #endif
         self.cacheDirectory=directory
     }
-    func cancel(clear: Bool = false) { generation += 1;pending?.cancel();pending=nil;busy=false;error=nil;if clear { account="";teams=[];progress=[:];profiles=[:];acknowledged=[] } }
+    func cancel(clear: Bool = false) { generation += 1;pending?.cancel();pending=nil;busy=false;error=nil;if clear { createdTeam=nil;account="";teams=[];progress=[:];profiles=[:];acknowledged=[] } }
     private func restoreAcknowledged(author: String) {
         let url=cacheDirectory.appendingPathComponent(author+".json")
         acknowledged=((try? Data(contentsOf:url)).flatMap { try? JSONDecoder().decode([NostrEventPayload].self,from:$0) } ?? []).filter { $0.pubkey == author && $0.kind == LearningTeams.kind && $0.tag("d").hasPrefix("learning-team:") && IdentityService.verify($0) }
@@ -83,7 +98,7 @@ struct LearningTeam: Identifiable, Sendable {
         let departed=Set(events.filter { LearningTeams.memberLeft(teamCreatedAt:team.event.created_at,leaveCreatedAt:$0.created_at) }.map(\.pubkey))
         return LearningTeam(id:team.id,creator:team.creator,name:team.name,members:team.members.filter { !departed.contains($0) },event:team.event)
     }
-    private func load(identity: IdentityService, author: String, version: Int) async throws {
+    private func load(identity: IdentityService, author: String, version: Int, includeProgress:Bool=true) async throws {
         let events=try await client.query(filter:["kinds":[LearningTeams.kind],"#t":["learning-team"],"#p":[author],"limit":100],authenticate:authenticate(identity:identity,author:author))
         try valid(identity:identity,author:author,version:version)
         let parsed=latest(events+acknowledged).compactMap(Self.parse)
@@ -95,6 +110,8 @@ struct LearningTeam: Identifiable, Sendable {
             guard !departed.contains(author),team.members.contains(author) else { return nil }
             return LearningTeam(id:team.id,creator:team.creator,name:team.name,members:team.members.filter { !departed.contains($0) },event:team.event)
         }.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+        teams=rosters
+        guard includeProgress else{return}
         let authors=Array(Set(rosters.flatMap(\.members)))
         var snapshots:[String:JSONValue]=[:],names:[String:String]=[:]
         if !authors.isEmpty {
@@ -107,6 +124,7 @@ struct LearningTeam: Identifiable, Sendable {
         }
         teams=rosters;progress=snapshots;profiles=names
     }
+    func refreshRoster(identity:IdentityService)async{do{try await run(identity:identity){author,version in try await self.load(identity:identity,author:author,version:version,includeProgress:false)}}catch{}}
     func refresh(identity: IdentityService) async { do { try await run(identity:identity) { author,version in try await self.load(identity:identity,author:author,version:version) } } catch { } }
     private func keys(_ members: String) throws -> [String] {
         let npubs=members.split(whereSeparator:{ $0.isWhitespace || $0 == "," }).map(String.init)
@@ -123,13 +141,13 @@ struct LearningTeam: Identifiable, Sendable {
         try valid(identity:identity,author:author,version:version)
         remember(event)
     }
-    func create(name: String, members: String, identity: IdentityService) async throws {
+    func create(name: String, members: String, identity: IdentityService, id:String?=nil, reload:Bool=true) async throws {
         let name=try checkedName(name),hexes=try keys(members)
         guard !hexes.contains(identity.hex) else { throw AppError.message("You are already included as the creator.") }
         try await run(identity:identity) { author,version in
-            let id=UUID().uuidString.replacingOccurrences(of:"-",with:"").lowercased()
+            let id=id ?? UUID().uuidString.replacingOccurrences(of:"-",with:"").lowercased()
             try await self.publish(LearningTeams.teamTemplate(id:id,name:name,members:[author]+hexes,createdAt:Int64(Date().timeIntervalSince1970)),identity:identity,author:author,version:version)
-            try await self.load(identity:identity,author:author,version:version)
+            if reload {try await self.load(identity:identity,author:author,version:version)}
         }
     }
     private func current(_ team: LearningTeam, identity: IdentityService, author: String, version: Int) async throws -> LearningTeam {
@@ -163,11 +181,11 @@ struct LearningTeam: Identifiable, Sendable {
             try await self.load(identity:identity,author:author,version:version)
         }
     }
-    func publishProgress(_ state: LearnerState, identity: IdentityService) async throws {
+    func publishProgress(_ state: LearnerState, identity: IdentityService,reload:Bool=true) async throws {
         try await run(identity:identity) { author,version in
             let data=LearningTeams.snapshot(state)
             try await self.publish(.object(["created_at":data["updatedAt"],"content":.string(data.json),"tags":.array([["d","learning-progress"],["t","learning-progress"]].map { .array($0.map(JSONValue.string)) })]),identity:identity,author:author,version:version)
-            try await self.load(identity:identity,author:author,version:version)
+            if reload {try await self.load(identity:identity,author:author,version:version)}
         }
     }
     func row(member: String, team: LearningTeam, learner: LearnerState, viewer: String) -> JSONValue {

@@ -1,0 +1,19 @@
+{
+  "qaDevice": "CE8248B6-7171-4FD4-97DE-89E499107F82",
+  "startedAt": 1793923743.576944,
+  "scope": "Read-only counters from the new ASR Recovery Learner UI journey. Public scripted transcript; no profile, keys, names, private note bodies or identity identifiers exported.",
+  "profiles": [
+    {
+      "snapshotSHA256": "7b5cb99025298f9bd9fa763bd44f4c8ff630bd6e4388a42801843cb386681970",
+      "totalXP": 0,
+      "gradedAttempts": 0,
+      "notes": 0,
+      "companionMemoryNotes": 0,
+      "pendingMemoryChanges": 0,
+      "earnedTutorXP": 0,
+      "tutorTurnOrCompletionReceipts": 0,
+      "rejectedTranscriptInTutorRecords": false,
+      "recoveryCueInPrivateDraft": true
+    }
+  ]
+}

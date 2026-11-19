@@ -1,0 +1,58 @@
+{
+  "referenceRevision": "b269524ddc578027c549616fc47f5954991d9f6f",
+  "previousCases": 267,
+  "currentCases": 411,
+  "previousCasesUnchanged": true,
+  "addedInitialNoteCases": 136,
+  "addedCaptureEvidencePayloads": 8,
+  "callerEvidenceGateAudit": [
+    {
+      "mode": "vocabulary",
+      "hasAccount": true,
+      "writes": true,
+      "error": ""
+    },
+    {
+      "mode": "grammar",
+      "hasAccount": true,
+      "writes": true,
+      "error": ""
+    },
+    {
+      "mode": "flashcard",
+      "hasAccount": false,
+      "writes": false,
+      "error": "Sign in to save learning progress."
+    },
+    {
+      "mode": "story",
+      "hasAccount": true,
+      "writes": true,
+      "error": ""
+    },
+    {
+      "mode": "phonics",
+      "hasAccount": true,
+      "writes": true,
+      "error": ""
+    },
+    {
+      "mode": "conversation",
+      "hasAccount": false,
+      "writes": false,
+      "error": "Sign in to save learning progress."
+    },
+    {
+      "mode": "tutor",
+      "hasAccount": false,
+      "writes": false,
+      "error": "Sign in to save learning progress."
+    },
+    {
+      "mode": "reading",
+      "hasAccount": true,
+      "writes": true,
+      "error": ""
+    }
+  ]
+}

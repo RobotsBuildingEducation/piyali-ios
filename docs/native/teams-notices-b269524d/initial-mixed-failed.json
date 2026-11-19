@@ -1,0 +1,53 @@
+{
+  "devicesAndConfigurations" : [
+    {
+      "device" : {
+        "architecture" : "arm64",
+        "deviceId" : "CE8248B6-7171-4FD4-97DE-89E499107F82",
+        "deviceName" : "Piyali Parity QA",
+        "modelName" : "iPhone 17 Pro",
+        "osBuildNumber" : "23E254a",
+        "osVersion" : "26.4.1",
+        "platform" : "iOS Simulator"
+      },
+      "expectedFailures" : 0,
+      "failedTests" : 1,
+      "passedTests" : 12,
+      "skippedTests" : 0,
+      "testPlanConfiguration" : {
+        "configurationId" : "1",
+        "configurationName" : "Test Scheme Action"
+      }
+    }
+  ],
+  "environmentDescription" : "Piyali · Built with macOS 26.4.1",
+  "expectedFailures" : 0,
+  "failedTests" : 1,
+  "finishTime" : 1793961124.207,
+  "passedTests" : 12,
+  "result" : "Failed",
+  "skippedTests" : 0,
+  "startTime" : 1793960831.569,
+  "statistics" : [
+
+  ],
+  "testFailures" : [
+    {
+      "failureText" : "XCTAssertTrue failed - teamsNoticeClose",
+      "targetName" : "PiyaliUITests",
+      "testIdentifier" : 13,
+      "testIdentifierString" : "TeamsTests/testCreateEditRosterAndDeleteUseSignedLocalRelayAndSurviveRelaunch()",
+      "testIdentifierURL" : "test://com.apple.xcode/Piyali/PiyaliUITests/TeamsTests/testCreateEditRosterAndDeleteUseSignedLocalRelayAndSurviveRelaunch",
+      "testName" : "testCreateEditRosterAndDeleteUseSignedLocalRelayAndSurviveRelaunch()"
+    }
+  ],
+  "title" : "Test - Piyali",
+  "topInsights" : [
+    {
+      "category" : "Longest Test Runs",
+      "impact" : "86% of duration",
+      "text" : "1 longest test run with outlier durations exceeding 38.61s (three standard deviations)"
+    }
+  ],
+  "totalTestCount" : 13
+}

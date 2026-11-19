@@ -1,0 +1,21 @@
+{
+  "sourceRevision": "b269524ddc578027c549616fc47f5954991d9f6f",
+  "nativeBase": "833be943c58514d6765800c9d93c86962acc6e34",
+  "files": {
+    "Piyali/App/AppModel.swift": "9f18ca79c0aae49245e5e3d0852762b9dfad025ce64afecb17343d7d27a9e9bf",
+    "Piyali/App/MemoryDrawerController.swift": "5414449ce7d6d7388ab29182074dae3fd4ccc82ee48a0e488a647c0cdabf5c2c",
+    "Piyali/App/MemoryDrawerFixture.swift": "d147ed3f859015a4196af0d626873e1f00e5d70f57bb734d91a600c90e6bc463",
+    "Piyali/Core/CompanionMemory.swift": "d143cf805772479e19febb29a918a5389e2da3868f3fb7f0517ea59583d58bfa",
+    "Piyali/Core/CompanionQuest.swift": "52a645df6f8f93fc4cb8172803b43c87e5fd3616d8d12790580a1d0003a18fde",
+    "Piyali/Services/FirebaseService.swift": "8ba6b1e439a11deaafe69d0316e5352180671f24e43169de6603293ce464270b",
+    "Piyali/Services/TutorSessionController.swift": "0eeefbdbf90e4523cfdbe5230cb488f74a7faf281efc33db60a819eb90185bda",
+    "Tests/PiyaliAppTests/FirestoreContractTests.swift": "4e86cda150d4e2fa6bd82f67e27e803ed9d484553f166dd6bf5a56a1ee5c5e81",
+    "Tests/PiyaliAppTests/MemoryFlowTests.swift": "81a75baff3e283ad340005341501b9e00d24ad073158aa5bca77881791b33257",
+    "Tests/PiyaliAppTests/TutorSessionTests.swift": "c2c9a1d6b492f988b20e2157458782a73e4242fb5a586e1173803e5736c3372b",
+    "Tests/PiyaliCoreTests/MemorySourcePolicyTests.swift": "c4c37d65ae6692000bef69dd55c26ebc74a0eb3fea318c29016d39aac5c72456",
+    "Tests/PiyaliCoreTests/MemoryTests.swift": "7e54d99108d048cbb04e4cb00f2a756b3ccc3ccd472171658a1f2b23a02d1636",
+    "Tests/PiyaliUITests/StandardBodyJourneyTests.swift": "0b6a38a277fc956e2a7944a87baf12937ff1ab8d5fd538c23106b24aecdf2250",
+    "scripts/export-memory.mjs": "d7729eba7e625721e7521d1b63547ee48b4142e758190a5f7b821807b6579671",
+    "scripts/reference-memory-io.mjs": "dd4cba37f5832877fc0fcfd7470a8095f3d807a3c247c5d42743094eb4190531"
+  }
+}

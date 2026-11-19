@@ -1,0 +1,22 @@
+{
+  "sources": [
+    {
+      "file": "src/components/RPGGame/episodes/legacyScenario.js",
+      "sha256": "9030dbf6f0adfd0f1b8e592525ebee84a549849c61a4d101fbf6eb5b1e950327"
+    },
+    {
+      "file": "src/components/RPGGame/index.jsx",
+      "sha256": "f597e8f7a9296ff3f72fad4e6f24ca4a1a313fddbc87ba3cf2d128c1d6ea95a2"
+    },
+    {
+      "file": "src/constants/languages.js",
+      "sha256": "02cb1507cb2ee1b5822ac4dd98cd7faf3e67a5101a13dd6c93826f553201ab32"
+    },
+    {
+      "file": "src/utils/dialogueFormatting.js",
+      "sha256": "432c25a5a350cb801b4eb23d82e78a69ab25a132608ae5e36e9acd0deb65cc6a"
+    }
+  ],
+  "cases": 360,
+  "adapters": "Original preparation prompt block, cache key/schema, parser, validator, script guards and applyPreparedBeats, plus original authored speech-turn prompt and loose JSON parser. Native dictionary snapshots use canonical key ordering. Original language names and dialogue formatter are pure imports; flag components are inert. Providers, localStorage, React and stores never execute. Native code owns account/support-scoped caching, cancellation, Nostr/Firebase authentication and saved run receipts."
+}

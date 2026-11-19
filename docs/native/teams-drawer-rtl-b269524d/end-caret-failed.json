@@ -1,0 +1,49 @@
+{
+  "devicesAndConfigurations" : [
+    {
+      "device" : {
+        "architecture" : "arm64",
+        "deviceId" : "CE8248B6-7171-4FD4-97DE-89E499107F82",
+        "deviceName" : "Piyali Parity QA",
+        "modelName" : "iPhone 17 Pro",
+        "osBuildNumber" : "23E254a",
+        "osVersion" : "26.4.1",
+        "platform" : "iOS Simulator"
+      },
+      "expectedFailures" : 0,
+      "failedTests" : 1,
+      "passedTests" : 3,
+      "skippedTests" : 0,
+      "testPlanConfiguration" : {
+        "configurationId" : "1",
+        "configurationName" : "Test Scheme Action"
+      }
+    }
+  ],
+  "environmentDescription" : "Piyali · Built with macOS 26.4.1",
+  "expectedFailures" : 0,
+  "failedTests" : 1,
+  "finishTime" : 1793969452.85,
+  "passedTests" : 3,
+  "result" : "Failed",
+  "skippedTests" : 0,
+  "startTime" : 1793969058.777,
+  "statistics" : [
+
+  ],
+  "testFailures" : [
+    {
+      "failureText" : "XCTAssertTrue failed - Clear the existing value from its text end",
+      "targetName" : "PiyaliUITests",
+      "testIdentifier" : 4,
+      "testIdentifierString" : "TeamsTests/testArabicSettingsThenCreateRenameAddAndPrivateRelaunchUsesMirroredNativeTeamsControls()",
+      "testIdentifierURL" : "test://com.apple.xcode/Piyali/PiyaliUITests/TeamsTests/testArabicSettingsThenCreateRenameAddAndPrivateRelaunchUsesMirroredNativeTeamsControls",
+      "testName" : "testArabicSettingsThenCreateRenameAddAndPrivateRelaunchUsesMirroredNativeTeamsControls()"
+    }
+  ],
+  "title" : "Test - Piyali",
+  "topInsights" : [
+
+  ],
+  "totalTestCount" : 4
+}

@@ -1,0 +1,198 @@
+import XCTest
+
+@MainActor final class SubscriptionJourneyTests:XCTestCase {
+ private func reveal(_ element:XCUIElement,_ app:XCUIApplication){for _ in 0..<8 where !element.isHittable{app.swipeUp(velocity:.slow)};XCTAssertTrue(element.isHittable,element.identifier)}
+ private func tap(_ id:String,_ app:XCUIApplication){let button=app.buttons[id];XCTAssertTrue(button.waitForExistence(timeout:15),id);reveal(button,app);button.tap()}
+ private func photo(_ name:String,_ app:XCUIApplication){let shot=XCTAttachment(screenshot:app.screenshot());shot.name=name;shot.lifetime = .keepAlways;add(shot)}
+ private func open(_ app:XCUIApplication){tap("productMenu",app);tap("productPanel-settings",app);tap("settingsTab-subscription",app)}
+ private func safariDone(_ app:XCUIApplication,title:String)->Bool{let heading=app.webViews.staticTexts[title];guard heading.waitForExistence(timeout:20) else{let tree=XCTAttachment(string:app.debugDescription);tree.name="Subscription browser tree";tree.lifetime = .keepAlways;add(tree);XCTFail("Inert membership browser must load");return false};photo(title,app);let done=app.buttons.matching(NSPredicate(format:"label IN %@",["Done","Close"])).firstMatch;guard done.waitForExistence(timeout:10) else{let tree=XCTAttachment(string:app.debugDescription);tree.name="Subscription browser dismiss tree";tree.lifetime = .keepAlways;add(tree);XCTFail("Safari return control must exist");return false};done.tap();return true}
+
+ func testExpiredMembershipRefreshReturnsFromSafariToConfirmedStatus() async throws {
+  continueAfterFailure = false
+  let server = LocalMembershipServer()
+  try await server.start()
+  defer { server.stop() }
+  let expired: [String: Any] = ["authorized": false, "linked": true, "configured": true, "subscription": ["status": "expired"]]
+  server.status(expired)
+  let app = XCUIApplication()
+  app.launchEnvironment = ["PIYALI_OFFLINE_TESTS": "1", "PIYALI_TEST_IDENTITY_SCOPE": UUID().uuidString,
+                           "PIYALI_SETTINGS_FIXTURE": "1", "PIYALI_SUBSCRIPTION_TEST_URL": server.url]
+  app.launchArguments = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US", "-piyali.interfaceLanguage", "en"]
+  app.launch()
+  handleInitialPaperPencil(app)
+  let name = app.textFields["entryName"]
+  XCTAssertTrue(name.waitForExistence(timeout: 15))
+  name.tap()
+  name.typeText("Returning Learner")
+  tap("entryKeyboardDone", app)
+  tap("createAccount", app)
+  handleInitialPaperPencil(app)
+  tap("startLearning", app)
+  open(app)
+  XCTAssertTrue(app.buttons["subscriptionReconnect"].waitForExistence(timeout: 15))
+
+  for restored in [false, true] {
+   let before = server.requests().count
+   tap("settingsSubscriptionRefresh", app)
+   let heading = app.webViews.staticTexts["Local membership authorization"]
+   guard heading.waitForExistence(timeout: 15) else { XCTFail("Refresh should reconnect an expired membership"); return }
+   server.status(restored ? ["authorized": true, "linked": true, "configured": true, "subscription": ["status": "active"]] : expired)
+   guard safariDone(app, title: "Local membership authorization") else { return }
+   if restored {
+    let refreshed = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+     server.requests().dropFirst(before).contains {
+      ($0["path"] as? String)?.hasSuffix("/refresh-status") == true &&
+      ($0["headers"] as? String)?.contains("auth-session.local-fixture") == true
+     }
+    }, object: nil)
+    XCTAssertEqual(XCTWaiter.wait(for: [refreshed], timeout: 12), .completed)
+    XCTAssertTrue(app.staticTexts["Active membership"].waitForExistence(timeout: 10))
+   } else {
+    XCTAssertTrue(app.staticTexts["Membership inactive"].waitForExistence(timeout: 10))
+    XCTAssertTrue(app.buttons["subscriptionReconnect"].exists)
+    XCTAssertFalse(app.buttons["subscriptionCheckout"].exists)
+    XCTAssertFalse(server.requests().dropFirst(before).contains { ($0["path"] as? String)?.hasSuffix("/refresh-status") == true })
+   }
+  }
+ }
+
+ func testRecoveryCancellationUsesBrowserCookieAndVerifiesReturn()async throws{
+  continueAfterFailure=false;let server=LocalMembershipServer();try await server.start();defer{server.stop()};server.status(["authorized":false,"linked":false,"configured":true,"replacementRequired":true])
+  let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_SETTINGS_FIXTURE":"1","PIYALI_SUBSCRIPTION_TEST_URL":server.url];app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en"];app.launch();handleInitialPaperPencil(app)
+  let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Recovery Learner");tap("entryKeyboardDone",app);tap("createAccount",app);handleInitialPaperPencil(app);tap("startLearning",app);open(app)
+  XCTAssertTrue(app.buttons["subscriptionReplacementCancel"].waitForExistence(timeout:15));tap("subscriptionReplacementCancel",app)
+  let before=server.requests().filter{($0["path"] as? String)?.hasSuffix("/key-status") == true}.count
+  guard safariDone(app,title:"Local recovery confirmation") else{return}
+  let returned=XCTNSPredicateExpectation(predicate:NSPredicate{_,_ in server.requests().filter{($0["path"] as? String)?.hasSuffix("/key-status") == true}.count > before},object:nil);XCTAssertEqual(XCTWaiter.wait(for:[returned],timeout:10),.completed)
+  XCTAssertTrue(app.buttons["subscriptionReplacementCancel"].waitForExistence(timeout:10));XCTAssertFalse(server.requests().contains{($0["path"] as? String)?.hasSuffix("/cancel-replacement") == true})
+  tap("subscriptionReplacementCancel",app);let cancel=app.webViews.buttons["Cancel replacement"];XCTAssertTrue(cancel.waitForExistence(timeout:15));cancel.tap();guard safariDone(app,title:"Local recovery cancelled") else{return}
+  XCTAssertTrue(app.buttons["subscriptionConnect"].waitForExistence(timeout:15),app.debugDescription);XCTAssertFalse(app.buttons["subscriptionReplace"].exists);photo("Native verified cancelled recovery",app)
+  let calls=server.requests(),posts=calls.filter{($0["path"] as? String)?.hasSuffix("/cancel-replacement") == true};XCTAssertEqual(posts.count,1);XCTAssertTrue((posts.first?["headers"] as? String ?? "").contains("__session=oauth-recovery.local-fixture"))
+ }
+ func testNativePurchaseToolsWebLinkOpensCheckout() async throws {
+  continueAfterFailure=false
+  let server=LocalMembershipServer()
+  try await server.start()
+  defer{server.stop()}
+  let app=XCUIApplication()
+  app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_SETTINGS_FIXTURE":"1","PIYALI_SUBSCRIPTION_TEST_URL":server.url]
+  app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"]
+  app.launch()
+  handleInitialPaperPencil(app)
+  let name=app.textFields["entryName"]
+  XCTAssertTrue(name.waitForExistence(timeout:15))
+  name.tap()
+  name.typeText("Checkout Learner")
+  tap("entryKeyboardDone",app)
+  tap("createAccount",app)
+  handleInitialPaperPencil(app)
+  tap("startLearning",app)
+  open(app)
+  tap("subscriptionNativeTools",app)
+  let link=app.descendants(matching:.any).matching(identifier:"subscriptionWebLink").firstMatch
+  XCTAssertTrue(link.waitForExistence(timeout:10))
+  reveal(link,app)
+  link.tap()
+
+  let checkout=NSPredicate { _,_ in
+   server.requests().contains { $0["path"] as? String == "/checkout" }
+  }
+  await fulfillment(of:[expectation(for:checkout,evaluatedWith:nil)],timeout:20)
+  XCTAssertFalse(server.requests().contains { $0["path"] as? String == "/subscribe" })
+  app.activate()
+  XCTAssertTrue(app.navigationBars["Subscription"].waitForExistence(timeout:10))
+ }
+ func testUnconfirmedSafariReturnKeepsConnectAndCheckoutAvailable()async throws{
+  continueAfterFailure=false
+  let server=LocalMembershipServer(authorizationRequiresCheckout:false)
+  try await server.start()
+  defer{server.stop()}
+  let app=XCUIApplication()
+  app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,
+                         "PIYALI_SETTINGS_FIXTURE":"1","PIYALI_SUBSCRIPTION_TEST_URL":server.url]
+  app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en"]
+  app.launch()
+  handleInitialPaperPencil(app)
+  let name=app.textFields["entryName"]
+  XCTAssertTrue(name.waitForExistence(timeout:15))
+  name.tap()
+  name.typeText("Returning Learner")
+  tap("entryKeyboardDone",app)
+  tap("createAccount",app)
+  handleInitialPaperPencil(app)
+  tap("startLearning",app)
+  open(app)
+  XCTAssertFalse(app.buttons["subscriptionCheckout"].exists)
+  tap("subscriptionConnect",app)
+  guard safariDone(app,title:"Local membership authorization") else{return}
+  let feedback=app.staticTexts["subscriptionFeedback"]
+  XCTAssertTrue(feedback.waitForExistence(timeout:15))
+  XCTAssertTrue(feedback.label.contains("Patreon"))
+  XCTAssertTrue(app.buttons["subscriptionConnect"].exists)
+  XCTAssertTrue(app.buttons["subscriptionCheckout"].exists)
+  XCTAssertFalse(app.buttons["subscriptionCheckAgain"].exists)
+  XCTAssertFalse(app.buttons["subscriptionManage"].exists)
+  reveal(feedback,app)
+  photo("Native unconfirmed Patreon return offers both actions",app)
+  tap("subscriptionCheckout",app)
+  guard safariDone(app,title:"Local checkout completed") else{return}
+  XCTAssertTrue(app.staticTexts["Active membership"].waitForExistence(timeout:15))
+  XCTAssertFalse(feedback.exists)
+  let paths=server.requests().compactMap{$0["path"] as? String}
+  XCTAssertEqual(paths.filter{$0 == "/checkout"}.count,1)
+  XCTAssertGreaterThanOrEqual(paths.filter{$0.hasSuffix("/key-status")}.count,3)
+ }
+
+ func testExpiredDisconnectKeepsItsLinkUntilAnAuthenticatedConfirmation()async throws{
+  continueAfterFailure=false
+  let server=LocalMembershipServer()
+  try await server.start()
+  defer{server.stop()}
+  server.status(["authorized":false,"linked":true,"configured":true,"subscription":["status":"expired"]])
+  let app=XCUIApplication()
+  app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,
+                         "PIYALI_SETTINGS_FIXTURE":"1","PIYALI_SUBSCRIPTION_TEST_URL":server.url]
+  app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en"]
+  app.launch()
+  handleInitialPaperPencil(app)
+  let name=app.textFields["entryName"]
+  XCTAssertTrue(name.waitForExistence(timeout:15))
+  name.tap()
+  name.typeText("Expired Member")
+  tap("entryKeyboardDone",app)
+  tap("createAccount",app)
+  handleInitialPaperPencil(app)
+  tap("startLearning",app)
+  open(app)
+  XCTAssertTrue(app.staticTexts["Membership inactive"].waitForExistence(timeout:15))
+  tap("subscriptionAskDisconnect",app)
+  tap("subscriptionDisconnectConfirm",app)
+  let feedback=app.staticTexts["subscriptionFeedback"]
+  XCTAssertTrue(feedback.waitForExistence(timeout:10))
+  XCTAssertEqual(feedback.label,app.buttons["subscriptionReconnect"].label)
+  XCTAssertTrue(app.buttons["subscriptionDisconnectConfirm"].exists)
+  XCTAssertTrue(app.staticTexts["Membership inactive"].exists)
+  XCTAssertFalse(server.requests().contains{($0["path"] as? String)?.hasSuffix("/disconnect") == true})
+  reveal(feedback,app)
+  photo("Expired membership disconnect retains link and offers Patreon reconnection",app)
+
+  server.status(["authorized":true,"linked":true,"configured":true,"subscription":["status":"active"]])
+  tap("subscriptionDisconnectConfirm",app)
+  XCTAssertTrue(app.buttons["subscriptionConnect"].waitForExistence(timeout:15))
+  XCTAssertFalse(feedback.exists)
+  let attempts=server.requests().filter{($0["path"] as? String)?.hasSuffix("/disconnect") == true}
+  XCTAssertEqual(attempts.count,1)
+  XCTAssertTrue((attempts.first?["headers"] as? String ?? "").contains("__session=auth-session.local-fixture"))
+ }
+
+ func testSettingsConnectCheckoutStatusDisconnectAndRelaunch()async throws{
+  continueAfterFailure=false;let server=LocalMembershipServer();try await server.start();defer{server.stop()};let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_SETTINGS_FIXTURE":"1","PIYALI_SUBSCRIPTION_TEST_URL":server.url];app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"];app.launch();handleInitialPaperPencil(app)
+  let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Membership Learner");tap("entryKeyboardDone",app);tap("createAccount",app);handleInitialPaperPencil(app);tap("startLearning",app);open(app);XCTAssertTrue(app.buttons["subscriptionConnect"].waitForExistence(timeout:15));photo("Native subscription offer in Settings",app)
+  tap("subscriptionConnect",app);guard safariDone(app,title:"Local membership authorization") else{return};guard app.buttons["subscriptionCheckout"].waitForExistence(timeout:15) else{let tree=XCTAttachment(string:app.debugDescription);tree.name="Missing native checkout control";tree.lifetime = .keepAlways;add(tree);XCTFail("Checkout must be accessible after Safari returns");return};photo("Native subscription awaiting checkout",app);tap("subscriptionCheckout",app);guard safariDone(app,title:"Local checkout completed") else{return};XCTAssertTrue(app.buttons["subscriptionManage"].waitForExistence(timeout:15));photo("Native subscription active membership",app)
+  let resumedAfter=server.requests().count;XCUIDevice.shared.press(.home);app.activate();XCTAssertTrue(app.buttons["subscriptionManage"].waitForExistence(timeout:15));let resumed=XCTNSPredicateExpectation(predicate:NSPredicate{_,_ in server.requests().dropFirst(resumedAfter).contains{($0["path"] as? String)?.hasSuffix("/status") == true && ($0["headers"] as? String)?.hasPrefix("GET ") == true}},object:nil);XCTAssertEqual(XCTWaiter.wait(for:[resumed],timeout:10),.completed);photo("Native subscription active after foreground resume",app)
+  server.forceStatus(["authorized":false,"linked":true,"configured":true,"subscription":["status":"payment_issue","entitledAmountCents":800]]);tap("settingsSubscriptionRefresh",app);XCTAssertTrue(app.buttons["subscriptionPayment"].waitForExistence(timeout:15));photo("Native subscription payment issue",app)
+  tap("subscriptionAskDisconnect",app);XCTAssertTrue(app.buttons["subscriptionDisconnectConfirm"].waitForExistence(timeout:5));photo("Native subscription disconnect confirmation",app);tap("subscriptionDisconnectCancel",app);XCTAssertFalse(app.buttons["subscriptionDisconnectConfirm"].exists);XCTAssertTrue(app.buttons["subscriptionManage"].exists);tap("subscriptionAskDisconnect",app);tap("subscriptionDisconnectConfirm",app);XCTAssertTrue(app.buttons["subscriptionConnect"].waitForExistence(timeout:15));XCTAssertFalse(app.buttons["subscriptionManage"].exists)
+  tap("productPanelClose",app);app.terminate();app.launch();handleInitialPaperPencil(app);open(app);XCTAssertTrue(app.buttons["subscriptionConnect"].waitForExistence(timeout:15));photo("Native subscription disconnected after relaunch",app)
+  let requests=server.requests(),signed=requests.filter{($0["body"] as? [String:Any])?["signedEvent"] != nil};XCTAssertTrue(signed.contains{($0["path"] as? String)?.hasSuffix("/disconnect") == true});XCTAssertTrue(signed.contains{($0["path"] as? String)?.hasSuffix("/link-start") == true});XCTAssertFalse(String(describing:requests).contains("nsec1"));XCTAssertTrue(requests.contains{($0["path"] as? String)?.hasSuffix("/refresh-status") == true && ($0["headers"] as? String)?.contains("auth-session.local-fixture") == true})
+ }
+}

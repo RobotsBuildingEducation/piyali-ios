@@ -1,0 +1,8 @@
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliUITests/TeamsTests.swift:48:40: error: cannot find 'holdOnlyMembers' in scope
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliUITests/TeamsTests.swift:49:47: error: cannot find 'holdOnlyMembers' in scope
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliUITests/TeamsTests.swift:50:146: error: cannot find 'held' in scope
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliUITests/TeamsTests.swift:50:151: error: cannot find 'held' in scope
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliUITests/TeamsTests.swift:220:53: error: value of type 'StreamedRosterRelay' has no member 'armMembers'
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliUITests/TeamsTests.swift:223:15: error: value of type 'StreamedRosterRelay' has no member 'releaseCurrent'
+Testing failed:
+** TEST FAILED **

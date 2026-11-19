@@ -1,0 +1,740 @@
+[
+  {
+    "name": "vocabulary",
+    "input": {
+      "targetLang": "es",
+      "supportLang": "en",
+      "sourceMode": "vocabulary",
+      "concept": "Match the items:",
+      "userAnswer": "hola → goodbye",
+      "expectedAnswer": "Check the correct pairings",
+      "cefrLevel": "A1",
+      "gradedOutcome": false,
+      "npub": "public-goal-learner"
+    },
+    "focus": {
+      "npub": "public-goal-learner",
+      "targetLang": "es",
+      "blueprint": {
+        "goalId": "goal-memory",
+        "dayKey": "2026-11-05",
+        "lang": "es",
+        "mode": "lesson",
+        "modes": [
+          "lesson",
+          "tutor"
+        ]
+      }
+    },
+    "route": "goal",
+    "event": {
+      "id": "goal-slip:1793880000000:vocabulary",
+      "goalId": "goal-memory",
+      "target": "Match the items:",
+      "observation": "hola → goodbye",
+      "expectedAnswer": "Check the correct pairings",
+      "mode": "lesson",
+      "domain": "vocabulary",
+      "success": false,
+      "support": "prompted"
+    },
+    "summary": {
+      "version": 1,
+      "demonstrated": [],
+      "openCapabilities": [
+        {
+          "target": "Match the items:",
+          "example": "hola → goodbye",
+          "stage": "prompted",
+          "demonstratedStage": "production with help",
+          "mode": "lesson",
+          "domain": "vocabulary",
+          "recurrence": 1,
+          "severity": 1,
+          "lastSeen": "2026-11-05T12:00:00.000Z"
+        }
+      ],
+      "usefulLanguage": [
+        "Check the correct pairings"
+      ],
+      "modeEvidence": [
+        "lesson: needs practice — Match the items:"
+      ],
+      "nextGoalGuidance": {
+        "target": "Match the items:",
+        "support": "Model, then elicit a fresh response",
+        "avoid": "Do not count exposure as success"
+      },
+      "eventIds": [
+        "goal-slip:1793880000000:vocabulary"
+      ],
+      "updatedAt": "2026-11-05T12:00:00.000Z",
+      "prose": "Match the items:: hola → goodbye (prompted, lesson, vocabulary; occurrences 1; 2026-11-05T12:00:00.000Z); Check the correct pairings; lesson: needs practice — Match the items:; Match the items:; Model, then elicit a fresh response; Do not count exposure as success",
+      "wordCount": 38
+    },
+    "now": "2026-11-05T12:00:00.000Z"
+  },
+  {
+    "name": "grammar",
+    "input": {
+      "targetLang": "es",
+      "supportLang": "en",
+      "sourceMode": "grammar",
+      "concept": "Use agreement",
+      "userAnswer": "Yo somos",
+      "expectedAnswer": "Yo soy",
+      "cefrLevel": "A1",
+      "gradedOutcome": false,
+      "npub": "public-goal-learner"
+    },
+    "focus": {
+      "npub": "public-goal-learner",
+      "targetLang": "es",
+      "blueprint": {
+        "goalId": "goal-memory",
+        "dayKey": "2026-11-05",
+        "lang": "es",
+        "mode": "lesson",
+        "modes": [
+          "lesson",
+          "tutor"
+        ]
+      }
+    },
+    "route": "goal",
+    "event": {
+      "id": "goal-slip:1793880000000:grammar",
+      "goalId": "goal-memory",
+      "target": "Use agreement",
+      "observation": "Yo somos",
+      "expectedAnswer": "Yo soy",
+      "mode": "lesson",
+      "domain": "grammar",
+      "success": false,
+      "support": "prompted"
+    },
+    "summary": {
+      "version": 1,
+      "demonstrated": [],
+      "openCapabilities": [
+        {
+          "target": "Use agreement",
+          "example": "Yo somos",
+          "stage": "prompted",
+          "demonstratedStage": "production with help",
+          "mode": "lesson",
+          "domain": "grammar",
+          "recurrence": 1,
+          "severity": 1,
+          "lastSeen": "2026-11-05T12:00:00.000Z"
+        }
+      ],
+      "usefulLanguage": [
+        "Yo soy"
+      ],
+      "modeEvidence": [
+        "lesson: needs practice — Use agreement"
+      ],
+      "nextGoalGuidance": {
+        "target": "Use agreement",
+        "support": "Model, then elicit a fresh response",
+        "avoid": "Do not count exposure as success"
+      },
+      "eventIds": [
+        "goal-slip:1793880000000:grammar"
+      ],
+      "updatedAt": "2026-11-05T12:00:00.000Z",
+      "prose": "Use agreement: Yo somos (prompted, lesson, grammar; occurrences 1; 2026-11-05T12:00:00.000Z); Yo soy; lesson: needs practice — Use agreement; Use agreement; Model, then elicit a fresh response; Do not count exposure as success",
+      "wordCount": 32
+    },
+    "now": "2026-11-05T12:00:00.000Z"
+  },
+  {
+    "name": "reading",
+    "input": {
+      "targetLang": "es",
+      "supportLang": "en",
+      "sourceMode": "reading",
+      "concept": "Where is Ana?",
+      "userAnswer": "The park",
+      "expectedAnswer": "At home",
+      "cefrLevel": "A1",
+      "gradedOutcome": false,
+      "npub": "public-goal-learner"
+    },
+    "focus": {
+      "npub": "public-goal-learner",
+      "targetLang": "es",
+      "blueprint": {
+        "goalId": "goal-memory",
+        "dayKey": "2026-11-05",
+        "lang": "es",
+        "mode": "lesson",
+        "modes": [
+          "lesson",
+          "tutor"
+        ]
+      }
+    },
+    "route": "goal",
+    "event": {
+      "id": "goal-slip:1793880000000:reading",
+      "goalId": "goal-memory",
+      "target": "Where is Ana?",
+      "observation": "The park",
+      "expectedAnswer": "At home",
+      "mode": "lesson",
+      "domain": "reading",
+      "success": false,
+      "support": "prompted"
+    },
+    "summary": {
+      "version": 1,
+      "demonstrated": [],
+      "openCapabilities": [
+        {
+          "target": "Where is Ana?",
+          "example": "The park",
+          "stage": "prompted",
+          "demonstratedStage": "production with help",
+          "mode": "lesson",
+          "domain": "reading",
+          "recurrence": 1,
+          "severity": 1,
+          "lastSeen": "2026-11-05T12:00:00.000Z"
+        }
+      ],
+      "usefulLanguage": [
+        "At home"
+      ],
+      "modeEvidence": [
+        "lesson: needs practice — Where is Ana?"
+      ],
+      "nextGoalGuidance": {
+        "target": "Where is Ana?",
+        "support": "Model, then elicit a fresh response",
+        "avoid": "Do not count exposure as success"
+      },
+      "eventIds": [
+        "goal-slip:1793880000000:reading"
+      ],
+      "updatedAt": "2026-11-05T12:00:00.000Z",
+      "prose": "Where is Ana?: The park (prompted, lesson, reading; occurrences 1; 2026-11-05T12:00:00.000Z); At home; lesson: needs practice — Where is Ana?; Where is Ana?; Model, then elicit a fresh response; Do not count exposure as success",
+      "wordCount": 35
+    },
+    "now": "2026-11-05T12:00:00.000Z"
+  },
+  {
+    "name": "story",
+    "input": {
+      "targetLang": "es",
+      "supportLang": "en",
+      "sourceMode": "story",
+      "concept": "Hola, mamá.",
+      "userAnswer": "Adiós",
+      "expectedAnswer": "Hola, mamá.",
+      "cefrLevel": "A1",
+      "gradedOutcome": false,
+      "npub": "public-goal-learner"
+    },
+    "focus": {
+      "npub": "public-goal-learner",
+      "targetLang": "es",
+      "blueprint": {
+        "goalId": "goal-memory",
+        "dayKey": "2026-11-05",
+        "lang": "es",
+        "mode": "lesson",
+        "modes": [
+          "lesson",
+          "tutor"
+        ]
+      }
+    },
+    "route": "goal",
+    "event": {
+      "id": "goal-slip:1793880000000:story",
+      "goalId": "goal-memory",
+      "target": "Hola, mamá.",
+      "observation": "Adiós",
+      "expectedAnswer": "Hola, mamá.",
+      "mode": "lesson",
+      "domain": "story",
+      "success": false,
+      "support": "prompted"
+    },
+    "summary": {
+      "version": 1,
+      "demonstrated": [],
+      "openCapabilities": [
+        {
+          "target": "Hola, mamá.",
+          "example": "Adiós",
+          "stage": "prompted",
+          "demonstratedStage": "production with help",
+          "mode": "lesson",
+          "domain": "story",
+          "recurrence": 1,
+          "severity": 1,
+          "lastSeen": "2026-11-05T12:00:00.000Z"
+        }
+      ],
+      "usefulLanguage": [
+        "Hola, mamá."
+      ],
+      "modeEvidence": [
+        "lesson: needs practice — Hola, mamá."
+      ],
+      "nextGoalGuidance": {
+        "target": "Hola, mamá.",
+        "support": "Model, then elicit a fresh response",
+        "avoid": "Do not count exposure as success"
+      },
+      "eventIds": [
+        "goal-slip:1793880000000:story"
+      ],
+      "updatedAt": "2026-11-05T12:00:00.000Z",
+      "prose": "Hola, mamá.: Adiós (prompted, lesson, story; occurrences 1; 2026-11-05T12:00:00.000Z); Hola, mamá.; lesson: needs practice — Hola, mamá.; Hola, mamá.; Model, then elicit a fresh response; Do not count exposure as success",
+      "wordCount": 31
+    },
+    "now": "2026-11-05T12:00:00.000Z"
+  },
+  {
+    "name": "conversation-explicit-npub",
+    "input": {
+      "targetLang": "es",
+      "supportLang": "en",
+      "sourceMode": "conversation",
+      "concept": "Greet a relative",
+      "userAnswer": "No sé",
+      "expectedAnswer": "Hola",
+      "cefrLevel": "A1",
+      "gradedOutcome": false,
+      "npub": "public-goal-learner"
+    },
+    "focus": {
+      "npub": "public-goal-learner",
+      "targetLang": "es",
+      "blueprint": {
+        "goalId": "goal-memory",
+        "dayKey": "2026-11-05",
+        "lang": "es",
+        "mode": "lesson",
+        "modes": [
+          "lesson",
+          "tutor"
+        ]
+      }
+    },
+    "route": "goal",
+    "event": {
+      "id": "goal-slip:1793880000000:conversation",
+      "goalId": "goal-memory",
+      "target": "Greet a relative",
+      "observation": "No sé",
+      "expectedAnswer": "Hola",
+      "mode": "lesson",
+      "domain": "conversation",
+      "success": false,
+      "support": "prompted"
+    },
+    "summary": {
+      "version": 1,
+      "demonstrated": [],
+      "openCapabilities": [
+        {
+          "target": "Greet a relative",
+          "example": "No sé",
+          "stage": "prompted",
+          "demonstratedStage": "production with help",
+          "mode": "lesson",
+          "domain": "conversation",
+          "recurrence": 1,
+          "severity": 1,
+          "lastSeen": "2026-11-05T12:00:00.000Z"
+        }
+      ],
+      "usefulLanguage": [
+        "Hola"
+      ],
+      "modeEvidence": [
+        "lesson: needs practice — Greet a relative"
+      ],
+      "nextGoalGuidance": {
+        "target": "Greet a relative",
+        "support": "Model, then elicit a fresh response",
+        "avoid": "Do not count exposure as success"
+      },
+      "eventIds": [
+        "goal-slip:1793880000000:conversation"
+      ],
+      "updatedAt": "2026-11-05T12:00:00.000Z",
+      "prose": "Greet a relative: No sé (prompted, lesson, conversation; occurrences 1; 2026-11-05T12:00:00.000Z); Hola; lesson: needs practice — Greet a relative; Greet a relative; Model, then elicit a fresh response; Do not count exposure as success",
+      "wordCount": 34
+    },
+    "now": "2026-11-05T12:00:00.000Z"
+  },
+  {
+    "name": "empty-answer",
+    "input": {
+      "targetLang": "es",
+      "supportLang": "en",
+      "sourceMode": "grammar",
+      "concept": "A mystery word",
+      "userAnswer": "",
+      "expectedAnswer": "paraguas",
+      "cefrLevel": "A1",
+      "gradedOutcome": false,
+      "npub": "public-goal-learner"
+    },
+    "focus": {
+      "npub": "public-goal-learner",
+      "targetLang": "es",
+      "blueprint": {
+        "goalId": "goal-memory",
+        "dayKey": "2026-11-05",
+        "lang": "es",
+        "mode": "lesson",
+        "modes": [
+          "lesson",
+          "tutor"
+        ]
+      }
+    },
+    "route": "goal",
+    "event": {
+      "id": "goal-slip:1793880000000:grammar",
+      "goalId": "goal-memory",
+      "target": "A mystery word",
+      "observation": "",
+      "expectedAnswer": "paraguas",
+      "mode": "lesson",
+      "domain": "grammar",
+      "success": false,
+      "support": "prompted"
+    },
+    "summary": {
+      "version": 1,
+      "demonstrated": [],
+      "openCapabilities": [
+        {
+          "target": "A mystery word",
+          "example": "paraguas",
+          "stage": "prompted",
+          "demonstratedStage": "production with help",
+          "mode": "lesson",
+          "domain": "grammar",
+          "recurrence": 1,
+          "severity": 1,
+          "lastSeen": "2026-11-05T12:00:00.000Z"
+        }
+      ],
+      "usefulLanguage": [
+        "paraguas"
+      ],
+      "modeEvidence": [
+        "lesson: needs practice — A mystery word"
+      ],
+      "nextGoalGuidance": {
+        "target": "A mystery word",
+        "support": "Model, then elicit a fresh response",
+        "avoid": "Do not count exposure as success"
+      },
+      "eventIds": [
+        "goal-slip:1793880000000:grammar"
+      ],
+      "updatedAt": "2026-11-05T12:00:00.000Z",
+      "prose": "A mystery word: paraguas (prompted, lesson, grammar; occurrences 1; 2026-11-05T12:00:00.000Z); paraguas; lesson: needs practice — A mystery word; A mystery word; Model, then elicit a fresh response; Do not count exposure as success",
+      "wordCount": 33
+    },
+    "now": "2026-11-05T12:00:00.000Z"
+  },
+  {
+    "name": "whitespace-answer",
+    "input": {
+      "targetLang": "es",
+      "supportLang": "en",
+      "sourceMode": "grammar",
+      "concept": "A mystery word",
+      "userAnswer": " ",
+      "expectedAnswer": "paraguas",
+      "cefrLevel": "A1",
+      "gradedOutcome": false,
+      "npub": "public-goal-learner"
+    },
+    "focus": {
+      "npub": "public-goal-learner",
+      "targetLang": "es",
+      "blueprint": {
+        "goalId": "goal-memory",
+        "dayKey": "2026-11-05",
+        "lang": "es",
+        "mode": "lesson",
+        "modes": [
+          "lesson",
+          "tutor"
+        ]
+      }
+    },
+    "route": "goal",
+    "event": {
+      "id": "goal-slip:1793880000000:grammar",
+      "goalId": "goal-memory",
+      "target": "A mystery word",
+      "observation": " ",
+      "expectedAnswer": "paraguas",
+      "mode": "lesson",
+      "domain": "grammar",
+      "success": false,
+      "support": "prompted"
+    },
+    "summary": {
+      "version": 1,
+      "demonstrated": [],
+      "openCapabilities": [
+        {
+          "target": "A mystery word",
+          "example": "",
+          "stage": "prompted",
+          "demonstratedStage": "production with help",
+          "mode": "lesson",
+          "domain": "grammar",
+          "recurrence": 1,
+          "severity": 1,
+          "lastSeen": "2026-11-05T12:00:00.000Z"
+        }
+      ],
+      "usefulLanguage": [
+        "paraguas"
+      ],
+      "modeEvidence": [
+        "lesson: needs practice — A mystery word"
+      ],
+      "nextGoalGuidance": {
+        "target": "A mystery word",
+        "support": "Model, then elicit a fresh response",
+        "avoid": "Do not count exposure as success"
+      },
+      "eventIds": [
+        "goal-slip:1793880000000:grammar"
+      ],
+      "updatedAt": "2026-11-05T12:00:00.000Z",
+      "prose": "A mystery word: (prompted, lesson, grammar; occurrences 1; 2026-11-05T12:00:00.000Z); paraguas; lesson: needs practice — A mystery word; A mystery word; Model, then elicit a fresh response; Do not count exposure as success",
+      "wordCount": 32
+    },
+    "now": "2026-11-05T12:00:00.000Z"
+  },
+  {
+    "name": "missing-npub-flashcard",
+    "input": {
+      "targetLang": "es",
+      "supportLang": "en",
+      "sourceMode": "flashcard",
+      "concept": "hola",
+      "userAnswer": "ola",
+      "expectedAnswer": "",
+      "cefrLevel": "A1",
+      "gradedOutcome": false
+    },
+    "focus": {
+      "npub": "public-goal-learner",
+      "targetLang": "es",
+      "blueprint": {
+        "goalId": "goal-memory",
+        "dayKey": "2026-11-05",
+        "lang": "es",
+        "mode": "lesson",
+        "modes": [
+          "lesson",
+          "tutor"
+        ]
+      }
+    },
+    "route": "repairs",
+    "event": null,
+    "summary": null,
+    "now": "2026-11-05T12:00:00.000Z"
+  },
+  {
+    "name": "missing-npub-conversation",
+    "input": {
+      "targetLang": "es",
+      "supportLang": "en",
+      "sourceMode": "conversation",
+      "concept": "Greet a relative",
+      "userAnswer": "No sé",
+      "expectedAnswer": "Hola",
+      "cefrLevel": "A1",
+      "gradedOutcome": false
+    },
+    "focus": {
+      "npub": "public-goal-learner",
+      "targetLang": "es",
+      "blueprint": {
+        "goalId": "goal-memory",
+        "dayKey": "2026-11-05",
+        "lang": "es",
+        "mode": "lesson",
+        "modes": [
+          "lesson",
+          "tutor"
+        ]
+      }
+    },
+    "route": "repairs",
+    "event": null,
+    "summary": null,
+    "now": "2026-11-05T12:00:00.000Z"
+  },
+  {
+    "name": "trimmed-concept",
+    "input": {
+      "targetLang": "es",
+      "supportLang": "en",
+      "sourceMode": "grammar",
+      "concept": "  Use agreement  ",
+      "userAnswer": "Yo somos",
+      "expectedAnswer": "Yo soy",
+      "cefrLevel": "A1",
+      "gradedOutcome": false,
+      "npub": "public-goal-learner"
+    },
+    "focus": {
+      "npub": "public-goal-learner",
+      "targetLang": "es",
+      "blueprint": {
+        "goalId": "goal-memory",
+        "dayKey": "2026-11-05",
+        "lang": "es",
+        "mode": "lesson",
+        "modes": [
+          "lesson",
+          "tutor"
+        ]
+      }
+    },
+    "route": "goal",
+    "event": {
+      "id": "goal-slip:1793880000000:grammar",
+      "goalId": "goal-memory",
+      "target": "  Use agreement  ",
+      "observation": "Yo somos",
+      "expectedAnswer": "Yo soy",
+      "mode": "lesson",
+      "domain": "grammar",
+      "success": false,
+      "support": "prompted"
+    },
+    "summary": {
+      "version": 1,
+      "demonstrated": [],
+      "openCapabilities": [
+        {
+          "target": "Use agreement",
+          "example": "Yo somos",
+          "stage": "prompted",
+          "demonstratedStage": "production with help",
+          "mode": "lesson",
+          "domain": "grammar",
+          "recurrence": 1,
+          "severity": 1,
+          "lastSeen": "2026-11-05T12:00:00.000Z"
+        }
+      ],
+      "usefulLanguage": [
+        "Yo soy"
+      ],
+      "modeEvidence": [
+        "lesson: needs practice — Use agreement"
+      ],
+      "nextGoalGuidance": {
+        "target": "Use agreement",
+        "support": "Model, then elicit a fresh response",
+        "avoid": "Do not count exposure as success"
+      },
+      "eventIds": [
+        "goal-slip:1793880000000:grammar"
+      ],
+      "updatedAt": "2026-11-05T12:00:00.000Z",
+      "prose": "Use agreement: Yo somos (prompted, lesson, grammar; occurrences 1; 2026-11-05T12:00:00.000Z); Yo soy; lesson: needs practice — Use agreement; Use agreement; Model, then elicit a fresh response; Do not count exposure as success",
+      "wordCount": 32
+    },
+    "now": "2026-11-05T12:00:00.000Z"
+  },
+  {
+    "name": "empty-concept",
+    "input": {
+      "targetLang": "es",
+      "supportLang": "en",
+      "sourceMode": "grammar",
+      "concept": "   ",
+      "userAnswer": "wrong",
+      "expectedAnswer": "Hola",
+      "cefrLevel": "A1",
+      "gradedOutcome": false,
+      "npub": "public-goal-learner"
+    },
+    "focus": {
+      "npub": "public-goal-learner",
+      "targetLang": "es",
+      "blueprint": {
+        "goalId": "goal-memory",
+        "dayKey": "2026-11-05",
+        "lang": "es",
+        "mode": "lesson",
+        "modes": [
+          "lesson",
+          "tutor"
+        ]
+      }
+    },
+    "route": "goal",
+    "event": {
+      "id": "goal-slip:1793880000000:grammar",
+      "goalId": "goal-memory",
+      "target": "   ",
+      "observation": "wrong",
+      "expectedAnswer": "Hola",
+      "mode": "lesson",
+      "domain": "grammar",
+      "success": false,
+      "support": "prompted"
+    },
+    "summary": {
+      "version": 1,
+      "demonstrated": [],
+      "openCapabilities": [],
+      "usefulLanguage": [],
+      "modeEvidence": [],
+      "nextGoalGuidance": {
+        "target": "",
+        "support": "",
+        "avoid": ""
+      },
+      "eventIds": [],
+      "updatedAt": "2026-11-05T12:00:00.000Z",
+      "prose": "",
+      "wordCount": 0
+    },
+    "now": "2026-11-05T12:00:00.000Z"
+  },
+  {
+    "name": "ordinary",
+    "input": {
+      "targetLang": "es",
+      "supportLang": "en",
+      "sourceMode": "vocabulary",
+      "concept": "hola",
+      "userAnswer": "ola",
+      "expectedAnswer": "hola",
+      "cefrLevel": "A1",
+      "gradedOutcome": false,
+      "npub": "public-goal-learner"
+    },
+    "focus": null,
+    "route": "repairs",
+    "event": null,
+    "summary": null,
+    "now": "2026-11-05T12:00:00.000Z"
+  }
+]

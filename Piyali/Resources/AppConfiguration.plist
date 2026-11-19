@@ -29,5 +29,9 @@
 	<string>https://piyali-ios-api.robotsbuildingeducation.workers.dev</string>
 	<key>GeminiAPIProvider</key>
 	<string>googleAI</string>
+	<key>RealtimeModel</key>
+	<string>gpt-realtime-2.1-mini</string>
+	<key>RealtimeVoice</key>
+	<string>ash</string>
 </dict>
 </plist>

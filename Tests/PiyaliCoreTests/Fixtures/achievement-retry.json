@@ -1,0 +1,651 @@
+[
+  [
+    {
+      "action": "schedule",
+      "pending": true,
+      "starts": 0,
+      "running": false,
+      "delays": [
+        0
+      ]
+    },
+    {
+      "action": "fire",
+      "pending": true,
+      "starts": 1,
+      "running": true,
+      "delays": []
+    },
+    {
+      "action": "success",
+      "pending": false,
+      "starts": 1,
+      "running": false,
+      "delays": []
+    }
+  ],
+  [
+    {
+      "action": "resume",
+      "pending": true,
+      "starts": 0,
+      "running": false,
+      "delays": [
+        0
+      ]
+    },
+    {
+      "action": "fire",
+      "pending": true,
+      "starts": 1,
+      "running": true,
+      "delays": []
+    },
+    {
+      "action": "failure",
+      "pending": true,
+      "starts": 1,
+      "running": false,
+      "delays": [
+        1000
+      ]
+    },
+    {
+      "action": "fire",
+      "pending": true,
+      "starts": 2,
+      "running": true,
+      "delays": []
+    },
+    {
+      "action": "success",
+      "pending": false,
+      "starts": 2,
+      "running": false,
+      "delays": []
+    }
+  ],
+  [
+    {
+      "action": "schedule",
+      "pending": true,
+      "starts": 0,
+      "running": false,
+      "delays": [
+        0
+      ]
+    },
+    {
+      "action": "schedule",
+      "pending": true,
+      "starts": 0,
+      "running": false,
+      "delays": [
+        0
+      ]
+    },
+    {
+      "action": "fire",
+      "pending": true,
+      "starts": 1,
+      "running": true,
+      "delays": []
+    },
+    {
+      "action": "success",
+      "pending": false,
+      "starts": 1,
+      "running": false,
+      "delays": []
+    }
+  ],
+  [
+    {
+      "action": "schedule",
+      "pending": true,
+      "starts": 0,
+      "running": false,
+      "delays": [
+        0
+      ]
+    },
+    {
+      "action": "fire",
+      "pending": true,
+      "starts": 1,
+      "running": true,
+      "delays": []
+    },
+    {
+      "action": "schedule",
+      "pending": true,
+      "starts": 1,
+      "running": true,
+      "delays": []
+    },
+    {
+      "action": "success",
+      "pending": true,
+      "starts": 1,
+      "running": false,
+      "delays": [
+        0
+      ]
+    },
+    {
+      "action": "fire",
+      "pending": true,
+      "starts": 2,
+      "running": true,
+      "delays": []
+    },
+    {
+      "action": "success",
+      "pending": false,
+      "starts": 2,
+      "running": false,
+      "delays": []
+    }
+  ],
+  [
+    {
+      "action": "resume",
+      "pending": true,
+      "starts": 0,
+      "running": false,
+      "delays": [
+        0
+      ]
+    },
+    {
+      "action": "fire",
+      "pending": true,
+      "starts": 1,
+      "running": true,
+      "delays": []
+    },
+    {
+      "action": "schedule",
+      "pending": true,
+      "starts": 1,
+      "running": true,
+      "delays": []
+    },
+    {
+      "action": "failure",
+      "pending": true,
+      "starts": 1,
+      "running": false,
+      "delays": [
+        1000
+      ]
+    },
+    {
+      "action": "fire",
+      "pending": true,
+      "starts": 2,
+      "running": true,
+      "delays": []
+    },
+    {
+      "action": "success",
+      "pending": false,
+      "starts": 2,
+      "running": false,
+      "delays": []
+    }
+  ],
+  [
+    {
+      "action": "resume",
+      "pending": true,
+      "starts": 0,
+      "running": false,
+      "delays": [
+        0
+      ]
+    },
+    {
+      "action": "pause",
+      "pending": true,
+      "starts": 0,
+      "running": false,
+      "delays": []
+    },
+    {
+      "action": "fire",
+      "pending": true,
+      "starts": 0,
+      "running": false,
+      "delays": []
+    },
+    {
+      "action": "resume",
+      "pending": true,
+      "starts": 0,
+      "running": false,
+      "delays": [
+        0
+      ]
+    },
+    {
+      "action": "fire",
+      "pending": true,
+      "starts": 1,
+      "running": true,
+      "delays": []
+    },
+    {
+      "action": "success",
+      "pending": false,
+      "starts": 1,
+      "running": false,
+      "delays": []
+    }
+  ],
+  [
+    {
+      "action": "resume",
+      "pending": true,
+      "starts": 0,
+      "running": false,
+      "delays": [
+        0
+      ]
+    },
+    {
+      "action": "fire",
+      "pending": true,
+      "starts": 1,
+      "running": true,
+      "delays": []
+    },
+    {
+      "action": "pause",
+      "pending": true,
+      "starts": 1,
+      "running": true,
+      "delays": []
+    },
+    {
+      "action": "success",
+      "pending": false,
+      "starts": 1,
+      "running": false,
+      "delays": []
+    },
+    {
+      "action": "resume",
+      "pending": true,
+      "starts": 1,
+      "running": false,
+      "delays": [
+        0
+      ]
+    },
+    {
+      "action": "fire",
+      "pending": true,
+      "starts": 2,
+      "running": true,
+      "delays": []
+    },
+    {
+      "action": "success",
+      "pending": false,
+      "starts": 2,
+      "running": false,
+      "delays": []
+    }
+  ],
+  [
+    {
+      "action": "resume",
+      "pending": true,
+      "starts": 0,
+      "running": false,
+      "delays": [
+        0
+      ]
+    },
+    {
+      "action": "fire",
+      "pending": true,
+      "starts": 1,
+      "running": true,
+      "delays": []
+    },
+    {
+      "action": "pause",
+      "pending": true,
+      "starts": 1,
+      "running": true,
+      "delays": []
+    },
+    {
+      "action": "failure",
+      "pending": true,
+      "starts": 1,
+      "running": false,
+      "delays": []
+    },
+    {
+      "action": "resume",
+      "pending": true,
+      "starts": 1,
+      "running": false,
+      "delays": [
+        0
+      ]
+    },
+    {
+      "action": "fire",
+      "pending": true,
+      "starts": 2,
+      "running": true,
+      "delays": []
+    },
+    {
+      "action": "success",
+      "pending": false,
+      "starts": 2,
+      "running": false,
+      "delays": []
+    }
+  ],
+  [
+    {
+      "action": "resume",
+      "pending": true,
+      "starts": 0,
+      "running": false,
+      "delays": [
+        0
+      ]
+    },
+    {
+      "action": "fire",
+      "pending": true,
+      "starts": 1,
+      "running": true,
+      "delays": []
+    },
+    {
+      "action": "schedule",
+      "pending": true,
+      "starts": 1,
+      "running": true,
+      "delays": []
+    },
+    {
+      "action": "pause",
+      "pending": true,
+      "starts": 1,
+      "running": true,
+      "delays": []
+    },
+    {
+      "action": "success",
+      "pending": true,
+      "starts": 1,
+      "running": false,
+      "delays": []
+    },
+    {
+      "action": "resume",
+      "pending": true,
+      "starts": 1,
+      "running": false,
+      "delays": [
+        0
+      ]
+    },
+    {
+      "action": "fire",
+      "pending": true,
+      "starts": 2,
+      "running": true,
+      "delays": []
+    },
+    {
+      "action": "success",
+      "pending": false,
+      "starts": 2,
+      "running": false,
+      "delays": []
+    }
+  ],
+  [
+    {
+      "action": "resume",
+      "pending": true,
+      "starts": 0,
+      "running": false,
+      "delays": [
+        0
+      ]
+    },
+    {
+      "action": "fire",
+      "pending": true,
+      "starts": 1,
+      "running": true,
+      "delays": []
+    },
+    {
+      "action": "failure",
+      "pending": true,
+      "starts": 1,
+      "running": false,
+      "delays": [
+        1000
+      ]
+    },
+    {
+      "action": "fire",
+      "pending": true,
+      "starts": 2,
+      "running": true,
+      "delays": []
+    },
+    {
+      "action": "failure",
+      "pending": true,
+      "starts": 2,
+      "running": false,
+      "delays": [
+        2000
+      ]
+    },
+    {
+      "action": "fire",
+      "pending": true,
+      "starts": 3,
+      "running": true,
+      "delays": []
+    },
+    {
+      "action": "failure",
+      "pending": true,
+      "starts": 3,
+      "running": false,
+      "delays": [
+        4000
+      ]
+    },
+    {
+      "action": "fire",
+      "pending": true,
+      "starts": 4,
+      "running": true,
+      "delays": []
+    },
+    {
+      "action": "failure",
+      "pending": true,
+      "starts": 4,
+      "running": false,
+      "delays": [
+        8000
+      ]
+    },
+    {
+      "action": "fire",
+      "pending": true,
+      "starts": 5,
+      "running": true,
+      "delays": []
+    },
+    {
+      "action": "failure",
+      "pending": true,
+      "starts": 5,
+      "running": false,
+      "delays": [
+        16000
+      ]
+    },
+    {
+      "action": "fire",
+      "pending": true,
+      "starts": 6,
+      "running": true,
+      "delays": []
+    },
+    {
+      "action": "failure",
+      "pending": true,
+      "starts": 6,
+      "running": false,
+      "delays": [
+        32000
+      ]
+    },
+    {
+      "action": "fire",
+      "pending": true,
+      "starts": 7,
+      "running": true,
+      "delays": []
+    },
+    {
+      "action": "failure",
+      "pending": true,
+      "starts": 7,
+      "running": false,
+      "delays": [
+        60000
+      ]
+    },
+    {
+      "action": "fire",
+      "pending": true,
+      "starts": 8,
+      "running": true,
+      "delays": []
+    },
+    {
+      "action": "failure",
+      "pending": true,
+      "starts": 8,
+      "running": false,
+      "delays": [
+        60000
+      ]
+    },
+    {
+      "action": "fire",
+      "pending": true,
+      "starts": 9,
+      "running": true,
+      "delays": []
+    },
+    {
+      "action": "failure",
+      "pending": true,
+      "starts": 9,
+      "running": false,
+      "delays": [
+        60000
+      ]
+    },
+    {
+      "action": "fire",
+      "pending": true,
+      "starts": 10,
+      "running": true,
+      "delays": []
+    },
+    {
+      "action": "failure",
+      "pending": true,
+      "starts": 10,
+      "running": false,
+      "delays": [
+        60000
+      ]
+    },
+    {
+      "action": "fire",
+      "pending": true,
+      "starts": 11,
+      "running": true,
+      "delays": []
+    },
+    {
+      "action": "failure",
+      "pending": true,
+      "starts": 11,
+      "running": false,
+      "delays": [
+        60000
+      ]
+    },
+    {
+      "action": "fire",
+      "pending": true,
+      "starts": 12,
+      "running": true,
+      "delays": []
+    },
+    {
+      "action": "failure",
+      "pending": true,
+      "starts": 12,
+      "running": false,
+      "delays": [
+        60000
+      ]
+    },
+    {
+      "action": "fire",
+      "pending": true,
+      "starts": 13,
+      "running": true,
+      "delays": []
+    },
+    {
+      "action": "failure",
+      "pending": true,
+      "starts": 13,
+      "running": false,
+      "delays": [
+        60000
+      ]
+    },
+    {
+      "action": "fire",
+      "pending": true,
+      "starts": 14,
+      "running": true,
+      "delays": []
+    },
+    {
+      "action": "success",
+      "pending": false,
+      "starts": 14,
+      "running": false,
+      "delays": []
+    }
+  ]
+]

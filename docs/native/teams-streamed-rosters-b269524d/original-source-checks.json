@@ -1,0 +1,416 @@
+{
+  "reference": "b269524ddc578027c549616fc47f5954991d9f6f",
+  "hashes": {
+    "src/components/Teams/TeamView.jsx": "2facc3dd6abc05f079200ee3e903c30415b71aba8078a3fa9d5691f5b0e482d1",
+    "src/utils/teams.js": "8651522562b44812afbb1c2d27248d335cf06151278c75e113303bdcde6f9783"
+  },
+  "scope": "Four unchanged original TeamView subscription/Firebase snapshot adapter cases. Cached/online payload updates immediately while member I/O is held; failure retains old rows, missing snapshots are ignored, cleanup unsubscribes. This is not production Firebase/Nostr, mounted App authentication, or a stronger source queued-callback/late-read fence.",
+  "results": [
+    {
+      "fromCache": false,
+      "failure": false,
+      "during": {
+        "teams": [
+          {
+            "id": "fixture-one",
+            "teamName": "Cached peer roster",
+            "createdBy": "npub10xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqpkge6d",
+            "isCreator": true,
+            "creatorName": "Ada",
+            "members": [
+              {
+                "npub": "npub1ccz8l9zpa47k6vz9gphftsrumpw80rjt3nhnefat4symjhrsnmjs38mnyd",
+                "status": "accepted"
+              },
+              {
+                "npub": "npub1lycg5qvjtrp3qjf5f7zl382j9x6nrjz9sdhenvyxq8c3808qxmus6gq266",
+                "status": "pending"
+              }
+            ],
+            "nostr": {
+              "id": "fixture-one",
+              "identifier": "learning-team:fixture-one"
+            }
+          }
+        ],
+        "rows": {
+          "fixture-one": [
+            {
+              "name": "Previous member rows"
+            }
+          ]
+        }
+      },
+      "settled": {
+        "teams": [
+          {
+            "id": "fixture-one",
+            "teamName": "Cached peer roster",
+            "createdBy": "npub10xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqpkge6d",
+            "isCreator": true,
+            "creatorName": "Ada",
+            "members": [
+              {
+                "npub": "npub1ccz8l9zpa47k6vz9gphftsrumpw80rjt3nhnefat4symjhrsnmjs38mnyd",
+                "status": "accepted"
+              },
+              {
+                "npub": "npub1lycg5qvjtrp3qjf5f7zl382j9x6nrjz9sdhenvyxq8c3808qxmus6gq266",
+                "status": "pending"
+              }
+            ],
+            "nostr": {
+              "id": "fixture-one",
+              "identifier": "learning-team:fixture-one"
+            }
+          }
+        ],
+        "rows": {
+          "fixture-one": [
+            {
+              "name": "Fresh member rows"
+            }
+          ]
+        }
+      },
+      "trace": [
+        {
+          "subscribe": "users/npub10xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqpkge6d/teams/fixture-one"
+        },
+        {
+          "memberRead": [
+            "npub10xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqpkge6d",
+            "fixture-one",
+            "npub10xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqpkge6d",
+            {
+              "name": "Public viewer"
+            },
+            "es"
+          ]
+        }
+      ],
+      "missingSnapshotIgnored": true,
+      "unsubscribed": true
+    },
+    {
+      "fromCache": false,
+      "failure": true,
+      "during": {
+        "teams": [
+          {
+            "id": "fixture-one",
+            "teamName": "Cached peer roster",
+            "createdBy": "npub10xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqpkge6d",
+            "isCreator": true,
+            "creatorName": "Ada",
+            "members": [
+              {
+                "npub": "npub1ccz8l9zpa47k6vz9gphftsrumpw80rjt3nhnefat4symjhrsnmjs38mnyd",
+                "status": "accepted"
+              },
+              {
+                "npub": "npub1lycg5qvjtrp3qjf5f7zl382j9x6nrjz9sdhenvyxq8c3808qxmus6gq266",
+                "status": "pending"
+              }
+            ],
+            "nostr": {
+              "id": "fixture-one",
+              "identifier": "learning-team:fixture-one"
+            }
+          }
+        ],
+        "rows": {
+          "fixture-one": [
+            {
+              "name": "Previous member rows"
+            }
+          ]
+        }
+      },
+      "settled": {
+        "teams": [
+          {
+            "id": "fixture-one",
+            "teamName": "Cached peer roster",
+            "createdBy": "npub10xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqpkge6d",
+            "isCreator": true,
+            "creatorName": "Ada",
+            "members": [
+              {
+                "npub": "npub1ccz8l9zpa47k6vz9gphftsrumpw80rjt3nhnefat4symjhrsnmjs38mnyd",
+                "status": "accepted"
+              },
+              {
+                "npub": "npub1lycg5qvjtrp3qjf5f7zl382j9x6nrjz9sdhenvyxq8c3808qxmus6gq266",
+                "status": "pending"
+              }
+            ],
+            "nostr": {
+              "id": "fixture-one",
+              "identifier": "learning-team:fixture-one"
+            }
+          }
+        ],
+        "rows": {
+          "fixture-one": [
+            {
+              "name": "Previous member rows"
+            }
+          ]
+        }
+      },
+      "trace": [
+        {
+          "subscribe": "users/npub10xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqpkge6d/teams/fixture-one"
+        },
+        {
+          "memberRead": [
+            "npub10xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqpkge6d",
+            "fixture-one",
+            "npub10xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqpkge6d",
+            {
+              "name": "Public viewer"
+            },
+            "es"
+          ]
+        },
+        {
+          "error": "refresh progress error"
+        }
+      ],
+      "missingSnapshotIgnored": true,
+      "unsubscribed": true
+    },
+    {
+      "fromCache": true,
+      "failure": false,
+      "during": {
+        "teams": [
+          {
+            "id": "fixture-one",
+            "teamName": "Cached peer roster",
+            "createdBy": "npub10xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqpkge6d",
+            "isCreator": true,
+            "creatorName": "Ada",
+            "members": [
+              {
+                "npub": "npub1ccz8l9zpa47k6vz9gphftsrumpw80rjt3nhnefat4symjhrsnmjs38mnyd",
+                "status": "accepted"
+              },
+              {
+                "npub": "npub1lycg5qvjtrp3qjf5f7zl382j9x6nrjz9sdhenvyxq8c3808qxmus6gq266",
+                "status": "pending"
+              }
+            ],
+            "nostr": {
+              "id": "fixture-one",
+              "identifier": "learning-team:fixture-one"
+            }
+          }
+        ],
+        "rows": {
+          "fixture-one": [
+            {
+              "name": "Previous member rows"
+            }
+          ]
+        }
+      },
+      "settled": {
+        "teams": [
+          {
+            "id": "fixture-one",
+            "teamName": "Cached peer roster",
+            "createdBy": "npub10xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqpkge6d",
+            "isCreator": true,
+            "creatorName": "Ada",
+            "members": [
+              {
+                "npub": "npub1ccz8l9zpa47k6vz9gphftsrumpw80rjt3nhnefat4symjhrsnmjs38mnyd",
+                "status": "accepted"
+              },
+              {
+                "npub": "npub1lycg5qvjtrp3qjf5f7zl382j9x6nrjz9sdhenvyxq8c3808qxmus6gq266",
+                "status": "pending"
+              }
+            ],
+            "nostr": {
+              "id": "fixture-one",
+              "identifier": "learning-team:fixture-one"
+            }
+          }
+        ],
+        "rows": {
+          "fixture-one": [
+            {
+              "name": "Fresh member rows"
+            }
+          ]
+        }
+      },
+      "trace": [
+        {
+          "subscribe": "users/npub10xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqpkge6d/teams/fixture-one"
+        },
+        {
+          "memberRead": [
+            "npub10xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqpkge6d",
+            "fixture-one",
+            "npub10xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqpkge6d",
+            {
+              "name": "Public viewer"
+            },
+            "es"
+          ]
+        }
+      ],
+      "missingSnapshotIgnored": true,
+      "unsubscribed": true
+    },
+    {
+      "fromCache": true,
+      "failure": true,
+      "during": {
+        "teams": [
+          {
+            "id": "fixture-one",
+            "teamName": "Cached peer roster",
+            "createdBy": "npub10xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqpkge6d",
+            "isCreator": true,
+            "creatorName": "Ada",
+            "members": [
+              {
+                "npub": "npub1ccz8l9zpa47k6vz9gphftsrumpw80rjt3nhnefat4symjhrsnmjs38mnyd",
+                "status": "accepted"
+              },
+              {
+                "npub": "npub1lycg5qvjtrp3qjf5f7zl382j9x6nrjz9sdhenvyxq8c3808qxmus6gq266",
+                "status": "pending"
+              }
+            ],
+            "nostr": {
+              "id": "fixture-one",
+              "identifier": "learning-team:fixture-one"
+            }
+          }
+        ],
+        "rows": {
+          "fixture-one": [
+            {
+              "name": "Previous member rows"
+            }
+          ]
+        }
+      },
+      "settled": {
+        "teams": [
+          {
+            "id": "fixture-one",
+            "teamName": "Cached peer roster",
+            "createdBy": "npub10xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqpkge6d",
+            "isCreator": true,
+            "creatorName": "Ada",
+            "members": [
+              {
+                "npub": "npub1ccz8l9zpa47k6vz9gphftsrumpw80rjt3nhnefat4symjhrsnmjs38mnyd",
+                "status": "accepted"
+              },
+              {
+                "npub": "npub1lycg5qvjtrp3qjf5f7zl382j9x6nrjz9sdhenvyxq8c3808qxmus6gq266",
+                "status": "pending"
+              }
+            ],
+            "nostr": {
+              "id": "fixture-one",
+              "identifier": "learning-team:fixture-one"
+            }
+          }
+        ],
+        "rows": {
+          "fixture-one": [
+            {
+              "name": "Previous member rows"
+            }
+          ]
+        }
+      },
+      "trace": [
+        {
+          "subscribe": "users/npub10xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqpkge6d/teams/fixture-one"
+        },
+        {
+          "memberRead": [
+            "npub10xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqpkge6d",
+            "fixture-one",
+            "npub10xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqpkge6d",
+            {
+              "name": "Public viewer"
+            },
+            "es"
+          ]
+        },
+        {
+          "error": "refresh progress error"
+        }
+      ],
+      "missingSnapshotIgnored": true,
+      "unsubscribed": true
+    }
+  ],
+  "browserCases": [
+    {
+      "language": "en",
+      "phase": "cached",
+      "rowReads": 0,
+      "freshReadHeld": true
+    },
+    {
+      "language": "en",
+      "phase": "member-held",
+      "rowReads": 1,
+      "oldRowsVisible": true,
+      "freshReadHeld": true
+    },
+    {
+      "language": "en",
+      "phase": "member-failed",
+      "rowReads": 1,
+      "oldRowsVisible": true,
+      "noToast": true
+    },
+    {
+      "language": "en",
+      "phase": "member-recovered",
+      "rowReads": 2,
+      "newRowsVisible": true,
+      "freshReadHeld": true
+    },
+    {
+      "language": "ar",
+      "phase": "cached",
+      "rowReads": 0,
+      "freshReadHeld": true
+    },
+    {
+      "language": "ar",
+      "phase": "member-held",
+      "rowReads": 1,
+      "oldRowsVisible": true,
+      "freshReadHeld": true
+    },
+    {
+      "language": "ar",
+      "phase": "member-failed",
+      "rowReads": 1,
+      "oldRowsVisible": true,
+      "noToast": true
+    },
+    {
+      "language": "ar",
+      "phase": "member-recovered",
+      "rowReads": 2,
+      "newRowsVisible": true,
+      "freshReadHeld": true
+    }
+  ]
+}

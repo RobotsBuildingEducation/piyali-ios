@@ -10,11 +10,13 @@ public enum PerformanceScore {
     public static func level(score: Int) -> String {
         zip(LearningLanguages.levels,[14,28,42,56,70,84,100]).first { score <= $0.1 }?.0 ?? "C2"
     }
-    public static func update(rating: Double, questionLevel: String, correct: Bool, independent: Bool) -> Double {
+    public static func update(rating: Double, questionLevel: String, correct: Bool, independent: Bool, support:String? = nil) -> Double {
         if rating <= 800 && correct { return self.rating(score: 1) }
         let difficulty = self.rating(score: difficulties[questionLevel] ?? 21)
         let expected = 1 / (1 + pow(10,(difficulty - rating)/400))
-        let delta = correct ? 4 * (1 - expected) * (independent ? 1 : 0.7) : -4 * expected
+        let weights:[String:Double] = ["modeled":0.55,"prompted":0.7,"lightly supported":0.85,"independent":1,"transferred":1]
+        let weight=weights[QuestionWorth.supportName(independent:independent,provided:support)] ?? 0.7
+        let delta = correct ? 4 * (1 - expected) * weight : -4 * expected
         return max(800,min(2200,rating+delta))
     }
 }
@@ -22,7 +24,7 @@ public enum CompanionTypes {
     public static let unlocks = ["ghost":1,"alien":2,"robot":5,"slime":10,"dog":20,"axolotl":40]
     public static let ordered = ["ghost","alien","robot","slime","dog","axolotl"]
     public static func available(level: Int) -> [String] { ordered.filter { unlocks[$0,default:1] <= level } }
-    public static func effective(_ type: String, level: Int) -> String { available(level: level).contains(type) ? type : "ghost" }
+    public static func effective(_ type: String, level: Int) -> String { available(level: max(1,level)).contains(type.lowercased()) ? type.lowercased() : "ghost" }
 }
 public struct FocusedPlan: Codable, Sendable {
     public let title: String

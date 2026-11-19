@@ -36,6 +36,9 @@ public struct FinalQuizRun:Codable,Sendable {
     public let rules:QuizRules
     public var answers:[Bool]=[]
     public var question:QuizQuestion?
+    public var typedOptions:[JSONValue]?
+    public var typedQuestionID:UUID?
+    public var typedAnsweredIDs:[UUID]?
     public var updatedAt=Date()
     public var outcome:QuizOutcome { rules.outcome(answers) }
     public init(lesson:Lesson,learner:LearnerState) {
@@ -55,7 +58,18 @@ public extension LearnerState {
     }
     mutating func saveQuiz(_ run:FinalQuizRun) {
         guard run.target == target else { return };let key=quizKey(run.lessonID);if quizRuns == nil { quizRuns=[:] };quizRuns?[key]=run
-        while quizRuns!.count > 30 { guard let old=quizRuns!.filter({ $0.key != quizKey(run.lessonID) }).min(by:{ $0.value.updatedAt < $1.value.updatedAt })?.key else { break };quizRuns?.removeValue(forKey:old) }
+        while quizRuns!.count > 1,(quizRuns!.count > 30 || (try? JSONEncoder().encode(quizRuns).count) ?? 0 > 150_000) { guard let old=quizRuns!.filter({ $0.key != quizKey(run.lessonID) }).min(by:{ $0.value.updatedAt < $1.value.updatedAt })?.key else { break };quizRuns?.removeValue(forKey:old) }
+    }
+    @discardableResult mutating func prepareTypedQuizQuestion(_ question:PracticeQuestion,lessonID:String,runID:UUID)->Bool {
+        let key=quizKey(lessonID)
+        guard var run=quizRuns?[key],run.id == runID,run.target == target,run.support == support,!run.outcome.completed,question.target == target,question.support == support,question.options["isFinalQuiz"].boolean,question.kind != "flashcard",run.typedQuestionID == nil || (run.typedAnsweredIDs ?? []).contains(run.typedQuestionID!) else { return false }
+        run.question=nil;run.typedQuestionID=question.id;run.updatedAt=Date();saveQuiz(run);return true
+    }
+    @discardableResult mutating func answerTypedQuizQuestion(lessonID:String,runID:UUID,questionID:UUID,correct:Bool,now:Date = Date())->Bool {
+        let key=quizKey(lessonID)
+        guard var run=quizRuns?[key],run.id == runID,run.target == target,run.support == support,!run.outcome.completed,run.typedQuestionID == questionID,!(run.typedAnsweredIDs ?? []).contains(questionID) else { return false }
+        run.typedAnsweredIDs=(run.typedAnsweredIDs ?? [])+[questionID];run.answers.append(correct);run.updatedAt=now;saveQuiz(run)
+        if run.outcome.passed { if quizPasses == nil { quizPasses=[:] };quizPasses?[key]=run.rules };return true
     }
     @discardableResult mutating func answerQuiz(lesson:Lesson,runID:UUID,questionID:UUID,answer:String,grade:Grade,now:Date=Date()) -> Bool {
         let key=quizKey(lesson.id)

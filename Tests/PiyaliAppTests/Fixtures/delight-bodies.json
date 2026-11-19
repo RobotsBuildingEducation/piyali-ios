@@ -1,0 +1,222 @@
+{
+  "sentence_detective": {
+    "question": {
+      "answer": "fue",
+      "correctedSentence": "Ayer ella fue al mercado.",
+      "cueTokens": [
+        "Ayer",
+        "ella"
+      ],
+      "errorCategory": "verb agreement",
+      "errorEvidence": "The verb form does not agree with the subject and time context.",
+      "explanation": "Ella takes the third-person singular past form fue.",
+      "hint": "Look for the form that fits the time cue.",
+      "incorrectIndex": 2,
+      "instruction": "Tap the broken word, then repair it.",
+      "joiner": " ",
+      "repairEvidence": "The correct form satisfies subject agreement and tense.",
+      "replacements": [
+        "fue",
+        "fui",
+        "fueron",
+        "fuimos"
+      ],
+      "sentence": "Ayer ella fuimos al mercado.",
+      "slotType": "verb",
+      "sourceEvidence": "local development fallback",
+      "targetSkill": "tense and agreement",
+      "tokens": [
+        "Ayer",
+        "ella",
+        "fuimos",
+        "al",
+        "mercado."
+      ],
+      "variant": "sentence_detective",
+      "wrongToken": "fuimos"
+    },
+    "responses": {
+      "idle": {
+        "tokenIndex": null,
+        "replacement": "",
+        "rejectedTokenIndices": []
+      },
+      "partial": {
+        "tokenIndex": null,
+        "replacement": "",
+        "rejectedTokenIndices": [
+          0
+        ]
+      },
+      "filled": {
+        "tokenIndex": 2,
+        "replacement": "fue",
+        "rejectedTokenIndices": []
+      },
+      "locked": {
+        "tokenIndex": 2,
+        "replacement": "fue",
+        "rejectedTokenIndices": []
+      }
+    }
+  },
+  "dialogue_fork": {
+    "question": {
+      "answerIndex": 1,
+      "explanation": "Quisiera… is a polite, natural way to order.",
+      "hint": "Look for the form that fits the time cue.",
+      "instruction": "Choose the most natural reply.",
+      "line": "¿Qué desea comer?",
+      "options": [
+        "Estoy una sopa.",
+        "Quisiera una sopa, por favor.",
+        "La sopa desea.",
+        "Soy una sopa."
+      ],
+      "reaction": "¡Claro! Enseguida. 🍲",
+      "speaker": "Server",
+      "variant": "dialogue_fork"
+    },
+    "responses": {
+      "idle": {
+        "selectedIndex": null
+      },
+      "partial": {
+        "selectedIndex": 0
+      },
+      "filled": {
+        "selectedIndex": 1
+      },
+      "locked": {
+        "selectedIndex": 1
+      }
+    }
+  },
+  "word_neighborhoods": {
+    "question": {
+      "explanation": "Each word now sits with others from the same family.",
+      "groups": [
+        {
+          "items": [
+            "fui",
+            "comió",
+            "hablaron"
+          ],
+          "label": "Past"
+        },
+        {
+          "items": [
+            "voy",
+            "come",
+            "hablan"
+          ],
+          "label": "Present"
+        }
+      ],
+      "hint": "Look for the form that fits the time cue.",
+      "instruction": "Move every word into its neighborhood.",
+      "variant": "word_neighborhoods"
+    },
+    "responses": {
+      "idle": {
+        "assignments": {}
+      },
+      "partial": {
+        "assignments": {
+          "fui": 0
+        }
+      },
+      "filled": {
+        "assignments": {
+          "fui": 0,
+          "comió": 0,
+          "hablaron": 0,
+          "voy": 1,
+          "come": 1,
+          "hablan": 1
+        }
+      },
+      "locked": {
+        "assignments": {
+          "fui": 0,
+          "comió": 0,
+          "hablaron": 0,
+          "voy": 1,
+          "come": 1,
+          "hablan": 1
+        }
+      }
+    }
+  },
+  "morphology_forge": {
+    "question": {
+      "answerPieces": [
+        "jug",
+        "ábamos"
+      ],
+      "answerWord": "jugábamos",
+      "explanation": "The stem jug- and imperfect ending -ábamos form jugábamos.",
+      "hint": "Look for the form that fits the time cue.",
+      "instruction": "Forge the word that completes the sentence.",
+      "pieces": [
+        "jug",
+        "ábamos",
+        "aron",
+        "aré"
+      ],
+      "sentence": "Cuando éramos niños, nosotros ___ en el parque.",
+      "variant": "morphology_forge"
+    },
+    "responses": {
+      "idle": {
+        "pieceIndices": []
+      },
+      "partial": {
+        "pieceIndices": [
+          0
+        ]
+      },
+      "filled": {
+        "pieceIndices": [
+          0,
+          1
+        ]
+      },
+      "locked": {
+        "pieceIndices": [
+          0,
+          1
+        ]
+      }
+    }
+  },
+  "listen_difference": {
+    "question": {
+      "answerIndex": 0,
+      "audioText": "Él compró el pan.",
+      "contrast": "compró = completed action · compra = present action",
+      "explanation": "The stressed final ó signals the completed past action.",
+      "hint": "Look for the form that fits the time cue.",
+      "instruction": "Listen carefully. Which sentence did you hear?",
+      "options": [
+        "Él compró el pan.",
+        "Él compra el pan."
+      ],
+      "variant": "listen_difference"
+    },
+    "responses": {
+      "idle": {
+        "selectedIndex": null
+      },
+      "partial": {
+        "selectedIndex": 0
+      },
+      "filled": {
+        "selectedIndex": 0
+      },
+      "locked": {
+        "selectedIndex": 0
+      }
+    }
+  }
+}

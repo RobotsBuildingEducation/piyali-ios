@@ -1,0 +1,316 @@
+{
+  "date": "2026-11-05",
+  "referenceCommit": "b269524ddc578027c549616fc47f5954991d9f6f",
+  "nativeImplementationBase": "9ec3bf05c02e569df2a3b0c66ebd12928ceb47db",
+  "qaDevice": "CE8248B6-7171-4FD4-97DE-89E499107F82",
+  "scope": "Valid late Tutor speech: same-turn XP/assessment/agenda guards, no extra chat/reply, committed input gating, resumed-starter phase, rendered actual source/native progress and earned completion. Public protocol/provider/clock fixtures; no real acoustic/live microphone or full web ProductShell parity claim. Source orbs/edge glow, ordinary Gemini foreground grading/follow-up routing, pending question-worth timing, setup fallback, original-duplex capture, physical/accessibility/release gates remain open.",
+  "fullBundle": "/tmp/PiyaliTutorLateSpeechVerified20261105.xcresult",
+  "fullSummary": {
+    "result": "Passed",
+    "passedTests": 67,
+    "failedTests": 0,
+    "skippedTests": 0,
+    "totalTestCount": 67,
+    "startTime": 1793926037.542,
+    "finishTime": 1793926521.738
+  },
+  "finalScopesBundle": "/tmp/PiyaliTutorLateSpeechFinalScopes20261105.xcresult",
+  "finalScopesSummary": {
+    "result": "Passed",
+    "passedTests": 3,
+    "failedTests": 0,
+    "skippedTests": 0,
+    "totalTestCount": 3,
+    "startTime": 1793926662.718,
+    "finishTime": 1793926771.665
+  },
+  "presentationBundle": "/tmp/PiyaliTutorLateSpeechPresentation20261105.xcresult",
+  "presentationSummary": {
+    "result": "Passed",
+    "passedTests": 2,
+    "failedTests": 0,
+    "skippedTests": 0,
+    "totalTestCount": 2,
+    "startTime": 1793927030.306,
+    "finishTime": 1793927187.239
+  },
+  "presentationOnlyDelta": {
+    "file": "Piyali/Features/SourceTutorView.swift",
+    "beforeSHA256": "30c3f621c0a3fd1086df8caed3695f7cce876758b774f61c5a37a6e35fe46571",
+    "afterSHA256": "169a4f68685a2e6d2644e9ff0d00006717b9ac4b13142d3dfc27d1e53eeb3e89",
+    "scope": "After full functional/boundary runs: source green wave palette, 15-point bordered height, 0.8-second fill and inset only; no sequencing or reward changes."
+  },
+  "versionScopes": "Functional Swift/JS is identical across full, final-scopes and presentation bundles. Final scopes refines test-only identity isolation/resumed task fixture and adds close/timeout/hydration checks. SourceTutorView then receives only source wave palette/height/border/fill-animation correction. Presentation supplies all component and full late-UI captures; final scopes supplies the explicitly older-style trial-gate frame and close/hydration trace. Test source hash matches latest presentation run.",
+  "core": {
+    "tests": 14,
+    "failures": 0,
+    "seconds": 18.806,
+    "sourcePolicyCases": 831,
+    "log": "/tmp/piyali-tutor-late-speech-core-20261105.log"
+  },
+  "priorRuns": [
+    {
+      "bundle": "/tmp/PiyaliTutorLateSpeechReproduction20261105.xcresult",
+      "tests": 1,
+      "failedAssertions": 8,
+      "seconds": 4.612,
+      "note": "Seven product assertions plus one new fixture typo: name should be myNameIs."
+    },
+    {
+      "bundle": "/tmp/PiyaliTutorLateSpeechFirstFix20261105.xcresult",
+      "tests": 2,
+      "failures": 0,
+      "seconds": 8.335
+    },
+    {
+      "bundle": "/tmp/PiyaliTutorLateSpeechBoundaries20261105.xcresult",
+      "tests": 51,
+      "passed": 50,
+      "skipped": 1,
+      "failures": 0,
+      "seconds": 209.181,
+      "note": "Read-only source preview was deliberately not opted into this intermediate run."
+    },
+    {
+      "bundle": "/tmp/PiyaliTutorLateSpeechSourceAndJourney20261105.xcresult",
+      "sourceTest": "Failed waiting for resumed tutorial welcome; source actually emits kickoff. Native phase corrected.",
+      "sourceSeconds": 30.729,
+      "uiTests": 1,
+      "uiPassed": 1,
+      "uiSeconds": 52.351
+    }
+  ],
+  "nativeFileHashes": {
+    "Piyali/Core/RealtimeVoiceState.swift": "5c2be9f8196658be25835ae28910ad25b960afd906cf39b2ef05ca109b4e692a",
+    "Piyali/Services/LiveTutorService.swift": "a3a628eaa0b2617ce82c3ac37040d80bf7c254f0ea66b8694b02d92cbca67d6c",
+    "Piyali/Services/TutorSessionController.swift": "29dc8b8767278b8ea4c5e9cfc8e2e8818b4e3d93f2144b17dd621341c66ebc4c",
+    "Piyali/Services/TutorVoiceFixture.swift": "7084710d010c08faa45b5c4f28657c505cc05d852dac3bc55176f414bfb966b8",
+    "Piyali/Resources/tutor-policy.js": "19187d0af69e6bce8cb52b3735a6b142f70fe3bc80a755cdd8954e757884eae8",
+    "Piyali/Features/SourceTutorView.swift": "169a4f68685a2e6d2644e9ff0d00006717b9ac4b13142d3dfc27d1e53eeb3e89",
+    "Piyali/Design/FocusStyles.swift": "f6cc1bdec1aa9bbb75e684b388f8de1bd9e2d9d56137624b107eb2140471fb87",
+    "scripts/export-tutor-policy.mjs": "b1f042169c9ace46cd5c848199596c6120e0b7e858ca418eabc4702a513f7909",
+    "scripts/reference-tutor-fixtures.mjs": "aced3515472c206e0856284e5e7e3ca127526233383b4e96fa2f12e102601013",
+    "scripts/reference-tutor-asr-bridge.js": "915cc569c6656db313a42d8d9191863da7aa06c5521638f198c861daa017b417",
+    "scripts/audit-tutor-late-speech-qa.py": "f03b4ef7d122f8da711b0d050aac67d7902b41919dadc1bec4668ca7019b5d6b",
+    "Tests/PiyaliAppTests/TutorSessionTests.swift": "d68fa3040c3987af080be83697559291e8c9b83e8327a4723c8266f040764b38",
+    "Tests/PiyaliAppTests/RealtimeConnectionTests.swift": "77359c43603b918e0ab49f90a4f35c6d3ae5e2b360c6c4c69d88616474344bde",
+    "Tests/PiyaliCoreTests/RealtimeVoiceTests.swift": "7f9fc2a85ea26ce6a6eedd7bf79030e4198eeb60c179229d07880bf202072131",
+    "Tests/PiyaliCoreTests/Fixtures/tutor-source-policy.json.gz": "f9fb215342620592015b4f0890c4ffb22cb3fbd7faa3334e369697b4ec2feb5a",
+    "Tests/PiyaliUITests/TutorParityTests.swift": "6cb70f1b29c8c964da65c5c782be6acbf785cf4bdc93f9368cbff7e8f479b167"
+  },
+  "referenceFileHashes": {
+    "src/components/Tutor.jsx": "bbe9dea6279119ecef32cb69a66a8fb40763642ca05717690dec789a72e088c3",
+    "src/components/XpProgressHeader.jsx": "abfebc2b4b2362c92990fb330a45aafa046d3b4de292a37d2f334eb58e011878",
+    "src/components/WaveBar.jsx": "619c6d05f99488316facec96f2b35fa46544910a5b1fd0d0584e529af756c536",
+    "src/utils/geminiLiveBridge.js": "249727e4101d6a6f2d3c8cc48fbc211ecf4f496ed43ca978724d421e145fad8f",
+    "src/utils/tutorConversationDraft.js": "73c064206690bd94b9c2f7b06755a10fa4721c83d6831bc6481cf3a9eb1c3505",
+    "src/theme.js": "6fe6093ecca51d0debb1314a587d6bd0927e7ac9f8c1ba2c6c744017e3be407e",
+    "src/index.css": "79a5362dc1b189acd0d2288c0e85ff29c9cc1c8e39b8bb5cabe164ddd1c29030"
+  },
+  "artifacts": [
+    {
+      "file": "source-fresh-credited-en.png",
+      "sha256": "5d45d165b90c64209dc9b37602b8c6a4edf0996c71a9b19ea4b80fe7ed951d5a",
+      "bytes": 1153122,
+      "scope": "Original 3x actual component capture. Distinct disposable native identity per scenario; public source/protocol inputs. No complete ProductShell comparison claim."
+    },
+    {
+      "file": "native-fresh-credited-en.png",
+      "sha256": "ea4424c63a746c8b27860cff3aecef1db03bbe743fa45cfb3b26b88f676800af",
+      "bytes": 1481160,
+      "scope": "Original 3x actual component capture. Distinct disposable native identity per scenario; public source/protocol inputs. No complete ProductShell comparison claim."
+    },
+    {
+      "file": "pair-fresh-credited-en.png",
+      "sha256": "f3a69700d2982376d1ff1e4cd0e6eda32cfc4634655e8a1f7727665ccea38153",
+      "bytes": 189822,
+      "scope": "ICC-converted sRGB logical-point pair: original source left, actual Swift view right."
+    },
+    {
+      "file": "source-fresh-duplicate-en.png",
+      "sha256": "26be5a62e60af3fb0d19dbc485dea79ef864a1e207b6f2aaa2d3155023421101",
+      "bytes": 1123725,
+      "scope": "Original 3x actual component capture. Distinct disposable native identity per scenario; public source/protocol inputs. No complete ProductShell comparison claim."
+    },
+    {
+      "file": "native-fresh-duplicate-en.png",
+      "sha256": "65a12ab3fea85583b1ef914e3c58fcbf9701551829816916325a5b36003383f9",
+      "bytes": 1481171,
+      "scope": "Original 3x actual component capture. Distinct disposable native identity per scenario; public source/protocol inputs. No complete ProductShell comparison claim."
+    },
+    {
+      "file": "pair-fresh-duplicate-en.png",
+      "sha256": "cbc3f075a352d467d43c2696e93f36ed69d6c05f545b1106c336d568d6d27da1",
+      "bytes": 185865,
+      "scope": "ICC-converted sRGB logical-point pair: original source left, actual Swift view right."
+    },
+    {
+      "file": "source-fresh-trace-en.json",
+      "sha256": "af3fe01b897b96ac25c51227c64b63a4297bcc55380a2ebd5591509d2f473fed",
+      "bytes": 317,
+      "scope": "Public seeded progress, late-turn effects and same-reply completion gate. No identity keys, profile or private notes."
+    },
+    {
+      "file": "native-fresh-trace-en.json",
+      "sha256": "79ef07780949d5a77a301b6b2650bddd19584707ca38188feda069a72d66efb6",
+      "bytes": 369,
+      "scope": "Public seeded progress, late-turn effects and same-reply completion gate. No identity keys, profile or private notes."
+    },
+    {
+      "file": "source-finishing-credited-en.png",
+      "sha256": "d3d331e6eee71cb908a5f9cfecb43472878c9b3adc6e9c69264e7851bd49d5d2",
+      "bytes": 1173168,
+      "scope": "Original 3x actual component capture. Distinct disposable native identity per scenario; public source/protocol inputs. No complete ProductShell comparison claim."
+    },
+    {
+      "file": "native-finishing-credited-en.png",
+      "sha256": "97b4763b6b3de25b7695bed1443aa730d9ee4622ffd19f55ddfa233d41588b4e",
+      "bytes": 1537283,
+      "scope": "Original 3x actual component capture. Distinct disposable native identity per scenario; public source/protocol inputs. No complete ProductShell comparison claim."
+    },
+    {
+      "file": "pair-finishing-credited-en.png",
+      "sha256": "2f4f9f0adee264779898db555174ce3f9587569dc89c279d4e75b59da2f606e0",
+      "bytes": 194485,
+      "scope": "ICC-converted sRGB logical-point pair: original source left, actual Swift view right."
+    },
+    {
+      "file": "source-finishing-trace-en.json",
+      "sha256": "727a010082b282ed8536d107c7cb4905cdebdd8a42607aac6dfd0db022261f0f",
+      "bytes": 398,
+      "scope": "Public seeded progress, late-turn effects and same-reply completion gate. No identity keys, profile or private notes."
+    },
+    {
+      "file": "native-finishing-trace-en.json",
+      "sha256": "20078b6eacf59278ecd7a2cbf0fb5234f7f2d03df22688ba69d5e57afc90922f",
+      "bytes": 555,
+      "scope": "Public seeded progress, late-turn effects and same-reply completion gate. No identity keys, profile or private notes."
+    },
+    {
+      "file": "source-fresh-credited-ar.png",
+      "sha256": "75f14c2b1a822767780b173b38f085c260c5e9f5f65ce673a2cbfb6927212474",
+      "bytes": 1091476,
+      "scope": "Original 3x actual component capture. Distinct disposable native identity per scenario; public source/protocol inputs. No complete ProductShell comparison claim."
+    },
+    {
+      "file": "native-fresh-credited-ar.png",
+      "sha256": "f696e13cafb88800095239fca80f640c47845c01edc533ae1be33457f3cbef03",
+      "bytes": 1663297,
+      "scope": "Original 3x actual component capture. Distinct disposable native identity per scenario; public source/protocol inputs. No complete ProductShell comparison claim."
+    },
+    {
+      "file": "pair-fresh-credited-ar.png",
+      "sha256": "81489178758109e9a5b4e9312d94e22989640f252e20acca0ce2efdb9f53a565",
+      "bytes": 193143,
+      "scope": "ICC-converted sRGB logical-point pair: original source left, actual Swift view right."
+    },
+    {
+      "file": "source-fresh-duplicate-ar.png",
+      "sha256": "9bb6312ae04b37c1bcc16d98eef035998adaefb10f6aa22a7bfae2cf66c4874b",
+      "bytes": 1046328,
+      "scope": "Original 3x actual component capture. Distinct disposable native identity per scenario; public source/protocol inputs. No complete ProductShell comparison claim."
+    },
+    {
+      "file": "native-fresh-duplicate-ar.png",
+      "sha256": "fc7ac60b3d96b737ddef122d97d736d8742dc331684fd49ad3baf6b5eb33e88f",
+      "bytes": 1663285,
+      "scope": "Original 3x actual component capture. Distinct disposable native identity per scenario; public source/protocol inputs. No complete ProductShell comparison claim."
+    },
+    {
+      "file": "pair-fresh-duplicate-ar.png",
+      "sha256": "c1ffee7848e2c27247094e1dcb91909e60abb56a134986d15e959679e89dc250",
+      "bytes": 187440,
+      "scope": "ICC-converted sRGB logical-point pair: original source left, actual Swift view right."
+    },
+    {
+      "file": "source-fresh-trace-ar.json",
+      "sha256": "dc898b8a0fbdb76c96280ddd87f02dbf486ff157816fff35dfeb945dabd57076",
+      "bytes": 317,
+      "scope": "Public seeded progress, late-turn effects and same-reply completion gate. No identity keys, profile or private notes."
+    },
+    {
+      "file": "native-fresh-trace-ar.json",
+      "sha256": "6387adcc586cdb34a157e192093d1ce9d8661d723f31aa5cc7dca95463fae7f7",
+      "bytes": 369,
+      "scope": "Public seeded progress, late-turn effects and same-reply completion gate. No identity keys, profile or private notes."
+    },
+    {
+      "file": "source-finishing-credited-ar.png",
+      "sha256": "f551f4a409529f153b3c41533039fa0531ded4ca701ecfc069921009029122b0",
+      "bytes": 1125851,
+      "scope": "Original 3x actual component capture. Distinct disposable native identity per scenario; public source/protocol inputs. No complete ProductShell comparison claim."
+    },
+    {
+      "file": "native-finishing-credited-ar.png",
+      "sha256": "866b8ecd0a80dc43d74869c0f708955ef95a549147302006621be6ca38b636c2",
+      "bytes": 1724128,
+      "scope": "Original 3x actual component capture. Distinct disposable native identity per scenario; public source/protocol inputs. No complete ProductShell comparison claim."
+    },
+    {
+      "file": "pair-finishing-credited-ar.png",
+      "sha256": "fa5b4c76f2c47dff34e77845101cb30a9ebb1c3d4180849a6c38d1cd31763ba8",
+      "bytes": 196357,
+      "scope": "ICC-converted sRGB logical-point pair: original source left, actual Swift view right."
+    },
+    {
+      "file": "source-finishing-trace-ar.json",
+      "sha256": "a17e075c90efe4faccfcdd0a716d76cf9f3c00f3f8f07b9f994167fcc8992bb2",
+      "bytes": 398,
+      "scope": "Public seeded progress, late-turn effects and same-reply completion gate. No identity keys, profile or private notes."
+    },
+    {
+      "file": "native-finishing-trace-ar.json",
+      "sha256": "01c64cf9579bfaa4fa64c5d595dbf904b84dc77d366f4fe238b108bd6726e4ff",
+      "bytes": 555,
+      "scope": "Public seeded progress, late-turn effects and same-reply completion gate. No identity keys, profile or private notes."
+    },
+    {
+      "file": "native-product-credit.png",
+      "sha256": "14ce695a74346bf01a27ab74c11a38f511918627ccc8e2a5077d8350d0361a51",
+      "bytes": 785202,
+      "scope": "Actual native signup/setup, menu/Tutor, scripted split/late input, one turn XP, End/history and private relaunch."
+    },
+    {
+      "file": "native-product-history.png",
+      "sha256": "418250f6f1478cd4fe2f51e7913c73a1d44112d6aa762e299335079cd645ac9a",
+      "bytes": 545731,
+      "scope": "Actual native signup/setup, menu/Tutor, scripted split/late input, one turn XP, End/history and private relaunch."
+    },
+    {
+      "file": "native-product-relaunch.png",
+      "sha256": "8182e00a8ab3b76776a1059262ec1f208602b601d4d75550b1bea747a595cad8",
+      "bytes": 665907,
+      "scope": "Actual native signup/setup, menu/Tutor, scripted split/late input, one turn XP, End/history and private relaunch."
+    },
+    {
+      "file": "native-earned-trial-gate.png",
+      "sha256": "96128dfc2e6a96c727e13a7d1e3556e580fd8e781930848b04b6429c947e023a",
+      "bytes": 1510743,
+      "scope": "Actual SourceTutorView inside ProductAccessGate before final wave-only presentation correction: earned late work retained at 304 account XP while reply plays; bonus waits for playback and acknowledgment. This earlier frame retains the prior blue bar; current component/UI frames use the final source green."
+    },
+    {
+      "file": "native-completion-boundaries.json",
+      "sha256": "addd609dc600659d2a157e1382b5667f9e3a199ed349f672b894430de490b55a",
+      "bytes": 397,
+      "scope": "Native controller: explicit Pause/End, shortened injected idle timeout, owner replacement and no-auto-connect hydrated earned completion. One bonus receipt each."
+    },
+    {
+      "file": "qa-audit.json",
+      "sha256": "ad5e726a3bc636087f9d16d0e4ba8867f71f50e98e90a1224e3eda259578e415",
+      "bytes": 802,
+      "scope": "Read-only counters/hashes from only the new public late-speech full UI profile."
+    },
+    {
+      "file": "presentation-only-delta.json",
+      "sha256": "0d5ad0c908f1b6c90b22dd79194d2821a27366eab5fffe6d569f38ff34701b89",
+      "bytes": 394,
+      "scope": "Explicit before/after view hash and source wave palette/geometry/motion-only change after full functional run."
+    },
+    {
+      "file": "policy-existing-case-audit.json",
+      "sha256": "d831bb49ac5b64e3198832c93ddcb8bf9780dacc846cadbbd8fab194abaac0c1",
+      "bytes": 141,
+      "scope": "Before/after source-policy execution: all 651 existing cases unchanged; 180 new late-input/objective cases."
+    }
+  ]
+}

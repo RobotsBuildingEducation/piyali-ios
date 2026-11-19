@@ -1,0 +1,6 @@
+{
+  "source": "src/utils/supportTranslation.js",
+  "sha256": "3ff21380e515e021c5c8ebf66fca2812a6615723a0098531a2da65e8e7d4ffd3",
+  "scope": "Original buildDirectTranslationPrompt with its language helpers executed as a pure module; no provider or UI effects.",
+  "cases": 11
+}

@@ -1,0 +1,25 @@
+{
+  "resultBundle": "PiyaliLessonAudioLive1.xcresult",
+  "durationSeconds": 13.599,
+  "checks": [
+    {
+      "error": null,
+      "finished": true,
+      "language": "es",
+      "positiveAmplitude": true,
+      "receivedBytes": 13892,
+      "text": "Yo ___ pan.",
+      "voice": "ash"
+    },
+    {
+      "error": null,
+      "finished": true,
+      "language": "ar",
+      "positiveAmplitude": true,
+      "receivedBytes": 19444,
+      "text": "مرحباً، كيف حالك؟",
+      "voice": "ash"
+    }
+  ],
+  "scope": "Fresh isolated Firebase identity, App Check, native receive-only RTC, source narration session and main lesson controller. Auth identity and local key deleted after assertions. No learner progress writes or microphone capture."
+}
