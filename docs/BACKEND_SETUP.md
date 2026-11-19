@@ -7,7 +7,7 @@ The native app intentionally contains no server API keys, Patreon secrets, passc
 1. The selected backend is the independent `piyali-ios` Firebase project. Its iOS app uses bundle ID `app.piyali.ios`; its `(default)` Firestore database is in `us-central1`. Do not register another duplicate app or point native development at `nosabo-30dcb`.
 2. The real iOS `GoogleService-Info.plist` has been downloaded locally into `Piyali/Resources/GoogleService-Info.plist`. It is gitignored and conditionally copied by the build phase. Other developers can download it using the command in `FIREBASE_PROJECT.md`. Set your Apple signing team in Xcode.
 3. Nostr-bound Firebase custom authentication, owner-only Firestore rules/indexes and the dedicated Cloudflare authentication worker are deployed. Live App Check debug exchange, sign-in, own progress and cross-account isolation passed. The copied web rules remain emulator fixtures; deployed production policy is `Backend/firestore.rules`.
-4. Register the iOS app in Firebase App Check using App Attest once an enrolled Apple Developer Team ID is available (DeviceCheck is the fallback). The signed-in Apple account currently offers program enrollment, so production registration is pending. Debug builds use Firebase's debug provider; a simulator debug token is registered and stored in ignored `.secrets/app-check-debug.json`. Set it as `FIRAAppCheckDebugToken` in the app launch environment. Offline UI tests and the named emulator test app skip production Firebase initialization even when a real local plist is present.
+4. The Release iPhone target requests the production App Attest entitlement and selects App Attest on supported devices. DeviceCheck requires its own Firebase registration if used as the fallback. Configure an enrolled Apple Developer team and register the existing `app.piyali.ios` app with the team's ID in Firebase App Check. Verify a signed build on an iPhone before distribution. Debug builds use Firebase's debug provider; a simulator debug token is registered and stored in ignored `.secrets/app-check-debug.json`. Set it as `FIRAAppCheckDebugToken` in the app launch environment. Offline UI tests and the named emulator test app skip production Firebase initialization even when a real local plist is present.
 5. Firebase AI Logic is configured with the Gemini Developer API on Spark after the user approved the Gemini terms. App Check and authenticated-user mode are enforced; native text and live audio have been tested. `GeminiAPIProvider` selects `googleAI`; Agent Platform/Vertex can be selected later with appropriate billing and model/location configuration.
 
 The Firestore contract is `users/{npub}` with a matching `local_npub` field. The native client uses the existing shared fields:
@@ -27,6 +27,10 @@ A protected local outbox stores each practice change until server acknowledgment
 
 The copied rules in `BackendReference/firestore.emulator.rules` are used only for local tests. Neither rules nor indexes are deployed by this repo. The two-field lesson/card queries match the web queries and need the same deployed indexes.
 
+## iPhone Release build
+
+The November 19 device Release build succeeded with signing disabled. The arm64 bundle declares iPhone, includes the dedicated `piyali-ios` Firebase app and the `piyali://subscription` return scheme, and ships the first-party required-reason API manifest. The manifest covers app preferences, local narration-cache file timestamps and on-device audio playout timing. Production attestation still requires signed installation, Firebase registration and a successful physical-device exchange. [Apple required-reason APIs](https://developer.apple.com/documentation/bundleresources/describing-use-of-required-reason-api) · [Firebase App Attest setup](https://firebase.google.com/docs/app-check/ios/app-attest-provider)
+
 ## Cloudflare
 
 Native authentication uses `AuthBaseURL`, defaulting to the dedicated `piyali-ios-api` worker. It also serves `WorkerBaseURL` for the native Responses fallback, with the native App Check audience and Firebase-authenticated npub ownership. See [../Backend/README.md](../Backend/README.md) for deployment and tests.
@@ -45,7 +49,7 @@ To subscribe or link Patreon, sign in on the website with the same key, complete
 
 Configure auto-renewing subscription products in App Store Connect. Defaults are `app.piyali.ios.monthly` and `app.piyali.ios.annual`; change the configuration to your real product IDs. Native purchases use `appAccountToken` derived from the npub. Only StoreKit-verified, unrevoked, unexpired transactions with that matching token grant access on that account. Refunds and renewals are observed with `Transaction.updates`. Configure your StoreKit sandbox for purchase testing.
 
-External payment links appear in debug builds for testing. Release builds show them only when StoreKit's storefront matches `ExternalPaymentStorefronts` (default `USA`). Review current Apple rules before extending the list or shipping other storefronts. Missing StoreKit products and failed web verification never unlock the app.
+External payment links appear in debug builds for testing. Release builds use StoreKit's storefront and default to showing the web payment link in the US. On November 19, 2026, App Review guideline 3.1.1(a) allowed these links in the US storefront without a link entitlement. Review the applicable entitlement and storefront terms before extending the list. Missing StoreKit products and failed web verification never unlock the app. [App Review Guidelines](https://developer.apple.com/app-store/review/guidelines/#payments)
 
 ## Nostr
 

@@ -2417,6 +2417,7 @@
 		A879D0B9C3E79FBC26D2922A /* FlashcardParityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E16EDB98CD5683A1763BCD6 /* FlashcardParityTests.swift */; };
 		A887AD78ABF6A788D61556F2 /* RPGProp-speaker-1462.png in Resources */ = {isa = PBXBuildFile; fileRef = CA29250E336663E4EA1CF86E /* RPGProp-speaker-1462.png */; };
 		A8AF8E16BB76E9989882E315 /* RPGGround-88ad5aa2ee8da320528d4d76.png in Resources */ = {isa = PBXBuildFile; fileRef = B4F976E8DC2F478969F082DF /* RPGGround-88ad5aa2ee8da320528d4d76.png */; };
+		A8B72E0F18CB4AB81B2B9A9E /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = F01D964F9BF7DC7F5DB76939 /* PrivacyInfo.xcprivacy */; };
 		A8B793DCC6418A382680B176 /* RPGGround-5cdf33c5ee7411b07137ee16.png in Resources */ = {isa = PBXBuildFile; fileRef = 060D9136911C5D8300385A18 /* RPGGround-5cdf33c5ee7411b07137ee16.png */; };
 		A8BD19C08856A7A340A5DD98 /* story-portrait-28.webp in Resources */ = {isa = PBXBuildFile; fileRef = 4277C13CC7020963310477DF /* story-portrait-28.webp */; };
 		A8C08250E850DDFDD395F9CD /* RPGProp-shelf-580.png in Resources */ = {isa = PBXBuildFile; fileRef = 9FBC4A893C4BC2AEDC1CE282 /* RPGProp-shelf-580.png */; };
@@ -5569,6 +5570,7 @@
 		819204BA762C29D6B2E58F29 /* RPGGround-1821e6c512da84e2da3ac4bf.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGGround-1821e6c512da84e2da3ac4bf.png"; sourceTree = "<group>"; };
 		8192A42894D10D02BA687133 /* RPGPet-ghost-right-2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGPet-ghost-right-2.png"; sourceTree = "<group>"; };
 		81A385EEB5BE5387DBB7B2B9 /* AutomaticTips.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticTips.swift; sourceTree = "<group>"; };
+		81F0AE37BD985B32A9BB9008 /* PiyaliRelease.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PiyaliRelease.entitlements; sourceTree = "<group>"; };
 		8200852E6BC2E4F66AD39110 /* RPGProp-lamp-1169.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGProp-lamp-1169.png"; sourceTree = "<group>"; };
 		822F7CE87A23113524085641 /* RPGProp-sign-177.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGProp-sign-177.png"; sourceTree = "<group>"; };
 		82565912486BB65FB09E96EF /* RPGProp-speaker-1566.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGProp-speaker-1566.png"; sourceTree = "<group>"; };
@@ -7236,6 +7238,7 @@
 		EFE0BDBFB72A75792CD2E30F /* RPGProp-bookshelf-182.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGProp-bookshelf-182.png"; sourceTree = "<group>"; };
 		EFFF654F4D263C82108F8096 /* TutorProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorProvider.swift; sourceTree = "<group>"; };
 		F004F75DDC811A2A1706C2AE /* RPGProp-desk-715.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGProp-desk-715.png"; sourceTree = "<group>"; };
+		F01D964F9BF7DC7F5DB76939 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		F02AD9C2790056ADEEB69FC5 /* RPGProp-tree-917.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGProp-tree-917.png"; sourceTree = "<group>"; };
 		F037BEE5B5150C17DDF0108C /* RPGProp-counter-1064.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGProp-counter-1064.png"; sourceTree = "<group>"; };
 		F03BAD81573B66031B093022 /* RPGProp-table-739.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "RPGProp-table-739.png"; sourceTree = "<group>"; };
@@ -7779,6 +7782,7 @@
 				F74B1AABF9F5C6510E0EE56D /* practice-recipes.js */,
 				26063226F45F7983E9DD8A7D /* practice-recipes.manifest.json */,
 				D41A9273C557579BD22C1405 /* privacy-policy.md */,
+				F01D964F9BF7DC7F5DB76939 /* PrivacyInfo.xcprivacy */,
 				4DC57ABF9C2D1514501996F1 /* product-copy.json.gz */,
 				900002DB81042B035B167803 /* questCleared.wav */,
 				4E1FF8F69603927ECFD7F18D /* questComplete.wav */,
@@ -8735,6 +8739,7 @@
 		C441EFB3B8E723ED8B08DDBD /* Piyali */ = {
 			isa = PBXGroup;
 			children = (
+				81F0AE37BD985B32A9BB9008 /* PiyaliRelease.entitlements */,
 				32CCA167EB0EB232CB31A58B /* App */,
 				63EB69AF36D60108CDEF283B /* Core */,
 				06D4183284F922539DA1A4EE /* Design */,
@@ -11543,6 +11548,7 @@
 				5880789F9BCADBDA6165A7BF /* DMSans-700.ttf in Resources */,
 				741934A2DB4AC5AF01D8DDF3 /* DMSans-LICENSE.txt in Resources */,
 				7EC43DC7266C5D8FDB302D35 /* DMSans-OFL.txt in Resources */,
+				A8B72E0F18CB4AB81B2B9A9E /* PrivacyInfo.xcprivacy in Resources */,
 				94174D1F1F0BA293C3D38A04 /* RPGEnv-009fd1f079c064de51471349.png in Resources */,
 				57F9794D18BB929AF389C490 /* RPGEnv-074d174eabd49abe03d5c4e7.png in Resources */,
 				58D2DB3BBC62566F70F884D5 /* RPGEnv-09cf396f6973764e7253b132.png in Resources */,
@@ -15326,7 +15332,6 @@
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.10;
-				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
@@ -15443,7 +15448,6 @@
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.10;
-				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -15482,7 +15486,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = app.piyali.ios;
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -15490,6 +15494,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				"CODE_SIGN_ENTITLEMENTS[sdk=iphoneos*]" = Piyali/PiyaliRelease.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_FILE = Piyali/Resources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Piyali;
@@ -15505,7 +15510,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = app.piyali.ios;
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
