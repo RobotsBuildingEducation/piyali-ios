@@ -5,6 +5,7 @@ struct LandingTutorDemoView:View {
     @Binding var target:String
     @ObservedObject var demo:LandingDemoService
     @State private var visible=true
+    @State private var orbApproached=false
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.colorScheme) private var scheme
     private func t(_ key:String)->String {EntryCopy.text(language,key,section:"tutor")}
@@ -24,7 +25,21 @@ struct LandingTutorDemoView:View {
                 VStack(alignment:.trailing,spacing:9) {languageCaption;languagePicker}.frame(maxWidth:.infinity,alignment:.trailing)
             }
             bubble(demo.status == "idle" ? samples.first?.string ?? "" : demo.tutorText.isEmpty ? t("emptyTutor") : demo.tutorText,learner:false).accessibilityIdentifier("landingDemoTutor")
-            PublicVoiceOrb(activeState:demo.active ? (["thinking","speaking","listening"].contains(demo.status) ? demo.status : "idle") : nil,audioLevel:demo.audioLevel,animating:visible && scenePhase == .active).frame(width:116,height:116).padding(.top,4).accessibilityIdentifier("landingDemoOrb")
+            Color.clear
+                .frame(width:116,height:116)
+                .overlay {
+                    if orbApproached {
+                        PublicVoiceOrb(activeState:demo.active ? (["thinking","speaking","listening"].contains(demo.status) ? demo.status : "idle") : nil,audioLevel:demo.audioLevel,animating:visible && scenePhase == .active)
+                            .accessibilityIdentifier("landingDemoOrb")
+                    }
+                }
+                .onGeometryChange(for:Bool.self) { geometry in
+                    guard let viewport=geometry.bounds(of:.scrollView) else {return true}
+                    return CGRect(origin:.zero,size:geometry.size).intersects(viewport.insetBy(dx:0,dy:-320))
+                } action:{ near in
+                    if near {orbApproached=true}
+                }
+                .padding(.top,4)
             LandingVoiceWave(level:demo.audioLevel,color:green).padding(.top,-12)
             bubble(demo.status == "idle" ? (samples.count>1 ? samples[1].string : "") : demo.learnerText.isEmpty ? t("emptyLearner") : demo.learnerText,learner:true).accessibilityIdentifier("landingDemoLearner")
             Button {if demo.active {demo.cancel()} else {Task {await demo.start(target:target,support:language)}}} label:{
