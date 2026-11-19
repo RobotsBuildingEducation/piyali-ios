@@ -48,27 +48,30 @@ struct ReadingView:View {
     private var activity:some View {
         VStack(spacing:0) {
             ScrollView {
-                VStack(alignment:.leading,spacing:18) {
-                    Label(t("reading_title"),systemImage:"book").font(PiyaliBrand.productFont(16,600))
+                VStack(alignment:.leading,spacing:12) {
+                    Label {OnboardingText(text:t("reading_title"),size:16,weight:.semibold,lineHeight:24)}
+                    icon:{PracticeIcon(name:"MdMenuBook",size:16)}
                     if service.generating,let draft=service.draft {
                         draftPassage(draft)
                     } else if let run {
-                        VStack(alignment:.leading,spacing:18) {
-                            Text(run.title).font(PiyaliBrand.productFont(19,700)).frame(maxWidth:.infinity,alignment:.leading)
+                        VStack(alignment:.leading,spacing:16) {
+                            readingTitle(run.title,target:run.target)
                             ReadingAudioControls(support:app.learner.support,loading:audio.readingAll && audio.loading,stopActive:readingAll,read:{stop();audio.play(run.text,language:run.target)},stop:stop)
                             passage(run)
-                            Divider().opacity(0.3)
-                            if run.method == "question" { question(run) }
-                            else { recording(run) }
-                            VStack(alignment:.leading,spacing:7) {
-                                Text(t("reading_takeaways_heading")).font(PiyaliBrand.productFont(14,600))
-                                ForEach(Array(run.takeaways.enumerated()),id:\.offset) { _,value in Text("• "+value).font(PiyaliBrand.productFont(14)).frame(maxWidth:.infinity,alignment:.leading) }
-                            }.padding(.top,24)
-                        }.padding(16).frame(maxWidth:.infinity,alignment:.leading).background(brand.surface.opacity(0.68),in:RoundedRectangle(cornerRadius:16)).overlay { RoundedRectangle(cornerRadius:16).stroke(brand.border) }
+                            VStack(alignment:.leading,spacing:12) {
+                                Divider().opacity(0.2)
+                                if run.method == "question" { question(run) }
+                                else { recording(run) }
+                            }
+                            takeaways(run.takeaways,support:run.support)
+                        }.modifier(ReadingCardSurface())
                     } else if let error=service.error { generationError(error) }
-                    else if service.busy { ProgressView(t("reading_generating")).frame(maxWidth:.infinity,minHeight:280) }
+                    else {
+                        ReadingLoadingSkeleton(status:t(service.generating ? "reading_generating":"reading_loading"),kind:.passage)
+                            .modifier(ReadingCardSurface())
+                    }
                     if run != nil,let error=service.error { Text(error).foregroundStyle(brand.questionError) }
-                }.padding(.horizontal,12).padding(.top,8).padding(.bottom,30).frame(maxWidth:640).frame(maxWidth:.infinity)
+                }.padding(.horizontal,12).padding(.top,6).padding(.bottom,8).frame(maxWidth:1100).frame(maxWidth:.infinity)
             }
             Color.clear.frame(height:app.activityFooterHeight)
         }.font(PiyaliBrand.productFont(16)).foregroundStyle(brand.text).background(brand.background)
@@ -78,16 +81,17 @@ struct ReadingView:View {
         return VStack(alignment:.leading,spacing:12) {
             Text(message).font(PiyaliBrand.productFont(16)).lineSpacing(leading).padding(.vertical,leading/2).fixedSize(horizontal:false,vertical:true).accessibilityIdentifier("readingGenerationError")
             Button(t("try_again")) {refresh += 1}.buttonStyle(ReadingRetryButtonStyle()).disabled(service.busy).accessibilityIdentifier("readingRetry")
-        }.padding(13).frame(maxWidth:.infinity,minHeight:280,alignment:.topLeading)
-            .background{EntryCornerShape(radius:12).fill(.white.opacity(0.05))}
-            .overlay{EntryCornerShape(radius:12).stroke(.white.opacity(0.1),lineWidth:1)}
+        }.modifier(ReadingCardSurface())
             .accessibilityElement(children:.contain)
             .accessibilityIdentifier("readingGenerationErrorCard")
     }
     private func draftPassage(_ draft:ReadingStreamDraft)->some View {
         let sentences=Reading.displaySentences(draft.text)
-        return VStack(alignment:.leading,spacing:18) {
-            (Text(draft.title).font(PiyaliBrand.productFont(19,700)) + Text(" ("+t("reading_generating")+")").font(PiyaliBrand.productFont(13)).foregroundColor(brand.secondary)).accessibilityIdentifier("readingDraftTitle")
+        return VStack(alignment:.leading,spacing:16) {
+            (Text(draft.title).font(PiyaliBrand.productFont(18,700)) + Text(" ("+t("reading_generating")+")").font(PiyaliBrand.productFont(14)).foregroundColor(brand.secondary))
+                .frame(maxWidth:.infinity,minHeight:27,alignment:.leading)
+                .environment(\.layoutDirection,textDirection(app.learner.target))
+                .accessibilityIdentifier("readingDraftTitle")
             ReadingAudioControls(support:app.learner.support,loading:false,stopActive:readingAll,enabled:false,read:{},stop:stop)
             VStack(alignment:.leading,spacing:14) {
                 if !sentences.isEmpty {
@@ -97,11 +101,27 @@ struct ReadingView:View {
                 if app.learner.settingsSnapshot["progress"]["showTranslations"] != .bool(false) {
                     HStack {Spacer();Button(t("history_translate")) {}.font(PiyaliBrand.productFont(13,600)).padding(.horizontal,12).padding(.vertical,10).foregroundStyle(.white).background(Color(red:64/255,green:103/255,blue:96/255),in:RoundedRectangle(cornerRadius:10)).buttonStyle(.plain).accessibilityIdentifier("readingDraftTranslate")}
                 }
-            }.padding(12).background(PiyaliBrand.unitColor("38b2ac").opacity(0.15),in:EntryCornerShape(radius:8)).overlay(alignment:.leading){Rectangle().fill(PiyaliBrand.unitColor("38b2ac")).frame(width:3)}.clipShape(EntryCornerShape(radius:8))
-            if !draft.takeaways.isEmpty {
-                VStack(alignment:.leading,spacing:7) {Text(t("reading_takeaways_heading")).font(PiyaliBrand.productFont(14,600));ForEach(Array(draft.takeaways.enumerated()),id:\.offset){_,value in Text("• "+value).font(PiyaliBrand.productFont(14))}}.padding(.top,24)
-            }
-        }.padding(16).frame(maxWidth:.infinity,alignment:.leading).background(brand.surface.opacity(0.68),in:RoundedRectangle(cornerRadius:16)).overlay{RoundedRectangle(cornerRadius:16).stroke(brand.border)}
+            }.modifier(ReadingPassageSurface())
+            takeaways(draft.takeaways,support:app.learner.support)
+        }.modifier(ReadingCardSurface())
+    }
+    private func textDirection(_ language:String)->LayoutDirection { language == "ar" ? .rightToLeft:.leftToRight }
+    private func readingTitle(_ title:String,target:String)->some View {
+        OnboardingText(text:title,size:18,weight:.bold,lineHeight:27)
+            .frame(maxWidth:.infinity,alignment:.leading)
+            .environment(\.layoutDirection,textDirection(target))
+    }
+    @ViewBuilder private func takeaways(_ lines:[String],support:String)->some View {
+        if !lines.isEmpty {
+            VStack(alignment:.leading,spacing:6) {
+                OnboardingText(text:t("reading_takeaways_heading"),size:14,weight:.semibold,lineHeight:21).opacity(0.9)
+                ForEach(Array(lines.enumerated()),id:\.offset) { _,line in
+                    OnboardingText(text:"• "+line,size:14,lineHeight:21)
+                        .frame(maxWidth:.infinity,alignment:.leading)
+                        .environment(\.layoutDirection,textDirection(support))
+                }
+            }.padding(.top,48)
+        }
     }
     private func passage(_ run:ReadingRun)->some View {
         let sentences=Reading.displaySentences(run.text)
@@ -143,28 +163,51 @@ struct ReadingView:View {
                     .disabled(service.translationLoading).accessibilityIdentifier("readingTranslate")
                 }.padding(.top,2)
             }
-        }.padding(12).background(PiyaliBrand.unitColor("38b2ac").opacity(0.15),in:EntryCornerShape(radius:8)).overlay(alignment:.leading){Rectangle().fill(PiyaliBrand.unitColor("38b2ac")).frame(width:3)}.clipShape(EntryCornerShape(radius:8))
+        }.modifier(ReadingPassageSurface())
     }
     private func sentenceColor(_ index:Int)->Color { [PiyaliBrand.unitColor("38b2ac"),Color(red:128/255,green:90/255,blue:213/255),Color(red:237/255,green:137/255,blue:54/255),Color(red:99/255,green:179/255,blue:237/255),Color(red:246/255,green:173/255,blue:85/255)][index%5] }
     @ViewBuilder private func question(_ run:ReadingRun)->some View {
         if run.pendingQuestionType != nil {
-            if service.questionGenerating {ProgressView(t("history_generating_question")).accessibilityIdentifier("readingQuestionLoading")}
+            if service.questionGenerating {ReadingLoadingSkeleton(status:t("history_generating_question"),kind:.question)}
         } else {
-        Text(run.question.question).font(PiyaliBrand.productFont(14)).lineSpacing(5).accessibilityIdentifier("readingQuestion")
-        if run.question.type == "mc" {
-            VStack(spacing:10) { ForEach(Array(run.question.options.enumerated()),id:\.offset) { index,option in
-                let selected=answer == option || answer.isEmpty && run.answer == option
-                Button { answer=option;update { $0.answer=option;$0.correct=nil;$0.feedback="" } } label:{ HStack(spacing:10) { Image(systemName:selected ? "checkmark.circle.fill" : "circle");Text(option).multilineTextAlignment(.leading);Spacer(minLength:0) }.font(PiyaliBrand.productFont(15,500)).padding(13).frame(maxWidth:.infinity,minHeight:48).foregroundStyle(selected ? brand.questionChoice : brand.text).background(selected ? brand.questionChoiceBackground : brand.surface,in:RoundedRectangle(cornerRadius:12)).overlay { RoundedRectangle(cornerRadius:12).stroke(selected ? brand.questionChoice : brand.border) } }.buttonStyle(.plain).disabled(service.busy || run.awarded).accessibilityIdentifier("readingOption-\(index)")
-            } }
-        } else {
-            TextField(t(run.question.type == "fill" ? "history_fill_blank_placeholder" : "history_answer_placeholder"),text:Binding(get:{ answer },set:{ value in answer=value;update { $0.answer=value;$0.correct=nil;$0.feedback="" } }),axis:.vertical).font(PiyaliBrand.productFont(16)).padding(14).background(brand.surface,in:RoundedRectangle(cornerRadius:12)).overlay { RoundedRectangle(cornerRadius:12).stroke(brand.border) }.focused($answering).disabled(service.busy || run.awarded).accessibilityIdentifier("readingAnswer")
+            OnboardingText(text:run.question.question,size:14,lineHeight:22.4)
+                .frame(maxWidth:.infinity,alignment:.leading)
+                .environment(\.layoutDirection,textDirection(run.support))
+                .accessibilityIdentifier("readingQuestion")
+            if run.question.type == "mc" {
+                VStack(spacing:8) {
+                    ForEach(Array(run.question.options.enumerated()),id:\.offset) { index,option in
+                        let selected=answer == option || answer.isEmpty && run.answer == option
+                        Button {
+                            answer=option
+                            update { $0.answer=option;$0.correct=nil;$0.feedback="" }
+                        } label: {
+                            ReadingAnswerOption(letter:UnicodeScalar(65+index).map(String.init) ?? "",text:option,direction:textDirection(run.support),selected:selected)
+                        }.buttonStyle(.plain).disabled(service.busy || run.awarded)
+                            .accessibilityLabel(option)
+                            .accessibilityAddTraits(selected ? .isSelected:[])
+                            .accessibilityIdentifier("readingOption-\(index)")
+                    }
+                }
+            } else {
+                TextField(t(run.question.type == "fill" ? "history_fill_blank_placeholder" : "history_answer_placeholder"),text:Binding(get:{ answer },set:{ value in answer=value;update { $0.answer=value;$0.correct=nil;$0.feedback="" } }),axis:.vertical).font(PiyaliBrand.productFont(16)).padding(14).background(brand.surface,in:RoundedRectangle(cornerRadius:12)).overlay { RoundedRectangle(cornerRadius:12).stroke(brand.border) }.focused($answering).disabled(service.busy || run.awarded).accessibilityIdentifier("readingAnswer")
+            }
         }
-    }
     }
     @ViewBuilder private func recording(_ run:ReadingRun)->some View {
         if !run.awarded {
-            if recordingNow { PublicVoiceOrb(animating:active && phase == .active,size:75).frame(width:75,height:75).accessibilityIdentifier("readingListeningOrb").frame(maxWidth:.infinity);Text(t("history_speech_listening")).font(PiyaliBrand.productFont(12,600)).frame(maxWidth:.infinity) }
-            if !recorder.transcript.isEmpty { Text(recorder.transcript).font(PiyaliBrand.productFont(12)).lineSpacing(6).italic().accessibilityIdentifier("readingSpeechTranscript") }
+            if recordingNow {
+                VStack(spacing:4) {
+                    PublicVoiceOrb(animating:active && phase == .active,size:75).frame(width:75,height:75).accessibilityIdentifier("readingListeningOrb")
+                    Text(t("history_speech_listening")).font(PiyaliBrand.productFont(12,600)).tracking(0.48).opacity(0.8)
+                }.frame(maxWidth:.infinity)
+            }
+            if !recorder.transcript.isEmpty {
+                OnboardingText(text:recorder.transcript,size:12,lineHeight:21.6).italic().opacity(0.9)
+                    .frame(maxWidth:.infinity,alignment:.leading)
+                    .environment(\.layoutDirection,textDirection(run.target))
+                    .accessibilityIdentifier("readingSpeechTranscript")
+            }
             if let code=recorder.issue { let copy=ReadingSpeechCapture.feedback(code);Text(t(copy.title)+". "+t(copy.description)).font(PiyaliBrand.productFont(14)).foregroundStyle(brand.secondary).accessibilityIdentifier("readingRecordingError") }
         }
     }
@@ -213,6 +256,128 @@ struct ReadingView:View {
 }
 
 /// The source theme's default blue Retry control, including its four-point edge.
+private struct ReadingCardSurface:ViewModifier {
+    func body(content:Content)->some View {
+        content.padding(13)
+            .frame(maxWidth:.infinity,minHeight:280,alignment:.topLeading)
+            .background {EntryCornerShape(radius:12).fill(.white.opacity(0.05))}
+            .overlay {EntryCornerShape(radius:12).stroke(.white.opacity(0.1),lineWidth:1)}
+    }
+}
+
+private struct ReadingPassageSurface:ViewModifier {
+    @Environment(\.layoutDirection) private var direction
+    var padding:CGFloat=12
+    var opacity=0.15
+    private let teal=PiyaliBrand.unitColor("38b2ac")
+    func body(content:Content)->some View {
+        content.padding(padding)
+            .padding(direction == .rightToLeft ? .trailing:.leading,3)
+            .background(teal.opacity(opacity))
+            .overlay(alignment:direction == .rightToLeft ? .trailing:.leading) {Rectangle().fill(teal).frame(width:3)}
+            .clipShape(EntryCornerShape(radius:8))
+    }
+}
+
+private struct ReadingAnswerOption:View {
+    let letter:String,text:String,direction:LayoutDirection,selected:Bool
+    @Environment(\.colorScheme) private var scheme
+    private let teal=PiyaliBrand.unitColor("38b2ac")
+    private var dark:Bool {scheme == .dark}
+    private var paperInk:Color {PiyaliBrand.unitColor("5a4736")}
+    var body:some View {
+        HStack(spacing:12) {
+            Text(letter).font(PiyaliBrand.productFont(12,700))
+                .foregroundStyle(selected || dark ? .white:PiyaliBrand.unitColor("2f261d"))
+                .frame(width:28,height:28)
+                .background(selected ? teal:.clear,in:Circle())
+                .overlay {Circle().strokeBorder(selected ? teal:dark ? .white.opacity(0.16):paperInk.opacity(0.42),lineWidth:2)}
+            OnboardingText(text:text,size:14,lineHeight:21)
+                .environment(\.layoutDirection,direction)
+            Spacer(minLength:0)
+        }
+        .padding(13)
+        .background {
+            EntryCornerShape(radius:8).fill(selected ? teal.opacity(0.12):dark ? .clear:PiyaliBrand.unitColor("fffaf1").opacity(0.38))
+        }
+        .overlay {
+            EntryCornerShape(radius:8).stroke(selected ? teal:dark ? .white.opacity(0.08):paperInk.opacity(0.28),lineWidth:1)
+        }
+        .contentShape(EntryCornerShape(radius:8))
+    }
+}
+
+private struct ReadingLoadingSkeleton:View {
+    enum Kind {case passage,question}
+    let status:String,kind:Kind
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.scenePhase) private var phase
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var started=Date()
+    private var brand:PiyaliBrand {.init(dark:scheme == .dark)}
+    private let teal=PiyaliBrand.unitColor("38b2ac")
+    var body:some View {
+        TimelineView(.animation(minimumInterval:1/20,paused:reduceMotion || phase != .active)) { clock in
+            let elapsed=max(0,clock.date.timeIntervalSince(started))
+            let pulse=reduceMotion || phase != .active ? 0:0.5-0.5*cos(.pi*elapsed/0.8)
+            VStack(spacing:kind == .passage ? 16:12) {
+                if kind == .passage {passage(pulse)}
+                else {question(pulse)}
+                HStack(spacing:8) {
+                    OnboardingText(text:status,size:12,weight:.medium,lineHeight:18)
+                        .foregroundStyle(brand.secondary)
+                    HStack(spacing:6) {
+                        ForEach(0..<3) { index in
+                            let t=max(0,elapsed-Double(index)*0.14)
+                            let strength=reduceMotion || phase != .active ? 0.5:0.5-0.5*cos(2 * .pi*t/0.9)
+                            Circle().fill(teal).frame(width:6,height:6)
+                                .opacity(0.28+0.72*strength).offset(y:-3*strength)
+                        }
+                    }.frame(minHeight:24)
+                }.frame(maxWidth:.infinity).padding(.top,kind == .passage ? 8:4).opacity(0.75)
+            }.padding(.vertical,4)
+        }
+        .accessibilityElement(children:.ignore)
+        .accessibilityLabel(status)
+        .accessibilityIdentifier(kind == .passage ? "readingPassageLoading":"readingQuestionLoading")
+    }
+    private func bar(width:CGFloat=1,height:CGFloat,radius:CGFloat,pulse:Double)->some View {
+        GeometryReader { bounds in
+            RoundedRectangle(cornerRadius:radius)
+                .fill(PiyaliBrand.unitColor(brand.dark ? "182031":"efe4d5"))
+                .overlay {RoundedRectangle(cornerRadius:radius).fill(brand.surface.opacity(pulse))}
+                .frame(width:bounds.size.width*width)
+                .frame(maxWidth:.infinity,alignment:.leading)
+        }.frame(height:height)
+    }
+    private func passage(_ pulse:Double)->some View {
+        VStack(spacing:16) {
+            bar(width:0.6,height:28,radius:6,pulse:pulse)
+            HStack(spacing:16) {
+                ForEach([CGFloat(48),36],id:\.self) { width in
+                    VStack(spacing:4) {
+                        bar(height:32,radius:16,pulse:pulse).frame(width:32)
+                        bar(height:10,radius:2,pulse:pulse).frame(width:width)
+                    }
+                }
+            }.padding(.vertical,4).frame(maxWidth:.infinity)
+            VStack(spacing:10) {
+                ForEach(Array([0.96,0.90,0.72,0.94,0.86,0.58].enumerated()),id:\.offset) { index,width in
+                    bar(width:width,height:16,radius:2,pulse:pulse).padding(.bottom,index == 2 ? 8:0)
+                }
+            }.modifier(ReadingPassageSurface(padding:16,opacity:0.12))
+        }
+    }
+    private func question(_ pulse:Double)->some View {
+        VStack(spacing:10) {
+            bar(width:0.75,height:18,radius:6,pulse:pulse).padding(.bottom,6)
+            ForEach(0..<3) { _ in bar(height:44,radius:8,pulse:pulse) }
+        }.padding(17)
+            .background(brand.surface,in:EntryCornerShape(radius:12))
+            .overlay {EntryCornerShape(radius:12).stroke(brand.border,lineWidth:1)}
+    }
+}
+
 private struct ReadingRetryButtonStyle:ButtonStyle {
     var size:CGFloat=16,height:CGFloat=40,horizontal:CGFloat=17
     var background="5dade2",edge="2f7cf7"

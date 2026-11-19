@@ -27,11 +27,12 @@ import XCTest
         tap("readingMicrophone",app);tap("readingMicrophone",app)
         XCTAssertTrue(app.staticTexts["readingSpeechTranscript"].waitForExistence(timeout:5));XCTAssertTrue(app.buttons["readingSpeechStartOver"].exists)
     }
-    private func missingQuestionApp(failure:Bool=false,generationFailure:Bool=false,translationFailure:String?=nil)->XCUIApplication {
+    private func missingQuestionApp(failure:Bool=false,generationFailure:Bool=false,translationFailure:String?=nil,holdLoading:Bool=false)->XCUIApplication {
         continueAfterFailure=false;let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_READING_FIXTURE":"1","PIYALI_READING_MISSING_QUESTION_FIXTURE":"1","PIYALI_PRACTICE_FIXTURE":"delight:natural_or_weird"]
         if failure {app.launchEnvironment["PIYALI_READING_QUESTION_FALLBACK_FAILURE"]="1"}
         if generationFailure {app.launchEnvironment["PIYALI_READING_GENERATION_FAILURE_FIXTURE"]="1"}
         if let translationFailure {app.launchEnvironment["PIYALI_READING_TRANSLATION_FAILURE_FIXTURE"]=translationFailure;app.launchEnvironment["PIYALI_READING_TRANSLATION_STREAM_FIXTURE"]="0"}
+        if holdLoading {app.launchEnvironment["PIYALI_READING_LOADING_FIXTURE"]="1"}
         app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en"];app.launch();handleInitialPaperPencil(app)
         let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Partial Reader");if app.buttons["entryKeyboardDone"].exists {app.buttons["entryKeyboardDone"].tap()};app.buttons["createAccount"].tap();handleInitialPaperPencil(app);XCTAssertTrue(app.buttons["startLearning"].waitForExistence(timeout:20));app.buttons["startLearning"].tap();open(app,expectsPassage:!generationFailure);return app
     }
@@ -56,8 +57,25 @@ import XCTest
     func testThrownTranslationKeepsSentenceStackAllowsReviewAndRetriesAfterCompletion(){translationFailureJourney("throw")}
     func testIncompleteTranslationRestoresProseAllowsReviewAndRetriesAfterCompletion(){translationFailureJourney("incomplete")}
     func testPartialReadingGeneratesMissingQuestionAndRetainsOneReward() {
-        let app=missingQuestionApp();XCTAssertTrue(app.staticTexts["readingQuestion"].waitForExistence(timeout:12),app.debugDescription)
-        XCTAssertTrue(app.staticTexts["readingQuestion"].label.contains("Why does"));tap("readingOption-0",app);tap("readingCheck",app)
+        let app=missingQuestionApp(holdLoading:true),loading=app.descendants(matching:.any)["readingQuestionLoading"]
+        XCTAssertTrue(loading.waitForExistence(timeout:8))
+        XCTAssertGreaterThan(loading.frame.height,230)
+        XCTAssertFalse(app.buttons["readingCheck"].exists)
+        for _ in 0..<2 where loading.frame.maxY > app.frame.maxY-100 {app.swipeUp(velocity:.fast)}
+        XCTAssertTrue(loading.isHittable)
+        let skeleton=XCTAttachment(screenshot:app.screenshot());skeleton.name="Reading question skeleton";skeleton.lifetime = .keepAlways;add(skeleton)
+        // Retain a second phase for the visual comparison when the pulse fades into the card.
+        Thread.sleep(forTimeInterval:0.8)
+        let pulse=XCTAttachment(screenshot:app.screenshot());pulse.name="Reading question skeleton alternate pulse";pulse.lifetime = .keepAlways;add(pulse)
+        XCTAssertTrue(app.staticTexts["readingQuestion"].waitForExistence(timeout:12),app.debugDescription)
+        XCTAssertFalse(loading.exists)
+        XCTAssertTrue(app.staticTexts["readingQuestion"].label.contains("Why does"))
+        tap("readingOption-0",app)
+        let first=app.buttons["readingOption-0"]
+        XCTAssertTrue(first.isSelected)
+        XCTAssertGreaterThanOrEqual(first.frame.height,54)
+        let selection=XCTAttachment(screenshot:app.screenshot());selection.name="Reading selected letter answer";selection.lifetime = .keepAlways;add(selection)
+        tap("readingCheck",app)
         let completed=app.staticTexts["readingCompleted"];reveal(completed,in:app);let reward=completed.label;XCTAssertTrue(reward.contains("XP awarded:"))
         let captured=XCTAttachment(screenshot:app.screenshot());captured.name="Recovered Reading question completed once";captured.lifetime = .keepAlways;add(captured)
         app.terminate();app.launch();handleInitialPaperPencil(app);open(app);reveal(completed,in:app);XCTAssertEqual(completed.label,reward);XCTAssertFalse(app.buttons["readingCheck"].exists)

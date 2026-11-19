@@ -74,6 +74,9 @@ import FirebaseAILogic
                         guard let partial=ReadingStreamDraft.sourcePayload(records.map(\.json).joined(separator:"\n"),target:target,support:support,questionType:"mc") else{throw ReadingFailure.invalid};return partial
                     }
                     if ProcessInfo.processInfo.environment["PIYALI_READING_STREAM_FIXTURE"] == "1" {
+                        if ProcessInfo.processInfo.environment["PIYALI_READING_LOADING_FIXTURE"] == "1" {
+                            try await Task.sleep(for:.seconds(5))
+                        }
                         let lines=[JSONValue.object(["type":.string("title"),"text":payload["title"]]),.object(["type":.string("target"),"text":payload["target"]])]
                         var snapshot=""
                         for line in lines {
@@ -118,7 +121,10 @@ import FirebaseAILogic
             let task=Task { @MainActor () throws ->ReadingQuestion in
                 if Self.fixture {
                     if ProcessInfo.processInfo.environment["PIYALI_READING_QUESTION_FALLBACK_FAILURE"] == "1" {throw ReadingFailure.invalid}
-                    if ProcessInfo.processInfo.environment["PIYALI_READING_MISSING_QUESTION_FIXTURE"] == "1" {try await Task.sleep(for:.seconds(2))}
+                    if ProcessInfo.processInfo.environment["PIYALI_READING_MISSING_QUESTION_FIXTURE"] == "1" {
+                        let held=ProcessInfo.processInfo.environment["PIYALI_READING_LOADING_FIXTURE"] == "1"
+                        try await Task.sleep(for:.seconds(held ? 6:2))
+                    }
                     let fixture=try ContentLibrary.load(JSONValue.self,name:"reading-test-passage")["reviewQuestion"]
                     guard let value=ReadingQuestion(fixture,expectedType:type) else{throw ReadingFailure.invalid};return value
                 }
