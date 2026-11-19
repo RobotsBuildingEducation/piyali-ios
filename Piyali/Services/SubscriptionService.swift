@@ -14,7 +14,7 @@ import StoreKit
     private var webSession: URLSession
     private let ownsWebSession:Bool
     private var revision=UUID()
-    private enum WebCheck:Equatable {case restore,passive,forced,renewal}
+    private enum WebCheck:Equatable {case restore,passive,forced,renewal,browserReturn}
     private var webTask:(id:UUID,mode:WebCheck,task:Task<Void,Error>)?
     private var webEpoch=UUID()
     private var statusMutation:UUID?
@@ -83,18 +83,21 @@ import StoreKit
     func refresh(forceWeb:Bool=false, reconnectLanguage: String? = nil) async {
         guard !busy,let identity, !identity.npub.isEmpty else { return }
         if suppressNetwork{statusResolved=true;return}
-        let token=revision
+        let token=revision,epoch=webEpoch
         busy = true; error = nil; defer { if revision == token{busy = false} }
         if !suppressLoopback{do { try await loadAppleProducts() } catch { if token == revision{self.error = error.localizedDescription} }}
-        guard token == revision else{return}
+        guard token == revision,epoch == webEpoch else{return}
         let storefront = suppressLoopback ? nil:await Storefront.current
         externalPaymentAllowed = config.list("ExternalPaymentStorefronts").contains(storefront?.countryCode ?? "")
         #if DEBUG
         externalPaymentAllowed = true
         #endif
         if !suppressLoopback{await refreshApple()}
-        guard token == revision else{return}
-        do { try await refreshWeb(force:forceWeb) } catch { if token == revision{self.error = error.localizedDescription;statusError="unavailable";statusResolved=true} }
+        guard token == revision,epoch == webEpoch else{return}
+        do { try await refreshWeb(force:forceWeb) }
+        catch is CancellationError {return}
+        catch { if token == revision,epoch == webEpoch{self.error = error.localizedDescription;statusError="unavailable";statusResolved=true} }
+        guard token == revision,epoch == webEpoch else{return}
         recomputeAccess()
         if let reconnectLanguage, forceWeb, token == revision, externalPaymentAllowed,
            statusError.isEmpty, statusPayload["linked"].boolean, !webAuthorized,
@@ -201,7 +204,11 @@ import StoreKit
         if !granted{webAuthorized=false;webExpiry=nil}
         else if renewLease{webAuthorized=true;webExpiry=now().addingTimeInterval(15*60);webRetryAt=nil}
         else{webAuthorized=webAuthorized && (webExpiry ?? .distantPast)>now()}
-        if webAuthorized || replacementRequired || statusPayload["linked"].boolean { awaitingCheckout = false }
+        if webAuthorized || replacementRequired || statusPayload["linked"].boolean {
+            awaitingCheckout = false
+        }
+        if result == SubscriptionBrowserRequest.unconfirmedResult,
+           webAuthorized || replacementRequired || statusPayload["linked"].boolean || awaiting {result=""}
         recomputeAccess()
     }
     private func invalidateWebChecks(){webEpoch=UUID();webTask?.task.cancel();webTask=nil}
@@ -215,14 +222,16 @@ import StoreKit
         guard statusMutation == nil else{throw CancellationError()}
         let requestedRevision=revision,requestedEpoch=webEpoch
         while let existing=webTask{
+            let needsFreshCheck = (mode == .forced && existing.mode != .forced)
+                || (mode == .browserReturn && existing.mode != .browserReturn)
             do{try await existing.task.value}catch{
-                guard mode == .forced,existing.mode != .forced else{throw error}
+                guard needsFreshCheck else{throw error}
             }
             if webTask?.id == existing.id{webTask=nil}
             guard statusMutation == nil,accountID == account,revision == requestedRevision,webEpoch == requestedEpoch else{throw CancellationError()}
-            // A manual force must follow a cached read. Every other caller can
-            // share the in-flight authority check without a second signature.
-            if mode != .forced || existing.mode == .forced{return}
+            // Forced refresh and Safari return require their own authority check.
+            // Identical checks can share the in-flight request.
+            if !needsFreshCheck{return}
         }
         let token=requestedRevision,epoch=requestedEpoch,id=UUID()
         let task=Task{[weak self] in
@@ -249,7 +258,7 @@ import StoreKit
     }
     private func performWebCheck(_ mode:WebCheck,account:String,token:UUID,epoch:UUID)async throws{
         try validateWebScope(account,token,epoch)
-        if mode == .restore{try await performRestore(account:account,token:token,epoch:epoch);return}
+        if mode == .restore || mode == .browserReturn{try await performRestore(account:account,token:token,epoch:epoch);return}
         if !hasWebSession{
             if mode == .renewal,identity?.isRemote == true{throw RequestFailure(code:"not_authenticated")}
             try await performRestore(account:account,token:token,epoch:epoch)
@@ -286,13 +295,16 @@ import StoreKit
     /// Safari owns checkout cookies. A fresh signed link lets the server verify
     /// the now-paid membership when a key restore has not linked it yet.
     func checkMembership(language:String)async{
-        guard !busy else{return};let token=revision;busy=true;statusError=""
-        do{try await refreshWeb(force:true)}catch{if token == revision{busy=false;statusError="unavailable"};return}
+        guard !busy else{return};let token=revision,epoch=webEpoch;busy=true;statusError=""
+        do{try await refreshWeb(force:true)}
+        catch is CancellationError{if token == revision{busy=false};return}
+        catch{if token == revision{busy=false;if epoch == webEpoch{statusError="unavailable"}};return}
         guard token == revision else{return};busy=false
+        guard epoch == webEpoch else{return}
         if awaiting,!webAuthorized,!replacementRequired{await connect(language:language)}
     }
     func connect(language:String, forRefresh: Bool = false)async{
-        guard !busy,let account=accountID,!account.isEmpty else{return};let token=revision
+        guard !busy,browserReturn == nil,let account=accountID,!account.isEmpty else{return};let token=revision
         busy=true;statusError="";error=nil;defer{if token == revision{busy=false}}
         do{
             var body=try await proof("link",account:account,token:token);guard token == revision else{return};body["plan"]="annual";body["returnMode"]="page";body["supportLanguage"]=language
@@ -302,7 +314,7 @@ import StoreKit
             let request = SubscriptionBrowserRequest(url: url, account: account, revision: token, kind: forRefresh ? .refreshMembership : .connect)
             browserReturn = request
             browser = request
-            awaitingCheckout = !statusPayload["linked"].boolean
+            if result == SubscriptionBrowserRequest.unconfirmedResult {result=""}
         }catch{if token == revision{statusError="unavailable";self.error=error.localizedDescription}}
     }
     private var suppressLoopback:Bool{
@@ -316,17 +328,28 @@ import StoreKit
         if suppressLoopback { return config.web.appendingPathComponent("checkout") }
         return URL(string:"https://subscribe.piyali.app/")!
     }
-    func checkout(){guard let account=accountID else{return};let request=SubscriptionBrowserRequest(url:webCheckoutURL,account:account,revision:revision,kind:.checkout);browserReturn=request;browser=request;awaitingCheckout=true}
-    func browserClosed() {
-        guard let request = browserReturn else { return }
+    func checkout(){
+        guard !busy,browserReturn == nil,externalPaymentAllowed,let account=accountID,!account.isEmpty else{return}
+        let request=SubscriptionBrowserRequest(url:webCheckoutURL,account:account,revision:revision,kind:.checkout)
+        browserReturn=request;browser=request;awaitingCheckout=true;result=""
+    }
+    func browserClosed(_ id:UUID) {
+        guard let request=browserReturn,request.id == id else{return}
         browser = nil
         browserReturn = nil
+        guard statusMutation == nil else{return}
+        // Any read started before the browser closed can reflect the previous membership.
+        invalidateWebChecks()
+        let epoch=webEpoch
         Task { [weak self] in
-            guard let self, revision == request.revision, accountID == request.account else { return }
+            guard let self,revision == request.revision,accountID == request.account,webEpoch == epoch else{return}
             do {
-                try await restoreWeb()
-                if request.kind == .refreshMembership, revision == request.revision,
-                   accountID == request.account, hasWebSession, webAuthorized {
+                try await checkWeb(.browserReturn)
+                guard revision == request.revision,accountID == request.account,webEpoch == epoch,browserReturn == nil else{return}
+                if request.kind == .connect,!statusPayload["linked"].boolean,!webAuthorized,!replacementRequired,!awaiting {
+                    result=SubscriptionBrowserRequest.unconfirmedResult
+                }
+                if request.kind == .refreshMembership,hasWebSession,webAuthorized {
                     try await refreshWeb(force: true)
                 }
             } catch {
@@ -348,7 +371,7 @@ import StoreKit
         }}
     }
     func cancelReplacement()async{
-        guard !busy,let account=accountID,!account.isEmpty else{return};let token=revision,mutation=beginStatusMutation();statusError="";error=nil
+        guard !busy,browserReturn == nil,let account=accountID,!account.isEmpty else{return};let token=revision,mutation=beginStatusMutation();statusError="";error=nil
         // OAuth runs in Safari, whose recovery cookie is not in our URLSession.
         // The endpoint returns 200 even without that cookie, so open the source
         // recovery page in Safari and recheck the signed key status on return.

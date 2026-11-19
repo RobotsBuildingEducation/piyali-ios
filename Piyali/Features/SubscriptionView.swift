@@ -47,6 +47,14 @@ private struct SubscriptionSafariView:UIViewControllerRepresentable {
 }
 private struct SubscriptionBrowserModifier:ViewModifier {
  @ObservedObject var service:SubscriptionService
- func body(content:Content)->some View{content.sheet(item:$service.browser,onDismiss:service.browserClosed){request in SubscriptionSafariView(url:request.url,onDone:service.browserClosed).ignoresSafeArea()}}
+ @State private var presentedID:UUID?
+ func body(content:Content)->some View{
+  content.sheet(item:$service.browser,onDismiss:{
+   if let id=presentedID{presentedID=nil;service.browserClosed(id)}
+  }){request in
+   SubscriptionSafariView(url:request.url,onDone:{service.browserClosed(request.id)})
+    .ignoresSafeArea().onAppear{presentedID=request.id}
+  }
+ }
 }
 extension View{func subscriptionBrowser(_ service:SubscriptionService)->some View{modifier(SubscriptionBrowserModifier(service:service))}}

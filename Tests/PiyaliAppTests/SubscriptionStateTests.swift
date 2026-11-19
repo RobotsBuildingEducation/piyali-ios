@@ -38,16 +38,16 @@ private final class MembershipProtocol:URLProtocol {
   let(identity,service)=try context();defer{try? identity.disconnect()};let author=identity.hex;var actions:[String]=[],start:[String:Any]=[:]
   let url="https://www.patreon.com/oauth2/authorize?response_type=code&client_id=local&redirect_uri=https%3A%2F%2Fpiyali.app%2Fapi%2Fpatreon%2Fcallback&scope=identity&state="+String(repeating:"s",count:43)
   MembershipProtocol.install{request in let path=request.url!.lastPathComponent,body=MembershipProtocol.body(request);if path == "link-challenge"{return MembershipProtocol.challenge(body["action"] as? String ?? "")};let action=path == "link-start" ? "link":path == "replace-link" ? "replace":"restore";XCTAssertTrue(MembershipProtocol.valid(request,action:action,author:author));actions.append(action);if path == "link-start"{start=body;return .init(value:["authorizeUrl":url])};if path == "replace-link"{return .init(value:["authorized":true,"linked":true,"subscription":["status":"active"]])};return .init(value:["authorized":false,"linked":false,"replacementRequired":true])}
-  await service.connect(language:"ar");XCTAssertEqual(service.browser?.url.absoluteString,url);XCTAssertEqual(start["supportLanguage"] as? String,"ar");XCTAssertEqual(start["plan"] as? String,"annual");XCTAssertTrue(service.awaiting);XCTAssertFalse(service.hasAccess)
-  service.browserClosed();await settle{service.replacementRequired};XCTAssertFalse(service.hasAccess);XCTAssertEqual(actions,["link","restore"]);await service.replaceLinkedKey();XCTAssertTrue(service.webAuthorized);XCTAssertTrue(service.hasAccess);XCTAssertEqual(actions,["link","restore","replace"])
+  await service.connect(language:"ar");XCTAssertEqual(service.browser?.url.absoluteString,url);XCTAssertEqual(start["supportLanguage"] as? String,"ar");XCTAssertEqual(start["plan"] as? String,"annual");XCTAssertFalse(service.awaiting);XCTAssertFalse(service.hasAccess)
+  service.browserClosed(try XCTUnwrap(service.browser?.id));await settle{service.replacementRequired};XCTAssertFalse(service.hasAccess);XCTAssertEqual(actions,["link","restore"]);await service.replaceLinkedKey();XCTAssertTrue(service.webAuthorized);XCTAssertTrue(service.hasAccess);XCTAssertEqual(actions,["link","restore","replace"])
  }
  func testRecoveryCancelUsesSafariAndRechecksSignedServerState()async throws{
   let(identity,service)=try context();defer{try? identity.disconnect()};let author=identity.hex;var pending=true,cancels=0,restores=0
   MembershipProtocol.install{request in let path=request.url!.lastPathComponent;if path == "link-challenge"{return MembershipProtocol.challenge("restore")};if path == "cancel-replacement"{cancels += 1;return .init(value:["ok":true])};XCTAssertTrue(MembershipProtocol.valid(request,action:"restore",author:author));restores += 1;return .init(value:["authorized":false,"linked":false,"replacementRequired":pending])}
   try await service.restoreWeb();XCTAssertTrue(service.replacementRequired);await service.cancelReplacement()
   XCTAssertEqual(cancels,0);XCTAssertTrue(service.replacementRequired);XCTAssertEqual(service.browser?.url.path,"/subscribe");XCTAssertEqual(URLComponents(url:try XCTUnwrap(service.browser?.url),resolvingAgainstBaseURL:false)?.queryItems?.first(where:{$0.name == "patreon"})?.value,"replace_required")
-  service.browserClosed();await settle{restores == 2};XCTAssertTrue(service.replacementRequired);XCTAssertFalse(service.hasAccess)
-  await service.cancelReplacement();pending=false;service.browserClosed();await settle{restores == 3};XCTAssertFalse(service.replacementRequired);XCTAssertFalse(service.hasAccess)
+  service.browserClosed(try XCTUnwrap(service.browser?.id));await settle{restores == 2};XCTAssertTrue(service.replacementRequired);XCTAssertFalse(service.hasAccess)
+  await service.cancelReplacement();pending=false;service.browserClosed(try XCTUnwrap(service.browser?.id));await settle{restores == 3};XCTAssertFalse(service.replacementRequired);XCTAssertFalse(service.hasAccess)
  }
  func testRecoveryCookieCancelStillRequiresSignedStatusConfirmation()async throws{
   let(identity,service)=try context(recovery:true);defer{try? identity.disconnect()};let author=identity.hex;var pending=true,cancels=0
@@ -68,10 +68,70 @@ private final class MembershipProtocol:URLProtocol {
   for raw in["https://evil.invalid/oauth2/authorize","javascript:alert(1)","https://www.patreon.com@evil.invalid/oauth2/authorize","http://www.patreon.com/oauth2/authorize"]{XCTAssertThrowsError(try SubscriptionBrowserRequest.authorizeURL(raw,web:web))}
  }
  func testCheckAfterCheckoutReverifiesWithPatreonWhenSafariHasNotLinkedTheKey()async throws{
-  let(identity,service)=try context();defer{try? identity.disconnect()};var starts=0,paid=false
+  let(identity,service)=try context();defer{try? identity.disconnect()};var starts=0,restores=0,paid=false
   let url="https://www.patreon.com/oauth2/authorize?response_type=code&client_id=local&redirect_uri=https%3A%2F%2Fpiyali.app%2Fapi%2Fpatreon%2Fcallback&scope=identity&state="+String(repeating:"s",count:43)
-  MembershipProtocol.install{request in let path=request.url!.lastPathComponent;if path == "link-challenge"{return MembershipProtocol.challenge(MembershipProtocol.body(request)["action"] as? String ?? "")};if path == "link-start"{starts += 1;return .init(value:["authorizeUrl":url])};return .init(value:["authorized":paid,"linked":paid,"configured":true])}
-  await service.connect(language:"en");service.browserClosed();await settle{service.statusResolved};XCTAssertFalse(service.hasAccess);await service.checkMembership(language:"en");XCTAssertEqual(starts,2);XCTAssertNotNil(service.browser);XCTAssertFalse(service.hasAccess);paid=true;service.browserClosed();await settle{service.webAuthorized};XCTAssertTrue(service.hasAccess)
+  MembershipProtocol.install{request in let path=request.url!.lastPathComponent;if path == "link-challenge"{return MembershipProtocol.challenge(MembershipProtocol.body(request)["action"] as? String ?? "")};if path == "link-start"{starts += 1;return .init(value:["authorizeUrl":url])};restores += 1;return .init(value:["authorized":paid,"linked":paid,"configured":true])}
+  await service.connect(language:"en")
+  service.browserClosed(try XCTUnwrap(service.browser?.id))
+  await settle{service.result == SubscriptionBrowserRequest.unconfirmedResult}
+  XCTAssertFalse(service.awaiting)
+  XCTAssertFalse(service.hasAccess)
+  service.checkout()
+  XCTAssertTrue(service.awaiting)
+  service.browserClosed(try XCTUnwrap(service.browser?.id))
+  await settle{restores == 2}
+  await service.checkMembership(language:"en")
+  XCTAssertEqual(starts,2)
+  XCTAssertTrue(service.awaiting)
+  XCTAssertFalse(service.hasAccess)
+  paid=true
+  service.browserClosed(try XCTUnwrap(service.browser?.id))
+  await settle{service.webAuthorized}
+  XCTAssertTrue(service.hasAccess)
+  XCTAssertFalse(service.awaiting)
+ }
+
+ func testBrowserReturnRunsFreshSignedCheckAndIgnoresOlderDismissal()async throws{
+  let(identity,service)=try context()
+  defer{try? identity.disconnect()}
+  let owner=identity.hex
+  let url="https://www.patreon.com/oauth2/authorize?response_type=code&client_id=local&redirect_uri=https%3A%2F%2Fpiyali.app%2Fapi%2Fpatreon%2Fcallback&scope=identity&state="+String(repeating:"s",count:43)
+  var restores=0,starts=0
+  MembershipProtocol.install{request in
+   let path=request.url!.lastPathComponent
+   if path == "link-challenge"{return MembershipProtocol.challenge(MembershipProtocol.body(request)["action"] as? String ?? "")}
+   if path == "link-start"{
+    XCTAssertTrue(MembershipProtocol.valid(request,action:"link",author:owner));starts += 1
+    return .init(value:["authorizeUrl":url])
+   }
+   XCTAssertEqual(path,"key-status")
+   XCTAssertTrue(MembershipProtocol.valid(request,action:"restore",author:owner))
+   restores += 1
+   if restores == 1{return nil}
+   return .init(value:["authorized":false,"linked":false,"configured":true])
+  }
+  let old=Task{try await service.restoreWeb()}
+  await settle{MembershipProtocol.heldCount == 1}
+  await service.connect(language:"en")
+  let initial=try XCTUnwrap(service.browser?.id)
+  service.browserClosed(initial)
+  await settle{restores == 2 && service.result == SubscriptionBrowserRequest.unconfirmedResult}
+  MembershipProtocol.releaseHeld(.init(value:["authorized":true,"linked":true]))
+  _=try? await old.value
+  XCTAssertFalse(service.hasAccess)
+  XCTAssertFalse(service.awaiting)
+  XCTAssertTrue(service.statusError.isEmpty)
+
+  await service.connect(language:"en")
+  let reopened=try XCTUnwrap(service.browser?.id)
+  XCTAssertNotEqual(initial,reopened)
+  service.browserClosed(initial)
+  XCTAssertEqual(service.browser?.id,reopened)
+  XCTAssertEqual(restores,2)
+  service.browserClosed(reopened)
+  await settle{restores == 3 && service.result == SubscriptionBrowserRequest.unconfirmedResult}
+  XCTAssertEqual(starts,2)
+  XCTAssertFalse(service.hasAccess)
  }
 
  func testActualHTTPRestoreCookieBindsForcedRefreshToCurrentKeyAndBypassesCachedStatus()async throws{

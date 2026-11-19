@@ -1,6 +1,7 @@
 import Foundation
 
 struct SubscriptionBrowserRequest:Identifiable {
+ static let unconfirmedResult="browser_unconfirmed"
  enum Kind{case connect,checkout,cancelReplacement,refreshMembership}
  let id=UUID()
  let url:URL,account:String,revision:UUID,kind:Kind

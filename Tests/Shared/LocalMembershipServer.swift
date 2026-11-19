@@ -9,7 +9,9 @@ final class LocalMembershipServer:@unchecked Sendable {
  private var calls:[[String:Any]]=[]
  private var forcedPayload:[String:Any]?
  private var forcedCode=200
+ private let authorizationRequiresCheckout:Bool
  private(set) var url=""
+ init(authorizationRequiresCheckout:Bool=true){self.authorizationRequiresCheckout=authorizationRequiresCheckout}
  func status(_ value:[String:Any]){queue.sync{payload=value}}
  func requests()->[[String:Any]]{queue.sync{calls}}
  func forceStatus(_ value:[String:Any],code:Int=200){queue.sync{forcedPayload=value;forcedCode=code}}
@@ -21,7 +23,7 @@ final class LocalMembershipServer:@unchecked Sendable {
  private func read(_ c:NWConnection,data:Data){c.receive(minimumIncompleteLength:1,maximumLength:65536){[weak self] bytes,_,done,error in guard let self,error == nil else{return};var input=data;if let bytes{input.append(bytes)};guard input.count <= 131072 else{c.cancel();return};if let end=input.range(of:Data("\r\n\r\n".utf8)),let header=String(data:input[..<end.lowerBound],encoding:.utf8){let length=header.split(separator:"\r\n").compactMap{line->Int? in let pair=line.split(separator:":",maxSplits:1);return pair.first?.lowercased() == "content-length" ? Int(pair.last!.trimmingCharacters(in:.whitespaces)):nil}.first ?? 0;if input.count >= end.upperBound+length{self.respond(c,header:header,body:input.subdata(in:end.upperBound..<(end.upperBound+length)));return}};if done{c.cancel()}else{self.read(c,data:input)}}}
  private func respond(_ c:NWConnection,header:String,body:Data){
   let path=String(header.split(separator:"\r\n").first?.split(separator:" ").dropFirst().first ?? ""),json=(try? JSONSerialization.jsonObject(with:body)) as? [String:Any] ?? [:];calls.append(["path":path,"body":json,"headers":header]);var output:Data,contentType="application/json",code=200,cookie=""
-  if path == "/authorize"{payload=["authorized":false,"linked":false,"configured":true,"checkoutRequired":true,"connected":true];contentType="text/html";output=Data("<html><meta name='viewport' content='width=device-width,initial-scale=1'><body><h1>Local membership authorization</h1><p>No real account was connected. Close this browser to return to Piyali.</p></body></html>".utf8)}
+  if path == "/authorize"{if authorizationRequiresCheckout{payload=["authorized":false,"linked":false,"configured":true,"checkoutRequired":true,"connected":true]};contentType="text/html";output=Data("<html><meta name='viewport' content='width=device-width,initial-scale=1'><body><h1>Local membership authorization</h1><p>No real account was connected. Close this browser to return to Piyali.</p></body></html>".utf8)}
   else if path.hasPrefix("/subscribe?"){contentType="text/html";cookie="Set-Cookie: __session=oauth-recovery.local-fixture; Path=/; HttpOnly; SameSite=Lax\r\n";output=Data("<html><meta name='viewport' content='width=device-width,initial-scale=1'><body><h1>Local recovery confirmation</h1><form method='post' action='/api/patreon/cancel-replacement'><button type='submit'>Cancel replacement</button></form></body></html>".utf8)}
   else if path == "/checkout"{payload=["authorized":true,"linked":true,"configured":true,"subscription":["status":"active","entitledAmountCents":800,"lastVerifiedAtMs":1793000000000]];contentType="text/html";output=Data("<html><meta name='viewport' content='width=device-width,initial-scale=1'><body><h1>Local checkout completed</h1><p>No payment was made. Close this browser to return to Piyali.</p></body></html>".utf8)}
   else{var value:[String:Any]=payload

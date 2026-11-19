@@ -23,14 +23,27 @@ struct SubscriptionGatePanel:View {
  private var muted:Color{c(dark ? "e2e8f0":"6f5b46")}
  private func c(_ hex:String)->Color{PiyaliBrand.unitColor(hex)}
  private func t(_ group:String,_ key:String)->String{SubscriptionCopy.text(group,language,key)}
- private var feedback:String{SubscriptionCopy.run(replacement ? "replacementError":"feedback",.object(["language":.string(language),"result":.string(result),"error":.string(error)])).string}
+ private var unconfirmed:Bool{result == SubscriptionBrowserRequest.unconfirmedResult}
+ private var feedback:String{SubscriptionCopy.run(replacement ? "replacementError":"feedback",.object(["language":.string(language),"result":.string(unconfirmed ? "oauth_error":result),"error":.string(error)])).string}
  var body:some View{
   VStack(spacing:0){if embedded{content}else{GeometryReader{g in ScrollView{content.fixedSize(horizontal:false,vertical:true).padding(replacement || migration ? 17:13).background(dark ? c("0b1220"):c("fffaf1").opacity(0.97),in:RoundedRectangle(cornerRadius:30)).overlay{RoundedRectangle(cornerRadius:30).stroke(border)}.compositingGroup().shadow(color:(dark ? Color.black:c("614a2f")).opacity(dark ? 0.42:0.16),radius:40,y:24).frame(maxWidth:replacement || migration ? 620:760).padding(.horizontal,replacement || migration ? 8:4).padding(.vertical,12).frame(maxWidth:.infinity,minHeight:g.size.height)}.scrollIndicators(.hidden).background{SubscriptionPageBackground(replacement:replacement)}}}}
   .foregroundStyle(c(dark ? "f7fafc":"2f241b")).buttonStyle(.plain).environment(\.layoutDirection,language == "ar" ? .rightToLeft:.leftToRight).accessibilityElement(children:.contain).accessibilityIdentifier(replacement ? "subscriptionReplacement":"subscriptionGate")
  }
  @ViewBuilder private var content:some View {
   if replacement || migration{recoveryContent}
-  else{VStack(alignment:.leading,spacing:16){if awaiting{awaitingContent}else{if !embedded{header};benefits;offer};if !feedback.isEmpty{errorText}}}
+  else{VStack(alignment:.leading,spacing:16){
+   if awaiting{awaitingContent}
+   else{
+    if !embedded{header}
+    benefits;offer
+    if unconfirmed && available{
+     Button(t("flow","openCheckout"),action:checkout)
+      .buttonStyle(SubscriptionActionStyle(height:40,outline:true))
+      .disabled(busy).accessibilityIdentifier("subscriptionCheckout")
+    }
+   }
+   if !feedback.isEmpty{errorText}
+  }}
  }
  private var portrait:some View{BrandArtwork(name:"story-portrait-31.webp").frame(width:92,height:92).frame(height:100).padding(.horizontal,17).padding(.vertical,5).background(soft,in:RoundedRectangle(cornerRadius:28)).overlay{RoundedRectangle(cornerRadius:28).stroke(border)}}
  private var header:some View{VStack(spacing:12){portrait;VStack(spacing:8){OnboardingText(text:t("gate","title"),size:20,weight:.bold,lineHeight:24);OnboardingText(text:t("gate","subtitle"),size:12,lineHeight:18).foregroundStyle(muted)}}.multilineTextAlignment(.center).frame(maxWidth:.infinity)}
