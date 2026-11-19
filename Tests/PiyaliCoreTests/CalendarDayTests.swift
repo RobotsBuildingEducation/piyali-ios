@@ -17,6 +17,21 @@ final class CalendarDayTests:XCTestCase {
         let now=try XCTUnwrap(WebProgressContract.date("2026-10-28T12:00:00Z"))
         for id in Self.calendars{let c=try calendar(id,"America/Mexico_City");var state=LearnerState();state.dailyKey="2026-10-27";state.dailyXP=50;state.dailyGoal=50;state.streak=3;state.award(5,now:now,calendar:c);XCTAssertEqual(state.dailyKey,"2026-10-28");XCTAssertEqual(state.dailyXP,5);XCTAssertEqual(state.streak,3);XCTAssertEqual(state.pendingChanges?.last?.dayKey,"2026-10-28");state.rollDay(now:now.addingTimeInterval(86400),calendar:c);XCTAssertEqual(state.dailyKey,"2026-10-29");XCTAssertEqual(state.dailyXP,0);XCTAssertEqual(state.streak,0);XCTAssertEqual(state.totalXP,5)}
     }
+    func testNextLocalMidnightHandlesDaylightSavingAndADeletedCivilDay() throws {
+        let cases=[
+            ("America/Los_Angeles","2026-03-08T08:00:00Z","2026-03-09T07:00:00Z"),
+            ("America/Los_Angeles","2026-11-01T07:00:00Z","2026-11-02T08:00:00Z"),
+            ("Pacific/Apia","2011-12-29T22:00:00Z","2011-12-30T10:00:00Z"),
+            ("Asia/Kathmandu","2026-11-18T18:14:59Z","2026-11-18T18:15:00Z")
+        ]
+        for (zone,instant,boundary) in cases {
+            let date=try XCTUnwrap(WebProgressContract.date(instant))
+            let expected=try XCTUnwrap(WebProgressContract.date(boundary))
+            let local=try calendar(.buddhist,zone)
+            XCTAssertEqual(CalendarDay.nextBoundary(after:date,calendar:local),expected,zone)
+            XCTAssertNotEqual(CalendarDay.key(expected,calendar:local),CalendarDay.key(date,calendar:local),zone)
+        }
+    }
     func testExistingHistoricalKeysAndReceiptIDsAreNotGuessedOrRewritten()throws{
         let historical=PracticeChange(dayKey:"2569-10-28",target:"es",level:"A1",amount:5,source:.practice),decoded=try JSONDecoder().decode(PracticeChange.self,from:JSONEncoder().encode(historical));XCTAssertEqual(decoded.id,historical.id);XCTAssertEqual(decoded.dayKey,"2569-10-28");XCTAssertEqual(decoded.date,historical.date);XCTAssertEqual(CalendarDay.normalize("2569-10-28"),"2569-10-28")
     }

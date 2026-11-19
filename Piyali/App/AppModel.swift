@@ -167,11 +167,11 @@ import SwiftUI
     var selectedLesson: Lesson? { if learner.needsIntro,!learner.completed.contains(learner.completionKey(IntroTutorial.lessonID)),!LessonAccess.throughPlacement(learner.placements?[learner.target]?.level,level:learner.level) { return introLesson };return units.flatMap(\.lessons).first { !learner.completed.contains(learner.completionKey($0.id)) && learner.lessonAccess($0,units:units).canOpen } }
     var selectedTutorLesson: Lesson? { tutorUnits.flatMap(\.lessons).first { !learner.completed.contains(learner.tutorKey($0.id)) && learner.lessonAccess($0,units:tutorUnits,tutor:true).canOpen } }
     var plateCourses: [PlateCourse] { learner.plateCourses(user:identity.npub) }
-    func prepareDailyPlate() {
+    func prepareDailyPlate(now:Date=Date()) {
         guard signedIn, learner.onboardingComplete else { return }
-        let prior = learner.questPlans?[learner.target], day = CalendarDay.key(Date())
+        let prior = learner.questPlans?[learner.target], day = CalendarDay.key(now)
         if let prior, prior.day == day, !learner.introductoryQuest(day:day) || prior.kinds == DailyPlate.introductory { return }
-        learner.preparePlate(user:identity.npub,available:availablePlateKinds)
+        learner.preparePlate(user:identity.npub,available:availablePlateKinds,now:now)
         if prior != learner.questPlans?[learner.target] { persist() }
     }
     private var availablePlateKinds: [String] {

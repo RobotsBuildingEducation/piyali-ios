@@ -6,7 +6,7 @@ import XCTest
     private func launch(_ scenario:String,walletRelay:String?=nil)->XCUIApplication {
         continueAfterFailure=false;let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_TUTOR_FIXTURE":"1","PIYALI_FLASHCARD_FIXTURE":"1","PIYALI_PLATE_JOURNEY_FIXTURE":scenario,"PIYALI_CONVERSATION_FIXTURE":scenario == "conversation" ? "1":"0"];if let walletRelay{app.launchEnvironment["PIYALI_WALLET_TEST_RELAY"]=walletRelay};app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"];app.launch();handleInitialPaperPencil(app)
         let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Quest Learner");if app.buttons["entryKeyboardDone"].exists{app.buttons["entryKeyboardDone"].tap()};tap("createAccount",app);handleInitialPaperPencil(app);tap("startLearning",app)
-        if scenario != "returning-learn" {
+        if !["returning-learn","rollover-learn"].contains(scenario) {
             tap("companionContinue",app)
             acknowledgePaperPencil(app)
             tap("gettingStartedGotIt",app)
@@ -56,6 +56,25 @@ import XCTest
         tap("productMenu",app);tap("productModeMenu",app);tap("productMode-path",app)
         expectCentered()
         photo("Native selecting the current Course recenters the next lesson",app)
+    }
+    func testNextDayFocusKeepsEarnedXPAndDropsYesterdaysGuidedReview() {
+        let app=launch("rollover-learn")
+        let dailyXP=app.descendants(matching:.any).matching(identifier:"dailyXPStatus").firstMatch
+        func expectToday() {
+            XCTAssertTrue(app.staticTexts["todayFocusTitle"].waitForExistence(timeout:15))
+            let reset=XCTNSPredicateExpectation(predicate:NSPredicate(format:"value == %@","0%"),object:dailyXP)
+            XCTAssertEqual(XCTWaiter.wait(for:[reset],timeout:10),.completed)
+            XCTAssertTrue(app.staticTexts["XP 25"].exists)
+            XCTAssertTrue(app.buttons["startDailyPractice"].label.contains("Start"))
+            XCTAssertFalse(app.buttons["guidedContinue"].exists)
+        }
+        expectToday()
+        photo("Native next-day Focus keeps yesterday's earned XP",app)
+        app.terminate();app.launch()
+        expectToday()
+        tap("startDailyPractice",app)
+        XCTAssertTrue(app.buttons["lessonNode-lesson-pre-a1-3-1"].waitForExistence(timeout:15))
+        XCTAssertFalse(app.buttons["flashcardTile-pre-a1-people-1"].exists)
     }
     func testTutorDailyGoalReviewAndCourseCelebrationSurviveRootTrialLimit()async throws{
         let relay=LocalNostrRelay();try await relay.start{frame,connection in if frame.first as? String == "REQ",let sub=frame[1] as? String{relay.send(["EOSE",sub],to:connection)}};defer{relay.stop()};let app=launch("tutor-trial",walletRelay:relay.url);completeTutor(app);tap("guidedContinue",app)

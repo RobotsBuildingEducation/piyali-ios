@@ -45,6 +45,91 @@ import WebKit
         controller.presentationBlocked(true,app:app);app.learner.award(1,source:.speak);XCTAssertNotNil(controller.pending)
         app.learner.target="fr";XCTAssertNil(controller.pending);XCTAssertNil(controller.visible);XCTAssertNil(controller.guided);XCTAssertFalse(app.preservingEarnedPractice)
     }
+    func testMidnightDropsYesterdayGuideAndQueuedCelebrationWhileKeepingTheEarnedReceipt() throws {
+        let app=try model();defer{try? app.identity.disconnect()}
+        let clock=PlateClock(),midnight=CalendarDay.gregorian().startOfDay(for:Date())
+        clock.now=midnight.addingTimeInterval(-60)
+        let yesterday=CalendarDay.key(clock.now),today=CalendarDay.key(midnight),target=app.learner.target
+        app.learner.questProgress = .object(["dailyQuestFirstSeen":.bool(true),"dailyQuestFirstDayKey":.string(CalendarDay.shift(yesterday,by:-1))])
+        app.learner.questPlans=[target:DailyQuestPlan(day:yesterday,kinds:["speak","review"])]
+        app.learner.rollDay(now:clock.now)
+        let controller=PlatePracticeController(clock:{clock.now})
+        var routes:[String]=[]
+        controller.onNavigate={routes.append($0)}
+        controller.start(app);defer{controller.unbind()}
+        tick(controller,app,clock,2.1)
+        controller.presentationBlocked(true,app:app)
+        app.learner.award(5,source:.speak,now:clock.now)
+        let receipt=try XCTUnwrap(app.learner.pendingChanges?.last)
+        XCTAssertEqual(receipt.dayKey,yesterday)
+        XCTAssertEqual(controller.guided?.current,"speak")
+        XCTAssertNotNil(controller.pending)
+
+        clock.now=midnight.addingTimeInterval(1)
+        app.learner.rollDay(now:clock.now)
+        app.learner.questPlans=[target:DailyQuestPlan(day:today,kinds:["learn","review"])]
+        controller.presentationBlocked(false,app:app)
+        XCTAssertNil(controller.guided)
+        XCTAssertNil(controller.pending)
+        XCTAssertNil(controller.visible)
+        XCTAssertNil(UserDefaults.standard.data(forKey:"piyali.guidedSession."+app.identity.npub))
+        XCTAssertEqual(app.learner.dailyKey,today)
+        XCTAssertEqual(app.learner.dailyXP,0)
+        XCTAssertEqual(app.learner.totalXP,5)
+        XCTAssertEqual(app.learner.activityLegacy["days"][yesterday],.number(5))
+        XCTAssertEqual(app.learner.pendingChanges?.first(where:{$0.id == receipt.id})?.dayKey,yesterday)
+        controller.continuePractice(app)
+        XCTAssertEqual(routes,["speak"])
+        controller.start(app)
+        XCTAssertEqual(routes,["speak","learn"])
+        XCTAssertEqual(controller.guided?.day,today)
+    }
+    func testMountedRootRefreshesWhenLocalTimeZoneChangesTheDay() async throws {
+        let originalZone=NSTimeZone.default
+        defer {NSTimeZone.default=originalZone}
+        let earlier=try XCTUnwrap(TimeZone(secondsFromGMT:-12*3600))
+        let later=try XCTUnwrap(TimeZone(secondsFromGMT:14*3600))
+        NSTimeZone.default=earlier
+        let app=try model();defer{try? app.identity.disconnect()}
+        let instant=Date(),before=CalendarDay.key(instant)
+        var laterCalendar=Calendar(identifier:.gregorian)
+        laterCalendar.timeZone=later
+        let after=CalendarDay.key(instant,calendar:laterCalendar)
+        XCTAssertNotEqual(before,after)
+
+        app.learner.questPlans=[:]
+        app.learner.award(25,now:instant)
+        let receipt=try XCTUnwrap(app.learner.pendingChanges?.last)
+        let guideKey="piyali.guidedSession."+app.identity.npub
+        let guide=try XCTUnwrap(GuidedPracticeSession(account:app.identity.npub,target:app.learner.target,day:before,courses:[.init(kind:"review",count:0,target:5)]))
+        UserDefaults.standard.set(try JSONEncoder().encode(guide),forKey:guideKey)
+        defer {UserDefaults.standard.removeObject(forKey:guideKey)}
+
+        let scene=try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap{$0 as? UIWindowScene}.first)
+        let previousWindow=scene.windows.first{$0.isKeyWindow}
+        let window=UIWindow(windowScene:scene)
+        window.rootViewController=UIHostingController(rootView:RootView().environmentObject(app))
+        window.makeKeyAndVisible()
+        defer {window.isHidden=true;window.rootViewController=nil;previousWindow?.makeKey()}
+        for _ in 0..<100 where app.learner.questPlans?[app.learner.target]?.day != before {
+            try await Task.sleep(for:.milliseconds(25))
+        }
+        XCTAssertEqual(app.learner.questPlans?[app.learner.target]?.day,before)
+        XCTAssertNotNil(UserDefaults.standard.data(forKey:guideKey))
+
+        NSTimeZone.default=later
+        NotificationCenter.default.post(name:.NSSystemTimeZoneDidChange,object:nil)
+        for _ in 0..<100 where app.learner.questPlans?[app.learner.target]?.day != after || UserDefaults.standard.data(forKey:guideKey) != nil {
+            try await Task.sleep(for:.milliseconds(25))
+        }
+        XCTAssertEqual(app.learner.dailyKey,after)
+        XCTAssertEqual(app.learner.questPlans?[app.learner.target]?.day,after)
+        XCTAssertNil(UserDefaults.standard.data(forKey:guideKey))
+        XCTAssertEqual(app.learner.dailyXP,0)
+        XCTAssertEqual(app.learner.totalXP,25)
+        XCTAssertEqual(app.learner.activityLegacy["days"][before],.number(25))
+        XCTAssertEqual(app.learner.pendingChanges?.first(where:{$0.id == receipt.id})?.dayKey,before)
+    }
     func testDailyGoalReachedDuringLessonAppearsWithoutWaitingForTheWholeLesson()throws {
         let app=try model();defer{try? app.identity.disconnect()};let controller=PlatePracticeController();controller.bind(app);defer{controller.unbind()};app.lessonActivityActive=true
         app.learner.award(100,source:.practice)

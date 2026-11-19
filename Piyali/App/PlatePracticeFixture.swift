@@ -6,7 +6,7 @@ enum PlatePracticeFixture {
     nonisolated static var scenario:String {
         #if DEBUG
         let env=ProcessInfo.processInfo.environment
-        guard env["PIYALI_OFFLINE_TESTS"] == "1",env["PIYALI_TUTOR_FIXTURE"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil,["full","tutor-trial","conversation","returning-learn"].contains(env["PIYALI_PLATE_JOURNEY_FIXTURE"] ?? "") else{return ""}
+        guard env["PIYALI_OFFLINE_TESTS"] == "1",env["PIYALI_TUTOR_FIXTURE"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil,["full","tutor-trial","conversation","returning-learn","rollover-learn"].contains(env["PIYALI_PLATE_JOURNEY_FIXTURE"] ?? "") else{return ""}
         return env["PIYALI_PLATE_JOURNEY_FIXTURE"] ?? ""
         #else
         return ""
@@ -18,7 +18,7 @@ enum PlatePracticeFixture {
         guard !scenario.isEmpty else{return}
         let key="piyali.plateFixture.seeded."+app.identity.npub
         guard !UserDefaults.standard.bool(forKey:key) else{return}
-        if scenario == "returning-learn" {
+        if ["returning-learn","rollover-learn"].contains(scenario) {
             seedReturningLearn(app,key:key)
             return
         }
@@ -58,6 +58,13 @@ enum PlatePracticeFixture {
         learner.lessonWork=[learner.completionKey(next.id):.init(earnedXP:6)]
         learner.questProgress = .object(["dailyQuestFirstSeen":.bool(true),"dailyQuestFirstDayKey":.string(CalendarDay.shift(today,by:-1))])
         learner.questPlans=[learner.target:DailyQuestPlan(day:today,kinds:["learn","review"])]
+        if scenario == "rollover-learn",let yesterday=CalendarDay.gregorian().date(byAdding:.day,value:-1,to:Date()) {
+            learner.award(25,source:.practice,now:yesterday)
+            if let guide=GuidedPracticeSession(account:app.identity.npub,target:learner.target,day:CalendarDay.key(yesterday),courses:[.init(kind:"review",count:0,target:5)]),
+               let encoded=try? JSONEncoder().encode(guide) {
+                UserDefaults.standard.set(encoded,forKey:"piyali.guidedSession."+app.identity.npub)
+            }
+        }
         app.learner=learner
         UserDefaults.standard.set(true,forKey:key)
         UserDefaults.standard.set(true,forKey:"piyali.companionBubbleDismissed:"+app.identity.npub+":"+learner.target+":"+today)

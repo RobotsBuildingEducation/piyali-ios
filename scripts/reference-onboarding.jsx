@@ -11,6 +11,8 @@ import PaperPencilModal from '/src/components/PaperPencilModal';
 import GettingStartedModal from '/src/components/GettingStartedModal';
 import ProficiencyTestModal from '/src/components/ProficiencyTestModal';
 import DailyPlateHome from '/src/components/DailyPlateHome';
+import {getDailyPlateSnapshot,getNextPlateCourse,isPlateSessionFor} from '/src/utils/dailyPlate';
+import {nextLocalMidnight} from '/src/utils/dailyImmersion';
 import DailyGoalModal from '/src/components/DailyGoalModal';
 import SessionTimerModal from '/src/components/SessionTimerModal';
 import SourceSettingsPreview from '/__piyali-settings.jsx';
@@ -86,8 +88,17 @@ function FocusPreview(){
  // Source UI only: cached fixture headline avoids a real Gemini request. User
  // intentionally has no account id, so recap/activity services cannot write.
  const subtitle=state==='headline'?(language==='fr'?'Demande ton chemin avec confiance.':language==='ar'?'تحدث بثقة عن خططك لهذا اليوم.':"Ask about today's plans with confidence."):(language==='ar'?'أكمل مهامك واحصل على مكافأة XP':'Complete your tasks to earn an XP bonus');
+ const rollover=state==='rollover';
+ const previousDay=new Date(now.getFullYear(),now.getMonth(),now.getDate()-1);
+ const previousDayKey=[previousDay.getFullYear(),String(previousDay.getMonth()+1).padStart(2,'0'),String(previousDay.getDate()).padStart(2,'0')].join('-');
+ const previousSession={langKey:target,dayKey:previousDayKey};
  if(state==='returning')progress.dailyQuestFirstDayKey='2026-01-01';
+ if(rollover)progress.dailyQuestFirstDayKey=previousDayKey;
+ const kinds=rollover?['learn','review']:state==='returning'?['repair','speak','learn','review']:['speak','learn','review'];
+ const sessionActive=rollover&&isPlateSessionFor(previousSession,target,dayKey);
+ if(rollover)window.focusRollover={previousDayKey,dayKey,sessionActive,previousDayEnd:nextLocalMidnight(previousDay).toISOString()};
  const user={progress,dailyPlateHeadline:{es:{dayKey,appLanguage:language,text:subtitle}}};
+ if(rollover)Object.assign(user,{paperPencilModalShown:true,gettingStartedModalShown:true,proficiencyPlacements:{es:'Pre-A1'}});
  if(state==='returning'){
  const message=language==='ar'?'حفظت لك تدريبًا قصيرًا على التحيات لتصبح أسهل اليوم. ثم سنواصل التقدم في تدريباتك المعتادة.':'I saved a quick warm-up for greetings so they feel easier today. Then we’ll keep moving forward with your regular practice.';
  user.onboarding={completed:true};user.learningIntelligence={es:{elo:{rating:800,scaleVersion:4,totalGraded:0}}};
@@ -95,6 +106,6 @@ function FocusPreview(){
  user.dailyQuestBlueprint={es:{[dayKey]:{status:'ready',message:{long:message}}}};
  }
  if(state==='welcome'||state==='returning')localStorage.removeItem(dismissKey);else localStorage.setItem(dismissKey,'1');
- return <DailyPlateHome key={language+state} user={user} targetLang={target} appLanguage={language} dailyXp={state==='progress'?125:0} dailyGoalXp={state==='returning'?100:50} languageXp={state==='progress'?240:0} companionLevel={state==='progress'?3:1} petHealth={state==='progress'?49:100} petName={custom.name} petType={custom.petType} onCustomizePet={setCustom} questKinds={state==='returning'?['repair','speak','learn','review']:['speak','learn','review']} onStartPractice={()=>{}} onCompanionContinue={()=>{}} immersion={state==='immersion'?{awaitingPlacement:false,tasks:['Notice a familiar word','Listen for a useful detail','Describe something nearby'].map(title=>({title,description:'Practice privately at home, then mark this mission complete.'})),completed,status:'ready',rewarded:completed.every(Boolean),toggleTask:index=>setCompleted(old=>old.map((v,i)=>i===index?!v:v))}:{awaitingPlacement:true,tasks:[],completed:[],status:'new'}}/>;
+ return <DailyPlateHome key={language+state} user={user} targetLang={target} appLanguage={language} dailyXp={state==='progress'?125:0} dailyGoalXp={state==='returning'||rollover?100:50} languageXp={rollover?25:state==='progress'?240:0} companionLevel={state==='progress'?3:1} petHealth={state==='progress'?49:100} petName={custom.name} petType={custom.petType} onCustomizePet={setCustom} questKinds={kinds} sessionActive={sessionActive} onStartPractice={()=>{if(rollover)window.focusRollover.nextCourse=getNextPlateCourse(getDailyPlateSnapshot(user,target,now,kinds));}} onCompanionContinue={()=>{}} immersion={state==='immersion'?{awaitingPlacement:false,tasks:['Notice a familiar word','Listen for a useful detail','Describe something nearby'].map(title=>({title,description:'Practice privately at home, then mark this mission complete.'})),completed,status:'ready',rewarded:completed.every(Boolean),toggleTask:index=>setCompleted(old=>old.map((v,i)=>i===index?!v:v))}:{awaitingPlacement:true,tasks:[],completed:[],status:'new'}}/>;
 }
 createRoot(document.getElementById('root')).render(<ChakraProvider theme={theme}><MemoryRouter initialEntries={['/onboarding']}>{query.get('screen')==='paper'?<PaperPencilModal isOpen lang={language} onClose={()=>{window.paperUnderstood=true}}/>:query.get('screen')==='settings'?<SourceSettingsPreview/>:query.get('screen')==='memory'?<SourceMemoryPreview/>:query.get('screen')==='daily-goal-completion'?<SourceDailyGoalReward/>:query.get('screen')==='plate-completion'?<SourcePlateCompletion/>:query.get('screen')==='tutor'?<TutorPreview/>:query.get('screen')==='phonics'?<PhonicsPreview/>:query.get('screen')==='flashcards'?<FlashcardPreview/>:query.get('screen')==='focused-goal'?<GoalPreview/>:query.get('screen')==='tools'?<ToolsPreview/>:query.get('screen')==='first-run'?<FirstRunPreview/>:query.get('screen')==='focus'?<FocusPreview/>:<Preview/>}</MemoryRouter></ChakraProvider>);

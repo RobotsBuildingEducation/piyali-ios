@@ -54,6 +54,9 @@ public enum CalendarDay {
         var calendar=Calendar(identifier:.gregorian);calendar.timeZone=supplied.timeZone;calendar.locale=Locale(identifier:"en_US_POSIX");return calendar
     }
     public static func year(_ date:Date,calendar:Calendar = .current)->Int{gregorian(calendar).component(.year,from:date)}
+    public static func nextBoundary(after date:Date,calendar:Calendar = .current)->Date? {
+        gregorian(calendar).dateInterval(of:.day,for:date)?.end
+    }
     public static func key(_ date:Date,calendar:Calendar = .current)->String{
         let p=gregorian(calendar).dateComponents([.year,.month,.day],from:date)
         return String(format:"%04d-%02d-%02d",locale:Locale(identifier:"en_US_POSIX"),p.year ?? 0,p.month ?? 0,p.day ?? 0)

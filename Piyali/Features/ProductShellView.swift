@@ -31,7 +31,8 @@ struct ProductShellView:View {
     @AppStorage("piyali.theme") private var theme="light"
     @State private var firstRun=FirstRunFlow()
     @State private var mode:ProductMode = .focus
-    @State private var specialCourse:String?
+    @State private var focusedCourse:FocusedCourseRoute?
+    @State private var boundPracticeContext:PracticeContext?
     @State private var launchTask:Task<Void,Never>?
     @State private var launchID:UUID?
     @State private var activityFooter:ActivityFooterPresentation?
@@ -49,7 +50,20 @@ struct ProductShellView:View {
     init(now:Date=Date(),practice:PlatePracticeController?=nil){self.now=now;_practice=StateObject(wrappedValue:practice ?? PlatePracticeController())}
     private var presentationKey:String { [String(app.journeyRecording != nil),String(panel != nil),String(menuOpen),String(goalOpen),String(timerOpen),String(timer.session.status == .finished),String(firstRun.step != nil),String(app.goalCheck != nil),String(app.flashcardSession != nil),String(lessonCompletion != nil),String(app.scholarship.visible != nil),String(app.scholarship.pending != nil),String(app.tutorPath != nil)].joined(separator:":") }
     private var firstRunScope:String {app.identity.npub+":"+app.learner.target}
-    private var contextKey:String { app.identity.npub+":"+app.learner.target+":"+CalendarDay.key(now) }
+    private struct PracticeContext:Equatable {
+        let account,target,day:String
+    }
+    private struct FocusedCourseRoute {
+        let kind:String
+        let context:PracticeContext
+    }
+    private var practiceContext:PracticeContext {
+        .init(account:app.identity.npub,target:app.learner.target,day:CalendarDay.key(now))
+    }
+    private var specialCourse:String? {
+        get { focusedCourse?.context == practiceContext ? focusedCourse?.kind:nil }
+        nonmutating set { focusedCourse=newValue.map { FocusedCourseRoute(kind:$0,context:practiceContext) } }
+    }
     private var timerAwardKey:String {timer.session.account+":"+(timer.pending.first ?? "")+":"+timerAwardRevision.uuidString}
     private var shell:some View {
         ZStack(alignment:.bottom) {
@@ -130,11 +144,19 @@ struct ProductShellView:View {
     private var sessionShell:some View {
         memoryShell
             .background{JourneyMilestoneGateView(canPresent:journeyCanPresent && app.scholarship.pending == nil){controller,n in app.journeyRecording = .init(controller:controller,milestone:n,account:app.identity.npub,target:app.learner.target)}}
-            .task(id:contextKey) {
-                timer.load(account:app.identity.npub)
-                if app.learner.dailyKey != CalendarDay.key(now) { app.learner.rollDay(now:now);app.persist() }
-                app.prepareDailyPlate()
-                if let guided=practice.guided,!guided.matches(account:app.identity.npub,target:app.learner.target,day:CalendarDay.key(now)){specialCourse=nil}
+            .task(id:practiceContext) {
+                let context=practiceContext,refresh=Date()
+                guard context.day == CalendarDay.key(refresh) else {return}
+                if let previous=boundPracticeContext,previous != context {
+                    cancelPracticeLaunch()
+                    if focusedCourse != nil,specialCourse == nil {
+                        focusedCourse=nil;mode = .focus;revision=UUID()
+                    }
+                }
+                boundPracticeContext=context
+                timer.load(account:context.account)
+                if app.learner.dailyKey != context.day {app.learner.rollDay(now:refresh);app.persist()}
+                app.prepareDailyPlate(now:refresh)
                 configurePractice()
                 practice.bind(app)
                 restorePendingFocusedTutor()
@@ -202,14 +224,20 @@ struct ProductShellView:View {
     @ViewBuilder private var surface:some View {
         if specialCourse == "goal" {FocusedGoalCourseView(onSurface:{mode=$0})}
         else if specialCourse == "repair" { RepairPracticeView(onSurface:{mode=$0}) }
+        else if focusedCourse != nil { focusHome }
         else { switch mode {
-        case .focus: TodayFocusHomeView(now:now,sessionActive:practice.guided != nil,startingPractice:launchID != nil,onStart:startPractice,onPanel:{ panel=$0 },onCompanionContinue:{firstRun.request(scope:firstRunScope,shown:app.learner.gettingStartedModalShown == true,paperShown:app.learner.paperPencilModalShown == true,hasPlacement:app.learner.hasFirstRunPlacement)})
+        case .focus: focusHome
         case .path: LessonPathView(scrollRequest:lessonScrollRequest)
         case .cards: FlashcardsView()
         case .phonics: PhonicsView()
         case .conversation: ConversationView()
         case .tutor: TutorLibraryView()
         } }
+    }
+    private var focusHome:some View {
+        TodayFocusHomeView(now:now,sessionActive:practice.guided?.matches(account:practiceContext.account,target:practiceContext.target,day:practiceContext.day) == true,startingPractice:launchID != nil,onStart:startPractice,onPanel:{panel=$0},onCompanionContinue:{
+            firstRun.request(scope:firstRunScope,shown:app.learner.gettingStartedModalShown == true,paperShown:app.learner.paperPencilModalShown == true,hasPlacement:app.learner.hasFirstRunPlacement)
+        })
     }
     private var menu:some View {
         GeometryReader { geometry in

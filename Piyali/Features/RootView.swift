@@ -14,7 +14,31 @@ struct RootView: View {
 }
 private struct ProductAccessView:View {
     @ObservedObject var service:SubscriptionService
-    var body:some View {ProductAccessGate(service:service){TimelineView(.periodic(from:.now,by:60)){clock in ProductShellView(now:clock.date)}}}
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var now=Date()
+    @State private var scheduleRevision=UUID()
+    var body:some View {
+        ProductAccessGate(service:service) {ProductShellView(now:now)}
+            .task(id:scheduleRevision) {await runClock()}
+            .onChange(of:scenePhase) {_,_ in refreshClock()}
+            .onReceive(NotificationCenter.default.publisher(for:UIApplication.significantTimeChangeNotification)) {_ in refreshClock()}
+            .onReceive(NotificationCenter.default.publisher(for:.NSSystemTimeZoneDidChange)) {_ in refreshClock()}
+    }
+    private func refreshClock() {
+        now=Date()
+        scheduleRevision=UUID()
+    }
+    private func runClock() async {
+        while !Task.isCancelled {
+            let refresh=Date()
+            now=refresh
+            guard scenePhase == .active else {return}
+            let minute=refresh.addingTimeInterval(60)
+            let next=min(minute,CalendarDay.nextBoundary(after:refresh) ?? minute)
+            do {try await Task.sleep(for:.seconds(max(0.001,next.timeIntervalSinceNow)))}
+            catch {return}
+        }
+    }
 }
 /// Retain a mounted practice surface when the trial ends. Its earned completion
 /// can finish saving; the subscription surface covers further access afterward.

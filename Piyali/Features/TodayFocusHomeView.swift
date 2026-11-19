@@ -19,7 +19,7 @@ struct TodayFocusHomeView:View {
     @State private var immersionRequest:UUID?
     private var language:String {app.learner.support}
     private var brand:PiyaliBrand {PiyaliBrand(dark:scheme == .dark)}
-    private var courses:[PlateCourse] {app.plateCourses}
+    private var courses:[PlateCourse] {app.learner.plateCourses(user:app.identity.npub,now:now)}
     private var cleared:Bool {!courses.isEmpty && courses.allSatisfy(\.done)}
     private var bubbleKey:String {"piyali.companionBubbleDismissed:"+app.identity.npub+":"+app.learner.target+":"+CalendarDay.key(now)}
     private var pendingSetup:Bool {app.learner.paperPencilModalShown != true || app.learner.gettingStartedModalShown != true || !app.learner.hasFirstRunPlacement}

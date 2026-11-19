@@ -13,7 +13,10 @@ import SwiftUI
                     model.subscription.setApplicationActive(phase == .active);model.setAchievementApplicationActive(phase == .active);model.upcomingGameReviews.setApplicationActive(phase == .active)
                     if phase == .active, model.signedIn {
                         model.teamsStartup.resumeAfterForeground(model)
-                        model.learner.rollDay(); model.subscription.checkExpiry()
+                        let priorDay=model.learner.dailyKey
+                        model.learner.rollDay()
+                        if model.learner.dailyKey != priorDay {model.persist()}
+                        model.subscription.checkExpiry()
                         model.scheduleAutomaticTips(recovering:true)
                         Task { await model.subscription.refresh(); await model.sync() }
                     }
