@@ -2,32 +2,47 @@ import Foundation
 
 extension AppModel {
     func focusedTutorRun(_ focus:TutorFocus)->FocusedTutorRun? {
-        learner.focusedTutorRuns?.values.first{$0.account == identity.npub && $0.target == learner.target && $0.support == learner.support && $0.focusKey == focus.key && focusedTutorContextMatches($0)}
+        learner.focusedTutorRuns?.values.first{$0.focusKey == focus.key && focusedTutorPresentationMatches($0,in:learner)}
     }
-    private func focusedTutorContextMatches(_ run:FocusedTutorRun)->Bool {
+    private func focusedTutorPresentationMatches(_ run:FocusedTutorRun,in state:LearnerState)->Bool {
+        run.account == identity.npub && run.target == state.target && run.support == state.support && focusedTutorContextMatches(run,in:state)
+    }
+    private func focusedTutorContextMatches(_ run:FocusedTutorRun,in state:LearnerState)->Bool {
         guard run.day == CalendarDay.key(Date()) else{return false}
         if let goal=run.goal {
-            let bucket=learner.goalIntelligence?[run.target] ?? .null,blueprint=bucket["dailyGoal"]["blueprint"]
-            return bucket["activeGoal"]["id"] == goal["goalId"] && blueprint.setting("mode",goal["mode"]) == goal
+            let bucket=state.goalIntelligence?[run.target] ?? .null,blueprint=bucket["dailyGoal"]["blueprint"]
+            return GoalPractice.active(bucket)?["id"] == goal["goalId"] && blueprint.setting("mode",goal["mode"]) == goal
         }
-        if let step=run.repair,let plan=learner.repairPlan(day:step.day) {return step.target == run.target && plan["items"].array.indices.contains(step.index) && plan["items"].array[step.index] == step.item}
+        if let step=run.repair,let plan=state.repairPlan(day:step.day) {return step.target == run.target && plan["items"].array.indices.contains(step.index) && plan["items"].array[step.index] == step.item}
         return false
+    }
+    /// A saved receipt can be acknowledged after the view that queued it has
+    /// closed. Keep current runs available to their completion UI.
+    func retireAcknowledgedObsoleteFocusedTutorRuns(in state:inout LearnerState,sent:LearnerState,acknowledged:Set<UUID>) {
+        guard let runs=state.focusedTutorRuns,!runs.isEmpty else {return}
+        let delivered=acknowledged.union((sent.pendingGoalChanges ?? []).map(\.id)).union((sent.pendingChanges ?? []).map(\.id))
+        let pending=Set((state.pendingGoalChanges ?? []).map(\.id)).union((state.pendingChanges ?? []).map(\.id))
+        for run in runs.values {
+            guard run.account == identity.npub,let id=run.completionID,delivered.contains(id),!pending.contains(id),
+                  !focusedTutorPresentationMatches(run,in:state) else {continue}
+            state.retireFocusedTutorRun(run)
+        }
     }
     private func focusedTutorWasCompleted(_ run:FocusedTutorRun)->Bool {
         if let goal=run.goal{return (learner.goalIntelligence?[run.target] ?? .null)["dailyGoal"]["modeProgress"][goal["mode"].string].number>=Double(GoalPractice.targets[goal["mode"].string] ?? 1)}
         if let step=run.repair{return learner.plateProgress["repairDailyActivity"][run.target][run.day].number>Double(step.index)}
         return false
     }
-    var hasPendingFocusedTutorCompletion:Bool {(learner.focusedTutorRuns ?? [:]).values.contains{$0.ready && $0.account == identity.npub && $0.target == learner.target && $0.support == learner.support && focusedTutorContextMatches($0)}}
+    var hasPendingFocusedTutorCompletion:Bool {(learner.focusedTutorRuns ?? [:]).values.contains{$0.ready && focusedTutorPresentationMatches($0,in:learner)}}
     var pendingFocusedTutorCourse:String? {
-        guard let run=(learner.focusedTutorRuns ?? [:]).values.sorted(by:{$0.key<$1.key}).first(where:{$0.ready && $0.account == identity.npub && $0.target == learner.target && $0.support == learner.support && focusedTutorContextMatches($0)}) else{return nil}
+        guard let run=(learner.focusedTutorRuns ?? [:]).values.sorted(by:{$0.key<$1.key}).first(where:{$0.ready && focusedTutorPresentationMatches($0,in:learner)}) else{return nil}
         return run.goal == nil ? "repair":"goal"
     }
     func cancelFocusedTutorRecovery(){for job in focusedTutorFinishTasks.values{job.task.cancel()};focusedTutorFinishTasks=[:]}
     func resumeFocusedTutorFinishes()async {
         guard signedIn else{return}
         for run in (learner.focusedTutorRuns ?? [:]).values.sorted(by:{$0.key<$1.key}) where run.account == identity.npub && run.target == learner.target && run.support == learner.support && run.day == CalendarDay.key(Date()) {
-            if !focusedTutorContextMatches(run) {if run.completionID == nil,learner.retireFocusedTutorRun(run){persistFocusedTutorRecovery()};continue}
+            if !focusedTutorContextMatches(run,in:learner) {if run.completionID == nil,learner.retireFocusedTutorRun(run){persistFocusedTutorRecovery()};continue}
             if run.ready || focusedTutorWasCompleted(run){_=await finishFocusedTutor(run.key)}
         }
     }
@@ -41,9 +56,9 @@ extension AppModel {
         guard let original=learner.focusedTutorRuns?[key],original.ready || focusedTutorWasCompleted(original) else{return false}
         let account=identity.npub,session=identity.sessionRevision
         @MainActor func owned()->Bool {signedIn && identity.npub == account && identity.sessionRevision == session && !Task.isCancelled && learner.target == original.target && learner.support == original.support && learner.focusedTutorRuns?[key]?.id == original.id}
-        guard owned(),original.account == account,focusedTutorContextMatches(original) else{return false}
+        guard owned(),original.account == account,focusedTutorContextMatches(original,in:learner) else{return false}
         await tutorOutcomes.wait(original.outcomeIDs,app:self)
-        guard owned(),focusedTutorContextMatches(original),var run=learner.focusedTutorRuns?[key] else{return false}
+        guard owned(),focusedTutorContextMatches(original,in:learner),var run=learner.focusedTutorRuns?[key] else{return false}
         if run.completionID == nil {
             if focusedTutorWasCompleted(run){if learner.retireFocusedTutorRun(run){persistFocusedTutorRecovery()};return true}
             guard run.ready else{return false}
@@ -62,7 +77,7 @@ extension AppModel {
             guard persistFocusedTutorRecovery() else{return false};persist()
         }
         await syncProgress()
-        guard owned(),let settled=learner.focusedTutorRuns?[key],focusedTutorContextMatches(settled) else{return false}
+        guard owned(),let settled=learner.focusedTutorRuns?[key],focusedTutorContextMatches(settled,in:learner) else{return false}
         let pending=settled.completionID.map{id in (learner.pendingGoalChanges ?? []).contains{$0.id == id} || (learner.pendingChanges ?? []).contains{$0.id == id}} ?? true
         guard !pending,focusedTutorWasCompleted(settled) else{return false}
         if learner.retireFocusedTutorRun(settled){persistFocusedTutorRecovery()};return true

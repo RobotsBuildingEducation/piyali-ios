@@ -1129,6 +1129,157 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
 }
 
 extension FirestoreContractTests {
+    func testQueuedFocusedTutorReceiptsSettleAfterDayAndPlanChange() async throws {
+        let now=Date()
+        let priorDate=try XCTUnwrap(CalendarDay.gregorian().date(byAdding:.day,value:-1,to:now))
+        let priorDay=CalendarDay.key(priorDate),today=CalendarDay.key(now)
+        for kind in ["goal","repair"] {
+            let (service,db,_)=try context()
+            let store=PhonicsCompletionResultLossStore(service),app=AppModel(progressService:store)
+            try app.identity.create()
+            app.signedIn=true
+            app.subscription.bind(app.identity)
+            let npub=app.identity.npub,user=db.collection("users").document(npub)
+            try await seed(db,npub)
+            try await user.updateData(["xp":300])
+            var original=try requireState(await service.load(npub:npub))
+            let target=original.target,support=original.support,baseXP=original.totalXP,dailyXP=original.dailyXP
+            var goal:JSONValue?,repair:RepairStep?
+            if kind == "goal" {
+                original.editGoal("Greet a family member",now:priorDate)
+                let blueprint:JSONValue = .object([
+                    "goalId":original.goalBucket["activeGoal"]["id"],"goalText":.string(original.goal),
+                    "dayKey":.string(priorDay),"lang":.string(target),"mode":.string("tutor"),
+                    "modes":.array([.string("tutor")]),"modeTargets":.object(["tutor":.number(25)]),
+                    "cefrLevel":.string("A1"),"objective":.string("Greet a relative")
+                ])
+                original.applyGoal(.init(action:.blueprint,target:target,date:priorDate,payload:blueprint))
+                goal=blueprint
+            } else {
+                original.captureMemory(mode:"tutor",concept:"Bonjour",answer:"Public attempt",expected:"Bonjour",feedback:"",now:priorDate)
+                let memoryID=try XCTUnwrap(original.companionMemory?[target]?.first?.id)
+                let item:JSONValue = .object([
+                    "memoryId":.string(memoryID),"concept":.string("Bonjour"),"expectedAnswer":.string("Bonjour"),
+                    "mode":.string("tutor"),"errorType":.string("conversation_flow"),"cefrLevel":.string("A1")
+                ])
+                let plan:JSONValue = .object([
+                    "targetLang":.string(target),"dayKey":.string(priorDay),"target":.number(1),
+                    "items":.array([item]),"memoryIds":.array([.string(memoryID)])
+                ])
+                original.storeCompanionBlueprint(.object(["status":.string("ready"),"repair":plan]),target:target,day:priorDay)
+                repair=RepairStep(index:0,mode:"tutor",item:item,plan:plan,stepCount:1)
+            }
+            original=try requireState(await service.save(original,npub:npub))
+
+            var pending=original
+            let turnXP=kind == "goal" ? 25:5
+            pending.award(turnXP,source:.tutorTurn,now:priorDate)
+            let receiptID:UUID
+            if let goal {
+                let attempt=GoalChange(action:.attempt,target:target,date:priorDate,payload:goal
+                    .setting("success",.bool(true)).setting("observation",.string("Greeted a relative.")))
+                pending.applyGoal(attempt)
+                XCTAssertEqual(pending.goalBucket["dailyGoal"]["modeProgress"]["tutor"].number,25)
+                receiptID=attempt.id
+            } else {
+                let step=try XCTUnwrap(repair)
+                XCTAssertTrue(pending.completeRepairStep(step,summary:.object([:]),observation:"Bonjour",bonusXP:12,now:priorDate))
+                receiptID=try XCTUnwrap(pending.pendingChanges?.last?.id)
+            }
+            var run=try XCTUnwrap(FocusedTutorRun(account:npub,target:target,support:support,goal:goal,repair:repair,
+                lesson:.object(["id":.string("public-prior-focused-tutor")]),required:kind == "goal" ? 25:12))
+            run.earnedXP=turnXP
+            run.ready=true
+            run.completionID=receiptID
+            pending.storeFocusedTutorRun(run)
+            pending.rollDay(now:now)
+
+            // Another device prepares today's plan before returning yesterday's receipt.
+            var newPlan=original
+            if let goal {
+                newPlan.applyGoal(.init(action:.blueprint,target:target,date:now,payload:goal
+                    .setting("dayKey",.string(today)).setting("objective",.string("Ask a relative about tomorrow."))))
+            } else {
+                let step=try XCTUnwrap(repair)
+                let plan=step.plan.setting("dayKey",.string(today)).setting("items",.array([step.item.setting("concept",.string("À demain"))]))
+                newPlan.storeCompanionBlueprint(.object(["status":.string("ready"),"repair":plan]),target:target,day:today)
+            }
+            _=try await service.save(newPlan,npub:npub)
+
+            app.learner=pending
+            XCTAssertTrue(app.persistFocusedTutorRecovery())
+            await app.sync()
+            XCTAssertEqual(app.learner.focusedTutorRuns?[run.key]?.completionID,receiptID)
+            XCTAssertNil(app.pendingFocusedTutorCourse)
+            XCTAssertFalse(app.preservingEarnedPractice)
+            let key=app.identity.exportKey()
+            app.signOut()
+            store.loseCompletionResult=false
+            let restored=AppModel(progressService:store)
+            defer {restored.signOut()}
+            await restored.signIn(nsec:key)
+            await restored.boot()
+            await restored.sync()
+
+            XCTAssertTrue(restored.learner.focusedTutorRuns?.isEmpty == true)
+            XCTAssertNil(restored.pendingFocusedTutorCourse)
+            XCTAssertFalse(restored.preservingEarnedPractice)
+            XCTAssertEqual(restored.learner.dailyXP,dailyXP)
+            let expectedXP=baseXP+turnXP+(kind == "repair" ? 12:0)
+            XCTAssertEqual(restored.learner.totalXP,expectedXP)
+            let history=try await service.activityHistory(npub:npub,year:CalendarDay.year(priorDate))
+            XCTAssertEqual(history["days"][priorDay].number,Double(expectedXP-baseXP))
+            let receipts=try await user.collection("iosPracticeReceipts").whereField("eventID",isEqualTo:receiptID.uuidString).getDocuments(source:.server)
+            XCTAssertEqual(receipts.documents.count,1)
+            XCTAssertEqual(receipts.documents.first?.data()["dayKey"] as? String,priorDay)
+            if kind == "goal" {
+                XCTAssertEqual(restored.readyGoal?["blueprint"]["objective"].string,"Ask a relative about tomorrow.")
+                XCTAssertEqual(restored.readyGoal?["modeProgress"]["tutor"].number,0)
+                XCTAssertEqual(restored.learner.plateProgress["goalDailyActivity"][target][today].number,0)
+            } else {
+                XCTAssertEqual(restored.learner.plateProgress["repairDailyActivity"][target][priorDay].number,1)
+                XCTAssertEqual(restored.learner.plateProgress["repairDailyActivity"][target][today].number,0)
+                XCTAssertEqual(restored.currentRepairStep?.item["concept"].string,"À demain")
+            }
+            let canonical=try requireState(await service.load(npub:npub))
+            XCTAssertEqual(canonical.totalXP,expectedXP)
+        }
+    }
+
+    func testQueuedGoalRecallRewardUsesItsBlueprintDayAfterTimeZoneChange() async throws {
+        let (service,db,npub)=try context()
+        try await seed(db,npub)
+        let instant=Date(),today=CalendarDay.key(instant),practiceDay=CalendarDay.shift(today,by:-1)
+        let originalDate=try XCTUnwrap(CalendarDay.gregorian().date(byAdding:.day,value:-1,to:instant))
+        var learner=try requireState(await service.load(npub:npub))
+        let target=learner.target,baseXP=learner.totalXP,dailyXP=learner.dailyXP
+        learner.editGoal("Greet family",now:originalDate)
+        let blueprint:JSONValue = .object([
+            "goalId":learner.goalBucket["activeGoal"]["id"],"dayKey":.string(practiceDay),
+            "lang":.string(target),"mode":.string("flashcards"),"modes":.array([.string("flashcards")]),
+            "modeTargets":.object(["flashcards":.number(3)]),"cefrLevel":.string("A1")
+        ])
+        learner.applyGoal(.init(action:.blueprint,target:target,date:originalDate,payload:blueprint))
+        let cards:JSONValue = .array([.object(["id":.string("bonjour")])])
+        learner.applyGoal(.init(action:.artifact,target:target,date:originalDate,payload:blueprint.setting("cards",cards)))
+        learner=try requireState(await service.save(learner,npub:npub))
+        // The original instant now formats as today in the new zone. The practice day stays with the blueprint.
+        let recall=GoalChange(action:.outcome,target:target,date:instant,payload:blueprint
+            .setting("cardID",.string("bonjour")).setting("success",.bool(true)).setting("item",.string("Bonjour")))
+        learner.pendingGoalChanges=[recall]
+        _=try await service.save(learner,npub:npub)
+        _=try await service.save(learner,npub:npub)
+        let settled=try requireState(await service.load(npub:npub))
+        XCTAssertEqual(settled.totalXP,baseXP+2)
+        XCTAssertEqual(settled.dailyXP,dailyXP)
+        let history=try await service.activityHistory(npub:npub,year:CalendarDay.year(originalDate))
+        XCTAssertEqual(history["days"][practiceDay].number,2)
+        let user=db.collection("users").document(npub)
+        let receipts=try await user.collection("iosPracticeReceipts").whereField("eventID",isEqualTo:recall.id.uuidString).getDocuments(source:.server)
+        XCTAssertEqual(receipts.documents.count,1)
+        XCTAssertEqual(receipts.documents.first?.data()["dayKey"] as? String,practiceDay)
+    }
+
     func testSourceTutorOwnXPCapPrivateDraftQuizResetAndCompletionSurviveRetriesBeyondTrial()async throws {
         let (service,db,npub)=try context();try await seed(db,npub);let user=db.collection("users").document(npub)
         try await user.updateData(["xp":298,"progress.totalXp":298,"progress.languageXp.fr":248])

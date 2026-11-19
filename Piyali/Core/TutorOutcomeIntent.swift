@@ -16,7 +16,7 @@ public struct TutorOutcomeIntent:Codable,Identifiable,Sendable {
     public var concept:String?
     public var worthParameters:JSONValue
     public var crossedDailyGoal:Bool
-    public var day:String {CalendarDay.key(date)}
+    public var day:String {turn?.dayKey ?? CalendarDay.key(date)}
     public var dailyAmount:Int {max(0,turn?.amount ?? 0)}
     public init(id:UUID=UUID(),turn:PracticeChange?,target:String,level:String,date:Date=Date(),correct:Bool,independent:Bool,support:String?=nil,concept:String?=nil,recordsAssessment:Bool=true,worthParameters:JSONValue,crossedDailyGoal:Bool=false){self.id=id;self.turn=turn;self.target=target;self.level=level;self.date=date;self.correct=correct;self.independent=independent;self.support=support;self.concept=concept;self.recordsAssessment=recordsAssessment;self.worthParameters=worthParameters;self.crossedDailyGoal=crossedDailyGoal}
 }
@@ -46,7 +46,7 @@ public extension LearnerState {
         let receiptIDs=Set((pendingChanges ?? []).map(\.id)).union(acknowledgedEventIDs ?? [])
         if let turn=outcome.turn,!receiptIDs.contains(turn.id) {
             xpByLanguage[outcome.target,default:0] += max(0,turn.amount)
-            if outcome.crossedDailyGoal,CalendarDay.key(outcome.date)==dailyKey{streak += 1}
+            if outcome.crossedDailyGoal,outcome.day==dailyKey{streak += 1}
             enqueue(turn)
         }
         if outcome.recordsAssessment != false,!receiptIDs.contains(outcome.id) {

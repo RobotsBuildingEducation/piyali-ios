@@ -24,6 +24,10 @@ public struct GoalChange: Codable, Identifiable, Sendable {
     public let target: String
     public let date: Date
     public let payload: JSONValue
+    public var dayKey:String {
+        let recorded=payload["dayKey"].string
+        return recorded.range(of:"^[0-9]{4}-[0-9]{2}-[0-9]{2}$",options:.regularExpression) == nil ? CalendarDay.key(date):recorded
+    }
     public init(action: GoalAction, target: String, date: Date = Date(), payload: JSONValue) { self.action = action; self.target = target; self.date = date; self.payload = payload }
 }
 public enum GoalPractice {

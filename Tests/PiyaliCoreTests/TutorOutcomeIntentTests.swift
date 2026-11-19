@@ -87,4 +87,57 @@ extension TutorOutcomeIntentTests {
         XCTAssertTrue(state.retireFocusedTutorRun(run));let finished=LearnerState.rebased(current:state,sent:sent,acknowledged:sent);XCTAssertTrue(finished.focusedTutorRuns?.isEmpty == true);XCTAssertEqual(finished.totalXP,0);XCTAssertNil(finished.gradedByLanguage)
         var raw=try XCTUnwrap(JSONSerialization.jsonObject(with:JSONEncoder().encode(sent)) as? [String:Any]);raw.removeValue(forKey:"focusedTutorRuns");let legacy=try JSONDecoder().decode(LearnerState.self,from:JSONSerialization.data(withJSONObject:raw));XCTAssertNil(legacy.focusedTutorRuns)
     }
+
+    func testQueuedTurnKeepsItsCapturedDayAfterTheTimestampIsInterpretedInAnotherZone() throws {
+        let instant=Date(),currentDay=CalendarDay.key(instant)
+        let practiceDay=CalendarDay.shift(currentDay,by:-1)
+        let turn=PracticeChange(date:instant,dayKey:practiceDay,target:"es",level:"A1",amount:5,source:.tutorTurn)
+        let outcome=TutorOutcomeIntent(turn:turn,target:"es",level:"A1",date:instant,correct:true,
+            independent:true,worthParameters:.object([:]),crossedDailyGoal:true)
+        var learner=LearnerState()
+        learner.dailyKey=currentDay
+        learner.streak=2
+        learner.pendingTutorOutcomes=[outcome]
+        let decoded=try JSONDecoder().decode(LearnerState.self,from:JSONEncoder().encode(learner))
+        XCTAssertEqual(decoded.pendingTutorDailyXP(day:practiceDay),5)
+        XCTAssertEqual(decoded.pendingTutorDailyXP(day:currentDay),0)
+        XCTAssertTrue(learner.deliverTutorOutcome(outcome.id,worth:nil))
+        XCTAssertEqual(learner.dailyXP,0)
+        XCTAssertEqual(learner.streak,2)
+        XCTAssertEqual(learner.totalXP,5)
+        XCTAssertEqual(learner.pendingChanges?.first(where:{$0.id==turn.id})?.dayKey,practiceDay)
+    }
+
+    func testPreviousDayPracticeRewardsDoNotFillTodaysCompanionMeter() {
+        let instant = Date()
+        let today = CalendarDay.key(instant), previousDay = CalendarDay.shift(today,by:-1)
+        let fields: [String:Any] = [
+            "dailyXp":5, "dailyXpRecent":[today:5], "dailyGoalXp":15,
+            "dailyResetAt":WebProgressContract.iso(instant.addingTimeInterval(3600)),
+            "dailyGoalPetHealth":50, "dailyGoalPetLastAccountedDay":previousDay
+        ]
+        var baseline = WebProgressContract.imported(fields,native:nil,now:instant)
+        let blueprint: JSONValue = .object(["dayKey":.string(previousDay),"goalId":.string("saved-goal"),"mode":.string("flashcards")])
+        let card: JSONValue = .object(["id":.string("one")])
+        let deck = GoalChange(action:.artifact,target:"es",date:instant,payload:blueprint.setting("cards",.array([card])))
+        let deckKey = GoalPractice.artifactKey(target:"es",day:previousDay,mode:"flashcards",goalID:"saved-goal")
+        baseline.goalArtifacts = [deckKey:GoalPractice.applyingArtifact(deck,to:.object([:])).artifact]
+
+        var working = baseline
+        let turn = PracticeChange(date:instant,dayKey:previousDay,target:"es",level:"A1",amount:5,source:.tutorTurn)
+        working.pendingTutorOutcomes = [.init(turn:turn,target:"es",level:"A1",date:instant,correct:true,independent:true,worthParameters:.object([:]))]
+        let recall = GoalChange(action:.outcome,target:"es",date:instant,payload:blueprint.setting("cardID",.string("one")).setting("success",.bool(true)))
+        working.pendingGoalChanges = [recall]
+        let repair = PracticeChange(date:instant,dayKey:previousDay,target:"es",level:"A1",amount:12,source:.repair)
+        working.pendingChanges = [repair]
+
+        let imported = WebProgressContract.imported(fields,native:working,now:instant)
+        XCTAssertEqual(imported.dailyXP,5)
+        XCTAssertEqual(WebProgressContract.integer(imported.companionFields["dailyXp"]),5)
+        let merged = LearnerState.rebased(current:working,sent:baseline,acknowledged:baseline)
+        XCTAssertEqual(merged.dailyXP,5)
+        XCTAssertEqual(merged.totalXP,14)
+        XCTAssertEqual(WebProgressContract.integer(merged.companionFields["dailyXp"]),5)
+        XCTAssertEqual(merged.companionHealth,50)
+    }
 }

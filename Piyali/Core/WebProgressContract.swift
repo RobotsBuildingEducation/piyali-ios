@@ -146,8 +146,8 @@ public enum WebProgressContract {
             state.xpByLanguage[change.target,default:0] += reward
             if CalendarDay.key(change.date) == today { state.dailyXP += reward;state.rewardCompanion(reward,now:change.date) }
         }
-        for outcome in state.pendingTutorOutcomes ?? [] where outcome.dailyAmount>0 {
-            if outcome.day == state.dailyKey {state.dailyXP += outcome.dailyAmount}
+        for outcome in state.pendingTutorOutcomes ?? [] where outcome.day == state.dailyKey && outcome.dailyAmount > 0 {
+            state.dailyXP += outcome.dailyAmount
             state.rewardCompanion(outcome.dailyAmount,now:outcome.date)
         }
         return state

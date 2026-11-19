@@ -308,7 +308,7 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
         let receipt = user.collection("iosPracticeReceipts").document(receiptID)
         let artifactMode = change.payload["mode"].string
         let quest = user.collection("questDays").document("\(change.target)_\(change.payload["dayKey"].string)")
-        let day = CalendarDay.key(change.date), month = user.collection("xpHistory").document(String(day.prefix(7)))
+        let day = change.dayKey, month = user.collection("xpHistory").document(String(day.prefix(7)))
         _ = try await database.runTransaction { transaction,errorPointer -> Any? in
             do {
                 let existing = try transaction.getDocument(receipt)
@@ -353,7 +353,7 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                     exactGoalFields[FieldPath(["learningIntelligence",change.target,key])] = try JSONSerialization.jsonObject(with:Data(value.json.utf8),options:.fragmentsAllowed)
                 }
                 if !exactGoalFields.isEmpty { transaction.updateData(exactGoalFields,forDocument:user) }
-                transaction.setData(["eventID":change.id.uuidString,"source":"goal-" + change.action.rawValue,"targetLang":change.target,"syncedAt":FieldValue.serverTimestamp()],forDocument:receipt)
+                transaction.setData(["eventID":change.id.uuidString,"source":"goal-" + change.action.rawValue,"targetLang":change.target,"dayKey":day,"practicedAt":WebProgressContract.iso(change.date),"syncedAt":FieldValue.serverTimestamp()],forDocument:receipt)
                 return true
             } catch { errorPointer?.pointee = error as NSError; return nil }
         }
@@ -515,7 +515,9 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                 if let goalEvent,let goalID,!goalRecorded { transaction.setData(["source":"nosabos","metric":"conversation_goals","completionId":goalID,"version":1],forDocument:goalEvent) }
                 if let proof=change.readingProof { var record=proof.foundation as? [String:Any] ?? [:];record["source"]="nosabos";record["createdAt"]=FieldValue.serverTimestamp();record["createdAtClient"]=Int(change.date.timeIntervalSince1970*1000);transaction.setData(record,forDocument:user.collection("readingTurns").document(receiptID)) }
                 if let proof=change.storyProof { var record=proof.foundation as? [String:Any] ?? [:];record["source"]="nosabos";record["createdAt"]=FieldValue.serverTimestamp();record["createdAtClient"]=Int(change.date.timeIntervalSince1970*1000);transaction.setData(record,forDocument:user.collection("storyTurns").document(receiptID)) }
-                transaction.setData(["eventID":change.id.uuidString,"source":change.source.rawValue,"targetLang":change.target,"amount":accepted.amount,"practicedAt":WebProgressContract.iso(change.date),"syncedAt":FieldValue.serverTimestamp()],forDocument:receipt)
+                var receiptData:[String:Any]=["eventID":change.id.uuidString,"source":change.source.rawValue,"targetLang":change.target,"amount":accepted.amount,"practicedAt":WebProgressContract.iso(change.date),"syncedAt":FieldValue.serverTimestamp()]
+                if change.source == .repair {receiptData["dayKey"]=change.dayKey}
+                transaction.setData(receiptData,forDocument:receipt)
                 return true
             } catch { errorPointer?.pointee = error as NSError; return nil }
         }

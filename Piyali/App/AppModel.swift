@@ -555,7 +555,10 @@ import SwiftUI
         automaticProgress.observe(cloud,identity:identity,locallyAllowed:learner.automaticPostsEnabled)
         let priorGoalModes=readyGoal?["modeProgress"]
         let target = learner.target, support = learner.support, level = learner.level, cardLevel = learner.flashcardLevel, tutorLevel = learner.tutorLevel
-        let priorLearner=learner;restoreLearner(LearnerState.rebased(current:learner,sent:sent,acknowledged:cloud));captureCompanionUnlock(previous:priorLearner,acknowledgment:true);syncSettingsAppearance()
+        let priorLearner=learner
+        var merged=LearnerState.rebased(current:learner,sent:sent,acknowledged:cloud)
+        retireAcknowledgedObsoleteFocusedTutorRuns(in:&merged,sent:sent,acknowledged:cloud.acknowledgedEventIDs ?? [])
+        restoreLearner(merged);captureCompanionUnlock(previous:priorLearner,acknowledgment:true);syncSettingsAppearance()
         for change in learner.pendingRepairEvidence ?? [] {
             let bucket=learner.goalIntelligence?[change.target] ?? .object([:])
             if let summary=try? companionQuestPolicy?.run("evidence",.object(["summary":bucket["repairSummary"],"event":change.event,"now":.number(change.date.timeIntervalSince1970*1000)])) {if learner.goalIntelligence == nil {learner.goalIntelligence=[:]};learner.goalIntelligence?[change.target]=bucket.setting("repairSummary",summary)}

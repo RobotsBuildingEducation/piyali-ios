@@ -49,8 +49,18 @@ The retained [original asynchronous callback oracle](native/focused-tutor-recove
 
 [Diagnostic result summaries](native/focused-tutor-recovery-b269524d/diagnostic-results.json) retain failed runs as failed. The work exposed and corrected the source's narrowed repair-plan shape, a receipt-path test assumption, a trial transition interrupting preparation, a parent accessibility identifier overriding Retry, and the Repair raw/confirmed routing guard. A broader run also found an older helper test assuming immediate confirmed progress and a new generation control using a same-day note that the source excludes. Receipt-backed acknowledgment and yesterday's eligible public note are the correct test prerequisites.
 
+## Queued completion across a day change
+
+Replayed the original Goal and Repair callbacks from reference revision `b269524d`. They reject new attempts with an expired day or repair step. On the valid day, Repair records the activity and reinforces the original evidence once.
+
+On iPhone, a completion already saved to the outbox can settle after the date, language, or plan changes. Firebase acknowledgment clears the account-private run after the matching event leaves the outbox. The active view only restores a matching current-day run. Queued Tutor turns, Repair bonuses and Goal recall XP retain their recorded day. The old receipt does not advance the replacement plan or fill today's companion meter.
+
+The local Firestore SDK checks used a second client to replace today's plan, dropped the first client's successful save response, restored the private account in a fresh app model, then retried. Goal and Repair each settled one historical receipt with their original XP and day, preserved the replacement plan and cleared the private run. A separate retry wrote Goal recall XP once to the recorded blueprint day when the timestamp resolved to a different day on the receiving client. The 37 targeted Core tests include imports and outbox rebases with prior-day Tutor, Goal and Repair work.
+
+`/tmp/PiyaliDelayedFocusedReceipts-1b734e62-3ee4-4a13-a2a2-2063cfeefc2e.xcresult` passed all five simulator and local Firestore checks, including current-day recovery at the trial boundary.
+
 ## Remaining limits
 
-This checkpoint covers matching **current-day** focused runs. Day rollover, plan replacement after a queued completion, cross-device chronology and broader concurrent-flow recovery still need end-to-end evidence. It does not recover historical sessions that never saved this private run. An interrupted remote worth request may run again; the earned delivery and completion receipt retain their own stable identities.
+The original current-day product journeys and the queued rollover SDK checks cover different stages of the save. Broader cross-device chronology, physical time-zone changes and concurrent flows still need end-to-end evidence. Historical sessions without a private run lack the state needed for recovery. An interrupted remote worth request may run again. The earned delivery and completion receipt retain their own stable identities.
 
 Public I/O fixtures and component pairs do not prove live model quality, full authenticated browser routing, production Firebase, physical microphone/output behavior, full-shell geometry or complete RTL/accessibility parity. Tutor capture/setup and partial-PCM boundaries, whole-screen orb/layout differences, wider Story/Conversation and other mode contexts, Teams lifecycle, paid and wallet verification, physical devices, release signing and App Check remain open in [PARITY_HANDOFF.md](PARITY_HANDOFF.md). The separate Firebase/Cloudflare services are preserved. No merge, deployment or App Store publication is included.

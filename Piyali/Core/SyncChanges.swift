@@ -215,7 +215,7 @@ public extension LearnerState {
         if acknowledged.dailyKey >= current.dailyKey {
             merged.dailyKey = acknowledged.dailyKey
             merged.dailyXP = max(0,acknowledged.dailyXP-acknowledged.pendingTutorDailyXP(day:acknowledged.dailyKey))+merged.pendingTutorDailyXP(day:acknowledged.dailyKey) + newer.filter { $0.dayKey == acknowledged.dailyKey }.reduce(0) { $0 + reward($1) }
-            merged.dailyXP += newGoalRewards.filter { CalendarDay.key($0.0.date) == acknowledged.dailyKey }.reduce(0) { $0 + $1.1 }
+            merged.dailyXP += newGoalRewards.filter { $0.0.dayKey == acknowledged.dailyKey }.reduce(0) { $0 + $1.1 }
             merged.dailyXP += newImmersionRewards.filter { CalendarDay.key($0.0.date) == acknowledged.dailyKey }.reduce(0) { $0 + $1.1 }
             merged.streak = max(acknowledged.streak,current.dailyKey == acknowledged.dailyKey ? current.streak : 0)
         }
@@ -234,9 +234,9 @@ public extension LearnerState {
         merged.achievementRecords = NostrAchievementCollection.merging([.object(current.achievementRecords ?? [:]),.object(acknowledged.achievementRecords ?? [:]),current.nostrAchievementRecords ?? .object([:])]).object; merged.achievementEvidence = acknowledged.achievementEvidence; merged.achievementLedger = acknowledged.achievementLedger
         merged.companionProgress = acknowledged.companionProgress
         let projectedAckTurns=Set((acknowledged.pendingTutorOutcomes ?? []).compactMap{$0.turn?.id})
-        for outcome in merged.pendingTutorOutcomes ?? [] where outcome.dailyAmount>0 && !(acknowledged.pendingTutorOutcomes ?? []).contains(where:{$0.id == outcome.id}) {merged.rewardCompanion(outcome.dailyAmount,now:outcome.date)}
-        for change in newer.sorted(by:{ $0.date < $1.date }) where reward(change) > 0 && !projectedAckTurns.contains(change.id) { merged.rewardCompanion(reward(change),now:change.date) }
-        for (change,reward) in newGoalRewards where reward > 0 { merged.rewardCompanion(reward,now:change.date) }
+        for outcome in merged.pendingTutorOutcomes ?? [] where outcome.day == merged.dailyKey && outcome.dailyAmount>0 && !(acknowledged.pendingTutorOutcomes ?? []).contains(where:{$0.id == outcome.id}) {merged.rewardCompanion(outcome.dailyAmount,now:outcome.date)}
+        for change in newer.sorted(by:{ $0.date < $1.date }) where change.dayKey == merged.dailyKey && reward(change) > 0 && !projectedAckTurns.contains(change.id) { merged.rewardCompanion(reward(change),now:change.date) }
+        for (change,reward) in newGoalRewards where change.dayKey == merged.dailyKey && reward > 0 { merged.rewardCompanion(reward,now:change.date) }
         for (change,reward) in newImmersionRewards where reward > 0 { merged.rewardCompanion(reward,now:change.date) }
         merged.reconcileCompanion()
         // A newer local assessment already includes all previous local evidence.
