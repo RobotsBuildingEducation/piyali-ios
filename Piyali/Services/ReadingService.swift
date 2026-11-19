@@ -65,6 +65,23 @@ import FirebaseAILogic
                 if Self.fixture {
                     let payload:JSONValue=try ContentLibrary.load(JSONValue.self,name:"reading-test-passage")
                     #if DEBUG
+                    switch ProcessInfo.processInfo.environment["PIYALI_READING_REVIEW_FIXTURE"] {
+                    case "text":
+                        return payload.setting("reviewQuestion",payload["reviewQuestion"].setting("type",.string("text")))
+                    case "fill" where target == "ja":
+                        return .object([
+                            "nativeReadingStream":.bool(true),"reviewQuestionType":.string("fill"),
+                            "title":.string("文字のノート"),
+                            "target":.string("ノートの最初のページには「あ」と書いてあります。次のページには別の文字があります。毎日一文字ずつ練習します。"),
+                            "takeaways":.array([.string("The notebook is for daily writing practice.")]),
+                            "reviewQuestion":.object([
+                                "type":.string("fill"),
+                                "sentence":.string("The first page shows the hiragana character ___."),
+                                "answer":.string("あ")
+                            ])
+                        ])
+                    default: break
+                    }
                     if ProcessInfo.processInfo.environment["PIYALI_READING_GENERATION_FAILURE_FIXTURE"] == "1" {
                         self.fixtureGenerations += 1
                         if self.fixtureGenerations == 1 {throw ReadingFailure.invalid}

@@ -16,13 +16,14 @@ struct ReadingView:View {
     @State private var footerOwner=UUID()
     @State private var appeared=false
     @State private var refresh=0
-    @State private var answer=""
+    @State private var keyboardOpen=false
     @State private var showTranslation=false
     private var activeSentence:Int? { audio.activeSentence }
     private var readingAll:Bool { audio.readingAll }
     @State private var recordingScope:String?
     @State private var active=false
     @FocusState private var answering:Bool
+    private static let keyboard=(try? WritingKeyboard()) ?? WritingKeyboard(data:.null)
     private var brand:PiyaliBrand { .init(dark:scheme == .dark) }
     private var hasAccess:Bool { app.subscription.hasAccess || ReadingService.fixture }
     private var recordingNow:Bool { recorder.phase == .listening }
@@ -34,16 +35,16 @@ struct ReadingView:View {
         Group { if ReadingService.fixture { activity } else { SubscriptionRequiredView(service:app.subscription,preserveEarnedWork:app.preserveEarnedGoalLesson(lesson)) { activity } } }
             .activityFooter(owner:footerOwner,revision:footerRevision,access:app.subscription,fixtureAllowed:ReadingService.fixture,correct:run?.correct) { footer }
             .navigationTitle(embedded ? lesson?.title.localized(app.learner.support) ?? t("reading_title") : t("reading_title"))
-            .task(id:scope) { stop();answer="";showTranslation=false;let fresh=refresh > 0 || startsFresh && !appeared;appeared=true;await service.prepare(app,lesson:lesson,fresh:fresh);guard !Task.isCancelled else { return };answer=run?.answer ?? "";recorder.restore(run?.method == "speech" && run?.awarded == false ? run?.answer ?? "" : "") }
+            .task(id:scope) { stop();showTranslation=false;let fresh=refresh > 0 || startsFresh && !appeared;appeared=true;await service.prepare(app,lesson:lesson,fresh:fresh);guard !Task.isCancelled else { return };recorder.restore(run?.method == "speech" && run?.awarded == false ? run?.answer ?? "" : "") }
             .task(id:run?.id) {if let run {await service.ensureReviewQuestion(app,run:run)}}
             .toolbar { ToolbarItemGroup(placement:.keyboard) { Spacer();Button(t("proficiency_modal_done")) { answering=false }.accessibilityIdentifier("readingKeyboardDone") } }
             .onChange(of:recorder.phase) { previous,value in if previous != .idle,value == .idle { saveTranscript() } }
-            .onChange(of:run?.id) { _,_ in stop();recorder.restore(run?.method == "speech" && run?.awarded == false ? run?.answer ?? "" : "") }
-            .onChange(of:run?.awarded) { _,value in if value == true { stop() } }
+            .onChange(of:run?.id) { _,_ in closeReviewKeyboard();stop();recorder.restore(run?.method == "speech" && run?.awarded == false ? run?.answer ?? "" : "") }
+            .onChange(of:run?.awarded) { _,value in if value == true { closeReviewKeyboard();stop() } }
             .onAppear { active=true }
-            .onChange(of:hasAccess) { _,value in if !value { stop();service.cancel() } }
-            .onChange(of:phase) { _,value in if value == .background { saveTranscript();stop();service.cancel() } else if value == .active,run == nil { refresh += 1 } }
-            .onDisappear { active=false;saveTranscript();service.cancel();stop() }
+            .onChange(of:hasAccess) { _,value in if !value { closeReviewKeyboard();stop();service.cancel() } }
+            .onChange(of:phase) { _,value in if value == .background { closeReviewKeyboard();saveTranscript();stop();service.cancel() } else if value == .active,run == nil { refresh += 1 } }
+            .onDisappear { active=false;closeReviewKeyboard();saveTranscript();service.cancel();stop() }
     }
     private var activity:some View {
         VStack(spacing:0) {
@@ -177,10 +178,9 @@ struct ReadingView:View {
             if run.question.type == "mc" {
                 VStack(spacing:8) {
                     ForEach(Array(run.question.options.enumerated()),id:\.offset) { index,option in
-                        let selected=answer == option || answer.isEmpty && run.answer == option
+                        let selected=run.answer == option
                         Button {
-                            answer=option
-                            update { $0.answer=option;$0.correct=nil;$0.feedback="" }
+                            changeReviewAnswer(option,for:run.id)
                         } label: {
                             ReadingAnswerOption(letter:UnicodeScalar(65+index).map(String.init) ?? "",text:option,direction:textDirection(run.support),selected:selected)
                         }.buttonStyle(.plain).disabled(service.busy || run.awarded)
@@ -190,9 +190,74 @@ struct ReadingView:View {
                     }
                 }
             } else {
-                TextField(t(run.question.type == "fill" ? "history_fill_blank_placeholder" : "history_answer_placeholder"),text:Binding(get:{ answer },set:{ value in answer=value;update { $0.answer=value;$0.correct=nil;$0.feedback="" } }),axis:.vertical).font(PiyaliBrand.productFont(16)).padding(14).background(brand.surface,in:RoundedRectangle(cornerRadius:12)).overlay { RoundedRectangle(cornerRadius:12).stroke(brand.border) }.focused($answering).disabled(service.busy || run.awarded).accessibilityIdentifier("readingAnswer")
+                typedReview(run)
             }
         }
+    }
+    private func typedReview(_ review:ReadingRun)->some View {
+        let placeholder=t(review.question.type == "fill" ? "history_fill_blank_placeholder" : "history_answer_placeholder")
+        return VStack(alignment:.leading,spacing:12) {
+            TextField(placeholder,text:Binding(
+                get:{self.run?.id == review.id ? self.run?.answer ?? "" : ""},
+                set:{changeReviewAnswer($0,for:review.id)}
+            ))
+            .font(PiyaliBrand.productFont(14))
+            .padding(.horizontal,12)
+            .frame(minHeight:32)
+            .overlay {EntryCornerShape(radius:6).stroke(answering ? PiyaliBrand.unitColor("3182ce") : brand.border,lineWidth:answering ? 2:1)}
+            .focused($answering)
+            .submitLabel(.go)
+            .onSubmit {submitReview(review.id)}
+            .disabled(service.busy || review.awarded)
+            .accessibilityIdentifier("readingAnswer")
+            .frame(maxWidth:400)
+
+            if Self.keyboard.supported(review.target),!review.awarded {
+                if keyboardOpen {
+                    WritingVirtualKeyboard(language:review.target,support:review.support,keyboard:Self.keyboard,onKey:{key in
+                        guard let current=editableReview(review.id) else {return}
+                        changeReviewAnswer(WritingKeyboard.press(key,text:current.answer,disabled:false),for:review.id)
+                    },onClose:{keyboardOpen=false})
+                    .disabled(service.busy)
+                }
+                Button {
+                    answering=false
+                    keyboardOpen.toggle()
+                } label:{
+                    Label {Text(t(keyboardOpen ? "history_keyboard_close":"history_keyboard_open"))}
+                    icon:{PracticeIcon(name:"MdKeyboard",size:16)}
+                    .font(PiyaliBrand.productFont(14,600))
+                    .padding(.horizontal,12)
+                    .frame(minHeight:44)
+                    .contentShape(Rectangle())
+                }.buttonStyle(.plain)
+                    .disabled(service.busy)
+                    .accessibilityIdentifier("readingKeyboardToggle")
+            }
+        }
+    }
+    private func editableReview(_ id:UUID)->ReadingRun? {
+        guard hasAccess,active,phase == .active,!service.busy,let run,run.id == id,
+              run.method == "question",run.pendingQuestionType == nil,!run.awarded else {return nil}
+        return run
+    }
+    private func changeReviewAnswer(_ answer:String,for id:UUID) {
+        guard var current=editableReview(id),current.answer != answer else {return}
+        current.answer=answer
+        current.correct=nil
+        current.feedback=""
+        app.learner.saveReading(current)
+        app.persist()
+    }
+    private func submitReview(_ id:UUID) {
+        guard let current=editableReview(id),!current.answer.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else {return}
+        answering=false
+        stop()
+        Task {await service.check(app,run:current,answer:current.answer,speech:false,lesson:lesson)}
+    }
+    private func closeReviewKeyboard() {
+        answering=false
+        keyboardOpen=false
     }
     @ViewBuilder private func recording(_ run:ReadingRun)->some View {
         if !run.awarded {
@@ -211,7 +276,7 @@ struct ReadingView:View {
             if let code=recorder.issue { let copy=ReadingSpeechCapture.feedback(code);Text(t(copy.title)+". "+t(copy.description)).font(PiyaliBrand.productFont(14)).foregroundStyle(brand.secondary).accessibilityIdentifier("readingRecordingError") }
         }
     }
-    private var footerRevision:String { [scope,run?.id.uuidString ?? "",String(run?.awarded ?? false),String(describing:run?.correct),run?.feedback ?? "",String(lessonPercent ?? -1),run?.explanation ?? "",answer,String(service.busy),String(service.generating),String(service.translationLoading),String(service.questionGenerating),String(service.questionFailed),run?.pendingQuestionType ?? "",String(service.suppressedPrevious),service.error ?? "",recorder.phase.rawValue,recorder.transcript,recorder.issue ?? ""].joined(separator:"|") }
+    private var footerRevision:String { [scope,run?.id.uuidString ?? "",String(run?.awarded ?? false),String(describing:run?.correct),run?.feedback ?? "",String(lessonPercent ?? -1),run?.explanation ?? "",run?.answer ?? "",String(service.busy),String(service.generating),String(service.translationLoading),String(service.questionGenerating),String(service.questionFailed),run?.pendingQuestionType ?? "",String(service.suppressedPrevious),service.error ?? "",recorder.phase.rawValue,recorder.transcript,recorder.issue ?? ""].joined(separator:"|") }
     private var lessonPercent:Int? { guard let lesson,lesson.id != IntroTutorial.lessonID,lesson.xpReward > 0 else { return nil };let work=app.learner.lessonWork?[app.learner.completionKey(lesson.id)];return Int((work?.fraction(goal:lesson.xpReward) ?? 0)*100+0.5) }
     private var footer:some View {
         ActivityFooterSurface(feedbackLimit:run?.method == "speech" ? UIScreen.main.bounds.height*0.45 : nil,hasFeedback:run?.feedback.isEmpty == false || run?.awarded == true,feedback:{
@@ -239,7 +304,11 @@ struct ReadingView:View {
         } else if run.method == "question",run.pendingQuestionType != nil {
             Button {Task {await service.ensureReviewQuestion(app,run:run,retry:true)}} label:{if service.questionGenerating {ProgressView().tint(.white)} else {Text(t("history_generate_review"))}}.buttonStyle(ActivityPrimaryButtonStyle()).disabled(service.questionGenerating || run.text.isEmpty).accessibilityIdentifier("readingGenerateQuestion")
         } else if run.method == "question" {
-            Button { answering=false;stop();Task { await service.check(app,run:run,answer:answer.isEmpty ? run.answer : answer,speech:false,lesson:lesson) } } label:{ if service.busy { ProgressView().tint(.white) } else { Text(t("quiz_submit")) } }.buttonStyle(ActivityPrimaryButtonStyle()).disabled(service.busy || (answer.isEmpty && run.answer.isEmpty)).accessibilityIdentifier("readingCheck")
+            Button {submitReview(run.id)} label:{
+                if service.busy {ProgressView().tint(.white)} else {Text(t("quiz_submit"))}
+            }.buttonStyle(ActivityPrimaryButtonStyle())
+                .disabled(service.busy || run.answer.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty)
+                .accessibilityIdentifier("readingCheck")
         } else {
             if !recorder.transcript.isEmpty,!recordingNow,!finalizing { Button(t("history_speech_start_over")) { guard hasAccess else { return };stop();recorder.restore("");update { $0.answer="" } }.font(PiyaliBrand.productFont(14,600)).disabled(service.busy).accessibilityIdentifier("readingSpeechStartOver") }
             Button {

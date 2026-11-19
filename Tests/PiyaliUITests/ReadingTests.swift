@@ -3,8 +3,16 @@ import XCTest
 @MainActor final class ReadingPlayTests:XCTestCase {
     private func reveal(_ element:XCUIElement,in app:XCUIApplication) {
         XCTAssertTrue(element.waitForExistence(timeout:10))
-        for _ in 0..<10 { if element.isHittable { break };if element.frame.minY < app.frame.minY+90 { app.swipeDown(velocity:.slow) } else { app.swipeUp(velocity:.slow) } }
-        XCTAssertTrue(element.isHittable)
+        for _ in 0..<10 where !element.isHittable {
+            let scroll=app.scrollViews.firstMatch
+            let viewport=scroll.exists ? scroll : app
+            let frame=viewport.frame
+            let limit=frame.height*0.4
+            let delta=max(-limit,min(limit,frame.midY-element.frame.midY))
+            let start=viewport.coordinate(withNormalizedOffset:CGVector(dx:0.92,dy:0.5))
+            start.press(forDuration:0.05,thenDragTo:start.withOffset(CGVector(dx:0,dy:delta)))
+        }
+        XCTAssertTrue(element.isHittable,element.debugDescription)
     }
     private func open(_ app:XCUIApplication,expectsPassage:Bool=true) {
         XCTAssertTrue(app.buttons["productMenu"].waitForExistence(timeout:15));app.buttons["productMenu"].tap();app.buttons["productModeMenu"].tap();app.buttons["productMode-path"].tap()
@@ -142,6 +150,110 @@ import XCTest
         reveal(error,in:app);let denied=XCTAttachment(screenshot:app.screenshot());denied.name="Native reading capture permission error";denied.lifetime = .keepAlways;add(denied)
         app.terminate();app.launchEnvironment.removeValue(forKey:"PIYALI_READING_CAPTURE_DENIED");app.launch();handleInitialPaperPencil(app);open(app);spokenFragment(app)
         XCTAssertFalse(error.exists);XCTAssertFalse(app.staticTexts["readingCompleted"].exists)
+    }
+    private func typedApp(_ format:String,target:String)->XCUIApplication {
+        continueAfterFailure=false
+        let app=XCUIApplication()
+        app.launchEnvironment=[
+            "PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,
+            "PIYALI_READING_FIXTURE":"1","PIYALI_READING_REVIEW_FIXTURE":format,
+            "PIYALI_PRACTICE_FIXTURE":"delight:natural_or_weird"
+        ]
+        if target == "ja" {
+            app.launchEnvironment["PIYALI_PRACTICE_FIXTURE"]="delight:sentence_shapeshifter"
+            app.launchEnvironment["PIYALI_WRITING_FIXTURE"]="1"
+        }
+        app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"]
+        app.launch()
+        handleInitialPaperPencil(app)
+        let name=app.textFields["entryName"]
+        reveal(name,in:app)
+        name.tap()
+        name.typeText("Reading Learner")
+        if app.buttons["entryKeyboardDone"].exists {tap("entryKeyboardDone",app)}
+        tap("createAccount",app)
+        handleInitialPaperPencil(app)
+        if target != "es" {
+            tap("onboardingPractice",app)
+            tap("onboardingOption-practice-\(target)",app)
+        }
+        tap("startLearning",app)
+        open(app)
+        return app
+    }
+    func testTypedReadingReturnRetriesAndRestoresTheSameDraftAndReward() {
+        let app=typedApp("text",target:"es"),answer=app.textFields["readingAnswer"]
+        reveal(answer,in:app)
+        XCTAssertEqual(answer.placeholderValue,"Your answer...")
+        XCTAssertFalse(app.buttons["readingKeyboardToggle"].exists)
+        answer.tap()
+        answer.typeText("  ")
+        XCTAssertFalse(app.buttons["readingCheck"].isEnabled)
+        answer.typeText("\n")
+        XCTAssertFalse(app.staticTexts["readingFeedback"].exists)
+        reveal(answer,in:app)
+        answer.tap()
+        answer.typeText("A photo\n")
+        let feedback=app.staticTexts["readingFeedback"]
+        XCTAssertTrue(feedback.waitForExistence(timeout:8))
+        XCTAssertEqual(feedback.label,"Not quite.")
+        XCTAssertFalse(app.staticTexts["readingCompleted"].exists)
+        reveal(answer,in:app)
+        answer.tap()
+        let previous=answer.value as? String ?? ""
+        answer.typeText(String(repeating:XCUIKeyboardKey.delete.rawValue,count:previous.count))
+        XCTAssertFalse(feedback.exists)
+        XCTAssertFalse(app.buttons["readingCheck"].isEnabled)
+        let correct="To remember the plan with their sister"
+        answer.typeText(correct)
+        app.terminate()
+        app.launch()
+        handleInitialPaperPencil(app)
+        open(app)
+        reveal(answer,in:app)
+        XCTAssertEqual(answer.value as? String,correct)
+        answer.tap()
+        answer.typeText("\n")
+        let reward=app.staticTexts["readingCompleted"]
+        reveal(reward,in:app)
+        let saved=reward.label
+        XCTAssertTrue(saved.contains("XP awarded:"))
+        XCTAssertFalse(answer.isEnabled)
+        app.terminate()
+        app.launch()
+        handleInitialPaperPencil(app)
+        open(app)
+        reveal(reward,in:app)
+        XCTAssertEqual(reward.label,saved)
+        XCTAssertFalse(app.buttons["readingCheck"].exists)
+    }
+    func testJapaneseFillReadingUsesTheSourceKeyboardAndSubmitsItsAnswer() {
+        let app=typedApp("fill",target:"ja"),answer=app.textFields["readingAnswer"]
+        reveal(answer,in:app)
+        XCTAssertEqual(answer.placeholderValue,"Fill in the blank...")
+        tap("readingKeyboardToggle",app)
+        tap("writingKey-0-0",app)
+        XCTAssertEqual(answer.value as? String,"あ")
+        tap("writingKeyboardKatakana",app)
+        tap("writingKey-0-0",app)
+        XCTAssertEqual(answer.value as? String,"あア")
+        let captured=XCTAttachment(screenshot:app.screenshot())
+        captured.name="Native Japanese Reading fill and Katakana keyboard"
+        captured.lifetime = .keepAlways
+        add(captured)
+        tap("writingKeyboardSpace",app)
+        XCTAssertEqual(answer.value as? String,"あア ")
+        tap("writingKeyboardBackspace",app)
+        tap("writingKeyboardBackspace",app)
+        XCTAssertEqual(answer.value as? String,"あ")
+        tap("writingKeyboardClose",app)
+        XCTAssertFalse(app.otherElements["writingVirtualKeyboard"].exists)
+        XCTAssertFalse(app.staticTexts["readingCompleted"].exists)
+        tap("readingCheck",app)
+        reveal(app.staticTexts["readingCompleted"],in:app)
+        XCTAssertTrue(app.staticTexts["readingCompleted"].label.contains("XP awarded:"))
+        XCTAssertFalse(app.buttons["readingKeyboardToggle"].exists)
+        XCTAssertFalse(answer.isEnabled)
     }
     func testWrongAnswerRetryResumeAndOneReward() {
         continueAfterFailure=false
