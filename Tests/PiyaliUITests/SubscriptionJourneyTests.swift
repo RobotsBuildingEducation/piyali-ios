@@ -143,6 +143,48 @@ import XCTest
   XCTAssertGreaterThanOrEqual(paths.filter{$0.hasSuffix("/key-status")}.count,3)
  }
 
+ func testExpiredDisconnectKeepsItsLinkUntilAnAuthenticatedConfirmation()async throws{
+  continueAfterFailure=false
+  let server=LocalMembershipServer()
+  try await server.start()
+  defer{server.stop()}
+  server.status(["authorized":false,"linked":true,"configured":true,"subscription":["status":"expired"]])
+  let app=XCUIApplication()
+  app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,
+                         "PIYALI_SETTINGS_FIXTURE":"1","PIYALI_SUBSCRIPTION_TEST_URL":server.url]
+  app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en"]
+  app.launch()
+  handleInitialPaperPencil(app)
+  let name=app.textFields["entryName"]
+  XCTAssertTrue(name.waitForExistence(timeout:15))
+  name.tap()
+  name.typeText("Expired Member")
+  tap("entryKeyboardDone",app)
+  tap("createAccount",app)
+  handleInitialPaperPencil(app)
+  tap("startLearning",app)
+  open(app)
+  XCTAssertTrue(app.staticTexts["Membership inactive"].waitForExistence(timeout:15))
+  tap("subscriptionAskDisconnect",app)
+  tap("subscriptionDisconnectConfirm",app)
+  let feedback=app.staticTexts["subscriptionFeedback"]
+  XCTAssertTrue(feedback.waitForExistence(timeout:10))
+  XCTAssertEqual(feedback.label,app.buttons["subscriptionReconnect"].label)
+  XCTAssertTrue(app.buttons["subscriptionDisconnectConfirm"].exists)
+  XCTAssertTrue(app.staticTexts["Membership inactive"].exists)
+  XCTAssertFalse(server.requests().contains{($0["path"] as? String)?.hasSuffix("/disconnect") == true})
+  reveal(feedback,app)
+  photo("Expired membership disconnect retains link and offers Patreon reconnection",app)
+
+  server.status(["authorized":true,"linked":true,"configured":true,"subscription":["status":"active"]])
+  tap("subscriptionDisconnectConfirm",app)
+  XCTAssertTrue(app.buttons["subscriptionConnect"].waitForExistence(timeout:15))
+  XCTAssertFalse(feedback.exists)
+  let attempts=server.requests().filter{($0["path"] as? String)?.hasSuffix("/disconnect") == true}
+  XCTAssertEqual(attempts.count,1)
+  XCTAssertTrue((attempts.first?["headers"] as? String ?? "").contains("__session=auth-session.local-fixture"))
+ }
+
  func testSettingsConnectCheckoutStatusDisconnectAndRelaunch()async throws{
   continueAfterFailure=false;let server=LocalMembershipServer();try await server.start();defer{server.stop()};let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_SETTINGS_FIXTURE":"1","PIYALI_SUBSCRIPTION_TEST_URL":server.url];app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"];app.launch();handleInitialPaperPencil(app)
   let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Membership Learner");tap("entryKeyboardDone",app);tap("createAccount",app);handleInitialPaperPencil(app);tap("startLearning",app);open(app);XCTAssertTrue(app.buttons["subscriptionConnect"].waitForExistence(timeout:15));photo("Native subscription offer in Settings",app)

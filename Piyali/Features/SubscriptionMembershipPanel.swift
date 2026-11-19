@@ -29,11 +29,11 @@ struct SubscriptionMembershipPanel:View {
   SubscriptionButtonFlow(){actions}
   if state["showDisconnect"].boolean && !confirmingDisconnect{Button(t("disconnect"),action:askDisconnect).font(PiyaliBrand.productFont(16,600)).foregroundStyle(primary).padding(.horizontal,16).frame(minHeight:40).accessibilityIdentifier("subscriptionAskDisconnect")}
   if state["linked"].boolean && confirmingDisconnect{disconnectConfirmation}
-  if !error.isEmpty{OnboardingText(text:t("unavailable"),size:12,lineHeight:18).foregroundStyle(c("e53e3e")).accessibilityIdentifier("subscriptionFeedback")}
+  if !error.isEmpty{OnboardingText(text:t(error == SubscriptionService.disconnectNeedsReconnect ? "reconnect":"unavailable"),size:12,lineHeight:18).foregroundStyle(c("e53e3e")).accessibilityIdentifier("subscriptionFeedback")}
  }.padding(.bottom,56)}
  @ViewBuilder private var actions:some View{
   if state["showConnect"].boolean{Button(t("connect"),action:connect).buttonStyle(MembershipOutlineStyle(filled:true)).disabled(busy || !available).accessibilityIdentifier("subscriptionConnect")}
-  if state["showReconnect"].boolean{Button(t("reconnect"),action:connect).buttonStyle(MembershipOutlineStyle()).disabled(busy || !available).accessibilityIdentifier("subscriptionReconnect")}
+  if state["showReconnect"].boolean || error == SubscriptionService.disconnectNeedsReconnect{Button(t("reconnect"),action:connect).buttonStyle(MembershipOutlineStyle()).disabled(busy || !available).accessibilityIdentifier("subscriptionReconnect")}
   if state["showManage"].boolean{Link(t("manage"),destination:URL(string:"https://www.patreon.com/settings/memberships")!).buttonStyle(MembershipOutlineStyle()).accessibilityIdentifier("subscriptionManage")}
   if state["showPayment"].boolean{Link(t("payment"),destination:URL(string:"https://www.patreon.com/settings/payments")!).buttonStyle(MembershipOutlineStyle()).accessibilityIdentifier("subscriptionPayment")}
  }

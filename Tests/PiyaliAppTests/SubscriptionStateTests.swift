@@ -56,9 +56,75 @@ private final class MembershipProtocol:URLProtocol {
   pending=false;await service.cancelReplacement();XCTAssertEqual(cancels,2);XCTAssertFalse(service.replacementRequired);XCTAssertEqual(service.statusError,"");XCTAssertFalse(service.hasAccess)
  }
  func testDisconnectFailureKeepsLinkedStateAndSuccessRequiresSignedProof()async throws{
-  let(identity,service)=try context();defer{try? identity.disconnect()};let author=identity.hex;var rejected=true
-  MembershipProtocol.install{request in let path=request.url!.lastPathComponent,body=MembershipProtocol.body(request);if path == "link-challenge"{return MembershipProtocol.challenge(body["action"] as? String ?? "")};if path == "disconnect"{XCTAssertTrue(MembershipProtocol.valid(request,action:"disconnect",author:author));return rejected ? .init(status:401,value:["error":"not_authenticated"]):.init(value:["ok":true])};return .init(value:["authorized":true,"linked":true,"subscription":["status":"active"]])}
-  try await service.restoreWeb();await service.disconnectWeb();XCTAssertTrue(service.webAuthorized);XCTAssertTrue(service.statusPayload["linked"].boolean);XCTAssertEqual(service.statusError,"not_authenticated");rejected=false;await service.disconnectWeb();XCTAssertFalse(service.webAuthorized);XCTAssertFalse(service.hasAccess);XCTAssertFalse(service.statusPayload["linked"].boolean)
+  let(identity,service)=try context(cookie:true)
+  defer{try? identity.disconnect()}
+  let author=identity.hex
+  var response=MembershipProtocol.Reply(status:503,value:["error":"disconnect_unavailable"])
+  var disconnects=0,restores=0,linked=true
+  MembershipProtocol.install{request in
+   let path=request.url!.lastPathComponent,body=MembershipProtocol.body(request)
+   if path == "link-challenge"{return MembershipProtocol.challenge(body["action"] as? String ?? "")}
+   if path == "disconnect"{
+    XCTAssertTrue(MembershipProtocol.valid(request,action:"disconnect",author:author))
+    disconnects += 1
+    return response
+   }
+   XCTAssertTrue(MembershipProtocol.valid(request,action:"restore",author:author))
+   restores += 1
+   return .init(value:["authorized":linked,"linked":linked,"subscription":["status":linked ? "active":"expired"]])
+  }
+  try await service.restoreWeb()
+  await service.disconnectWeb()
+  XCTAssertTrue(service.hasAccess)
+  XCTAssertEqual(service.statusError,"disconnect_unavailable")
+  XCTAssertEqual(restores,1)
+
+  response = .init(value:["ok":true])
+  await service.disconnectWeb()
+  XCTAssertTrue(service.statusPayload["linked"].boolean)
+  XCTAssertTrue(service.hasAccess)
+  XCTAssertEqual(service.statusError,"disconnect_unconfirmed")
+  XCTAssertEqual(restores,2)
+
+  // The same incomplete reply can also follow a committed unlink.
+  linked=false
+  await service.disconnectWeb()
+  XCTAssertFalse(service.statusPayload["linked"].boolean)
+  XCTAssertFalse(service.hasAccess)
+  XCTAssertTrue(service.statusError.isEmpty)
+  XCTAssertEqual(disconnects,3)
+  XCTAssertEqual(restores,3)
+ }
+
+ func testSessionRejectionRestoresCookieAndRetriesDisconnectOnce()async throws{
+  let(identity,_)=try context()
+  defer{try? identity.disconnect()}
+  let server=LocalMembershipServer()
+  try await server.start()
+  defer{server.stop()}
+  server.status(["authorized":true,"linked":true,"subscription":["status":"active"]])
+  let service=SubscriptionService(configuration:AppConfiguration(values:["WebBaseURL":server.url]))
+  service.bind(identity);service.updatePracticeXP(300)
+  try await service.restoreWeb()
+  server.expireDisconnectSession()
+  await service.disconnectWeb()
+  XCTAssertFalse(service.statusPayload["linked"].boolean)
+  XCTAssertFalse(service.hasAccess)
+  XCTAssertTrue(service.statusError.isEmpty)
+  let requests=server.requests().filter{
+   ($0["path"] as? String)?.hasSuffix("/disconnect") == true || ($0["path"] as? String)?.hasSuffix("/key-status") == true
+  }
+  XCTAssertEqual(requests.compactMap{($0["path"] as? String)?.split(separator:"/").last.map(String.init)},["key-status","disconnect","key-status","disconnect"])
+  for request in requests{
+   let disconnected=(request["path"] as? String)?.hasSuffix("/disconnect") == true
+   XCTAssertEqual((request["headers"] as? String)?.contains("__session=auth-session.local-fixture"),disconnected)
+   let body=try XCTUnwrap(request["body"] as? [String:Any])
+   let signed=try XCTUnwrap(body["signedEvent"])
+   let event=try JSONDecoder().decode(NostrEventPayload.self,from:JSONSerialization.data(withJSONObject:signed))
+   XCTAssertTrue(IdentityService.verify(event))
+   XCTAssertEqual(event.pubkey,identity.hex)
+   XCTAssertEqual(event.tag("action"),disconnected ? "disconnect":"restore")
+  }
  }
  func testUnsafeServerURLAndWrongActionChallengeNeverOpenBrowserOrSubmitLink()async throws{
   let(identity,service)=try context();defer{try? identity.disconnect()};var starts=0
@@ -171,7 +237,7 @@ private final class MembershipProtocol:URLProtocol {
  }
  func testDisconnectCancelsDelayedRenewalAndQueuedForceWithoutRestoringOldAccess()async throws{
   let(identity,service)=try context(cookie:true);defer{try? identity.disconnect()};var disconnected=false
-  MembershipProtocol.install{request in let path=request.url!.lastPathComponent;if path == "link-challenge"{return MembershipProtocol.challenge(MembershipProtocol.body(request)["action"] as? String ?? "")};if path == "status"{return nil};if path == "disconnect"{disconnected=true;return .init(value:["ok":true])};return .init(value:["authorized":!disconnected,"linked":!disconnected])}
+  MembershipProtocol.install{request in let path=request.url!.lastPathComponent;if path == "link-challenge"{return MembershipProtocol.challenge(MembershipProtocol.body(request)["action"] as? String ?? "")};if path == "status"{return nil};if path == "disconnect"{disconnected=true;return .init(value:["ok":true,"billingChanged":false])};return .init(value:["authorized":!disconnected,"linked":!disconnected])}
   try await service.restoreWeb();let renewal=Task{try await service.refreshWeb()};await settle{MembershipProtocol.heldCount == 1};var forceStarted=false;let forced=Task{forceStarted=true;try await service.refreshWeb(force:true)};await settle{forceStarted};await Task.yield();await service.disconnectWeb();MembershipProtocol.releaseHeld(.init(value:["authorized":true,"linked":true]));_=try? await renewal.value;_=try? await forced.value
   XCTAssertTrue(disconnected);XCTAssertFalse(service.webAuthorized);XCTAssertFalse(service.hasAccess);XCTAssertFalse(service.statusPayload["linked"].boolean)
  }

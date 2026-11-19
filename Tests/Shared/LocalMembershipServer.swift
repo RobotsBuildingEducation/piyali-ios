@@ -9,12 +9,14 @@ final class LocalMembershipServer:@unchecked Sendable {
  private var calls:[[String:Any]]=[]
  private var forcedPayload:[String:Any]?
  private var forcedCode=200
+ private var rejectNextDisconnectSession=false
  private let authorizationRequiresCheckout:Bool
  private(set) var url=""
  init(authorizationRequiresCheckout:Bool=true){self.authorizationRequiresCheckout=authorizationRequiresCheckout}
  func status(_ value:[String:Any]){queue.sync{payload=value}}
  func requests()->[[String:Any]]{queue.sync{calls}}
  func forceStatus(_ value:[String:Any],code:Int=200){queue.sync{forcedPayload=value;forcedCode=code}}
+ func expireDisconnectSession(){queue.sync{rejectNextDisconnectSession=true}}
  func start()async throws{
   let params=NWParameters.tcp;params.requiredLocalEndpoint = .hostPort(host:"127.0.0.1",port:.any);let server=try NWListener(using:params);listener=server
   server.newConnectionHandler={[weak self] c in guard let self else{return};self.connections.append(c);c.start(queue:self.queue);self.read(c,data:Data())}
@@ -30,7 +32,15 @@ final class LocalMembershipServer:@unchecked Sendable {
    if path.hasSuffix("/link-challenge"){let action=json["action"] as? String ?? "",challenge=String(repeating:"c",count:32),f=ISO8601DateFormatter();f.formatOptions=[.withInternetDateTime,.withFractionalSeconds];value=["challengeId":challenge,"eventTemplate":["kind":27235,"created_at":Int64(Date().timeIntervalSince1970),"tags":[["action",action],["challenge",challenge],["expires",f.string(from:Date().addingTimeInterval(120))]],"content":"Authorize Piyali Patreon \(action): "+String(repeating:"n",count:43)]]}
    else if path.hasSuffix("/link-start"){value=["authorizeUrl":url+"/authorize"]}
    else if path.hasSuffix("/refresh-status"),let forcedPayload{value=forcedPayload;code=forcedCode}
-   else if path.hasSuffix("/disconnect"){forcedPayload=nil;payload=["authorized":false,"linked":false,"configured":true];value=["ok":true]}
+   else if path.hasSuffix("/disconnect"){
+    if rejectNextDisconnectSession || !header.contains("__session=auth-session.local-fixture"){
+     rejectNextDisconnectSession=false;value=["error":"not_authenticated"];code=401
+    }else{
+     forcedPayload=nil;payload=["authorized":false,"linked":false,"configured":true]
+     value=["ok":true,"billingChanged":false]
+     cookie="Set-Cookie: __session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax\r\n"
+    }
+   }
    else if path.hasSuffix("/cancel-replacement"){if header.contains("__session=oauth-recovery.local-fixture"){payload=["authorized":false,"linked":false,"configured":true]};value=["ok":true];if header.lowercased().contains("text/html"){contentType="text/html"}}
    else if !path.hasSuffix("/key-status") && !path.hasSuffix("/refresh-status") && !path.hasSuffix("/status"){code=404;value=["error":"Unknown fixture route"]}
    if path.hasSuffix("/key-status"),value["authorized"] as? Bool == true{cookie="Set-Cookie: __session=auth-session.local-fixture; Path=/; HttpOnly; SameSite=Lax\r\n"}

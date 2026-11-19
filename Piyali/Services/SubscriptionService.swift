@@ -168,6 +168,7 @@ import StoreKit
     }
     deinit { updates?.cancel(); expiryMonitor?.cancel();webTask?.task.cancel() }
     struct RequestFailure:LocalizedError {let code:String;var errorDescription:String?{code}}
+    static let disconnectNeedsReconnect="disconnect_reconnect_required"
     private struct WebResponse {let status:Int,value:[String:Any]}
     private func request(_ path:String,body:[String:Any]=[:],method:String="POST",account:String?=nil)async throws->WebResponse{
         var request=URLRequest(url:config.web.appendingPathComponent("api/patreon/\(path)"));request.httpMethod=method;request.timeoutInterval=25;request.cachePolicy = .reloadIgnoringLocalCacheData
@@ -183,8 +184,14 @@ import StoreKit
         guard (200..<300).contains(response.status) else{throw RequestFailure(code:response.value["error"] as? String ?? "patreon_unavailable")};return response.value
     }
     private var hasWebSession:Bool{
-        let url=config.web.appendingPathComponent("api/patreon/status")
-        return (webSession.configuration.httpCookieStorage?.cookies(for:url) ?? []).contains{cookie in cookie.name == "__session" && (cookie.value.removingPercentEncoding ?? cookie.value).hasPrefix("auth-session.")}
+        !authCookies(for:"status").isEmpty
+    }
+    private func authCookies(for endpoint:String)->[HTTPCookie]{
+        let url=config.web.appendingPathComponent("api/patreon/\(endpoint)")
+        return (webSession.configuration.httpCookieStorage?.cookies(for:url) ?? []).filter { cookie in
+            let value=cookie.value.removingPercentEncoding ?? cookie.value
+            return cookie.name == "__session" && value.hasPrefix("auth-session.") && value.count > "auth-session.".count
+        }
     }
     private var hasRecoverySession:Bool{
         let url=config.web.appendingPathComponent("api/patreon/cancel-replacement")
@@ -357,18 +364,84 @@ import StoreKit
             }
         }
     }
-    func replaceLinkedKey()async{await signedAction("replace",endpoint:"replace-link")}
-    func disconnectWeb()async{await signedAction("disconnect",endpoint:"disconnect")}
-    private func signedAction(_ action:String,endpoint:String)async{
+    func replaceLinkedKey()async{
         guard !busy,let account=accountID,!account.isEmpty else{return};let token=revision
         let mutation=beginStatusMutation()
         busy=true;statusError="";error=nil;defer{finishStatusMutation(mutation);if token == revision{busy=false}}
-        do{let body=try await proof(action,account:account,token:token);guard token == revision,statusMutation == mutation else{return};let value=try await post(endpoint,body:body);guard token == revision else{return}
-            if action == "disconnect"{receive(["authorized":false,"linked":false,"subscription":NSNull()]);awaitingCheckout=false;result=""}
-            else{guard value["authorized"] as? Bool == true else{throw RequestFailure(code:value["error"] as? String ?? "replacement_failed")};receive(value);result="connected"}
+        do{let body=try await proof("replace",account:account,token:token);guard token == revision,statusMutation == mutation else{return};let value=try await post("replace-link",body:body);guard token == revision else{return}
+            guard value["authorized"] as? Bool == true else{throw RequestFailure(code:value["error"] as? String ?? "replacement_failed")};receive(value);result="connected"
         }catch{if token == revision{let code=(error as? RequestFailure)?.code ?? "unavailable";statusError=code;self.error=error.localizedDescription
-            if action == "replace",["replacement_expired","replacement_state_changed","membership_not_active"].contains(code){receive(["authorized":false,"linked":false]);statusError=code;awaitingCheckout=false}
+            if ["replacement_expired","replacement_state_changed","membership_not_active"].contains(code){receive(["authorized":false,"linked":false]);statusError=code;awaitingCheckout=false}
         }}
+    }
+    func disconnectWeb()async{
+        guard !busy,browserReturn == nil,let account=accountID,!account.isEmpty else{return}
+        let token=revision,mutation=beginStatusMutation()
+        busy=true;statusError="";error=nil
+        defer{finishStatusMutation(mutation);if token == revision{busy=false}}
+
+        @MainActor func checkScope()throws{
+            try Task.checkCancellation()
+            guard token == revision,statusMutation == mutation,accountID == account,identity?.npub == account else{throw CancellationError()}
+        }
+        @MainActor func readLink()async throws->Bool{
+            try checkScope()
+            let signed=try await proof("restore",account:account,token:token)
+            try checkScope()
+            let status=try await post("key-status",body:signed)
+            try checkScope()
+            let value=JSONValue.foundation(status)
+            guard case .bool(let isLinked)=value["linked"],case .bool(let hasMembership)=value["authorized"],
+                  isLinked || !hasMembership,value["configured"] != .bool(false) else{
+                throw RequestFailure(code:"disconnect_unconfirmed")
+            }
+            receive(status)
+            if !isLinked{awaitingCheckout=false;result=""}
+            return isLinked
+        }
+        @MainActor func requireSession()throws{
+            guard !authCookies(for:"disconnect").isEmpty else{throw RequestFailure(code:Self.disconnectNeedsReconnect)}
+        }
+        @MainActor func submit()async throws{
+            try checkScope()
+            let signed=try await proof("disconnect",account:account,token:token)
+            try checkScope()
+            let reply:[String:Any]
+            do{reply=try await post("disconnect",body:signed)}
+            catch let failure as URLError where failure.code != .cancelled{
+                // A response can be lost after the server commits the unlink.
+                throw RequestFailure(code:"disconnect_unconfirmed")
+            }
+            try checkScope()
+            let value=JSONValue.foundation(reply)
+            guard value["ok"] == .bool(true),value["billingChanged"] == .bool(false) else{
+                throw RequestFailure(code:"disconnect_unconfirmed")
+            }
+            receive(["authorized":false,"linked":false,"subscription":NSNull()])
+            awaitingCheckout=false;result=""
+        }
+        do{
+            if authCookies(for:"disconnect").isEmpty {
+                guard try await readLink() else{return}
+                try requireSession()
+            }
+            do{try await submit()}
+            catch let failure as RequestFailure where failure.code == "not_authenticated"{
+                try checkScope()
+                for cookie in authCookies(for:"disconnect"){webSession.configuration.httpCookieStorage?.deleteCookie(cookie)}
+                guard try await readLink() else{return}
+                try requireSession()
+                try await submit()
+            }
+        }catch{
+            guard (try? checkScope()) != nil else{return}
+            let code=(error as? RequestFailure)?.code ?? "unavailable"
+            if ["disconnect_unconfirmed","link_changed"].contains(code),
+               let linked=try? await readLink(),!linked{return}
+            guard (try? checkScope()) != nil else{return}
+            statusError=code == "not_authenticated" ? Self.disconnectNeedsReconnect:code
+            self.error=error.localizedDescription
+        }
     }
     func cancelReplacement()async{
         guard !busy,browserReturn == nil,let account=accountID,!account.isEmpty else{return};let token=revision,mutation=beginStatusMutation();statusError="";error=nil
