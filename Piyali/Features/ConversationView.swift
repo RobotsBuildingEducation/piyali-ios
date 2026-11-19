@@ -7,6 +7,9 @@ struct ConversationView:View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @StateObject private var conversation=ConversationService()
     @StateObject private var speech=SpeechService()
+    @StateObject private var replay=TutorReplayController()
+    @State private var cachedReplies:Set<String>=[]
+    private let clips=TutorAudioClips.conversation
     @StateObject private var live:LiveTutorService
     @State private var showStarter=false
     @State private var showSettings=false
@@ -51,6 +54,35 @@ struct ConversationView:View {
         let id = !live.assistantTurnText.isEmpty && !live.assistantResponseID.isEmpty ? live.assistantResponseID : (latest?.providerID ?? latest?.id.uuidString ?? "")
         return id.isEmpty ? nil:ConversationVisibleReply(id:id,text:reply)
     }
+    private var clipScope:TutorAudioClips.Scope {
+        .init(account:app.identity.npub,target:app.learner.target,support:"")
+    }
+    private var clipOwner:String {
+        [app.identity.sessionRevision.uuidString,app.learner.target,app.learner.support,app.learner.conversationDrafts?[app.learner.target]?.id.uuidString ?? ""].joined(separator:":")
+    }
+    private func checkClip(_ id:String?) async {
+        guard let id,!id.isEmpty,!cachedReplies.contains(id) else { return }
+        let owner=clipOwner
+        let available=await clips.load(id,scope:clipScope) != nil
+        guard !Task.isCancelled,clipOwner == owner,available else { return }
+        cachedReplies.insert(id)
+    }
+    private func storeClip(_ id:String,recording:NarrationRecording,scope:TutorAudioClips.Scope,owner:String) {
+        guard !id.isEmpty else { return }
+        Task {
+            await clips.store(recording,response:id,scope:scope)
+            let available=await clips.load(id,scope:scope) != nil
+            guard !Task.isCancelled,clipOwner == owner,available else { return }
+            cachedReplies.insert(id)
+        }
+    }
+    private func replayClip(_ id:String?) {
+        guard let id,allowed,cachedReplies.contains(id) else { return }
+        stopStarter()
+        let owner=clipOwner
+        replay.playSaved(id,scope:clipScope,clips:clips,live:live.connected,duck:{ live.setPlaybackDucked($0) },
+                         onMissing:{ if clipOwner == owner { cachedReplies.remove(id) } })
+    }
     private var footerRevision:String { "\(live.connected)|\(live.connecting)|\(live.muted)|\(paused)|\(conversation.busy)|\(draft.goal?.id.uuidString ?? "")" }
     private var settingsRevision:String { (draft.challengeLevel ?? "")+"|"+draft.interests }
     private var allowed:Bool { app.subscription.hasAccess || conversation.fixture }
@@ -58,7 +90,7 @@ struct ConversationView:View {
         Group { if conversation.fixture { content } else { SubscriptionRequiredView(service:app.subscription) { content } } }
             .navigationTitle(t("course_conversation","Conversation")).navigationBarTitleDisplayMode(.inline)
             .task(id:app.identity.npub+":"+app.learner.target+":"+app.learner.support+":"+String(allowed)) {
-                active=false;resetArchive();connectionEpoch=UUID();conversation.cancel();speech.stopAll();paused=false;pausedReply="";pausedSpeech=nil;pauseWork=nil;showStarter=false;starterPlaying=false
+                active=false;resetArchive();replay.stop();connectionEpoch=UUID();conversation.cancel();speech.stopAll();paused=false;pausedReply="";pausedSpeech=nil;pauseWork=nil;showStarter=false;starterPlaying=false
                 await live.stop(clearTranscript:true);guard !Task.isCancelled else { return };active=true;archivePrevious=visibleReply;await conversation.prepare(app)
             }
             .activityFooter(owner:footerOwner,revision:footerRevision,access:app.subscription,fixtureAllowed:conversation.fixture) { ActivityFooterSurface(hasFeedback:false,feedback:{EmptyView()},actions:{controls}) }
@@ -66,6 +98,8 @@ struct ConversationView:View {
             .onChange(of:app.subscription.hasAccess) { _,access in if !access { stop() } }
             .onChange(of:draft.goal?.id) { _,_ in stopStarter();showStarter=false;Task { await live.updateConversation(app.learner.conversation,learner:app.learner) } }
             .onChange(of:app.plateCourseCompletion?.id){_,_ in if app.plateCourseCompletion?.kind == "conversation"{stop()}}
+            .onChange(of:clipOwner) { _,_ in cachedReplies=[];replay.stop() }
+            .onChange(of:live.connected) { wasConnected,connected in if wasConnected && !connected { replay.stop() } }
             .onChange(of:visibleReply) { _,value in updateArchive(value) }
             .onDisappear { resetArchive();stop() }
             .sheet(isPresented:$showSettings,onDismiss:settingsClosed) { settingsSheet.presentationDetents([.fraction(0.8)]).presentationDragIndicator(.visible) }
@@ -83,7 +117,7 @@ struct ConversationView:View {
                     }
                 }
                 if !reply.isEmpty { replyBubble.padding(.horizontal,16).padding(.top,6) }
-                if let error=conversation.error ?? live.error { Text(error).font(PiyaliBrand.productFont(13)).foregroundStyle(brand.questionError).padding(12).frame(maxWidth:.infinity,alignment:.leading).background(brand.surface,in:RoundedRectangle(cornerRadius:8)).padding(.horizontal,16).accessibilityIdentifier("conversationError") }
+                if let error=conversation.error ?? live.error ?? replay.error { Text(error).font(PiyaliBrand.productFont(13)).foregroundStyle(brand.questionError).padding(12).frame(maxWidth:.infinity,alignment:.leading).background(brand.surface,in:RoundedRectangle(cornerRadius:8)).padding(.horizontal,16).accessibilityIdentifier("conversationError") }
                 Color.clear.frame(height:app.activityFooterHeight+12)
             }.padding(.top,8).padding(.bottom,12).frame(maxWidth:672).frame(maxWidth:.infinity)
         }.background(brand.background).foregroundStyle(brand.text)
@@ -134,7 +168,9 @@ struct ConversationView:View {
     }
     private var replyBubble:some View {
         let message:ConversationMessage? = if !live.assistantResponseID.isEmpty,conversation.liveReply?.providerID == live.assistantResponseID,!live.assistantTurnText.isEmpty {conversation.liveReply} else if !live.assistantResponseID.isEmpty,latest?.providerID == live.assistantResponseID,!live.assistantTurnText.isEmpty {latest} else {latest?.text == reply ? latest:nil}
-        return TutorReplyView(primary:reply,secondary:message.map(translation) ?? "",target:app.learner.target,support:app.learner.support,pairs:message.map(pairs) ?? .array([]),showSecondary:showTranslations,replayAvailable:false,showPairCards:false,conversationAppearance:true,primaryIdentifier:"conversationLatestReply",secondaryIdentifier:"conversationTranslation",translating:message.map {conversation.translating.contains($0.id)} ?? false,onTranslate:showTranslations ? translationAction(message):nil,archiveHidden:archiveHiddenID != nil && archiveHiddenID == visibleReply?.id,onPrimaryFrame:{archiveTextFrame=$0},onReplay:{})
+        let clipID=message?.providerID
+        return TutorReplyView(primary:reply,secondary:message.map(translation) ?? "",target:app.learner.target,support:app.learner.support,pairs:message.map(pairs) ?? .array([]),showSecondary:showTranslations,replaying:clipID != nil && replay.activeID == clipID,replayAvailable:clipID.map(cachedReplies.contains) == true,showPairCards:false,conversationAppearance:true,primaryIdentifier:"conversationLatestReply",secondaryIdentifier:"conversationTranslation",replayIdentifier:"conversationReplay",translating:message.map {conversation.translating.contains($0.id)} ?? false,onTranslate:showTranslations ? translationAction(message):nil,archiveHidden:archiveHiddenID != nil && archiveHiddenID == visibleReply?.id,onPrimaryFrame:{archiveTextFrame=$0},onReplay:{replayClip(clipID)})
+            .task(id:clipOwner+":"+(clipID ?? "")){await checkClip(clipID)}
             .frame(maxWidth:.infinity,minHeight:150,alignment:.topLeading)
     }
     @ViewBuilder private var controls:some View {
@@ -153,10 +189,11 @@ struct ConversationView:View {
     }
     private func start(resuming:Bool=false) {
         guard !live.connecting,(!conversation.busy || resuming),allowed,let _=draft.goal else { return }
-        active=true;starterPlaying=false;speech.stopAll();showSummary=false
+        replay.stop();active=true;starterPlaying=false;speech.stopAll();showSummary=false
         if !resuming { baseXP=draft.earnedXP;baseTurns=draft.turns;baseGoals=draft.goalsCompleted;pausedMuted=false }
         var context=draft;if !resuming { context.messages=[] }
         let account=app.identity.npub,target=app.learner.target,support=app.learner.support,session=draft.id
+        let audioScope=clipScope,audioOwner=clipOwner
         let interrupted=resuming ? pausedSpeech:nil,waiting=pauseWork,token=UUID();connectionEpoch=token;paused=false
         if !resuming {pausedSpeech=nil;pausedReply=""}
         Task {
@@ -171,6 +208,9 @@ struct ConversationView:View {
         },onAssistantProgress:{ id,text in
             guard active,connectionEpoch == token,app.identity.npub == account,app.learner.target == target,app.learner.support == support,app.learner.conversation.id == session,allowed else{return}
             conversation.observeLiveReply(text,providerID:id,app:app)
+        },onResponseRecording:{ id,recording in
+            guard active,connectionEpoch == token,clipOwner == audioOwner,allowed else { return }
+            storeClip(id,recording:recording,scope:audioScope,owner:audioOwner)
         },onAssistantInterrupted:{ id,text in
             guard active,connectionEpoch == token,app.identity.npub == account,app.learner.target == target,app.learner.support == support,app.learner.conversation.id == session,allowed else{return}
             conversation.preserveInterruptedReply(text,providerID:id,app:app)
@@ -180,6 +220,7 @@ struct ConversationView:View {
         }
     }
     private func playStarter(_ text:String) {
+        replay.stop()
         if starterPlaying { stopStarter();return }
         let cleaned=text.replacingOccurrences(of:"_+",with:" ",options:.regularExpression).replacingOccurrences(of:"\\s{2,}",with:" ",options:.regularExpression).replacingOccurrences(of:"\\s+([.,!?;:])",with:"$1",options:.regularExpression).trimmingCharacters(in:.whitespacesAndNewlines)
         guard !cleaned.isEmpty else { return };starterPlaying=true;live.setPlaybackDucked(true)
@@ -189,10 +230,10 @@ struct ConversationView:View {
     private func pause() {
         guard live.connected else{return};starterPlaying=false;pausedMuted=live.muted;pausedReply=reply;pausedSpeech=live.hasPendingAssistant ? (live.outputPending ? live.assistantTurnText : "") : nil
         if live.outputPending,!live.assistantTurnText.isEmpty {conversation.preserveInterruptedReply(live.assistantTurnText,providerID:live.assistantResponseID,app:app)}
-        connectionEpoch=UUID();paused=true;speech.stopAll();pauseWork=Task {await live.stop()}
+        replay.stop();live.captureCurrentReply();connectionEpoch=UUID();paused=true;speech.stopAll();pauseWork=Task {await live.stop()}
     }
-    private func end() {if live.outputPending,!live.assistantTurnText.isEmpty {conversation.preserveInterruptedReply(live.assistantTurnText,providerID:live.assistantResponseID,app:app)};connectionEpoch=UUID();paused=false;pausedSpeech=nil;starterPlaying=false;speech.stopAll();let waiting=pauseWork;pauseWork=nil;Task {await waiting?.value;await live.stop();var transaction=Transaction();transaction.disablesAnimations=true;withTransaction(transaction) {showSummary=true}}}
-    private func stop() { connectionEpoch=UUID();starterPlaying=false;active=false;paused=false;pausedSpeech=nil;pauseWork=nil;conversation.cancel();speech.stopAll();Task { await live.stop() } }
+    private func end() {replay.stop();live.captureCurrentReply();if live.outputPending,!live.assistantTurnText.isEmpty {conversation.preserveInterruptedReply(live.assistantTurnText,providerID:live.assistantResponseID,app:app)};connectionEpoch=UUID();paused=false;pausedSpeech=nil;starterPlaying=false;speech.stopAll();let waiting=pauseWork;pauseWork=nil;Task {await waiting?.value;await live.stop();var transaction=Transaction();transaction.disablesAnimations=true;withTransaction(transaction) {showSummary=true}}}
+    private func stop() { replay.stop();live.captureCurrentReply();connectionEpoch=UUID();starterPlaying=false;active=false;paused=false;pausedSpeech=nil;pauseWork=nil;conversation.cancel();speech.stopAll();Task { await live.stop() } }
     private func settingsClosed() { if settingsRevision != settingsKey { showStarter=false;Task { await conversation.shuffleTopic(app);await live.updateConversation(app.learner.conversation,learner:app.learner) } } }
     private func change(_ update:(inout ConversationDraft)->Void) { var next=draft;update(&next);app.learner.saveConversation(next);app.persist();Task { await live.updateConversation(app.learner.conversation,learner:app.learner) } }
     private var settingsSheet:some View {
@@ -239,7 +280,9 @@ struct ConversationView:View {
         ConversationUserBubble(text:message.text,language:app.learner.target).accessibilityIdentifier("conversationHistoryUser-\(message.id.uuidString)")
     }
     private func historyReply(_ message:ConversationMessage)->some View {
-        TutorReplyView(primary:message.text,secondary:translation(message),target:app.learner.target,support:app.learner.support,pairs:pairs(message),showSecondary:showTranslations,replayAvailable:false,showPairCards:false,conversationAppearance:true,primaryIdentifier:"conversationHistoryReply-\(message.id.uuidString)",secondaryIdentifier:"conversationHistoryTranslation-\(message.id.uuidString)",translateIdentifier:"conversationHistoryTranslate-\(message.id.uuidString)",translating:conversation.translating.contains(message.id),onTranslate:showTranslations ? translationAction(message):nil,onReplay:{})
+        let clipID=message.providerID
+        return TutorReplyView(primary:message.text,secondary:translation(message),target:app.learner.target,support:app.learner.support,pairs:pairs(message),showSecondary:showTranslations,replaying:clipID != nil && replay.activeID == clipID,replayAvailable:clipID.map(cachedReplies.contains) == true,showPairCards:false,conversationAppearance:true,primaryIdentifier:"conversationHistoryReply-\(message.id.uuidString)",secondaryIdentifier:"conversationHistoryTranslation-\(message.id.uuidString)",translateIdentifier:"conversationHistoryTranslate-\(message.id.uuidString)",replayIdentifier:"conversationHistoryReplay-\(message.id.uuidString)",translating:conversation.translating.contains(message.id),onTranslate:showTranslations ? translationAction(message):nil,onReplay:{replayClip(clipID)})
+            .task(id:clipOwner+":"+(clipID ?? "")){await checkClip(clipID)}
     }
     private func closeSummary() { var transaction=Transaction();transaction.disablesAnimations=true;withTransaction(transaction) {showSummary=false} }
     private var summaryDialog:some View {

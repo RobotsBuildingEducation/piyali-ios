@@ -38,9 +38,9 @@ import AVFoundation
     private var idleMonitor:Task<Void,Never>?,lastActivity=Date(),speaking=false
     private let permission:() async ->Bool
     static let openingPrompt=GeminiLiveTutorService.openingPrompt
-    init(configuration:AppConfiguration=AppConfiguration(),capturesMicrophone:Bool=true,permission:(() async ->Bool)?=nil,transportFactory:(()->RealtimeVoiceTransport)?=nil) {
+    init(configuration:AppConfiguration=AppConfiguration(),capturesMicrophone:Bool=true,recordsConversationReplies:Bool=false,permission:(() async ->Bool)?=nil,transportFactory:(()->RealtimeVoiceTransport)?=nil) {
         self.configuration=configuration
-        self.makeTransport=transportFactory ?? { RealtimeRTCTransport(configuration:configuration,capturesMicrophone:capturesMicrophone) }
+        self.makeTransport=transportFactory ?? { RealtimeRTCTransport(configuration:configuration,capturesMicrophone:capturesMicrophone,recordsConversationReplies:recordsConversationReplies) }
         self.permission=permission ?? { await AVAudioApplication.requestRecordPermission() }
     }
     private func conversationParameters(_ draft:ConversationDraft,learner:LearnerState)->JSONValue {
@@ -71,6 +71,12 @@ import AVFoundation
                 responseEvent=nil
             }
             let transport=makeTransport();self.transport=transport
+            if let rtc=transport as? RealtimeRTCTransport {
+                rtc.onFinishedReply={ [weak self] id,recording in
+                    guard let self,self.generation == run else { return }
+                    self.onResponseRecording?(id,recording)
+                }
+            }
             transport.onOpen={ [weak self] in
                 guard let self,self.generation == run else { return }
                 self.connected=true;self.connecting=false;self.voiceState=resumeInterrupted == nil ? "listening":"thinking";self.lastActivity=Date();self.applyMicrophone();self.startAudioMeter(run)
@@ -119,7 +125,10 @@ import AVFoundation
         let event=raw["type"].string.hasPrefix("input_audio_transcription.") ? raw.setting("type",.string("conversation.item."+raw["type"].string)):raw
         let type=event["type"].string
         if type == "response.created"{assistantResponseID=event["response"]["id"].string;assistantResponseKind=event["response"]["metadata"]["kind"].string}
-        if ["response.done","response.completed","response.canceled","response.cancelled"].contains(type){captureReply(event["response"]["id"].string)}
+        if (transport as? RealtimeRTCTransport)?.recordsConversationReplies != true,
+           ["response.done","response.completed","response.canceled","response.cancelled"].contains(type) {
+            captureReply(event["response"]["id"].string)
+        }
         if type == "response.created" || type == "output_audio_buffer.started"{outputPending=true}
         if ["output_audio_buffer.stopped","output_audio_buffer.cleared"].contains(type){outputPending=false}
         if type == "error" { error="Live conversation could not continue. Try connecting again.";close();return }

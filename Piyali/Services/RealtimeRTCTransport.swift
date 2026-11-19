@@ -31,6 +31,11 @@ extension RealtimeVoiceTransport { func takeResponseRecording(_ id:String)->Narr
     var onFailure:((String)->Void)?
     private let factory:RTCPeerConnectionFactory
     private let outputDevice:NarrationAudioDevice?
+    private let conversationDevice:ConversationAudioDevice?
+    var onFinishedReply:((String,NarrationRecording)->Void)?
+    var recordsConversationReplies:Bool { conversationDevice != nil }
+    private var recordingResponseID=""
+    private var replyTail:Task<Void,Never>?
     private let configuration:AppConfiguration
     private var peer:RTCPeerConnection?,channel:RTCDataChannel?,microphone:RTCAudioTrack?,sender:RTCRtpSender?
     private let audioLease=UUID()
@@ -38,9 +43,27 @@ extension RealtimeVoiceTransport { func takeResponseRecording(_ id:String)->Narr
     private var ownsAudio=false,closed=false
     private let capturesMicrophone:Bool,activatesPlayback:Bool
     private let purpose:Purpose
-    init(configuration:AppConfiguration=AppConfiguration(),capturesMicrophone:Bool=true,activatesPlayback:Bool=true,purpose:Purpose = .conversation,recordsNarration:Bool=false) { let device=recordsNarration && !capturesMicrophone ? NarrationAudioDevice(deferred:!activatesPlayback):nil;self.outputDevice=device;self.factory=device.map{RTCPeerConnectionFactory(encoderFactory:nil,decoderFactory:nil,audioDevice:$0)} ?? RTCPeerConnectionFactory();self.configuration=configuration;self.capturesMicrophone=capturesMicrophone;self.activatesPlayback=activatesPlayback;self.purpose=purpose;super.init() }
+    init(configuration:AppConfiguration=AppConfiguration(),capturesMicrophone:Bool=true,activatesPlayback:Bool=true,purpose:Purpose = .conversation,recordsNarration:Bool=false,recordsConversationReplies:Bool=false) {
+        let narration = recordsNarration && !capturesMicrophone ? NarrationAudioDevice(deferred:!activatesPlayback) : nil
+        let conversation = recordsConversationReplies ? ConversationAudioDevice(inputEnabled:capturesMicrophone) : nil
+        self.configuration=configuration
+        self.capturesMicrophone=capturesMicrophone
+        self.activatesPlayback=activatesPlayback
+        self.purpose=purpose
+        outputDevice=narration
+        conversationDevice=conversation
+        let device:RTCAudioDevice? = conversation.map { $0 as RTCAudioDevice } ?? narration
+        factory=device.map { RTCPeerConnectionFactory(encoderFactory:nil,decoderFactory:nil,audioDevice:$0) } ?? RTCPeerConnectionFactory()
+        super.init()
+    }
     func connect(session:JSONValue) async throws {
         closed=false
+        conversationDevice?.onUnavailable={ [weak self] in
+            Task { @MainActor [weak self] in
+                guard let self,!self.closed else { return }
+                self.onFailure?("Live conversation audio could not start. Check your audio route and try again.")
+            }
+        }
         if capturesMicrophone || activatesPlayback {try activateAudioSession()}
         let config=RTCConfiguration();config.sdpSemantics = .unifiedPlan
         let constraints=RTCMediaConstraints(mandatoryConstraints:nil,optionalConstraints:nil)
@@ -72,6 +95,11 @@ extension RealtimeVoiceTransport { func takeResponseRecording(_ id:String)->Narr
         try check(peer)
     }
     private func activateAudioSession()throws{
+            if conversationDevice != nil {
+                try NativeVoiceAudioLease.acquire(audioLease,playbackOnly:!capturesMicrophone)
+                ownsNativeAudio=true
+                return
+            }
             if outputDevice != nil{try NativeVoiceAudioLease.acquire(audioLease,playbackOnly:true);ownsNativeAudio=true;return}
             let audio=RTCAudioSession.sharedInstance();audio.lockForConfiguration();defer { audio.unlockForConfiguration() }
             let config=RTCAudioSessionConfiguration.webRTC();config.category=AVAudioSession.Category.playAndRecord.rawValue;config.mode=AVAudioSession.Mode.voiceChat.rawValue;config.categoryOptions=[.defaultToSpeaker,.allowBluetoothHFP]
@@ -113,6 +141,7 @@ extension RealtimeVoiceTransport { func takeResponseRecording(_ id:String)->Narr
     }
     func setMicrophoneEnabled(_ enabled:Bool) {
         let enabled=enabled && capturesMicrophone && !closed
+        conversationDevice?.setMicrophoneEnabled(enabled)
         microphone?.isEnabled=enabled;sender?.track=enabled ? microphone : nil
     }
     func setRemoteAudioEnabled(_ enabled:Bool) { for receiver in peer?.receivers ?? [] { receiver.track?.isEnabled=enabled } }
@@ -149,9 +178,58 @@ extension RealtimeVoiceTransport { func takeResponseRecording(_ id:String)->Narr
         } }
     }
     func completedNarrationRecording()->NarrationRecording?{outputDevice?.completedRecording()}
-    func setOutputGain(_ value:Double){outputDevice?.setGain(value)}
+    func setOutputGain(_ value:Double){outputDevice?.setGain(value);conversationDevice?.setGain(value)}
+
+    private func observeRecording(_ event:JSONValue) {
+        guard let device = conversationDevice else { return }
+        switch event["type"].string {
+        case "response.created":
+            let id = event["response"]["id"].string
+            guard !id.isEmpty, id != recordingResponseID else { return }
+            publishReply(recordingResponseID)
+            recordingResponseID = id
+            device.beginReply(id)
+        case "response.done", "response.completed", "response.canceled", "response.cancelled":
+            let response = event["response"]["id"].string
+            let id = response.isEmpty ? event["response_id"].string : response
+            if id == recordingResponseID { waitForReplyTail(id) }
+        case "output_audio_buffer.stopped", "output_audio_buffer.cleared":
+            waitForReplyTail(recordingResponseID)
+        default: break
+        }
+    }
+
+    private func waitForReplyTail(_ id:String) {
+        guard !id.isEmpty, replyTail == nil else { return }
+        replyTail = Task { [weak self] in
+            // Like the web recorder, wait for 900 ms of quiet, with a bounded tail.
+            for _ in 0..<200 {
+                do { try await Task.sleep(for:.milliseconds(100)) } catch { return }
+                guard let self, self.recordingResponseID == id else { return }
+                if self.conversationDevice?.replyIsQuiet(id) == true { break }
+            }
+            guard !Task.isCancelled else { return }
+            self?.publishReply(id)
+        }
+    }
+
+    func takeResponseRecording(_ id:String)->NarrationRecording? {
+        guard !id.isEmpty, id == recordingResponseID else { return nil }
+        replyTail?.cancel()
+        replyTail = nil
+        recordingResponseID = ""
+        return conversationDevice?.takeReply(id)
+    }
+
+    private func publishReply(_ id:String) {
+        if let recording = takeResponseRecording(id) { onFinishedReply?(id,recording) }
+    }
     func close() {
         outputDevice?.shutdown()
+        conversationDevice?.onUnavailable=nil
+        replyTail?.cancel()
+        replyTail = nil
+        recordingResponseID = ""
         closed=true;setMicrophoneEnabled(false);channel?.delegate=nil;channel?.close();channel=nil
         peer?.delegate=nil;peer?.close();peer=nil;sender=nil;microphone=nil
         if ownsNativeAudio{NativeVoiceAudioLease.release(audioLease);ownsNativeAudio=false}
@@ -165,7 +243,7 @@ extension RealtimeRTCTransport:RTCPeerConnectionDelegate,RTCDataChannelDelegate 
     }
     nonisolated func dataChannel(_ dataChannel:RTCDataChannel,didReceiveMessageWith buffer:RTCDataBuffer) {
         guard buffer.data.count <= 131072,let event=try? JSONDecoder().decode(JSONValue.self,from:buffer.data) else { return }
-        Task { @MainActor [weak self] in guard let self,!self.closed,self.channel === dataChannel else { return };self.onEvent?(event) }
+        Task { @MainActor [weak self] in guard let self,!self.closed,self.channel === dataChannel else { return };self.observeRecording(event);self.onEvent?(event) }
     }
     nonisolated func peerConnection(_ peerConnection:RTCPeerConnection,didChange newState:RTCPeerConnectionState) {
         if newState == .failed || newState == .closed { Task { @MainActor [weak self] in guard let self,!self.closed,self.peer === peerConnection else { return };self.onFailure?("Live conversation disconnected. Try connecting again.") } }

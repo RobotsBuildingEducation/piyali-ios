@@ -5,11 +5,12 @@ import CryptoKit
 /// are optional cache data, never lesson state or a cloud progress receipt.
 actor TutorAudioClips {
     static let shared=TutorAudioClips()
+    static let conversation=TutorAudioClips(namespace:"conversation")
     private let cache:NarrationAudioCache
     struct Scope:Sendable,Equatable {let account:String,target:String,support:String}
-    init(directory:URL?=nil){
+    init(directory:URL?=nil,namespace:String="tutor"){
         let env=ProcessInfo.processInfo.environment,test=env["PIYALI_OFFLINE_TESTS"] == "1" ? UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "")?.uuidString:nil
-        cache=NarrationAudioCache(directory:directory ?? FileManager.default.urls(for:.cachesDirectory,in:.userDomainMask)[0].appendingPathComponent("piyali-tutor-clips-v1"+(test.map{"-"+$0} ?? "")))
+        cache=NarrationAudioCache(directory:directory ?? FileManager.default.urls(for:.cachesDirectory,in:.userDomainMask)[0].appendingPathComponent("piyali-"+namespace+"-clips-v1"+(test.map{"-"+$0} ?? "")))
     }
     private func key(_ id:String,_ scope:Scope)->String?{
         guard !id.isEmpty,!scope.account.isEmpty else{return nil}

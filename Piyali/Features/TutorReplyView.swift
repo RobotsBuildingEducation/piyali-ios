@@ -6,6 +6,7 @@ struct TutorReplyView:View {
     var showSecondary=true,replaying=false
     var replayAvailable=true,showPairCards=true,conversationAppearance=false
     var primaryIdentifier="tutorLatestReply",secondaryIdentifier="tutorTranslation",translateIdentifier="conversationTranslate"
+    var replayIdentifier="tutorReplay"
     var translating=false,onTranslate:(()->Void)?=nil
     var archiveHidden=false,onPrimaryFrame:((CGRect)->Void)?=nil
     let onReplay:()->Void
@@ -20,7 +21,20 @@ struct TutorReplyView:View {
     var body:some View {let value=plan
         VStack(alignment:.leading,spacing:0){
             HStack(alignment:.top,spacing:8){
-                if replayAvailable {Button(action:onReplay){Group{if replaying{ProgressView().controlSize(.mini)}else{Image(systemName:"speaker.wave.2").font(.system(size:14))}}.frame(width:24,height:24)}.buttonStyle(.plain).disabled(replaying).opacity(0.7).padding(.top,2).accessibilityLabel(EntryCopy.ui(support,"ra_btn_replay")).accessibilityIdentifier("tutorReplay")}
+                if replayAvailable {
+                    Button(action:onReplay) {
+                        Group {
+                            if replaying {
+                                ProgressView().controlSize(.mini).tint(conversationAppearance ? ink : nil)
+                            } else if conversationAppearance {
+                                Image("Help-volume").resizable().renderingMode(.template).frame(width:14,height:14)
+                            } else {
+                                Image(systemName:"speaker.wave.2").font(.system(size:14))
+                            }
+                        }.frame(width:24,height:24)
+                    }.buttonStyle(.plain).disabled(replaying).opacity(0.7).padding(.top,2)
+                        .accessibilityLabel(EntryCopy.ui(support,"ra_btn_replay")).accessibilityIdentifier(replayIdentifier)
+                }
                 Text(aligned(value["primary"].array,color:ink)).font(PiyaliBrand.productFont(16)).lineSpacing(max(0,25-UIFont.systemFont(ofSize:16).lineHeight)).padding(.vertical,max(0,25-UIFont.systemFont(ofSize:16).lineHeight)/2).fixedSize(horizontal:false,vertical:true).frame(maxWidth:.infinity,alignment:.leading).textSelection(.enabled).environment(\.layoutDirection,rtl(target)).accessibilityIdentifier(primaryIdentifier).accessibilityAddTraits(activeRoot != nil ? .isSelected:[]).onGeometryChange(for:CGRect.self,of:{$0.frame(in:.named("conversationArchive"))}){onPrimaryFrame?($0)}
             }
             if showSecondary,!secondary.isEmpty {Text(aligned(value["secondary"].array,color:muted)).font(PiyaliBrand.productFont(12)).lineSpacing(max(0,18-UIFont.systemFont(ofSize:12).lineHeight)).padding(.vertical,max(0,18-UIFont.systemFont(ofSize:12).lineHeight)/2).foregroundStyle(muted).padding(.top,4).fixedSize(horizontal:false,vertical:true).frame(maxWidth:.infinity,alignment:.leading).environment(\.layoutDirection,rtl(support)).accessibilityIdentifier(secondaryIdentifier)}

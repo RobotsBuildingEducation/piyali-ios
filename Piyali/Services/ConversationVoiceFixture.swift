@@ -9,7 +9,7 @@ import Foundation
             return LiveTutorService(capturesMicrophone:false,permission:{true},transportFactory:{ConversationScriptTransport(script:script)})
         }
         #endif
-        return LiveTutorService()
+        return LiveTutorService(recordsConversationReplies:true)
     }
 }
 #if DEBUG
@@ -26,6 +26,20 @@ import Foundation
     private var resumeEmission:Task<Void,Never>?
     private var replyEmission:Task<Void,Never>?
     private let prefix=UUID().uuidString
+    private var recordings:[String:NarrationRecording]=[:]
+    func takeResponseRecording(_ id:String)->NarrationRecording? { recordings.removeValue(forKey:id) }
+
+    private func recordFixtureReply(_ id:String) {
+        guard ProcessInfo.processInfo.environment["PIYALI_CONVERSATION_REPLAY_FIXTURE"] == "1" else { return }
+        // Distinct public tones exercise actual replay and cache operations.
+        let rate=24_000,frequency=script.position == 1 ? 280.0 : 365.0
+        var pcm=Data(capacity:rate * 2 * 5)
+        for index in 0..<(rate * 5) {
+            var sample=Int16(sin(Double(index) * frequency * 2 * .pi / Double(rate)) * 1000).littleEndian
+            withUnsafeBytes(of:&sample){pcm.append(contentsOf:$0)}
+        }
+        recordings[id] = .init(pcm16:pcm,sampleRate:rate,channels:1)
+    }
     init(script:ConversationVoiceScript) { self.script=script }
     func connect(session:JSONValue) async throws { closed=false;onOpen?() }
     func send(_ event:JSONValue)->Bool {
@@ -66,6 +80,7 @@ import Foundation
                 };return
             }
             if ProcessInfo.processInfo.environment["PIYALI_CONVERSATION_PARTIAL_FIXTURE"] == "1",index == 0 {self.emit(["type":.string("response.output_audio_transcript.delta"),"response_id":.string(response),"delta":.string("Vamos a practicar")]);return}
+            self.recordFixtureReply(response)
             self.emit(["type":.string("response.output_audio_transcript.done"),"response_id":.string(response),"transcript":.string(turn.1)])
             self.emit(["type":.string("response.done"),"response":.object(["id":.string(response),"status":.string("completed"),"output":.array([.object(["content":.array([.object(["transcript":.string(turn.1)])])])])])])
             self.emit(["type":.string("output_audio_buffer.stopped")])

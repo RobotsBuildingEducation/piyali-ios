@@ -3,12 +3,48 @@ import XCTest
 @MainActor final class ConversationPlayTests:XCTestCase {
     private func tap(_ id:String,_ app:XCUIApplication) { let button=app.buttons[id];XCTAssertTrue(button.waitForExistence(timeout:15));XCTAssertTrue(button.isHittable);button.tap() }
     private func open(_ app:XCUIApplication) { tap("productMenu",app);tap("productModeMenu",app);tap("productMode-conversation",app);XCTAssertTrue(app.staticTexts["conversationGoal"].waitForExistence(timeout:15)) }
-    private func start(theme:String="light",partial:Bool=false,translationStream:Bool=false,liveTranslation:Bool=false,alignment:Bool=false,translationsHidden:Bool=false)->XCUIApplication {
+    private func start(theme:String="light",partial:Bool=false,translationStream:Bool=false,liveTranslation:Bool=false,alignment:Bool=false,translationsHidden:Bool=false,replay:Bool=false)->XCUIApplication {
         continueAfterFailure=false
-        let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString;app.launchEnvironment["PIYALI_CONVERSATION_FIXTURE"]="1";if alignment {app.launchEnvironment["PIYALI_CONVERSATION_ALIGNMENT_FIXTURE"]="1"};if translationsHidden {app.launchEnvironment["PIYALI_CONVERSATION_TRANSLATIONS_HIDDEN_FIXTURE"]="1"};if partial {app.launchEnvironment["PIYALI_CONVERSATION_PARTIAL_FIXTURE"]="1"};if translationStream || liveTranslation {app.launchEnvironment["PIYALI_CONVERSATION_TRANSLATION_STREAM_FIXTURE"]="1"};if liveTranslation {app.launchEnvironment["PIYALI_CONVERSATION_LIVE_TRANSLATION_FIXTURE"]="1"};app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme",theme];app.launch();handleInitialPaperPencil(app)
+        let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString;app.launchEnvironment["PIYALI_CONVERSATION_FIXTURE"]="1";if replay {app.launchEnvironment["PIYALI_CONVERSATION_REPLAY_FIXTURE"]="1"};if alignment {app.launchEnvironment["PIYALI_CONVERSATION_ALIGNMENT_FIXTURE"]="1"};if translationsHidden {app.launchEnvironment["PIYALI_CONVERSATION_TRANSLATIONS_HIDDEN_FIXTURE"]="1"};if partial {app.launchEnvironment["PIYALI_CONVERSATION_PARTIAL_FIXTURE"]="1"};if translationStream || liveTranslation {app.launchEnvironment["PIYALI_CONVERSATION_TRANSLATION_STREAM_FIXTURE"]="1"};if liveTranslation {app.launchEnvironment["PIYALI_CONVERSATION_LIVE_TRANSLATION_FIXTURE"]="1"};app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme",theme];app.launch();handleInitialPaperPencil(app)
         let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Conversation Learner");if app.buttons["entryKeyboardDone"].exists { app.buttons["entryKeyboardDone"].tap() };tap("createAccount",app);handleInitialPaperPencil(app);tap("startLearning",app);open(app);return app
     }
     private func photo(_ name:String,_ app:XCUIApplication) { let capture=XCTAttachment(screenshot:app.screenshot());capture.name=name;capture.lifetime = .keepAlways;add(capture) }
+    func testRecordedReplyReplaysFromTheConversationHistoryAndAfterRelaunch() {
+        let app=start(replay:true)
+        XCTAssertFalse(app.buttons["conversationReplay"].exists)
+        tap("conversationStart",app)
+        let reply=app.staticTexts["conversationLatestReply"]
+        expectation(for:NSPredicate(format:"label CONTAINS %@","¡Hola, Ana!"),evaluatedWith:reply)
+        waitForExpectations(timeout:18)
+
+        let latest=app.buttons["conversationReplay"]
+        XCTAssertTrue(latest.waitForExistence(timeout:8))
+        latest.tap()
+        XCTAssertFalse(latest.isEnabled)
+        photo("Conversation original clip playing in the live reply",app)
+        tap("conversationHistory",app)
+        let clips=app.buttons.matching(NSPredicate(format:"identifier BEGINSWITH %@","conversationHistoryReplay-"))
+        let older=clips.element(boundBy:1)
+        XCTAssertTrue(older.waitForExistence(timeout:8),app.debugDescription)
+        older.tap()
+        XCTAssertFalse(older.isEnabled)
+        photo("Conversation older saved clip playing from history",app)
+        tap("conversationHistoryClose",app)
+
+        app.terminate()
+        app.launchEnvironment.removeValue(forKey:"PIYALI_CONVERSATION_REPLAY_FIXTURE")
+        app.launch()
+        handleInitialPaperPencil(app)
+        open(app)
+        XCTAssertTrue(latest.waitForExistence(timeout:8))
+        XCTAssertEqual(reply.label,"¡Hola, Ana! ¿Qué te gusta hacer?")
+        XCTAssertTrue(app.buttons["conversationStart"].isEnabled)
+        latest.tap()
+        XCTAssertFalse(latest.isEnabled)
+        let xp=app.descendants(matching:.any).matching(identifier:"dailyXPStatus").firstMatch
+        XCTAssertTrue(xp.waitForExistence(timeout:5))
+        XCTAssertEqual(xp.value as? String,"5%")
+    }
     func testSavedAlignedReplyCanBeSelectedAndRestored() {
         let app=start(alignment:true);tap("conversationStart",app)
         let reply=app.staticTexts["conversationLatestReply"];expectation(for:NSPredicate(format:"label CONTAINS %@","¡Hola, Ana!"),evaluatedWith:reply);waitForExpectations(timeout:18)

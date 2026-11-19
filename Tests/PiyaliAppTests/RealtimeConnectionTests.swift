@@ -33,14 +33,30 @@ import FirebaseAppCheck
         XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""));executionTimeAllowance=120
         if FirebaseApp.app() == nil {AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory());FirebaseApp.configure()};XCTAssertEqual(FirebaseApp.app()?.options.projectID,"piyali-ios")
         let identity=IdentityService();try identity.create();try await FirebaseIdentityService.shared.ensure(identity)
-        let live=LiveTutorService(capturesMicrophone:false,permission:{true}),spoken=expectation(description:"resumed output stopped")
+        let live=LiveTutorService(capturesMicrophone:false,recordsConversationReplies:true,permission:{true})
+        let spoken=expectation(description:"resumed output stopped")
+        let captured=expectation(description:"real WebRTC response available for replay")
+        var recorded:NarrationRecording?,recordedID="",completedID=""
         var draft=ConversationDraft();draft.append(.init(role:"user",text:"¿Qué vamos a visitar?"));var partial=ConversationMessage(role:"assistant",text:"Vamos a visitar",providerID:"old-response");partial.interrupted=true;draft.append(partial)
         var inputs=0,replies:[String]=[],didStop=false
-        await live.start(learner:LearnerState(),conversationDraft:draft,inactivityTimeout:60,resumeInterrupted:partial.text,onInputTurn:{_ in inputs += 1},onAssistantTurn:{_,text in replies.append(text)},onEvent:{event in if event["type"].string == "output_audio_buffer.stopped",!didStop {didStop=true;spoken.fulfill()}})
-        if live.connected {await fulfillment(of:[spoken],timeout:45)}
+        await live.start(learner:LearnerState(),conversationDraft:draft,inactivityTimeout:60,resumeInterrupted:partial.text,onInputTurn:{_ in inputs += 1},onAssistantTurn:{id,text in completedID=id;replies.append(text)},onEvent:{event in if event["type"].string == "output_audio_buffer.stopped",!didStop {didStop=true;spoken.fulfill()}},onResponseRecording:{id,clip in
+            guard recorded == nil else { return }
+            recorded=clip;recordedID=id;captured.fulfill()
+        })
+        if live.connected {await fulfillment(of:[spoken,captured],timeout:45)}
         let failure=live.error,connected=live.connected;await live.stop()
         do {try await Auth.auth().currentUser?.delete();try Auth.auth().signOut();try identity.disconnect()} catch {try? Auth.auth().signOut();try? identity.disconnect();throw error}
         XCTAssertTrue(connected);XCTAssertNil(failure);XCTAssertTrue(didStop);XCTAssertFalse(replies.isEmpty);XCTAssertEqual(inputs,0)
+        XCTAssertEqual(recordedID,completedID)
+        let clip = try XCTUnwrap(recorded)
+        let audio = try XCTUnwrap(PreparedNarrationAudio.original(clip))
+        XCTAssertGreaterThan(audio.wav.count,8_000)
+        let player=NarrationReplayPlayer(volume:0)
+        let replayed=expectation(description:"original captured PCM finished playing")
+        player.onFinished={replayed.fulfill()}
+        try player.play(audio.wav)
+        await fulfillment(of:[replayed],timeout:20)
+        player.stop()
         if connected,didStop,!replies.isEmpty,inputs == 0 {print("LIVE CONVERSATION RESUME: native WebRTC received resumed speech and a completed transcript without a new learner turn; physical microphone disabled")}
     }
     func testDefaultRealtimeModelReturnsDataEventsAndNativeWebRTCAudio() async throws {

@@ -12,7 +12,19 @@ import Foundation
     typealias Lookup=(String,TutorAudioClips.Scope)async->Data?
     private let lookup:Lookup?
     init(narration:RealtimeNarrationService?=nil,lookup:Lookup?=nil){self.narration=narration ?? RealtimeNarrationService();self.lookup=lookup}
+    private struct SpeechFallback {
+        let messages:[JSONValue]
+        let target:String
+        let voice:String
+        let engine:CompanionQuestPolicy?
+    }
     func play(_ id:String,messages:[JSONValue],target:String,voice:String,scope:TutorAudioClips.Scope,clips:TutorAudioClips,engine:CompanionQuestPolicy?,live:Bool,duck:@escaping(Bool)->Void){
+        start(id,scope:scope,clips:clips,live:live,duck:duck,fallback:.init(messages:messages,target:target,voice:voice,engine:engine))
+    }
+    func playSaved(_ id:String,scope:TutorAudioClips.Scope,clips:TutorAudioClips,live:Bool,duck:@escaping(Bool)->Void,onMissing:@escaping()->Void){
+        start(id,scope:scope,clips:clips,live:live,duck:duck,onMissing:onMissing)
+    }
+    private func start(_ id:String,scope:TutorAudioClips.Scope,clips:TutorAudioClips,live:Bool,duck:@escaping(Bool)->Void,fallback:SpeechFallback?=nil,onMissing:(()->Void)?=nil){
         let same=activeID == id;stop();guard !same,!id.isEmpty else{return}
         activeID=id;error=nil;playbackSource=nil;self.duck=duck;let token=epoch
         narration.reserve{[weak self] in self?.finish(token)}
@@ -25,13 +37,16 @@ import Foundation
             if let wav{
                 duck(true);playbackSource="recorded"
                 narration.playRecording(wav,preservingAudioSession:live,onFinished:done,onFailed:{[weak self] in self?.fail(token)})
-            }else{
+            }else if let fallback {
                 do{
                     if policy == nil{policy=try TutorReplayPolicy()}
-                    guard let plan=try policy?.plan(.object(["id":.string(id),"messages":.array(messages),"target":.string(target),"voice":.string(voice)])),plan != .null else{finish(token);return}
+                    guard let plan=try policy?.plan(.object(["id":.string(id),"messages":.array(fallback.messages),"target":.string(fallback.target),"voice":.string(fallback.voice)])),plan != .null else{finish(token);return}
                     duck(true);playbackSource="synthesized"
-                    narration.play(plan["text"].string,language:plan["language"].string,engine:engine,voice:plan["voice"].string,onFailed:{[weak self] in self?.fail(token)},onFinished:done)
+                    narration.play(plan["text"].string,language:plan["language"].string,engine:fallback.engine,voice:plan["voice"].string,onFailed:{[weak self] in self?.fail(token)},onFinished:done)
                 }catch{fail(token)}
+            }else{
+                finish(token)
+                onMissing?()
             }
             if epoch == token,activeID != nil{narration.onStopped=done}
         }
