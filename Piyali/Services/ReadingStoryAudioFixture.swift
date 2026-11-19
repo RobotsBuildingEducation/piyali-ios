@@ -15,6 +15,14 @@ import Foundation
         #endif
         return RealtimeNarrationService()
     }
+    static func conversationStarter()->RealtimeNarrationService{
+        #if DEBUG
+        if enabled("PIYALI_CONVERSATION_FIXTURE"){
+            return RealtimeNarrationService(factory:{ReadingStoryFixtureTransport(expectedVoice:"shimmer",playbackMilliseconds:2200)})
+        }
+        #endif
+        return RealtimeNarrationService()
+    }
     static func story()->StoryAudioTransport?{
         #if DEBUG
         if enabled("PIYALI_STORY_NARRATION_FIXTURE"){
@@ -29,12 +37,28 @@ import Foundation
 @MainActor private final class ReadingStoryFixtureTransport:RealtimeVoiceTransport{
     var onOpen:(()->Void)?,onEvent:((JSONValue)->Void)?,onFailure:((String)->Void)?
     private let loadingOnly:Bool,fails:Bool
+    private let expectedVoice:String?
+    private let playbackMilliseconds:Int
+    private var voiceConfigured=false
     private var work:Task<Void,Never>?
-    init(loadingOnly:Bool=false,fails:Bool=false){self.loadingOnly=loadingOnly;self.fails=fails}
-    func connect(session:JSONValue)async throws{onOpen?()}
+    init(loadingOnly:Bool=false,fails:Bool=false,expectedVoice:String?=nil,playbackMilliseconds:Int=650){
+        self.loadingOnly=loadingOnly;self.fails=fails;self.expectedVoice=expectedVoice;self.playbackMilliseconds=playbackMilliseconds
+    }
+    func connect(session:JSONValue)async throws{
+        if let expectedVoice,session["audio"]["output"]["voice"].string != expectedVoice {
+            throw AppError.message("Unexpected narration voice.")
+        }
+        onOpen?()
+    }
     func send(_ event:JSONValue)->Bool{
+        if let expectedVoice {
+            if event["type"].string == "session.update" {
+                voiceConfigured=event["session"]["audio"]["output"]["voice"].string == expectedVoice
+            }
+            if event["type"].string == "response.create",!voiceConfigured { return false }
+        }
         guard event["type"].string == "response.create",!loadingOnly else{return true}
-        work=Task{try? await Task.sleep(for:.milliseconds(150));guard !Task.isCancelled else{return};if fails{onFailure?("fixture");return};onEvent?(.object(["type":.string("output_audio_buffer.started")]));try? await Task.sleep(for:.milliseconds(650));guard !Task.isCancelled else{return};onEvent?(.object(["type":.string("response.done"),"response":.object(["status":.string("completed")])]));onEvent?(.object(["type":.string("output_audio_buffer.stopped")]))};return true
+        work=Task{try? await Task.sleep(for:.milliseconds(150));guard !Task.isCancelled else{return};if fails{onFailure?("fixture");return};onEvent?(.object(["type":.string("output_audio_buffer.started")]));try? await Task.sleep(for:.milliseconds(playbackMilliseconds));guard !Task.isCancelled else{return};onEvent?(.object(["type":.string("response.done"),"response":.object(["status":.string("completed")])]));onEvent?(.object(["type":.string("output_audio_buffer.stopped")]))};return true
     }
     func setRemoteAudioEnabled(_ enabled:Bool){}
     func setMicrophoneEnabled(_ enabled:Bool){}

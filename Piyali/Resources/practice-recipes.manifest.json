@@ -282,7 +282,9 @@
       "isFoundationConversationLevel",
       "isFoundationStarterLevel",
       "normalizeSupportLanguage",
-      "practiceLevelForElo"
+      "practiceLevelForElo",
+      "resolveConversationPersona",
+      "resolveConversationVoice"
     ]
   },
   {
@@ -476,6 +478,16 @@
     ]
   },
   {
+    "file": "src/utils/conversationVoicePreferences.js",
+    "sha256": "fe867afdbb20233c4ac24bfe4b1d65e5cb0ca97e9d72c01cd79d16c69cb5b61d",
+    "bindings": [
+      "REALTIME_PRACTICE_VOICE",
+      "normalizeVoicePersona",
+      "resolveConversationPersona",
+      "resolveConversationVoice"
+    ]
+  },
+  {
     "file": "src/utils/cefrUtils.js",
     "sha256": "1728261507ff4b90e05e0ccfa0717f4e1b758fc1f908fffb9c5ea3d101ab91b7",
     "bindings": [
@@ -545,6 +557,13 @@
     "sha256": "2646aeb8aa96f2be46c4f963b435fd3653039f449b609289f2f81656cda5602b",
     "bindings": [
       "isFoundationStarterLevel"
+    ]
+  },
+  {
+    "file": "src/utils/realtimePracticeVoice.js",
+    "sha256": "6bdd9ac09e75ccc260952ada45f5d57ebb64a613b97be8b2881af0cdbd5b9177",
+    "bindings": [
+      "REALTIME_PRACTICE_VOICE"
     ]
   },
   {

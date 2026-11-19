@@ -41,7 +41,13 @@ import Foundation
             let lease=await pool?.take();guard epoch == token,!Task.isCancelled else{lease?.client.close();return};usedPreparedConnection=lease != nil;playbackSource=lease == nil ? "network":"prepared"
             let client=lease?.client ?? factory(),preparedVoice=lease?.voice;self.client=client
             client.onOpen={ [weak self,weak client] in guard let self,self.epoch == token else{return};client?.setMicrophoneEnabled(false);client?.setRemoteAudioEnabled(true)
-                if let preparedVoice,preparedVoice != session["audio"]["output"]["voice"].string {do{if self.warmPolicy == nil{self.warmPolicy=try NarrationWarmPolicy()};guard let event=try self.warmPolicy?.voice(session["audio"]["output"]["voice"].string),client?.send(event) == true else{self.fail("prepared-voice");return}}catch{self.fail("prepared-voice");return}}
+                let desiredVoice=session["audio"]["output"]["voice"].string
+                if session["provider"].string != "gemini",!desiredVoice.isEmpty,preparedVoice != desiredVoice {
+                    do {
+                        if self.warmPolicy == nil {self.warmPolicy=try NarrationWarmPolicy()}
+                        guard let event=try self.warmPolicy?.voice(desiredVoice),client?.send(event) == true else {self.fail("voice-update");return}
+                    } catch {self.fail("voice-update");return}
+                }
                 let item:JSONValue = .object(["type":.string("conversation.item.create"),"item":.object(["type":.string("message"),"role":.string("user"),"content":.array([.object(["type":.string("input_text"),"text":.string("[NARRATE THIS TEXT EXACTLY]: "+text)])])])])
                 guard (session["provider"].string == "gemini" || client?.send(item) == true),client?.send(.object(["type":.string("response.create"),"response":.object(["output_modalities":.array([.string("audio")]),"instructions":session["provider"].string == "gemini" ? session["previewPrompt"]:session["instructions"]])])) == true else{self.fail("send");return}
             }

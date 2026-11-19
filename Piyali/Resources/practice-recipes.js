@@ -9537,7 +9537,9 @@ PREFLIGHT CHECK: This is a generated exercise, not a learner answer. Also requir
     isFoundationConversationLevel: () => isFoundationConversationLevel,
     isFoundationStarterLevel: () => isFoundationStarterLevel,
     normalizeSupportLanguage: () => normalizeSupportLanguage,
-    practiceLevelForElo: () => practiceLevelForElo
+    practiceLevelForElo: () => practiceLevelForElo,
+    resolveConversationPersona: () => resolveConversationPersona,
+    resolveConversationVoice: () => resolveConversationVoice
   });
 
   // Reference: src/utils/voicePersonaPrompt.js
@@ -9612,6 +9614,19 @@ PREFLIGHT CHECK: This is a generated exercise, not a learner answer. Also requir
     return `Translate the following into concise, natural ${languageName}.
 Return ONLY the direct translation text.
 Do not wrap in quotes. Do not output JSON. Do not include notes or introductory text.`;
+  }
+
+  // Reference: src/utils/realtimePracticeVoice.js
+  var REALTIME_PRACTICE_VOICE = "shimmer";
+
+  // Reference: src/utils/conversationVoicePreferences.js
+  function resolveConversationVoice() {
+    return REALTIME_PRACTICE_VOICE;
+  }
+  function resolveConversationPersona(progress = {}, fallback = "") {
+    return normalizeVoicePersona(
+      progress?.tutorVoicePersona || progress?.voicePersona || fallback
+    );
   }
 
   // Reference: src/utils/starterPhrase.js
@@ -9772,7 +9787,11 @@ ${JSON.stringify(raw)}`)({ stage: p.stage, raw: p.raw, error: { message: p.error
   }
   function conversation(operation, parametersJSON) {
     return withParameters(parametersJSON, (p) => {
-      const { buildVoicePersonaPolicy: buildVoicePersonaPolicy2, practiceLevelForElo: practiceLevelForElo2, eloForUser: eloForUser2, getAdultBeginnerToneRule: getAdultBeginnerToneRule2, generationPerformanceContextFor: generationPerformanceContextFor2, getLanguagePromptName: getLanguagePromptName2, foundationGoalRules: foundationGoalRules2, normalizeSupportLanguage: normalizeSupportLanguage2, DEFAULT_SUPPORT_LANGUAGE: DEFAULT_SUPPORT_LANGUAGE2, buildConversationResponseCreateEvent: buildConversationResponseCreateEvent2, buildConversationTurnDetection: buildConversationTurnDetection2, buildRealtimeResumeContext: buildRealtimeResumeContext2, buildDirectTranslationPrompt: buildDirectTranslationPrompt2 } = Conversations_exports;
+      const { buildVoicePersonaPolicy: buildVoicePersonaPolicy2, practiceLevelForElo: practiceLevelForElo2, eloForUser: eloForUser2, getAdultBeginnerToneRule: getAdultBeginnerToneRule2, generationPerformanceContextFor: generationPerformanceContextFor2, getLanguagePromptName: getLanguagePromptName2, foundationGoalRules: foundationGoalRules2, normalizeSupportLanguage: normalizeSupportLanguage2, DEFAULT_SUPPORT_LANGUAGE: DEFAULT_SUPPORT_LANGUAGE2, buildConversationResponseCreateEvent: buildConversationResponseCreateEvent2, buildConversationTurnDetection: buildConversationTurnDetection2, buildRealtimeResumeContext: buildRealtimeResumeContext2, buildDirectTranslationPrompt: buildDirectTranslationPrompt2, resolveConversationVoice: resolveConversationVoice2, resolveConversationPersona: resolveConversationPersona2 } = Conversations_exports;
+      if (operation === "voicePreferences") {
+        const pauseMs = Number.isFinite(p.progress?.pauseMs) ? Math.min(1e4, p.progress.pauseMs) : 1200;
+        return JSON.stringify({ voice: resolveConversationVoice2(), persona: resolveConversationPersona2(p.progress, p.personalityFallback), vad: buildConversationTurnDetection2(pauseMs) });
+      }
       const targetLangRef = { current: p.targetLang }, voicePersonaRef = { current: p.personality || "" }, conversationSettingsRef = { current: { practicePronunciation: !!p.pronunciation, conversationSubjects: p.interests || "" } }, currentGoalRef = { current: p.goal || null }, goalShepherdRef = { current: p.guidance || "" }, useUserStore = { getState: () => ({ user: p.user || {} }) }, resolvedSupportLang = p.supportLang || "en", selectedLevel = practiceLevelForElo2(eloForUser2(p.user || {}, p.targetLang)), customSubjects = p.interests || "", skillTreeTopics = p.topics || [], messagesRef = { current: p.messages || [] }, goal = p.goal || { text: { en: "" } }, currentGoal = goal, previousGoalAbandoned = !!p.abandoned, userMessage = p.utterance || "", aiResponse = p.answered || "";
       function buildLanguageInstructionsBase() {
         const tLang = targetLangRef.current;

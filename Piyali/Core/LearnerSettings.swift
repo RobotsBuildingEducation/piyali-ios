@@ -17,7 +17,7 @@ public enum LearnerSettings {
     }
     public static func snapshot(_ fields:JSONValue)->JSONValue {
         var root=fields.object.filter{rootKeys.contains($0.key)}
-        root["progress"] = .object(fields["progress"].object.filter{progressKeys.contains($0.key)})
+        root["progress"] = .object(fields["progress"].object.filter{progressKeys.contains($0.key) || $0.key == "voicePersona"})
         return .object(root)
     }
     public static func applying(_ change:SettingsChange,to original:JSONValue)->JSONValue {

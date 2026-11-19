@@ -42,6 +42,15 @@ public enum PracticeRecipeFailure:LocalizedError {
     public func conversation(_ operation:String,parameters:JSONValue) throws ->String {
         try call("conversation",arguments:[operation,try encoded(parameters)])
     }
+    public func conversationVoicePreferences(_ progress:JSONValue,legacyPersonality:String="") throws ->JSONValue {
+        let legacy=legacyPersonality.trimmingCharacters(in:.whitespacesAndNewlines)
+        let parameters:JSONValue = .object([
+            "progress":progress,
+            "personalityFallback":.string(legacy.isEmpty ? "A friendly and helpful assistant":legacy)
+        ])
+        let result=try conversation("voicePreferences",parameters:parameters)
+        return try JSONDecoder().decode(JSONValue.self,from:Data(result.utf8))
+    }
     public func reading(_ operation:String,parameters:JSONValue) throws ->String {
         try call("reading",arguments:[operation,try encoded(parameters)])
     }

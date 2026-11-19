@@ -36,17 +36,49 @@ import FirebaseAppCheck
         let live=LiveTutorService(capturesMicrophone:false,recordsConversationReplies:true,permission:{true})
         let spoken=expectation(description:"resumed output stopped")
         let captured=expectation(description:"real WebRTC response available for replay")
+        let configured=expectation(description:"acknowledged Conversation settings and resumed listening")
         var recorded:NarrationRecording?,recordedID="",completedID=""
         var draft=ConversationDraft();draft.append(.init(role:"user",text:"¿Qué vamos a visitar?"));var partial=ConversationMessage(role:"assistant",text:"Vamos a visitar",providerID:"old-response");partial.interrupted=true;draft.append(partial)
-        var inputs=0,replies:[String]=[],didStop=false
-        await live.start(learner:LearnerState(),conversationDraft:draft,inactivityTimeout:60,resumeInterrupted:partial.text,onInputTurn:{_ in inputs += 1},onAssistantTurn:{id,text in completedID=id;replies.append(text)},onEvent:{event in if event["type"].string == "output_audio_buffer.stopped",!didStop {didStop=true;spoken.fulfill()}},onResponseRecording:{id,clip in
+        var learner=LearnerState()
+        learner.changeSettings(.object(["tutorVoice":.string("ash"),"tutorVoicePersona":.string("A patient travel guide"),"pauseMs":.number(1800)]))
+        var inputs=0,replies:[String]=[],didStop=false,acknowledgedPause=false
+        var activeSession:JSONValue = .null
+        var sessionAtReply:JSONValue = .null
+        await live.start(learner:learner,conversationDraft:draft,inactivityTimeout:60,resumeInterrupted:partial.text,onInputTurn:{_ in inputs += 1},onAssistantTurn:{id,text in completedID=id;replies.append(text)},onEvent:{event in
+            switch event["type"].string {
+            case "session.updated":
+                activeSession=event["session"]
+                if !acknowledgedPause,activeSession["audio"]["input"]["turn_detection"]["silence_duration_ms"] == .number(1800) {
+                    acknowledgedPause=true;configured.fulfill()
+                }
+            case "response.created": sessionAtReply=activeSession
+            case "output_audio_buffer.stopped" where !didStop: didStop=true;spoken.fulfill()
+            default:break
+            }
+        },onResponseRecording:{id,clip in
             guard recorded == nil else { return }
             recorded=clip;recordedID=id;captured.fulfill()
         })
-        if live.connected {await fulfillment(of:[spoken,captured],timeout:45)}
+        if live.connected {await fulfillment(of:[spoken,captured,configured],timeout:45)}
         let failure=live.error,connected=live.connected;await live.stop()
+        let narrationTransport=NarrationWarmLiveTransport(deferred:false)
+        let starter=RealtimeNarrationService(factory:{narrationTransport},cacheEnabled:false)
+        let heardStarter=expectation(description:"source starter finished playing")
+        let voice=try PracticeRecipes().conversationVoicePreferences(learner.settingsSnapshot["progress"])["voice"].string
+        starter.play("Hola, me llamo Ana.",language:"es",engine:try CompanionQuestPolicy(),voice:voice,onFinished:{heardStarter.fulfill()})
+        await fulfillment(of:[heardStarter],timeout:30)
+        XCTAssertNil(starter.error,starter.failureDetail ?? "")
+        starter.stopAll()
+        XCTAssertEqual(narrationTransport.voices.last,"shimmer")
+        XCTAssertEqual(narrationTransport.sends,["session.update","conversation.item.create","response.create"])
+        XCTAssertEqual(narrationTransport.responses,1)
+        XCTAssertFalse(narrationTransport.microphone.contains(true))
         do {try await Auth.auth().currentUser?.delete();try Auth.auth().signOut();try identity.disconnect()} catch {try? Auth.auth().signOut();try? identity.disconnect();throw error}
         XCTAssertTrue(connected);XCTAssertNil(failure);XCTAssertTrue(didStop);XCTAssertFalse(replies.isEmpty);XCTAssertEqual(inputs,0)
+        XCTAssertEqual(sessionAtReply["audio"]["output"]["voice"],.string("shimmer"))
+        XCTAssertEqual(sessionAtReply["audio"]["input"]["turn_detection"],.null)
+        XCTAssertTrue(sessionAtReply["instructions"].string.contains("A patient travel guide"))
+        XCTAssertTrue(acknowledgedPause)
         XCTAssertEqual(recordedID,completedID)
         let clip = try XCTUnwrap(recorded)
         let audio = try XCTUnwrap(PreparedNarrationAudio.original(clip))
@@ -150,6 +182,9 @@ import FirebaseAppCheck
         await service.start(learner:LearnerState(),conversationDraft:draft)
         XCTAssertTrue(service.connected);XCTAssertTrue(transport.microphone)
         XCTAssertEqual(transport.session["model"].string,"gpt-realtime-2.1-mini")
+        XCTAssertEqual(transport.session["audio"]["output"]["voice"],.string("shimmer"))
+        XCTAssertEqual(transport.events.first?["session"]["audio"]["output"]["voice"],.string("shimmer"))
+        XCTAssertEqual(transport.vad["silence_duration_ms"],.number(1200))
         XCTAssertTrue(transport.session["instructions"].string.contains("A dramatic pirate"))
         XCTAssertFalse(transport.session["audio"]["input"]["turn_detection"]["create_response"].boolean)
         try transport.receive(#"{"type":"input_audio_buffer.committed","item_id":"u1"}"#)
@@ -182,12 +217,21 @@ import FirebaseAppCheck
     }
     func testInstructionUpdateDoesNotReenableSpeechDuringAssistantAudioAndSendFailureCloses() async throws {
         let transport=VoiceTransportFixture(),service=LiveTutorService(permission:{true},transportFactory:{transport})
-        var draft=ConversationDraft();await service.start(learner:LearnerState(),conversationDraft:draft)
+        var draft=ConversationDraft(),learner=LearnerState()
+        learner.userSettings=LearnerSettings.snapshot(LearnerSettings.sourceUser(["progress":["voicePersona":"A patient guide","pauseMs":1800]]))
+        await service.start(learner:learner,conversationDraft:draft)
+        XCTAssertTrue(transport.session["instructions"].string.contains("A patient guide"))
+        XCTAssertEqual(transport.vad["silence_duration_ms"],.number(1800))
         try transport.receive(#"{"type":"response.created","response":{"id":"r1"}}"#)
         let before=transport.events.count;draft.interests="travel"
-        await service.updateConversation(draft,learner:LearnerState())
+        learner.changeSettings(.object(["tutorVoicePersona":.string("An enthusiastic coach"),"pauseMs":.number(2400)]))
+        await service.updateConversation(draft,learner:learner)
         XCTAssertFalse(transport.microphone);XCTAssertEqual(transport.events.count,before+1)
         XCTAssertFalse(try XCTUnwrap(transport.events.last)["session"].object.keys.contains("audio"))
+        XCTAssertTrue(transport.events.last?["session"]["instructions"].string.contains("An enthusiastic coach") == true)
+        try transport.receive(#"{"type":"response.done","response":{"id":"r1","status":"completed"}}"#)
+        try transport.receive(#"{"type":"output_audio_buffer.stopped"}"#)
+        XCTAssertTrue(transport.microphone);XCTAssertEqual(transport.vad["silence_duration_ms"],.number(2400))
         transport.sendsSucceed=false;service.setMuted(true)
         XCTAssertFalse(service.connected);XCTAssertTrue(transport.closed);XCTAssertNotNil(service.error)
     }

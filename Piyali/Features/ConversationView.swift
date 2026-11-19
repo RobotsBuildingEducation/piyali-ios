@@ -6,7 +6,7 @@ struct ConversationView:View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @StateObject private var conversation=ConversationService()
-    @StateObject private var speech=SpeechService()
+    @StateObject private var starterNarration:RealtimeNarrationService
     @StateObject private var replay=TutorReplayController()
     @State private var cachedReplies:Set<String>=[]
     private let clips=TutorAudioClips.conversation
@@ -26,7 +26,7 @@ struct ConversationView:View {
     @State private var paused=false
     @State private var pausedMuted=false
     @State private var active=false
-    @State private var starterPlaying=false
+    @State private var starterError:String?
     @State private var pausedReply=""
     @State private var pausedSpeech:String?
     @State private var pauseWork:Task<Void,Never>?
@@ -36,7 +36,10 @@ struct ConversationView:View {
     @State private var baseTurns=0
     @State private var baseGoals=0
     @State private var footerOwner=UUID()
-    init() { _live=StateObject(wrappedValue:ConversationVoiceFixture.service()) }
+    init() {
+        _live=StateObject(wrappedValue:ConversationVoiceFixture.service())
+        _starterNarration=StateObject(wrappedValue:ReadingStoryAudioFixture.conversationStarter())
+    }
     private var draft:ConversationDraft { app.learner.conversation }
     private var brand:PiyaliBrand { .init(dark:scheme == .dark) }
     private static let copy=(try? ContentLibrary.load(JSONValue.self,name:"conversation-ui")) ?? .null
@@ -85,21 +88,26 @@ struct ConversationView:View {
     }
     private var footerRevision:String { "\(live.connected)|\(live.connecting)|\(live.muted)|\(paused)|\(conversation.busy)|\(draft.goal?.id.uuidString ?? "")" }
     private var settingsRevision:String { (draft.challengeLevel ?? "")+"|"+draft.interests }
+    private var voiceSettings:JSONValue {
+        let progress=app.learner.settingsSnapshot["progress"]
+        return .array([progress["tutorVoicePersona"],progress["voicePersona"],progress["pauseMs"]])
+    }
     private var allowed:Bool { app.subscription.hasAccess || conversation.fixture }
     var body:some View {
         Group { if conversation.fixture { content } else { SubscriptionRequiredView(service:app.subscription) { content } } }
             .navigationTitle(t("course_conversation","Conversation")).navigationBarTitleDisplayMode(.inline)
             .task(id:app.identity.npub+":"+app.learner.target+":"+app.learner.support+":"+String(allowed)) {
-                active=false;resetArchive();replay.stop();connectionEpoch=UUID();conversation.cancel();speech.stopAll();paused=false;pausedReply="";pausedSpeech=nil;pauseWork=nil;showStarter=false;starterPlaying=false
+                active=false;resetArchive();replay.stop();connectionEpoch=UUID();conversation.cancel();stopStarter();paused=false;pausedReply="";pausedSpeech=nil;pauseWork=nil;showStarter=false
                 await live.stop(clearTranscript:true);guard !Task.isCancelled else { return };active=true;archivePrevious=visibleReply;await conversation.prepare(app)
             }
             .activityFooter(owner:footerOwner,revision:footerRevision,access:app.subscription,fixtureAllowed:conversation.fixture) { ActivityFooterSurface(hasFeedback:false,feedback:{EmptyView()},actions:{controls}) }
             .onChange(of:scenePhase) { _,phase in if phase == .background { stop() } }
             .onChange(of:app.subscription.hasAccess) { _,access in if !access { stop() } }
             .onChange(of:draft.goal?.id) { _,_ in stopStarter();showStarter=false;Task { await live.updateConversation(app.learner.conversation,learner:app.learner) } }
+            .onChange(of:voiceSettings) { _,_ in Task { await live.updateConversation(app.learner.conversation,learner:app.learner) } }
             .onChange(of:app.plateCourseCompletion?.id){_,_ in if app.plateCourseCompletion?.kind == "conversation"{stop()}}
             .onChange(of:clipOwner) { _,_ in cachedReplies=[];replay.stop() }
-            .onChange(of:live.connected) { wasConnected,connected in if wasConnected && !connected { replay.stop() } }
+            .onChange(of:live.connected) { wasConnected,connected in if wasConnected && !connected { replay.stop();stopStarter() } }
             .onChange(of:visibleReply) { _,value in updateArchive(value) }
             .onDisappear { resetArchive();stop() }
             .sheet(isPresented:$showSettings,onDismiss:settingsClosed) { settingsSheet.presentationDetents([.fraction(0.8)]).presentationDragIndicator(.visible) }
@@ -117,7 +125,7 @@ struct ConversationView:View {
                     }
                 }
                 if !reply.isEmpty { replyBubble.padding(.horizontal,16).padding(.top,6) }
-                if let error=conversation.error ?? live.error ?? replay.error { Text(error).font(PiyaliBrand.productFont(13)).foregroundStyle(brand.questionError).padding(12).frame(maxWidth:.infinity,alignment:.leading).background(brand.surface,in:RoundedRectangle(cornerRadius:8)).padding(.horizontal,16).accessibilityIdentifier("conversationError") }
+                if let error=conversation.error ?? live.error ?? replay.error ?? starterError { Text(error).font(PiyaliBrand.productFont(13)).foregroundStyle(brand.questionError).padding(12).frame(maxWidth:.infinity,alignment:.leading).background(brand.surface,in:RoundedRectangle(cornerRadius:8)).padding(.horizontal,16).accessibilityIdentifier("conversationError") }
                 Color.clear.frame(height:app.activityFooterHeight+12)
             }.padding(.top,8).padding(.bottom,12).frame(maxWidth:672).frame(maxWidth:.infinity)
         }.background(brand.background).foregroundStyle(brand.text)
@@ -144,15 +152,53 @@ struct ConversationView:View {
             }
             if ["Pre-A1","A1"].contains(PerformanceScore.level(score:app.learner.score)),draft.goal?.completed == false {
                 Button(showStarter ? t("ra_starter_hide","Hide phrase") : t("ra_starter_show","Help me")) { showStarter.toggle();if showStarter,draft.goal?.starter == nil { Task { await conversation.starter(app) } } }.font(PiyaliBrand.productFont(12,500)).padding(.horizontal,12).padding(.vertical,5).background(brand.surface.opacity(0.6),in:RoundedRectangle(cornerRadius:6)).overlay { RoundedRectangle(cornerRadius:6).stroke(brand.border) }.disabled(conversation.busy).accessibilityIdentifier("conversationStarter")
-                if showStarter {
-                    HStack(spacing:6) { if let starter=draft.goal?.starter { Button { playStarter(starter) } label:{ Image(systemName:starterPlaying ? "stop.fill" : "speaker.wave.2").font(.system(size:14)) }.accessibilityLabel(t("story_listen","Listen"));Text(starter).font(PiyaliBrand.productFont(14,600)).accessibilityIdentifier("conversationStarterPhrase") } else { ProgressView() } }.padding(.horizontal,12).padding(.vertical,8).background(brand.surface,in:RoundedRectangle(cornerRadius:8)).overlay { RoundedRectangle(cornerRadius:8).stroke(brand.border) }
-                    if let translated=draft.goal?.starterSupport,!translated.isEmpty { Text(translated).font(PiyaliBrand.productFont(12)).foregroundStyle(brand.secondary).multilineTextAlignment(.center).accessibilityIdentifier("conversationStarterSupport") }
-                }
+                if showStarter { starterCard }
             }
             if !conversation.feedback.isEmpty,draft.goal?.completed == false {
                 Text(conversation.feedback.components(separatedBy:" · +").first ?? conversation.feedback).font(PiyaliBrand.productFont(12)).multilineTextAlignment(.center).padding(.horizontal,12).padding(.vertical,6).foregroundStyle(scheme == .dark ? PiyaliBrand.unitColor("feb2b2") : PiyaliBrand.unitColor("8f4a5e")).background(Color.red.opacity(0.12),in:RoundedRectangle(cornerRadius:6)).overlay { RoundedRectangle(cornerRadius:6).stroke(Color.red.opacity(0.25)) }.accessibilityIdentifier("conversationFeedback")
             }
         }.buttonStyle(.plain).padding(8).frame(maxWidth:400).background { ConversationGoalSurface(light:scheme != .dark) }.overlay { RoundedRectangle(cornerRadius:16).stroke(brand.border.opacity(scheme == .dark ? 0.3 : 1)) }
+    }
+    private var starterCard:some View {
+        let dark=scheme == .dark
+        let secondary=dark ? Color.white.opacity(0.8):brand.secondary
+        let shape=RoundedRectangle(cornerRadius:6)
+        return VStack(spacing:0) {
+            if let starter=draft.goal?.starter {
+                HStack(spacing:6) {
+                    Button { playStarter(starter) } label: {
+                        Group {
+                            if starterNarration.loading { ProgressView().controlSize(.mini) }
+                            else { Image("Help-volume").resizable().renderingMode(.template).frame(width:14,height:14) }
+                        }
+                        .frame(width:24,height:24)
+                        .contentShape(Rectangle())
+                        .foregroundStyle(secondary.opacity(starterNarration.playing ? 1:0.75))
+                    }
+                    .accessibilityLabel(t("story_listen","Listen"))
+                    .accessibilityAddTraits(starterNarration.playing ? .isSelected:[])
+                    .accessibilityIdentifier("conversationStarterReplay")
+                    Text(starter)
+                        .font(PiyaliBrand.productFont(14,600))
+                        .foregroundStyle(dark ? Color.white:brand.text)
+                        .accessibilityIdentifier("conversationStarterPhrase")
+                }
+                if let translated=draft.goal?.starterSupport,!translated.isEmpty {
+                    Text(translated)
+                        .font(PiyaliBrand.productFont(12))
+                        .foregroundStyle(secondary.opacity(0.7))
+                        .accessibilityIdentifier("conversationStarterSupport")
+                }
+            } else {
+                ProgressView().controlSize(.mini)
+            }
+        }
+        .multilineTextAlignment(.center)
+        .padding(.horizontal,12)
+        .padding(.vertical,8)
+        .background(dark ? Color.white.opacity(0.06):PiyaliBrand.unitColor("fdf9f2"),in:shape)
+        .overlay { shape.strokeBorder((dark ? Color.white:Color.black).opacity(0.08)) }
+        .padding(.horizontal,16)
     }
     private func resetArchive() {archiveWork?.cancel();archiveWork=nil;archivePrevious=nil;archive=nil;archiveHiddenID=nil;archivePulse=false;archiveTextFrame = .zero;archiveButtonFrame = .zero}
     private func updateArchive(_ next:ConversationVisibleReply?) {
@@ -189,7 +235,7 @@ struct ConversationView:View {
     }
     private func start(resuming:Bool=false) {
         guard !live.connecting,(!conversation.busy || resuming),allowed,let _=draft.goal else { return }
-        replay.stop();active=true;starterPlaying=false;speech.stopAll();showSummary=false
+        replay.stop();active=true;stopStarter();showSummary=false
         if !resuming { baseXP=draft.earnedXP;baseTurns=draft.turns;baseGoals=draft.goalsCompleted;pausedMuted=false }
         var context=draft;if !resuming { context.messages=[] }
         let account=app.identity.npub,target=app.learner.target,support=app.learner.support,session=draft.id
@@ -221,19 +267,28 @@ struct ConversationView:View {
     }
     private func playStarter(_ text:String) {
         replay.stop()
-        if starterPlaying { stopStarter();return }
+        if starterNarration.loading || starterNarration.playing { stopStarter();return }
         let cleaned=text.replacingOccurrences(of:"_+",with:" ",options:.regularExpression).replacingOccurrences(of:"\\s{2,}",with:" ",options:.regularExpression).replacingOccurrences(of:"\\s+([.,!?;:])",with:"$1",options:.regularExpression).trimmingCharacters(in:.whitespacesAndNewlines)
-        guard !cleaned.isEmpty else { return };starterPlaying=true;live.setPlaybackDucked(true)
-        speech.speakSeries([cleaned],language:app.learner.target,onInterrupted:{stopStarter()},keepsVoiceSession:live.connected,onFinished:{stopStarter()})
+        guard !cleaned.isEmpty else { return }
+        do {
+            let voice=try PracticeRecipes().conversationVoicePreferences(app.learner.settingsSnapshot["progress"])["voice"].string
+            starterError=nil
+            starterNarration.play(cleaned,language:app.learner.target,engine:app.companionQuestPolicy,voice:voice,onFailed:{
+                live.setPlaybackDucked(false)
+                starterError=starterNarration.error
+            })
+            live.setPlaybackDucked(true)
+            starterNarration.onStopped={ live.setPlaybackDucked(false) }
+        } catch { starterError=error.localizedDescription }
     }
-    private func stopStarter() { speech.stopAll();starterPlaying=false;live.setPlaybackDucked(false) }
+    private func stopStarter() { starterNarration.stopAll();starterError=nil }
     private func pause() {
-        guard live.connected else{return};starterPlaying=false;pausedMuted=live.muted;pausedReply=reply;pausedSpeech=live.hasPendingAssistant ? (live.outputPending ? live.assistantTurnText : "") : nil
+        guard live.connected else{return};pausedMuted=live.muted;pausedReply=reply;pausedSpeech=live.hasPendingAssistant ? (live.outputPending ? live.assistantTurnText : "") : nil
         if live.outputPending,!live.assistantTurnText.isEmpty {conversation.preserveInterruptedReply(live.assistantTurnText,providerID:live.assistantResponseID,app:app)}
-        replay.stop();live.captureCurrentReply();connectionEpoch=UUID();paused=true;speech.stopAll();pauseWork=Task {await live.stop()}
+        replay.stop();live.captureCurrentReply();connectionEpoch=UUID();paused=true;stopStarter();pauseWork=Task {await live.stop()}
     }
-    private func end() {replay.stop();live.captureCurrentReply();if live.outputPending,!live.assistantTurnText.isEmpty {conversation.preserveInterruptedReply(live.assistantTurnText,providerID:live.assistantResponseID,app:app)};connectionEpoch=UUID();paused=false;pausedSpeech=nil;starterPlaying=false;speech.stopAll();let waiting=pauseWork;pauseWork=nil;Task {await waiting?.value;await live.stop();var transaction=Transaction();transaction.disablesAnimations=true;withTransaction(transaction) {showSummary=true}}}
-    private func stop() { replay.stop();live.captureCurrentReply();connectionEpoch=UUID();starterPlaying=false;active=false;paused=false;pausedSpeech=nil;pauseWork=nil;conversation.cancel();speech.stopAll();Task { await live.stop() } }
+    private func end() {replay.stop();live.captureCurrentReply();if live.outputPending,!live.assistantTurnText.isEmpty {conversation.preserveInterruptedReply(live.assistantTurnText,providerID:live.assistantResponseID,app:app)};connectionEpoch=UUID();paused=false;pausedSpeech=nil;stopStarter();let waiting=pauseWork;pauseWork=nil;Task {await waiting?.value;await live.stop();var transaction=Transaction();transaction.disablesAnimations=true;withTransaction(transaction) {showSummary=true}}}
+    private func stop() { replay.stop();live.captureCurrentReply();connectionEpoch=UUID();active=false;paused=false;pausedSpeech=nil;pauseWork=nil;conversation.cancel();stopStarter();Task { await live.stop() } }
     private func settingsClosed() { if settingsRevision != settingsKey { showStarter=false;Task { await conversation.shuffleTopic(app);await live.updateConversation(app.learner.conversation,learner:app.learner) } } }
     private func change(_ update:(inout ConversationDraft)->Void) { var next=draft;update(&next);app.learner.saveConversation(next);app.persist();Task { await live.updateConversation(app.learner.conversation,learner:app.learner) } }
     private var settingsSheet:some View {
