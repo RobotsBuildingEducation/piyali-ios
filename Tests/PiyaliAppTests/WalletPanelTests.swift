@@ -29,6 +29,29 @@ import WebKit
     func testPublicFeedFailureIsVisibleAndReadNeverPublishes()async {
         let model=WalletPublicTransactions(client:NostrRelayClient(relays:[],timeout:.seconds(1)));await model.load();XCTAssertTrue(model.failed);XCTAssertFalse(model.loading);XCTAssertTrue(model.rows.isEmpty)
     }
+    func testPublicReceiptReceivedBeforeDeadlineSurvivesMissingEOSE()async throws{
+        let fixture=try XCTUnwrap(fixtures().first(where:{$0["expected"]["note"].string == WalletCopy.publicNote}))
+        let receipt=try JSONSerialization.jsonObject(with:JSONEncoder().encode(fixture["event"]))
+        let relay=LocalNostrRelay()
+        defer{relay.stop()}
+        try await relay.start{frame,connection in
+            guard frame.first as? String == "REQ",let sub=frame[1] as? String,
+                  let kinds=(frame.last as? [String:Any])?["kinds"] as? [Int] else{return}
+            if kinds == [9321]{relay.send(["EVENT",sub,receipt],to:connection)}
+            else{relay.send(["EOSE",sub],to:connection)}
+        }
+        let client=NostrRelayClient(relays:[relay.url],timeout:.seconds(1))
+        let model=WalletPublicTransactions(client:client,now:{Date(timeIntervalSince1970:1700000100)})
+        await model.load()
+        XCTAssertFalse(model.failed)
+        XCTAssertFalse(model.loading)
+        XCTAssertEqual(model.rows.map(\.id),[fixture["expected"]["id"].string])
+        do{
+            _=try await client.querySnapshots(filter:["kinds":[9321]])
+            XCTFail("Strict wallet snapshots still require an end-of-stored-events response")
+        }catch{XCTAssertFalse(error is CancellationError)}
+        XCTAssertFalse(relay.frames().contains{$0.first as? String == "EVENT"})
+    }
     func testActualSourceWalletAndNativeEmptyUnfundedInvoiceAndFundedLayouts()async throws{
         let env=ProcessInfo.processInfo.environment;guard env["PIYALI_REFERENCE_PREVIEW_TESTS"] == "1",env["PIYALI_OFFLINE_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Isolated source preview required")}
         let scene=try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap{$0 as? UIWindowScene}.first),old=scene.windows.first{$0.isKeyWindow};defer{old?.makeKey()}

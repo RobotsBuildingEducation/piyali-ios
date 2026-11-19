@@ -17,7 +17,7 @@ The existing Keychain wallet, separate receiving keys, per-account journal/lease
 
 Payment tools and recovery is a secondary native sheet containing the previous custom-amount deposit, invoice sharing/opening, expired-quote archive/check, manual receive/send, fee preview and recovery controls. The later [scholarship correction](SCHOLARSHIPS.md) adds the once-per-account source prompt, completion/review/quest sequencing and automatic source support. Modern wallets without a saved preference adopt one sat per newly earned XP activity with zero additional fees. Explicit stops and manual fee/recipient approvals remain authoritative. Source-managed recipient changes retain submitted operations and update future intents. The prompt writes `tutorialBitcoinModalShown` after dismissal and shares this Account wallet’s recipient and payment recovery.
 
-Metadata unavailability keeps valid public receipts with shortened key names. The native receipt reader adds a local date/100-row bound even if a relay ignores the requested filter. The side drawer keeps its physical right placement for Arabic, with its content following RTL. Real invoice/payment/funded account verification, physical iPhone wallet behavior and the full public-drawer design/error/lifecycle matrix remain unverified. Tests use disposable keys, a local issuer/relay or inert preview data; no real funds move.
+Metadata unavailability keeps valid public receipts with shortened key names. The native receipt reader adds a local date/100-row bound even if a relay ignores the requested filter. The side drawer keeps its physical right placement for Arabic, with its content following RTL. Tests use disposable keys, a local issuer/relay or inert preview data. No real funds move.
 
 ## Verification
 
@@ -31,9 +31,19 @@ The eight component comparisons below mount the **actual source component** at i
 
 ![Arabic empty wallet comparison](native/wallet-empty-ar.png)
 
+## Public receipt drawer refresh and retry, November 19
+
+The original drawer at `b269524d` was mounted in phone-width Chromium with a read-only relay fixture. English paper and Arabic dark both passed initial loading, funded receipt rendering, retained rows during refresh, an injected read failure, Retry to empty, and closing. Both drawers opened on the physical right and used 90% of the viewport width.
+
+The native run passed six tests, including key login → onboarding → Settings → Account → funded wallet → Verify receipts. That journey restored a signed synthetic token from a loopback relay and used a read-only mint fixture. It verified retained receipts and profile names during refresh, failure and Retry to empty, closing, and zero relay publications. A separate test verified that a valid signed receipt arriving before the deadline survives missing EOSE. Strict relay reads used by other callers still reject the incomplete response. The simulator result bundle is `/tmp/PiyaliWalletPublicDrawer-be69cf5f-2416-432c-a5a9-663f5d42fc90.xcresult`.
+
+The English comparison uses separate signed test receipts with the same amount, label and note. It shows the browser component in isolation and the native drawer over the actual Account screen. The iOS safe area, refresh glyph, control fills and panel corners differ. Native Arabic wallet-drawer rendering and public relay behavior with live accounts still need validation.
+
+![Public receipt drawer refresh and error comparison](native/wallet-public-drawer-20261119.jpg)
+
 ## Remaining scope
 
-The full Account accordion geometry, all ten languages/device sizes, complete public transaction drawer presentation and live relay availability, receiving-setup availability for both source recipients, interrupted account/signer changes during payments, physical audio/key authentication and real payment/release checks still require work. QR generators can produce different module patterns/quiet zones for the same invoice. Native icon glyphs, fonts, easing, line wrapping and transient feedback may still differ. Source-localized payment error/maintenance copy has not replaced the retained English recovery tools.
+The full Account accordion geometry, remaining locale/device sizes, public transaction drawer accessibility and close/reopen races, live relay availability, receiving setup for both source recipients, interrupted account/signer changes during payments, physical audio/key authentication and real payment/release checks still require work. QR generators can produce different module patterns and quiet zones for the same invoice. Native icon glyphs, fonts, easing, line wrapping and transient feedback may still differ. The retained native payment recovery tools still need localization.
 
 Reproduce the scoped native selection with the read-only reference preview on port 5181 and the existing Firestore contract emulator on port 8180:
 

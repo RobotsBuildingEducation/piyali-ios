@@ -99,7 +99,9 @@ struct WalletView:View {
             else{VStack(alignment:.leading,spacing:12){panelContent;auxiliary}.padding(inline ? 0:16).frame(maxWidth:.infinity,alignment:.leading).navigationTitle(SettingsCopy.inline(lang,"Bitcoin wallet"))}
         }
             .sheet(isPresented:$tools){NavigationStack{WalletMaintenanceView(service:service,recipient:selected).toolbar{ToolbarItem(placement:.confirmationAction){Button(SettingsCopy.inline(lang,"Close")){tools=false}.accessibilityIdentifier("walletToolsClose")}}}}
-            .fullScreenCover(isPresented:$transactions){WalletTransactionsView(language:lang,onClose:{transactions=false})}
+            .fullScreenCover(isPresented:$transactions){
+                WalletTransactionsView(language:lang,forcePaper:scholarship,onClose:{transactions=false}).presentationBackground(.clear)
+            }
             .task(id:app.identity.hex){service.cancel(clear:true);try? await service.refresh(identity:app.identity)}
             .task(id:service.depositID){guard !service.depositID.isEmpty else{return};var failures=0;while !Task.isCancelled,!service.depositID.isEmpty,!service.invoiceExpired,failures<5{do{try await Task.sleep(for:.seconds(3));if !service.busy{try await service.checkDeposit(identity:app.identity);failures=0}}catch is CancellationError{return}catch{failures += 1}}}
             .onChange(of:service.ready){_,ready in if ready{if app.learner.settingsSnapshot["createdWallet"] != .bool(true){app.updateSettings(.object(["createdWallet":.bool(true)]))}else{app.scheduleAutomaticTips()}}}

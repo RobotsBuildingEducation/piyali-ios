@@ -30,12 +30,17 @@ import secp256k1
     private var generation=UUID()
     private var task:Task<Void,Error>?
     init(client:NostrRelayClient? = nil,mint:(any WalletMintNetworking)? = nil,now:@escaping ()->Date = Date.init) {
-        var selected=client
+        var selected=client,selectedMint=mint
         #if DEBUG
-        if selected == nil,ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"] == "1",UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil,let value=ProcessInfo.processInfo.environment["PIYALI_WALLET_TEST_RELAY"],let url=URL(string:value),["localhost","127.0.0.1","::1"].contains(url.host ?? ""),let relay=try? BunkerConnection.relay(value,allowLoopback:true) { selected=NostrRelayClient(relays:[relay],timeout:.seconds(2)) }
+        if selected == nil,ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"] == "1",UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil,let value=ProcessInfo.processInfo.environment["PIYALI_WALLET_TEST_RELAY"],let url=URL(string:value),["localhost","127.0.0.1","::1"].contains(url.host ?? ""),let relay=try? BunkerConnection.relay(value,allowLoopback:true) {
+            selected=NostrRelayClient(relays:[relay],timeout:.seconds(2))
+            if selectedMint == nil,ProcessInfo.processInfo.environment["PIYALI_WALLET_TEST_READ_ONLY_MINT"] == "1"{
+                selectedMint=WalletReadOnlyFixtureMint()
+            }
+        }
         if selected == nil,ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"] == "1",UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil{selected=NostrRelayClient(relays:[],timeout:.seconds(1))}
         #endif
-        bootstrap=selected ?? NostrRelayClient();fixedRelays=selected != nil;mintAPI=mint ?? CashuHTTPClient();self.now=now
+        bootstrap=selected ?? NostrRelayClient();fixedRelays=selected != nil;mintAPI=selectedMint ?? CashuHTTPClient();self.now=now
     }
     func cancel(clear:Bool = false) { generation=UUID();task?.cancel();task=nil;busy=false;if clear { state=nil;owner="";ready=false;canCreate=false;canRestore=false;depositID="";needsReceivingInfo=false;balance=0;invoice="";automatic=AutomaticTipJournal();tipPreview=nil;archivedCount=0;invoiceExpired=false;pending=false;status="";error=nil } }
     private func check(_ identity:IdentityService,_ version:UUID) throws { try Task.checkCancellation();guard version == generation,identity.hex == owner,!owner.isEmpty else { throw CancellationError() } }
@@ -294,6 +299,22 @@ import secp256k1
         balance=total
     }
 }
+
+#if DEBUG
+/// The funded Account UI uses a synthetic, read-only mint.
+private struct WalletReadOnlyFixtureMint:WalletMintNetworking {
+    private static let url=URL(string:"https://wallet-fixture.invalid")!
+    func loadMint(_ value:String)async throws->CashuSwift.Mint{
+        guard value == Self.url.absoluteString else{throw URLError(.unsupportedURL)}
+        return CashuSwift.Mint(url:Self.url,keysets:[])
+    }
+    func request(mint:String,path:String,body:JSONValue?)async throws->JSONValue{throw URLError(.unsupportedURL)}
+    func states(_ proofs:[CashuSwift.Proof],mint:CashuSwift.Mint)async throws->[CashuSwift.Proof.ProofState]{
+        guard mint.url == Self.url,proofs.allSatisfy({$0.secret == "piyali-public-receipt-fixture"}) else{throw URLError(.unsupportedURL)}
+        return proofs.map{_ in .unspent}
+    }
+}
+#endif
 
 struct WalletTipPreview:Equatable {
     let recipient:String

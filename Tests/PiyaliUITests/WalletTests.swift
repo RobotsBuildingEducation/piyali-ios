@@ -17,6 +17,93 @@ private struct WalletUIFixtureCrypto:ContentSigning,NIP44v2Encrypting {}
     private func photo(_ title:String,_ app:XCUIApplication){let shot=XCTAttachment(screenshot:app.screenshot());shot.name=title;shot.lifetime = .keepAlways;add(shot)}
     private func open(_ app:XCUIApplication) {tap("productMenu",app);tap("productPanel-settings",app);tap("settingsTab-account",app);tap("walletLink",app);XCTAssertTrue(app.descendants(matching:.any).matching(identifier:"walletPanel").firstMatch.waitForExistence(timeout:10))}
     private func configure(_ app:XCUIApplication,_ relay:LocalNostrRelay){app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_SETTINGS_FIXTURE":"1","PIYALI_WALLET_TEST_RELAY":relay.url];app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"];app.launch();handleInitialPaperPencil(app)}
+    func testFundedAccountPublicReceiptsRefreshRetryAndClose()async throws{
+        continueAfterFailure=false
+        let account=try XCTUnwrap(Keypair()),receiving=try XCTUnwrap(Keypair()),sender=try XCTUnwrap(Keypair())
+        let mint="https://wallet-fixture.invalid",date=Int64(Date().timeIntervalSince1970)
+        let crypto=WalletUIFixtureCrypto()
+        func event(_ keys:Keypair,kind:Int,tags:[[String]],content:String)throws->[String:Any]{
+            let raw=try JSONSerialization.data(withJSONObject:[0,keys.publicKey.hex,date,kind,tags,content],options:.withoutEscapingSlashes)
+            let id=SHA256.hash(data:raw).map{String(format:"%02x",$0)}.joined()
+            return ["id":id,"pubkey":keys.publicKey.hex,"created_at":date,"kind":kind,"tags":tags,"content":content,"sig":try crypto.signatureForContent(id,privateKey:keys.privateKey.hex)]
+        }
+        func encrypted(_ payload:Any)throws->String{
+            let clear=String(decoding:try JSONSerialization.data(withJSONObject:payload),as:UTF8.self)
+            return try crypto.encrypt(plaintext:clear,privateKeyA:account.privateKey,publicKeyB:account.publicKey)
+        }
+        let proof:[String:Any]=["id":"0011223344556677","amount":100,"C":"02"+receiving.publicKey.hex,"secret":"piyali-public-receipt-fixture"]
+        let configuration=try event(account,kind:17375,tags:[],content:encrypted([["privkey",receiving.privateKey.hex],["mint",mint]]))
+        let token=try event(account,kind:7375,tags:[["mint",mint]],content:encrypted(["proofs":[proof],"del":[]]))
+        let wire=String(decoding:try JSONSerialization.data(withJSONObject:proof.merging(["amount":3]){_,new in new}),as:UTF8.self)
+        let receipt=try event(sender,kind:9321,tags:[["p",account.publicKey.hex],["u",mint],["proof",wire]],content:"Robots Building Education")
+        let profile=try event(sender,kind:0,tags:[],content:#"{"display_name":"Public Reader"}"#)
+        let relay=LocalNostrRelay()
+        defer{relay.stop()}
+        var reads=0
+        try await relay.start{frame,connection in
+            guard frame.first as? String == "REQ",let sub=frame[1] as? String,
+                  let filter=frame.last as? [String:Any],let kinds=filter["kinds"] as? [Int] else{return}
+            switch kinds{
+            case [9321]:
+                reads += 1
+                switch reads{
+                case 1,2:
+                    DispatchQueue.global().asyncAfter(deadline:.now()+3.5){
+                        relay.send(["EVENT",sub,receipt],to:connection)
+                        relay.send(["EOSE",sub],to:connection)
+                    }
+                case 3:relay.send(["CLOSED",sub,"fixture read error"],to:connection)
+                default:relay.send(["EOSE",sub],to:connection)
+                }
+                return
+            case [0]:relay.send(["EVENT",sub,profile],to:connection)
+            default:
+                if kinds.contains(17375){relay.send(["EVENT",sub,configuration],to:connection)}
+                if kinds.contains(7375){relay.send(["EVENT",sub,token],to:connection)}
+            }
+            relay.send(["EOSE",sub],to:connection)
+        }
+
+        let app=XCUIApplication()
+        app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,
+                               "PIYALI_SETTINGS_FIXTURE":"1","PIYALI_WALLET_TEST_RELAY":relay.url,
+                               "PIYALI_WALLET_TEST_READ_ONLY_MINT":"1"]
+        app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"]
+        app.launch()
+        handleInitialPaperPencil(app)
+        tap("entrySignIn",app)
+        let secret=app.secureTextFields["entrySecret"]
+        XCTAssertTrue(secret.waitForExistence(timeout:10))
+        secret.tap();secret.typeText(account.privateKey.nsec)
+        tap("entryKeyboardDone",app);tap("entrySubmitSignIn",app)
+        tap("startLearning",app);open(app)
+        XCTAssertTrue(app.buttons["walletTransactions"].waitForExistence(timeout:15))
+        XCTAssertEqual(app.staticTexts["walletBalance"].label,"Balance: ₿100")
+        tap("walletTransactions",app)
+        let loading=app.staticTexts["walletTransactionsLoading"],refresh=app.buttons["walletTransactionsRefresh"]
+        XCTAssertTrue(loading.waitForExistence(timeout:8))
+        photo("Native public receipts initial loading",app)
+        let profileName=app.staticTexts["Public Reader"]
+        XCTAssertTrue(profileName.waitForExistence(timeout:10))
+        XCTAssertTrue(app.staticTexts["₿3"].exists)
+        refresh.tap()
+        XCTAssertFalse(refresh.isEnabled)
+        XCTAssertTrue(profileName.exists)
+        XCTAssertFalse(loading.exists)
+        photo("Native public receipts retained during refresh",app)
+        let refreshed=XCTNSPredicateExpectation(predicate:NSPredicate(format:"enabled == true"),object:refresh)
+        XCTAssertEqual(XCTWaiter.wait(for:[refreshed],timeout:10),.completed)
+        refresh.tap()
+        XCTAssertTrue(app.staticTexts["walletTransactionsError"].waitForExistence(timeout:10))
+        photo("Native public receipts relay error",app)
+        app.buttons["walletTransactionsRetry"].tap()
+        XCTAssertTrue(app.staticTexts["walletTransactionsEmpty"].waitForExistence(timeout:10))
+        photo("Native public receipts empty after retry",app)
+        app.buttons["walletTransactionsClose"].tap()
+        XCTAssertTrue(app.buttons["walletTransactions"].waitForExistence(timeout:10))
+        XCTAssertEqual(relay.frames().filter{$0.first as? String == "EVENT"}.count,0)
+        XCTAssertEqual(relay.frames().filter{(($0.last as? [String:Any])?["kinds"] as? [Int]) == [9321]}.count,4)
+    }
     func testBrowserBackupRequiresExplicitRestoreAndSurvivesRelaunch() async throws {
         continueAfterFailure=false
         let keys=Keypair()!,receiving=Keypair()!,relay=LocalNostrRelay();defer { relay.stop() }
