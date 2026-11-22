@@ -4,15 +4,55 @@ import XCTest
     private func tap(_ id:String,_ app:XCUIApplication){let button=app.buttons[id];XCTAssertTrue(button.waitForExistence(timeout:20),id);XCTAssertEqual(XCTWaiter.wait(for:[XCTNSPredicateExpectation(predicate:NSPredicate(format:"enabled == true"),object:button)],timeout:20),.completed,id);for _ in 0..<4 where !button.isHittable{app.swipeUp(velocity:.slow)};XCTAssertTrue(button.isHittable,id);button.tap()}
     private func photo(_ name:String,_ app:XCUIApplication){let shot=XCTAttachment(screenshot:app.screenshot());shot.name=name;shot.lifetime = .keepAlways;add(shot)}
     private func launch(_ scenario:String,walletRelay:String?=nil)->XCUIApplication {
-        continueAfterFailure=false;let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_TUTOR_FIXTURE":"1","PIYALI_FLASHCARD_FIXTURE":"1","PIYALI_PLATE_JOURNEY_FIXTURE":scenario,"PIYALI_CONVERSATION_FIXTURE":scenario == "conversation" ? "1":"0"];if let walletRelay{app.launchEnvironment["PIYALI_WALLET_TEST_RELAY"]=walletRelay};app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"];app.launch();handleInitialPaperPencil(app)
+        continueAfterFailure=false;let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_TUTOR_FIXTURE":"1","PIYALI_FLASHCARD_FIXTURE":"1","PIYALI_CONVERSATION_FIXTURE":scenario == "conversation" ? "1":"0"];if let walletRelay{app.launchEnvironment["PIYALI_WALLET_TEST_RELAY"]=walletRelay}
+        if scenario == "fresh" {
+            app.launchEnvironment["PIYALI_TUTOR_LATE_SPEECH_FIXTURE"]="1"
+        } else {
+            app.launchEnvironment["PIYALI_PLATE_JOURNEY_FIXTURE"]=scenario
+        }
+        app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"];app.launch();handleInitialPaperPencil(app)
         let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Quest Learner");if app.buttons["entryKeyboardDone"].exists{app.buttons["entryKeyboardDone"].tap()};tap("createAccount",app);handleInitialPaperPencil(app);tap("startLearning",app)
         if !["returning-learn","rollover-learn"].contains(scenario) {
             tap("companionContinue",app)
             acknowledgePaperPencil(app)
             tap("gettingStartedGotIt",app)
+            if scenario == "fresh" {
+                XCTAssertTrue(app.buttons["placementNew"].waitForExistence(timeout:10))
+                photo("Native new learner placement",app)
+            }
             tap("placementNew",app)
         }
         return app
+    }
+    func testFreshSignupPlacementAndFirstGuidedTutorTurnSurviveRelaunch(){
+        let app=launch("fresh")
+        let start=app.buttons["startDailyPractice"]
+        XCTAssertTrue(start.waitForExistence(timeout:15))
+        XCTAssertEqual(start.label,"Start tasks")
+        XCTAssertTrue(app.staticTexts["XP 0"].exists)
+        photo("Native new learner Focus after placement",app)
+        tap("startDailyPractice",app)
+        let title=app.staticTexts["tutorLessonTitle"]
+        XCTAssertTrue(title.waitForExistence(timeout:15))
+        XCTAssertTrue(title.label.contains("Tutorial"))
+        XCTAssertFalse(app.staticTexts["tutorLatestReply"].exists)
+        photo("Native first guided Tutor before connecting",app)
+        tap("tutorStart",app)
+        let progress=app.staticTexts["tutorProgressBadge"]
+        XCTAssertTrue(progress.waitForExistence(timeout:15))
+        XCTAssertEqual(XCTWaiter.wait(for:[XCTNSPredicateExpectation(predicate:NSPredicate(format:"label != %@","0%"),object:progress)],timeout:25),.completed)
+        let savedProgress=progress.label
+        photo("Native first guided Tutor progress",app)
+        app.terminate();app.launch()
+        XCTAssertTrue(start.waitForExistence(timeout:15))
+        XCTAssertEqual(start.label,"Continue practice")
+        XCTAssertFalse(app.buttons["companionContinue"].exists)
+        tap("startDailyPractice",app)
+        XCTAssertTrue(title.waitForExistence(timeout:15))
+        XCTAssertEqual(progress.label,savedProgress)
+        XCTAssertTrue(app.buttons["tutorStart"].isEnabled)
+        XCTAssertFalse(app.staticTexts["tutorLatestReply"].exists)
+        photo("Native first guided Tutor restored with microphone closed",app)
     }
     private func completeTutor(_ app:XCUIApplication){
         tap("startDailyPractice",app);photo("Native daily practice route",app);XCTAssertTrue(app.staticTexts["tutorLessonTitle"].waitForExistence(timeout:15));tap("tutorStart",app)
