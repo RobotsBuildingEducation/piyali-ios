@@ -37,8 +37,11 @@ import JavaScriptCore
         guard let tutorial,app.subscription.hasAccess,savedRun(app.learner) == nil else{return}
         await run(app) { scope,version in
             let target=app.learner.target,support=app.learner.support,key=app.learner.tutorialExplorationKey(tutorial)
-            let input:JSONValue = .object(["lesson":try RPGPreparationPolicy.value(tutorial).setting("isTutorial",.bool(true)),"target":.string(target),
+            var input:JSONValue = .object(["lesson":try RPGPreparationPolicy.value(tutorial).setting("isTutorial",.bool(true)),"target":.string(target),
                 "support":.string(support),"user":app.learner.rpgObjectUser])
+            #if DEBUG
+            if RPGPreparationFixture.useTutorialDialogue { input=input.setting("testSeed",.number(0)) }
+            #endif
             var scenario=try await TutorialPlazaPolicy().generate(input) { prompt in
                 try self.valid(app,scope,version)
                 guard app.subscription.hasAccess else{throw CancellationError()}
@@ -56,6 +59,7 @@ import JavaScriptCore
             let cast=RPGArt.shared.randomCast(count:scenario.npcs.count)
             if cast.count == scenario.npcs.count {
                 let mapping=zip(scenario.npcs,cast).reduce(into:[String:String]()) { $0[$1.0["name"].string]=$1.1.name }
+                scenario.npcNameMap=mapping
                 scenario.quest=ExplorationText.transform(scenario.quest) { RPGCast.rename($0,mapping:mapping) }
                 scenario.gatherPlacements=scenario.gatherPlacements.map { item in
                     ExplorationText.transform(item) { RPGCast.rename($0,mapping:mapping) }
@@ -94,17 +98,118 @@ import JavaScriptCore
             try self.valid(app,account,version);app.learner.saveExploration(try ExplorationRun(target:target,support:support,scenario:chosen));app.persist()
         }
     }
+    func generateChoices(_ app:AppModel)async {
+        guard let original=savedRun(app.learner),original.tutorialKey != nil,
+              original.talking,original.mode == "choice",original.choicesResolved != true,
+              app.subscription.hasAccess else { return }
+        let account=scope(app)
+        var choices:[JSONValue]=[]
+        do {
+            let policy=try TutorialPlazaPolicy(),input=try dialogueInput(original,app:app)
+            let prompt=try policy.dialogue("choice",input)
+            let response=try await tutorialResponse(prompt,app:app)
+            let data=try policy.dialogue("responseChoices",input.setting("response",.string(response)))
+            choices=try JSONDecoder().decode([JSONValue].self,from:Data(data.utf8))
+        } catch {
+            // An unavailable or malformed response exposes the scenario's original choices.
+        }
+        guard !Task.isCancelled,scope(app) == account,app.subscription.hasAccess,
+              var current=savedRun(app.learner),sameNode(current,original),current.choicesResolved != true else { return }
+        let usable=choices.allSatisfy { !$0["text"].string.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty &&
+            !$0["npcReply"].string.isEmpty && $0["text"].string.count < 600 && $0["npcReply"].string.count < 600 }
+        current.resolveChoices(usable ? choices : [])
+        app.learner.saveExploration(current)
+        app.persist()
+    }
+
+    func prepareChapter(_ app:AppModel)async {
+        guard let original=savedRun(app.learner),let chapter=original.chapter,!chapter.ready,
+              app.subscription.hasAccess else { return }
+        let account=scope(app)
+        func save(_ apply:(inout ExplorationChapter)->Void) throws {
+            try Task.checkCancellation()
+            guard scope(app) == account,app.subscription.hasAccess,var current=savedRun(app.learner),current.id == original.id,
+                  current.stepIndex == original.stepIndex,var currentChapter=current.chapter,!currentChapter.ready else { throw CancellationError() }
+            apply(&currentChapter)
+            current.chapter=currentChapter
+            current.updatedAt=Date()
+            app.learner.saveExploration(current)
+            app.persist()
+        }
+        do {
+            let policy=try TutorialPlazaPolicy(),input=try dialogueInput(original,app:app)
+            var bridge=chapter.bridge
+            if !chapter.bridgeReady {
+                let prompt=try policy.dialogue("bridge",input)
+                let response=try await tutorialResponse(prompt,app:app)
+                let text=try policy.dialogue("responseLine",input.setting("response",.string(response)))
+                bridge=text.isEmpty ? nil : text
+                try save { $0.bridgeReady=true;$0.bridge=text.count < 200 ? bridge : nil }
+            }
+            let prompt=try policy.dialogue("greeting",input.setting("bridgeLine",.string(bridge ?? "")))
+            let response=try await tutorialResponse(prompt,app:app)
+            let text=try policy.dialogue("responseLine",input.setting("response",.string(response)))
+            try save { $0.greeting=text.isEmpty || text.count >= 300 ? nil : text;$0.ready=true }
+        } catch {
+            try? save { $0.ready=true }
+        }
+    }
+
+    private func sameNode(_ current:ExplorationRun,_ original:ExplorationRun)->Bool {
+        current.id == original.id && current.stepIndex == original.stepIndex && current.talking &&
+        current.node["id"] == original.node["id"] && current.dialogueVisit == original.dialogueVisit
+    }
+
+    private func dialogueInput(_ run:ExplorationRun,app:AppModel)throws->JSONValue {
+        guard let tutorial else { throw ExplorationFailure.invalidQuest }
+        let character=RPGArt.shared.data["voices"][run.npc["characterKind"].string]
+        let personality=character["personality"].string
+        return .object([
+            "lesson":try RPGPreparationPolicy.value(tutorial).setting("isTutorial",.bool(true)),
+            "target":.string(run.target),"support":.string(run.support),"user":app.learner.rpgObjectUser,
+            "npcName":run.npc["name"],"npcPersonality":run.npc["personality"],
+            "npcNameMap":.object((run.scenario.npcNameMap ?? [:]).mapValues(JSONValue.string)),
+            "roster":.array(run.scenario.npcs.map { $0["name"] }),
+            "personality":personality.isEmpty ? run.npc["personality"] : .string(personality),
+            "seed":run.scenario.quest["storySeed"],"history":.string((run.legacyHistory ?? []).joined(separator:"\n")),
+            "npcLine":run.node["npcLine"],"firstNextNodeId":run.node["choices"].array.first?["nextNodeId"] ?? .null,
+        ])
+    }
+
+    private func tutorialResponse(_ prompt:String,app:AppModel)async throws->String {
+        #if DEBUG
+        if RPGPreparationFixture.useTutorialDialogue { return try await RPGPreparationFixture.tutorialDialogue(prompt) }
+        if RPGPreparationFixture.useTutorialPlazaReplies { return "" }
+        #endif
+        return try await app.ai.responsesText(prompt)
+    }
+
     func speak(_ answer:String,app:AppModel) async {
         guard let original=savedRun(app.learner),original.talking,original.mode == "speech",!answer.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else { return }
         await run(app) { account,version in
             var reply=original.node["speechContinueReply"].string,tip=""
-            if app.subscription.hasAccess {
+            if original.tutorialKey != nil {
+                if reply.isEmpty { reply=RPGArt.shared.copy("speechContinue",lang:original.support) }
+                if app.subscription.hasAccess {
+                    do {
+                        let policy=try TutorialPlazaPolicy()
+                        let input=try self.dialogueInput(original,app:app).setting("answer",.string(answer))
+                            .setting("nextNodeLine",.string(original.nextSpeechLine))
+                        let prompt=try policy.dialogue("speech",input)
+                        let raw=try await self.tutorialResponse(prompt,app:app)
+                        let generated=try policy.dialogue("responseLine",input.setting("response",.string(raw)))
+                        if !generated.isEmpty,generated.utf8.count <= 2000 { reply=generated }
+                    } catch { /* Keep the existing scene's speech reply. */ }
+                    try self.valid(app,account,version)
+                    guard app.subscription.hasAccess else { throw CancellationError() }
+                }
+            } else if app.subscription.hasAccess {
                 do { let turn=try await app.ai.explorationSpeech(original,answer:answer);try self.valid(app,account,version)
                     guard app.subscription.hasAccess else { throw CancellationError() };reply=turn.reply;tip=turn.tip
                 } catch is CancellationError { throw CancellationError() } catch { try self.valid(app,account,version);self.error="Online NPC feedback is unavailable. Continued with the saved quest's reply." }
             }
             try self.valid(app,account,version)
-            guard var current=self.savedRun(app.learner),current.id == original.id,current.stepIndex == original.stepIndex,current.nodeID == original.nodeID else { throw CancellationError() }
+            guard var current=self.savedRun(app.learner),self.sameNode(current,original) else { throw CancellationError() }
             _=current.speak(answer,reply:reply);current.tip=tip;app.learner.saveExploration(current);app.persist()
         }
     }
@@ -171,6 +276,13 @@ extension AIService {
               !api.isUndefined else { throw ExplorationFailure.invalidScenario }
         self.context=context
         self.api=api
+    }
+
+    func dialogue(_ operation:String,_ input:JSONValue)throws->String {
+        context.exception=nil
+        guard let result=api.invokeMethod("dialogue",withArguments:[operation,input.canonicalJSON]),
+              context.exception == nil,!result.isUndefined,let value=result.toString() else { throw ExplorationFailure.invalidQuest }
+        return value
     }
 
     func terrain(_ world:RPGWorld,definitions:JSONValue,seed:Int)->Data? {

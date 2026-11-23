@@ -6,6 +6,7 @@ struct ExplorationView:View {
     @EnvironmentObject var app:AppModel
     @Environment(\.scenePhase) private var phase
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.accessibilityReduceMotion) private var reducedMotion
     @Environment(\.dismiss) private var dismiss
     @StateObject private var service:ExplorationService
     @StateObject private var speech=SpeechService()
@@ -52,9 +53,9 @@ struct ExplorationView:View {
     private func t(_ key:String)->String {RPGArt.shared.copy(key,lang:app.learner.support)}
     private func search(_ key:String,_ args:[String]=[])->String {RPGArt.shared.searchCopy(key,lang:app.learner.support,args:args)}
     var body:some View {
-        surface.toolbar(onTutorialFinish == nil ? .hidden : .automatic,for:.navigationBar)
+        surface.toolbar(onTutorialFinish == nil || !embedded ? .hidden : .automatic,for:.navigationBar)
             .toolbar(.hidden,for:.tabBar).statusBarHidden(!embedded)
-            .ignoresSafeArea(.container,edges:onTutorialFinish == nil ? .all : [])
+            .ignoresSafeArea(.container,edges:onTutorialFinish == nil || !embedded ? .all : [])
             .task(id:scope) {
                 stop()
                 panel=initialPanel
@@ -66,6 +67,12 @@ struct ExplorationView:View {
                 configureObjects()
                 startMusic()
                 playDialogue()
+            }
+            .task(id:choicesKey) {
+                if !choicesKey.isEmpty { await service.generateChoices(app) }
+            }
+            .task(id:chapterKey) {
+                if !chapterKey.isEmpty { await service.prepareChapter(app) }
             }
             .task(id:turnInKey){let key=turnInKey;guard !key.isEmpty else{return};try? await Task.sleep(for:.milliseconds(450));guard !Task.isCancelled,turnInKey == key else{return};edit{$0.completeTurnIn()}}
             .onChange(of:narrationKey){_,_ in playDialogue()}
@@ -93,7 +100,15 @@ struct ExplorationView:View {
                 RPGWorldView(run:rendered,pet:pet,markers:markers(run),tutorialTerrain:tutorialTerrain(run),onTile:tile).accessibilityIdentifier("explorationWorld").accessibilityValue("\(run.mapID)|\(run.position.x),\(run.position.y)")
                 VStack{header(run);Spacer()}.padding(12).padding(.top,topInset)
                 if !run.completed {actions.padding(.trailing,12).padding(.top,56+topInset).frame(maxWidth:.infinity,maxHeight:.infinity,alignment:.topTrailing)}
-                if run.talking,!run.completed {VStack{Spacer();dialogue(run,heightLimit:g.size.height*0.44).padding(.horizontal,12).padding(.bottom,16+bottomInset)}}
+                if run.talking,!run.completed {
+                    let inlineMenuHeight:CGFloat=run.tutorialKey != nil && embedded ? 76 : 0
+                    let bottom=16+bottomInset+inlineMenuHeight
+                    let height=run.tutorialKey == nil ? g.size.height*0.44 : min(g.size.height-bottom-16,UIScreen.main.bounds.height*0.44)
+                    VStack {
+                        Spacer()
+                        dialogue(run,heightLimit:height).padding(.horizontal,12).padding(.bottom,bottom)
+                    }
+                }
                 if !run.talking,!run.completed {VStack(spacing:8){Spacer();if !pickup.isEmpty{Text("+  "+pickup).font(PiyaliBrand.productFont(14,700)).foregroundStyle(ink).padding(.horizontal,12).padding(.vertical,8).background(paper,in:RoundedRectangle(cornerRadius:8)).overlay(RoundedRectangle(cornerRadius:8).stroke(border))};if let observation=observations.observation{RPGObjectObservationView(observation:observation,target:run.target,support:run.support,lootText:loot)}}.padding(.horizontal,12).padding(.bottom,16+bottomInset).allowsHitTesting(false)}
                 if run.completed{completed(run)}
                 if ["quest","inventory","companion"].contains(panel){modal(run)}
@@ -157,27 +172,145 @@ struct ExplorationView:View {
     }
     private func action(_ image:String,_ label:String,_ id:String,_ work:@escaping()->Void)->some View {Button(action:work){RPGArt.shared.image(image).interpolation(.none).resizable().frame(width:64,height:64).frame(width:40,height:40)}.accessibilityLabel(label).accessibilityIdentifier(id)}
     private func dialogue(_ run:ExplorationRun,heightLimit:CGFloat)->some View {
-        VStack(spacing:0){
-            HStack(spacing:8){portrait(run);Text(run.npc["name"].string).font(PiyaliBrand.productFont(14,700));Spacer()}.padding(.leading,8).padding(.trailing,32).frame(height:100).background(light ? PiyaliBrand.unitColor("f9f0dd").opacity(0.94):PiyaliBrand.unitColor("fffaf0")).overlay(alignment:.bottom){Rectangle().fill(border.opacity(0.45)).frame(height:1)}.overlay(alignment:.topTrailing){Button{closeDialogue()}label:{Image(systemName:"xmark").font(.system(size:10,weight:.semibold)).frame(width:24,height:24)}.padding(8).accessibilityLabel(t("closeDialogue")).accessibilityIdentifier("explorationCloseDialogue")}
-            ScrollView {VStack(alignment:.leading,spacing:8){
-                HStack{Spacer();Button{let text=line(run),id=run.id,node=run.nodeID;Task{if let result=await service.translate(text,app:app),self.run?.id == id,self.run?.nodeID == node{translation=result}}}label:{RPGArt.shared.image("RPGIconHelp").renderingMode(.template).resizable().frame(width:14,height:14).foregroundStyle(PiyaliBrand.unitColor("466f9a")).frame(width:24,height:24).background(.white,in:RoundedRectangle(cornerRadius:6))}.disabled(service.busy).accessibilityLabel(t("translateText"))}
-                RPGDialogueText(text:line(run),language:run.target,color:ink,animated:true).accessibilityIdentifier("explorationNode")
-                if !translation.isEmpty{Text(translation).font(PiyaliBrand.productFont(14)).italic().foregroundStyle(PiyaliBrand.unitColor("2b6cb0"))}
-                if let tip=run.tip,!tip.isEmpty{Text(tip).font(PiyaliBrand.productFont(12)).foregroundStyle(muted)}
-                dialogueActions(run).disabled(run.pendingTurnIn == true)
-            }.padding(.horizontal,12).padding(.top,4).padding(.bottom,12).background{GeometryReader{g in Color.clear.preference(key:ExplorationDialogueHeight.self,value:g.size.height)}}}.frame(height:min(max(44,dialogueHeight),max(44,heightLimit-100))).onPreferenceChange(ExplorationDialogueHeight.self){dialogueHeight=$0}.scrollBounceBehavior(.basedOnSize).scrollIndicators(.hidden)
-        }.foregroundStyle(ink).background(paper,in:RoundedRectangle(cornerRadius:12)).clipShape(RoundedRectangle(cornerRadius:12)).overlay(RoundedRectangle(cornerRadius:12).stroke(border,lineWidth:2)).buttonStyle(.plain)
+        Group {
+            if run.tutorialKey != nil {
+                ScrollView {
+                    VStack(spacing:0) {
+                        if !run.node["playerLine"].string.isEmpty { playerBridge(run) }
+                        dialogueHeader(run)
+                        dialogueContent(run)
+                    }.background { dialogueMeasurement }
+                }.frame(height:min(max(44,dialogueHeight),max(44,heightLimit)))
+            } else {
+                VStack(spacing:0) {
+                    dialogueHeader(run)
+                    ScrollView { dialogueContent(run).background { dialogueMeasurement } }
+                        .frame(height:min(max(44,dialogueHeight),max(44,heightLimit-100)))
+                }
+            }
+        }.scrollBounceBehavior(.basedOnSize).scrollIndicators(.hidden)
+            .onPreferenceChange(ExplorationDialogueHeight.self){dialogueHeight=$0}
+            .foregroundStyle(ink).background(paper,in:RoundedRectangle(cornerRadius:12))
+            .clipShape(RoundedRectangle(cornerRadius:12))
+            .overlay { RoundedRectangle(cornerRadius:12).stroke(border,lineWidth:2).allowsHitTesting(false) }
+            .overlay(alignment:.topTrailing) {
+                Button { closeDialogue() } label: {
+                    Image(systemName:"xmark").font(.system(size:12,weight:.semibold))
+                        .frame(width:44,height:44).contentShape(Rectangle())
+                }.accessibilityLabel(t("closeDialogue")).accessibilityIdentifier("explorationCloseDialogue")
+            }
+            .buttonStyle(.plain)
+    }
+    private var dialogueMeasurement:some View {
+        GeometryReader { geometry in
+            Color.clear.preference(key:ExplorationDialogueHeight.self,value:geometry.size.height)
+        }
+    }
+    private func dialogueHeader(_ run:ExplorationRun)->some View {
+        HStack(spacing:8) {
+            portrait(run)
+            Text(run.npc["name"].string).font(PiyaliBrand.productFont(14,700))
+            Spacer()
+        }.padding(.leading,8).padding(.trailing,32).frame(height:100)
+            .background(light ? PiyaliBrand.unitColor("f9f0dd").opacity(0.94):PiyaliBrand.unitColor("fffaf0"))
+            .overlay(alignment:.bottom){Rectangle().fill(border.opacity(0.45)).frame(height:1)}
+    }
+    private func playerBridge(_ run:ExplorationRun)->some View {
+        RPGDialogueText(text:run.node["playerLine"].string,language:run.target,
+                        color:PiyaliBrand.unitColor(light ? "4b6888" : "2a4365"),size:14,bold:false,italic:true)
+            .padding(.horizontal,12).padding(.vertical,8)
+            .background(light ? PiyaliBrand.unitColor("628fca").opacity(0.10) : PiyaliBrand.unitColor("ebf8ff"),in:RoundedRectangle(cornerRadius:8))
+            .overlay(RoundedRectangle(cornerRadius:8).strokeBorder(PiyaliBrand.unitColor(light ? "628fca" : "90cdf4").opacity(light ? 0.24 : 1)))
+            .padding(.horizontal,12).padding(.top,32).padding(.bottom,8)
+            .accessibilityIdentifier("explorationPlayerBridge")
+    }
+    private func dialogueContent(_ run:ExplorationRun)->some View {
+        VStack(alignment:.leading,spacing:8) {
+            HStack{Spacer();Button{let text=line(run),id=run.id,node=run.nodeID;Task{if let result=await service.translate(text,app:app),self.run?.id == id,self.run?.nodeID == node{translation=result}}}label:{RPGArt.shared.image("RPGIconHelp").renderingMode(.template).resizable().frame(width:14,height:14).foregroundStyle(PiyaliBrand.unitColor("466f9a")).frame(width:24,height:24).background(.white,in:RoundedRectangle(cornerRadius:6))}.disabled(service.busy).accessibilityLabel(t("translateText"))}
+            explorationDialogueText(run)
+            if !translation.isEmpty{Text(translation).font(PiyaliBrand.productFont(14)).italic().foregroundStyle(PiyaliBrand.unitColor("2b6cb0"))}
+            if let tip=run.tip,!tip.isEmpty{Text(tip).font(PiyaliBrand.productFont(12)).foregroundStyle(muted)}
+            dialogueActions(run).disabled(run.pendingTurnIn == true)
+        }.padding(.horizontal,12).padding(.top,4).padding(.bottom,12)
+    }
+    @ViewBuilder private func explorationDialogueText(_ run:ExplorationRun)->some View {
+        let text=line(run)
+        if run.tutorialKey != nil {
+            let split=RPGDialogue.split(text)
+            let scene=split.scene.isEmpty && run.feedback.isEmpty ? run.node["sceneLine"].string : split.scene
+            if !scene.isEmpty {
+                RPGDialogueText(text:scene,language:run.support,color:muted,size:12,bold:false,italic:true)
+                    .accessibilityIdentifier("explorationSceneLine")
+            }
+            let textColor=run.feedback.isEmpty ? ink : PiyaliBrand.unitColor(light ? "9b5d2d" : "9c4221")
+            RPGDialogueText(text:split.spoken,language:run.target,color:textColor,size:run.feedback.isEmpty ? 16:14,
+                            bold:run.feedback.isEmpty,animated:run.feedback.isEmpty).accessibilityIdentifier("explorationNode")
+        } else {
+            RPGDialogueText(text:text,language:run.target,color:ink,animated:true).accessibilityIdentifier("explorationNode")
+        }
     }
     @ViewBuilder private func dialogueActions(_ run:ExplorationRun)->some View {
-        if run.mode == "choice" {ForEach(Array(run.node["choices"].array.enumerated()),id:\.offset){index,choice in Button(choice["text"].string){edit{_=$0.choose(index)}}.buttonStyle(ExplorationChoiceStyle(ink:ink,paper:paper,border:border)).accessibilityIdentifier("explorationChoice-\(index)")}}
+        if run.mode == "choice" {
+            if !choicesKey.isEmpty {
+                VStack(spacing:8) {
+                    VoiceOrbView(dark:!light,reducedMotion:reducedMotion,showShadow:false).frame(width:24,height:24).accessibilityHidden(true)
+                    Text(t("thinking")).font(PiyaliBrand.productFont(14)).foregroundStyle(muted)
+                        .accessibilityIdentifier("explorationChoicesThinking")
+                }.padding(.vertical,16).frame(maxWidth:.infinity)
+            } else {
+                ForEach(Array(run.node["choices"].array.enumerated()),id:\.offset) { index,choice in
+                    choiceButton(choice["text"].string,index:index,run:run)
+                }
+            }
+        }
         else if run.mode == "speech" {
             if typedReply {TextField(t("response"),text:$answer,axis:.vertical).textFieldStyle(.roundedBorder).focused($editing).accessibilityIdentifier("explorationAnswer");Button(t("continue")){send()}.disabled(answer.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty || service.busy).accessibilityIdentifier("explorationSpeechSubmit")}
-            else {Button{if speech.recording{speech.stop()}else{speechArmed=true;Task{await speech.start(language:run.target)}}}label:{Image(systemName:speech.recording ? "stop.fill":"mic.fill").font(.system(size:28)).frame(width:56,height:56).background(PiyaliBrand.unitColor("48bb78"),in:Circle())}.frame(maxWidth:.infinity).disabled(service.busy).contextMenu{Button(t("response")){typedReply=true}}.accessibilityLabel(t(speech.recording ? "micStop":"micStart")).accessibilityIdentifier("explorationMicrophone")}
+            else { microphone(run) }
         }else if ["gather","objectSearch"].contains(run.mode){
             if !run.inventory.isEmpty {Text(search("chooseItem")).font(PiyaliBrand.productFont(12)).foregroundStyle(muted);LazyVGrid(columns:[GridItem(.adaptive(minimum:60))],spacing:8){ForEach(Array(run.inventory.enumerated()),id:\.element.id){index,item in Button{handIn(index)}label:{itemSprite(item.item,size:40).padding(8).background(paper,in:RoundedRectangle(cornerRadius:8)).overlay(RoundedRectangle(cornerRadius:8).stroke(border,lineWidth:2))}.accessibilityLabel(item.item["name"].string).accessibilityIdentifier("explorationHandIn-\(index)")}}}
             Button{closeDialogue()}label:{Text(search("continueSearching")).font(PiyaliBrand.productFont(14,700)).frame(maxWidth:.infinity,alignment:.leading).padding(.horizontal,12).padding(.vertical,8).overlay(Capsule().stroke(border,lineWidth:1))}.accessibilityIdentifier("explorationKeepSearching")
         }else{Button(t("continue")){edit{_=$0.continueDialogue()}}.buttonStyle(ExplorationChoiceStyle(ink:ink,paper:paper,border:border)).accessibilityIdentifier("explorationContinue")}
         if service.busy{ProgressView()};if let error=speech.error{Text(error).font(PiyaliBrand.productFont(12))}
+    }
+    private func microphone(_ run:ExplorationRun)->some View {
+        let isTutorial=run.tutorialKey != nil
+        return Button {
+            if speech.recording { speech.stop() }
+            else {
+                speechArmed=true
+                Task { await speech.start(language:run.target) }
+            }
+        } label: {
+            let icon=speech.recording ? "stop.fill" : "mic.fill"
+            if isTutorial {
+                Image(systemName:icon).font(.system(size:16)).foregroundStyle(.white).frame(width:32,height:32)
+                    .background {
+                        RoundedRectangle(cornerRadius:8).fill(PiyaliBrand.unitColor("319795"))
+                            .shadow(color:PiyaliBrand.unitColor("234e52"),radius:0,y:4)
+                    }.frame(width:44,height:44).contentShape(Rectangle())
+            } else {
+                Image(systemName:icon).font(.system(size:28)).frame(width:56,height:56)
+                    .background(PiyaliBrand.unitColor("48bb78"),in:Circle())
+            }
+        }.disabled(service.busy)
+            .contextMenu { Button(t("response")) { typedReply=true } }
+            .accessibilityLabel(t(speech.recording ? "micStop" : "micStart"))
+            .accessibilityIdentifier("explorationMicrophone")
+            .frame(maxWidth:.infinity,alignment:isTutorial ? .trailing : .center)
+    }
+    @ViewBuilder private func choiceButton(_ text:String,index:Int,run:ExplorationRun)->some View {
+        if run.tutorialKey != nil {
+            let label=(UnicodeScalar(65+index).map { String($0) } ?? "")+". "+text
+            Button { edit { _=$0.choose(index) } } label: {
+                RPGDialogueText(text:label,language:run.target,color:ink,size:14,bold:false,weight:600)
+                    .padding(.horizontal,12).padding(.vertical,8).frame(maxWidth:.infinity,alignment:.leading)
+            }.buttonStyle(RPGDialogueChoiceStyle(light:light,cornerRadius:10))
+                .accessibilityLabel(label).accessibilityIdentifier("explorationChoice-\(index)")
+        } else {
+            Button(text) { edit { _=$0.choose(index) } }
+                .buttonStyle(ExplorationChoiceStyle(ink:ink,paper:paper,border:border))
+                .accessibilityIdentifier("explorationChoice-\(index)")
+        }
     }
     private func portrait(_ run:ExplorationRun)->some View {let index=max(0,ExplorationTemplate.integer(run.step["npcIdx"])),kind=npcAsset(run.npc,index:index,key:"type"),id=portraitID(run,kind:kind),file=StoryCharacterAvatar.appearance.portraitFile(id);return Group{if let url=Bundle.main.url(forResource:file,withExtension:nil),let image=UIImage(contentsOfFile:url.path){Image(uiImage:image).resizable().interpolation(.none).scaledToFit()}else{RPGArt.shared.image("RPGNPC-0-0").resizable().scaledToFit()}}.frame(width:36,height:36)}
     private func portraitID(_ run:ExplorationRun,kind:String)->String {
@@ -237,6 +370,15 @@ struct ExplorationView:View {
     private func npcAsset(_ npc:JSONValue,index:Int,key:String)->String {
         let cast=npc[key == "image" ? "appearance" : "characterKind"].string
         return cast.isEmpty ? RPGArt.shared.data["npcs"].array[(index*5)%16][key].string : cast
+    }
+    private var choicesKey:String {
+        guard phase == .active,app.subscription.hasAccess,let run,run.talking,run.tutorialKey != nil,
+              run.mode == "choice",run.choicesResolved != true else { return "" }
+        return [scope,run.id.uuidString,String(run.stepIndex),run.dialogueVisit?.uuidString ?? "",run.node["id"].string].joined(separator:":")
+    }
+    private var chapterKey:String {
+        guard phase == .active,app.subscription.hasAccess,let run,run.chapter?.ready == false else { return "" }
+        return [scope,run.id.uuidString,String(run.stepIndex)].joined(separator:":")
     }
     private var turnInKey:String {guard let run,run.pendingTurnIn == true else{return ""};return scope+":"+run.id.uuidString+":"+run.searchKey}
     private func handIn(_ index:Int){guard let run,run.inventory.indices.contains(index) else{return};let item=run.inventory[index].item;edit{value in

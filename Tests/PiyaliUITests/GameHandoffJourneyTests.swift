@@ -3,10 +3,11 @@ import XCTest
 @MainActor final class GameHandoffJourneyTests:XCTestCase {
     private func tap(_ id:String,_ app:XCUIApplication){let b=app.buttons[id];XCTAssertTrue(b.waitForExistence(timeout:15),id);for _ in 0..<10 where !b.isHittable{app.swipeUp(velocity:.slow)};XCTAssertTrue(b.isHittable,id);b.tap()}
     private func shot(_ name:String,_ app:XCUIApplication){let a=XCTAttachment(screenshot:app.screenshot());a.name=name;a.lifetime = .keepAlways;add(a)}
-    private func launch(_ support:String="en",prepared:String="prepared",failLibraryLoad:Bool=false,legacyTutorial:Bool=false)->XCUIApplication{
+    private func launch(_ support:String="en",prepared:String="prepared",failLibraryLoad:Bool=false,legacyTutorial:Bool=false,legacyDialogue:Bool=false)->XCUIApplication{
         let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_TUTOR_FIXTURE":"1","PIYALI_PRACTICE_FIXTURE":"delight:natural_or_weird","PIYALI_HEADLINE_FIXTURE":"failure","PIYALI_RPG_PREPARED_FIXTURE":prepared,"PIYALI_RPG_PREPARED_DELAY_MS":"10000","PIYALI_GAME_LOADER_SEED":"7","PIYALI_ENTRY_INITIAL_LANGUAGE":support,"PIYALI_ENTRY_INITIAL_THEME":support=="ar" ? "dark":"light"]
         if failLibraryLoad { app.launchEnvironment["PIYALI_RPG_FAIL_FIRST_LIBRARY_LOAD"]="1" }
         if legacyTutorial { app.launchEnvironment["PIYALI_LEGACY_TUTORIAL_FIXTURE"]="1" }
+        if legacyDialogue { app.launchEnvironment["PIYALI_LEGACY_TUTORIAL_DIALOGUE"]="1" }
         app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US"];app.launch();handleInitialPaperPencil(app);let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Handoff Learner");tap("entryKeyboardDone",app);tap("createAccount",app);handleInitialPaperPencil(app);tap("startLearning",app);tap("companionContinue",app);acknowledgePaperPencil(app);tap("gettingStartedGotIt",app);tap("placementNew",app);return app
     }
     private func mode(_ mode:String,_ app:XCUIApplication){tap("productMenu",app);tap("productModeMenu",app);tap("productMode-"+mode,app)}
@@ -33,6 +34,9 @@ import XCTest
         let position=world.value as? String
         XCTAssertNotEqual(position,"tutorialPlaza|3,3")
         shot("Native course introduction legacy Greeting Plaza",app)
+        awaitLegacyFullScreen(app)
+        XCTAssertEqual(world.value as? String,position)
+        shot("Native legacy fullscreen preserves the player position",app)
         app.terminate()
         app.launch()
         handleInitialPaperPencil(app)
@@ -47,6 +51,78 @@ import XCTest
         XCTAssertEqual(bonus.label,"+50")
         XCTAssertFalse(world.exists)
         shot("Native legacy game Skip reaches the introduction bonus",app)
+    }
+    func testLegacyTutorialChoicesAndChapterDialogueLeadToEarnedCompletion()throws {
+        continueAfterFailure=false
+        let app=launch(prepared:"cache-only",failLibraryLoad:true,legacyTutorial:true,legacyDialogue:true)
+        mode("path",app)
+        tap("introLink",app)
+        tap("startLessonFromPreview",app)
+        for id in ["skipLessonActivity","skipLessonActivity","skipLessonActivity","skipLessonActivity","realtimeSkip"]{tap(id,app)}
+        XCTAssertTrue(app.otherElements["explorationWorld"].waitForExistence(timeout:15))
+        awaitLegacyFullScreen(app)
+
+        let tiles=(0..<14).flatMap { y in (0..<18).map { x in x == 0 || x == 17 || y == 0 || y == 13 ? 2 : 0 } }
+        let choice=RPGPlayFixture.Step(npc:1,mode:"choice",correct:0,example:""),speech=RPGPlayFixture.Step(npc:0,mode:"speech",correct:0,example:"Me llamo Sol.")
+        let fixture=RPGPlayFixture(lessonID:"lesson-tutorial-1",world:.init(width:18,height:14,tiles:tiles,solidTiles:[2],objects:[]),
+                                   npcs:[.init(x:4,y:4),.init(x:8,y:6)],steps:[choice,speech])
+        try rpgApproach(choice,fixture,app,worldID:"explorationWorld",closeID:"explorationCloseDialogue")
+        let originalChoice=app.buttons["explorationChoice-0"]
+        XCTAssertTrue(app.staticTexts["explorationChoicesThinking"].waitForExistence(timeout:3))
+        XCTAssertFalse(originalChoice.exists)
+        shot("Native legacy choices pending",app)
+        XCTAssertTrue(originalChoice.waitForExistence(timeout:6))
+        XCTAssertNotEqual(originalChoice.label,"A. Hola, quiero presentarme.")
+        shot("Native legacy choices use the existing quest after malformed output",app)
+
+        let close=app.buttons["explorationCloseDialogue"]
+        tap("explorationCloseDialogue",app)
+        XCTAssertEqual(XCTWaiter.wait(for:[XCTNSPredicateExpectation(predicate:NSPredicate(format:"exists == false"),object:close)],timeout:4),.completed)
+        try rpgApproach(choice,fixture,app,worldID:"explorationWorld",closeID:"explorationCloseDialogue")
+        let newOption=XCTNSPredicateExpectation(predicate:NSPredicate(format:"label == %@","A. Hola, quiero presentarme."),object:originalChoice)
+        XCTAssertEqual(XCTWaiter.wait(for:[newOption],timeout:6),.completed)
+        XCTAssertEqual(app.buttons["explorationChoice-2"].label,"C. Buenas tardes.")
+        shot("Native legacy generated choices",app)
+        tap("explorationChoice-0",app)
+        XCTAssertTrue(app.staticTexts["explorationSceneLine"].waitForExistence(timeout:5))
+        XCTAssertEqual(app.staticTexts["explorationSceneLine"].label,"Sonríe.")
+        XCTAssertTrue(app.staticTexts["explorationNode"].label.contains("Claro, adelante."))
+        tap("explorationContinue",app)
+
+        try rpgApproach(speech,fixture,app,worldID:"explorationWorld",closeID:"explorationCloseDialogue")
+        let bridge=app.staticTexts["explorationPlayerBridge"]
+        XCTAssertTrue(bridge.waitForExistence(timeout:5))
+        XCTAssertEqual(bridge.label,"Vengo a practicar mi presentación.")
+        XCTAssertEqual(app.staticTexts["explorationNode"].label,"¡Bienvenida! Dime cómo te llamas.")
+        XCTAssertFalse(app.staticTexts["lessonCompletionBonus"].exists)
+        shot("Native legacy chapter bridge and greeting",app)
+        let mic=app.buttons["explorationMicrophone"]
+        XCTAssertTrue(mic.waitForExistence(timeout:5))
+        XCTAssertTrue(mic.isHittable)
+        mic.press(forDuration:1)
+        tap("Response",app)
+        let answer=app.descendants(matching:.any)["explorationAnswer"]
+        XCTAssertTrue(answer.waitForExistence(timeout:5))
+        answer.tap()
+        answer.typeText(speech.example)
+        tap("explorationSpeechSubmit",app)
+        let continueButton=app.buttons["explorationContinue"]
+        XCTAssertTrue(continueButton.waitForExistence(timeout:8))
+        XCTAssertTrue(app.staticTexts["explorationNode"].label.contains("Mucho gusto, Sol. Me alegra conocerte."))
+        shot("Native legacy in-character reply",app)
+        tap("explorationContinue",app)
+        let bonus=app.staticTexts["lessonCompletionBonus"]
+        XCTAssertTrue(bonus.waitForExistence(timeout:10))
+        XCTAssertEqual(bonus.label,"+50")
+        XCTAssertFalse(app.otherElements["explorationWorld"].exists)
+        shot("Native legacy quest earns the introduction bonus",app)
+    }
+    private func awaitLegacyFullScreen(_ app:XCUIApplication) {
+        let stepper=app.buttons["introStep-game"]
+        XCTAssertEqual(XCTWaiter.wait(for:[XCTNSPredicateExpectation(predicate:NSPredicate(format:"exists == false"),object:stepper)],timeout:12),.completed)
+        let world=app.otherElements["explorationWorld"]
+        XCTAssertTrue(world.waitForExistence(timeout:5))
+        XCTAssertGreaterThan(world.frame.height,app.frame.height*0.85,"The world should occupy the fullscreen viewport")
     }
     func testTutorStopsVoiceCanCancelThenRetryHandoffAndResume()throws{
         continueAfterFailure=false;let app=launch("ar");mode("tutor",app);tap("tutorStart",app);XCTAssertTrue(app.buttons["tutorMute"].waitForExistence(timeout:10));tap("tutorLessons",app);tap("tutorNode-lesson-tutorial-1",app);tap("tutorPreviewStart",app)

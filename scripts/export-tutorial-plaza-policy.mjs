@@ -23,14 +23,83 @@ const plugin = {
   },
 };
 
+const rpg = await readFile(path.join(reference, "src/components/RPGGame/index.jsx"), "utf8");
+function between(start, end, after = 0) {
+  const first = rpg.indexOf(start, after);
+  const last = rpg.indexOf(end, first + start.length);
+  if (first < 0 || last < 0) throw Error("Missing source dialogue section: " + start);
+  return rpg.slice(first, last);
+}
+
+const choiceStart = rpg.indexOf("const generateDynamicChoices =");
+const bridgeStart = rpg.indexOf("// Pre-generate contextual player bridge");
+const choices = between("const prompt = buildStrictDialoguePrompt(", "\n\n      try {", choiceStart);
+const bridge = between("const bridgePrompt = buildStrictDialoguePrompt(", "\n      callResponses", bridgeStart);
+const greeting = between("const npcGreetPrompt = buildStrictDialoguePrompt(", "\n          return callResponses", bridgeStart);
+const dialoguePolicy = `
+${between("function escapeRegExp(", "function applyNameMappingDeep(")}
+${between("function normalizeCharacterNameList(", "\n}", rpg.indexOf("function applyNameMappingDeep("))}
+}
+
+export function dialogue(operation, raw) {
+  const { lesson, target: targetLang, support: supportLang, user, npcName, personality,
+    seed, npcPersonality, history: historyContext, npcLine, answer: heard, nextNodeLine, npcNameMap,
+    roster, bridgeLine: text, response, firstNextNodeId } = JSON.parse(raw);
+  const history = historyContext;
+  const useMemo = fn => fn();
+  const useCallback = fn => fn;
+  const useUserStore = { getState: () => ({ user }) };
+  const reviewContext = lesson.gameReviewContext || buildGameReviewContext({ lesson, targetLang });
+  const cefrLevel = reviewContext?.cefrLevel || lesson.content?.game?.cefrLevel || null;
+  const adaptiveCefrLevel = reviewContext?.isTutorial ? cefrLevel :
+    generationPerformanceContextFor(user, targetLang).suggestedQuestionLevel;
+  const supportLangName = getLanguagePromptName(supportLang) || supportLang;
+  ${between("const cefrDialogueRule = useMemo", "  const localStorageSettings = ")}
+  ${between("const targetLangName = useMemo", "  const objectExamineCefrPromptRule = ")}
+  ${between("const strictTargetLanguageGuard = useMemo", "  const objectExaminePromptContext = ")}
+  ${between("const buildCharacterRosterPrompt = useCallback", "  // Authored-episode speech turns")}
+  // These names are already assigned by Swift before any dialogue opens.
+  for (const name of roster) npcNameMap[name] ??= name;
+  const node = { npcLine };
+  const nextNpcName = npcName;
+  switch (operation) {
+    case "choice": { ${choices} return prompt; }
+    case "bridge": { ${bridge} return bridgePrompt; }
+    case "greeting": { ${greeting} return npcGreetPrompt; }
+    case "speech": return buildDynamicSpeechReplyPrompt({ npcName, heard, seed, historyContext, personality, npcLine, nextNodeLine });
+    case "responseLine": return applyNameMappingToText((response || "").trim(), npcNameMap);
+    case "responseChoices": {
+      const match = (response || "").match(/\\[[\\s\\S]*\\]/);
+      if (!match) return "[]";
+      const parsed = JSON.parse(match[0]);
+      if (!Array.isArray(parsed) || parsed.length < 2) return "[]";
+      return JSON.stringify(parsed.slice(0, 3).map(c => {
+        const rawReply = applyNameMappingToText(String(c.reply || c.npcReply || ""), npcNameMap);
+        const { subtext, spokenText } = splitDialogueSubtext(rawReply);
+        return {
+          text: applyNameMappingToText(String(c.text || ""), npcNameMap),
+          npcReply: spokenText || rawReply,
+          sceneLine: subtext || null,
+          nextNodeId: firstNextNodeId,
+        };
+      }));
+    }
+  }
+}
+`;
+
 // The browser holds the generated scenario in memory. Swift serializes its
 // resolved world and owns the provider requests, saved run, and renderer.
 const terrain = await readFile(new URL("./tutorial-plaza-pixels.js", import.meta.url), "utf8");
 const entry = `
-import { generateScenarioWithAI, TUTORIAL_MAP_ID } from './src/components/RPGGame/scenarios.js';
+import { generateScenarioWithAI, TUTORIAL_MAP_ID, mulberry32 } from './src/components/RPGGame/scenarios.js';
 import { createGroundLayerCanvas, createTileTexture } from './src/components/RPGGame/pixelArt.js';
 import { buildGameReviewContext } from './src/utils/gameReviewContext.js';
 import { generationPerformanceContextFor } from './src/utils/performanceEloModel.js';
+
+import { getLanguagePromptName } from './src/constants/languages.js';
+import { getAdultBeginnerToneRule } from './src/utils/adultBeginnerTone.js';
+import { splitDialogueSubtext } from './src/utils/dialogueFormatting.js';
 
 let pending, result;
 globalThis.piyaliLegacyResponses = request => new Promise((resolve, reject) => {
@@ -74,9 +143,11 @@ function serialize(scenario, target, level) {
 }
 
 ${terrain}
+${dialoguePolicy}
 
 export function start(input) {
-  const { lesson, target, support, user } = JSON.parse(input);
+  const { lesson, target, support, user, testSeed } = JSON.parse(input);
+  if (Number.isInteger(testSeed)) Math.random = mulberry32(testSeed);
   const game = lesson.content.game;
   const context = lesson.gameReviewContext || buildGameReviewContext({ lesson, targetLang: target });
   const terms = [...(context?.reviewTerms || []), ...(game.focusPoints || []), ...(game.unitTopics || []),

@@ -262,9 +262,17 @@ struct RPGView:View {
 private struct RPGDialogueHeight:PreferenceKey {static var defaultValue:CGFloat=0;static func reduce(value:inout CGFloat,nextValue:()->CGFloat){value=max(value,nextValue())}}
 private struct RPGPetChoiceStyle:ButtonStyle {func makeBody(configuration:Configuration)->some View{configuration.label.opacity(configuration.isPressed ? 0.85:1)}}
 
-private struct RPGDialogueChoiceStyle:ButtonStyle {
+struct RPGDialogueChoiceStyle:ButtonStyle {
     let light:Bool
-    func makeBody(configuration:Configuration)->some View{
-        configuration.label.background{Capsule().fill(PiyaliBrand.unitColor(light ? "fffdf9":"ffffff").opacity(light ? 0.98:0.92)).shadow(color:PiyaliBrand.unitColor(light ? "d2c1a9":"a9a18c"),radius:0,y:configuration.isPressed ? (light ? 1:2):(light ? 3:4))}.overlay{Capsule().stroke(light ? PiyaliBrand.unitColor("c8ad88").opacity(0.86):Color.black.opacity(0.16))}.offset(y:configuration.isPressed ? 2:0)
+    var cornerRadius:CGFloat?=nil
+    func makeBody(configuration:Configuration)->some View {
+        let shape=cornerRadius.map { AnyShape(RoundedRectangle(cornerRadius:$0)) } ?? AnyShape(Capsule())
+        configuration.label.background {
+            shape.fill(PiyaliBrand.unitColor(light ? "fffdf9":"ffffff").opacity(light ? 0.98:0.92))
+                .shadow(color:PiyaliBrand.unitColor(light ? "d2c1a9":"a9a18c"),radius:0,
+                        y:configuration.isPressed ? (light ? 1:2) : (light ? 3:4))
+        }.overlay {
+            shape.stroke(light ? PiyaliBrand.unitColor("c8ad88").opacity(0.86):Color.black.opacity(0.16))
+        }.offset(y:configuration.isPressed ? 2:0)
     }
 }

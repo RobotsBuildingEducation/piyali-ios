@@ -32,9 +32,12 @@ import Foundation
         exploring=true
         revealTask=Task{[weak self] in
             guard let self else{return};defer{if token == current{revealTask=nil}}
-            do{let policy=try GameLoaderPolicy(),delay=try policy.run("delay",.object(["random":.number(random())])).number;try await wait(delay)}catch is CancellationError{return}catch{if valid(current){self.error=error.localizedDescription};return}
+            do{try await wait(Self.explorationDelay(random:random()))}catch is CancellationError{return}catch{if valid(current){self.error=error.localizedDescription};return}
             guard valid(current)else{if token == current{cancelled=true};return};ready=true
         }
+    }
+    static func explorationDelay(random:Double)throws->Double {
+        try GameLoaderPolicy().run("delay",.object(["random":.number(random)])).number
     }
     private func valid(_ token:UUID)->Bool{self.token == token && !Task.isCancelled && owner?() == true}
     func commit(_ app:AppModel)->Bool{

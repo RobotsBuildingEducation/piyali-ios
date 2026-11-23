@@ -13,9 +13,15 @@ struct IntroTutorialView:View {
     private var brand:PiyaliBrand { .init(dark:scheme == .dark) }
     private var legacyRun:ExplorationRun? { app.learner.explorationRuns?[app.learner.tutorialExplorationKey(lesson)] }
     private var usesLegacyGame:Bool { legacyRun != nil || (gamePreparation.error != nil && !gamePreparation.prepared) }
+    private var legacyRevealID:UUID? {
+        guard mode == "game",!gamePresented,!finishing,app.subscription.hasAccess,
+              let legacyRun,!legacyRun.completed else { return nil }
+        return legacyRun.id
+    }
     @StateObject private var gamePreparation=GamePreparationController()
     @State private var gameFooterOwner=UUID()
     @State private var gamePresented=false
+    @State private var presentingLegacy=false
     @State private var finishGameOnDismiss=false
     @State private var finishing=false
     @State private var reviewing=false
@@ -28,9 +34,19 @@ struct IntroTutorialView:View {
             engine(scope:capturedScope).id(capturedScope+":"+mode)
         }.background(brand.background).navigationTitle(lesson.title.localized(app.learner.support)).navigationBarTitleDisplayMode(.inline)
             .disabled(app.loadingContent || app.introLibrary?.target != app.learner.target || finishing)
-            .fullScreenCover(isPresented:$gamePresented,onDismiss:{if finishGameOnDismiss{finishGameOnDismiss=false;advance("game",scope:capturedScope)}else{dismiss()}}){NavigationStack{RPGView(lesson:lesson,episode:nil,onTutorialComplete:{finishGameOnDismiss=true;gamePresented=false})}}
+            .fullScreenCover(isPresented:$gamePresented,onDismiss:{
+                if finishGameOnDismiss { finishGameOnDismiss=false;advance("game",scope:capturedScope) }
+                else { dismiss() }
+            }) {
+                if presentingLegacy {
+                    ExplorationView(tutorial:lesson,onTutorialFinish:finishPresentedGame)
+                } else {
+                    NavigationStack { RPGView(lesson:lesson,episode:nil,onTutorialComplete:finishPresentedGame) }
+                }
+            }
+            .task(id:legacyRevealID) { await revealLegacyGame(scope:capturedScope) }
             .onChange(of:mode){_,value in if value == "game",!finishing{gamePreparation.reveal()}}
-            .onChange(of:gamePreparation.ready){_,ready in if ready,!gamePresented,mode == "game",scope == capturedScope,gamePreparation.commit(app){gamePresented=true}}
+            .onChange(of:gamePreparation.ready){_,ready in if ready,!gamePresented,!usesLegacyGame,mode == "game",scope == capturedScope,gamePreparation.commit(app){presentingLegacy=false;gamePresented=true}}
             .task(id:scope){
                 gamePreparation.cancel()
                 guard legacyRun == nil else { return }
@@ -84,7 +100,9 @@ struct IntroTutorialView:View {
         let showLegacy=usesLegacyGame
         return Group {
             if showLegacy {
-                ExplorationView(embedded:true,tutorial:lesson,onTutorialFinish:{advance("game",scope:scope)})
+                if !gamePresented {
+                    ExplorationView(embedded:true,tutorial:lesson,onTutorialFinish:{advance("game",scope:scope)})
+                }
             } else {
                 GeometryReader{geometry in
                     VStack(spacing:12){
@@ -95,6 +113,19 @@ struct IntroTutorialView:View {
                 }
             }
         }.activityFooter(owner:gameFooterOwner,revision:scope+":"+String(gamePresented)+":"+String(legacyRun != nil),access:app.subscription,enabled:!gamePresented && legacyRun == nil){ActivityFooterSurface(hasFeedback:false,feedback:{EmptyView()},actions:{Button(EntryCopy.ui(app.learner.support,"ra_btn_skip")){gamePreparation.cancel();advance("game",scope:scope)}.font(PiyaliBrand.productFont(14,600)).padding(.horizontal,8).frame(height:40).buttonStyle(.plain).accessibilityIdentifier("skipIntroActivity");Spacer(minLength:0)})}
+    }
+    private func revealLegacyGame(scope:String)async {
+        guard let id=legacyRevealID else { return }
+        let delay=(try? GamePreparationController.explorationDelay(random:Double.random(in:0...1))) ?? 6500
+        do { try await Task.sleep(for:.milliseconds(delay)) }
+        catch { return }
+        guard !Task.isCancelled,scope == self.scope,legacyRevealID == id else { return }
+        presentingLegacy=true
+        gamePresented=true
+    }
+    private func finishPresentedGame() {
+        finishGameOnDismiss=true
+        gamePresented=false
     }
     private func skip(_ mode:String,scope:String)->some View { Button { advance(mode,scope:scope) } label:{ Text(EntryCopy.ui(app.learner.support,"ra_btn_skip")).frame(maxWidth:.infinity,minHeight:44).contentShape(Rectangle()) }.buttonStyle(.bordered).padding(12).padding(.bottom,78).background(brand.background).accessibilityIdentifier("skipIntroActivity") }
     private func advance(_ mode:String,scope:String) {

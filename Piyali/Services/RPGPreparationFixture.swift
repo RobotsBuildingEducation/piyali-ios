@@ -12,6 +12,36 @@ enum RPGPreparationFixture {
     static var useTutorialPlazaReplies:Bool {
         mode != nil && ProcessInfo.processInfo.environment["PIYALI_LEGACY_TUTORIAL_FIXTURE"] == "1"
     }
+    static var useTutorialDialogue:Bool {
+        useTutorialPlazaReplies && ProcessInfo.processInfo.environment["PIYALI_LEGACY_TUTORIAL_DIALOGUE"] == "1"
+    }
+    @MainActor private static var tutorialChoiceRequests=0
+    @MainActor static func tutorialDialogue(_ prompt:String)async throws->String {
+        if prompt.contains("writing branching dialogue") {
+            tutorialChoiceRequests+=1
+            let request=tutorialChoiceRequests
+            try await Task.sleep(for:.milliseconds(request == 1 ? 4400 : 900))
+            if request == 1 { return "{}" }
+            return """
+            [{"text":"Hola, quiero presentarme.","reply":"(Sonríe.) Claro, adelante."},
+            {"text":"¿Podemos practicar?","reply":"Sí, dime tu nombre."},
+            {"text":"Buenas tardes.","reply":"Buenas tardes. ¿Qué tal?"}]
+            """
+        }
+        if prompt.contains("walking up to") {
+            guard prompt.contains("Player: Hola, quiero presentarme."),prompt.contains("Claro, adelante.") else { return "" }
+            return "Vengo a practicar mi presentación."
+        }
+        if prompt.contains("The player arrives and says:") {
+            guard prompt.contains("Vengo a practicar mi presentación.") else { return "" }
+            return "¡Bienvenida! Dime cómo te llamas."
+        }
+        if prompt.contains("<<<PLAYER_DIALOGUE>>>") {
+            guard prompt.contains("Me llamo Sol."),prompt.contains("¡Bienvenida! Dime cómo te llamas.") else { return "" }
+            return "Mucho gusto, Sol. Me alegra conocerte."
+        }
+        return ""
+    }
     static func preparedResponse()async throws->String?{
         guard let mode else{return nil};guard mode == "prepared"else{throw URLError(.notConnectedToInternet)}
         if let ms=Int(ProcessInfo.processInfo.environment["PIYALI_RPG_PREPARED_DELAY_MS"] ?? ""),(0...15000).contains(ms){try await Task.sleep(for:.milliseconds(ms))}
