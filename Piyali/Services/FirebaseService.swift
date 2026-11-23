@@ -21,7 +21,11 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
 @MainActor final class FirebaseService:LearnerProgressService {
     static let shared = FirebaseService()
     private let injectedDatabase: Firestore?
-    init(database: Firestore? = nil) { injectedDatabase = database }
+    private let achievementService: AchievementSyncService
+    init(database: Firestore? = nil, achievementService: AchievementSyncService? = nil) {
+        injectedDatabase = database
+        self.achievementService = achievementService ?? .shared
+    }
     var configured: Bool { injectedDatabase != nil || (Bundle.main.url(forResource:"GoogleService-Info",withExtension:"plist") != nil && FirebaseApp.app() != nil) }
     private var database: Firestore? { injectedDatabase ?? (configured ? Firestore.firestore() : nil) }
     static func configure() {
@@ -77,8 +81,8 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
             do{if !(try transaction.getDocument(event)).exists{transaction.setData(["source":"nosabos","metric":"session_timers","completionId":id,"createdAt":FieldValue.serverTimestamp()],forDocument:event)};return true}
             catch let failure{error?.pointee=failure as NSError;return nil}
         }
-        try await AchievementSyncService.shared.refreshLedger(user:user)
-        try await AchievementSyncService.shared.sync(user:user,changes:[])
+        try await achievementService.refreshLedger(user:user)
+        try await achievementService.sync(user:user,changes:[])
     }
     func activityHistory(npub:String,year:Int) async throws -> JSONValue {
         guard (1900...2200).contains(year),let database else { return .object([:]) }
@@ -100,7 +104,7 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
         guard let fields = snapshot.data() else { return nil }
         var native = local
         if native == nil, let text = fields["iosStateJSON"] as? String { native = try JSONDecoder().decode(LearnerState.self,from:Data(text.utf8)) }
-        if local == nil{native?.pendingPhonicsFinishes=nil;native?.pendingTutorOutcomes=nil;native?.pendingMemoryEnrichments=nil;native?.focusedTutorRuns=nil;native?.localReviewAchievementIDs=nil} // Continuations are private to this device, never restored from a server hint.
+        if local == nil{native?.pendingPhonicsFinishes=nil;native?.pendingTutorOutcomes=nil;native?.pendingMemoryEnrichments=nil;native?.focusedTutorRuns=nil;native?.localReviewAchievementIDs=nil;native?.confirmedAchievementUnlocks=nil} // Continuations are private to this device, never restored from a server hint.
         var state = WebProgressContract.imported(Self.normalized(fields),native:native)
         let lessons = try await user.collection("languageLessons").whereField("targetLang",isEqualTo:state.target).whereField("cefrLevel",isEqualTo:state.level).getDocuments(source:.server)
         for document in lessons.documents {
@@ -153,12 +157,12 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
         let memory = try await user.collection("companion").document(state.target).getDocument(source:.server)
         if state.companionMemory == nil { state.companionMemory = [:] }
         state.companionMemory?[state.target] = try Self.memoryNotes(memory.data()?["notes"])
-        try await AchievementSyncService.shared.load(user:user,state:&state)
+        try await achievementService.load(user:user,state:&state)
         return state
     }
     func importAchievements(_ records: JSONValue, npub: String) async throws -> [String:JSONValue]? {
         guard let database else { return nil };try requireOwner(npub)
-        return try await AchievementSyncService.shared.importRecords(records,user:database.collection("users").document(npub))
+        return try await achievementService.importRecords(records,user:database.collection("users").document(npub))
     }
     func saveCompanionCustomization(_ change:SettingsChange,npub:String)async throws->Bool {
         guard Set(change.partial.object.keys) == Set(["dailyGoalPetName","dailyGoalPetType"]) else{throw AppError.message("Invalid companion customization fields.")}
@@ -257,7 +261,7 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                 // Historical months are canonical; the activity fallback stays on this device.
                 merged.xpActivity=nil
                 // Companion memory has its own shared web document, not a second snapshot authority.
-                merged.shareNostrAchievements = nil; merged.achievementRecords = nil; merged.localReviewAchievementIDs = nil; merged.achievementEvidence = nil; merged.achievementLedger = nil; merged.companionProgress = nil; merged.companionMemory = nil; merged.pendingMemoryChanges = []; merged.userSettings=nil;merged.pendingSettingsChanges=[]; merged.goalIntelligence = nil; merged.goalArtifacts = nil; merged.confirmedFocusedOutcomes=nil; merged.pendingPhonicsFinishes=nil;merged.pendingTutorOutcomes=nil;merged.pendingMemoryEnrichments=nil;merged.focusedTutorRuns=nil; merged.pendingGoalChanges = []; merged.questProgress = nil; merged.journeyQuestCounts = nil; merged.tutorLessons = nil; merged.acknowledgedEventIDs = nil
+                merged.shareNostrAchievements = nil; merged.achievementRecords = nil; merged.localReviewAchievementIDs = nil; merged.confirmedAchievementUnlocks = nil; merged.achievementEvidence = nil; merged.achievementLedger = nil; merged.companionProgress = nil; merged.companionMemory = nil; merged.pendingMemoryChanges = []; merged.userSettings=nil;merged.pendingSettingsChanges=[]; merged.goalIntelligence = nil; merged.goalArtifacts = nil; merged.confirmedFocusedOutcomes=nil; merged.pendingPhonicsFinishes=nil;merged.pendingTutorOutcomes=nil;merged.pendingMemoryEnrichments=nil;merged.focusedTutorRuns=nil; merged.pendingGoalChanges = []; merged.questProgress = nil; merged.journeyQuestCounts = nil; merged.tutorLessons = nil; merged.acknowledgedEventIDs = nil
                 var patch: [String:Any] = ["local_npub":npub,"iosStateJSON":String(decoding:try JSONEncoder().encode(merged),as:UTF8.self),"iosStateVersion":2,"iosUpdatedAt":FieldValue.serverTimestamp()]
                 // The shared field is the sole headline authority. Merge only
                 // dirty language entries, retaining the web's last-write
@@ -293,12 +297,12 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                 return true
             } catch { errorPointer?.pointee = error as NSError; return nil }
         }
-        if !(state.pendingImmersionChanges ?? []).isEmpty || (state.pendingChanges ?? []).contains(where:{ $0.conversationGoalID != nil }) { try await AchievementSyncService.shared.refreshLedger(user:user) }
+        if !(state.pendingImmersionChanges ?? []).isEmpty || (state.pendingChanges ?? []).contains(where:{ $0.conversationGoalID != nil }) { try await achievementService.refreshLedger(user:user) }
         let localReviewTimestamps = Dictionary(uniqueKeysWithValues:(state.localReviewAchievementIDs ?? []).compactMap { id -> (String,Int)? in
             guard let record = state.achievementRecords?[id], !NostrAchievementCollection.truthy(record["test"]) else { return nil }
             return (id,WebProgressContract.integer(record["unlockedAt"].number))
         })
-        try await AchievementSyncService.shared.sync(user:user,changes:state.pendingChanges ?? [],localReviewTimestamps:localReviewTimestamps)
+        try await achievementService.sync(user:user,changes:state.pendingChanges ?? [],localReviewTimestamps:localReviewTimestamps)
         var acknowledged=try await load(npub:npub,local:uploaded)
         for (key,value) in savedQuestDays {if acknowledged?.companionQuestDays == nil {acknowledged?.companionQuestDays=[:]};acknowledged?.companionQuestDays?[key]=value;acknowledged?.confirmFocusedArtifacts(in:value)}
         return acknowledged

@@ -1344,6 +1344,83 @@ extension FirestoreContractTests {
 }
 
 extension FirestoreContractTests {
+    func testCommittedLessonAwardRecoversOnOriginAfterLostResultWithoutRepeating()async throws{
+        let (_,db,_)=try context()
+        let origin=UUID().uuidString
+        let writer=AchievementSyncService(deliveryOrigin:origin)
+        let writingService=FirebaseService(database:db,achievementService:writer)
+        let app=AppModel(progressService:writingService)
+        try app.identity.create()
+        defer {try? app.identity.disconnect()}
+        let account=app.identity.npub
+        app.signedIn=true
+        try await seed(db,account)
+        let before=try requireState(await writingService.load(npub:account))
+        _=try await writingService.save(before,npub:account)
+
+        let id="nosabos_skill_tree_lessons_5"
+        let user=db.collection("users").document(account)
+        try await user.collection("courseProgress").document("fr").setData([
+            "schemaVersion":1,"targetLang":"fr","migration":["complete":true],
+            "skillTree":["levels":["a1":["total":98,"completed":5]]]
+        ],merge:true)
+        var delivered:[String]=[]
+        let observer=writer.delivery.sink { delivered += $0.ids }
+        defer {observer.cancel()}
+        writer.afterAwardCommit = { award in
+            XCTAssertEqual(award,id)
+            throw AppError.message("Fixture lost the award transaction result.")
+        }
+        do {
+            _=try await writingService.save(before,npub:account)
+            XCTFail("The app should lose this result after Firestore commits")
+        } catch {
+            XCTAssertEqual(error.localizedDescription,"Fixture lost the award transaction result.")
+        }
+        XCTAssertTrue(delivered.isEmpty)
+        let committed=try await user.collection("achievements").document(id).getDocument(source:.server).data() ?? [:]
+        XCTAssertGreaterThan(committed["unlockedAt"] as? Int ?? 0,0)
+        let receiptOrigin=try XCTUnwrap((committed["iosUnlock"] as? [String:Any])?["origin"] as? String)
+        XCTAssertEqual(receiptOrigin.count,64)
+        XCTAssertNotEqual(receiptOrigin,origin)
+
+        let other=FirebaseService(database:db,achievementService:AchievementSyncService(deliveryOrigin:UUID().uuidString))
+        let otherState=try requireState(await other.load(npub:account))
+        XCTAssertNil(otherState.confirmedAchievementUnlocks)
+        XCTAssertGreaterThan(otherState.achievementRecords?[id]?["unlockedAt"].number ?? 0,0)
+        XCTAssertNil(otherState.achievementRecords?[id]?.object["iosUnlock"])
+        let earlier=(committed["unlockedAt"] as? Int ?? 0)-1
+        _=try await other.importAchievements(.object([id:.object(["unlockedAt":.number(Double(earlier)),"source":.string("nosabos")])]),npub:account)
+        let imported=try await user.collection("achievements").document(id).getDocument(source:.server).data() ?? [:]
+        XCTAssertEqual(imported["unlockedAt"] as? Int,earlier)
+        XCTAssertEqual((imported["iosUnlock"] as? [String:Any])?["origin"] as? String,receiptOrigin)
+
+        let reopened=FirebaseService(database:db,achievementService:AchievementSyncService(deliveryOrigin:origin))
+        let restored=AppModel(progressService:reopened)
+        XCTAssertEqual(restored.identity.npub,account)
+        XCTAssertTrue(restored.achievementUnlock.queue.isEmpty)
+        await restored.syncProgress()
+        XCTAssertEqual(restored.achievementUnlock.queue.map(\.achievementID),[id])
+        XCTAssertEqual(restored.learner.totalXP,before.totalXP)
+        let once=try XCTUnwrap(restored.achievementUnlock.current)
+        await restored.syncProgress()
+        XCTAssertEqual(restored.achievementUnlock.current,once)
+
+        let undismissed=AppModel(progressService:reopened)
+        XCTAssertEqual(undismissed.achievementUnlock.queue.map(\.achievementID),[id])
+        let stale=undismissed.learner
+        undismissed.dismissAchievement(try XCTUnwrap(undismissed.achievementUnlock.current).id)
+        let rebased=LearnerState.rebased(current:undismissed.learner,sent:stale,acknowledged:stale)
+        XCTAssertEqual(rebased.confirmedAchievementUnlocks?[id],true)
+        let acknowledged=AppModel(progressService:reopened)
+        await acknowledged.syncProgress()
+        XCTAssertTrue(acknowledged.achievementUnlock.queue.isEmpty)
+        XCTAssertEqual(acknowledged.learner.confirmedAchievementUnlocks?[id],true)
+        let finalFields=try await user.getDocument(source:.server).data() ?? [:]
+        XCTAssertFalse((finalFields["iosStateJSON"] as? String ?? "").contains("confirmedAchievementUnlocks"))
+        XCTAssertEqual(finalFields["patreonVerified"] as? Bool,true)
+    }
+
     func testOnlyCommittedFreshAwardsDeliverOnceAcrossConcurrentSavesAndRestorationIsQuiet()async throws{
         let(service,db,_)=try context(),app=AppModel(progressService:service);try app.identity.create();defer{try? app.identity.disconnect()};let npub=app.identity.npub;app.signedIn=true;try await seed(db,npub)
         var state=try requireState(await service.load(npub:npub));state=try requireState(await service.save(state,npub:npub));app.learner=state;XCTAssertTrue(app.achievementUnlock.queue.isEmpty,"Initial backfill is silent")

@@ -236,12 +236,45 @@ import SwiftUI
     func receiveConfirmedAchievement(_ event:ConfirmedAchievementDelivery){
         guard signedIn,identity.npub == event.account else{return};bindAchievementDelivery()
         let prior=learner.achievementRecords
-        learner.achievementRecords=NostrAchievementCollection.merging([.object(prior ?? [:]),event.records]).object
+        var state=learner
+        state.achievementRecords=NostrAchievementCollection.merging([.object(prior ?? [:]),event.records]).object
+        let ids=event.ids.filter { id in
+            state.localReviewAchievementIDs?.contains(id) != true &&
+                state.confirmedAchievementUnlocks?[id] != true &&
+                event.records[id]["unlockedAt"].number > 0
+        }
+        for id in ids where !NostrAchievementCollection.truthy(event.records[id]["test"]) {
+            if state.confirmedAchievementUnlocks == nil { state.confirmedAchievementUnlocks = [:] }
+            state.confirmedAchievementUnlocks?[id] = false
+        }
+        learner=state
         if prior != learner.achievementRecords{achievementUnlock.recordsChanged()}
         try? writeLocal()
-        for id in event.ids where learner.localReviewAchievementIDs?.contains(id) != true && NostrAchievementCollection.merging([event.records])[id] != .null{achievementUnlock.enqueue(identity:event.account,id:id,test:NostrAchievementCollection.truthy(event.records[id]["test"]))}
+        for id in ids { achievementUnlock.enqueue(identity:event.account,id:id,test:NostrAchievementCollection.truthy(event.records[id]["test"])) }
     }
-    func dismissAchievement(_ key:Int){achievementUnlock.dismiss(key)}
+    private func restoreConfirmedAchievements(){
+        guard signedIn else { return }
+        let journal = learner.confirmedAchievementUnlocks ?? [:]
+        guard journal.values.contains(false) else { return }
+        let catalog=(try? ContentLibrary.load([JSONValue].self,name:"achievement-protocol")) ?? []
+        let records=NostrAchievementCollection.completed(.object(learner.achievementRecords ?? [:]),catalog:catalog)
+        let pending=catalog.map { $0["id"].string }.filter { journal[$0] == false }.sorted {
+            records[$0]["unlockedAt"].number < records[$1]["unlockedAt"].number
+        }
+        for id in pending where records[id]["unlockedAt"].number > 0 &&
+            !NostrAchievementCollection.truthy(records[id]["test"]) &&
+            learner.localReviewAchievementIDs?.contains(id) != true {
+            achievementUnlock.enqueue(identity:identity.npub,id:id)
+        }
+    }
+    func dismissAchievement(_ key:Int){
+        if let item = achievementUnlock.queue.first(where:{$0.id == key}),
+           !item.preview,!item.test,learner.confirmedAchievementUnlocks?[item.achievementID] == false {
+            learner.confirmedAchievementUnlocks?[item.achievementID]=true
+            try? writeLocal()
+        }
+        achievementUnlock.dismiss(key)
+    }
     private func publishCompanionDelivery(){if companionUnlockRevision != companionDelivery.revision{companionUnlockRevision=companionDelivery.revision};if companionUnlock != companionDelivery.visible{companionUnlock=companionDelivery.visible}}
     private func bindCompanionDelivery(){let account=signedIn ? identity.npub:"";companionDelivery.bind(account);bindCompanionSave(account:account);publishCompanionDelivery()}
     private func bindCompanionSave(account:String){
@@ -300,6 +333,7 @@ import SwiftUI
         restoringLearner=true;defer{restoringLearner=false}
         if let data = try? Data(contentsOf: localURL), let state = try? JSONDecoder().decode(LearnerState.self, from: data) { learner = state } else { learner = LearnerState() }
         learner.migrateCompanionCustomization();learner.rollDay(); syncSettingsAppearance();lastPersisted = learner
+        restoreConfirmedAchievements()
     }
     func signIn(nsec: String?,name:String? = nil,support:String? = nil) async {
         flushGoalEditor();goalCheck=nil;automaticProgress.reset()
@@ -324,12 +358,13 @@ import SwiftUI
             learner.target=learner.support == "es" ? "en" : "es";learner.goal=""
         }
         signedIn = true; subscription.bind(identity);subscription.updatePracticeXP(learner.subscriptionXP)
+        restoreConfirmedAchievements()
         do {
             try await FirebaseIdentityService.shared.ensure(identity)
             if FileManager.default.fileExists(atPath:localURL.path) { await sync() }
             else if let cloud = try await progressService.load(npub:account) {
                 guard identity.npub == account else { return }
-                restoreLearner(cloud); syncSettingsAppearance();automaticProgress.observe(cloud,identity:identity,locallyAllowed:learner.automaticPostsEnabled); lastPersisted = learner; try writeLocal()
+                restoreLearner(cloud); syncSettingsAppearance();automaticProgress.observe(cloud,identity:identity,locallyAllowed:learner.automaticPostsEnabled); lastPersisted = learner; try writeLocal();restoreConfirmedAchievements()
             }
         } catch { syncStatus = "Saved on iPhone; cloud sync pending" }
         await reloadContent(); await subscription.refresh();resumeAchievementSync()
@@ -565,7 +600,7 @@ import SwiftUI
         }
         if readyGoal?["modeProgress"] != priorGoalModes {localPracticeRevision=UUID()}
         let claimed = learner.claimPlate(user:identity.npub)
-        lastPersisted = learner; try writeLocal()
+        lastPersisted = learner; try writeLocal();restoreConfirmedAchievements()
         if claimed { persist() }
         if !(learner.pendingPhonicsFinishes ?? [:]).isEmpty{Task{[weak self] in await self?.resumePendingPhonicsFinishes()}}
         if target != learner.target || support != learner.support || level != learner.level || cardLevel != learner.flashcardLevel || tutorLevel != learner.tutorLevel { Task { await reloadContent() } }

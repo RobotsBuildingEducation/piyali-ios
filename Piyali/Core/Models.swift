@@ -186,6 +186,8 @@ public struct LearnerState: Codable, Sendable {
     public var companionProgress: JSONValue?
     public var achievementRecords: [String:JSONValue]?
     public var localReviewAchievementIDs: Set<String>?
+    /// Confirmed unlocks generated on this installation. True means acknowledged.
+    public var confirmedAchievementUnlocks: [String:Bool]?
     public var achievementEvidence: [String:JSONValue]?
     public var achievementLedger: JSONValue?
     public var nostrAchievementRecords: JSONValue?
