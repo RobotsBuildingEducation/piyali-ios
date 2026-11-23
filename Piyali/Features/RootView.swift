@@ -7,7 +7,7 @@ struct RootView: View {
         if !app.signedIn { EntryView() }
         else if !app.learner.onboardingComplete { NavigationStack {BrandedOnboardingView(initial:app.learner).toolbar(.hidden,for:.navigationBar)} }
         else {
-            ProductAccessView(service:app.subscription).id(app.identity.npub)
+            ProductAccessView(service:app.subscription).id(app.identity.sessionRevision)
         }
         }.task(id:app.signedIn ? app.identity.npub+app.identity.sessionRevision.uuidString:""){app.teamsStartup.bind(app)}.background(SignerAuthorizationPresenter(identity:app.identity)).background(CompanionSaveNoticePresenter()).background(TeamsNoticePresenter(center:app.teamsNotices,closeLabel:EntryCopy.ui(app.learner.support,"close"),rtl:app.learner.support == "ar")).onChange(of:app.teamsNoticeScope,initial:true){_,scope in app.teamsNotices.bind(scope)}
     }

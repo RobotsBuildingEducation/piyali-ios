@@ -31,6 +31,37 @@ import XCTest
         var draft=ConversationDraft();var goal=ConversationGoal(text:.object(["en":.string("Say hello")]),questionLevel:"Pre-A1",worth:.null);goal.supportLang="en";draft.goal=goal;draft.turns=2;draft.goalsCompleted=1;draft.earnedXP=5;draft.seenTurnIDs=[UUID()];draft.append(.init(role:"assistant",text:"¡Hola!",providerID:"r0"));app.learner.saveConversation(draft)
         return app
     }
+    func testReenteringTheSameKeyRejectsChunksAndResultsFromTheOldSession() async throws {
+        let app=try app()
+        defer {try? app.identity.disconnect()}
+        let provider=ConversationProviderFixture()
+        let service=ConversationService(provider:provider)
+        let message=try XCTUnwrap(app.learner.conversation.messages.first)
+        let oldAccount=app.identity.npub
+        let oldRevision=app.identity.sessionRevision
+        let oldStarted=expectation(description:"Translation started before key reentry")
+        provider.translationStarted=oldStarted
+        let old=Task {await service.translate(message,app:app)}
+        await fulfillment(of:[oldStarted],timeout:2)
+        try app.identity.importKey(app.identity.exportKey())
+        XCTAssertEqual(app.identity.npub,oldAccount)
+        XCTAssertNotEqual(app.identity.sessionRevision,oldRevision)
+        provider.translationUpdate?("Old chunk")
+        XCTAssertNil(service.translationDrafts[message.id])
+        provider.translation?.resume(returning:"Old answer")
+        await old.value
+        XCTAssertNil(app.learner.conversation.messages.first?.translation)
+
+        let currentStarted=expectation(description:"Translation started in the current session")
+        provider.translationStarted=currentStarted
+        let current=Task {await service.translate(message,app:app)}
+        await fulfillment(of:[currentStarted],timeout:2)
+        provider.translationUpdate?("New chunk")
+        XCTAssertEqual(service.translationDrafts[message.id],"New chunk")
+        provider.translation?.resume(returning:"New answer")
+        await current.value
+        XCTAssertEqual(app.learner.conversation.messages.first?.translation,"New answer")
+    }
     func testLatestLanguageGoalSupersedesBusyGenerationWithoutWaitingForItsOldResult() async throws {
         let app=try app();defer {try? app.identity.disconnect()};var draft=app.learner.conversation;draft.goal=nil;app.learner.saveConversation(draft)
         let provider=ConversationProviderFixture();provider.suspendedGoals=["en","fr"];provider.goalStarted["en"]=expectation(description:"English topic pending");provider.goalStarted["fr"]=expectation(description:"French topic pending")

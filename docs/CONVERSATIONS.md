@@ -170,7 +170,7 @@ Nine language-service checks and two iPhone product journeys passed in `/tmp/Piy
 
 ![Original web and iPhone Conversation settings and the return to Today's Focus](native/conversation-drawer-focus-20261123.jpg)
 
-The paired drawers share the content and actions and have different footer spacing and system safe areas. The browser RTC fixture finished without earning XP. The iPhone fixture supplied scripted speech and earned five XP. Physical microphone and speaker behavior, longer or RTL drawer content, and active-call account changes remain open.
+The paired drawers share the content and actions and have different footer spacing and system safe areas. The browser RTC fixture finished without earning XP. The iPhone fixture supplied scripted speech and earned five XP. Physical microphone and speaker behavior and longer or RTL drawer content remain open.
 
 ## Archived phrase selection and replacement translation, November 23
 
@@ -183,3 +183,15 @@ The iPhone simulator entered through signup and a finished Conversation, opened 
 Three product journeys and nine service checks passed in `/tmp/PiyaliConversationArchivePhraseVerified-20261123.xcresult`. The archive and latest-reply journeys then passed with the SwiftUI underline in `/tmp/PiyaliConversationArchiveSelectionVisible-20261123.xcresult`. The final screenshots show two distinct cyan underline bands, one per language, and zero cyan pixels in the caption region on the first replacement chunk. The iPhone uses a thinner typographic underline than the web inset.
 
 ![Original web and native iPhone archived phrase selection before and during a replacement translation](native/conversation-archive-phrase-20261123.jpg)
+
+## Live account and support-language changes, November 23
+
+In the original main route, re-entering the active key, switching to a second account, and switching back all returned to Today’s Focus. Each switch closed the connected peer, data channel, and microphone track. The page reload cleared the prior live transcript. A separate navigation check switched to Today’s Focus without reloading the page. That also shut down voice, and returning to Conversation opened an idle screen with an empty log. Changing support from English to French during a Spanish call also stopped the connection. The same Conversation screen showed a French goal and kept the completed Spanish reply. These checks used the iPhone-width touch branch in Chrome with isolated Firestore and scripted RTC events.
+
+The iPhone baseline stayed in Conversation when the learner re-entered the current key. A held translation could also write its first chunk and final text into the current draft after the key was re-entered. The product shell now resets at each successful signing-session change. Conversation validates that session at every asynchronous write, along with the practice language, support language and draft. The completed native history and XP remain private to each account. On returning to the first account, iPhone restores its saved reply and XP.
+
+The simulator journey for a support-language switch verified that the old call ended, the completed Spanish reply and five XP survived, and the goal and starter help regenerated in French. Five iPhone journeys and ten service checks passed in `/tmp/PiyaliConversationAccountVerified-20261123.xcresult`. Both account journeys passed again after completing the companion welcome, instructions and placement in `/tmp/PiyaliConversationAccountPlaced-20261123.xcresult`. The captures use scripted replies, independently generated goals, and different progression totals. The bottom control spacing and system safe areas differ. Physical microphone and speaker behavior, production signer and network recovery, long and RTL chat logs, and the remaining connected, muted, and paused viewports still need verification.
+
+The current standalone web mode keeps its transcript in React state and stores individual audio blobs in IndexedDB for replay. The available Firestore settings and XP writes carry no standalone transcript. Switching accounts confirmed the transcript disappears on reload. The native persisted log is an iPhone addition. Tutor has its own saved lesson draft, which remains under Tutor and interoperability verification.
+
+![Original web and native iPhone account and support-language transitions during Conversation](native/conversation-account-support-20261123.jpg)

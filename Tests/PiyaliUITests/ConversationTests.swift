@@ -1,12 +1,37 @@
+import NostrSDK
 import XCTest
 
 @MainActor final class ConversationPlayTests:XCTestCase {
     private func tap(_ id:String,_ app:XCUIApplication) { let button=app.buttons[id];XCTAssertTrue(button.waitForExistence(timeout:15));XCTAssertTrue(button.isHittable);button.tap() }
     private func open(_ app:XCUIApplication) { tap("productMenu",app);tap("productModeMenu",app);tap("productMode-conversation",app);XCTAssertTrue(app.staticTexts["conversationGoal"].waitForExistence(timeout:15)) }
-    private func start(theme:String="light",partial:Bool=false,translationStream:Bool=false,liveTranslation:Bool=false,alignment:Bool=false,translationsHidden:Bool=false,replay:Bool=false)->XCUIApplication {
+    private func start(theme:String="light",partial:Bool=false,translationStream:Bool=false,liveTranslation:Bool=false,alignment:Bool=false,translationsHidden:Bool=false,replay:Bool=false,key:Keypair?=nil)->XCUIApplication {
         continueAfterFailure=false
         let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString;app.launchEnvironment["PIYALI_CONVERSATION_FIXTURE"]="1";if replay {app.launchEnvironment["PIYALI_CONVERSATION_REPLAY_FIXTURE"]="1"};if alignment {app.launchEnvironment["PIYALI_CONVERSATION_ALIGNMENT_FIXTURE"]="1"};if translationsHidden {app.launchEnvironment["PIYALI_CONVERSATION_TRANSLATIONS_HIDDEN_FIXTURE"]="1"};if partial {app.launchEnvironment["PIYALI_CONVERSATION_PARTIAL_FIXTURE"]="1"};if translationStream || liveTranslation {app.launchEnvironment["PIYALI_CONVERSATION_TRANSLATION_STREAM_FIXTURE"]="1"};if liveTranslation {app.launchEnvironment["PIYALI_CONVERSATION_LIVE_TRANSLATION_FIXTURE"]="1"};app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme",theme];app.launch();handleInitialPaperPencil(app)
-        let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Conversation Learner");if app.buttons["entryKeyboardDone"].exists { app.buttons["entryKeyboardDone"].tap() };tap("createAccount",app);handleInitialPaperPencil(app);tap("startLearning",app);open(app);return app
+        if let key {
+            tap("entrySignIn",app)
+            let secret=app.secureTextFields["entrySecret"]
+            XCTAssertTrue(secret.waitForExistence(timeout:10))
+            secret.tap()
+            secret.typeText(key.privateKey.nsec)
+            tap("entryKeyboardDone",app)
+            tap("entrySubmitSignIn",app)
+        } else {
+            let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Conversation Learner");if app.buttons["entryKeyboardDone"].exists { app.buttons["entryKeyboardDone"].tap() };tap("createAccount",app)
+        }
+        handleInitialPaperPencil(app);tap("startLearning",app)
+        if key != nil {finishAccountSetup(app)}
+        open(app);return app
+    }
+    private func finishAccountSetup(_ app:XCUIApplication) {
+        let welcome=app.buttons["companionContinue"]
+        XCTAssertTrue(welcome.waitForExistence(timeout:10))
+        for _ in 0..<5 where !welcome.isHittable {app.swipeUp(velocity:.slow)}
+        tap("companionContinue",app)
+        acknowledgePaperPencil(app)
+        tap("gettingStartedGotIt",app)
+        tap("placementNew",app)
+        XCTAssertTrue(app.staticTexts["todayFocusTitle"].waitForExistence(timeout:15))
+        XCTAssertFalse(welcome.exists)
     }
     private func photo(_ name:String,_ app:XCUIApplication) { let capture=XCTAttachment(screenshot:app.screenshot());capture.name=name;capture.lifetime = .keepAlways;add(capture) }
     private func changePracticeLanguage(_ code:String,label:String,_ app:XCUIApplication) {
@@ -237,6 +262,74 @@ import XCTest
         tap("conversationSettingsClose",app)
         XCTAssertTrue(app.buttons["conversationStart"].waitForExistence(timeout:10))
     }
+    private func switchAccount(_ key:Keypair,_ app:XCUIApplication) {
+        tap("productMenu",app)
+        tap("productPanel-settings",app)
+        tap("settingsTab-account",app)
+        tap("settingsSwitchAccordion",app)
+        let secret=app.secureTextFields["settingsSwitchKey"]
+        XCTAssertTrue(secret.waitForExistence(timeout:5))
+        for _ in 0..<5 where !secret.isHittable {app.swipeUp(velocity:.slow)}
+        XCTAssertTrue(secret.isHittable)
+        secret.tap()
+        secret.typeText(key.privateKey.nsec)
+        tap("settingsKeyboardDone",app)
+        let submit=app.buttons["settingsSwitchAccount"]
+        for _ in 0..<5 where !submit.isHittable {app.swipeUp(velocity:.slow)}
+        tap("settingsSwitchAccount",app)
+    }
+    private func startCreditedCall(_ app:XCUIApplication) {
+        tap("conversationStart",app)
+        let reply=app.staticTexts["conversationLatestReply"]
+        let completed=XCTNSPredicateExpectation(predicate:NSPredicate(format:"label CONTAINS %@","¡Hola, Ana!"),object:reply)
+        XCTAssertEqual(XCTWaiter.wait(for:[completed],timeout:18),.completed)
+        XCTAssertTrue(app.buttons["conversationEnd"].isHittable)
+        let xp=app.descendants(matching:.any).matching(identifier:"dailyXPStatus").firstMatch
+        XCTAssertEqual(xp.value as? String,"5%")
+    }
+    func testReenteringTheActiveKeyDuringCallReturnsToFocus() throws {
+        let key=try XCTUnwrap(Keypair())
+        let app=start(key:key)
+        startCreditedCall(app)
+        photo("Native live call before reentering the active key",app)
+        switchAccount(key,app)
+        XCTAssertTrue(app.staticTexts["todayFocusTitle"].waitForExistence(timeout:15))
+        XCTAssertFalse(app.buttons["conversationEnd"].exists)
+        XCTAssertFalse(app.staticTexts["conversationSummaryXP"].exists)
+        XCTAssertFalse(app.buttons["companionContinue"].exists)
+        photo("Native Today’s Focus after reentering the active key",app)
+        open(app)
+        XCTAssertTrue(app.buttons["conversationStart"].isEnabled)
+        XCTAssertEqual(app.staticTexts["conversationLatestReply"].label,"¡Hola, Ana! ¿Qué te gusta hacer?")
+        XCTAssertEqual(app.descendants(matching:.any).matching(identifier:"dailyXPStatus").firstMatch.value as? String,"5%")
+    }
+    func testSwitchingAccountsDuringCallKeepsHistoryAndXPPrivate() throws {
+        let original=try XCTUnwrap(Keypair()),alternate=try XCTUnwrap(Keypair())
+        let app=start(key:original)
+        startCreditedCall(app)
+        switchAccount(alternate,app)
+        handleInitialPaperPencil(app)
+        tap("startLearning",app)
+        finishAccountSetup(app)
+        XCTAssertFalse(app.buttons["conversationEnd"].exists)
+        XCTAssertFalse(app.staticTexts["conversationSummaryXP"].exists)
+        photo("Native Today’s Focus for the second account",app)
+        open(app)
+        XCTAssertTrue(app.buttons["conversationStart"].isEnabled)
+        XCTAssertFalse(app.staticTexts["conversationLatestReply"].exists)
+        XCTAssertFalse(app.buttons["conversationHistory"].isEnabled)
+        let xp=app.descendants(matching:.any).matching(identifier:"dailyXPStatus").firstMatch
+        XCTAssertEqual(xp.value as? String,"0%")
+
+        switchAccount(original,app)
+        XCTAssertTrue(app.staticTexts["todayFocusTitle"].waitForExistence(timeout:15))
+        XCTAssertFalse(app.buttons["companionContinue"].exists)
+        open(app)
+        XCTAssertTrue(app.buttons["conversationStart"].isEnabled)
+        XCTAssertTrue(app.buttons["conversationHistory"].isEnabled)
+        XCTAssertEqual(app.staticTexts["conversationLatestReply"].label,"¡Hola, Ana! ¿Qué te gusta hacer?")
+        XCTAssertEqual(xp.value as? String,"5%")
+    }
     func testChangingPracticeLanguageDuringCallReturnsToFocusWithScopedHistory() {
         let app=start()
         tap("conversationStart",app)
@@ -277,6 +370,26 @@ extension ConversationPlayTests {
         let picker=app.buttons["supportLanguagePicker"]
         for _ in 0..<6 where !picker.isHittable { app.swipeDown(velocity:.slow) }
         XCTAssertTrue(picker.waitForExistence(timeout:5));picker.tap();let option=app.buttons["settingsLanguage-support-"+(language == "French" ? "fr":"es")];XCTAssertTrue(option.waitForExistence(timeout:5));option.tap();tap("productPanelClose",app)
+    }
+    func testChangingSupportLanguageDuringCallStopsVoiceAndRelocalizesConversation() {
+        let app=start()
+        startCreditedCall(app)
+        changeSupport("French",app)
+        let goal=app.staticTexts["conversationGoal"]
+        let localized=XCTNSPredicateExpectation(
+            predicate:NSPredicate(format:"label == %@","Dites une chose que vous aimez"),object:goal
+        )
+        XCTAssertEqual(XCTWaiter.wait(for:[localized],timeout:12),.completed)
+        XCTAssertTrue(app.buttons["conversationStart"].isEnabled)
+        XCTAssertFalse(app.buttons["conversationEnd"].exists)
+        XCTAssertFalse(app.staticTexts["conversationSummaryXP"].exists)
+        XCTAssertEqual(app.staticTexts["conversationLatestReply"].label,"¡Hola, Ana! ¿Qué te gusta hacer?")
+        XCTAssertEqual(app.descendants(matching:.any).matching(identifier:"dailyXPStatus").firstMatch.value as? String,"5%")
+        photo("Native idle Conversation after switching to French support",app)
+        tap("conversationStarter",app)
+        let starter=app.staticTexts["conversationStarterSupport"]
+        XCTAssertTrue(starter.waitForExistence(timeout:5))
+        XCTAssertTrue(starter.label.contains("J’aime"))
     }
     func testSupportLanguageRefreshesGoalStarterAndTranslationWithoutReplayingRewards() {
         let app=start();tap("conversationStart",app)

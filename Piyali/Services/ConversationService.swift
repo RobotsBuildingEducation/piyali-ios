@@ -26,13 +26,20 @@ extension AIService:ConversationProviding {}
     private var pendingNextGoals:Set<UUID>=[]
     private func begin() ->UUID { let id=UUID();work.insert(id);busy=true;return id }
     private func finish(_ id:UUID,token:UUID) { guard generation == token else { return };work.remove(id);busy = !work.isEmpty }
-    private struct Scope:Equatable { let owner:String;let target:String;let support:String }
+    private struct Scope:Equatable {
+        let identityRevision:UUID
+        let target:String
+        let support:String
+    }
     private var scope:Scope?
     private let injectedProvider:ConversationProviding?
     init(provider:ConversationProviding?=nil) { injectedProvider=provider }
     private func provider(_ app:AppModel)->ConversationProviding { injectedProvider ?? app.ai }
+    private func currentScope(_ app:AppModel)->Scope {
+        Scope(identityRevision:app.identity.sessionRevision,target:app.learner.target,support:app.learner.support)
+    }
     private func bind(_ app:AppModel) {
-        let next=Scope(owner:app.identity.npub,target:app.learner.target,support:app.learner.support)
+        let next=currentScope(app)
         if scope != next { cancel();scope=next }
     }
     var fixture: Bool {
@@ -43,8 +50,9 @@ extension AIService:ConversationProviding {}
         #endif
     }
     func cancel() { generation=UUID();work=[];grading=nil;pendingNextGoals=[];busy=false;error=nil;feedback="";orbFeedback=nil;translationDrafts=[:];translating=[];liveReply=nil }
-    private func valid(_ app: AppModel, account: String, target: String, support:String, session: UUID, token: UUID) -> Bool {
-        app.identity.npub == account && app.learner.target == target && app.learner.support == support && app.learner.conversation.id == session && generation == token && (app.subscription.hasAccess || fixture)
+    private func valid(_ app:AppModel,session:UUID,token:UUID)->Bool {
+        generation == token && scope == currentScope(app) &&
+            app.learner.conversation.id == session && (app.subscription.hasAccess || fixture)
     }
     private var curriculum:[String:JSONValue]=[:]
     private func topics(_ app:AppModel)->[String] {
@@ -85,7 +93,7 @@ extension AIService:ConversationProviding {}
     func prepare(_ app: AppModel, fresh: Bool = false) async {
         bind(app)
         guard !busy,app.subscription.hasAccess || fixture else { return };let operation=begin();error=nil;feedback=""
-        let token=generation,account=app.identity.npub,target=app.learner.target,support=app.learner.support
+        let token=generation,target=app.learner.target,support=app.learner.support
         var draft=app.learner.conversation
         if let saved = app.learner.conversationDrafts?[target],
            saved.challengeLevel != draft.challengeLevel || saved.interests != draft.interests {
@@ -100,10 +108,10 @@ extension AIService:ConversationProviding {}
         guard draft.goal == nil || fresh || draft.goal?.completed == true else { return }
         do {
             let next=try await goal(app,draft:draft,abandoned:false,contextual:draft.goal?.completed == true)
-            guard valid(app,account:account,target:target,support:support,session:session,token:token) else { return }
+            guard valid(app,session:session,token:token) else { return }
             draft=app.learner.conversation;draft.goal=next
             app.learner.saveConversation(draft);app.persist()
-        } catch { if valid(app,account:account,target:target,support:support,session:session,token:token) { self.error=error.localizedDescription } }
+        } catch { if valid(app,session:session,token:token) { self.error=error.localizedDescription } }
     }
     func send(_ text: String, app: AppModel) async {
         bind(app)
@@ -152,26 +160,26 @@ extension AIService:ConversationProviding {}
     func shuffleTopic(_ app:AppModel) async {
         bind(app)
         guard !busy,app.subscription.hasAccess || fixture else { return };let operation=begin();error=nil;feedback=""
-        let token=generation,account=app.identity.npub,target=app.learner.target,support=app.learner.support,draft=app.learner.conversation
+        let token=generation,draft=app.learner.conversation
         let session=draft.id
         defer { finish(operation,token:token) }
-        do { let next=try await goal(app,draft:draft,abandoned:true);guard valid(app,account:account,target:target,support:support,session:draft.id,token:token) else { return };var current=app.learner.conversation;current.goal=next;app.learner.saveConversation(current);app.persist() }
-        catch { if valid(app,account:account,target:target,support:support,session:session,token:token) { self.error=error.localizedDescription } }
+        do { let next=try await goal(app,draft:draft,abandoned:true);guard valid(app,session:draft.id,token:token) else { return };var current=app.learner.conversation;current.goal=next;app.learner.saveConversation(current);app.persist() }
+        catch { if valid(app,session:session,token:token) { self.error=error.localizedDescription } }
     }
     private func turn(_ text: String, answered: String, voiceReply: String?, id: UUID, app: AppModel,providerID:String?=nil,beforeResponseID:String?=nil) async {
         guard !text.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else { return }
-        let operation=begin();grading=id;error=nil;let token=generation,account=app.identity.npub,target=app.learner.target,support=app.learner.support,session=app.learner.conversation.id,captured=app.learner.conversation.goal
+        let operation=begin();grading=id;error=nil;let token=generation,session=app.learner.conversation.id,captured=app.learner.conversation.goal
         defer { if generation == token,grading == id { grading=nil };finish(operation,token:token) }
         var draft=app.learner.conversation;draft.append(ConversationMessage(role:"user",text:text,providerID:providerID),beforeProviderID:beforeResponseID);if let voiceReply,!voiceReply.isEmpty { draft.append(ConversationMessage(role:"assistant",text:voiceReply)) };app.learner.saveConversation(draft);app.persist()
         #if DEBUG
-        if fixture,ProcessInfo.processInfo.environment["PIYALI_CONVERSATION_PARTIAL_FIXTURE"] == "1" {try? await Task.sleep(for:.seconds(7));guard valid(app,account:account,target:target,support:support,session:session,token:token) else{return}}
+        if fixture,ProcessInfo.processInfo.environment["PIYALI_CONVERSATION_PARTIAL_FIXTURE"] == "1" {try? await Task.sleep(for:.seconds(7));guard valid(app,session:session,token:token) else{return}}
         #endif
         var verdict:ConversationVerdict?
         if text.count >= 3,let captured,!captured.completed {
             if fixture { verdict=ConversationVerdict(completed:!text.lowercased().contains("wrong") && !text.lowercased().contains("no tv"),reason:"Use your own words to keep the conversation going.",goalStillFits:!text.lowercased().contains("no tv")) }
-            else { do { verdict=try await provider(app).conversationVerdict(goal:captured,learner:app.learner,reply:text,answeredLine:answered) } catch { if valid(app,account:account,target:target,support:support,session:session,token:token) { self.error="This turn could not be graded; it counts as practice." } } }
+            else { do { verdict=try await provider(app).conversationVerdict(goal:captured,learner:app.learner,reply:text,answeredLine:answered) } catch { if valid(app,session:session,token:token) { self.error="This turn could not be graded; it counts as practice." } } }
         }
-        guard valid(app,account:account,target:target,support:support,session:session,token:token) else { return }
+        guard valid(app,session:session,token:token) else { return }
         if app.learner.conversation.goal?.id != captured?.id { verdict=nil }
         if grading == id { grading=nil }
         if let verdict,verdict.completed || verdict.goalStillFits != false { orbFeedback=OrbFeedback(correct:verdict.completed) }
@@ -181,16 +189,16 @@ extension AIService:ConversationProviding {}
             draft=app.learner.conversation
             let reply:String
             if voiceReply != nil { reply="" } else if fixture { reply="Gracias. ¿Qué te gusta?" } else { reply=try await app.ai.conversationReply(learner:app.learner,draft:draft) }
-            guard valid(app,account:account,target:target,support:support,session:session,token:token) else { return }
+            guard valid(app,session:session,token:token) else { return }
             draft=app.learner.conversation;if !reply.isEmpty { draft.append(ConversationMessage(role:"assistant",text:reply)) };app.learner.saveConversation(draft);app.persist()
             if let current=draft.goal,ConversationPractice.nextGoal(current),pendingNextGoals.insert(current.id).inserted {
                 defer { if generation == token { pendingNextGoals.remove(current.id) } }
-                if current.completed { try await Task.sleep(for:.milliseconds(1500));guard valid(app,account:account,target:target,support:support,session:session,token:token) else { return };draft=app.learner.conversation }
+                if current.completed { try await Task.sleep(for:.milliseconds(1500));guard valid(app,session:session,token:token) else { return };draft=app.learner.conversation }
                 let next=try await goal(app,draft:draft,abandoned:!current.completed,contextual:true)
-                guard valid(app,account:account,target:target,support:support,session:session,token:token),app.learner.conversation.goal?.id == current.id else { return }
+                guard valid(app,session:session,token:token),app.learner.conversation.goal?.id == current.id else { return }
                 draft=app.learner.conversation;draft.goal=next;feedback="";app.learner.saveConversation(draft);app.persist()
             }
-        } catch { if valid(app,account:account,target:target,support:support,session:session,token:token) { self.error=error.localizedDescription } }
+        } catch { if valid(app,session:session,token:token) { self.error=error.localizedDescription } }
     }
     private func fixtureStarter(_ goal:ConversationGoal,support:String)->JSONValue {
         let first=["Say hello and your name","Saluda y di tu nombre","Saluez et dites votre nom"].contains(goal.text.localized(support))
@@ -201,15 +209,15 @@ extension AIService:ConversationProviding {}
     func starter(_ app: AppModel) async {
         bind(app)
         guard !busy,app.subscription.hasAccess || fixture,let goal=app.learner.conversation.goal else { return };let operation=begin();let token=generation;defer { finish(operation,token:token) }
-        let account=app.identity.npub,target=app.learner.target,support=app.learner.support,session=app.learner.conversation.id
+        let support=app.learner.support,session=app.learner.conversation.id
         do { let phrase:JSONValue=fixture ? fixtureStarter(goal,support:support) : try await provider(app).conversationStarterPhrase(learner:app.learner,draft:app.learner.conversation)
-            guard valid(app,account:account,target:target,support:support,session:session,token:token),app.learner.conversation.goal?.id == goal.id else { return }
+            guard valid(app,session:session,token:token),app.learner.conversation.goal?.id == goal.id else { return }
             var draft=app.learner.conversation;draft.goal?.starter=phrase["target"].string;draft.goal?.starterSupport=phrase["support"].string;app.learner.saveConversation(draft);app.persist()
-        } catch { if valid(app,account:account,target:target,support:support,session:session,token:token) { self.error=error.localizedDescription } }
+        } catch { if valid(app,session:session,token:token) { self.error=error.localizedDescription } }
     }
     func translate(_ message: ConversationMessage, app: AppModel) async {
         bind(app)
-        guard !translating.contains(message.id),app.subscription.hasAccess || fixture else { return };let operation=begin();let token=generation;translating.insert(message.id);defer { if generation == token {translating.remove(message.id);translationDrafts[message.id]=nil};finish(operation,token:token) };let account=app.identity.npub,target=app.learner.target,support=app.learner.support,session=app.learner.conversation.id
+        guard !translating.contains(message.id),app.subscription.hasAccess || fixture else { return };let operation=begin();let token=generation;translating.insert(message.id);defer { if generation == token {translating.remove(message.id);translationDrafts[message.id]=nil};finish(operation,token:token) };let target=app.learner.target,support=app.learner.support,session=app.learner.conversation.id
         do { let text:String
             if target == support { text=message.text }
             else if fixture {
@@ -219,13 +227,13 @@ extension AIService:ConversationProviding {}
                 #endif
             }
             else { text=try await provider(app).conversationTranslationStream(message.text,support:support,onChunk:{[weak self] snapshot in
-                guard !snapshot.isEmpty,let self,self.valid(app,account:account,target:target,support:support,session:session,token:token),self.liveReply?.id == message.id || app.learner.conversation.messages.contains(where:{$0.id == message.id}) else{return}
+                guard !snapshot.isEmpty,let self,self.valid(app,session:session,token:token),self.liveReply?.id == message.id || app.learner.conversation.messages.contains(where:{$0.id == message.id}) else{return}
                 self.translationDrafts[message.id]=ConversationTranslation.streaming(snapshot)
             }) }
-            guard valid(app,account:account,target:target,support:support,session:session,token:token),support == app.learner.support else { return }
+            guard valid(app,session:session,token:token) else { return }
             var draft=app.learner.conversation
             if let index=draft.messages.firstIndex(where:{$0.id == message.id}) {draft.messages[index].translation=ConversationTranslation.complete(text);draft.messages[index].translationLang=support;draft.messages[index].pairs=nil;app.learner.saveConversation(draft);app.persist()}
             else if liveReply?.id == message.id {liveReply?.translation=ConversationTranslation.complete(text);liveReply?.translationLang=support;liveReply?.pairs=nil}
-        } catch { if valid(app,account:account,target:target,support:support,session:session,token:token) { self.error=error.localizedDescription } }
+        } catch { if valid(app,session:session,token:token) { self.error=error.localizedDescription } }
     }
 }
