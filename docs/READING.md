@@ -146,3 +146,15 @@ The iPhone baseline kept the first sentence selected after the second appeared. 
 The iPhone lesson journey covers draft playback, the next streamed sentence, replay while fallback holds the draft, the terminal error, explicit retry, and one review reward after relaunch. Both simulator journeys and two narration checks passed in `/tmp/PiyaliReadingDraftAudioVerified-20261123.xcresult`. The rerun with isolated streaming flags passed all four provider-boundary checks in `/tmp/PiyaliReadingDraftAudioService-20261123.xcresult`, including successful fallback and cancellation without falling back. The images show the equivalent introduction states. Source inline wrapping, text shadow, top shell and bottom safe areas differ from the native captures. Provider downtime and audible playback on a physical iPhone still need verification.
 
 ![Original web and iPhone Reading draft playback, replacement, fallback, and retry states](native/reading-draft-playback-20261123.jpg)
+
+## Wrapped sentence boxes and playback highlights, November 23
+
+The original introduction at `b269524d` rendered the published green-notebook passage in a 402-pixel viewport. The measurement put the card eight pixels from each edge, with a 333-pixel prose column and a 35.2-pixel line height. The second sentence started with a short fragment on the first line. A touch on its continuation activated both fragments with a teal border and a four-pixel shadow. The first sentence remained separately tappable after aligned translation opened.
+
+The iPhone now uses the measured gutter and TextKit's wrapped fragments to draw each sentence's fill, border, and shadow. Touches on either fragment use the same logical sentence index. The spaces between lines stay outside the hit area. Aligned translations use the same playback colors and mark their current sentence as selected. The paper theme also adopts the source’s dark translation ink. Each sentence is isolated within the target writing direction. A hosted check exercises mixed Arabic, Latin text, and numerals, while the side-by-side lesson journey uses the same Spanish passage and English translations.
+
+The two selected shadow fragments begin at approximately 346 and 36 points in both captures. Their right edges agree within one point. The first layout run showed that a wider card gutter forced the whole second sentence to the next line. At the measured width the short fragment and its continuation both hit the same sentence.
+
+Three native lesson journeys and two layout checks passed in `/tmp/PiyaliReadingSentenceFinal-20261123.xcresult`. The wrapped-sentence and translation journey passed again after the paper-theme contrast correction in `/tmp/PiyaliReadingSentenceContrast-20261123.xcresult`. The captures use scripted narration with the original lesson navigation. The native title bar, safe areas, and final text rasterization differ. The source press animation, a matched Arabic device journey, physical playback and VoiceOver remain open.
+
+![Original web and iPhone inline sentence wrapping, active playback, and aligned translation](native/reading-sentence-layout-20261123.jpg)

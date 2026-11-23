@@ -31,6 +31,39 @@ import XCTest
         shot.lifetime = .keepAlways
         add(shot)
     }
+    private func atLine(_ passage:XCUIElement,fraction:CGFloat=0.25,y:CGFloat=16)->XCUICoordinate {
+        passage.coordinate(withNormalizedOffset:CGVector(dx:fraction,dy:0)).withOffset(CGVector(dx:0,dy:y))
+    }
+
+    func testWrappedSentencesStayTappableWithAndWithoutTranslations() {
+        let app=start([:])
+        let passage=app.descendants(matching:.any)["readingPassage"]
+        XCTAssertTrue(passage.waitForExistence(timeout:12))
+        XCTAssertGreaterThan(passage.frame.height,200)
+        photo("Native Reading inline sentence colors",app)
+
+        let second="Es una libreta pequeña y no tiene líneas."
+        atLine(passage,fraction:0.97).tap()
+        XCTAssertEqual(passage.value as? String,second)
+        atLine(passage,y:51).tap()
+        XCTAssertEqual(passage.value as? String,second)
+        XCTAssertFalse(app.buttons["readingStop"].isEnabled)
+        photo("Native Reading wrapped sentence playing",app)
+        atLine(passage,y:36).tap()
+        XCTAssertEqual(passage.value as? String,second,"Touching the space between lines leaves the active sentence alone.")
+
+        tap("readingTranslate",app)
+        let firstTranslation=app.staticTexts["readingTranslation-0"]
+        XCTAssertTrue(firstTranslation.waitForExistence(timeout:12))
+        XCTAssertEqual(firstTranslation.label,"My green notebook is near the window.")
+        let first=app.buttons["readingSentence-0"]
+        for _ in 0..<8 where !first.isHittable {app.swipeDown(velocity:.slow)}
+        XCTAssertTrue(first.isHittable)
+        first.tap()
+        XCTAssertTrue(first.isSelected)
+        photo("Native Reading translated sentence playing",app)
+    }
+
     func testDraftPlaybackStopsOnNewContentAndExplicitRetryRestoresReview() {
         let app=start(["PIYALI_READING_INTERRUPTED_DRAFT_FIXTURE":"1"])
         let draft=app.descendants(matching:.any)["readingDraftPassage"]
@@ -41,7 +74,7 @@ import XCTest
         XCTAssertFalse(app.buttons["readingListen"].isEnabled)
         XCTAssertFalse(app.buttons["readingCheck"].exists)
 
-        let sentence=draft.coordinate(withNormalizedOffset:CGVector(dx:0.25,dy:0.015))
+        let sentence=atLine(draft)
         sentence.tap()
         XCTAssertEqual(draft.value as? String,first)
         XCTAssertFalse(app.buttons["readingStop"].isEnabled)
@@ -91,7 +124,7 @@ import XCTest
         let loading=app.descendants(matching:.any)["readingPassageLoading"]
         XCTAssertTrue(loading.waitForExistence(timeout:8))
         XCTAssertTrue(loading.label.contains("Creating lecture"))
-        XCTAssertEqual(loading.frame.width,app.frame.width-50,accuracy:1)
+        XCTAssertEqual(loading.frame.width,app.frame.width-42,accuracy:1)
         XCTAssertGreaterThan(loading.frame.height,340)
         XCTAssertFalse(app.buttons["readingListen"].exists)
         XCTAssertFalse(app.buttons["readingWaiting"].isEnabled)
@@ -100,7 +133,7 @@ import XCTest
         XCTAssertFalse(loading.exists)
         XCUIDevice.shared.press(.home);app.activate();XCTAssertTrue(app.staticTexts["readingDraftTitle"].waitForExistence(timeout:15))
         XCTAssertFalse(app.buttons["readingListen"].isEnabled);XCTAssertFalse(app.buttons["readingCheck"].exists);XCTAssertFalse(app.staticTexts["readingCompleted"].exists)
-        let draft=app.descendants(matching:.any)["readingDraftPassage"];XCTAssertTrue(draft.waitForExistence(timeout:15));photo("Reading incremental draft",app);draft.coordinate(withNormalizedOffset:CGVector(dx:0.25,dy:0.015)).tap()
+        let draft=app.descendants(matching:.any)["readingDraftPassage"];XCTAssertTrue(draft.waitForExistence(timeout:15));photo("Reading incremental draft",app);atLine(draft).tap()
         XCTAssertEqual(draft.value as? String,"Mi libreta verde está cerca de la ventana.");XCTAssertFalse(app.buttons["readingStop"].isEnabled)
         XCTAssertTrue(app.descendants(matching:.any)["readingPassage"].waitForExistence(timeout:20))
         XCTAssertFalse(app.staticTexts["readingDraftTitle"].exists);XCTAssertTrue(app.buttons["readingCheck"].exists);XCTAssertFalse(app.staticTexts["readingCompleted"].exists)

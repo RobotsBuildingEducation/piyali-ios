@@ -4,6 +4,52 @@ import WebKit
 @testable import Piyali
 
 @MainActor final class ReadingAudioReferenceTests:XCTestCase{
+    private func textLayout(_ sentences:[String],width:CGFloat,rtl:Bool=false)
+        ->(NSTextStorage,ReadingSentenceLayout,NSTextContainer) {
+        let storage=NSTextStorage(attributedString:ReadingSentenceLayout.content(sentences,dark:rtl,rtl:rtl))
+        let layout=ReadingSentenceLayout()
+        let container=NSTextContainer(size:CGSize(width:width,height:1_000))
+        container.lineFragmentPadding=0
+        storage.addLayoutManager(layout)
+        layout.addTextContainer(container)
+        layout.ensureLayout(for:container)
+        return (storage,layout,container)
+    }
+
+    func testReadingSentenceFragmentsMatchTheReferenceWrapAndHitTargets() throws {
+        let value=try ContentLibrary.load(JSONValue.self,name:"reading-test-passage")
+        let sentences=Array(Reading.displaySentences(value["target"].string).prefix(3))
+        let (storage,layout,container)=textLayout(sentences,width:333)
+        withExtendedLifetime(storage) {
+            let fragments=layout.fragments(in:layout.glyphRange(for:container)).filter { $0.sentence == 1 }
+            XCTAssertEqual(fragments.count,2)
+            if fragments.count == 2 {
+                XCTAssertGreaterThan(fragments[0].bounds.minX,300)
+                XCTAssertLessThan(fragments[1].bounds.minX,2)
+                XCTAssertEqual(fragments[1].bounds.minY-fragments[0].bounds.minY,35.2,accuracy:0.8)
+                let gap=CGPoint(x:100,y:fragments[0].bounds.maxY+5)
+                XCTAssertNil(layout.sentence(at:gap,in:container))
+            }
+            for fragment in fragments {
+                XCTAssertEqual(layout.sentence(at:CGPoint(x:fragment.bounds.midX,y:fragment.bounds.midY),in:container),1)
+            }
+        }
+    }
+
+    func testMixedArabicSentenceFragmentsKeepTheirLogicalPlaybackIndex() {
+        let sentences=["ذهبتُ إلى السوق في 2026.","اشتريتُ خبزًا وقهوةً في Piyali."]
+        let (storage,layout,container)=textLayout(sentences,width:225,rtl:true)
+        withExtendedLifetime(storage) {
+            let fragments=layout.fragments(in:layout.glyphRange(for:container))
+            XCTAssertEqual(Set(fragments.map(\.sentence)),Set([0,1]))
+            XCTAssertGreaterThan(fragments.filter { $0.sentence == 0 }.map { $0.bounds.maxX }.max() ?? 0,220)
+            for fragment in fragments {
+                let point=CGPoint(x:fragment.bounds.midX,y:fragment.bounds.midY)
+                XCTAssertEqual(layout.sentence(at:point,in:container),fragment.sentence)
+            }
+        }
+    }
+
     func testOriginalReadingAudioControlsInEnglishAndArabic()async throws{
         let env=ProcessInfo.processInfo.environment;guard env["PIYALI_OFFLINE_TESTS"] == "1",env["PIYALI_REFERENCE_PREVIEW_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Isolated source preview required")}
         _ = try ContentLibrary.load(JSONValue.self,name:"reading-audio-ui")

@@ -73,7 +73,7 @@ struct ReadingView:View {
                             .modifier(ReadingCardSurface())
                     }
                     if run != nil,let error=service.error { Text(error).foregroundStyle(brand.questionError) }
-                }.padding(.horizontal,12).padding(.top,6).padding(.bottom,8).frame(maxWidth:1100).frame(maxWidth:.infinity)
+                }.padding(.horizontal,8).padding(.top,6).padding(.bottom,8).frame(maxWidth:1100).frame(maxWidth:.infinity)
             }
             Color.clear.frame(height:app.activityFooterHeight)
         }.font(PiyaliBrand.productFont(16)).foregroundStyle(brand.text).background(brand.background)
@@ -135,19 +135,34 @@ struct ReadingView:View {
         return VStack(alignment:.leading,spacing:14) {
             if !showTranslation {
                 ReadingSentenceText(sentences:sentences,active:activeSentence,dark:scheme == .dark,onSelect:{ index in stop();audio.play(sentences[index],language:run.target,sentence:index) }).accessibilityIdentifier("readingPassage").environment(\.layoutDirection,run.target == "ar" ? .rightToLeft : .leftToRight)
-            } else { VStack(alignment:.leading,spacing:8) {
-                ForEach(Array(sentences.enumerated()),id:\.offset) { index,sentence in
-                    VStack(alignment:.leading,spacing:4) {
-                        Button { stop();audio.play(sentence,language:run.target,sentence:index) } label:{
-                            Text(sentence).font(PiyaliBrand.productFont(16)).lineSpacing(max(0,24-UIFont.systemFont(ofSize:16).lineHeight)).multilineTextAlignment(.leading)
-                                .padding(.horizontal,4).padding(.vertical,max(0,24-UIFont.systemFont(ofSize:16).lineHeight)/2).foregroundStyle(brand.text)
-                                .background {RoundedRectangle(cornerRadius:2).fill(activeSentence == index ? PiyaliBrand.unitColor("38b2ac").opacity(0.35):sentenceColor(index).opacity(0.12)).shadow(color:activeSentence == index ? PiyaliBrand.unitColor("008080"):sentenceColor(index).opacity(0.3),radius:0,y:4)}
-                                .overlay {RoundedRectangle(cornerRadius:2).stroke(activeSentence == index ? PiyaliBrand.unitColor("38b2ac"):.white.opacity(0.12),lineWidth:1)}
-                        }.buttonStyle(.plain).accessibilityIdentifier("readingSentence-\(index)")
-                        if showTranslation,let lines=service.translationLines(for:run.id) ?? run.lineTranslations,lines.indices.contains(index),!lines[index].isEmpty { Text(lines[index]).font(PiyaliBrand.productFont(14)).italic().lineSpacing(max(0,21-UIFont.systemFont(ofSize:14).lineHeight)).padding(.vertical,max(0,21-UIFont.systemFont(ofSize:14).lineHeight)/2).padding(.horizontal,4).padding(.bottom,12).foregroundStyle(.white.opacity(0.8)).opacity(0.9).frame(maxWidth:.infinity,alignment:.leading).accessibilityIdentifier("readingTranslation-\(index)").environment(\.layoutDirection,run.support == "ar" ? .rightToLeft : .leftToRight) }
+            } else {
+                let lines=service.translationLines(for:run.id) ?? run.lineTranslations ?? []
+                let translationInk=brand.dark ? Color.white.opacity(0.8):brand.text.opacity(0.72)
+                VStack(alignment:.leading,spacing:8) {
+                    ForEach(Array(sentences.enumerated()),id:\.offset) { index,sentence in
+                        let paint=ReadingSentencePaint(index:index,active:activeSentence == index)
+                        VStack(alignment:.leading,spacing:4) {
+                            Button { stop();audio.play(sentence,language:run.target,sentence:index) } label:{
+                                Text(sentence).font(PiyaliBrand.productFont(16)).lineSpacing(max(0,24-UIFont.systemFont(ofSize:16).lineHeight)).multilineTextAlignment(.leading)
+                                    .padding(.horizontal,4).padding(.vertical,max(0,24-UIFont.systemFont(ofSize:16).lineHeight)/2).foregroundStyle(brand.text)
+                                    .background {RoundedRectangle(cornerRadius:2).fill(Color(uiColor:paint.fill)).shadow(color:Color(uiColor:paint.edge),radius:0,y:4)}
+                                    .overlay {RoundedRectangle(cornerRadius:2).stroke(Color(uiColor:paint.border),lineWidth:1)}
+                            }.buttonStyle(.plain).accessibilityIdentifier("readingSentence-\(index)")
+                                .accessibilityAddTraits(activeSentence == index ? .isSelected:[])
+                            if lines.indices.contains(index),!lines[index].isEmpty {
+                                Text(lines[index]).font(PiyaliBrand.productFont(14)).italic()
+                                    .lineSpacing(max(0,21-UIFont.systemFont(ofSize:14).lineHeight))
+                                    .padding(.vertical,max(0,21-UIFont.systemFont(ofSize:14).lineHeight)/2)
+                                    .padding(.horizontal,4).padding(.bottom,12)
+                                    .foregroundStyle(translationInk).opacity(0.9)
+                                    .frame(maxWidth:.infinity,alignment:.leading)
+                                    .accessibilityIdentifier("readingTranslation-\(index)")
+                                    .environment(\.layoutDirection,textDirection(run.support))
+                            }
+                        }
                     }
-                }
-            }.environment(\.layoutDirection,run.target == "ar" ? .rightToLeft : .leftToRight) }
+                }.environment(\.layoutDirection,textDirection(run.target))
+            }
             if showTranslation,run.lineTranslations == nil,let translation=run.translation { Text(translation).font(PiyaliBrand.productFont(14)).italic().foregroundStyle(brand.secondary) }
             if app.learner.settingsSnapshot["progress"]["showTranslations"] != .bool(false) {
                 let hasTranslation=run.translation != nil || !(service.translationLines(for:run.id) ?? run.lineTranslations ?? []).isEmpty
@@ -172,7 +187,6 @@ struct ReadingView:View {
             }
         }.modifier(ReadingPassageSurface())
     }
-    private func sentenceColor(_ index:Int)->Color { [PiyaliBrand.unitColor("38b2ac"),Color(red:128/255,green:90/255,blue:213/255),Color(red:237/255,green:137/255,blue:54/255),Color(red:99/255,green:179/255,blue:237/255),Color(red:246/255,green:173/255,blue:85/255)][index%5] }
     @ViewBuilder private func question(_ run:ReadingRun)->some View {
         if run.pendingQuestionType != nil {
             if service.questionGenerating {ReadingLoadingSkeleton(status:t("history_generating_question"),kind:.question)}
@@ -470,44 +484,197 @@ private struct ReadingRetryButtonStyle:ButtonStyle {
     }
 }
 
-/// Native text flow preserves inline sentence boundaries while each link plays one sentence.
+/// CSS-style sentence boxes follow TextKit’s native wrapping and bidi ordering.
 private struct ReadingSentenceText:UIViewRepresentable {
     let sentences:[String]
     let active:Int?
     let dark:Bool
     let onSelect:(Int)->Void
+
     func makeCoordinator()->Coordinator { Coordinator(onSelect:onSelect) }
+
     func makeUIView(context:Context)->UITextView {
-        let view=UITextView();view.isEditable=false;view.isSelectable=false;view.isScrollEnabled=false;view.backgroundColor = .clear;view.textContainerInset = .zero;view.textContainer.lineFragmentPadding=0;view.setContentCompressionResistancePriority(.defaultLow,for:.horizontal)
+        let storage=NSTextStorage()
+        let layout=ReadingSentenceLayout()
+        let container=NSTextContainer()
+        storage.addLayoutManager(layout)
+        layout.addTextContainer(container)
+        let view=UITextView(frame:.zero,textContainer:container)
+        view.isEditable=false
+        view.isSelectable=false
+        view.isScrollEnabled=false
+        view.backgroundColor = .clear
+        view.textContainerInset = .zero
+        container.lineFragmentPadding=0
+        container.widthTracksTextView=true
+        view.setContentCompressionResistancePriority(.defaultLow,for:.horizontal)
         view.addGestureRecognizer(UITapGestureRecognizer(target:context.coordinator,action:#selector(Coordinator.tap(_:))))
         return view
     }
+
     func updateUIView(_ view:UITextView,context:Context) {
         context.coordinator.onSelect=onSelect
-        let text=NSMutableAttributedString(string:""),colors:[UIColor]=[.init(red:56/255,green:178/255,blue:172/255,alpha:1),.init(red:128/255,green:90/255,blue:213/255,alpha:1),.init(red:237/255,green:137/255,blue:54/255,alpha:1),.init(red:99/255,green:179/255,blue:237/255,alpha:1),.init(red:246/255,green:173/255,blue:85/255,alpha:1)]
-        let paragraph=NSMutableParagraphStyle();paragraph.lineSpacing=13;paragraph.baseWritingDirection=context.environment.layoutDirection == .rightToLeft ? .rightToLeft : .leftToRight
-        for (index,sentence) in sentences.enumerated() {
-            text.append(NSAttributedString(string:sentence,attributes:[.font:UIFont.systemFont(ofSize:16),.foregroundColor:dark ? UIColor(red:229/255,green:231/255,blue:235/255,alpha:1) : UIColor(red:47/255,green:38/255,blue:29/255,alpha:1),.backgroundColor:colors[index%colors.count].withAlphaComponent(active == index ? 0.35 : 0.12),NSAttributedString.Key("piyaliSentence"):index,.paragraphStyle:paragraph]))
-            text.append(NSAttributedString(string:" ",attributes:[.font:UIFont.systemFont(ofSize:16),.paragraphStyle:paragraph]))
-        }
+        let rtl=context.environment.layoutDirection == .rightToLeft
+        let text=ReadingSentenceLayout.content(sentences,dark:dark,rtl:rtl)
         if !view.attributedText.isEqual(to:text) { view.attributedText=text }
+        (view.layoutManager as? ReadingSentenceLayout)?.active=active
         view.accessibilityIdentifier="readingPassage"
-        view.isAccessibilityElement=true;view.accessibilityLabel=sentences.joined(separator:" ")
+        view.isAccessibilityElement=true
+        view.accessibilityLabel=sentences.joined(separator:" ")
         view.accessibilityValue=active.flatMap {sentences.indices.contains($0) ? sentences[$0] : nil}
-        view.accessibilityCustomActions=sentences.enumerated().map { index,sentence in UIAccessibilityCustomAction(name:sentence) { _ in context.coordinator.onSelect(index);return true } }
+        view.accessibilityCustomActions=sentences.enumerated().map { index,sentence in
+            UIAccessibilityCustomAction(name:sentence) { _ in
+                context.coordinator.onSelect(index)
+                return true
+            }
+        }
     }
-    func sizeThatFits(_ proposal:ProposedViewSize,uiView:UITextView,context:Context)->CGSize? { guard let width=proposal.width else { return nil };return uiView.sizeThatFits(CGSize(width:width,height:.greatestFiniteMagnitude)) }
-    final class Coordinator:NSObject {
+
+    func sizeThatFits(_ proposal:ProposedViewSize,uiView:UITextView,context:Context)->CGSize? {
+        guard let width=proposal.width else { return nil }
+        return uiView.sizeThatFits(CGSize(width:width,height:.greatestFiniteMagnitude))
+    }
+
+    @MainActor final class Coordinator:NSObject {
         var onSelect:(Int)->Void
         init(onSelect:@escaping(Int)->Void) { self.onSelect=onSelect }
+
         @objc func tap(_ recognizer:UITapGestureRecognizer) {
-            guard let view=recognizer.view as? UITextView,view.attributedText.length > 0 else{return}
-            var point=recognizer.location(in:view);point.x -= view.textContainerInset.left;point.y -= view.textContainerInset.top
-            let manager=view.layoutManager,glyph=manager.glyphIndex(for:point,in:view.textContainer)
-            guard glyph < manager.numberOfGlyphs,manager.boundingRect(forGlyphRange:NSRange(location:glyph,length:1),in:view.textContainer).insetBy(dx:-2,dy:-4).contains(point) else{return}
-            let character=manager.characterIndexForGlyph(at:glyph)
-            guard character < view.attributedText.length,let index=view.attributedText.attribute(NSAttributedString.Key("piyaliSentence"),at:character,effectiveRange:nil) as? Int else{return}
+            guard let view=recognizer.view as? UITextView,
+                  let layout=view.layoutManager as? ReadingSentenceLayout,
+                  let index=layout.sentence(at:recognizer.location(in:view),in:view.textContainer) else { return }
             onSelect(index)
         }
+    }
+}
+
+private struct ReadingSentencePaint {
+    private static let palette=[0x38b2ac,0x805ad5,0xed8936,0x63b3ed,0xf6ad55]
+    let fill,border,edge:UIColor
+
+    init(index:Int,active:Bool) {
+        let rgb=Self.palette[active ? 0:index%Self.palette.count]
+        let tint=UIColor(red:CGFloat((rgb>>16)&255)/255,green:CGFloat((rgb>>8)&255)/255,blue:CGFloat(rgb&255)/255,alpha:1)
+        fill=tint.withAlphaComponent(active ? 0.35:0.12)
+        border=active ? tint:UIColor.white.withAlphaComponent(0.12)
+        edge=active ? UIColor(red:0,green:128/255,blue:128/255,alpha:1):tint.withAlphaComponent(0.3)
+    }
+}
+
+@MainActor final class ReadingSentenceLayout:NSLayoutManager {
+    private static let indexKey=NSAttributedString.Key("PiyaliReadingSentence")
+    private static let font=UIFont.systemFont(ofSize:16)
+    struct Fragment {
+        let sentence:Int
+        let bounds:CGRect
+        let corners:UIRectCorner
+    }
+    var active:Int? {
+        didSet {
+            if oldValue != active,let textStorage {
+                invalidateDisplay(forCharacterRange:NSRange(location:0,length:textStorage.length))
+            }
+        }
+    }
+
+    static func content(_ sentences:[String],dark:Bool,rtl:Bool)->NSAttributedString {
+        let paragraph=NSMutableParagraphStyle()
+        paragraph.minimumLineHeight=35.2
+        paragraph.maximumLineHeight=35.2
+        paragraph.baseWritingDirection=rtl ? .rightToLeft:.leftToRight
+        paragraph.alignment=rtl ? .right:.left
+        let properties:[NSAttributedString.Key:Any]=[
+            .font:font,.foregroundColor:UIColor(PiyaliBrand(dark:dark).text),.paragraphStyle:paragraph
+        ]
+        let result=NSMutableAttributedString(string:"")
+        let indentation="\u{00a0}"
+        let spaceWidth=(indentation as NSString).size(withAttributes:[.font:font]).width
+        // Isolate each sentence and reserve its padding while allowing a break between boxes.
+        for (index,sentence) in sentences.enumerated() {
+            let terminatesParagraph=index == sentences.count-1
+            let start=rtl ? "\u{2067}":"\u{2066}"
+            let span=NSMutableAttributedString(string:start+indentation+sentence+indentation+"\u{2069}",
+                                              attributes:properties.merging([indexKey:index]) { _,new in new })
+            span.addAttribute(.kern,value:5-spaceWidth,range:NSRange(location:1,length:1))
+            let trailingWidth:CGFloat=terminatesParagraph ? 5:9
+            span.addAttribute(.kern,value:trailingWidth-spaceWidth,range:NSRange(location:span.length-2,length:1))
+            if index > 0 { result.append(NSAttributedString(string:"\u{200b}",attributes:properties)) }
+            result.append(span)
+        }
+        return result
+    }
+
+    override func drawBackground(forGlyphRange glyphsToShow:NSRange,at origin:CGPoint) {
+        super.drawBackground(forGlyphRange:glyphsToShow,at:origin)
+        guard let context=UIGraphicsGetCurrentContext() else { return }
+        for fragment in fragments(in:glyphsToShow) {
+            let paint=ReadingSentencePaint(index:fragment.sentence,active:active == fragment.sentence)
+            let box=fragment.bounds.offsetBy(dx:origin.x,dy:origin.y)
+            let corners=fragment.corners
+            let path=UIBezierPath(roundedRect:box,byRoundingCorners:corners,cornerRadii:CGSize(width:2,height:2))
+            let drop=UIBezierPath(roundedRect:box.offsetBy(dx:0,dy:4),byRoundingCorners:corners,cornerRadii:CGSize(width:2,height:2))
+            context.saveGState()
+            let shadowMask=UIBezierPath(rect:box.insetBy(dx:-1,dy:-5))
+            shadowMask.append(path)
+            shadowMask.usesEvenOddFillRule=true
+            shadowMask.addClip()
+            paint.edge.setFill()
+            drop.fill()
+            context.restoreGState()
+            paint.fill.setFill()
+            path.fill()
+            context.saveGState()
+            path.addClip()
+            paint.border.setStroke()
+            path.lineWidth=2
+            path.stroke()
+            context.restoreGState()
+        }
+    }
+
+    func sentence(at point:CGPoint,in container:NSTextContainer)->Int? {
+        let range=glyphRange(for:container)
+        guard range.length > 0 else { return nil }
+        let glyph=glyphIndex(for:point,in:container)
+        guard NSLocationInRange(glyph,range) else { return nil }
+        var line=NSRange()
+        _=lineFragmentRect(forGlyphAt:glyph,effectiveRange:&line)
+        return fragments(in:line).last { $0.bounds.contains(point) }?.sentence
+    }
+
+    func fragments(in glyphs:NSRange)->[Fragment] {
+        guard glyphs.length > 0,let storage=textStorage else { return [] }
+        var result:[Fragment]=[]
+        let chars=characterRange(forGlyphRange:glyphs,actualGlyphRange:nil)
+        let all=NSRange(location:0,length:storage.length)
+        storage.enumerateAttribute(Self.indexKey,in:chars) { value,visibleChars,_ in
+            guard let index=value as? Int else { return }
+            var sentence=NSRange()
+            storage.attribute(Self.indexKey,at:visibleChars.location,longestEffectiveRange:&sentence,in:all)
+            let span=glyphRange(forCharacterRange:sentence,actualCharacterRange:nil)
+            let visible=NSIntersectionRange(glyphs,span)
+            guard visible.length > 0 else { return }
+            let paragraph=storage.attribute(.paragraphStyle,at:sentence.location,effectiveRange:nil) as? NSParagraphStyle
+            let rtl=paragraph?.baseWritingDirection == .rightToLeft
+
+            enumerateLineFragments(forGlyphRange:visible) { row,_,container,line,_ in
+                let piece=NSIntersectionRange(span,line)
+                guard piece.length > 0 else { return }
+                var corners:UIRectCorner=[]
+                if piece.location == span.location {
+                    corners.formUnion(rtl ? [.topRight,.bottomRight]:[.topLeft,.bottomLeft])
+                }
+                if NSMaxRange(piece) == NSMaxRange(span) {
+                    corners.formUnion(rtl ? [.topLeft,.bottomLeft]:[.topRight,.bottomRight])
+                }
+                let baseline=row.minY+self.location(forGlyphAt:piece.location).y
+                self.enumerateEnclosingRects(forGlyphRange:piece,withinSelectedGlyphRange:NSRange(location:NSNotFound,length:0),in:container) { bounds,_ in
+                    guard bounds.width > 0 else { return }
+                    let rect=CGRect(x:bounds.minX,y:baseline-Self.font.ascender-2,width:bounds.width,height:22)
+                    result.append(Fragment(sentence:index,bounds:rect,corners:corners))
+                }
+            }
+        }
+        return result
     }
 }
