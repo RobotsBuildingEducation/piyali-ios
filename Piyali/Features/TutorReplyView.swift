@@ -37,7 +37,7 @@ struct TutorReplyView:View {
                 }
                 Text(aligned(value["primary"].array,color:ink)).font(PiyaliBrand.productFont(16)).lineSpacing(max(0,25-UIFont.systemFont(ofSize:16).lineHeight)).padding(.vertical,max(0,25-UIFont.systemFont(ofSize:16).lineHeight)/2).fixedSize(horizontal:false,vertical:true).frame(maxWidth:.infinity,alignment:.leading).textSelection(.enabled).environment(\.layoutDirection,rtl(target)).accessibilityIdentifier(primaryIdentifier).accessibilityAddTraits(activeRoot != nil ? .isSelected:[]).onGeometryChange(for:CGRect.self,of:{$0.frame(in:.named("conversationArchive"))}){onPrimaryFrame?($0)}
             }
-            if showSecondary,!secondary.isEmpty {Text(aligned(value["secondary"].array,color:muted)).font(PiyaliBrand.productFont(12)).lineSpacing(max(0,18-UIFont.systemFont(ofSize:12).lineHeight)).padding(.vertical,max(0,18-UIFont.systemFont(ofSize:12).lineHeight)/2).foregroundStyle(muted).padding(.top,4).fixedSize(horizontal:false,vertical:true).frame(maxWidth:.infinity,alignment:.leading).environment(\.layoutDirection,rtl(support)).accessibilityIdentifier(secondaryIdentifier)}
+            if showSecondary,!secondary.isEmpty {Text(aligned(value["secondary"].array,color:muted)).font(PiyaliBrand.productFont(12)).lineSpacing(max(0,18-UIFont.systemFont(ofSize:12).lineHeight)).padding(.vertical,max(0,18-UIFont.systemFont(ofSize:12).lineHeight)/2).foregroundStyle(muted).padding(.top,4).fixedSize(horizontal:false,vertical:true).frame(maxWidth:.infinity,alignment:.leading).environment(\.layoutDirection,rtl(support)).accessibilityIdentifier(secondaryIdentifier).accessibilityAddTraits(activeRoot != nil && value["secondary"].array.contains { $0["root"].string == activeRoot } ? .isSelected:[])}
             if showSecondary,let onTranslate {HStack {Spacer();Button(action:onTranslate){Group {if translating {ProgressView().controlSize(.mini)} else {Image("ConversationTranslate").resizable().renderingMode(.template).frame(width:12,height:12)}}.frame(width:24,height:24)}.buttonStyle(.plain).disabled(translating).accessibilityLabel(EntryCopy.ui(support,"ra_btn_translate")).accessibilityIdentifier(translateIdentifier)}.padding(.top,8)}
             if showSecondary,showPairCards,!value["pairs"].array.isEmpty {TutorPhraseFlow(spacing:12){ForEach(Array(value["pairs"].array.prefix(8).enumerated()),id:\.offset){index,pair in
                 let color=PiyaliBrand.unitColor(value["colors"].array.indices.contains(index) ? value["colors"].array[index].string:"91e0ff")
@@ -52,8 +52,24 @@ struct TutorReplyView:View {
             .shadow(color:dark ? .black.opacity(0.35):PiyaliBrand.unitColor(conversationAppearance ? "6f5636":"785e3d").opacity(conversationAppearance ? 0.08:0.13),radius:dark ? 14:(conversationAppearance ? 9:19),y:dark ? 14:(conversationAppearance ? 8:18))
             .environment(\.openURL,OpenURLAction{url in guard url.scheme == "tutorphrase" else{return .systemAction};activeRoot=activeRoot == url.host ? nil:url.host;return .handled})
             .onChange(of:primary){_,_ in activeRoot=nil}
+            .onChange(of:pairs){_,_ in activeRoot=nil}
     }
-    private func aligned(_ chunks:[JSONValue],color:Color)->AttributedString {var result=AttributedString();for chunk in chunks{var part=AttributedString(chunk["token"].string.isEmpty ? chunk.string:chunk["text"].string);let root=chunk["root"].string;if !root.isEmpty{part.link=URL(string:"tutorphrase://"+root);part.foregroundColor=color;if activeRoot == root{part.underlineStyle = .single;part.underlineColor=UIColor(PiyaliBrand.unitColor("91e0ff"))}};result.append(part)};return result}
+    private func aligned(_ chunks:[JSONValue],color:Color)->AttributedString {
+        var result = AttributedString()
+        for chunk in chunks {
+            var part = AttributedString(chunk["token"].string.isEmpty ? chunk.string : chunk["text"].string)
+            let root = chunk["root"].string
+            if !root.isEmpty {
+                part.link = URL(string:"tutorphrase://"+root)
+                part.foregroundColor = color
+                if activeRoot == root {
+                    part.swiftUI.underlineStyle = .init(color:PiyaliBrand.unitColor("91e0ff"))
+                }
+            }
+            result.append(part)
+        }
+        return result
+    }
 }
 
 private struct TutorPhraseFlow:Layout {

@@ -219,7 +219,7 @@ extension AIService:ConversationProviding {}
                 #endif
             }
             else { text=try await provider(app).conversationTranslationStream(message.text,support:support,onChunk:{[weak self] snapshot in
-                guard let self,self.valid(app,account:account,target:target,support:support,session:session,token:token),self.liveReply?.id == message.id || app.learner.conversation.messages.contains(where:{$0.id == message.id}) else{return}
+                guard !snapshot.isEmpty,let self,self.valid(app,account:account,target:target,support:support,session:session,token:token),self.liveReply?.id == message.id || app.learner.conversation.messages.contains(where:{$0.id == message.id}) else{return}
                 self.translationDrafts[message.id]=ConversationTranslation.streaming(snapshot)
             }) }
             guard valid(app,account:account,target:target,support:support,session:session,token:token),support == app.learner.support else { return }

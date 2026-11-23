@@ -50,7 +50,10 @@ struct ConversationView:View {
     private var latest:ConversationMessage? { draft.messages.last { $0.role == "assistant" } }
     private var showTranslations:Bool { app.learner.settingsSnapshot["progress"]["showTranslations"] != .bool(false) }
     private func translation(_ message:ConversationMessage)->String { conversation.translationDrafts[message.id] ?? message.translation(for:app.learner.support) ?? "" }
-    private func pairs(_ message:ConversationMessage)->JSONValue {message.translationLang == app.learner.support ? message.pairs ?? .array([]) : .array([])}
+    private func pairs(_ message:ConversationMessage)->JSONValue {
+        guard conversation.translationDrafts[message.id] == nil, message.translationLang == app.learner.support else { return .array([]) }
+        return message.pairs ?? .array([])
+    }
     private func translationAction(_ message:ConversationMessage?)->(()->Void)? {guard let message else{return nil};return {Task {await conversation.translate(message,app:app)}}}
     private var reply:String { !live.assistantTurnText.isEmpty ? live.assistantTurnText : paused && !pausedReply.isEmpty ? pausedReply : latest?.text ?? "" }
     private var visibleReply:ConversationVisibleReply? {

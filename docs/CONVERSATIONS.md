@@ -171,3 +171,15 @@ Nine language-service checks and two iPhone product journeys passed in `/tmp/Piy
 ![Original web and iPhone Conversation settings and the return to Today's Focus](native/conversation-drawer-focus-20261123.jpg)
 
 The paired drawers share the content and actions and have different footer spacing and system safe areas. The browser RTC fixture finished without earning XP. The iPhone fixture supplied scripted speech and earned five XP. Physical microphone and speaker behavior, longer or RTL drawer content, and active-call account changes remain open.
+
+## Archived phrase selection and replacement translation, November 23
+
+The original web product opened its actual Chat log with a public transcript fixture containing a saved pair for each of two phrases. Tapping Spanish or English toggled the shared cyan highlight in both lines. The original token grouping selects both phrases in the bubble together. On the first streamed piece of a replacement translation, the links and highlight disappeared and the Translate button stayed disabled until the stream ended. The browser used the original UI and translation handling with an isolated Firestore and a scripted model stream.
+
+The baseline iPhone journey still exposed the Spanish phrase link after the replacement text appeared. iPhone now drops that message's old alignment as soon as a replacement chunk arrives, clears the bubble's selection, and exposes the active selection on both aligned lines for accessibility. Empty provider chunks leave the current text and alignment alone. In the first corrected capture, accessibility reported selection while the UIKit underline attributes produced no visible cyan pixels. The selected phrase now uses SwiftUI's colored inline underline attribute.
+
+The iPhone simulator entered through signup and a finished Conversation, opened Chat log, selected the paired reply from both languages, and translated the archived reply again. The first chunk cleared both phrase links and both selection states. Relaunch recovered the final translation and original five XP. The scripted saved alignment exercises the compatibility path. An ordinary translation generates plain text in both products.
+
+Three product journeys and nine service checks passed in `/tmp/PiyaliConversationArchivePhraseVerified-20261123.xcresult`. The archive and latest-reply journeys then passed with the SwiftUI underline in `/tmp/PiyaliConversationArchiveSelectionVisible-20261123.xcresult`. The final screenshots show two distinct cyan underline bands, one per language, and zero cyan pixels in the caption region on the first replacement chunk. The iPhone uses a thinner typographic underline than the web inset.
+
+![Original web and native iPhone archived phrase selection before and during a replacement translation](native/conversation-archive-phrase-20261123.jpg)

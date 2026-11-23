@@ -65,6 +65,60 @@ import XCTest
         XCTAssertEqual(app.staticTexts["conversationTranslation"].label,"Hello, Ana! What do you like doing?")
         XCTAssertTrue(app.links.matching(NSPredicate(format:"label CONTAINS %@","Hola, Ana")).firstMatch.waitForExistence(timeout:5))
     }
+    func testArchivedPhraseSelectionClearsWhenReplacementTranslationStarts() {
+        let app=start(translationStream:true,alignment:true)
+        tap("conversationStart",app)
+        let live=app.staticTexts["conversationLatestReply"]
+        let replyArrived=XCTNSPredicateExpectation(predicate:NSPredicate(format:"label CONTAINS %@","¡Hola, Ana!"),object:live)
+        XCTAssertEqual(XCTWaiter.wait(for:[replyArrived],timeout:18),.completed)
+        tap("conversationEnd",app)
+        tap("conversationSummaryDone",app)
+        tap("conversationHistory",app)
+
+        let primary=app.staticTexts.matching(NSPredicate(format:"identifier BEGINSWITH %@ AND label CONTAINS %@","conversationHistoryReply-","¡Hola, Ana!")).firstMatch
+        let translation=app.staticTexts.matching(NSPredicate(format:"identifier BEGINSWITH %@","conversationHistoryTranslation-")).firstMatch
+        let spanish=app.links.matching(NSPredicate(format:"label == %@","Hola, Ana")).firstMatch
+        let english=app.links.matching(NSPredicate(format:"label == %@","Hello, Ana")).firstMatch
+        XCTAssertTrue(primary.waitForExistence(timeout:5))
+        XCTAssertTrue(spanish.waitForExistence(timeout:5))
+        XCTAssertTrue(english.isHittable)
+        spanish.tap()
+        XCTAssertTrue(primary.isSelected)
+        XCTAssertTrue(translation.isSelected)
+        photo("Native selected aligned phrase in Conversation history",app)
+        english.tap()
+        XCTAssertFalse(primary.isSelected)
+        XCTAssertFalse(translation.isSelected)
+        english.tap()
+        XCTAssertTrue(primary.isSelected)
+
+        let translate=app.buttons.matching(NSPredicate(format:"identifier BEGINSWITH %@","conversationHistoryTranslate-")).firstMatch
+        XCTAssertTrue(translate.isHittable)
+        translate.tap()
+        let partial=XCTNSPredicateExpectation(predicate:NSPredicate(format:"label == %@","Hello,"),object:translation)
+        XCTAssertEqual(XCTWaiter.wait(for:[partial],timeout:5),.completed)
+        XCTAssertFalse(spanish.exists)
+        XCTAssertFalse(english.exists)
+        XCTAssertFalse(primary.isSelected)
+        XCTAssertFalse(translation.isSelected)
+        XCTAssertFalse(translate.isEnabled)
+        photo("Native Conversation history replacement translation in progress",app)
+
+        let complete=XCTNSPredicateExpectation(predicate:NSPredicate(format:"label == %@","Hello, Ana! What do you like doing?"),object:translation)
+        XCTAssertEqual(XCTWaiter.wait(for:[complete],timeout:12),.completed)
+        XCTAssertFalse(spanish.exists)
+        XCTAssertFalse(primary.isSelected)
+        tap("conversationHistoryClose",app)
+        app.terminate();app.launch();open(app)
+        tap("conversationHistory",app)
+        XCTAssertTrue(primary.waitForExistence(timeout:8))
+        XCTAssertEqual(translation.label,"Hello, Ana! What do you like doing?")
+        XCTAssertFalse(spanish.exists)
+        XCTAssertFalse(primary.isSelected)
+        tap("conversationHistoryClose",app)
+        let xp=app.descendants(matching:.any).matching(identifier:"dailyXPStatus").firstMatch
+        XCTAssertEqual(xp.value as? String,"5%")
+    }
     func testHistoryNewestFirstAndSavedTranslationPreferenceOffAfterRelaunch() {
         let app=start(alignment:true,translationsHidden:true);tap("conversationStart",app)
         let reply=app.staticTexts["conversationLatestReply"];expectation(for:NSPredicate(format:"label CONTAINS %@","¡Hola, Ana!"),evaluatedWith:reply);waitForExpectations(timeout:18)
