@@ -8,6 +8,87 @@ import WebKit
     func load(npub:String,local:LearnerState?)async throws->LearnerState?{nil}
     func save(_ state:LearnerState,npub:String)async throws->LearnerState?{throw URLError(.notConnectedToInternet)}
 }
+
+@MainActor final class LessonCompletionReferenceTests:XCTestCase {
+    func testCourseCompletionAgainstTheOriginalDialog()async throws {
+        let env=ProcessInfo.processInfo.environment
+        guard env["PIYALI_OFFLINE_TESTS"] == "1",env["PIYALI_REFERENCE_PREVIEW_TESTS"] == "1"
+        else { throw XCTSkip("Isolated read-only reference preview required") }
+        let library=try ContentLibrary.load(IntroLibrary.self,name:"intro-es")
+        let lesson=try XCTUnwrap(library.units["Pre-A1"]?.lessons.first)
+        let app=AppModel(progressService:RPGCompletionNoCloud())
+        let scene=try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
+        let old=scene.windows.first { $0.isKeyWindow }
+        defer { old?.makeKey() }
+        XCTAssertEqual(LessonSessionCopy.completion("Lesson Complete!",language:"de"),"Lektion abgeschlossen!")
+        for (language,width,height,snapshot,live,expectedXP) in [
+            ("en",402,874,50,0,50),
+            ("ar",375,667,95,153,153),
+            ("de",402,874,200,80,200),
+        ] {
+            let dark=language == "ar"
+            app.learner.target="es"
+            app.learner.support=language
+            app.learner.xpByLanguage=["es":live,"en":420]
+            let presentation=LessonCompletionPresentation(account:"fixture",target:"es",lesson:lesson,reward:50,languageXP:snapshot)
+            let window=UIWindow(windowScene:scene)
+            window.frame=CGRect(x:0,y:0,width:width,height:height)
+            defer { window.isHidden=true;window.rootViewController=nil }
+            let config=WKWebViewConfiguration()
+            config.websiteDataStore = .nonPersistent()
+            let web=WKWebView(frame:window.bounds,configuration:config),controller=UIViewController()
+            controller.view=web
+            window.rootViewController=controller
+            window.makeKeyAndVisible()
+            web.scrollView.contentInsetAdjustmentBehavior = .never
+            var url=URLComponents(string:"http://127.0.0.1:5181/__piyali-lesson-completion")!
+            url.queryItems=[.init(name:"language",value:language),.init(name:"theme",value:dark ? "dark":"light"),
+                            .init(name:"snapshot",value:String(snapshot)),.init(name:"live",value:String(live)),
+                            .init(name:"title",value:lesson.title.json)]
+            web.load(URLRequest(url:try XCTUnwrap(url.url)))
+            var ready=false
+            for _ in 0..<250 {
+                ready=(try? await web.evaluateJavaScript("""
+                    document.querySelector('.chakra-modal__content img')?.naturalWidth>0 &&
+                    document.querySelector('.chakra-modal__content .chakra-badge')?.textContent
+                    """)) as? String == "XP \(expectedXP)"
+                if ready { break }
+                try await Task.sleep(for:.milliseconds(60))
+            }
+            guard ready else { return XCTFail("The original \(language) dialog and its XP total did not load") }
+            try await Task.sleep(for:.milliseconds(950))
+            let progress=try await web.evaluateJavaScript("""
+                (()=>{const badge=document.querySelector('.chakra-badge'), bar=badge.parentElement.nextElementSibling;
+                return {value:100*bar.firstElementChild.getBoundingClientRect().width/bar.clientWidth,
+                        width:document.querySelector('.chakra-modal__content').getBoundingClientRect().width};})()
+                """) as? [String:Double]
+            XCTAssertEqual(try XCTUnwrap(progress?["width"]),Double(width-24),accuracy:0.1)
+            XCTAssertEqual(try XCTUnwrap(progress?["value"]),Double(expectedXP%100),accuracy:0.1)
+            func capture(_ kind:String,_ image:UIImage) {
+                let attachment=XCTAttachment(image:image)
+                attachment.name="\(kind) course completion \(language) \(width)"
+                attachment.lifetime = .keepAlways
+                add(attachment)
+            }
+            capture("Source",try await web.takeSnapshot(configuration:nil))
+            _=try await web.evaluateJavaScript("document.querySelector('.chakra-modal__content button').click()")
+            let closed=try await web.evaluateJavaScript("window.__piyaliLessonCompletionClosed")
+            XCTAssertEqual(closed as? Bool,true)
+            web.stopLoading()
+            let host=UIHostingController(rootView:LessonCompletionView(completion:presentation,onContinue:{})
+                .background(PiyaliBrand.unitColor(dark ? "0b1220":"f7f1e7")).environmentObject(app)
+                .environment(\.layoutDirection,dark ? .rightToLeft:.leftToRight)
+                .environment(\.dynamicTypeSize,.large).preferredColorScheme(dark ? .dark:.light).ignoresSafeArea())
+            window.rootViewController=host
+            window.makeKeyAndVisible()
+            host.view.layoutIfNeeded()
+            try await Task.sleep(for:.milliseconds(1050))
+            capture("Native",UIGraphicsImageRenderer(bounds:window.bounds).image { _ in
+                window.drawHierarchy(in:window.bounds,afterScreenUpdates:true)
+            })
+        }
+    }
+}
 @MainActor final class RPGCompletionReferenceTests:XCTestCase {
     private func isolated()throws {let e=ProcessInfo.processInfo.environment;guard e["PIYALI_OFFLINE_TESTS"] == "1",UUID(uuidString:e["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Isolated offline identity required")}}
     func testOriginalAuthoredRecapAcrossScoresPhoneSizesAndSupportLanguages()async throws {

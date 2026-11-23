@@ -53,6 +53,8 @@ import XCTest
         let bonus=app.staticTexts["lessonCompletionBonus"]
         XCTAssertTrue(bonus.waitForExistence(timeout:10))
         XCTAssertEqual(bonus.label,"+50")
+        XCTAssertEqual(app.staticTexts["lessonCompletionLevel"].label,"Level 1")
+        XCTAssertEqual(app.staticTexts["lessonCompletionXP"].label,"XP 50")
         XCTAssertFalse(world.exists)
         shot("Native legacy game Skip reaches the introduction bonus",app)
         tap("continueLessonCompletion",app)

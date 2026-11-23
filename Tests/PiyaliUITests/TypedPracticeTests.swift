@@ -44,6 +44,8 @@ import XCTest
             }
         }
         let bonus=app.staticTexts["lessonCompletionBonus"];XCTAssertTrue(bonus.waitForExistence(timeout:10));XCTAssertEqual(bonus.label,"+80");XCTAssertTrue(app.staticTexts["Lesson Complete!"].exists)
+        XCTAssertEqual(app.staticTexts["lessonCompletionLevel"].label,"Level 3")
+        XCTAssertEqual(app.staticTexts["lessonCompletionXP"].label,"XP 214")
         let shot=XCTAttachment(screenshot:app.screenshot());shot.name="Native completed 80 XP curriculum lesson";shot.lifetime = .keepAlways;add(shot)
         app.buttons["continueLessonCompletion"].tap();followups();XCTAssertTrue(first.waitForExistence(timeout:5));XCTAssertEqual(first.value as? String,"completed");XCTAssertTrue(second.isEnabled)
         XCTAssertEqual(dialogs.filter{$0 == "dailyGoalRewardContinue"}.count,1);XCTAssertEqual(dialogs.filter{$0 == "companionUnlockKeep"}.count,1)

@@ -91,10 +91,7 @@ struct ProductShellView:View {
             .accessibilityElement(children:.contain).accessibilityHidden(app.tutorPath != nil || panel == .memory || panel == .settings || panel == .assistant || panel == .teams || panel == .achievements || app.journeyRecording != nil || app.flashcardSession != nil || app.goalCheck != nil || lessonCompletion != nil || firstRun.step != nil || goalOpen || timerOpen || timer.session.status == .finished || practice.visible != nil || practice.dailyGoalVisible != nil || app.scholarship.visible != nil)
             .overlay {
                 if let data=lessonCompletion {
-                    ZStack {
-                        (scheme == .dark ? Color(red:2/255,green:6/255,blue:23/255).opacity(0.92) : Color(red:28/255,green:20/255,blue:12/255).opacity(0.82)).ignoresSafeArea().onTapGesture { closeLessonCompletion() }
-                        LessonCompletionView(completion:data,onContinue:closeLessonCompletion).fixedSize(horizontal:false,vertical:true).onTapGesture { }.padding(12)
-                    }.accessibilityElement(children:.contain).accessibilityIdentifier("lessonCompletionDialog")
+                    LessonCompletionView(completion:data,onContinue:closeLessonCompletion).id(data.id)
                 }
             }
             .overlay {
@@ -106,7 +103,11 @@ struct ProductShellView:View {
                     }}}.accessibilityElement(children:.contain).accessibilityIdentifier("firstRunDialog")
                 }
             }
-            .onChange(of:firstRunScope) {_,scope in firstRun.reconcile(scope:scope);if let p=app.journeyRecording,p.account+":"+p.target != scope{p.controller.close();app.journeyRecording=nil}}
+            .onChange(of:firstRunScope) {_,scope in
+                firstRun.reconcile(scope:scope)
+                if let p=app.journeyRecording,p.account+":"+p.target != scope{p.controller.close();app.journeyRecording=nil}
+                if let completion=lessonCompletion,completion.account+":"+completion.target != scope{closeLessonCompletion()}
+            }
             .preferredColorScheme(theme == "dark" ? .dark : .light)
             .environment(\.layoutDirection,language == "ar" ? .rightToLeft : .leftToRight)
     }
@@ -322,6 +323,9 @@ struct ProductShellView:View {
             try? await Task.sleep(for:.milliseconds(150))
             guard app.pendingLessonCompletion?.id == pending.id,pending.account == app.identity.npub,pending.target == app.learner.target,!app.lessonActivityActive,canPresentPracticeModal else { return }
             presentedLessonCompletionID=pending.id;lessonCompletion=pending
+            // The bundled companion cue is the same source sparkle.
+            let volume=app.learner.settingsSnapshot["soundVolume"]
+            practiceSounds.play("companionUnlock",enabled:app.learner.soundEffectsEnabled,volume:volume == .null ? 100:volume.number)
         }
     }
     private func finishLessonCompletion() {

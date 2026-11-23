@@ -3,6 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import vm from 'node:vm';
 import {createRequire} from 'node:module';
+import {pathToFileURL} from 'node:url';
 import {gzipSync} from 'node:zlib';
 const reference=path.resolve(process.argv[2] || '../nosabos/nosabos');
 const require=createRequire(path.join(reference,'package.json')),parser=require('@babel/parser'),traverse=require('@babel/traverse').default;
@@ -11,11 +12,13 @@ const ast=parser.parse(source,{sourceType:'module',plugins:['jsx']});
 const start=source.indexOf('isOpen={showCompletionModal}'),end=source.indexOf('Daily Plate celebration modal',start);
 if(start<0 || end<0) throw Error('Original completion modal is missing');
 const completion={};
+const {getGermanCopy}=await import(pathToFileURL(path.join(reference,'src/utils/germanCopy.js')));
 traverse(ast,{CallExpression(p){
  if(p.node.start<start || p.node.end>end || p.node.callee.name!=='uiCopy') return;
  const object=p.node.arguments[1];if(object?.type!=='ObjectExpression')return;
  const entries=object.properties.filter(p=>p.type==='ObjectProperty' && p.value.type==='StringLiteral').map(p=>[p.key.name || p.key.value,p.value.value]);
- const value=Object.fromEntries(entries);if(value.en) completion[value.en]=value;
+ const value=Object.fromEntries(entries);
+ if(value.en){value.de ??= getGermanCopy(value.en) || value.en;completion[value.en]=value}
 }});
 const stepper=await fs.readFile(path.join(reference,'src/components/TutorialStepper.jsx'),'utf8');
 const stepAst=parser.parse(stepper,{sourceType:'module',plugins:['jsx']});
