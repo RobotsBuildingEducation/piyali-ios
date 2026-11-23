@@ -25,6 +25,7 @@ methods = {'narration-warm-refill':'testSilentNarrationRefillPreservesAnActiveNa
            'practice-formats':'testEveryOriginalPracticeFormatProducesAUsableNativeQuestion',
            'quiz':'testNativeFinalQuizQuestionsUseAuthoredContentAndProviderFallback',
            'exploration':'testNativeExplorationQuestReauthoringAndNPCSpeechPreservePlayablePaths',
+           'legacy-intro':'testNativeLegacyCourseIntroUsesLiveGeminiAndResponsesRecovery',
            'reading': 'testNativeReadingGenerationAndResponsesFallback',
            'reading-stream': 'testReadingStreamingProvidersAndTranslation',
            'reading-backend': 'testReadingJSONBackendAndMissingQuestionUseNativeProviders',

@@ -754,6 +754,106 @@ import Security
         } catch { try? await Auth.auth().currentUser?.delete();try? Auth.auth().signOut();try? identity.disconnect();throw error }
         try await Auth.auth().currentUser?.delete();try Auth.auth().signOut();try identity.disconnect()
     }
+    func testNativeLegacyCourseIntroUsesLiveGeminiAndResponsesRecovery() async throws {
+        let environment = ProcessInfo.processInfo.environment
+        guard environment["PIYALI_LIVE_API_TESTS"] == "1",
+              environment["PIYALI_OFFLINE_TESTS"] == "1",
+              UUID(uuidString: environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else {
+            throw XCTSkip("Explicit isolated live opt-in required")
+        }
+        if let token = environment["TEST_RUNNER_FIRAAppCheckDebugToken"] {
+            setenv("FIRAAppCheckDebugToken", token, 1)
+        }
+        FirebaseConfiguration.shared.setLoggerLevel(.error)
+        if FirebaseApp.app() == nil {
+            AppCheck.setAppCheckProviderFactory(PiyaliAppCheckFactory())
+            FirebaseApp.configure()
+        }
+        guard FirebaseApp.app()?.options.projectID == "piyali-ios" else {
+            return XCTFail("The live check requires the Piyali Firebase project")
+        }
+
+        let provider = AIService().legacyGameProvider()
+        let gemini = try XCTUnwrap(provider.gemini)
+        let library = try ContentLibrary.load(IntroLibrary.self, name: "intro-es")
+        let lesson = try XCTUnwrap(library.units["Pre-A1"]?.lessons.first)
+        let input: Piyali.JSONValue = .object([
+            "lesson": try RPGPreparationPolicy.value(lesson).setting("isTutorial", .bool(true)),
+            "target": .string("es"),
+            "support": .string("en"),
+            "user": .object([:]),
+        ])
+        let policy = try TutorialPlazaPolicy()
+        let identity = IdentityService()
+        try identity.create()
+        do {
+            try await FirebaseIdentityService.shared.ensure(identity)
+            var geminiReplies: [LegacyGamePrompt] = []
+            var automaticRecoveries = 0
+            let observed = LegacyGameProvider(gemini: { prompt in
+                do {
+                    let reply = try await gemini(prompt)
+                    if !reply.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        geminiReplies.append(prompt)
+                    }
+                    return reply
+                } catch {
+                    let stage = prompt.text.contains("TUTORIAL MODE") ? "map" : prompt.mimeType == "application/json" ? "localization" : "dialogue"
+                    switch error {
+                    case let GenerateContentError.internalError(underlying):
+                        let failure = underlying as NSError
+                        print("LIVE LEGACY PLAZA: Gemini \(stage) error \(failure.domain) \(failure.code)")
+                    case let GenerateContentError.responseStoppedEarly(reason, _):
+                        print("LIVE LEGACY PLAZA: Gemini \(stage) stopped early (\(reason))")
+                    case GenerateContentError.promptBlocked:
+                        print("LIVE LEGACY PLAZA: Gemini \(stage) blocked")
+                    default:
+                        let failure = error as NSError
+                        print("LIVE LEGACY PLAZA: Gemini \(stage) error \(failure.domain) \(failure.code)")
+                    }
+                    throw error
+                }
+            }, responses: { prompt in
+                automaticRecoveries += 1
+                return try await provider.responses(prompt)
+            })
+            let scenario = try await policy.generate(input) { try await observed.send($0) }
+            let hasMapReply = geminiReplies.contains { $0.text.contains("TUTORIAL MODE") }
+            let hasLocalizationReply = geminiReplies.contains { $0.mimeType == "application/json" }
+            print("LIVE LEGACY PLAZA: Gemini nonempty replies=\(geminiReplies.count), map=\(hasMapReply), localization=\(hasLocalizationReply), automatic Responses attempts=\(automaticRecoveries)")
+            XCTAssertTrue(hasMapReply, "The configured Gemini route should deliver the map prompt")
+            XCTAssertTrue(hasLocalizationReply, "The configured Gemini route should deliver the JSON localization prompt")
+            XCTAssertEqual(scenario.id, "tutorialPlaza")
+            var run = try ExplorationRun(target: "es", support: "en", scenario: scenario, tutorialKey: "live-public-course")
+            XCTAssertTrue(run.approach(ExplorationTemplate.position(run.npc)))
+            XCTAssertTrue(run.talk())
+            XCTAssertFalse(run.node["npcLine"].string.isEmpty)
+
+            // Hold the primary route down for one public request while using the deployed fallback.
+            var requests = 0
+            let recovery = LegacyGameProvider(gemini: { _ in
+                throw URLError(.notConnectedToInternet)
+            }, responses: { prompt in
+                requests += 1
+                return try await provider.responses(prompt)
+            })
+            let reply = try await recovery.send(.init(text: "Reply with only this Spanish word: Hola"))
+            XCTAssertEqual(requests, 1)
+            XCTAssertTrue(reply.lowercased().contains("hola"))
+            print("LIVE LEGACY PLAZA: reachable quest dialogue, and live Responses reply bytes=\(reply.utf8.count) after a simulated primary failure")
+        } catch {
+            if Auth.auth().currentUser?.uid == identity.npub {
+                try await deleteLiveTestIdentity(identity)
+            } else {
+                try identity.disconnect()
+            }
+            throw error
+        }
+        try await deleteLiveTestIdentity(identity)
+        XCTAssertNil(Auth.auth().currentUser)
+        XCTAssertTrue(identity.npub.isEmpty)
+    }
+
     func testNativeExplorationQuestReauthoringAndNPCSpeechPreservePlayablePaths() async throws {
         guard ProcessInfo.processInfo.environment["PIYALI_LIVE_API_TESTS"] == "1" else { throw XCTSkip("Explicit live API opt-in required.") }
         XCTAssertEqual(ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"],"1");_=try XCTUnwrap(UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? ""))

@@ -129,6 +129,7 @@ import XCTest
         XCTAssertEqual(geminiPrompts,responsesPrompts)
         XCTAssertEqual(order,geminiPrompts.flatMap { _ in ["gemini","responses"] })
         XCTAssertTrue(geminiPrompts.first?.text.contains("TUTORIAL MODE") == true)
+        XCTAssertNil(geminiPrompts.first?.thinkingBudget)
         let localized=try XCTUnwrap(geminiPrompts.first { $0.mimeType == "application/json" })
         XCTAssertEqual(localized.thinkingBudget,2048)
         XCTAssertEqual(localized.temperature,1)

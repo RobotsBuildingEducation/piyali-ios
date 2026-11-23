@@ -147,4 +147,20 @@ The clean browser run passed from signup through reload after waiting for the co
 
 ![The complete web and iPhone routes at Greeting Plaza, lesson completion, and the restored Course Path](native/course-root-legacy-20261123.jpg)
 
-The paired screens show iPhone’s safe-area offset, the completion card’s different XP badge and progress track, and the course header spacing. The generated cast and number of quest steps vary between the independent runs. The controlled browser run verifies the original warm-up failure path. Live model delivery, physical voice, and the remaining whole-product release gates are still open.
+The paired screens show iPhone’s safe-area offset and the course header spacing. The completion card's XP badge and progress track were aligned in a [subsequent comparison](LESSON_PROGRESS_PARITY.md#course-lesson-completion-card-november-23). The generated cast and number of quest steps vary between the independent runs. The controlled browser run verifies the original warm-up failure path.
+
+## Live Greeting Plaza delivery, November 23
+
+The opt-in `legacy-intro` check authenticates a disposable simulator identity against Piyali Firebase and submits the bundled Spanish Course introduction with English support and an empty learner context. It requests the original plaza and localization through the configured Firebase AI Logic model, validates the returned scenario and opens the first NPC's dialogue in the native run. It then simulates one primary failure and submits a short public prompt through the deployed Piyali Responses worker. The test deletes its Firebase Auth identity and removes the local key.
+
+The first run received three `400 INVALID_ARGUMENT` responses from Gemini. The SDK was sending a zero-token thinking budget when the source call supplied no override. The configured Flash-Lite model already defaults to minimal thinking. Native now leaves the budget unset for those prompts and retains the source localization request's explicit 2,048-token budget, temperature and JSON type. [Firebase AI Logic thinking configuration](https://firebase.google.com/docs/ai-logic/thinking)
+
+Both runs after the request change received upstream `500 INTERNAL` responses during high demand. The last run returned one nonempty Gemini dialogue reply and used the live Responses route for three other attempts. Both runs opened reachable quest dialogue and returned a live greeting through the single forced fallback request. Live fallback is verified for this public fixture. The test remains red until both the map and localization replies arrive through Gemini. Physical microphone, production App Attest and release signing still need device verification.
+
+The controlled simulator run `/tmp/PiyaliLegacyRequestRegression-20261123.xcresult` passed all three selected checks. It verified primary/fallback request order, the empty reply and stale request behavior, and the Course Path journey from an unusable world through Try again, fullscreen and a single +50 XP award after Skip.
+
+```sh
+PIYALI_TEST_DEVICE=CE8248B6-7171-4FD4-97DE-89E499107F82 \
+  python3 scripts/test-live-api.py --only legacy-intro \
+    --result-bundle /tmp/PiyaliLiveLegacyIntroRetry-20261123.xcresult
+```

@@ -369,9 +369,9 @@ struct LegacyGamePrompt:Equatable {
     let text:String
     var config:JSONValue = .null
 
-    var thinkingBudget:Int {
+    var thinkingBudget:Int? {
         let budget=config["thinkingConfig"]["thinkingBudget"]
-        return budget == .null ? 0 : Int(budget.number)
+        return budget == .null ? nil : Int(budget.number)
     }
     var temperature:Float? { config["temperature"] == .null ? nil : Float(config["temperature"].number) }
     var mimeType:String? { config["responseMimeType"] == .null ? nil : config["responseMimeType"].string }
@@ -415,8 +415,10 @@ extension AIService {
         }
         #endif
         let gemini:LegacyGameProvider.Request? = configuration.string("AIProvider") == "gemini" && FirebaseService.shared.configured ? { prompt in
+            // Flash-Lite defaults to minimal thinking and rejects an explicit zero budget.
+            let thinking = prompt.thinkingBudget.map { ThinkingConfig(thinkingBudget: $0) }
             let config=GenerationConfig(temperature:prompt.temperature,maxOutputTokens:8192,
-                                        responseMIMEType:prompt.mimeType,thinkingConfig:ThinkingConfig(thinkingBudget:prompt.thinkingBudget))
+                                        responseMIMEType:prompt.mimeType,thinkingConfig:thinking)
             let model=FirebaseAI.firebaseAI(backend:self.configuration.geminiBackend())
                 .generativeModel(modelName:self.configuration.string("GeminiModel"),generationConfig:config)
             var reply=""
