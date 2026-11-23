@@ -41,6 +41,7 @@ import SpriteKit
     private var textureCache:[String:SKTexture]=[:],environmentNodes:[(node:SKSpriteNode,layer:RPGEnvironmentLayer)]=[]
     private var itemNodes:[SKSpriteNode]=[],itemMarkers:[RPGWorldMarker]=[]
     private var tutorialTrees:[(node:SKSpriteNode,phase:Double)]=[]
+    private var tutorialCameraTarget:CGPoint?
     private var visualStart:TimeInterval?,lastFrameTime:TimeInterval?,previewTime:TimeInterval?,activeNPCIndex=0
     private var environmentElapsed:TimeInterval=0
     private var petClock=RPGPetAnimationClock()
@@ -73,12 +74,13 @@ import SpriteKit
                     if let phase=layer.phase { tutorialTrees.append((node,phase)) }
                 }
             }
-            if let plan=RPGArt.shared.environment?.plan(run.scenario){
+            let plan=tutorialTerrain?.atmosphere(run.world,id:run.scenario.id,trees:tutorialTrees.count) ?? RPGArt.shared.environment?.plan(run.scenario)
+            if let plan {
                 for layer in plan.layers{let node=SKSpriteNode(texture:texture(layer.image));node.texture?.filteringMode=layer.smooth ? .linear:.nearest;node.size=CGSize(width:layer.width,height:layer.height);node.zPosition=layer.z;node.blendMode=layer.blend == "add" ? .add:.alpha;apply(layer.frame(at:environmentTime ?? 0),to:node);addChild(node);environmentNodes.append((node,layer))}
             }else{for prop in world["props"].array{let node=SKSpriteNode(texture:texture(prop["image"].string));node.size=CGSize(width:prop["width"].number*32,height:prop["height"].number*32);node.position=CGPoint(x:prop["x"].number*32,y:prop["y"].number*32);node.zPosition=CGFloat(prop["z"].number);addChild(node)}}
             for(index,npc)in run.scenario.npcs.enumerated(){let variant=art["npcs"].array.first(where:{$0["image"].string == npc.appearance}) ?? art["npcs"].array[(index*5)%16],node=SKSpriteNode(texture:texture(variant["image"].string));let aspect=variant["aspect"].number;node.size=CGSize(width:32*0.9*max(0.45,min(1.4,aspect/(1.05/1.45)))*0.92,height:32*1.2*0.92);node.position=CGPoint(x:(Double(npc.tx)+0.5)*32,y:(Double(run.world.height-1-npc.ty)+0.62)*32);node.zPosition=CGFloat(1000+npc.ty*10+3);addChild(node);npcs.append(node)}
             player.size=CGSize(width:32*0.9,height:32*1.2);addChild(player)
-            let gradeName=RPGArt.shared.environment?.plan(run.scenario)?.grade ?? world["grade"].string
+            let gradeName=plan?.grade ?? world["grade"].string
             if !gradeName.isEmpty {
                 let grade=SKSpriteNode(texture:texture(gradeName))
                 grade.texture?.filteringMode = .linear
@@ -92,12 +94,21 @@ import SpriteKit
         if playerTile != run.position{let previous=playerTile;playerTile=run.position;if let previous{petClock.walk();direction=run.position.y<previous.y ? "up":run.position.y>previous.y ? "down":run.position.x<previous.x ? "left":"right";loadFrames()}
             let point=CGPoint(x:(Double(run.position.x)+0.5)*32,y:(Double(mapHeight-1-run.position.y)+0.62)*32)
             player.removeAction(forKey:"walk");lens.removeAction(forKey:"follow")
-            if previous == nil{player.position=point;lens.position=point}else{player.run(.move(to:point,duration:0.14),withKey:"walk");lens.run(.move(to:point,duration:0.14),withKey:"follow")}
+            tutorialCameraTarget=tutorialTerrain == nil ? nil : point
+            if previous == nil {
+                player.position=point
+                lens.position=point
+            } else if tutorialTerrain == nil {
+                player.run(.move(to:point,duration:0.14),withKey:"walk")
+                lens.run(.move(to:point,duration:0.14),withKey:"follow")
+            }
             player.zPosition=CGFloat(1000+run.position.y*10+4)
         }
         if let npc=run.npc{indicator.position=CGPoint(x:(Double(npc.tx)+0.5)*32,y:(Double(mapHeight-1-npc.ty)+1.15)*32);indicator.isHidden=run.completed || !actorsVisible}else{indicator.isHidden=true}
         player.isHidden = !actorsVisible;npcs.forEach{$0.isHidden = !actorsVisible};animateEnvironment(at:environmentTime ?? environmentElapsed)
-        lens.setScale(320/max(1,size.height));(lens.childNode(withName:"grade") as? SKSpriteNode)?.size=CGSize(width:320*size.width/max(1,size.height),height:320)
+        lens.setScale(320/max(1,size.height))
+        // Camera children use viewport points instead of map coordinates.
+        (lens.childNode(withName:"grade") as? SKSpriteNode)?.size=size
     }
     private func tileColor(_ color:Int)->UIColor {
         UIColor(red:CGFloat((color>>16)&255)/255,green:CGFloat((color>>8)&255)/255,blue:CGFloat(color&255)/255,alpha:1)
@@ -112,7 +123,23 @@ import SpriteKit
     private func animateEnvironment(at time:TimeInterval){
         for tree in tutorialTrees { tree.node.zRotation=sin(time*0.55+tree.phase)*0.008 }
         itemNodes.forEach{$0.setScale(1+sin(time*4)*0.15)};for entry in environmentNodes where entry.layer.motion != nil{apply(entry.layer.frame(at:time),to:entry.node)};indicator.setScale(RPGEnvironmentLayer.indicatorScale(time:time,npcIndex:activeNPCIndex))}
-    override func update(_ currentTime:TimeInterval){guard !isPaused else{return};if visualStart == nil{visualStart=currentTime};let delta=max(0,currentTime-(lastFrameTime ?? currentTime));lastFrameTime=currentTime;environmentElapsed=max(0,currentTime-(visualStart ?? currentTime));petClock.advance(milliseconds:delta*1000,pet:pet);applyPetFrame();animateEnvironment(at:previewTime ?? environmentElapsed)}
+    override func update(_ currentTime:TimeInterval) {
+        guard !isPaused else { return }
+        if visualStart == nil { visualStart=currentTime }
+        let delta=max(0,currentTime-(lastFrameTime ?? currentTime))
+        lastFrameTime=currentTime
+        environmentElapsed=max(0,currentTime-(visualStart ?? currentTime))
+        petClock.advance(milliseconds:delta*1000,pet:pet)
+        applyPetFrame()
+        animateEnvironment(at:previewTime ?? environmentElapsed)
+        if let target=tutorialCameraTarget {
+            player.position.x += (target.x-player.position.x)*0.35
+            player.position.y += (target.y-player.position.y)*0.35
+            player.zPosition=1004+(CGFloat(mapHeight-1)+0.62-player.position.y/32)*10
+            lens.position.x += (player.position.x-lens.position.x)*0.1
+            lens.position.y += (player.position.y-lens.position.y)*0.1
+        }
+    }
     var environmentLayerCount:Int{environmentNodes.count}
     var movingEnvironmentLayerCount:Int{environmentNodes.filter{$0.layer.motion != nil}.count}
     var npcPositions:[CGPoint]{npcs.map(\.position)}
@@ -140,6 +167,9 @@ struct TutorialTerrain {
     }
     @MainActor func decoration(_ world:RPGWorld,id:String)->[TutorialDecoration] {
         Self.policy?.decoration(world,definitions:definitions,seed:seed,id:id) ?? []
+    }
+    @MainActor func atmosphere(_ world:RPGWorld,id:String,trees:Int)->RPGEnvironmentPlan? {
+        Self.policy?.atmosphere(world,id:id,trees:trees)
     }
     @MainActor static func texture(bytes:Data,width:Int,height:Int)->SKTexture? {
         guard width > 0,height > 0,bytes.count == width*height*4,

@@ -118,3 +118,18 @@ The final `/tmp/PiyaliLegacyRecoveryLabeledRetry-20261123.xcresult` passed the n
 ![The original web loader on adapter rejection and the iPhone loader on map rejection, followed by both fallback plazas](native/tutorial-legacy-recovery-20261123.jpg)
 
 The local map’s authored spawn is (3,3). The web fullscreen renderer chooses a centered tile, which was (8,5) in this replay. The native handoff retains the current player position. The loader footprint, lighting and ambient motes remain different. These checks simulate transport failures. The production model endpoints and the full web `/` sign-in and Course Path journey through a forced warm-up failure remain open.
+
+
+## Greeting Plaza lighting and camera motion, November 23
+
+The native legacy plaza now uses the source’s four additive light pools, 18 animated motes and camera-locked neutral grade. The exported source setup places the layers from the plaza’s identity and dimensions, with one random draw for each generated tree before placing the lights. SpriteKit reuses the bundled source textures and the authored game’s environment animation code. The camera keeps the original ten-tile field of view. It now follows the interpolated player position at the source rate, while movement and quests still use saved tile coordinates.
+
+The original browser component and SpriteKit were mounted at the same saved tile (3,3) in equivalent portrait viewports. Chrome also measured the first frame of a one-tile step. Its camera advanced from 112 to 113.12 world units while the player sprite advanced to 123.2. The native scene follows the same increments. A second Chrome run supplied a generated map with a tree, bench and counter and confirmed all 22 layer positions and opacities at both sampled times after the tree consumed its random draw.
+
+The first simulator fixture used the authored game’s centered spawn. The final fixture sets the saved exploration tile as the product does. SpriteKit’s single-precision coordinates differed by up to 0.000028 world units, so the layer comparison uses a tolerance of 0.0001. The authored scene resource and anchor regression and the full Course Path game journey both passed. The latter moved across the decorated map, tried the solid tree, translated and undid choices, finished both chapters and reached +50 XP.
+
+The first aligned screenshots showed a visible rectangle at the edges of the native color grade. SpriteKit camera children use viewport points, so the shared renderer now sizes the grade to the viewport. The same correction applies to the authored Market and Festival maps. The full browser `/` journey, handoff framing, and live provider checks remain open. iPhone retains the saved player position through fullscreen, while the web game can choose a new centered tile when its renderer remounts.
+
+All four checks in `/tmp/PiyaliFullViewportGrade-20261123.xcresult` passed. They cover the original Market and Festival renders at two times, the authored environment and NPC anchors, Greeting Plaza’s layers and camera, and the Course Path invalid-map → Try again → fallback → Skip journey. The final same-tile Greeting Plaza captures average 0.78 levels of difference per RGB channel on an 8-bit scale after resampling both captures to 402×874. Actors and HUD are hidden in that isolated comparison. The earlier full quest and position/relaunch UI tests remain in `/tmp/PiyaliLegacyAtmosphere-20261123.xcresult`.
+
+![The original browser and native SpriteKit render of Greeting Plaza at the same tile at 0 and 15.321 seconds](native/tutorial-plaza-atmosphere-20261123.jpg)

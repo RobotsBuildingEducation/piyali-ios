@@ -1,6 +1,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { createRequire } from "node:module";
+import { gunzipSync } from "node:zlib";
 
 const reference = path.resolve(process.argv[2] ?? "../nosabos/nosabos");
 const requireReference = createRequire(path.join(reference, "package.json"));
@@ -36,6 +37,64 @@ function between(start, end, after = 0) {
   if (first < 0 || last < 0) throw Error("Missing source dialogue section: " + start);
   return rpg.slice(first, last);
 }
+
+// The plaza has no authored environment ID. It uses the same neutral grade
+// and indoor pool/mote textures already exported from the civic renderer.
+const library = JSON.parse(gunzipSync(await readFile(new URL("../Piyali/Resources/rpg-environment.json.gz", import.meta.url))));
+const civic = Object.values(library.plans).find(plan => plan.identity.environment === "civic");
+const atmosphereImages = {
+  grade: civic.grade,
+  pool: civic.layers.find(layer => layer.z === 55).image,
+  mote: civic.layers.find(layer => layer.motion?.kind === "mote").image,
+};
+const rendererStart = rpg.indexOf("const TILE = activeMap.tileSize || scenario.tileSize;");
+const atmosphereSeed = between("const ambientSeedKey =", "    const getTile =", rendererStart);
+const poolAndMoteSetup = between("const ambientPoolTexture =", "    const worldObjects =", rendererStart);
+const atmosphere = `
+export function atmosphere(input) {
+  const { width: MAP_W, height: MAP_H, id, trees } = JSON.parse(input);
+  const TILE = 32, isOutdoorMap = false;
+  const scenario = { id }, activeMap = scenario;
+  ${atmosphereSeed}
+  // The original tile loop consumes one draw for each animated tree
+  // before it places the light pools and motes.
+  for (let i = 0; i < trees; i++) ambientRandom();
+  const images = ${JSON.stringify(atmosphereImages)};
+  const document = { createElement: () => ({ getContext: () => ({ fillRect() {} }) }) };
+  const makeSoftDiscTexture = () => images.pool;
+  const ambientLightGroup = { add() {} }, ambientMoteGroup = { add() {} }, ambientMotes = [];
+  const pools = [];
+  const THREE = {
+    CanvasTexture: class {},
+    PlaneGeometry: class { constructor(width, height) { Object.assign(this, { width, height }); } },
+    MeshBasicMaterial: class { constructor(options) { Object.assign(this, options); } },
+    Mesh: class {
+      constructor(geometry, material) {
+        Object.assign(this, { geometry, material, rotation: { z: 0 } });
+        this.position = { set(x, y) { Object.assign(this, { x, y }); } };
+        this.scale = { x: 1, y: 1, set(x, y) { Object.assign(this, { x, y }); } };
+        if (material.map === images.pool) pools.push(this);
+      }
+    },
+  };
+  ${poolAndMoteSetup}
+  const layer = (mesh, image, blend, smooth, motion) => ({
+    image, blend, smooth, motion,
+    x: mesh.position.x, y: mesh.position.y,
+    width: mesh.geometry.width, height: mesh.geometry.height, z: mesh.renderOrder,
+    scaleX: mesh.scale.x, scaleY: mesh.scale.y,
+    rotation: mesh.rotation.z, alpha: mesh.material.opacity,
+  });
+  return JSON.stringify({
+    identity: { scenario: id, map: id, environment: "", area: "", decorKinds: [] },
+    grade: images.grade,
+    layers: [
+      ...pools.map(mesh => layer(mesh, images.pool, "add", true)),
+      ...ambientMotes.map(({ mesh, ...motion }) => layer(mesh, images.mote, "normal", false, { ...motion, kind: "mote" })),
+    ],
+  });
+}
+`;
 
 const choiceStart = rpg.indexOf("const generateDynamicChoices =");
 const bridgeStart = rpg.indexOf("// Pre-generate contextual player bridge");
@@ -149,6 +208,7 @@ function serialize(scenario, target, level) {
 }
 
 ${terrain}
+${atmosphere}
 ${dialoguePolicy}
 
 export function start(input) {

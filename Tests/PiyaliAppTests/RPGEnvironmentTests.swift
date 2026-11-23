@@ -46,4 +46,91 @@ import WebKit
             }
         }
     }
+
+    func testLegacyPlazaMatchesTheOriginalLightAndMotePositions()async throws {
+        let env=ProcessInfo.processInfo.environment
+        guard env["PIYALI_OFFLINE_TESTS"] == "1",env["PIYALI_REFERENCE_PREVIEW_TESTS"] == "1"
+        else { throw XCTSkip("Read-only reference preview required") }
+        let library=try ContentLibrary.load(IntroLibrary.self,name:"intro-es")
+        let lesson=try XCTUnwrap(library.units["Pre-A1"]?.lessons.first)
+        let input:JSONValue = .object(["lesson":try RPGPreparationPolicy.value(lesson).setting("isTutorial",.bool(true)),
+                                       "target":.string("es"),"support":.string("en"),"user":.object([:])])
+        let plaza=try await TutorialPlazaPolicy().generate(input) { _ in "" }
+        let world=try XCTUnwrap(plaza.maps.first?.world)
+        let terrain=TutorialTerrain(definitions:try XCTUnwrap(plaza.tileDefinitions),seed:1792936800000)
+        let scenario=RPGScenario(id:plaza.id,name:plaza.name,emoji:"",npcs:[],
+                                 quest:RPGQuest(title:"",intro:"",storySeed:"",steps:[]),
+                                 authoredEpisode:RPGEpisode(id:"legacy",level:"Pre-A1",maxBaseScore:0,unitGrounded:false),worldKey:"tutorialPlaza")
+        var run=RPGRun(target:"es",support:"en",lessonID:nil,xpReward:0,scenario:scenario,world:world)
+        // Exploration retains the saved tile when it adapts to RPGWorldView.
+        run.position=world.start
+        let windowScene=try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
+        let old=windowScene.windows.first { $0.isKeyWindow }
+        let window=UIWindow(windowScene:windowScene)
+        window.frame=CGRect(x:0,y:0,width:402,height:874)
+        defer { window.isHidden=true;window.rootViewController=nil;old?.makeKey() }
+        let nativeScene=RPGWorldScene(size:window.bounds.size)
+
+        for time in [0.0,15.321] {
+            let web=WKWebView(frame:window.bounds),controller=UIViewController()
+            controller.view=web
+            window.rootViewController=controller
+            window.makeKeyAndVisible()
+            web.scrollView.contentInsetAdjustmentBehavior = .never
+            web.load(URLRequest(url:URL(string:"http://127.0.0.1:5181/__piyali-rpg?legacy=plaza&environmentTime=\(time)&environmentOnly=1")!))
+            var sourceLayers:[[String:Double]]=[]
+            for _ in 0..<320 {
+                sourceLayers=(try? await web.evaluateJavaScript("window.__piyaliPlazaLayers")) as? [[String:Double]] ?? []
+                if !sourceLayers.isEmpty { break }
+                try await Task.sleep(for:.milliseconds(50))
+            }
+            guard sourceLayers.count == 22 else { return XCTFail("The original scene should draw four pools and 18 motes") }
+            let sourcePosition=try await web.evaluateJavaScript("window.__piyaliEnvironmentPosition") as? [String:Int]
+            XCTAssertEqual(sourcePosition?["x"],run.position.x)
+            XCTAssertEqual(sourcePosition?["y"],run.position.y)
+            nativeScene.configure(run,pet:"ghost",size:window.bounds.size,environmentTime:time,actorsVisible:false,tutorialTerrain:terrain)
+            let grade=try XCTUnwrap(nativeScene.camera?.childNode(withName:"grade") as? SKSpriteNode)
+            XCTAssertEqual(grade.size,window.bounds.size)
+            let nativeLayers=nativeScene.children.filter { $0.zPosition == 55 || $0.zPosition == 940 }
+            XCTAssertEqual(nativeLayers.count,sourceLayers.count)
+            // SpriteKit stores node coordinates at Float precision.
+            for (node,source) in zip(nativeLayers,sourceLayers) {
+                XCTAssertEqual(node.position.x,CGFloat(try XCTUnwrap(source["x"])),accuracy:0.0001)
+                XCTAssertEqual(node.position.y,CGFloat(try XCTUnwrap(source["y"])),accuracy:0.0001)
+                XCTAssertEqual(node.alpha,CGFloat(try XCTUnwrap(source["alpha"])),accuracy:0.000001)
+            }
+            _=try await web.evaluateJavaScript("""
+                (()=>{const s=document.createElement('style');s.textContent='body{background:#fff9ef!important} body * {visibility:hidden!important} canvas[data-environment] {visibility:visible!important}';document.head.append(s);[...document.querySelectorAll('canvas')].find(c=>c.getBoundingClientRect().width>300).setAttribute('data-environment','1');})()
+                """)
+            try await Task.sleep(for:.milliseconds(450))
+            let sourceImage=XCTAttachment(image:try await web.takeSnapshot(configuration:nil))
+            sourceImage.name="Source Greeting Plaza atmosphere \(time)"
+            sourceImage.lifetime = .keepAlways
+            add(sourceImage)
+            web.stopLoading()
+            let host=UIHostingController(rootView:ZStack {
+                PiyaliBrand.unitColor("fff9ef")
+                RPGWorldView(run:run,pet:"ghost",environmentTime:time,actorsVisible:false,tutorialTerrain:terrain,onTile:{_ in})
+            }.environment(\.scenePhase,.active).ignoresSafeArea())
+            window.rootViewController=host
+            window.makeKeyAndVisible()
+            host.view.layoutIfNeeded()
+            try await Task.sleep(for:.milliseconds(600))
+            let nativeImage=XCTAttachment(image:UIGraphicsImageRenderer(bounds:window.bounds).image { _ in
+                window.drawHierarchy(in:window.bounds,afterScreenUpdates:true)
+            })
+            nativeImage.name="Native Greeting Plaza atmosphere \(time)"
+            nativeImage.lifetime = .keepAlways
+            add(nativeImage)
+        }
+
+        let before=try XCTUnwrap(nativeScene.camera?.position)
+        run.position=RPGPoint(x:run.position.x+1,y:run.position.y)
+        nativeScene.configure(run,pet:"ghost",size:window.bounds.size,tutorialTerrain:terrain)
+        XCTAssertEqual(nativeScene.camera?.position,before)
+        nativeScene.update(1.0)
+        XCTAssertEqual(try XCTUnwrap(nativeScene.camera?.position.x),before.x+32*0.35*0.1,accuracy:0.0001)
+        for frame in 1...120 { nativeScene.update(1+Double(frame)/60) }
+        XCTAssertEqual(try XCTUnwrap(nativeScene.camera?.position.x),before.x+32,accuracy:0.001)
+    }
 }

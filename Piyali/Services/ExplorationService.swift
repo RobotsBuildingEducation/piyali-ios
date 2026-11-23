@@ -314,6 +314,15 @@ extension AIService {
         return (try? JSONDecoder().decode([TutorialDecoration].self,from:Data(raw.utf8))) ?? []
     }
 
+    func atmosphere(_ world:RPGWorld,id:String,trees:Int)->RPGEnvironmentPlan? {
+        context.exception=nil
+        let input:JSONValue = .object(["width":.number(Double(world.width)),"height":.number(Double(world.height)),
+                                      "id":.string(id),"trees":.number(Double(trees))])
+        guard let raw=api.invokeMethod("atmosphere",withArguments:[input.canonicalJSON])?.toString(),context.exception == nil
+        else { return nil }
+        return try? JSONDecoder().decode(RPGEnvironmentPlan.self,from:Data(raw.utf8))
+    }
+
     func failureMessage(_ language:String)->String? {
         api.invokeMethod("failureMessage",withArguments:[language])?.toString()
     }
