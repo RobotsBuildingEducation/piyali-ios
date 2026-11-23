@@ -144,7 +144,7 @@ struct ProductShellView:View {
     private var journeyCanPresent:Bool {app.tutorPath == nil && app.companionUnlock == nil && app.signedIn && app.learner.onboardingComplete && !app.loadingContent && panel == nil && !menuOpen && !goalOpen && !timerOpen && timer.session.status != .finished && firstRun.step == nil && app.journeyRecording == nil && app.goalCheck == nil && app.flashcardSession == nil && lessonCompletion == nil && app.pendingLessonCompletion == nil && practice.visible == nil && practice.pending == nil && practice.dailyGoalVisible == nil && app.dailyGoalReward == nil && !app.lessonActivityActive && !app.hasEarnedPractice(excluding:practice.owner) && launchID == nil && app.scholarship.visible == nil}
     private var sessionShell:some View {
         memoryShell
-            .background{JourneyMilestoneGateView(canPresent:journeyCanPresent && app.scholarship.pending == nil){controller,n in app.journeyRecording = .init(controller:controller,milestone:n,account:app.identity.npub,target:app.learner.target)}}
+            .background{JourneyMilestoneGateView(subscription:app.subscription,canPresent:journeyCanPresent && app.scholarship.pending == nil){controller,n in app.journeyRecording = .init(controller:controller,milestone:n,account:app.identity.npub,target:app.learner.target)}}
             .task(id:practiceContext) {
                 let context=practiceContext,refresh=Date()
                 guard context.day == CalendarDay.key(refresh) else {return}

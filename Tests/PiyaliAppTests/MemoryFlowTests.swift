@@ -8,6 +8,90 @@ import WebKit
         let e=ProcessInfo.processInfo.environment;guard e["PIYALI_OFFLINE_TESTS"] == "1",UUID(uuidString:e["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil,MemoryDrawerFixture.enabled else{throw XCTSkip("Isolated Memory fixture required")}
         let app=AppModel(progressService:progressService,memoryProvider:memoryProvider);try app.identity.create();app.signedIn=true;app.subscription.bind(app.identity);app.learner=LearnerState();app.learner.onboardingComplete=true;MemoryDrawerFixture.seed(app);return app
     }
+    func testJourneyMilestoneWaitsBehindRootTrialGateUntilMembershipReturns() async throws {
+        guard ProcessInfo.processInfo.environment["PIYALI_JOURNEY_PROMPT_FIXTURE"] == "1" else {
+            throw XCTSkip("Isolated Journey milestone fixture required")
+        }
+        let issuer = LocalMembershipServer()
+        try await issuer.start()
+        defer { issuer.stop() }
+        let oldURL = ProcessInfo.processInfo.environment["PIYALI_SUBSCRIPTION_TEST_URL"]
+        setenv("PIYALI_SUBSCRIPTION_TEST_URL", issuer.url, 1)
+        defer {
+            if let oldURL { setenv("PIYALI_SUBSCRIPTION_TEST_URL", oldURL, 1) }
+            else { unsetenv("PIYALI_SUBSCRIPTION_TEST_URL") }
+        }
+        let app = try model()
+        defer { try? app.identity.disconnect() }
+        app.learner.paperPencilModalShown = true
+        app.learner.place(.init(level: "Pre-A1", score: 0, source: "completely_new", selectedIDs: [], updatedAt: Date()))
+        app.learner.subscriptionXPAdjustment = 299 - app.learner.totalXP
+        XCTAssertTrue(app.subscription.hasAccess)
+
+        func pending() throws -> Int? {
+            let store = try XCTUnwrap(MemoryDrawerFixture.journeyStore())
+            var milestone: Int?
+            let watch = try store.watch(account: app.identity.npub, target: app.learner.target,
+                                        onData: { milestone = VoiceJourneyModel.pending($0) },
+                                        onError: { XCTFail("The isolated Journey store should load") })
+            watch.cancel()
+            return milestone
+        }
+        XCTAssertEqual(try pending(), 5)
+
+        let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
+        let previous = scene.windows.first { $0.isKeyWindow }
+        let window = UIWindow(windowScene: scene)
+        let root = ProductAccessGate(service: app.subscription) { ProductShellView() }.environmentObject(app)
+        window.rootViewController = UIHostingController(rootView: root)
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        defer { window.isHidden = true; window.rootViewController = nil; previous?.makeKey() }
+        func capture(_ name: String) {
+            let image = UIGraphicsImageRenderer(bounds: window.bounds).image { _ in
+                window.drawHierarchy(in: window.bounds, afterScreenUpdates: true)
+            }
+            let attachment = XCTAttachment(image: image)
+            attachment.name = name
+            attachment.lifetime = .keepAlways
+            add(attachment)
+        }
+
+        // Cross the cutoff during Journey's quiet period so the mounted shell is hidden.
+        try await Task.sleep(for: .milliseconds(350))
+        XCTAssertNil(app.journeyRecording)
+        app.learner.subscriptionXPAdjustment = 300 - app.learner.totalXP
+        XCTAssertFalse(app.subscription.hasAccess)
+        try await Task.sleep(for: .seconds(2))
+        XCTAssertNil(app.journeyRecording, "The locked shell must never present Journey")
+        XCTAssertEqual(try pending(), 5, "Hidden prompts must not be acknowledged")
+        capture("Native 300 XP subscription before Journey")
+
+        issuer.status(["authorized": true, "linked": true, "configured": true, "subscription": ["status": "active"]])
+        try await app.subscription.restoreWeb()
+        XCTAssertTrue(app.subscription.hasAccess)
+        XCTAssertEqual(app.learner.subscriptionXP, 300)
+        for _ in 0..<100 where app.journeyRecording == nil {
+            try await Task.sleep(for: .milliseconds(40))
+        }
+        XCTAssertEqual(app.journeyRecording?.milestone, 5)
+        for _ in 0..<50 where try pending() != nil {
+            try await Task.sleep(for: .milliseconds(20))
+        }
+        XCTAssertNil(try pending())
+        capture("Native Journey prompt after signed membership restore")
+        issuer.status(["authorized": false, "linked": true, "configured": true, "subscription": ["status": "expired"]])
+        try await app.subscription.restoreWeb()
+        XCTAssertFalse(app.subscription.hasAccess)
+        for _ in 0..<30 where app.journeyRecording != nil {
+            try await Task.sleep(for: .milliseconds(20))
+        }
+        XCTAssertNil(app.journeyRecording, "A Journey modal closes when access expires")
+        issuer.status(["authorized": true, "linked": true, "configured": true, "subscription": ["status": "active"]])
+        try await app.subscription.restoreWeb()
+        try await Task.sleep(for: .milliseconds(1700))
+        XCTAssertNil(app.journeyRecording, "The visible prompt is acknowledged once")
+    }
     func testDigestIsCachedAndCannotLeakAcrossPracticeLanguages()async throws {
         let app=try model();defer{try? app.identity.disconnect()};var calls=0
         let controller=MemoryDrawerController(provider:{_ in calls += 1;return MemoryDrawerFixture.summary("en")});controller.refresh(app);defer{controller.cancel()}
