@@ -193,7 +193,7 @@ struct ProductShellView:View {
             .overlay{if let item=app.companionUnlock{CompanionUnlockView(item:item,language:language,onEquip:{app.finishCompanionUnlock(item,equip:true)},onKeep:{app.finishCompanionUnlock(item,equip:false)})}}
             // The value publisher replays a footer created while NavigationStack is mounting.
             .onReceive(app.$activityFooter) { footer in activityFooter=footer;if footer == nil,app.achievementUnlock.current == nil {app.activityFooterHeight=0} }
-            .onChange(of:app.learner.target) { _,_ in lessonScrollRequest=nil;revision=UUID() }
+            .onChange(of:app.learner.target) { _,_ in switchMode(.focus) }
             .onChange(of:app.localPracticeRevision) { _,_ in updatePracticePresentation() }
             .onChange(of:app.companionUnlock?.id){_,value in updatePracticePresentation();if value == nil{presentPendingLessonCompletion()}}
             .onChange(of:panel) { _,value in if value == nil { memoryInitialTab="repairs";practice.closeNotes(app);presentPendingLessonCompletion();updatePracticePresentation() } }

@@ -156,4 +156,18 @@ The final SDK run passed the canonical import and concurrent narrow writes plus 
 
 ![Original web and native iPhone Conversation settings after switching to French practice](native/conversation-shared-settings-20261123.jpg)
 
-The comparison shows the web drawer's transparent backdrop, left-aligned header, and Close and Save footer. iPhone still uses the dimmed system sheet with a top Close action. Switching the practice language returned the browser to Today's Focus while iPhone stayed in Conversation. Live call transitions during a target or account change and physical audio remain open.
+This comparison recorded the iPhone's old dimmed system sheet and the previous behavior of staying in Conversation after a practice-language switch. The next checkpoint covers the updated drawer and navigation.
+
+## Conversation drawer and live language switch, November 23
+
+The original main route ran its touch-WebKit branch at iPhone width. Chrome used the iPhone user agent and a local RTC fixture. The learner started a Conversation, opened global Settings, and switched the practice language from Spanish to French. The page returned to Today's Focus and closed the peer, data channel, and microphone track. The original code handled the view change and teardown. Media, the handshake, and Firestore used local fixtures.
+
+The iPhone now returns to Today's Focus through the same mode-change path it uses for menu navigation. The native call checks its connection, signing session, languages, and draft before accepting turns. The same checks run when queued learner work starts and before it updates the connection. The previous language's saved messages and credits remain scoped to that language.
+
+The native Conversation settings use a transparent presentation over the product, a rounded bottom drawer, the source palette, and the source Close and Save labels. Tapping the cross, using Close or Save, or dragging the handle dismisses the drawer. Edits follow the source's immediate persistence, and dismissing after a proficiency or topic edit prepares the next goal.
+
+Nine language-service checks and two iPhone product journeys passed in `/tmp/PiyaliConversationDrawerFocus-20261123.xcresult`. The live fixture earned five XP in Spanish, switched to French while still connected, and returned to Today's Focus. French opened a new call screen with an empty log. Switching back restored the Spanish reply and history with five XP in total. The settings journey exercised the cross, Save and Close, tested that the drawer blocked Start behind it, and verified the settings after dark-mode relaunch. The extended live journey also passed in `/tmp/PiyaliConversationLiveDrawer-20261123.xcresult`. Opening the settings drawer blocked the connected call controls, and Close returned to the same active call before the language switch.
+
+![Original web and iPhone Conversation settings and the return to Today's Focus](native/conversation-drawer-focus-20261123.jpg)
+
+The paired drawers share the content and actions and have different footer spacing and system safe areas. The browser RTC fixture finished without earning XP. The iPhone fixture supplied scripted speech and earned five XP. Physical microphone and speaker behavior, longer or RTL drawer content, and active-call account changes remain open.

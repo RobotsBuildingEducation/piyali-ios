@@ -13,6 +13,7 @@ struct ConversationView:View {
     @StateObject private var live:LiveTutorService
     @State private var showStarter=false
     @State private var showSettings=false
+    @State private var settingsDrag: CGFloat = 0
     @State private var showHistory=false
     @State private var historyContentHeight:CGFloat=300
     @State private var archivePrevious:ConversationVisibleReply?
@@ -102,7 +103,7 @@ struct ConversationView:View {
     var body:some View {
         Group { if conversation.fixture { content } else { SubscriptionRequiredView(service:app.subscription) { content } } }
             .navigationTitle(t("course_conversation","Conversation")).navigationBarTitleDisplayMode(.inline)
-            .task(id:app.identity.npub+":"+app.learner.target+":"+app.learner.support+":"+String(allowed)) {
+            .task(id:app.identity.sessionRevision.uuidString+":"+app.learner.target+":"+app.learner.support+":"+String(allowed)) {
                 active=false;resetArchive();replay.stop();connectionEpoch=UUID();conversation.cancel();stopStarter();paused=false;pausedReply="";pausedSpeech=nil;pauseWork=nil;showStarter=false
                 await live.stop(clearTranscript:true);guard !Task.isCancelled else { return };active=true;archivePrevious=visibleReply;await conversation.prepare(app)
             }
@@ -116,7 +117,9 @@ struct ConversationView:View {
             .onChange(of:live.connected) { wasConnected,connected in if wasConnected && !connected { replay.stop();stopStarter() } }
             .onChange(of:visibleReply) { _,value in updateArchive(value) }
             .onDisappear { resetArchive();stop() }
-            .sheet(isPresented:$showSettings,onDismiss:settingsClosed) { settingsSheet.presentationDetents([.fraction(0.8)]).presentationDragIndicator(.visible) }
+            .fullScreenCover(isPresented:$showSettings,onDismiss:settingsClosed) {
+                settingsSheet.presentationBackground(.clear)
+            }
             .fullScreenCover(isPresented:$showHistory) { historySheet.presentationBackground(.clear) }
             .fullScreenCover(isPresented:$showSummary) { summaryDialog.presentationBackground(.clear) }
     }
@@ -244,30 +247,39 @@ struct ConversationView:View {
         replay.stop();active=true;stopStarter();showSummary=false
         if !resuming { baseXP=draft.earnedXP;baseTurns=draft.turns;baseGoals=draft.goalsCompleted;pausedMuted=false }
         var context=draft;if !resuming { context.messages=[] }
-        let account=app.identity.npub,target=app.learner.target,support=app.learner.support,session=draft.id
+        let account=app.identity.sessionRevision,target=app.learner.target,support=app.learner.support,session=draft.id
         let audioScope=clipScope,audioOwner=clipOwner
         let interrupted=resuming ? pausedSpeech:nil,waiting=pauseWork,token=UUID();connectionEpoch=token;paused=false
         if !resuming {pausedSpeech=nil;pausedReply=""}
+        func ownsCall() -> Bool {
+            active && connectionEpoch == token && app.identity.sessionRevision == account &&
+                app.learner.target == target && app.learner.support == support &&
+                app.learner.conversation.id == session && allowed
+        }
         Task {
             if resuming {await waiting?.value}
-            guard active,connectionEpoch == token,app.identity.npub == account,app.learner.target == target,app.learner.support == support,app.learner.conversation.id == session,allowed else{return}
+            guard ownsCall() else { return }
             await live.start(learner:app.learner,conversationDraft:context,initiallyMuted:resuming && pausedMuted,resumeInterrupted:interrupted,onInputTurn:{ input in
-            guard active,connectionEpoch == token,app.identity.npub == account,app.learner.target == target,app.learner.support == support,app.learner.conversation.id == session,allowed else { return }
-            Task { await conversation.voiceTurn(input.text,answered:input.answered,reply:"",id:UUID(),app:app,providerID:input.id,beforeResponseID:input.responseID);guard active,app.identity.npub == account,app.learner.target == target,app.learner.support == support,app.learner.conversation.id == session else { return };await live.updateConversation(app.learner.conversation,learner:app.learner) }
-        },onAssistantTurn:{ id,text in
-            guard active,connectionEpoch == token,app.identity.npub == account,app.learner.target == target,app.learner.support == support,app.learner.conversation.id == session,allowed else { return }
-            conversation.assistantReply(text,providerID:id,app:app)
-        },onAssistantProgress:{ id,text in
-            guard active,connectionEpoch == token,app.identity.npub == account,app.learner.target == target,app.learner.support == support,app.learner.conversation.id == session,allowed else{return}
-            conversation.observeLiveReply(text,providerID:id,app:app)
-        },onResponseRecording:{ id,recording in
-            guard active,connectionEpoch == token,clipOwner == audioOwner,allowed else { return }
-            storeClip(id,recording:recording,scope:audioScope,owner:audioOwner)
-        },onAssistantInterrupted:{ id,text in
-            guard active,connectionEpoch == token,app.identity.npub == account,app.learner.target == target,app.learner.support == support,app.learner.conversation.id == session,allowed else{return}
-            conversation.preserveInterruptedReply(text,providerID:id,app:app)
+                Task {
+                    guard ownsCall() else { return }
+                    await conversation.voiceTurn(input.text,answered:input.answered,reply:"",id:UUID(),app:app,providerID:input.id,beforeResponseID:input.responseID)
+                    guard ownsCall() else { return }
+                    await live.updateConversation(app.learner.conversation,learner:app.learner)
+                }
+            },onAssistantTurn:{ id,text in
+                guard ownsCall() else { return }
+                conversation.assistantReply(text,providerID:id,app:app)
+            },onAssistantProgress:{ id,text in
+                guard ownsCall() else { return }
+                conversation.observeLiveReply(text,providerID:id,app:app)
+            },onResponseRecording:{ id,recording in
+                guard ownsCall(),clipOwner == audioOwner else { return }
+                storeClip(id,recording:recording,scope:audioScope,owner:audioOwner)
+            },onAssistantInterrupted:{ id,text in
+                guard ownsCall() else { return }
+                conversation.preserveInterruptedReply(text,providerID:id,app:app)
             })
-            guard active,connectionEpoch == token,app.identity.npub == account,app.learner.target == target,app.learner.support == support,app.learner.conversation.id == session else{return}
+            guard ownsCall() else { return }
             if live.connected {pausedSpeech=nil;pauseWork=nil} else if resuming {paused=true}
         }
     }
@@ -302,17 +314,120 @@ struct ConversationView:View {
         Task { await live.updateConversation(app.learner.conversation, learner: app.learner) }
     }
     private var settingsSheet:some View {
-        NavigationStack {
-            ScrollView { VStack(alignment:.leading,spacing:24) {
-                VStack(alignment:.leading,spacing:8) { Text(setting("proficiencyLabel")).font(PiyaliBrand.productFont(14,600));Text(setting("proficiencyHint")).font(PiyaliBrand.productFont(12)).foregroundStyle(brand.secondary)
-                    Menu { ForEach(Self.copy["levels"].array,id:\.json) { level in Button { changeSetting("conversationProficiencyLevel", level["level"]) } label:{ Text(level["level"].string+" · "+level["name"].localized(app.learner.support)) } } } label:{ let level=Self.copy["levels"].array.first { $0["level"].string == settingsLevel } ?? .null
-                        HStack { Text(level["level"].string == "Pre-A1" ? "A0" : level["level"].string).font(PiyaliBrand.productFont(14,700)).foregroundStyle(.white).padding(6).background(PiyaliBrand.unitColor(level["color"].string),in:RoundedRectangle(cornerRadius:6));VStack(alignment:.leading,spacing:3) { Text(level["name"].localized(app.learner.support)).font(PiyaliBrand.productFont(14,500));Text(level["description"].localized(app.learner.support)).font(PiyaliBrand.productFont(12)).foregroundStyle(brand.secondary) };Spacer();Image(systemName:"chevron.down") }.padding(12).background(brand.background,in:RoundedRectangle(cornerRadius:10))
-                    }.accessibilityIdentifier("conversationLevel")
+        GeometryReader { geometry in
+            VStack(spacing: 0) {
+                Capsule().fill(brand.muted.opacity(0.35)).frame(width: 52, height: 5)
+                    .frame(maxWidth: .infinity).frame(height: 28).contentShape(Rectangle())
+                    .gesture(DragGesture().onChanged { settingsDrag = max(0, $0.translation.height) }
+                        .onEnded { value in
+                            if value.translation.height > 90 { showSettings = false }
+                            settingsDrag = 0
+                        })
+                    .accessibilityHidden(true)
+                HStack {
+                    Text(t("ra_conversation_settings","Conversation settings"))
+                        .font(PiyaliBrand.productFont(20,700)).accessibilityAddTraits(.isHeader)
+                    Spacer(minLength: 12)
+                    Button { showSettings = false } label: {
+                        MemoryIcon(name:"close",size:14).frame(width:44,height:44).contentShape(Rectangle())
+                    }
+                    .accessibilityLabel(setting("close"))
+                    .accessibilityIdentifier("conversationSettingsDismiss")
                 }
-                Toggle(isOn:Binding(get:{draft.pronunciation},set:{changeSetting("practicePronunciation", .bool($0))})) { VStack(alignment:.leading,spacing:5) { Text(setting("pronunciationLabel")).font(PiyaliBrand.productFont(14,600));Text(setting("pronunciationHint")).font(PiyaliBrand.productFont(12)).foregroundStyle(brand.secondary) } }.tint(PiyaliBrand.unitColor("00b5d8")).accessibilityIdentifier("conversationPronunciation")
-                VStack(alignment:.leading,spacing:8) { Text(setting("subjectLabel")).font(PiyaliBrand.productFont(14,600));Text(setting("subjectHint")).font(PiyaliBrand.productFont(12)).foregroundStyle(brand.secondary);TextField(setting("subjectPlaceholder"),text:Binding(get:{draft.interests},set:{changeSetting("conversationSubjects", .string($0))}),axis:.vertical).lineLimit(5...8).font(PiyaliBrand.productFont(16)).padding(12).background(brand.background,in:RoundedRectangle(cornerRadius:10)).accessibilityIdentifier("conversationTopics") }
-            }.padding(20) }.background(brand.surface).foregroundStyle(brand.text).navigationTitle(t("ra_conversation_settings","Conversation settings")).navigationBarTitleDisplayMode(.inline).toolbar { ToolbarItem(placement:.confirmationAction) { Button(setting("close")) { showSettings=false } } }
+                .padding(.leading,28).padding(.trailing,16)
+                ScrollView {
+                    VStack(alignment:.leading,spacing:20) {
+                        VStack(alignment:.leading,spacing:12) {
+                            settingsLabel("proficiencyLabel",hint:"proficiencyHint")
+                            proficiencyPicker
+                        }
+                        Toggle(isOn:Binding(get:{draft.pronunciation},set:{changeSetting("practicePronunciation", .bool($0))})) {
+                            settingsLabel("pronunciationLabel",hint:"pronunciationHint")
+                        }
+                        .tint(PiyaliBrand.unitColor("00b5d8"))
+                        .accessibilityIdentifier("conversationPronunciation")
+                        VStack(alignment:.leading,spacing:12) {
+                            settingsLabel("subjectLabel",hint:"subjectHint")
+                            TextField(setting("subjectPlaceholder"),text:Binding(get:{draft.interests},set:{changeSetting("conversationSubjects", .string($0))}),axis:.vertical)
+                                .lineLimit(5...8).font(PiyaliBrand.productFont(16)).padding(16)
+                                .background(settingsFieldColor,in:RoundedRectangle(cornerRadius:6))
+                                .overlay { RoundedRectangle(cornerRadius:6).strokeBorder(brand.border) }
+                                .accessibilityIdentifier("conversationTopics")
+                        }
+                        HStack(spacing:12) {
+                            Button(setting("close")) { showSettings = false }
+                                .frame(maxWidth:.infinity,minHeight:48)
+                                .overlay { RoundedRectangle(cornerRadius:14).strokeBorder(brand.border) }
+                                .accessibilityIdentifier("conversationSettingsClose")
+                            Button {
+                                showSettings = false
+                            } label: {
+                                Text(setting("save")).foregroundStyle(.white)
+                                    .frame(maxWidth:.infinity,minHeight:48)
+                                    .background(PiyaliBrand.unitColor("00b5d8"),in:RoundedRectangle(cornerRadius:14))
+                                    .background {
+                                        RoundedRectangle(cornerRadius:14).fill(PiyaliBrand.unitColor("086781")).offset(y:4)
+                                    }
+                            }
+                            .accessibilityIdentifier("conversationSettingsSave")
+                        }
+                        .font(PiyaliBrand.productFont(18,600)).padding(.bottom,4)
+                    }
+                    .padding(.horizontal,28).padding(.top,24).padding(.bottom,22)
+                }
+                .scrollDismissesKeyboard(.interactively)
+                .scrollIndicators(.hidden)
+            }
+            .frame(height:min(geometry.size.height * 0.8, 572))
+            .frame(maxWidth:.infinity)
+            .background {
+                MemoryDrawerShape(radius:28).fill(brand.surface).ignoresSafeArea(.container,edges:.bottom)
+            }
+            .overlay {
+                MemoryDrawerShape(radius:28)
+                    .stroke(brand.border,lineWidth:2).padding(1)
+                    .ignoresSafeArea(.container,edges:.bottom)
+                    .allowsHitTesting(false)
+            }
+            .offset(y:settingsDrag)
+            .frame(maxWidth:.infinity,maxHeight:.infinity,alignment:.bottom)
+            .accessibilityAction(.escape) { showSettings = false }
         }
+        .foregroundStyle(brand.text).buttonStyle(.plain)
+    }
+    private var settingsFieldColor: Color { PiyaliBrand.unitColor(scheme == .dark ? "182031" : "efe4d5") }
+    private func settingsLabel(_ title:String,hint:String) -> some View {
+        VStack(alignment:.leading,spacing:5) {
+            Text(setting(title)).font(PiyaliBrand.productFont(14,600))
+            Text(setting(hint)).font(PiyaliBrand.productFont(12)).foregroundStyle(brand.secondary)
+        }
+    }
+    private var proficiencyPicker: some View {
+        Menu {
+            ForEach(Self.copy["levels"].array,id:\.json) { level in
+                Button { changeSetting("conversationProficiencyLevel",level["level"]) } label: {
+                    Text(level["level"].string+" · "+level["name"].localized(app.learner.support))
+                }
+            }
+        } label: {
+            let level=Self.copy["levels"].array.first { $0["level"].string == settingsLevel } ?? .null
+            HStack(spacing:8) {
+                Text(level["level"].string == "Pre-A1" ? "A0" : level["level"].string)
+                    .font(PiyaliBrand.productFont(14,700)).foregroundStyle(.white).padding(6)
+                    .background(PiyaliBrand.unitColor(level["color"].string),in:RoundedRectangle(cornerRadius:6))
+                VStack(alignment:.leading,spacing:2) {
+                    Text(level["name"].localized(app.learner.support)).font(PiyaliBrand.productFont(14,500))
+                    Text(level["description"].localized(app.learner.support))
+                        .font(PiyaliBrand.productFont(12)).foregroundStyle(brand.secondary)
+                }
+                Spacer(minLength:8)
+                Image(systemName:"chevron.down").font(.system(size:12))
+            }
+            .padding(12)
+            .background(settingsFieldColor,in:RoundedRectangle(cornerRadius:16))
+            .overlay { RoundedRectangle(cornerRadius:16).strokeBorder(brand.border) }
+        }
+        .accessibilityIdentifier("conversationLevel")
     }
     private var historySheet:some View {
         GeometryReader { geometry in

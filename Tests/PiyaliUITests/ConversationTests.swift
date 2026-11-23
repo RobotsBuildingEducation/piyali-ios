@@ -9,6 +9,15 @@ import XCTest
         let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Conversation Learner");if app.buttons["entryKeyboardDone"].exists { app.buttons["entryKeyboardDone"].tap() };tap("createAccount",app);handleInitialPaperPencil(app);tap("startLearning",app);open(app);return app
     }
     private func photo(_ name:String,_ app:XCUIApplication) { let capture=XCTAttachment(screenshot:app.screenshot());capture.name=name;capture.lifetime = .keepAlways;add(capture) }
+    private func changePracticeLanguage(_ code:String,label:String,_ app:XCUIApplication) {
+        tap("productMenu",app);tap("productPanel-settings",app)
+        let target=app.buttons["practiceLanguagePicker"]
+        for _ in 0..<5 where !target.isHittable {app.swipeUp(velocity:.slow)}
+        tap("practiceLanguagePicker",app);tap("settingsLanguage-practice-"+code,app)
+        XCTAssertTrue(target.label.contains(label))
+        tap("productPanelClose",app)
+        XCTAssertTrue(app.staticTexts["todayFocusTitle"].waitForExistence(timeout:15))
+    }
     func testRecordedReplyReplaysFromTheConversationHistoryAndAfterRelaunch() {
         let app=start(replay:true)
         XCTAssertFalse(app.buttons["conversationReplay"].exists)
@@ -156,23 +165,55 @@ import XCTest
         XCTAssertTrue(app.staticTexts["Proficiency Level"].exists);XCTAssertTrue(app.staticTexts["Pronunciation Practice"].exists);XCTAssertTrue(app.staticTexts["Custom Topics"].exists)
         tap("conversationLevel",app);let elementary=app.buttons.matching(NSPredicate(format:"label BEGINSWITH %@","A2 ·")).firstMatch;XCTAssertTrue(elementary.waitForExistence(timeout:5));elementary.tap()
         let toggle=app.switches["conversationPronunciation"];XCTAssertTrue(toggle.exists);toggle.tap()
-        let topics=app.textViews["conversationTopics"].exists ? app.textViews["conversationTopics"] : app.textFields["conversationTopics"];topics.tap();topics.typeText("Travel at the cafe");app.buttons["Close"].tap()
+        let topics=app.textViews["conversationTopics"].exists ? app.textViews["conversationTopics"] : app.textFields["conversationTopics"];topics.tap();topics.typeText("Travel at the cafe");tap("conversationSettingsDismiss",app)
         XCTAssertTrue(app.staticTexts["conversationGoal"].waitForExistence(timeout:10));XCTAssertFalse(app.staticTexts["conversationVoiceStatus"].exists)
-        tap("productMenu",app);tap("productPanel-settings",app)
-        let target=app.buttons["practiceLanguagePicker"]
-        for _ in 0..<5 where !target.isHittable {app.swipeUp(velocity:.slow)}
-        tap("practiceLanguagePicker",app);tap("settingsLanguage-practice-fr",app)
-        XCTAssertTrue(target.label.contains("French"))
-        tap("productPanelClose",app)
-        if !app.buttons["conversationSettings"].exists {open(app)}
+        changePracticeLanguage("fr",label:"French",app)
+        open(app)
         tap("conversationSettings",app)
         XCTAssertTrue(app.buttons["conversationLevel"].label.contains("A2"))
         XCTAssertEqual(app.switches["conversationPronunciation"].value as? String,"1")
         XCTAssertEqual(topics.value as? String,"Travel at the cafe")
-        photo("Native Conversation preferences after French target switch",app)
-        tap("Close",app)
+        XCTAssertTrue(app.buttons["conversationSettingsClose"].isHittable)
+        XCTAssertTrue(app.buttons["conversationSettingsSave"].isHittable)
+        XCTAssertFalse(app.buttons["conversationStart"].isHittable)
+        photo("Native Conversation drawer after French target switch",app)
+        tap("conversationSettingsSave",app)
         app.terminate();var args=app.launchArguments;if let index=args.firstIndex(of:"-piyali.theme") { args[index+1]="dark" };app.launchArguments=args;app.launch();handleInitialPaperPencil(app);open(app);XCTAssertEqual(app.otherElements["conversationOrb"].value as? String,"Blue animated sphere");photo("Native conversation initial dark",app);tap("conversationSettings",app)
         XCTAssertTrue(app.buttons["conversationLevel"].label.contains("A2"));XCTAssertEqual(app.switches["conversationPronunciation"].value as? String,"1");let saved=app.textViews["conversationTopics"].exists ? app.textViews["conversationTopics"] : app.textFields["conversationTopics"];XCTAssertEqual(saved.value as? String,"Travel at the cafe");photo("Native conversation source settings dark",app)
+        tap("conversationSettingsClose",app)
+        XCTAssertTrue(app.buttons["conversationStart"].waitForExistence(timeout:10))
+    }
+    func testChangingPracticeLanguageDuringCallReturnsToFocusWithScopedHistory() {
+        let app=start()
+        tap("conversationStart",app)
+        let reply=app.staticTexts["conversationLatestReply"]
+        let completed = XCTNSPredicateExpectation(predicate:NSPredicate(format:"label CONTAINS %@","¡Hola, Ana!"),object:reply)
+        XCTAssertEqual(XCTWaiter.wait(for:[completed],timeout:18),.completed)
+        XCTAssertTrue(app.buttons["conversationEnd"].isHittable)
+        let xp=app.descendants(matching:.any).matching(identifier:"dailyXPStatus").firstMatch
+        XCTAssertEqual(xp.value as? String,"5%")
+        tap("conversationSettings",app)
+        XCTAssertFalse(app.buttons["conversationEnd"].isHittable)
+        tap("conversationSettingsClose",app)
+        XCTAssertTrue(app.buttons["conversationEnd"].isHittable)
+        photo("Native Spanish call before the practice-language change",app)
+
+        changePracticeLanguage("fr",label:"French",app)
+        XCTAssertFalse(app.buttons["conversationEnd"].exists)
+        XCTAssertFalse(app.staticTexts["conversationSummaryXP"].exists)
+        XCTAssertEqual(xp.value as? String,"5%")
+        photo("Native Today’s Focus after the live practice-language change",app)
+        open(app)
+        XCTAssertTrue(app.buttons["conversationStart"].isEnabled)
+        XCTAssertFalse(reply.exists)
+        XCTAssertFalse(app.buttons["conversationHistory"].isEnabled)
+
+        changePracticeLanguage("es",label:"Spanish",app)
+        open(app)
+        XCTAssertTrue(app.buttons["conversationStart"].isEnabled)
+        XCTAssertEqual(reply.label,"¡Hola, Ana! ¿Qué te gusta hacer?")
+        XCTAssertTrue(app.buttons["conversationHistory"].isEnabled)
+        XCTAssertEqual(xp.value as? String,"5%")
     }
 }
 
