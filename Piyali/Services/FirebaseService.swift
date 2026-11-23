@@ -297,7 +297,10 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                 return true
             } catch { errorPointer?.pointee = error as NSError; return nil }
         }
-        if !(state.pendingImmersionChanges ?? []).isEmpty || (state.pendingChanges ?? []).contains(where:{ $0.conversationGoalID != nil }) { try await achievementService.refreshLedger(user:user) }
+        if !(state.pendingImmersionChanges ?? []).isEmpty || (state.pendingChanges ?? []).contains(where:{ $0.conversationGoalID != nil }) ||
+           (state.pendingGoalChanges ?? []).contains(where:{ $0.action == .attempt && $0.payload["success"].boolean }) {
+            try await achievementService.refreshLedger(user:user)
+        }
         let localReviewTimestamps = Dictionary(uniqueKeysWithValues:(state.localReviewAchievementIDs ?? []).compactMap { id -> (String,Int)? in
             guard let record = state.achievementRecords?[id], !NostrAchievementCollection.truthy(record["test"]) else { return nil }
             return (id,WebProgressContract.integer(record["unlockedAt"].number))
@@ -322,6 +325,13 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                 let monthFields = Self.normalized(try transaction.getDocument(month).data() ?? [:])
                 let original = JSONValue.foundation((fields["learningIntelligence"] as? [String:[String:Any]])?[change.target] ?? [:])
                 let result = GoalPractice.applying(change,to:original)
+                let completed = result.bucket["dailyGoal"]["completed"].boolean && !original["dailyGoal"]["completed"].boolean
+                let goalEvent = completed ? AchievementProgress.goalCompletionEvent(daily:result.bucket["dailyGoal"],language:change.target) : nil
+                let eventReference = try goalEvent.map { event in
+                    user.collection("achievementProgress").document("nosabos").collection("events")
+                        .document(try AchievementSyncService.documentID(metric:event["metric"].string,id:event["id"].string))
+                }
+                let eventExists = try eventReference.map { try transaction.getDocument($0).exists } ?? false
                 var reward = result.reward
                 if [.artifact,.outcome].contains(change.action) {
                     let questFields = Self.normalized(try transaction.getDocument(quest).data() ?? [:])
@@ -344,7 +354,7 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                     root.merge(award.root) { _,new in new }
                     transaction.setData(award.month,forDocument:month,merge:true)
                 }
-                if result.bucket["dailyGoal"]["completed"].boolean && !original["dailyGoal"]["completed"].boolean {
+                if completed {
                     var progress = root["progress"] as? [String:Any] ?? fields["progress"] as? [String:Any] ?? [:]
                     var activity = progress["goalDailyActivity"] as? [String:[String:Any]] ?? [:]
                     var days = activity[change.target] ?? [:]; days[change.payload["dayKey"].string] = 1; activity[change.target] = days
@@ -357,6 +367,9 @@ final class PiyaliAppCheckFactory: NSObject, AppCheckProviderFactory {
                     exactGoalFields[FieldPath(["learningIntelligence",change.target,key])] = try JSONSerialization.jsonObject(with:Data(value.json.utf8),options:.fragmentsAllowed)
                 }
                 if !exactGoalFields.isEmpty { transaction.updateData(exactGoalFields,forDocument:user) }
+                if let goalEvent,let eventReference,!eventExists {
+                    transaction.setData(["source":"nosabos","metric":goalEvent["metric"].string,"completionId":goalEvent["id"].string,"version":1],forDocument:eventReference)
+                }
                 transaction.setData(["eventID":change.id.uuidString,"source":"goal-" + change.action.rawValue,"targetLang":change.target,"dayKey":day,"practicedAt":WebProgressContract.iso(change.date),"syncedAt":FieldValue.serverTimestamp()],forDocument:receipt)
                 return true
             } catch { errorPointer?.pointee = error as NSError; return nil }

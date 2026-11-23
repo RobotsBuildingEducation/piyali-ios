@@ -59,6 +59,14 @@ The local Firestore SDK checks used a second client to replace today's plan, dro
 
 `/tmp/PiyaliDelayedFocusedReceipts-1b734e62-3ee4-4a13-a2a2-2063cfeefc2e.xcresult` passed all five simulator and local Firestore checks, including current-day recovery at the trial boundary.
 
+### Achievement credit on the recorded day
+
+The original web completion proof uses the Goal blueprint’s date and goal ID. Repair uses the requested date, CEFR level and plan creation time. Executing that proof at `b269524d` produced both historical IDs and left the incomplete replacement plan without credit. Twenty original-source tests passed.
+
+iOS saves the Goal achievement event in the same transaction that accepts the completed blueprint. A following blueprint in the same batch can then replace the current Goal while the original event remains available. When another client has already replaced the plan, the original validation still rejects the stale Goal attempt. The Repair award scan uses the day on the queued receipt to read the committed plan, checks the saved activity count and leaves the current Repair unchanged. New Repair IDs retain the source’s numeric creation timestamp. Existing iOS records with an omitted timestamp retain their credit and document ID.
+
+All six native checks passed with zero failures or skips in `/tmp/PiyaliDatedAchievementEvidence-20261123.xcresult`. Four Firestore SDK tests cover the single-batch Goal rollover, a competing plan replacement, a queued Repair from yesterday, the coexistence of legacy and numeric Repair IDs, and a Goal recall save after a time-zone change. The Goal and Repair simulator journeys also passed the focused Tutor fallback, process termination, save Retry and the 300-XP trial gate. The Firestore tests used the existing local emulator. Repair award recovery after the retained activity window and physical time-zone changes remain unverified.
+
 ## Remaining limits
 
 The original current-day product journeys and the queued rollover SDK checks cover different stages of the save. Broader cross-device chronology, physical time-zone changes and concurrent flows still need end-to-end evidence. Historical sessions without a private run lack the state needed for recovery. An interrupted remote worth request may run again. The earned delivery and completion receipt retain their own stable identities.

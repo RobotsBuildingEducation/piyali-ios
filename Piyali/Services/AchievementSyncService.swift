@@ -181,9 +181,14 @@ import FirebaseFirestore
             let reviews=Set(changes.filter { $0.source == .review }.compactMap { change in change.contentID.map { change.target+"_"+$0 } })
             for id in reviews { let doc=try await user.collection("languageFlashcards").document(id).getDocument(source:.server);if let data=doc.data() { records["languageFlashcards",default:[]].append(.object(["id":.string(id),"data":value(data)])) } }
             let targets=Set(changes.map(\.target)).union([profile["progress"]["targetLang"].string]).subtracting([""])
-            for language in targets {
-                let id=language+"_"+CalendarDay.key(Date()),quest=try await user.collection("questDays").document(id).getDocument(source:.server)
+            let today=CalendarDay.key(Date())
+            var questIDs=Set(targets.map { CompanionQuestDay.key($0,today) })
+            questIDs.formUnion(changes.filter { $0.source == .repair }.map { CompanionQuestDay.key($0.target,$0.dayKey) })
+            for id in questIDs.sorted() {
+                let quest=try await user.collection("questDays").document(id).getDocument(source:.server)
                 if let data=quest.data() { records["questDays",default:[]].append(.object(["id":.string(id),"data":value(data)])) }
+            }
+            for language in targets {
                 if changes.contains(where:{ $0.target == language && ($0.source == .phonics || $0.source == .phonicsAttempt && $0.phonicsData?["focused"].boolean != true) }) {
                     let docs=try await user.collection("alphabetPractice").whereField("targetLang",isEqualTo:language).getDocuments(source:.server)
                     records["alphabetPractice",default:[]].append(contentsOf:docs.documents.map { .object(["id":.string($0.documentID),"data":value($0.data())]) })
@@ -212,7 +217,12 @@ import FirebaseFirestore
         var evidences:[JSONValue]=[],legacyIDs:Set<String>=[]
         let cache=try await cache(user)
         let priorLedger=cache.ledger
-        let otherLanguages=Set((records["alphabetPractice"] ?? []).map { $0["data"]["targetLang"].string }).union(profile["dailyQuestRepair"].object.keys)
+        let questLanguages=(records["questDays"] ?? []).map { entry in
+            let language=entry["data"]["lang"].string
+            return language.isEmpty ? String(entry["id"].string.split(separator:"_",maxSplits:1).first ?? "") : language
+        }
+        let otherLanguages=Set((records["alphabetPractice"] ?? []).map { $0["data"]["targetLang"].string })
+            .union(profile["dailyQuestRepair"].object.keys).union(questLanguages)
         let languages=Set(groups.keys).union(otherLanguages).union(summaries.keys).union(profile["learningIntelligence"].object.keys).union([profile["realWorldTasks"]["targetLang"].string,profile["progress"]["targetLang"].string]).subtracting([""])
         for language in languages.sorted() {
             let summary=courseSummary(language:language,documents:groups[language] ?? [:],stored:summaries[language] ?? .object([:]))
@@ -239,10 +249,10 @@ import FirebaseFirestore
             for a in catalog where a.requirement["type"].string == "level" && index >= (LearningLanguages.levels.firstIndex(of:a.requirement["level"].string) ?? Int.max) { legacyIDs.insert(a.id) }
             for quest in records["questDays"] ?? [] where quest["data"]["lang"].string == language || quest["id"].string.hasPrefix(language+"_") {
                 let data=quest["data"],day=data["dayKey"].string.isEmpty ? String(quest["id"].string.dropFirst(language.count+1)) : data["dayKey"].string
-                ledger=AchievementProgress.recording(AchievementProgress.completionProof(profile:profile,summary:.object([:]),quest:data,language:language,day:day).events,ledger:ledger)
+                ledger=AchievementProgress.recording(AchievementProgress.completionProof(profile:profile,summary:.object([:]),quest:data,language:language,day:day,ledger:ledger).events,ledger:ledger)
             }
             if backfill { for (day,repair) in profile["dailyQuestRepair"][language].object {
-                ledger=AchievementProgress.recording(AchievementProgress.completionProof(profile:profile,summary:.object([:]),quest:.object(["repair":repair]),language:language,day:day).events,ledger:ledger)
+                ledger=AchievementProgress.recording(AchievementProgress.completionProof(profile:profile,summary:.object([:]),quest:.object(["repair":repair]),language:language,day:day,ledger:ledger).events,ledger:ledger)
             }}
             let docs=(records["alphabetPractice"] ?? []).map { $0["data"] }.filter { $0["targetLang"].string == language }
             let decks=phonics.filter { $0.key.hasPrefix(language+":"+(profile["progress"]["supportLang"].string.isEmpty ? "en" : profile["progress"]["supportLang"].string)+":") }

@@ -616,15 +616,21 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
     }
     func testConfirmedGoalRepairAndImmersionEventsSharePermanentCollection() async throws {
         let (service,db,npub)=try context();try await seed(db,npub)
-        let user=db.collection("users").document(npub),day=CalendarDay.key(Date()),stamp=WebProgressContract.iso(Date())
+        let user=db.collection("users").document(npub),day=CalendarDay.key(Date()),stamp=WebProgressContract.iso(Date()),repairStamp=1_790_000_000_123
         try await user.setData(["learningIntelligence":["fr":["dailyGoal":["completed":true,"blueprint":["modes":["lesson","tutor"],"cefrLevel":"B1","dayKey":day,"goalId":"goal-1"],"modeProgress":["lesson":20,"tutor":25]]]],"progress":["repairDailyActivity":["fr":[day:2]]],"realWorldTasks":["targetLang":"fr","dayKey":day,"generatedAt":stamp,"tasks":["a","b","c","d","e"],"completed":["0":true,"1":true,"2":true,"3":true,"4":true],"rewarded":true]],merge:true)
-        try await user.collection("questDays").document("fr_"+day).setData(["dayKey":day,"lang":"fr","repair":["items":[["cefrLevel":"B1"],["cefrLevel":"B2"]],"target":2,"createdAt":stamp]])
+        try await user.collection("questDays").document("fr_"+day).setData(["dayKey":day,"lang":"fr","repair":["items":[["cefrLevel":"B1"],["cefrLevel":"B2"]],"target":2,"createdAt":repairStamp]])
+        let eventCollection=user.collection("achievementProgress").document("nosabos").collection("events")
+        let legacyRepair="fr:\(day):"
+        try await eventCollection.document(AchievementSyncService.documentID(metric:"repairs:b1",id:legacyRepair))
+            .setData(["source":"nosabos","metric":"repairs:b1","completionId":legacyRepair,"version":1])
         let local=try requireState(try await service.load(npub:npub)),saved=try requireState(try await service.save(local,npub:npub))
         for id in ["piyali_goals_complete_b1","piyali_repairs_complete_b2","nosabos_immersion_tasks_5","nosabos_immersion_checklists_1"] { XCTAssertGreaterThan(saved.achievementRecords?[id]?["unlockedAt"].number ?? 0,0,id) }
         XCTAssertNil(saved.achievementRecords?["piyali_goals_complete_b2"])
         _=try await service.save(local,npub:npub)
         let events=try await user.collection("achievementProgress").document("nosabos").collection("events").getDocuments(source:.server)
         XCTAssertEqual(events.documents.count,9)
+        XCTAssertEqual(events.documents.filter { $0.data()["metric"] as? String == "repairs:b1" }.compactMap { $0.data()["completionId"] as? String },[legacyRepair])
+        XCTAssertEqual(events.documents.filter { $0.data()["metric"] as? String == "repairs:b2" }.compactMap { $0.data()["completionId"] as? String },["fr:\(day):\(repairStamp)"])
     }
     func testNativePhonicsCompletionWritesSharedEvidenceAndDeckAwardOnce() async throws {
         let (service,db,npub)=try context();try await seed(db,npub)
@@ -1133,6 +1139,7 @@ extension FirestoreContractTests {
         let now=Date()
         let priorDate=try XCTUnwrap(CalendarDay.gregorian().date(byAdding:.day,value:-1,to:now))
         let priorDay=CalendarDay.key(priorDate),today=CalendarDay.key(now)
+        let repairStamp=Int(priorDate.timeIntervalSince1970*1000)
         for kind in ["goal","repair"] {
             let (service,db,_)=try context()
             let store=PhonicsCompletionResultLossStore(service),app=AppModel(progressService:store)
@@ -1164,7 +1171,7 @@ extension FirestoreContractTests {
                 ])
                 let plan:JSONValue = .object([
                     "targetLang":.string(target),"dayKey":.string(priorDay),"target":.number(1),
-                    "items":.array([item]),"memoryIds":.array([.string(memoryID)])
+                    "items":.array([item]),"memoryIds":.array([.string(memoryID)]),"createdAt":.number(Double(repairStamp))
                 ])
                 original.storeCompanionBlueprint(.object(["status":.string("ready"),"repair":plan]),target:target,day:priorDay)
                 repair=RepairStep(index:0,mode:"tutor",item:item,plan:plan,stepCount:1)
@@ -1236,14 +1243,51 @@ extension FirestoreContractTests {
                 XCTAssertEqual(restored.readyGoal?["blueprint"]["objective"].string,"Ask a relative about tomorrow.")
                 XCTAssertEqual(restored.readyGoal?["modeProgress"]["tutor"].number,0)
                 XCTAssertEqual(restored.learner.plateProgress["goalDailyActivity"][target][today].number,0)
+                XCTAssertTrue(restored.learner.achievementLedger?["goals:a1"].object.isEmpty ?? true)
             } else {
                 XCTAssertEqual(restored.learner.plateProgress["repairDailyActivity"][target][priorDay].number,1)
                 XCTAssertEqual(restored.learner.plateProgress["repairDailyActivity"][target][today].number,0)
                 XCTAssertEqual(restored.currentRepairStep?.item["concept"].string,"À demain")
+                XCTAssertEqual(restored.learner.achievementLedger?["repairs:a1"].object,["\(target):\(priorDay):\(repairStamp)":.number(1)])
             }
             let canonical=try requireState(await service.load(npub:npub))
             XCTAssertEqual(canonical.totalXP,expectedXP)
         }
+    }
+
+    func testCompletedGoalEarnsItsOriginalAchievementWhenNextBlueprintSavesInSameBatch() async throws {
+        let (service,db,npub)=try context()
+        try await seed(db,npub)
+        var state=try requireState(await service.load(npub:npub))
+        state=try requireState(await service.save(state,npub:npub))
+        let xp=state.totalXP,now=Date()
+        let yesterday=try XCTUnwrap(CalendarDay.gregorian().date(byAdding:.day,value:-1,to:now))
+        let priorDay=CalendarDay.key(yesterday),today=CalendarDay.key(now),target=state.target
+        state.editGoal("Greet a relative",now:yesterday.addingTimeInterval(-10))
+        let old:JSONValue = .object([
+            "goalId":state.goalBucket["activeGoal"]["id"],"dayKey":.string(priorDay),"lang":.string(target),
+            "mode":.string("tutor"),"modes":.array([.string("tutor")]),"cefrLevel":.string("A1"),
+            "objective":.string("Greet a relative")
+        ])
+        state.applyGoal(.init(action:.blueprint,target:target,date:yesterday,payload:old))
+        state.applyGoal(.init(action:.attempt,target:target,date:yesterday.addingTimeInterval(1),
+            payload:old.setting("success",.bool(true)).setting("observation",.string("Greeted a relative."))))
+        XCTAssertTrue(state.goalBucket["dailyGoal"]["completed"].boolean)
+        state.applyGoal(.init(action:.blueprint,target:target,date:now,
+            payload:old.setting("dayKey",.string(today)).setting("objective",.string("Ask a relative about tomorrow."))))
+
+        _=try await service.save(state,npub:npub)
+        let saved=try requireState(await service.save(state,npub:npub))
+        XCTAssertEqual(saved.goalBucket["dailyGoal"]["blueprint"]["dayKey"].string,today)
+        XCTAssertFalse(saved.goalBucket["dailyGoal"]["completed"].boolean)
+        XCTAssertEqual(saved.goalBucket["dailyGoal"]["modeProgress"]["tutor"].number,0)
+        XCTAssertEqual(saved.totalXP,xp)
+        let completionID="\(target):\(priorDay):\(old["goalId"].string)"
+        XCTAssertEqual(saved.achievementLedger?["goals:a1"].object,[completionID:.number(1)])
+        XCTAssertGreaterThan(saved.achievementRecords?["piyali_goals_complete_a1"]?["unlockedAt"].number ?? 0,0)
+        let events=try await db.collection("users").document(npub).collection("achievementProgress")
+            .document("nosabos").collection("events").whereField("metric",isEqualTo:"goals:a1").getDocuments(source:.server)
+        XCTAssertEqual(events.documents.compactMap { $0.data()["completionId"] as? String },[completionID])
     }
 
     func testQueuedGoalRecallRewardUsesItsBlueprintDayAfterTimeZoneChange() async throws {
