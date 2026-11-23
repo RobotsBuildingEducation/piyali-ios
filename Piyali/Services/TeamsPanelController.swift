@@ -116,7 +116,10 @@ extension TeamsPanelAccess {
     }
     func rename(_ team:JSONValue,name:String,app:AppModel)async throws->Bool{
         if team["nostr"] == .null{try await legacy.rename(privateTeam(team),name:name,identity:app.identity);return true}
-        let value=try publicTeam(team);try await service.rename(value,name:name,identity:app.identity);return (try? await mirror.rename(id:value.teamID,name:name,identity:app.identity)) ?? false
+        let value=try publicTeam(team),session=app.identity.sessionRevision
+        try await service.rename(value,name:name,identity:app.identity,reload:false)
+        guard session == app.identity.sessionRevision else{throw CancellationError()}
+        return (try? await mirror.rename(id:value.teamID,name:name,identity:app.identity)) ?? false
     }
     func add(_ team:JSONValue,members:[String],app:AppModel)async throws->Bool{
         if team["nostr"] == .null{try await legacy.add(to:privateTeam(team),members:members.joined(separator:","),creatorName:app.learner.name,identity:app.identity);return true}
@@ -258,6 +261,15 @@ extension TeamsPanelAccess {
         if snapshot.loadingRows.contains(key){value.loadingRows.insert(key)}
     }
     func didRemove(_ team:JSONValue){if justCreated.map(LiveTeamsPanelAccess.key) == LiveTeamsPanelAccess.key(team){justCreated=nil}}
+    func didRename(_ team:JSONValue,name:String) {
+        let key=LiveTeamsPanelAccess.key(team)
+        guard let index=snapshot.teams.firstIndex(where:{LiveTeamsPanelAccess.key($0) == key}) else{return}
+        let renamed=snapshot.teams[index].setting("teamName",.string(name))
+        snapshot.teams[index]=renamed
+        if let created=justCreated,LiveTeamsPanelAccess.key(created) == key{justCreated=created.setting("teamName",.string(name))}
+        rosterRevision += 1
+        rosterPatches[key]=(rosterRevision,renamed)
+    }
     private func mergeRoster(_ current:JSONValue,_ update:JSONValue)->JSONValue{
         guard LiveTeamsPanelAccess.key(current) == LiveTeamsPanelAccess.key(update),(current["nostr"] != .null) == (update["nostr"] != .null) else{return current}
         var next=current
@@ -315,12 +327,12 @@ extension TeamsPanelAccess {
             while owned(app,token),refreshNeeded,!working,!reloading{refreshNeeded=false;await reload(app,preservingError:true)}
         }
     }
-    func perform(_ app:AppModel,action:@escaping(TeamsPanelAccess)async throws->TeamsNotice?,errorTitle:String?=nil,onSuccess:@escaping()->Void={},refreshInBackground:Bool=false){
+    func perform(_ app:AppModel,action:@escaping(TeamsPanelAccess)async throws->TeamsNotice?,errorTitle:String?=nil,onSuccess:@escaping()->Void={},refreshInBackground:Bool=false,reloadOnSuccess:Bool=true){
         guard !working,!closed else{return};if owner.isEmpty{bind(app)};let token=epoch;guard owned(app,token) else{return}
         working=true;error=nil
         work=Task{[weak self] in
             guard let self else{return};defer{if owned(app,token){working=false;work=nil;drainRefresh(app)}}
-            do{let message=try await action(access);guard owned(app,token) else{return};if let message{app.showTeamsNotice(message)};onSuccess();if refreshInBackground{working=false;refreshNeeded=true;drainRefresh(app)}else{await reload(app)}}
+            do{let message=try await action(access);guard owned(app,token) else{return};if let message{app.showTeamsNotice(message)};onSuccess();if refreshInBackground{working=false;refreshNeeded=true;drainRefresh(app)}else if reloadOnSuccess{await reload(app)}}
             catch{if owned(app,token),!(error is CancellationError){self.error=error.localizedDescription;showError(error.localizedDescription,app:app,title:errorTitle)}}
         }
     }

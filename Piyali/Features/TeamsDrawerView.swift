@@ -128,7 +128,13 @@ struct TeamsDrawerView:View {
         case .create:created=try await access.create(name:submitted,members:members,app:app);return .init(title:t("teams_create_success","Team created"),description:t("teams_create_invites","Teammates can see this team in either app"))
         case .rename(let team):let synced=try await access.rename(team,name:submitted,app:app);return .init(title:t("teams_edit_success","Team renamed"),description:synced ? nil:"The team name changed, but some local copies may still show the old name",status:synced ? "success":"warning")
         case .add(let team):_ = try await access.add(team,members:members,app:app);return .init(title:members.count == 1 ? "Member added":"Members added",description:"The team roster has been updated")
-        }},errorTitle:t(value.isRename ? "teams_view_error":"teams_create_error","Error"),onSuccess:{if let created{model.didCreate(created,app:app)}else{editor=nil}},refreshInBackground:value == .create)
+        }},errorTitle:t(value.isRename ? "teams_view_error":"teams_create_error","Error"),onSuccess:{
+            if let created{model.didCreate(created,app:app)}
+            else{
+                if case .rename(let team)=value{model.didRename(team,name:submitted)}
+                editor=nil
+            }
+        },refreshInBackground:value == .create,reloadOnSuccess:!value.isRename)
     }
     private func editorDialog(_ value:TeamsEditor,width:CGFloat)->some View {
         ZStack{

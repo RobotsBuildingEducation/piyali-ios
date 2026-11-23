@@ -23,16 +23,57 @@ import NostrSDK
     private func signedRosterJourney(arabic:Bool)async throws {
         continueAfterFailure=false
         let relay=LocalNostrRelay();defer{relay.stop()};var events:[[String:Any]]=[]
+        let readLock=NSLock()
+        var renameReadOutage=false, testedRenameOutage=false
         try await relay.start{frame,connection in
-            if frame.first as? String == "REQ",let sub=frame[1] as? String{for event in events{relay.send(["EVENT",sub,event],to:connection)};relay.send(["EOSE",sub],to:connection)}else if frame.first as? String == "EVENT",let event=frame[1] as? [String:Any],let id=event["id"] as? String{events.append(event);relay.send(["OK",id,true,""],to:connection)}
+            if frame.first as? String == "REQ",let sub=frame[1] as? String {
+                if readLock.withLock({renameReadOutage}) {
+                    relay.send(["CLOSED",sub,"error: simulated read outage after rename"],to:connection)
+                } else {
+                    for event in events { relay.send(["EVENT",sub,event],to:connection) }
+                    relay.send(["EOSE",sub],to:connection)
+                }
+            } else if frame.first as? String == "EVENT",let event=frame[1] as? [String:Any],let id=event["id"] as? String {
+                events.append(event)
+                if !arabic,(event["tags"] as? [[String]])?.contains(["name","Evening"]) == true {
+                    readLock.withLock {
+                        if !testedRenameOutage { renameReadOutage=true; testedRenameOutage=true }
+                    }
+                }
+                relay.send(["OK",id,true,""],to:connection)
+            }
         }
         let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_TEAM_TEST_RELAY":relay.url,"PIYALI_PRIVATE_TEAMS_TEST_EMULATOR":"1","PIYALI_HEADLINE_FIXTURE":"failure"];app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme",arabic ? "dark":"light"];app.launch();handleInitialPaperPencil(app)
         let entryName=app.textFields["entryName"];XCTAssertTrue(entryName.waitForExistence(timeout:15));entryName.tap();entryName.typeText("Team Learner");tap("entryKeyboardDone",app);tap("createAccount",app);handleInitialPaperPencil(app);chooseEnglishSpanishOnboarding(app);tap("startLearning",app);tap("companionContinue",app);acknowledgePaperPencil(app);tap("gettingStartedGotIt",app);tap("placementNew",app)
         if arabic{tap("productMenu",app);tap("productPanel-settings",app);tap("supportLanguagePicker",app);tap("settingsLanguage-support-ar",app);tap("productPanelClose",app)}
         open(app);XCTAssertTrue(app.staticTexts["My teams (0)"].waitForExistence(timeout:10));shot(arabic ? "Native Arabic Teams empty product":"Native Teams empty product",app);if arabic{XCTAssertGreaterThan(app.buttons["teamCreateOpen"].frame.midX,app.buttons["teamsCopyID"].frame.midX);XCTAssertGreaterThan(app.buttons["teamsClose"].frame.midX,app.frame.midX)};tap("teamsCopyID",app);let copyClose=app.buttons["teamsNoticeClose"];XCTAssertTrue(copyClose.exists);if arabic{XCTAssertGreaterThan(copyClose.frame.midX,app.frame.midX)};copyClose.tap();tap("teamCreateOpen",app)
         enter("Weekend","teamName",app);enter("bad","teamMembers",app);XCTAssertTrue(app.staticTexts.matching(NSPredicate(format:"identifier == %@ AND label CONTAINS %@","teamsNoticeDescription","Invalid npub format")).firstMatch.waitForExistence(timeout:5));XCTAssertFalse(app.staticTexts["teamFormError"].exists);replaceValue("teamMembers",with:"npub10xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqpkge6d",rtl:arabic,app);XCTAssertTrue(app.staticTexts["Members to Invite (1)"].waitForExistence(timeout:5));shot("Native Teams queued product",app);tap("teamCreate",app)
-        XCTAssertTrue(app.buttons["learningTeamRow"].waitForExistence(timeout:20));XCTAssertEqual(app.buttons["learningTeamRow"].label,"Weekend");XCTAssertTrue(app.staticTexts["Team Learner"].exists);shot("Native Teams single product",app);tap("teamEdit",app);replaceValue("teamEditName",with:"Evening",rtl:arabic,app);tap("teamRename",app);XCTAssertTrue(app.buttons["learningTeamRow"].waitForExistence(timeout:15));XCTAssertEqual(app.buttons["learningTeamRow"].label,"Evening")
+        let card=app.buttons["learningTeamRow"]
+        XCTAssertTrue(card.waitForExistence(timeout:20))
+        XCTAssertEqual(card.label,"Weekend")
+        XCTAssertTrue(app.staticTexts["Team Learner"].exists)
+        shot("Native Teams single product",app)
+        tap("teamEdit",app)
+        replaceValue("teamEditName",with:"Evening",rtl:arabic,app)
+        tap("teamRename",app)
+        let renamed=XCTNSPredicateExpectation(predicate:NSPredicate(format:"label == %@","Evening"),object:card)
+        XCTAssertEqual(XCTWaiter.wait(for:[renamed],timeout:5),.completed)
+        if !arabic {
+            XCTAssertTrue(readLock.withLock{renameReadOutage})
+            XCTAssertFalse(app.otherElements["teamEditor"].exists)
+            XCTAssertTrue(app.staticTexts["Team renamed"].waitForExistence(timeout:4))
+            let owner=try XCTUnwrap(app.buttons["teamsCopyID"].value as? String)
+            let url=try XCTUnwrap(URL(string:"http://127.0.0.1:8180/v1/projects/demo-piyali-ios/databases/(default)/documents/users/\(owner)/teams"))
+            let (data,_)=try await URLSession.shared.data(from:url)
+            let response=try XCTUnwrap(JSONSerialization.jsonObject(with:data) as? [String:Any])
+            let fields=(response["documents"] as? [[String:Any]])?.first?["fields"] as? [String:Any]
+            XCTAssertEqual((fields?["teamName"] as? [String:String])?["stringValue"],"Evening")
+            shot("Native acknowledged rename while relay reads were offline",app)
+            readLock.withLock { renameReadOutage=false }
+        }
         tap("teamAddOpen",app);enter("npub1ccz8l9zpa47k6vz9gphftsrumpw80rjt3nhnefat4symjhrsnmjs38mnyd","teamMembers",app);tap("teamAdd",app);XCTAssertTrue(app.buttons["learningTeamRow"].waitForExistence(timeout:15));XCTAssertEqual(app.buttons["learningTeamRow"].label,"Evening")
+        let addClosed=XCTNSPredicateExpectation(predicate:NSPredicate(format:"exists == false"),object:app.otherElements["teamEditor"])
+        XCTAssertEqual(XCTWaiter.wait(for:[addClosed],timeout:10),.completed)
         app.terminate();app.launch();handleInitialPaperPencil(app);open(app);if arabic{XCTAssertGreaterThan(app.buttons["teamCreateOpen"].frame.midX,app.buttons["teamsCopyID"].frame.midX)};XCTAssertTrue(app.buttons["learningTeamRow"].waitForExistence(timeout:20));XCTAssertEqual(app.buttons["learningTeamRow"].label,"Evening");shot("Native Teams restored product",app)
         reveal("teamRemove",app).tap();let remove=app.sheets.buttons["Delete team"];XCTAssertTrue(remove.waitForExistence(timeout:5));remove.tap();XCTAssertTrue(app.staticTexts["My teams (0)"].waitForExistence(timeout:20));app.terminate();app.launch();handleInitialPaperPencil(app);open(app);if arabic{XCTAssertGreaterThan(app.buttons["teamCreateOpen"].frame.midX,app.buttons["teamsCopyID"].frame.midX)};XCTAssertTrue(app.staticTexts["My teams (0)"].waitForExistence(timeout:20));tap("teamsFeedTab",app);XCTAssertTrue(app.staticTexts["No posts yet. Start the conversation!"].waitForExistence(timeout:10));shot("Native Teams feed product",app)
         let published=relay.frames().filter{$0.first as? String == "EVENT"}.compactMap{$0[1] as? [String:Any]},rosters=published.filter{($0["tags"] as? [[String]])?.contains(where:{$0.first == "d" && $0.last?.hasPrefix("learning-team:")==true}) == true}
