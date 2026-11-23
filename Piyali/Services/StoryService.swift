@@ -111,7 +111,14 @@ import FirebaseAILogic
                 payload=try ContentLibrary.load(JSONValue.self,name:"story-test-episode")
                 #if DEBUG
                 if ProcessInfo.processInfo.environment["PIYALI_STORY_LEARNER_CAST"] == "1" { var segments=payload["segments"].array.map { segment in segment.setting("turns",.array(segment["turns"].array.map { $0["speaker"].string == "Luis" ? $0.setting("speaker",.string("You")) : $0 })) }
-                    if !segments.isEmpty { segments[0]=segments[0].setting("turns",.array(segments[0]["turns"].array+[.object(["speaker":.string("Ana"),"target":.string("Vamos a visitarla."),"support":.string("Let's visit her.")])])) }
+                    if !segments.isEmpty {
+                        var turns=segments[0]["turns"].array
+                        if ProcessInfo.processInfo.environment["PIYALI_STORY_REPLAY_CONTEXT_FIXTURE"] == "1" {
+                            turns.insert(.object(["speaker":.string("Ana"),"target":.string("Es su cumpleaños."),"support":.string("It is her birthday.")]),at:1)
+                        }
+                        turns.append(.object(["speaker":.string("Ana"),"target":.string("Vamos a visitarla."),"support":.string("Let's visit her.")]))
+                        segments[0]=segments[0].setting("turns",.array(turns))
+                    }
                     payload=payload.setting("segments",.array(segments)) }
                 #endif
                 if mode == .speaking {

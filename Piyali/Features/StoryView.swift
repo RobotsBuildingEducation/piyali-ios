@@ -92,7 +92,7 @@ struct StoryView:View {
                             else if run.mode == .speaking { sentenceConversation(run) }
                             else {
                                 if run.mode == .radio { radio(run) } else { conversation(run) }
-                                if audio.phase == .awaitingSpeech,let turn=audio.currentTurn { userTurn(run,turn:turn).id("story-current") }
+                                if audio.phase == .awaitingSpeech,let turn=audio.currentTurn { userTurn(run,turn:turn) }
                                 if run.heard.contains(run.index),run.questionAvailable,let question=run.currentSegment?.question { checkpoint(run,question:question).id("story-question") }
                             }
                             if audio.phase == .failed || audio.previewError { Text(t("audioError")).font(PiyaliBrand.productFont(14)).foregroundStyle(brand.questionError).accessibilityIdentifier("storyAudioError") }
@@ -134,8 +134,8 @@ struct StoryView:View {
         if prefixes.contains(where:{ value.caseInsensitiveCompare($0) == .orderedSame }) { value="" }
         return t(run.mode == .radio ? "call" : run.mode == .speaking ? "practice" : "story")+(value.isEmpty ? "" : ": "+value)
     }
-    private func panel<Content:View>(gradient:Bool=false,@ViewBuilder content:()->Content)->some View {
-        content().padding(16).frame(maxWidth:.infinity,alignment:.leading).background { RoundedRectangle(cornerRadius:24).fill(LinearGradient(colors:gradient ? [brand.surface,PiyaliBrand.unitColor(scheme == .dark ? "182031" : "efe4d5")] : [brand.surface,brand.surface],startPoint:.topLeading,endPoint:.bottomTrailing)) }.overlay { RoundedRectangle(cornerRadius:24).stroke(brand.border) }
+    private func panel<Content:View>(gradient:Bool=false,inset:CGFloat=16,@ViewBuilder content:()->Content)->some View {
+        content().padding(inset).frame(maxWidth:.infinity,alignment:.leading).background { RoundedRectangle(cornerRadius:24).fill(LinearGradient(colors:gradient ? [brand.surface,PiyaliBrand.unitColor(scheme == .dark ? "182031" : "efe4d5")] : [brand.surface,brand.surface],startPoint:.topLeading,endPoint:.bottomTrailing)) }.overlay { RoundedRectangle(cornerRadius:24).stroke(brand.border) }
     }
     private func radio(_ run:StoryRun)->some View {
         let speakers=Array((run.episode?.segments.first?.turns.map(\.speaker) ?? []).reduce(into:[String]()) { if !$0.contains($1) { $0.append($1) } }.prefix(2))
@@ -152,19 +152,28 @@ struct StoryView:View {
                 if (audio.active || audio.previewPlaying),let turn=audio.previewTurn ?? audio.currentTurn {
                     VStack(spacing:7) { Text(turn.speaker.uppercased()).font(PiyaliBrand.productFont(12,700)).foregroundStyle(PiyaliBrand.teal);Text(turn.target).font(PiyaliBrand.productFont(18,600)).multilineTextAlignment(.center) }.padding(14).frame(maxWidth:.infinity).background(brand.background,in:RoundedRectangle(cornerRadius:16))
                 }
-                StoryRadioSignal(active:audio.phase == .playing || audio.previewPlaying || recordingNow).frame(width:96,height:32).accessibilityElement(children:.ignore).accessibilityIdentifier("storyRadioSignal").accessibilityLabel(audio.active ? t("onAir") : t("ready"))
+                StoryRadioSignal(active:audio.phase == .playing || audio.previewPlaying || recordingNow).frame(width:96,height:32).accessibilityElement(children:.ignore).accessibilityIdentifier("storyRadioSignal").accessibilityLabel(audio.active || audio.previewPlaying ? t("onAir") : t("ready"))
                 if audio.hasPlayed || run.heard.contains(run.index) { replay(run) }
             }.padding(.vertical,12).frame(maxWidth:.infinity)
-        }
+        }.id("story-current")
     }
     private func conversation(_ run:StoryRun)->some View {
-        VStack(alignment:.leading,spacing:20) {
+        let speakers=(run.episode?.segments.flatMap { $0.turns.map(\.speaker) } ?? []).reduce(into:[String]()) { names,speaker in
+            if !names.contains(speaker) { names.append(speaker) }
+        }
+        let secondSpeaker=speakers.dropFirst().first
+        return VStack(alignment:.leading,spacing:20) {
             if let episode=run.episode { ForEach(0..<min(episode.segments.count,run.index+1),id:\.self) { index in
-                VStack(spacing:16) { ForEach(Array(episode.segments[index].turns.enumerated()),id:\.offset) { offset,turn in
-                    bubble(turn,run:run,key:"\(index)-\(offset)",right:offset%2 == 1,identifier:index == run.index ? "story-current" : nil)
-                } }.opacity(index < run.index ? 0.7 : 1)
+                VStack(spacing:16) {
+                    ForEach(Array(episode.segments[index].turns.enumerated()),id:\.offset) { offset,turn in
+                        bubble(turn,run:run,key:"\(index)-\(offset)",right:turn.speaker == secondSpeaker)
+                    }
+                    if index == run.index,run.result == true,let q=run.currentSegment?.question,q.type == "reply",let answer=q.answer.first,q.options.indices.contains(answer) {
+                        bubble(.init(speaker:"You",target:q.options[answer],support:q.explanation),run:run,key:"\(index)-reply",right:true)
+                    }
+                }.opacity(index < run.index ? 0.7 : 1)
+                    .id(index == run.index ? "story-current" : "story-part-\(index)")
             } }
-            if run.result == true,let q=run.currentSegment?.question,q.type == "reply",let index=q.answer.first,q.options.indices.contains(index) { bubble(.init(speaker:"You",target:q.options[index],support:q.explanation),run:run,key:"\(run.index)-reply",right:true) }
             replay(run)
         }
     }
@@ -192,34 +201,104 @@ struct StoryView:View {
     private func linePlay(_ turn:StoryTurn,run:StoryRun,accent:Color)->some View {
         Button { audio.preview(turn,language:run.target,user:narrationUser) } label:{ Image(systemName:"speaker.wave.2").font(.system(size:13)).foregroundStyle(brand.text).frame(width:25,height:25).overlay { RoundedRectangle(cornerRadius:6).stroke(accent) } }.buttonStyle(.plain).padding(.top,4).accessibilityLabel(t("play")+": "+turn.speaker)
     }
-    private func bubble(_ turn:StoryTurn,run:StoryRun,key:String,right:Bool,identifier:String?=nil)->some View {
-        HStack(alignment:.top,spacing:12) {
-            if !right { StoryCharacterAvatar(name:turn.speaker,portraitID:run.portraitIDs?[turn.speaker],size:run.mode == .speaking ? 36 : 42,speaking:(audio.phase == .playing && audio.currentTurn?.speaker == turn.speaker) || (audio.previewPlaying && audio.previewTurn?.speaker == turn.speaker)) }
+    private func bubble(_ turn:StoryTurn,run:StoryRun,key:String,right:Bool)->some View {
+        let activeSpeaker=audio.previewPlaying ? audio.previewTurn?.speaker:audio.phase == .playing ? audio.currentTurn?.speaker:nil
+        let speaking=activeSpeaker == turn.speaker
+        let speaker=StoryAppearance.isUser(turn.speaker,learnerName:app.learner.name) ? t("you"):turn.speaker
+        let visible=translations.contains(key)
+        let avatar=StoryCharacterAvatar(name:turn.speaker,portraitID:run.portraitIDs?[turn.speaker],speaking:speaking,accent:right ? PiyaliBrand.unitColor("9f7aea"):PiyaliBrand.teal)
+        return HStack(alignment:.top,spacing:12) {
+            if !right { avatar }
             VStack(alignment:.leading,spacing:10) {
                 HStack {
-                    Text(StoryAppearance.isUser(turn.speaker,learnerName:app.learner.name) ? t("you") : turn.speaker).font(PiyaliBrand.productFont(12,700)).foregroundStyle(brand.secondary)
+                    Text(speaker).font(PiyaliBrand.productFont(12,700)).foregroundStyle(brand.secondary)
                     Spacer()
-                    Button { audio.preview(turn,language:run.target,user:narrationUser) } label:{ Image(systemName:"speaker.wave.2").frame(width:28,height:28) }.buttonStyle(.plain).disabled(audio.active && !run.heard.contains(run.index)).accessibilityLabel(t("play")+": "+turn.speaker)
-                    Button { translate(turn,run:run,key:key) } label:{ if translating.contains(key) { ProgressView() } else { Image(systemName:"character.bubble").frame(width:28,height:28) } }.buttonStyle(.plain).foregroundStyle(translations.contains(key) ? PiyaliBrand.teal : brand.secondary).accessibilityLabel(t(translations.contains(key) ? "hideTranslation" : "translation")).accessibilityIdentifier("storyTranslate-"+key)
+                    HStack(spacing:4) {
+                        Button { playPreview(turn,run:run) } label:{
+                            PracticeIcon(name:"FiVolume2",size:17).frame(width:32,height:32)
+                        }
+                        .disabled(audio.active && !run.heard.contains(run.index))
+                        .accessibilityLabel(t("play")+": "+speaker).accessibilityIdentifier("storyDialoguePlay-"+key)
+                        Button { translate(turn,run:run,key:key) } label:{ storyTranslationIcon }.foregroundStyle(visible ? PiyaliBrand.teal:brand.secondary)
+                            .accessibilityLabel(t(visible ? "hideTranslation":"translation")).accessibilityIdentifier("storyTranslate-"+key)
+                    }.buttonStyle(.plain)
                 }
-                Text(turn.target).font(PiyaliBrand.productFont(18,500)).lineSpacing(6).frame(maxWidth:.infinity,alignment:.leading).environment(\.layoutDirection,run.target == "ar" ? .rightToLeft : .leftToRight).accessibilityIdentifier(run.mode == .speaking && key == "sentence-\(run.index)" ? "storyTarget" : "storyDialogue-"+key)
-                if translations.contains(key),let text=run.translations[key] ?? provisionalTranslations[key] ?? turn.support,!text.isEmpty { Text(text).font(PiyaliBrand.productFont(14)).foregroundStyle(brand.secondary).frame(maxWidth:.infinity,alignment:.leading).environment(\.layoutDirection,run.support == "ar" ? .rightToLeft : .leftToRight) }
-            }.padding(16).frame(maxWidth:.infinity,alignment:.leading).background(brand.surface,in:RoundedRectangle(cornerRadius:24)).overlay { RoundedRectangle(cornerRadius:24).stroke(brand.border) }
-            if right { StoryCharacterAvatar(name:turn.speaker,portraitID:run.portraitIDs?[turn.speaker],size:run.mode == .speaking ? 36 : 42,speaking:(audio.phase == .playing && audio.currentTurn?.speaker == turn.speaker) || (audio.previewPlaying && audio.previewTurn?.speaker == turn.speaker),accent:brand.questionChoice) }
-        }.id(identifier ?? key)
+                Text(turn.target).font(PiyaliBrand.productFont(18,500)).lineSpacing(6).frame(maxWidth:.infinity,alignment:.leading).environment(\.layoutDirection,run.target == "ar" ? .rightToLeft : .leftToRight).accessibilityIdentifier("storyDialogue-"+key)
+                if visible {
+                    if translating.contains(key) { ProgressView() }
+                    else if let text=run.translations[key] ?? provisionalTranslations[key] ?? turn.support,!text.isEmpty { Text(text).font(PiyaliBrand.productFont(14)).foregroundStyle(brand.secondary).frame(maxWidth:.infinity,alignment:.leading).environment(\.layoutDirection,run.support == "ar" ? .rightToLeft : .leftToRight) }
+                }
+            }.padding(16).frame(maxWidth:.infinity,alignment:.leading).background(brand.surface,in:RoundedRectangle(cornerRadius:24)).overlay { RoundedRectangle(cornerRadius:24).stroke(speaking ? PiyaliBrand.teal:brand.border) }
+            if right { avatar }
+        }
+    }
+
+    private var storyTranslationIcon:some View {
+        Image("ConversationTranslate").resizable().renderingMode(.template).frame(width:18,height:18)
+            .frame(width:32,height:32)
+            .contentShape(Rectangle())
     }
     private func replay(_ run:StoryRun)->some View {
-        Button { startPlayback(run,replay:run.heard.contains(run.index)) } label:{ Label(t("replay"),systemImage:"arrow.counterclockwise") }.font(PiyaliBrand.productFont(14,600)).buttonStyle(.plain).disabled(audio.active).accessibilityIdentifier("storyReplay")
+        Button {
+            if audio.phase == .awaitingSpeech {
+                speech.cancel()
+                audio.replaySpeechContext(user:narrationUser)
+            } else {
+                startPlayback(run,replay:run.heard.contains(run.index))
+            }
+        } label:{
+            Label(t("replay"),systemImage:"arrow.counterclockwise")
+        }
+        .font(PiyaliBrand.productFont(14,600)).buttonStyle(.plain)
+        .disabled(audio.active).accessibilityIdentifier("storyReplay")
     }
+
+    private func playPreview(_ turn:StoryTurn,run:StoryRun) {
+        if audio.phase == .awaitingSpeech { speech.cancel() }
+        audio.preview(turn,language:run.target,user:narrationUser)
+    }
+
     private func userTurn(_ run:StoryRun,turn:StoryTurn)->some View {
-        panel { VStack(alignment:.leading,spacing:12) { HStack { Text(t("yourTurn")+":").font(PiyaliBrand.productFont(16,700));Spacer();Button { audio.preview(turn,language:run.target,user:narrationUser) } label:{ Image(systemName:"speaker.wave.2") }.accessibilityLabel(t("play"));Button { translate(turn,run:run,key:"role-\(run.index)") } label:{ Image(systemName:"character.bubble") }.accessibilityLabel(t("translation")) };Text(turn.target).font(PiyaliBrand.productFont(18,500)).accessibilityIdentifier("storyRoleTarget");if translations.contains("role-\(run.index)"),let text=run.translations["role-\(run.index)"] ?? turn.support { Text(text).font(PiyaliBrand.productFont(14)).foregroundStyle(brand.secondary) } } }
+        let key="role-\(run.index)-\(audio.roleIndex ?? 0)"
+        let visible=translations.contains(key)
+        return panel(inset:20) {
+            VStack(alignment:.leading,spacing:12) {
+                HStack {
+                    Text(t("yourTurn")+":").font(PiyaliBrand.productFont(16,700))
+                    Spacer()
+                    HStack(spacing:4) {
+                        Button { playPreview(turn,run:run) } label:{
+                            PracticeIcon(name:"FiVolume2",size:17).frame(width:32,height:32)
+                        }.accessibilityLabel(t("play")+": "+t("you")).accessibilityIdentifier("storyRolePlay")
+                        Button { translate(turn,run:run,key:key) } label:{
+                            storyTranslationIcon
+                        }
+                        .foregroundStyle(visible ? PiyaliBrand.teal:brand.secondary)
+                        .accessibilityLabel(t(visible ? "hideTranslation":"translation"))
+                        .accessibilityAddTraits(visible ? .isSelected:[])
+                        .accessibilityIdentifier("storyRoleTranslate")
+                    }.buttonStyle(.plain)
+                }
+                Text(turn.target).font(PiyaliBrand.productFont(18,500))
+                    .accessibilityIdentifier("storyRoleTarget")
+                    .environment(\.layoutDirection,run.target == "ar" ? .rightToLeft:.leftToRight)
+                if visible {
+                    if translating.contains(key) { ProgressView() }
+                    else if let text=run.translations[key] ?? provisionalTranslations[key] ?? turn.support,!text.isEmpty {
+                        Text(text).font(PiyaliBrand.productFont(16)).foregroundStyle(brand.secondary)
+                            .accessibilityIdentifier("storyRoleTranslation")
+                            .environment(\.layoutDirection,run.support == "ar" ? .rightToLeft:.leftToRight)
+                    }
+                }
+            }
+        }
     }
     private func checkpoint(_ run:StoryRun,question:StoryQuestion)->some View {
         let chosen=run.answers[String(run.index)] ?? [],listening=["select_words","order_words"].contains(question.type)
         return panel {
             VStack(alignment:.leading,spacing:16) {
                 Text(question.prompt).font(PiyaliBrand.productFont(18,600)).accessibilityIdentifier("storyQuestion")
-                if listening,let index=question.audioTurn,let turns=run.currentSegment?.turns,turns.indices.contains(index) { Button { audio.preview(turns[index],language:run.target) } label:{ Label(t("listen"),systemImage:"speaker.wave.2") }.buttonStyle(.bordered).accessibilityIdentifier("storyListenExcerpt") }
+                if listening,let index=question.audioTurn,let turns=run.currentSegment?.turns,turns.indices.contains(index) { Button { playPreview(turns[index],run:run) } label:{ Label(t("listen"),systemImage:"speaker.wave.2") }.buttonStyle(.bordered).accessibilityIdentifier("storyListenExcerpt") }
                 if question.type == "order_words" {
                     PracticeFlowLayout(spacing:8) { ForEach(Array(chosen.enumerated()),id:\.offset) { position,index in Button(question.options[index]) { update { $0.select(index) } }.buttonStyle(.bordered).disabled(run.result != nil).accessibilityIdentifier("storySelected-\(position)").accessibilityHint(t("answer")) } }.frame(minHeight:60,alignment:.leading).frame(maxWidth:.infinity,alignment:.leading).padding(12).overlay { RoundedRectangle(cornerRadius:12).stroke(brand.border) }
                 }
@@ -261,7 +340,7 @@ struct StoryView:View {
             skip
             Button { update { $0.speechResult=nil;$0.lastWords="" };record(run) } label:{ StoryRecordLabel(recorder:speech.recorder,speaking:true,record:t("record"),connecting:t("connectingMic")) }.buttonStyle(ActivityPrimaryButtonStyle(tone:"stop")).disabled(speech.recorder.connecting || speech.recorder.evaluating).accessibilityLabel(t("record")).accessibilityIdentifier("storyRecord")
         } else if let verdict=run.mode == .speaking ? run.speechResult : roleResult {
-            Button { if verdict.pass { if run.mode == .speaking { advance(run) } else { roleResult=nil;audio.continueSpeech() } } else { if run.mode == .speaking { update { $0.speechResult=nil;$0.lastWords="" } } else { roleResult=nil } } } label:{ HStack(spacing:8){Text(run.mode == .speaking && verdict.pass ? ui(run.index == run.count-1 ? "stories_finish":"stories_next_sentence"):t(verdict.pass ? "next":"retry"));PracticeIcon(name:"FiArrowRight",size:14)} }.buttonStyle(ActivityPrimaryButtonStyle(tone:verdict.pass ? "success" : "stop")).accessibilityIdentifier(verdict.pass ? "storyNext" : "storySpeechRetry")
+            Button { if verdict.pass { if run.mode == .speaking { advance(run) } else { roleResult=nil;audio.continueSpeech() } } else { if run.mode == .speaking { update { $0.speechResult=nil;$0.lastWords="" } } else { audio.stopPreview();speech.cancel();roleResult=nil } } } label:{ HStack(spacing:8){Text(run.mode == .speaking && verdict.pass ? ui(run.index == run.count-1 ? "stories_finish":"stories_next_sentence"):t(verdict.pass ? "next":"retry"));PracticeIcon(name:"FiArrowRight",size:14)} }.buttonStyle(ActivityPrimaryButtonStyle(tone:verdict.pass ? "success" : "stop")).accessibilityIdentifier(verdict.pass ? "storyNext" : "storySpeechRetry")
         } else if run.result != nil {
             Button { advance(run) } label:{ HStack(spacing:8){Text(t(run.index == run.count-1 ? "finish":"next"));PracticeIcon(name:"FiArrowRight",size:14)} }.buttonStyle(ActivityPrimaryButtonStyle(tone:run.result == true ? "success" : "stop")).accessibilityIdentifier("storyNext")
         } else if run.completed {

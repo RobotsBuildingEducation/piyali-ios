@@ -12,10 +12,14 @@ import XCTest
         XCTAssertTrue(element.waitForExistence(timeout:10));XCTAssertTrue(element.isHittable,app.debugDescription)
     }
     private func tap(_ id:String,_ app:XCUIApplication) { let button=app.buttons[id];reveal(button,app);button.tap() }
-    private func start(_ mode:String,role:Bool=false,failure:Bool=false,theme:String="light",delay:Bool=false,narration:Bool=false,speechDelay:Bool=false,denied:Bool=false,auto:Bool=false,stream:Bool=false,japanese:Bool=false,sourceStreamOutcome:String?=nil,sourceEpisodeOutcome:String?=nil,earlyEpisode:Bool=false,generationFailure:Bool=false)->XCUIApplication {
+    private func start(_ mode:String,role:Bool=false,failure:Bool=false,theme:String="light",delay:Bool=false,narration:Bool=false,speechDelay:Bool=false,denied:Bool=false,auto:Bool=false,stream:Bool=false,japanese:Bool=false,sourceStreamOutcome:String?=nil,sourceEpisodeOutcome:String?=nil,earlyEpisode:Bool=false,generationFailure:Bool=false,contextReplay:Bool=false)->XCUIApplication {
         continueAfterFailure=false
         let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString;app.launchEnvironment["PIYALI_STORY_FIXTURE"]=mode;app.launchEnvironment["PIYALI_PRACTICE_FIXTURE"]="delight:natural_or_weird";app.launchEnvironment["PIYALI_READING_FIXTURE"]="1";app.launchEnvironment["PIYALI_STORY_SPEECH_RESULTS"]="miss,pass,pass,pass"
         if narration{app.launchEnvironment["PIYALI_STORY_NARRATION_FIXTURE"]="1" };if speechDelay{app.launchEnvironment["PIYALI_STORY_SPEECH_OPEN_DELAY_MS"]="2000"};if denied{app.launchEnvironment["PIYALI_STORY_SPEECH_DENIED"]="1"};if auto{app.launchEnvironment["PIYALI_STORY_SPEECH_AUTOFINISH"]="1";app.launchEnvironment["PIYALI_STORY_SPEECH_RESULTS"]="pass"};if delay { app.launchEnvironment["PIYALI_STORY_GENERATION_DELAY_MS"]="8000" }
+        if contextReplay {
+            app.launchEnvironment["PIYALI_STORY_REPLAY_CONTEXT_FIXTURE"]="1"
+            app.launchEnvironment["PIYALI_STORY_SPEECH_RESULTS"]="pass"
+        }
         if role { app.launchEnvironment["PIYALI_STORY_LEARNER_CAST"]="1" };if failure { app.launchEnvironment["PIYALI_STORY_AUDIO_FAIL_FIRST"]="1" }
         if stream { app.launchEnvironment["PIYALI_STORY_STREAM_FIXTURE"]="1" }
         if let sourceStreamOutcome {app.launchEnvironment["PIYALI_STORY_SOURCE_STREAM_FIXTURE"]=sourceStreamOutcome}
@@ -252,6 +256,60 @@ import XCTest
         XCTAssertTrue(app.staticTexts["realtimeGoal"].waitForExistence(timeout:10));xp(4,app)
         app.terminate();app.launch();handleInitialPaperPencil(app);open(app,expectStory:false);XCTAssertTrue(app.staticTexts["realtimeGoal"].waitForExistence(timeout:10));xp(4,app)
     }
+    func testRadioReplayPreservesLearnerPromptAndDoesNotUnlockCheckpoint() {
+        replayContextJourney("radio",theme:"light")
+    }
+
+    func testConversationReplayPreservesLearnerPromptAndDoesNotUnlockCheckpoint() {
+        replayContextJourney("conversation",theme:"dark")
+    }
+
+    private func replayContextJourney(_ mode:String,theme:String) {
+        let app=start(mode,role:true,theme:theme,contextReplay:true)
+        tap("storyPlay",app)
+        let target=app.staticTexts["storyRoleTarget"]
+        XCTAssertTrue(target.waitForExistence(timeout:15))
+        XCTAssertEqual(target.label,"Son para mi madre.")
+        tap("storyRoleTranslate",app)
+        let translation=app.staticTexts["storyRoleTranslation"]
+        XCTAssertEqual(translation.label,"They are for my mother.")
+        tap("storyRecord",app)
+        let microphone=app.buttons["storyRecord"]
+        let recording=XCTNSPredicateExpectation(predicate:NSPredicate(format:"value == %@","Stop"),object:microphone)
+        XCTAssertEqual(XCTWaiter.wait(for:[recording],timeout:6),.completed)
+
+        tap("storyReplay",app)
+        XCTAssertTrue(target.exists,"Context replay keeps the learner's turn mounted.")
+        XCTAssertEqual(target.label,"Son para mi madre.")
+        XCTAssertEqual(translation.label,"They are for my mother.")
+        XCTAssertNotEqual(microphone.value as? String,"Stop")
+        XCTAssertFalse(app.staticTexts["storyQuestion"].exists)
+        if mode == "conversation" {
+            let first=app.buttons["storyDialoguePlay-0-0"],second=app.buttons["storyDialoguePlay-0-1"]
+            let learner=app.buttons["storyDialoguePlay-0-2"],last=app.buttons["storyDialoguePlay-0-3"]
+            for button in [first,second,learner,last] { XCTAssertTrue(button.exists) }
+            XCTAssertEqual(first.frame.midX,second.frame.midX,accuracy:1)
+            XCTAssertEqual(first.frame.midX,last.frame.midX,accuracy:1)
+            XCTAssertGreaterThan(first.frame.midX-learner.frame.midX,40)
+        } else {
+            app.swipeUp(velocity:.slow)
+        }
+        photo("Native Story \(mode) replay retains the translated learner prompt",app)
+
+        tap("storyRolePlay",app)
+        XCTAssertTrue(target.exists)
+        XCTAssertFalse(app.staticTexts["storyQuestion"].exists)
+
+        record(app)
+        XCTAssertTrue(app.buttons["storyNext"].exists)
+        tap("storyReplay",app)
+        XCTAssertTrue(app.buttons["storyNext"].exists,"Replaying context keeps earned speech feedback.")
+        tap("storyNext",app)
+        XCTAssertTrue(app.staticTexts["storyQuestion"].waitForExistence(timeout:12))
+        XCTAssertEqual(app.staticTexts["storyQuestion"].label,"Who are the flowers for?")
+        xp(0,app)
+    }
+
     func testConversationKeepsEarlierPairsAndRequiresUserSpeechWithoutTurnXP() {
         let app=start("conversation",role:true,theme:"dark",narration:true)
         tap("storyTranslate-0-0",app);XCTAssertTrue(app.staticTexts["I have red flowers."].exists);XCTAssertFalse(app.staticTexts["storyQuestion"].exists)

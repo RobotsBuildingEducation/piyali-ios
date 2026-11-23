@@ -29,7 +29,8 @@ extension StoryAudioTransport { func configure(user:JSONValue){} }
     func play(_ turn:StoryTurn,language:String,started:@escaping()->Void,finished:@escaping()->Void,failed:@escaping()->Void) {
         stop();count += 1
         if ProcessInfo.processInfo.environment["PIYALI_STORY_AUDIO_FAIL_FIRST"] == "1",count == 1 { failed();return }
-        started();task=Task { try? await Task.sleep(for:.milliseconds(150));guard !Task.isCancelled else { return };finished() }
+        let duration=ProcessInfo.processInfo.environment["PIYALI_STORY_REPLAY_CONTEXT_FIXTURE"] == "1" ? 3000:150
+        started();task=Task { try? await Task.sleep(for:.milliseconds(duration));guard !Task.isCancelled else { return };finished() }
     }
     func stop() { task?.cancel();task=nil }
 }
@@ -63,7 +64,20 @@ extension StoryAudioTransport { func configure(user:JSONValue){} }
     func start(_ values:[StoryTurn],language:String,learnerName:String,replay:Bool=false,user:JSONValue = .null,completed:@escaping()->Void) {
         cancel();player.configure(user:user);previewPlayer.configure(user:user);hasPlayed=true;self.turns=values;self.language=language;self.learnerName=learnerName;replaying=replay;completion=completed;cursor=0;next()
     }
-    func continueSpeech() { guard phase == .awaitingSpeech else { return };roleIndex=nil;cursor += 1;next() }
+    func continueSpeech() {
+        guard phase == .awaitingSpeech else { return }
+        stopPreview()
+        roleIndex=nil
+        cursor += 1
+        next()
+    }
+
+    @discardableResult func replaySpeechContext(user:JSONValue)->Bool {
+        guard phase == .awaitingSpeech,let roleIndex,let currentTurn else { return false }
+        let context=turns.prefix(roleIndex).filter { !StoryAppearance.isUser($0.speaker,learnerName:learnerName) }
+        startPreview(context.isEmpty ? [currentTurn]:context,language:language,user:user)
+        return true
+    }
     func cancel(reset:Bool=false) {
         generation=UUID();deadline?.cancel();deadline=nil;completion=nil;player.stop();turns=[];roleIndex=nil;currentTurn=nil;phase = .idle
         stopPreview();previewError=false;if reset { hasPlayed=false }
@@ -72,9 +86,38 @@ extension StoryAudioTransport { func configure(user:JSONValue){} }
     func preview(_ turn:StoryTurn,language:String,user:JSONValue = .null) {
         // A preview cannot finish the main queue or satisfy a pending user line.
         if active { generation=UUID();deadline?.cancel();deadline=nil;completion=nil;player.stop();phase = .idle;currentTurn=nil }
-        stopPreview();previewPlayer.configure(user:user);previewError=false;let token=previewGeneration;previewTurn=turn;previewPlaying=true
-        previewDeadline=Task { [weak self] in try? await Task.sleep(for:.seconds(90));guard !Task.isCancelled,self?.previewGeneration == token else { return };self?.stopPreview();self?.previewError=true }
-        previewPlayer.play(turn,language:language,started:{},finished:{ [weak self] in guard self?.previewGeneration == token else { return };self?.stopPreview() },failed:{ [weak self] in guard self?.previewGeneration == token else { return };self?.stopPreview();self?.previewError=true })
+        startPreview([turn],language:language,user:user)
+    }
+
+    private func startPreview(_ values:[StoryTurn],language:String,user:JSONValue) {
+        stopPreview()
+        previewError=false
+        previewPlayer.configure(user:user)
+        playPreview(values[...],language:language)
+    }
+
+    private func playPreview(_ remaining:ArraySlice<StoryTurn>,language:String) {
+        guard let turn=remaining.first else { stopPreview();return }
+        let token=UUID()
+        previewGeneration=token
+        previewTurn=turn
+        previewPlaying=true
+        previewDeadline?.cancel()
+        previewDeadline=Task { [weak self] in
+            try? await Task.sleep(for:.seconds(90))
+            guard !Task.isCancelled else { return }
+            self?.failPreview(token)
+        }
+        previewPlayer.play(turn,language:language,started:{},finished:{ [weak self] in
+            guard let self,self.previewGeneration == token else { return }
+            self.playPreview(remaining.dropFirst(),language:language)
+        },failed:{ [weak self] in self?.failPreview(token) })
+    }
+
+    private func failPreview(_ token:UUID) {
+        guard previewGeneration == token else { return }
+        stopPreview()
+        previewError=true
     }
     private func next() {
         deadline?.cancel();deadline=nil

@@ -19,3 +19,17 @@ The unchanged playback core passes 16 checks in `PiyaliReadingStoryAudioCore1.xc
 `PiyaliReadingStoryAudioLive1.xcresult` passes (21.298s): Reading/ash receives 38,244 bytes, Sheilfer/echo receives 18,039 bytes, and an Arabic You/marin preview receives 17,228 bytes, each with positive incoming amplitude and completed playout. The actual adapters use Firebase/App Check and a fresh isolated identity; refreshed authentication permits deletion of that Auth identity and its local key. No learner-progress writes or microphone capture occur. [Public inputs/metrics](reference/reading-story-audio-live.json) are retained. This verifies incoming playback, not physical speaker audibility or human pronunciation review.
 
 Superseded evidence: Final2 passes its 17 native/source checks but all four UI tests fail: a parent accessibility identifier shadows Reading's controls, and Story tests search an obsolete Account XP field. Final3 corrects the identifier/hit areas and reward driver. Manual image review then detects the clipped source webview and a palette resource in the wrong format; Final4 loads the gzip palette, uses the original circular Stop style, loads the original CSS, disables webview safe-area insets and checks that source controls fit the capture. Final2 visuals are not canonical; its summary, failure trees and captures are retained separately after removing the duplicate raw media bundle to recover disk space.
+
+## Story replay during the learner’s turn, November 23
+
+In the original Radio and Story Conversation component, Replay during “Your turn” plays the preceding character turns in order. If the learner opens the segment, Replay plays the learner’s model line. Replay cancels an active recording and keeps the learner’s line, revealed translation and existing speech feedback. The checkpoint stays locked until the learner passes the line, continues and hears the rest of the segment.
+
+The native player now uses a separate preview queue with the original speaker configuration. A new preview, renewed recording or Continue cancels the current preview, including its pending callbacks. Translation visibility follows the specific learner turn within the segment. The learner card uses the source inset and control size and exposes localized playback and translation actions.
+
+Conversation places the same named character on the same side across consecutive turns. The current section has a single scroll anchor. Dialogue and learner cards reuse the original volume and translation icons, and the speaking character’s cards highlight during playback.
+
+The original browser Story fixture verified both modes with held audio and a scripted microphone. The native iPhone introduction journeys verified that Replay cancels recording, keeps the translation and graded feedback, and grants zero XP before the checkpoint. The Conversation check also verified the card positions for three lines by Ana and one by the learner. The existing Conversation journey verified retry, retained earlier turns and relaunch. All five playback checks and three product journeys passed in `/tmp/PiyaliStoryRoleParity-20261123.xcresult`.
+
+![Original web and native iPhone Story replay in Radio and Conversation](native/story-role-replay-20261123.jpg)
+
+The web fixture mounts the original Story component. The iPhone captures include the Getting Started header and footer, with the translated learner prompt scrolled into view. Radio’s native wave still uses a simulated signal. Physical microphone, audible playback and wider Story layout remain open.
