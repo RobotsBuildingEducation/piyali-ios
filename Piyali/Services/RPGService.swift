@@ -59,8 +59,8 @@ import Foundation
             }catch{/* Source preparation failures keep the authored local deck. */}
         }
         guard current() else{return}
-        let art=RPGArt.shared.data,rows=art["npcRows"].array.shuffled()
-        if !rows.isEmpty{let members=scenario.npcs.indices.compactMap{index->RPGCast.Member? in let row=rows[index%rows.count],variants=art["npcs"].array.filter{$0["type"].string == row["id"].string};guard let variant=variants.randomElement()else{return nil};return RPGCast.Member(name:row["name"].string,image:variant["image"].string,kind:row["id"].string)};if let cast=try? RPGCast.applying(members,to:scenario){scenario=cast}}
+        let members=RPGArt.shared.randomCast(count:scenario.npcs.count)
+        if let cast=try? RPGCast.applying(members,to:scenario){scenario=cast}
         for index in scenario.npcs.indices{scenario.npcs[index].dialoguePortrait=StoryCharacterAvatar.appearance.portraitPool(scenario.npcs[index].characterKind ?? scenario.npcs[index].name).randomElement()}
         let run=RPGRun(target:target,support:support,lessonID:lesson?.id,xpReward:lesson?.xpReward ?? 30,scenario:scenario,world:world,tutorial:tutorial,tutor:tutor);stagedRun=run
         if !stageOnly{app.learner.saveRPG(run);app.persist()}

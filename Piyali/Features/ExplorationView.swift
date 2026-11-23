@@ -7,7 +7,7 @@ struct ExplorationView:View {
     @Environment(\.scenePhase) private var phase
     @Environment(\.colorScheme) private var scheme
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var service=ExplorationService()
+    @StateObject private var service:ExplorationService
     @StateObject private var speech=SpeechService()
     @StateObject private var observations=RPGObjectController()
     @StateObject private var narration=RealtimeNarrationService()
@@ -27,10 +27,19 @@ struct ExplorationView:View {
     @State private var panelHeight:CGFloat=44
     @State private var toastTask:Task<Void,Never>?
     @FocusState private var editing:Bool
-    var embedded=false
-    var initialPanel=""
-    private var scope:String {[app.identity.npub,app.learner.target,app.learner.support,app.learner.level].joined(separator:":")}
-    private var run:ExplorationRun? {guard !showSelection,let saved=app.learner.explorationRuns?[app.learner.target],saved.support == app.learner.support,saved.scenario.level == app.learner.level else{return nil};return saved}
+    private let embedded:Bool
+    private let initialPanel:String
+    private let onTutorialFinish:(()->Void)?
+
+    init(embedded:Bool=false,initialPanel:String="",tutorial:Lesson?=nil,onTutorialFinish:(()->Void)?=nil) {
+        self.embedded=embedded
+        self.initialPanel=initialPanel
+        self.onTutorialFinish=onTutorialFinish
+        _service=StateObject(wrappedValue:ExplorationService(tutorial:tutorial))
+    }
+
+    private var scope:String {[app.identity.sessionRevision.uuidString,app.identity.npub,app.learner.target,app.learner.support,app.learner.level].joined(separator:":")}
+    private var run:ExplorationRun? { showSelection ? nil : service.savedRun(app.learner) }
     private var light:Bool {scheme != .dark}
     private var paper:Color {PiyaliBrand.unitColor(light ? "fffaf1":"faf4e8")}
     private var ink:Color {PiyaliBrand.unitColor(light ? "4b3726":"1a202c")}
@@ -43,16 +52,35 @@ struct ExplorationView:View {
     private func t(_ key:String)->String {RPGArt.shared.copy(key,lang:app.learner.support)}
     private func search(_ key:String,_ args:[String]=[])->String {RPGArt.shared.searchCopy(key,lang:app.learner.support,args:args)}
     var body:some View {
-        surface.toolbar(.hidden,for:.navigationBar).toolbar(.hidden,for:.tabBar).statusBarHidden(!embedded).ignoresSafeArea(.container)
-            .task(id:scope){stop();panel=initialPanel;await service.load(app);configureObjects();startMusic();playDialogue()}
+        surface.toolbar(onTutorialFinish == nil ? .hidden : .automatic,for:.navigationBar)
+            .toolbar(.hidden,for:.tabBar).statusBarHidden(!embedded)
+            .ignoresSafeArea(.container,edges:onTutorialFinish == nil ? .all : [])
+            .task(id:scope) {
+                stop()
+                panel=initialPanel
+                await service.load(app)
+                guard !Task.isCancelled else { return }
+                if service.tutorial != nil,run == nil { await service.prepareTutorial(app) }
+                guard !Task.isCancelled else { return }
+                if run?.completed == true { onTutorialFinish?() }
+                configureObjects()
+                startMusic()
+                playDialogue()
+            }
             .task(id:turnInKey){let key=turnInKey;guard !key.isEmpty else{return};try? await Task.sleep(for:.milliseconds(450));guard !Task.isCancelled,turnInKey == key else{return};edit{$0.completeTurnIn()}}
             .onChange(of:narrationKey){_,_ in playDialogue()}
             .onChange(of:run?.mapID){_,_ in observations.cancel();configureObjects();loot="";pickup=""}
             .onChange(of:run?.id){_,_ in configureObjects();startMusic()}
-            .onChange(of:run?.completed){_,complete in if complete == true{music.stop();speech.stopAll();narration.stopAll()}}
+            .onChange(of:run?.completed){_,complete in if complete == true{music.stop();speech.stopAll();narration.stopAll();onTutorialFinish?()}}
             .onChange(of:speech.transcript){_,value in answer=value}
             .onChange(of:speech.recording){old,value in if old && !value,speechArmed,run?.talking == true,run?.mode == "speech",!answer.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty{send()}}
-            .onChange(of:phase){_,value in if value != .active{stop()}else{configureObjects();startMusic();playDialogue()}}
+            .onChange(of:phase){_,value in
+                if value != .active { stop() }
+                else {
+                    configureObjects();startMusic();playDialogue()
+                    if service.tutorial != nil,run == nil { Task { await service.prepareTutorial(app) } }
+                }
+            }
             .onChange(of:app.subscription.hasAccess){_,allowed in if !allowed{stop()}else{configureObjects()}}
             .onDisappear{stop()}
             .overlay {if panel == "help" {HelpChatView(controller:help,progress:.object(["targetLang":.string(app.learner.target),"supportLang":.string(app.learner.support)]),onClose:{panel=""})}}
@@ -62,15 +90,26 @@ struct ExplorationView:View {
         GeometryReader {g in ZStack {
             (light ? PiyaliBrand.unitColor("fff9ef"):PiyaliBrand.unitColor("1a1a2e")).ignoresSafeArea()
             if let run,let rendered=render(run) {
-                RPGWorldView(run:rendered,pet:pet,markers:markers(run),onTile:tile).accessibilityIdentifier("explorationWorld").accessibilityValue("\(run.mapID)|\(run.position.x),\(run.position.y)")
+                RPGWorldView(run:rendered,pet:pet,markers:markers(run),tutorialTerrain:tutorialTerrain(run),onTile:tile).accessibilityIdentifier("explorationWorld").accessibilityValue("\(run.mapID)|\(run.position.x),\(run.position.y)")
                 VStack{header(run);Spacer()}.padding(12).padding(.top,topInset)
                 if !run.completed {actions.padding(.trailing,12).padding(.top,56+topInset).frame(maxWidth:.infinity,maxHeight:.infinity,alignment:.topTrailing)}
                 if run.talking,!run.completed {VStack{Spacer();dialogue(run,heightLimit:g.size.height*0.44).padding(.horizontal,12).padding(.bottom,16+bottomInset)}}
                 if !run.talking,!run.completed {VStack(spacing:8){Spacer();if !pickup.isEmpty{Text("+  "+pickup).font(PiyaliBrand.productFont(14,700)).foregroundStyle(ink).padding(.horizontal,12).padding(.vertical,8).background(paper,in:RoundedRectangle(cornerRadius:8)).overlay(RoundedRectangle(cornerRadius:8).stroke(border))};if let observation=observations.observation{RPGObjectObservationView(observation:observation,target:run.target,support:run.support,lootText:loot)}}.padding(.horizontal,12).padding(.bottom,16+bottomInset).allowsHitTesting(false)}
                 if run.completed{completed(run)}
                 if ["quest","inventory","companion"].contains(panel){modal(run)}
-            }else{selection}
+            }else if service.tutorial != nil { tutorialPreparation }
+            else { selection }
         }.accessibilityHidden(panel == "help")}
+    }
+    private var tutorialPreparation:some View {
+        VStack(spacing:12) {
+            GamePreparationView(preparation:loadingController,support:app.learner.support,pet:pet,embedded:true,
+                                showsCancel:false,onCancel:{}).frame(maxHeight:440).clipShape(RoundedRectangle(cornerRadius:12))
+            if service.error != nil {
+                Button(EntryCopy.ui(app.learner.support,"practice_retry")) { Task { await service.prepareTutorial(app) } }
+                    .accessibilityIdentifier("retryIntroLegacyGame")
+            }
+        }.padding(12)
     }
     private var selection:some View {
         ZStack(alignment:.topLeading){
@@ -89,10 +128,22 @@ struct ExplorationView:View {
     private var generatedWorldName:String {let lang=app.learner.support;return ["en":"Generated World","es":"Mundo generado","pt":"Mundo gerado","it":"Mondo generato","fr":"Monde genere","ja":"生成された世界","hi":"बनाई गई दुनिया","ar":"العالم المتولّد","zh":"生成的世界","de":"Erstellte Welt"][lang] ?? "Generated World"}
     private func header(_ run:ExplorationRun)->some View {
         HStack(alignment:.top,spacing:8){
-            Button{stop();showSelection=true;panel=""}label:{Image(systemName:"arrow.left").font(.system(size:14,weight:.semibold)).foregroundStyle(.white).frame(width:32,height:32).background(.black.opacity(0.62),in:Circle()).shadow(color:.black.opacity(0.8),radius:0,y:4)}.accessibilityLabel(t("back")).accessibilityIdentifier("explorationBack")
-            Text(run.area?.name?.localized(run.support) ?? "").font(PiyaliBrand.productFont(12,700)).padding(.horizontal,12).padding(.vertical,8).foregroundStyle(light ? ink:.white).background(light ? paper:.black.opacity(0.64),in:Capsule()).accessibilityIdentifier("explorationLocation")
+            if let onTutorialFinish {
+                Button(t("skip")) { stop();onTutorialFinish() }
+                    .font(PiyaliBrand.productFont(14,700)).padding(.horizontal,13).frame(minHeight:32)
+                    .foregroundStyle(.white)
+                    .background {
+                        let shape=RoundedRectangle(cornerRadius:8)
+                        shape.fill(.black).offset(y:4)
+                        shape.fill(light ? Color(white:0.60) : Color(white:0.25))
+                    }
+                    .accessibilityIdentifier("skipIntroActivity")
+            } else {
+                Button{stop();showSelection=true;panel=""}label:{Image(systemName:"arrow.left").font(.system(size:14,weight:.semibold)).foregroundStyle(.white).frame(width:32,height:32).background(.black.opacity(0.62),in:Circle()).shadow(color:.black.opacity(0.8),radius:0,y:4)}.accessibilityLabel(t("back")).accessibilityIdentifier("explorationBack")
+            }
+            Text(run.area?.name?.localized(run.support) ?? "").font(PiyaliBrand.productFont(12,700)).padding(.horizontal,12).padding(.vertical,8).foregroundStyle(light ? ink:.white).background(light ? paper:.black.opacity(0.64),in:Capsule()).overlay { if light,onTutorialFinish != nil { Capsule().strokeBorder(border.opacity(0.4)) } }.accessibilityIdentifier("explorationLocation")
             Spacer(minLength:2)
-            HStack(spacing:8){Text("\(run.stepIndex)/\(run.scenario.quest["steps"].array.count)").font(PiyaliBrand.productFont(14,700));ZStack(alignment:.leading){Capsule().fill(light ? PiyaliBrand.unitColor("332a20"):PiyaliBrand.unitColor("e2e8f0"));Capsule().fill(PiyaliBrand.unitColor("48bb78")).frame(width:60*Double(run.stepIndex)/Double(max(1,run.scenario.quest["steps"].array.count)))}.frame(width:60,height:8)}.padding(.horizontal,12).padding(.vertical,7).foregroundStyle(light ? ink:.white).background(light ? paper:.black.opacity(0.64),in:RoundedRectangle(cornerRadius:6)).accessibilityIdentifier("explorationStatus")
+            HStack(spacing:8){Text("\(run.stepIndex)/\(run.scenario.quest["steps"].array.count)").font(PiyaliBrand.productFont(14,700));ZStack(alignment:.leading){Capsule().fill(light ? PiyaliBrand.unitColor("332a20"):PiyaliBrand.unitColor("e2e8f0"));Capsule().fill(PiyaliBrand.unitColor("48bb78")).frame(width:60*Double(run.stepIndex)/Double(max(1,run.scenario.quest["steps"].array.count)))}.frame(width:60,height:8)}.padding(.horizontal,12).padding(.vertical,7).foregroundStyle(light ? ink:.white).background(light ? paper:.black.opacity(0.64),in:RoundedRectangle(cornerRadius:6)).overlay { if light,onTutorialFinish != nil { RoundedRectangle(cornerRadius:6).strokeBorder(border.opacity(0.4)) } }.accessibilityIdentifier("explorationStatus")
         }.buttonStyle(.plain)
     }
     private var actions:some View {
@@ -128,7 +179,11 @@ struct ExplorationView:View {
         }else{Button(t("continue")){edit{_=$0.continueDialogue()}}.buttonStyle(ExplorationChoiceStyle(ink:ink,paper:paper,border:border)).accessibilityIdentifier("explorationContinue")}
         if service.busy{ProgressView()};if let error=speech.error{Text(error).font(PiyaliBrand.productFont(12))}
     }
-    private func portrait(_ run:ExplorationRun)->some View {let index=max(0,ExplorationTemplate.integer(run.step["npcIdx"])),kind=RPGArt.shared.data["npcs"].array[(index*5)%16]["type"].string,id=StoryCharacterAvatar.appearance.portraitPool(kind).first ?? "35",file=StoryCharacterAvatar.appearance.portraitFile(id);return Group{if let url=Bundle.main.url(forResource:file,withExtension:nil),let image=UIImage(contentsOfFile:url.path){Image(uiImage:image).resizable().interpolation(.none).scaledToFit()}else{RPGArt.shared.image("RPGNPC-0-0").resizable().scaledToFit()}}.frame(width:36,height:36)}
+    private func portrait(_ run:ExplorationRun)->some View {let index=max(0,ExplorationTemplate.integer(run.step["npcIdx"])),kind=npcAsset(run.npc,index:index,key:"type"),id=portraitID(run,kind:kind),file=StoryCharacterAvatar.appearance.portraitFile(id);return Group{if let url=Bundle.main.url(forResource:file,withExtension:nil),let image=UIImage(contentsOfFile:url.path){Image(uiImage:image).resizable().interpolation(.none).scaledToFit()}else{RPGArt.shared.image("RPGNPC-0-0").resizable().scaledToFit()}}.frame(width:36,height:36)}
+    private func portraitID(_ run:ExplorationRun,kind:String)->String {
+        let chosen=run.npc["dialoguePortrait"].string
+        return chosen.isEmpty ? StoryCharacterAvatar.appearance.portraitPool(kind).first ?? "35" : chosen
+    }
     private func line(_ run:ExplorationRun)->String {if !run.feedback.isEmpty{return run.feedback};return run.mode == "objectSearch" ? search("intro",[compact(run.requestedItem)]):run.node["npcLine"].string}
     private func primary(_ item:JSONValue)->String {let support=item["supportName"].string.trimmingCharacters(in:.whitespacesAndNewlines);return support.isEmpty ? item["name"].string.trimmingCharacters(in:.whitespacesAndNewlines):support}
     private func secondary(_ item:JSONValue)->[String] {var seen=Set([primary(item)]);return [item["transcription"].string,item["name"].string].map{$0.trimmingCharacters(in:.whitespacesAndNewlines)}.filter{!$0.isEmpty && seen.insert($0).inserted}}
@@ -155,14 +210,41 @@ struct ExplorationView:View {
     private var companions:some View {VStack(alignment:.leading,spacing:16){Text(RPGArt.shared.data["customize"][app.learner.support]["rpgDescription"].string).font(PiyaliBrand.productFont(14));LazyVGrid(columns:[GridItem(.flexible()),GridItem(.flexible())],spacing:12){ForEach(CompanionTypes.ordered,id:\.self){value in let unlocked=CompanionTypes.available(level:app.learner.companionLevel).contains(value);Button{selectedPet=value;panel=""}label:{VStack{RPGPetPreview(pet:value,size:62);Text(RPGArt.shared.data["customize"][app.learner.support][value].string).font(PiyaliBrand.productFont(14,700));if !unlocked{Image(systemName:"lock.fill")}}.frame(maxWidth:.infinity).frame(height:128).overlay(RoundedRectangle(cornerRadius:8).stroke(pet == value ? Color.teal:border,lineWidth:2))}.disabled(!unlocked)}}}}
     private func completed(_ run:ExplorationRun)->some View {ZStack{Color.black.opacity(0.7).ignoresSafeArea();VStack(spacing:20){Text("✨").font(.system(size:36));Text(t("completed")).font(PiyaliBrand.productFont(20,700)).accessibilityIdentifier("explorationComplete");HStack(spacing:12){Button(t("playAgain")){replay(run)};Button(t("newWorld")){showSelection=true}}}.padding(28).foregroundStyle(ink).background(paper,in:RoundedRectangle(cornerRadius:16)).padding(24)}}
     private func markers(_ run:ExplorationRun)->[RPGWorldMarker] {guard run.gatherUnlocked else{return []};return run.scenario.gatherPlacements.indices.compactMap{index in let item=run.placement(index);guard item["mapId"].string == run.mapID,!run.collected.contains(run.placementKey(index)) else{return nil};return RPGWorldMarker(id:run.placementKey(index),point:ExplorationTemplate.position(item),image:RPGArt.shared.itemImage(item))}}
-    private func render(_ run:ExplorationRun)->RPGRun? {guard let area=run.area,let key=RPGArt.shared.explorationKey(area) else{return nil};let indices=run.scenario.npcs.indices.filter{run.scenario.npcs[$0]["mapId"].string == run.mapID},npcs=indices.map{index in let value=run.scenario.npcs[index];return RPGNPC(name:value["name"].string,role:"",personality:value["personality"].string,tx:Int(value["tx"].number),ty:Int(value["ty"].number),appearance:RPGArt.shared.data["npcs"].array[(index*5)%16]["image"].string)},active=indices.firstIndex(of:ExplorationTemplate.integer(run.step["npcIdx"])) ?? -1,step=RPGStep(id:"legacy",npcIdx:active,title:"",weight:0,conceptLabel:"",expectedAnswer:"",primitive:"",nodes:[]),scenario=RPGScenario(id:area.id,name:run.scenario.name,emoji:"✨",npcs:npcs,quest:RPGQuest(title:"",intro:"",storySeed:"",steps:[step]),authoredEpisode:RPGEpisode(id:"legacy",level:run.scenario.level,maxBaseScore:0,unitGrounded:false),worldKey:key);var value=RPGRun(target:run.target,support:run.support,lessonID:nil,xpReward:0,scenario:scenario,world:area.world);value.id=run.id;value.position=run.position;if run.completed{value.stepIndex=1};return value}
+    private func tutorialTerrain(_ run:ExplorationRun)->TutorialTerrain? {
+        guard let definitions=run.scenario.tileDefinitions,let seed=run.scenario.tileSeed else { return nil }
+        return .init(definitions:definitions,seed:seed)
+    }
+    private func render(_ run:ExplorationRun)->RPGRun? {
+        guard let area=run.area,
+              let key=run.tutorialKey != nil ? "tutorialPlaza" : RPGArt.shared.explorationKey(area) else { return nil }
+        let indices=run.scenario.npcs.indices.filter { run.scenario.npcs[$0]["mapId"].string == run.mapID }
+        let npcs=indices.map { index in
+            let npc=run.scenario.npcs[index]
+            return RPGNPC(name:npc["name"].string,role:"",personality:npc["personality"].string,
+                          tx:Int(npc["tx"].number),ty:Int(npc["ty"].number),appearance:npcAsset(npc,index:index,key:"image"))
+        }
+        let active=indices.firstIndex(of:ExplorationTemplate.integer(run.step["npcIdx"])) ?? -1
+        let step=RPGStep(id:"legacy",npcIdx:active,title:"",weight:0,conceptLabel:"",expectedAnswer:"",primitive:"",nodes:[])
+        let scenario=RPGScenario(id:area.id,name:run.scenario.name,emoji:"✨",npcs:npcs,
+                                 quest:RPGQuest(title:"",intro:"",storySeed:"",steps:[step]),
+                                 authoredEpisode:RPGEpisode(id:"legacy",level:run.scenario.level,maxBaseScore:0,unitGrounded:false),worldKey:key)
+        var value=RPGRun(target:run.target,support:run.support,lessonID:nil,xpReward:0,scenario:scenario,world:area.world)
+        value.id=run.id
+        value.position=run.position
+        if run.completed { value.stepIndex=1 }
+        return value
+    }
+    private func npcAsset(_ npc:JSONValue,index:Int,key:String)->String {
+        let cast=npc[key == "image" ? "appearance" : "characterKind"].string
+        return cast.isEmpty ? RPGArt.shared.data["npcs"].array[(index*5)%16][key].string : cast
+    }
     private var turnInKey:String {guard let run,run.pendingTurnIn == true else{return ""};return scope+":"+run.id.uuidString+":"+run.searchKey}
     private func handIn(_ index:Int){guard let run,run.inventory.indices.contains(index) else{return};let item=run.inventory[index].item;edit{value in
         let searchMode=value.mode == "objectSearch",success=searchMode ? search("success",[compact(value.requestedItem)]):nil
         if !value.handIn(index,successReply:success),searchMode{value.feedback=search("wrongItem",[compact(item),compact(value.requestedItem)])}
     }}
     private var narrationKey:String {guard let run,run.talking,!run.completed else{return ""};return [scope,run.id.uuidString,run.nodeID ?? "",line(run)].joined(separator:":")}
-    private func playDialogue(){narration.stopAll();guard !Self.fixture,phase == .active,app.subscription.hasAccess,let run,run.talking,!run.completed else{return};let index=max(0,ExplorationTemplate.integer(run.step["npcIdx"])),kind=RPGArt.shared.data["npcs"].array[(index*5)%16]["type"].string,character=RPGArt.shared.data["voices"][kind],voice=character["voice"].string.isEmpty ? "ash":character["voice"].string,session=try? app.companionQuestPolicy?.run("ph_tts",.object(["language":.string(run.target),"voice":.string(voice),"personality":character["personality"]]));narration.play(RPGDialogue.split(line(run)).spoken,language:run.target,engine:app.companionQuestPolicy,voice:voice,sessionOverride:session)}
+    private func playDialogue(){narration.stopAll();guard !Self.fixture,phase == .active,app.subscription.hasAccess,let run,run.talking,!run.completed else{return};let index=max(0,ExplorationTemplate.integer(run.step["npcIdx"])),kind=npcAsset(run.npc,index:index,key:"type"),character=RPGArt.shared.data["voices"][kind],voice=character["voice"].string.isEmpty ? "ash":character["voice"].string,session=try? app.companionQuestPolicy?.run("ph_tts",.object(["language":.string(run.target),"voice":.string(voice),"personality":character["personality"]]));narration.play(RPGDialogue.split(line(run)).spoken,language:run.target,engine:app.companionQuestPolicy,voice:voice,sessionOverride:session)}
     private func edit(_ action:(inout ExplorationRun)->Void){guard !service.busy,var value=run else{return};narration.stopAll();speech.stopAll();action(&value);app.learner.saveExploration(value);app.persist();answer="";translation="";editing=false}
     private func tile(_ point:RPGPoint){guard !service.busy,var value=run else{return};let before=value.inventory.count,object=value.tap(point);if let object,let area=value.area{loot="";if value.searchStarted == value.searchKey,value.mode == "objectSearch" {if value.examine(object){pickup=compact(value.inventory.last?.item ?? .null);expirePickup()}else{loot=search("alreadyChecked")}};observations.examine(area.world.objects[object])};if value.inventory.count>before,object == nil {pickup=compact(value.inventory.last?.item ?? .null);expirePickup()};app.learner.saveExploration(value);app.persist();if value.talking{speech.stopAll()}}
     private func expirePickup(){toastTask?.cancel();toastTask=Task{try? await Task.sleep(for:.milliseconds(1600));if !Task.isCancelled{pickup=""}}}

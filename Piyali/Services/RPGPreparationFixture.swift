@@ -9,6 +9,9 @@ enum RPGPreparationFixture {
         guard e["PIYALI_OFFLINE_TESTS"] == "1",e["PIYALI_LIVE_API_TESTS"] != "1",UUID(uuidString:e["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil,["prepared","cache-only"].contains(e["PIYALI_RPG_PREPARED_FIXTURE"] ?? "")else{return nil}
         return e["PIYALI_RPG_PREPARED_FIXTURE"]
     }
+    static var useTutorialPlazaReplies:Bool {
+        mode != nil && ProcessInfo.processInfo.environment["PIYALI_LEGACY_TUTORIAL_FIXTURE"] == "1"
+    }
     static func preparedResponse()async throws->String?{
         guard let mode else{return nil};guard mode == "prepared"else{throw URLError(.notConnectedToInternet)}
         if let ms=Int(ProcessInfo.processInfo.environment["PIYALI_RPG_PREPARED_DELAY_MS"] ?? ""),(0...15000).contains(ms){try await Task.sleep(for:.milliseconds(ms))}

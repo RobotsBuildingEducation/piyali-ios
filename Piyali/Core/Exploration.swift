@@ -18,6 +18,8 @@ public struct ExplorationTemplate:Codable,Equatable,Sendable {
     public var npcs:[JSONValue]
     public var quest:JSONValue
     public var gatherPlacements:[JSONValue]
+    public var tileDefinitions:JSONValue?
+    public var tileSeed:Int?
     public func map(_ id:String) -> ExplorationMap? { maps.first { $0.id == id } }
     public func searchingObjects() throws -> Self {
         var result=self,steps=quest["steps"].array
@@ -104,8 +106,9 @@ public struct ExplorationRun:Codable,Equatable,Identifiable,Sendable {
     public var tip:String?
     public var objectNotes:[String:JSONValue]?
     public var updatedAt=Date()
-    public init(target:String,support:String,scenario:ExplorationTemplate) throws {
-        self.scenario=try scenario.validated();self.target=target;self.support=support;mapID=scenario.startMapId
+    public var tutorialKey:String?
+    public init(target:String,support:String,scenario:ExplorationTemplate,tutorialKey:String?=nil) throws {
+        self.scenario=try scenario.validated();self.target=target;self.support=support;mapID=scenario.startMapId;self.tutorialKey=tutorialKey
         guard let area=scenario.map(mapID) else { throw ExplorationFailure.invalidScenario };position=area.world.start
     }
     public var area:ExplorationMap? { scenario.map(mapID) }
@@ -232,8 +235,10 @@ public struct ExplorationRun:Codable,Equatable,Identifiable,Sendable {
     }
 }
 public extension LearnerState {
+    func tutorialExplorationKey(_ lesson:Lesson)->String { "tutorial:\(target):\(support):\(level):\(lesson.id)" }
     mutating func saveExploration(_ run:ExplorationRun) {
-        if explorationRuns == nil { explorationRuns=[:] };explorationRuns?[run.target]=run
-        for key in (explorationRuns ?? [:]).sorted(by:{ $0.value.updatedAt > $1.value.updatedAt }).dropFirst(2).map(\.key) { explorationRuns?.removeValue(forKey:key) }
+        if explorationRuns == nil { explorationRuns=[:] };explorationRuns?[run.tutorialKey ?? run.target]=run
+        let retained=(explorationRuns ?? [:]).filter { ($0.value.tutorialKey != nil) == (run.tutorialKey != nil) }
+        for key in retained.sorted(by:{ $0.value.updatedAt > $1.value.updatedAt }).dropFirst(2).map(\.key) { explorationRuns?.removeValue(forKey:key) }
     }
 }

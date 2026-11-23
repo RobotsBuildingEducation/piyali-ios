@@ -14,6 +14,38 @@ import XCTest
     private func lesson()throws->Lesson{let units=try ContentLibrary.load([String:[LearningUnit]].self,name:"curriculum-es");return try XCTUnwrap(units["Pre-A1"]?.flatMap(\.lessons).first{$0.id == "unit-pre-a1-people-game"})}
     private func response()throws->String{try String(contentsOf:XCTUnwrap(Bundle(for:Self.self).url(forResource:"rpg-prepared-story",withExtension:"json")),encoding:.utf8)}
     private func wait(_ condition:()->Bool)async throws{for _ in 0..<600 where !condition(){try await Task.sleep(for:.milliseconds(10))};XCTAssertTrue(condition())}
+    func testLegacyTutorialUsesTheSourceMapAndItsMalformedWorldFallback()async throws {
+        let library=try ContentLibrary.load(IntroLibrary.self,name:"intro-es")
+        let lesson=try XCTUnwrap(library.units["Pre-A1"]?.lessons.first)
+        let input:JSONValue = .object(["lesson":try RPGPreparationPolicy.value(lesson),"target":.string("es"),
+                                        "support":.string("en"),"user":.object([:])])
+        let map=(0..<14).flatMap { y in (0..<20).map { x in x == 0 || x == 19 || y == 0 || y == 13 ? 2 : 0 } }
+        let generated=try JSONSerialization.data(withJSONObject:[
+            "mapWidth":20,"mapHeight":14,"mapData":map,"playerStart":["x":3,"y":3],
+            "npcs":[["name":"Ana","tx":4,"ty":4],["name":"Mar","tx":8,"ty":6]]
+        ])
+        for validWorld in [true,false] {
+            var prompts=0
+            let policy=try TutorialPlazaPolicy()
+            let scenario=try await policy.generate(input) { prompt in
+                prompts+=1
+                if prompts == 1 {
+                    XCTAssertTrue(prompt.contains("TUTORIAL MODE"))
+                    if validWorld { return String(decoding:generated,as:UTF8.self) }
+                }
+                return "{}"
+            }
+            XCTAssertEqual(scenario.id,"tutorialPlaza")
+            XCTAssertEqual(scenario.maps.first?.world.width,validWorld ? 20 : 18)
+            XCTAssertEqual(Array(scenario.npcs.prefix(2)).map { $0["name"].string },validWorld ? ["Ana","Mar"] : ["Ada","Bruno"])
+            XCTAssertGreaterThan(prompts,1)
+            let world=try XCTUnwrap(scenario.maps.first?.world)
+            let definitions=try XCTUnwrap(scenario.tileDefinitions)
+            let rgba=try XCTUnwrap(policy.terrain(world,definitions:definitions,seed:1792936800000))
+            XCTAssertEqual(rgba.count,world.width*world.height*16*16*4)
+            XCTAssertEqual(rgba[3],255)
+        }
+    }
     func testDraftPreparationAndExplorationStayUncommittedUntilHandoff()async throws{
         let app=try app(),lesson=try lesson(),response=try response(),directory=FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer{try? app.identity.disconnect();try? FileManager.default.removeItem(at:directory)}

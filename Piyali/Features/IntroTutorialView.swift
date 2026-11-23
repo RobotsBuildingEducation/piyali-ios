@@ -8,9 +8,11 @@ struct IntroTutorialView:View {
     private let initialLesson:Lesson
     init(lesson:Lesson) { initialLesson=lesson }
     private var lesson:Lesson { app.introLesson ?? initialLesson }
-    private var scope:String { app.identity.npub+":"+app.learner.target+":"+app.learner.support+":"+app.learner.level }
+    private var scope:String { app.identity.sessionRevision.uuidString+":"+app.identity.npub+":"+app.learner.target+":"+app.learner.support+":"+app.learner.level }
     private var mode:String { app.learner.introSession.next ?? "game" }
     private var brand:PiyaliBrand { .init(dark:scheme == .dark) }
+    private var legacyRun:ExplorationRun? { app.learner.explorationRuns?[app.learner.tutorialExplorationKey(lesson)] }
+    private var usesLegacyGame:Bool { legacyRun != nil || (gamePreparation.error != nil && !gamePreparation.prepared) }
     @StateObject private var gamePreparation=GamePreparationController()
     @State private var gameFooterOwner=UUID()
     @State private var gamePresented=false
@@ -29,13 +31,22 @@ struct IntroTutorialView:View {
             .fullScreenCover(isPresented:$gamePresented,onDismiss:{if finishGameOnDismiss{finishGameOnDismiss=false;advance("game",scope:capturedScope)}else{dismiss()}}){NavigationStack{RPGView(lesson:lesson,episode:nil,onTutorialComplete:{finishGameOnDismiss=true;gamePresented=false})}}
             .onChange(of:mode){_,value in if value == "game",!finishing{gamePreparation.reveal()}}
             .onChange(of:gamePreparation.ready){_,ready in if ready,!gamePresented,mode == "game",scope == capturedScope,gamePreparation.commit(app){gamePresented=true}}
-            .task(id:scope){gamePreparation.cancel();gamePreparation.start(app,lesson:lesson,deferReveal:true);if mode == "game"{gamePreparation.reveal()}}
+            .task(id:scope){
+                gamePreparation.cancel()
+                guard legacyRun == nil else { return }
+                gamePreparation.start(app,lesson:lesson,deferReveal:true)
+                if mode == "game"{gamePreparation.reveal()}
+            }
             .onChange(of:app.subscription.hasAccess){_,allowed in if !allowed,!gamePresented{gamePreparation.cancel()}}
             .onAppear {
                 app.lessonActivityActive=true
                 guard !appeared else { return };appeared=true
                 reviewing=app.learner.completed.contains(app.learner.completionKey(IntroTutorial.lessonID))
-                if reviewing,app.learner.introSession.ready { app.learner.restartIntroReview();app.persist() }
+                if reviewing,app.learner.introSession.ready {
+                    app.learner.explorationRuns?.removeValue(forKey:app.learner.tutorialExplorationKey(lesson))
+                    app.learner.restartIntroReview()
+                    app.persist()
+                }
                 else if app.learner.introSession.ready { finish(scope:capturedScope) }
                 else if mode == "game",!finishing{gamePreparation.reveal()}
             }
@@ -65,15 +76,25 @@ struct IntroTutorialView:View {
         case "reading":ReadingView(lesson:lesson,onComplete:{ advance("reading",scope:scope) },embedded:true)
         case "stories":StoryView(lesson:lesson,onComplete:{ advance("stories",scope:scope) },embedded:true)
         case "realtime":RealtimeLessonView(lesson:lesson,onNext:{ advance("realtime",scope:scope) },startsFresh:reviewing)
-        case "game":GeometryReader{geometry in
-            VStack(spacing:12){
-                GamePreparationView(preparation:gamePreparation,support:app.learner.support,pet:app.learner.effectiveCompanionType,embedded:true,showsCancel:false,onCancel:{}).environmentObject(app).frame(height:max(300,min(UIScreen.main.bounds.height*0.62,geometry.size.height-70))).clipShape(RoundedRectangle(cornerRadius:12)).padding(.horizontal,12).accessibilityElement(children:.contain).accessibilityIdentifier("introGamePreparation")
-                if let error=gamePreparation.error{Text(error).font(PiyaliBrand.productFont(13)).foregroundStyle(.red);Button(EntryCopy.ui(app.learner.support,"practice_retry")){gamePreparation.cancel();gamePreparation.start(app,lesson:lesson);gamePreparation.reveal()}.accessibilityIdentifier("retryIntroGamePreparation")}
-                Spacer(minLength:0)
-            }
-        }.activityFooter(owner:gameFooterOwner,revision:scope+":"+String(gamePresented),access:app.subscription,enabled:!gamePresented){ActivityFooterSurface(hasFeedback:false,feedback:{EmptyView()},actions:{Button(EntryCopy.ui(app.learner.support,"ra_btn_skip")){gamePreparation.cancel();advance("game",scope:scope)}.font(PiyaliBrand.productFont(14,600)).padding(.horizontal,8).frame(height:40).buttonStyle(.plain).accessibilityIdentifier("skipIntroActivity");Spacer(minLength:0)})}
+        case "game":game(scope:scope)
         default:EmptyView()
         }
+    }
+    private func game(scope:String)->some View {
+        let showLegacy=usesLegacyGame
+        return Group {
+            if showLegacy {
+                ExplorationView(embedded:true,tutorial:lesson,onTutorialFinish:{advance("game",scope:scope)})
+            } else {
+                GeometryReader{geometry in
+                    VStack(spacing:12){
+                        GamePreparationView(preparation:gamePreparation,support:app.learner.support,pet:app.learner.effectiveCompanionType,embedded:true,showsCancel:false,onCancel:{}).environmentObject(app).frame(height:max(300,min(UIScreen.main.bounds.height*0.62,geometry.size.height-70))).clipShape(RoundedRectangle(cornerRadius:12)).padding(.horizontal,12).accessibilityElement(children:.contain).accessibilityIdentifier("introGamePreparation")
+                        if let error=gamePreparation.error{Text(error).font(PiyaliBrand.productFont(13)).foregroundStyle(.red);Button(EntryCopy.ui(app.learner.support,"practice_retry")){gamePreparation.cancel();gamePreparation.start(app,lesson:lesson);gamePreparation.reveal()}.accessibilityIdentifier("retryIntroGamePreparation")}
+                        Spacer(minLength:0)
+                    }
+                }
+            }
+        }.activityFooter(owner:gameFooterOwner,revision:scope+":"+String(gamePresented)+":"+String(legacyRun != nil),access:app.subscription,enabled:!gamePresented && legacyRun == nil){ActivityFooterSurface(hasFeedback:false,feedback:{EmptyView()},actions:{Button(EntryCopy.ui(app.learner.support,"ra_btn_skip")){gamePreparation.cancel();advance("game",scope:scope)}.font(PiyaliBrand.productFont(14,600)).padding(.horizontal,8).frame(height:40).buttonStyle(.plain).accessibilityIdentifier("skipIntroActivity");Spacer(minLength:0)})}
     }
     private func skip(_ mode:String,scope:String)->some View { Button { advance(mode,scope:scope) } label:{ Text(EntryCopy.ui(app.learner.support,"ra_btn_skip")).frame(maxWidth:.infinity,minHeight:44).contentShape(Rectangle()) }.buttonStyle(.bordered).padding(12).padding(.bottom,78).background(brand.background).accessibilityIdentifier("skipIntroActivity") }
     private func advance(_ mode:String,scope:String) {

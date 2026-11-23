@@ -11,6 +11,16 @@ import SpriteKit
     private init(){data=(try? ContentLibrary.load(JSONValue.self,name:"rpg-art")) ?? .null;environment=try? ContentLibrary.load(RPGEnvironmentLibrary.self,name:"rpg-environment");exploration=(try? ContentLibrary.load(JSONValue.self,name:"exploration-art")) ?? .null
         explorationGeometry=exploration["geometry"].object.compactMap{key,value in guard let world=try? JSONDecoder().decode(RPGWorld.self,from:Data(value.json.utf8)) else{return nil};return (key,world)}
     }
+    func randomCast(count:Int)->[RPGCast.Member] {
+        let rows=data["npcRows"].array.shuffled()
+        guard !rows.isEmpty else { return [] }
+        return (0..<count).compactMap { index in
+            let row=rows[index%rows.count]
+            let variants=data["npcs"].array.filter { $0["type"].string == row["id"].string }
+            guard let variant=variants.randomElement() else { return nil }
+            return .init(name:row["name"].string,image:variant["image"].string,kind:row["id"].string)
+        }
+    }
     func world(_ key:String)->JSONValue { let value=data["worlds"][key];return value == .null ? exploration["worlds"][key]:value }
     func explorationKey(_ area:ExplorationMap)->String? { area.worldKey ?? explorationGeometry.first{$0.1 == area.world}?.0 }
     func searchCopy(_ key:String,lang:String,args:[String]=[])->String {var value=exploration["copy"][lang][key].string;if value.isEmpty{value=exploration["copy"]["en"][key].string};for (index,arg)in args.enumerated(){value=value.replacingOccurrences(of:"{{\(index)}}",with:arg)};return value}
@@ -36,19 +46,32 @@ import SpriteKit
     override init(size:CGSize){super.init(size:size);scaleMode = .resizeFill;backgroundColor = .clear;isUserInteractionEnabled=true;camera=lens;addChild(lens)}
     required init?(coder:NSCoder){fatalError("init(coder:) is unavailable")}
     private func texture(_ name:String)->SKTexture{if let cached=textureCache[name]{return cached};let texture=SKTexture(imageNamed:name);texture.filteringMode = .nearest;textureCache[name]=texture;return texture}
-    func configure(_ run:RPGRun,pet:String,size:CGSize,environmentTime:TimeInterval?=nil,actorsVisible:Bool=true){
+    func configure(_ run:RPGRun,pet:String,size:CGSize,environmentTime:TimeInterval?=nil,actorsVisible:Bool=true,tutorialTerrain:TutorialTerrain?=nil){
         previewTime=environmentTime;activeNPCIndex=run.step?.npcIdx ?? 0
-        if self.size != size{self.size=size};let art=RPGArt.shared.data,world=RPGArt.shared.world(run.scenario.worldKey);guard world != .null,!art["npcs"].array.isEmpty else{return}
+        if self.size != size{self.size=size};let art=RPGArt.shared.data,world=RPGArt.shared.world(run.scenario.worldKey);guard world != .null || tutorialTerrain != nil,!art["npcs"].array.isEmpty else{return}
         if mapKey != run.scenario.worldKey+":"+run.scenario.id+":"+run.id.uuidString {
             removeAllChildren();lens.removeAllChildren();addChild(lens);camera=lens;npcs=[];itemNodes=[];itemMarkers=[];environmentNodes=[];textureCache=[:];playerImage="";playerTile=nil;mapKey=run.scenario.worldKey+":"+run.scenario.id+":"+run.id.uuidString;mapHeight=run.world.height
-            let color=UInt32(world["ambient"].number);backgroundColor=RPGArt.shared.data["worlds"][run.scenario.worldKey] == .null ? .clear:UIColor(red:CGFloat((color>>16)&255)/255,green:CGFloat((color>>8)&255)/255,blue:CGFloat(color&255)/255,alpha:1)
-            let floor=SKSpriteNode(texture:texture(world["ground"].string));floor.size=CGSize(width:CGFloat(run.world.width*32),height:CGFloat(run.world.height*32));floor.position=CGPoint(x:floor.size.width/2,y:floor.size.height/2);floor.zPosition=0;addChild(floor)
+            let ambient=Int(world["ambient"].number)
+            backgroundColor=RPGArt.shared.data["worlds"][run.scenario.worldKey] == .null ? .clear:tileColor(ambient)
+            let floorTexture=tutorialTerrain.flatMap { $0.texture(run.world) } ?? texture(world["ground"].string)
+            let floor=SKSpriteNode(texture:floorTexture)
+            floor.size=CGSize(width:run.world.width*32,height:run.world.height*32)
+            floor.position=CGPoint(x:floor.size.width/2,y:floor.size.height/2)
+            floor.zPosition=0
+            addChild(floor)
             if let plan=RPGArt.shared.environment?.plan(run.scenario){
                 for layer in plan.layers{let node=SKSpriteNode(texture:texture(layer.image));node.texture?.filteringMode=layer.smooth ? .linear:.nearest;node.size=CGSize(width:layer.width,height:layer.height);node.zPosition=layer.z;node.blendMode=layer.blend == "add" ? .add:.alpha;apply(layer.frame(at:environmentTime ?? 0),to:node);addChild(node);environmentNodes.append((node,layer))}
             }else{for prop in world["props"].array{let node=SKSpriteNode(texture:texture(prop["image"].string));node.size=CGSize(width:prop["width"].number*32,height:prop["height"].number*32);node.position=CGPoint(x:prop["x"].number*32,y:prop["y"].number*32);node.zPosition=CGFloat(prop["z"].number);addChild(node)}}
             for(index,npc)in run.scenario.npcs.enumerated(){let variant=art["npcs"].array.first(where:{$0["image"].string == npc.appearance}) ?? art["npcs"].array[(index*5)%16],node=SKSpriteNode(texture:texture(variant["image"].string));let aspect=variant["aspect"].number;node.size=CGSize(width:32*0.9*max(0.45,min(1.4,aspect/(1.05/1.45)))*0.92,height:32*1.2*0.92);node.position=CGPoint(x:(Double(npc.tx)+0.5)*32,y:(Double(run.world.height-1-npc.ty)+0.62)*32);node.zPosition=CGFloat(1000+npc.ty*10+3);addChild(node);npcs.append(node)}
             player.size=CGSize(width:32*0.9,height:32*1.2);addChild(player)
-            let grade=SKSpriteNode(texture:texture(RPGArt.shared.environment?.plan(run.scenario)?.grade ?? world["grade"].string));grade.texture?.filteringMode = .linear;grade.name="grade";grade.zPosition=20000;lens.addChild(grade)
+            let gradeName=RPGArt.shared.environment?.plan(run.scenario)?.grade ?? world["grade"].string
+            if !gradeName.isEmpty {
+                let grade=SKSpriteNode(texture:texture(gradeName))
+                grade.texture?.filteringMode = .linear
+                grade.name="grade"
+                grade.zPosition=20000
+                lens.addChild(grade)
+            }
             indicator.texture=texture(art["indicator"].string);indicator.size=CGSize(width:16,height:19.2);indicator.zPosition=10000;addChild(indicator)
         }
         if self.pet != pet || frames.isEmpty{self.pet=pet;petClock.changedCompanion();loadFrames()}
@@ -61,6 +84,9 @@ import SpriteKit
         if let npc=run.npc{indicator.position=CGPoint(x:(Double(npc.tx)+0.5)*32,y:(Double(mapHeight-1-npc.ty)+1.15)*32);indicator.isHidden=run.completed || !actorsVisible}else{indicator.isHidden=true}
         player.isHidden = !actorsVisible;npcs.forEach{$0.isHidden = !actorsVisible};animateEnvironment(at:environmentTime ?? environmentElapsed)
         lens.setScale(320/max(1,size.height));(lens.childNode(withName:"grade") as? SKSpriteNode)?.size=CGSize(width:320*size.width/max(1,size.height),height:320)
+    }
+    private func tileColor(_ color:Int)->UIColor {
+        UIColor(red:CGFloat((color>>16)&255)/255,green:CGFloat((color>>8)&255)/255,blue:CGFloat(color&255)/255,alpha:1)
     }
     func configureMarkers(_ markers:[RPGWorldMarker]) {
         guard markers != itemMarkers else{return};itemMarkers=markers;itemNodes.forEach{$0.removeFromParent()};itemNodes=[]
@@ -79,16 +105,38 @@ import SpriteKit
     override func touchesEnded(_ touches:Set<UITouch>,with event:UIEvent?){guard let touch=touches.first else{return};let p=touch.location(in:self);onTile?(RPGPoint(x:Int(floor(p.x/32)),y:mapHeight-1-Int(floor(p.y/32))))}
 }
 
+struct TutorialTerrain {
+    let definitions:JSONValue
+    let seed:Int
+
+    @MainActor private static let policy=try? TutorialPlazaPolicy()
+
+    @MainActor func texture(_ world:RPGWorld)->SKTexture? {
+        let width=world.width*16,height=world.height*16
+        guard let bytes=Self.policy?.terrain(world,definitions:definitions,seed:seed),bytes.count == width*height*4,
+              let provider=CGDataProvider(data:bytes as CFData),
+              let colorSpace=CGColorSpace(name:CGColorSpace.sRGB),
+              let image=CGImage(width:width,height:height,bitsPerComponent:8,bitsPerPixel:32,bytesPerRow:width*4,
+                                space:colorSpace,bitmapInfo:[.byteOrder32Big,CGBitmapInfo(rawValue:CGImageAlphaInfo.last.rawValue)],
+                                provider:provider,decode:nil,shouldInterpolate:false,intent:.defaultIntent)
+        else { return nil }
+        let texture=SKTexture(cgImage:image)
+        texture.filteringMode = .nearest
+        return texture
+    }
+}
+
 struct RPGWorldMarker:Equatable {let id:String,point:RPGPoint,image:String}
 
 struct RPGWorldView:View {
     let run:RPGRun,pet:String
     var environmentTime:TimeInterval?=nil,actorsVisible=true
     var markers:[RPGWorldMarker]=[]
+    var tutorialTerrain:TutorialTerrain?=nil
     let onTile:(RPGPoint)->Void
     @StateObject private var scene=RPGWorldScene(size:CGSize(width:402,height:874))
     @Environment(\.scenePhase) private var phase
-    var body:some View{GeometryReader{g in SpriteView(scene:scene,isPaused:phase != .active,options:[.allowsTransparency]).onAppear{scene.isPaused=false;scene.onTile=onTile;scene.configure(run,pet:pet,size:g.size,environmentTime:environmentTime,actorsVisible:actorsVisible);scene.configureMarkers(markers)}.onDisappear{scene.onTile=nil;scene.isPaused=true}.onChange(of:run){_,value in scene.configure(value,pet:pet,size:g.size,environmentTime:environmentTime,actorsVisible:actorsVisible);scene.configureMarkers(markers)}.onChange(of:markers){_,value in scene.configureMarkers(value)}.onChange(of:pet){_,value in scene.configure(run,pet:value,size:g.size,environmentTime:environmentTime,actorsVisible:actorsVisible);scene.configureMarkers(markers)}.onChange(of:g.size){_,value in scene.configure(run,pet:pet,size:value,environmentTime:environmentTime,actorsVisible:actorsVisible);scene.configureMarkers(markers)}.onChange(of:environmentTime){_,_ in scene.configure(run,pet:pet,size:g.size,environmentTime:environmentTime,actorsVisible:actorsVisible);scene.configureMarkers(markers)}.accessibilityElement(children:.ignore).accessibilityLabel(RPGArt.shared.copy("touchMove",lang:run.support)).accessibilityValue("\(run.position.x),\(run.position.y)").accessibilityIdentifier("rpgWorld")}}
+    var body:some View{GeometryReader{g in SpriteView(scene:scene,isPaused:phase != .active,options:[.allowsTransparency]).onAppear{scene.isPaused=false;scene.onTile=onTile;scene.configure(run,pet:pet,size:g.size,environmentTime:environmentTime,actorsVisible:actorsVisible,tutorialTerrain:tutorialTerrain);scene.configureMarkers(markers)}.onDisappear{scene.onTile=nil;scene.isPaused=true}.onChange(of:run){_,value in scene.configure(value,pet:pet,size:g.size,environmentTime:environmentTime,actorsVisible:actorsVisible,tutorialTerrain:tutorialTerrain);scene.configureMarkers(markers)}.onChange(of:markers){_,value in scene.configureMarkers(value)}.onChange(of:pet){_,value in scene.configure(run,pet:value,size:g.size,environmentTime:environmentTime,actorsVisible:actorsVisible,tutorialTerrain:tutorialTerrain);scene.configureMarkers(markers)}.onChange(of:g.size){_,value in scene.configure(run,pet:pet,size:value,environmentTime:environmentTime,actorsVisible:actorsVisible,tutorialTerrain:tutorialTerrain);scene.configureMarkers(markers)}.onChange(of:environmentTime){_,_ in scene.configure(run,pet:pet,size:g.size,environmentTime:environmentTime,actorsVisible:actorsVisible,tutorialTerrain:tutorialTerrain);scene.configureMarkers(markers)}.accessibilityElement(children:.ignore).accessibilityLabel(RPGArt.shared.copy("touchMove",lang:run.support)).accessibilityValue("\(run.position.x),\(run.position.y)").accessibilityIdentifier("rpgWorld")}}
 }
 
 struct RPGPetPreview:View {

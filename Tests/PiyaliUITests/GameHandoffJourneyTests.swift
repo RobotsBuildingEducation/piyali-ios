@@ -3,9 +3,10 @@ import XCTest
 @MainActor final class GameHandoffJourneyTests:XCTestCase {
     private func tap(_ id:String,_ app:XCUIApplication){let b=app.buttons[id];XCTAssertTrue(b.waitForExistence(timeout:15),id);for _ in 0..<10 where !b.isHittable{app.swipeUp(velocity:.slow)};XCTAssertTrue(b.isHittable,id);b.tap()}
     private func shot(_ name:String,_ app:XCUIApplication){let a=XCTAttachment(screenshot:app.screenshot());a.name=name;a.lifetime = .keepAlways;add(a)}
-    private func launch(_ support:String="en",prepared:String="prepared",failLibraryLoad:Bool=false)->XCUIApplication{
+    private func launch(_ support:String="en",prepared:String="prepared",failLibraryLoad:Bool=false,legacyTutorial:Bool=false)->XCUIApplication{
         let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_TUTOR_FIXTURE":"1","PIYALI_PRACTICE_FIXTURE":"delight:natural_or_weird","PIYALI_HEADLINE_FIXTURE":"failure","PIYALI_RPG_PREPARED_FIXTURE":prepared,"PIYALI_RPG_PREPARED_DELAY_MS":"10000","PIYALI_GAME_LOADER_SEED":"7","PIYALI_ENTRY_INITIAL_LANGUAGE":support,"PIYALI_ENTRY_INITIAL_THEME":support=="ar" ? "dark":"light"]
         if failLibraryLoad { app.launchEnvironment["PIYALI_RPG_FAIL_FIRST_LIBRARY_LOAD"]="1" }
+        if legacyTutorial { app.launchEnvironment["PIYALI_LEGACY_TUTORIAL_FIXTURE"]="1" }
         app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US"];app.launch();handleInitialPaperPencil(app);let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Handoff Learner");tap("entryKeyboardDone",app);tap("createAccount",app);handleInitialPaperPencil(app);tap("startLearning",app);tap("companionContinue",app);acknowledgePaperPencil(app);tap("gettingStartedGotIt",app);tap("placementNew",app);return app
     }
     private func mode(_ mode:String,_ app:XCUIApplication){tap("productMenu",app);tap("productModeMenu",app);tap("productMode-"+mode,app)}
@@ -14,6 +15,38 @@ import XCTest
         for id in ["skipLessonActivity","skipLessonActivity","skipLessonActivity","skipLessonActivity","realtimeSkip"]{tap(id,app)}
         let map=app.otherElements["gamePreparationWorld"];XCTAssertTrue(map.waitForExistence(timeout:8));XCTAssertTrue(app.buttons["introStep-game"].exists);XCTAssertTrue(app.buttons["skipIntroActivity"].isEnabled);XCTAssertFalse(app.buttons["cancelGamePreparation"].exists);shot("Native introduction inline playable loader",app);tap("skipIntroActivity",app)
         let bonus=app.staticTexts["lessonCompletionBonus"];XCTAssertTrue(bonus.waitForExistence(timeout:10));XCTAssertEqual(bonus.label,"+50");XCTAssertFalse(app.otherElements["rpgWorld"].exists);shot("Native introduction loader skip completes once",app)
+    }
+    func testTutorialHardFailureOpensTheLegacyWorldAndResumesBeforeSkip(){
+        continueAfterFailure=false
+        let app=launch(prepared:"cache-only",failLibraryLoad:true,legacyTutorial:true)
+        mode("path",app)
+        tap("introLink",app)
+        tap("startLessonFromPreview",app)
+        for id in ["skipLessonActivity","skipLessonActivity","skipLessonActivity","skipLessonActivity","realtimeSkip"]{tap(id,app)}
+        let world=app.otherElements["explorationWorld"]
+        XCTAssertTrue(world.waitForExistence(timeout:20))
+        XCTAssertEqual(world.value as? String,"tutorialPlaza|3,3")
+        XCTAssertTrue(app.buttons["introStep-game"].exists)
+        XCTAssertFalse(app.buttons["explorationGenerate"].exists)
+        XCTAssertFalse(app.staticTexts["lessonCompletionBonus"].exists)
+        world.coordinate(withNormalizedOffset:CGVector(dx:0.66,dy:0.51)).tap()
+        let position=world.value as? String
+        XCTAssertNotEqual(position,"tutorialPlaza|3,3")
+        shot("Native course introduction legacy Greeting Plaza",app)
+        app.terminate()
+        app.launch()
+        handleInitialPaperPencil(app)
+        mode("path",app)
+        tap("introLink",app)
+        tap("startLessonFromPreview",app)
+        XCTAssertTrue(world.waitForExistence(timeout:15))
+        XCTAssertEqual(world.value as? String,position)
+        tap("skipIntroActivity",app)
+        let bonus=app.staticTexts["lessonCompletionBonus"]
+        XCTAssertTrue(bonus.waitForExistence(timeout:10))
+        XCTAssertEqual(bonus.label,"+50")
+        XCTAssertFalse(world.exists)
+        shot("Native legacy game Skip reaches the introduction bonus",app)
     }
     func testTutorStopsVoiceCanCancelThenRetryHandoffAndResume()throws{
         continueAfterFailure=false;let app=launch("ar");mode("tutor",app);tap("tutorStart",app);XCTAssertTrue(app.buttons["tutorMute"].waitForExistence(timeout:10));tap("tutorLessons",app);tap("tutorNode-lesson-tutorial-1",app);tap("tutorPreviewStart",app)
