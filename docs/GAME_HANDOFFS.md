@@ -133,3 +133,18 @@ The first aligned screenshots showed a visible rectangle at the edges of the nat
 All four checks in `/tmp/PiyaliFullViewportGrade-20261123.xcresult` passed. They cover the original Market and Festival renders at two times, the authored environment and NPC anchors, Greeting Plaza’s layers and camera, and the Course Path invalid-map → Try again → fallback → Skip journey. The final same-tile Greeting Plaza captures average 0.78 levels of difference per RGB channel on an 8-bit scale after resampling both captures to 402×874. Actors and HUD are hidden in that isolated comparison. The earlier full quest and position/relaunch UI tests remain in `/tmp/PiyaliLegacyAtmosphere-20261123.xcresult`.
 
 ![The original browser and native SpriteKit render of Greeting Plaza at the same tile at 0 and 15.321 seconds](native/tutorial-plaza-atmosphere-20261123.jpg)
+
+
+## Full product Course Path fallback, November 23
+
+The original web app ran at `/` with a disposable signup and an isolated Firestore emulator. It used the real landing, onboarding, companion, Paper & Pencil, installation guide, placement and Lessons menu. Only the authorized local web and Firestore origins could receive browser traffic. The source checkout stayed read-only. The test injected an error in the authored tutorial preparation dependency and controlled the two model transports. It left the actual App, lesson components, routing and progress writes in place. The Vocabulary fallback received a local practice reply. Grammar used its local fallback, and Reading, Story and Chat were skipped through their visible controls.
+
+The source held the interactive Game loader inside the introduction after the earlier warm-up failed. Releasing the controlled request sent the original map prompt to Gemini and its Responses backup. Both failed, and the original generator opened Greeting Plaza. The full app rendered the plaza at (8,5) in the inline stage and at the same tile when fullscreen opened. The learner moved to (9,5) and used Skip. The normal completion screen showed +50, the course marked Getting Started complete and a browser reload retained 50 total XP. Firestore confirmed one completed intro document worth 50 XP for the isolated learner.
+
+On iPhone, fresh intro runs now use the same center search as the authored game. They avoid NPCs and portals and retain the authored start when the preferred tile would be disconnected. The stored starting tile in the map stays intact. Existing native saves and fullscreen handoff keep the player’s last tile.
+
+The clean browser run passed from signup through reload after waiting for the course record and XP header to load. The earlier browser diagnostics caught a missing dummy Firebase key and a reload assertion that sampled the course before its lesson status arrived. All four native checks in `/tmp/PiyaliLegacyCourseSpawn-20261123.xcresult` passed. The simulator kept the learner’s moved tile through fullscreen and relaunch, then recorded +50 after Skip and reopened at 50 XP with Getting Started marked complete. Its other journeys covered invalid-map retry and the generated quest’s earned completion.
+
+![The complete web and iPhone routes at Greeting Plaza, lesson completion, and the restored Course Path](native/course-root-legacy-20261123.jpg)
+
+The paired screens show iPhone’s safe-area offset, the completion card’s different XP badge and progress track, and the course header spacing. The generated cast and number of quest steps vary between the independent runs. The controlled browser run verifies the original warm-up failure path. Live model delivery, physical voice, and the remaining whole-product release gates are still open.

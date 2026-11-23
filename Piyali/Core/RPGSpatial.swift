@@ -13,7 +13,26 @@ public enum RPGSpatial {
         };return Move(position:p,moved:false,direction:"down")
     }
     public static func start(world:RPGWorld,npcs:[RPGNPC],center:Bool)->RPGPoint {
-        guard center else{return world.start};let x=(world.width-1)/2,y=(world.height-1)/2;var best:RPGPoint?,distance=Int.max,tie=Double.infinity
-        for row in 0..<world.height{for column in 0..<world.width{let p=RPGPoint(x:column,y:row);guard world.walkable(p),!npcs.contains(where:{$0.tx == column && $0.ty == row})else{continue};let d=abs(column-x)+abs(row-y),t=hypot(Double(column-x),Double(row-y));if d<distance || d == distance && t<tie{best=p;distance=d;tie=t}}};return best ?? world.start
+        guard center else { return world.start }
+        return centeredStart(world:world,occupied:Set(npcs.map { RPGPoint(x:$0.tx,y:$0.ty) }))
+    }
+
+    static func centeredStart(world:RPGWorld,occupied:Set<RPGPoint>)->RPGPoint {
+        let centerX=(world.width-1)/2,centerY=(world.height-1)/2
+        var best=world.start,distance=Int.max,tie=Double.infinity
+        for row in 0..<world.height {
+            for column in 0..<world.width {
+                let tile=RPGPoint(x:column,y:row)
+                guard world.walkable(tile),!occupied.contains(tile) else { continue }
+                let dx=column-centerX,dy=row-centerY
+                let score=abs(dx)+abs(dy),diagonal=hypot(Double(dx),Double(dy))
+                if score < distance || score == distance && diagonal < tie {
+                    best=tile
+                    distance=score
+                    tie=diagonal
+                }
+            }
+        }
+        return best
     }
 }

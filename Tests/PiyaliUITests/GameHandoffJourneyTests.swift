@@ -30,13 +30,13 @@ import XCTest
         for id in ["skipLessonActivity","skipLessonActivity","skipLessonActivity","skipLessonActivity","realtimeSkip"]{tap(id,app)}
         let world=app.otherElements["explorationWorld"]
         XCTAssertTrue(world.waitForExistence(timeout:20))
-        XCTAssertEqual(world.value as? String,"tutorialPlaza|3,3")
+        XCTAssertEqual(world.value as? String,"tutorialPlaza|8,5")
         XCTAssertTrue(app.buttons["introStep-game"].exists)
         XCTAssertFalse(app.buttons["explorationGenerate"].exists)
         XCTAssertFalse(app.staticTexts["lessonCompletionBonus"].exists)
         world.coordinate(withNormalizedOffset:CGVector(dx:0.66,dy:0.51)).tap()
         let position=world.value as? String
-        XCTAssertNotEqual(position,"tutorialPlaza|3,3")
+        XCTAssertNotEqual(position,"tutorialPlaza|8,5")
         shot("Native course introduction legacy Greeting Plaza",app)
         awaitLegacyFullScreen(app)
         XCTAssertEqual(world.value as? String,position)
@@ -55,6 +55,19 @@ import XCTest
         XCTAssertEqual(bonus.label,"+50")
         XCTAssertFalse(world.exists)
         shot("Native legacy game Skip reaches the introduction bonus",app)
+        tap("continueLessonCompletion",app)
+        tap("scholarshipLater",app)
+        XCTAssertTrue(app.buttons["lessonNode-lesson-pre-a1-1-1"].waitForExistence(timeout:10))
+        app.terminate()
+        app.launch()
+        handleInitialPaperPencil(app)
+        mode("path",app)
+        let intro=app.buttons["introLink"]
+        XCTAssertTrue(intro.waitForExistence(timeout:10))
+        XCTAssertEqual(intro.value as? String,"completed")
+        XCTAssertTrue(app.staticTexts["50 XP"].exists)
+        XCTAssertFalse(bonus.exists)
+        shot("Native completed Course Path restores 50 XP",app)
     }
     func testLegacyTutorialRejectsUnplayableMapAndRetriesThroughProviderOutage() {
         continueAfterFailure=false
@@ -80,12 +93,12 @@ import XCTest
 
         retry.tap()
         XCTAssertTrue(world.waitForExistence(timeout:15))
-        XCTAssertEqual(world.value as? String,"tutorialPlaza|3,3")
+        XCTAssertEqual(world.value as? String,"tutorialPlaza|8,5")
         XCTAssertFalse(error.exists)
         XCTAssertFalse(retry.exists)
         XCTAssertFalse(bonus.exists)
         awaitLegacyFullScreen(app)
-        XCTAssertEqual(world.value as? String,"tutorialPlaza|3,3")
+        XCTAssertEqual(world.value as? String,"tutorialPlaza|8,5")
         shot("Native Greeting Plaza after both providers fail",app)
         tap("skipIntroActivity",app)
         XCTAssertTrue(bonus.waitForExistence(timeout:10))
@@ -106,13 +119,20 @@ import XCTest
         tiles[4*18+2]=4
         tiles[2*18+4]=6
         let world=app.otherElements["explorationWorld"]
+        XCTAssertEqual(world.value as? String,"tutorialPlaza|8,5")
         shot("Native generated Greeting Plaza artwork",app)
-        world.coordinate(withNormalizedOffset:.zero)
-            .withOffset(CGVector(dx:world.frame.width/2+world.frame.height/10,dy:world.frame.height*0.512)).tap()
-        XCTAssertEqual(world.value as? String,"tutorialPlaza|4,3")
-        world.coordinate(withNormalizedOffset:.zero)
-            .withOffset(CGVector(dx:world.frame.width/2+world.frame.height/10,dy:world.frame.height*0.512)).tap()
-        XCTAssertEqual(world.value as? String,"tutorialPlaza|4,3","The generated tree uses the source solid tile")
+        func step(_ dx:Int,_ dy:Int) {
+            let frame=world.frame,tile=frame.height/10
+            world.coordinate(withNormalizedOffset:.zero).withOffset(CGVector(
+                dx:frame.width/2+CGFloat(dx)*tile,dy:frame.height/2+(CGFloat(dy)+0.12)*tile
+            )).tap()
+        }
+        for (dx,dy,tile) in [(-1,0,"7,5"),(-1,0,"6,5"),(0,-1,"6,4"),(0,-1,"6,3")] {
+            step(dx,dy)
+            XCTAssertEqual(world.value as? String,"tutorialPlaza|"+tile)
+        }
+        step(-1,0)
+        XCTAssertEqual(world.value as? String,"tutorialPlaza|6,3","The generated tree uses the source solid tile")
         let choice=RPGPlayFixture.Step(npc:1,mode:"choice",correct:0,example:""),speech=RPGPlayFixture.Step(npc:0,mode:"speech",correct:0,example:"Me llamo Sol.")
         let fixture=RPGPlayFixture(lessonID:"lesson-tutorial-1",world:.init(width:18,height:14,tiles:tiles,solidTiles:[2,3,4,6],objects:[]),
                                    npcs:[.init(x:4,y:4),.init(x:8,y:6)],steps:[choice,speech])

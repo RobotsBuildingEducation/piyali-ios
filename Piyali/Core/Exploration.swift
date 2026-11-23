@@ -116,7 +116,14 @@ public struct ExplorationRun:Codable,Equatable,Identifiable,Sendable {
     public var chapter:ExplorationChapter?
     public init(target:String,support:String,scenario:ExplorationTemplate,tutorialKey:String?=nil) throws {
         self.scenario=try scenario.validated();self.target=target;self.support=support;mapID=scenario.startMapId;self.tutorialKey=tutorialKey
-        guard let area=scenario.map(mapID) else { throw ExplorationFailure.invalidScenario };position=area.world.start
+        guard let area=scenario.map(mapID) else { throw ExplorationFailure.invalidScenario }
+        position=area.world.start
+        if tutorialKey != nil {
+            let npcs=scenario.npcs.filter { $0["mapId"].string == area.id }
+            let occupied=Set((npcs+area.portals).map(ExplorationTemplate.position))
+            let centered=RPGSpatial.centeredStart(world:area.world,occupied:occupied)
+            if area.world.path(from:position,to:centered) != nil { position=centered }
+        }
     }
     public var area:ExplorationMap? { scenario.map(mapID) }
     public var completed:Bool { stepIndex >= scenario.quest["steps"].array.count }
