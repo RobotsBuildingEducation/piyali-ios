@@ -61,9 +61,26 @@ struct TeamsDrawerView:View {
             .onChange(of:removal){_,value in app.teamsNotices.cover(value != nil,by:confirmationOwner)}
             .onDisappear{mounted=false;model.cancel();app.teamsNotices.cover(false,by:confirmationOwner)}
             .toolbar{ToolbarItemGroup(placement:.keyboard){Spacer();Button("Done"){field=nil}.accessibilityIdentifier("teamsKeyboardDone")}}
-            .confirmationDialog(removal?["isCreator"].boolean == true ? t("teams_view_delete_confirm","Delete {team}?").replacingOccurrences(of:"{team}",with:removal?["teamName"].string ?? ""):t("teams_view_leave_confirm","Leave {team}?").replacingOccurrences(of:"{team}",with:removal?["teamName"].string ?? ""),isPresented:Binding(get:{removal != nil},set:{if !$0{removal=nil}}),titleVisibility:.visible){if let team=removal{Button(team["isCreator"].boolean ? t("teams_view_delete","Delete team"):t("teams_view_leave","Leave team"),role:.destructive){model.perform(app,action:{access in try await access.remove(team,app:app);return .init(title:t(team["isCreator"].boolean ? "teams_view_deleted":"teams_view_left",team["isCreator"].boolean ? "Team deleted":"Left team"))},onSuccess:{model.didRemove(team)});removal=nil}}}
+            .confirmationDialog(removal?["isCreator"].boolean == true ? t("teams_view_delete_confirm","Delete {team}?").replacingOccurrences(of:"{team}",with:removal?["teamName"].string ?? ""):t("teams_view_leave_confirm","Leave {team}?").replacingOccurrences(of:"{team}",with:removal?["teamName"].string ?? ""),isPresented:Binding(get:{removal != nil},set:{if !$0{removal=nil}}),titleVisibility:.visible) {
+                if let team=removal {
+                    Button(team["isCreator"].boolean ? t("teams_view_delete","Delete team"):t("teams_view_leave","Leave team"),role:.destructive) {
+                        confirmRemoval(team)
+                    }
+                }
+            }
     }
     private func viewedInvites(){if mounted,tab == 0,app.teamsStartup.attention.count>0,app.teamsStartup.attention.hasUnseen{app.teamsStartup.viewed(app)}}
+    private func confirmRemoval(_ team:JSONValue) {
+        let creator=team["isCreator"].boolean
+        model.perform(app,action:{access in
+            try await access.remove(team,app:app)
+            return .init(title:t(creator ? "teams_view_deleted":"teams_view_left",creator ? "Team deleted":"Left team"))
+        },onSuccess:{
+            model.didRemove(team)
+            model.scheduleSharing(app)
+        },refreshInBackground:!creator,reloadOnSuccess:false)
+        removal=nil
+    }
     private func tabButton(_ index:Int,_ title:String)->some View{
         Button{tab=index;if index == 0{app.teamsStartup.viewed(app)};if index == 1{Task{await model.loadFeed(app)}}else{Task{await model.reload(app)}}}label:{text(title).font(.system(size:14,weight:.semibold)).foregroundStyle(tab == index ? ink:(light ? c("8d7a67"):c("a3b4c9"))).frame(height:21).padding(.bottom,8).overlay(alignment:.bottom){if tab == index{Rectangle().fill(LinearGradient(colors:[c("76e4f7"),c("38b2ac")],startPoint:.leading,endPoint:.trailing)).frame(height:2)}}}.accessibilityIdentifier(index == 0 ? "teamsTab":"teamsFeedTab").accessibilityAddTraits(tab == index ? .isSelected:[])
     }
@@ -134,7 +151,7 @@ struct TeamsDrawerView:View {
                 if case .rename(let team)=value{model.didRename(team,name:submitted)}
                 editor=nil
             }
-        },refreshInBackground:value == .create,reloadOnSuccess:!value.isRename)
+        },refreshInBackground:!value.isRename,reloadOnSuccess:false)
     }
     private func editorDialog(_ value:TeamsEditor,width:CGFloat)->some View {
         ZStack{

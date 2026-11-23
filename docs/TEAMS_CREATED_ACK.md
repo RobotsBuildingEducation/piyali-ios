@@ -54,4 +54,16 @@ iOS now completes the public rename after the signed acknowledgment and the Fire
 
 ![The original web and iPhone drawers acknowledging the rename while relay reads fail](native/teams-rename-reconnect-20261123.jpg)
 
-The captures use disposable accounts. The browser still shows an earlier creation notice because its scripted flow reached Rename faster. Button shapes and the tray safe area differ. The relay and Firestore failures were controlled locally. Production relay reconnect, mutation recovery for add/delete/leave, and wider drawer design checks remain open.
+The captures use disposable accounts. The browser still shows an earlier creation notice because its scripted flow reached Rename faster. Button shapes and the tray safe area differ. The relay and Firestore failures were controlled locally. Production relay reconnect and wider drawer design checks remain open. Add, delete, and leave have subsequent coverage below.
+
+## Add, delete and leave during a relay read outage
+
+The original web Teams drawer at `b269524d` added a member to Evening, deleted the team, and left a separate joined team. The loopback relay verified each signature and acknowledged each write before rejecting subsequent reads. The web drawer displayed each action's success and the local Firestore emulator confirmed the new member, deleted team document, and removed membership and invitation. The joined team was an isolated signed fixture.
+
+Native now finishes the Firestore operation after a signed add, delete, or leave without waiting for a relay reread. Adding closes the form and refreshes in the background. The drawer keeps the Firestore roster and confirmation visible if a relay read fails during that refresh. Delete and leave remove the card and member rows after the mirror completes. A held roster or member reply cannot reinsert the removed card. The service retains verified leave receipts with its existing signed cache, so a relay that has yet to index a departure cannot resurrect the old membership after relaunch. A newer signed roster can invite the learner again.
+
+All 13 selected native checks passed in `/tmp/PiyaliTeamsMutationRecoveryNotices-20261123.xcresult`. The iPhone journey exercised the real add and delete controls, verified both Firestore outcomes while reads stayed down, and reopened the empty drawer after relaunch. The Firestore SDK leave test checked the removed invite and creator roster, then reopened with a fresh service against an old signed roster before accepting a newer re-invite. The controller test exercised a late roster stage and member batch after removal. The ten original web learning-team and reconciliation tests also passed.
+
+![Web and iPhone Teams drawers after adding and deleting during relay outages](native/teams-mutation-recovery-20261123.jpg)
+
+An early native comparison exposed an extra error notice during a successful add. The final test checks for the success notice and verifies that the relay read error stays out of the drawer. The native add screenshot was taken after its confirmation expired. The paired images use disposable learners and local relays. The native leave check exercises the service and Firestore SDK. An end-to-end iPhone leave gesture, real relay reconnect, Firebase mirror outage and remaining drawer design coverage remain open.

@@ -53,21 +53,48 @@ struct LearningTeam: Identifiable, Sendable {
     func cancel(clear: Bool = false) { generation += 1;pending?.cancel();pending=nil;busy=false;error=nil;if clear { createdTeam=nil;account="";accountSession=nil;teams=[];progress=[:];profiles=[:];acknowledged=[] } }
     private func restoreAcknowledged(author: String) {
         let url=cacheDirectory.appendingPathComponent(author+".json")
-        acknowledged=((try? Data(contentsOf:url)).flatMap { try? JSONDecoder().decode([NostrEventPayload].self,from:$0) } ?? []).filter { $0.pubkey == author && $0.kind == LearningTeams.kind && $0.tag("d").hasPrefix("learning-team:") && IdentityService.verify($0) }
+        acknowledged=((try? Data(contentsOf:url)).flatMap { try? JSONDecoder().decode([NostrEventPayload].self,from:$0) } ?? []).filter { $0.pubkey == author && Self.isRosterWrite($0) && IdentityService.verify($0) }
         teams=latest(acknowledged).compactMap(Self.parse).filter { $0.members.contains(author) }.sorted { $0.name < $1.name }
     }
     private func remember(_ event: NostrEventPayload) {
-        guard event.tag("d").hasPrefix("learning-team:") else { return }
+        guard Self.isRosterWrite(event) else { return }
         acknowledged=Array(latest(acknowledged+[event]).sorted { $0.created_at > $1.created_at }.prefix(200))
-        teams.removeAll { $0.id == event.pubkey+":"+event.tag("d") }
-        if let team=Self.parse(event) {
-            teams.append(team);teams.sort { $0.name < $1.name }
-            if let receipt=createdTeam, receipt.session == accountSession, receipt.record["id"].string == team.teamID {
-                createdTeam=(receipt.record.setting("teamName",.string(team.name)),receipt.session)
+        if event.tag("t") == "learning-team-left" {
+            teams.removeAll { LearningTeams.leaveIdentifier(creator:$0.creator,id:$0.teamID) == event.tag("d")
+                && LearningTeams.memberLeft(teamCreatedAt:$0.event.created_at,leaveCreatedAt:event.created_at) }
+        } else {
+            teams.removeAll { $0.id == event.pubkey+":"+event.tag("d") }
+            if let team=Self.parse(event) {
+                teams.append(team);teams.sort { $0.name < $1.name }
+                if let receipt=createdTeam, receipt.session == accountSession, receipt.record["id"].string == team.teamID {
+                    let recordedMembers=receipt.record["members"].array
+                    let members=team.members.filter{$0 != team.creator}.compactMap{PublicKey(hex:$0)?.npub}.map { npub in
+                        recordedMembers.first{$0["npub"].string == npub}
+                            ?? .object(["npub":.string(npub),"status":.string("accepted"),"name":.string("")])
+                    }
+                    createdTeam=(receipt.record.setting("teamName",.string(team.name)).setting("members",.array(members)),receipt.session)
+                }
             }
         }
         try? FileManager.default.createDirectory(at:cacheDirectory,withIntermediateDirectories:true)
         if let data=try? JSONEncoder().encode(acknowledged) { try? data.write(to:cacheDirectory.appendingPathComponent(event.pubkey+".json"),options:.atomic) }
+    }
+    private nonisolated static func isRosterWrite(_ event:NostrEventPayload)->Bool {
+        guard event.kind == LearningTeams.kind else{return false}
+        return (event.tag("t") == "learning-team" && event.tag("d").hasPrefix("learning-team:"))
+            || (event.tag("t") == "learning-team-left" && event.tag("d").hasPrefix("learning-team-left:"))
+    }
+
+    /// An older mirror or replica cannot undo a signed deletion or departure.
+    func retiredTeam(creator:String,id:String,identity:IdentityService)->Bool {
+        guard account == identity.hex,accountSession == identity.sessionRevision,
+              !teams.contains(where:{$0.creator == creator && $0.teamID == id}) else{return false}
+        if creator == account {
+            let address=LearningTeams.teamIdentifier(id)
+            return acknowledged.contains{$0.tag("d") == address && $0.tags.contains(where:{$0.first == "deleted"})}
+        }
+        let address=LearningTeams.leaveIdentifier(creator:creator,id:id)
+        return acknowledged.contains{$0.tag("d") == address}
     }
     private func latest(_ events: [NostrEventPayload]) -> [NostrEventPayload] {
         var addresses:[String:NostrEventPayload]=[:]
@@ -112,8 +139,10 @@ struct LearningTeam: Identifiable, Sendable {
         let events=try await client.query(filter:["kinds":[LearningTeams.kind],"#t":["learning-team"],"#p":[author],"limit":100],authenticate:authenticate(identity:identity,author:author))
         try valid(identity:identity,author:author,version:version)
         let parsed=latest(events+acknowledged).compactMap(Self.parse)
-        let leaves=parsed.isEmpty ? [] : try await client.query(filter:["kinds":[LearningTeams.kind],"#d":parsed.map { LearningTeams.leaveIdentifier(creator:$0.creator,id:$0.teamID) },"limit":200],authenticate:authenticate(identity:identity,author:author))
+        let leaveAddresses=Set(parsed.map { LearningTeams.leaveIdentifier(creator:$0.creator,id:$0.teamID) })
+        let relayLeaves=parsed.isEmpty ? [] : try await client.query(filter:["kinds":[LearningTeams.kind],"#d":leaveAddresses.sorted(),"limit":200],authenticate:authenticate(identity:identity,author:author))
         try valid(identity:identity,author:author,version:version)
+        let leaves=relayLeaves+acknowledged.filter{leaveAddresses.contains($0.tag("d"))}
         let rosters=parsed.compactMap { team -> LearningTeam? in
             let d=LearningTeams.leaveIdentifier(creator:team.creator,id:team.teamID)
             let departed=Set(leaves.filter { $0.tag("d") == d && LearningTeams.memberLeft(teamCreatedAt:team.event.created_at,leaveCreatedAt:$0.created_at) }.map(\.pubkey))
@@ -199,20 +228,20 @@ struct LearningTeam: Identifiable, Sendable {
             if reload{try await self.load(identity:identity,author:author,version:version)}
         }
     }
-    func addMembers(_ team: LearningTeam, members: String, identity: IdentityService) async throws {
+    func addMembers(_ team: LearningTeam, members: String, identity: IdentityService,reload:Bool=true) async throws {
         let hexes=try keys(members)
         try await run(identity:identity) { author,version in
             let latest=try await self.current(team,identity:identity,author:author,version:version)
             guard !hexes.contains(where:{ latest.members.contains($0) || $0 == author }) else { throw AppError.message("One or more teammates are already on this team.") }
             try await self.publish(LearningTeams.teamTemplate(id:latest.teamID,name:latest.name,members:latest.members+hexes,createdAt:max(Int64(Date().timeIntervalSince1970),latest.event.created_at+1)),identity:identity,author:author,version:version)
-            try await self.load(identity:identity,author:author,version:version)
+            if reload{try await self.load(identity:identity,author:author,version:version)}
         }
     }
-    func leave(_ team: LearningTeam, identity: IdentityService) async throws {
+    func leave(_ team: LearningTeam, identity: IdentityService,reload:Bool=true) async throws {
         try await run(identity:identity) { author,version in
             if team.creator == author { let latest=try await self.current(team,identity:identity,author:author,version:version);try await self.publish(LearningTeams.teamTemplate(id:latest.teamID,name:latest.name,members:latest.members,createdAt:max(Int64(Date().timeIntervalSince1970),latest.event.created_at+1),deleted:true),identity:identity,author:author,version:version) }
             else { try await self.publish(LearningTeams.leaveTemplate(creator:team.creator,id:team.teamID,createdAt:max(Int64(Date().timeIntervalSince1970),team.event.created_at)),identity:identity,author:author,version:version) }
-            try await self.load(identity:identity,author:author,version:version)
+            if reload{try await self.load(identity:identity,author:author,version:version)}
         }
     }
     func publishProgress(_ state: LearnerState, identity: IdentityService,reload:Bool=true) async throws {

@@ -180,6 +180,30 @@ extension TeamsPanelControllerTests {
     override func loadStaged(_ app:AppModel,onRoster:@escaping @MainActor(TeamsPanelSnapshot)async->Void)async throws->TeamsPanelSnapshot{loads += 1;receive=onRoster;await onRoster(stage);return await withCheckedContinuation{finish=$0}}
 }
 extension TeamsPanelControllerTests {
+    func testLateRosterStageAndMemberResultCannotResurrectAnAcknowledgedRemoval() async throws {
+        let (app,_,_)=try context()
+        let access=TeamStagedAccess(),model=TeamsPanelController(access:access)
+        defer {model.cancel();try? app.identity.disconnect()}
+        let team:JSONValue = .object(["id":.string("retired"),"createdBy":.string(app.identity.npub),
+                                      "teamName":.string("Retired team"),"isCreator":.bool(true)])
+        let key=LiveTeamsPanelAccess.key(team)
+        let old=TeamsPanelSnapshot(teams:[team],rows:[key:[.object(["name":.string("Old peer")])]],loadingRows:[key])
+        access.stage=old
+        let read=Task{await model.reload(app)}
+        try await settle{access.finish != nil}
+        XCTAssertEqual(model.snapshot.teams,[team])
+        model.didRemove(team)
+        XCTAssertTrue(model.snapshot.teams.isEmpty)
+        let stage=try XCTUnwrap(access.receive)
+        await stage(old)
+        access.finish?.resume(returning:old)
+        access.finish=nil
+        await read.value
+        XCTAssertTrue(model.snapshot.teams.isEmpty)
+        XCTAssertNil(model.snapshot.rows[key])
+        XCTAssertFalse(model.snapshot.loadingRows.contains(key))
+    }
+
     func testInitialRosterAppearsWithCreatorRowBeforeMemberBatchAndFailureKeepsSourceFallback()async throws{
         let(app,_,_)=try context();let access=TeamStagedAccess(),model=TeamsPanelController(access:access);defer{model.cancel();try? app.identity.disconnect()}
         let own:JSONValue = .object(["id":.string("owned"),"createdBy":.string(app.identity.npub),"isCreator":.bool(true)]),joined:JSONValue = .object(["id":.string("joined"),"createdBy":.string("other")]),a=LiveTeamsPanelAccess.key(own),b=LiveTeamsPanelAccess.key(joined),row=LearningTeams.progressRow(member:app.identity.npub,data:LearningTeams.snapshot(app.learner),creator:true)

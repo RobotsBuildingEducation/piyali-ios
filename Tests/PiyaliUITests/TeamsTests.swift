@@ -24,21 +24,20 @@ import NostrSDK
         continueAfterFailure=false
         let relay=LocalNostrRelay();defer{relay.stop()};var events:[[String:Any]]=[]
         let readLock=NSLock()
-        var renameReadOutage=false, testedRenameOutage=false
+        var readOutage:String?
         try await relay.start{frame,connection in
             if frame.first as? String == "REQ",let sub=frame[1] as? String {
-                if readLock.withLock({renameReadOutage}) {
-                    relay.send(["CLOSED",sub,"error: simulated read outage after rename"],to:connection)
+                if readLock.withLock({readOutage != nil}) {
+                    relay.send(["CLOSED",sub,"error: simulated read outage after a signed write"],to:connection)
                 } else {
                     for event in events { relay.send(["EVENT",sub,event],to:connection) }
                     relay.send(["EOSE",sub],to:connection)
                 }
             } else if frame.first as? String == "EVENT",let event=frame[1] as? [String:Any],let id=event["id"] as? String {
                 events.append(event)
-                if !arabic,(event["tags"] as? [[String]])?.contains(["name","Evening"]) == true {
-                    readLock.withLock {
-                        if !testedRenameOutage { renameReadOutage=true; testedRenameOutage=true }
-                    }
+                if !arabic,let tags=event["tags"] as? [[String]],tags.contains(["name","Evening"]) {
+                    let mutation=tags.contains(["deleted"]) ? "delete" : tags.filter{$0.first == "p"}.count == 3 ? "add":"rename"
+                    readLock.withLock { readOutage=mutation }
                 }
                 relay.send(["OK",id,true,""],to:connection)
             }
@@ -58,24 +57,52 @@ import NostrSDK
         tap("teamRename",app)
         let renamed=XCTNSPredicateExpectation(predicate:NSPredicate(format:"label == %@","Evening"),object:card)
         XCTAssertEqual(XCTWaiter.wait(for:[renamed],timeout:5),.completed)
+        let owner=try XCTUnwrap(app.buttons["teamsCopyID"].value as? String)
+        let url=try XCTUnwrap(URL(string:"http://127.0.0.1:8180/v1/projects/demo-piyali-ios/databases/(default)/documents/users/\(owner)/teams"))
+        func teamDocuments() async throws -> [[String:Any]] {
+            let (data,response)=try await URLSession.shared.data(from:url)
+            XCTAssertEqual((response as? HTTPURLResponse)?.statusCode,200)
+            let result=try XCTUnwrap(JSONSerialization.jsonObject(with:data) as? [String:Any])
+            return result["documents"] as? [[String:Any]] ?? []
+        }
         if !arabic {
-            XCTAssertTrue(readLock.withLock{renameReadOutage})
+            XCTAssertEqual(readLock.withLock{readOutage},"rename")
             XCTAssertFalse(app.otherElements["teamEditor"].exists)
             XCTAssertTrue(app.staticTexts["Team renamed"].waitForExistence(timeout:4))
-            let owner=try XCTUnwrap(app.buttons["teamsCopyID"].value as? String)
-            let url=try XCTUnwrap(URL(string:"http://127.0.0.1:8180/v1/projects/demo-piyali-ios/databases/(default)/documents/users/\(owner)/teams"))
-            let (data,_)=try await URLSession.shared.data(from:url)
-            let response=try XCTUnwrap(JSONSerialization.jsonObject(with:data) as? [String:Any])
-            let fields=(response["documents"] as? [[String:Any]])?.first?["fields"] as? [String:Any]
+            let fields=try await teamDocuments().first?["fields"] as? [String:Any]
             XCTAssertEqual((fields?["teamName"] as? [String:String])?["stringValue"],"Evening")
             shot("Native acknowledged rename while relay reads were offline",app)
-            readLock.withLock { renameReadOutage=false }
+            readLock.withLock { readOutage=nil }
         }
         tap("teamAddOpen",app);enter("npub1ccz8l9zpa47k6vz9gphftsrumpw80rjt3nhnefat4symjhrsnmjs38mnyd","teamMembers",app);tap("teamAdd",app);XCTAssertTrue(app.buttons["learningTeamRow"].waitForExistence(timeout:15));XCTAssertEqual(app.buttons["learningTeamRow"].label,"Evening")
         let addClosed=XCTNSPredicateExpectation(predicate:NSPredicate(format:"exists == false"),object:app.otherElements["teamEditor"])
         XCTAssertEqual(XCTWaiter.wait(for:[addClosed],timeout:10),.completed)
+        if !arabic {
+            XCTAssertEqual(readLock.withLock{readOutage},"add")
+            XCTAssertTrue(app.staticTexts["Member added"].waitForExistence(timeout:4))
+            let fields=try await teamDocuments().first?["fields"] as? [String:Any]
+            let members=fields?["members"] as? [String:[String:[[String:Any]]]]
+            XCTAssertEqual(members?["arrayValue"]?["values"]?.count,2)
+            let misleadingNotice=app.staticTexts.matching(NSPredicate(format:"label CONTAINS %@","No Nostr relay completed")).firstMatch
+            XCTAssertFalse(misleadingNotice.waitForExistence(timeout:2))
+            shot("Native acknowledged member addition during relay outage",app)
+            readLock.withLock{readOutage=nil}
+        }
         app.terminate();app.launch();handleInitialPaperPencil(app);open(app);if arabic{XCTAssertGreaterThan(app.buttons["teamCreateOpen"].frame.midX,app.buttons["teamsCopyID"].frame.midX)};XCTAssertTrue(app.buttons["learningTeamRow"].waitForExistence(timeout:20));XCTAssertEqual(app.buttons["learningTeamRow"].label,"Evening");shot("Native Teams restored product",app)
-        reveal("teamRemove",app).tap();let remove=app.sheets.buttons["Delete team"];XCTAssertTrue(remove.waitForExistence(timeout:5));remove.tap();XCTAssertTrue(app.staticTexts["My teams (0)"].waitForExistence(timeout:20));app.terminate();app.launch();handleInitialPaperPencil(app);open(app);if arabic{XCTAssertGreaterThan(app.buttons["teamCreateOpen"].frame.midX,app.buttons["teamsCopyID"].frame.midX)};XCTAssertTrue(app.staticTexts["My teams (0)"].waitForExistence(timeout:20));tap("teamsFeedTab",app);XCTAssertTrue(app.staticTexts["No posts yet. Start the conversation!"].waitForExistence(timeout:10));shot("Native Teams feed product",app)
+        reveal("teamRemove",app).tap()
+        let remove=app.sheets.buttons["Delete team"]
+        XCTAssertTrue(remove.waitForExistence(timeout:5))
+        remove.tap()
+        XCTAssertTrue(app.staticTexts["My teams (0)"].waitForExistence(timeout:10))
+        if !arabic {
+            XCTAssertEqual(readLock.withLock{readOutage},"delete")
+            XCTAssertTrue(app.staticTexts["Team deleted"].waitForExistence(timeout:4))
+            let deleted=try await teamDocuments()
+            XCTAssertTrue(deleted.isEmpty)
+            shot("Native acknowledged team deletion during relay outage",app)
+            readLock.withLock{readOutage=nil}
+        }
+        app.terminate();app.launch();handleInitialPaperPencil(app);open(app);if arabic{XCTAssertGreaterThan(app.buttons["teamCreateOpen"].frame.midX,app.buttons["teamsCopyID"].frame.midX)};XCTAssertTrue(app.staticTexts["My teams (0)"].waitForExistence(timeout:20));tap("teamsFeedTab",app);XCTAssertTrue(app.staticTexts["No posts yet. Start the conversation!"].waitForExistence(timeout:10));shot("Native Teams feed product",app)
         let published=relay.frames().filter{$0.first as? String == "EVENT"}.compactMap{$0[1] as? [String:Any]},rosters=published.filter{($0["tags"] as? [[String]])?.contains(where:{$0.first == "d" && $0.last?.hasPrefix("learning-team:")==true}) == true}
         XCTAssertEqual(rosters.count,4);XCTAssertTrue(rosters.allSatisfy{($0["kind"] as? Int)==30078 && ($0["sig"] as? String)?.count==128});XCTAssertTrue(published.contains{($0["tags"] as? [[String]])?.contains(["d","learning-progress"])==true})
     }

@@ -4,6 +4,75 @@ import NostrSDK
 @testable import Piyali
 
 @MainActor final class TeamsMirrorContractTests:XCTestCase {
+    func testAcknowledgedLeaveUpdatesFirestoreDuringOutageAndSurvivesAStaleRelayAfterRelaunch() async throws {
+        let env=ProcessInfo.processInfo.environment
+        guard env["PIYALI_OFFLINE_TESTS"] == "1",env["PIYALI_FIRESTORE_EMULATOR_TESTS"] == "1",
+              UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Isolated Firestore emulator required")}
+        let db=PrivateTeamTestDatabase.database(),mirror=TeamsMirrorService(database:db)
+        let app=AppModel(),creator=IdentityService(),relay=LocalNostrRelay(),lock=NSLock()
+        try app.identity.create()
+        try creator.create()
+        app.signedIn=true
+        let directory=FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer {
+            relay.stop()
+            app.signOut()
+            try? creator.disconnect()
+            try? FileManager.default.removeItem(at:directory)
+        }
+        let teamID=UUID().uuidString.lowercased(),creatorKey=creator.hex
+        let tags=[["d",LearningTeams.teamIdentifier(teamID)],["t","learning-team"],["name","Review group"],
+                  ["p",creatorKey],["p",app.identity.hex]]
+        var offered=[try creator.sign(kind:LearningTeams.kind,tags:tags,content:"{}",createdAt:100)]
+        var readOutage=false
+        try await relay.start{frame,connection in
+            if frame.first as? String == "REQ",let id=frame[1] as? String{
+                let (offline,events)=lock.withLock{(readOutage,offered)}
+                if offline{relay.send(["CLOSED",id,"error: read outage"],to:connection)}
+                else {
+                    for event in events{relay.send(["EVENT",id,wireEvent(event)],to:connection)}
+                    relay.send(["EOSE",id],to:connection)
+                }
+            }else if frame.first as? String == "EVENT",let wire=frame[1] as? [String:Any],
+                     let data=try? JSONSerialization.data(withJSONObject:wire),
+                     let event=try? JSONDecoder().decode(NostrEventPayload.self,from:data) {
+                let accepted=IdentityService.verify(event) && event.tag("d") == LearningTeams.leaveIdentifier(creator:creatorKey,id:teamID)
+                if accepted{lock.withLock{readOutage=true}}
+                // The next relay view knows the old roster and hasn't indexed this leave.
+                relay.send(["OK",event.id,accepted,""],to:connection)
+            }
+        }
+        let client=NostrRelayClient(relays:[relay.url],timeout:.seconds(2))
+        let service=NostrTeamsService(client:client,cacheDirectory:directory)
+        let access=LiveTeamsPanelAccess(service:service,mirror:mirror,legacy:PrivateTeamsService(database:db))
+        try await mirror.create(id:teamID,name:"Review group",members:[app.identity.npub],creatorName:"Creator",identity:creator)
+        let initial=try await access.load(app)
+        let team=try XCTUnwrap(initial.teams.first)
+        XCTAssertFalse(team["isCreator"].boolean)
+        try await access.remove(team,app:app)
+        XCTAssertTrue(lock.withLock{readOutage})
+        XCTAssertTrue(service.teams.isEmpty)
+        let member=try await mirror.read(identity:app.identity)
+        XCTAssertTrue(member.invites.isEmpty)
+        XCTAssertTrue(member.joined.isEmpty)
+        let owner=try await mirror.read(identity:creator)
+        XCTAssertTrue(owner.owned.first?["members"].array.isEmpty == true)
+        let offline=try await access.load(app)
+        XCTAssertTrue(offline.teams.isEmpty)
+
+        lock.withLock{readOutage=false}
+        let relaunched=NostrTeamsService(client:client,cacheDirectory:directory)
+        await relaunched.refresh(identity:app.identity)
+        XCTAssertNil(relaunched.error)
+        XCTAssertTrue(relaunched.teams.isEmpty,"A stale roster cannot undo the acknowledged leave")
+        let reInvite=try creator.sign(kind:LearningTeams.kind,tags:tags,content:"{}",createdAt:Int64(Date().timeIntervalSince1970)+10)
+        lock.withLock{offered=[reInvite]}
+        await relaunched.refresh(identity:app.identity)
+        XCTAssertEqual(relaunched.teams.first?.teamID,teamID,"A newer signed roster can invite the member again")
+        XCTAssertEqual(relay.frames().filter{$0.first as? String == "EVENT"}.count,1)
+        try await mirror.delete(id:teamID,identity:creator)
+    }
+
     func testActualFirebaseSDKPublicMirrorCreationMembershipRenameAddsAndDeparture()async throws {
         let env=ProcessInfo.processInfo.environment;guard env["PIYALI_OFFLINE_TESTS"] == "1",env["PIYALI_FIRESTORE_EMULATOR_TESTS"] == "1",UUID(uuidString:env["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil else{throw XCTSkip("Isolated Firestore emulator opt-in required")}
         let db=PrivateTeamTestDatabase.database(),mirror=TeamsMirrorService(database:db),a=IdentityService(),b=IdentityService(),c=IdentityService();try a.create();try b.create();try c.create();defer{try? a.disconnect();try? b.disconnect();try? c.disconnect()};let id=UUID().uuidString.lowercased()
