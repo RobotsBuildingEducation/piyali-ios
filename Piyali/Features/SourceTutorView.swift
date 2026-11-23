@@ -28,6 +28,9 @@ struct SourceTutorView:View {
     private var earned:Int {tutor.earnedXP(app)}
     private var percent:Int {min(100,max(0,Int((Double(earned)/Double(max(1,tutor.required))*100).rounded())))}
     private var revision:String {"\(tutor.live.connected)|\(tutor.live.connecting)|\(tutor.live.muted)|\(tutor.paused)|\(tutor.loading)|\(tutor.saving)|\(tutor.completionPending)|\(tutor.id)"}
+    private var viewport:VoiceViewportPresentation {
+        .init(live:tutor.live,turn:.init(connected:tutor.live.connected && phase != .background,paused:tutor.paused,state:tutor.live.voiceState,replaying:replay.activeID != nil))
+    }
     private func t(_ key:String)->String {let value=EntryCopy.ui(app.learner.support,key);return value == key ? ["ra_you":"You"][key] ?? key:value}
     var body:some View {
         Group {if TutorSessionController.fixture {surface}else{SubscriptionRequiredView(service:app.subscription,preserveEarnedWork:tutor.completionPending || tutor.focus.flatMap{app.focusedTutorRun($0)}?.ready == true){surface}}}
@@ -39,7 +42,7 @@ struct SourceTutorView:View {
                 tutor.onCompletionPending={[weak app] active in app?.retainEarnedPractice(owner:owner,active:active,account:account,target:target,day:day);notify(active)}
                 tutor.onFocusedCompletion=focusedCompleted;await tutor.prepare(app)
             }
-            .activityFooter(owner:footerOwner,revision:revision,access:app.subscription,fixtureAllowed:TutorSessionController.fixture || tutor.completionPending) {ActivityFooterSurface(hasFeedback:false,feedback:{EmptyView()},actions:{controls})}
+            .activityFooter(owner:footerOwner,revision:revision,access:app.subscription,fixtureAllowed:TutorSessionController.fixture || tutor.completionPending,voiceViewport:viewport) {ActivityFooterSurface(hasFeedback:false,feedback:{EmptyView()},actions:{controls})}
             .onChange(of:app.learner.userSettings){_,_ in tutor.live.setOutputGain(app.learner.settingsSnapshot["tutorVolume"] == .null ? 1:app.learner.settingsSnapshot["tutorVolume"].number)}
             .onChange(of:app.learner.tutorLessons){_,_ in tutor.refresh(app)}
             .onChange(of:phase){_,value in if value == .background{stop()}}
@@ -48,7 +51,11 @@ struct SourceTutorView:View {
             .sheet(isPresented:$historyOpen){history.presentationDetents([.large]).presentationDragIndicator(.visible)}
             .overlay {if !pathOpen{TutorCompletionFlow(tutor:tutor)}}
     }
-    private var surface:some View {
+    @ViewBuilder private var surface:some View {
+        if tutor.focus == nil { voiceContent }
+        else { voiceContent.voiceNavigationBackground(viewport) }
+    }
+    private var voiceContent:some View {
         ScrollView {
             VStack(spacing:4) {
                 header.padding(.horizontal,16)
@@ -64,7 +71,7 @@ struct SourceTutorView:View {
                 if let error=tutor.error ?? tutor.live.error ?? replay.error {VStack(alignment:.leading,spacing:12){Text(error).font(PiyaliBrand.productFont(13)).accessibilityIdentifier("tutorError");if tutor.completionPending {Button("Retry saving"){Task{await tutor.complete(app,ready:true)}}.accessibilityIdentifier("tutorRetrySaving")}}.padding(12).frame(maxWidth:.infinity,alignment:.leading).foregroundStyle(scheme == .dark ? PiyaliBrand.unitColor("fee2e2"):PiyaliBrand.unitColor("9b1c1c")).background(Color.red.opacity(0.08),in:RoundedRectangle(cornerRadius:8)).overlay{RoundedRectangle(cornerRadius:8).stroke(Color.red.opacity(0.38))}.padding(.horizontal,16)}
                 Color.clear.frame(height:app.activityFooterHeight+12)
             }.padding(.bottom,16).frame(maxWidth:672).frame(maxWidth:.infinity)
-        }.background(brand.background).foregroundStyle(brand.text).accessibilityIdentifier("tutorSurface")
+        }.foregroundStyle(brand.text).accessibilityIdentifier("tutorSurface")
     }
     private var header:some View {
         VStack(spacing:12){

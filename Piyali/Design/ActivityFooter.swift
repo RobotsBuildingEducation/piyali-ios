@@ -7,6 +7,7 @@ struct ActivityFooterPresentation {
     let content:AnyView
     var correct:Bool?=nil
     var tone:String?=nil
+    var voiceViewport:VoiceViewportPresentation?=nil
 }
 private struct ActivityFooterPublisher:ViewModifier {
     @EnvironmentObject var app:AppModel
@@ -16,26 +17,27 @@ private struct ActivityFooterPublisher:ViewModifier {
     let enabled:Bool
     let correct:Bool?
     let tone:String?
+    let voiceViewport:VoiceViewportPresentation?
     let owner:UUID
     let revision:String
     let footer:AnyView
     @State private var handledFeedback=false
     private var scope:String { app.identity.npub+":"+app.learner.target+":"+app.learner.support }
     func body(content:Content)->some View {
-        content.task(id:scope+":"+revision+":"+(colorScheme == .dark ? "dark":"light")+":"+String(access.hasAccess || fixtureAllowed)+":"+String(enabled)) {
+        content.task(id:scope+":"+revision+":"+(voiceViewport?.turn.rawValue ?? "")+":"+(colorScheme == .dark ? "dark":"light")+":"+String(access.hasAccess || fixtureAllowed)+":"+String(enabled)) {
             guard !Task.isCancelled else { return }
             guard enabled,app.signedIn,access.hasAccess || fixtureAllowed else {
                 if app.activityFooter?.owner == owner { app.activityFooter=nil };return
             }
-            app.activityFooter = .init(owner:owner,content:footer,correct:correct,tone:tone)
+            app.activityFooter = .init(owner:owner,content:footer,correct:correct,tone:tone,voiceViewport:voiceViewport)
             if correct == nil{handledFeedback=false}
             else if !handledFeedback{handledFeedback=true;if correct == false{app.showMemoryCapture()}}
         }.onDisappear { if app.activityFooter?.owner == owner { app.activityFooter=nil } }
     }
 }
 extension View {
-    func activityFooter<Footer:View>(owner:UUID,revision:String,access:SubscriptionService,fixtureAllowed:Bool=false,enabled:Bool=true,correct:Bool?=nil,tone:String?=nil,@ViewBuilder footer:()->Footer)->some View {
-        modifier(ActivityFooterPublisher(access:access,fixtureAllowed:fixtureAllowed,enabled:enabled,correct:correct,tone:tone,owner:owner,revision:revision,footer:AnyView(footer())))
+    func activityFooter<Footer:View>(owner:UUID,revision:String,access:SubscriptionService,fixtureAllowed:Bool=false,enabled:Bool=true,correct:Bool?=nil,tone:String?=nil,voiceViewport:VoiceViewportPresentation?=nil,@ViewBuilder footer:()->Footer)->some View {
+        modifier(ActivityFooterPublisher(access:access,fixtureAllowed:fixtureAllowed,enabled:enabled,correct:correct,tone:tone,voiceViewport:voiceViewport,owner:owner,revision:revision,footer:AnyView(footer())))
     }
 }
 private struct FeedbackHeight:PreferenceKey {

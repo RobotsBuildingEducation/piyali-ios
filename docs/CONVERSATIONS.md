@@ -207,3 +207,15 @@ The final iPhone journey kept the completed reply and the learner’s mute setti
 ![Original web and native iPhone after reselecting Conversation during a call](native/conversation-same-mode-20261123.jpg)
 
 The browser shows an open microphone. The iPhone uses the muted state and a scripted reply to check that the same call survives. The fixtures use different goal copy. The comparison verifies navigation and call continuity. Physical audio and wider visual calibration remain open.
+
+## Listening frame and speaking wash, November 23
+
+The original main route keeps its mint or blue perimeter visible while listening, including when the microphone is muted. Thinking and pause hide both voice effects. Speaking replaces the perimeter with a shallow, animated color wash, and an idle screen retains the warm or dark background grid. The original Tutor atmosphere browser fixture increased the dark perimeter from 3.6 to 4.4 CSS pixels as its scripted level rose, and reduced motion disabled the CSS transitions.
+
+Conversation and Tutor now share the native viewport renderer. It uses the existing microphone and playback level envelope, with a Canvas perimeter and the original speaking shader’s color and motion formulas ported to Metal. The renderer follows the active footer’s lesson or call, and reduced motion disables the turn fades and timed motion. The listening frame and color wash are decorative and leave the call controls reachable. The native main voice screens sit directly below the shared header so the iOS navigation background cannot obscure the color wash.
+
+Both browser themes passed the call-state check through listening, mute, thinking, speaking, pause, resume and end on the original main route. The first simulator run passed the controls but sample pixels identified an opaque iOS navigation background covering the speaking wash. The final iPhone run passed the two theme journeys, same-mode call continuity and first guided Tutor practice through relaunch in `/tmp/PiyaliVoiceViewportComposited-20261123.xcresult`. Pixel samples from both themes confirm a distinct edge during listening and mute, a speaking wash visible between the header and call body, and no sampled color change in the lower viewport during speaking.
+
+![Original web and native iPhone listening, paused, speaking, and muted viewports](native/voice-viewport-20261123.jpg)
+
+The captures use different scripted goals and audio levels. The iPhone reserves system status and Home areas, and the scripted iPhone signal produces a stronger blue rim and speaking wash. Physical speech response, sustained GPU performance, focused Tutor compositions, native reduced motion and the older iOS navigation fallback still need device coverage.

@@ -70,16 +70,27 @@ struct ProductShellView:View {
         get { focusedCourse?.context == practiceContext ? focusedCourse?.kind:nil }
         nonmutating set { focusedCourse=newValue.map { FocusedCourseRoute(kind:$0,context:practiceContext) } }
     }
+    private var standaloneVoice:Bool {
+        specialCourse == nil && (mode == .conversation || mode == .tutor)
+    }
     private var timerAwardKey:String {timer.session.account+":"+(timer.pending.first ?? "")+":"+timerAwardRevision.uuidString}
     private var shell:some View {
         ZStack(alignment:.bottom) {
-            BrandBackground()
+            if let voiceViewport=activityFooter?.voiceViewport,standaloneVoice || supportsVoiceNavigationBackground {
+                VoicePracticeBackground(presentation:voiceViewport).id(activityFooter?.owner)
+            } else {
+                BrandBackground()
+            }
             VStack(spacing:0) {
                 ProductTopBar(timer:timer,onGoal:{goalOpen=true},onTimer:{timer.load(account:app.identity.npub);timerOpen=true})
-                NavigationStack {
-                    surface.navigationBarTitleDisplayMode(.inline)
-                        .toolbar(mode == .path || mode == .focus || mode == .cards || mode == .phonics || mode == .tutor ? .hidden:.automatic,for:.navigationBar)
-                }.id(revision)
+                if standaloneVoice {
+                    surface.frame(maxWidth:.infinity,maxHeight:.infinity).id(revision)
+                } else {
+                    NavigationStack {
+                        surface.navigationBarTitleDisplayMode(.inline)
+                            .toolbar(mode == .path || mode == .focus || mode == .cards || mode == .phonics || mode == .tutor ? .hidden:.automatic,for:.navigationBar)
+                    }.id(revision)
+                }
             }.tint(PiyaliBrand.teal).blur(radius:menuOpen ? 8 : 0).allowsHitTesting(!menuOpen)
                 .safeAreaInset(edge:.bottom) { if activityFooter == nil,app.achievementUnlock.current == nil { menuButton(compact:false).padding(.bottom,10) } }
                 .overlay(alignment:.bottom) {
@@ -92,6 +103,9 @@ struct ProductShellView:View {
                     }
 
                 }
+            if let voiceViewport=activityFooter?.voiceViewport {
+                VoiceListeningRim(live:voiceViewport.live,visible:voiceViewport.turn == .listening).id(activityFooter?.owner)
+            }
             if menuOpen { menu }
         }.font(PiyaliBrand.productFont(16)).foregroundStyle(brand.text)
             .accessibilityElement(children:.contain).accessibilityHidden(app.tutorPath != nil || panel == .memory || panel == .settings || panel == .assistant || panel == .teams || panel == .achievements || app.journeyRecording != nil || app.flashcardSession != nil || app.goalCheck != nil || lessonCompletion != nil || firstRun.step != nil || goalOpen || timerOpen || timer.session.status == .finished || practice.visible != nil || practice.dailyGoalVisible != nil || app.scholarship.visible != nil)

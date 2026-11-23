@@ -105,12 +105,12 @@ struct ConversationView:View {
     private var allowed:Bool { app.subscription.hasAccess || conversation.fixture }
     var body:some View {
         Group { if conversation.fixture { content } else { SubscriptionRequiredView(service:app.subscription) { content } } }
-            .navigationTitle(t("course_conversation","Conversation")).navigationBarTitleDisplayMode(.inline)
+            .toolbar(.hidden,for:.navigationBar)
             .task(id:app.identity.sessionRevision.uuidString+":"+app.learner.target+":"+app.learner.support+":"+String(allowed)) {
                 active=false;resetArchive();replay.stop();connectionEpoch=UUID();conversation.cancel();stopStarter();paused=false;pausedReply="";pausedSpeech=nil;pauseWork=nil;showStarter=false
                 await live.stop(clearTranscript:true);guard !Task.isCancelled else { return };active=true;archivePrevious=visibleReply;await conversation.prepare(app)
             }
-            .activityFooter(owner:footerOwner,revision:footerRevision,access:app.subscription,fixtureAllowed:conversation.fixture) { ActivityFooterSurface(hasFeedback:false,feedback:{EmptyView()},actions:{controls}) }
+            .activityFooter(owner:footerOwner,revision:footerRevision,access:app.subscription,fixtureAllowed:conversation.fixture,voiceViewport:.init(live:live,turn:.init(connected:live.connected && scenePhase != .background,paused:paused,state:live.voiceState))) { ActivityFooterSurface(hasFeedback:false,feedback:{EmptyView()},actions:{controls}) }
             .onChange(of:scenePhase) { _,phase in if phase == .background { stop() } }
             .onChange(of:app.subscription.hasAccess) { _,access in if !access { stop() } }
             .onChange(of:draft.goal?.id) { _,_ in stopStarter();showStarter=false;Task { await live.updateConversation(app.learner.conversation,learner:app.learner) } }
@@ -140,7 +140,7 @@ struct ConversationView:View {
                 if let error=conversation.error ?? live.error ?? replay.error ?? starterError { Text(error).font(PiyaliBrand.productFont(13)).foregroundStyle(brand.questionError).padding(12).frame(maxWidth:.infinity,alignment:.leading).background(brand.surface,in:RoundedRectangle(cornerRadius:8)).padding(.horizontal,16).accessibilityIdentifier("conversationError") }
                 Color.clear.frame(height:app.activityFooterHeight+12)
             }.padding(.top,8).padding(.bottom,12).frame(maxWidth:672).frame(maxWidth:.infinity)
-        }.background(brand.background).foregroundStyle(brand.text)
+        }.foregroundStyle(brand.text)
             .overlay {if let archive {ConversationArchiveView(archive:archive,dark:scheme == .dark)}}
             .coordinateSpace(name:"conversationArchive")
     }

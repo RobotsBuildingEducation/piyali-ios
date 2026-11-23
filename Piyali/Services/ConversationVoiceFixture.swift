@@ -26,6 +26,7 @@ import Foundation
     private var resumeEmission:Task<Void,Never>?
     private var replyEmission:Task<Void,Never>?
     private let prefix=UUID().uuidString
+    private let viewportFixture=ProcessInfo.processInfo.environment["PIYALI_CONVERSATION_VIEWPORT_FIXTURE"] == "1"
     private var recordings:[String:NarrationRecording]=[:]
     func takeResponseRecording(_ id:String)->NarrationRecording? { recordings.removeValue(forKey:id) }
 
@@ -56,10 +57,14 @@ import Foundation
         return true
     }
     func setRemoteAudioEnabled(_ enabled:Bool) {}
+    func audioAmplitude(speaking:Bool) async -> Double {
+        guard viewportFixture else { return 0 }
+        return speaking ? 0.045 + 0.015 * sin(Date().timeIntervalSinceReferenceDate * 5) : 0.02
+    }
     func setMicrophoneEnabled(_ enabled:Bool) {
         microphone=enabled;emission?.cancel();emission=nil
         guard enabled,!closed,script.position < script.turns.count else { return }
-        let delay=script.position == 0 ? 2 : 5
+        let delay=viewportFixture ? 6 : script.position == 0 ? 2 : 5
         emission=Task { [weak self] in
             do { try await Task.sleep(for:.seconds(delay)) } catch { return }
             guard let self,!self.closed,self.microphone else { return }
@@ -71,7 +76,7 @@ import Foundation
             self.emit(["type":.string("response.created"),"response":.object(["id":.string(response)])])
             self.emit(["type":.string("conversation.item.input_audio_transcription.completed"),"item_id":.string(input),"transcript":.string(turn.0)])
             self.emit(["type":.string("output_audio_buffer.started")])
-            if ProcessInfo.processInfo.environment["PIYALI_CONVERSATION_LIVE_TRANSLATION_FIXTURE"] == "1",index == 0 {
+            if self.viewportFixture || ProcessInfo.processInfo.environment["PIYALI_CONVERSATION_LIVE_TRANSLATION_FIXTURE"] == "1",index == 0 {
                 self.script.position=self.script.turns.count;self.emit(["type":.string("response.output_audio_transcript.delta"),"response_id":.string(response),"delta":.string("Vamos a practicar")])
                 self.replyEmission=Task { [weak self] in
                     try? await Task.sleep(for:.seconds(8));guard !Task.isCancelled,let self,!self.closed else{return}

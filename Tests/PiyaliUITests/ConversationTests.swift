@@ -4,9 +4,11 @@ import XCTest
 @MainActor final class ConversationPlayTests:XCTestCase {
     private func tap(_ id:String,_ app:XCUIApplication) { let button=app.buttons[id];XCTAssertTrue(button.waitForExistence(timeout:15));XCTAssertTrue(button.isHittable);button.tap() }
     private func open(_ app:XCUIApplication) { tap("productMenu",app);tap("productModeMenu",app);tap("productMode-conversation",app);XCTAssertTrue(app.staticTexts["conversationGoal"].waitForExistence(timeout:15)) }
-    private func start(theme:String="light",partial:Bool=false,translationStream:Bool=false,liveTranslation:Bool=false,alignment:Bool=false,translationsHidden:Bool=false,replay:Bool=false,key:Keypair?=nil)->XCUIApplication {
+    private func start(theme:String="light",partial:Bool=false,translationStream:Bool=false,liveTranslation:Bool=false,alignment:Bool=false,translationsHidden:Bool=false,replay:Bool=false,key:Keypair?=nil,viewport:Bool=false)->XCUIApplication {
         continueAfterFailure=false
-        let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString;app.launchEnvironment["PIYALI_CONVERSATION_FIXTURE"]="1";if replay {app.launchEnvironment["PIYALI_CONVERSATION_REPLAY_FIXTURE"]="1"};if alignment {app.launchEnvironment["PIYALI_CONVERSATION_ALIGNMENT_FIXTURE"]="1"};if translationsHidden {app.launchEnvironment["PIYALI_CONVERSATION_TRANSLATIONS_HIDDEN_FIXTURE"]="1"};if partial {app.launchEnvironment["PIYALI_CONVERSATION_PARTIAL_FIXTURE"]="1"};if translationStream || liveTranslation {app.launchEnvironment["PIYALI_CONVERSATION_TRANSLATION_STREAM_FIXTURE"]="1"};if liveTranslation {app.launchEnvironment["PIYALI_CONVERSATION_LIVE_TRANSLATION_FIXTURE"]="1"};app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme",theme];app.launch();handleInitialPaperPencil(app)
+        let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString;app.launchEnvironment["PIYALI_CONVERSATION_FIXTURE"]="1";if replay {app.launchEnvironment["PIYALI_CONVERSATION_REPLAY_FIXTURE"]="1"};if alignment {app.launchEnvironment["PIYALI_CONVERSATION_ALIGNMENT_FIXTURE"]="1"};if translationsHidden {app.launchEnvironment["PIYALI_CONVERSATION_TRANSLATIONS_HIDDEN_FIXTURE"]="1"};if partial {app.launchEnvironment["PIYALI_CONVERSATION_PARTIAL_FIXTURE"]="1"};if translationStream || liveTranslation {app.launchEnvironment["PIYALI_CONVERSATION_TRANSLATION_STREAM_FIXTURE"]="1"};if liveTranslation {app.launchEnvironment["PIYALI_CONVERSATION_LIVE_TRANSLATION_FIXTURE"]="1"}
+        if viewport { app.launchEnvironment["PIYALI_CONVERSATION_VIEWPORT_FIXTURE"]="1" }
+        app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme",theme];app.launch();handleInitialPaperPencil(app)
         if let key {
             tap("entrySignIn",app)
             let secret=app.secureTextFields["entrySecret"]
@@ -65,6 +67,39 @@ import XCTest
         open(app)
         XCTAssertTrue(app.buttons["conversationStart"].waitForExistence(timeout:10))
         XCTAssertFalse(end.exists)
+    }
+    func testLightVoiceViewportTracksTheCall() { voiceViewportJourney(theme:"light") }
+    func testDarkVoiceViewportTracksTheCall() { voiceViewportJourney(theme:"dark") }
+    private func voiceViewportJourney(theme:String) {
+        let app=start(theme:theme,viewport:true)
+        let status=app.staticTexts["conversationVoiceStatus"]
+        func waitForStatus(_ value:String) {
+            let expected=XCTNSPredicateExpectation(predicate:NSPredicate(format:"label ==[c] %@",value),object:status)
+            XCTAssertEqual(XCTWaiter.wait(for:[expected],timeout:16),.completed,value)
+        }
+        func capture(_ state:String,settling:TimeInterval=0.90) {
+            let rendered=expectation(description:"Viewport transition settles")
+            DispatchQueue.main.asyncAfter(deadline:.now()+settling) { rendered.fulfill() }
+            wait(for:[rendered],timeout:settling+2)
+            photo("Native voice \(theme) \(state)",app)
+        }
+        tap("conversationStart",app)
+        waitForStatus("Listening")
+        capture("listening")
+        tap("conversationMute",app)
+        waitForStatus("Muted")
+        capture("muted")
+        tap("conversationMute",app)
+        waitForStatus("Speaking")
+        capture("speaking",settling:1.55)
+        waitForStatus("Listening")
+        tap("conversationPause",app)
+        waitForStatus("Paused")
+        capture("paused")
+        tap("conversationPause",app)
+        waitForStatus("Listening")
+        tap("conversationEnd",app)
+        XCTAssertTrue(app.buttons["conversationSummaryDone"].waitForExistence(timeout:12))
     }
     func testRecordedReplyReplaysFromTheConversationHistoryAndAfterRelaunch() {
         let app=start(replay:true)
