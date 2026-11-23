@@ -15,6 +15,25 @@ enum RPGPreparationFixture {
     static var useTutorialDialogue:Bool {
         useTutorialPlazaReplies && ProcessInfo.processInfo.environment["PIYALI_LEGACY_TUTORIAL_DIALOGUE"] == "1"
     }
+    static var useTutorialRecovery:Bool {
+        useTutorialPlazaReplies && ProcessInfo.processInfo.environment["PIYALI_LEGACY_TUTORIAL_RECOVERY"] == "1"
+    }
+    @MainActor private static var tutorialMapRequests=0
+    @MainActor static func tutorialRecoveryGemini(_ prompt:LegacyGamePrompt)async throws->String {
+        if prompt.text.contains("TUTORIAL MODE") { tutorialMapRequests+=1 }
+        if tutorialMapRequests == 1 {
+            if prompt.text.contains("TUTORIAL MODE") {
+                try await Task.sleep(for:.milliseconds(1800))
+                let data=try JSONSerialization.data(withJSONObject:[
+                    "mapWidth":18,"mapHeight":14,"mapData":Array(repeating:2,count:18*14),
+                    "playerStart":["x":3,"y":3],"npcs":[["name":"Ada","tx":4,"ty":4],["name":"Bruno","tx":8,"ty":6]],
+                ])
+                return String(decoding:data,as:UTF8.self)
+            }
+            return ""
+        }
+        throw URLError(.notConnectedToInternet)
+    }
     static func tutorialGeneratedMap()throws->String {
         let width=18,height=14
         var tiles=(0..<height).flatMap { y in

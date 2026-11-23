@@ -23,6 +23,12 @@ const plugin = {
   },
 };
 
+const tutor = await readFile(path.join(reference, "src/components/Tutor.jsx"), "utf8");
+const failureCopyStart = tutor.indexOf('en: "The game could not start. Please try again."');
+const failureCopyEnd = tutor.indexOf("\n          })", failureCopyStart);
+if (failureCopyStart < 0 || failureCopyEnd < failureCopyStart) throw Error("The localized game failure copy moved");
+const failureCopy = tutor.slice(failureCopyStart, failureCopyEnd);
+
 const rpg = await readFile(path.join(reference, "src/components/RPGGame/index.jsx"), "utf8");
 function between(start, end, after = 0) {
   const first = rpg.indexOf(start, after);
@@ -160,7 +166,15 @@ export function start(input) {
 }
 
 export function next() {
-  return JSON.stringify(result || (pending ? { prompt: pending.request.input } : {}));
+  return JSON.stringify(result || (pending ? {
+    prompt: pending.request.input,
+    generationConfig: pending.request.generationConfig,
+  } : {}));
+}
+
+export function failureMessage(language) {
+  const copy = { ${failureCopy} };
+  return copy[language] || copy.en;
 }
 
 export function reply(value, failed) {

@@ -1,5 +1,6 @@
 import Foundation
 import JavaScriptCore
+import FirebaseAILogic
 
 @MainActor final class ExplorationService:ObservableObject {
     @Published private(set) var library:ExplorationLibrary?
@@ -42,16 +43,22 @@ import JavaScriptCore
             #if DEBUG
             if RPGPreparationFixture.useTutorialDialogue { input=input.setting("testSeed",.number(8)) }
             #endif
+            let provider=app.ai.legacyGameProvider()
             var scenario=try await TutorialPlazaPolicy().generate(input) { prompt in
                 try self.valid(app,scope,version)
                 guard app.subscription.hasAccess else{throw CancellationError()}
                 #if DEBUG
-                if RPGPreparationFixture.useTutorialDialogue,prompt.contains("TUTORIAL MODE") {
-                    return try RPGPreparationFixture.tutorialGeneratedMap()
+                if !RPGPreparationFixture.useTutorialRecovery {
+                    if RPGPreparationFixture.useTutorialDialogue,prompt.text.contains("TUTORIAL MODE") {
+                        return try RPGPreparationFixture.tutorialGeneratedMap()
+                    }
+                    if RPGPreparationFixture.useTutorialPlazaReplies { return "{}" }
                 }
-                if RPGPreparationFixture.useTutorialPlazaReplies { return "{}" }
                 #endif
-                return try await app.ai.responsesText(prompt,maxOutputTokens:8192)
+                return try await provider.send(prompt) {
+                    try self.valid(app,scope,version)
+                    guard app.subscription.hasAccess else{throw CancellationError()}
+                }
             }
             try self.valid(app,scope,version)
             guard app.subscription.hasAccess,self.savedRun(app.learner) == nil else{return}
@@ -184,7 +191,7 @@ import JavaScriptCore
         if RPGPreparationFixture.useTutorialDialogue { return try await RPGPreparationFixture.tutorialDialogue(prompt) }
         if RPGPreparationFixture.useTutorialPlazaReplies { return "" }
         #endif
-        return try await app.ai.responsesText(prompt)
+        return try await app.ai.legacyGameProvider().send(.init(text:prompt))
     }
 
     func speak(_ answer:String,app:AppModel) async {
@@ -307,7 +314,11 @@ extension AIService {
         return (try? JSONDecoder().decode([TutorialDecoration].self,from:Data(raw.utf8))) ?? []
     }
 
-    func generate(_ input:JSONValue,respond:(String)async throws->String)async throws->ExplorationTemplate {
+    func failureMessage(_ language:String)->String? {
+        api.invokeMethod("failureMessage",withArguments:[language])?.toString()
+    }
+
+    func generate(_ input:JSONValue,respond:(LegacyGamePrompt)async throws->String)async throws->ExplorationTemplate {
         api.invokeMethod("start",withArguments:[input.canonicalJSON])
         var providerError:Error?
         var requests=0
@@ -331,7 +342,7 @@ extension AIService {
             requests+=1
             idlePolls=0
             do {
-                let response=try await respond(prompt)
+                let response=try await respond(.init(text:prompt,config:state["generationConfig"]))
                 try Task.checkCancellation()
                 api.invokeMethod("reply",withArguments:[response,false])
             } catch is CancellationError {
@@ -342,5 +353,70 @@ extension AIService {
             }
         }
         throw ExplorationFailure.invalidScenario
+    }
+}
+
+struct LegacyGamePrompt:Equatable {
+    let text:String
+    var config:JSONValue = .null
+
+    var thinkingBudget:Int {
+        let budget=config["thinkingConfig"]["thinkingBudget"]
+        return budget == .null ? 0 : Int(budget.number)
+    }
+    var temperature:Float? { config["temperature"] == .null ? nil : Float(config["temperature"].number) }
+    var mimeType:String? { config["responseMimeType"] == .null ? nil : config["responseMimeType"].string }
+}
+
+/// The web's unstructured game calls try Gemini first and use an empty
+/// response after both providers fail. That is the source generator's
+/// signal to build the playable local map and keep its original dialogue.
+@MainActor struct LegacyGameProvider {
+    typealias Request = (LegacyGamePrompt) async throws -> String
+    let gemini:Request?
+    let responses:Request
+
+    func send(_ prompt:LegacyGamePrompt,validate:() throws -> Void = { try Task.checkCancellation() })async throws->String {
+        try validate()
+        if let gemini {
+            do {
+                let reply=try await gemini(prompt)
+                try validate()
+                return reply
+            } catch is CancellationError { throw CancellationError() }
+            catch { try validate() }
+        }
+        do {
+            let reply=try await responses(prompt)
+            try validate()
+            return reply
+        } catch is CancellationError { throw CancellationError() }
+        catch {
+            try validate()
+            return ""
+        }
+    }
+}
+
+extension AIService {
+    func legacyGameProvider()->LegacyGameProvider {
+        #if DEBUG
+        if RPGPreparationFixture.useTutorialRecovery {
+            return .init(gemini:RPGPreparationFixture.tutorialRecoveryGemini,responses:{_ in throw URLError(.badServerResponse)})
+        }
+        #endif
+        let gemini:LegacyGameProvider.Request? = configuration.string("AIProvider") == "gemini" && FirebaseService.shared.configured ? { prompt in
+            let config=GenerationConfig(temperature:prompt.temperature,maxOutputTokens:8192,
+                                        responseMIMEType:prompt.mimeType,thinkingConfig:ThinkingConfig(thinkingBudget:prompt.thinkingBudget))
+            let model=FirebaseAI.firebaseAI(backend:self.configuration.geminiBackend())
+                .generativeModel(modelName:self.configuration.string("GeminiModel"),generationConfig:config)
+            var reply=""
+            for try await chunk in try model.generateContentStream(prompt.text) {
+                try Task.checkCancellation()
+                reply += chunk.text ?? ""
+            }
+            return reply
+        } : nil
+        return .init(gemini:gemini,responses:{ try await self.responsesText($0.text,maxOutputTokens:8192) })
     }
 }

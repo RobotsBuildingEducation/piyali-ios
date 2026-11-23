@@ -33,7 +33,7 @@ import XCTest
             let scenario=try await policy.generate(input) { prompt in
                 prompts+=1
                 if prompts == 1 {
-                    XCTAssertTrue(prompt.contains("TUTORIAL MODE"))
+                    XCTAssertTrue(prompt.text.contains("TUTORIAL MODE"))
                     if validWorld { return String(decoding:generated,as:UTF8.self) }
                 }
                 return "{}"
@@ -98,6 +98,55 @@ import XCTest
         let service=RPGService(cache:RPGPreparationCache(directory:directory),writer:{_ in calls+=1;return response});await service.prepare(app,lesson:lesson,episode:nil)
         let controller=GamePreparationController(service:service,wait:{_ in await withCheckedContinuation{release=$0}});controller.start(app,lesson:lesson);try await wait{release != nil};app.learner.rpgRuns?["es"]?.attempts=2;let latest=app.learner.rpgRuns?["es"];release?.resume();release=nil;try await wait{controller.ready};XCTAssertTrue(controller.commit(app));XCTAssertEqual(app.learner.rpgRuns?["es"],latest);XCTAssertEqual(calls,1);controller.cancel()
     }
+    func testLegacyProviderOutageBuildsOriginalLocalPlazaInProviderOrder()async throws {
+        let library=try ContentLibrary.load(IntroLibrary.self,name:"intro-es")
+        let lesson=try XCTUnwrap(library.units["Pre-A1"]?.lessons.first)
+        let input:JSONValue = .object(["lesson":try RPGPreparationPolicy.value(lesson),"target":.string("es"),
+                                        "support":.string("en"),"user":.object([:])])
+        var order:[String]=[]
+        var geminiPrompts:[LegacyGamePrompt]=[]
+        var responsesPrompts:[LegacyGamePrompt]=[]
+        let provider=LegacyGameProvider(gemini:{prompt in
+            order.append("gemini")
+            geminiPrompts.append(prompt)
+            throw URLError(.notConnectedToInternet)
+        },responses:{prompt in
+            order.append("responses")
+            responsesPrompts.append(prompt)
+            throw URLError(.badServerResponse)
+        })
+        let policy=try TutorialPlazaPolicy()
+        let scenario=try await policy.generate(input) { try await provider.send($0) }
+        XCTAssertEqual(scenario.id,"tutorialPlaza")
+        XCTAssertEqual(scenario.maps.first?.world.width,18)
+        XCTAssertEqual(scenario.maps.first?.world.height,14)
+        XCTAssertFalse(scenario.quest["steps"].array.isEmpty)
+        XCTAssertEqual(geminiPrompts,responsesPrompts)
+        XCTAssertEqual(order,geminiPrompts.flatMap { _ in ["gemini","responses"] })
+        XCTAssertTrue(geminiPrompts.first?.text.contains("TUTORIAL MODE") == true)
+        let localized=try XCTUnwrap(geminiPrompts.first { $0.mimeType == "application/json" })
+        XCTAssertEqual(localized.thinkingBudget,2048)
+        XCTAssertEqual(localized.temperature,1)
+        XCTAssertEqual(policy.failureMessage("es"),"El juego no pudo iniciar. Inténtalo de nuevo.")
+    }
+
+    func testLegacyProviderKeepsSuccessfulEmptyReplyAndRejectsStaleFallback()async throws {
+        var fallbackCalls=0
+        let empty=LegacyGameProvider(gemini:{_ in ""},responses:{_ in fallbackCalls+=1;return "Unexpected"})
+        let reply=try await empty.send(.init(text:""))
+        XCTAssertEqual(reply,"")
+        var current=true
+        let stale=LegacyGameProvider(gemini:{_ in
+            current=false
+            throw URLError(.notConnectedToInternet)
+        },responses:{_ in fallbackCalls+=1;return "Unexpected"})
+        do {
+            _=try await stale.send(.init(text:"")) { if !current { throw CancellationError() } }
+            XCTFail("The previous run should not continue")
+        } catch is CancellationError {}
+        XCTAssertEqual(fallbackCalls,0)
+    }
+
     func testTutorialWarmsBeforeGameStepAndOnlyThenStartsExploration()async throws{
         let app=try app();app.introLibrary=try ContentLibrary.load(IntroLibrary.self,name:"intro-es");let lesson=try XCTUnwrap(app.introLesson),directory=FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString);defer{try? app.identity.disconnect();try? FileManager.default.removeItem(at:directory)}
         var calls=0,delays=0,release:CheckedContinuation<Void,Never>?

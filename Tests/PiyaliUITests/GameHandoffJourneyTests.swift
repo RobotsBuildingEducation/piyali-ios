@@ -3,10 +3,11 @@ import XCTest
 @MainActor final class GameHandoffJourneyTests:XCTestCase {
     private func tap(_ id:String,_ app:XCUIApplication){let b=app.buttons[id];XCTAssertTrue(b.waitForExistence(timeout:15),id);for _ in 0..<10 where !b.isHittable{app.swipeUp(velocity:.slow)};XCTAssertTrue(b.isHittable,id);b.tap()}
     private func shot(_ name:String,_ app:XCUIApplication){let a=XCTAttachment(screenshot:app.screenshot());a.name=name;a.lifetime = .keepAlways;add(a)}
-    private func launch(_ support:String="en",prepared:String="prepared",failLibraryLoad:Bool=false,legacyTutorial:Bool=false,legacyDialogue:Bool=false)->XCUIApplication{
+    private func launch(_ support:String="en",prepared:String="prepared",failLibraryLoad:Bool=false,legacyTutorial:Bool=false,legacyDialogue:Bool=false,legacyRecovery:Bool=false)->XCUIApplication{
         let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_TUTOR_FIXTURE":"1","PIYALI_PRACTICE_FIXTURE":"delight:natural_or_weird","PIYALI_HEADLINE_FIXTURE":"failure","PIYALI_RPG_PREPARED_FIXTURE":prepared,"PIYALI_RPG_PREPARED_DELAY_MS":"10000","PIYALI_GAME_LOADER_SEED":"7","PIYALI_ENTRY_INITIAL_LANGUAGE":support,"PIYALI_ENTRY_INITIAL_THEME":support=="ar" ? "dark":"light"]
         if failLibraryLoad { app.launchEnvironment["PIYALI_RPG_FAIL_FIRST_LIBRARY_LOAD"]="1" }
         if legacyTutorial { app.launchEnvironment["PIYALI_LEGACY_TUTORIAL_FIXTURE"]="1" }
+        if legacyRecovery { app.launchEnvironment["PIYALI_LEGACY_TUTORIAL_RECOVERY"]="1" }
         if legacyDialogue {
             app.launchEnvironment["PIYALI_LEGACY_TUTORIAL_DIALOGUE"]="1"
             app.launchEnvironment["PIYALI_RPG_TRANSLATION_FIXTURE"]="stream"
@@ -54,6 +55,41 @@ import XCTest
         XCTAssertEqual(bonus.label,"+50")
         XCTAssertFalse(world.exists)
         shot("Native legacy game Skip reaches the introduction bonus",app)
+    }
+    func testLegacyTutorialRejectsUnplayableMapAndRetriesThroughProviderOutage() {
+        continueAfterFailure=false
+        let app=launch(prepared:"cache-only",failLibraryLoad:true,legacyTutorial:true,legacyRecovery:true)
+        mode("path",app)
+        tap("introLink",app)
+        tap("startLessonFromPreview",app)
+        for id in ["skipLessonActivity","skipLessonActivity","skipLessonActivity","skipLessonActivity","realtimeSkip"]{tap(id,app)}
+
+        let retry=app.buttons["retryIntroLegacyGame"],error=app.staticTexts["introLegacyGameError"]
+        let world=app.otherElements["explorationWorld"],bonus=app.staticTexts["lessonCompletionBonus"]
+        XCTAssertTrue(retry.waitForExistence(timeout:20))
+        XCTAssertEqual(retry.label,"Try again")
+        XCTAssertEqual(error.label,"The game could not start. Please try again.")
+        XCTAssertTrue(app.otherElements["gamePreparationWorld"].exists)
+        XCTAssertEqual(app.buttons["introStep-game"].value as? String,"Current")
+        XCTAssertEqual(app.buttons["introStep-vocabulary"].value as? String,"Completed")
+        XCTAssertTrue(app.buttons["skipIntroActivity"].isHittable)
+        XCTAssertTrue(retry.isHittable)
+        XCTAssertFalse(world.exists)
+        XCTAssertFalse(bonus.exists)
+        shot("Native legacy game rejected map and Retry",app)
+
+        retry.tap()
+        XCTAssertTrue(world.waitForExistence(timeout:15))
+        XCTAssertEqual(world.value as? String,"tutorialPlaza|3,3")
+        XCTAssertFalse(error.exists)
+        XCTAssertFalse(retry.exists)
+        XCTAssertFalse(bonus.exists)
+        awaitLegacyFullScreen(app)
+        XCTAssertEqual(world.value as? String,"tutorialPlaza|3,3")
+        shot("Native Greeting Plaza after both providers fail",app)
+        tap("skipIntroActivity",app)
+        XCTAssertTrue(bonus.waitForExistence(timeout:10))
+        XCTAssertEqual(bonus.label,"+50")
     }
     func testLegacyTutorialChoicesAndChapterDialogueLeadToEarnedCompletion()throws {
         continueAfterFailure=false

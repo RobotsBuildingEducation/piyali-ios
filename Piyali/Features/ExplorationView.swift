@@ -32,6 +32,7 @@ struct ExplorationView:View {
     private let embedded:Bool
     private let initialPanel:String
     private let onTutorialFinish:(()->Void)?
+    private static let startupCopy=try? TutorialPlazaPolicy()
 
     init(embedded:Bool=false,initialPanel:String="",tutorial:Lesson?=nil,onTutorialFinish:(()->Void)?=nil) {
         self.embedded=embedded
@@ -87,7 +88,7 @@ struct ExplorationView:View {
                 if value != .active { stop() }
                 else {
                     configureObjects();configureTranslations();startMusic();playDialogue()
-                    if service.tutorial != nil,run == nil { Task { await service.prepareTutorial(app) } }
+                    if service.tutorial != nil,run == nil,service.error == nil { Task { await service.prepareTutorial(app) } }
                 }
             }
             .onChange(of:app.subscription.hasAccess){_,allowed in if !allowed{stop()}else{configureObjects();configureTranslations()}}
@@ -119,14 +120,32 @@ struct ExplorationView:View {
         }.accessibilityHidden(panel == "help")}
     }
     private var tutorialPreparation:some View {
-        VStack(spacing:12) {
-            GamePreparationView(preparation:loadingController,support:app.learner.support,pet:pet,embedded:true,
-                                showsCancel:false,onCancel:{}).frame(maxHeight:440).clipShape(RoundedRectangle(cornerRadius:12))
-            if service.error != nil {
-                Button(EntryCopy.ui(app.learner.support,"practice_retry")) { Task { await service.prepareTutorial(app) } }
-                    .accessibilityIdentifier("retryIntroLegacyGame")
+        GamePreparationView(preparation:loadingController,support:app.learner.support,pet:pet,embedded:true,
+                            showsCancel:false,skipLabel:onTutorialFinish == nil ? nil : t("skip"),
+                            onCancel:{stop();onTutorialFinish?()})
+            .frame(maxHeight:440)
+            .overlay(alignment:.top) {
+                if service.error != nil {
+                    VStack(spacing:6) {
+                        Text(Self.startupCopy?.failureMessage(app.learner.support) ?? "The game could not start. Please try again.")
+                            .font(PiyaliBrand.productFont(14,600)).foregroundStyle(ink)
+                            .multilineTextAlignment(.center).accessibilityIdentifier("introLegacyGameError")
+                        Button {
+                            Task { await service.prepareTutorial(app) }
+                        } label: {
+                            Text(EntryCopy.ui(app.learner.support,"try_again"))
+                                .font(PiyaliBrand.productFont(14,700)).padding(.horizontal,12).frame(minHeight:44)
+                        }
+                        .buttonStyle(.bordered).tint(ink).accessibilityIdentifier("retryIntroLegacyGame")
+                    }
+                    .padding(12)
+                    .background(paper,in:RoundedRectangle(cornerRadius:12))
+                    .overlay { RoundedRectangle(cornerRadius:12).strokeBorder(border,lineWidth:2).allowsHitTesting(false) }
+                    .padding(.horizontal,12).padding(.top,76)
+                }
             }
-        }.padding(12)
+            .clipShape(RoundedRectangle(cornerRadius:12))
+            .padding(12)
     }
     private var selection:some View {
         ZStack(alignment:.topLeading){

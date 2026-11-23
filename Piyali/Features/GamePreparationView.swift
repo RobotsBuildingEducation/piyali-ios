@@ -8,12 +8,13 @@ struct GamePreparationView:View {
     let onCancel:()->Void
     var embedded=false
     var showsCancel=true
+    let skipLabel:String?
     var messageIndex:Int?
     var freezeAnimation=false
     @State private var sounds=PracticeSoundPlayer()
     @StateObject private var model:GameLoaderModel
     @State private var started=Date()
-    init(preparation:GamePreparationController,support:String,pet:String,seed:Double?=nil,model:GameLoaderModel?=nil,embedded:Bool=false,showsCancel:Bool=true,messageIndex:Int?=nil,freezeAnimation:Bool=false,onCancel:@escaping()->Void){self.preparation=preparation;self.onCancel=onCancel;self.embedded=embedded;self.showsCancel=showsCancel;self.messageIndex=messageIndex;self.freezeAnimation=freezeAnimation;_model=StateObject(wrappedValue:model ?? GameLoaderModel(seed:seed ?? Self.fixtureSeed ?? Date().timeIntervalSince1970*1000,support:support,pet:pet))}
+    init(preparation:GamePreparationController,support:String,pet:String,seed:Double?=nil,model:GameLoaderModel?=nil,embedded:Bool=false,showsCancel:Bool=true,skipLabel:String?=nil,messageIndex:Int?=nil,freezeAnimation:Bool=false,onCancel:@escaping()->Void){self.preparation=preparation;self.onCancel=onCancel;self.embedded=embedded;self.showsCancel=showsCancel;self.skipLabel=skipLabel;self.messageIndex=messageIndex;self.freezeAnimation=freezeAnimation;_model=StateObject(wrappedValue:model ?? GameLoaderModel(seed:seed ?? Self.fixtureSeed ?? Date().timeIntervalSince1970*1000,support:support,pet:pet))}
     private var light:Bool{scheme != .dark}
     private var panel:Color{PiyaliBrand.unitColor(light ? "fffaf1":"faf4e8").opacity(light ? 0.98:0.96)}
     private var border:Color{PiyaliBrand.unitColor(light ? "e0b474":"fbd38d").opacity(light ? 0.9:1)}
@@ -28,7 +29,17 @@ struct GamePreparationView:View {
                 VStack{TimelineView(.periodic(from:started,by:1.5)){context in
                     let messages=(try? model.policy?.run("copy",.object(["language":.string(app.learner.support)])))?.array.map(\.string) ?? []
                     HStack(spacing:12){GameLoaderMonoText(text:messages.isEmpty ? "" : messages[(messageIndex ?? max(0,Int(context.date.timeIntervalSince(started)/1.5)))%messages.count],color:PiyaliBrand.unitColor("bee3f8")).frame(maxWidth:.infinity,minHeight:24,alignment:.leading).accessibilityIdentifier("gamePreparationStatus")
-                        if showsCancel{Button(EntryCopy.ui(app.learner.support,"common_cancel"),action:onCancel).font(PiyaliBrand.font(14,600)).foregroundStyle((light ? PiyaliBrand.unitColor("2f261d"):.white).opacity(0.92)).padding(.horizontal,12).frame(height:32).accessibilityIdentifier("cancelGamePreparation")}
+                        if let skipLabel {
+                            Button(action:onCancel) {
+                                Text(skipLabel).font(PiyaliBrand.productFont(14,700)).foregroundStyle(.white)
+                                    .padding(.horizontal,13).frame(minHeight:36).contentShape(Rectangle())
+                                    .background(PiyaliBrand.unitColor("091022").opacity(0.70),in:RoundedRectangle(cornerRadius:8))
+                                    .overlay { RoundedRectangle(cornerRadius:8).strokeBorder(PiyaliBrand.unitColor("aac9ff").opacity(0.26)) }
+                                    .shadow(color:.black.opacity(0.24),radius:9,y:10)
+                            }.buttonStyle(.plain).accessibilityIdentifier("skipIntroActivity")
+                        } else if showsCancel {
+                            Button(EntryCopy.ui(app.learner.support,"common_cancel"),action:onCancel).font(PiyaliBrand.font(14,600)).foregroundStyle((light ? PiyaliBrand.unitColor("2f261d"):.white).opacity(0.92)).padding(.horizontal,12).frame(height:32).accessibilityIdentifier("cancelGamePreparation")
+                        }
                     }.padding(12).padding(.top,topInset).background(LinearGradient(colors:[Color(red:10/255,green:13/255,blue:27/255).opacity(0.96),Color(red:10/255,green:13/255,blue:27/255).opacity(0.72),.clear],startPoint:.top,endPoint:.bottom))
                 };Spacer()}.allowsHitTesting(true)
             }.ignoresSafeArea(.container,edges:embedded ? []:.all).background(PiyaliBrand.unitColor("08142b")).statusBarHidden(!embedded).interactiveDismissDisabled()

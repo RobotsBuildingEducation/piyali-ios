@@ -107,12 +107,12 @@ struct IntroTutorialView:View {
                 GeometryReader{geometry in
                     VStack(spacing:12){
                         GamePreparationView(preparation:gamePreparation,support:app.learner.support,pet:app.learner.effectiveCompanionType,embedded:true,showsCancel:false,onCancel:{}).environmentObject(app).frame(height:max(300,min(UIScreen.main.bounds.height*0.62,geometry.size.height-70))).clipShape(RoundedRectangle(cornerRadius:12)).padding(.horizontal,12).accessibilityElement(children:.contain).accessibilityIdentifier("introGamePreparation")
-                        if let error=gamePreparation.error{Text(error).font(PiyaliBrand.productFont(13)).foregroundStyle(.red);Button(EntryCopy.ui(app.learner.support,"practice_retry")){gamePreparation.cancel();gamePreparation.start(app,lesson:lesson);gamePreparation.reveal()}.accessibilityIdentifier("retryIntroGamePreparation")}
+                        if let error=gamePreparation.error{Text(error).font(PiyaliBrand.productFont(13)).foregroundStyle(.red);Button(EntryCopy.ui(app.learner.support,"try_again")){gamePreparation.cancel();gamePreparation.start(app,lesson:lesson);gamePreparation.reveal()}.accessibilityIdentifier("retryIntroGamePreparation")}
                         Spacer(minLength:0)
                     }
                 }
             }
-        }.activityFooter(owner:gameFooterOwner,revision:scope+":"+String(gamePresented)+":"+String(legacyRun != nil),access:app.subscription,enabled:!gamePresented && legacyRun == nil){ActivityFooterSurface(hasFeedback:false,feedback:{EmptyView()},actions:{Button(EntryCopy.ui(app.learner.support,"ra_btn_skip")){gamePreparation.cancel();advance("game",scope:scope)}.font(PiyaliBrand.productFont(14,600)).padding(.horizontal,8).frame(height:40).buttonStyle(.plain).accessibilityIdentifier("skipIntroActivity");Spacer(minLength:0)})}
+        }.activityFooter(owner:gameFooterOwner,revision:scope+":"+String(gamePresented)+":"+String(showLegacy),access:app.subscription,enabled:!gamePresented && !showLegacy){ActivityFooterSurface(hasFeedback:false,feedback:{EmptyView()},actions:{Button(EntryCopy.ui(app.learner.support,"ra_btn_skip")){gamePreparation.cancel();advance("game",scope:scope)}.font(PiyaliBrand.productFont(14,600)).padding(.horizontal,8).frame(height:40).buttonStyle(.plain).accessibilityIdentifier("skipIntroActivity");Spacer(minLength:0)})}
     }
     private func revealLegacyGame(scope:String)async {
         guard let id=legacyRevealID else { return }
