@@ -12,13 +12,14 @@ import XCTest
         XCTAssertTrue(element.waitForExistence(timeout:10));XCTAssertTrue(element.isHittable,app.debugDescription)
     }
     private func tap(_ id:String,_ app:XCUIApplication) { let button=app.buttons[id];reveal(button,app);button.tap() }
-    private func start(_ mode:String,role:Bool=false,failure:Bool=false,theme:String="light",delay:Bool=false,narration:Bool=false,speechDelay:Bool=false,denied:Bool=false,auto:Bool=false,stream:Bool=false,japanese:Bool=false,sourceStreamOutcome:String?=nil,sourceEpisodeOutcome:String?=nil,earlyEpisode:Bool=false)->XCUIApplication {
+    private func start(_ mode:String,role:Bool=false,failure:Bool=false,theme:String="light",delay:Bool=false,narration:Bool=false,speechDelay:Bool=false,denied:Bool=false,auto:Bool=false,stream:Bool=false,japanese:Bool=false,sourceStreamOutcome:String?=nil,sourceEpisodeOutcome:String?=nil,earlyEpisode:Bool=false,generationFailure:Bool=false)->XCUIApplication {
         continueAfterFailure=false
         let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString;app.launchEnvironment["PIYALI_STORY_FIXTURE"]=mode;app.launchEnvironment["PIYALI_PRACTICE_FIXTURE"]="delight:natural_or_weird";app.launchEnvironment["PIYALI_READING_FIXTURE"]="1";app.launchEnvironment["PIYALI_STORY_SPEECH_RESULTS"]="miss,pass,pass,pass"
         if narration{app.launchEnvironment["PIYALI_STORY_NARRATION_FIXTURE"]="1" };if speechDelay{app.launchEnvironment["PIYALI_STORY_SPEECH_OPEN_DELAY_MS"]="2000"};if denied{app.launchEnvironment["PIYALI_STORY_SPEECH_DENIED"]="1"};if auto{app.launchEnvironment["PIYALI_STORY_SPEECH_AUTOFINISH"]="1";app.launchEnvironment["PIYALI_STORY_SPEECH_RESULTS"]="pass"};if delay { app.launchEnvironment["PIYALI_STORY_GENERATION_DELAY_MS"]="8000" }
         if role { app.launchEnvironment["PIYALI_STORY_LEARNER_CAST"]="1" };if failure { app.launchEnvironment["PIYALI_STORY_AUDIO_FAIL_FIRST"]="1" }
         if stream { app.launchEnvironment["PIYALI_STORY_STREAM_FIXTURE"]="1" }
         if let sourceStreamOutcome {app.launchEnvironment["PIYALI_STORY_SOURCE_STREAM_FIXTURE"]=sourceStreamOutcome}
+        if generationFailure {app.launchEnvironment["PIYALI_STORY_GENERATION_FAIL_FIRST"]="1"}
         if earlyEpisode {app.launchEnvironment["PIYALI_STORY_EARLY_EPISODE_FIXTURE"]="1"}
         if let sourceEpisodeOutcome {app.launchEnvironment["PIYALI_STORY_SOURCE_EPISODE_FIXTURE"]=sourceEpisodeOutcome}
         if japanese {app.launchEnvironment["PIYALI_STORY_JAPANESE_FIXTURE"]="1";app.launchEnvironment["PIYALI_STORY_SPEECH_RESULTS"]="pass";app.launchEnvironment["PIYALI_PRACTICE_FIXTURE"]="delight:sentence_shapeshifter";app.launchEnvironment["PIYALI_WRITING_FIXTURE"]="1"}
@@ -26,7 +27,7 @@ import XCTest
         let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Story Learner");if app.buttons["entryKeyboardDone"].exists { app.buttons["entryKeyboardDone"].tap() };app.buttons["createAccount"].tap();handleInitialPaperPencil(app)
         XCTAssertTrue(app.buttons["startLearning"].waitForExistence(timeout:20));app.buttons["startLearning"].tap()
         if japanese {tap("productMenu",app);tap("productPanel-settings",app);tap("practiceLanguagePicker",app);tap("settingsLanguage-practice-ja",app);tap("productPanelClose",app)}
-        open(app,expectStory:!delay);return app
+        open(app,expectStory:!delay && !generationFailure);return app
     }
     private func open(_ app:XCUIApplication,expectStory:Bool=true) {
         XCTAssertTrue(app.buttons["productMenu"].waitForExistence(timeout:15));app.buttons["productMenu"].tap();app.buttons["productModeMenu"].tap();app.buttons["productMode-path"].tap()
@@ -162,6 +163,64 @@ import XCTest
         XCTAssertTrue(app.descendants(matching:.any).matching(identifier:"storyPendingSegment").firstMatch.waitForExistence(timeout:5));xp(0,app)
         XCUIDevice.shared.press(.home);app.activate()
         XCTAssertTrue(app.buttons["storyPlay"].waitForExistence(timeout:15),app.debugDescription);XCTAssertFalse(app.staticTexts["storyQuestion"].exists);xp(0,app)
+    }
+    func testRadioGenerationFailureRetriesAndCompletesWithoutExtraCredit() {
+        let app=start("radio",delay:true,narration:true,sourceEpisodeOutcome:"completed",generationFailure:true)
+        XCTAssertTrue(app.staticTexts["storyLoading"].waitForExistence(timeout:4))
+        XCTAssertTrue(app.buttons["skipLessonActivity"].isEnabled)
+        XCTAssertFalse(app.buttons["storyGenerationRetry"].exists)
+        photo("Native Radio preparing the story",app)
+
+        let error=app.staticTexts["storyGenerationError"]
+        XCTAssertTrue(error.waitForExistence(timeout:14))
+        XCTAssertEqual(error.label,"We couldn’t prepare this story. Please try again.")
+        XCTAssertFalse(app.staticTexts["storyLoading"].exists)
+        XCTAssertTrue(app.buttons["skipLessonActivity"].isEnabled)
+        xp(0,app)
+        photo("Native Radio generation failure and retry",app)
+        tap("storyGenerationRetry",app)
+        XCTAssertTrue(app.staticTexts["storyLoading"].waitForExistence(timeout:5))
+        XCTAssertFalse(error.exists)
+        tap("storyPlay",app)
+        XCTAssertTrue(app.staticTexts["storyQuestion"].waitForExistence(timeout:18))
+        option("Yes",app)
+        tap("storyCheck",app)
+        tap("storyNext",app)
+        XCTAssertTrue(app.staticTexts["realtimeGoal"].waitForExistence(timeout:20))
+        xp(6,app)
+        app.terminate()
+        app.launch()
+        open(app,expectStory:false)
+        XCTAssertTrue(app.staticTexts["realtimeGoal"].waitForExistence(timeout:15))
+        xp(6,app)
+    }
+    func testConversationGenerationFailureCanSkipWithoutCredit() {
+        let app=start("conversation",delay:true,generationFailure:true)
+        XCTAssertTrue(app.staticTexts["storyLoading"].waitForExistence(timeout:4))
+        photo("Native Conversation story preparation",app)
+        XCTAssertTrue(app.staticTexts["storyGenerationError"].waitForExistence(timeout:14))
+        photo("Native Conversation story generation failure",app)
+        tap("skipLessonActivity",app)
+        XCTAssertTrue(app.staticTexts["realtimeGoal"].waitForExistence(timeout:16))
+        XCTAssertFalse(app.buttons["storyGenerationRetry"].exists)
+        xp(0,app)
+    }
+    func testSpeakingCanSkipHeldRetryWithoutCredit() {
+        let app=start("speaking",delay:true,generationFailure:true)
+        XCTAssertTrue(app.staticTexts["storyLoading"].waitForExistence(timeout:4))
+        photo("Native Speak story preparation",app)
+        let error=app.staticTexts["storyGenerationError"]
+        XCTAssertTrue(error.waitForExistence(timeout:14))
+        photo("Native Speak story generation failure",app)
+        tap("storyGenerationRetry",app)
+        XCTAssertTrue(app.staticTexts["storyLoading"].waitForExistence(timeout:5))
+        XCTAssertFalse(error.exists)
+        XCTAssertFalse(app.buttons["storyRecord"].exists)
+        tap("skipLessonActivity",app)
+        XCTAssertTrue(app.staticTexts["realtimeGoal"].waitForExistence(timeout:16))
+        XCTAssertFalse(app.staticTexts["storyTarget"].exists)
+        XCTAssertFalse(app.buttons["storyRecord"].exists)
+        xp(0,app)
     }
     func testBackgroundedGenerationRestartsAndReturnsToExplicitRecording() {
         let app=start("speaking",delay:true)

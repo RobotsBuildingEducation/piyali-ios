@@ -10,6 +10,9 @@ import FirebaseAILogic
     private var generation=UUID()
     private var generationAccount:String?
     private var preparation:Task<Bool,Never>?
+    #if DEBUG
+    private var didFailFixtureGeneration=false
+    #endif
     struct Request { let mode:StoryMode;let lesson:Lesson?;let state:LearnerState;let level:String;let tutorial:Bool;let recent:[JSONValue];let unit:LearningUnit?;let account:String }
     private let writer:(@MainActor (Request) async throws->JSONValue)?
     init(writer:(@MainActor (Request) async throws->JSONValue)?=nil) { self.writer=writer }
@@ -100,6 +103,10 @@ import FirebaseAILogic
             if Self.fixtureMode != nil {
                 #if DEBUG
                 if let delay=Int(ProcessInfo.processInfo.environment["PIYALI_STORY_GENERATION_DELAY_MS"] ?? ""),(1...10_000).contains(delay) { try await Task.sleep(for:.milliseconds(delay)) }
+                if ProcessInfo.processInfo.environment["PIYALI_STORY_GENERATION_FAIL_FIRST"] == "1",!didFailFixtureGeneration {
+                    didFailFixtureGeneration=true
+                    throw StoryFailure.invalid
+                }
                 #endif
                 payload=try ContentLibrary.load(JSONValue.self,name:"story-test-episode")
                 #if DEBUG

@@ -44,7 +44,7 @@ struct StoryView:View {
     var body:some View {
         Group { if StoryService.fixtureMode != nil { activity } else { SubscriptionRequiredView(service:app.subscription,preserveEarnedWork:app.preserveEarnedGoalLesson(lesson)) { activity } } }
             .navigationTitle(embedded ? lesson?.title.localized(app.learner.support) ?? t("story") : t("story"))
-            .activityFooter(owner:footerOwner,revision:footerRevision,access:app.subscription,fixtureAllowed:StoryService.fixtureMode != nil,correct:feedbackCorrect) { footer }
+            .activityFooter(owner:footerOwner,revision:footerRevision,access:app.subscription,fixtureAllowed:StoryService.fixtureMode != nil,enabled:run != nil || onComplete != nil,correct:feedbackCorrect) { footer }
             .onChange(of:app.learner.settingsSnapshot["progress"]["voice"]){_,_ in stop()}
             .onChange(of:app.learner.name){_,_ in stop()}
             .task(id:scope) {
@@ -96,14 +96,36 @@ struct StoryView:View {
                                 if run.heard.contains(run.index),run.questionAvailable,let question=run.currentSegment?.question { checkpoint(run,question:question).id("story-question") }
                             }
                             if audio.phase == .failed || audio.previewError { Text(t("audioError")).font(PiyaliBrand.productFont(14)).foregroundStyle(brand.questionError).accessibilityIdentifier("storyAudioError") }
-                        } else { VStack(spacing:14) { ProgressView();Text(t("loading")).accessibilityIdentifier("storyLoading");Text(t("loadingSub")).font(PiyaliBrand.productFont(13)).foregroundStyle(brand.muted) }.frame(maxWidth:.infinity,minHeight:260) }
-                        if let error=service.error { Text(error).font(PiyaliBrand.productFont(14)).foregroundStyle(brand.questionError) }
+                        } else if service.error != nil {
+                            generationFailure
+                        } else {
+                            StoryPreparationSkeleton(mode:mode ?? .speaking,status:t("loading"))
+                        }
                         if let error=speech.recorder.error { Text(speechError(error)).font(PiyaliBrand.productFont(14)).foregroundStyle(brand.questionError).accessibilityIdentifier("storyRecordingError") }
                     }.padding(.horizontal,12).padding(.vertical,8).padding(.bottom,18).frame(maxWidth:760).frame(maxWidth:.infinity)
                 }.onChange(of:run?.index) { _,_ in withAnimation { reader.scrollTo("story-current",anchor:.top) };if let run { autoplaySentence(run) } }
                 Color.clear.frame(height:app.activityFooterHeight)
             }
         }.font(PiyaliBrand.productFont(16)).foregroundStyle(brand.text).background(brand.background)
+    }
+    private var generationFailure:some View {
+        VStack(spacing:16) {
+            Text(t("generationError")).font(PiyaliBrand.productFont(16,600))
+                .multilineTextAlignment(.center).fixedSize(horizontal:false,vertical:true)
+                .accessibilityIdentifier("storyGenerationError")
+                .onAppear { UIAccessibility.post(notification:.announcement,argument:t("generationError")) }
+            Button(t("retry")) {
+                if mode == .speaking { refresh += 1 }
+                else { newStory() }
+            }
+            .font(PiyaliBrand.productFont(16,600)).foregroundStyle(.white)
+            .padding(.horizontal,24).frame(minHeight:40)
+            .background(PiyaliBrand.unitColor("319795"),in:Capsule())
+            .shadow(color:PiyaliBrand.unitColor(brand.dark ? "284a51":"255b59"),radius:0,y:4)
+            .buttonStyle(.plain).accessibilityIdentifier("storyGenerationRetry")
+        }
+        .padding(.horizontal,16).frame(maxWidth:440)
+        .frame(maxWidth:.infinity,minHeight:mode == .speaking ? 320 : UIScreen.main.bounds.height*0.60)
     }
     private func title(_ run:StoryRun)->String {
         let prefixes=["sentence practice","practice","call","story",t("call"),t("practice"),t("story"),t("speaking")]
@@ -231,11 +253,7 @@ struct StoryView:View {
             if let run,(!service.busy || service.provisional != nil) {
                 if pendingSpeaking != nil {ProgressView().frame(maxWidth:.infinity,minHeight:40).accessibilityIdentifier("storyPendingAssessment")} else {primary(run)}
             }
-            else {
-                skip
-                if service.error != nil { Button(t("retry")) { refresh += 1 }.buttonStyle(ActivityPrimaryButtonStyle()).disabled(service.busy) }
-                else { ProgressView().frame(maxWidth:.infinity,minHeight:40) }
-            }
+            else { skip;Spacer(minLength:0) }
         })
     }
     @ViewBuilder private func primary(_ run:StoryRun)->some View {
@@ -263,7 +281,19 @@ struct StoryView:View {
             }
         }
     }
-    @ViewBuilder private var skip:some View { if let onComplete { Button(t("skip")) { stop();onComplete();if !embedded { dismiss() } }.font(PiyaliBrand.productFont(14,600)).foregroundStyle(brand.secondary).accessibilityIdentifier("skipLessonActivity") } }
+    @ViewBuilder private var skip:some View {
+        if let onComplete {
+            Button(t("skip")) {
+                stop()
+                service.cancel()
+                onComplete()
+                if !embedded { dismiss() }
+            }
+            .font(PiyaliBrand.productFont(14,600)).foregroundStyle(brand.text)
+            .padding(.horizontal,8).frame(minHeight:40).buttonStyle(.plain)
+            .accessibilityIdentifier("skipLessonActivity")
+        }
+    }
     private func update(_ change:(inout StoryRun)->Void) {
         guard hasAccess,let current=run else{return}
         if current.isProvisional == true {service.updateProvisional(current.id,change);return}
@@ -327,4 +357,167 @@ private struct StoryRadioSignal:View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     var active:Bool
     var body:some View { TimelineView(.animation(minimumInterval:0.08,paused:!active || reduceMotion)) { time in HStack(alignment:.center,spacing:4) { ForEach(0..<12,id:\.self) { index in RoundedRectangle(cornerRadius:2).fill(PiyaliBrand.teal.opacity(0.65)).frame(width:4,height:active && !reduceMotion ? 5+abs(sin(time.date.timeIntervalSinceReferenceDate*5+Double(index)))*23 : 5) } } } }
+}
+
+private struct StoryPreparationSkeleton:View {
+    let mode:StoryMode
+    let status:String
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.scenePhase) private var phase
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var started=Date()
+    private var brand:PiyaliBrand { .init(dark:scheme == .dark) }
+    private var muted:Color { PiyaliBrand.unitColor(brand.dark ? "182031":"efe4d5") }
+    private let teal=PiyaliBrand.unitColor("2dd4bf")
+    private let indigo=PiyaliBrand.unitColor("6366f1")
+
+    var body:some View {
+        let paused=reduceMotion || phase != .active
+        TimelineView(.animation(minimumInterval:1/20,paused:paused)) { clock in
+            let elapsed=paused ? 0:max(0,clock.date.timeIntervalSince(started))
+            let pulse=0.5-0.5*cos(.pi*elapsed/0.8)
+            VStack(alignment:.leading,spacing:16) {
+                HStack(spacing:8) {
+                    Text(status).font(PiyaliBrand.productFont(12,500)).foregroundStyle(brand.secondary)
+                        .accessibilityIdentifier("storyLoading")
+                    HStack(spacing:6) {
+                        ForEach(0..<3) { index in
+                            let time=max(0,elapsed-Double(index)*0.14)
+                            let lift=paused ? 0.5:0.5-0.5*cos(2 * .pi*time/0.9)
+                            Circle().fill(teal).frame(width:6,height:6)
+                                .opacity(0.28+0.72*lift).offset(y:-3*lift)
+                        }
+                    }.accessibilityHidden(true)
+                }
+                .frame(maxWidth:.infinity,minHeight:24).opacity(0.75)
+                placeholders(pulse).accessibilityHidden(true)
+            }
+        }
+    }
+
+    @ViewBuilder private func placeholders(_ pulse:Double)->some View {
+        let titleWidth:CGFloat=mode == .radio ? 180:mode == .conversation ? 200:220
+        VStack(alignment:.leading,spacing:20) {
+            block(width:titleWidth,height:22,radius:6,pulse:pulse)
+            switch mode {
+            case .radio:
+                radioPanel(pulse)
+                VStack(spacing:12) {
+                    transcript(right:false,avatar:32,name:50,main:0.90,detail:0.65,fill:brand.surface,pulse:pulse)
+                    transcript(right:true,avatar:32,name:40,main:0.85,detail:0.50,fill:teal.opacity(0.12),pulse:pulse)
+                }
+                quiz(prompt:0.65,pulse:pulse)
+            case .conversation:
+                VStack(spacing:16) {
+                    transcript(right:false,avatar:36,name:55,main:0.90,detail:0.60,fill:muted,pulse:pulse)
+                    transcript(right:true,avatar:36,name:45,main:0.85,detail:0.50,fill:indigo.opacity(0.12),pulse:pulse)
+                    transcript(right:false,avatar:36,name:60,main:0.95,detail:nil,fill:muted,pulse:pulse)
+                }.padding(20).background { card(radius:24) }
+                quiz(prompt:0.60,pulse:pulse)
+            case .speaking:
+                VStack(spacing:16) {
+                    transcript(right:false,avatar:36,name:60,main:0.85,detail:0.55,fill:teal.opacity(0.15),pulse:pulse)
+                    transcript(right:true,avatar:36,name:50,main:0.90,detail:0.60,fill:indigo.opacity(0.15),pulse:pulse)
+                }.padding(24).background { card(radius:20) }
+                block(width:160,height:56,radius:28,pulse:pulse)
+                    .padding(.top,16).frame(maxWidth:.infinity)
+            }
+        }
+    }
+
+    private func radioPanel(_ pulse:Double)->some View {
+        VStack(spacing:24) {
+            HStack {
+                block(width:88,height:22,radius:11,pulse:pulse)
+                Spacer()
+                block(width:64,height:18,radius:6,pulse:pulse)
+            }
+            HStack(spacing:8) {
+                ForEach([28,44,32,48,24,38,20],id:\.self) { height in
+                    Capsule().fill(teal.opacity(0.2+0.3*pulse)).frame(width:6,height:CGFloat(height))
+                }
+            }.frame(height:50)
+            HStack(spacing:12) {
+                block(width:36,height:36,radius:18,pulse:pulse)
+                VStack(alignment:.leading,spacing:6) {
+                    block(width:70,height:14,radius:2,pulse:pulse)
+                    block(width:45,height:10,radius:2,pulse:pulse)
+                }
+            }
+        }.padding(24).background {
+            RoundedRectangle(cornerRadius:24)
+                .fill(LinearGradient(colors:[brand.surface,muted],startPoint:.topLeading,endPoint:.bottomTrailing))
+                .overlay { RoundedRectangle(cornerRadius:24).strokeBorder(brand.border,lineWidth:1) }
+        }
+    }
+
+    private func transcript(right:Bool,avatar:CGFloat,name:CGFloat,main:CGFloat,
+                            detail:CGFloat?,fill:Color,pulse:Double)->some View {
+        let voice=mode == .speaking
+        let accent=right ? indigo:teal
+        let inset:CGFloat=voice ? 12:14
+        let voiceControl:CGFloat=voice ? 40:0
+        let detailHeight:CGFloat=detail == nil ? 0:20
+        return GeometryReader { geometry in
+            let available=geometry.size.width
+            let rowWidth=mode == .radio ? available*0.85:available
+            let limit:CGFloat=right ? 0.75:detail == nil ? 0.82:0.78
+            let maxBubbleWidth=mode == .radio && right ? name+2*inset:mode == .conversation ? rowWidth*limit:rowWidth
+            let width=max(0,min(rowWidth-avatar-12-voiceControl,maxBubbleWidth))
+            HStack(alignment:.top,spacing:12) {
+                if !right { speakerControls(avatar:avatar,pulse:pulse) }
+                VStack(alignment:.leading,spacing:6) {
+                    block(width:name,height:voice ? 14:12,radius:3,pulse:pulse).padding(.bottom,2)
+                    line(main,height:voice ? 18:16,pulse:pulse)
+                    if let detail { line(detail,height:14,pulse:pulse) }
+                }
+                .padding(inset)
+                .frame(width:width)
+                .background(fill,in:RoundedRectangle(cornerRadius:mode == .conversation ? 16:12))
+                .overlay(alignment:right ? .trailing:.leading) {
+                    if voice { Capsule().fill(accent.opacity(0.5)).frame(width:3) }
+                }
+                .overlay {
+                    if mode == .radio {
+                        RoundedRectangle(cornerRadius:12).stroke(right ? teal.opacity(0.25):brand.border)
+                    }
+                }
+                if right { speakerControls(avatar:avatar,pulse:pulse,reversed:true) }
+            }
+            .frame(maxWidth:.infinity,alignment:right ? .trailing:.leading)
+        }.frame(height:2*inset+(voice ? 40:36)+detailHeight)
+    }
+
+    private func speakerControls(avatar:CGFloat,pulse:Double,reversed:Bool=false)->some View {
+        HStack(alignment:.top,spacing:12) {
+            if reversed,mode == .speaking { block(width:28,height:28,radius:6,pulse:pulse).padding(.top,4) }
+            block(width:avatar,height:avatar,radius:avatar/2,pulse:pulse)
+            if !reversed,mode == .speaking { block(width:28,height:28,radius:6,pulse:pulse).padding(.top,4) }
+        }
+    }
+
+    private func quiz(prompt:CGFloat,pulse:Double)->some View {
+        VStack(spacing:10) {
+            line(prompt,height:18,pulse:pulse).padding(.bottom,6)
+            ForEach(0..<2) { _ in line(1,height:48,radius:12,pulse:pulse) }
+        }.padding(16).background { card(radius:24) }
+    }
+
+    private func block(width:CGFloat,height:CGFloat,radius:CGFloat,pulse:Double)->some View {
+        RoundedRectangle(cornerRadius:radius)
+            .fill(muted)
+            .overlay { RoundedRectangle(cornerRadius:radius).fill(brand.surface.opacity(pulse)) }
+            .frame(width:width,height:height)
+    }
+
+    private func line(_ fraction:CGFloat,height:CGFloat,radius:CGFloat=4,pulse:Double)->some View {
+        GeometryReader { geometry in
+            block(width:geometry.size.width*fraction,height:height,radius:radius,pulse:pulse)
+        }.frame(height:height)
+    }
+
+    private func card(radius:CGFloat)->some View {
+        RoundedRectangle(cornerRadius:radius).fill(brand.surface)
+            .overlay { RoundedRectangle(cornerRadius:radius).strokeBorder(brand.border,lineWidth:1) }
+    }
 }

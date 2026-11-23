@@ -113,3 +113,16 @@ After adding an account identity guard to the early handoff, the final isolated 
 ## Streamed checkpoint without an explanation, November 18
 
 At web revision `b269524d`, a Radio stream with the birthday question and its original choices still accepts “His mother” when the provider omits the explanation. The mounted web Story displayed “That’s right!”, reached 100%, and called its award and completion handlers once. The native simulator presented that question, advanced to the next lesson activity with 6 XP, and restored both after relaunch. The stream fixture covers omitted and explicit JSON null feedback using the source expression. Batch generation still requires an explanation. Seven Story stream tests and the isolated `StoryPlayTests/testRadioQuestionWithoutExplanationCanFinishAndRestoresItsReward` passed using fixture generation and narration.
+
+
+## Story loading, retry, and skip, November 23
+
+The original main route at `b269524d` ran from a fresh signup through placement and Lessons → Getting Started → Story. The test held the Speak stream, forced the provider and batch fallback to fail, and verified the localized error, Try again, a recovered sentence, and Skip to Chat. The original Radio and Conversation components ran the same loading, failure, and retry sequence with a public episode fixture. Each component requested a fresh stream on Retry and called Skip once. The web tests used an isolated Firestore and local provider responses.
+
+iPhone now shows three native preparation views with the source copy, colors and distinct placeholder layouts. Once the first usable content appears, the live Story replaces the placeholders. If generation fails before an episode appears, the loading view gives way to the localized alert and central Retry action. Speak retries the same practice. Radio and Conversation follow the source mode-selection rules for a new story. Embedded Skip stays available during preparation and on failure, and cancels pending generation before the next activity opens.
+
+The iPhone Radio journey followed a held request through failure, retry, the rescued checkpoint, one 6 XP award, and relaunch. The Conversation journey skipped from the failed state with zero XP. Speak skipped a held retry, and the existing background-and-return journey recovered back to explicit recording. These product checks used native lesson navigation with isolated generation and narration fixtures. Four simulator journeys passed in `/tmp/PiyaliStoryGenerationSurfaces-20261123.xcresult`. The final Radio, Conversation, and Speak reruns passed in `/tmp/PiyaliStoryGenerationSurfacesFinal-20261123.xcresult` after tightening Radio’s transcript placeholder and adding the accessibility announcement.
+
+The captures pair the original Speak introduction with the iPhone introduction. Radio and Conversation use the original web component and the native introduction. The top shell, status-bar insets, and scroll positions differ. Live model failures, physical audio and the remaining full-viewport language and accessibility checks are still open.
+
+![Web and iPhone Story preparation screens for Speak, Radio, and Conversation, followed by the Speak retry screen](native/story-generation-surfaces-20261123.jpg)
