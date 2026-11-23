@@ -41,3 +41,23 @@ An isolated export executes 569 original loader cases and reproduces all six out
 ## Remaining
 
 [Completion-time next-review preparation](UPCOMING_GAME_REVIEWS.md) and [authored recap/ordinary prepared replay](RPG_COMPLETION.md) have subsequent checkpoints. Wider interruption/modal combinations, complete prepared Tutor replay/celebration designs, exact transient text/transition motion, other locales/device/text sizes and physical audio/accessibility remain open. The subsequent [completion checkpoint](TUTOR_COMPLETION.md) corrects the path return, review/reward ordering and durable completed-game replay handling; wider modal combinations and fine presentation remain open. Legacy exploration/generation/search remains separate. This checkpoint does not complete the broader [functional/design parity goal](PARITY_AUDIT.md). The reference checkout and deployed Firebase/Cloudflare services remain unchanged.
+
+## Hard launch failure and legacy routing, November 23
+
+The original `/` game entry points at `b269524d` have three paths:
+
+- **Introduction.** A prepared authored scenario launches after the visible mini-map window. If the outer warm-up rejects and the game client loads, the Game tab mounts `GameRouter` without an authored scenario. The tutorial falls through to the legacy renderer, which automatically requests the configured tutorial scene, defaulting to `tutorialPlaza`. It retains Skip and advances the introduction on actual completion.
+- **Course Game Review.** The router selects authored content for a non-tutorial game lesson, including a launch without a pre-generated scenario. The outer preview failure clears its loading state and retains the preview. A rejected or malformed provider response inside the authored builder returns the original authored deck.
+- **Tutor.** The preview stops voice before preparing. A hard failure clears the loading phase, retains the selected preview and records a localized error. A subsequent Start game can retry the same lesson. The browser query override is explicitly a development harness.
+
+The source predicate was executed for the prepared introduction, ordinary Game Review, unprepared tutorial and query override. The source Tutor callback was executed with a failing scenario builder and successful retry in English and Arabic. It kept the same preview after failure, selected the lesson once after success and never restarted voice behind the preview.
+
+The unmodified web `/` route reached the Tutor preview, then crashed as the loading overlay rendered. `TutorGameReviewLoadingExperience` uses `Flex` without importing it. A second browser run supplied that import in the served module response and injected one hard scenario-builder failure, preserving the checkout. In that controlled run, the same preview returned with Start game enabled. The source error was mounted behind the preview. A second Start game opened the playable world with Inventory and cleared the error. This exercise used a disposable identity, the reference Firestore emulator and blocked external traffic.
+
+iPhone clears the failed preparation and leaves Start game available on the selected preview. It uses the original localized Tutor error. The native preview also shows that error next to its existing controls so it is readable while the background Tutor surface is covered. The legacy introduction handoff and its generated world and dialogue policies remain open.
+
+The final `/tmp/PiyaliTutorGameRecovery-20261123.xcresult` passed 11 tests, including eight preparation and ownership checks and three full simulator journeys. The new Arabic journey triggers one bundled library read failure from the normal Tutor preview, then uses Start game to open the world at 0/7 and returns to the path. The existing journeys verify Tutor voice stops, Cancel and saved-world resume, and the introduction’s inline loader and Skip.
+
+![Reference and iPhone Tutor preview and game after retry](native/tutor-game-launch-retry-20261123.jpg)
+
+The browser capture is English and light. The iPhone capture is Arabic and dark. The iPhone shows an inline error and uses the Back arrow in the started game. The browser displays a Skip label for that exit. A browser follow-up reached Tutor’s Lessons and Start controls after Skip and timed out waiting for the path modal. The native test returned to the path. Exit treatment and route ownership still need reconciliation, alongside comparison in the same locale and theme.

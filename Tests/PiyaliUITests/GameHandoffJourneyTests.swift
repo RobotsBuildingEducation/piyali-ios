@@ -3,8 +3,10 @@ import XCTest
 @MainActor final class GameHandoffJourneyTests:XCTestCase {
     private func tap(_ id:String,_ app:XCUIApplication){let b=app.buttons[id];XCTAssertTrue(b.waitForExistence(timeout:15),id);for _ in 0..<10 where !b.isHittable{app.swipeUp(velocity:.slow)};XCTAssertTrue(b.isHittable,id);b.tap()}
     private func shot(_ name:String,_ app:XCUIApplication){let a=XCTAttachment(screenshot:app.screenshot());a.name=name;a.lifetime = .keepAlways;add(a)}
-    private func launch(_ support:String="en",prepared:String="prepared")->XCUIApplication{
-        let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_TUTOR_FIXTURE":"1","PIYALI_PRACTICE_FIXTURE":"delight:natural_or_weird","PIYALI_HEADLINE_FIXTURE":"failure","PIYALI_RPG_PREPARED_FIXTURE":prepared,"PIYALI_RPG_PREPARED_DELAY_MS":"10000","PIYALI_GAME_LOADER_SEED":"7","PIYALI_ENTRY_INITIAL_LANGUAGE":support,"PIYALI_ENTRY_INITIAL_THEME":support=="ar" ? "dark":"light"];app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US"];app.launch();handleInitialPaperPencil(app);let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Handoff Learner");tap("entryKeyboardDone",app);tap("createAccount",app);handleInitialPaperPencil(app);tap("startLearning",app);tap("companionContinue",app);acknowledgePaperPencil(app);tap("gettingStartedGotIt",app);tap("placementNew",app);return app
+    private func launch(_ support:String="en",prepared:String="prepared",failLibraryLoad:Bool=false)->XCUIApplication{
+        let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_TUTOR_FIXTURE":"1","PIYALI_PRACTICE_FIXTURE":"delight:natural_or_weird","PIYALI_HEADLINE_FIXTURE":"failure","PIYALI_RPG_PREPARED_FIXTURE":prepared,"PIYALI_RPG_PREPARED_DELAY_MS":"10000","PIYALI_GAME_LOADER_SEED":"7","PIYALI_ENTRY_INITIAL_LANGUAGE":support,"PIYALI_ENTRY_INITIAL_THEME":support=="ar" ? "dark":"light"]
+        if failLibraryLoad { app.launchEnvironment["PIYALI_RPG_FAIL_FIRST_LIBRARY_LOAD"]="1" }
+        app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US"];app.launch();handleInitialPaperPencil(app);let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Handoff Learner");tap("entryKeyboardDone",app);tap("createAccount",app);handleInitialPaperPencil(app);tap("startLearning",app);tap("companionContinue",app);acknowledgePaperPencil(app);tap("gettingStartedGotIt",app);tap("placementNew",app);return app
     }
     private func mode(_ mode:String,_ app:XCUIApplication){tap("productMenu",app);tap("productModeMenu",app);tap("productMode-"+mode,app)}
     func testTutorialWarmsDuringEarlierStepsShowsPlayableLoaderAndCanSkip()throws{
@@ -17,6 +19,30 @@ import XCTest
         continueAfterFailure=false;let app=launch("ar");mode("tutor",app);tap("tutorStart",app);XCTAssertTrue(app.buttons["tutorMute"].waitForExistence(timeout:10));tap("tutorLessons",app);tap("tutorNode-lesson-tutorial-1",app);tap("tutorPreviewStart",app)
         let map=app.otherElements["gamePreparationWorld"];XCTAssertTrue(map.waitForExistence(timeout:8));let before=map.value as?String;map.swipeLeft(velocity:.slow);XCTAssertNotEqual(map.value as?String,before);shot("Native Tutor preview playable preparation Arabic",app);tap("cancelGamePreparation",app);XCTAssertTrue(app.buttons["tutorPathClose"].waitForExistence(timeout:8));XCTAssertFalse(app.otherElements["rpgWorld"].exists);tap("tutorPathClose",app);XCTAssertTrue(app.buttons["tutorStart"].waitForExistence(timeout:8));XCTAssertFalse(app.buttons["tutorMute"].exists)
         tap("tutorLessons",app);tap("tutorNode-lesson-tutorial-1",app);tap("tutorPreviewStart",app);XCTAssertTrue(map.waitForExistence(timeout:8));XCTAssertTrue(app.otherElements["rpgWorld"].waitForExistence(timeout:30));XCTAssertFalse(app.buttons["tutorMute"].exists);XCTAssertFalse(app.buttons["tutorCompletionContinue"].exists);shot("Native Tutor game handoff",app);tap("rpgBack",app);XCTAssertTrue(app.buttons["tutorPathClose"].waitForExistence(timeout:8));tap("tutorNode-lesson-tutorial-1",app);tap("tutorPreviewStart",app);XCTAssertTrue(app.otherElements["rpgWorld"].waitForExistence(timeout:20));shot("Native Tutor saved game resumes after preparation",app);tap("rpgBack",app)
+    }
+    func testTutorLibraryFailureKeepsThePreviewAndCanStartTheSameGameAgain(){
+        continueAfterFailure=false
+        let app=launch("ar",prepared:"cache-only",failLibraryLoad:true)
+        mode("tutor",app);tap("tutorStart",app)
+        XCTAssertTrue(app.buttons["tutorMute"].waitForExistence(timeout:10))
+        tap("tutorLessons",app);tap("tutorNode-lesson-tutorial-1",app);tap("tutorPreviewStart",app)
+        let error=app.staticTexts["tutorPreviewGameError"]
+        XCTAssertTrue(error.waitForExistence(timeout:15))
+        XCTAssertEqual(error.label,"ما قدرنا نبدأ اللعبة. جرّب مرة ثانية.")
+        XCTAssertTrue(app.buttons["tutorPreviewStart"].isEnabled)
+        XCTAssertFalse(app.otherElements["rpgWorld"].exists)
+        XCTAssertFalse(app.buttons["tutorCompletionContinue"].exists)
+        shot("Native Tutor hard preparation failure returns to the original preview",app)
+        tap("tutorPreviewStart",app)
+        XCTAssertTrue(app.otherElements["rpgWorld"].waitForExistence(timeout:30))
+        XCTAssertFalse(error.exists)
+        XCTAssertFalse(app.buttons["tutorMute"].exists)
+        XCTAssertFalse(app.buttons["tutorCompletionContinue"].exists)
+        let status=app.descendants(matching:.any)["rpgStatus"]
+        XCTAssertTrue(status.label.contains("0/7"))
+        shot("Native Tutor game starts from the unchanged preview after retry",app)
+        tap("rpgBack",app)
+        XCTAssertTrue(app.buttons["tutorPathClose"].waitForExistence(timeout:10))
     }
     func testTutorAuthoredGameCompletesThroughItsOwnBonusWithoutLessonCredit()throws{
         continueAfterFailure=false;let fixture=try JSONDecoder().decode(RPGPlayFixture.self,from:Data(contentsOf:try XCTUnwrap(Bundle(for:Self.self).url(forResource:"intro-play",withExtension:"json")))),app=launch(prepared:"cache-only");tap("openDailyGoal",app);let goal=app.textFields["dailyGoalDraft"];XCTAssertTrue(goal.waitForExistence(timeout:5));goal.tap();let old=goal.value as?String ?? "";goal.typeText(String(repeating:XCUIKeyboardKey.delete.rawValue,count:old.count)+"50");tap("dailyGoalSave",app);mode("tutor",app);tap("tutorLessons",app);tap("tutorNode-lesson-tutorial-1",app);tap("tutorPreviewStart",app);XCTAssertTrue(app.otherElements["gamePreparationWorld"].waitForExistence(timeout:8));XCTAssertTrue(app.otherElements["rpgWorld"].waitForExistence(timeout:20));XCTAssertFalse(app.buttons["tutorMute"].exists)

@@ -16,7 +16,14 @@ import Foundation
     func load(target:String)async {
         guard loadedTarget != target else{return};let token=generation,loadID=UUID();libraryLoadID=loadID;library=nil;loadedTarget="";busy=true;error=nil
         defer{if generation == token,libraryLoadID == loadID{busy=false}}
-        do{let loaded=try await Task.detached{try ContentLibrary.load(RPGLibrary.self,name:"rpg-"+target)}.value;guard generation == token,libraryLoadID == loadID,!Task.isCancelled else{return};library=loaded;loadedTarget=target}catch{if generation == token,libraryLoadID == loadID{self.error=error.localizedDescription}}
+        do {
+            #if DEBUG
+            try RPGPreparationFixture.checkLibraryLoad()
+            #endif
+            let loaded=try await Task.detached{try ContentLibrary.load(RPGLibrary.self,name:"rpg-"+target)}.value
+            guard generation == token,libraryLoadID == loadID,!Task.isCancelled else{return}
+            library=loaded;loadedTarget=target
+        } catch { if generation == token,libraryLoadID == loadID{self.error=error.localizedDescription} }
     }
     private func valid(_ app:AppModel,account:String,target:String,support:String,token:UUID)->Bool{app.identity.npub == account && app.learner.target == target && app.learner.support == support && token == generation && !Task.isCancelled}
     private func level(_ app:AppModel,lesson:Lesson?,tutor:Bool)->String{tutor ? (lesson?.cefrLevel ?? app.learner.tutorLevel):app.learner.level}

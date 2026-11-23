@@ -17,6 +17,7 @@ struct TutorSourcePathView:View {
     @State private var gameLoading=false
     @State private var gameLaunchID=UUID()
     @State private var stagedSelection:JSONValue?
+    @State private var gameStartFailed=false
     init(tutor:TutorSessionController,onClose:@escaping()->Void,initialPreview:JSONValue?=nil){self.tutor=tutor;self.onClose=onClose;_preview=State(initialValue:initialPreview)}
     private var brand:PiyaliBrand{.init(dark:scheme == .dark)}
     private var units:[JSONValue]{tutor.catalog[level].array}
@@ -36,7 +37,8 @@ struct TutorSourcePathView:View {
         }.task{level=app.learner.tutorLevel}.task(id:revision){guard !level.isEmpty else{return};statuses=tutor.path(app,level:level)["statuses"]}
             .onChange(of:app.learner.tutorLevel){_,value in if tutor.completionPending,preview == nil{level=value}}
             .onChange(of:gamePreparation.ready){_,ready in if ready{finishGamePreparation()}}
-            .onChange(of:gamePreparation.error){_,error in if let error,gameLoading{tutor.error=error;gameLoading=false;starting=false;gamePreparation.cancel()}}
+            .onChange(of:gamePreparation.error){_,error in if error != nil,gameLoading{failGamePreparation()}}
+            .onChange(of:preview) { _,_ in gameStartFailed=false }
             .onChange(of:gameScope){_,_ in if gameLoading{cancelGamePreparation()}}
             .onChange(of:app.subscription.hasAccess){_,allowed in if !allowed,gameLoading{cancelGamePreparation()}}
             .onDisappear{if game == nil{gamePreparation.cancel();gameLaunchID=UUID()}}
@@ -70,6 +72,16 @@ struct TutorSourcePathView:View {
             HStack(alignment:.top){VStack(alignment:.leading,spacing:8){HStack(spacing:12){Circle().fill(color).frame(width:16,height:16);Text(content["title"].string).font(PiyaliBrand.productFont(20,700))};Text(unit["title"].localized(support)).font(PiyaliBrand.productFont(14)).foregroundStyle(brand.secondary).padding(.leading,28)};Spacer(minLength:4);Button{preview=nil}label:{Image(systemName:"xmark").font(.system(size:14)).frame(width:24,height:24)}.disabled(starting).accessibilityLabel(tutor.pathCopy("close",support)).accessibilityIdentifier("tutorPreviewClose")}.padding(.horizontal,28).padding(.top,24).padding(.bottom,16).overlay(alignment:.bottom){brand.border.frame(height:1)}
             ScrollView{VStack(alignment:.leading,spacing:20){
                 Text(content["subtitle"].string).font(PiyaliBrand.productFont(14)).foregroundStyle(brand.secondary)
+                if gameStartFailed {
+                    Text(gameStartError)
+                        .font(PiyaliBrand.productFont(14,500))
+                        .foregroundStyle(PiyaliBrand.unitColor(scheme == .dark ? "fee2e2" : "9b1c1c"))
+                        .frame(maxWidth:.infinity,alignment:.leading)
+                        .padding(12)
+                        .background(scheme == .dark ? .white.opacity(0.06) : PiyaliBrand.unitColor("b42318").opacity(0.08),in:RoundedRectangle(cornerRadius:8))
+                        .overlay { RoundedRectangle(cornerRadius:8).strokeBorder(scheme == .dark ? .white.opacity(0.12) : PiyaliBrand.unitColor("b42318").opacity(0.38)) }
+                        .accessibilityIdentifier("tutorPreviewGameError")
+                }
                 VStack(spacing:0){Button{objectives.toggle()}label:{HStack(spacing:12){Text(tutor.copy("Lesson objectives",support)).font(PiyaliBrand.productFont(14,700));Spacer();Text("\(content["preview"].array.count)").font(PiyaliBrand.productFont(12,700)).padding(.horizontal,8).padding(.vertical,2).background(brand.border,in:Capsule());Image(systemName:objectives ? "chevron.up":"chevron.down").foregroundStyle(color)}.padding(.horizontal,20).padding(.vertical,16).contentShape(Rectangle())}.buttonStyle(.plain).accessibilityIdentifier("tutorPreviewObjectives").accessibilityValue(objectives ? "Expanded":"Collapsed");if objectives{ScrollView{VStack(alignment:.leading,spacing:16){ForEach(Array(content["preview"].array.enumerated()),id:\.offset){_,item in HStack(alignment:.top,spacing:12){Image(systemName:"checkmark").font(.system(size:14,weight:.semibold)).foregroundStyle(.white).frame(width:22,height:22).background(color,in:Circle());Text(item["label"].string).font(PiyaliBrand.productFont(14)).lineSpacing(3).foregroundStyle(brand.secondary)}}}.padding(.horizontal,20).padding(.top,16).padding(.bottom,20)}.frame(height:220)}}.background(brand.surface.opacity(scheme == .dark ? 0.6:0.62),in:RoundedRectangle(cornerRadius:12)).overlay{RoundedRectangle(cornerRadius:12).stroke(brand.border).allowsHitTesting(false)}
                 if locked {HStack(alignment:.top,spacing:12){Image(systemName:"lock");Text(tutor.copy("This lesson is locked. You can preview it now, then complete the earlier lessons to unlock it.",support)).font(PiyaliBrand.productFont(14)).lineSpacing(4)}.padding(16).background(brand.muted.opacity(0.1),in:RoundedRectangle(cornerRadius:12)).accessibilityIdentifier("tutorPreviewLocked")}
                 HStack(spacing:0){Image(systemName:lesson["isTutorial"].boolean ? "trophy":"chart.bar.xaxis").font(.system(size:18)).foregroundStyle(lesson["isTutorial"].boolean ? .white:Color.orange).frame(width:36,height:36).background(lesson["isTutorial"].boolean ? color:Color.orange.opacity(0.14),in:RoundedRectangle(cornerRadius:8)).padding(.trailing,12);Text(tutor.copy("XP required to complete",support)).font(PiyaliBrand.productFont(14,800));Spacer(minLength:12);Text("\(tutor.xpRequired(lesson)) XP").font(PiyaliBrand.productFont(16,900)).fixedSize()}.padding(16).background(brand.surface.opacity(0.72),in:RoundedRectangle(cornerRadius:12)).overlay{RoundedRectangle(cornerRadius:12).stroke(brand.border).allowsHitTesting(false)}
@@ -81,13 +93,23 @@ struct TutorSourcePathView:View {
         starting=true
         if content["launch"].string == "rpg_game"{
             gamePreparation.cancel();gameLaunchID=UUID();let token=gameLaunchID,scope=gameScope
-            stagedSelection=selected;gameLoading=true;tutor.error=nil
-            Task{await tutor.stop(app);guard token == gameLaunchID,gameLoading,scope == gameScope else{return};guard let lesson=TutorSessionController.decodeLesson(selected["lesson"])else{cancelGamePreparation();return};gamePreparation.start(app,lesson:lesson,tutor:true)}
+            stagedSelection=selected;gameLoading=true;gameStartFailed=false;tutor.error=nil
+            Task{await tutor.stop(app);guard token == gameLaunchID,gameLoading,scope == gameScope else{return};guard let lesson=TutorSessionController.decodeLesson(selected["lesson"])else{failGamePreparation();return};gamePreparation.start(app,lesson:lesson,tutor:true)}
         }else{
             Task{await tutor.stop(app);if app.learner.tutorLevel != level{app.setTutorLevel(level)};tutor.adoptLevel(app);tutor.select(app,lesson:selected["lesson"],unit:selected["unit"]);starting=false;preview=nil;onClose();await tutor.start(app)}
         }
     }
-    private func cancelGamePreparation(){gameLaunchID=UUID();gameLoading=false;starting=false;stagedSelection=nil;gamePreparation.cancel();preview=nil}
+    private var gameStartError:String { tutor.copy("The game could not start. Please try again.",support) }
+    private func stopGamePreparation(){
+        gameLaunchID=UUID();gameLoading=false;starting=false;stagedSelection=nil
+        gamePreparation.cancel()
+    }
+    private func failGamePreparation(){
+        stopGamePreparation()
+        tutor.error=gameStartError
+        gameStartFailed=true
+    }
+    private func cancelGamePreparation(){stopGamePreparation();preview=nil}
     private func finishGamePreparation(){
         guard gameLoading,let selected=stagedSelection,gamePreparation.commit(app)else{return}
         gameLoading=false;starting=false;stagedSelection=nil

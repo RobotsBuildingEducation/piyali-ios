@@ -3,6 +3,7 @@ import Foundation
 
 /// Explicit public provider fixtures for real UI journeys; no alternate renderer.
 enum RPGPreparationFixture {
+    @MainActor private static var didFailLibraryLoad=false
     private static var mode:String?{
         let e=ProcessInfo.processInfo.environment
         guard e["PIYALI_OFFLINE_TESTS"] == "1",e["PIYALI_LIVE_API_TESTS"] != "1",UUID(uuidString:e["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil,["prepared","cache-only"].contains(e["PIYALI_RPG_PREPARED_FIXTURE"] ?? "")else{return nil}
@@ -17,6 +18,11 @@ enum RPGPreparationFixture {
         guard mode != nil else{return nil}
         if let raw=ProcessInfo.processInfo.environment["PIYALI_RPG_SPEECH_DELAY_MS"],let milliseconds=Int(raw),(0...5000).contains(milliseconds){try await Task.sleep(for:.milliseconds(milliseconds))}
         return "```json\n{\"grade\":\"full\",\"reply\":\"¡Gracias por ayudar!\",\"tip\":\"\"}\n```"
+    }
+    @MainActor static func checkLibraryLoad()throws {
+        guard mode != nil,ProcessInfo.processInfo.environment["PIYALI_RPG_FAIL_FIRST_LIBRARY_LOAD"] == "1",!didFailLibraryLoad else{return}
+        didFailLibraryLoad=true
+        throw CocoaError(.fileReadNoSuchFile)
     }
 }
 #endif
