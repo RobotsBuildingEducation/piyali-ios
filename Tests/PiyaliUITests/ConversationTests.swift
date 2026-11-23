@@ -43,6 +43,29 @@ import XCTest
         tap("productPanelClose",app)
         XCTAssertTrue(app.staticTexts["todayFocusTitle"].waitForExistence(timeout:15))
     }
+    func testReselectingConversationKeepsTheLiveCallUntilChoosingAnotherMode() {
+        let app=start()
+        tap("conversationStart",app)
+        let end=app.buttons["conversationEnd"],mute=app.buttons["conversationMute"],reply=app.staticTexts["conversationLatestReply"]
+        XCTAssertTrue(end.waitForExistence(timeout:15))
+        XCTAssertTrue(reply.waitForExistence(timeout:15))
+        let words=reply.label
+        tap("conversationMute",app)
+        XCTAssertEqual(mute.label,"Unmute microphone")
+
+        tap("productMenu",app);tap("productModeMenu",app);tap("productMode-conversation",app)
+        XCTAssertTrue(end.waitForExistence(timeout:8))
+        XCTAssertEqual(mute.label,"Unmute microphone")
+        XCTAssertEqual(reply.label,words)
+        XCTAssertFalse(app.buttons["conversationStart"].exists)
+        photo("Native Conversation remains active after selecting its current mode",app)
+
+        tap("productMenu",app);tap("productModeMenu",app);tap("productMode-focus",app)
+        XCTAssertTrue(app.staticTexts["todayFocusTitle"].waitForExistence(timeout:15))
+        open(app)
+        XCTAssertTrue(app.buttons["conversationStart"].waitForExistence(timeout:10))
+        XCTAssertFalse(end.exists)
+    }
     func testRecordedReplyReplaysFromTheConversationHistoryAndAfterRelaunch() {
         let app=start(replay:true)
         XCTAssertFalse(app.buttons["conversationReplay"].exists)

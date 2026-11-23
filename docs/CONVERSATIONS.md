@@ -195,3 +195,15 @@ The simulator journey for a support-language switch verified that the old call e
 The current standalone web mode keeps its transcript in React state and stores individual audio blobs in IndexedDB for replay. The available Firestore settings and XP writes carry no standalone transcript. Switching accounts confirmed the transcript disappears on reload. The native persisted log is an iPhone addition. Tutor has its own saved lesson draft, which remains under Tutor and interoperability verification.
 
 ![Original web and native iPhone account and support-language transitions during Conversation](native/conversation-account-support-20261123.jpg)
+
+## Reselecting Conversation during a call, November 23
+
+The original main route kept the same peer and microphone track when the learner reselected Conversation through its mode menu. Choosing Today’s Focus then closed the peer and stopped the microphone. Chrome used the original product UI with isolated Firestore and scripted RTC. The baseline iPhone journey reproduced an unexpected call teardown after reselecting Conversation in `/tmp/PiyaliConversationSameModeBaseline-20261123.xcresult`.
+
+iPhone now dismisses the menu and keeps the standalone Conversation mounted when the learner selects its current mode. Selecting a different mode removes the Conversation view and ends the call. Explicit mode selection still exits guided practice.
+
+The final iPhone journey kept the completed reply and the learner’s mute setting after reselection. It went idle after switching to Today’s Focus and returning. The practice-language change journey also passed and kept the prior language’s saved history. Both journeys passed in `/tmp/PiyaliConversationSameModeFinal-20261123.xcresult`.
+
+![Original web and native iPhone after reselecting Conversation during a call](native/conversation-same-mode-20261123.jpg)
+
+The browser shows an open microphone. The iPhone uses the muted state and a scripted reply to check that the same call survives. The fixtures use different goal copy. The comparison verifies navigation and call continuity. Physical audio and wider visual calibration remain open.

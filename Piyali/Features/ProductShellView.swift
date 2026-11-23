@@ -394,7 +394,12 @@ struct ProductShellView:View {
         if value == .path,mode == .path,specialCourse == nil,!app.lessonActivityActive {
             menuOpen=false;lessonScrollRequest=UUID();return
         }
-        cancelPracticeLaunch();practice.cancel(app);specialCourse=nil;mode=value;menuOpen=false;lessonScrollRequest=nil;revision=UUID()
+        cancelPracticeLaunch()
+        practice.cancel(app)
+        menuOpen=false
+        // Choosing the current standalone Conversation keeps its live session mounted.
+        if value == .conversation,mode == value,specialCourse == nil { return }
+        specialCourse=nil;mode=value;lessonScrollRequest=nil;revision=UUID()
     }
     private func configurePractice(){
                 practice.onNavigate={openPlateCourse($0)}
