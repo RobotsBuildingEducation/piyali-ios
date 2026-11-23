@@ -79,7 +79,7 @@ struct JourneyRecordingView:View {
     private var n:Int{selected == 0 ? milestone:selected}
     private var brand:PiyaliBrand{.init(dark:scheme == .dark)}
     private var saved:Bool{VoiceJourneyModel.saved(journey.data,n)}
-    private var busy:Bool{recorder.starting || recorder.stopping || recorder.recording || journey.busy}
+    private var busy:Bool{recorder.starting || recorder.recording || journey.busy}
     private func t(_ key:String,_ number:Int?=nil)->String {MemoryUI.journey(app.learner.support,key,values:number.map{.object(["n":.number(Double($0))])} ?? .object([:]))}
     var body:some View {
         GeometryReader{geometry in ZStack{PiyaliBrand.unitColor(scheme == .dark ? "020617":"1c140c").opacity(scheme == .dark ? 0.92:0.82).ignoresSafeArea()
@@ -90,12 +90,47 @@ struct JourneyRecordingView:View {
                 SessionToolFlow(spacing:8){ForEach(VoiceJourneyModel.milestones,id:\.self){number in Button{recorder.clear();selected=number;if VoiceJourneyModel.saved(journey.data,number){Task{await journey.listen(number,app)}}}label:{HStack(spacing:3){if VoiceJourneyModel.saved(journey.data,number){Image(systemName:"checkmark").font(.system(size:10))};Text("\(number)")}.font(PiyaliBrand.productFont(12,700)).padding(.horizontal,11.5).frame(minWidth:36,minHeight:32).background(number == n ? PiyaliBrand.unitColor("14b8a6").opacity(0.08):.clear,in:Capsule()).overlay{Capsule().stroke(number == n ? PiyaliBrand.unitColor("319795"):brand.border,lineWidth:1.5)}}.disabled(number>VoiceJourneyModel.count(journey.data) || busy).opacity(number>VoiceJourneyModel.count(journey.data) ? 0.35:1)}}
                 if saved{VStack(alignment:.leading,spacing:12){Label(t("saved"),systemImage:"checkmark").font(PiyaliBrand.productFont(14,600));if let current=journey.current,journey.selected == n{JourneyAudioView(payload:current,label:t("ownVoice"),language:app.learner.support)}else if journey.busy{ProgressView()}else{Button(t("listen")){Task{await journey.listen(n,app)}}}}.memoryCard(padding:16,background:MemoryPaint.surface(scheme),border:brand.border,radius:12)}
                 else if let audio=recorder.draft{VStack(spacing:16){JourneyAudioView(payload:.object(["audio":.string(audio.base64EncodedString()),"mimeType":.string(recorder.mime),"duration":.number(recorder.seconds)]),label:t("preview"),language:app.learner.support);HStack(spacing:12){Button(t("again")){recorder.clear()}.buttonStyle(SessionToolButtonStyle(secondary:true));Button(t(journey.busy ? "saving":"save")){Task{if await journey.save(audio:audio,mime:recorder.mime,duration:recorder.seconds,prompt:t("prompt"),support:"independent",milestone:n,app:app){recorder.clear();await journey.listen(n,app)}}}.buttonStyle(JourneyButtonStyle(color:"319795",edge:"234e52")).disabled(journey.busy).accessibilityIdentifier("journeySave")}}.memoryCard(padding:16,background:MemoryPaint.surface(scheme),border:brand.border,radius:12)}
-                else{VStack(spacing:8){if recorder.recording{Text(t("recording",Int(ceil(recorder.seconds)))).font(PiyaliBrand.productFont(16,600)).foregroundStyle(.red)};Button{if recorder.recording{recorder.stop()}else{Task{await recorder.start()}}}label:{HStack{if recorder.starting || recorder.stopping{ProgressView()};Label{Text(t(recorder.recording ? "stop":"record"))}icon:{MemoryIcon(name:recorder.recording ? "stop":"mic",size:20)}}.frame(maxWidth:.infinity)}.buttonStyle(JourneyButtonStyle(color:recorder.recording ? "e53e3e":"00b5d8",edge:recorder.recording ? "822727":"086f83",large:true)).disabled(recorder.starting || recorder.stopping).accessibilityIdentifier("journeyCapture")}}
+                else{captureControl}
                 if let key=recorder.errorKey ?? journey.errorKey{Text(t(key)).font(PiyaliBrand.productFont(14)).foregroundStyle(.red)}
                 HStack{Button(t(saved ? "done":"later"),action:onClose).font(PiyaliBrand.productFont(14,600)).frame(minHeight:32).padding(.horizontal,12).accessibilityIdentifier("journeyRecordingClose");Spacer();Button(t("view"),action:onOpenJourney ?? onClose).font(PiyaliBrand.productFont(14,600)).underline()}.disabled(busy).padding(.top,12)
             }.padding(28)
             }.frame(maxWidth:.infinity).onGeometryChange(for:CGFloat.self,of:{$0.size.height}){height=$0}}.frame(height:min(height,geometry.size.height*0.9)).background(scheme == .dark ? brand.surface:PiyaliBrand.unitColor("fffdf9"),in:RoundedRectangle(cornerRadius:48)).overlay(alignment:.top){HStack{Spacer();Button(action:onClose){MemoryIcon(name:"close",size:20).frame(width:32,height:32)}.disabled(busy).padding(20).accessibilityLabel(t("done"))}.environment(\.layoutDirection,.leftToRight)}.overlay{RoundedRectangle(cornerRadius:48).strokeBorder(PiyaliBrand.unitColor(scheme == .dark ? "94a3b8":"604d38").opacity(scheme == .dark ? 0.42:0.3),lineWidth:3).allowsHitTesting(false)}.padding(.horizontal,16)
-        }.frame(width:geometry.size.width,height:geometry.size.height)}.foregroundStyle(brand.text).ignoresSafeArea(.container).buttonStyle(.plain).onDisappear{recorder.clear();journey.clearSelection()}.onChange(of:scenePhase){_,phase in if phase != .active{recorder.stop()}}.accessibilityElement(children:.contain).accessibilityIdentifier("journeyRecordingDialog")
+        }.frame(width:geometry.size.width,height:geometry.size.height)}.foregroundStyle(brand.text).ignoresSafeArea(.container).buttonStyle(.plain)
+            .onDisappear { recorder.clear(); journey.clearSelection() }
+            .onChange(of: scenePhase) { _, phase in
+                if phase == .background { recorder.interrupt() }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: AVAudioSession.interruptionNotification).receive(on: RunLoop.main)) {
+                recorder.audioSessionInterrupted($0)
+            }
+            .onReceive(NotificationCenter.default.publisher(for: AVAudioSession.routeChangeNotification).receive(on: RunLoop.main)) {
+                recorder.audioRouteChanged($0)
+            }
+            .accessibilityElement(children:.contain).accessibilityIdentifier("journeyRecordingDialog")
+    }
+
+    private var captureControl: some View {
+        VStack(spacing: 8) {
+            if recorder.recording {
+                Text(t("recording", Int(ceil(recorder.seconds))))
+                    .font(PiyaliBrand.productFont(16, 600)).foregroundStyle(.red)
+            }
+            Button {
+                if recorder.recording { recorder.stop() }
+                else { Task { await recorder.start() } }
+            } label: {
+                HStack {
+                    if recorder.starting { ProgressView() }
+                    Label { Text(t(recorder.recording ? "stop" : "record")) } icon: {
+                        MemoryIcon(name: recorder.recording ? "stop" : "mic", size: 20)
+                    }
+                }.frame(maxWidth: .infinity)
+            }
+            .buttonStyle(JourneyButtonStyle(color: recorder.recording ? "e53e3e" : "00b5d8",
+                                           edge: recorder.recording ? "822727" : "086f83", large: true))
+            .disabled(recorder.starting)
+            .accessibilityIdentifier("journeyCapture")
+        }
     }
 }
 @MainActor private final class JourneyPlayback:NSObject,ObservableObject,AVAudioPlayerDelegate {

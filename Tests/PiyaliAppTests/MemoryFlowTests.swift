@@ -1,6 +1,7 @@
 import XCTest
 import SwiftUI
 import WebKit
+import AVFoundation
 @testable import Piyali
 
 @MainActor final class MemoryFlowTests:XCTestCase {
@@ -8,6 +9,78 @@ import WebKit
         let e=ProcessInfo.processInfo.environment;guard e["PIYALI_OFFLINE_TESTS"] == "1",UUID(uuidString:e["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil,MemoryDrawerFixture.enabled else{throw XCTSkip("Isolated Memory fixture required")}
         let app=AppModel(progressService:progressService,memoryProvider:memoryProvider);try app.identity.create();app.signedIn=true;app.subscription.bind(app.identity);app.learner=LearnerState();app.learner.onboardingComplete=true;MemoryDrawerFixture.seed(app);return app
     }
+    func testJourneyInterruptionFinalizesOnePrivatePreviewWithoutWaitingForADelegate() async throws {
+        guard MemoryDrawerFixture.enabled else { throw XCTSkip("Isolated Journey audio fixture required") }
+        let temp = FileManager.default.temporaryDirectory
+        func captures() throws -> Set<URL> {
+            Set(try FileManager.default.contentsOfDirectory(at: temp, includingPropertiesForKeys: nil)
+                .filter { $0.lastPathComponent.hasPrefix("piyali-journey-") })
+        }
+        let existing = try captures()
+        let recorder = JourneyRecorder()
+        defer { recorder.clear() }
+        await recorder.start()
+        XCTAssertTrue(recorder.recording)
+        let file = try XCTUnwrap(captures().subtracting(existing).first)
+
+        recorder.audioSessionInterrupted(.init(name: AVAudioSession.interruptionNotification,
+                                                userInfo: [AVAudioSessionInterruptionTypeKey: AVAudioSession.InterruptionType.ended.rawValue]))
+        recorder.audioRouteChanged(.init(name: AVAudioSession.routeChangeNotification,
+                                         userInfo: [AVAudioSessionRouteChangeReasonKey: AVAudioSession.RouteChangeReason.categoryChange.rawValue]))
+        XCTAssertTrue(recorder.recording)
+        recorder.audioSessionInterrupted(.init(name: AVAudioSession.interruptionNotification,
+                                                userInfo: [AVAudioSessionInterruptionTypeKey: AVAudioSession.InterruptionType.began.rawValue]))
+        XCTAssertFalse(recorder.recording)
+        let preview = try XCTUnwrap(recorder.draft)
+        XCTAssertEqual(try AVAudioPlayer(data: preview).duration, 1.5, accuracy: 0.01)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: file.path))
+        recorder.interrupt()
+        XCTAssertEqual(recorder.draft, preview, "A repeated interruption must leave the private preview usable")
+
+        await recorder.start()
+        let nextFile = try XCTUnwrap(captures().subtracting(existing).first)
+        try Data("Unusable fixture".utf8).write(to: nextFile)
+        recorder.audioRouteChanged(.init(name: AVAudioSession.routeChangeNotification,
+                                         userInfo: [AVAudioSessionRouteChangeReasonKey: AVAudioSession.RouteChangeReason.oldDeviceUnavailable.rawValue]))
+        XCTAssertFalse(recorder.recording)
+        XCTAssertNil(recorder.draft)
+        XCTAssertEqual(recorder.errorKey, "error")
+        XCTAssertEqual(try captures(), existing)
+        await recorder.start()
+        XCTAssertTrue(recorder.recording, "The failed capture should allow a fresh recording")
+        recorder.clear()
+        XCTAssertEqual(try captures(), existing)
+    }
+
+    func testJourneyBackgroundDiscardsLateMicrophonePermissionAndCanRetry() async throws {
+        guard MemoryDrawerFixture.enabled else { throw XCTSkip("Isolated Journey audio fixture required") }
+        let requested = expectation(description: "Microphone permission requested")
+        var request: CheckedContinuation<Bool, Never>?
+        var attempts = 0
+        let recorder = JourneyRecorder(authorize: {
+            attempts += 1
+            if attempts > 1 { return true }
+            return await withCheckedContinuation { continuation in
+                request = continuation
+                requested.fulfill()
+            }
+        })
+        defer { recorder.clear() }
+        let pending = Task { await recorder.start() }
+        await fulfillment(of: [requested], timeout: 2)
+        XCTAssertTrue(recorder.starting)
+        recorder.interrupt()
+        let approval = try XCTUnwrap(request)
+        approval.resume(returning: true)
+        await pending.value
+        XCTAssertFalse(recorder.starting)
+        XCTAssertFalse(recorder.recording)
+        XCTAssertNil(recorder.draft)
+        XCTAssertNil(recorder.errorKey)
+        await recorder.start()
+        XCTAssertTrue(recorder.recording)
+    }
+
     func testJourneyMilestoneWaitsBehindRootTrialGateUntilMembershipReturns() async throws {
         guard ProcessInfo.processInfo.environment["PIYALI_JOURNEY_PROMPT_FIXTURE"] == "1" else {
             throw XCTSkip("Isolated Journey milestone fixture required")
