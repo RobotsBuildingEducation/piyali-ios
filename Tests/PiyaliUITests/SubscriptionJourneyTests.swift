@@ -69,6 +69,59 @@ import XCTest
   XCTAssertTrue(app.buttons["subscriptionConnect"].waitForExistence(timeout:15),app.debugDescription);XCTAssertFalse(app.buttons["subscriptionReplace"].exists);photo("Native verified cancelled recovery",app)
   let calls=server.requests(),posts=calls.filter{($0["path"] as? String)?.hasSuffix("/cancel-replacement") == true};XCTAssertEqual(posts.count,1);XCTAssertTrue((posts.first?["headers"] as? String ?? "").contains("__session=oauth-recovery.local-fixture"))
  }
+ func testCommittedMembershipTransferWithLostReplyRestoresWithoutAnotherTransfer() async throws {
+  continueAfterFailure = false
+  let server = LocalMembershipServer()
+  try await server.start()
+  defer { server.stop() }
+  server.status(["authorized": false, "linked": false, "configured": true, "replacementRequired": true])
+  server.loseReplacementReply()
+
+  let app = XCUIApplication()
+  app.launchEnvironment = ["PIYALI_OFFLINE_TESTS": "1", "PIYALI_TEST_IDENTITY_SCOPE": UUID().uuidString,
+                           "PIYALI_SETTINGS_FIXTURE": "1", "PIYALI_SUBSCRIPTION_TEST_URL": server.url]
+  app.launchArguments = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US", "-piyali.interfaceLanguage", "en"]
+  app.launch()
+  handleInitialPaperPencil(app)
+  let name = app.textFields["entryName"]
+  XCTAssertTrue(name.waitForExistence(timeout: 15))
+  name.tap()
+  name.typeText("Transfer Learner")
+  tap("entryKeyboardDone", app)
+  tap("createAccount", app)
+  handleInitialPaperPencil(app)
+  tap("startLearning", app)
+  open(app)
+
+  XCTAssertTrue(app.buttons["subscriptionReplace"].waitForExistence(timeout: 15))
+  XCTAssertFalse(app.staticTexts["Active membership"].exists)
+  photo("Native pending membership transfer", app)
+  tap("subscriptionReplace", app)
+  XCTAssertTrue(app.staticTexts["Active membership"].waitForExistence(timeout: 15))
+  XCTAssertFalse(app.buttons["subscriptionReplace"].exists)
+  XCTAssertFalse(app.staticTexts["subscriptionFeedback"].exists)
+  photo("Native verified transfer after interrupted reply", app)
+
+  let calls = server.requests()
+  let transferIndexes = calls.indices.filter { (calls[$0]["path"] as? String)?.hasSuffix("/replace-link") == true }
+  XCTAssertEqual(transferIndexes.count, 1)
+  let transferIndex = try XCTUnwrap(transferIndexes.first)
+  let transfer = calls[transferIndex]
+  XCTAssertFalse((transfer["headers"] as? String ?? "").contains("__session="))
+  let restored = try XCTUnwrap(calls.dropFirst(transferIndex + 1).first { ($0["path"] as? String)?.hasSuffix("/key-status") == true })
+  let sent = try XCTUnwrap((transfer["body"] as? [String: Any])?["signedEvent"] as? [String: Any])
+  let checked = try XCTUnwrap((restored["body"] as? [String: Any])?["signedEvent"] as? [String: Any])
+  let author = try XCTUnwrap(sent["pubkey"] as? String)
+  XCTAssertEqual(checked["pubkey"] as? String, author)
+  XCTAssertTrue((sent["tags"] as? [[String]])?.contains(["action", "replace"]) == true)
+  XCTAssertTrue((checked["tags"] as? [[String]])?.contains(["action", "restore"]) == true)
+
+  app.terminate()
+  app.launch()
+  open(app)
+  XCTAssertTrue(app.staticTexts["Active membership"].waitForExistence(timeout: 15))
+  XCTAssertEqual(server.requests().filter { ($0["path"] as? String)?.hasSuffix("/replace-link") == true }.count, 1)
+ }
  func testNativePurchaseToolsWebLinkOpensCheckout() async throws {
   continueAfterFailure=false
   let server=LocalMembershipServer()

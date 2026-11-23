@@ -41,6 +41,49 @@ private final class MembershipProtocol:URLProtocol {
   await service.connect(language:"ar");XCTAssertEqual(service.browser?.url.absoluteString,url);XCTAssertEqual(start["supportLanguage"] as? String,"ar");XCTAssertEqual(start["plan"] as? String,"annual");XCTAssertFalse(service.awaiting);XCTAssertFalse(service.hasAccess)
   service.browserClosed(try XCTUnwrap(service.browser?.id));await settle{service.replacementRequired};XCTAssertFalse(service.hasAccess);XCTAssertEqual(actions,["link","restore"]);await service.replaceLinkedKey();XCTAssertTrue(service.webAuthorized);XCTAssertTrue(service.hasAccess);XCTAssertEqual(actions,["link","restore","replace"])
  }
+ func testTransferRepliesRequireVerifiedLinkedStatus() async throws {
+  let (identity, service) = try context()
+  defer { try? identity.disconnect() }
+  let author = identity.hex
+  var paths: [String] = []
+  var transferCommitted = false
+  MembershipProtocol.install { request in
+   let path = request.url!.lastPathComponent
+   if path == "link-challenge" {
+    return MembershipProtocol.challenge(MembershipProtocol.body(request)["action"] as? String ?? "")
+   }
+   paths.append(path)
+   if path == "replace-link" {
+    XCTAssertTrue(MembershipProtocol.valid(request, action: "replace", author: author))
+    if transferCommitted {
+     return .init(status: 401, value: ["error": "invalid_nostr_proof"])
+    }
+    return .init(value: ["authorized": true, "linked": false])
+   }
+   XCTAssertEqual(path, "key-status")
+   XCTAssertTrue(MembershipProtocol.valid(request, action: "restore", author: author))
+   if transferCommitted {
+    return .init(value: ["authorized": true, "linked": true, "configured": true, "subscription": ["status": "active"]])
+   }
+   return .init(value: ["authorized": false, "linked": false, "configured": true, "replacementRequired": true])
+  }
+  try await service.restoreWeb()
+  await service.replaceLinkedKey()
+  XCTAssertEqual(paths, ["key-status", "replace-link", "key-status"])
+  XCTAssertTrue(service.replacementRequired)
+  XCTAssertFalse(service.webAuthorized)
+  XCTAssertFalse(service.hasAccess)
+  XCTAssertEqual(service.statusError, "replacement_failed")
+
+  transferCommitted = true
+  await service.replaceLinkedKey()
+  XCTAssertEqual(paths, ["key-status", "replace-link", "key-status", "replace-link", "key-status"])
+  XCTAssertTrue(service.webAuthorized)
+  XCTAssertTrue(service.hasAccess)
+  XCTAssertFalse(service.replacementRequired)
+  XCTAssertEqual(service.result, "connected")
+  XCTAssertTrue(service.statusError.isEmpty)
+ }
  func testRecoveryCancelUsesSafariAndRechecksSignedServerState()async throws{
   let(identity,service)=try context();defer{try? identity.disconnect()};let author=identity.hex;var pending=true,cancels=0,restores=0
   MembershipProtocol.install{request in let path=request.url!.lastPathComponent;if path == "link-challenge"{return MembershipProtocol.challenge("restore")};if path == "cancel-replacement"{cancels += 1;return .init(value:["ok":true])};XCTAssertTrue(MembershipProtocol.valid(request,action:"restore",author:author));restores += 1;return .init(value:["authorized":false,"linked":false,"replacementRequired":pending])}

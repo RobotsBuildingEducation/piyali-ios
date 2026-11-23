@@ -364,15 +364,65 @@ import StoreKit
             }
         }
     }
-    func replaceLinkedKey()async{
-        guard !busy,let account=accountID,!account.isEmpty else{return};let token=revision
-        let mutation=beginStatusMutation()
-        busy=true;statusError="";error=nil;defer{finishStatusMutation(mutation);if token == revision{busy=false}}
-        do{let body=try await proof("replace",account:account,token:token);guard token == revision,statusMutation == mutation else{return};let value=try await post("replace-link",body:body);guard token == revision else{return}
-            guard value["authorized"] as? Bool == true else{throw RequestFailure(code:value["error"] as? String ?? "replacement_failed")};receive(value);result="connected"
-        }catch{if token == revision{let code=(error as? RequestFailure)?.code ?? "unavailable";statusError=code;self.error=error.localizedDescription
-            if ["replacement_expired","replacement_state_changed","membership_not_active"].contains(code){receive(["authorized":false,"linked":false]);statusError=code;awaitingCheckout=false}
-        }}
+    private func validateMutationScope(account: String, token: UUID, mutation: UUID) throws {
+        try Task.checkCancellation()
+        guard token == revision, statusMutation == mutation, accountID == account, identity?.npub == account else {
+            throw CancellationError()
+        }
+    }
+    func replaceLinkedKey() async {
+        guard !busy, browserReturn == nil, replacementRequired, let account = accountID, !account.isEmpty else { return }
+        let token = revision, mutation = beginStatusMutation()
+        busy = true
+        statusError = ""
+        error = nil
+        defer {
+            finishStatusMutation(mutation)
+            if token == revision { busy = false }
+        }
+
+        do {
+            let signed = try await proof("replace", account: account, token: token)
+            try validateMutationScope(account: account, token: token, mutation: mutation)
+            do {
+                let status = try await post("replace-link", body: signed)
+                try validateMutationScope(account: account, token: token, mutation: mutation)
+                let value = JSONValue.foundation(status)
+                guard value["authorized"] == .bool(true), value["linked"] == .bool(true),
+                      value["replacementRequired"] != .bool(true) else {
+                    throw RequestFailure(code: value["error"].string.isEmpty ? "replacement_failed" : value["error"].string)
+                }
+                receive(status)
+            } catch {
+                let transferError = error
+                try validateMutationScope(account: account, token: token, mutation: mutation)
+
+                // A dropped reply can follow a committed transfer. A replay of its
+                // consumed proof can also look like a rejection. Check signed status once.
+                let status = try? await mutationMembership(account: account, token: token, mutation: mutation)
+                try validateMutationScope(account: account, token: token, mutation: mutation)
+                guard let status else { throw transferError }
+                receive(status)
+                guard webAuthorized else { throw transferError }
+            }
+            result = "connected"
+        } catch {
+            guard (try? validateMutationScope(account: account, token: token, mutation: mutation)) != nil else { return }
+            statusError = (error as? RequestFailure)?.code ?? "unavailable"
+            self.error = error.localizedDescription
+        }
+    }
+    private func mutationMembership(account: String, token: UUID, mutation: UUID) async throws -> [String: Any]? {
+        try validateMutationScope(account: account, token: token, mutation: mutation)
+        let signed = try await proof("restore", account: account, token: token)
+        try validateMutationScope(account: account, token: token, mutation: mutation)
+        let status = try await post("key-status", body: signed)
+        try validateMutationScope(account: account, token: token, mutation: mutation)
+        let value = JSONValue.foundation(status)
+        guard case .bool(let linked) = value["linked"], case .bool(let authorized) = value["authorized"],
+              linked || !authorized, value["configured"] != .bool(false),
+              !authorized || value["replacementRequired"] != .bool(true) else { return nil }
+        return status
     }
     func disconnectWeb()async{
         guard !busy,browserReturn == nil,let account=accountID,!account.isEmpty else{return}
@@ -381,20 +431,13 @@ import StoreKit
         defer{finishStatusMutation(mutation);if token == revision{busy=false}}
 
         @MainActor func checkScope()throws{
-            try Task.checkCancellation()
-            guard token == revision,statusMutation == mutation,accountID == account,identity?.npub == account else{throw CancellationError()}
+            try validateMutationScope(account:account,token:token,mutation:mutation)
         }
         @MainActor func readLink()async throws->Bool{
-            try checkScope()
-            let signed=try await proof("restore",account:account,token:token)
-            try checkScope()
-            let status=try await post("key-status",body:signed)
-            try checkScope()
-            let value=JSONValue.foundation(status)
-            guard case .bool(let isLinked)=value["linked"],case .bool(let hasMembership)=value["authorized"],
-                  isLinked || !hasMembership,value["configured"] != .bool(false) else{
+            guard let status=try await mutationMembership(account:account,token:token,mutation:mutation) else{
                 throw RequestFailure(code:"disconnect_unconfirmed")
             }
+            let isLinked=JSONValue.foundation(status)["linked"].boolean
             receive(status)
             if !isLinked{awaitingCheckout=false;result=""}
             return isLinked

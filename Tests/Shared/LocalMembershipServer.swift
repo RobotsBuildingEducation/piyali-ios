@@ -10,6 +10,7 @@ final class LocalMembershipServer:@unchecked Sendable {
  private var forcedPayload:[String:Any]?
  private var forcedCode=200
  private var rejectNextDisconnectSession=false
+ private var loseNextReplacementReply=false
  private let authorizationRequiresCheckout:Bool
  private(set) var url=""
  init(authorizationRequiresCheckout:Bool=true){self.authorizationRequiresCheckout=authorizationRequiresCheckout}
@@ -17,6 +18,7 @@ final class LocalMembershipServer:@unchecked Sendable {
  func requests()->[[String:Any]]{queue.sync{calls}}
  func forceStatus(_ value:[String:Any],code:Int=200){queue.sync{forcedPayload=value;forcedCode=code}}
  func expireDisconnectSession(){queue.sync{rejectNextDisconnectSession=true}}
+ func loseReplacementReply(){queue.sync{loseNextReplacementReply=true}}
  func start()async throws{
   let params=NWParameters.tcp;params.requiredLocalEndpoint = .hostPort(host:"127.0.0.1",port:.any);let server=try NWListener(using:params);listener=server
   server.newConnectionHandler={[weak self] c in guard let self else{return};self.connections.append(c);c.start(queue:self.queue);self.read(c,data:Data())}
@@ -32,6 +34,15 @@ final class LocalMembershipServer:@unchecked Sendable {
    if path.hasSuffix("/link-challenge"){let action=json["action"] as? String ?? "",challenge=String(repeating:"c",count:32),f=ISO8601DateFormatter();f.formatOptions=[.withInternetDateTime,.withFractionalSeconds];value=["challengeId":challenge,"eventTemplate":["kind":27235,"created_at":Int64(Date().timeIntervalSince1970),"tags":[["action",action],["challenge",challenge],["expires",f.string(from:Date().addingTimeInterval(120))]],"content":"Authorize Piyali Patreon \(action): "+String(repeating:"n",count:43)]]}
    else if path.hasSuffix("/link-start"){value=["authorizeUrl":url+"/authorize"]}
    else if path.hasSuffix("/refresh-status"),let forcedPayload{value=forcedPayload;code=forcedCode}
+   else if path.hasSuffix("/replace-link"),loseNextReplacementReply{
+    loseNextReplacementReply=false
+    payload=["authorized":true,"linked":true,"configured":true,"subscription":["status":"active","entitledAmountCents":800]]
+    // The transaction committed. Interrupt the response body so the client
+    // cannot rely on the status line or receive a session cookie.
+    let partial=Data("HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: 150\r\nConnection: close\r\n\r\n{".utf8)
+    c.send(content:partial,completion:.contentProcessed{_ in c.cancel()})
+    return
+   }
    else if path.hasSuffix("/disconnect"){
     if rejectNextDisconnectSession || !header.contains("__session=auth-session.local-fixture"){
      rejectNextDisconnectSession=false;value=["error":"not_authenticated"];code=401

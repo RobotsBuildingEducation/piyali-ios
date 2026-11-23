@@ -74,3 +74,19 @@ Native Disconnect reads signed status when its session is missing. When the serv
 The [web and iPhone comparison](native/subscription-disconnect-20261119.jpg) shows the inactive membership and confirmation, with reconnection feedback in the native drawer. The loopback iPhone journey preserved the inactive link, offered Reconnect and sent the disconnect only after a later explicit confirmation and authenticated restore. A separate Foundation HTTP test verified cookie replacement after a session rejection and inspected both signed actions. The normal checkout, payment issue, disconnect and relaunch journey also passed. `/tmp/PiyaliPatreonDisconnect-d22d393a-5ed8-4833-9536-c62616c4256f.xcresult` passed all 17 state checks and both product journeys.
 
 The production web contract still requires a valid session for an inactive member’s unlink. Live verification with an inactive Patreon account and a native-only path for inactive accounts without an obtainable session remain open.
+
+## Membership transfer after an interrupted reply, November 23
+
+The original web Settings drawer showed the transfer prompt for a signed recovery and sent one signed replacement. With the reply interrupted after the simulated commit, the original drawer showed its replacement error. Reloading the main route and reopening Settings showed the active membership after a fresh signed status check. The browser fixture checked the proof signature, action, key and one-use challenge. An independent check exercised the original Patreon handler with an in-memory database and provider fixture. It verified that the transfer removed the old mapping and that a fresh signed status check recovered the active membership and session for the new key.
+
+On iPhone, the Settings transfer now checks the current key's signed status after an ambiguous reply. If the server confirms active membership, the drawer shows that membership immediately. If the status still says the recovery is pending, the drawer retains the transfer prompt and its error. The app sends one transfer per deliberate confirmation. The transfer and the status read both verify that the same account and operation are current.
+
+The baseline simulator journey reproduced the stuck transfer prompt. The corrected Settings journey interrupted the HTTP response after commit, showed the active tier in the same drawer, and verified that relaunch recovered the membership with one transfer request in total. The separate Safari cancellation journey also passed with its fixture recovery cookie. The browser and simulator fixtures use disposable keys and synthetic memberships.
+
+The state check also tested an incomplete acknowledgment and the server rejection used when a proof has already been consumed. An incomplete reply followed by a signed pending result kept access locked. A later signed active result confirmed the transfer even after the rejection response. The final run passed 18 state checks and the real Settings transfer journey in `/tmp/PiyaliTransferRecoveryFinal-20261123.xcresult`. The Safari cancellation passed in the previous `/tmp/PiyaliTransferInterruptedVerified-20261123.xcresult` run.
+
+![Original web and native iPhone Settings before and after recovery from an interrupted transfer reply](native/subscription-transfer-recovery-20261123.jpg)
+
+The web portrait was still fading in when the pending state was captured. The iPhone comparison shows its system status area, native refresh, and purchase controls.
+
+The original handler also verified the remaining cancellation dependency. A cookie-free Cancel returned HTTP 200 and the next signed status check still found the pending transfer. A signed status check for a pending transfer issues no recovery cookie. Native-only immediate cancellation requires a change to the subscription service contract. The reference repository and the dedicated Piyali backend are unchanged.
