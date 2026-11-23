@@ -54,3 +54,15 @@ The [home companion panel checkpoint](COMPANION_PANEL.md) supersedes this origin
 - The native queued/offline immersion receipt model remains in place. Source reward-claim failure/retry presentation, the complete reward particle/sound choreography and live generated-task quality need separate verification.
 - The signed-in header, Goal Manager and session timer now follow the current manual source flow; see [SESSION_TOOLS.md](SESSION_TOOLS.md). Source search finds no active automatic post-intro goal/timer launch. Complete guided-session journeys, remaining modes/panels and physical-device audio/auth remain broader goal work.
 - Rounded control/typography calibration across more device widths, Dynamic Type, all locales and long companion names remains. This pass verifies representative English/light and Arabic/dark journeys, not every rendering combination.
+
+## Main navigation menu, November 23
+
+The original main route opened the actions menu after browser signup and placement. Settings, Teams, Assistant and Memory occupied four 173 × 102 tiles at 402 points. The current-mode row was 354 × 64. The browser check closed the menu with its close control and a downward handle drag, selected Conversation and returned to Today’s Focus.
+
+The Swift menu uses the original tile sizes, icon artwork, borders and light/dark surfaces. The header handle follows a downward drag. Releasing a short drag leaves the menu open, and a deliberate downward drag dismisses it. The close control and outside tap remain available. The mode page follows the source’s practice-language restriction for opening the standalone Phonics library.
+
+The final iPhone journey checked the 102-point tile height, handle drag, Close, mode selection, Course Path gating, return to Focus and the first guided Tutor tutorial with the microphone off. It passed in `/tmp/PiyaliMainNavigationFinal-20261123.xcresult`. The Settings journey passed in `/tmp/PiyaliMainNavigationVerified-20261123.xcresult`, which also captured the earlier navigation test's obsolete check for a system Tutor navigation bar.
+
+![Main navigation actions and modes in the original web app and the native iPhone app](native/main-navigation-20261123.jpg)
+
+The browser captures follow placement. The iPhone captures show the same menu before placement and include the iPhone status area and circular menu trigger. The web also accepts a downward drag begun in the body of the menu. This iPhone check covers the header handle and the English light layout.

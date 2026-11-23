@@ -2,7 +2,11 @@ import SwiftUI
 
 enum ProductMode:String,CaseIterable {
     case focus,path,cards,phonics,conversation,tutor
-    var symbol:String { switch self { case .focus:return "seal";case .path:return "point.topleft.down.to.point.bottomright.curvepath";case .cards:return "rectangle.stack";case .phonics:return "character.book.closed";case .conversation:return "bubble.left";case .tutor:return "book.closed" } }
+    var menuIcon:String { "ProductMenu-"+rawValue }
+    static func menuModes(target:String)->[Self] {
+        let phonicsTargets:Set<String>=["ru","ja","en","es","pt","fr","it","nl","de","nah","el","pl","ga","yua"]
+        return allCases.filter { $0 != .phonics || phonicsTargets.contains(target) }
+    }
     func title(_ language:String)->String {
         if self == .focus { return ProductCopy.text(language,"PLATE_TITLE_COPY") }
         return EntryCopy.ui(language,"app_mode_"+([.path:"path",.cards:"cards",.phonics:"phonics",.conversation:"conversation",.tutor:"tutor"][self] ?? "path"))
@@ -21,6 +25,7 @@ struct ProductShellView:View {
     @EnvironmentObject var app:AppModel
     @Environment(\.colorScheme) private var scheme
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var practiceSounds=PracticeSoundPlayer()
     @StateObject private var timer=SessionTimerController()
     @StateObject private var help=HelpChatController()
@@ -38,6 +43,7 @@ struct ProductShellView:View {
     @State private var activityFooter:ActivityFooterPresentation?
     @State private var menuOpen=false
     @State private var modesOpen=false
+    @GestureState private var menuDrag:CGFloat=0
     @State private var panel:ProductPanel?
     @State private var memoryInitialTab="repairs"
     @State private var revision=UUID()
@@ -74,7 +80,7 @@ struct ProductShellView:View {
                     surface.navigationBarTitleDisplayMode(.inline)
                         .toolbar(mode == .path || mode == .focus || mode == .cards || mode == .phonics || mode == .tutor ? .hidden:.automatic,for:.navigationBar)
                 }.id(revision)
-            }.tint(PiyaliBrand.teal).blur(radius:menuOpen ? 6 : 0).allowsHitTesting(!menuOpen)
+            }.tint(PiyaliBrand.teal).blur(radius:menuOpen ? 8 : 0).allowsHitTesting(!menuOpen)
                 .safeAreaInset(edge:.bottom) { if activityFooter == nil,app.achievementUnlock.current == nil { menuButton(compact:false).padding(.bottom,10) } }
                 .overlay(alignment:.bottom) {
                     if activityFooter != nil || app.achievementUnlock.current != nil {
@@ -243,20 +249,134 @@ struct ProductShellView:View {
     private var menu:some View {
         GeometryReader { geometry in
             ZStack(alignment:.bottom) {
-                Color.black.opacity(0.3).ignoresSafeArea().onTapGesture { menuOpen=false }
-                VStack(spacing:10) {
-                    HStack { Spacer();Capsule().fill(brand.muted.opacity(0.6)).frame(width:48,height:5);Spacer();Button { menuOpen=false } label:{ Image(systemName:"xmark").frame(width:36,height:36) }.accessibilityLabel(ProductCopy.data(language)["menu"]["closeMenu"].string).accessibilityIdentifier("productMenuClose") }.padding(.bottom,12)
-                    LazyVGrid(columns:[GridItem(.flexible()),GridItem(.flexible())],spacing:9) {
-                        if modesOpen { ForEach(ProductMode.allCases,id:\.self) { item in menuTile(item.title(language),symbol:item.symbol,selected:item == mode) { switchMode(item) }.accessibilityIdentifier("productMode-"+item.rawValue) } }
-                        else { ForEach([ProductPanel.settings,.teams,.assistant,.memory]) { item in MemoryCaptureMenuItem(capture:app.memoryCapture,scope:app.memoryCaptureScope){captured in menuTile(ProductCopy.data(language)["menu"][item.rawValue].string,symbol:[.settings:"gearshape",.teams:"hands.sparkles",.assistant:"person.crop.circle",.memory:"bookmark"][item] ?? "gearshape",memoryCaptured:item == .memory && captured,teamInvite:item == .teams) { menuOpen=false;memoryInitialTab="repairs";panel=item }}.accessibilityIdentifier("productPanel-"+item.rawValue) } }
-                    }
-                    Button { modesOpen.toggle() } label:{ HStack { Image(systemName:modesOpen ? "arrow.left" : mode.symbol);Text(modesOpen ? ProductCopy.data(language)["menu"]["back"].string : mode.title(language));Spacer();if !modesOpen { Image(systemName:"chevron.right") } }.font(PiyaliBrand.productFont(13,600)).padding(18).frame(maxWidth:.infinity,minHeight:64).background(brand.text.opacity(0.04),in:RoundedRectangle(cornerRadius:18)).overlay { RoundedRectangle(cornerRadius:18).stroke(brand.border) } }.accessibilityIdentifier("productModeMenu")
-                }.padding(11).background(brand.surface,in:RoundedRectangle(cornerRadius:24)).overlay { RoundedRectangle(cornerRadius:24).stroke(brand.border) }.frame(width:min(geometry.size.width-24,560)).padding(.bottom,82)
+                PiyaliBrand.unitColor(brand.dark ? "020617":"f7f1e7")
+                    .opacity((brand.dark ? 0.55:0.45)*max(0.1,1-menuDrag/240))
+                    .ignoresSafeArea().onTapGesture { dismissMenu() }.accessibilityHidden(true)
+                VStack(spacing:8) {
+                    menuHandle
+                    ScrollView {
+                        VStack(spacing:8) {
+                            if modesOpen { menuModeTiles } else { menuActionTiles }
+                            menuPageButton
+                        }
+                    }.scrollBounceBehavior(.basedOnSize)
+                        .frame(height:min(modesOpen ? 394:284,max(0,geometry.size.height-170)))
+                }
+                .padding(.horizontal,12).padding(.top,8).padding(.bottom,10)
+                .background(brand.surface,in:RoundedRectangle(cornerRadius:24))
+                .overlay { RoundedRectangle(cornerRadius:24).strokeBorder(menuEdge,lineWidth:2) }
+                .shadow(color:brand.dark ? .black.opacity(0.28):PiyaliBrand.unitColor("6f5636").opacity(0.08),radius:brand.dark ? 28:9,y:brand.dark ? 16:8)
+                .frame(width:min(max(0,geometry.size.width-24),420))
+                .padding(.bottom,82)
+                .offset(y:menuDrag).opacity(max(0.15,1-menuDrag/320))
             }
         }.transition(.opacity)
     }
-    private func menuTile(_ text:String,symbol:String,selected:Bool=false,memoryCaptured:Bool=false,teamInvite:Bool=false,action:@escaping()->Void)->some View {
-        Button(action:action) { VStack(alignment:.leading,spacing:10) { Group{if memoryCaptured{Image("Memory-captured").resizable().renderingMode(.template).scaledToFit().frame(width:20,height:20)}else if teamInvite{Image("Teams-menu").resizable().renderingMode(.template).scaledToFit().frame(width:20,height:20)}else{Image(systemName:symbol).font(.system(size:19))}}.overlay(alignment:.topTrailing){if teamInvite{TeamInviteDot(startup:app.teamsStartup,border:brand.surface).offset(x:5,y:-4)}}.foregroundStyle(memoryCaptured ? .white:brand.text).frame(width:30,height:30).background(memoryCaptured ? PiyaliBrand.unitColor("38b2ac"):brand.surface,in:RoundedRectangle(cornerRadius:8));Text(text).font(PiyaliBrand.productFont(13,600)) }.foregroundStyle(brand.text).frame(maxWidth:.infinity,minHeight:84,alignment:.leading).padding(12).background(brand.text.opacity(0.04),in:RoundedRectangle(cornerRadius:18)).overlay { RoundedRectangle(cornerRadius:18).stroke(selected ? PiyaliBrand.teal : brand.border,lineWidth:selected ? 2 : 1) } }.buttonStyle(.plain).modifier(TeamInviteAccessibility(startup:app.teamsStartup,language:language,enabled:teamInvite))
+    private var menuBeige:Color { PiyaliBrand.unitColor("b4a490") }
+    private var menuEdge:Color { brand.dark ? PiyaliBrand.unitColor("94a3b8").opacity(0.34):menuBeige.opacity(0.65) }
+    private var menuTileFill:Color { brand.dark ? .white.opacity(0.04):PiyaliBrand.unitColor("ebe2d6").opacity(0.5) }
+    private var menuTileBorder:Color { brand.dark ? brand.border:menuBeige.opacity(0.4) }
+    private var menuColumns:[GridItem] { [GridItem(.flexible(),spacing:8),GridItem(.flexible())] }
+    private var menuHandle:some View {
+        Capsule().fill(brand.dark ? .white.opacity(0.24):menuBeige.opacity(0.55))
+            .accessibilityHidden(true)
+            .frame(width:48,height:5)
+            .frame(maxWidth:.infinity,minHeight:32)
+            .contentShape(Rectangle())
+            .gesture(DragGesture(minimumDistance:6)
+                .updating($menuDrag) { value,offset,_ in
+                    let distance=value.translation.height
+                    guard distance > abs(value.translation.width) else { return }
+                    offset=distance <= 150 ? distance:150+(distance-150)*0.55
+                }
+                .onEnded { value in
+                    let distance=value.translation.height
+                    guard distance > abs(value.translation.width) else { return }
+                    if distance > 30 || value.predictedEndTranslation.height > 65 { dismissMenu() }
+                })
+            .overlay(alignment:.trailing) {
+                Button(action:dismissMenu) {
+                    Image(systemName:"xmark").font(.system(size:13,weight:.medium))
+                        .foregroundStyle(brand.muted).frame(width:32,height:32).contentShape(Rectangle())
+                }.buttonStyle(.plain).padding(.trailing,4)
+                    .accessibilityLabel(ProductCopy.data(language)["menu"]["closeMenu"].string)
+                    .accessibilityIdentifier("productMenuClose")
+            }.environment(\.layoutDirection,.leftToRight)
+            .padding(.top,6).padding(.bottom,14)
+    }
+    private func dismissMenu() {
+        withAnimation(reduceMotion ? nil:.easeOut(duration:0.18)) { menuOpen=false }
+    }
+    private var menuModeTiles:some View {
+        let modes=ProductMode.menuModes(target:app.learner.target)
+        let extra=modes.count % 2
+        return VStack(spacing:8) {
+            LazyVGrid(columns:menuColumns,spacing:8) {
+                ForEach(modes.dropLast(extra),id:\.self,content:menuModeTile)
+            }
+            if extra == 1,let last=modes.last { menuModeTile(last) }
+        }
+    }
+    private func menuModeTile(_ item:ProductMode)->some View {
+        menuTile(item.title(language),icon:item.menuIcon,selected:item == mode) { switchMode(item) }
+            .accessibilityIdentifier("productMode-"+item.rawValue)
+    }
+    private var menuActionTiles:some View {
+        LazyVGrid(columns:menuColumns,spacing:8) {
+            ForEach([ProductPanel.settings,.teams,.assistant,.memory]) { item in
+                MemoryCaptureMenuItem(capture:app.memoryCapture,scope:app.memoryCaptureScope) { captured in
+                    let icons:[ProductPanel:String]=[.settings:"ProductMenu-settings",.teams:"Teams-menu",.assistant:"ProductMenu-help",.memory:"Practice-RiBookmarkLine"]
+                    return menuTile(ProductCopy.data(language)["menu"][item.rawValue].string,icon:icons[item] ?? "",memoryCaptured:item == .memory && captured,teamInvite:item == .teams) {
+                        menuOpen=false;memoryInitialTab="repairs";panel=item
+                    }
+                }.accessibilityIdentifier("productPanel-"+item.rawValue)
+            }
+        }
+    }
+    private var menuPageButton:some View {
+        Button { modesOpen.toggle() } label:{
+            HStack(spacing:10) {
+                if modesOpen {
+                    menuIconPlate { Image(systemName:"arrow.left").font(.system(size:14,weight:.semibold)) }
+                } else {
+                    menuIconPlate { menuArt(mode.menuIcon) }
+                }
+                Text(modesOpen ? ProductCopy.data(language)["menu"]["back"].string:mode.title(language))
+                    .font(PiyaliBrand.productFont(13,600)).lineLimit(1)
+                Spacer(minLength:0)
+                if !modesOpen { Image(systemName:"chevron.right").font(.system(size:12,weight:.semibold)) }
+            }.padding(.horizontal,14).padding(.vertical,12).frame(maxWidth:.infinity,minHeight:64)
+                .background(menuTileFill,in:RoundedRectangle(cornerRadius:18))
+                .overlay { RoundedRectangle(cornerRadius:18).strokeBorder(menuTileBorder) }
+        }.buttonStyle(.plain).accessibilityIdentifier("productModeMenu")
+    }
+    private func menuArt(_ name:String)->some View {
+        Image(name).resizable().renderingMode(.template).scaledToFit().frame(width:16,height:16)
+    }
+    private func menuIconPlate<Icon:View>(captured:Bool=false,@ViewBuilder icon:()->Icon)->some View {
+        icon().foregroundStyle(captured ? .white:brand.text)
+            .frame(width:30,height:30)
+            .background(captured ? PiyaliBrand.unitColor("38b2ac") : brand.dark ? PiyaliBrand.unitColor("1a202c"):PiyaliBrand.unitColor("ebe2d6").opacity(0.9),in:RoundedRectangle(cornerRadius:10))
+            .overlay { RoundedRectangle(cornerRadius:10).strokeBorder(brand.dark ? .white.opacity(0.12):menuBeige.opacity(0.5)) }
+            .shadow(color:brand.dark ? PiyaliBrand.unitColor("313a4b"):menuBeige.opacity(0.9),radius:0,y:2)
+            .frame(width:38,height:38)
+    }
+    private func menuTile(_ text:String,icon:String,selected:Bool=false,memoryCaptured:Bool=false,teamInvite:Bool=false,action:@escaping()->Void)->some View {
+        Button(action:action) {
+            VStack(alignment:.leading,spacing:4) {
+                menuIconPlate(captured:memoryCaptured) {
+                    menuArt(memoryCaptured ? "Memory-captured":icon)
+                        .overlay(alignment:.topTrailing) {
+                            if teamInvite { TeamInviteDot(startup:app.teamsStartup,border:brand.surface).offset(x:5,y:-4) }
+                        }
+                }
+                Text(text).font(PiyaliBrand.productFont(13,selected ? 700:600)).lineLimit(2)
+            }.foregroundStyle(brand.text).padding(14)
+                .frame(maxWidth:.infinity,minHeight:102,alignment:.bottomLeading)
+                .background(menuTileFill,in:RoundedRectangle(cornerRadius:18))
+                .overlay { RoundedRectangle(cornerRadius:18).strokeBorder(selected ? PiyaliBrand.unitColor(brand.dark ? "38b2ac":"319795"):menuTileBorder,lineWidth:selected ? 2.5:1) }
+        }.buttonStyle(.plain).accessibilityAddTraits(selected ? .isSelected:[])
+            .modifier(TeamInviteAccessibility(startup:app.teamsStartup,language:language,enabled:teamInvite))
     }
     @ViewBuilder private func panelContent(_ panel:ProductPanel)->some View {
         switch panel {

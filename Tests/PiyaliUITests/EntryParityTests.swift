@@ -64,6 +64,19 @@ import XCTest
         XCTAssertTrue(app.staticTexts["todayFocusTitle"].waitForExistence(timeout:15));XCTAssertEqual(app.tabBars.count,0)
         let snapshot=XCTAttachment(screenshot:app.screenshot());snapshot.name="Native Today Focus after onboarding";snapshot.lifetime = .keepAlways;add(snapshot)
         app.buttons["productMenu"].tap();XCTAssertTrue(app.buttons["productPanel-settings"].waitForExistence(timeout:5));XCTAssertTrue(app.buttons["productPanel-teams"].exists);XCTAssertTrue(app.buttons["productPanel-assistant"].exists);XCTAssertTrue(app.buttons["productPanel-memory"].exists)
+        let settings=app.buttons["productPanel-settings"],close=app.buttons["productMenuClose"]
+        XCTAssertEqual(settings.frame.height,102,accuracy:1)
+        let actions=XCTAttachment(screenshot:app.screenshot());actions.name="Native main navigation actions";actions.lifetime = .keepAlways;add(actions)
+        let origin=app.coordinate(withNormalizedOffset:.zero)
+        let handle=origin.withOffset(CGVector(dx:app.frame.width/2,dy:close.frame.midY-app.frame.minY))
+        handle.press(forDuration:0.06,thenDragTo:handle.withOffset(CGVector(dx:0,dy:110)),withVelocity:.fast,thenHoldForDuration:0)
+        XCTAssertTrue(settings.waitForNonExistence(timeout:5))
+        XCTAssertTrue(app.staticTexts["todayFocusTitle"].exists)
+        app.buttons["productMenu"].tap()
+        XCTAssertTrue(close.waitForExistence(timeout:5))
+        close.tap()
+        XCTAssertTrue(settings.waitForNonExistence(timeout:5))
+        app.buttons["productMenu"].tap()
         app.buttons["productModeMenu"].tap();XCTAssertTrue(app.buttons["productMode-path"].exists);XCTAssertTrue(app.buttons["productMode-cards"].exists);XCTAssertTrue(app.buttons["productMode-phonics"].exists);XCTAssertTrue(app.buttons["productMode-conversation"].exists)
         let menuShot=XCTAttachment(screenshot:app.screenshot());menuShot.name="Native activity mode menu";menuShot.lifetime = .keepAlways;add(menuShot)
         app.buttons["productMode-path"].tap();XCTAssertTrue(app.staticTexts["lessonCourseLevel"].waitForExistence(timeout:10));XCTAssertTrue(app.buttons["introLink"].exists)
@@ -73,6 +86,12 @@ import XCTest
         for _ in 0..<6 where !continueButton.isHittable { app.swipeUp(velocity:.slow) }
         continueButton.tap();acknowledgePaperPencil(app);XCTAssertTrue(app.buttons["gettingStartedGotIt"].waitForExistence(timeout:5));app.buttons["gettingStartedGotIt"].tap();XCTAssertTrue(app.buttons["placementNew"].waitForExistence(timeout:5));XCTAssertTrue(app.buttons["placementFindLevel"].exists);app.buttons["placementNew"].tap()
         let start=app.buttons["startDailyPractice"];for _ in 0..<6 where !start.isHittable { app.swipeDown(velocity:.slow) }
-        XCTAssertTrue(NSPredicate(format:"enabled == true").evaluate(with:start) || XCTWaiter.wait(for:[XCTNSPredicateExpectation(predicate:NSPredicate(format:"enabled == true"),object:start)],timeout:10) == .completed);start.tap();XCTAssertTrue(app.navigationBars["Tutor"].waitForExistence(timeout:10));XCTAssertFalse(app.buttons["Start voice session"].exists,"Starting a daily task chooses the mode, not a lesson or microphone session")
+        XCTAssertTrue(NSPredicate(format:"enabled == true").evaluate(with:start) || XCTWaiter.wait(for:[XCTNSPredicateExpectation(predicate:NSPredicate(format:"enabled == true"),object:start)],timeout:10) == .completed)
+        start.tap()
+        let tutorial=app.staticTexts["tutorLessonTitle"]
+        XCTAssertTrue(tutorial.waitForExistence(timeout:15))
+        XCTAssertTrue(tutorial.label.contains("Tutorial"))
+        XCTAssertTrue(app.buttons["tutorStart"].exists)
+        XCTAssertFalse(app.buttons["tutorEnd"].exists)
     }
 }
