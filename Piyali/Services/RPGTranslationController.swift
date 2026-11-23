@@ -16,6 +16,7 @@ import FirebaseAILogic
     var active:Bool{state != .null}
     var lines:[String]?{if case .array(let values)=state["lineTranslations"]{return values.map(\.string)};return nil}
     var choices:[String]?{if case .array(let values)=state["choiceTranslations"]{return values.map(\.string)};return nil}
+    func action(_ key:String)->String { state["actionTranslations"][key].string }
     func configure(key:String,parameters:JSONValue,isCurrent:@escaping()->Bool){
         self.current=isCurrent;guard self.key != key else{return};reset();self.key=key;self.current=isCurrent
         guard let policy else{return};plan=try? policy.plan(parameters);presentation=try? policy.presentation(parameters)

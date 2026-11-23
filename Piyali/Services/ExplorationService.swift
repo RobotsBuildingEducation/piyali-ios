@@ -40,12 +40,15 @@ import JavaScriptCore
             var input:JSONValue = .object(["lesson":try RPGPreparationPolicy.value(tutorial).setting("isTutorial",.bool(true)),"target":.string(target),
                 "support":.string(support),"user":app.learner.rpgObjectUser])
             #if DEBUG
-            if RPGPreparationFixture.useTutorialDialogue { input=input.setting("testSeed",.number(0)) }
+            if RPGPreparationFixture.useTutorialDialogue { input=input.setting("testSeed",.number(8)) }
             #endif
             var scenario=try await TutorialPlazaPolicy().generate(input) { prompt in
                 try self.valid(app,scope,version)
                 guard app.subscription.hasAccess else{throw CancellationError()}
                 #if DEBUG
+                if RPGPreparationFixture.useTutorialDialogue,prompt.contains("TUTORIAL MODE") {
+                    return try RPGPreparationFixture.tutorialGeneratedMap()
+                }
                 if RPGPreparationFixture.useTutorialPlazaReplies { return "{}" }
                 #endif
                 return try await app.ai.responsesText(prompt,maxOutputTokens:8192)
@@ -285,14 +288,23 @@ extension AIService {
         return value
     }
 
+    private func worldInput(_ world:RPGWorld,definitions:JSONValue,seed:Int)->JSONValue {
+        .object(["width":.number(Double(world.width)),"height":.number(Double(world.height)),
+                 "tiles":.array(world.tiles.map { .number(Double($0)) }),"definitions":definitions,"seed":.number(Double(seed))])
+    }
     func terrain(_ world:RPGWorld,definitions:JSONValue,seed:Int)->Data? {
         context.exception=nil
-        let input:JSONValue = .object(["width":.number(Double(world.width)),"height":.number(Double(world.height)),
-                                       "tiles":.array(world.tiles.map { .number(Double($0)) }),
-                                       "definitions":definitions,"seed":.number(Double(seed))])
+        let input=worldInput(world,definitions:definitions,seed:seed)
         guard let raw=api.invokeMethod("terrain",withArguments:[input.canonicalJSON])?.toString(),context.exception == nil
         else { return nil }
         return Data(base64Encoded:raw)
+    }
+    func decoration(_ world:RPGWorld,definitions:JSONValue,seed:Int,id:String)->[TutorialDecoration] {
+        context.exception=nil
+        let input=worldInput(world,definitions:definitions,seed:seed).setting("id",.string(id))
+        guard let raw=api.invokeMethod("decoration",withArguments:[input.canonicalJSON])?.toString(),context.exception == nil
+        else { return [] }
+        return (try? JSONDecoder().decode([TutorialDecoration].self,from:Data(raw.utf8))) ?? []
     }
 
     func generate(_ input:JSONValue,respond:(String)async throws->String)async throws->ExplorationTemplate {

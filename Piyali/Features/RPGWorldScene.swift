@@ -40,6 +40,7 @@ import SpriteKit
     private var mapKey="",pet="ghost",direction="down",playerTile:RPGPoint?,mapHeight=0,npcs:[SKSpriteNode]=[],frames:[String]=[],playerImage=""
     private var textureCache:[String:SKTexture]=[:],environmentNodes:[(node:SKSpriteNode,layer:RPGEnvironmentLayer)]=[]
     private var itemNodes:[SKSpriteNode]=[],itemMarkers:[RPGWorldMarker]=[]
+    private var tutorialTrees:[(node:SKSpriteNode,phase:Double)]=[]
     private var visualStart:TimeInterval?,lastFrameTime:TimeInterval?,previewTime:TimeInterval?,activeNPCIndex=0
     private var environmentElapsed:TimeInterval=0
     private var petClock=RPGPetAnimationClock()
@@ -59,6 +60,19 @@ import SpriteKit
             floor.position=CGPoint(x:floor.size.width/2,y:floor.size.height/2)
             floor.zPosition=0
             addChild(floor)
+            tutorialTrees=[]
+            if let tutorialTerrain {
+                for layer in tutorialTerrain.decoration(run.world,id:run.scenario.id) {
+                    guard let texture=TutorialTerrain.texture(bytes:layer.rgba,width:layer.pixelWidth,height:layer.pixelHeight) else { continue }
+                    let node=SKSpriteNode(texture:texture)
+                    node.name=layer.kind
+                    node.size=CGSize(width:layer.width*32,height:layer.height*32)
+                    node.position=CGPoint(x:layer.x*32,y:layer.y*32)
+                    node.zPosition=layer.z
+                    addChild(node)
+                    if let phase=layer.phase { tutorialTrees.append((node,phase)) }
+                }
+            }
             if let plan=RPGArt.shared.environment?.plan(run.scenario){
                 for layer in plan.layers{let node=SKSpriteNode(texture:texture(layer.image));node.texture?.filteringMode=layer.smooth ? .linear:.nearest;node.size=CGSize(width:layer.width,height:layer.height);node.zPosition=layer.z;node.blendMode=layer.blend == "add" ? .add:.alpha;apply(layer.frame(at:environmentTime ?? 0),to:node);addChild(node);environmentNodes.append((node,layer))}
             }else{for prop in world["props"].array{let node=SKSpriteNode(texture:texture(prop["image"].string));node.size=CGSize(width:prop["width"].number*32,height:prop["height"].number*32);node.position=CGPoint(x:prop["x"].number*32,y:prop["y"].number*32);node.zPosition=CGFloat(prop["z"].number);addChild(node)}}
@@ -95,7 +109,9 @@ import SpriteKit
     private func loadFrames(){frames=RPGArt.shared.environment?.frames(pet:pet,direction:direction) ?? [];if frames.isEmpty{frames=RPGArt.shared.data["pets"][pet][direction].array.map(\.string)};applyPetFrame()}
     private func applyPetFrame(){guard !frames.isEmpty else{return};let image=frames[petClock.displayedFrame(pet:pet)%frames.count];if image != playerImage{player.texture=texture(image);playerImage=image}}
     private func apply(_ value:RPGEnvironmentTransform,to node:SKSpriteNode){node.position=CGPoint(x:value.x,y:value.y);node.xScale=value.scaleX;node.yScale=value.scaleY;node.zRotation=value.rotation;node.alpha=value.alpha}
-    private func animateEnvironment(at time:TimeInterval){itemNodes.forEach{$0.setScale(1+sin(time*4)*0.15)};for entry in environmentNodes where entry.layer.motion != nil{apply(entry.layer.frame(at:time),to:entry.node)};indicator.setScale(RPGEnvironmentLayer.indicatorScale(time:time,npcIndex:activeNPCIndex))}
+    private func animateEnvironment(at time:TimeInterval){
+        for tree in tutorialTrees { tree.node.zRotation=sin(time*0.55+tree.phase)*0.008 }
+        itemNodes.forEach{$0.setScale(1+sin(time*4)*0.15)};for entry in environmentNodes where entry.layer.motion != nil{apply(entry.layer.frame(at:time),to:entry.node)};indicator.setScale(RPGEnvironmentLayer.indicatorScale(time:time,npcIndex:activeNPCIndex))}
     override func update(_ currentTime:TimeInterval){guard !isPaused else{return};if visualStart == nil{visualStart=currentTime};let delta=max(0,currentTime-(lastFrameTime ?? currentTime));lastFrameTime=currentTime;environmentElapsed=max(0,currentTime-(visualStart ?? currentTime));petClock.advance(milliseconds:delta*1000,pet:pet);applyPetFrame();animateEnvironment(at:previewTime ?? environmentElapsed)}
     var environmentLayerCount:Int{environmentNodes.count}
     var movingEnvironmentLayerCount:Int{environmentNodes.filter{$0.layer.motion != nil}.count}
@@ -105,6 +121,13 @@ import SpriteKit
     override func touchesEnded(_ touches:Set<UITouch>,with event:UIEvent?){guard let touch=touches.first else{return};let p=touch.location(in:self);onTile?(RPGPoint(x:Int(floor(p.x/32)),y:mapHeight-1-Int(floor(p.y/32))))}
 }
 
+struct TutorialDecoration:Decodable {
+    let kind:String
+    let x:Double,y:Double,width:Double,height:Double,z:Double,phase:Double?
+    let pixelWidth:Int,pixelHeight:Int
+    let rgba:Data
+}
+
 struct TutorialTerrain {
     let definitions:JSONValue
     let seed:Int
@@ -112,8 +135,14 @@ struct TutorialTerrain {
     @MainActor private static let policy=try? TutorialPlazaPolicy()
 
     @MainActor func texture(_ world:RPGWorld)->SKTexture? {
-        let width=world.width*16,height=world.height*16
-        guard let bytes=Self.policy?.terrain(world,definitions:definitions,seed:seed),bytes.count == width*height*4,
+        guard let bytes=Self.policy?.terrain(world,definitions:definitions,seed:seed) else { return nil }
+        return Self.texture(bytes:bytes,width:world.width*16,height:world.height*16)
+    }
+    @MainActor func decoration(_ world:RPGWorld,id:String)->[TutorialDecoration] {
+        Self.policy?.decoration(world,definitions:definitions,seed:seed,id:id) ?? []
+    }
+    @MainActor static func texture(bytes:Data,width:Int,height:Int)->SKTexture? {
+        guard width > 0,height > 0,bytes.count == width*height*4,
               let provider=CGDataProvider(data:bytes as CFData),
               let colorSpace=CGColorSpace(name:CGColorSpace.sRGB),
               let image=CGImage(width:width,height:height,bitsPerComponent:8,bitsPerPixel:32,bytesPerRow:width*4,

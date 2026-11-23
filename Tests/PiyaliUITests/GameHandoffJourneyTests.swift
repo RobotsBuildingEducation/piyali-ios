@@ -7,7 +7,10 @@ import XCTest
         let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_TUTOR_FIXTURE":"1","PIYALI_PRACTICE_FIXTURE":"delight:natural_or_weird","PIYALI_HEADLINE_FIXTURE":"failure","PIYALI_RPG_PREPARED_FIXTURE":prepared,"PIYALI_RPG_PREPARED_DELAY_MS":"10000","PIYALI_GAME_LOADER_SEED":"7","PIYALI_ENTRY_INITIAL_LANGUAGE":support,"PIYALI_ENTRY_INITIAL_THEME":support=="ar" ? "dark":"light"]
         if failLibraryLoad { app.launchEnvironment["PIYALI_RPG_FAIL_FIRST_LIBRARY_LOAD"]="1" }
         if legacyTutorial { app.launchEnvironment["PIYALI_LEGACY_TUTORIAL_FIXTURE"]="1" }
-        if legacyDialogue { app.launchEnvironment["PIYALI_LEGACY_TUTORIAL_DIALOGUE"]="1" }
+        if legacyDialogue {
+            app.launchEnvironment["PIYALI_LEGACY_TUTORIAL_DIALOGUE"]="1"
+            app.launchEnvironment["PIYALI_RPG_TRANSLATION_FIXTURE"]="stream"
+        }
         app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US"];app.launch();handleInitialPaperPencil(app);let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Handoff Learner");tap("entryKeyboardDone",app);tap("createAccount",app);handleInitialPaperPencil(app);tap("startLearning",app);tap("companionContinue",app);acknowledgePaperPencil(app);tap("gettingStartedGotIt",app);tap("placementNew",app);return app
     }
     private func mode(_ mode:String,_ app:XCUIApplication){tap("productMenu",app);tap("productModeMenu",app);tap("productMode-"+mode,app)}
@@ -62,9 +65,20 @@ import XCTest
         XCTAssertTrue(app.otherElements["explorationWorld"].waitForExistence(timeout:15))
         awaitLegacyFullScreen(app)
 
-        let tiles=(0..<14).flatMap { y in (0..<18).map { x in x == 0 || x == 17 || y == 0 || y == 13 ? 2 : 0 } }
+        var tiles=(0..<14).flatMap { y in (0..<18).map { x in x == 0 || x == 17 || y == 0 || y == 13 ? 2 : 0 } }
+        tiles[3*18+5]=3
+        tiles[4*18+2]=4
+        tiles[2*18+4]=6
+        let world=app.otherElements["explorationWorld"]
+        shot("Native generated Greeting Plaza artwork",app)
+        world.coordinate(withNormalizedOffset:.zero)
+            .withOffset(CGVector(dx:world.frame.width/2+world.frame.height/10,dy:world.frame.height*0.512)).tap()
+        XCTAssertEqual(world.value as? String,"tutorialPlaza|4,3")
+        world.coordinate(withNormalizedOffset:.zero)
+            .withOffset(CGVector(dx:world.frame.width/2+world.frame.height/10,dy:world.frame.height*0.512)).tap()
+        XCTAssertEqual(world.value as? String,"tutorialPlaza|4,3","The generated tree uses the source solid tile")
         let choice=RPGPlayFixture.Step(npc:1,mode:"choice",correct:0,example:""),speech=RPGPlayFixture.Step(npc:0,mode:"speech",correct:0,example:"Me llamo Sol.")
-        let fixture=RPGPlayFixture(lessonID:"lesson-tutorial-1",world:.init(width:18,height:14,tiles:tiles,solidTiles:[2],objects:[]),
+        let fixture=RPGPlayFixture(lessonID:"lesson-tutorial-1",world:.init(width:18,height:14,tiles:tiles,solidTiles:[2,3,4,6],objects:[]),
                                    npcs:[.init(x:4,y:4),.init(x:8,y:6)],steps:[choice,speech])
         try rpgApproach(choice,fixture,app,worldID:"explorationWorld",closeID:"explorationCloseDialogue")
         let originalChoice=app.buttons["explorationChoice-0"]
@@ -83,6 +97,18 @@ import XCTest
         XCTAssertEqual(XCTWaiter.wait(for:[newOption],timeout:6),.completed)
         XCTAssertEqual(app.buttons["explorationChoice-2"].label,"C. Buenas tardes.")
         shot("Native legacy generated choices",app)
+        tap("explorationTranslation",app)
+        let firstLine=app.staticTexts["explorationLineTranslation-0"]
+        XCTAssertTrue(firstLine.waitForExistence(timeout:3))
+        XCTAssertEqual(firstLine.label,"I'm happy to see you here.")
+        XCTAssertFalse(originalChoice.label.contains("introduce myself"))
+        let translatedOption=XCTNSPredicateExpectation(predicate:NSPredicate(format:"label CONTAINS %@","Hello, I want to introduce myself."),object:originalChoice)
+        XCTAssertEqual(XCTWaiter.wait(for:[translatedOption],timeout:10),.completed)
+        XCTAssertTrue(app.buttons["explorationChoice-2"].label.contains("Good afternoon."))
+        shot("Native translated generated choices",app)
+        tap("explorationTranslation",app)
+        XCTAssertEqual(originalChoice.label,"A. Hola, quiero presentarme.")
+        XCTAssertFalse(firstLine.exists)
         tap("explorationChoice-0",app)
         XCTAssertTrue(app.staticTexts["explorationSceneLine"].waitForExistence(timeout:5))
         XCTAssertEqual(app.staticTexts["explorationSceneLine"].label,"Sonríe.")

@@ -1,5 +1,5 @@
-// The source terrain functions use Canvas only for RGB(A) fills and compositing
-// their own 16-pixel tile textures. JavaScriptCore has no browser Canvas.
+// The source terrain and sprite functions draw directly into RGB(A) canvas
+// pixels. JavaScriptCore has no browser Canvas.
 class PixelCanvas {
   width = 0;
   height = 0;
@@ -25,6 +25,13 @@ class PixelCanvas {
           for (let col = Math.max(0, x); col < Math.min(x + width, this.width); col++) {
             composite((row * this.width + col) * 4, ...color);
           }
+        }
+      },
+      clearRect: (x, y, width, height) => {
+        for (let row = Math.max(0, y); row < Math.min(y + height, this.height); row++) {
+          const start = (row * this.width + Math.max(0, x)) * 4;
+          const end = (row * this.width + Math.min(x + width, this.width)) * 4;
+          this.pixels.fill(0, start, end);
         }
       },
       drawImage: (image, x, y) => {
@@ -75,4 +82,42 @@ export function terrain(input) {
     context.drawImage(texture.image, x * 16, y * 16);
   }
   return encodePixels(ground.pixels);
+}
+
+
+// Greeting Plaza draws generated props above the terrain, with the source
+// sprite dimensions, depth order, per-tile seed and ambient tree phases.
+export function decoration(input) {
+  const { width, height, tiles, definitions, seed, id } = JSON.parse(input);
+  globalThis.document = { createElement: () => new PixelCanvas() };
+  let ambientSeed = 2166136261;
+  for (const character of id + ":" + id + ":") {
+    ambientSeed = Math.imul(ambientSeed ^ character.charCodeAt(0), 16777619);
+  }
+  const ambientRandom = mulberry32(ambientSeed);
+  const layers = [];
+  const add = (texture, kind, x, y, width, height, z, phase = null) => {
+    const image = texture.image;
+    layers.push({ kind, x, y, width, height, z, phase,
+      pixelWidth: image.width, pixelHeight: image.height, rgba: encodePixels(image.pixels) });
+  };
+  for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+    const sprite = definitions[tiles[y * width + x]]?.sprite;
+    if (!["tree", "bench", "counter"].includes(sprite)) continue;
+    const tree = sprite === "tree";
+    add(createSpriteTexture(sprite, seed + x * 7 + y * 13), sprite, x + 0.5,
+      height - 1 - y + (tree ? 0.6 : 0.5), tree ? 1.3 : 1, tree ? 1.6 : 1,
+      1000 + y * 10, tree ? ambientRandom() * 2 * Math.PI : null);
+  }
+  for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+    const definition = definitions[tiles[y * width + x]];
+    if (!definition || definition.solid || definition.sprite) continue;
+    const decSeed = (seed + x * 73856093 + y * 19349663) >>> 0;
+    if ((decSeed % 1000) / 1000 > 0.09) continue;
+    const kind = ["paper_bits", "stones"][decSeed % 2];
+    add(createGroundDecalTexture(kind, seed + x * 113 + y * 197), kind,
+      x + 0.5 + (((decSeed >>> 8) % 100) / 100 - 0.5) * 0.2,
+      height - 1 - y + 0.5 + (((decSeed >>> 16) % 100) / 100 - 0.5) * 0.15, 0.72, 0.72, 0.8);
+  }
+  return JSON.stringify(layers);
 }

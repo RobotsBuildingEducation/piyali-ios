@@ -12,6 +12,7 @@ struct ExplorationView:View {
     @StateObject private var speech=SpeechService()
     @StateObject private var observations=RPGObjectController()
     @StateObject private var narration=RealtimeNarrationService()
+    @StateObject private var translations=RPGTranslationController()
     @StateObject private var music=RPGMusicPlayer()
     @StateObject private var help=HelpChatController()
     @AppStorage("piyali.rpgCompanion") private var selectedPet=""
@@ -75,6 +76,7 @@ struct ExplorationView:View {
                 if !chapterKey.isEmpty { await service.prepareChapter(app) }
             }
             .task(id:turnInKey){let key=turnInKey;guard !key.isEmpty else{return};try? await Task.sleep(for:.milliseconds(450));guard !Task.isCancelled,turnInKey == key else{return};edit{$0.completeTurnIn()}}
+            .onChange(of:translationKey,initial:true){_,_ in configureTranslations()}
             .onChange(of:narrationKey){_,_ in playDialogue()}
             .onChange(of:run?.mapID){_,_ in observations.cancel();configureObjects();loot="";pickup=""}
             .onChange(of:run?.id){_,_ in configureObjects();startMusic()}
@@ -84,11 +86,11 @@ struct ExplorationView:View {
             .onChange(of:phase){_,value in
                 if value != .active { stop() }
                 else {
-                    configureObjects();startMusic();playDialogue()
+                    configureObjects();configureTranslations();startMusic();playDialogue()
                     if service.tutorial != nil,run == nil { Task { await service.prepareTutorial(app) } }
                 }
             }
-            .onChange(of:app.subscription.hasAccess){_,allowed in if !allowed{stop()}else{configureObjects()}}
+            .onChange(of:app.subscription.hasAccess){_,allowed in if !allowed{stop()}else{configureObjects();configureTranslations()}}
             .onDisappear{stop()}
             .overlay {if panel == "help" {HelpChatView(controller:help,progress:.object(["targetLang":.string(app.learner.target),"supportLang":.string(app.learner.support)]),onClose:{panel=""})}}
             .toolbar{ToolbarItemGroup(placement:.keyboard){Spacer();Button("Done"){editing=false}}}
@@ -226,16 +228,82 @@ struct ExplorationView:View {
     }
     private func dialogueContent(_ run:ExplorationRun)->some View {
         VStack(alignment:.leading,spacing:8) {
-            HStack{Spacer();Button{let text=line(run),id=run.id,node=run.nodeID;Task{if let result=await service.translate(text,app:app),self.run?.id == id,self.run?.nodeID == node{translation=result}}}label:{RPGArt.shared.image("RPGIconHelp").renderingMode(.template).resizable().frame(width:14,height:14).foregroundStyle(PiyaliBrand.unitColor("466f9a")).frame(width:24,height:24).background(.white,in:RoundedRectangle(cornerRadius:6))}.disabled(service.busy).accessibilityLabel(t("translateText"))}
+            HStack { Spacer(); translationButton(run) }
             explorationDialogueText(run)
             if !translation.isEmpty{Text(translation).font(PiyaliBrand.productFont(14)).italic().foregroundStyle(PiyaliBrand.unitColor("2b6cb0"))}
             if let tip=run.tip,!tip.isEmpty{Text(tip).font(PiyaliBrand.productFont(12)).foregroundStyle(muted)}
             dialogueActions(run).disabled(run.pendingTurnIn == true)
         }.padding(.horizontal,12).padding(.top,4).padding(.bottom,12)
     }
+    private func translationButton(_ run:ExplorationRun)->some View {
+        let tutorial=run.tutorialKey != nil
+        let undo=tutorial && translations.active
+        return Button {
+            if tutorial {
+                configureTranslations()
+                translations.toggle(provider:.native(app.ai))
+            } else {
+                let text=line(run),id=run.id,node=run.nodeID
+                Task {
+                    if let result=await service.translate(text,app:app),self.run?.id == id,self.run?.nodeID == node { translation=result }
+                }
+            }
+        } label: {
+            Group {
+                if tutorial,translations.busy { ProgressView().scaleEffect(0.7) }
+                else {
+                    RPGArt.shared.image(undo ? "RPGIconUndo":"RPGIconHelp").renderingMode(.template)
+                        .resizable().frame(width:14,height:14)
+                        .foregroundStyle(PiyaliBrand.unitColor(undo ? "9b5d2d":"466f9a"))
+                }
+            }.frame(width:24,height:24)
+                .background {
+                    RoundedRectangle(cornerRadius:6).fill(.white)
+                        .shadow(color:PiyaliBrand.unitColor(undo ? "d8b58b":"cfbd9f"),radius:0,y:1)
+                }
+        }.disabled(service.busy || (tutorial && (!app.subscription.hasAccess || translations.busy)))
+            .accessibilityLabel(t(undo ? "undoTranslation":"translateText"))
+            .accessibilityIdentifier("explorationTranslation")
+    }
+    private var translationInput:JSONValue? {
+        guard let run,run.talking,run.tutorialKey != nil else { return nil }
+        return RPGDialoguePolicy.parameters(run,continueLabel:t("continue"),chooseItem:search("chooseItem"),
+                                            continueSearching:search("continueSearching"))
+    }
+    private var translationKey:String {
+        guard let run,let translationInput else { return "" }
+        return JSONValue.array([.string(scope),.string(run.id.uuidString),
+                                .string(run.dialogueVisit?.uuidString ?? ""),translationInput]).canonicalJSON
+    }
+    private func configureTranslations() {
+        guard let run,let input=translationInput,app.subscription.hasAccess,phase == .active else { translations.reset();return }
+        let key=translationKey,revision=app.identity.sessionRevision,id=run.id,visit=run.dialogueVisit
+        let continueLabel=t("continue"),chooseItem=search("chooseItem"),continueSearching=search("continueSearching")
+        translations.configure(key:key,parameters:input) { [weak app,weak service] in
+            guard let app,app.subscription.hasAccess,app.identity.sessionRevision == revision,
+                  let current=service?.savedRun(app.learner),current.id == id,current.dialogueVisit == visit,current.talking else { return false }
+            return RPGDialoguePolicy.parameters(current,continueLabel:continueLabel,chooseItem:chooseItem,
+                                                continueSearching:continueSearching) == input
+        }
+    }
+    private func translationLine(_ text:String,language:String,id:String,size:CGFloat=14)->some View {
+        RPGDialogueText(text:text,language:language,color:PiyaliBrand.unitColor(light ? "466f9a":"2b6cb0"),
+                        size:size,bold:false,italic:true).accessibilityIdentifier(id)
+    }
     @ViewBuilder private func explorationDialogueText(_ run:ExplorationRun)->some View {
         let text=line(run)
-        if run.tutorialKey != nil {
+        if run.tutorialKey != nil,let translated=translations.lines,let plan=translations.plan {
+            let isReply = !run.feedback.isEmpty
+            ForEach(Array(plan.lines.enumerated()),id:\.offset) { index,original in
+                VStack(alignment:.leading,spacing:0) {
+                    RPGDialogueText(text:original,language:run.target,color:isReply ? PiyaliBrand.unitColor("9b5d2d"):ink,
+                                    size:isReply ? 14:16,bold:!isReply)
+                    if translated.indices.contains(index),!translated[index].isEmpty {
+                        translationLine(translated[index],language:run.support,id:"explorationLineTranslation-\(index)")
+                    }
+                }
+            }
+        } else if run.tutorialKey != nil {
             let split=RPGDialogue.split(text)
             let scene=split.scene.isEmpty && run.feedback.isEmpty ? run.node["sceneLine"].string : split.scene
             if !scene.isEmpty {
@@ -267,10 +335,19 @@ struct ExplorationView:View {
             if typedReply {TextField(t("response"),text:$answer,axis:.vertical).textFieldStyle(.roundedBorder).focused($editing).accessibilityIdentifier("explorationAnswer");Button(t("continue")){send()}.disabled(answer.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty || service.busy).accessibilityIdentifier("explorationSpeechSubmit")}
             else { microphone(run) }
         }else if ["gather","objectSearch"].contains(run.mode){
-            if !run.inventory.isEmpty {Text(search("chooseItem")).font(PiyaliBrand.productFont(12)).foregroundStyle(muted);LazyVGrid(columns:[GridItem(.adaptive(minimum:60))],spacing:8){ForEach(Array(run.inventory.enumerated()),id:\.element.id){index,item in Button{handIn(index)}label:{itemSprite(item.item,size:40).padding(8).background(paper,in:RoundedRectangle(cornerRadius:8)).overlay(RoundedRectangle(cornerRadius:8).stroke(border,lineWidth:2))}.accessibilityLabel(item.item["name"].string).accessibilityIdentifier("explorationHandIn-\(index)")}}}
-            Button{closeDialogue()}label:{Text(search("continueSearching")).font(PiyaliBrand.productFont(14,700)).frame(maxWidth:.infinity,alignment:.leading).padding(.horizontal,12).padding(.vertical,8).overlay(Capsule().stroke(border,lineWidth:1))}.accessibilityIdentifier("explorationKeepSearching")
-        }else{Button(t("continue")){edit{_=$0.continueDialogue()}}.buttonStyle(ExplorationChoiceStyle(ink:ink,paper:paper,border:border)).accessibilityIdentifier("explorationContinue")}
+            if !run.inventory.isEmpty {dialogueActionLabel(search("chooseItem"),key:"submitPrompt",run:run).font(PiyaliBrand.productFont(12)).foregroundStyle(muted);LazyVGrid(columns:[GridItem(.adaptive(minimum:60))],spacing:8){ForEach(Array(run.inventory.enumerated()),id:\.element.id){index,item in Button{handIn(index)}label:{itemSprite(item.item,size:40).padding(8).background(paper,in:RoundedRectangle(cornerRadius:8)).overlay(RoundedRectangle(cornerRadius:8).stroke(border,lineWidth:2))}.accessibilityLabel(item.item["name"].string).accessibilityIdentifier("explorationHandIn-\(index)")}}}
+            Button{closeDialogue()}label:{dialogueActionLabel(search("continueSearching"),key:"continue",run:run).font(PiyaliBrand.productFont(14,700)).frame(maxWidth:.infinity,alignment:.leading).padding(.horizontal,12).padding(.vertical,8).overlay(Capsule().stroke(border,lineWidth:1))}.accessibilityIdentifier("explorationKeepSearching")
+        }else{Button{edit{_=$0.continueDialogue()}}label:{dialogueActionLabel(t("continue"),key:"continue",run:run)}.buttonStyle(ExplorationChoiceStyle(ink:ink,paper:paper,border:border)).accessibilityIdentifier("explorationContinue")}
         if service.busy{ProgressView()};if let error=speech.error{Text(error).font(PiyaliBrand.productFont(12))}
+    }
+    private func dialogueActionLabel(_ text:String,key:String,run:ExplorationRun)->some View {
+        VStack(alignment:.leading,spacing:0) {
+            Text(text)
+            let help=translations.action(key)
+            if run.tutorialKey != nil,!help.isEmpty {
+                translationLine(help,language:run.support,id:"explorationActionTranslation-"+key,size:12)
+            }
+        }
     }
     private func microphone(_ run:ExplorationRun)->some View {
         let isTutorial=run.tutorialKey != nil
@@ -301,11 +378,15 @@ struct ExplorationView:View {
     @ViewBuilder private func choiceButton(_ text:String,index:Int,run:ExplorationRun)->some View {
         if run.tutorialKey != nil {
             let label=(UnicodeScalar(65+index).map { String($0) } ?? "")+". "+text
+            let values=translations.choices ?? []
+            let help=values.indices.contains(index) ? values[index] : ""
             Button { edit { _=$0.choose(index) } } label: {
-                RPGDialogueText(text:label,language:run.target,color:ink,size:14,bold:false,weight:600)
-                    .padding(.horizontal,12).padding(.vertical,8).frame(maxWidth:.infinity,alignment:.leading)
+                VStack(alignment:.leading,spacing:0) {
+                    RPGDialogueText(text:label,language:run.target,color:ink,size:14,bold:false,weight:600)
+                    if !help.isEmpty { translationLine(help,language:run.support,id:"explorationChoiceTranslation-\(index)",size:12) }
+                }.padding(.horizontal,12).padding(.vertical,8).frame(maxWidth:.infinity,alignment:.leading)
             }.buttonStyle(RPGDialogueChoiceStyle(light:light,cornerRadius:10))
-                .accessibilityLabel(label).accessibilityIdentifier("explorationChoice-\(index)")
+                .accessibilityLabel(help.isEmpty ? label : label+"\n"+help).accessibilityIdentifier("explorationChoice-\(index)")
         } else {
             Button(text) { edit { _=$0.choose(index) } }
                 .buttonStyle(ExplorationChoiceStyle(ink:ink,paper:paper,border:border))
@@ -390,13 +471,13 @@ struct ExplorationView:View {
     private func edit(_ action:(inout ExplorationRun)->Void){guard !service.busy,var value=run else{return};narration.stopAll();speech.stopAll();action(&value);app.learner.saveExploration(value);app.persist();answer="";translation="";editing=false}
     private func tile(_ point:RPGPoint){guard !service.busy,var value=run else{return};let before=value.inventory.count,object=value.tap(point);if let object,let area=value.area{loot="";if value.searchStarted == value.searchKey,value.mode == "objectSearch" {if value.examine(object){pickup=compact(value.inventory.last?.item ?? .null);expirePickup()}else{loot=search("alreadyChecked")}};observations.examine(area.world.objects[object])};if value.inventory.count>before,object == nil {pickup=compact(value.inventory.last?.item ?? .null);expirePickup()};app.learner.saveExploration(value);app.persist();if value.talking{speech.stopAll()}}
     private func expirePickup(){toastTask?.cancel();toastTask=Task{try? await Task.sleep(for:.milliseconds(1600));if !Task.isCancelled{pickup=""}}}
-    private func closeDialogue(){narration.stopAll();speechArmed=false;service.cancel();speech.stopAll();editing=false;typedReply=false;answer="";translation="";edit{$0.talking=false}}
+    private func closeDialogue(){translations.reset();narration.stopAll();speechArmed=false;service.cancel();speech.stopAll();editing=false;typedReply=false;answer="";translation="";edit{$0.talking=false}}
     private func send(){speechArmed=false;let text=answer.trimmingCharacters(in:.whitespacesAndNewlines);guard !text.isEmpty,!service.busy else{return};speech.stopAll();editing=false;answer="";Task{await service.speak(text,app:app)}}
     private func replay(_ run:ExplorationRun){guard let fresh=try? ExplorationRun(target:run.target,support:run.support,scenario:run.scenario) else{return};stop();app.learner.saveExploration(fresh);app.persist();configureObjects();startMusic()}
     private func create(){stop();showSelection=true;Task{await service.prepare(app,theme:"",generated:app.subscription.hasAccess);if service.error == nil{showSelection=false;configureObjects();startMusic()}}}
     private func configureObjects(){guard let run,let area=run.area,let key=RPGArt.shared.explorationKey(area) else{return};let map=RPGArt.shared.world(key)["map"].setting("id",.string(area.id)).setting("name",area.name ?? .null),parameters:JSONValue = .object(["scenarioID":.string(run.scenario.id),"map":map,"target":.string(run.target),"support":.string(run.support),"level":.string(run.scenario.level),"reviewContext":.null,"user":app.learner.rpgObjectUser,"objects":(try? JSONDecoder().decode(JSONValue.self,from:JSONEncoder().encode(area.world.objects))) ?? .array([])]);observations.configure(scope:scope+":"+run.id.uuidString+":"+area.id,parameters:parameters,objects:area.world.objects){prompt in guard app.subscription.hasAccess,!Self.fixture else{throw URLError(.notConnectedToInternet)};return try await app.ai.responsesText(prompt)}}
     private func startMusic(){let snapshot=app.learner.settingsSnapshot;let flagValid:Bool;if case .bool = snapshot["rpgMusicEnabled"]{flagValid=true}else{flagValid=false};if snapshot["rpgMusicPreferenceVersion"] != .number(2) || !flagValid{app.updateSettings(.object(["rpgMusicEnabled":.bool(false),"rpgMusicPreferenceVersion":.number(2)]))};music.apply(app.learner.settingsSnapshot["rpgMusicEnabled"].boolean && run?.completed == false)}
-    private func stop(){narration.stopAll();speechArmed=false;speech.stopAll();service.cancel();observations.cancel();music.stop();help.stop();toastTask?.cancel();toastTask=nil;editing=false}
+    private func stop(){translations.reset();narration.stopAll();speechArmed=false;speech.stopAll();service.cancel();observations.cancel();music.stop();help.stop();toastTask?.cancel();toastTask=nil;editing=false}
     private static var fixture:Bool {let e=ProcessInfo.processInfo.environment;return e["PIYALI_OFFLINE_TESTS"] == "1" && UUID(uuidString:e["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil}
 }
 

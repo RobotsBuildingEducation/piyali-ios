@@ -28,6 +28,15 @@ public final class RPGDialoguePolicy {
         let rawReply=run.feedback.isEmpty ? "":run.feedback+(run.tip.isEmpty ? "":"\n\n*"+run.tip+"*")
         return .object(["target":.string(run.target),"support":.string(run.support),"names":.array(run.scenario.npcs.map{.string($0.name)}),"inventory":.array([]),"ui":.object(["continue":.string(continueLabel)]),"dialogue":.object(["node":try RPGPreparationPolicy.value(node),"npcReply":.string(rawReply),"sceneLine":.string(run.feedbackScene ?? "")])])
     }
+    public static func parameters(_ run:ExplorationRun,continueLabel:String,chooseItem:String,continueSearching:String)->JSONValue {
+        .object([
+            "target":.string(run.target),"support":.string(run.support),"names":.array(run.scenario.npcs.map { $0["name"] }),
+            "inventory":.array(run.inventory.map(\.item)),"ui":.object(["continue":.string(continueLabel)]),
+            "objectSearchCopy":.object(["chooseItem":.string(chooseItem),"continueSearching":.string(continueSearching)]),
+            "dialogue":.object(["node":run.node,"npcReply":.string(run.feedback),"sceneLine":.string("")]),
+        ])
+    }
+
 }
 
 public enum RPGCharacterReveal {

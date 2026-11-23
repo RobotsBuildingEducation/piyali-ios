@@ -6,7 +6,18 @@ import Foundation
         guard e["PIYALI_OFFLINE_TESTS"] == "1",e["PIYALI_LIVE_API_TESTS"] != "1",UUID(uuidString:e["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil,let mode=e["PIYALI_RPG_TRANSLATION_FIXTURE"],["stream","failure"].contains(mode)else{return false}
         guard let url=Bundle.main.url(forResource:"rpg-dialogue-fixture",withExtension:"json")else{throw URLError(.fileDoesNotExist)}
         let table=try JSONDecoder().decode(JSONValue.self,from:Data(contentsOf:url))[prompt.contains("Arabic") ? "ar":"en"],entries=prompt.components(separatedBy:"\nEntries:\n").last?.components(separatedBy:.newlines) ?? []
-        let lines=entries.enumerated().map{index,entry in let text=entry.replacingOccurrences(of:"^\\d+\\. ",with:"",options:.regularExpression),translated=table[text].string;return "\(index+1). "+(translated.isEmpty ? text:translated)}
+        let lines=entries.enumerated().map { index,entry in
+            let text=entry.replacingOccurrences(of:"^\\d+\\. ",with:"",options:.regularExpression)
+            let legacyEnglish=[
+                "Me alegra verte por aquí.":"I'm happy to see you here.",
+                "Hay algo aquí que quiero entender bien, y creo que tú me puedes ayudar.":"There is something here I want to understand well, and I think you can help me.",
+                "Hola, quiero presentarme.":"Hello, I want to introduce myself.",
+                "¿Podemos practicar?":"Can we practice?",
+                "Buenas tardes.":"Good afternoon.",
+            ]
+            let translated=RPGPreparationFixture.useTutorialDialogue ? legacyEnglish[text] ?? table[text].string : table[text].string
+            return "\(index+1). "+(translated.isEmpty ? text:translated)
+        }
         guard let first=lines.first else{return true};update(first+"\n")
         // A deliberate uncooperative late chunk exercises native scope fencing.
         try? await Task.sleep(for:.seconds(4))

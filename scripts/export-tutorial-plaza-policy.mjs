@@ -93,7 +93,7 @@ export function dialogue(operation, raw) {
 const terrain = await readFile(new URL("./tutorial-plaza-pixels.js", import.meta.url), "utf8");
 const entry = `
 import { generateScenarioWithAI, TUTORIAL_MAP_ID, mulberry32 } from './src/components/RPGGame/scenarios.js';
-import { createGroundLayerCanvas, createTileTexture } from './src/components/RPGGame/pixelArt.js';
+import { createGroundDecalTexture, createGroundLayerCanvas, createSpriteTexture, createTileTexture } from './src/components/RPGGame/pixelArt.js';
 import { buildGameReviewContext } from './src/utils/gameReviewContext.js';
 import { generationPerformanceContextFor } from './src/utils/performanceEloModel.js';
 

@@ -19,7 +19,10 @@ import XCTest
         let lesson=try XCTUnwrap(library.units["Pre-A1"]?.lessons.first)
         let input:JSONValue = .object(["lesson":try RPGPreparationPolicy.value(lesson),"target":.string("es"),
                                         "support":.string("en"),"user":.object([:])])
-        let map=(0..<14).flatMap { y in (0..<20).map { x in x == 0 || x == 19 || y == 0 || y == 13 ? 2 : 0 } }
+        var map=(0..<14).flatMap { y in (0..<20).map { x in x == 0 || x == 19 || y == 0 || y == 13 ? 2 : 0 } }
+        map[3*20+5]=3
+        map[4*20+2]=4
+        map[2*20+4]=6
         let generated=try JSONSerialization.data(withJSONObject:[
             "mapWidth":20,"mapHeight":14,"mapData":map,"playerStart":["x":3,"y":3],
             "npcs":[["name":"Ana","tx":4,"ty":4],["name":"Mar","tx":8,"ty":6]]
@@ -44,6 +47,18 @@ import XCTest
             let rgba=try XCTUnwrap(policy.terrain(world,definitions:definitions,seed:1792936800000))
             XCTAssertEqual(rgba.count,world.width*world.height*16*16*4)
             XCTAssertEqual(rgba[3],255)
+            let decorations=policy.decoration(world,definitions:definitions,seed:1792936800000,id:scenario.id)
+            let props=decorations.filter { $0.z >= 1000 }
+            XCTAssertEqual(Set(props.map(\.kind)),validWorld ? ["tree","bench","counter"] : [])
+            XCTAssertTrue(decorations.contains { $0.kind == "paper_bits" })
+            XCTAssertTrue(decorations.allSatisfy { $0.rgba.count == $0.pixelWidth*$0.pixelHeight*4 })
+            if validWorld {
+                let tree=try XCTUnwrap(props.first { $0.kind == "tree" })
+                XCTAssertEqual(tree.x,5.5)
+                XCTAssertEqual(tree.y,10.6,accuracy:0.0001)
+                XCTAssertNotNil(tree.phase)
+                XCTAssertFalse(world.walkable(RPGPoint(x:5,y:3)))
+            }
         }
     }
     func testDraftPreparationAndExplorationStayUncommittedUntilHandoff()async throws{

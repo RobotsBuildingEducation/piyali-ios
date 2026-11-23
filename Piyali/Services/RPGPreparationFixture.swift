@@ -15,6 +15,20 @@ enum RPGPreparationFixture {
     static var useTutorialDialogue:Bool {
         useTutorialPlazaReplies && ProcessInfo.processInfo.environment["PIYALI_LEGACY_TUTORIAL_DIALOGUE"] == "1"
     }
+    static func tutorialGeneratedMap()throws->String {
+        let width=18,height=14
+        var tiles=(0..<height).flatMap { y in
+            (0..<width).map { x in x == 0 || x == width-1 || y == 0 || y == height-1 ? 2 : 0 }
+        }
+        tiles[3*width+5]=3
+        tiles[4*width+2]=4
+        tiles[2*width+4]=6
+        let data=try JSONSerialization.data(withJSONObject:[
+            "mapWidth":width,"mapHeight":height,"mapData":tiles,"playerStart":["x":3,"y":3],
+            "npcs":[["name":"Ada","tx":4,"ty":4],["name":"Bruno","tx":8,"ty":6]],
+        ])
+        return String(decoding:data,as:UTF8.self)
+    }
     @MainActor private static var tutorialChoiceRequests=0
     @MainActor static func tutorialDialogue(_ prompt:String)async throws->String {
         if prompt.contains("writing branching dialogue") {
