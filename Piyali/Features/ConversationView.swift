@@ -87,7 +87,13 @@ struct ConversationView:View {
                          onMissing:{ if clipOwner == owner { cachedReplies.remove(id) } })
     }
     private var footerRevision:String { "\(live.connected)|\(live.connecting)|\(live.muted)|\(paused)|\(conversation.busy)|\(draft.goal?.id.uuidString ?? "")" }
-    private var settingsRevision:String { (draft.challengeLevel ?? "")+"|"+draft.interests }
+    private var settingsLevel: String {
+        if let level = draft.challengeLevel, LearningLanguages.levels.contains(level) { return level }
+        let unlocked = [app.lessonLevels.last, app.cardLevels.last, app.learner.tutorUnlockedLevels?[app.learner.target]]
+        let order = LearningLanguages.levels
+        return unlocked.compactMap { $0 }.compactMap { order.firstIndex(of: $0) }.max().map { order[$0] } ?? "Pre-A1"
+    }
+    private var settingsRevision:String { settingsLevel+"|"+draft.interests }
     private var voiceSettings:JSONValue {
         let progress=app.learner.settingsSnapshot["progress"]
         return .array([progress["tutorVoicePersona"],progress["voicePersona"],progress["pauseMs"]])
@@ -290,17 +296,21 @@ struct ConversationView:View {
     private func end() {replay.stop();live.captureCurrentReply();if live.outputPending,!live.assistantTurnText.isEmpty {conversation.preserveInterruptedReply(live.assistantTurnText,providerID:live.assistantResponseID,app:app)};connectionEpoch=UUID();paused=false;pausedSpeech=nil;stopStarter();let waiting=pauseWork;pauseWork=nil;Task {await waiting?.value;await live.stop();var transaction=Transaction();transaction.disablesAnimations=true;withTransaction(transaction) {showSummary=true}}}
     private func stop() { replay.stop();live.captureCurrentReply();connectionEpoch=UUID();active=false;paused=false;pausedSpeech=nil;pauseWork=nil;conversation.cancel();stopStarter();Task { await live.stop() } }
     private func settingsClosed() { if settingsRevision != settingsKey { showStarter=false;Task { await conversation.shuffleTopic(app);await live.updateConversation(app.learner.conversation,learner:app.learner) } } }
-    private func change(_ update:(inout ConversationDraft)->Void) { var next=draft;update(&next);app.learner.saveConversation(next);app.persist();Task { await live.updateConversation(app.learner.conversation,learner:app.learner) } }
+    private func changeSetting(_ key: String, _ value: JSONValue) {
+        app.learner.changeSettings(.object([key: value]))
+        app.persist()
+        Task { await live.updateConversation(app.learner.conversation, learner: app.learner) }
+    }
     private var settingsSheet:some View {
         NavigationStack {
             ScrollView { VStack(alignment:.leading,spacing:24) {
                 VStack(alignment:.leading,spacing:8) { Text(setting("proficiencyLabel")).font(PiyaliBrand.productFont(14,600));Text(setting("proficiencyHint")).font(PiyaliBrand.productFont(12)).foregroundStyle(brand.secondary)
-                    Menu { ForEach(Self.copy["levels"].array,id:\.json) { level in Button { change { $0.challengeLevel=level["level"].string } } label:{ Text(level["level"].string+" · "+level["name"].localized(app.learner.support)) } } } label:{ let level=Self.copy["levels"].array.first { $0["level"].string == (draft.challengeLevel ?? "Pre-A1") } ?? .null
+                    Menu { ForEach(Self.copy["levels"].array,id:\.json) { level in Button { changeSetting("conversationProficiencyLevel", level["level"]) } label:{ Text(level["level"].string+" · "+level["name"].localized(app.learner.support)) } } } label:{ let level=Self.copy["levels"].array.first { $0["level"].string == settingsLevel } ?? .null
                         HStack { Text(level["level"].string == "Pre-A1" ? "A0" : level["level"].string).font(PiyaliBrand.productFont(14,700)).foregroundStyle(.white).padding(6).background(PiyaliBrand.unitColor(level["color"].string),in:RoundedRectangle(cornerRadius:6));VStack(alignment:.leading,spacing:3) { Text(level["name"].localized(app.learner.support)).font(PiyaliBrand.productFont(14,500));Text(level["description"].localized(app.learner.support)).font(PiyaliBrand.productFont(12)).foregroundStyle(brand.secondary) };Spacer();Image(systemName:"chevron.down") }.padding(12).background(brand.background,in:RoundedRectangle(cornerRadius:10))
                     }.accessibilityIdentifier("conversationLevel")
                 }
-                Toggle(isOn:Binding(get:{draft.pronunciation},set:{value in change {$0.pronunciation=value}})) { VStack(alignment:.leading,spacing:5) { Text(setting("pronunciationLabel")).font(PiyaliBrand.productFont(14,600));Text(setting("pronunciationHint")).font(PiyaliBrand.productFont(12)).foregroundStyle(brand.secondary) } }.tint(PiyaliBrand.unitColor("00b5d8")).accessibilityIdentifier("conversationPronunciation")
-                VStack(alignment:.leading,spacing:8) { Text(setting("subjectLabel")).font(PiyaliBrand.productFont(14,600));Text(setting("subjectHint")).font(PiyaliBrand.productFont(12)).foregroundStyle(brand.secondary);TextField(setting("subjectPlaceholder"),text:Binding(get:{draft.interests},set:{value in change {$0.interests=String(value.prefix(600))}}),axis:.vertical).lineLimit(5...8).font(PiyaliBrand.productFont(16)).padding(12).background(brand.background,in:RoundedRectangle(cornerRadius:10)).accessibilityIdentifier("conversationTopics") }
+                Toggle(isOn:Binding(get:{draft.pronunciation},set:{changeSetting("practicePronunciation", .bool($0))})) { VStack(alignment:.leading,spacing:5) { Text(setting("pronunciationLabel")).font(PiyaliBrand.productFont(14,600));Text(setting("pronunciationHint")).font(PiyaliBrand.productFont(12)).foregroundStyle(brand.secondary) } }.tint(PiyaliBrand.unitColor("00b5d8")).accessibilityIdentifier("conversationPronunciation")
+                VStack(alignment:.leading,spacing:8) { Text(setting("subjectLabel")).font(PiyaliBrand.productFont(14,600));Text(setting("subjectHint")).font(PiyaliBrand.productFont(12)).foregroundStyle(brand.secondary);TextField(setting("subjectPlaceholder"),text:Binding(get:{draft.interests},set:{changeSetting("conversationSubjects", .string($0))}),axis:.vertical).lineLimit(5...8).font(PiyaliBrand.productFont(16)).padding(12).background(brand.background,in:RoundedRectangle(cornerRadius:10)).accessibilityIdentifier("conversationTopics") }
             }.padding(20) }.background(brand.surface).foregroundStyle(brand.text).navigationTitle(t("ra_conversation_settings","Conversation settings")).navigationBarTitleDisplayMode(.inline).toolbar { ToolbarItem(placement:.confirmationAction) { Button(setting("close")) { showSettings=false } } }
         }
     }

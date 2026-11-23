@@ -8,7 +8,8 @@ public struct SettingsChange:Codable,Identifiable,Sendable {
     public init(partial:JSONValue,date:Date=Date(),provider:String?=nil){self.partial=partial;self.date=date;self.provider=provider}
 }
 public enum LearnerSettings {
-    public static let progressKeys:Set<String>=["tutorVoice","tutorVoicePersona","pauseMs","showTranslations","helpRequest","practicePronunciation"]
+    public static let conversationKeys: Set<String> = ["conversationProficiencyLevel", "practicePronunciation", "conversationSubjects"]
+    public static let progressKeys = conversationKeys.union(["tutorVoice","tutorVoicePersona","pauseMs","showTranslations","helpRequest"])
     public static let rootKeys:Set<String>=["companionUnlocksCelebrated","dailyGoalPetName","dailyGoalPetType","tutorialBitcoinModalShown","identity","createdWallet","themeMode","allowPosts","soundEnabled","soundVolume","tutorVolume","rpgMusicEnabled","rpgMusicPreferenceVersion"]
     public static let directKeys:Set<String>=["companionUnlocksCelebrated","dailyGoalPetName","dailyGoalPetType","tutorialBitcoinModalShown","identity","createdWallet","allowPosts","soundEnabled","soundVolume","tutorVolume","rpgMusicEnabled","rpgMusicPreferenceVersion"]
     public static func sourceUser(_ fields:[String:Any])->JSONValue {
@@ -35,8 +36,15 @@ public enum LearnerSettings {
         var partial=change.partial.object.filter{progressKeys.union(rootKeys).contains($0.key)}
         if let flags=partial["companionUnlocksCelebrated"]{let valid=flags.object.filter{CompanionTypes.ordered.contains($0.key)&&NostrAchievementCollection.truthy($0.value)}.mapValues{_ in JSONValue.bool(true)};if valid.isEmpty{partial.removeValue(forKey:"companionUnlocksCelebrated")}else{partial["companionUnlocksCelebrated"] = .object(valid)}}
         if Set(partial.keys).isSubset(of:directKeys){return .object(partial)}
+        if Set(partial.keys).isSubset(of: conversationKeys) {
+            return .object(["progress": .object(partial)])
+        }
         let normalized=try policy.run("normalize",.object(["user":fields,"partial":.object(partial),"provider":.string(change.provider == "gemini" ? "gemini":"openai")]))
-        var patch: [String:JSONValue] = ["progress":.object(normalized["progress"].object.filter{progressKeys.contains($0.key)}),"themeMode":normalized["themeMode"],"appLanguage":normalized["appLanguage"],"helpRequest":normalized["helpRequest"],"practicePronunciation":normalized["practicePronunciation"]]
+        var progress = normalized["progress"].object.filter { progressKeys.contains($0.key) }
+        for key in ["conversationProficiencyLevel", "conversationSubjects"] {
+            if let value = partial[key] { progress[key] = value }
+        }
+        var patch: [String:JSONValue] = ["progress":.object(progress),"themeMode":normalized["themeMode"],"appLanguage":normalized["appLanguage"],"helpRequest":normalized["helpRequest"],"practicePronunciation":normalized["practicePronunciation"]]
         for key in ["companionUnlocksCelebrated","dailyGoalPetName","dailyGoalPetType","tutorialBitcoinModalShown","identity","createdWallet"]{if let value=partial[key]{patch[key]=value}}
         return .object(patch)
     }

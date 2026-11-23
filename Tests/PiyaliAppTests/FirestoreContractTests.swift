@@ -330,6 +330,49 @@ private final class EmulatorAppCheckFactory: NSObject, AppCheckProviderFactory {
         XCTAssertEqual(progress["foreignTimestamp"] as? Timestamp,timestamp);XCTAssertEqual(progress["foreignBytes"] as? Data,Data([1,2,3]));XCTAssertEqual(fields["patreonVerified"] as? Bool,true)
         let snapshot=try JSONDecoder().decode(LearnerState.self,from:Data(try XCTUnwrap(fields["iosStateJSON"] as? String).utf8));XCTAssertNil(snapshot.userSettings);XCTAssertTrue(snapshot.pendingSettingsChanges?.isEmpty == true)
     }
+    func testConversationSettingsImportAndSyncAcrossPracticeLanguages() async throws {
+        let (service, db, npub) = try context()
+        try await seed(db, npub)
+        let ref = db.collection("users").document(npub)
+        let timestamp = Timestamp(date: Date(timeIntervalSince1970: 1_700_000_000))
+        try await ref.setData(["progress": [
+            "targetLang": "es", "supportLang": "en",
+            "conversationProficiencyLevel": "A2", "practicePronunciation": true,
+            "conversationSubjects": "Travel at the cafe", "foreignTimestamp": timestamp
+        ]], merge: true)
+
+        var topics = try requireState(await service.load(npub: npub))
+        XCTAssertEqual(topics.target, "es")
+        XCTAssertEqual(topics.conversation.challengeLevel, "A2")
+        XCTAssertTrue(topics.conversation.pronunciation)
+        XCTAssertEqual(topics.conversation.interests, "Travel at the cafe")
+        var spanish = topics.conversation
+        spanish.append(.init(role: "assistant", text: "¿Qué prefieres?"))
+        topics.saveConversation(spanish)
+        var pronunciation = try requireState(await service.load(npub: npub))
+        topics.changeSettings(.object(["conversationSubjects": .string("Dinner in town")]))
+        pronunciation.changeSettings(.object(["practicePronunciation": .bool(false)]))
+        async let first = service.save(topics, npub: npub)
+        async let second = service.save(pronunciation, npub: npub)
+        _ = try await (first, second)
+        _ = try await service.save(topics, npub: npub)
+
+        var restored = try requireState(await service.load(npub: npub, local: topics))
+        XCTAssertEqual(restored.target, "es")
+        XCTAssertEqual(restored.conversation.messages.last?.text, "¿Qué prefieres?")
+        restored.target = "fr"
+        XCTAssertTrue(restored.conversation.messages.isEmpty)
+        XCTAssertEqual(restored.conversation.challengeLevel, "A2")
+        XCTAssertFalse(restored.conversation.pronunciation)
+        XCTAssertEqual(restored.conversation.interests, "Dinner in town")
+        XCTAssertEqual(restored.totalXP, 150)
+        let root = try await ref.getDocument(source: .server).data() ?? [:]
+        XCTAssertEqual(root["patreonVerified"] as? Bool, true)
+        let progress = try XCTUnwrap(root["progress"] as? [String: Any])
+        XCTAssertEqual(progress["conversationSubjects"] as? String, "Dinner in town")
+        XCTAssertEqual(progress["practicePronunciation"] as? Bool, false)
+        XCTAssertEqual(progress["foreignTimestamp"] as? Timestamp, timestamp)
+    }
     func testOfflineGeminiVoiceAndVolumeRetryPreserveCanonicalProgressAndUnknownTypes()async throws {
         let(service,db,npub)=try context();try await seed(db,npub)
         let ref=db.collection("users").document(npub),stamp=Timestamp(date:Date(timeIntervalSince1970:1_700_000_000))

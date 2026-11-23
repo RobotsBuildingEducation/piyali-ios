@@ -129,7 +129,20 @@ public enum ConversationPractice {
     }
 }
 public extension LearnerState {
-    var conversation: ConversationDraft { conversationDrafts?[target] ?? ConversationDraft() }
+    var conversation: ConversationDraft {
+        var draft = conversationDrafts?[target] ?? ConversationDraft()
+        let settings = settingsSnapshot["progress"]
+        if case .string(let level) = settings["conversationProficiencyLevel"], LearningLanguages.levels.contains(level) {
+            draft.challengeLevel = level
+        }
+        if case .bool(let pronunciation) = settings["practicePronunciation"] {
+            draft.pronunciation = pronunciation
+        }
+        if case .string(let subjects) = settings["conversationSubjects"] {
+            draft.interests = subjects
+        }
+        return draft
+    }
     mutating func saveConversation(_ draft: ConversationDraft) { if conversationDrafts == nil { conversationDrafts=[:] };conversationDrafts?[target]=draft }
     /// Each real turn counts once. A goal miss/drift gets no turn XP; only a demonstrated completed goal earns its bonus/proof.
     @discardableResult mutating func conversationTurn(id: UUID, answer: String, verdict: ConversationVerdict?, turnXP: Int, goalXP: Int, now: Date = Date()) -> Int {

@@ -87,6 +87,11 @@ extension AIService:ConversationProviding {}
         guard !busy,app.subscription.hasAccess || fixture else { return };let operation=begin();error=nil;feedback=""
         let token=generation,account=app.identity.npub,target=app.learner.target,support=app.learner.support
         var draft=app.learner.conversation
+        if let saved = app.learner.conversationDrafts?[target],
+           saved.challengeLevel != draft.challengeLevel || saved.interests != draft.interests {
+            // The cached goal was generated before the account preference changed.
+            draft.goal = nil
+        }
         draft.refreshSupport(support)
         if fresh { let old=draft;draft=ConversationDraft();draft.interests=old.interests;draft.challengeLevel=old.challengeLevel;draft.personality=old.personality;draft.pronunciation=old.pronunciation }
         app.learner.saveConversation(draft);app.persist()

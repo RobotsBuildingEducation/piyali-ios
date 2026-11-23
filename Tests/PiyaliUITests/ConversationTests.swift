@@ -151,13 +151,26 @@ import XCTest
         app.terminate();app.launch();handleInitialPaperPencil(app);open(app);XCTAssertTrue(app.buttons["conversationStart"].exists);XCTAssertEqual(app.staticTexts["conversationLatestReply"].label,"¡Hola, Ana! ¿Qué te gusta hacer?")
         let xp=app.descendants(matching:.any).matching(identifier:"dailyXPStatus").firstMatch;XCTAssertTrue(xp.waitForExistence(timeout:5));XCTAssertEqual(xp.value as? String,"5%")
     }
-    func testSourceSettingsPersistAcrossDismissalAndDarkRelaunchWithoutStartingAudio() {
+    func testSourceSettingsPersistAcrossPracticeLanguagesAndDarkRelaunch() {
         let app=start();tap("conversationSettings",app)
         XCTAssertTrue(app.staticTexts["Proficiency Level"].exists);XCTAssertTrue(app.staticTexts["Pronunciation Practice"].exists);XCTAssertTrue(app.staticTexts["Custom Topics"].exists)
         tap("conversationLevel",app);let elementary=app.buttons.matching(NSPredicate(format:"label BEGINSWITH %@","A2 ·")).firstMatch;XCTAssertTrue(elementary.waitForExistence(timeout:5));elementary.tap()
         let toggle=app.switches["conversationPronunciation"];XCTAssertTrue(toggle.exists);toggle.tap()
         let topics=app.textViews["conversationTopics"].exists ? app.textViews["conversationTopics"] : app.textFields["conversationTopics"];topics.tap();topics.typeText("Travel at the cafe");app.buttons["Close"].tap()
         XCTAssertTrue(app.staticTexts["conversationGoal"].waitForExistence(timeout:10));XCTAssertFalse(app.staticTexts["conversationVoiceStatus"].exists)
+        tap("productMenu",app);tap("productPanel-settings",app)
+        let target=app.buttons["practiceLanguagePicker"]
+        for _ in 0..<5 where !target.isHittable {app.swipeUp(velocity:.slow)}
+        tap("practiceLanguagePicker",app);tap("settingsLanguage-practice-fr",app)
+        XCTAssertTrue(target.label.contains("French"))
+        tap("productPanelClose",app)
+        if !app.buttons["conversationSettings"].exists {open(app)}
+        tap("conversationSettings",app)
+        XCTAssertTrue(app.buttons["conversationLevel"].label.contains("A2"))
+        XCTAssertEqual(app.switches["conversationPronunciation"].value as? String,"1")
+        XCTAssertEqual(topics.value as? String,"Travel at the cafe")
+        photo("Native Conversation preferences after French target switch",app)
+        tap("Close",app)
         app.terminate();var args=app.launchArguments;if let index=args.firstIndex(of:"-piyali.theme") { args[index+1]="dark" };app.launchArguments=args;app.launch();handleInitialPaperPencil(app);open(app);XCTAssertEqual(app.otherElements["conversationOrb"].value as? String,"Blue animated sphere");photo("Native conversation initial dark",app);tap("conversationSettings",app)
         XCTAssertTrue(app.buttons["conversationLevel"].label.contains("A2"));XCTAssertEqual(app.switches["conversationPronunciation"].value as? String,"1");let saved=app.textViews["conversationTopics"].exists ? app.textViews["conversationTopics"] : app.textFields["conversationTopics"];XCTAssertEqual(saved.value as? String,"Travel at the cafe");photo("Native conversation source settings dark",app)
     }
