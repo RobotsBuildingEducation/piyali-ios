@@ -111,6 +111,7 @@ import NostrSDK
     func testOptInLiveTeamReadDoesNotPublish() async throws {
         guard ProcessInfo.processInfo.environment["PIYALI_LIVE_NOSTR"] == "1" else { throw XCTSkip("Set TEST_RUNNER_PIYALI_LIVE_NOSTR=1 for public team relay reads.") }
         let identity=try identity(),service=NostrTeamsService()
+        defer{try? identity.disconnect()}
         await service.refresh(identity:identity)
         XCTAssertNil(service.error);XCTAssertTrue(service.teams.isEmpty);XCTAssertTrue(service.progress.isEmpty)
     }

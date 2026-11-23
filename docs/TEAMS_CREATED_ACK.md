@@ -66,4 +66,16 @@ All 13 selected native checks passed in `/tmp/PiyaliTeamsMutationRecoveryNotices
 
 ![Web and iPhone Teams drawers after adding and deleting during relay outages](native/teams-mutation-recovery-20261123.jpg)
 
-An early native comparison exposed an extra error notice during a successful add. The final test checks for the success notice and verifies that the relay read error stays out of the drawer. The native add screenshot was taken after its confirmation expired. The paired images use disposable learners and local relays. The native leave check exercises the service and Firestore SDK. An end-to-end iPhone leave gesture, real relay reconnect, Firebase mirror outage and remaining drawer design coverage remain open.
+An early native comparison exposed an extra error notice during a successful add. The final test checks for the success notice and verifies that the relay read error stays out of the drawer. The native add screenshot was taken after its confirmation expired. The paired images use disposable learners and local relays. The native leave service check exercises Firestore SDK transactions. The actual iPhone drawer and public read checks follow below.
+
+## Joined team confirmation on iPhone
+
+On the original web main route, the Leave confirmation offered Cancel. The browser test dismissed it and found the Firestore grant intact and no signed departure. Confirming then acknowledged one signed leave, removed the Firestore grant and showed the success notice while the local relay rejected subsequent reads.
+
+On the iOS 26.4 simulator, the previous confirmation appeared as a popover containing only the destructive action. Delete and Leave now use a system alert with a localized Cancel and an explicitly named destructive action. Cancel clears the pending confirmation, and confirmation still suspends the existing Teams notices while the alert is visible. [SwiftUI alert actions](https://developer.apple.com/documentation/swiftui/view/alert%28_%3Aispresented%3Aactions%3Amessage%3A%29)
+
+Both product journeys passed in `/tmp/PiyaliTeamsConfirmationsVerified-20261123.xcresult`. The joined member used the native Cancel action, kept the grant and sent no departure. A second confirmation sent one signed leave. The drawer removed the card, showed “Left team,” and removed both the Firestore grant and the mirrored member even though the relay had stopped serving reads. Relaunch against the old signed roster kept the card absent. A newer signed invitation restored the card without sending another leave. The second journey verified create, edit, add and Delete using the same native alert. These journeys used disposable accounts, a loopback relay and the Firestore emulator.
+
+![The iPhone Leave alert before and after adding Cancel, followed by the original web and native success states](native/teams-joined-leave-20261123.jpg)
+
+The iOS relay client completed its opt-in live roster read with a fresh isolated identity. A separate read-only WebSocket probe received an end-of-stored-events reply from each configured public relay, then closed each connection and received a second reply after reopening. The probe covered `relay.primal.net`, `relay.ditto.pub`, and `nos.lol`. It sent only read subscriptions for a disposable roster filter. Production outage behavior during signed writes and actual production membership changes remain open.

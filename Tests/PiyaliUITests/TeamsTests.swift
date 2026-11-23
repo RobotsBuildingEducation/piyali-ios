@@ -16,6 +16,9 @@ import NostrSDK
         field.typeText(value);XCTAssertEqual(field.value as? String,value,"Replace the complete selected value before submitting");field.typeText("\n")
     }
     private func open(_ app:XCUIApplication){tap("productMenu",app);tap("productPanel-teams",app);XCTAssertTrue(app.buttons["teamsClose"].waitForExistence(timeout:10))}
+    private func removalConfirmation(_ app:XCUIApplication)->XCUIElement {
+        app.alerts.matching(NSPredicate(format:"identifier != %@","teamsDrawer")).firstMatch
+    }
     private func shot(_ name:String,_ app:XCUIApplication){let a=XCTAttachment(screenshot:app.screenshot());a.name=name;a.lifetime = .keepAlways;add(a)}
     private func reveal(_ id:String,_ app:XCUIApplication)->XCUIElement{let e=app.descendants(matching:.any)[id];for _ in 0..<6 where !e.isHittable{app.swipeUp(velocity:.slow)};XCTAssertTrue(e.isHittable,id);if !e.isEnabled{XCTAssertEqual(XCTWaiter.wait(for:[XCTNSPredicateExpectation(predicate:NSPredicate(format:"enabled == true"),object:e)],timeout:15),.completed,"Action finishes saving before "+id)};return e}
     func testCreateEditRosterAndDeleteUseSignedLocalRelayAndSurviveRelaunch()async throws {try await signedRosterJourney(arabic:false)}
@@ -90,7 +93,7 @@ import NostrSDK
         }
         app.terminate();app.launch();handleInitialPaperPencil(app);open(app);if arabic{XCTAssertGreaterThan(app.buttons["teamCreateOpen"].frame.midX,app.buttons["teamsCopyID"].frame.midX)};XCTAssertTrue(app.buttons["learningTeamRow"].waitForExistence(timeout:20));XCTAssertEqual(app.buttons["learningTeamRow"].label,"Evening");shot("Native Teams restored product",app)
         reveal("teamRemove",app).tap()
-        let remove=app.sheets.buttons["Delete team"]
+        let remove=removalConfirmation(app).buttons["Delete team"]
         XCTAssertTrue(remove.waitForExistence(timeout:5))
         remove.tap()
         XCTAssertTrue(app.staticTexts["My teams (0)"].waitForExistence(timeout:10))
@@ -129,6 +132,147 @@ extension TeamsTests {
         var request=URLRequest(url:try XCTUnwrap(URL(string:"http://127.0.0.1:8180/v1/projects/demo-piyali-ios/databases/(default)/documents/"+path)));request.httpMethod=fields == nil ? "DELETE":"PATCH"
         if let fields{request.setValue("application/json",forHTTPHeaderField:"Content-Type");request.httpBody=try JSONSerialization.data(withJSONObject:["fields":fields.mapValues(field)])};let(_,response)=try await URLSession.shared.data(for:request);XCTAssertTrue([200,404].contains((response as? HTTPURLResponse)?.statusCode ?? 0))
     }
+    func testJoinedMemberCancelsThenLeavesThroughRelayOutageAndAcceptsNewerRoster() async throws {
+        guard ProcessInfo.processInfo.environment["PIYALI_FIRESTORE_EMULATOR_TESTS"] == "1" else {
+            throw XCTSkip("Isolated local Firebase required")
+        }
+        continueAfterFailure=false
+        let relay=LocalNostrRelay(),lock=NSLock()
+        let creator=try XCTUnwrap(Keypair())
+        let id="joined-"+UUID().uuidString.lowercased()
+        let leaveAddress="learning-team-left:\(creator.publicKey.hex):\(id)"
+        var offered:[[String:Any]]=[]
+        var readOutage=false
+        defer{relay.stop()}
+        try await relay.start{frame,connection in
+            if frame.first as? String == "REQ",let request=frame[1] as? String {
+                let (offline,events)=lock.withLock{(readOutage,offered)}
+                if offline{relay.send(["CLOSED",request,"error: fixture relay read outage"],to:connection)}
+                else{
+                    for event in events{relay.send(["EVENT",request,event],to:connection)}
+                    relay.send(["EOSE",request],to:connection)
+                }
+            }else if frame.first as? String == "EVENT",let event=frame[1] as? [String:Any],
+                     let eventID=event["id"] as? String {
+                if (event["tags"] as? [[String]])?.contains(["d",leaveAddress]) == true {
+                    lock.withLock{readOutage=true}
+                }
+                // The relay acknowledges the departure but keeps serving its old index.
+                relay.send(["OK",eventID,true,""],to:connection)
+            }
+        }
+        let app=XCUIApplication()
+        app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,
+                               "PIYALI_TEAM_TEST_RELAY":relay.url,"PIYALI_PRIVATE_TEAMS_TEST_EMULATOR":"1",
+                               "PIYALI_HEADLINE_FIXTURE":"failure"]
+        app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"]
+        app.launch()
+        handleInitialPaperPencil(app)
+        let name=app.textFields["entryName"]
+        XCTAssertTrue(name.waitForExistence(timeout:15))
+        name.tap()
+        name.typeText("Joined Learner")
+        tap("entryKeyboardDone",app)
+        tap("createAccount",app)
+        handleInitialPaperPencil(app)
+        chooseEnglishSpanishOnboarding(app)
+        tap("startLearning",app)
+        tap("companionContinue",app)
+        acknowledgePaperPencil(app)
+        tap("gettingStartedGotIt",app)
+        tap("placementNew",app)
+        open(app)
+        let member=try XCTUnwrap(app.buttons["teamsCopyID"].value as? String)
+        let memberKey=try XCTUnwrap(PublicKey(npub:member)).hex
+        let rosterPath="users/\(creator.publicKey.npub)/teams/\(id)"
+        let invitePath="users/\(member)/teamInvites/team_\(id)"
+        let title="Review group"
+
+        func seedRoster(time:Int64) async throws {
+            let tags=[["d","learning-team:"+id],["t","learning-team"],["name",title],
+                      ["p",creator.publicKey.hex],["p",memberKey]]
+            let content="{}"
+            let body=try JSONSerialization.data(withJSONObject:[0,creator.publicKey.hex,time,30078,tags,content],
+                                                options:[.withoutEscapingSlashes])
+            let eventID=SHA256.hash(data:body).map{String(format:"%02x",$0)}.joined()
+            let signature=try TeamsFeedFixtureCrypto().signatureForContent(eventID,privateKey:creator.privateKey.hex)
+            let event:[String:Any]=["id":eventID,"pubkey":creator.publicKey.hex,"created_at":time,
+                                    "kind":30078,"tags":tags,"content":content,"sig":signature]
+            lock.withLock{offered=[event]}
+            let stamp=ISO8601DateFormatter().string(from:Date(timeIntervalSince1970:Double(time)))
+            let reference=["id":id,"identifier":"learning-team:"+id]
+            try await fixtureWrite(rosterPath,["teamName":title,"createdBy":creator.publicKey.npub,
+                                              "creatorName":"Group Creator","createdAt":stamp,"nostr":reference,
+                                              "members":[["npub":member,"status":"accepted","addedAt":stamp,"name":""]]])
+            try await fixtureWrite(invitePath,["teamId":id,"teamName":title,"creatorNpub":creator.publicKey.npub,
+                                              "invitedBy":creator.publicKey.npub,"invitedByName":"Group Creator",
+                                              "status":"accepted","createdAt":stamp,"nostr":reference])
+        }
+        func fixtureRead(_ path:String) async throws -> (Int,[String:Any]) {
+            let url=try XCTUnwrap(URL(string:"http://127.0.0.1:8180/v1/projects/demo-piyali-ios/databases/(default)/documents/"+path))
+            let (data,response)=try await URLSession.shared.data(from:url)
+            return ((response as? HTTPURLResponse)?.statusCode ?? 0,
+                    (try JSONSerialization.jsonObject(with:data) as? [String:Any]) ?? [:])
+        }
+        func departures()->[[String:Any]] {
+            relay.frames().filter{$0.first as? String == "EVENT"}.compactMap{$0[1] as? [String:Any]}
+                .filter{($0["tags"] as? [[String]])?.contains(["d",leaveAddress]) == true}
+        }
+
+        try await seedRoster(time:Int64(Date().timeIntervalSince1970)-60)
+        let card=app.buttons["learningTeamRow"]
+        XCTAssertTrue(card.waitForExistence(timeout:15))
+        XCTAssertEqual(card.label,title)
+        XCTAssertFalse(app.buttons["teamEdit"].exists)
+        let confirmation=app.alerts["Leave Review group?"]
+        let leave=confirmation.buttons["Leave team"]
+        reveal("teamRemove",app).tap()
+        XCTAssertTrue(leave.waitForExistence(timeout:5))
+        shot("Native joined team leave confirmation",app)
+        confirmation.buttons["Cancel"].tap()
+        XCTAssertTrue(card.exists)
+        XCTAssertTrue(departures().isEmpty)
+        let (stillGranted,_)=try await fixtureRead(invitePath)
+        XCTAssertEqual(stillGranted,200)
+
+        reveal("teamRemove",app).tap()
+        XCTAssertTrue(leave.waitForExistence(timeout:5))
+        leave.tap()
+        XCTAssertTrue(app.staticTexts["My teams (0)"].waitForExistence(timeout:12))
+        XCTAssertTrue(app.staticTexts["Left team"].waitForExistence(timeout:5))
+        XCTAssertTrue(lock.withLock{readOutage})
+        let departure=try XCTUnwrap(departures().first)
+        XCTAssertEqual(departure["pubkey"] as? String,memberKey)
+        XCTAssertEqual(departures().count,1)
+        let (inviteStatus,_)=try await fixtureRead(invitePath)
+        let (rosterStatus,roster)=try await fixtureRead(rosterPath)
+        XCTAssertEqual(inviteStatus,404)
+        XCTAssertEqual(rosterStatus,200)
+        let fields=roster["fields"] as? [String:[String:Any]]
+        let members=fields?["members"]?["arrayValue"] as? [String:[[String:Any]]]
+        XCTAssertTrue((members?["values"] ?? []).isEmpty)
+        shot("Native joined team left while relay reads fail",app)
+
+        lock.withLock{readOutage=false}
+        let previousReads=relay.frames().filter{$0.first as? String == "REQ"}.count
+        app.terminate()
+        app.launch()
+        handleInitialPaperPencil(app)
+        open(app)
+        XCTAssertTrue(app.staticTexts["My teams (0)"].waitForExistence(timeout:12))
+        XCTAssertGreaterThan(relay.frames().filter{$0.first as? String == "REQ"}.count,previousReads)
+        XCTAssertFalse(card.waitForExistence(timeout:3),"The old signed membership cannot restore the card")
+        shot("Native joined team stays absent after relaunch with stale relay data",app)
+
+        try await seedRoster(time:Int64(Date().timeIntervalSince1970)+5)
+        XCTAssertTrue(card.waitForExistence(timeout:15))
+        XCTAssertEqual(card.label,title)
+        XCTAssertEqual(departures().count,1)
+        shot("Native newer signed roster restores the joined team",app)
+        try await fixtureWrite(invitePath)
+        try await fixtureWrite(rosterPath)
+    }
+
     func testIncomingInvitationSurvivesHeldRejectedRenameAndRelaunchWithoutAcceptingTheFailedRoster()async throws {
         guard ProcessInfo.processInfo.environment["PIYALI_FIRESTORE_EMULATOR_TESTS"] == "1" else{throw XCTSkip("Isolated local Firebase required")};continueAfterFailure=false
         let relay=LocalNostrRelay(),state=HeldTeamRenameRelay();defer{relay.stop()};try await relay.start{state.handle($0,$1,relay:relay)}
@@ -154,7 +298,7 @@ extension TeamsTests {
         await fulfillment(of:[XCTNSPredicateExpectation(predicate:NSPredicate(format:"exists == false"),object:declined)],timeout:7)
         XCTAssertFalse(declined.exists,"The five-second notice expires before tapping its covered action")
         remove.tap()
-        let deletion=app.sheets.buttons["Delete team"]
+        let deletion=removalConfirmation(app).buttons["Delete team"]
         XCTAssertTrue(deletion.waitForExistence(timeout:10),"Native confirmation appears after the notice clears")
         XCTAssertTrue(deletion.isHittable)
         shot("Native Teams deletion confirmation after decline notice",app)
@@ -312,7 +456,7 @@ extension TeamsTests {
         XCTAssertEqual(XCTWaiter.wait(for:[XCTNSPredicateExpectation(predicate:NSPredicate(format:"label == %@","Peer cache name"),object:card)],timeout:3),.completed,"The Firebase card update is visible before a relay round trip completes")
         for _ in 0..<100 where !state.waiting{try await Task.sleep(for:.milliseconds(10))};XCTAssertTrue(state.waiting);XCTAssertFalse(app.staticTexts["5678"].exists);shot("Native streamed roster mirror title before signed member reply",app)
         try state.releaseUpdated(relay);let fresh=app.staticTexts["5678"];for _ in 0..<6 where !fresh.isHittable{app.swipeUp(velocity:.slow)};XCTAssertTrue(fresh.waitForExistence(timeout:15));XCTAssertTrue(fresh.isHittable);XCTAssertFalse(old.exists);XCTAssertEqual(card.label,"Peer cache name");shot("Native streamed roster signed peer progress settled",app)
-        reveal("teamRemove",app).tap();let deletion=app.sheets.buttons["Delete team"];XCTAssertTrue(deletion.waitForExistence(timeout:5));deletion.tap();XCTAssertTrue(app.staticTexts["My teams (0)"].waitForExistence(timeout:15));app.terminate();app.launch();open(app);XCTAssertTrue(app.staticTexts["My teams (0)"].waitForExistence(timeout:15));shot("Native streamed roster deletion private relaunch",app)
+        reveal("teamRemove",app).tap();let deletion=removalConfirmation(app).buttons["Delete team"];XCTAssertTrue(deletion.waitForExistence(timeout:5));deletion.tap();XCTAssertTrue(app.staticTexts["My teams (0)"].waitForExistence(timeout:15));app.terminate();app.launch();open(app);XCTAssertTrue(app.staticTexts["My teams (0)"].waitForExistence(timeout:15));shot("Native streamed roster deletion private relaunch",app)
         let published=relay.frames().filter{$0.first as? String == "EVENT"}.compactMap{$0[1] as? [String:Any]},deleted=published.filter{($0["tags"] as? [[String]])?.contains(["deleted"]) == true}
         XCTAssertFalse(published.contains{$0["kind"] as? Int == 1});XCTAssertEqual(deleted.count,1)
         XCTAssertTrue((deleted.first?["tags"] as? [[String]])?.contains(["name","Weekend"]) == true,"Mirror display names never replace the signed roster used for actions")

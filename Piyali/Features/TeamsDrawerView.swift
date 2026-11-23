@@ -46,7 +46,7 @@ struct TeamsDrawerView:View {
                         HStack(spacing:16){tabButton(0,t("teams_tab_view","Teams")+(pending.isEmpty ? "":" (\(pending.count))"));tabButton(1,t("teams_tab_feed","Global feed"))}.padding(.bottom,8)
                         VStack(alignment:.leading,spacing:16){if tab == 0{teamList}else{feed}}.padding(.vertical,16).padding(.horizontal,28)
                     }.padding(.bottom,28)}
-                }.frame(height:g.size.height*0.8).frame(maxWidth:.infinity).background(surface,in:MemoryDrawerShape(radius:48)).overlay(alignment:rtl ? .topLeading:.topTrailing){Button(action:onClose){MemoryIcon(name:"close",size:16).frame(width:32,height:32)}.padding(.top,20).padding(rtl ? .leading:.trailing,20).accessibilityLabel(t("teams_drawer_close","Close")).accessibilityIdentifier("teamsClose")}.overlay{MemoryDrawerShape(radius:48).stroke(c(light ? "604d38":"94a3b8").opacity(light ? 0.3:0.42),lineWidth:3).padding(1.5).padding(.bottom,-3).allowsHitTesting(false)}.accessibilityElement(children:.contain).accessibilityIdentifier("teamsDrawer").accessibilityHidden(editor != nil)
+                }.frame(height:g.size.height*0.8).frame(maxWidth:.infinity).background(surface,in:MemoryDrawerShape(radius:48)).overlay(alignment:rtl ? .topLeading:.topTrailing){Button(action:onClose){MemoryIcon(name:"close",size:16).frame(width:32,height:32)}.padding(.top,20).padding(rtl ? .leading:.trailing,20).accessibilityLabel(t("teams_drawer_close","Close")).accessibilityIdentifier("teamsClose")}.overlay{MemoryDrawerShape(radius:48).stroke(c(light ? "604d38":"94a3b8").opacity(light ? 0.3:0.42),lineWidth:3).padding(1.5).padding(.bottom,-3).allowsHitTesting(false)}.accessibilityElement(children:.contain).accessibilityIdentifier("teamsDrawer").accessibilityHidden(editor != nil || removal != nil)
                     .gesture(DragGesture(minimumDistance:30).onEnded{v in if v.startLocation.y<28,v.translation.height>70{onClose()}})
                 if let editor{editorDialog(editor,width:g.size.width).frame(maxHeight:.infinity)}
             }.frame(width:g.size.width,height:g.size.height)
@@ -61,15 +61,21 @@ struct TeamsDrawerView:View {
             .onChange(of:removal){_,value in app.teamsNotices.cover(value != nil,by:confirmationOwner)}
             .onDisappear{mounted=false;model.cancel();app.teamsNotices.cover(false,by:confirmationOwner)}
             .toolbar{ToolbarItemGroup(placement:.keyboard){Spacer();Button("Done"){field=nil}.accessibilityIdentifier("teamsKeyboardDone")}}
-            .confirmationDialog(removal?["isCreator"].boolean == true ? t("teams_view_delete_confirm","Delete {team}?").replacingOccurrences(of:"{team}",with:removal?["teamName"].string ?? ""):t("teams_view_leave_confirm","Leave {team}?").replacingOccurrences(of:"{team}",with:removal?["teamName"].string ?? ""),isPresented:Binding(get:{removal != nil},set:{if !$0{removal=nil}}),titleVisibility:.visible) {
-                if let team=removal {
-                    Button(team["isCreator"].boolean ? t("teams_view_delete","Delete team"):t("teams_view_leave","Leave team"),role:.destructive) {
-                        confirmRemoval(team)
-                    }
+            .alert(removalPrompt,isPresented:Binding(get:{removal != nil},set:{if !$0{removal=nil}}),presenting:removal) { team in
+                Button(team["isCreator"].boolean ? t("teams_view_delete","Delete team"):t("teams_view_leave","Leave team"),role:.destructive) {
+                    confirmRemoval(team)
                 }
+                Button(t("cancel","Cancel"),role:.cancel){removal=nil}
             }
     }
     private func viewedInvites(){if mounted,tab == 0,app.teamsStartup.attention.count>0,app.teamsStartup.attention.hasUnseen{app.teamsStartup.viewed(app)}}
+    private var removalPrompt:String {
+        guard let removal else{return ""}
+        let question=removal["isCreator"].boolean
+            ? t("teams_view_delete_confirm","Delete {team}?")
+            : t("teams_view_leave_confirm","Leave {team}?")
+        return question.replacingOccurrences(of:"{team}",with:removal["teamName"].string)
+    }
     private func confirmRemoval(_ team:JSONValue) {
         let creator=team["isCreator"].boolean
         model.perform(app,action:{access in
