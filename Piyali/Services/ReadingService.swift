@@ -82,6 +82,29 @@ import FirebaseAILogic
                         ])
                     default: break
                     }
+                    if ProcessInfo.processInfo.environment["PIYALI_READING_INTERRUPTED_DRAFT_FIXTURE"] == "1" {
+                        self.fixtureGenerations += 1
+                        if self.fixtureGenerations > 1 { return payload }
+                        let provider=AIService()
+                        provider.readingStreamOverride={ _,publishDraft in
+                            let title=JSONValue.object(["type":.string("title"),"text":.string("La libreta junto a la ventana")])
+                            let first=JSONValue.object(["type":.string("target"),"text":.string("Mi libreta verde está cerca de la ventana.")])
+                            let next=JSONValue.object(["type":.string("target"),"text":.string("En la página izquierda dibujo una planta.")])
+                            let takeaway=JSONValue.object(["type":.string("takeaway"),"text":payload["takeaways"].array[0]])
+                            let snapshot=[title,first].map(\.json).joined(separator:"\n")+"\n"
+                            publishDraft(snapshot)
+                            try await Task.sleep(for:.seconds(8))
+                            publishDraft(snapshot+next.json+"\n"+takeaway.json+"\n")
+                            try await Task.sleep(for:.seconds(4))
+                            throw ReadingFailure.invalid
+                        }
+                        provider.readingBackendOverride={ _ in
+                            try await Task.sleep(for:.seconds(12))
+                            throw ReadingFailure.invalid
+                        }
+                        return try await provider.readingPayload(state:state,lesson:lesson,level:level,selection:selection,
+                            recent:recent,tutorial:tutorial,repair:false,curriculum:curriculum,onChunk:publish)
+                    }
                     if ProcessInfo.processInfo.environment["PIYALI_READING_GENERATION_FAILURE_FIXTURE"] == "1" {
                         self.fixtureGenerations += 1
                         if self.fixtureGenerations == 1 {throw ReadingFailure.invalid}

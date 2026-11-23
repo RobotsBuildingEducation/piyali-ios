@@ -40,6 +40,7 @@ struct ReadingView:View {
             .toolbar { ToolbarItemGroup(placement:.keyboard) { Spacer();Button(t("proficiency_modal_done")) { answering=false }.accessibilityIdentifier("readingKeyboardDone") } }
             .onChange(of:recorder.phase) { previous,value in if previous != .idle,value == .idle { saveTranscript() } }
             .onChange(of:run?.id) { _,_ in closeReviewKeyboard();stop();recorder.restore(run?.method == "speech" && run?.awarded == false ? run?.answer ?? "" : "") }
+            .onChange(of:service.draft) { _,_ in audio.stop() }
             .onChange(of:run?.awarded) { _,value in if value == true { closeReviewKeyboard();stop() } }
             .onAppear { active=true }
             .onChange(of:hasAccess) { _,value in if !value { closeReviewKeyboard();stop();service.cancel() } }
@@ -100,7 +101,12 @@ struct ReadingView:View {
                         .accessibilityIdentifier("readingDraftPassage").environment(\.layoutDirection,app.learner.target == "ar" ? .rightToLeft:.leftToRight)
                 }
                 if app.learner.settingsSnapshot["progress"]["showTranslations"] != .bool(false) {
-                    HStack {Spacer();Button(t("history_translate")) {}.font(PiyaliBrand.productFont(13,600)).padding(.horizontal,12).padding(.vertical,10).foregroundStyle(.white).background(Color(red:64/255,green:103/255,blue:96/255),in:RoundedRectangle(cornerRadius:10)).buttonStyle(.plain).accessibilityIdentifier("readingDraftTranslate")}
+                    HStack {
+                        Spacer()
+                        Button(t("history_translate")) {}
+                            .buttonStyle(ReadingRetryButtonStyle(size:14,height:32,horizontal:13,background:"406760",edge:"39534f"))
+                            .accessibilityIdentifier("readingDraftTranslate")
+                    }.padding(.top,2)
                 }
             }.modifier(ReadingPassageSurface())
             takeaways(draft.takeaways,support:app.learner.support)
