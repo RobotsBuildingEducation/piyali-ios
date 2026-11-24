@@ -111,6 +111,7 @@ import NostrSDK
     func testOptInLiveTeamReadDoesNotPublish() async throws {
         guard ProcessInfo.processInfo.environment["PIYALI_LIVE_NOSTR"] == "1" else { throw XCTSkip("Set TEST_RUNNER_PIYALI_LIVE_NOSTR=1 for public team relay reads.") }
         let identity=try identity(),service=NostrTeamsService()
+        defer{try? identity.disconnect()}
         await service.refresh(identity:identity)
         XCTAssertNil(service.error);XCTAssertTrue(service.teams.isEmpty);XCTAssertTrue(service.progress.isEmpty)
     }
@@ -126,6 +127,57 @@ import NostrSDK
         await service.refresh(identity:identity)
         let team=try XCTUnwrap(service.teams.first);XCTAssertEqual(Set(team.members),[identity.hex,creator.pubkey]);XCTAssertNil(service.error)
         XCTAssertEqual(service.row(member:creator.pubkey,team:team,learner:LearnerState(),viewer:identity.hex)["score"],.null)
+    }
+    func testRenameFinishesWhileAnEarlierMemberReadIsStillWaiting() async throws {
+        let identity=try identity(),relay=LocalNostrRelay()
+        defer { relay.stop();try? identity.disconnect() }
+        let teammate=try testNostrEvent()
+        let roster=try identity.sign(kind:30078,tags:[["d","learning-team:held-member-read"],["t","learning-team"],["name","Weekend"],["p",identity.hex],["p",teammate.pubkey]],content:"{}",createdAt:100)
+        let metrics=try testNostrEvent(tags:[["d","learning-progress"]],content:"{\"schemaVersion\":2,\"xp\":42}",createdAt:101)
+        try await relay.start { frame,connection in
+            if frame.first as? String == "REQ",let id=frame[1] as? String,let filter=frame.last as? [String:Any] {
+                if filter["#d"] as? [String] == ["learning-progress"] {
+                    Task {
+                        try? await Task.sleep(for:.seconds(4))
+                        relay.send(["EVENT",id,wireEvent(metrics)],to:connection)
+                        relay.send(["EOSE",id],to:connection)
+                    }
+                } else {
+                    relay.send(["EVENT",id,wireEvent(roster)],to:connection)
+                    relay.send(["EOSE",id],to:connection)
+                }
+            } else if frame.first as? String == "EVENT",let object=frame[1] as? [String:Any],
+                      let id=object["id"] as? String {
+                relay.send(["OK",id,true,""],to:connection)
+            }
+        }
+        let service=NostrTeamsService(client:NostrRelayClient(relays:[relay.url],timeout:.seconds(6)))
+        await service.refreshRoster(identity:identity)
+        let initial=try XCTUnwrap(service.teams.first)
+        let memberRead=Task { await service.refresh(identity:identity) }
+        defer { memberRead.cancel() }
+        func memberReadRequested()->Bool {
+            relay.frames().contains { (($0.last as? [String:Any])?["#d"] as? [String]) == ["learning-progress"] }
+        }
+        for _ in 0..<100 where !memberReadRequested(){try await Task.sleep(for:.milliseconds(20))}
+        XCTAssertTrue(memberReadRequested())
+        let completed=expectation(description:"Signed rename returned before the optional metrics")
+        let rename=Task {
+            try await service.rename(initial,name:"Evening",identity:identity,reload:false)
+            completed.fulfill()
+        }
+        await fulfillment(of:[completed],timeout:2)
+        try await rename.value
+        XCTAssertEqual(service.teams.first?.name,"Evening")
+        XCTAssertTrue(service.progress.isEmpty)
+        await memberRead.value
+        XCTAssertEqual(service.progress[teammate.pubkey]?["xp"].number,42)
+        XCTAssertEqual(service.teams.first?.name,"Evening","An older member reply cannot restore an old title")
+        let events=relay.frames().filter{$0.first as? String == "EVENT"}
+        XCTAssertEqual(events.count,1)
+        let event=try JSONDecoder().decode(NostrEventPayload.self,from:JSONSerialization.data(withJSONObject:try XCTUnwrap(events.first?[1])))
+        XCTAssertTrue(IdentityService.verify(event))
+        XCTAssertEqual(event.tag("name"),"Evening")
     }
     func testExplicitProgressPublicationSignsOnlyPublicSnapshotFields() async throws {
         let identity=try identity(),relay=try await relay();defer { relay.stop() }
@@ -149,5 +201,19 @@ import NostrSDK
         do { try await service.create(name:"Study",members:try npub(member.pubkey),identity:identity);XCTFail("Rejection must not appear successful") } catch { }
         XCTAssertTrue(service.teams.isEmpty);XCTAssertNotNil(service.error);XCTAssertFalse(service.busy)
         await service.refresh(identity:identity);XCTAssertTrue(service.teams.isEmpty)
+    }
+}
+
+extension NostrTeamsTests {
+    func testRosterOnlyRefreshVerifiesMembershipBeforeRequestingAnyMemberData()async throws{
+        let identity=try identity();defer{try? identity.disconnect()}
+        let creator=try testNostrEvent(),event=try testNostrEvent(tags:[["d","learning-team:staged"],["t","learning-team"],["p",creator.pubkey],["p",identity.hex]],createdAt:100),relay=try await relay(events:[event]);defer{relay.stop()}
+        let service=NostrTeamsService(client:NostrRelayClient(relays:[relay.url],timeout:.seconds(2)),cacheDirectory:FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString))
+        await service.refreshRoster(identity:identity);XCTAssertNil(service.error);XCTAssertEqual(service.teams.first?.teamID,"staged");XCTAssertTrue(service.progress.isEmpty)
+        let before=relay.frames().filter{$0.first as? String == "REQ"}.compactMap{$0.last as? [String:Any]}
+        XCTAssertFalse(before.contains{($0["#d"] as? [String])==["learning-progress"]});XCTAssertFalse(before.contains{($0["kinds"] as? [Int])==[0]})
+        await service.refresh(identity:identity)
+        let after=relay.frames().filter{$0.first as? String == "REQ"}.compactMap{$0.last as? [String:Any]}
+        XCTAssertTrue(after.contains{($0["#d"] as? [String])==["learning-progress"]});XCTAssertTrue(after.contains{($0["kinds"] as? [Int])==[0]});XCTAssertFalse(relay.frames().contains{$0.first as? String == "EVENT"})
     }
 }

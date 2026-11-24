@@ -1,0 +1,87 @@
+{
+  "referenceRevision": "b269524ddc578027c549616fc47f5954991d9f6f",
+  "nativeBase": "1ee58f351f292b3ed88821af4562a5e4536e2d70",
+  "scope": "Live invitation delivery, coalesced roster refresh, current grant/session fences and post-close publisher protection; original source callbacks/loading components with public I/O; real local Firebase first cached snapshot; actual signed-loopback held/rejected rename, incoming invitation and relaunch. No complete cache-only roster UI, production relay/Firebase, error-toast visual or complete main-route parity claim.",
+  "records": [
+    {
+      "file": "attachment-provenance.json",
+      "sha256": "f1494f61e2e66724b122a6a5cc280ed652f93b0bdf12c59eb91eb03127a37129"
+    },
+    {
+      "file": "diagnostic-results.json",
+      "sha256": "09f62bef5c12b6eec44abda831a579ae51c79917339bdaa3782972f8273be05b"
+    },
+    {
+      "file": "final-source-hashes.json",
+      "sha256": "0209d112135ec8ead1d36612d0593965678b3a8297a89f74532c96353e875529"
+    },
+    {
+      "file": "final-summary.json",
+      "sha256": "ce8b5893d16ad22d94b796074c10670a8ac7232bdfc7e941ac1ebea6dbec2129"
+    },
+    {
+      "file": "latest-per-test-results.json",
+      "sha256": "8aee0b0a8fe3029efacd9b91ed9b43585f92f12a032a22ed9d21cab194cb2b7b"
+    },
+    {
+      "file": "native-failed-rename-contact.png",
+      "sha256": "27bb07e3a1feb0fb3848b9971252caa091f9d7f1969c9817475e100e363391b9"
+    },
+    {
+      "file": "native-teams-held-loading-dots-ar.png",
+      "sha256": "cf33937db2fb005e86c05a520d127684ec0799e22a7821431fd3971f539f50f7"
+    },
+    {
+      "file": "native-teams-held-loading-dots-en.png",
+      "sha256": "09b2d51a33fa3e2446111295ffb1fd39ee6b304a2c5730486adb36c2c7b0c425"
+    },
+    {
+      "file": "native-teams-invitation-delivered-during-held-rename.png",
+      "sha256": "a84830d50fb664f674769fc90235336e98d215372cc81383a1cabb8478772154"
+    },
+    {
+      "file": "native-teams-old-signed-name-and-incoming-invitation-restore.png",
+      "sha256": "b74c940af8fd615fe6a77a8e9e94937af3b785c3df506bb450f4ca4fe467e8c4"
+    },
+    {
+      "file": "native-teams-pending-invitation-remains-after-failed-mutation.png",
+      "sha256": "e0cf6b3e97a1efbe3e0dd511ebd0b2fb9ea3dabbfb5548f82a55bcb191768f5d"
+    },
+    {
+      "file": "native-teams-rejected-rename-retains-its-error.png",
+      "sha256": "02a546bc2ea5f20386423de5a0d73f2f67a81c5a8461f6e22e078e8cbfe5c56a"
+    },
+    {
+      "file": "original-teamview-callbacks.json",
+      "sha256": "6b5ba6c4e53c2d957d475aed66949e293c1434f11de38876778e83b3d48dfc5c"
+    },
+    {
+      "file": "pair-loading-ar.png",
+      "sha256": "854f4d319fc02aca89115694473d15e61d13b5fef73393388b6377a7ae9cf2e4"
+    },
+    {
+      "file": "pair-loading-en.png",
+      "sha256": "f3bcc271971a662d2069c70c51a0eedc338f77307fdeffdb7a3c794bed3c2c92"
+    },
+    {
+      "file": "source-teams-held-loading-dots-ar.png",
+      "sha256": "817881ef74e942bd0278a31df7224dd2777d8c6a54d44ace1a6201772e7647cf"
+    },
+    {
+      "file": "source-teams-held-loading-dots-en.png",
+      "sha256": "8ac1503f9485ac8c4c4769cb4695e2b2ccc592ecdb77bf8714bd561498957e7c"
+    },
+    {
+      "file": "source-teams-held-loading-geometry-ar.json",
+      "sha256": "b7faa5641b59081e2d97efa39ac0bfd8d93dcc06050b1312ccbf8dc86ed0bf17"
+    },
+    {
+      "file": "source-teams-held-loading-geometry-en.json",
+      "sha256": "9ade34cce841d7910f73b4ef167fad60f2afa03be69a86dfcac60ad2436c8bc8"
+    },
+    {
+      "file": "validation-commands.json",
+      "sha256": "5de1f1b636056c507d1513ca428461d1a23e52cbd8d5eb6dfe405d175381b2a6"
+    }
+  ]
+}

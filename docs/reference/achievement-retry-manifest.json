@@ -1,0 +1,28 @@
+{
+  "sources": [
+    {
+      "file": "src/achievements/retrySync.js",
+      "sha256": "6cbd22a00fc35e8896b6a7369bc682825bbd8feb45a2729814f7faaa3aaf1ad9"
+    },
+    {
+      "file": "src/achievements/syncDeadline.js",
+      "sha256": "e39bb80ad3144defd3167790ccba5eb177284b8b7e949bb82dbb9a8d0d5e6f9f"
+    },
+    {
+      "file": "src/achievements/localJournal.js",
+      "sha256": "d5dba15772da6f40f5e07c8b4becc797ad1c07c2aca09cea470cab283621f6cf"
+    },
+    {
+      "file": "src/achievements/syncStatus.js",
+      "sha256": "5ce239ae37315f17063eeffba47e31a46320f270c1f367f523d9b2d08ea3c15d"
+    },
+    {
+      "file": "src/utils/achievements.js",
+      "sha256": "1f6dadfb4b955513ebc63001eb9c1e382d6def6df16390df205a4fb072802e23"
+    }
+  ],
+  "deadlineMilliseconds": 12000,
+  "scenarios": 10,
+  "steps": 81,
+  "scope": "Actual createRetrySync with controlled timer/deferred sync, no identity/cloud/relay I/O. Public journal intent and timer/operation traces."
+}

@@ -1,0 +1,187 @@
+[
+  {
+    "input": {
+      "name": "one-complete-no-done",
+      "chunks": [
+        "{\"type\":\"sentence\",\"tgt\":\"Hola.\"}\n"
+      ]
+    },
+    "expected": {
+      "sentences": [
+        {
+          "tgt": "Hola.",
+          "sup": "",
+          "character": "Sheilfer"
+        }
+      ],
+      "assess": 1,
+      "fallback": 0,
+      "history": 1,
+      "discard": 0,
+      "error": false
+    }
+  },
+  {
+    "input": {
+      "name": "trailing-complete-no-newline",
+      "chunks": [
+        "{\"type\":\"sentence\",\"tgt\":\"Hola.\"}"
+      ]
+    },
+    "expected": {
+      "sentences": [
+        {
+          "tgt": "Hola.",
+          "sup": "",
+          "character": "Sheilfer"
+        }
+      ],
+      "assess": 1,
+      "fallback": 0,
+      "history": 1,
+      "discard": 0,
+      "error": false
+    }
+  },
+  {
+    "input": {
+      "name": "two-without-done",
+      "chunks": [
+        "{\"type\":\"sentence\",\"character\":\"Ana\",\"tgt\":\"Hola.\"}\n",
+        "{\"type\":\"sentence\",\"character\":\"Ana\",\"tgt\":\"Bien.\"}\n"
+      ]
+    },
+    "expected": {
+      "sentences": [
+        {
+          "tgt": "Hola.",
+          "sup": "",
+          "character": "Ana"
+        },
+        {
+          "tgt": "Bien.",
+          "sup": "",
+          "character": "Ana"
+        }
+      ],
+      "assess": 1,
+      "fallback": 0,
+      "history": 1,
+      "discard": 0,
+      "error": false
+    }
+  },
+  {
+    "input": {
+      "name": "failure-after-reveal",
+      "chunks": [
+        "{\"type\":\"sentence\",\"tgt\":\"Hola.\"}\n"
+      ],
+      "fail": true
+    },
+    "expected": {
+      "sentences": [
+        {
+          "tgt": "Hola.",
+          "sup": "",
+          "character": "Sheilfer"
+        }
+      ],
+      "assess": 0,
+      "fallback": 0,
+      "history": 0,
+      "discard": 1,
+      "error": false
+    }
+  },
+  {
+    "input": {
+      "name": "failure-after-reveal-with-unfinished-record",
+      "chunks": [
+        "{\"type\":\"sentence\",\"tgt\":\"Hola.\"}\n{\"type\":\"sentence\",\"tgt\":\"Buen"
+      ],
+      "fail": true
+    },
+    "expected": {
+      "sentences": [
+        {
+          "tgt": "Hola.",
+          "sup": "",
+          "character": "Sheilfer"
+        }
+      ],
+      "assess": 0,
+      "fallback": 0,
+      "history": 0,
+      "discard": 1,
+      "error": false
+    }
+  },
+  {
+    "input": {
+      "name": "failure-before-reveal",
+      "chunks": [
+        "{\"type\":\"sentence\",\"tgt\":\"Buen"
+      ],
+      "fail": true
+    },
+    "expected": {
+      "sentences": [
+        {
+          "tgt": "Fallback",
+          "sup": "",
+          "character": "Sheilfer"
+        }
+      ],
+      "assess": 1,
+      "fallback": 1,
+      "history": 1,
+      "discard": 1,
+      "error": false
+    }
+  },
+  {
+    "input": {
+      "name": "empty-stream",
+      "chunks": [
+        "not json\n"
+      ]
+    },
+    "expected": {
+      "sentences": [
+        {
+          "tgt": "Fallback",
+          "sup": "",
+          "character": "Sheilfer"
+        }
+      ],
+      "assess": 1,
+      "fallback": 1,
+      "history": 1,
+      "discard": 0,
+      "error": false
+    }
+  },
+  {
+    "input": {
+      "name": "numeric-truthy-target",
+      "chunks": [
+        "{\"type\":\"sentence\",\"tgt\":7}\n"
+      ]
+    },
+    "expected": {
+      "sentences": [
+        {
+          "tgt": "7",
+          "sup": "",
+          "character": "Sheilfer"
+        }
+      ],
+      "assess": 1,
+      "fallback": 0,
+      "history": 1,
+      "discard": 0,
+      "error": false
+    }
+  }
+]

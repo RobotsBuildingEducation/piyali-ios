@@ -1,0 +1,88 @@
+{
+  "empty": {
+    "host": "nosabos",
+    "records": {}
+  },
+  "earned": {
+    "host": "nosabos",
+    "records": {
+      "piyali_tutor_complete_pre_a1": {
+        "unlockedAt": 123
+      },
+      "tutor_reach_a2": {
+        "unlockedAt": 123
+      },
+      "nosabos_tutor_lessons_10": {
+        "unlockedAt": 123
+      },
+      "nosabos_conversation_goals_20": {
+        "unlockedAt": 123
+      },
+      "robots_full_curriculum_v4": {
+        "unlockedAt": 123
+      }
+    }
+  },
+  "robots": {
+    "host": "robotsbuildingeducation",
+    "records": {
+      "piyali_tutor_complete_pre_a1": {
+        "unlockedAt": 123
+      },
+      "tutor_reach_a2": {
+        "unlockedAt": 123
+      },
+      "nosabos_tutor_lessons_10": {
+        "unlockedAt": 123
+      },
+      "nosabos_conversation_goals_20": {
+        "unlockedAt": 123
+      },
+      "robots_full_curriculum_v4": {
+        "unlockedAt": 123
+      }
+    }
+  },
+  "pending": {
+    "host": "nosabos",
+    "records": {
+      "piyali_tutor_complete_pre_a1": {
+        "unlockedAt": 123
+      },
+      "tutor_reach_a2": {
+        "unlockedAt": 123
+      },
+      "nosabos_tutor_lessons_10": {
+        "unlockedAt": 123
+      },
+      "nosabos_conversation_goals_20": {
+        "unlockedAt": 123
+      },
+      "robots_full_curriculum_v4": {
+        "unlockedAt": 123
+      }
+    },
+    "pending": true
+  },
+  "storage": {
+    "host": "nosabos",
+    "records": {
+      "piyali_tutor_complete_pre_a1": {
+        "unlockedAt": 123
+      },
+      "tutor_reach_a2": {
+        "unlockedAt": 123
+      },
+      "nosabos_tutor_lessons_10": {
+        "unlockedAt": 123
+      },
+      "nosabos_conversation_goals_20": {
+        "unlockedAt": 123
+      },
+      "robots_full_curriculum_v4": {
+        "unlockedAt": 123
+      }
+    },
+    "storageWarning": true
+  }
+}

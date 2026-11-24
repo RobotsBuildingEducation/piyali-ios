@@ -1,0 +1,11 @@
+{
+  "reference": "b269524ddc578027c549616fc47f5954991d9f6f",
+  "nativeBase": "c87aab41b98bae67ec87220adfaac42a7d4722bb",
+  "priorCases": 64,
+  "currentCases": 267,
+  "priorCasesUnchanged": true,
+  "captureCases": 203,
+  "oracle": "Each new pre-persistence snapshot is independently compared with the complete original async callback before fixture export; external persistence/evidence/enrichment are explicit public I/O. Core compares actual Swift merge arrays with those results.",
+  "priorFixtureSHA256": "86a4feabe238797731df2d398f7cfed9c362204c067b877d4520c416de12f3c2",
+  "fixtureSHA256": "fd9672874a81105f91f83438e50870a2d25fdab39cfe5fe137d15b313c120f07"
+}

@@ -1,0 +1,14 @@
+{
+  "sources": [
+    {
+      "file": "src/App.jsx",
+      "sha256": "9e6447368ce10a647025f76daf1b730fb20073590c586f8a3bed8a6d4f2ab948"
+    },
+    {
+      "file": "src/hooks/useNotesStore.js",
+      "sha256": "7de9aeb0bff5a6c517df207052f6f8bf94f3d52171a3143aa0f3cd087df124e1"
+    }
+  ],
+  "scope": "Original twelve crystal clusters, facet geometry/colors/polygons, CSS animation keyframes, trigger props and store lifetime. No learner/store/provider I/O executes.",
+  "shards": 12
+}

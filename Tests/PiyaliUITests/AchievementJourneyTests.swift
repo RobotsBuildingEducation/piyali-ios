@@ -1,0 +1,13 @@
+import XCTest
+
+@MainActor final class AchievementJourneyTests:XCTestCase {
+ private func tap(_ id:String,_ app:XCUIApplication){let button=app.buttons[id];XCTAssertTrue(button.waitForExistence(timeout:15),id);for _ in 0..<9 where !button.isHittable{app.swipeUp(velocity:.slow)};XCTAssertTrue(button.isHittable,id);button.tap()}
+ private func photo(_ title:String,_ app:XCUIApplication){let a=XCTAttachment(screenshot:app.screenshot());a.name=title;a.lifetime = .keepAlways;add(a)}
+ func testFocusCollectionTabsScrollCloseAndRelaunchPreserveEarnedAwards(){
+  continueAfterFailure=false;let app=XCUIApplication();app.launchEnvironment=["PIYALI_OFFLINE_TESTS":"1","PIYALI_TEST_IDENTITY_SCOPE":UUID().uuidString,"PIYALI_SETTINGS_FIXTURE":"1","PIYALI_ACHIEVEMENT_FIXTURE":"1"];app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme","light"];app.launch();handleInitialPaperPencil(app);let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Transcript Learner");tap("entryKeyboardDone",app);tap("createAccount",app);handleInitialPaperPencil(app);tap("startLearning",app);tap("focusAchievements",app)
+  let count=app.staticTexts["achievementCollectionCount"];XCTAssertTrue(count.waitForExistence(timeout:10));XCTAssertEqual(count.label,"2 of 76 collected");XCTAssertTrue(app.buttons["achievementTab-nosabos"].isSelected);let underlay=XCTAttachment(string:app.debugDescription);underlay.name="Achievement modal accessibility isolation";underlay.lifetime = .keepAlways;add(underlay);XCTAssertFalse(app.buttons["productMenu"].isHittable);XCTAssertFalse(app.buttons["productMenu"].isEnabled);photo("Native achievement collection from Focus",app)
+  tap("achievementTab-robotsbuildingeducation",app);XCTAssertEqual(count.label,"1 of 29 collected");XCTAssertTrue(app.buttons["achievementTab-robotsbuildingeducation"].isSelected);photo("Native achievement cross-platform tab",app)
+  let scroller=app.scrollViews["achievementCollectionScroll"];for _ in 0..<6{scroller.swipeUp(velocity:.fast)};XCTAssertEqual(count.label,"1 of 29 collected");XCTAssertTrue(app.buttons["achievementCollectionClose"].isHittable);photo("Native achievement collection scrolled with fixed footer",app);tap("achievementCollectionClose",app);XCTAssertTrue(app.buttons["productMenu"].exists)
+  app.terminate();app.launch();handleInitialPaperPencil(app);tap("focusAchievements",app);XCTAssertEqual(count.label,"2 of 76 collected");XCTAssertTrue(app.buttons["achievementTab-nosabos"].isSelected);photo("Native achievement collection after relaunch",app);tap("achievementCollectionClose",app)
+ }
+}

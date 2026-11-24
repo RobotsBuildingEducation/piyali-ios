@@ -1,0 +1,118 @@
+{
+  "referenceRevision": "b269524ddc578027c549616fc47f5954991d9f6f",
+  "results": [
+    "/tmp/PiyaliSharedMemoryVerified20261106.xcresult",
+    "/tmp/PiyaliSharedMemoryIntegratedFix20261105.xcresult (passing UI journey; failed integrated assertions retained)"
+  ],
+  "scope": "Original capture/enrichment patch/learning evidence entry with explicit public local I/O adapters and actual source NotesDrawer; native shared capture and Firebase SDK contracts; complete fresh native signup/setup/placement/course wrong-match/Skip/Memory/process-relaunch journey. No full authenticated web-route, source Firebase/live AI, physical audio, or overall design-parity claim.",
+  "records": [
+    {
+      "file": "adapter-diagnostic-summary.json",
+      "sha256": "19a8af8c21acc2fc1ed46a938ba54545d3f6af216d13112792ce1e271b4f4d03"
+    },
+    {
+      "file": "adapter-diagnostic-tests.txt",
+      "sha256": "dc57eba2f72e9f23db6f02b46fff0d5294be43d9c248834a344617a8bc2d1231"
+    },
+    {
+      "file": "build-diagnostic.txt",
+      "sha256": "e46e0fc1453c0bf64d6fcfd75b46186ffa5a7541fc31d3e52be17e4ad57509a5"
+    },
+    {
+      "file": "core-first-fix.txt",
+      "sha256": "505182ee27a55f29505f30aff095693adb9c9b63da74b68f86f8175c188b32f7"
+    },
+    {
+      "file": "core-reproduction.txt",
+      "sha256": "add826b9e0a5c479c5c7b8a77e9d85fd04d531fe2aef986d7ac21078c08a4b17"
+    },
+    {
+      "file": "core-tests.txt",
+      "sha256": "b5020fbd7fa84627db28c9398f360380b86b3349d31badb2f5b3cbd3b34a4ded"
+    },
+    {
+      "file": "drawer-reproduction-summary.json",
+      "sha256": "bfe088e6d3e201daee9aad7820382177ceef43569e133e859bb56b30d5cd2be7"
+    },
+    {
+      "file": "export-stability.json",
+      "sha256": "6467185414667b2ff8c13cdcb100560449f019399617c5fcc53d1ae3f927d14c"
+    },
+    {
+      "file": "final-source-hashes.json",
+      "sha256": "704f01ebfc1257ac262c480c485059ec5b9da5e36c0396375c5fbe9034810ee5"
+    },
+    {
+      "file": "initial-integrated-summary.json",
+      "sha256": "534373541a860ecc87966232e39044fb8073f4ef8cce4e59974436cba287b140"
+    },
+    {
+      "file": "initial-integrated-tests.txt",
+      "sha256": "1a7c674f88cccf37db2db70a3ee3474382f26f09c6c352870cb07c01366ff64e"
+    },
+    {
+      "file": "native-enriched-ar.png",
+      "sha256": "b750d75280d413155a72f9dd7e265a2b3164c87a7625336b924cb78a52619acd"
+    },
+    {
+      "file": "native-enriched-en.png",
+      "sha256": "eedb9e3f80bb4b0d542123580e600b64f55069166b449cf097259988bd7a7ebb"
+    },
+    {
+      "file": "native-product-after-skip.png",
+      "sha256": "d4957719c895c32f0ccab9b7cba7f0ecb15efdd72d93c6c6dc9e148be7dca9b5"
+    },
+    {
+      "file": "native-product-relaunch.png",
+      "sha256": "5b4947a58e98ea895f3f52390a56b798145a293bf9fcc08905ad21a26583276a"
+    },
+    {
+      "file": "pair-enriched-ar.png",
+      "sha256": "dc1411bb591deb0bb085fc02e27697cb7a4db5667e5959499352a6fa8de5ab30"
+    },
+    {
+      "file": "pair-enriched-en.png",
+      "sha256": "5d846d9b2cb87dd04ec8ec6edb77d51d15c1ec77c430faab4572b311b8d480ac"
+    },
+    {
+      "file": "qa-product-audit.json",
+      "sha256": "f957144191076ba26c4a10d2c29f53eccf44e72732107ee49a04fb7e8e3858af"
+    },
+    {
+      "file": "sdk-evidence-trace.json",
+      "sha256": "cb31d9b375ec206fe369393e23eae77622a8fd5bb79c3da00d28518e75697c72"
+    },
+    {
+      "file": "shared-trace-ar.json",
+      "sha256": "7805269938a1e6ebd48afc16a193a81a8115dc297925195492e2a94797fd3612"
+    },
+    {
+      "file": "shared-trace-en.json",
+      "sha256": "0b4fc1157ccd1fd84b084c90f5ad7445a2c6cdbe02ea179c80a2787876adcdd2"
+    },
+    {
+      "file": "source-case-audit.json",
+      "sha256": "bf35a5917d7ee98a2ce7a971028b87b5e1adc4b0596cfb6e4271e25581994e83"
+    },
+    {
+      "file": "source-enriched-ar.png",
+      "sha256": "5d7596fb89d9c110144413e1f1ffa381079317a8eebcb21a7b44ac813d9b55c0"
+    },
+    {
+      "file": "source-enriched-en.png",
+      "sha256": "3af697c07eff348eaf8e19adb0c457252661717d9d603a61e8801add327b8605"
+    },
+    {
+      "file": "verification-commands.txt",
+      "sha256": "3bc1d5dd446f67688f14ccb16850577ac78d32782e744783c996d46352b268e0"
+    },
+    {
+      "file": "verified-summary.json",
+      "sha256": "379f7c9b65e7235a661688e3dd2a118229445f4aab823bfbeb5d0a59733507f9"
+    },
+    {
+      "file": "verified-tests.txt",
+      "sha256": "761bc6681ec5838893e4001c104e6bec529a9952fb3c88550e6d6beefbdb8840"
+    }
+  ]
+}

@@ -9,3 +9,5 @@ Refresh coalesces concurrent reads and caches nonempty results for two minutes, 
 Share my progress opens a preview containing only the active language, total XP, daily XP/goal and public product link. Publishing requires a separate explicit button. The signed kind-1 post uses the web publisher's text and tags, including lowercase `learnwithnostr`. No private notes, drafts, membership or companion memory are included. Opening, refreshing or cancelling the preview never publishes. Existing public team progress remains a separate kind-30078 snapshot. Automatic milestone posting is not enabled by this control.
 
 Verification uses a loopback WebSocket relay and disposable identities. No public community event is sent by tests. `scripts/export-community-fixtures.mjs` executes the reference's pure name/question filters to export 42 comparisons without modifying the source checkout.
+
+Startup Global feed cache warming and the independent invitation attention lifecycle now have scoped evidence in [TEAMS_STARTUP.md](TEAMS_STARTUP.md). Startup reads do not authorize public milestone publication.

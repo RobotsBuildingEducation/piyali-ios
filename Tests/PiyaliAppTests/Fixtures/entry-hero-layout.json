@@ -1,0 +1,85 @@
+{
+  "viewport": {
+    "width": 402,
+    "height": 874,
+    "scrollY": 0
+  },
+  "heading": {
+    "tag": "H1",
+    "text": "Your Personal\nLanguage Tutor",
+    "rect": {
+      "x": 24,
+      "y": 92,
+      "width": 354,
+      "height": 70.390625
+    },
+    "font": "",
+    "fontFamily": "\"DM Sans\", -apple-system, \"system-ui\", \"Segoe UI\", sans-serif",
+    "fontSize": "32px",
+    "fontWeight": "600",
+    "lineHeight": "35.2px",
+    "letterSpacing": "normal",
+    "fontStretch": "100%",
+    "opticalSizing": "auto",
+    "padding": "0px"
+  },
+  "paragraph": {
+    "tag": "P",
+    "text": "Practice speaking without the pressure. Piyali remembers your goals, helps you learn from mistakes, and plans what to practice next.",
+    "rect": {
+      "x": 24,
+      "y": 186.390625,
+      "width": 354,
+      "height": 53.765625
+    },
+    "font": "",
+    "fontFamily": "\"DM Sans\", -apple-system, sans-serif",
+    "fontSize": "11.2px",
+    "fontWeight": "400",
+    "lineHeight": "17.92px",
+    "letterSpacing": "normal",
+    "fontStretch": "100%",
+    "opticalSizing": "auto",
+    "padding": "0px",
+    "lines": [
+      {
+        "x": 39.515625,
+        "y": 187.890625,
+        "width": 322.96875,
+        "height": 14.5
+      },
+      {
+        "x": 36.09375,
+        "y": 205.8125,
+        "width": 329.8125,
+        "height": 14.5
+      },
+      {
+        "x": 188.6484375,
+        "y": 223.734375,
+        "width": 24.703125,
+        "height": 14.5
+      }
+    ]
+  },
+  "input": {
+    "tag": "INPUT",
+    "text": "Your display name",
+    "rect": {
+      "x": 24,
+      "y": 272.15625,
+      "width": 354,
+      "height": 59.59375
+    },
+    "font": "16px / 25.6px \"DM Sans\", -apple-system, sans-serif",
+    "fontFamily": "\"DM Sans\", -apple-system, sans-serif",
+    "fontSize": "16px",
+    "fontWeight": "400",
+    "lineHeight": "25.6px",
+    "letterSpacing": "normal",
+    "fontStretch": "100%",
+    "opticalSizing": "auto",
+    "padding": "16px 20px"
+  },
+  "scope": "Measured from the original LandingPage component through the read-only same-origin mobile-frame harness. No input values or account data are collected."
+}

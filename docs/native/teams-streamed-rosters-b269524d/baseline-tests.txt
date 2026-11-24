@@ -1,0 +1,6 @@
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliAppTests/TeamsMirrorContractTests.swift:49: error: -[PiyaliTests.TeamsMirrorContractTests testOpenNativeCachedRosterShowsFirstMirrorSnapshotWithoutAServerRead] : XCTAssertEqual failed: ("Optional("Signed initial")") is not equal to ("Optional("Cached peer change")") - The original TeamView applies the cached snapshot directly while fresh reads are unavailable
+Test Case '-[PiyaliTests.TeamsMirrorContractTests testOpenNativeCachedRosterShowsFirstMirrorSnapshotWithoutAServerRead]' failed (3.617 seconds).
+	 Executed 1 test, with 1 failure (0 unexpected) in 3.617 (3.618) seconds
+	 Executed 1 test, with 1 failure (0 unexpected) in 3.617 (3.618) seconds
+	 Executed 1 test, with 1 failure (0 unexpected) in 3.617 (3.619) seconds
+** TEST FAILED **

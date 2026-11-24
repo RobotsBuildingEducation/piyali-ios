@@ -8,6 +8,7 @@ struct CommunityFeedView:View {
     @State private var published=false
     @State private var shareState:LearnerState?
     @State private var shareAuthor=""
+    private var learningPosts:[CommunityPost]{service.posts.filter{$0.milestone != nil}}
     var body:some View {
         List {
             Section {
@@ -18,14 +19,16 @@ struct CommunityFeedView:View {
             }
             if service.busy { ProgressView("Syncing with the community…") }
             if let error=service.error { Text(error).foregroundStyle(.red) }
-            if service.posts.isEmpty,!service.busy { Text("No learning posts yet. Pull to refresh.") }
-            ForEach(service.posts) { post in
+            if learningPosts.isEmpty,!service.busy { Text("No learning posts yet. Pull to refresh.") }
+            ForEach(learningPosts) { post in
                 Section {
                     Link(post.name,destination:URL(string:"https://ditto.pub/"+post.npub)!)
                     Text(Date(timeIntervalSince1970:Double(post.event.created_at)),style:.date).font(.caption)
-                    if let percent=post.milestone.questionPercent { ProgressView(value:percent,total:100);Text("Question \(post.milestone.question!.formatted()) of 120") }
-                    if let xp=post.milestone.totalXP { Text("Total XP: \(xp.formatted())") }
-                    if let percent=post.milestone.goalPercent { ProgressView(value:percent,total:100);Text("Goal completion: \(percent.formatted())%") }
+                    if let milestone=post.milestone {
+                    if let percent=milestone.questionPercent { ProgressView(value:percent,total:100);Text("Question \(milestone.question!.formatted()) of 120") }
+                    if let xp=milestone.totalXP { Text("Total XP: \(xp.formatted())") }
+                    if let percent=milestone.goalPercent { ProgressView(value:percent,total:100);Text("Goal completion: \(percent.formatted())%") }
+                    }
                     Text(linked(post.event.content)).textSelection(.enabled)
                 }
             }

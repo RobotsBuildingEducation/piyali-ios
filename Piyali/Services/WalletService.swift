@@ -30,11 +30,17 @@ import secp256k1
     private var generation=UUID()
     private var task:Task<Void,Error>?
     init(client:NostrRelayClient? = nil,mint:(any WalletMintNetworking)? = nil,now:@escaping ()->Date = Date.init) {
-        var selected=client
+        var selected=client,selectedMint=mint
         #if DEBUG
-        if selected == nil,ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"] == "1",UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil,let value=ProcessInfo.processInfo.environment["PIYALI_WALLET_TEST_RELAY"],let url=URL(string:value),["localhost","127.0.0.1","::1"].contains(url.host ?? ""),let relay=try? BunkerConnection.relay(value,allowLoopback:true) { selected=NostrRelayClient(relays:[relay],timeout:.seconds(2)) }
+        if selected == nil,ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"] == "1",UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil,let value=ProcessInfo.processInfo.environment["PIYALI_WALLET_TEST_RELAY"],let url=URL(string:value),["localhost","127.0.0.1","::1"].contains(url.host ?? ""),let relay=try? BunkerConnection.relay(value,allowLoopback:true) {
+            selected=NostrRelayClient(relays:[relay],timeout:.seconds(2))
+            if selectedMint == nil,ProcessInfo.processInfo.environment["PIYALI_WALLET_TEST_READ_ONLY_MINT"] == "1"{
+                selectedMint=WalletReadOnlyFixtureMint()
+            }
+        }
+        if selected == nil,ProcessInfo.processInfo.environment["PIYALI_OFFLINE_TESTS"] == "1",UUID(uuidString:ProcessInfo.processInfo.environment["PIYALI_TEST_IDENTITY_SCOPE"] ?? "") != nil{selected=NostrRelayClient(relays:[],timeout:.seconds(1))}
         #endif
-        bootstrap=selected ?? NostrRelayClient();fixedRelays=selected != nil;mintAPI=mint ?? CashuHTTPClient();self.now=now
+        bootstrap=selected ?? NostrRelayClient();fixedRelays=selected != nil;mintAPI=selectedMint ?? CashuHTTPClient();self.now=now
     }
     func cancel(clear:Bool = false) { generation=UUID();task?.cancel();task=nil;busy=false;if clear { state=nil;owner="";ready=false;canCreate=false;canRestore=false;depositID="";needsReceivingInfo=false;balance=0;invoice="";automatic=AutomaticTipJournal();tipPreview=nil;archivedCount=0;invoiceExpired=false;pending=false;status="";error=nil } }
     private func check(_ identity:IdentityService,_ version:UUID) throws { try Task.checkCancellation();guard version == generation,identity.hex == owner,!owner.isEmpty else { throw CancellationError() } }
@@ -294,6 +300,22 @@ import secp256k1
     }
 }
 
+#if DEBUG
+/// The funded Account UI uses a synthetic, read-only mint.
+private struct WalletReadOnlyFixtureMint:WalletMintNetworking {
+    private static let url=URL(string:"https://wallet-fixture.invalid")!
+    func loadMint(_ value:String)async throws->CashuSwift.Mint{
+        guard value == Self.url.absoluteString else{throw URLError(.unsupportedURL)}
+        return CashuSwift.Mint(url:Self.url,keysets:[])
+    }
+    func request(mint:String,path:String,body:JSONValue?)async throws->JSONValue{throw URLError(.unsupportedURL)}
+    func states(_ proofs:[CashuSwift.Proof],mint:CashuSwift.Mint)async throws->[CashuSwift.Proof.ProofState]{
+        guard mint.url == Self.url,proofs.allSatisfy({$0.secret == "piyali-public-receipt-fixture"}) else{throw URLError(.unsupportedURL)}
+        return proofs.map{_ in .unspent}
+    }
+}
+#endif
+
 struct WalletTipPreview:Equatable {
     let recipient:String
     let fee:Int
@@ -447,7 +469,7 @@ extension WalletService {
             if operation.purpose == .tip {
                 guard let destination=operation.recipient else { throw WalletContract.Failure.invalidRecipient }
                 let send=Array(proofs.dropFirst(operation.keepCount));guard send.reduce(0,{ $0+$1.amount }) == 1,send.allSatisfy({ $0.locked(to:destination.walletKey) }) else { throw WalletContract.Failure.invalidProof }
-                outbox.append(try await identity.signEvent(kind:9321,tags:send.map { ["proof",$0.wire.json] }+[["amount","1"],["unit","sat"],["u",destination.mint],["p",destination.author]],content:"Piyali",expectedAuthor:owner));try check(identity,version)
+                outbox.append(try await identity.signEvent(kind:9321,tags:send.map { ["proof",$0.wire.json] }+[["alt","This is a nutzap"],["amount","1"],["unit","sat"],["u",destination.mint],["p",destination.author]],content:WalletCopy.publicNote,expectedAuthor:owner));try check(identity,version)
             }
             state?.pending?.outbox=outbox;state?.pending?.phase = .publishing;try save()
         }
@@ -470,10 +492,21 @@ private extension WalletProof {
 }
 
 extension WalletService {
-    func configureAutomaticTips(enabled:Bool,recipient:String,maximumFee:Int,identity:IdentityService) throws {
+    func configureAutomaticTips(enabled:Bool,recipient:String,maximumFee:Int,identity:IdentityService,sourceManaged:Bool=false) throws {
         let account=identity.hex
         guard !account.isEmpty,(0...1_000_000).contains(maximumFee),!enabled || (recipient.hasPrefix("npub1") ? PublicKey(npub:recipient) : PublicKey(hex:recipient)) != nil else { throw WalletContract.Failure.invalidRecipient }
-        var journal=try vault.automaticTips(owner:account);journal.configure(enabled:enabled,recipient:recipient,maximumFee:maximumFee);try vault.saveAutomaticTips(journal,owner:account);automatic=journal
+        var journal=try vault.automaticTips(owner:account);journal.configure(enabled:enabled,recipient:recipient,maximumFee:maximumFee,sourceManaged:sourceManaged);try vault.saveAutomaticTips(journal,owner:account);automatic=journal
+    }
+    /// Source default: one sat per new XP event. An existing stop, fee pause or
+    /// manually approved recipient is authoritative. Never approve extra fees here.
+    func adoptSourceSupport(identity:IdentityService,recipient:String)throws {
+        let account=identity.hex;guard !account.isEmpty,let wallet=try vault.load(owner:account),wallet.configurationPublished else{return}
+        let destination=recipient.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty ? WalletContract.defaultRecipient:recipient.trimmingCharacters(in:.whitespacesAndNewlines)
+        guard (destination.hasPrefix("npub1") ? PublicKey(npub:destination):PublicKey(hex:destination)) != nil else{throw WalletContract.Failure.invalidRecipient}
+        let configured=try vault.hasAutomaticPreference(owner:account);var journal=try vault.automaticTips(owner:account)
+        guard !configured || journal.enabled && journal.sourceManaged == true && journal.recipient != destination else{automatic=journal;return}
+        if configured{journal.retargetSourceSupport(destination,activeID:wallet.pending?.automaticTrigger);try vault.saveAutomaticTips(journal,owner:account);automatic=journal}
+        else{try configureAutomaticTips(enabled:true,recipient:destination,maximumFee:0,identity:identity,sourceManaged:true)}
     }
     func enqueueAutomaticTips(_ changes:[PracticeChange],identity:IdentityService,resuming:Bool = false) throws {
         guard !changes.isEmpty,!identity.hex.isEmpty,let wallet=try vault.load(owner:identity.hex) else { return }

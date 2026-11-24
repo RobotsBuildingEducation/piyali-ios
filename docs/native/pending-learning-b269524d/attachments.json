@@ -1,0 +1,82 @@
+[
+  {
+    "file": "trace-ar.json",
+    "attachment": "Shared enriched Memory trace ar_0_80485C41-E3AD-474C-BEA8-B42390F9C409.json",
+    "test": "MemoryFlowTests/testActualSourceSharedEnrichmentAndLearningEvidenceInEnglishAndArabic()"
+  },
+  {
+    "file": "native-enriched-ar.png",
+    "attachment": "Native shared enriched Memory ar_0_EEDDC74B-11FE-4F7C-8CF5-CBE7D66A27B0.png",
+    "test": "MemoryFlowTests/testActualSourceSharedEnrichmentAndLearningEvidenceInEnglishAndArabic()"
+  },
+  {
+    "file": "source-enriched-ar.png",
+    "attachment": "Source shared enriched Memory ar_0_AABD20AF-DE44-4D4A-8758-36D48FA8BB6F.png",
+    "test": "MemoryFlowTests/testActualSourceSharedEnrichmentAndLearningEvidenceInEnglishAndArabic()"
+  },
+  {
+    "file": "trace-en.json",
+    "attachment": "Shared enriched Memory trace en_0_217BC29A-9143-4267-9047-B612CD4F0E2E.json",
+    "test": "MemoryFlowTests/testActualSourceSharedEnrichmentAndLearningEvidenceInEnglishAndArabic()"
+  },
+  {
+    "file": "native-enriched-en.png",
+    "attachment": "Native shared enriched Memory en_0_C91253FC-A8F0-431E-AEA0-049156166C50.png",
+    "test": "MemoryFlowTests/testActualSourceSharedEnrichmentAndLearningEvidenceInEnglishAndArabic()"
+  },
+  {
+    "file": "source-enriched-en.png",
+    "attachment": "Source shared enriched Memory en_0_38BE2401-5881-4AF3-9E36-147B4627BA78.png",
+    "test": "MemoryFlowTests/testActualSourceSharedEnrichmentAndLearningEvidenceInEnglishAndArabic()"
+  },
+  {
+    "file": "sdk-private-recovery-trace.json",
+    "attachment": "Firebase device-private pending Memory acknowledgment and stale retry_0_EFB5113E-2A07-4514-BB2A-EDABC26978CA.json",
+    "test": "FirestoreContractTests/testPendingMemoryEnrichmentStaysDevicePrivateAcrossCanonicalAckAndRejectsAServerHintContinuation()"
+  },
+  {
+    "file": "native-memory-second-relaunch.png",
+    "attachment": "Native resumed Memory remains once after a second relaunch_0_4BC57BDE-2A34-4B5E-B56D-DBC5ACF67D19.png",
+    "test": "StandardBodyJourneyTests/testPendingMemoryEnrichmentResumesAfterActualTerminationWithoutDuplicateLearningEvents()"
+  },
+  {
+    "file": "native-memory-restored.png",
+    "attachment": "Native interrupted enrichment resumes on the original Memory after process relaunch_0_DA3DCCB3-966B-416C-9358-19DB051FBD4B.png",
+    "test": "StandardBodyJourneyTests/testPendingMemoryEnrichmentResumesAfterActualTerminationWithoutDuplicateLearningEvents()"
+  },
+  {
+    "file": "native-memory-pending.png",
+    "attachment": "Native ordinary Memory saved while enrichment is pending_0_510AA458-3A82-476E-8827-FF29BEA39390.png",
+    "test": "StandardBodyJourneyTests/testPendingMemoryEnrichmentResumesAfterActualTerminationWithoutDuplicateLearningEvents()"
+  },
+  {
+    "file": "native-tutor-memory-second-relaunch.png",
+    "attachment": "Native recovered Tutor Memory stays once after a second relaunch_0_E3F8156E-1B7F-4453-8A38-04826E7EE982.png",
+    "test": "TutorParityTests/testPendingTutorSemanticMemoryResumesAfterActualTerminationWithoutXPOrAnotherAssessment()"
+  },
+  {
+    "file": "native-tutor-memory-restored.png",
+    "attachment": "Native interrupted Tutor enrichment finishes once after process relaunch_0_A7866B89-4FCA-45D2-A8B6-E1FBEF9B2C5C.png",
+    "test": "TutorParityTests/testPendingTutorSemanticMemoryResumesAfterActualTerminationWithoutXPOrAnotherAssessment()"
+  },
+  {
+    "file": "native-tutor-memory-pending.png",
+    "attachment": "Native Tutor Memory retained while semantic enrichment is pending_0_3E83C2CC-28BD-4DA8-9BD2-798BBAB6B9F3.png",
+    "test": "TutorParityTests/testPendingTutorSemanticMemoryResumesAfterActualTerminationWithoutXPOrAnotherAssessment()"
+  },
+  {
+    "file": "native-worth-second-relaunch.png",
+    "attachment": "Native recovered Tutor award remains stable after a second relaunch_0_F9FD733B-1D66-4EBC-97F0-949CC78619E9.png",
+    "test": "TutorParityTests/testEarnedTutorTurnWithPendingWorthSurvivesActualTerminationAndTwoRelaunches()"
+  },
+  {
+    "file": "native-worth-restored.png",
+    "attachment": "Native interrupted question worth restores earned progress without reconnecting Tutor_0_8AA7FFC3-9A98-4098-A613-C4F3F8E3E2B5.png",
+    "test": "TutorParityTests/testEarnedTutorTurnWithPendingWorthSurvivesActualTerminationAndTwoRelaunches()"
+  },
+  {
+    "file": "native-worth-pending.png",
+    "attachment": "Native earned Tutor progress while original question worth is pending_0_1DAB47AD-B91F-48CB-89B4-D59D41933501.png",
+    "test": "TutorParityTests/testEarnedTutorTurnWithPendingWorthSurvivesActualTerminationAndTwoRelaunches()"
+  }
+]

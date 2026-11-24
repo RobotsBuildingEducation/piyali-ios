@@ -8,6 +8,7 @@ public struct AutomaticTipIntent:Codable,Equatable,Sendable {
 /// Financial intent journal, stored separately from the mutable wallet operation and learner snapshot.
 public struct AutomaticTipJournal:Codable,Equatable,Sendable {
     public var enabled=false
+    public var sourceManaged:Bool?
     public var recipient=WalletContract.defaultRecipient
     public var maximumFee=0
     public var enabledAt:Date?
@@ -15,9 +16,14 @@ public struct AutomaticTipJournal:Codable,Equatable,Sendable {
     public private(set) var handled:[String]=[]
     public var pauseReason:String?
     public init() {}
-    public mutating func configure(enabled:Bool,recipient:String,maximumFee:Int) {
+    public mutating func configure(enabled:Bool,recipient:String,maximumFee:Int,sourceManaged:Bool=false) {
         clearQueue()
+        self.sourceManaged=sourceManaged
         self.enabled=enabled;self.recipient=recipient;self.maximumFee=maximumFee;enabledAt=enabled ? Date() : nil;pauseReason=nil
+    }
+    public mutating func retargetSourceSupport(_ recipient:String,activeID:String?) {
+        let active=queue.first{$0.id == activeID};clearQueue();self.recipient=recipient;maximumFee=0;sourceManaged=true
+        if let active{queue=[active]}
     }
     public mutating func enqueue(_ changes:[PracticeChange],available:Int) {
         guard enabled,maximumFee >= 0,maximumFee <= 1_000_000 else { return }

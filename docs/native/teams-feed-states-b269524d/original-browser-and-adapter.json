@@ -1,0 +1,84 @@
+{
+  "reference": "b269524ddc578027c549616fc47f5954991d9f6f",
+  "scope": "Original component and actual source cache in Chromium. Public fetch fixture only; not authenticated source App or production relay verification.",
+  "hashes": {
+    "src/components/Teams/TeamFeed.jsx": "85aa1826902089bf473bd2c7b3a17bd0398d6204999182d0c5e3eccc1dfb1abc",
+    "src/utils/globalTeamFeedCache.js": "2b3855caf2791a23ff7b465ddb84edd03a9c7cfb5a13cf8268df52f103c4a3b9",
+    "src/components/WaveBar.jsx": "619c6d05f99488316facec96f2b35fa46544910a5b1fd0d0584e529af756c536",
+    "src/hooks/useDecentralizedIdentity.js": "0cd7422bc4fd1424cc74a3f55c98fc7da070bf38b48c5c44ac3690fc00b41e7f"
+  },
+  "results": [
+    {
+      "state": "feed-error",
+      "language": "en",
+      "cachedBackgroundWithoutSpinner": false,
+      "errorHidesOldPosts": true,
+      "forceShowsLoading": true,
+      "requests": [
+        "LearnWithNostr",
+        "LearnWithNostr"
+      ],
+      "recovered": "posts"
+    },
+    {
+      "state": "feed-cached-refresh",
+      "language": "en",
+      "cachedBackgroundWithoutSpinner": true,
+      "errorHidesOldPosts": true,
+      "forceShowsLoading": true,
+      "requests": [
+        "LearnWithNostr",
+        "LearnWithNostr"
+      ],
+      "recovered": "empty"
+    },
+    {
+      "state": "feed-question",
+      "language": "en",
+      "rawMarkdown": true,
+      "linkedURL": true
+    },
+    {
+      "state": "feed-error",
+      "language": "ar",
+      "cachedBackgroundWithoutSpinner": false,
+      "errorHidesOldPosts": true,
+      "forceShowsLoading": true,
+      "requests": [
+        "LearnWithNostr",
+        "LearnWithNostr"
+      ],
+      "recovered": "posts"
+    },
+    {
+      "state": "feed-cached-refresh",
+      "language": "ar",
+      "cachedBackgroundWithoutSpinner": true,
+      "errorHidesOldPosts": true,
+      "forceShowsLoading": true,
+      "requests": [
+        "LearnWithNostr",
+        "LearnWithNostr"
+      ],
+      "recovered": "empty"
+    },
+    {
+      "state": "feed-question",
+      "language": "ar",
+      "rawMarkdown": true,
+      "linkedURL": true
+    },
+    {
+      "state": "original-default-adapter",
+      "mode": "rejected-connection",
+      "resolvesEmpty": true,
+      "loggedErrors": 1
+    },
+    {
+      "state": "original-default-adapter",
+      "mode": "missing-connection",
+      "resolvesEmpty": true,
+      "loggedErrors": 0
+    }
+  ]
+}

@@ -1,0 +1,762 @@
+{
+  "reference_revision": "b269524ddc578027c549616fc47f5954991d9f6f",
+  "native_base": "4848404cdfe6118ef105a6b3c89ff1e7c94f71b3",
+  "qa_device": "CE8248B6-7171-4FD4-97DE-89E499107F82",
+  "scope": "Original fresh Goal factory/cache/outcome bodies and real browser account-local helpers with explicit remote/provider boundaries; actual original recall controls. Native full entry, pending first recall, offline process restore, reconnect, remaining recalls, next lesson and relaunch. Component comparisons and synthetic grading do not prove full browser routing, physical audio/offline operation, payments or whole-product design.",
+  "checks": {
+    "final_models_source_sdk": {
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardFinalComparisons20261105.xcresult",
+      "tests": 9,
+      "failures": 0,
+      "seconds": 391.739,
+      "models": 6,
+      "models_seconds": 6.239,
+      "sdk_seconds": 10.894,
+      "fresh_source_native_seconds": 35.405,
+      "cached_source_native_seconds": 339.201
+    },
+    "native_ui": {
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardVerified2_20261105.xcresult",
+      "tests": 2,
+      "failures": 0,
+      "seconds": 221.125,
+      "fresh_goal_seconds": 131.032,
+      "repair_regression_seconds": 90.093,
+      "scope": "Containing bundle has four prompt-order comparison failures elsewhere; both UI journeys passed before only test-code correction. Implementation dylib SHA-256 is identical to the final comparison build."
+    },
+    "qa_snapshot_audit": {
+      "passed": true
+    },
+    "core": {
+      "tests": 24,
+      "failures": 0,
+      "seconds": 11.017,
+      "log": "/tmp/piyali-fresh-goal-flashcard-core-20261105.log"
+    },
+    "live_generation": {
+      "tests": 1,
+      "failures": 0,
+      "seconds": 8.871,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardLive20261105.xcresult",
+      "project": "piyali-ios",
+      "provider_paths": [
+        "configured Gemini-first (may use source fallback)",
+        "explicit Responses"
+      ],
+      "support_languages": [
+        "en",
+        "ar"
+      ],
+      "learner_progress_written": false,
+      "disposable_identity_cleanup_completed": true,
+      "scope": "Debug App Check authentication, source recall prompt/parser, public Goal data and returned localized cues; not release attestation, full content quality or UI/payment proof."
+    }
+  },
+  "reference_sources": [
+    {
+      "file": "src/utils/focusedPracticeDecks.js",
+      "sha256": "bb5f8e54a4ad8db64bfb5e725f8fec4e37f538b4aa26a20714d18e825d6ad59d"
+    },
+    {
+      "file": "src/components/FlashcardSkillTree.jsx",
+      "sha256": "953b1553e067d2cd7dfec1cb87e20798336c6a9ec78eaed0136efbbd4c1b644f"
+    },
+    {
+      "file": "src/utils/dailyQuestState.js",
+      "sha256": "48be9a3818a4eed0bbea6fee715cf7e1424e8b7baf59fc1fb2ae167451e29ffa"
+    },
+    {
+      "file": "src/utils/performanceEloModel.js",
+      "sha256": "1c6caa8c52f76576e8fe507d2698c4a65736d5492e49a19d937db8f16e1894a1"
+    }
+  ],
+  "main_ui_bundle": {
+    "sources": [
+      {
+        "file": "Piyali/App/AppModel.swift",
+        "sha256": "7aa0709fced06e9c92ff0dc601d39e4ead8c0d81bbc83b4cb1f37c0e331876fa"
+      },
+      {
+        "file": "Piyali/App/FocusedDeckFixture.swift",
+        "sha256": "b171a59e333a6b6f9825399bd6645514bc2402a696174edf905a82efe645f484"
+      },
+      {
+        "file": "Tests/PiyaliAppTests/FocusedFlashcardComparisonTests.swift",
+        "sha256": "d31daf15087512389ff8b6b90a868cbc11b46b39670929cbdcc4dba2256c5496"
+      },
+      {
+        "file": "Tests/PiyaliAppTests/FocusedFlashcardFlowTests.swift",
+        "sha256": "88edd8dd8019e75f02d9d0d1fba9a5552e198162dfdc4d45c101980196224e01"
+      },
+      {
+        "file": "Tests/PiyaliAppTests/FirestoreContractTests.swift",
+        "sha256": "17642b8329f60987880b88a9fb590933ded99d542a97572c498963d139816008"
+      },
+      {
+        "file": "Tests/PiyaliUITests/FocusedDeckJourneyTests.swift",
+        "sha256": "655cdf9440b591c93a6734285fd70641c89b25873ca263c36067ed8a504936a5"
+      },
+      {
+        "file": "scripts/reference-focused-flashcards.jsx",
+        "sha256": "818755a3ad458b30dd83b6b4cd98b3396919e677e1f61ba8b046e6a1c1edda38"
+      },
+      {
+        "file": "scripts/reference-focused-flashcards.mjs",
+        "sha256": "4ecb9dea9c015fc52cbe1a2998282ca94718366434003301a209aa281c74fbec"
+      }
+    ],
+    "products": [
+      {
+        "file": "DerivedData/Build/Products/Debug-iphonesimulator/Piyali.app/Piyali",
+        "sha256": "8ab23611dff7109ae3c67bcb7597099e438ba401921d9de094737e9618b54b98"
+      },
+      {
+        "file": "DerivedData/Build/Products/Debug-iphonesimulator/Piyali.app/Piyali.debug.dylib",
+        "sha256": "530a9c3d17665b129b39c247cc1fd10b5cdd7742b14df27e249c15b388083fbf"
+      },
+      {
+        "file": "DerivedData/Build/Products/Debug-iphonesimulator/Piyali.app/PlugIns/PiyaliTests.xctest/PiyaliTests",
+        "sha256": "4ec030430b9353ae48b8df4691ed54ece67690a7acda28ce90412ca17947ed7d"
+      },
+      {
+        "file": "DerivedData/Build/Products/Debug-iphonesimulator/PiyaliUITests-Runner.app/PlugIns/PiyaliUITests.xctest/PiyaliUITests",
+        "sha256": "68b070b8b7ddbf581d082bff3701e70cb35a033385ab1b86e0b61cdca1c89275"
+      }
+    ]
+  },
+  "final_comparison_bundle": {
+    "sources": [
+      {
+        "file": "Piyali/App/AppModel.swift",
+        "sha256": "7aa0709fced06e9c92ff0dc601d39e4ead8c0d81bbc83b4cb1f37c0e331876fa"
+      },
+      {
+        "file": "Piyali/App/FocusedDeckFixture.swift",
+        "sha256": "b171a59e333a6b6f9825399bd6645514bc2402a696174edf905a82efe645f484"
+      },
+      {
+        "file": "Tests/PiyaliAppTests/FocusedFlashcardComparisonTests.swift",
+        "sha256": "ba9212367ee97c423ad0fd93f6d5f132f928b92db5d4624d9113eb9ffd980bf6"
+      },
+      {
+        "file": "Tests/PiyaliAppTests/FocusedFlashcardFlowTests.swift",
+        "sha256": "88edd8dd8019e75f02d9d0d1fba9a5552e198162dfdc4d45c101980196224e01"
+      },
+      {
+        "file": "Tests/PiyaliAppTests/FirestoreContractTests.swift",
+        "sha256": "17642b8329f60987880b88a9fb590933ded99d542a97572c498963d139816008"
+      },
+      {
+        "file": "Tests/PiyaliUITests/FocusedDeckJourneyTests.swift",
+        "sha256": "655cdf9440b591c93a6734285fd70641c89b25873ca263c36067ed8a504936a5"
+      },
+      {
+        "file": "scripts/reference-focused-flashcards.jsx",
+        "sha256": "818755a3ad458b30dd83b6b4cd98b3396919e677e1f61ba8b046e6a1c1edda38"
+      },
+      {
+        "file": "scripts/reference-focused-flashcards.mjs",
+        "sha256": "4ecb9dea9c015fc52cbe1a2998282ca94718366434003301a209aa281c74fbec"
+      },
+      {
+        "file": "Tests/PiyaliAppTests/LiveAPIIntegrationTests.swift",
+        "sha256": "00f3ce9cc8bd386989b0a9e3efed6978f56f16d666536bbf13c4c7d366d31514"
+      },
+      {
+        "file": "scripts/test-live-api.py",
+        "sha256": "8f02409af2a60587614837fb65252ba9457cb831063b17da2d8cc6f33c7b92a2"
+      },
+      {
+        "file": "scripts/audit-fresh-goal-flashcard-qa.py",
+        "sha256": "3b28efd11e2ad4669485b38641470212560e0c4c5e494d8ceaf11c3f2deea72f"
+      },
+      {
+        "file": "Piyali/Resources/companion-quest-policy.js",
+        "sha256": "5d4cca9ebc006685670fd61c692d1d096c208710c15a715ede85dc176bf7b1d9"
+      },
+      {
+        "file": "Piyali/App/FlashcardSessionController.swift",
+        "sha256": "62d24bca1dd6e66292d615f95c15ff0e8fc4c4c2a2ef26656a7c2210cc7c268b"
+      },
+      {
+        "file": "Piyali/Core/GoalPractice.swift",
+        "sha256": "968e1f0bf970c95526262fea62b0076fa00c263a85a9438159533dc56ac3d83e"
+      },
+      {
+        "file": "Piyali/Core/FocusedDeckProgress.swift",
+        "sha256": "fd6a812ce0f721f860217fee6dccac9b4792cd55fbf850e1427c55ae7e916306"
+      }
+    ],
+    "products": [
+      {
+        "file": "DerivedData/Build/Products/Debug-iphonesimulator/Piyali.app/Piyali",
+        "sha256": "ffcbb1c2c1d1f9809fd425ec0c5e7e2690322301427221fc89e400d5ff928c93"
+      },
+      {
+        "file": "DerivedData/Build/Products/Debug-iphonesimulator/Piyali.app/Piyali.debug.dylib",
+        "sha256": "530a9c3d17665b129b39c247cc1fd10b5cdd7742b14df27e249c15b388083fbf"
+      },
+      {
+        "file": "DerivedData/Build/Products/Debug-iphonesimulator/Piyali.app/PlugIns/PiyaliTests.xctest/PiyaliTests",
+        "sha256": "87037c89f477e517a4cce7a7e957c6279d64aa4d1337757b2f6598bbe95aa19c"
+      },
+      {
+        "file": "DerivedData/Build/Products/Debug-iphonesimulator/PiyaliUITests-Runner.app/PlugIns/PiyaliUITests.xctest/PiyaliUITests",
+        "sha256": "68b070b8b7ddbf581d082bff3701e70cb35a033385ab1b86e0b61cdca1c89275"
+      }
+    ]
+  },
+  "regression_attachment_hashes": [
+    {
+      "attachment": "Source actual focused repair ar completion writes_0_B1A235CD-13A0-49FC-BFDF-54E65555D6DE.json",
+      "sha256": "24d0a9bce4ef04d7ebcb4c9301daf69ecf3c2796c20f5b090fd99ee3a12feba3",
+      "bytes": 1370,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardFinalComparisons20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Native focused repair ar confirmed one_0_543BAF37-CC65-4E5E-8287-D5D893B023CE.png",
+      "sha256": "4a3c2d79c345a4e598fc914cd7f254e93a5c553fd89d97c4831fc7ed11409e1e",
+      "bytes": 1921441,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardFinalComparisons20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused repair ar geometry_0_BD499CFB-DD61-4F79-A0FA-2C2FAF2FC4DC.json",
+      "sha256": "b9d73d41214770ecc8e90e1fe667915d17c2ab393cca9fafd764847b1935af61",
+      "bytes": 3444,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardFinalComparisons20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused repair ar confirmed one_0_0EF75F78-5A77-4CC8-B9C6-2A1D91C79D60.png",
+      "sha256": "66fed1dbd5545b94a75aebe62bc61bcdb6cbdd73945aa1adbd48862dab11c635",
+      "bytes": 741677,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardFinalComparisons20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Public focused repair ar input_0_9691F828-7665-4017-A602-AD87752AD701.json",
+      "sha256": "4bc581d6d534f3660214c9a57e6f1ba49d6575b3e2fac0c6fea8497ddf8050b5",
+      "bytes": 2747,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardFinalComparisons20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source actual focused goal ar completion writes_0_AF7AE8B5-AEA0-46DB-8D12-1E136CC36DA8.json",
+      "sha256": "0ac2316b20949aa0caadb863a44f5ba96a100b3c6578a3370f222ed5b5ceed73",
+      "bytes": 4000,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardFinalComparisons20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Native focused goal ar confirmed one_0_B1661F57-F966-47F3-B5E9-51590E43B2FE.png",
+      "sha256": "472e51aee8daf163186e01c4e6d531fd7a08ff14aca217f9f809f04b4d92234b",
+      "bytes": 1913990,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardFinalComparisons20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused goal ar geometry_0_2C5E2A5B-29BF-493C-A2E8-7AA0D1BC5FED.json",
+      "sha256": "4364210fd82f28cd268c1e7af4483c3475ba8c5ba9e95daca043143f7cd258f9",
+      "bytes": 3587,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardFinalComparisons20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused goal ar confirmed one_0_13F2E6BC-9A5B-482C-804C-1DE448D542E6.png",
+      "sha256": "64c68e8d9bc860908e465f01ec125879946c7be2931b9b4a896074bf243d79f3",
+      "bytes": 737317,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardFinalComparisons20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Public focused goal ar input_0_EDA48533-215A-4BF7-B716-47328788940D.json",
+      "sha256": "70a75fa8c0b654c2d14e77ba3621bb634b1487ff2b37778b029dbb71b960b941",
+      "bytes": 3050,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardFinalComparisons20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source actual focused repair en completion writes_0_89299BE9-E52D-4651-9315-2863EB1C17ED.json",
+      "sha256": "36d407ca0bb5e59d86438e8f8a96f2709f893311271e378c17c7a2ad19d2a16a",
+      "bytes": 1370,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardFinalComparisons20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Native focused repair en confirmed one_0_D0343E38-7248-4DCD-BEA9-DD3D0BE5352B.png",
+      "sha256": "a3f69fd48a96e72a09f9812318efda807094281b2407060c092c4dbb49b83dad",
+      "bytes": 2634327,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardFinalComparisons20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused repair en geometry_0_DD5A12D1-4350-459E-9DA7-FA37802CEEB4.json",
+      "sha256": "f4d07e6ef6f8f7eba4a4fd602feaebaf0a387651e1a39305baec9efaad094c44",
+      "bytes": 3258,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardFinalComparisons20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused repair en confirmed one_0_959D9ED9-CEA2-4A0B-8E01-C7FFE1DD4175.png",
+      "sha256": "4a577d12595754de25f206c4eaeaef2b8db25b12a0d4d2f41b4622dd3e0400f9",
+      "bytes": 840504,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardFinalComparisons20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Public focused repair en input_0_8F0BA64E-B09F-4086-A10A-BC5BDAED4A40.json",
+      "sha256": "d749b0f1dfc6039544677d322c67663cd0232843ea10cc07646da678da6333a8",
+      "bytes": 2747,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardFinalComparisons20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source actual focused goal en completion writes_0_3837CAFB-DFB5-4D89-9F0B-C1891AB2AB09.json",
+      "sha256": "7e31eccba3a0824150ad67374c66c722cd9df94d2b84156083cb6445c38dfa71",
+      "bytes": 4000,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardFinalComparisons20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Native focused goal en confirmed one_0_90B3146E-C992-4E40-A39A-A7E2C9F01FA7.png",
+      "sha256": "6c2f6100d6d8c698fa42a322bc8d97307e1cefcd69ad1b2b6f3d6ce99b1674f2",
+      "bytes": 2627291,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardFinalComparisons20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused goal en geometry_0_58BAADE2-3B17-46FD-B253-37C672A57274.json",
+      "sha256": "14e37a47bd198d9b4bf591987cfd77a9a7bd2c66ddef344583d9884bb4bccf55",
+      "bytes": 3412,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardFinalComparisons20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused goal en confirmed one_0_0D47825E-B9FA-4ED4-9DE4-409BA823FDCB.png",
+      "sha256": "e4f871bcb998bb2dbfa095b8764be6b3529d4d51038a63c0cba074ef11ea47c1",
+      "bytes": 836055,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardFinalComparisons20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Public focused goal en input_0_CDCD120A-881D-40AF-99B4-64FA4781B1F7.json",
+      "sha256": "185bf898de00ea6b38a23804cfbb8fcef822da055734002d73a4f30b38d90b7e",
+      "bytes": 3050,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardFinalComparisons20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source actual focused repair ar completion writes_0_38346560-8A72-4FD0-9714-E932FE096026.json",
+      "sha256": "e8f4f862e05d9b04e982bb8cc5de1487e52bf5560e5620e5f272f71c2cc5a5d1",
+      "bytes": 1370,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardVerified2_20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Native focused repair ar confirmed one_0_D9293219-CA3E-42FB-85A3-DDB672035D5A.png",
+      "sha256": "d8b4a07e7aae490eb20e59b465425e9bf978c8e94c81ad29b179853cda00fd1d",
+      "bytes": 1922831,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardVerified2_20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused repair ar geometry_0_4A368FAC-198D-416F-BAC8-E697C2C8C4EF.json",
+      "sha256": "b9d73d41214770ecc8e90e1fe667915d17c2ab393cca9fafd764847b1935af61",
+      "bytes": 3444,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardVerified2_20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused repair ar confirmed one_0_9A84522A-A52F-4DB2-B9D0-EAADF085CB0E.png",
+      "sha256": "b3051e2ce74a6ee570f4eceaf02c4e19c26c6b1612d093eb42e6d4a82beb6fad",
+      "bytes": 743283,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardVerified2_20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Public focused repair ar input_0_83979CA1-88BF-4B5E-8B68-DD05C548E115.json",
+      "sha256": "9cdb7231a194a7cb2a042f5823f51f18ea17126a9279f519dc677654b2d584a1",
+      "bytes": 2747,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardVerified2_20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source actual focused goal ar completion writes_0_FE707C38-D9B4-4E84-86D6-DEE51BDE418F.json",
+      "sha256": "b5b0eab5c27aa97d8f76bb57b45d4531e6d33091e8202492af3f3ce71157ac85",
+      "bytes": 4000,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardVerified2_20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Native focused goal ar confirmed one_0_4FF059A4-4D79-4A4D-8749-14EAC37AA1BC.png",
+      "sha256": "a5b05f5bfb186ff88e82cea284f3f61a8e0bfe52c2cd8ff53ad4b84b1f370142",
+      "bytes": 1913677,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardVerified2_20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused goal ar geometry_0_1A21DF33-CCDE-4DFD-9AAF-36EDA64062A2.json",
+      "sha256": "4364210fd82f28cd268c1e7af4483c3475ba8c5ba9e95daca043143f7cd258f9",
+      "bytes": 3587,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardVerified2_20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused goal ar confirmed one_0_D71E8781-FA0F-41DC-997B-40501B92B4D2.png",
+      "sha256": "85edfe02de32f4f24e381c66f46b48c85bdc79311066efb1e2f50d023a970555",
+      "bytes": 737841,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardVerified2_20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Public focused goal ar input_0_A5F9C774-550C-40DD-B9B1-42D08AC84D56.json",
+      "sha256": "928903d9f1a53d91940e5775c287c6ba221351267036bc187e70a0e7b574845c",
+      "bytes": 3050,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardVerified2_20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source actual focused repair en completion writes_0_CA18DC43-FC15-4430-8F5E-6AFF5DF1B9BF.json",
+      "sha256": "34af1e0c9fcacb36ec97f5aefbf7d51035a327f98c3e50926bf70c34041e30a7",
+      "bytes": 1370,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardVerified2_20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Native focused repair en confirmed one_0_65C402FD-B74D-465A-93A8-5E333E096E40.png",
+      "sha256": "a3f69fd48a96e72a09f9812318efda807094281b2407060c092c4dbb49b83dad",
+      "bytes": 2634327,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardVerified2_20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused repair en geometry_0_F814EA59-EF37-41DC-A560-B7C20E899C0D.json",
+      "sha256": "f4d07e6ef6f8f7eba4a4fd602feaebaf0a387651e1a39305baec9efaad094c44",
+      "bytes": 3258,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardVerified2_20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused repair en confirmed one_0_AE32B24C-E5C1-49AF-AF31-D012759AA29C.png",
+      "sha256": "4a577d12595754de25f206c4eaeaef2b8db25b12a0d4d2f41b4622dd3e0400f9",
+      "bytes": 840504,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardVerified2_20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Public focused repair en input_0_CF710E28-0F12-41B4-AE04-B4AC6B427B3C.json",
+      "sha256": "4fb150beae57f5edcf1111963c303b66a5e3c8f018c60c4b202c8bc3d195ee09",
+      "bytes": 2747,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardVerified2_20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source actual focused goal en completion writes_0_45767AD3-7F33-4FD4-AEE7-AAE887A7DDFF.json",
+      "sha256": "f50b9010cbba7561c4055fab8ce84d320d0c64c73df4bca3723dc16afdf4ad09",
+      "bytes": 4000,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardVerified2_20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Native focused goal en confirmed one_0_D39CC9C7-ACAF-495F-9B51-6322F5F90DA6.png",
+      "sha256": "6c2f6100d6d8c698fa42a322bc8d97307e1cefcd69ad1b2b6f3d6ce99b1674f2",
+      "bytes": 2627291,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardVerified2_20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused goal en geometry_0_06C7D38D-5B59-4684-B38F-2A3134DB0B6B.json",
+      "sha256": "14e37a47bd198d9b4bf591987cfd77a9a7bd2c66ddef344583d9884bb4bccf55",
+      "bytes": 3412,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardVerified2_20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Source focused goal en confirmed one_0_A463F00E-B5C5-4C96-AFD2-BF8E71704CDF.png",
+      "sha256": "e4f871bcb998bb2dbfa095b8764be6b3529d4d51038a63c0cba074ef11ea47c1",
+      "bytes": 836055,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardVerified2_20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Public focused goal en input_0_12D86C55-3D80-46DA-9ECF-FE5AC90C1ABA.json",
+      "sha256": "0318daf7a73391744b097dded777a5994c5ecb206b26555aa8d32807988592c7",
+      "bytes": 3050,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardVerified2_20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Native next repair lesson restores after relaunch_0_B4879BAD-F0B6-414D-8E17-45776D00346B.png",
+      "sha256": "45e2fb77f92e91e0bf64ac5be4ce33d39f3b57cf765e9226a27278e41415e6ce",
+      "bytes": 255306,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardVerified2_20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Native completed repair deck hands off to next repair lesson_0_5E66F377-CC1D-4C5B-A85E-51EE5BF2D717.png",
+      "sha256": "f0dbd5613f89d7f42c912100126329892b36c513244d379ac9542d05991d2aea",
+      "bytes": 255309,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardVerified2_20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Native repair recall deck one confirmed answer_0_C6D1A6B9-8E7F-4BD5-BAF8-E7B8492486A1.png",
+      "sha256": "4adbb17338bcb80bf1cc4125c13fdeb8c70ff7b90926453a38c26cf13f2431c7",
+      "bytes": 1024968,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardVerified2_20261105.xcresult",
+      "retained_in_result_bundle": true
+    },
+    {
+      "attachment": "Native repair recall deck before practice_0_51D63791-5AA6-44DF-8264-8481A82F77B6.png",
+      "sha256": "f628893e089016696df75b04933a6ac868a54fe512b28a66678136c5fd01d129",
+      "bytes": 1023650,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardVerified2_20261105.xcresult",
+      "retained_in_result_bundle": true
+    }
+  ],
+  "artifacts": [
+    {
+      "file": "en-provider-failure-input.json",
+      "attachment": "Public fresh Goal en-provider-failure input",
+      "sha256": "d0f85798fb8a171e6d97d5cffad2e07785d942bd3b6a29c310ae4386ffc48d0a",
+      "bytes": 1996,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardFinalComparisons20261105.xcresult"
+    },
+    {
+      "file": "en-provider-failure-source-trace.json",
+      "attachment": "Source actual fresh Goal en-provider-failure remount and recall trace",
+      "sha256": "d9ece8a741f32505fa9f47f805f5b8283dcf752e44d5d8b989c9784acb38e6a2",
+      "bytes": 11914,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardFinalComparisons20261105.xcresult"
+    },
+    {
+      "file": "en-provider-failure-source.png",
+      "attachment": "Source fresh Goal en-provider-failure remote failure deck",
+      "sha256": "05dc37de3b87e40f53e11c9435248f320773b259eb16ca62eceb5a907014f561",
+      "bytes": 803541,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardFinalComparisons20261105.xcresult"
+    },
+    {
+      "file": "en-provider-failure-native.png",
+      "attachment": "Native fresh Goal en-provider-failure remote failure deck",
+      "sha256": "f1ff27b83404055c90184f483c27f33b838a04ff3d4e850c3e9e6d83356029aa",
+      "bytes": 2691874,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardFinalComparisons20261105.xcresult"
+    },
+    {
+      "file": "en-provider-failure-pair.png",
+      "sha256": "4d22e8ee85086a60596b2e6d49bab9c6ec212d263366e811041289c1eb275fb7",
+      "bytes": 266130,
+      "derived_from": [
+        "en-provider-failure-source.png",
+        "en-provider-failure-native.png"
+      ],
+      "scope": "Display pair normalized to sRGB and 402-point width; original PNG bytes/profiles retained separately. Component content, not full product shell."
+    },
+    {
+      "file": "en-generated-input.json",
+      "attachment": "Public fresh Goal en-generated input",
+      "sha256": "ddf4e68f50a41c1c25c24c07d168c04cbc4e7d9fea9221d58d6096adb828ccfc",
+      "bytes": 1997,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardFinalComparisons20261105.xcresult"
+    },
+    {
+      "file": "en-generated-source-trace.json",
+      "attachment": "Source actual fresh Goal en-generated remount and recall trace",
+      "sha256": "eae0021da963c89aa8988e744ddc91d9b7fb1fd70f19cbb1d318e356043877ad",
+      "bytes": 11554,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardFinalComparisons20261105.xcresult"
+    },
+    {
+      "file": "en-generated-source.png",
+      "attachment": "Source fresh Goal en-generated remote failure deck",
+      "sha256": "e196aece21e7c8e500608a421b6411bb16b21ae3999a4cae0013ad8b1e56a04f",
+      "bytes": 761857,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardFinalComparisons20261105.xcresult"
+    },
+    {
+      "file": "en-generated-native.png",
+      "attachment": "Native fresh Goal en-generated remote failure deck",
+      "sha256": "cadee09a7c2ac60ec0fd4f08ce020115cc4279d00598ae8c3225df5622eee1e8",
+      "bytes": 2663340,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardFinalComparisons20261105.xcresult"
+    },
+    {
+      "file": "en-generated-pair.png",
+      "sha256": "2810c8e98aa43bc2072c72d8662c03536505443ea34fa2c787c151ee055e3b1b",
+      "bytes": 247883,
+      "derived_from": [
+        "en-generated-source.png",
+        "en-generated-native.png"
+      ],
+      "scope": "Display pair normalized to sRGB and 402-point width; original PNG bytes/profiles retained separately. Component content, not full product shell."
+    },
+    {
+      "file": "ar-provider-failure-input.json",
+      "attachment": "Public fresh Goal ar-provider-failure input",
+      "sha256": "80340e15ff74e744f6ad213f2569c9c9a48c6f2dc5e48dc0d7ba2d85b44ff250",
+      "bytes": 1996,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardFinalComparisons20261105.xcresult"
+    },
+    {
+      "file": "ar-provider-failure-source-trace.json",
+      "attachment": "Source actual fresh Goal ar-provider-failure remount and recall trace",
+      "sha256": "a68d9814dbd8df138501c24890a4ff7dba64f5b36b419db5571e2364d80004b1",
+      "bytes": 11914,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardFinalComparisons20261105.xcresult"
+    },
+    {
+      "file": "ar-provider-failure-source.png",
+      "attachment": "Source fresh Goal ar-provider-failure remote failure deck",
+      "sha256": "0c77d8964cdf37d6e14f70fc2645563b4f6a72c1f885f2b31f0d932584f51c11",
+      "bytes": 1045020,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardFinalComparisons20261105.xcresult"
+    },
+    {
+      "file": "ar-provider-failure-native.png",
+      "attachment": "Native fresh Goal ar-provider-failure remote failure deck",
+      "sha256": "87a5395fb91c12f8f141403f64aab41f9abdfe026d4c348058ba85cbf7aac02d",
+      "bytes": 2857473,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardFinalComparisons20261105.xcresult"
+    },
+    {
+      "file": "ar-provider-failure-pair.png",
+      "sha256": "0130f416868ccfd42721e11a94db652000e89a658277b0ee4958405351ddbdd3",
+      "bytes": 261172,
+      "derived_from": [
+        "ar-provider-failure-source.png",
+        "ar-provider-failure-native.png"
+      ],
+      "scope": "Display pair normalized to sRGB and 402-point width; original PNG bytes/profiles retained separately. Component content, not full product shell."
+    },
+    {
+      "file": "ar-generated-input.json",
+      "attachment": "Public fresh Goal ar-generated input",
+      "sha256": "c5631a987cee0709056ab5ea5bff3f028188743d5ca47dda587d575a6ea73b58",
+      "bytes": 1997,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardFinalComparisons20261105.xcresult"
+    },
+    {
+      "file": "ar-generated-source-trace.json",
+      "attachment": "Source actual fresh Goal ar-generated remount and recall trace",
+      "sha256": "b31df893f239e9ec891248c541de264095004cc30d685fe1681b9f2cc906e41f",
+      "bytes": 11554,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardFinalComparisons20261105.xcresult"
+    },
+    {
+      "file": "ar-generated-source.png",
+      "attachment": "Source fresh Goal ar-generated remote failure deck",
+      "sha256": "686f3e7f35654f99e69562fcd9766949e5ce16f355d20129bc1697559522c909",
+      "bytes": 1065470,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardFinalComparisons20261105.xcresult"
+    },
+    {
+      "file": "ar-generated-native.png",
+      "attachment": "Native fresh Goal ar-generated remote failure deck",
+      "sha256": "d1c229e5c730c1c7d2e76157d1cef4d88ac077b5762643e7c40b44e45431c5f4",
+      "bytes": 2875807,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardFinalComparisons20261105.xcresult"
+    },
+    {
+      "file": "ar-generated-pair.png",
+      "sha256": "3eae36c95f7ca1146a069ad76a0009e97031fdd5265970aa410c786f9a6409f2",
+      "bytes": 242679,
+      "derived_from": [
+        "ar-generated-source.png",
+        "ar-generated-native.png"
+      ],
+      "scope": "Display pair normalized to sRGB and 402-point width; original PNG bytes/profiles retained separately. Component content, not full product shell."
+    },
+    {
+      "file": "native-fresh-fallback.png",
+      "attachment": "Native fresh Goal fallback after provider and artifact save failure",
+      "sha256": "dbbd0a1f0072d4dd5f2f170fbb1d99fe296a2b56e8eded3d15a35fc9ac99d871",
+      "bytes": 1020978,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardVerified2_20261105.xcresult"
+    },
+    {
+      "file": "native-first-recall-pending.png",
+      "attachment": "Native fresh Goal first recall waits for acknowledgment",
+      "sha256": "0ca3ce9dd2cbe8d4ad16b9c6223c0aedd4dd7d1e7526dfb4694cbc3c7804aefe",
+      "bytes": 537663,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardVerified2_20261105.xcresult"
+    },
+    {
+      "file": "native-offline-private-restore.png",
+      "attachment": "Native private fresh Goal fallback restores offline with pending recall",
+      "sha256": "6836e8a93d4af4af543c3875dd81e8890eb7299152a113a820b1ac5ba508ec5b",
+      "bytes": 1020492,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardVerified2_20261105.xcresult"
+    },
+    {
+      "file": "native-first-recall-acknowledged.png",
+      "attachment": "Native fresh Goal first recall acknowledges after reconnect",
+      "sha256": "2b77232a3e5fca9d821c23a6ef136f9bd370b58a034070f1e4e2f518e33a8a36",
+      "bytes": 1022377,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardVerified2_20261105.xcresult"
+    },
+    {
+      "file": "native-next-lesson.png",
+      "attachment": "Native fresh Goal fallback completes into next lesson",
+      "sha256": "0fd424742054e379b790db91ad547fa22bcc491cc6dadb91e5e322681779eb6c",
+      "bytes": 268539,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardVerified2_20261105.xcresult"
+    },
+    {
+      "file": "native-restored-next-lesson.png",
+      "attachment": "Native fresh Goal completion restores after relaunch",
+      "sha256": "962b8630ae3b55ede1ea694ce52bbd1631762bb5f84b8f88efb7b87c23252a7b",
+      "bytes": 268536,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardVerified2_20261105.xcresult"
+    },
+    {
+      "file": "sdk-offline-winner-true.json",
+      "attachment": "SDK fresh Goal flashcards offline winner-true trace",
+      "sha256": "e7baffe3b16c978466c1b0972893f7eef91dfbf9d0e78dbe842333f4c265ef42",
+      "bytes": 814,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardFinalComparisons20261105.xcresult"
+    },
+    {
+      "file": "sdk-offline-winner-false.json",
+      "attachment": "SDK fresh Goal flashcards offline winner-false trace",
+      "sha256": "a1611e68037f4736cce83159c4bc8e51b6416765d5eafcf46144cebd013cfdf0",
+      "bytes": 815,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardFinalComparisons20261105.xcresult"
+    },
+    {
+      "file": "qa-snapshot-audit.json",
+      "sha256": "83f1da3f2106988886e5c030d6d9651cd057ad784768aa75f7206d760668cb5b",
+      "bytes": 775,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardVerified2_20261105.xcresult",
+      "scope": "Read-only scoped private QA snapshot counts/hash; no keys, names, notes or full profiles exported."
+    },
+    {
+      "file": "live-public-generation.json",
+      "attachment": "Live public Goal flashcard generation configured and Responses English Arabic",
+      "sha256": "1267ccb14141c1192da899f3a1db08653fadc08bd31f6e0df00c6419a9e2acc4",
+      "bytes": 7573,
+      "result_bundle": "/tmp/PiyaliFreshGoalFlashcardLive20261105.xcresult",
+      "scope": "Four real authenticated provider calls for a public Goal: configured Gemini-first path and explicit Responses, English/Arabic cues. No learner progress writes; disposable auth identity cleanup completed."
+    }
+  ],
+  "live_products": [
+    {
+      "file": "DerivedData/Build/Products/Debug-iphonesimulator/Piyali.app/Piyali",
+      "sha256": "ffcbb1c2c1d1f9809fd425ec0c5e7e2690322301427221fc89e400d5ff928c93"
+    },
+    {
+      "file": "DerivedData/Build/Products/Debug-iphonesimulator/Piyali.app/Piyali.debug.dylib",
+      "sha256": "530a9c3d17665b129b39c247cc1fd10b5cdd7742b14df27e249c15b388083fbf"
+    },
+    {
+      "file": "DerivedData/Build/Products/Debug-iphonesimulator/Piyali.app/PlugIns/PiyaliTests.xctest/PiyaliTests",
+      "sha256": "87037c89f477e517a4cce7a7e957c6279d64aa4d1337757b2f6598bbe95aa19c"
+    },
+    {
+      "file": "DerivedData/Build/Products/Debug-iphonesimulator/PiyaliUITests-Runner.app/PlugIns/PiyaliUITests.xctest/PiyaliUITests",
+      "sha256": "68b070b8b7ddbf581d082bff3701e70cb35a033385ab1b86e0b61cdca1c89275"
+    }
+  ]
+}

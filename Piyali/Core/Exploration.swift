@@ -5,6 +5,7 @@ public struct ExplorationMap:Codable,Equatable,Sendable {
     public let name:JSONValue?
     public let world:RPGWorld
     public let portals:[JSONValue]
+    public var worldKey:String?
 }
 public struct ExplorationTemplate:Codable,Equatable,Sendable {
     public let id:String
@@ -17,6 +18,9 @@ public struct ExplorationTemplate:Codable,Equatable,Sendable {
     public var npcs:[JSONValue]
     public var quest:JSONValue
     public var gatherPlacements:[JSONValue]
+    public var tileDefinitions:JSONValue?
+    public var tileSeed:Int?
+    public var npcNameMap:[String:String]?
     public func map(_ id:String) -> ExplorationMap? { maps.first { $0.id == id } }
     public func searchingObjects() throws -> Self {
         var result=self,steps=quest["steps"].array
@@ -98,18 +102,49 @@ public struct ExplorationRun:Codable,Equatable,Identifiable,Sendable {
     public var searched=Set<String>()
     public var searchStarted:String?
     public var dialogue:[String]=[]
+    public var pendingTurnIn:Bool?
     public var feedback=""
     public var tip:String?
     public var objectNotes:[String:JSONValue]?
     public var updatedAt=Date()
-    public init(target:String,support:String,scenario:ExplorationTemplate) throws {
-        self.scenario=try scenario.validated();self.target=target;self.support=support;mapID=scenario.startMapId
-        guard let area=scenario.map(mapID) else { throw ExplorationFailure.invalidScenario };position=area.world.start
+    public var tutorialKey:String?
+    public var legacyHistory:[String]?
+    public private(set) var dialogueVisit:UUID?
+    private var openingLines:JSONValue?
+    public private(set) var choicesResolved:Bool?
+    private var generatedChoices:[JSONValue]?
+    public var chapter:ExplorationChapter?
+    public init(target:String,support:String,scenario:ExplorationTemplate,tutorialKey:String?=nil) throws {
+        self.scenario=try scenario.validated();self.target=target;self.support=support;mapID=scenario.startMapId;self.tutorialKey=tutorialKey
+        guard let area=scenario.map(mapID) else { throw ExplorationFailure.invalidScenario }
+        position=area.world.start
+        if tutorialKey != nil {
+            let npcs=scenario.npcs.filter { $0["mapId"].string == area.id }
+            let occupied=Set((npcs+area.portals).map(ExplorationTemplate.position))
+            let centered=RPGSpatial.centeredStart(world:area.world,occupied:occupied)
+            if area.world.path(from:position,to:centered) != nil { position=centered }
+        }
     }
     public var area:ExplorationMap? { scenario.map(mapID) }
     public var completed:Bool { stepIndex >= scenario.quest["steps"].array.count }
     public var step:JSONValue { scenario.quest["steps"].array.indices.contains(stepIndex) ? scenario.quest["steps"].array[stepIndex] : .null }
-    public var node:JSONValue { step["nodes"].array.first { $0["id"].string == nodeID } ?? step["nodes"].array.first ?? .null }
+    private var authoredNode:JSONValue { step["nodes"].array.first { $0["id"].string == nodeID } ?? step["nodes"].array.first ?? .null }
+    public var node:JSONValue {
+        var result=authoredNode
+        if openingLines?["id"] == result["id"],let openingLines { result=openingLines }
+        if let generatedChoices { result=result.setting("choices",.array(generatedChoices)) }
+        return result
+    }
+    public var nextSpeechLine:String {
+        let next=step["nodes"].array.first { $0["id"] == node["nextNodeId"] }
+        return next?["responseMode"].string == "speech" ? "" : next?["npcLine"].string ?? ""
+    }
+    public mutating func resolveChoices(_ choices:[JSONValue]) {
+        guard talking,mode == "choice",tutorialKey != nil else { return }
+        if choices.count >= 2 { generatedChoices=choices }
+        choicesResolved=true
+        updatedAt=Date()
+    }
     public var npc:JSONValue { let i=ExplorationTemplate.integer(step["npcIdx"]);return !completed && scenario.npcs.indices.contains(i) ? scenario.npcs[i] : .null }
     public var mode:String { node["responseMode"].string }
     public var searchKey:String { scenario.id+":object-search:"+String(stepIndex) }
@@ -119,10 +154,39 @@ public struct ExplorationRun:Codable,Equatable,Identifiable,Sendable {
         let correct=scenario.quest["gatherData"]["correct"].array;return correct.isEmpty ? scenario.quest["gatherData"]["all"].array.first ?? .null : correct[stepIndex % correct.count]
     }
     public func nearby(_ point:RPGPoint) -> Bool { abs(position.x-point.x)+abs(position.y-point.y) <= 1 }
-    private mutating func log(_ text:String) { if !text.isEmpty { dialogue.append(String(text.prefix(1500)));dialogue=Array(dialogue.suffix(24)) };updatedAt=Date() }
+    private mutating func log(_ text:String,speaker:String?=nil) {
+        if !text.isEmpty {
+            let line=String(text.prefix(1500))
+            dialogue=Array((dialogue+[line]).suffix(24))
+            if tutorialKey != nil,let speaker {
+                legacyHistory=Array(((legacyHistory ?? [])+[speaker+": "+line]).suffix(10))
+            }
+        }
+        updatedAt=Date()
+    }
     public mutating func move(dx:Int,dy:Int) -> Bool {
         guard abs(dx)+abs(dy) == 1,let area else { return false };let next=RPGPoint(x:position.x+dx,y:position.y+dy)
-        guard area.world.walkable(next) else { return false };position=next;talking=false;updatedAt=Date();return true
+        guard area.world.walkable(next),!scenario.npcs.contains(where:{ $0["mapId"].string == mapID && Self.npcPosition($0) == next }) else { return false }
+        position=next;talking=false;updatedAt=Date()
+        if let index=area.portals.firstIndex(where:{ ExplorationTemplate.position($0) == next }) { _=enter(index) }
+        if gatherUnlocked { for index in scenario.gatherPlacements.indices where placement(index)["mapId"].string == mapID && ExplorationTemplate.position(placement(index)) == position { _=pickUp(index) } }
+        return true
+    }
+    private static func npcPosition(_ npc:JSONValue)->RPGPoint { ExplorationTemplate.position(npc) }
+    /// Canvas taps follow the source primary-axis/secondary-axis one-step movement.
+    /// Object examination is returned to the presentation layer and never moves the player.
+    public mutating func tap(_ point:RPGPoint)->Int? {
+        guard pendingTurnIn != true,!completed,!talking,let area else { return nil }
+        if let object=area.world.objects.firstIndex(where:{ $0.tx == point.x && $0.ty == point.y }) { return object }
+        if let index=scenario.npcs.firstIndex(where:{ $0["mapId"].string == mapID && Self.npcPosition($0) == point }) {
+            guard index == ExplorationTemplate.integer(step["npcIdx"]) else { return nil }
+            if nearby(point) { _=talk();return nil }
+        }
+        let dx=point.x-position.x,dy=point.y-position.y
+        let horizontal=(dx.signum(),0),vertical=(0,dy.signum())
+        let candidates=abs(dx)>=abs(dy) ? [horizontal,vertical]:[vertical,horizontal]
+        for (x,y) in candidates where x != 0 || y != 0 { if move(dx:x,dy:y) { break } }
+        return nil
     }
     public mutating func approach(_ point:RPGPoint) -> Bool {
         guard let path=area?.world.path(from:position,to:point),let end=path.last else { return false };position=end;talking=false;updatedAt=Date();return true
@@ -134,23 +198,61 @@ public struct ExplorationRun:Codable,Equatable,Identifiable,Sendable {
     }
     public mutating func talk() -> Bool {
         guard !completed,npc["mapId"].string == mapID,nearby(ExplorationTemplate.position(npc)) else { return false }
-        talking=true;if mode == "objectSearch" { searchStarted=searchKey };log(node["npcLine"].string);return true
+        talking=true
+        feedback=""
+        tip=nil
+        if tutorialKey != nil {
+            dialogueVisit=UUID()
+            openingLines=nil
+            generatedChoices=nil
+            choicesResolved=nil
+            var opening=authoredNode
+            if chapter?.bridgeUsed == false,!opening["playerLine"].string.isEmpty,let line=chapter?.bridge {
+                opening=opening.setting("playerLine",.string(line))
+                chapter?.bridgeUsed=true
+            }
+            if chapter?.greetingUsed == false,let line=chapter?.greeting {
+                opening=opening.setting("npcLine",.string(line))
+                chapter?.greetingUsed=true
+            }
+            openingLines=opening
+        }
+        if mode == "objectSearch" { searchStarted=searchKey }
+        log(node["npcLine"].string,speaker:npc["name"].string)
+        return true
     }
     private mutating func next(_ id:String) {
-        if step["nodes"].array.contains(where:{ $0["id"].string == id }) { nodeID=id;if mode == "objectSearch" { searchStarted=searchKey } }
-        else { finishStep() };updatedAt=Date()
+        if step["nodes"].array.contains(where:{ $0["id"].string == id }) {
+            nodeID=id
+            generatedChoices=nil
+            choicesResolved=nil
+            openingLines=nil
+            if mode == "objectSearch" { searchStarted=searchKey }
+        } else { finishStep() }
+        updatedAt=Date()
     }
     public mutating func finishStep() {
-        guard talking,!completed else { return };stepIndex += 1;nodeID=nil;talking=false;searchStarted=nil;feedback="";updatedAt=Date()
+        guard (talking || pendingTurnIn == true),!completed else { return }
+        let finishedSearch=mode == "objectSearch" ? searchKey:nil
+        if let finishedSearch { inventory.removeAll { $0.stepKey == finishedSearch };searched=searched.filter { !$0.hasPrefix(finishedSearch+":") } }
+        pendingTurnIn=nil;stepIndex += 1;nodeID=nil;talking=false;searchStarted=nil;feedback="";updatedAt=Date()
+        openingLines=nil;generatedChoices=nil;choicesResolved=nil
+        if tutorialKey != nil { chapter=completed ? nil : ExplorationChapter() }
     }
     public mutating func choose(_ index:Int) -> Bool {
         guard talking,mode == "choice",node["choices"].array.indices.contains(index) else { return false };let choice=node["choices"].array[index]
-        log(choice["text"].string);log(choice["npcReply"].string);feedback=choice["npcReply"].string;next(choice["nextNodeId"].string);return true
+        log(choice["text"].string,speaker:"Player")
+        log(choice["npcReply"].string,speaker:npc["name"].string)
+        let sceneLine=choice["sceneLine"].string
+        feedback=sceneLine.isEmpty ? choice["npcReply"].string : "*"+sceneLine+"* "+choice["npcReply"].string
+        next(choice["nextNodeId"].string);appendNextInstruction();return true
     }
     public mutating func speak(_ answer:String,reply:String) -> Bool {
         guard talking,mode == "speech",!answer.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else { return false }
-        log(answer);log(reply);feedback=reply;next(node["nextNodeId"].string);return true
+        log(answer,speaker:"Player");log(reply,speaker:npc["name"].string)
+        feedback=reply;next(node["nextNodeId"].string);appendNextInstruction();return true
     }
+    private mutating func appendNextInstruction(){if talking,mode != "speech",!feedback.isEmpty,!node["npcLine"].string.isEmpty{feedback += "\n\n"+node["npcLine"].string}}
     public mutating func continueDialogue() -> Bool {
         guard talking,mode == "none" else { return false };if node["terminal"].boolean { finishStep() } else { next(node["nextNodeId"].string) };return true
     }
@@ -196,17 +298,29 @@ public struct ExplorationRun:Codable,Equatable,Identifiable,Sendable {
             drops[item.id]=item.item.setting("mapId",.string(mapID)).setting("tx",.number(Double(point.x))).setting("ty",.number(Double(point.y)))
         } else { searched.remove(item.id) };updatedAt=Date();return true
     }
-    public mutating func handIn(_ index:Int) -> Bool {
-        guard talking,["gather","objectSearch"].contains(mode),inventory.indices.contains(index) else { return false };let item=inventory[index]
+    public mutating func completeTurnIn(){guard pendingTurnIn == true else{return};finishStep()}
+    public mutating func handIn(_ index:Int,successReply:String?=nil) -> Bool {
+        guard pendingTurnIn != true,talking,["gather","objectSearch"].contains(mode),inventory.indices.contains(index) else { return false };let item=inventory[index]
         let valid=item.item["isCorrect"].boolean && (mode == "objectSearch" ? item.stepKey == searchKey : item.item["name"] == node["gatherItem"]["name"])
         guard valid else { feedback=node["gatherWrongItemTemplate"].string.replacingOccurrences(of:"{{wrongItem}}",with:item.item["name"].string).replacingOccurrences(of:"{{correctItem}}",with:node["gatherItem"]["name"].string);if item.source == "gather" { _=drop(index) };return false }
         inventory.remove(at:index)
-        if mode == "objectSearch" { finishStep() } else { next(node["nextNodeId"].string) };return true
+        if mode == "objectSearch" {if let successReply{feedback=successReply;pendingTurnIn=true;updatedAt=Date()}else{finishStep()}} else { feedback="";next(node["nextNodeId"].string) };return true
     }
 }
+public struct ExplorationChapter:Codable,Equatable,Sendable {
+    public var bridge:String?
+    public var greeting:String?
+    public var bridgeReady=false
+    public var bridgeUsed=false
+    public var greetingUsed=false
+    public var ready=false
+}
+
 public extension LearnerState {
+    func tutorialExplorationKey(_ lesson:Lesson)->String { "tutorial:\(target):\(support):\(level):\(lesson.id)" }
     mutating func saveExploration(_ run:ExplorationRun) {
-        if explorationRuns == nil { explorationRuns=[:] };explorationRuns?[run.target]=run
-        for key in (explorationRuns ?? [:]).sorted(by:{ $0.value.updatedAt > $1.value.updatedAt }).dropFirst(2).map(\.key) { explorationRuns?.removeValue(forKey:key) }
+        if explorationRuns == nil { explorationRuns=[:] };explorationRuns?[run.tutorialKey ?? run.target]=run
+        let retained=(explorationRuns ?? [:]).filter { ($0.value.tutorialKey != nil) == (run.tutorialKey != nil) }
+        for key in retained.sorted(by:{ $0.value.updatedAt > $1.value.updatedAt }).dropFirst(2).map(\.key) { explorationRuns?.removeValue(forKey:key) }
     }
 }

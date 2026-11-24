@@ -1,0 +1,466 @@
+import NostrSDK
+import XCTest
+
+@MainActor final class ConversationPlayTests:XCTestCase {
+    private func tap(_ id:String,_ app:XCUIApplication) { let button=app.buttons[id];XCTAssertTrue(button.waitForExistence(timeout:15));XCTAssertTrue(button.isHittable);button.tap() }
+    private func open(_ app:XCUIApplication) { tap("productMenu",app);tap("productModeMenu",app);tap("productMode-conversation",app);XCTAssertTrue(app.staticTexts["conversationGoal"].waitForExistence(timeout:15)) }
+    private func start(theme:String="light",partial:Bool=false,translationStream:Bool=false,liveTranslation:Bool=false,alignment:Bool=false,translationsHidden:Bool=false,replay:Bool=false,key:Keypair?=nil,viewport:Bool=false)->XCUIApplication {
+        continueAfterFailure=false
+        let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString;app.launchEnvironment["PIYALI_CONVERSATION_FIXTURE"]="1";if replay {app.launchEnvironment["PIYALI_CONVERSATION_REPLAY_FIXTURE"]="1"};if alignment {app.launchEnvironment["PIYALI_CONVERSATION_ALIGNMENT_FIXTURE"]="1"};if translationsHidden {app.launchEnvironment["PIYALI_CONVERSATION_TRANSLATIONS_HIDDEN_FIXTURE"]="1"};if partial {app.launchEnvironment["PIYALI_CONVERSATION_PARTIAL_FIXTURE"]="1"};if translationStream || liveTranslation {app.launchEnvironment["PIYALI_CONVERSATION_TRANSLATION_STREAM_FIXTURE"]="1"};if liveTranslation {app.launchEnvironment["PIYALI_CONVERSATION_LIVE_TRANSLATION_FIXTURE"]="1"}
+        if viewport { app.launchEnvironment["PIYALI_CONVERSATION_VIEWPORT_FIXTURE"]="1" }
+        app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US","-piyali.interfaceLanguage","en","-piyali.theme",theme];app.launch();handleInitialPaperPencil(app)
+        if let key {
+            tap("entrySignIn",app)
+            let secret=app.secureTextFields["entrySecret"]
+            XCTAssertTrue(secret.waitForExistence(timeout:10))
+            secret.tap()
+            secret.typeText(key.privateKey.nsec)
+            tap("entryKeyboardDone",app)
+            tap("entrySubmitSignIn",app)
+        } else {
+            let name=app.textFields["entryName"];XCTAssertTrue(name.waitForExistence(timeout:15));name.tap();name.typeText("Conversation Learner");if app.buttons["entryKeyboardDone"].exists { app.buttons["entryKeyboardDone"].tap() };tap("createAccount",app)
+        }
+        handleInitialPaperPencil(app);tap("startLearning",app)
+        if key != nil {finishAccountSetup(app)}
+        open(app);return app
+    }
+    private func finishAccountSetup(_ app:XCUIApplication) {
+        let welcome=app.buttons["companionContinue"]
+        XCTAssertTrue(welcome.waitForExistence(timeout:10))
+        for _ in 0..<5 where !welcome.isHittable {app.swipeUp(velocity:.slow)}
+        tap("companionContinue",app)
+        acknowledgePaperPencil(app)
+        tap("gettingStartedGotIt",app)
+        tap("placementNew",app)
+        XCTAssertTrue(app.staticTexts["todayFocusTitle"].waitForExistence(timeout:15))
+        XCTAssertFalse(welcome.exists)
+    }
+    private func photo(_ name:String,_ app:XCUIApplication) { let capture=XCTAttachment(screenshot:app.screenshot());capture.name=name;capture.lifetime = .keepAlways;add(capture) }
+    private func changePracticeLanguage(_ code:String,label:String,_ app:XCUIApplication) {
+        tap("productMenu",app);tap("productPanel-settings",app)
+        let target=app.buttons["practiceLanguagePicker"]
+        for _ in 0..<5 where !target.isHittable {app.swipeUp(velocity:.slow)}
+        tap("practiceLanguagePicker",app);tap("settingsLanguage-practice-"+code,app)
+        XCTAssertTrue(target.label.contains(label))
+        tap("productPanelClose",app)
+        XCTAssertTrue(app.staticTexts["todayFocusTitle"].waitForExistence(timeout:15))
+    }
+    func testReselectingConversationKeepsTheLiveCallUntilChoosingAnotherMode() {
+        let app=start()
+        tap("conversationStart",app)
+        let end=app.buttons["conversationEnd"],mute=app.buttons["conversationMute"],reply=app.staticTexts["conversationLatestReply"]
+        XCTAssertTrue(end.waitForExistence(timeout:15))
+        XCTAssertTrue(reply.waitForExistence(timeout:15))
+        let words=reply.label
+        tap("conversationMute",app)
+        XCTAssertEqual(mute.label,"Unmute microphone")
+
+        tap("productMenu",app);tap("productModeMenu",app);tap("productMode-conversation",app)
+        XCTAssertTrue(end.waitForExistence(timeout:8))
+        XCTAssertEqual(mute.label,"Unmute microphone")
+        XCTAssertEqual(reply.label,words)
+        XCTAssertFalse(app.buttons["conversationStart"].exists)
+        photo("Native Conversation remains active after selecting its current mode",app)
+
+        tap("productMenu",app);tap("productModeMenu",app);tap("productMode-focus",app)
+        XCTAssertTrue(app.staticTexts["todayFocusTitle"].waitForExistence(timeout:15))
+        open(app)
+        XCTAssertTrue(app.buttons["conversationStart"].waitForExistence(timeout:10))
+        XCTAssertFalse(end.exists)
+    }
+    func testLightVoiceViewportTracksTheCall() { voiceViewportJourney(theme:"light") }
+    func testDarkVoiceViewportTracksTheCall() { voiceViewportJourney(theme:"dark") }
+    private func voiceViewportJourney(theme:String) {
+        let app=start(theme:theme,viewport:true)
+        let status=app.staticTexts["conversationVoiceStatus"]
+        func waitForStatus(_ value:String) {
+            let expected=XCTNSPredicateExpectation(predicate:NSPredicate(format:"label ==[c] %@",value),object:status)
+            XCTAssertEqual(XCTWaiter.wait(for:[expected],timeout:16),.completed,value)
+        }
+        func capture(_ state:String,settling:TimeInterval=0.90) {
+            let rendered=expectation(description:"Viewport transition settles")
+            DispatchQueue.main.asyncAfter(deadline:.now()+settling) { rendered.fulfill() }
+            wait(for:[rendered],timeout:settling+2)
+            photo("Native voice \(theme) \(state)",app)
+        }
+        tap("conversationStart",app)
+        waitForStatus("Listening")
+        capture("listening")
+        tap("conversationMute",app)
+        waitForStatus("Muted")
+        capture("muted")
+        tap("conversationMute",app)
+        waitForStatus("Speaking")
+        capture("speaking",settling:1.55)
+        waitForStatus("Listening")
+        tap("conversationPause",app)
+        waitForStatus("Paused")
+        capture("paused")
+        tap("conversationPause",app)
+        waitForStatus("Listening")
+        tap("conversationEnd",app)
+        XCTAssertTrue(app.buttons["conversationSummaryDone"].waitForExistence(timeout:12))
+    }
+    func testRecordedReplyReplaysFromTheConversationHistoryAndAfterRelaunch() {
+        let app=start(replay:true)
+        XCTAssertFalse(app.buttons["conversationReplay"].exists)
+        tap("conversationStart",app)
+        let reply=app.staticTexts["conversationLatestReply"]
+        expectation(for:NSPredicate(format:"label CONTAINS %@","¡Hola, Ana!"),evaluatedWith:reply)
+        waitForExpectations(timeout:18)
+
+        let latest=app.buttons["conversationReplay"]
+        XCTAssertTrue(latest.waitForExistence(timeout:8))
+        latest.tap()
+        XCTAssertFalse(latest.isEnabled)
+        photo("Conversation original clip playing in the live reply",app)
+        tap("conversationHistory",app)
+        let clips=app.buttons.matching(NSPredicate(format:"identifier BEGINSWITH %@","conversationHistoryReplay-"))
+        let older=clips.element(boundBy:1)
+        XCTAssertTrue(older.waitForExistence(timeout:8),app.debugDescription)
+        older.tap()
+        XCTAssertFalse(older.isEnabled)
+        photo("Conversation older saved clip playing from history",app)
+        tap("conversationHistoryClose",app)
+
+        app.terminate()
+        app.launchEnvironment.removeValue(forKey:"PIYALI_CONVERSATION_REPLAY_FIXTURE")
+        app.launch()
+        handleInitialPaperPencil(app)
+        open(app)
+        XCTAssertTrue(latest.waitForExistence(timeout:8))
+        XCTAssertEqual(reply.label,"¡Hola, Ana! ¿Qué te gusta hacer?")
+        XCTAssertTrue(app.buttons["conversationStart"].isEnabled)
+        latest.tap()
+        XCTAssertFalse(latest.isEnabled)
+        let xp=app.descendants(matching:.any).matching(identifier:"dailyXPStatus").firstMatch
+        XCTAssertTrue(xp.waitForExistence(timeout:5))
+        XCTAssertEqual(xp.value as? String,"5%")
+    }
+    func testSavedAlignedReplyCanBeSelectedAndRestored() {
+        let app=start(alignment:true);tap("conversationStart",app)
+        let reply=app.staticTexts["conversationLatestReply"];expectation(for:NSPredicate(format:"label CONTAINS %@","¡Hola, Ana!"),evaluatedWith:reply);waitForExpectations(timeout:18)
+        XCTAssertTrue(app.staticTexts["conversationTranslation"].waitForExistence(timeout:5))
+        let phrase=app.links.matching(NSPredicate(format:"label CONTAINS %@","Hola, Ana")).firstMatch
+        XCTAssertTrue(phrase.waitForExistence(timeout:5),app.debugDescription);phrase.tap();XCTAssertTrue(reply.isSelected,app.debugDescription);photo("Native selected Conversation phrase",app)
+        phrase.tap();XCTAssertFalse(reply.isSelected)
+        tap("conversationEnd",app);tap("conversationSummaryDone",app);app.terminate();app.launch();handleInitialPaperPencil(app);open(app)
+        XCTAssertEqual(app.staticTexts["conversationTranslation"].label,"Hello, Ana! What do you like doing?")
+        XCTAssertTrue(app.links.matching(NSPredicate(format:"label CONTAINS %@","Hola, Ana")).firstMatch.waitForExistence(timeout:5))
+    }
+    func testArchivedPhraseSelectionClearsWhenReplacementTranslationStarts() {
+        let app=start(translationStream:true,alignment:true)
+        tap("conversationStart",app)
+        let live=app.staticTexts["conversationLatestReply"]
+        let replyArrived=XCTNSPredicateExpectation(predicate:NSPredicate(format:"label CONTAINS %@","¡Hola, Ana!"),object:live)
+        XCTAssertEqual(XCTWaiter.wait(for:[replyArrived],timeout:18),.completed)
+        tap("conversationEnd",app)
+        tap("conversationSummaryDone",app)
+        tap("conversationHistory",app)
+
+        let primary=app.staticTexts.matching(NSPredicate(format:"identifier BEGINSWITH %@ AND label CONTAINS %@","conversationHistoryReply-","¡Hola, Ana!")).firstMatch
+        let translation=app.staticTexts.matching(NSPredicate(format:"identifier BEGINSWITH %@","conversationHistoryTranslation-")).firstMatch
+        let spanish=app.links.matching(NSPredicate(format:"label == %@","Hola, Ana")).firstMatch
+        let english=app.links.matching(NSPredicate(format:"label == %@","Hello, Ana")).firstMatch
+        XCTAssertTrue(primary.waitForExistence(timeout:5))
+        XCTAssertTrue(spanish.waitForExistence(timeout:5))
+        XCTAssertTrue(english.isHittable)
+        spanish.tap()
+        XCTAssertTrue(primary.isSelected)
+        XCTAssertTrue(translation.isSelected)
+        photo("Native selected aligned phrase in Conversation history",app)
+        english.tap()
+        XCTAssertFalse(primary.isSelected)
+        XCTAssertFalse(translation.isSelected)
+        english.tap()
+        XCTAssertTrue(primary.isSelected)
+
+        let translate=app.buttons.matching(NSPredicate(format:"identifier BEGINSWITH %@","conversationHistoryTranslate-")).firstMatch
+        XCTAssertTrue(translate.isHittable)
+        translate.tap()
+        let partial=XCTNSPredicateExpectation(predicate:NSPredicate(format:"label == %@","Hello,"),object:translation)
+        XCTAssertEqual(XCTWaiter.wait(for:[partial],timeout:5),.completed)
+        XCTAssertFalse(spanish.exists)
+        XCTAssertFalse(english.exists)
+        XCTAssertFalse(primary.isSelected)
+        XCTAssertFalse(translation.isSelected)
+        XCTAssertFalse(translate.isEnabled)
+        photo("Native Conversation history replacement translation in progress",app)
+
+        let complete=XCTNSPredicateExpectation(predicate:NSPredicate(format:"label == %@","Hello, Ana! What do you like doing?"),object:translation)
+        XCTAssertEqual(XCTWaiter.wait(for:[complete],timeout:12),.completed)
+        XCTAssertFalse(spanish.exists)
+        XCTAssertFalse(primary.isSelected)
+        tap("conversationHistoryClose",app)
+        app.terminate();app.launch();open(app)
+        tap("conversationHistory",app)
+        XCTAssertTrue(primary.waitForExistence(timeout:8))
+        XCTAssertEqual(translation.label,"Hello, Ana! What do you like doing?")
+        XCTAssertFalse(spanish.exists)
+        XCTAssertFalse(primary.isSelected)
+        tap("conversationHistoryClose",app)
+        let xp=app.descendants(matching:.any).matching(identifier:"dailyXPStatus").firstMatch
+        XCTAssertEqual(xp.value as? String,"5%")
+    }
+    func testHistoryNewestFirstAndSavedTranslationPreferenceOffAfterRelaunch() {
+        let app=start(alignment:true,translationsHidden:true);tap("conversationStart",app)
+        let reply=app.staticTexts["conversationLatestReply"];expectation(for:NSPredicate(format:"label CONTAINS %@","¡Hola, Ana!"),evaluatedWith:reply);waitForExpectations(timeout:18)
+        XCTAssertFalse(app.staticTexts["conversationTranslation"].exists);XCTAssertFalse(app.buttons["conversationTranslate"].exists)
+        tap("conversationEnd",app);tap("conversationSummaryDone",app);tap("conversationHistory",app)
+        let newest=app.staticTexts.matching(NSPredicate(format:"label CONTAINS %@","¡Hola, Ana!")).firstMatch,older=app.staticTexts["wrong topic"]
+        XCTAssertTrue(newest.waitForExistence(timeout:5));XCTAssertTrue(older.waitForExistence(timeout:5));XCTAssertLessThan(newest.frame.minY,older.frame.minY)
+        XCTAssertFalse(app.staticTexts.matching(NSPredicate(format:"identifier BEGINSWITH %@","conversationHistoryTranslation-")).firstMatch.exists)
+        XCTAssertFalse(app.buttons.matching(NSPredicate(format:"identifier BEGINSWITH %@","conversationHistoryTranslate-")).firstMatch.exists);photo("Native Conversation history newest first with translations hidden",app)
+        tap("conversationHistoryClose",app);app.terminate();app.launch();handleInitialPaperPencil(app);open(app)
+        XCTAssertTrue(app.staticTexts["conversationLatestReply"].waitForExistence(timeout:8));XCTAssertFalse(app.staticTexts["conversationTranslation"].exists);XCTAssertFalse(app.buttons["conversationTranslate"].exists)
+        tap("conversationHistory",app);XCTAssertFalse(app.staticTexts.matching(NSPredicate(format:"identifier BEGINSWITH %@","conversationHistoryTranslation-")).firstMatch.exists)
+        XCTAssertFalse(app.buttons.matching(NSPredicate(format:"identifier BEGINSWITH %@","conversationHistoryTranslate-")).firstMatch.exists)
+    }
+    func testNewLiveReplyArchivesPreviousIntoHistory() {
+        let app=start();tap("conversationStart",app)
+        let reply=app.staticTexts["conversationLatestReply"],history=app.buttons["conversationHistory"]
+        expectation(for:NSPredicate(format:"label CONTAINS %@","Intenta saludar"),evaluatedWith:reply);waitForExpectations(timeout:15)
+        XCTAssertNotEqual(history.value as? String,"Archiving")
+        expectation(for:NSPredicate(format:"value == %@","Archiving"),evaluatedWith:history);waitForExpectations(timeout:12);photo("Native Conversation archive transition",app)
+        expectation(for:NSPredicate(format:"label CONTAINS %@","¡Hola, Ana!"),evaluatedWith:reply);waitForExpectations(timeout:8)
+        expectation(for:NSPredicate(format:"value != %@","Archiving"),evaluatedWith:history);waitForExpectations(timeout:8)
+        tap("conversationEnd",app);tap("conversationSummaryDone",app);tap("conversationHistory",app)
+        XCTAssertTrue(app.staticTexts["Intenta saludar y decir tu nombre."].waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts.matching(NSPredicate(format:"label CONTAINS %@","¡Hola, Ana!")).firstMatch.exists)
+    }
+    func testLiveReplyTranslationSurvivesGrowingReplyAndPrivateRelaunch() {
+        let app=start(liveTranslation:true);tap("conversationStart",app)
+        let reply=app.staticTexts["conversationLatestReply"];expectation(for:NSPredicate(format:"label == %@","Vamos a practicar"),evaluatedWith:reply);waitForExpectations(timeout:15)
+        tap("conversationTranslate",app);let translation=app.staticTexts["conversationTranslation"];XCTAssertTrue(translation.waitForExistence(timeout:5));XCTAssertEqual(translation.label,"Try gr");photo("Native translation of an arriving Conversation reply",app)
+        expectation(for:NSPredicate(format:"label == %@","Vamos a practicar juntos."),evaluatedWith:reply);waitForExpectations(timeout:15)
+        XCTAssertNotEqual(app.buttons["conversationHistory"].value as? String,"Archiving")
+        XCTAssertEqual(translation.label,"Try gr");XCTAssertFalse(app.buttons["conversationTranslate"].isEnabled)
+        expectation(for:NSPredicate(format:"label == %@","Try greeting and saying your name."),evaluatedWith:translation);waitForExpectations(timeout:20)
+        tap("conversationEnd",app);XCTAssertTrue(app.staticTexts["conversationSummaryXP"].waitForExistence(timeout:8));XCTAssertTrue(app.staticTexts["conversationSummaryXP"].label.contains("+0"));tap("conversationSummaryDone",app)
+        app.terminate();app.launch();handleInitialPaperPencil(app);open(app);XCTAssertEqual(app.staticTexts["conversationLatestReply"].label,"Vamos a practicar juntos.");XCTAssertEqual(app.staticTexts["conversationTranslation"].label,"Try greeting and saying your name.")
+    }
+    func testEndingDuringLiveTranslationPreservesTheInterruptedMessage() {
+        let app=start(liveTranslation:true);tap("conversationStart",app)
+        let reply=app.staticTexts["conversationLatestReply"];expectation(for:NSPredicate(format:"label == %@","Vamos a practicar"),evaluatedWith:reply);waitForExpectations(timeout:15)
+        tap("conversationTranslate",app);XCTAssertTrue(app.staticTexts["conversationTranslation"].waitForExistence(timeout:5));XCTAssertEqual(reply.label,"Vamos a practicar");tap("conversationEnd",app)
+        XCTAssertTrue(app.staticTexts["conversationSummaryXP"].waitForExistence(timeout:8));XCTAssertTrue(app.staticTexts["conversationSummaryXP"].label.contains("+0"));tap("conversationSummaryDone",app)
+        let translation=app.staticTexts["conversationTranslation"];expectation(for:NSPredicate(format:"label == %@","Try greeting and saying your name."),evaluatedWith:translation);waitForExpectations(timeout:20)
+        XCTAssertEqual(reply.label,"Vamos a practicar");app.terminate();app.launch();handleInitialPaperPencil(app);open(app)
+        XCTAssertEqual(app.staticTexts["conversationLatestReply"].label,"Vamos a practicar");XCTAssertEqual(app.staticTexts["conversationTranslation"].label,"Try greeting and saying your name.")
+    }
+    func testConversationTranslationStreamsAndSurvivesPrivateRelaunch() {
+        let app=start(translationStream:true);tap("conversationStart",app)
+        let reply=app.staticTexts["conversationLatestReply"];expectation(for:NSPredicate(format:"label CONTAINS %@","¡Hola, Ana!"),evaluatedWith:reply);waitForExpectations(timeout:18)
+        tap("conversationTranslate",app);let translation=app.staticTexts["conversationTranslation"]
+        XCTAssertTrue(translation.waitForExistence(timeout:4));XCTAssertEqual(translation.label,"Hello,");XCTAssertFalse(app.buttons["conversationTranslate"].isEnabled);photo("Native Conversation streaming translation",app)
+        expectation(for:NSPredicate(format:"label CONTAINS %@","What do you like doing?"),evaluatedWith:translation);waitForExpectations(timeout:12)
+        XCTAssertTrue(app.buttons["conversationTranslate"].exists);tap("conversationEnd",app);XCTAssertTrue(app.staticTexts["conversationSummaryXP"].waitForExistence(timeout:8));tap("conversationSummaryDone",app)
+        app.terminate();app.launch();handleInitialPaperPencil(app);open(app);XCTAssertTrue(app.staticTexts["conversationTranslation"].waitForExistence(timeout:8));XCTAssertTrue(app.staticTexts["conversationTranslation"].label.contains("Hello, Ana!"))
+    }
+    func testPausedPartialReplyContinuesAndRemainsInPrivateHistoryWithoutExtraXP() {
+        let app=start(partial:true);tap("conversationStart",app)
+        let reply=app.staticTexts["conversationLatestReply"];expectation(for:NSPredicate(format:"label == %@","Vamos a practicar"),evaluatedWith:reply);waitForExpectations(timeout:15)
+        tap("conversationPause",app);XCTAssertEqual(app.staticTexts["conversationVoiceStatus"].label,"Paused");XCTAssertEqual(reply.label,"Vamos a practicar");photo("Native interrupted Conversation reply",app)
+        XCTAssertFalse(app.staticTexts["conversationFeedback"].exists);tap("conversationPause",app)
+        expectation(for:NSPredicate(format:"label == %@","Vamos a practicar juntos."),evaluatedWith:reply);waitForExpectations(timeout:15)
+        XCTAssertTrue(app.staticTexts["conversationFeedback"].waitForExistence(timeout:10))
+        tap("conversationEnd",app);XCTAssertTrue(app.staticTexts["conversationSummaryXP"].waitForExistence(timeout:8));XCTAssertTrue(app.staticTexts["conversationSummaryXP"].label.contains("+0"));tap("conversationSummaryDone",app)
+        tap("conversationHistory",app);XCTAssertTrue(app.staticTexts["Vamos a practicar"].exists);XCTAssertTrue(app.staticTexts["Vamos a practicar juntos."].exists)
+        tap("conversationHistoryClose",app);app.terminate();app.launch();handleInitialPaperPencil(app);open(app);tap("conversationHistory",app)
+        XCTAssertTrue(app.staticTexts["Vamos a practicar"].exists);XCTAssertTrue(app.staticTexts["Vamos a practicar juntos."].exists)
+    }
+    func testVoiceFirstScreenHelpMutePauseResumeSummaryLogAndRelaunch() {
+        let app=start()
+        XCTAssertFalse(app.textFields["conversationReply"].exists);XCTAssertFalse(app.buttons["conversationSend"].exists);XCTAssertFalse(app.staticTexts["conversationLatestReply"].exists);XCTAssertFalse(app.buttons["conversationHistory"].isEnabled)
+        photo("Native conversation initial light",app)
+        tap("conversationStarter",app);XCTAssertTrue(app.staticTexts["conversationStarterPhrase"].waitForExistence(timeout:5))
+        XCTAssertTrue(app.staticTexts["conversationStarterSupport"].exists)
+        let starter=app.buttons["conversationStarterReplay"];tap("conversationStarterReplay",app)
+        expectation(for:NSPredicate(format:"isSelected == true"),evaluatedWith:starter);waitForExpectations(timeout:5)
+        photo("Native Conversation starter playback",app)
+        expectation(for:NSPredicate(format:"isSelected == false"),evaluatedWith:starter);waitForExpectations(timeout:6)
+        XCTAssertFalse(app.staticTexts["conversationError"].exists)
+        tap("conversationStarter",app);XCTAssertFalse(app.staticTexts["conversationStarterPhrase"].exists)
+        tap("conversationStart",app);XCTAssertTrue(app.staticTexts["conversationFeedback"].waitForExistence(timeout:10))
+        tap("conversationMute",app);tap("conversationPause",app);XCTAssertEqual(app.staticTexts["conversationVoiceStatus"].label,"Paused")
+        photo("Native conversation paused controls",app)
+        tap("conversationPause",app);XCTAssertTrue(app.buttons["conversationMute"].waitForExistence(timeout:5));XCTAssertEqual(app.staticTexts["conversationVoiceStatus"].label,"Muted")
+        tap("conversationMute",app)
+        let reply=app.staticTexts["conversationLatestReply"];let replied=NSPredicate(format:"label CONTAINS %@","¡Hola, Ana!");expectation(for:replied,evaluatedWith:reply);waitForExpectations(timeout:12)
+        photo("Native conversation live reply",app)
+        tap("conversationEnd",app);XCTAssertTrue(app.staticTexts["conversationSummaryXP"].waitForExistence(timeout:10));XCTAssertTrue(app.staticTexts["conversationSummaryXP"].label.contains("+5"));XCTAssertTrue(app.staticTexts["conversationSummaryGoals"].label.contains("1"));XCTAssertTrue(app.staticTexts["conversationSummaryTurns"].label.contains("2"))
+        XCTAssertLessThan(app.buttons["conversationSummaryDone"].frame.maxY,app.frame.maxY-100);XCTAssertGreaterThan(app.staticTexts["conversationSummaryXP"].frame.minY,100);if app.buttons["conversationStart"].exists {XCTAssertFalse(app.buttons["conversationStart"].isHittable)}
+        photo("Native conversation complete summary",app)
+        app.coordinate(withNormalizedOffset:CGVector(dx:0.5,dy:0.08)).tap();XCTAssertTrue(app.buttons["conversationStart"].waitForExistence(timeout:5))
+        tap("conversationStart",app);tap("conversationEnd",app);XCTAssertTrue(app.staticTexts["conversationSummaryXP"].waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts["conversationSummaryXP"].label.contains("+0"));tap("conversationSummaryDone",app)
+        tap("conversationHistory",app);XCTAssertTrue(app.staticTexts["wrong topic"].waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts["Hola, me llamo Ana."].exists);photo("Native conversation private history",app)
+        app.staticTexts["conversationHistoryTitle"].press(forDuration:1);tap("conversationSave",app);tap("conversationHistoryClose",app)
+        app.terminate();app.launch();handleInitialPaperPencil(app);open(app);XCTAssertTrue(app.buttons["conversationStart"].exists);XCTAssertEqual(app.staticTexts["conversationLatestReply"].label,"¡Hola, Ana! ¿Qué te gusta hacer?")
+        let xp=app.descendants(matching:.any).matching(identifier:"dailyXPStatus").firstMatch;XCTAssertTrue(xp.waitForExistence(timeout:5));XCTAssertEqual(xp.value as? String,"5%")
+    }
+    func testSourceSettingsPersistAcrossPracticeLanguagesAndDarkRelaunch() {
+        let app=start();tap("conversationSettings",app)
+        XCTAssertTrue(app.staticTexts["Proficiency Level"].exists);XCTAssertTrue(app.staticTexts["Pronunciation Practice"].exists);XCTAssertTrue(app.staticTexts["Custom Topics"].exists)
+        tap("conversationLevel",app);let elementary=app.buttons.matching(NSPredicate(format:"label BEGINSWITH %@","A2 ·")).firstMatch;XCTAssertTrue(elementary.waitForExistence(timeout:5));elementary.tap()
+        let toggle=app.switches["conversationPronunciation"];XCTAssertTrue(toggle.exists);toggle.tap()
+        let topics=app.textViews["conversationTopics"].exists ? app.textViews["conversationTopics"] : app.textFields["conversationTopics"];topics.tap();topics.typeText("Travel at the cafe");tap("conversationSettingsDismiss",app)
+        XCTAssertTrue(app.staticTexts["conversationGoal"].waitForExistence(timeout:10));XCTAssertFalse(app.staticTexts["conversationVoiceStatus"].exists)
+        changePracticeLanguage("fr",label:"French",app)
+        open(app)
+        tap("conversationSettings",app)
+        XCTAssertTrue(app.buttons["conversationLevel"].label.contains("A2"))
+        XCTAssertEqual(app.switches["conversationPronunciation"].value as? String,"1")
+        XCTAssertEqual(topics.value as? String,"Travel at the cafe")
+        XCTAssertTrue(app.buttons["conversationSettingsClose"].isHittable)
+        XCTAssertTrue(app.buttons["conversationSettingsSave"].isHittable)
+        XCTAssertFalse(app.buttons["conversationStart"].isHittable)
+        photo("Native Conversation drawer after French target switch",app)
+        tap("conversationSettingsSave",app)
+        app.terminate();var args=app.launchArguments;if let index=args.firstIndex(of:"-piyali.theme") { args[index+1]="dark" };app.launchArguments=args;app.launch();handleInitialPaperPencil(app);open(app);XCTAssertEqual(app.otherElements["conversationOrb"].value as? String,"Blue animated sphere");photo("Native conversation initial dark",app);tap("conversationSettings",app)
+        XCTAssertTrue(app.buttons["conversationLevel"].label.contains("A2"));XCTAssertEqual(app.switches["conversationPronunciation"].value as? String,"1");let saved=app.textViews["conversationTopics"].exists ? app.textViews["conversationTopics"] : app.textFields["conversationTopics"];XCTAssertEqual(saved.value as? String,"Travel at the cafe");photo("Native conversation source settings dark",app)
+        tap("conversationSettingsClose",app)
+        XCTAssertTrue(app.buttons["conversationStart"].waitForExistence(timeout:10))
+    }
+    private func switchAccount(_ key:Keypair,_ app:XCUIApplication) {
+        tap("productMenu",app)
+        tap("productPanel-settings",app)
+        tap("settingsTab-account",app)
+        tap("settingsSwitchAccordion",app)
+        let secret=app.secureTextFields["settingsSwitchKey"]
+        XCTAssertTrue(secret.waitForExistence(timeout:5))
+        for _ in 0..<5 where !secret.isHittable {app.swipeUp(velocity:.slow)}
+        XCTAssertTrue(secret.isHittable)
+        secret.tap()
+        secret.typeText(key.privateKey.nsec)
+        tap("settingsKeyboardDone",app)
+        let submit=app.buttons["settingsSwitchAccount"]
+        for _ in 0..<5 where !submit.isHittable {app.swipeUp(velocity:.slow)}
+        tap("settingsSwitchAccount",app)
+    }
+    private func startCreditedCall(_ app:XCUIApplication) {
+        tap("conversationStart",app)
+        let reply=app.staticTexts["conversationLatestReply"]
+        let completed=XCTNSPredicateExpectation(predicate:NSPredicate(format:"label CONTAINS %@","¡Hola, Ana!"),object:reply)
+        XCTAssertEqual(XCTWaiter.wait(for:[completed],timeout:18),.completed)
+        XCTAssertTrue(app.buttons["conversationEnd"].isHittable)
+        let xp=app.descendants(matching:.any).matching(identifier:"dailyXPStatus").firstMatch
+        XCTAssertEqual(xp.value as? String,"5%")
+    }
+    func testReenteringTheActiveKeyDuringCallReturnsToFocus() throws {
+        let key=try XCTUnwrap(Keypair())
+        let app=start(key:key)
+        startCreditedCall(app)
+        photo("Native live call before reentering the active key",app)
+        switchAccount(key,app)
+        XCTAssertTrue(app.staticTexts["todayFocusTitle"].waitForExistence(timeout:15))
+        XCTAssertFalse(app.buttons["conversationEnd"].exists)
+        XCTAssertFalse(app.staticTexts["conversationSummaryXP"].exists)
+        XCTAssertFalse(app.buttons["companionContinue"].exists)
+        photo("Native Today’s Focus after reentering the active key",app)
+        open(app)
+        XCTAssertTrue(app.buttons["conversationStart"].isEnabled)
+        XCTAssertEqual(app.staticTexts["conversationLatestReply"].label,"¡Hola, Ana! ¿Qué te gusta hacer?")
+        XCTAssertEqual(app.descendants(matching:.any).matching(identifier:"dailyXPStatus").firstMatch.value as? String,"5%")
+    }
+    func testSwitchingAccountsDuringCallKeepsHistoryAndXPPrivate() throws {
+        let original=try XCTUnwrap(Keypair()),alternate=try XCTUnwrap(Keypair())
+        let app=start(key:original)
+        startCreditedCall(app)
+        switchAccount(alternate,app)
+        handleInitialPaperPencil(app)
+        tap("startLearning",app)
+        finishAccountSetup(app)
+        XCTAssertFalse(app.buttons["conversationEnd"].exists)
+        XCTAssertFalse(app.staticTexts["conversationSummaryXP"].exists)
+        photo("Native Today’s Focus for the second account",app)
+        open(app)
+        XCTAssertTrue(app.buttons["conversationStart"].isEnabled)
+        XCTAssertFalse(app.staticTexts["conversationLatestReply"].exists)
+        XCTAssertFalse(app.buttons["conversationHistory"].isEnabled)
+        let xp=app.descendants(matching:.any).matching(identifier:"dailyXPStatus").firstMatch
+        XCTAssertEqual(xp.value as? String,"0%")
+
+        switchAccount(original,app)
+        XCTAssertTrue(app.staticTexts["todayFocusTitle"].waitForExistence(timeout:15))
+        XCTAssertFalse(app.buttons["companionContinue"].exists)
+        open(app)
+        XCTAssertTrue(app.buttons["conversationStart"].isEnabled)
+        XCTAssertTrue(app.buttons["conversationHistory"].isEnabled)
+        XCTAssertEqual(app.staticTexts["conversationLatestReply"].label,"¡Hola, Ana! ¿Qué te gusta hacer?")
+        XCTAssertEqual(xp.value as? String,"5%")
+    }
+    func testChangingPracticeLanguageDuringCallReturnsToFocusWithScopedHistory() {
+        let app=start()
+        tap("conversationStart",app)
+        let reply=app.staticTexts["conversationLatestReply"]
+        let completed = XCTNSPredicateExpectation(predicate:NSPredicate(format:"label CONTAINS %@","¡Hola, Ana!"),object:reply)
+        XCTAssertEqual(XCTWaiter.wait(for:[completed],timeout:18),.completed)
+        XCTAssertTrue(app.buttons["conversationEnd"].isHittable)
+        let xp=app.descendants(matching:.any).matching(identifier:"dailyXPStatus").firstMatch
+        XCTAssertEqual(xp.value as? String,"5%")
+        tap("conversationSettings",app)
+        XCTAssertFalse(app.buttons["conversationEnd"].isHittable)
+        tap("conversationSettingsClose",app)
+        XCTAssertTrue(app.buttons["conversationEnd"].isHittable)
+        photo("Native Spanish call before the practice-language change",app)
+
+        changePracticeLanguage("fr",label:"French",app)
+        XCTAssertFalse(app.buttons["conversationEnd"].exists)
+        XCTAssertFalse(app.staticTexts["conversationSummaryXP"].exists)
+        XCTAssertEqual(xp.value as? String,"5%")
+        photo("Native Today’s Focus after the live practice-language change",app)
+        open(app)
+        XCTAssertTrue(app.buttons["conversationStart"].isEnabled)
+        XCTAssertFalse(reply.exists)
+        XCTAssertFalse(app.buttons["conversationHistory"].isEnabled)
+
+        changePracticeLanguage("es",label:"Spanish",app)
+        open(app)
+        XCTAssertTrue(app.buttons["conversationStart"].isEnabled)
+        XCTAssertEqual(reply.label,"¡Hola, Ana! ¿Qué te gusta hacer?")
+        XCTAssertTrue(app.buttons["conversationHistory"].isEnabled)
+        XCTAssertEqual(xp.value as? String,"5%")
+    }
+}
+
+extension ConversationPlayTests {
+    private func changeSupport(_ language:String,_ app:XCUIApplication) {
+        tap("productMenu",app);tap("productPanel-settings",app)
+        let picker=app.buttons["supportLanguagePicker"]
+        for _ in 0..<6 where !picker.isHittable { app.swipeDown(velocity:.slow) }
+        XCTAssertTrue(picker.waitForExistence(timeout:5));picker.tap();let option=app.buttons["settingsLanguage-support-"+(language == "French" ? "fr":"es")];XCTAssertTrue(option.waitForExistence(timeout:5));option.tap();tap("productPanelClose",app)
+    }
+    func testChangingSupportLanguageDuringCallStopsVoiceAndRelocalizesConversation() {
+        let app=start()
+        startCreditedCall(app)
+        changeSupport("French",app)
+        let goal=app.staticTexts["conversationGoal"]
+        let localized=XCTNSPredicateExpectation(
+            predicate:NSPredicate(format:"label == %@","Dites une chose que vous aimez"),object:goal
+        )
+        XCTAssertEqual(XCTWaiter.wait(for:[localized],timeout:12),.completed)
+        XCTAssertTrue(app.buttons["conversationStart"].isEnabled)
+        XCTAssertFalse(app.buttons["conversationEnd"].exists)
+        XCTAssertFalse(app.staticTexts["conversationSummaryXP"].exists)
+        XCTAssertEqual(app.staticTexts["conversationLatestReply"].label,"¡Hola, Ana! ¿Qué te gusta hacer?")
+        XCTAssertEqual(app.descendants(matching:.any).matching(identifier:"dailyXPStatus").firstMatch.value as? String,"5%")
+        photo("Native idle Conversation after switching to French support",app)
+        tap("conversationStarter",app)
+        let starter=app.staticTexts["conversationStarterSupport"]
+        XCTAssertTrue(starter.waitForExistence(timeout:5))
+        XCTAssertTrue(starter.label.contains("J’aime"))
+    }
+    func testSupportLanguageRefreshesGoalStarterAndTranslationWithoutReplayingRewards() {
+        let app=start();tap("conversationStart",app)
+        let reply=app.staticTexts["conversationLatestReply"];expectation(for:NSPredicate(format:"label CONTAINS %@","¡Hola, Ana!"),evaluatedWith:reply);waitForExpectations(timeout:15)
+        tap("conversationEnd",app);XCTAssertTrue(app.staticTexts["conversationSummaryXP"].waitForExistence(timeout:10));XCTAssertTrue(app.staticTexts["conversationSummaryXP"].label.contains("+5"));tap("conversationSummaryDone",app)
+        tap("conversationTranslate",app);XCTAssertTrue(app.staticTexts["conversationTranslation"].waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts["conversationTranslation"].label.contains("Hello, Ana!"))
+        changeSupport("French",app)
+        XCTAssertTrue(app.staticTexts["conversationGoal"].waitForExistence(timeout:10));XCTAssertEqual(app.staticTexts["conversationGoal"].label,"Dites une chose que vous aimez");XCTAssertFalse(app.staticTexts["conversationTranslation"].exists);XCTAssertTrue(app.buttons["conversationTranslate"].exists)
+        tap("conversationStarter",app);XCTAssertTrue(app.staticTexts["conversationStarterSupport"].waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts["conversationStarterSupport"].label.contains("J’aime"));tap("conversationStarter",app)
+        tap("conversationTranslate",app);XCTAssertTrue(app.staticTexts["conversationTranslation"].waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts["conversationTranslation"].label.contains("Bonjour Ana"));photo("Native conversation French support",app)
+        changeSupport("Espagnol",app);XCTAssertEqual(app.staticTexts["conversationGoal"].label,"Di algo que te guste");XCTAssertFalse(app.staticTexts["conversationStarterPhrase"].exists);XCTAssertFalse(app.staticTexts["conversationTranslation"].exists)
+        tap("conversationTranslate",app);XCTAssertEqual(app.staticTexts["conversationTranslation"].label,app.staticTexts["conversationLatestReply"].label)
+        app.terminate();app.launch();handleInitialPaperPencil(app);open(app);XCTAssertEqual(app.staticTexts["conversationGoal"].label,"Di algo que te guste");XCTAssertEqual(app.staticTexts["conversationTranslation"].label,"¡Hola, Ana! ¿Qué te gusta hacer?");photo("Native conversation Spanish support restored",app)
+        let xp=app.descendants(matching:.any).matching(identifier:"dailyXPStatus").firstMatch;XCTAssertTrue(xp.waitForExistence(timeout:5));XCTAssertEqual(xp.value as? String,"5%")
+    }
+}

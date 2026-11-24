@@ -1,0 +1,5 @@
+Test Case '-[PiyaliTests.TeamsMirrorContractTests testOpenNativeCachedRosterShowsFirstMirrorSnapshotWithoutAServerRead]' passed (0.424 seconds).
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.424 (0.425) seconds
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.424 (0.425) seconds
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.424 (0.426) seconds
+** TEST SUCCEEDED **

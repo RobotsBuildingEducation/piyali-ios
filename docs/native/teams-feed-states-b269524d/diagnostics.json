@@ -1,0 +1,32 @@
+{
+  "signingCompile": {
+    "exit": 65,
+    "testsRun": 0,
+    "reason": "UI target cannot access app-only NostrCrypto; use existing UI ContentSigning pattern"
+  },
+  "overrideCompile": {
+    "exit": 65,
+    "testsRun": 0,
+    "reason": "Subclass initializer required override"
+  },
+  "preVisualFix": {
+    "passedTests": 19,
+    "designResult": "Failed: native orb collapsed; Refresh text shadow; question spacing/link color differed"
+  },
+  "adapterExpectation": {
+    "exit": 75,
+    "result": "Interrupted after confirming original default adapter catches errors and resolves []"
+  },
+  "linkQueryMixed": {
+    "exit": 73,
+    "passedAppTests": 20,
+    "failedUITests": 1,
+    "result": "Failed/interrupted",
+    "observedAuthorControl": {
+      "elementType": "Button",
+      "label": "Community learner",
+      "frame": "{{190.0, 363.2}, {123.0, 17.0}}"
+    },
+    "reason": "UI query incorrectly assumed Link; captured native author is an underlined Button. Final driver also waits for actual drawer dismissal."
+  }
+}

@@ -27,8 +27,8 @@ import XCTest
     private func open(_ app:XCUIApplication) { app.tabBars.buttons["Practice"].tap();tap("adventureLink",in:app);tap("explorationLink",in:app);XCTAssertTrue(app.navigationBars["Exploration"].waitForExistence(timeout:10)) }
     private func start(_ fixture:Fixture,objectSearch:Bool = false) -> XCUIApplication {
         continueAfterFailure=false
-        let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString;app.launchEnvironment["PIYALI_EXPLORATION_TEST_FIXTURE"]="1";app.launch()
-        XCTAssertTrue(app.buttons["createAccount"].waitForExistence(timeout:10));app.buttons["createAccount"].tap();let picker=app.buttons["onboardingLevelPicker"];XCTAssertTrue(picker.waitForExistence(timeout:15));picker.tap();XCTAssertTrue(app.buttons[fixture.level].waitForExistence(timeout:5));app.buttons[fixture.level].tap();app.buttons["startLearning"].tap();open(app)
+        let app=XCUIApplication();app.launchEnvironment["PIYALI_OFFLINE_TESTS"]="1";app.launchEnvironment["PIYALI_TEST_IDENTITY_SCOPE"]=UUID().uuidString;app.launchEnvironment["PIYALI_EXPLORATION_TEST_FIXTURE"]="1";app.launch();handleInitialPaperPencil(app)
+        XCTAssertTrue(app.buttons["createAccount"].waitForExistence(timeout:10));app.buttons["createAccount"].tap();handleInitialPaperPencil(app);let picker=app.buttons["onboardingLevelPicker"];XCTAssertTrue(picker.waitForExistence(timeout:15));picker.tap();XCTAssertTrue(app.buttons[fixture.level].waitForExistence(timeout:5));app.buttons[fixture.level].tap();app.buttons["startLearning"].tap();open(app)
         if objectSearch { let toggle=app.switches["explorationObjectSearch"];reveal(toggle,in:app);toggle.coordinate(withNormalizedOffset:CGVector(dx:0.92,dy:0.5)).tap();XCTAssertEqual(toggle.value as? String,"1") }
         tap("explorationLocal",in:app);XCTAssertTrue(app.staticTexts["explorationStatus"].waitForExistence(timeout:15));return app
     }
@@ -54,13 +54,13 @@ import XCTest
                     let index=try XCTUnwrap(fixture.placements.firstIndex { $0.name == node.item }),item=fixture.placements[index]
                     try travel(item.mapID,current:&current,fixture:fixture,app:app);tap("explorationApproachItem-\(index)",in:app);tap("explorationPickUp-\(index)",in:app)
                     let held=app.staticTexts["explorationInventoryItem"];reveal(held,in:app);XCTAssertEqual(held.label,node.item)
-                    app.terminate();app.launch();open(app);reveal(held,in:app);XCTAssertEqual(held.label,node.item);restarted=true
+                    app.terminate();app.launch();handleInitialPaperPencil(app);open(app);reveal(held,in:app);XCTAssertEqual(held.label,node.item);restarted=true
                     try talk(step,current:&current,fixture:fixture,app:app);tap("explorationHandIn-0",in:app)
                 } else { ordinary(node,app:app) }
             }
         }
         XCTAssertTrue(restarted);XCTAssertTrue(app.staticTexts["explorationComplete"].waitForExistence(timeout:15))
-        app.terminate();app.launch();open(app);XCTAssertTrue(app.staticTexts["explorationComplete"].waitForExistence(timeout:15))
+        app.terminate();app.launch();handleInitialPaperPencil(app);open(app);XCTAssertTrue(app.staticTexts["explorationComplete"].waitForExistence(timeout:15))
         app.tabBars.buttons["Account"].tap();reveal(app.staticTexts["0 total XP · 0 lessons completed"],in:app)
     }
     func testSearchInsideAnObjectAndReturnTheRequestedItem() throws {

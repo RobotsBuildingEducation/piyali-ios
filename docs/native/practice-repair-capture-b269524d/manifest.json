@@ -1,0 +1,46 @@
+{
+  "sourceRevision": "b269524ddc578027c549616fc47f5954991d9f6f",
+  "nativeBase": "dc7ac531badb8cbdb3aed8c20094e87dfefdb0ac",
+  "resultBundles": [
+    "/tmp/PiyaliPracticeRepairContext2_20261105.xcresult (native UI pass; source comparison fails)",
+    "/tmp/PiyaliPracticeRepairDrawersFinal20261105.xcresult (source/native comparison passes)"
+  ],
+  "scope": "Original NotesDrawer and native drawer at 402x874 in light/dark receive the actual native matching capture whose inputs are separately checked against original source handlers. Source component state/provider boundaries are fixtures; this is not a complete browser question-to-capture-to-drawer journey. Full native images are from the actual onboarding/course/miss/Memory/retry/relaunch UI journey. No OS reduced motion, physical device or cloud/provider quality coverage. Backgrounds differ in component captures; original PNG profiles normalized only for side-by-side pairs.",
+  "files": [
+    {
+      "file": "captured-note.json",
+      "sha256": "02b7be0d0a36e651226497d44c0a9909a20e802364282aa814c8fce9984fea9f",
+      "bytes": 619
+    },
+    {
+      "file": "captured-repair.png",
+      "sha256": "1ab1e9c5bd7a13b62254899984313d333c295605693b054f37cc7cfa906144f2",
+      "bytes": 290112
+    },
+    {
+      "file": "drawers-dark.png",
+      "sha256": "155baa458b2b4667e3e8065cdf62edb692876ff1b72e02205534b304572a723d",
+      "bytes": 96711
+    },
+    {
+      "file": "drawers-light.png",
+      "sha256": "7f0651bc326c2f43072b70819d544785a8ddd0479d6b6529ae4eacb146771d00",
+      "bytes": 113396
+    },
+    {
+      "file": "restored-after-relaunch.png",
+      "sha256": "19672e4ed63ffda0132a9744d5b001df10a8cb0df67108569023e172a6edce75",
+      "bytes": 290789
+    },
+    {
+      "file": "retained-after-retry.png",
+      "sha256": "197bd964a3940ab961cb2820882c473a144cba4fd46e5a4cf88098d0e076c161",
+      "bytes": 290361
+    },
+    {
+      "file": "wrong-submission.png",
+      "sha256": "5bf85bf8884a3a27ded8d3d6d46cc5b8e5d4326fed52e953dfae843fb08fd6ad",
+      "bytes": 667984
+    }
+  ]
+}

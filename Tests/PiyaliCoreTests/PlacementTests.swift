@@ -56,3 +56,42 @@ final class PlacementTests: XCTestCase {
         XCTAssertEqual(merged.pendingPlacements?["es"]?.level,"B1")
     }
 }
+
+extension PlacementTests {
+    @MainActor func testTutorProgressionMatchesActualWebHelpersAcrossEveryCompletedLevelCombination()throws {
+        let root=URL(fileURLWithPath:#filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        let rows=try ContentLibrary.decode([JSONValue].self,url:root.appendingPathComponent("Tests/PiyaliCoreTests/Fixtures/tutor-source-policy.json.gz"))
+        var cases=0
+        for row in rows {
+            let input=row["input"]
+            if row["operation"].string == "earnedLevel" {
+                let status=input["status"].object.mapValues{TutorLevelCompletion(completed:$0["isComplete"].boolean ? 1:0,total:1)}
+                XCTAssertEqual(TutorProgression.earned(status),row["expected"].string);cases+=1
+            }else if row["operation"].string == "levelStats" {
+                let stats=TutorProgression.completion(summary:input["summary"],level:input["level"].string,fallbackTotal:Int(input["fallbackTotal"].number),localCompleted:Int(input["localCompleted"].number))
+                XCTAssertEqual(stats.total,row["expected"]["total"].number);XCTAssertEqual(stats.completed,row["expected"]["completed"].number);XCTAssertEqual(stats.isComplete,row["expected"]["isComplete"].boolean);XCTAssertEqual(stats.progress,Int(row["expected"]["progress"].number));cases+=1
+            }
+        }
+        XCTAssertEqual(cases,138)
+    }
+    func testTutorUnlockUsesStoredSummaryTotalAndHigherCourseEvidenceWithoutChangingBrowsingLevel() {
+        var state=LearnerState();let index=["Pre-A1":(0..<87).map{"intro-\($0)"},"B1":["advanced"]]
+        state.tutorLevels=["es":"Pre-A1"]
+        state.importCourseSummary(.object(["tutor":.object(["levels":.object(["pre_a1":.object(["completed":.number(86),"total":.number(86)])])])]),target:"es")
+        XCTAssertEqual(state.earnedTutorLevel(index:index),"A1");XCTAssertEqual(state.tutorCompletion(level:"Pre-A1",index:index).progress,100)
+        state.completed.insert(state.tutorKey("advanced"));state.reconcileTutorUnlock(index:index)
+        XCTAssertEqual(state.tutorUnlockedLevels?["es"],"B2");XCTAssertEqual(state.tutorLevel,"Pre-A1")
+        state.completed=[];state.importCourseSummary(.object([:]),target:"es");state.reconcileTutorUnlock(index:index)
+        XCTAssertEqual(state.earnedTutorLevel(index:index),"B2","Hydration or browsing never lowers an earned unlock")
+        XCTAssertEqual(state.availableTutorLevels(index:index,lessons:["Pre-A1","A1"],flashcards:["Pre-A1","A1","A2"]),["Pre-A1","A1","A2","B1","B2"])
+        state.target="fr";XCTAssertEqual(state.availableTutorLevels(index:[:],lessons:["Pre-A1"],flashcards:["Pre-A1"]),["Pre-A1"])
+    }
+    func testTutorRootImportAndRebasePreserveHigherServerUnlockWhilePreferencesStayDirty() {
+        var sent=LearnerState();sent.tutorLevels=["es":"Pre-A1"];sent.tutorUnlockedLevels=["es":"A2"];sent.preferencesModifiedAt=Date()
+        var current=sent;current.tutorUnlockedLevels?["fr"]="B1"
+        let cloud=WebProgressContract.imported(["progress":["tutorUnlockedLevels":["es":"C1","ja":"B2"]]],native:sent)
+        let merged=LearnerState.rebased(current:current,sent:sent,acknowledged:cloud)
+        XCTAssertEqual(merged.tutorUnlockedLevels,["es":"C1","fr":"B1","ja":"B2"]);XCTAssertEqual(merged.tutorLevel,"Pre-A1")
+        XCTAssertEqual(merged.companionQuestUser["progress"]["tutorUnlockedLevels"]["es"].string,"C1")
+    }
+}

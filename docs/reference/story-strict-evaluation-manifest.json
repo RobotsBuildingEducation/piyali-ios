@@ -1,0 +1,6 @@
+{
+  "source": "src/utils/speechEvaluation.js",
+  "sha256": "f1f32f653b8ea3e408ae11e85883b1fbd2860f769902130789c495541d8dd1ba",
+  "cases": 540,
+  "scope": "Original evaluateAttemptStrict and its pure scoring dependencies. Public synthetic transcripts and audio metrics; no network, microphone, user state or rewards."
+}

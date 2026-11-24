@@ -1,0 +1,21 @@
+{
+  "nativeBase": "ca2604977ea6154fca58e7611ce5b18f1c9e9864",
+  "referenceRevision": "b269524ddc578027c549616fc47f5954991d9f6f",
+  "files": {
+    "Piyali/App/AppModel.swift": "682e6420f63abf2c5b2796f85772663b59312748f554493c182b9a26c149148d",
+    "Piyali/App/MemoryDrawerController.swift": "d522bafb747c8ae6c9d986fffa5efa6117c2956479596a7884a816373555af0b",
+    "Piyali/App/MemoryDrawerFixture.swift": "df044cbb924a30f1db4dba17ea6e7ecc03d03d3b94ddd215ca792225e4695066",
+    "Piyali/Core/CompanionMemory.swift": "8841f7ae20ebbda0493d7a76ed9ea5c2c178d46756637571bec1789910728c2e",
+    "Piyali/Core/Models.swift": "65479624bb83602edbbde72666beec3d2d3bf47e4cb35f3dc3b10317fd32b54b",
+    "Piyali/Core/SyncChanges.swift": "347cfe47845f790ac62581b4049b92830fd52c2c43d80de203baf672381ff072",
+    "Piyali/Services/FirebaseService.swift": "6ca79b02c5b25d39c4acb2b8b5e08484497b2c289737e1cc735952e734f89a5a",
+    "Piyali/Services/TutorVoiceFixture.swift": "0ed41ecda7dca8044711c158146b0a8578b7af8019904c405f8e55bef8f5221f",
+    "Tests/PiyaliAppTests/FirestoreContractTests.swift": "4b40749e7c31388ccb3a25d1913f68886ab2a727f7761ad1a08ac4dbc873f91d",
+    "Tests/PiyaliAppTests/MemoryFlowTests.swift": "dfbf72db36d61f1b09303bccee2292e4a5bca1398525ca647f9345d0d6d9b3e7",
+    "Tests/PiyaliAppTests/TutorSessionTests.swift": "9b0a0d4f9b5e5cbb499c7b34cdffe07c220c21d4e05cbab25ba88e97ba503788",
+    "Tests/PiyaliCoreTests/MemoryTests.swift": "2a3ba0a6cd888303c813789949ce26d7225756d91b27fe0a9226e64feef41aa9",
+    "Tests/PiyaliUITests/StandardBodyJourneyTests.swift": "58898e8c68f82933474b1a52f7af1055a782f143ca9de91b1729f4d5a34ac2d6",
+    "Tests/PiyaliUITests/TutorParityTests.swift": "196bd089192fd1c5860d91e5a5fb0a9a240715b86315d531ddfc87a3d3e94b4b",
+    "scripts/audit-pending-learning-qa.py": "24a5d64f10d8a0902eb5e5026e75a3c4004b89ddc3bdd2dcea2d824c6c36c7d4"
+  }
+}

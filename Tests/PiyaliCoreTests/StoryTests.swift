@@ -42,13 +42,48 @@ final class StoryTests:XCTestCase {
             XCTAssertEqual(result.charSim,expected["charSim"].number,accuracy:1e-10);XCTAssertEqual(result.f1,expected["f1"].number,accuracy:1e-10)
         }
     }
-    func testSpeechQualityAndNonLatinScriptsUseActualLanguageRatherThanLatinOnlyDetection() {
+    func testCurrentSourceStrictEvaluationAcrossScriptsAndAudio() throws {
+        let url=URL(fileURLWithPath:#filePath).deletingLastPathComponent().appendingPathComponent("Fixtures/story-strict-evaluation.json")
+        let cases=try JSONDecoder().decode([JSONValue].self,from:Data(contentsOf:url));XCTAssertEqual(cases.count,540)
+        for item in cases {let input=item["input"],expected=item["expected"],metrics=input["audioMetrics"],audio:SpeechAudioMetrics? = metrics == .null ? nil:.init(duration:metrics["duration"].number,rms:metrics["rms"].number,zeroCrossings:Int(metrics["zeroCrossings"].number))
+            let result=StorySpeech.evaluate(recognized:input["recognizedText"].string,target:input["targetSentence"].string,lang:input["lang"].string,confidence:input["confidence"].number,audio:audio)
+            XCTAssertEqual(result.pass,expected["pass"].boolean,input.json);XCTAssertEqual(result.score,Int(expected["score"].number),input.json);XCTAssertEqual(result.reasons,expected["reasons"].array.map(\.string),input.json)
+            XCTAssertEqual(result.charSim,expected["charSim"].number,accuracy:1e-10,input.json);XCTAssertEqual(result.f1,expected["f1"].number,accuracy:1e-10,input.json);XCTAssertEqual(result.langLike,expected["langLike"].number,accuracy:1e-10,input.json)
+        }
+    }
+    func testSourceRejectsExactNonLatinMatchesAndNoisySpeech() {
+        // This mirrors the source defect: a score of 100 can still fail its language check.
         for (language,text) in [("ar","هذا البيت جميل"),("el","Το σπίτι είναι όμορφο"),("hi","यह घर अच्छा है"),("ja","今日は母の誕生日です"),("ru","Этот дом красивый"),("zh","今天是她的生日")] {
-            XCTAssertTrue(StorySpeech.evaluate(recognized:text,target:text,lang:language,confidence:0.9).pass,language)
-            XCTAssertFalse(StorySpeech.evaluate(recognized:"These are English words",target:text,lang:language,confidence:0.9).pass)
+            let result=StorySpeech.evaluate(recognized:text,target:text,lang:language,confidence:0.9)
+            XCTAssertFalse(result.pass,language);XCTAssertTrue(result.reasons.contains("not-target-lang"),language);XCTAssertEqual(result.score,100,language)
         }
         let noisy=StorySpeech.evaluate(recognized:"Tengo flores rojas",target:"Tengo flores rojas",lang:"es",confidence:0.9,audio:.init(duration:0.1,rms:0,zeroCrossings:0))
         XCTAssertFalse(noisy.pass);XCTAssertTrue(noisy.reasons.contains("speech-quality"))
+    }
+    func testSourceRejectedJapaneseLineDoesNotAwardOrAdvanceAfterReload() throws {
+        let line:JSONValue = .object(["speaker":.string("Ana"),"target":.string("今日は母の誕生日です"),"support":.string("Today is my mother's birthday.")])
+        let second=line.setting("speaker",.string("Luis"));let run=try StoryRun(payload:.object(["title":.string("A birthday"),"sentences":.array([line,second])]),mode:.speaking,target:"ja",support:"en",level:"A1",lessonID:nil,worth:ConversationPractice.worth(rating:800,level:"A1"),tutorial:true)
+        var state=LearnerState();state.target="ja";state.support="en";state.saveStory(run)
+        XCTAssertEqual(state.practiceStoryLine(words:line["target"].string,confidence:0.9),0);XCTAssertEqual(state.totalXP,0);XCTAssertEqual(state.story?.index,0);XCTAssertEqual(state.story?.speechResult?.reasons,["not-target-lang"]);XCTAssertTrue(state.story?.passedLines.isEmpty == true)
+        let restored=try JSONDecoder().decode(LearnerState.self,from:JSONEncoder().encode(state));XCTAssertEqual(restored.totalXP,0);XCTAssertEqual(restored.story?.speechResult?.reasons,["not-target-lang"]);XCTAssertTrue(restored.story?.passedLines.isEmpty == true)
+    }
+    func testNativeCharacterIdentityAndPortraitPoolsMatchExecutedSource() throws {
+        let root=URL(fileURLWithPath:#filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent(),appearance=StoryAppearance(try ContentLibrary.decode(JSONValue.self,url:root.appendingPathComponent("Piyali/Resources/story-ui.json.gz")))
+        let cases=try ContentLibrary.decode([JSONValue].self,url:root.appendingPathComponent("Tests/PiyaliCoreTests/Fixtures/story-appearance.json.gz"))
+        for sample in cases { XCTAssertEqual(StoryAppearance.isUser(sample["name"].string,learnerName:"Alicia"),sample["isUser"].boolean,sample["name"].string);XCTAssertEqual(appearance.portraitPool(sample["name"].string,learnerName:"Alicia"),sample["pool"].array.map(\.string),sample["name"].string) }
+        XCTAssertEqual(appearance.portraitFile("33"),"story-portrait-33.webp");XCTAssertEqual(appearance.portraitFile("invalid"),appearance.portraitFile("35"))
+    }
+    func testCheckpointNeedsTheCompleteBoundedSelectionBeforeOneGrade() throws {
+        var run=try episodeRun();run.heard.insert(0);run.select(1);XCTAssertFalse(run.readyToCheck);run.check();XCTAssertNil(run.result)
+        run.select(2);XCTAssertTrue(run.readyToCheck);run.select(3);XCTAssertEqual(run.answers["0"],[1,2]);run.check();XCTAssertEqual(run.result,true)
+        run.select(0);run.check();XCTAssertEqual(run.answers["0"],[1,2]);XCTAssertEqual(run.result,true)
+    }
+    func testStoryContextIsStableAcrossDictionaryOrderAndSnapshotRoundTrips() throws {
+        let first:JSONValue = .object(["topic":.string("family"),"focus":.object(["a":.string("mamá"),"b":.string("papá")])]),second:JSONValue = .object(["focus":.object(["b":.string("papá"),"a":.string("mamá")]),"topic":.string("family")])
+        let data=try StoryRun.contextData(content:first,agenda:.object(["x":.number(1),"y":.number(2)]),level:"A1")
+        XCTAssertEqual(data,try StoryRun.contextData(content:second,agenda:.object(["y":.number(2),"x":.number(1)]),level:"A1"))
+        let restored=try JSONDecoder().decode(JSONValue.self,from:JSONEncoder().encode(second));XCTAssertEqual(data,try StoryRun.contextData(content:restored,agenda:.object(["x":.number(1),"y":.number(2)]),level:"A1"))
+        XCTAssertNotEqual(data,try StoryRun.contextData(content:second.setting("topic",.string("a new topic")),agenda:.object(["x":.number(1),"y":.number(2)]),level:"A1"))
     }
     private func episodeRun() throws -> StoryRun {
         try StoryRun(payload:try fixtures()["cases"].array[0]["raw"],mode:.radio,target:"es",support:"en",level:"A1",lessonID:"unit-story",worth:.null)
@@ -58,7 +93,7 @@ final class StoryTests:XCTestCase {
         XCTAssertEqual(state.finishStory(),0)
         while var run=state.story,!run.atEnd {
             XCTAssertNil(run.result);run.select(0);run.check();XCTAssertNil(run.result,"Listening or reading comes before grading")
-            run.heard.insert(run.index);run.check();XCTAssertNotNil(run.result);run.advance();state.saveStory(run)
+            run.heard.insert(run.index);if let q=run.currentSegment?.question,q.answer.count > 1 { for i in 1..<q.answer.count { run.select(i) } };run.check();XCTAssertNotNil(run.result);run.advance();state.saveStory(run)
         }
         XCTAssertEqual(state.finishStory(),6);XCTAssertEqual(state.finishStory(),0);XCTAssertEqual(state.totalXP,6)
         XCTAssertNil(state.gradedByLanguage?["es"]);XCTAssertTrue(state.practicedModes.contains(state.modeKey("unit-story","Stories")))

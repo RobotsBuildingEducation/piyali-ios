@@ -62,16 +62,44 @@ public enum AchievementProgress {
         let succeeded=progress["completed"].boolean || (integer(progress["successfulReviews"]) && progress["successfulReviews"].number > 0 && (["good","easy","hard"].contains(progress["lastReviewOutcome"].string) || integer(progress["consecutiveCorrect"]) && progress["consecutiveCorrect"].number > 0))
         return succeeded ? .object(["metric":.string("flashcards_completed:"+language),"id":.string(id)]) : nil
     }
-    public static func completionProof(profile: JSONValue, summary: JSONValue, quest: JSONValue, language: String, day: String) -> (events:[JSONValue],evidence:JSONValue) {
+    public static func flashcardEvent(for change: PracticeChange) -> JSONValue? {
+        guard change.source == .review, let id = change.contentID, let review = change.reviewPatch else { return nil }
+        return flashcardEvent(language:change.target,id:id,progress:JSONValue.foundation(WebProgressContract.reviewFields(review)))
+    }
+
+    public static func flashcardEvidence(ledger: JSONValue, language: String) -> JSONValue {
+        let count = ledger["flashcards_completed:"+language].object.count
+        return .object(["language":.string(language),"counters":.object(["flashcards_completed":.number(Double(count))])])
+    }
+
+    public static func goalCompletionEvent(daily: JSONValue, language: String) -> JSONValue? {
+        let blueprint=daily["blueprint"],modes=blueprint["modes"].array.map(\.string).filter { GoalPractice.targets[$0] != nil }
+        let assigned=modes.isEmpty ? [blueprint["mode"].string].filter { GoalPractice.targets[$0] != nil } : Array(Set(modes))
+        guard daily["completed"].boolean, !assigned.isEmpty,
+              assigned.allSatisfy({ daily["modeProgress"][$0].number >= Double(GoalPractice.targets[$0] ?? 0) }),
+              !blueprint["cefrLevel"].string.isEmpty else { return nil }
+        return .object(["metric":.string("goals:"+levelKey(blueprint["cefrLevel"].string)),"id":.string("\(language):\(blueprint["dayKey"].string):\(blueprint["goalId"].string)")])
+    }
+
+    public static func completionProof(profile: JSONValue, summary: JSONValue, quest: JSONValue, language: String, day: String, ledger: JSONValue = .null) -> (events:[JSONValue],evidence:JSONValue) {
         var events:[JSONValue]=[]
-        let goal=profile["learningIntelligence"][language]["dailyGoal"],modes=goal["blueprint"]["modes"].array.map(\.string).filter { GoalPractice.targets[$0] != nil }
-        let assigned=modes.isEmpty ? [goal["blueprint"]["mode"].string].filter { GoalPractice.targets[$0] != nil } : Array(Set(modes))
-        if goal["completed"].boolean && !assigned.isEmpty && assigned.allSatisfy({ goal["modeProgress"][$0].number >= Double(GoalPractice.targets[$0] ?? 0) }) && !goal["blueprint"]["cefrLevel"].string.isEmpty {
-            events.append(.object(["metric":.string("goals:"+levelKey(goal["blueprint"]["cefrLevel"].string)),"id":.string("\(language):\(goal["blueprint"]["dayKey"].string):\(goal["blueprint"]["goalId"].string)")]))
-        }
+        if let goal=goalCompletionEvent(daily:profile["learningIntelligence"][language]["dailyGoal"],language:language) { events.append(goal) }
         let repair=quest["repair"],items=repair["items"].array
         if !items.isEmpty && profile["progress"]["repairDailyActivity"][language][day].number >= max(Double(items.count),repair["target"].number) {
-            for level in Set(items.map { $0["cefrLevel"].string }.filter { !$0.isEmpty }).sorted() { events.append(.object(["metric":.string("repairs:"+levelKey(level)),"id":.string("\(language):\(day):\(repair["createdAt"].string)")])) }
+            let timestamp=repair["createdAt"]
+            let suffix: String
+            switch timestamp {
+            case .number: suffix=timestamp.json
+            case .string(let value): suffix=value
+            default: suffix=repair.object["createdAt"] == nil ? "undefined" : "null"
+            }
+            let prefix="\(language):\(day):"
+            for level in Set(items.map { $0["cefrLevel"].string }.filter { !$0.isEmpty }).sorted() {
+                let metric="repairs:"+levelKey(level)
+                // Old iOS receipts omitted non-string timestamps. Preserve their existing credit.
+                let id=ledger[metric][prefix] != .null ? prefix : prefix+suffix
+                events.append(.object(["metric":.string(metric),"id":.string(id)]))
+            }
         }
         let immersion=profile["realWorldTasks"],tasks=immersion["tasks"].array
         if immersion["targetLang"].string == language && !immersion["generatedAt"].string.isEmpty && !tasks.isEmpty {

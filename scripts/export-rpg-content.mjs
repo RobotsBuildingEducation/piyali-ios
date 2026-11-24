@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import zlib from 'node:zlib';
 import {createHash} from 'node:crypto';
-const reference=path.resolve(process.argv[2] || '../nosabos/nosabos');
+const reference=path.resolve(process.argv.slice(2).find(value=>!value.startsWith('--')) || '../nosabos/nosabos');
 const esbuild=await import(path.join(reference,'node_modules/esbuild/lib/main.js'));
 const legacy=await fs.readFile(path.join(reference,'src/components/RPGGame/episodes/legacyScenario.js'),'utf8');
 function sourceSection(start,end) { const a=legacy.indexOf(start),b=legacy.indexOf(end,a+start.length);if(a<0||b<0) throw new Error('Reference story helpers changed');return legacy.slice(a,b); }
@@ -19,20 +19,8 @@ function scenario(args, worlds) {
  const worldKey=createHash('sha256').update(JSON.stringify(world)).digest('hex').slice(0,24);worlds[worldKey]=world;
  return {id:s.id,name:s.name,emoji:s.emoji,npcs:s.npcs,quest:s.quest,authoredEpisode:s.authoredEpisode,worldKey};
 }
-let reviews=0,catalogRuns=0,repairedReviews=0;
-function completeLocalReview(s) {
- if(s.quest.steps.length===7) return s;
- if(!s.quest.steps.length) throw new Error('Reference review has no usable chapter tasks');
- const original=s.quest.steps;
- s.quest.steps=Array.from({length:7},(_,index)=>{
-  const id=index===6?'finale':`b${index+1}`,existing=original.find(step=>step.id===id);
-  if(existing) return existing;
-  const step=structuredClone(original[index%original.length]),weight=index===6?2:1;
-  step.id=id;step.weight=weight;step.nodes=step.nodes.map(node=>({...node,id:id+'-check',weight}));
-  return step;
- });
- return s;
-}
+let reviews=0,catalogRuns=0,shortReviews=0;
+
 for(const [target,levels] of process.argv.includes("--fixtures-only") ? [] : Object.entries(web.LEARNING_PATHS)) {
  const data={catalog:{},reviews:{},worlds:{}};
  for(const [level,units] of Object.entries(levels)) {
@@ -43,7 +31,7 @@ for(const [target,levels] of process.argv.includes("--fixtures-only") ? [] : Obj
   }
   for(const unit of units.filter(u=>!u.isTutorial)) for(const lesson of unit.lessons.filter(l=>l.isGame)) {
    const context=web.buildGameReviewContext({lesson,unit,fallbackLevel:level,targetLang:target}),item={context,bySupport:{}};
-   for(const support of supports) { const local=scenario({lesson:{...lesson,gameReviewContext:context},targetLang:target,supportLang:support},data.worlds);if(support==='en' && local.quest.steps.length!==7) repairedReviews++;item.bySupport[support]=completeLocalReview(local); }
+   for(const support of supports) { const local=scenario({lesson:{...lesson,gameReviewContext:context},targetLang:target,supportLang:support},data.worlds);if(support==='en' && local.quest.steps.length!==7) shortReviews++;item.bySupport[support]=local; }
    data.reviews[lesson.id]=item;reviews++;
   }
  }
@@ -69,5 +57,12 @@ await fs.writeFile(new URL('Tests/PiyaliCoreTests/Fixtures/rpg.json',root),JSON.
 const uiLibrary=JSON.parse(zlib.gunzipSync(await fs.readFile(new URL('Piyali/Resources/rpg-es.json.gz',root))));
 const uiLessonID='unit-pre-a1-people-game',uiScenario=uiLibrary.reviews[uiLessonID].bySupport.en;
 await fs.mkdir(new URL('Tests/PiyaliUITests/Fixtures/',root),{recursive:true});
-await fs.writeFile(new URL('Tests/PiyaliUITests/Fixtures/rpg-play.json',root),JSON.stringify({lessonID:uiLessonID,steps:uiScenario.quest.steps.map(s=>({mode:s.nodes[0].responseMode,correct:s.nodes[0].choices.findIndex(c=>c.correct),example:s.nodes[0].speechTarget ?? s.nodes[0].expectedAnswer}))},null,2)+'\n');
-console.log(JSON.stringify({reviews,catalogRuns,repairedReviews,scoring:scoring.length,speech:speech.length,stories:stories.length,dialogue:dialogue.length}));
+await fs.writeFile(new URL('Tests/PiyaliUITests/Fixtures/rpg-play.json',root),JSON.stringify({lessonID:uiLessonID,world:uiLibrary.worlds[uiScenario.worldKey],npcs:uiScenario.npcs.map(n=>({x:n.tx,y:n.ty})),steps:uiScenario.quest.steps.map(s=>({npc:s.npcIdx,mode:s.nodes[0].responseMode,correct:s.nodes[0].choices.findIndex(c=>c.correct),example:s.nodes[0].speechTarget ?? s.nodes[0].expectedAnswer}))},null,2)+'\n');
+// Direct source decks protect against adding, dropping or rescaling authored tasks.
+const decks=[];
+for(const [target,levels]of Object.entries(web.LEARNING_PATHS))for(const[level,units]of Object.entries(levels))for(const unit of units.filter(u=>!u.isTutorial))for(const lesson of unit.lessons.filter(l=>l.isGame)) {
+ const context=web.buildGameReviewContext({lesson,unit,fallbackLevel:level,targetLang:target});
+ for(const support of supports){const original=web.buildLegacyEpisodeScenario({lesson:{...lesson,gameReviewContext:context},targetLang:target,supportLang:support});decks.push({target,support,lesson:lesson.id,steps:original.quest.steps});}
+}
+await fs.writeFile(new URL('Tests/PiyaliCoreTests/Fixtures/rpg-decks.json.gz',root),zlib.gzipSync(JSON.stringify(decks),{level:9}));
+console.log(JSON.stringify({reviews,catalogRuns,shortReviews,scoring:scoring.length,speech:speech.length,stories:stories.length,dialogue:dialogue.length}));

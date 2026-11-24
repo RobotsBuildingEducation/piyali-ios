@@ -1,0 +1,3737 @@
+{
+  "reference": "b269524ddc578027c549616fc47f5954991d9f6f",
+  "source": "src/components/Tutor.jsx",
+  "sourceSHA256": "bbe9dea6279119ecef32cb69a66a8fb40763642ca05717690dec789a72e088c3",
+  "callbackSHA256": "a0c6bc6581e25bdff7968f5ea6f5c6af70c862fa30a75e980785bd382ab8bd25",
+  "scope": "Complete original async focused completion function; original focused lesson/XP policy; explicit public I/O and held award promise. This is not the mounted authenticated App or source Firebase.",
+  "rows": [
+    {
+      "input": {
+        "kind": "goal",
+        "mode": "tutor",
+        "support": "en",
+        "failure": false,
+        "focus": {
+          "npub": "public-learner",
+          "targetLang": "es",
+          "supportLang": "en",
+          "surface": "tutor",
+          "mode": "tutor",
+          "blueprint": {
+            "goalId": "public-goal",
+            "goalText": "Greet family",
+            "dayKey": "2026-11-06",
+            "lang": "es",
+            "mode": "tutor",
+            "modes": [
+              "tutor",
+              "lesson"
+            ],
+            "cefrLevel": "Pre-A1",
+            "objective": "Greet a relative",
+            "scenario": "A family conversation",
+            "targetLanguage": [
+              "Hola"
+            ],
+            "supports": [
+              "One model"
+            ],
+            "successCriteria": [
+              "Greet the relative"
+            ]
+          }
+        },
+        "lesson": {
+          "id": "goal-public-goal-2026-11-06",
+          "isGoal": true,
+          "goalBlueprint": {
+            "goalId": "public-goal",
+            "goalText": "Greet family",
+            "dayKey": "2026-11-06",
+            "lang": "es",
+            "mode": "tutor",
+            "modes": [
+              "tutor",
+              "lesson"
+            ],
+            "cefrLevel": "Pre-A1",
+            "objective": "Greet a relative",
+            "scenario": "A family conversation",
+            "targetLanguage": [
+              "Hola"
+            ],
+            "supports": [
+              "One model"
+            ],
+            "successCriteria": [
+              "Greet the relative"
+            ]
+          },
+          "title": {
+            "en": "Greet a relative"
+          },
+          "description": {
+            "en": "A family conversation"
+          },
+          "cefrLevel": "Pre-A1",
+          "xpReward": 20,
+          "modes": [
+            "vocabulary",
+            "grammar",
+            "reading",
+            "stories",
+            "realtime"
+          ],
+          "content": {
+            "goal": {
+              "topic": "Greet a relative",
+              "focusPoints": [
+                "Hola",
+                "Greet the relative"
+              ]
+            }
+          },
+          "xpRequired": 25
+        }
+      },
+      "expected": {
+        "pending": [
+          {
+            "name": "cancelDraft",
+            "args": []
+          },
+          {
+            "name": "sequenceStart",
+            "args": []
+          },
+          {
+            "name": "stop",
+            "args": []
+          }
+        ],
+        "trace": [
+          {
+            "name": "cancelDraft",
+            "args": []
+          },
+          {
+            "name": "sequenceStart",
+            "args": []
+          },
+          {
+            "name": "stop",
+            "args": []
+          },
+          {
+            "name": "awardSettled",
+            "args": [
+              {
+                "publicFixture": true
+              },
+              "tutor_repair_final_turn"
+            ]
+          },
+          {
+            "name": "goal",
+            "args": [
+              {
+                "npub": "public-learner",
+                "targetLang": "es",
+                "supportLang": "en",
+                "surface": "tutor",
+                "mode": "tutor",
+                "blueprint": {
+                  "goalId": "public-goal",
+                  "goalText": "Greet family",
+                  "dayKey": "2026-11-06",
+                  "lang": "es",
+                  "mode": "tutor",
+                  "modes": [
+                    "tutor",
+                    "lesson"
+                  ],
+                  "cefrLevel": "Pre-A1",
+                  "objective": "Greet a relative",
+                  "scenario": "A family conversation",
+                  "targetLanguage": [
+                    "Hola"
+                  ],
+                  "supports": [
+                    "One model"
+                  ],
+                  "successCriteria": [
+                    "Greet the relative"
+                  ]
+                }
+              },
+              {
+                "id": "tutor:public-goal:2026-11-06",
+                "success": true,
+                "support": "prompted",
+                "domain": "production",
+                "observation": "Completed 25 XP of goal-specific Tutor practice with successful spoken turns."
+              }
+            ]
+          },
+          {
+            "name": "analytics",
+            "args": [
+              "tutor_goal_completed",
+              {
+                "lessonId": "goal-public-goal-2026-11-06",
+                "xpRequired": 25
+              }
+            ]
+          },
+          {
+            "name": "releaseCelebration",
+            "args": []
+          }
+        ],
+        "result": true,
+        "replay": false,
+        "goalEvent": {
+          "id": "tutor:public-goal:2026-11-06",
+          "success": true,
+          "support": "prompted",
+          "domain": "production",
+          "observation": "Completed 25 XP of goal-specific Tutor practice with successful spoken turns."
+        },
+        "totalBonus": 0,
+        "required": 25
+      }
+    },
+    {
+      "input": {
+        "kind": "goal",
+        "mode": "tutor",
+        "support": "en",
+        "failure": true,
+        "focus": {
+          "npub": "public-learner",
+          "targetLang": "es",
+          "supportLang": "en",
+          "surface": "tutor",
+          "mode": "tutor",
+          "blueprint": {
+            "goalId": "public-goal",
+            "goalText": "Greet family",
+            "dayKey": "2026-11-06",
+            "lang": "es",
+            "mode": "tutor",
+            "modes": [
+              "tutor",
+              "lesson"
+            ],
+            "cefrLevel": "Pre-A1",
+            "objective": "Greet a relative",
+            "scenario": "A family conversation",
+            "targetLanguage": [
+              "Hola"
+            ],
+            "supports": [
+              "One model"
+            ],
+            "successCriteria": [
+              "Greet the relative"
+            ]
+          }
+        },
+        "lesson": {
+          "id": "goal-public-goal-2026-11-06",
+          "isGoal": true,
+          "goalBlueprint": {
+            "goalId": "public-goal",
+            "goalText": "Greet family",
+            "dayKey": "2026-11-06",
+            "lang": "es",
+            "mode": "tutor",
+            "modes": [
+              "tutor",
+              "lesson"
+            ],
+            "cefrLevel": "Pre-A1",
+            "objective": "Greet a relative",
+            "scenario": "A family conversation",
+            "targetLanguage": [
+              "Hola"
+            ],
+            "supports": [
+              "One model"
+            ],
+            "successCriteria": [
+              "Greet the relative"
+            ]
+          },
+          "title": {
+            "en": "Greet a relative"
+          },
+          "description": {
+            "en": "A family conversation"
+          },
+          "cefrLevel": "Pre-A1",
+          "xpReward": 20,
+          "modes": [
+            "vocabulary",
+            "grammar",
+            "reading",
+            "stories",
+            "realtime"
+          ],
+          "content": {
+            "goal": {
+              "topic": "Greet a relative",
+              "focusPoints": [
+                "Hola",
+                "Greet the relative"
+              ]
+            }
+          },
+          "xpRequired": 25
+        }
+      },
+      "expected": {
+        "pending": [
+          {
+            "name": "cancelDraft",
+            "args": []
+          },
+          {
+            "name": "sequenceStart",
+            "args": []
+          },
+          {
+            "name": "stop",
+            "args": []
+          }
+        ],
+        "trace": [
+          {
+            "name": "cancelDraft",
+            "args": []
+          },
+          {
+            "name": "sequenceStart",
+            "args": []
+          },
+          {
+            "name": "stop",
+            "args": []
+          },
+          {
+            "name": "awardSettled",
+            "args": [
+              {
+                "publicFixture": true
+              },
+              "tutor_repair_final_turn"
+            ]
+          },
+          {
+            "name": "goal",
+            "args": [
+              {
+                "npub": "public-learner",
+                "targetLang": "es",
+                "supportLang": "en",
+                "surface": "tutor",
+                "mode": "tutor",
+                "blueprint": {
+                  "goalId": "public-goal",
+                  "goalText": "Greet family",
+                  "dayKey": "2026-11-06",
+                  "lang": "es",
+                  "mode": "tutor",
+                  "modes": [
+                    "tutor",
+                    "lesson"
+                  ],
+                  "cefrLevel": "Pre-A1",
+                  "objective": "Greet a relative",
+                  "scenario": "A family conversation",
+                  "targetLanguage": [
+                    "Hola"
+                  ],
+                  "supports": [
+                    "One model"
+                  ],
+                  "successCriteria": [
+                    "Greet the relative"
+                  ]
+                }
+              },
+              {
+                "id": "tutor:public-goal:2026-11-06",
+                "success": true,
+                "support": "prompted",
+                "domain": "production",
+                "observation": "Completed 25 XP of goal-specific Tutor practice with successful spoken turns."
+              }
+            ]
+          },
+          {
+            "name": "failure",
+            "args": []
+          },
+          {
+            "name": "releaseFailure",
+            "args": []
+          },
+          {
+            "name": "cancelDraft",
+            "args": []
+          },
+          {
+            "name": "sequenceStart",
+            "args": []
+          },
+          {
+            "name": "stop",
+            "args": []
+          },
+          {
+            "name": "goal",
+            "args": [
+              {
+                "npub": "public-learner",
+                "targetLang": "es",
+                "supportLang": "en",
+                "surface": "tutor",
+                "mode": "tutor",
+                "blueprint": {
+                  "goalId": "public-goal",
+                  "goalText": "Greet family",
+                  "dayKey": "2026-11-06",
+                  "lang": "es",
+                  "mode": "tutor",
+                  "modes": [
+                    "tutor",
+                    "lesson"
+                  ],
+                  "cefrLevel": "Pre-A1",
+                  "objective": "Greet a relative",
+                  "scenario": "A family conversation",
+                  "targetLanguage": [
+                    "Hola"
+                  ],
+                  "supports": [
+                    "One model"
+                  ],
+                  "successCriteria": [
+                    "Greet the relative"
+                  ]
+                }
+              },
+              {
+                "id": "tutor:public-goal:2026-11-06",
+                "success": true,
+                "support": "prompted",
+                "domain": "production",
+                "observation": "Completed 25 XP of goal-specific Tutor practice with successful spoken turns."
+              }
+            ]
+          },
+          {
+            "name": "failure",
+            "args": []
+          },
+          {
+            "name": "releaseFailure",
+            "args": []
+          }
+        ],
+        "result": false,
+        "replay": false,
+        "goalEvent": {
+          "id": "tutor:public-goal:2026-11-06",
+          "success": true,
+          "support": "prompted",
+          "domain": "production",
+          "observation": "Completed 25 XP of goal-specific Tutor practice with successful spoken turns."
+        },
+        "totalBonus": 0,
+        "required": 25
+      }
+    },
+    {
+      "input": {
+        "kind": "goal",
+        "mode": "tutor",
+        "support": "ar",
+        "failure": false,
+        "focus": {
+          "npub": "public-learner",
+          "targetLang": "es",
+          "supportLang": "ar",
+          "surface": "tutor",
+          "mode": "tutor",
+          "blueprint": {
+            "goalId": "public-goal",
+            "goalText": "Greet family",
+            "dayKey": "2026-11-06",
+            "lang": "es",
+            "mode": "tutor",
+            "modes": [
+              "tutor",
+              "lesson"
+            ],
+            "cefrLevel": "Pre-A1",
+            "objective": "Greet a relative",
+            "scenario": "A family conversation",
+            "targetLanguage": [
+              "Hola"
+            ],
+            "supports": [
+              "One model"
+            ],
+            "successCriteria": [
+              "Greet the relative"
+            ]
+          }
+        },
+        "lesson": {
+          "id": "goal-public-goal-2026-11-06",
+          "isGoal": true,
+          "goalBlueprint": {
+            "goalId": "public-goal",
+            "goalText": "Greet family",
+            "dayKey": "2026-11-06",
+            "lang": "es",
+            "mode": "tutor",
+            "modes": [
+              "tutor",
+              "lesson"
+            ],
+            "cefrLevel": "Pre-A1",
+            "objective": "Greet a relative",
+            "scenario": "A family conversation",
+            "targetLanguage": [
+              "Hola"
+            ],
+            "supports": [
+              "One model"
+            ],
+            "successCriteria": [
+              "Greet the relative"
+            ]
+          },
+          "title": {
+            "en": "Greet a relative"
+          },
+          "description": {
+            "en": "A family conversation"
+          },
+          "cefrLevel": "Pre-A1",
+          "xpReward": 20,
+          "modes": [
+            "vocabulary",
+            "grammar",
+            "reading",
+            "stories",
+            "realtime"
+          ],
+          "content": {
+            "goal": {
+              "topic": "Greet a relative",
+              "focusPoints": [
+                "Hola",
+                "Greet the relative"
+              ]
+            }
+          },
+          "xpRequired": 25
+        }
+      },
+      "expected": {
+        "pending": [
+          {
+            "name": "cancelDraft",
+            "args": []
+          },
+          {
+            "name": "sequenceStart",
+            "args": []
+          },
+          {
+            "name": "stop",
+            "args": []
+          }
+        ],
+        "trace": [
+          {
+            "name": "cancelDraft",
+            "args": []
+          },
+          {
+            "name": "sequenceStart",
+            "args": []
+          },
+          {
+            "name": "stop",
+            "args": []
+          },
+          {
+            "name": "awardSettled",
+            "args": [
+              {
+                "publicFixture": true
+              },
+              "tutor_repair_final_turn"
+            ]
+          },
+          {
+            "name": "goal",
+            "args": [
+              {
+                "npub": "public-learner",
+                "targetLang": "es",
+                "supportLang": "ar",
+                "surface": "tutor",
+                "mode": "tutor",
+                "blueprint": {
+                  "goalId": "public-goal",
+                  "goalText": "Greet family",
+                  "dayKey": "2026-11-06",
+                  "lang": "es",
+                  "mode": "tutor",
+                  "modes": [
+                    "tutor",
+                    "lesson"
+                  ],
+                  "cefrLevel": "Pre-A1",
+                  "objective": "Greet a relative",
+                  "scenario": "A family conversation",
+                  "targetLanguage": [
+                    "Hola"
+                  ],
+                  "supports": [
+                    "One model"
+                  ],
+                  "successCriteria": [
+                    "Greet the relative"
+                  ]
+                }
+              },
+              {
+                "id": "tutor:public-goal:2026-11-06",
+                "success": true,
+                "support": "prompted",
+                "domain": "production",
+                "observation": "Completed 25 XP of goal-specific Tutor practice with successful spoken turns."
+              }
+            ]
+          },
+          {
+            "name": "analytics",
+            "args": [
+              "tutor_goal_completed",
+              {
+                "lessonId": "goal-public-goal-2026-11-06",
+                "xpRequired": 25
+              }
+            ]
+          },
+          {
+            "name": "releaseCelebration",
+            "args": []
+          }
+        ],
+        "result": true,
+        "replay": false,
+        "goalEvent": {
+          "id": "tutor:public-goal:2026-11-06",
+          "success": true,
+          "support": "prompted",
+          "domain": "production",
+          "observation": "Completed 25 XP of goal-specific Tutor practice with successful spoken turns."
+        },
+        "totalBonus": 0,
+        "required": 25
+      }
+    },
+    {
+      "input": {
+        "kind": "goal",
+        "mode": "tutor",
+        "support": "ar",
+        "failure": true,
+        "focus": {
+          "npub": "public-learner",
+          "targetLang": "es",
+          "supportLang": "ar",
+          "surface": "tutor",
+          "mode": "tutor",
+          "blueprint": {
+            "goalId": "public-goal",
+            "goalText": "Greet family",
+            "dayKey": "2026-11-06",
+            "lang": "es",
+            "mode": "tutor",
+            "modes": [
+              "tutor",
+              "lesson"
+            ],
+            "cefrLevel": "Pre-A1",
+            "objective": "Greet a relative",
+            "scenario": "A family conversation",
+            "targetLanguage": [
+              "Hola"
+            ],
+            "supports": [
+              "One model"
+            ],
+            "successCriteria": [
+              "Greet the relative"
+            ]
+          }
+        },
+        "lesson": {
+          "id": "goal-public-goal-2026-11-06",
+          "isGoal": true,
+          "goalBlueprint": {
+            "goalId": "public-goal",
+            "goalText": "Greet family",
+            "dayKey": "2026-11-06",
+            "lang": "es",
+            "mode": "tutor",
+            "modes": [
+              "tutor",
+              "lesson"
+            ],
+            "cefrLevel": "Pre-A1",
+            "objective": "Greet a relative",
+            "scenario": "A family conversation",
+            "targetLanguage": [
+              "Hola"
+            ],
+            "supports": [
+              "One model"
+            ],
+            "successCriteria": [
+              "Greet the relative"
+            ]
+          },
+          "title": {
+            "en": "Greet a relative"
+          },
+          "description": {
+            "en": "A family conversation"
+          },
+          "cefrLevel": "Pre-A1",
+          "xpReward": 20,
+          "modes": [
+            "vocabulary",
+            "grammar",
+            "reading",
+            "stories",
+            "realtime"
+          ],
+          "content": {
+            "goal": {
+              "topic": "Greet a relative",
+              "focusPoints": [
+                "Hola",
+                "Greet the relative"
+              ]
+            }
+          },
+          "xpRequired": 25
+        }
+      },
+      "expected": {
+        "pending": [
+          {
+            "name": "cancelDraft",
+            "args": []
+          },
+          {
+            "name": "sequenceStart",
+            "args": []
+          },
+          {
+            "name": "stop",
+            "args": []
+          }
+        ],
+        "trace": [
+          {
+            "name": "cancelDraft",
+            "args": []
+          },
+          {
+            "name": "sequenceStart",
+            "args": []
+          },
+          {
+            "name": "stop",
+            "args": []
+          },
+          {
+            "name": "awardSettled",
+            "args": [
+              {
+                "publicFixture": true
+              },
+              "tutor_repair_final_turn"
+            ]
+          },
+          {
+            "name": "goal",
+            "args": [
+              {
+                "npub": "public-learner",
+                "targetLang": "es",
+                "supportLang": "ar",
+                "surface": "tutor",
+                "mode": "tutor",
+                "blueprint": {
+                  "goalId": "public-goal",
+                  "goalText": "Greet family",
+                  "dayKey": "2026-11-06",
+                  "lang": "es",
+                  "mode": "tutor",
+                  "modes": [
+                    "tutor",
+                    "lesson"
+                  ],
+                  "cefrLevel": "Pre-A1",
+                  "objective": "Greet a relative",
+                  "scenario": "A family conversation",
+                  "targetLanguage": [
+                    "Hola"
+                  ],
+                  "supports": [
+                    "One model"
+                  ],
+                  "successCriteria": [
+                    "Greet the relative"
+                  ]
+                }
+              },
+              {
+                "id": "tutor:public-goal:2026-11-06",
+                "success": true,
+                "support": "prompted",
+                "domain": "production",
+                "observation": "Completed 25 XP of goal-specific Tutor practice with successful spoken turns."
+              }
+            ]
+          },
+          {
+            "name": "failure",
+            "args": []
+          },
+          {
+            "name": "releaseFailure",
+            "args": []
+          },
+          {
+            "name": "cancelDraft",
+            "args": []
+          },
+          {
+            "name": "sequenceStart",
+            "args": []
+          },
+          {
+            "name": "stop",
+            "args": []
+          },
+          {
+            "name": "goal",
+            "args": [
+              {
+                "npub": "public-learner",
+                "targetLang": "es",
+                "supportLang": "ar",
+                "surface": "tutor",
+                "mode": "tutor",
+                "blueprint": {
+                  "goalId": "public-goal",
+                  "goalText": "Greet family",
+                  "dayKey": "2026-11-06",
+                  "lang": "es",
+                  "mode": "tutor",
+                  "modes": [
+                    "tutor",
+                    "lesson"
+                  ],
+                  "cefrLevel": "Pre-A1",
+                  "objective": "Greet a relative",
+                  "scenario": "A family conversation",
+                  "targetLanguage": [
+                    "Hola"
+                  ],
+                  "supports": [
+                    "One model"
+                  ],
+                  "successCriteria": [
+                    "Greet the relative"
+                  ]
+                }
+              },
+              {
+                "id": "tutor:public-goal:2026-11-06",
+                "success": true,
+                "support": "prompted",
+                "domain": "production",
+                "observation": "Completed 25 XP of goal-specific Tutor practice with successful spoken turns."
+              }
+            ]
+          },
+          {
+            "name": "failure",
+            "args": []
+          },
+          {
+            "name": "releaseFailure",
+            "args": []
+          }
+        ],
+        "result": false,
+        "replay": false,
+        "goalEvent": {
+          "id": "tutor:public-goal:2026-11-06",
+          "success": true,
+          "support": "prompted",
+          "domain": "production",
+          "observation": "Completed 25 XP of goal-specific Tutor practice with successful spoken turns."
+        },
+        "totalBonus": 0,
+        "required": 25
+      }
+    },
+    {
+      "input": {
+        "kind": "goal",
+        "mode": "phonics",
+        "support": "en",
+        "failure": false,
+        "focus": {
+          "npub": "public-learner",
+          "targetLang": "es",
+          "supportLang": "en",
+          "surface": "tutor",
+          "mode": "phonics",
+          "blueprint": {
+            "goalId": "public-goal",
+            "goalText": "Greet family",
+            "dayKey": "2026-11-06",
+            "lang": "es",
+            "mode": "phonics",
+            "modes": [
+              "phonics",
+              "lesson"
+            ],
+            "cefrLevel": "Pre-A1",
+            "objective": "Greet a relative",
+            "scenario": "A family conversation",
+            "targetLanguage": [
+              "Hola"
+            ],
+            "supports": [
+              "One model"
+            ],
+            "successCriteria": [
+              "Greet the relative"
+            ]
+          }
+        },
+        "lesson": {
+          "id": "goal-public-goal-2026-11-06",
+          "isGoal": true,
+          "goalBlueprint": {
+            "goalId": "public-goal",
+            "goalText": "Greet family",
+            "dayKey": "2026-11-06",
+            "lang": "es",
+            "mode": "phonics",
+            "modes": [
+              "phonics",
+              "lesson"
+            ],
+            "cefrLevel": "Pre-A1",
+            "objective": "Greet a relative",
+            "scenario": "A family conversation",
+            "targetLanguage": [
+              "Hola"
+            ],
+            "supports": [
+              "One model"
+            ],
+            "successCriteria": [
+              "Greet the relative"
+            ]
+          },
+          "title": {
+            "en": "Greet a relative"
+          },
+          "description": {
+            "en": "A family conversation"
+          },
+          "cefrLevel": "Pre-A1",
+          "xpReward": 20,
+          "modes": [
+            "vocabulary",
+            "grammar",
+            "reading",
+            "stories",
+            "realtime"
+          ],
+          "content": {
+            "goal": {
+              "topic": "Greet a relative",
+              "focusPoints": [
+                "Hola",
+                "Greet the relative"
+              ]
+            }
+          },
+          "xpRequired": 25
+        }
+      },
+      "expected": {
+        "pending": [
+          {
+            "name": "cancelDraft",
+            "args": []
+          },
+          {
+            "name": "sequenceStart",
+            "args": []
+          },
+          {
+            "name": "stop",
+            "args": []
+          }
+        ],
+        "trace": [
+          {
+            "name": "cancelDraft",
+            "args": []
+          },
+          {
+            "name": "sequenceStart",
+            "args": []
+          },
+          {
+            "name": "stop",
+            "args": []
+          },
+          {
+            "name": "awardSettled",
+            "args": [
+              {
+                "publicFixture": true
+              },
+              "tutor_repair_final_turn"
+            ]
+          },
+          {
+            "name": "goal",
+            "args": [
+              {
+                "npub": "public-learner",
+                "targetLang": "es",
+                "supportLang": "en",
+                "surface": "tutor",
+                "mode": "phonics",
+                "blueprint": {
+                  "goalId": "public-goal",
+                  "goalText": "Greet family",
+                  "dayKey": "2026-11-06",
+                  "lang": "es",
+                  "mode": "phonics",
+                  "modes": [
+                    "phonics",
+                    "lesson"
+                  ],
+                  "cefrLevel": "Pre-A1",
+                  "objective": "Greet a relative",
+                  "scenario": "A family conversation",
+                  "targetLanguage": [
+                    "Hola"
+                  ],
+                  "supports": [
+                    "One model"
+                  ],
+                  "successCriteria": [
+                    "Greet the relative"
+                  ]
+                }
+              },
+              {
+                "id": "tutor:public-goal:2026-11-06",
+                "success": true,
+                "support": "prompted",
+                "domain": "production",
+                "observation": "Completed 25 XP of goal-specific Tutor practice with successful spoken turns."
+              }
+            ]
+          },
+          {
+            "name": "analytics",
+            "args": [
+              "tutor_goal_completed",
+              {
+                "lessonId": "goal-public-goal-2026-11-06",
+                "xpRequired": 25
+              }
+            ]
+          },
+          {
+            "name": "releaseCelebration",
+            "args": []
+          }
+        ],
+        "result": true,
+        "replay": false,
+        "goalEvent": {
+          "id": "tutor:public-goal:2026-11-06",
+          "success": true,
+          "support": "prompted",
+          "domain": "production",
+          "observation": "Completed 25 XP of goal-specific Tutor practice with successful spoken turns."
+        },
+        "totalBonus": 0,
+        "required": 25
+      }
+    },
+    {
+      "input": {
+        "kind": "goal",
+        "mode": "phonics",
+        "support": "en",
+        "failure": true,
+        "focus": {
+          "npub": "public-learner",
+          "targetLang": "es",
+          "supportLang": "en",
+          "surface": "tutor",
+          "mode": "phonics",
+          "blueprint": {
+            "goalId": "public-goal",
+            "goalText": "Greet family",
+            "dayKey": "2026-11-06",
+            "lang": "es",
+            "mode": "phonics",
+            "modes": [
+              "phonics",
+              "lesson"
+            ],
+            "cefrLevel": "Pre-A1",
+            "objective": "Greet a relative",
+            "scenario": "A family conversation",
+            "targetLanguage": [
+              "Hola"
+            ],
+            "supports": [
+              "One model"
+            ],
+            "successCriteria": [
+              "Greet the relative"
+            ]
+          }
+        },
+        "lesson": {
+          "id": "goal-public-goal-2026-11-06",
+          "isGoal": true,
+          "goalBlueprint": {
+            "goalId": "public-goal",
+            "goalText": "Greet family",
+            "dayKey": "2026-11-06",
+            "lang": "es",
+            "mode": "phonics",
+            "modes": [
+              "phonics",
+              "lesson"
+            ],
+            "cefrLevel": "Pre-A1",
+            "objective": "Greet a relative",
+            "scenario": "A family conversation",
+            "targetLanguage": [
+              "Hola"
+            ],
+            "supports": [
+              "One model"
+            ],
+            "successCriteria": [
+              "Greet the relative"
+            ]
+          },
+          "title": {
+            "en": "Greet a relative"
+          },
+          "description": {
+            "en": "A family conversation"
+          },
+          "cefrLevel": "Pre-A1",
+          "xpReward": 20,
+          "modes": [
+            "vocabulary",
+            "grammar",
+            "reading",
+            "stories",
+            "realtime"
+          ],
+          "content": {
+            "goal": {
+              "topic": "Greet a relative",
+              "focusPoints": [
+                "Hola",
+                "Greet the relative"
+              ]
+            }
+          },
+          "xpRequired": 25
+        }
+      },
+      "expected": {
+        "pending": [
+          {
+            "name": "cancelDraft",
+            "args": []
+          },
+          {
+            "name": "sequenceStart",
+            "args": []
+          },
+          {
+            "name": "stop",
+            "args": []
+          }
+        ],
+        "trace": [
+          {
+            "name": "cancelDraft",
+            "args": []
+          },
+          {
+            "name": "sequenceStart",
+            "args": []
+          },
+          {
+            "name": "stop",
+            "args": []
+          },
+          {
+            "name": "awardSettled",
+            "args": [
+              {
+                "publicFixture": true
+              },
+              "tutor_repair_final_turn"
+            ]
+          },
+          {
+            "name": "goal",
+            "args": [
+              {
+                "npub": "public-learner",
+                "targetLang": "es",
+                "supportLang": "en",
+                "surface": "tutor",
+                "mode": "phonics",
+                "blueprint": {
+                  "goalId": "public-goal",
+                  "goalText": "Greet family",
+                  "dayKey": "2026-11-06",
+                  "lang": "es",
+                  "mode": "phonics",
+                  "modes": [
+                    "phonics",
+                    "lesson"
+                  ],
+                  "cefrLevel": "Pre-A1",
+                  "objective": "Greet a relative",
+                  "scenario": "A family conversation",
+                  "targetLanguage": [
+                    "Hola"
+                  ],
+                  "supports": [
+                    "One model"
+                  ],
+                  "successCriteria": [
+                    "Greet the relative"
+                  ]
+                }
+              },
+              {
+                "id": "tutor:public-goal:2026-11-06",
+                "success": true,
+                "support": "prompted",
+                "domain": "production",
+                "observation": "Completed 25 XP of goal-specific Tutor practice with successful spoken turns."
+              }
+            ]
+          },
+          {
+            "name": "failure",
+            "args": []
+          },
+          {
+            "name": "releaseFailure",
+            "args": []
+          },
+          {
+            "name": "cancelDraft",
+            "args": []
+          },
+          {
+            "name": "sequenceStart",
+            "args": []
+          },
+          {
+            "name": "stop",
+            "args": []
+          },
+          {
+            "name": "goal",
+            "args": [
+              {
+                "npub": "public-learner",
+                "targetLang": "es",
+                "supportLang": "en",
+                "surface": "tutor",
+                "mode": "phonics",
+                "blueprint": {
+                  "goalId": "public-goal",
+                  "goalText": "Greet family",
+                  "dayKey": "2026-11-06",
+                  "lang": "es",
+                  "mode": "phonics",
+                  "modes": [
+                    "phonics",
+                    "lesson"
+                  ],
+                  "cefrLevel": "Pre-A1",
+                  "objective": "Greet a relative",
+                  "scenario": "A family conversation",
+                  "targetLanguage": [
+                    "Hola"
+                  ],
+                  "supports": [
+                    "One model"
+                  ],
+                  "successCriteria": [
+                    "Greet the relative"
+                  ]
+                }
+              },
+              {
+                "id": "tutor:public-goal:2026-11-06",
+                "success": true,
+                "support": "prompted",
+                "domain": "production",
+                "observation": "Completed 25 XP of goal-specific Tutor practice with successful spoken turns."
+              }
+            ]
+          },
+          {
+            "name": "failure",
+            "args": []
+          },
+          {
+            "name": "releaseFailure",
+            "args": []
+          }
+        ],
+        "result": false,
+        "replay": false,
+        "goalEvent": {
+          "id": "tutor:public-goal:2026-11-06",
+          "success": true,
+          "support": "prompted",
+          "domain": "production",
+          "observation": "Completed 25 XP of goal-specific Tutor practice with successful spoken turns."
+        },
+        "totalBonus": 0,
+        "required": 25
+      }
+    },
+    {
+      "input": {
+        "kind": "goal",
+        "mode": "phonics",
+        "support": "ar",
+        "failure": false,
+        "focus": {
+          "npub": "public-learner",
+          "targetLang": "es",
+          "supportLang": "ar",
+          "surface": "tutor",
+          "mode": "phonics",
+          "blueprint": {
+            "goalId": "public-goal",
+            "goalText": "Greet family",
+            "dayKey": "2026-11-06",
+            "lang": "es",
+            "mode": "phonics",
+            "modes": [
+              "phonics",
+              "lesson"
+            ],
+            "cefrLevel": "Pre-A1",
+            "objective": "Greet a relative",
+            "scenario": "A family conversation",
+            "targetLanguage": [
+              "Hola"
+            ],
+            "supports": [
+              "One model"
+            ],
+            "successCriteria": [
+              "Greet the relative"
+            ]
+          }
+        },
+        "lesson": {
+          "id": "goal-public-goal-2026-11-06",
+          "isGoal": true,
+          "goalBlueprint": {
+            "goalId": "public-goal",
+            "goalText": "Greet family",
+            "dayKey": "2026-11-06",
+            "lang": "es",
+            "mode": "phonics",
+            "modes": [
+              "phonics",
+              "lesson"
+            ],
+            "cefrLevel": "Pre-A1",
+            "objective": "Greet a relative",
+            "scenario": "A family conversation",
+            "targetLanguage": [
+              "Hola"
+            ],
+            "supports": [
+              "One model"
+            ],
+            "successCriteria": [
+              "Greet the relative"
+            ]
+          },
+          "title": {
+            "en": "Greet a relative"
+          },
+          "description": {
+            "en": "A family conversation"
+          },
+          "cefrLevel": "Pre-A1",
+          "xpReward": 20,
+          "modes": [
+            "vocabulary",
+            "grammar",
+            "reading",
+            "stories",
+            "realtime"
+          ],
+          "content": {
+            "goal": {
+              "topic": "Greet a relative",
+              "focusPoints": [
+                "Hola",
+                "Greet the relative"
+              ]
+            }
+          },
+          "xpRequired": 25
+        }
+      },
+      "expected": {
+        "pending": [
+          {
+            "name": "cancelDraft",
+            "args": []
+          },
+          {
+            "name": "sequenceStart",
+            "args": []
+          },
+          {
+            "name": "stop",
+            "args": []
+          }
+        ],
+        "trace": [
+          {
+            "name": "cancelDraft",
+            "args": []
+          },
+          {
+            "name": "sequenceStart",
+            "args": []
+          },
+          {
+            "name": "stop",
+            "args": []
+          },
+          {
+            "name": "awardSettled",
+            "args": [
+              {
+                "publicFixture": true
+              },
+              "tutor_repair_final_turn"
+            ]
+          },
+          {
+            "name": "goal",
+            "args": [
+              {
+                "npub": "public-learner",
+                "targetLang": "es",
+                "supportLang": "ar",
+                "surface": "tutor",
+                "mode": "phonics",
+                "blueprint": {
+                  "goalId": "public-goal",
+                  "goalText": "Greet family",
+                  "dayKey": "2026-11-06",
+                  "lang": "es",
+                  "mode": "phonics",
+                  "modes": [
+                    "phonics",
+                    "lesson"
+                  ],
+                  "cefrLevel": "Pre-A1",
+                  "objective": "Greet a relative",
+                  "scenario": "A family conversation",
+                  "targetLanguage": [
+                    "Hola"
+                  ],
+                  "supports": [
+                    "One model"
+                  ],
+                  "successCriteria": [
+                    "Greet the relative"
+                  ]
+                }
+              },
+              {
+                "id": "tutor:public-goal:2026-11-06",
+                "success": true,
+                "support": "prompted",
+                "domain": "production",
+                "observation": "Completed 25 XP of goal-specific Tutor practice with successful spoken turns."
+              }
+            ]
+          },
+          {
+            "name": "analytics",
+            "args": [
+              "tutor_goal_completed",
+              {
+                "lessonId": "goal-public-goal-2026-11-06",
+                "xpRequired": 25
+              }
+            ]
+          },
+          {
+            "name": "releaseCelebration",
+            "args": []
+          }
+        ],
+        "result": true,
+        "replay": false,
+        "goalEvent": {
+          "id": "tutor:public-goal:2026-11-06",
+          "success": true,
+          "support": "prompted",
+          "domain": "production",
+          "observation": "Completed 25 XP of goal-specific Tutor practice with successful spoken turns."
+        },
+        "totalBonus": 0,
+        "required": 25
+      }
+    },
+    {
+      "input": {
+        "kind": "goal",
+        "mode": "phonics",
+        "support": "ar",
+        "failure": true,
+        "focus": {
+          "npub": "public-learner",
+          "targetLang": "es",
+          "supportLang": "ar",
+          "surface": "tutor",
+          "mode": "phonics",
+          "blueprint": {
+            "goalId": "public-goal",
+            "goalText": "Greet family",
+            "dayKey": "2026-11-06",
+            "lang": "es",
+            "mode": "phonics",
+            "modes": [
+              "phonics",
+              "lesson"
+            ],
+            "cefrLevel": "Pre-A1",
+            "objective": "Greet a relative",
+            "scenario": "A family conversation",
+            "targetLanguage": [
+              "Hola"
+            ],
+            "supports": [
+              "One model"
+            ],
+            "successCriteria": [
+              "Greet the relative"
+            ]
+          }
+        },
+        "lesson": {
+          "id": "goal-public-goal-2026-11-06",
+          "isGoal": true,
+          "goalBlueprint": {
+            "goalId": "public-goal",
+            "goalText": "Greet family",
+            "dayKey": "2026-11-06",
+            "lang": "es",
+            "mode": "phonics",
+            "modes": [
+              "phonics",
+              "lesson"
+            ],
+            "cefrLevel": "Pre-A1",
+            "objective": "Greet a relative",
+            "scenario": "A family conversation",
+            "targetLanguage": [
+              "Hola"
+            ],
+            "supports": [
+              "One model"
+            ],
+            "successCriteria": [
+              "Greet the relative"
+            ]
+          },
+          "title": {
+            "en": "Greet a relative"
+          },
+          "description": {
+            "en": "A family conversation"
+          },
+          "cefrLevel": "Pre-A1",
+          "xpReward": 20,
+          "modes": [
+            "vocabulary",
+            "grammar",
+            "reading",
+            "stories",
+            "realtime"
+          ],
+          "content": {
+            "goal": {
+              "topic": "Greet a relative",
+              "focusPoints": [
+                "Hola",
+                "Greet the relative"
+              ]
+            }
+          },
+          "xpRequired": 25
+        }
+      },
+      "expected": {
+        "pending": [
+          {
+            "name": "cancelDraft",
+            "args": []
+          },
+          {
+            "name": "sequenceStart",
+            "args": []
+          },
+          {
+            "name": "stop",
+            "args": []
+          }
+        ],
+        "trace": [
+          {
+            "name": "cancelDraft",
+            "args": []
+          },
+          {
+            "name": "sequenceStart",
+            "args": []
+          },
+          {
+            "name": "stop",
+            "args": []
+          },
+          {
+            "name": "awardSettled",
+            "args": [
+              {
+                "publicFixture": true
+              },
+              "tutor_repair_final_turn"
+            ]
+          },
+          {
+            "name": "goal",
+            "args": [
+              {
+                "npub": "public-learner",
+                "targetLang": "es",
+                "supportLang": "ar",
+                "surface": "tutor",
+                "mode": "phonics",
+                "blueprint": {
+                  "goalId": "public-goal",
+                  "goalText": "Greet family",
+                  "dayKey": "2026-11-06",
+                  "lang": "es",
+                  "mode": "phonics",
+                  "modes": [
+                    "phonics",
+                    "lesson"
+                  ],
+                  "cefrLevel": "Pre-A1",
+                  "objective": "Greet a relative",
+                  "scenario": "A family conversation",
+                  "targetLanguage": [
+                    "Hola"
+                  ],
+                  "supports": [
+                    "One model"
+                  ],
+                  "successCriteria": [
+                    "Greet the relative"
+                  ]
+                }
+              },
+              {
+                "id": "tutor:public-goal:2026-11-06",
+                "success": true,
+                "support": "prompted",
+                "domain": "production",
+                "observation": "Completed 25 XP of goal-specific Tutor practice with successful spoken turns."
+              }
+            ]
+          },
+          {
+            "name": "failure",
+            "args": []
+          },
+          {
+            "name": "releaseFailure",
+            "args": []
+          },
+          {
+            "name": "cancelDraft",
+            "args": []
+          },
+          {
+            "name": "sequenceStart",
+            "args": []
+          },
+          {
+            "name": "stop",
+            "args": []
+          },
+          {
+            "name": "goal",
+            "args": [
+              {
+                "npub": "public-learner",
+                "targetLang": "es",
+                "supportLang": "ar",
+                "surface": "tutor",
+                "mode": "phonics",
+                "blueprint": {
+                  "goalId": "public-goal",
+                  "goalText": "Greet family",
+                  "dayKey": "2026-11-06",
+                  "lang": "es",
+                  "mode": "phonics",
+                  "modes": [
+                    "phonics",
+                    "lesson"
+                  ],
+                  "cefrLevel": "Pre-A1",
+                  "objective": "Greet a relative",
+                  "scenario": "A family conversation",
+                  "targetLanguage": [
+                    "Hola"
+                  ],
+                  "supports": [
+                    "One model"
+                  ],
+                  "successCriteria": [
+                    "Greet the relative"
+                  ]
+                }
+              },
+              {
+                "id": "tutor:public-goal:2026-11-06",
+                "success": true,
+                "support": "prompted",
+                "domain": "production",
+                "observation": "Completed 25 XP of goal-specific Tutor practice with successful spoken turns."
+              }
+            ]
+          },
+          {
+            "name": "failure",
+            "args": []
+          },
+          {
+            "name": "releaseFailure",
+            "args": []
+          }
+        ],
+        "result": false,
+        "replay": false,
+        "goalEvent": {
+          "id": "tutor:public-goal:2026-11-06",
+          "success": true,
+          "support": "prompted",
+          "domain": "production",
+          "observation": "Completed 25 XP of goal-specific Tutor practice with successful spoken turns."
+        },
+        "totalBonus": 0,
+        "required": 25
+      }
+    },
+    {
+      "input": {
+        "kind": "repair",
+        "mode": "tutor",
+        "support": "en",
+        "failure": false,
+        "focus": {
+          "npub": "public-learner",
+          "targetLang": "es",
+          "supportLang": "en",
+          "surface": "tutor",
+          "mode": "tutor",
+          "plan": {
+            "targetLang": "es",
+            "dayKey": "2026-11-06",
+            "target": 1,
+            "items": [
+              {
+                "memoryId": "public-greeting",
+                "concept": "Hola",
+                "expectedAnswer": "Hola",
+                "mode": "tutor",
+                "errorType": "conversation_flow",
+                "cefrLevel": "Pre-A1"
+              }
+            ],
+            "memoryIds": [
+              "public-greeting"
+            ]
+          },
+          "stepIndex": 0,
+          "stepCount": 1
+        },
+        "lesson": {
+          "id": "tutor-repair-2026-11-06-s0",
+          "isRepair": true,
+          "title": {
+            "en": "Quick repair",
+            "es": "Reparación rápida",
+            "pt": "Reparo rápido",
+            "fr": "Réparation rapide",
+            "it": "Ripasso veloce",
+            "de": "Kurze Auffrischung",
+            "ja": "クイックリペア",
+            "zh": "快速修复",
+            "ru": "Быстрый повтор",
+            "ar": "مراجعة سريعة",
+            "hi": "त्वरित मरम्मत"
+          },
+          "description": {
+            "en": "Let's make yesterday's tricky bits automatic.",
+            "es": "Hagamos automático lo difícil de ayer.",
+            "pt": "Vamos tornar automático o difícil de ontem.",
+            "fr": "Rendons automatiques les points délicats d'hier.",
+            "it": "Rendiamo automatici i punti ostici di ieri.",
+            "de": "Machen wir die kniffligen Stellen von gestern automatisch.",
+            "ja": "昨日の難所を自然に出せるようにしよう。",
+            "zh": "把昨天的难点变成自然反应。",
+            "ru": "Сделаем вчерашние трудности автоматическими.",
+            "ar": "خلّينا نخلي صعوبات إمبارح تطلع تلقائي.",
+            "hi": "कल की मुश्किल चीज़ों को सहज बना देते हैं।"
+          },
+          "cefrLevel": "Pre-A1",
+          "xpRequired": 12,
+          "content": {
+            "repair": {
+              "topic": "Hola",
+              "focusPoints": [
+                "Hola"
+              ],
+              "isRepair": true
+            }
+          },
+          "repairTarget": 1,
+          "repairMemoryIds": [
+            "public-greeting"
+          ]
+        }
+      },
+      "expected": {
+        "pending": [
+          {
+            "name": "cancelDraft",
+            "args": []
+          },
+          {
+            "name": "sequenceStart",
+            "args": []
+          },
+          {
+            "name": "stop",
+            "args": []
+          }
+        ],
+        "trace": [
+          {
+            "name": "cancelDraft",
+            "args": []
+          },
+          {
+            "name": "sequenceStart",
+            "args": []
+          },
+          {
+            "name": "stop",
+            "args": []
+          },
+          {
+            "name": "awardSettled",
+            "args": [
+              {
+                "publicFixture": true
+              },
+              "tutor_repair_final_turn"
+            ]
+          },
+          {
+            "name": "repair",
+            "args": [
+              {
+                "lesson": {
+                  "id": "tutor-repair-2026-11-06-s0",
+                  "isRepair": true,
+                  "title": {
+                    "en": "Quick repair",
+                    "es": "Reparación rápida",
+                    "pt": "Reparo rápido",
+                    "fr": "Réparation rapide",
+                    "it": "Ripasso veloce",
+                    "de": "Kurze Auffrischung",
+                    "ja": "クイックリペア",
+                    "zh": "快速修复",
+                    "ru": "Быстрый повтор",
+                    "ar": "مراجعة سريعة",
+                    "hi": "त्वरित मरम्मत"
+                  },
+                  "description": {
+                    "en": "Let's make yesterday's tricky bits automatic.",
+                    "es": "Hagamos automático lo difícil de ayer.",
+                    "pt": "Vamos tornar automático o difícil de ontem.",
+                    "fr": "Rendons automatiques les points délicats d'hier.",
+                    "it": "Rendiamo automatici i punti ostici di ieri.",
+                    "de": "Machen wir die kniffligen Stellen von gestern automatisch.",
+                    "ja": "昨日の難所を自然に出せるようにしよう。",
+                    "zh": "把昨天的难点变成自然反应。",
+                    "ru": "Сделаем вчерашние трудности автоматическими.",
+                    "ar": "خلّينا نخلي صعوبات إمبارح تطلع تلقائي.",
+                    "hi": "कल की मुश्किल चीज़ों को सहज बना देते हैं।"
+                  },
+                  "cefrLevel": "Pre-A1",
+                  "xpRequired": 12,
+                  "content": {
+                    "repair": {
+                      "topic": "Hola",
+                      "focusPoints": [
+                        "Hola"
+                      ],
+                      "isRepair": true
+                    }
+                  },
+                  "repairTarget": 1,
+                  "repairMemoryIds": [
+                    "public-greeting"
+                  ]
+                },
+                "npub": "public-learner",
+                "targetLang": "es"
+              }
+            ]
+          },
+          {
+            "name": "localBonus",
+            "args": [
+              12
+            ]
+          },
+          {
+            "name": "dailyBonus",
+            "args": [
+              "public-learner",
+              12
+            ]
+          },
+          {
+            "name": "awardBonus",
+            "args": [
+              "public-learner",
+              12,
+              "es"
+            ]
+          },
+          {
+            "name": "awardSettled",
+            "args": [
+              null,
+              "tutor_repair_completion_bonus"
+            ]
+          },
+          {
+            "name": "syncDaily",
+            "args": []
+          },
+          {
+            "name": "analytics",
+            "args": [
+              "tutor_repair_completed",
+              {
+                "lessonId": "tutor-repair-2026-11-06-s0",
+                "xpRequired": 12
+              }
+            ]
+          },
+          {
+            "name": "releaseCelebration",
+            "args": []
+          }
+        ],
+        "result": true,
+        "replay": false,
+        "goalEvent": null,
+        "totalBonus": 12,
+        "required": 12
+      }
+    },
+    {
+      "input": {
+        "kind": "repair",
+        "mode": "tutor",
+        "support": "en",
+        "failure": true,
+        "focus": {
+          "npub": "public-learner",
+          "targetLang": "es",
+          "supportLang": "en",
+          "surface": "tutor",
+          "mode": "tutor",
+          "plan": {
+            "targetLang": "es",
+            "dayKey": "2026-11-06",
+            "target": 1,
+            "items": [
+              {
+                "memoryId": "public-greeting",
+                "concept": "Hola",
+                "expectedAnswer": "Hola",
+                "mode": "tutor",
+                "errorType": "conversation_flow",
+                "cefrLevel": "Pre-A1"
+              }
+            ],
+            "memoryIds": [
+              "public-greeting"
+            ]
+          },
+          "stepIndex": 0,
+          "stepCount": 1
+        },
+        "lesson": {
+          "id": "tutor-repair-2026-11-06-s0",
+          "isRepair": true,
+          "title": {
+            "en": "Quick repair",
+            "es": "Reparación rápida",
+            "pt": "Reparo rápido",
+            "fr": "Réparation rapide",
+            "it": "Ripasso veloce",
+            "de": "Kurze Auffrischung",
+            "ja": "クイックリペア",
+            "zh": "快速修复",
+            "ru": "Быстрый повтор",
+            "ar": "مراجعة سريعة",
+            "hi": "त्वरित मरम्मत"
+          },
+          "description": {
+            "en": "Let's make yesterday's tricky bits automatic.",
+            "es": "Hagamos automático lo difícil de ayer.",
+            "pt": "Vamos tornar automático o difícil de ontem.",
+            "fr": "Rendons automatiques les points délicats d'hier.",
+            "it": "Rendiamo automatici i punti ostici di ieri.",
+            "de": "Machen wir die kniffligen Stellen von gestern automatisch.",
+            "ja": "昨日の難所を自然に出せるようにしよう。",
+            "zh": "把昨天的难点变成自然反应。",
+            "ru": "Сделаем вчерашние трудности автоматическими.",
+            "ar": "خلّينا نخلي صعوبات إمبارح تطلع تلقائي.",
+            "hi": "कल की मुश्किल चीज़ों को सहज बना देते हैं।"
+          },
+          "cefrLevel": "Pre-A1",
+          "xpRequired": 12,
+          "content": {
+            "repair": {
+              "topic": "Hola",
+              "focusPoints": [
+                "Hola"
+              ],
+              "isRepair": true
+            }
+          },
+          "repairTarget": 1,
+          "repairMemoryIds": [
+            "public-greeting"
+          ]
+        }
+      },
+      "expected": {
+        "pending": [
+          {
+            "name": "cancelDraft",
+            "args": []
+          },
+          {
+            "name": "sequenceStart",
+            "args": []
+          },
+          {
+            "name": "stop",
+            "args": []
+          }
+        ],
+        "trace": [
+          {
+            "name": "cancelDraft",
+            "args": []
+          },
+          {
+            "name": "sequenceStart",
+            "args": []
+          },
+          {
+            "name": "stop",
+            "args": []
+          },
+          {
+            "name": "awardSettled",
+            "args": [
+              {
+                "publicFixture": true
+              },
+              "tutor_repair_final_turn"
+            ]
+          },
+          {
+            "name": "repair",
+            "args": [
+              {
+                "lesson": {
+                  "id": "tutor-repair-2026-11-06-s0",
+                  "isRepair": true,
+                  "title": {
+                    "en": "Quick repair",
+                    "es": "Reparación rápida",
+                    "pt": "Reparo rápido",
+                    "fr": "Réparation rapide",
+                    "it": "Ripasso veloce",
+                    "de": "Kurze Auffrischung",
+                    "ja": "クイックリペア",
+                    "zh": "快速修复",
+                    "ru": "Быстрый повтор",
+                    "ar": "مراجعة سريعة",
+                    "hi": "त्वरित मरम्मत"
+                  },
+                  "description": {
+                    "en": "Let's make yesterday's tricky bits automatic.",
+                    "es": "Hagamos automático lo difícil de ayer.",
+                    "pt": "Vamos tornar automático o difícil de ontem.",
+                    "fr": "Rendons automatiques les points délicats d'hier.",
+                    "it": "Rendiamo automatici i punti ostici di ieri.",
+                    "de": "Machen wir die kniffligen Stellen von gestern automatisch.",
+                    "ja": "昨日の難所を自然に出せるようにしよう。",
+                    "zh": "把昨天的难点变成自然反应。",
+                    "ru": "Сделаем вчерашние трудности автоматическими.",
+                    "ar": "خلّينا نخلي صعوبات إمبارح تطلع تلقائي.",
+                    "hi": "कल की मुश्किल चीज़ों को सहज बना देते हैं।"
+                  },
+                  "cefrLevel": "Pre-A1",
+                  "xpRequired": 12,
+                  "content": {
+                    "repair": {
+                      "topic": "Hola",
+                      "focusPoints": [
+                        "Hola"
+                      ],
+                      "isRepair": true
+                    }
+                  },
+                  "repairTarget": 1,
+                  "repairMemoryIds": [
+                    "public-greeting"
+                  ]
+                },
+                "npub": "public-learner",
+                "targetLang": "es"
+              }
+            ]
+          },
+          {
+            "name": "failure",
+            "args": []
+          },
+          {
+            "name": "releaseFailure",
+            "args": []
+          },
+          {
+            "name": "cancelDraft",
+            "args": []
+          },
+          {
+            "name": "sequenceStart",
+            "args": []
+          },
+          {
+            "name": "stop",
+            "args": []
+          },
+          {
+            "name": "repair",
+            "args": [
+              {
+                "lesson": {
+                  "id": "tutor-repair-2026-11-06-s0",
+                  "isRepair": true,
+                  "title": {
+                    "en": "Quick repair",
+                    "es": "Reparación rápida",
+                    "pt": "Reparo rápido",
+                    "fr": "Réparation rapide",
+                    "it": "Ripasso veloce",
+                    "de": "Kurze Auffrischung",
+                    "ja": "クイックリペア",
+                    "zh": "快速修复",
+                    "ru": "Быстрый повтор",
+                    "ar": "مراجعة سريعة",
+                    "hi": "त्वरित मरम्मत"
+                  },
+                  "description": {
+                    "en": "Let's make yesterday's tricky bits automatic.",
+                    "es": "Hagamos automático lo difícil de ayer.",
+                    "pt": "Vamos tornar automático o difícil de ontem.",
+                    "fr": "Rendons automatiques les points délicats d'hier.",
+                    "it": "Rendiamo automatici i punti ostici di ieri.",
+                    "de": "Machen wir die kniffligen Stellen von gestern automatisch.",
+                    "ja": "昨日の難所を自然に出せるようにしよう。",
+                    "zh": "把昨天的难点变成自然反应。",
+                    "ru": "Сделаем вчерашние трудности автоматическими.",
+                    "ar": "خلّينا نخلي صعوبات إمبارح تطلع تلقائي.",
+                    "hi": "कल की मुश्किल चीज़ों को सहज बना देते हैं।"
+                  },
+                  "cefrLevel": "Pre-A1",
+                  "xpRequired": 12,
+                  "content": {
+                    "repair": {
+                      "topic": "Hola",
+                      "focusPoints": [
+                        "Hola"
+                      ],
+                      "isRepair": true
+                    }
+                  },
+                  "repairTarget": 1,
+                  "repairMemoryIds": [
+                    "public-greeting"
+                  ]
+                },
+                "npub": "public-learner",
+                "targetLang": "es"
+              }
+            ]
+          },
+          {
+            "name": "failure",
+            "args": []
+          },
+          {
+            "name": "releaseFailure",
+            "args": []
+          }
+        ],
+        "result": false,
+        "replay": false,
+        "goalEvent": null,
+        "totalBonus": 0,
+        "required": 12
+      }
+    },
+    {
+      "input": {
+        "kind": "repair",
+        "mode": "tutor",
+        "support": "ar",
+        "failure": false,
+        "focus": {
+          "npub": "public-learner",
+          "targetLang": "es",
+          "supportLang": "ar",
+          "surface": "tutor",
+          "mode": "tutor",
+          "plan": {
+            "targetLang": "es",
+            "dayKey": "2026-11-06",
+            "target": 1,
+            "items": [
+              {
+                "memoryId": "public-greeting",
+                "concept": "Hola",
+                "expectedAnswer": "Hola",
+                "mode": "tutor",
+                "errorType": "conversation_flow",
+                "cefrLevel": "Pre-A1"
+              }
+            ],
+            "memoryIds": [
+              "public-greeting"
+            ]
+          },
+          "stepIndex": 0,
+          "stepCount": 1
+        },
+        "lesson": {
+          "id": "tutor-repair-2026-11-06-s0",
+          "isRepair": true,
+          "title": {
+            "en": "Quick repair",
+            "es": "Reparación rápida",
+            "pt": "Reparo rápido",
+            "fr": "Réparation rapide",
+            "it": "Ripasso veloce",
+            "de": "Kurze Auffrischung",
+            "ja": "クイックリペア",
+            "zh": "快速修复",
+            "ru": "Быстрый повтор",
+            "ar": "مراجعة سريعة",
+            "hi": "त्वरित मरम्मत"
+          },
+          "description": {
+            "en": "Let's make yesterday's tricky bits automatic.",
+            "es": "Hagamos automático lo difícil de ayer.",
+            "pt": "Vamos tornar automático o difícil de ontem.",
+            "fr": "Rendons automatiques les points délicats d'hier.",
+            "it": "Rendiamo automatici i punti ostici di ieri.",
+            "de": "Machen wir die kniffligen Stellen von gestern automatisch.",
+            "ja": "昨日の難所を自然に出せるようにしよう。",
+            "zh": "把昨天的难点变成自然反应。",
+            "ru": "Сделаем вчерашние трудности автоматическими.",
+            "ar": "خلّينا نخلي صعوبات إمبارح تطلع تلقائي.",
+            "hi": "कल की मुश्किल चीज़ों को सहज बना देते हैं।"
+          },
+          "cefrLevel": "Pre-A1",
+          "xpRequired": 12,
+          "content": {
+            "repair": {
+              "topic": "Hola",
+              "focusPoints": [
+                "Hola"
+              ],
+              "isRepair": true
+            }
+          },
+          "repairTarget": 1,
+          "repairMemoryIds": [
+            "public-greeting"
+          ]
+        }
+      },
+      "expected": {
+        "pending": [
+          {
+            "name": "cancelDraft",
+            "args": []
+          },
+          {
+            "name": "sequenceStart",
+            "args": []
+          },
+          {
+            "name": "stop",
+            "args": []
+          }
+        ],
+        "trace": [
+          {
+            "name": "cancelDraft",
+            "args": []
+          },
+          {
+            "name": "sequenceStart",
+            "args": []
+          },
+          {
+            "name": "stop",
+            "args": []
+          },
+          {
+            "name": "awardSettled",
+            "args": [
+              {
+                "publicFixture": true
+              },
+              "tutor_repair_final_turn"
+            ]
+          },
+          {
+            "name": "repair",
+            "args": [
+              {
+                "lesson": {
+                  "id": "tutor-repair-2026-11-06-s0",
+                  "isRepair": true,
+                  "title": {
+                    "en": "Quick repair",
+                    "es": "Reparación rápida",
+                    "pt": "Reparo rápido",
+                    "fr": "Réparation rapide",
+                    "it": "Ripasso veloce",
+                    "de": "Kurze Auffrischung",
+                    "ja": "クイックリペア",
+                    "zh": "快速修复",
+                    "ru": "Быстрый повтор",
+                    "ar": "مراجعة سريعة",
+                    "hi": "त्वरित मरम्मत"
+                  },
+                  "description": {
+                    "en": "Let's make yesterday's tricky bits automatic.",
+                    "es": "Hagamos automático lo difícil de ayer.",
+                    "pt": "Vamos tornar automático o difícil de ontem.",
+                    "fr": "Rendons automatiques les points délicats d'hier.",
+                    "it": "Rendiamo automatici i punti ostici di ieri.",
+                    "de": "Machen wir die kniffligen Stellen von gestern automatisch.",
+                    "ja": "昨日の難所を自然に出せるようにしよう。",
+                    "zh": "把昨天的难点变成自然反应。",
+                    "ru": "Сделаем вчерашние трудности автоматическими.",
+                    "ar": "خلّينا نخلي صعوبات إمبارح تطلع تلقائي.",
+                    "hi": "कल की मुश्किल चीज़ों को सहज बना देते हैं।"
+                  },
+                  "cefrLevel": "Pre-A1",
+                  "xpRequired": 12,
+                  "content": {
+                    "repair": {
+                      "topic": "Hola",
+                      "focusPoints": [
+                        "Hola"
+                      ],
+                      "isRepair": true
+                    }
+                  },
+                  "repairTarget": 1,
+                  "repairMemoryIds": [
+                    "public-greeting"
+                  ]
+                },
+                "npub": "public-learner",
+                "targetLang": "es"
+              }
+            ]
+          },
+          {
+            "name": "localBonus",
+            "args": [
+              12
+            ]
+          },
+          {
+            "name": "dailyBonus",
+            "args": [
+              "public-learner",
+              12
+            ]
+          },
+          {
+            "name": "awardBonus",
+            "args": [
+              "public-learner",
+              12,
+              "es"
+            ]
+          },
+          {
+            "name": "awardSettled",
+            "args": [
+              null,
+              "tutor_repair_completion_bonus"
+            ]
+          },
+          {
+            "name": "syncDaily",
+            "args": []
+          },
+          {
+            "name": "analytics",
+            "args": [
+              "tutor_repair_completed",
+              {
+                "lessonId": "tutor-repair-2026-11-06-s0",
+                "xpRequired": 12
+              }
+            ]
+          },
+          {
+            "name": "releaseCelebration",
+            "args": []
+          }
+        ],
+        "result": true,
+        "replay": false,
+        "goalEvent": null,
+        "totalBonus": 12,
+        "required": 12
+      }
+    },
+    {
+      "input": {
+        "kind": "repair",
+        "mode": "tutor",
+        "support": "ar",
+        "failure": true,
+        "focus": {
+          "npub": "public-learner",
+          "targetLang": "es",
+          "supportLang": "ar",
+          "surface": "tutor",
+          "mode": "tutor",
+          "plan": {
+            "targetLang": "es",
+            "dayKey": "2026-11-06",
+            "target": 1,
+            "items": [
+              {
+                "memoryId": "public-greeting",
+                "concept": "Hola",
+                "expectedAnswer": "Hola",
+                "mode": "tutor",
+                "errorType": "conversation_flow",
+                "cefrLevel": "Pre-A1"
+              }
+            ],
+            "memoryIds": [
+              "public-greeting"
+            ]
+          },
+          "stepIndex": 0,
+          "stepCount": 1
+        },
+        "lesson": {
+          "id": "tutor-repair-2026-11-06-s0",
+          "isRepair": true,
+          "title": {
+            "en": "Quick repair",
+            "es": "Reparación rápida",
+            "pt": "Reparo rápido",
+            "fr": "Réparation rapide",
+            "it": "Ripasso veloce",
+            "de": "Kurze Auffrischung",
+            "ja": "クイックリペア",
+            "zh": "快速修复",
+            "ru": "Быстрый повтор",
+            "ar": "مراجعة سريعة",
+            "hi": "त्वरित मरम्मत"
+          },
+          "description": {
+            "en": "Let's make yesterday's tricky bits automatic.",
+            "es": "Hagamos automático lo difícil de ayer.",
+            "pt": "Vamos tornar automático o difícil de ontem.",
+            "fr": "Rendons automatiques les points délicats d'hier.",
+            "it": "Rendiamo automatici i punti ostici di ieri.",
+            "de": "Machen wir die kniffligen Stellen von gestern automatisch.",
+            "ja": "昨日の難所を自然に出せるようにしよう。",
+            "zh": "把昨天的难点变成自然反应。",
+            "ru": "Сделаем вчерашние трудности автоматическими.",
+            "ar": "خلّينا نخلي صعوبات إمبارح تطلع تلقائي.",
+            "hi": "कल की मुश्किल चीज़ों को सहज बना देते हैं।"
+          },
+          "cefrLevel": "Pre-A1",
+          "xpRequired": 12,
+          "content": {
+            "repair": {
+              "topic": "Hola",
+              "focusPoints": [
+                "Hola"
+              ],
+              "isRepair": true
+            }
+          },
+          "repairTarget": 1,
+          "repairMemoryIds": [
+            "public-greeting"
+          ]
+        }
+      },
+      "expected": {
+        "pending": [
+          {
+            "name": "cancelDraft",
+            "args": []
+          },
+          {
+            "name": "sequenceStart",
+            "args": []
+          },
+          {
+            "name": "stop",
+            "args": []
+          }
+        ],
+        "trace": [
+          {
+            "name": "cancelDraft",
+            "args": []
+          },
+          {
+            "name": "sequenceStart",
+            "args": []
+          },
+          {
+            "name": "stop",
+            "args": []
+          },
+          {
+            "name": "awardSettled",
+            "args": [
+              {
+                "publicFixture": true
+              },
+              "tutor_repair_final_turn"
+            ]
+          },
+          {
+            "name": "repair",
+            "args": [
+              {
+                "lesson": {
+                  "id": "tutor-repair-2026-11-06-s0",
+                  "isRepair": true,
+                  "title": {
+                    "en": "Quick repair",
+                    "es": "Reparación rápida",
+                    "pt": "Reparo rápido",
+                    "fr": "Réparation rapide",
+                    "it": "Ripasso veloce",
+                    "de": "Kurze Auffrischung",
+                    "ja": "クイックリペア",
+                    "zh": "快速修复",
+                    "ru": "Быстрый повтор",
+                    "ar": "مراجعة سريعة",
+                    "hi": "त्वरित मरम्मत"
+                  },
+                  "description": {
+                    "en": "Let's make yesterday's tricky bits automatic.",
+                    "es": "Hagamos automático lo difícil de ayer.",
+                    "pt": "Vamos tornar automático o difícil de ontem.",
+                    "fr": "Rendons automatiques les points délicats d'hier.",
+                    "it": "Rendiamo automatici i punti ostici di ieri.",
+                    "de": "Machen wir die kniffligen Stellen von gestern automatisch.",
+                    "ja": "昨日の難所を自然に出せるようにしよう。",
+                    "zh": "把昨天的难点变成自然反应。",
+                    "ru": "Сделаем вчерашние трудности автоматическими.",
+                    "ar": "خلّينا نخلي صعوبات إمبارح تطلع تلقائي.",
+                    "hi": "कल की मुश्किल चीज़ों को सहज बना देते हैं।"
+                  },
+                  "cefrLevel": "Pre-A1",
+                  "xpRequired": 12,
+                  "content": {
+                    "repair": {
+                      "topic": "Hola",
+                      "focusPoints": [
+                        "Hola"
+                      ],
+                      "isRepair": true
+                    }
+                  },
+                  "repairTarget": 1,
+                  "repairMemoryIds": [
+                    "public-greeting"
+                  ]
+                },
+                "npub": "public-learner",
+                "targetLang": "es"
+              }
+            ]
+          },
+          {
+            "name": "failure",
+            "args": []
+          },
+          {
+            "name": "releaseFailure",
+            "args": []
+          },
+          {
+            "name": "cancelDraft",
+            "args": []
+          },
+          {
+            "name": "sequenceStart",
+            "args": []
+          },
+          {
+            "name": "stop",
+            "args": []
+          },
+          {
+            "name": "repair",
+            "args": [
+              {
+                "lesson": {
+                  "id": "tutor-repair-2026-11-06-s0",
+                  "isRepair": true,
+                  "title": {
+                    "en": "Quick repair",
+                    "es": "Reparación rápida",
+                    "pt": "Reparo rápido",
+                    "fr": "Réparation rapide",
+                    "it": "Ripasso veloce",
+                    "de": "Kurze Auffrischung",
+                    "ja": "クイックリペア",
+                    "zh": "快速修复",
+                    "ru": "Быстрый повтор",
+                    "ar": "مراجعة سريعة",
+                    "hi": "त्वरित मरम्मत"
+                  },
+                  "description": {
+                    "en": "Let's make yesterday's tricky bits automatic.",
+                    "es": "Hagamos automático lo difícil de ayer.",
+                    "pt": "Vamos tornar automático o difícil de ontem.",
+                    "fr": "Rendons automatiques les points délicats d'hier.",
+                    "it": "Rendiamo automatici i punti ostici di ieri.",
+                    "de": "Machen wir die kniffligen Stellen von gestern automatisch.",
+                    "ja": "昨日の難所を自然に出せるようにしよう。",
+                    "zh": "把昨天的难点变成自然反应。",
+                    "ru": "Сделаем вчерашние трудности автоматическими.",
+                    "ar": "خلّينا نخلي صعوبات إمبارح تطلع تلقائي.",
+                    "hi": "कल की मुश्किल चीज़ों को सहज बना देते हैं।"
+                  },
+                  "cefrLevel": "Pre-A1",
+                  "xpRequired": 12,
+                  "content": {
+                    "repair": {
+                      "topic": "Hola",
+                      "focusPoints": [
+                        "Hola"
+                      ],
+                      "isRepair": true
+                    }
+                  },
+                  "repairTarget": 1,
+                  "repairMemoryIds": [
+                    "public-greeting"
+                  ]
+                },
+                "npub": "public-learner",
+                "targetLang": "es"
+              }
+            ]
+          },
+          {
+            "name": "failure",
+            "args": []
+          },
+          {
+            "name": "releaseFailure",
+            "args": []
+          }
+        ],
+        "result": false,
+        "replay": false,
+        "goalEvent": null,
+        "totalBonus": 0,
+        "required": 12
+      }
+    },
+    {
+      "input": {
+        "kind": "repair",
+        "mode": "phonics",
+        "support": "en",
+        "failure": false,
+        "focus": {
+          "npub": "public-learner",
+          "targetLang": "es",
+          "supportLang": "en",
+          "surface": "tutor",
+          "mode": "phonics",
+          "plan": {
+            "targetLang": "es",
+            "dayKey": "2026-11-06",
+            "target": 1,
+            "items": [
+              {
+                "memoryId": "public-greeting",
+                "concept": "Hola",
+                "expectedAnswer": "Hola",
+                "mode": "phonics",
+                "errorType": "phonics",
+                "cefrLevel": "Pre-A1"
+              }
+            ],
+            "memoryIds": [
+              "public-greeting"
+            ]
+          },
+          "stepIndex": 0,
+          "stepCount": 1
+        },
+        "lesson": {
+          "id": "tutor-repair-2026-11-06-s0",
+          "isRepair": true,
+          "title": {
+            "en": "Quick repair",
+            "es": "Reparación rápida",
+            "pt": "Reparo rápido",
+            "fr": "Réparation rapide",
+            "it": "Ripasso veloce",
+            "de": "Kurze Auffrischung",
+            "ja": "クイックリペア",
+            "zh": "快速修复",
+            "ru": "Быстрый повтор",
+            "ar": "مراجعة سريعة",
+            "hi": "त्वरित मरम्मत"
+          },
+          "description": {
+            "en": "Let's make yesterday's tricky bits automatic.",
+            "es": "Hagamos automático lo difícil de ayer.",
+            "pt": "Vamos tornar automático o difícil de ontem.",
+            "fr": "Rendons automatiques les points délicats d'hier.",
+            "it": "Rendiamo automatici i punti ostici di ieri.",
+            "de": "Machen wir die kniffligen Stellen von gestern automatisch.",
+            "ja": "昨日の難所を自然に出せるようにしよう。",
+            "zh": "把昨天的难点变成自然反应。",
+            "ru": "Сделаем вчерашние трудности автоматическими.",
+            "ar": "خلّينا نخلي صعوبات إمبارح تطلع تلقائي.",
+            "hi": "कल की मुश्किल चीज़ों को सहज बना देते हैं।"
+          },
+          "cefrLevel": "Pre-A1",
+          "xpRequired": 12,
+          "content": {
+            "repair": {
+              "topic": "Hola",
+              "focusPoints": [
+                "Hola"
+              ],
+              "isRepair": true
+            }
+          },
+          "repairTarget": 1,
+          "repairMemoryIds": [
+            "public-greeting"
+          ]
+        }
+      },
+      "expected": {
+        "pending": [
+          {
+            "name": "cancelDraft",
+            "args": []
+          },
+          {
+            "name": "sequenceStart",
+            "args": []
+          },
+          {
+            "name": "stop",
+            "args": []
+          }
+        ],
+        "trace": [
+          {
+            "name": "cancelDraft",
+            "args": []
+          },
+          {
+            "name": "sequenceStart",
+            "args": []
+          },
+          {
+            "name": "stop",
+            "args": []
+          },
+          {
+            "name": "awardSettled",
+            "args": [
+              {
+                "publicFixture": true
+              },
+              "tutor_repair_final_turn"
+            ]
+          },
+          {
+            "name": "repair",
+            "args": [
+              {
+                "lesson": {
+                  "id": "tutor-repair-2026-11-06-s0",
+                  "isRepair": true,
+                  "title": {
+                    "en": "Quick repair",
+                    "es": "Reparación rápida",
+                    "pt": "Reparo rápido",
+                    "fr": "Réparation rapide",
+                    "it": "Ripasso veloce",
+                    "de": "Kurze Auffrischung",
+                    "ja": "クイックリペア",
+                    "zh": "快速修复",
+                    "ru": "Быстрый повтор",
+                    "ar": "مراجعة سريعة",
+                    "hi": "त्वरित मरम्मत"
+                  },
+                  "description": {
+                    "en": "Let's make yesterday's tricky bits automatic.",
+                    "es": "Hagamos automático lo difícil de ayer.",
+                    "pt": "Vamos tornar automático o difícil de ontem.",
+                    "fr": "Rendons automatiques les points délicats d'hier.",
+                    "it": "Rendiamo automatici i punti ostici di ieri.",
+                    "de": "Machen wir die kniffligen Stellen von gestern automatisch.",
+                    "ja": "昨日の難所を自然に出せるようにしよう。",
+                    "zh": "把昨天的难点变成自然反应。",
+                    "ru": "Сделаем вчерашние трудности автоматическими.",
+                    "ar": "خلّينا نخلي صعوبات إمبارح تطلع تلقائي.",
+                    "hi": "कल की मुश्किल चीज़ों को सहज बना देते हैं।"
+                  },
+                  "cefrLevel": "Pre-A1",
+                  "xpRequired": 12,
+                  "content": {
+                    "repair": {
+                      "topic": "Hola",
+                      "focusPoints": [
+                        "Hola"
+                      ],
+                      "isRepair": true
+                    }
+                  },
+                  "repairTarget": 1,
+                  "repairMemoryIds": [
+                    "public-greeting"
+                  ]
+                },
+                "npub": "public-learner",
+                "targetLang": "es"
+              }
+            ]
+          },
+          {
+            "name": "localBonus",
+            "args": [
+              12
+            ]
+          },
+          {
+            "name": "dailyBonus",
+            "args": [
+              "public-learner",
+              12
+            ]
+          },
+          {
+            "name": "awardBonus",
+            "args": [
+              "public-learner",
+              12,
+              "es"
+            ]
+          },
+          {
+            "name": "awardSettled",
+            "args": [
+              null,
+              "tutor_repair_completion_bonus"
+            ]
+          },
+          {
+            "name": "syncDaily",
+            "args": []
+          },
+          {
+            "name": "analytics",
+            "args": [
+              "tutor_repair_completed",
+              {
+                "lessonId": "tutor-repair-2026-11-06-s0",
+                "xpRequired": 12
+              }
+            ]
+          },
+          {
+            "name": "releaseCelebration",
+            "args": []
+          }
+        ],
+        "result": true,
+        "replay": false,
+        "goalEvent": null,
+        "totalBonus": 12,
+        "required": 12
+      }
+    },
+    {
+      "input": {
+        "kind": "repair",
+        "mode": "phonics",
+        "support": "en",
+        "failure": true,
+        "focus": {
+          "npub": "public-learner",
+          "targetLang": "es",
+          "supportLang": "en",
+          "surface": "tutor",
+          "mode": "phonics",
+          "plan": {
+            "targetLang": "es",
+            "dayKey": "2026-11-06",
+            "target": 1,
+            "items": [
+              {
+                "memoryId": "public-greeting",
+                "concept": "Hola",
+                "expectedAnswer": "Hola",
+                "mode": "phonics",
+                "errorType": "phonics",
+                "cefrLevel": "Pre-A1"
+              }
+            ],
+            "memoryIds": [
+              "public-greeting"
+            ]
+          },
+          "stepIndex": 0,
+          "stepCount": 1
+        },
+        "lesson": {
+          "id": "tutor-repair-2026-11-06-s0",
+          "isRepair": true,
+          "title": {
+            "en": "Quick repair",
+            "es": "Reparación rápida",
+            "pt": "Reparo rápido",
+            "fr": "Réparation rapide",
+            "it": "Ripasso veloce",
+            "de": "Kurze Auffrischung",
+            "ja": "クイックリペア",
+            "zh": "快速修复",
+            "ru": "Быстрый повтор",
+            "ar": "مراجعة سريعة",
+            "hi": "त्वरित मरम्मत"
+          },
+          "description": {
+            "en": "Let's make yesterday's tricky bits automatic.",
+            "es": "Hagamos automático lo difícil de ayer.",
+            "pt": "Vamos tornar automático o difícil de ontem.",
+            "fr": "Rendons automatiques les points délicats d'hier.",
+            "it": "Rendiamo automatici i punti ostici di ieri.",
+            "de": "Machen wir die kniffligen Stellen von gestern automatisch.",
+            "ja": "昨日の難所を自然に出せるようにしよう。",
+            "zh": "把昨天的难点变成自然反应。",
+            "ru": "Сделаем вчерашние трудности автоматическими.",
+            "ar": "خلّينا نخلي صعوبات إمبارح تطلع تلقائي.",
+            "hi": "कल की मुश्किल चीज़ों को सहज बना देते हैं।"
+          },
+          "cefrLevel": "Pre-A1",
+          "xpRequired": 12,
+          "content": {
+            "repair": {
+              "topic": "Hola",
+              "focusPoints": [
+                "Hola"
+              ],
+              "isRepair": true
+            }
+          },
+          "repairTarget": 1,
+          "repairMemoryIds": [
+            "public-greeting"
+          ]
+        }
+      },
+      "expected": {
+        "pending": [
+          {
+            "name": "cancelDraft",
+            "args": []
+          },
+          {
+            "name": "sequenceStart",
+            "args": []
+          },
+          {
+            "name": "stop",
+            "args": []
+          }
+        ],
+        "trace": [
+          {
+            "name": "cancelDraft",
+            "args": []
+          },
+          {
+            "name": "sequenceStart",
+            "args": []
+          },
+          {
+            "name": "stop",
+            "args": []
+          },
+          {
+            "name": "awardSettled",
+            "args": [
+              {
+                "publicFixture": true
+              },
+              "tutor_repair_final_turn"
+            ]
+          },
+          {
+            "name": "repair",
+            "args": [
+              {
+                "lesson": {
+                  "id": "tutor-repair-2026-11-06-s0",
+                  "isRepair": true,
+                  "title": {
+                    "en": "Quick repair",
+                    "es": "Reparación rápida",
+                    "pt": "Reparo rápido",
+                    "fr": "Réparation rapide",
+                    "it": "Ripasso veloce",
+                    "de": "Kurze Auffrischung",
+                    "ja": "クイックリペア",
+                    "zh": "快速修复",
+                    "ru": "Быстрый повтор",
+                    "ar": "مراجعة سريعة",
+                    "hi": "त्वरित मरम्मत"
+                  },
+                  "description": {
+                    "en": "Let's make yesterday's tricky bits automatic.",
+                    "es": "Hagamos automático lo difícil de ayer.",
+                    "pt": "Vamos tornar automático o difícil de ontem.",
+                    "fr": "Rendons automatiques les points délicats d'hier.",
+                    "it": "Rendiamo automatici i punti ostici di ieri.",
+                    "de": "Machen wir die kniffligen Stellen von gestern automatisch.",
+                    "ja": "昨日の難所を自然に出せるようにしよう。",
+                    "zh": "把昨天的难点变成自然反应。",
+                    "ru": "Сделаем вчерашние трудности автоматическими.",
+                    "ar": "خلّينا نخلي صعوبات إمبارح تطلع تلقائي.",
+                    "hi": "कल की मुश्किल चीज़ों को सहज बना देते हैं।"
+                  },
+                  "cefrLevel": "Pre-A1",
+                  "xpRequired": 12,
+                  "content": {
+                    "repair": {
+                      "topic": "Hola",
+                      "focusPoints": [
+                        "Hola"
+                      ],
+                      "isRepair": true
+                    }
+                  },
+                  "repairTarget": 1,
+                  "repairMemoryIds": [
+                    "public-greeting"
+                  ]
+                },
+                "npub": "public-learner",
+                "targetLang": "es"
+              }
+            ]
+          },
+          {
+            "name": "failure",
+            "args": []
+          },
+          {
+            "name": "releaseFailure",
+            "args": []
+          },
+          {
+            "name": "cancelDraft",
+            "args": []
+          },
+          {
+            "name": "sequenceStart",
+            "args": []
+          },
+          {
+            "name": "stop",
+            "args": []
+          },
+          {
+            "name": "repair",
+            "args": [
+              {
+                "lesson": {
+                  "id": "tutor-repair-2026-11-06-s0",
+                  "isRepair": true,
+                  "title": {
+                    "en": "Quick repair",
+                    "es": "Reparación rápida",
+                    "pt": "Reparo rápido",
+                    "fr": "Réparation rapide",
+                    "it": "Ripasso veloce",
+                    "de": "Kurze Auffrischung",
+                    "ja": "クイックリペア",
+                    "zh": "快速修复",
+                    "ru": "Быстрый повтор",
+                    "ar": "مراجعة سريعة",
+                    "hi": "त्वरित मरम्मत"
+                  },
+                  "description": {
+                    "en": "Let's make yesterday's tricky bits automatic.",
+                    "es": "Hagamos automático lo difícil de ayer.",
+                    "pt": "Vamos tornar automático o difícil de ontem.",
+                    "fr": "Rendons automatiques les points délicats d'hier.",
+                    "it": "Rendiamo automatici i punti ostici di ieri.",
+                    "de": "Machen wir die kniffligen Stellen von gestern automatisch.",
+                    "ja": "昨日の難所を自然に出せるようにしよう。",
+                    "zh": "把昨天的难点变成自然反应。",
+                    "ru": "Сделаем вчерашние трудности автоматическими.",
+                    "ar": "خلّينا نخلي صعوبات إمبارح تطلع تلقائي.",
+                    "hi": "कल की मुश्किल चीज़ों को सहज बना देते हैं।"
+                  },
+                  "cefrLevel": "Pre-A1",
+                  "xpRequired": 12,
+                  "content": {
+                    "repair": {
+                      "topic": "Hola",
+                      "focusPoints": [
+                        "Hola"
+                      ],
+                      "isRepair": true
+                    }
+                  },
+                  "repairTarget": 1,
+                  "repairMemoryIds": [
+                    "public-greeting"
+                  ]
+                },
+                "npub": "public-learner",
+                "targetLang": "es"
+              }
+            ]
+          },
+          {
+            "name": "failure",
+            "args": []
+          },
+          {
+            "name": "releaseFailure",
+            "args": []
+          }
+        ],
+        "result": false,
+        "replay": false,
+        "goalEvent": null,
+        "totalBonus": 0,
+        "required": 12
+      }
+    },
+    {
+      "input": {
+        "kind": "repair",
+        "mode": "phonics",
+        "support": "ar",
+        "failure": false,
+        "focus": {
+          "npub": "public-learner",
+          "targetLang": "es",
+          "supportLang": "ar",
+          "surface": "tutor",
+          "mode": "phonics",
+          "plan": {
+            "targetLang": "es",
+            "dayKey": "2026-11-06",
+            "target": 1,
+            "items": [
+              {
+                "memoryId": "public-greeting",
+                "concept": "Hola",
+                "expectedAnswer": "Hola",
+                "mode": "phonics",
+                "errorType": "phonics",
+                "cefrLevel": "Pre-A1"
+              }
+            ],
+            "memoryIds": [
+              "public-greeting"
+            ]
+          },
+          "stepIndex": 0,
+          "stepCount": 1
+        },
+        "lesson": {
+          "id": "tutor-repair-2026-11-06-s0",
+          "isRepair": true,
+          "title": {
+            "en": "Quick repair",
+            "es": "Reparación rápida",
+            "pt": "Reparo rápido",
+            "fr": "Réparation rapide",
+            "it": "Ripasso veloce",
+            "de": "Kurze Auffrischung",
+            "ja": "クイックリペア",
+            "zh": "快速修复",
+            "ru": "Быстрый повтор",
+            "ar": "مراجعة سريعة",
+            "hi": "त्वरित मरम्मत"
+          },
+          "description": {
+            "en": "Let's make yesterday's tricky bits automatic.",
+            "es": "Hagamos automático lo difícil de ayer.",
+            "pt": "Vamos tornar automático o difícil de ontem.",
+            "fr": "Rendons automatiques les points délicats d'hier.",
+            "it": "Rendiamo automatici i punti ostici di ieri.",
+            "de": "Machen wir die kniffligen Stellen von gestern automatisch.",
+            "ja": "昨日の難所を自然に出せるようにしよう。",
+            "zh": "把昨天的难点变成自然反应。",
+            "ru": "Сделаем вчерашние трудности автоматическими.",
+            "ar": "خلّينا نخلي صعوبات إمبارح تطلع تلقائي.",
+            "hi": "कल की मुश्किल चीज़ों को सहज बना देते हैं।"
+          },
+          "cefrLevel": "Pre-A1",
+          "xpRequired": 12,
+          "content": {
+            "repair": {
+              "topic": "Hola",
+              "focusPoints": [
+                "Hola"
+              ],
+              "isRepair": true
+            }
+          },
+          "repairTarget": 1,
+          "repairMemoryIds": [
+            "public-greeting"
+          ]
+        }
+      },
+      "expected": {
+        "pending": [
+          {
+            "name": "cancelDraft",
+            "args": []
+          },
+          {
+            "name": "sequenceStart",
+            "args": []
+          },
+          {
+            "name": "stop",
+            "args": []
+          }
+        ],
+        "trace": [
+          {
+            "name": "cancelDraft",
+            "args": []
+          },
+          {
+            "name": "sequenceStart",
+            "args": []
+          },
+          {
+            "name": "stop",
+            "args": []
+          },
+          {
+            "name": "awardSettled",
+            "args": [
+              {
+                "publicFixture": true
+              },
+              "tutor_repair_final_turn"
+            ]
+          },
+          {
+            "name": "repair",
+            "args": [
+              {
+                "lesson": {
+                  "id": "tutor-repair-2026-11-06-s0",
+                  "isRepair": true,
+                  "title": {
+                    "en": "Quick repair",
+                    "es": "Reparación rápida",
+                    "pt": "Reparo rápido",
+                    "fr": "Réparation rapide",
+                    "it": "Ripasso veloce",
+                    "de": "Kurze Auffrischung",
+                    "ja": "クイックリペア",
+                    "zh": "快速修复",
+                    "ru": "Быстрый повтор",
+                    "ar": "مراجعة سريعة",
+                    "hi": "त्वरित मरम्मत"
+                  },
+                  "description": {
+                    "en": "Let's make yesterday's tricky bits automatic.",
+                    "es": "Hagamos automático lo difícil de ayer.",
+                    "pt": "Vamos tornar automático o difícil de ontem.",
+                    "fr": "Rendons automatiques les points délicats d'hier.",
+                    "it": "Rendiamo automatici i punti ostici di ieri.",
+                    "de": "Machen wir die kniffligen Stellen von gestern automatisch.",
+                    "ja": "昨日の難所を自然に出せるようにしよう。",
+                    "zh": "把昨天的难点变成自然反应。",
+                    "ru": "Сделаем вчерашние трудности автоматическими.",
+                    "ar": "خلّينا نخلي صعوبات إمبارح تطلع تلقائي.",
+                    "hi": "कल की मुश्किल चीज़ों को सहज बना देते हैं।"
+                  },
+                  "cefrLevel": "Pre-A1",
+                  "xpRequired": 12,
+                  "content": {
+                    "repair": {
+                      "topic": "Hola",
+                      "focusPoints": [
+                        "Hola"
+                      ],
+                      "isRepair": true
+                    }
+                  },
+                  "repairTarget": 1,
+                  "repairMemoryIds": [
+                    "public-greeting"
+                  ]
+                },
+                "npub": "public-learner",
+                "targetLang": "es"
+              }
+            ]
+          },
+          {
+            "name": "localBonus",
+            "args": [
+              12
+            ]
+          },
+          {
+            "name": "dailyBonus",
+            "args": [
+              "public-learner",
+              12
+            ]
+          },
+          {
+            "name": "awardBonus",
+            "args": [
+              "public-learner",
+              12,
+              "es"
+            ]
+          },
+          {
+            "name": "awardSettled",
+            "args": [
+              null,
+              "tutor_repair_completion_bonus"
+            ]
+          },
+          {
+            "name": "syncDaily",
+            "args": []
+          },
+          {
+            "name": "analytics",
+            "args": [
+              "tutor_repair_completed",
+              {
+                "lessonId": "tutor-repair-2026-11-06-s0",
+                "xpRequired": 12
+              }
+            ]
+          },
+          {
+            "name": "releaseCelebration",
+            "args": []
+          }
+        ],
+        "result": true,
+        "replay": false,
+        "goalEvent": null,
+        "totalBonus": 12,
+        "required": 12
+      }
+    },
+    {
+      "input": {
+        "kind": "repair",
+        "mode": "phonics",
+        "support": "ar",
+        "failure": true,
+        "focus": {
+          "npub": "public-learner",
+          "targetLang": "es",
+          "supportLang": "ar",
+          "surface": "tutor",
+          "mode": "phonics",
+          "plan": {
+            "targetLang": "es",
+            "dayKey": "2026-11-06",
+            "target": 1,
+            "items": [
+              {
+                "memoryId": "public-greeting",
+                "concept": "Hola",
+                "expectedAnswer": "Hola",
+                "mode": "phonics",
+                "errorType": "phonics",
+                "cefrLevel": "Pre-A1"
+              }
+            ],
+            "memoryIds": [
+              "public-greeting"
+            ]
+          },
+          "stepIndex": 0,
+          "stepCount": 1
+        },
+        "lesson": {
+          "id": "tutor-repair-2026-11-06-s0",
+          "isRepair": true,
+          "title": {
+            "en": "Quick repair",
+            "es": "Reparación rápida",
+            "pt": "Reparo rápido",
+            "fr": "Réparation rapide",
+            "it": "Ripasso veloce",
+            "de": "Kurze Auffrischung",
+            "ja": "クイックリペア",
+            "zh": "快速修复",
+            "ru": "Быстрый повтор",
+            "ar": "مراجعة سريعة",
+            "hi": "त्वरित मरम्मत"
+          },
+          "description": {
+            "en": "Let's make yesterday's tricky bits automatic.",
+            "es": "Hagamos automático lo difícil de ayer.",
+            "pt": "Vamos tornar automático o difícil de ontem.",
+            "fr": "Rendons automatiques les points délicats d'hier.",
+            "it": "Rendiamo automatici i punti ostici di ieri.",
+            "de": "Machen wir die kniffligen Stellen von gestern automatisch.",
+            "ja": "昨日の難所を自然に出せるようにしよう。",
+            "zh": "把昨天的难点变成自然反应。",
+            "ru": "Сделаем вчерашние трудности автоматическими.",
+            "ar": "خلّينا نخلي صعوبات إمبارح تطلع تلقائي.",
+            "hi": "कल की मुश्किल चीज़ों को सहज बना देते हैं।"
+          },
+          "cefrLevel": "Pre-A1",
+          "xpRequired": 12,
+          "content": {
+            "repair": {
+              "topic": "Hola",
+              "focusPoints": [
+                "Hola"
+              ],
+              "isRepair": true
+            }
+          },
+          "repairTarget": 1,
+          "repairMemoryIds": [
+            "public-greeting"
+          ]
+        }
+      },
+      "expected": {
+        "pending": [
+          {
+            "name": "cancelDraft",
+            "args": []
+          },
+          {
+            "name": "sequenceStart",
+            "args": []
+          },
+          {
+            "name": "stop",
+            "args": []
+          }
+        ],
+        "trace": [
+          {
+            "name": "cancelDraft",
+            "args": []
+          },
+          {
+            "name": "sequenceStart",
+            "args": []
+          },
+          {
+            "name": "stop",
+            "args": []
+          },
+          {
+            "name": "awardSettled",
+            "args": [
+              {
+                "publicFixture": true
+              },
+              "tutor_repair_final_turn"
+            ]
+          },
+          {
+            "name": "repair",
+            "args": [
+              {
+                "lesson": {
+                  "id": "tutor-repair-2026-11-06-s0",
+                  "isRepair": true,
+                  "title": {
+                    "en": "Quick repair",
+                    "es": "Reparación rápida",
+                    "pt": "Reparo rápido",
+                    "fr": "Réparation rapide",
+                    "it": "Ripasso veloce",
+                    "de": "Kurze Auffrischung",
+                    "ja": "クイックリペア",
+                    "zh": "快速修复",
+                    "ru": "Быстрый повтор",
+                    "ar": "مراجعة سريعة",
+                    "hi": "त्वरित मरम्मत"
+                  },
+                  "description": {
+                    "en": "Let's make yesterday's tricky bits automatic.",
+                    "es": "Hagamos automático lo difícil de ayer.",
+                    "pt": "Vamos tornar automático o difícil de ontem.",
+                    "fr": "Rendons automatiques les points délicats d'hier.",
+                    "it": "Rendiamo automatici i punti ostici di ieri.",
+                    "de": "Machen wir die kniffligen Stellen von gestern automatisch.",
+                    "ja": "昨日の難所を自然に出せるようにしよう。",
+                    "zh": "把昨天的难点变成自然反应。",
+                    "ru": "Сделаем вчерашние трудности автоматическими.",
+                    "ar": "خلّينا نخلي صعوبات إمبارح تطلع تلقائي.",
+                    "hi": "कल की मुश्किल चीज़ों को सहज बना देते हैं।"
+                  },
+                  "cefrLevel": "Pre-A1",
+                  "xpRequired": 12,
+                  "content": {
+                    "repair": {
+                      "topic": "Hola",
+                      "focusPoints": [
+                        "Hola"
+                      ],
+                      "isRepair": true
+                    }
+                  },
+                  "repairTarget": 1,
+                  "repairMemoryIds": [
+                    "public-greeting"
+                  ]
+                },
+                "npub": "public-learner",
+                "targetLang": "es"
+              }
+            ]
+          },
+          {
+            "name": "failure",
+            "args": []
+          },
+          {
+            "name": "releaseFailure",
+            "args": []
+          },
+          {
+            "name": "cancelDraft",
+            "args": []
+          },
+          {
+            "name": "sequenceStart",
+            "args": []
+          },
+          {
+            "name": "stop",
+            "args": []
+          },
+          {
+            "name": "repair",
+            "args": [
+              {
+                "lesson": {
+                  "id": "tutor-repair-2026-11-06-s0",
+                  "isRepair": true,
+                  "title": {
+                    "en": "Quick repair",
+                    "es": "Reparación rápida",
+                    "pt": "Reparo rápido",
+                    "fr": "Réparation rapide",
+                    "it": "Ripasso veloce",
+                    "de": "Kurze Auffrischung",
+                    "ja": "クイックリペア",
+                    "zh": "快速修复",
+                    "ru": "Быстрый повтор",
+                    "ar": "مراجعة سريعة",
+                    "hi": "त्वरित मरम्मत"
+                  },
+                  "description": {
+                    "en": "Let's make yesterday's tricky bits automatic.",
+                    "es": "Hagamos automático lo difícil de ayer.",
+                    "pt": "Vamos tornar automático o difícil de ontem.",
+                    "fr": "Rendons automatiques les points délicats d'hier.",
+                    "it": "Rendiamo automatici i punti ostici di ieri.",
+                    "de": "Machen wir die kniffligen Stellen von gestern automatisch.",
+                    "ja": "昨日の難所を自然に出せるようにしよう。",
+                    "zh": "把昨天的难点变成自然反应。",
+                    "ru": "Сделаем вчерашние трудности автоматическими.",
+                    "ar": "خلّينا نخلي صعوبات إمبارح تطلع تلقائي.",
+                    "hi": "कल की मुश्किल चीज़ों को सहज बना देते हैं।"
+                  },
+                  "cefrLevel": "Pre-A1",
+                  "xpRequired": 12,
+                  "content": {
+                    "repair": {
+                      "topic": "Hola",
+                      "focusPoints": [
+                        "Hola"
+                      ],
+                      "isRepair": true
+                    }
+                  },
+                  "repairTarget": 1,
+                  "repairMemoryIds": [
+                    "public-greeting"
+                  ]
+                },
+                "npub": "public-learner",
+                "targetLang": "es"
+              }
+            ]
+          },
+          {
+            "name": "failure",
+            "args": []
+          },
+          {
+            "name": "releaseFailure",
+            "args": []
+          }
+        ],
+        "result": false,
+        "replay": false,
+        "goalEvent": null,
+        "totalBonus": 0,
+        "required": 12
+      }
+    }
+  ]
+}

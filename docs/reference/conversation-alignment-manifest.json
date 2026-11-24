@@ -1,0 +1,14 @@
+{
+  "source": "src/components/Conversations.jsx",
+  "sha256": "85010736ae62a383795b88c192e0190b7f9b02a0d51cfa080d9b5eac8f19525d",
+  "bindings": [
+    "COLORS",
+    "normalizePairText",
+    "textIncludesPair",
+    "filterPairsForPrimaryText",
+    "wrapFirst",
+    "buildAlignedNodes"
+  ],
+  "cases": 40,
+  "scope": "Original Conversation AlignedBubble filtering and tokenization helpers executed with React element creation stubbed; no DOM or I/O."
+}

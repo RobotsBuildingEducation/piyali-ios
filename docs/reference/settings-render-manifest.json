@@ -1,0 +1,5 @@
+{
+  "source": "src/App.jsx",
+  "sha256": "eb7e06e1422cac6d205059dc92d68370bec40c1009c1a316f0c2d3eb5f325fd6",
+  "scope": "Unmodified TopBar Settings prefix, Drawer and posts/community dialogs, with original imported child components. The unrelated HUD is omitted; daily XP values are explicit snapshots. Account/provider/store I/O adapters are target-owned. The native transport defaults to the source Gemini voice profile; the preview accepts an explicit provider snapshot."
+}

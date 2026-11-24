@@ -1,0 +1,95 @@
+Test Suite 'Selected tests' started at 2026-11-06 00:20:17.420.
+Test Suite 'PiyaliCorePackageTests.xctest' started at 2026-11-06 00:20:17.421.
+Test Suite 'MemorySourcePolicyTests' started at 2026-11-06 00:20:17.421.
+Test Case '-[PiyaliCoreTests.MemorySourcePolicyTests testAccountBearingCaptureQueuesSourceRepairEvidenceWithoutAdditionalXPOrAssessment]' started.
+Test Case '-[PiyaliCoreTests.MemorySourcePolicyTests testAccountBearingCaptureQueuesSourceRepairEvidenceWithoutAdditionalXPOrAssessment]' passed (0.002 seconds).
+Test Case '-[PiyaliCoreTests.MemorySourcePolicyTests testCaptureEvidenceKeepsSourceContentIDsAndSeparateReplayReceiptsAtSeverityCap]' started.
+Test Case '-[PiyaliCoreTests.MemorySourcePolicyTests testCaptureEvidenceKeepsSourceContentIDsAndSeparateReplayReceiptsAtSeverityCap]' passed (0.003 seconds).
+Test Case '-[PiyaliCoreTests.MemorySourcePolicyTests testFullCaptureConceptSurvivesPrivateSerializationAndOldChangesStillDecode]' started.
+Test Case '-[PiyaliCoreTests.MemorySourcePolicyTests testFullCaptureConceptSurvivesPrivateSerializationAndOldChangesStillDecode]' passed (0.001 seconds).
+Test Case '-[PiyaliCoreTests.MemorySourcePolicyTests testGenericInitialMemoryUsesSourcePendingFieldsAndUTF16Limits]' started.
+Test Case '-[PiyaliCoreTests.MemorySourcePolicyTests testGenericInitialMemoryUsesSourcePendingFieldsAndUTF16Limits]' passed (0.005 seconds).
+Test Case '-[PiyaliCoreTests.MemorySourcePolicyTests testLocalizationPreservesLifecycleAndForeignFieldsAndRejectsStaleCapture]' started.
+Test Case '-[PiyaliCoreTests.MemorySourcePolicyTests testLocalizationPreservesLifecycleAndForeignFieldsAndRejectsStaleCapture]' passed (0.000 seconds).
+Test Case '-[PiyaliCoreTests.MemorySourcePolicyTests testNativeDuplicateMergeMatchesCompleteOriginalCaptureCases]' started.
+Test Case '-[PiyaliCoreTests.MemorySourcePolicyTests testNativeDuplicateMergeMatchesCompleteOriginalCaptureCases]' passed (0.257 seconds).
+Test Case '-[PiyaliCoreTests.MemorySourcePolicyTests testNativeSharedInitialFieldsMatchAllSourceModesAndNormalizationCases]' started.
+Test Case '-[PiyaliCoreTests.MemorySourcePolicyTests testNativeSharedInitialFieldsMatchAllSourceModesAndNormalizationCases]' passed (0.175 seconds).
+Test Case '-[PiyaliCoreTests.MemorySourcePolicyTests testOriginalMemoryCopyPromptsParsersLanguageGuardsAndJourneyRules]' started.
+Test Case '-[PiyaliCoreTests.MemorySourcePolicyTests testOriginalMemoryCopyPromptsParsersLanguageGuardsAndJourneyRules]' passed (0.276 seconds).
+Test Case '-[PiyaliCoreTests.MemorySourcePolicyTests testRepeatedSourceTutorCaptureKeepsFirstCorrectionAndLocalizesPendingSummary]' started.
+Test Case '-[PiyaliCoreTests.MemorySourcePolicyTests testRepeatedSourceTutorCaptureKeepsFirstCorrectionAndLocalizesPendingSummary]' passed (0.005 seconds).
+Test Suite 'MemorySourcePolicyTests' passed at 2026-11-06 00:20:18.146.
+	 Executed 9 tests, with 0 failures (0 unexpected) in 0.725 (0.725) seconds
+Test Suite 'MemoryTests' started at 2026-11-06 00:20:18.146.
+Test Case '-[PiyaliCoreTests.MemoryTests testEnrichmentPrivateSchemaIsOptionalAndStaleNoteVersionsRetire]' started.
+Test Case '-[PiyaliCoreTests.MemoryTests testEnrichmentPrivateSchemaIsOptionalAndStaleNoteVersionsRetire]' passed (0.001 seconds).
+Test Case '-[PiyaliCoreTests.MemoryTests testFinishedFailureAndCompletedEnrichmentCannotBeResurrectedByAnOlderAcknowledgment]' started.
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/MemoryTests.swift:94: error: -[PiyaliCoreTests.MemoryTests testFinishedFailureAndCompletedEnrichmentCannotBeResurrectedByAnOlderAcknowledgment] : XCTAssertEqual failed: ("nil") is not equal to ("Optional(PiyaliCore.JSONValue.bool(true))")
+Test Case '-[PiyaliCoreTests.MemoryTests testFinishedFailureAndCompletedEnrichmentCannotBeResurrectedByAnOlderAcknowledgment]' failed (0.107 seconds).
+Test Case '-[PiyaliCoreTests.MemoryTests testOverlappingSyncDoesNotReplayAlreadyCommittedPracticeOrMemory]' started.
+Test Case '-[PiyaliCoreTests.MemoryTests testOverlappingSyncDoesNotReplayAlreadyCommittedPracticeOrMemory]' passed (0.003 seconds).
+Test Case '-[PiyaliCoreTests.MemoryTests testPendingEnrichmentRetainsFrozenFullContextAcrossAcknowledgmentAndNewerCapture]' started.
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/MemoryTests.swift:83: error: -[PiyaliCoreTests.MemoryTests testPendingEnrichmentRetainsFrozenFullContextAcrossAcknowledgmentAndNewerCapture] : XCTAssertEqual failed: ("Optional(C123B365-3C92-4CF9-AAA8-8201CE417B69)") is not equal to ("Optional(B897D2E7-6E5A-4823-A5B7-F0EFF74A9F7B)")
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/MemoryTests.swift:86: error: -[PiyaliCoreTests.MemoryTests testPendingEnrichmentRetainsFrozenFullContextAcrossAcknowledgmentAndNewerCapture] : XCTAssertEqual failed: ("Optional(0)") is not equal to ("Optional(1)")
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/MemoryTests.swift:86: error: -[PiyaliCoreTests.MemoryTests testPendingEnrichmentRetainsFrozenFullContextAcrossAcknowledgmentAndNewerCapture] : XCTAssertEqual failed: ("nil") is not equal to ("Optional(B897D2E7-6E5A-4823-A5B7-F0EFF74A9F7B)")
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/MemoryTests.swift:86: error: -[PiyaliCoreTests.MemoryTests testPendingEnrichmentRetainsFrozenFullContextAcrossAcknowledgmentAndNewerCapture] : XCTAssertEqual failed: ("nil") is not equal to ("Optional("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")")
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/MemoryTests.swift:86: error: -[PiyaliCoreTests.MemoryTests testPendingEnrichmentRetainsFrozenFullContextAcrossAcknowledgmentAndNewerCapture] : XCTAssertEqual failed: ("nil") is not equal to ("Optional("first")")
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/MemoryTests.swift:86: error: -[PiyaliCoreTests.MemoryTests testPendingEnrichmentRetainsFrozenFullContextAcrossAcknowledgmentAndNewerCapture] : XCTAssertEqual failed: ("nil") is not equal to ("Optional("second")")
+Test Case '-[PiyaliCoreTests.MemoryTests testPendingEnrichmentRetainsFrozenFullContextAcrossAcknowledgmentAndNewerCapture]' failed (0.003 seconds).
+Test Case '-[PiyaliCoreTests.MemoryTests testRepeatedSlipsStrengthenOneMemoryAndPreserveEnrichment]' started.
+Test Case '-[PiyaliCoreTests.MemoryTests testRepeatedSlipsStrengthenOneMemoryAndPreserveEnrichment]' passed (0.001 seconds).
+Test Case '-[PiyaliCoreTests.MemoryTests testSupportLanguageChangeClearsOldLocalizedTip]' started.
+Test Case '-[PiyaliCoreTests.MemoryTests testSupportLanguageChangeClearsOldLocalizedTip]' passed (0.001 seconds).
+Test Case '-[PiyaliCoreTests.MemoryTests testSyncReplaysOnlyMemoryCapturedWhileRequestWasInFlight]' started.
+Test Case '-[PiyaliCoreTests.MemoryTests testSyncReplaysOnlyMemoryCapturedWhileRequestWasInFlight]' passed (0.001 seconds).
+Test Case '-[PiyaliCoreTests.MemoryTests testTargetLanguageIsolationAndReinforcementLifecycle]' started.
+Test Case '-[PiyaliCoreTests.MemoryTests testTargetLanguageIsolationAndReinforcementLifecycle]' passed (0.001 seconds).
+Test Case '-[PiyaliCoreTests.MemoryTests testWindowExpiresAtDayTwoAndLimitsRecentNotes]' started.
+Test Case '-[PiyaliCoreTests.MemoryTests testWindowExpiresAtDayTwoAndLimitsRecentNotes]' passed (0.013 seconds).
+Test Suite 'MemoryTests' failed at 2026-11-06 00:20:18.279.
+	 Executed 9 tests, with 7 failures (0 unexpected) in 0.132 (0.132) seconds
+Test Suite 'SyncContractTests' started at 2026-11-06 00:20:18.279.
+Test Case '-[PiyaliCoreTests.SyncContractTests testInvalidWebNumericDataUsesDefaultsWithoutTrapping]' started.
+Test Case '-[PiyaliCoreTests.SyncContractTests testInvalidWebNumericDataUsesDefaultsWithoutTrapping]' passed (0.000 seconds).
+Test Case '-[PiyaliCoreTests.SyncContractTests testLegacyDayKeyNormalizesWithoutResettingTodaysXP]' started.
+Test Case '-[PiyaliCoreTests.SyncContractTests testLegacyDayKeyNormalizesWithoutResettingTodaysXP]' passed (0.001 seconds).
+Test Case '-[PiyaliCoreTests.SyncContractTests testOfflineAwardsKeepTheirCalendarDay]' started.
+Test Case '-[PiyaliCoreTests.SyncContractTests testOfflineAwardsKeepTheirCalendarDay]' passed (0.001 seconds).
+Test Case '-[PiyaliCoreTests.SyncContractTests testPreferenceEditsDuringSyncSurviveAcknowledgment]' started.
+Test Case '-[PiyaliCoreTests.SyncContractTests testPreferenceEditsDuringSyncSurviveAcknowledgment]' passed (0.001 seconds).
+Test Case '-[PiyaliCoreTests.SyncContractTests testRebaseKeepsNewPracticeAndAcknowledgesOnlySentEvents]' started.
+Test Case '-[PiyaliCoreTests.SyncContractTests testRebaseKeepsNewPracticeAndAcknowledgesOnlySentEvents]' passed (0.004 seconds).
+Test Case '-[PiyaliCoreTests.SyncContractTests testRevealReviewDoesNotAwardXPOrPrematureMastery]' started.
+Test Case '-[PiyaliCoreTests.SyncContractTests testRevealReviewDoesNotAwardXPOrPrematureMastery]' passed (0.002 seconds).
+Test Case '-[PiyaliCoreTests.SyncContractTests testSchedulesMatchReferenceFixtures]' started.
+Test Case '-[PiyaliCoreTests.SyncContractTests testSchedulesMatchReferenceFixtures]' passed (0.125 seconds).
+Test Case '-[PiyaliCoreTests.SyncContractTests testWebAccountImportUsesLanguageXPAndRetainsUnknownWebState]' started.
+Test Case '-[PiyaliCoreTests.SyncContractTests testWebAccountImportUsesLanguageXPAndRetainsUnknownWebState]' passed (0.001 seconds).
+Test Suite 'SyncContractTests' passed at 2026-11-06 00:20:18.413.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 0.134 (0.135) seconds
+Test Suite 'TutorOutcomeIntentTests' started at 2026-11-06 00:20:18.413.
+Test Case '-[PiyaliCoreTests.TutorOutcomeIntentTests testAcknowledgedTurnWithPendingAssessmentOnlyDeliversTheRemainingRating]' started.
+Test Case '-[PiyaliCoreTests.TutorOutcomeIntentTests testAcknowledgedTurnWithPendingAssessmentOnlyDeliversTheRemainingRating]' passed (0.002 seconds).
+Test Case '-[PiyaliCoreTests.TutorOutcomeIntentTests testAcknowledgmentKeepsPendingDailyProjectionAndHandlesDeliveryDuringTheSave]' started.
+Test Case '-[PiyaliCoreTests.TutorOutcomeIntentTests testAcknowledgmentKeepsPendingDailyProjectionAndHandlesDeliveryDuringTheSave]' passed (0.002 seconds).
+Test Case '-[PiyaliCoreTests.TutorOutcomeIntentTests testCanonicalAcknowledgmentRetiresAStaleIntentWithoutProjectingItsDailyAwardAgain]' started.
+Test Case '-[PiyaliCoreTests.TutorOutcomeIntentTests testCanonicalAcknowledgmentRetiresAStaleIntentWithoutProjectingItsDailyAwardAgain]' passed (0.002 seconds).
+Test Case '-[PiyaliCoreTests.TutorOutcomeIntentTests testCanonicalImportReappliesOnlyPrivatePendingDailyProjection]' started.
+Test Case '-[PiyaliCoreTests.TutorOutcomeIntentTests testCanonicalImportReappliesOnlyPrivatePendingDailyProjection]' passed (0.002 seconds).
+Test Case '-[PiyaliCoreTests.TutorOutcomeIntentTests testDeferredGlobalTurnDoesNotPayLessonProgressTwice]' started.
+Test Case '-[PiyaliCoreTests.TutorOutcomeIntentTests testDeferredGlobalTurnDoesNotPayLessonProgressTwice]' passed (0.002 seconds).
+Test Case '-[PiyaliCoreTests.TutorOutcomeIntentTests testEarnedDeliveryKeepsItsLanguageWhenTheSelectedTargetChanges]' started.
+Test Case '-[PiyaliCoreTests.TutorOutcomeIntentTests testEarnedDeliveryKeepsItsLanguageWhenTheSelectedTargetChanges]' passed (0.001 seconds).
+Test Case '-[PiyaliCoreTests.TutorOutcomeIntentTests testGoalCompanionAndDailyProjectionDoNotDoubleAcrossDeliveryAndAcknowledgment]' started.
+Test Case '-[PiyaliCoreTests.TutorOutcomeIntentTests testGoalCompanionAndDailyProjectionDoNotDoubleAcrossDeliveryAndAcknowledgment]' passed (0.005 seconds).
+Test Case '-[PiyaliCoreTests.TutorOutcomeIntentTests testLateCorrectAwardRemainsIndependentOfAnAlreadyRecordedAssessment]' started.
+Test Case '-[PiyaliCoreTests.TutorOutcomeIntentTests testLateCorrectAwardRemainsIndependentOfAnAlreadyRecordedAssessment]' passed (0.001 seconds).
+Test Case '-[PiyaliCoreTests.TutorOutcomeIntentTests testPendingWorthProjectsDailyOnlyThenDeliversAccountAwardAndAssessmentExactlyOnce]' started.
+Test Case '-[PiyaliCoreTests.TutorOutcomeIntentTests testPendingWorthProjectsDailyOnlyThenDeliversAccountAwardAndAssessmentExactlyOnce]' passed (0.002 seconds).
+Test Suite 'TutorOutcomeIntentTests' passed at 2026-11-06 00:20:18.433.
+	 Executed 9 tests, with 0 failures (0 unexpected) in 0.019 (0.020) seconds
+Test Suite 'PiyaliCorePackageTests.xctest' failed at 2026-11-06 00:20:18.433.
+	 Executed 35 tests, with 7 failures (0 unexpected) in 1.010 (1.013) seconds
+Test Suite 'Selected tests' failed at 2026-11-06 00:20:18.433.
+	 Executed 35 tests, with 7 failures (0 unexpected) in 1.010 (1.013) seconds

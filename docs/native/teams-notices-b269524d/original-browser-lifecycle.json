@@ -1,0 +1,55 @@
+{
+  "reference": "b269524ddc578027c549616fc47f5954991d9f6f",
+  "scope": "Actual original TeamView and TeamCreation rendered in Chromium; external I/O fixture only. Ordinary expiry, clipboard expiry/manual close, retained editor and notice after drawer closes. Not an authenticated App or production service check.",
+  "hashes": {
+    "src/components/Teams/TeamView.jsx": "2facc3dd6abc05f079200ee3e903c30415b71aba8078a3fa9d5691f5b0e482d1",
+    "src/components/Teams/TeamCreation.jsx": "f11087861531d5865539d9c4b3ed041e1cb838ddee578f22335ab8d69566cbe6",
+    "node_modules/@chakra-ui/react/dist/esm/toast/toast.component.mjs": "0038cd4a0474923e82f05a694be163690df0ece3ff5d7459386f45d684ce5b05"
+  },
+  "results": [
+    {
+      "state": "rename-error",
+      "elapsed": 5514,
+      "editorRetained": true,
+      "closable": false,
+      "drawerCloseRetainsToast": false
+    },
+    {
+      "state": "rename-success",
+      "elapsed": 5489,
+      "editorRetained": false,
+      "closable": false,
+      "drawerCloseRetainsToast": true
+    },
+    {
+      "state": "copy",
+      "elapsed": 2399,
+      "editorRetained": false,
+      "closable": true,
+      "drawerCloseRetainsToast": false
+    },
+    {
+      "state": "copy-close",
+      "elapsed": 929,
+      "editorRetained": false,
+      "closable": true,
+      "drawerCloseRetainsToast": false
+    },
+    {
+      "state": "bottom-action-overlap",
+      "deleteFrame": {
+        "x": 325,
+        "y": 841.59375,
+        "width": 32,
+        "height": 32
+      },
+      "noticeFrame": {
+        "x": 51,
+        "y": 818,
+        "width": 300,
+        "height": 48
+      },
+      "toastInterceptsClick": true
+    }
+  ]
+}

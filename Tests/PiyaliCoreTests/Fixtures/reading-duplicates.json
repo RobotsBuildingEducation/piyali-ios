@@ -1,0 +1,232 @@
+[
+  {
+    "input": {
+      "name": "no-last",
+      "lectures": [],
+      "title": "El jardín",
+      "target": "La flor crece.",
+      "now": 1700000000000
+    },
+    "expected": false
+  },
+  {
+    "input": {
+      "name": "same",
+      "lectures": [
+        {
+          "id": "original-run",
+          "title": "El jardín",
+          "target": "La flor crece.",
+          "createdAtClient": 1700000000000,
+          "awarded": true
+        }
+      ],
+      "title": "El jardín",
+      "target": "La flor crece.",
+      "now": 1700000000000
+    },
+    "expected": true
+  },
+  {
+    "input": {
+      "name": "normalized",
+      "lectures": [
+        {
+          "id": "original-run",
+          "title": "El jardín",
+          "target": "La flor crece.",
+          "createdAtClient": 1700000000000,
+          "awarded": true
+        }
+      ],
+      "title": "  EL   JARDÍN\n",
+      "target": " LA\tFLOR CRECE. ",
+      "now": 1700000014999
+    },
+    "expected": true
+  },
+  {
+    "input": {
+      "name": "exact-boundary",
+      "lectures": [
+        {
+          "id": "original-run",
+          "title": "El jardín",
+          "target": "La flor crece.",
+          "createdAtClient": 1700000000000,
+          "awarded": true
+        }
+      ],
+      "title": "El jardín",
+      "target": "La flor crece.",
+      "now": 1700000015000
+    },
+    "expected": false
+  },
+  {
+    "input": {
+      "name": "expired",
+      "lectures": [
+        {
+          "id": "original-run",
+          "title": "El jardín",
+          "target": "La flor crece.",
+          "createdAtClient": 1700000000000,
+          "awarded": true
+        }
+      ],
+      "title": "El jardín",
+      "target": "La flor crece.",
+      "now": 1700000015001
+    },
+    "expected": false
+  },
+  {
+    "input": {
+      "name": "changed-title",
+      "lectures": [
+        {
+          "id": "original-run",
+          "title": "El jardín",
+          "target": "La flor crece.",
+          "createdAtClient": 1700000000000,
+          "awarded": true
+        }
+      ],
+      "title": "Otro jardín",
+      "target": "La flor crece.",
+      "now": 1700000000000
+    },
+    "expected": false
+  },
+  {
+    "input": {
+      "name": "changed-body",
+      "lectures": [
+        {
+          "id": "original-run",
+          "title": "El jardín",
+          "target": "La flor crece.",
+          "createdAtClient": 1700000000000,
+          "awarded": true
+        }
+      ],
+      "title": "El jardín",
+      "target": "La flor crece hoy.",
+      "now": 1700000000000
+    },
+    "expected": false
+  },
+  {
+    "input": {
+      "name": "only-last-counts",
+      "lectures": [
+        {
+          "id": "original-run",
+          "title": "El jardín",
+          "target": "La flor crece.",
+          "createdAtClient": 1700000000000,
+          "awarded": true
+        },
+        {
+          "id": "original-run",
+          "title": "Otra lectura",
+          "target": "La flor crece.",
+          "createdAtClient": 1700000000000,
+          "awarded": true
+        }
+      ],
+      "title": "El jardín",
+      "target": "La flor crece.",
+      "now": 1700000000000
+    },
+    "expected": false
+  },
+  {
+    "input": {
+      "name": "clock-backward",
+      "lectures": [
+        {
+          "id": "original-run",
+          "title": "El jardín",
+          "target": "La flor crece.",
+          "createdAtClient": 1700000000000,
+          "awarded": true
+        }
+      ],
+      "title": "El jardín",
+      "target": "La flor crece.",
+      "now": 1699999999000
+    },
+    "expected": true
+  },
+  {
+    "input": {
+      "name": "missing-timestamp",
+      "lectures": [
+        {
+          "title": "El jardín",
+          "target": "La flor crece."
+        }
+      ],
+      "title": "El jardín",
+      "target": "La flor crece.",
+      "now": 1700000000000
+    },
+    "expected": false
+  },
+  {
+    "input": {
+      "name": "cjk",
+      "lectures": [
+        {
+          "id": "original-run",
+          "title": "庭",
+          "target": "花が咲きます。",
+          "createdAtClient": 1700000000000,
+          "awarded": true
+        }
+      ],
+      "title": "庭",
+      "target": "花が咲きます。",
+      "now": 1700000000100
+    },
+    "expected": true
+  },
+  {
+    "input": {
+      "name": "rtl",
+      "lectures": [
+        {
+          "id": "original-run",
+          "title": "الحديقة",
+          "target": "تنمو الزهرة.",
+          "createdAtClient": 1700000000000,
+          "awarded": true
+        }
+      ],
+      "title": "الحديقة",
+      "target": "تنمو الزهرة.",
+      "now": 1700000000100
+    },
+    "expected": true
+  },
+  {
+    "input": {
+      "name": "empty-last",
+      "lectures": [
+        {
+          "id": "original-run",
+          "title": "",
+          "target": "",
+          "createdAtClient": 1700000000000,
+          "awarded": true
+        }
+      ],
+      "title": "",
+      "target": "",
+      "now": 1700000000100
+    },
+    "expected": true
+  }
+]

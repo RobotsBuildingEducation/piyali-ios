@@ -1,0 +1,427 @@
+{
+  "reference_revision": "b269524ddc578027c549616fc47f5954991d9f6f",
+  "native_base": "83e09632f47e5b7e7a092c5385f29e675fd4a582",
+  "qa_device": "CE8248B6-7171-4FD4-97DE-89E499107F82",
+  "comparison_bundle": "/tmp/PiyaliPhonicsFreshOfflineVerified2_20261105.xcresult",
+  "scope": "Unmodified original focused Phonics component and complete cache/factory functions, with remote reads/transactions explicitly failing against public stores. Native fresh preparation and Practice use an injected failing progress service. English/light and Arabic/dark content frames at 402x874; no full browser authentication/routing, physical speech or whole-shell design claim.",
+  "original_captures": [
+    {
+      "attachment": "Source fresh offline phonics goal front en",
+      "sha256": "09273c3529acf9e08257ede6de1ec5d1709c56c276d5629d259841963477b737",
+      "bytes": 276032,
+      "exported_file": "B495020A-EDDD-47CE-B322-4B3D15FB49C8.png"
+    },
+    {
+      "attachment": "Native fresh offline phonics goal front en",
+      "sha256": "6db2a5579d670c814c42722e28ce0b6a25312c2aeafb3623c3d888699c8b1fd7",
+      "bytes": 604023,
+      "exported_file": "907EC9E2-3E97-4F04-AB15-F6591663A0F1.png"
+    },
+    {
+      "attachment": "Source fresh offline phonics goal practice en",
+      "sha256": "7fbfb49540e02bc0131c1b1c23217261bc2b3f764946dc4597dfeaaa389b3cef",
+      "bytes": 293165,
+      "exported_file": "B53543D6-D0F5-4C00-876A-535833AAB853.png"
+    },
+    {
+      "attachment": "Native fresh offline phonics goal practice en",
+      "sha256": "df61e085aa41117508b18a1986496120adca3f2a1469c9a49405f67b9573753d",
+      "bytes": 582823,
+      "exported_file": "ED4B204F-0671-4E97-A65C-11547E1EA8F2.png"
+    },
+    {
+      "attachment": "Source fresh offline phonics goal front ar",
+      "sha256": "9fa7e39060a49005bb30e57f605265ff0175a335effd6c1cde9c78ddcb462fc9",
+      "bytes": 178115,
+      "exported_file": "82598376-9402-4685-8A69-49B5666AC112.png"
+    },
+    {
+      "attachment": "Native fresh offline phonics goal front ar",
+      "sha256": "6de22abcb825a49c3d17a11563ca57009133dacef80bbe8e04df913bc7ee8f1d",
+      "bytes": 423414,
+      "exported_file": "9BB43B8E-559F-4752-BFF5-FDEE1F8D977B.png"
+    },
+    {
+      "attachment": "Source fresh offline phonics goal practice ar",
+      "sha256": "02372c6c609a0ac921cb98665a05e330722febe1183ecc8c1c23520a1a9ae777",
+      "bytes": 172726,
+      "exported_file": "C21AF300-52BD-4B28-A96E-F3FD49443C10.png"
+    },
+    {
+      "attachment": "Native fresh offline phonics goal practice ar",
+      "sha256": "83ee3dd923ec6841387df9f4c18c7955326041049c0876bf5dfa3359965ecf4d",
+      "bytes": 409402,
+      "exported_file": "8D4A0BF9-F281-414D-8074-10C78D8E10BC.png"
+    },
+    {
+      "attachment": "Source fresh offline phonics repair front en",
+      "sha256": "9c621bc9d91602bd8b921c626f0c3abccdb347c8579180b91a1b7074df581187",
+      "bytes": 281955,
+      "exported_file": "54243598-84E2-4C1D-A01C-A170A940F82B.png"
+    },
+    {
+      "attachment": "Native fresh offline phonics repair front en",
+      "sha256": "515b3bcb8afd6c40c7a390a4f9860204ee897e85e02e874e5994bff2b88a3eb0",
+      "bytes": 627550,
+      "exported_file": "D6F67730-FDF7-4C6E-9971-A2F41002B28D.png"
+    },
+    {
+      "attachment": "Source fresh offline phonics repair practice en",
+      "sha256": "69807e14ef40c732fd413003efacf893f99be1a996ebbf0c0e5982888172e334",
+      "bytes": 298636,
+      "exported_file": "90EF04ED-86C3-487A-BDAD-DA207E12134D.png"
+    },
+    {
+      "attachment": "Native fresh offline phonics repair practice en",
+      "sha256": "bb9df7e9bfa1910835d440e32007ef98fe95e09ab1c1bc3f1d48f78daab01e70",
+      "bytes": 605459,
+      "exported_file": "BFFEF810-462B-4D0E-B00C-9B3A10D5C06E.png"
+    },
+    {
+      "attachment": "Source fresh offline phonics repair front ar",
+      "sha256": "427ff8b39b2f920940af6d615200e630f5edf9bebfa006657ca7eea25248df21",
+      "bytes": 183711,
+      "exported_file": "BB2694C1-6C64-462A-B607-B388827AE013.png"
+    },
+    {
+      "attachment": "Native fresh offline phonics repair front ar",
+      "sha256": "badfc793d48e6290a243dd2d5571c1d6e6ee4d397afc13e8496c1e9d796e057a",
+      "bytes": 436813,
+      "exported_file": "B1BDCAB8-76F7-46F5-9E9D-80A7F28C6325.png"
+    },
+    {
+      "attachment": "Source fresh offline phonics repair practice ar",
+      "sha256": "dc4fd88cacd63800cb101490c11773b2b2474df6143de62204733059ebb8879f",
+      "bytes": 178546,
+      "exported_file": "DD4DEBC9-90D6-4D8D-91E0-1C8E948FA462.png"
+    },
+    {
+      "attachment": "Native fresh offline phonics repair practice ar",
+      "sha256": "c7505aab6e047b6ee2615c77fd7998adc3ea63649310fb625534c4c35e4d57d5",
+      "bytes": 423246,
+      "exported_file": "3FC99CCD-D1C8-483C-9E1B-ADE365834825.png"
+    }
+  ],
+  "artifacts": [
+    {
+      "file": "source-goal-front-en.png",
+      "attachment": "Source fresh offline phonics goal front en",
+      "sha256": "09273c3529acf9e08257ede6de1ec5d1709c56c276d5629d259841963477b737",
+      "bytes": 276032
+    },
+    {
+      "file": "native-goal-front-en.png",
+      "attachment": "Native fresh offline phonics goal front en",
+      "sha256": "6db2a5579d670c814c42722e28ce0b6a25312c2aeafb3623c3d888699c8b1fd7",
+      "bytes": 604023
+    },
+    {
+      "file": "goal-front-en-pair.png",
+      "attachment": "Original source left, native right: goal front en",
+      "sha256": "dd376243d2d86dd950edc9eab26132bf643fc07c2755c65f043a3af5d83cee7e",
+      "bytes": 108586
+    },
+    {
+      "file": "goal-practice-en-pair.png",
+      "attachment": "Original source left, native right: goal practice en",
+      "sha256": "3c9196d6100d55da92e2bd28d976e33d8c7c49a82581ede2d36d70617b6bb5f5",
+      "bytes": 99682
+    },
+    {
+      "file": "goal-en-input.json",
+      "attachment": "Public fresh offline phonics goal en input",
+      "sha256": "0d162c98ce063ec22f388035aac9211318e888cea7922db7fc75aa6504526299",
+      "bytes": 2092
+    },
+    {
+      "file": "goal-en-cache-trace.json",
+      "attachment": "Source fresh offline phonics goal en cache trace",
+      "sha256": "22d484b3aa60f155079d56d73a088933134e0f552c4c6ed5ba4ca5e95d0a66c0",
+      "bytes": 1307
+    },
+    {
+      "file": "goal-front-ar-pair.png",
+      "attachment": "Original source left, native right: goal front ar",
+      "sha256": "f97c6b28e11c1fd36cac8afb739656cc1eb24587bf201dd845f3e27353aff764",
+      "bytes": 88871
+    },
+    {
+      "file": "goal-practice-ar-pair.png",
+      "attachment": "Original source left, native right: goal practice ar",
+      "sha256": "4489288e334838a423819da689d18911e32dd9ac1fbb23214ef2af01747c23c1",
+      "bytes": 82416
+    },
+    {
+      "file": "goal-ar-input.json",
+      "attachment": "Public fresh offline phonics goal ar input",
+      "sha256": "535da989e394d603740e8a402578ed56c26037b08caf527dababaa292285c157",
+      "bytes": 2092
+    },
+    {
+      "file": "goal-ar-cache-trace.json",
+      "attachment": "Source fresh offline phonics goal ar cache trace",
+      "sha256": "c85aac4731f13f6385d79c87ca175d0b2cada08c668370160f3a9780efa27476",
+      "bytes": 1375
+    },
+    {
+      "file": "repair-front-en-pair.png",
+      "attachment": "Original source left, native right: repair front en",
+      "sha256": "c148ba0fa07c4ddbe95dc82e03f6cc03c253adee8f708a4031cbd739adc8ffa8",
+      "bytes": 110967
+    },
+    {
+      "file": "repair-practice-en-pair.png",
+      "attachment": "Original source left, native right: repair practice en",
+      "sha256": "5337787643ac3e82745d41adec9452a735b243c03c61137606fa64a9ed123814",
+      "bytes": 101580
+    },
+    {
+      "file": "repair-en-input.json",
+      "attachment": "Public fresh offline phonics repair en input",
+      "sha256": "31e19ffcc4696b16fa27132456efa119cfd21f6c6ea6e58047512012d5c88f8b",
+      "bytes": 2112
+    },
+    {
+      "file": "repair-en-cache-trace.json",
+      "attachment": "Source fresh offline phonics repair en cache trace",
+      "sha256": "acca8058af2892a4d78a1e00e6d279184f2bedac6a568506720c557ab241e9ee",
+      "bytes": 1747
+    },
+    {
+      "file": "repair-front-ar-pair.png",
+      "attachment": "Original source left, native right: repair front ar",
+      "sha256": "fc9458eacbb6cd8a2d053f5d3dc90dfb0a836110620f7636f772dd7af7690681",
+      "bytes": 90540
+    },
+    {
+      "file": "source-repair-practice-ar.png",
+      "attachment": "Source fresh offline phonics repair practice ar",
+      "sha256": "dc4fd88cacd63800cb101490c11773b2b2474df6143de62204733059ebb8879f",
+      "bytes": 178546
+    },
+    {
+      "file": "native-repair-practice-ar.png",
+      "attachment": "Native fresh offline phonics repair practice ar",
+      "sha256": "c7505aab6e047b6ee2615c77fd7998adc3ea63649310fb625534c4c35e4d57d5",
+      "bytes": 423246
+    },
+    {
+      "file": "repair-practice-ar-pair.png",
+      "attachment": "Original source left, native right: repair practice ar",
+      "sha256": "fd9248d7d62332f86d21e5927afa0598ec65a45a631355bf514001493b63e92d",
+      "bytes": 84126
+    },
+    {
+      "file": "repair-ar-input.json",
+      "attachment": "Public fresh offline phonics repair ar input",
+      "sha256": "e785dd8959320a2eae2e1006573f1243c5ad80234189fe2fb0302f6911162ba8",
+      "bytes": 2112
+    },
+    {
+      "file": "repair-ar-cache-trace.json",
+      "attachment": "Source fresh offline phonics repair ar cache trace",
+      "sha256": "8cf9c76e0430f6d926c7ba2fb47ebe8e2ca81528189b95e3e343d1d5fefce5e2",
+      "bytes": 1849
+    },
+    {
+      "file": "repair-sdk-preparation.json",
+      "attachment": "SDK network-disabled phonics repair preparation trace",
+      "result_bundle": "/tmp/PiyaliPhonicsFreshOfflineJourneysVerified20261105.xcresult",
+      "sha256": "821ad2b562b7ba406d52e5e2eb3265d6d23128be2536da8cd5221a9a6dc8479e",
+      "bytes": 3083
+    },
+    {
+      "file": "goal-sdk-preparation.json",
+      "attachment": "SDK network-disabled phonics goal preparation trace",
+      "result_bundle": "/tmp/PiyaliPhonicsFreshOfflineJourneysVerified20261105.xcresult",
+      "sha256": "0a8c294721a8d33bab87bd5d31185e4d259ae616f5087ee6ea98aee5581a7967",
+      "bytes": 1221
+    },
+    {
+      "file": "goal-phone-next-lesson.png",
+      "attachment": "Native fresh goal phonics reconnects and completes into next lesson",
+      "result_bundle": "/tmp/PiyaliPhonicsFreshOfflineJourneysVerified20261105.xcresult",
+      "sha256": "907e3cae0be7cbec818e5fd59dd9aac76508e20ae783453816ca4fa6e921558f",
+      "bytes": 268906
+    },
+    {
+      "file": "goal-phone-offline-relaunch.png",
+      "attachment": "Native fresh goal offline authored deck survives relaunch",
+      "result_bundle": "/tmp/PiyaliPhonicsFreshOfflineJourneysVerified20261105.xcresult",
+      "sha256": "02f42207ba4b894ae9e13c795121a899262a8ae2e5105e796e56ec7d123d4582",
+      "bytes": 420940
+    },
+    {
+      "file": "goal-phone-practice.png",
+      "attachment": "Native fresh goal offline pronunciation model",
+      "result_bundle": "/tmp/PiyaliPhonicsFreshOfflineJourneysVerified20261105.xcresult",
+      "sha256": "98f7b34927e9a7338fcbcc98d1cd322bb06a98f4e9840498953564f4903eac4b",
+      "bytes": 412043
+    },
+    {
+      "file": "goal-phone-front.png",
+      "attachment": "Native fresh goal authored phonics prepared while offline",
+      "result_bundle": "/tmp/PiyaliPhonicsFreshOfflineJourneysVerified20261105.xcresult",
+      "sha256": "b94ca25fd0be69ae15bf40278aa78d276f0719589e547dd9014051c7d0d2d47d",
+      "bytes": 420742
+    },
+    {
+      "file": "repair-phone-next-lesson.png",
+      "attachment": "Native fresh repair phonics reconnects and completes into next lesson",
+      "result_bundle": "/tmp/PiyaliPhonicsFreshOfflineJourneysVerified20261105.xcresult",
+      "sha256": "1d1e80298b80aa7b1e6aed3ee2251681c990bbc71f203527af8836af799096be",
+      "bytes": 256273
+    },
+    {
+      "file": "repair-phone-offline-relaunch.png",
+      "attachment": "Native fresh repair offline authored deck survives relaunch",
+      "result_bundle": "/tmp/PiyaliPhonicsFreshOfflineJourneysVerified20261105.xcresult",
+      "sha256": "b50b6338bacefcb714e4782db49d2fe363d8d30f11f7dd7bb1b2cf8b6b4b9b8b",
+      "bytes": 434099
+    },
+    {
+      "file": "repair-phone-practice.png",
+      "attachment": "Native fresh repair offline pronunciation model",
+      "result_bundle": "/tmp/PiyaliPhonicsFreshOfflineJourneysVerified20261105.xcresult",
+      "sha256": "8706710ee42abd0d4d7ab9cce458c20cbabb30701054accc982b215003346f1f",
+      "bytes": 421872
+    },
+    {
+      "file": "repair-phone-front.png",
+      "attachment": "Native fresh repair authored phonics prepared while offline",
+      "result_bundle": "/tmp/PiyaliPhonicsFreshOfflineJourneysVerified20261105.xcresult",
+      "sha256": "b50b6338bacefcb714e4782db49d2fe363d8d30f11f7dd7bb1b2cf8b6b4b9b8b",
+      "bytes": 434099
+    }
+  ],
+  "checks": {
+    "core": {
+      "tests": 19,
+      "failures": 0,
+      "seconds": 2.126,
+      "log": "/tmp/piyali-phonics-cache-core-20261105.log"
+    },
+    "models": {
+      "tests": 14,
+      "failures": 0,
+      "seconds": 77.741,
+      "result_bundle": "/tmp/PiyaliPhonicsFreshOfflineVerified2_20261105.xcresult"
+    },
+    "source_comparison": {
+      "tests": 1,
+      "failures": 0,
+      "seconds": 28.364,
+      "result_bundle": "/tmp/PiyaliPhonicsFreshOfflineVerified2_20261105.xcresult"
+    },
+    "regressions": {
+      "tests": 2,
+      "failures": 0,
+      "seconds": [
+        0.115,
+        0.584
+      ],
+      "scope": "Goal flashcard generation/cache and legacy authored repair, same model/source bundle"
+    },
+    "sdk": {
+      "tests": 1,
+      "failures": 0,
+      "seconds": 13.81,
+      "result_bundle": "/tmp/PiyaliPhonicsFreshOfflineJourneysVerified20261105.xcresult"
+    },
+    "ui": {
+      "tests": 2,
+      "failures": 0,
+      "seconds": 221.589,
+      "goal_seconds": 105.617,
+      "repair_seconds": 115.972,
+      "result_bundle": "/tmp/PiyaliPhonicsFreshOfflineJourneysVerified20261105.xcresult"
+    }
+  },
+  "bundle_scope_note": "Model/source/regression checks pass in Verified2; that containing bundle fails three assertions from demanding the local candidate rather than an available server winner in its SDK check. The final SDK expectation correction changes only test code, then SDK and both UI journeys pass together. No production source changed after the final model/source checks.",
+  "native_and_harness": [
+    {
+      "file": "Piyali/App/AppModel+CompanionQuest.swift",
+      "sha256": "25fb93f15fb01fb1716161f41103a72e1f7366209e3d670af8cfc0e2d3be3570"
+    },
+    {
+      "file": "Piyali/App/AppModel.swift",
+      "sha256": "3a5a7029c36f567ad25da9986413f13ded8b972d438dce3c3924e8e36b368317"
+    },
+    {
+      "file": "Piyali/App/FocusedPhonicsFixture.swift",
+      "sha256": "7b22b9238f09a095c4b4b9b7fbe5cc54f7bbcdd96896f78313d5688545764231"
+    },
+    {
+      "file": "Piyali/Features/SourcePhonicsView.swift",
+      "sha256": "7d45afe1b7a1e0b7d7815b66f3b5825f485a28888668b64a6a18967f92a3be86"
+    },
+    {
+      "file": "Piyali/Services/LearnerProgressService.swift",
+      "sha256": "02a8dddc792c8fbb858d51083cfa51f52edb8a834c9f0d5b52092c2453d647d9"
+    },
+    {
+      "file": "Tests/PiyaliAppTests/FocusedPhonicsFlowTests.swift",
+      "sha256": "08fe51264e7e553914dad51dbd78619d16bf4ee806350f49be69c3b934d1dd28"
+    },
+    {
+      "file": "Tests/PiyaliAppTests/FocusedPhonicsComparisonTests.swift",
+      "sha256": "6c01d8c669cb2eb502b0105b449cb5afe31c02254d10933bb58ed5c6ab11b8aa"
+    },
+    {
+      "file": "Tests/PiyaliAppTests/FirestoreContractTests.swift",
+      "sha256": "d94911643297cb98aab434099c0a3361eeca6127ac43a6ed4e04be9e68ba5b0d"
+    },
+    {
+      "file": "Tests/PiyaliCoreTests/FocusedPhonicsPolicyTests.swift",
+      "sha256": "fea5d3fc33a18a680a66db513690c9ebb7db8c24dd82135b91c28748e259a9e3"
+    },
+    {
+      "file": "Tests/PiyaliUITests/FocusedPhonicsJourneyTests.swift",
+      "sha256": "cfbd0798832b062605e0b878a7ef7a829fa18faed19e0b13487cc434775bd926"
+    },
+    {
+      "file": "scripts/reference-focused-phonics.jsx",
+      "sha256": "8211f0ffa48df65b8fe885c6ff5cc185fbfbc1d86fe5d057fa580108c707b31b"
+    },
+    {
+      "file": "scripts/reference-focused-phonics.mjs",
+      "sha256": "bf4958763774de9f294e35b666917dc153f4e7c676516bcdb88930d273a4c3e5"
+    },
+    {
+      "file": "scripts/export-focused-phonics-cache.mjs",
+      "sha256": "5219e8b92a03ede05ff24c9d8d8b64a674d8a7c664cea7c2cb916bbea6f61542"
+    }
+  ],
+  "reference": [
+    {
+      "file": "src/utils/focusedPracticeDecks.js",
+      "sha256": "bb5f8e54a4ad8db64bfb5e725f8fec4e37f538b4aa26a20714d18e825d6ad59d"
+    },
+    {
+      "file": "src/components/AlphabetBootcamp.jsx",
+      "sha256": "51a7b8ab6a3c0ee80fc7594fcf9ee66f345d002278c0987b717d5c4b309282d7"
+    },
+    {
+      "file": "src/data/phonics/index.js",
+      "sha256": "7877d9aeb179f0252d259976c9b94ecb51402f4d62d5ea62b8b4389e93a47cbc"
+    }
+  ],
+  "tested_products": [
+    {
+      "file": "DerivedData/Build/Products/Debug-iphonesimulator/Piyali.app/Piyali",
+      "sha256": "15ce34eab4022e98c0aba0495579eff0d2994f1c1b3c881ff2b7bd7379720447"
+    },
+    {
+      "file": "DerivedData/Build/Products/Debug-iphonesimulator/Piyali.app/Piyali.debug.dylib",
+      "sha256": "61e8b4a972155e7748cf3ba51ef60e02b29ceb047d7f46bb9930765f3c17d401"
+    },
+    {
+      "file": "DerivedData/Build/Products/Debug-iphonesimulator/Piyali.app/PlugIns/PiyaliTests.xctest/PiyaliTests",
+      "sha256": "16e91b9b9e431b56f8adb847411ef5ed8cf98466adbc0de11533de03829cfc74"
+    },
+    {
+      "file": "DerivedData/Build/Products/Debug-iphonesimulator/PiyaliUITests-Runner.app/PlugIns/PiyaliUITests.xctest/PiyaliUITests",
+      "sha256": "4e0bf1ae1fdf9a422f52cc8f927a535e7c8bcf8b04d671bf9a35b71757ca9810"
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "result": "/tmp/PiyaliTutorReplyFlows8.xcresult",
+  "scope": "Normal native entry/onboarding/product menu, scripted voice protocol welcome/target response with original translation pipeline, four phrase cards, actual phrase tap/selection, anchored mute/pause/resume/end, private history and process relaunch. Isolated QA identity and explicit public provider fixture; no prefilled progress or physical/live-provider claim.",
+  "records": [
+    {
+      "file": "docs/native/tutor-reply-reply-en-product.png",
+      "sha256": "ae4a55fc53f7c1644acce2c3b8b0f9e2d47a5b68612f9c1dfd490d8d5fc2e23e",
+      "attachment": "Native Tutor long reply with translated phrase cards en_0_DB7B3FE5-3377-4DF1-8013-456D15BEE357.png"
+    },
+    {
+      "file": "docs/native/tutor-reply-selected-en-product.png",
+      "sha256": "019410e6696a62a5852b85013d9f6a46e9de609bc1578fd63f913dffa4f92592",
+      "attachment": "Native Tutor repeated phrases selected en_0_B21A9BC1-EA63-4D4B-917B-6D8828ADF801.png"
+    },
+    {
+      "file": "docs/native/tutor-reply-paused-en-product.png",
+      "sha256": "06fd3bf3cd20718feaa6e71faa0b21f42d7e36d7d36c6f30c4482ca8593ff714",
+      "attachment": "Native Tutor long reply paused controls en_0_E0F1CF56-D908-46BC-A807-2BDAFF9BA03A.png"
+    },
+    {
+      "file": "docs/native/tutor-reply-history-en-product.png",
+      "sha256": "14658076b621c9e83cd5fa1e87993b359a2b26d09177396d1c22b838ee77d16f",
+      "attachment": "Native Tutor long reply retained in private history en_0_3D7B7A87-A9D1-4CE1-B4DA-494D57BE82E0.png"
+    },
+    {
+      "file": "docs/native/tutor-reply-relaunch-en-product.png",
+      "sha256": "4146d66a112599107414f6a952f50f3a2eb5e96e0db97d43b61c88accaae8b33",
+      "attachment": "Native Tutor long reply stays private after relaunch en_0_428FAFE4-9DBA-42F4-911D-0DF04BC9356E.png"
+    },
+    {
+      "file": "docs/native/tutor-reply-reply-ar-product.png",
+      "sha256": "ef2ae8e3f9600993d08be5157f236603c7f543106003317f5f3d677c84eacf4d",
+      "attachment": "Native Tutor long reply with translated phrase cards ar_0_7AAF95D0-9F7C-47BC-A8AA-AF43C9DDEB79.png"
+    },
+    {
+      "file": "docs/native/tutor-reply-selected-ar-product.png",
+      "sha256": "bd5ae86292608181979444e9682160c69c226e0968b7a6ae06bed0d49c0a59d8",
+      "attachment": "Native Tutor repeated phrases selected ar_0_AEDCDB78-7686-4159-9961-AD19B4068ADD.png"
+    },
+    {
+      "file": "docs/native/tutor-reply-paused-ar-product.png",
+      "sha256": "e2a5f21a62982ba597eef9e64cfa8c7833d0ca7dca897e1a6310c48dcf6213fe",
+      "attachment": "Native Tutor long reply paused controls ar_0_FDF763F6-2DB5-4793-B8E8-B090710B247E.png"
+    },
+    {
+      "file": "docs/native/tutor-reply-history-ar-product.png",
+      "sha256": "65c90c64c661bab0d8d7339b71e0856ef38077d84a11267d4602f69b98e02c8e",
+      "attachment": "Native Tutor long reply retained in private history ar_0_9EEA47F4-D382-458B-BD0C-8E00AF39A02A.png"
+    },
+    {
+      "file": "docs/native/tutor-reply-relaunch-ar-product.png",
+      "sha256": "57a80ee100c1d6d02f34a2736663c0c2538d0f63f303c28a4b2c45abb6cda5fd",
+      "attachment": "Native Tutor long reply stays private after relaunch ar_0_04C4BC5D-A53D-4476-AB6C-D80387DF6ABC.png"
+    }
+  ]
+}

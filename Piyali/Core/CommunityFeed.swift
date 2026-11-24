@@ -5,8 +5,9 @@ public struct CommunityMilestone: Equatable, Sendable {
     public let totalXP: Double?
     public let goalPercent: Double?
     public var questionPercent: Double? { question.map { min(100,$0/120*100) } }
+    public static func isFeedAuthorVisible(_ name:String)->Bool { !["data","test","hi","text","hii"].contains(name.lowercased()) }
     public static func parse(content:String,tags:[[String]],name:String) -> Self? {
-        guard !["data","test","hi","text","hii"].contains(name.lowercased()) else { return nil }
+        guard isFeedAuthorVisible(name) else { return nil }
         let expression=try! NSRegularExpression(pattern:"question ([0-9]+)",options:.caseInsensitive)
         let range=NSRange(content.startIndex...,in:content)
         let question=expression.firstMatch(in:content,range:range).flatMap { Range($0.range(at:1),in:content) }.flatMap { Double(content[$0]) }.flatMap { $0.isFinite && $0 > 0 ? $0 : nil }
@@ -19,15 +20,15 @@ public struct CommunityMilestone: Equatable, Sendable {
         }
         return Self(question:question,totalXP:progress ? number("total_xp") : nil,goalPercent:progress ? number("daily_goal_percent").map { max(0,min(100,$0)) } : nil)
     }
-    public static func progress(_ learner:LearnerState) -> (content:String,tags:[[String]]) {
-        let language=LearningLanguages.names[learner.target] ?? learner.target.uppercased()
-        var tags=[["t","learnwithnostr"],["purpose","nosaboProgress"],["total_xp",String(learner.totalXP)]]
+    public static func progress(_ learner:LearnerState,totalXP:Int?=nil,languageLabel:String?=nil) -> (content:String,tags:[[String]]) {
+        let language=languageLabel ?? LearningLanguages.names[learner.target] ?? learner.target.uppercased(),xp=totalXP ?? learner.totalXP
+        var tags=[["t","learnwithnostr"],["purpose","nosaboProgress"],["total_xp",String(xp)]]
         let content:String
         if learner.dailyGoal > 0 {
             let percent=Int(max(0,min(100,(Double(learner.dailyXP)/Double(learner.dailyGoal)*100).rounded())))
-            content="I'm \(percent)% through today's \(learner.dailyGoal) XP goal (\(learner.dailyXP)/\(learner.dailyGoal) XP) and now have \(learner.totalXP) XP total on https://piyali.app practicing \(language)! #LearnWithNostr"
+            content="I'm \(percent)% through today's \(learner.dailyGoal) XP goal (\(learner.dailyXP)/\(learner.dailyGoal) XP) and now have \(xp) XP total on https://piyali.app practicing \(language)! #LearnWithNostr"
             tags += [["daily_goal_percent",String(percent)],["daily_xp",String(learner.dailyXP)],["daily_goal_target",String(learner.dailyGoal)]]
-        } else { content="I just reached \(learner.totalXP) XP on https://piyali.app practicing \(language)! #LearnWithNostr" }
+        } else { content="I just reached \(xp) XP on https://piyali.app practicing \(language)! #LearnWithNostr" }
         return (content,tags)
     }
 }

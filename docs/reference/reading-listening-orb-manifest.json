@@ -1,0 +1,21 @@
+{
+  "sources": [
+    {
+      "file": "src/components/History.jsx",
+      "sha256": "ceca67f29b27ebc41c300c29e6ea92240bda1020fb23c3e505a06b65842832a9"
+    },
+    {
+      "file": "src/components/VoiceOrbNext.jsx",
+      "sha256": "391bb530fe8950fe1f74f13b2d134918d2bff10194b1bf83bc90da4561c8cb37"
+    },
+    {
+      "file": "src/components/DeferredVoiceOrb3D.jsx",
+      "sha256": "3c30ee9b40ce7dfc138b0d6fc27abea09b5b0d9996801917d6bef7f714ca383a"
+    },
+    {
+      "file": "src/components/VoiceOrb3D.jsx",
+      "sha256": "0976870d8e84c69772d503611f1d5c4f7731aaa024ea1069f6141485241edaf8"
+    }
+  ],
+  "scope": "Original Reading listening subtree and VoiceOrbNext, synthetic state only; not a full source product viewport."
+}

@@ -1,0 +1,182 @@
+{
+  "bundle": "/tmp/PiyaliFocusedTutorRecoveryFinal20261106.xcresult",
+  "screenshots": "Original XCTest attachment bytes retained. Pair/contact images normalize embedded ICC to sRGB, scale to 402x874 logical pixels, and add English provenance labels; no app contents retouched. Component pairs are not full authenticated browser journeys.",
+  "attachments": [
+    {
+      "file": "native-tutor-focused-repair-ar.png",
+      "attachmentName": "Native Tutor focused-repair ar",
+      "testIdentifier": "TutorReferenceScreensTests/testOriginalFocusedTutorGoalAndRepairInEnglishAndArabic()",
+      "exportedFileName": "631F00AB-F913-41EA-A741-E0B7D75B2DEC.png",
+      "timestamp": 1793952492.067,
+      "originalSHA256": "ab6b9b856864e10a232fd5f016c792dd8e4d7dc4ccf1b2150940b81b41e2ce7e"
+    },
+    {
+      "file": "source-tutor-focused-repair-ar-geometry.json",
+      "attachmentName": "Source Tutor focused-repair ar geometry",
+      "testIdentifier": "TutorReferenceScreensTests/testOriginalFocusedTutorGoalAndRepairInEnglishAndArabic()",
+      "exportedFileName": "8777B997-F929-4B39-8A3E-C6D182FCFFE5.json",
+      "timestamp": 1793952490.879,
+      "originalSHA256": "4fe1f180f3f4cc4d8143c70060d2a7c2d471af54c10b68bb4e0bc675ea8dc93b"
+    },
+    {
+      "file": "source-tutor-focused-repair-ar.png",
+      "attachmentName": "Source Tutor focused-repair ar",
+      "testIdentifier": "TutorReferenceScreensTests/testOriginalFocusedTutorGoalAndRepairInEnglishAndArabic()",
+      "exportedFileName": "E7C2D83C-E82F-4211-80EF-4EB8502E3674.png",
+      "timestamp": 1793952490.867,
+      "originalSHA256": "4599394a8a8395e1beef86e943ca98bf288f42b44886782eaa2b42ffeb2f49ef"
+    },
+    {
+      "file": "native-tutor-focused-goal-ar.png",
+      "attachmentName": "Native Tutor focused-goal ar",
+      "testIdentifier": "TutorReferenceScreensTests/testOriginalFocusedTutorGoalAndRepairInEnglishAndArabic()",
+      "exportedFileName": "4655227A-A339-4CC8-ADA0-71CB0630AA49.png",
+      "timestamp": 1793952486.33,
+      "originalSHA256": "ce28a7f6b5adaea6ea144f8d258152be5498995d026ac95a8bc3a6da2c3ad2da"
+    },
+    {
+      "file": "source-tutor-focused-goal-ar-geometry.json",
+      "attachmentName": "Source Tutor focused-goal ar geometry",
+      "testIdentifier": "TutorReferenceScreensTests/testOriginalFocusedTutorGoalAndRepairInEnglishAndArabic()",
+      "exportedFileName": "207FE88F-A6EA-4EE4-8BE8-3488A53B2329.json",
+      "timestamp": 1793952485.111,
+      "originalSHA256": "fd6cea58f78210ee5449ae78d8adf9f4f9cefbe84f7a0c3052f99e9621186113"
+    },
+    {
+      "file": "source-tutor-focused-goal-ar.png",
+      "attachmentName": "Source Tutor focused-goal ar",
+      "testIdentifier": "TutorReferenceScreensTests/testOriginalFocusedTutorGoalAndRepairInEnglishAndArabic()",
+      "exportedFileName": "6E5E88C9-D583-435D-93AB-38C7ECFAC404.png",
+      "timestamp": 1793952485.1,
+      "originalSHA256": "91c3bb3a36551cc7711fcb942bd70de78e369a799750d0f3b83804c44456fa31"
+    },
+    {
+      "file": "native-tutor-focused-repair-en.png",
+      "attachmentName": "Native Tutor focused-repair en",
+      "testIdentifier": "TutorReferenceScreensTests/testOriginalFocusedTutorGoalAndRepairInEnglishAndArabic()",
+      "exportedFileName": "D3320798-B19A-4E8C-88F5-3520013CFBEA.png",
+      "timestamp": 1793952479.993,
+      "originalSHA256": "7f4dd9893032282f9ba0c0f237de6b2dcbb7fcd7df3ef11de58db1d1fa9b25af"
+    },
+    {
+      "file": "source-tutor-focused-repair-en-geometry.json",
+      "attachmentName": "Source Tutor focused-repair en geometry",
+      "testIdentifier": "TutorReferenceScreensTests/testOriginalFocusedTutorGoalAndRepairInEnglishAndArabic()",
+      "exportedFileName": "D28F6508-B7AA-4E7E-9EBD-91853819BE8A.json",
+      "timestamp": 1793952478.741,
+      "originalSHA256": "aa3b6fea0f862edd966907e07dfbd623b6d4ba8db3cdedf01502e1f2bedb2299"
+    },
+    {
+      "file": "source-tutor-focused-repair-en.png",
+      "attachmentName": "Source Tutor focused-repair en",
+      "testIdentifier": "TutorReferenceScreensTests/testOriginalFocusedTutorGoalAndRepairInEnglishAndArabic()",
+      "exportedFileName": "06B3F87F-2BB5-47B7-9F78-9E2DEC724091.png",
+      "timestamp": 1793952478.727,
+      "originalSHA256": "8ccf01f1c2e5bf11940ed4a61f1d1fdddb8d3fccba0ab84e2327066bf4f383af"
+    },
+    {
+      "file": "native-tutor-focused-goal-en.png",
+      "attachmentName": "Native Tutor focused-goal en",
+      "testIdentifier": "TutorReferenceScreensTests/testOriginalFocusedTutorGoalAndRepairInEnglishAndArabic()",
+      "exportedFileName": "2C5CD1DB-EABF-4FF3-98A7-A7421A792B73.png",
+      "timestamp": 1793952474.142,
+      "originalSHA256": "718cddf2ebf233d34462b24172853942ce5d82cfe47799c613ccccd62bcf860d"
+    },
+    {
+      "file": "source-tutor-focused-goal-en-geometry.json",
+      "attachmentName": "Source Tutor focused-goal en geometry",
+      "testIdentifier": "TutorReferenceScreensTests/testOriginalFocusedTutorGoalAndRepairInEnglishAndArabic()",
+      "exportedFileName": "FD71E75C-2FD4-45AE-8D30-0A6D901632EB.json",
+      "timestamp": 1793952472.819,
+      "originalSHA256": "51a9e9e462458e8c3671ef6c5e74712e81c19b451987090e6a1d4af02a2dd1b0"
+    },
+    {
+      "file": "source-tutor-focused-goal-en.png",
+      "attachmentName": "Source Tutor focused-goal en",
+      "testIdentifier": "TutorReferenceScreensTests/testOriginalFocusedTutorGoalAndRepairInEnglishAndArabic()",
+      "exportedFileName": "B1EBBF34-0245-469F-9106-A31A23C05F5B.png",
+      "timestamp": 1793952472.806,
+      "originalSHA256": "2aad0e45a9e0d5e59466c4c83d89f3378f1b36a3c3f8a2ae5fe9cdd1660a18d3"
+    },
+    {
+      "file": "native-goal-recovered-focused-finish-stays-gated-after-another-relaunch.png",
+      "attachmentName": "Native goal recovered focused finish stays gated after another relaunch",
+      "testIdentifier": "FocusedPhonicsJourneyTests/testGoalPhonicsFallbackEarnedTutorRestoresPendingWorthAndSaveRetryBeyondTrial()",
+      "exportedFileName": "22FA9D60-9AB2-4AF2-A628-8A404C68D510.png",
+      "timestamp": 1793952661.752,
+      "originalSHA256": "c226d4fb08071740e890fc69b3218817f2f6259332fba021e8280aa61f3127ae"
+    },
+    {
+      "file": "native-goal-acknowledged-focused-tutor-finish-blocks-the-next-activity.png",
+      "attachmentName": "Native goal acknowledged focused Tutor finish blocks the next activity",
+      "testIdentifier": "FocusedPhonicsJourneyTests/testGoalPhonicsFallbackEarnedTutorRestoresPendingWorthAndSaveRetryBeyondTrial()",
+      "exportedFileName": "6DB75292-B700-4B1E-A1CB-82CD9CB434B2.png",
+      "timestamp": 1793952656.638,
+      "originalSHA256": "946c31e455690496474f4ffe88c1232c6c250cf4e7cf62a266e44de396c6ca0d"
+    },
+    {
+      "file": "native-goal-focused-tutor-restores-earned-save-retry-at-trial-end.png",
+      "attachmentName": "Native goal focused Tutor restores earned save Retry at trial end",
+      "testIdentifier": "FocusedPhonicsJourneyTests/testGoalPhonicsFallbackEarnedTutorRestoresPendingWorthAndSaveRetryBeyondTrial()",
+      "exportedFileName": "29F2AB31-2868-4848-A49E-158A94330A8E.png",
+      "timestamp": 1793952646.478,
+      "originalSHA256": "8c6298d2d8e141ffa3f77a495c3ffd42c51d16656cb1e8b95141de798612fd27"
+    },
+    {
+      "file": "native-goal-focused-tutor-earned-completion-waits-for-original-worth.png",
+      "attachmentName": "Native goal focused Tutor earned completion waits for original worth",
+      "testIdentifier": "FocusedPhonicsJourneyTests/testGoalPhonicsFallbackEarnedTutorRestoresPendingWorthAndSaveRetryBeyondTrial()",
+      "exportedFileName": "BE1196AE-929C-4F10-A933-06DB52996356.png",
+      "timestamp": 1793952639.846,
+      "originalSHA256": "7168e9a73041cb1fe1fcf36dbf10fd26328afca33d2d0e0964609b16aa3be251"
+    },
+    {
+      "file": "native-repair-recovered-focused-finish-stays-gated-after-another-relaunch.png",
+      "attachmentName": "Native repair recovered focused finish stays gated after another relaunch",
+      "testIdentifier": "FocusedPhonicsJourneyTests/testRepairPhonicsFallbackEarnedTutorRestoresPendingWorthAndSaveRetryBeyondTrial()",
+      "exportedFileName": "07E58FEA-8DDA-4DBE-8C86-66A9025036F3.png",
+      "timestamp": 1793952747.558,
+      "originalSHA256": "4531c2ec735a77fa28a6e711c9a898b20bf6fae5e45edcf97a18e28b6fec52fe"
+    },
+    {
+      "file": "native-repair-acknowledged-focused-tutor-finish-blocks-the-next-activity.png",
+      "attachmentName": "Native repair acknowledged focused Tutor finish blocks the next activity",
+      "testIdentifier": "FocusedPhonicsJourneyTests/testRepairPhonicsFallbackEarnedTutorRestoresPendingWorthAndSaveRetryBeyondTrial()",
+      "exportedFileName": "87F561B9-E52C-46B2-93B5-A52C53045762.png",
+      "timestamp": 1793952742.389,
+      "originalSHA256": "4531c2ec735a77fa28a6e711c9a898b20bf6fae5e45edcf97a18e28b6fec52fe"
+    },
+    {
+      "file": "native-repair-focused-tutor-restores-earned-save-retry-at-trial-end.png",
+      "attachmentName": "Native repair focused Tutor restores earned save Retry at trial end",
+      "testIdentifier": "FocusedPhonicsJourneyTests/testRepairPhonicsFallbackEarnedTutorRestoresPendingWorthAndSaveRetryBeyondTrial()",
+      "exportedFileName": "34000096-B5BF-49A4-8E43-D7B24386ECAC.png",
+      "timestamp": 1793952731.734,
+      "originalSHA256": "cb37a1e78f09928652952c49bfde3088619c1d0233e084486e9f2aa68ff4674f"
+    },
+    {
+      "file": "native-repair-focused-tutor-earned-completion-waits-for-original-worth.png",
+      "attachmentName": "Native repair focused Tutor earned completion waits for original worth",
+      "testIdentifier": "FocusedPhonicsJourneyTests/testRepairPhonicsFallbackEarnedTutorRestoresPendingWorthAndSaveRetryBeyondTrial()",
+      "exportedFileName": "036ABA86-B76F-4FCB-92ED-1A2504AB8DA3.png",
+      "timestamp": 1793952725.354,
+      "originalSHA256": "c8c5412485746c1f6d0ebd54514df0790d7ccd99eefe0708bb8fc278591ceef3"
+    },
+    {
+      "file": "firebase-focused-tutor-repair-lost-completion-response-and-private-relaunch.json",
+      "attachmentName": "Firebase focused Tutor repair lost completion response and private relaunch",
+      "testIdentifier": "FirestoreContractTests/testFocusedTutorCompletionLostResponseRestoresPrivateReceiptAndBanksGoalOrRepairOnceBeyondTrial()",
+      "exportedFileName": "155EF647-5ACD-4E1E-A9E4-2B9CEDFE0B63.json",
+      "timestamp": 1793952466.405,
+      "originalSHA256": "c2e7d01a8a97eb830416cc6603e67cbcc3c108b3f6f4dac0e67b9a628ca78e0f"
+    },
+    {
+      "file": "firebase-focused-tutor-goal-lost-completion-response-and-private-relaunch.json",
+      "attachmentName": "Firebase focused Tutor goal lost completion response and private relaunch",
+      "testIdentifier": "FirestoreContractTests/testFocusedTutorCompletionLostResponseRestoresPrivateReceiptAndBanksGoalOrRepairOnceBeyondTrial()",
+      "exportedFileName": "A75EA50E-6564-4064-92CC-505F6421AE7A.json",
+      "timestamp": 1793952458.004,
+      "originalSHA256": "f2cb2630df3507fed1d9712f73e6d08acab1d75cac5af3ed765917a1fc7b26dc"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "source": "src/App.jsx",
+  "sha256": "9e6447368ce10a647025f76daf1b730fb20073590c586f8a3bed8a6d4f2ab948",
+  "initialOpen": false,
+  "handlers": [
+    "openProficiencyPromptIfNeeded",
+    "handleCompanionContinue",
+    "handlePaperPencilUnderstood"
+  ],
+  "cases": 8,
+  "scope": "Executes original App callbacks with public account/flags and synchronous paint/persistence adapters. The modal starts closed; product acknowledgement follows original guidance and placement gates. No service or learner I/O."
+}

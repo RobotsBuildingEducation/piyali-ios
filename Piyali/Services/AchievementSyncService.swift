@@ -7,6 +7,22 @@ import FirebaseFirestore
 @MainActor final class AchievementSyncService {
     static let shared = AchievementSyncService()
     let updates=PassthroughSubject<(String,[String:JSONValue]),Never>()
+    let delivery=PassthroughSubject<ConfirmedAchievementDelivery,Never>()
+    private let deliveryOrigin: String
+    #if DEBUG
+    var afterAwardCommit: ((String) throws -> Void)?
+    #endif
+    init(deliveryOrigin: String? = nil) {
+        if let deliveryOrigin {
+            self.deliveryOrigin = deliveryOrigin
+        } else {
+            let key = "piyali.achievementDeliveryOrigin"
+            let origin = UserDefaults.standard.string(forKey:key) ?? UUID().uuidString
+            UserDefaults.standard.set(origin,forKey:key)
+            self.deliveryOrigin = origin
+        }
+    }
+    private lazy var fullCatalog=(try? ContentLibrary.load([JSONValue].self,name:"achievement-protocol")) ?? []
     private let catalog = (try? ContentLibrary.load([AchievementDefinition].self,name:"achievements")) ?? []
     private lazy var phonics = (try? ContentLibrary.load([String:[JSONValue]].self,name:"phonics")) ?? [:]
     private var allowed: Set<String> { Set(catalog.flatMap { [$0.requirement["metric"].string] + $0.requirement["metrics"].array.map(\.string) }.filter { !$0.isEmpty }) }
@@ -27,12 +43,26 @@ import FirebaseFirestore
     }
     private func value(_ data: [String:Any]?) -> JSONValue { Self.jsonFields(data) }
     private final class Cache {
+        let origin: String
         var records: [String:JSONValue] = [:]
         var ledger = JSONValue.object([:])
+        var unlocks = Set<String>()
         var listeners: [ListenerRegistration] = []
+        init(origin: String) { self.origin = origin }
         deinit { for listener in listeners { listener.remove() } }
     }
     private var caches: [String:Cache] = [:]
+    private func recordAward(_ raw: JSONValue, id: String, in cache: Cache) {
+        var fields = raw.object
+        let receipt = fields.removeValue(forKey:"iosUnlock")
+        if receipt?["origin"].string == cache.origin, raw["unlockedAt"].number > 0,
+           !NostrAchievementCollection.truthy(raw["test"]) {
+            cache.unlocks.formUnion(receipt?["ids"].array.map(\.string) ?? [])
+        }
+        let known = cache.records[id] ?? .null
+        let record = NostrAchievementCollection.merging([.object([id:known]),.object([id:.object(fields)])])[id]
+        if record != .null { cache.records[id] = record }
+    }
     private func cacheKey(_ user: DocumentReference) -> String { user.firestore.app.name + ":" + user.path }
     private func ledger(_ snapshot: QuerySnapshot) -> JSONValue {
         var ledger=JSONValue.object([:])
@@ -48,13 +78,14 @@ import FirebaseFirestore
         let awards=user.collection("achievements"),events=user.collection("achievementProgress").document("nosabos").collection("events")
         let records=try await awards.getDocuments(source:.server),snapshot=try await events.getDocuments(source:.server)
         if let cached=caches[key] { return cached }
-        let result=Cache();result.records=Dictionary(uniqueKeysWithValues:records.documents.map { ($0.documentID,value($0.data())) });result.ledger=ledger(snapshot);caches[key]=result
+        let origin=try Self.documentID(metric:"ios_achievement_unlock",id:deliveryOrigin+":"+user.documentID)
+        let result=Cache(origin:origin)
+        for doc in records.documents { recordAward(value(doc.data()),id:doc.documentID,in:result) }
+        result.ledger=ledger(snapshot);caches[key]=result
         result.listeners.append(awards.addSnapshotListener(includeMetadataChanges:true) { [weak self,weak result] snapshot,_ in
             guard let snapshot,!snapshot.metadata.hasPendingWrites,!snapshot.metadata.isFromCache else { return }
             Task { @MainActor in guard let self,let result else { return };for doc in snapshot.documents {
-                let incoming=self.value(doc.data()),current=result.records[doc.documentID] ?? .null
-                let chosen=NostrAchievementCollection.merging([.object([doc.documentID:current]),.object([doc.documentID:incoming])])[doc.documentID]
-                if chosen != .null { result.records[doc.documentID]=chosen }
+                self.recordAward(self.value(doc.data()),id:doc.documentID,in:result)
             }
                 self.updates.send((user.documentID,result.records))
             }
@@ -70,6 +101,10 @@ import FirebaseFirestore
         let summaries=try await user.collection("courseProgress").getDocuments(source:.server)
         state.achievementEvidence=Dictionary(uniqueKeysWithValues:summaries.documents.map { ($0.documentID,value($0.data())) })
         state.achievementRecords=cache.records;state.achievementLedger=cache.ledger
+        if !cache.unlocks.isEmpty {
+            let pending = Dictionary(uniqueKeysWithValues:cache.unlocks.map { ($0,false) })
+            state.confirmedAchievementUnlocks = (state.confirmedAchievementUnlocks ?? [:]).merging(pending) { acknowledged,_ in acknowledged }
+        }
     }
     func refreshLedger(user: DocumentReference) async throws {
         let cache=try await cache(user)
@@ -79,18 +114,22 @@ import FirebaseFirestore
     func importRecords(_ records: JSONValue, user: DocumentReference) async throws -> [String:JSONValue] {
         let catalog=(try? ContentLibrary.load([JSONValue].self,name:"achievement-protocol")) ?? []
         let definitions=Dictionary(uniqueKeysWithValues:catalog.map { ($0["id"].string,$0) }),cache=try await cache(user)
-        for (id,incoming) in NostrAchievementCollection.merging([records]).object {
+        for (id,raw) in NostrAchievementCollection.merging([records]).object {
             guard let definition=definitions[id] else { continue }
+            var incomingFields=raw.object
+            incomingFields.removeValue(forKey:"iosUnlock")
+            let incoming=JSONValue.object(incomingFields)
             let ref=user.collection("achievements").document(id)
             let saved=try await user.firestore.runTransaction { tx,error -> Any? in do {
                 let old=Self.jsonFields(try tx.getDocument(ref).data()),chosen=NostrAchievementCollection.merging([.object([id:old]),.object([id:incoming])])[id]
                 if chosen != incoming || chosen == old { return old.foundation }
                 var fields=chosen.foundation
+                if old["iosUnlock"] != .null { fields["iosUnlock"]=old["iosUnlock"].foundation }
                 fields["achievementId"]=id;fields["source"]=definition["source"].string;fields["catalogVersion"]=definition["catalogVersion"].number
                 fields["title"]=definition["title"].string;fields["description"]=definition["description"].string;fields["orb"]=definition["orb"].foundation;fields["number"]=definition["number"].number
                 tx.setData(fields,forDocument:ref);return fields
             } catch let failure { error?.pointee=failure as NSError;return nil } }
-            if let fields=saved as? [String:Any] { cache.records[id]=value(fields) }
+            if let fields=saved as? [String:Any] { recordAward(value(fields),id:id,in:cache) }
         }
         updates.send((user.documentID,cache.records));return cache.records
     }
@@ -126,7 +165,7 @@ import FirebaseFirestore
         }
         return .object(result)
     }
-    func sync(user: DocumentReference, changes: [PracticeChange]) async throws {
+    func sync(user: DocumentReference, changes: [PracticeChange], localReviewTimestamps: [String:Int] = [:]) async throws {
         let profile=value(try await user.getDocument(source:.server).data())
         let marker=user.collection("achievementMigrations").document("nosabos_v1")
         let migration=value(try await marker.getDocument(source:.server).data())
@@ -142,10 +181,15 @@ import FirebaseFirestore
             let reviews=Set(changes.filter { $0.source == .review }.compactMap { change in change.contentID.map { change.target+"_"+$0 } })
             for id in reviews { let doc=try await user.collection("languageFlashcards").document(id).getDocument(source:.server);if let data=doc.data() { records["languageFlashcards",default:[]].append(.object(["id":.string(id),"data":value(data)])) } }
             let targets=Set(changes.map(\.target)).union([profile["progress"]["targetLang"].string]).subtracting([""])
-            for language in targets {
-                let id=language+"_"+CalendarDay.key(Date()),quest=try await user.collection("questDays").document(id).getDocument(source:.server)
+            let today=CalendarDay.key(Date())
+            var questIDs=Set(targets.map { CompanionQuestDay.key($0,today) })
+            questIDs.formUnion(changes.filter { $0.source == .repair }.map { CompanionQuestDay.key($0.target,$0.dayKey) })
+            for id in questIDs.sorted() {
+                let quest=try await user.collection("questDays").document(id).getDocument(source:.server)
                 if let data=quest.data() { records["questDays",default:[]].append(.object(["id":.string(id),"data":value(data)])) }
-                if changes.contains(where:{ $0.target == language && $0.source == .phonics }) {
+            }
+            for language in targets {
+                if changes.contains(where:{ $0.target == language && ($0.source == .phonics || $0.source == .phonicsAttempt && $0.phonicsData?["focused"].boolean != true) }) {
                     let docs=try await user.collection("alphabetPractice").whereField("targetLang",isEqualTo:language).getDocuments(source:.server)
                     records["alphabetPractice",default:[]].append(contentsOf:docs.documents.map { .object(["id":.string($0.documentID),"data":value($0.data())]) })
                 }
@@ -166,10 +210,19 @@ import FirebaseFirestore
             }}}
         }
         var state=LearnerState();try await load(user:user,state:&state)
-        var ledger=state.achievementLedger ?? .object([:]),evidences:[JSONValue]=[],legacyIDs:Set<String>=[]
+        // The review receipts have committed before sync is called. Keep each
+        // successful rating even if a later rating replaced the card document.
+        let reviewEvents=changes.compactMap { AchievementProgress.flashcardEvent(for:$0) }
+        var ledger=AchievementProgress.recording(reviewEvents,ledger:state.achievementLedger ?? .object([:]))
+        var evidences:[JSONValue]=[],legacyIDs:Set<String>=[]
         let cache=try await cache(user)
         let priorLedger=cache.ledger
-        let otherLanguages=Set((records["alphabetPractice"] ?? []).map { $0["data"]["targetLang"].string }).union(profile["dailyQuestRepair"].object.keys)
+        let questLanguages=(records["questDays"] ?? []).map { entry in
+            let language=entry["data"]["lang"].string
+            return language.isEmpty ? String(entry["id"].string.split(separator:"_",maxSplits:1).first ?? "") : language
+        }
+        let otherLanguages=Set((records["alphabetPractice"] ?? []).map { $0["data"]["targetLang"].string })
+            .union(profile["dailyQuestRepair"].object.keys).union(questLanguages)
         let languages=Set(groups.keys).union(otherLanguages).union(summaries.keys).union(profile["learningIntelligence"].object.keys).union([profile["realWorldTasks"]["targetLang"].string,profile["progress"]["targetLang"].string]).subtracting([""])
         for language in languages.sorted() {
             let summary=courseSummary(language:language,documents:groups[language] ?? [:],stored:summaries[language] ?? .object([:]))
@@ -196,10 +249,10 @@ import FirebaseFirestore
             for a in catalog where a.requirement["type"].string == "level" && index >= (LearningLanguages.levels.firstIndex(of:a.requirement["level"].string) ?? Int.max) { legacyIDs.insert(a.id) }
             for quest in records["questDays"] ?? [] where quest["data"]["lang"].string == language || quest["id"].string.hasPrefix(language+"_") {
                 let data=quest["data"],day=data["dayKey"].string.isEmpty ? String(quest["id"].string.dropFirst(language.count+1)) : data["dayKey"].string
-                ledger=AchievementProgress.recording(AchievementProgress.completionProof(profile:profile,summary:.object([:]),quest:data,language:language,day:day).events,ledger:ledger)
+                ledger=AchievementProgress.recording(AchievementProgress.completionProof(profile:profile,summary:.object([:]),quest:data,language:language,day:day,ledger:ledger).events,ledger:ledger)
             }
             if backfill { for (day,repair) in profile["dailyQuestRepair"][language].object {
-                ledger=AchievementProgress.recording(AchievementProgress.completionProof(profile:profile,summary:.object([:]),quest:.object(["repair":repair]),language:language,day:day).events,ledger:ledger)
+                ledger=AchievementProgress.recording(AchievementProgress.completionProof(profile:profile,summary:.object([:]),quest:.object(["repair":repair]),language:language,day:day,ledger:ledger).events,ledger:ledger)
             }}
             let docs=(records["alphabetPractice"] ?? []).map { $0["data"] }.filter { $0["targetLang"].string == language }
             let decks=phonics.filter { $0.key.hasPrefix(language+":"+(profile["progress"]["supportLang"].string.isEmpty ? "en" : profile["progress"]["supportLang"].string)+":") }
@@ -215,7 +268,10 @@ import FirebaseFirestore
         cache.ledger=AchievementProgress.mergedLedger([cache.ledger,ledger],allowed:allowed)
         ledger=cache.ledger
         // A saved successful card remains proof after switching devices or languages.
-        for (metric,entries) in ledger.object where metric.hasPrefix("flashcards_completed:") { evidences.append(.object(["language":.string(String(metric.dropFirst("flashcards_completed:".count))),"counters":.object(["flashcards_completed":.number(Double(entries.object.count))])])) }
+        let reviewPrefix = "flashcards_completed:"
+        for metric in ledger.object.keys where metric.hasPrefix(reviewPrefix) {
+            evidences.append(AchievementProgress.flashcardEvidence(ledger:ledger,language:String(metric.dropFirst(reviewPrefix.count))))
+        }
         evidences.append(.object([:]))
         var earned=legacyIDs
         for evidence in evidences { let snapshot=AchievementProgress.snapshot(ledger:ledger,evidence:evidence);for a in catalog where a.progression == true && AchievementProgress.meets(a.requirement,evidence:snapshot) { earned.insert(a.id) } }
@@ -223,14 +279,31 @@ import FirebaseFirestore
         for a in catalog where earned.contains(a.id) {
             let known=cache.records[a.id] ?? .null
             if known["unlockedAt"].number > 0 && !NostrAchievementCollection.truthy(known["test"]) { continue }
-            let ref=user.collection("achievements").document(a.id)
+            let before=NostrAchievementCollection.completed(.object(cache.records),catalog:fullCatalog),ref=user.collection("achievements").document(a.id)
+            let localTimestamp = localReviewTimestamps[a.id] ?? timestamp
+            let earnedAt = localTimestamp > 0 && localTimestamp <= timestamp ? localTimestamp : timestamp
+            let record:[String:Any]=["unlockedAt":earnedAt,"catalogVersion":a.catalogVersion ?? 8,"achievementId":a.id,"source":"nosabos","title":a.title.localized("en"),"description":a.description.localized("en"),"orb":a.orb?.foundation ?? [:],"number":a.number ?? 0,"test":false]
+            let after = NostrAchievementCollection.completed(NostrAchievementCollection.merging([before,.object([a.id:value(record)])]),catalog:fullCatalog)
+            let order = [a.id] + fullCatalog.map { $0["id"].string }.filter { $0 != a.id }
+            let ids = AchievementUnlockState.notifiable(before:before,after:after,order:order,catalog:Set(order),notify:!backfill)
+            var committedRecord = record
+            let recoverable = ids.filter { localReviewTimestamps[$0] == nil }
+            // Write the receipt atomically with the award. recordAward removes it before exposing collection records.
+            if !recoverable.isEmpty { committedRecord["iosUnlock"]=["origin":cache.origin,"ids":recoverable] }
+            let fieldsToCommit=committedRecord
             let saved = try await user.firestore.runTransaction { tx,error -> Any? in do {
                 let current=try tx.getDocument(ref).data() ?? [:]
-                if WebProgressContract.number(current["unlockedAt"]) > 0 && !NostrAchievementCollection.truthy(Self.jsonFields(current)["test"]) { return current }
-                let record:[String:Any]=["unlockedAt":timestamp,"catalogVersion":a.catalogVersion ?? 8,"achievementId":a.id,"source":"nosabos","title":a.title.localized("en"),"description":a.description.localized("en"),"orb":a.orb?.foundation ?? [:],"number":a.number ?? 0,"test":false]
-                tx.setData(record,forDocument:ref);return record
+                if WebProgressContract.number(current["unlockedAt"]) > 0 && !NostrAchievementCollection.truthy(Self.jsonFields(current)["test"]) { return ["created":false,"record":current] }
+                tx.setData(fieldsToCommit,forDocument:ref);return ["created":true,"record":fieldsToCommit]
             } catch let failure { error?.pointee=failure as NSError;return nil } }
-            if let record=saved as? [String:Any] { cache.records[a.id]=value(record) }
+            if let result=saved as? [String:Any],let fields=result["record"] as? [String:Any] {
+                let created = result["created"] as? Bool == true
+                #if DEBUG
+                if created { try afterAwardCommit?(a.id) }
+                #endif
+                recordAward(value(fields),id:a.id,in:cache)
+                if created && !ids.isEmpty { delivery.send(.init(account:user.documentID,records:after,ids:ids)) }
+            }
         }
         if backfill { try await marker.setData(["source":"nosabos","version":1,"complete":true,"completedAt":timestamp]) }
     }

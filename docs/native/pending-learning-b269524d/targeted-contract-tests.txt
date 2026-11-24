@@ -1,0 +1,31 @@
+Test Suite 'Selected tests' started at 2026-11-06 00:29:49.504.
+Test Suite 'PiyaliTests.xctest' started at 2026-11-06 00:29:49.505.
+Test Suite 'FirestoreContractTests' started at 2026-11-06 00:29:49.505.
+Test Case '-[PiyaliTests.FirestoreContractTests testPendingMemoryEnrichmentStaysDevicePrivateAcrossCanonicalAckAndRejectsAServerHintContinuation]' started.
+Test Case '-[PiyaliTests.FirestoreContractTests testPendingMemoryEnrichmentStaysDevicePrivateAcrossCanonicalAckAndRejectsAServerHintContinuation]' passed (5.919 seconds).
+Test Suite 'FirestoreContractTests' passed at 2026-11-06 00:29:55.425.
+	 Executed 1 test, with 0 failures (0 unexpected) in 5.919 (5.920) seconds
+Test Suite 'MemoryFlowTests' started at 2026-11-06 00:29:55.426.
+Test Case '-[PiyaliTests.MemoryFlowTests testFailedCaptureStaysPendingAndOnlyANewSlipRetriesEnrichment]' started.
+Test Case '-[PiyaliTests.MemoryFlowTests testFailedCaptureStaysPendingAndOnlyANewSlipRetriesEnrichment]' passed (2.942 seconds).
+Test Case '-[PiyaliTests.MemoryFlowTests testInterruptedEnrichmentRestoresFromPrivateAccountFileWithOriginalContextAndRejectsOldSessionResult]' started.
+Test Case '-[PiyaliTests.MemoryFlowTests testInterruptedEnrichmentRestoresFromPrivateAccountFileWithOriginalContextAndRejectsOldSessionResult]' passed (3.057 seconds).
+Test Case '-[PiyaliTests.MemoryFlowTests testNewerSlipReplacesPendingVersionWhileRepeatedResumeCoalescesAndRejectsOldReply]' started.
+Test Case '-[PiyaliTests.MemoryFlowTests testNewerSlipReplacesPendingVersionWhileRepeatedResumeCoalescesAndRejectsOldReply]' passed (0.096 seconds).
+Test Case '-[PiyaliTests.MemoryFlowTests testRestoreDoesNotRetryUntrackedPendingFailuresOrExpiredAndReplacedNotes]' started.
+Test Case '-[PiyaliTests.MemoryFlowTests testRestoreDoesNotRetryUntrackedPendingFailuresOrExpiredAndReplacedNotes]' passed (2.670 seconds).
+Test Suite 'MemoryFlowTests' passed at 2026-11-06 00:30:04.191.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 8.765 (8.766) seconds
+Test Suite 'TutorSessionTests' started at 2026-11-06 00:30:04.192.
+Test Case '-[PiyaliTests.TutorSessionTests testTutorMemoryDoesNotStartOrRetryUnderAReplacedIdentitySession]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testTutorMemoryDoesNotStartOrRetryUnderAReplacedIdentitySession]' passed (5.361 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testTutorMemoryLateEnrichmentRejectsReplacedAccountAndNewerCapture]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testTutorMemoryLateEnrichmentRejectsReplacedAccountAndNewerCapture]' passed (5.371 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testTutorMemoryRepeatedLocalizedSlipReusesItsEnrichment]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testTutorMemoryRepeatedLocalizedSlipReusesItsEnrichment]' passed (2.688 seconds).
+Test Suite 'TutorSessionTests' passed at 2026-11-06 00:30:17.612.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 13.419 (13.420) seconds
+Test Suite 'PiyaliTests.xctest' passed at 2026-11-06 00:30:17.612.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 28.103 (28.107) seconds
+Test Suite 'Selected tests' passed at 2026-11-06 00:30:17.612.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 28.103 (28.108) seconds

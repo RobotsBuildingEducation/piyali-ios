@@ -1,0 +1,105 @@
+{
+  "renderer": "iPhone WebKit, iOS 26.4.1, 3x transparent authored SVG layers",
+  "sourceCommit": "5c8f8f0595f31a0d6532d660cad73135e8223cc2",
+  "rows": [
+    {
+      "theme": "light",
+      "layer": "header",
+      "asset": "PaperPencil-header",
+      "width": 192,
+      "height": 192,
+      "pngSHA256": "69d429acd1ee7232bfb7ab613437150bf74fa8828dec2a89ac90a0d7eb88b9e8",
+      "svgSHA256": "a51d2dafd3ecd3352fb7a4fe49c561881fd9cdb5bd96f9c653845784a11d815a"
+    },
+    {
+      "theme": "light",
+      "layer": "base",
+      "asset": "PaperPencil-light-base",
+      "width": 1020,
+      "height": 588,
+      "pngSHA256": "fcca54eee17ef9e8556335c523b72718b712fa306814ccb243aab4e8a27a2f16",
+      "svgSHA256": "0dbae4aef2018731343e27e58808a12f424022d45500c274eb4969c027293e6f"
+    },
+    {
+      "theme": "light",
+      "layer": "pencil",
+      "asset": "PaperPencil-light-pencil",
+      "width": 1020,
+      "height": 588,
+      "pngSHA256": "5621ca0bb5be62e6f2680242ecace41c6cc329e67d9911b39cb541614b2f2dbb",
+      "svgSHA256": "ae41c1b66750f7f0023ce9ed97f5270014b2c426fb0a8857a955eae1cea46885"
+    },
+    {
+      "theme": "light",
+      "layer": "sparkle-left",
+      "asset": "PaperPencil-light-sparkle-left",
+      "width": 1020,
+      "height": 588,
+      "pngSHA256": "7f24466e20a6d95e50cc100a75bb0614ad91216f6bc3dbee47ac1e60abe38e9d",
+      "svgSHA256": "8c706bca3811df7f32c8232892bafd8821040e490cb917a42aafea67b81097d5"
+    },
+    {
+      "theme": "light",
+      "layer": "sparkle-right",
+      "asset": "PaperPencil-light-sparkle-right",
+      "width": 1020,
+      "height": 588,
+      "pngSHA256": "5d673205bb0a9176125196b56ac4da13a17dfdbd1daa2121e63d7b21ea3095d5",
+      "svgSHA256": "a88d3434e93dd8d111a0d1ee863de0b7e9c422f4da5f8223f8683cc74fc0d4f0"
+    },
+    {
+      "theme": "light",
+      "layer": "tail",
+      "asset": "PaperPencil-light-tail",
+      "width": 1020,
+      "height": 588,
+      "pngSHA256": "80ac1e70e9b02d1b120108e1b8ec4231b9d3f9cd18785f948e85f4bd3e466f76",
+      "svgSHA256": "2c4cd869d4b89a1056128e570392ccecd77d5a968f53b402985a512bf0c13c80"
+    },
+    {
+      "theme": "dark",
+      "layer": "base",
+      "asset": "PaperPencil-dark-base",
+      "width": 1020,
+      "height": 588,
+      "pngSHA256": "74de8eb4cf532b3b85a702aa144789d24a77f8e20831e0418fab7fdc93e2327b",
+      "svgSHA256": "32f2bff6361f1c6ce6d78f026533e27e0ecd84b029a1846950c3d54169bb0251"
+    },
+    {
+      "theme": "dark",
+      "layer": "pencil",
+      "asset": "PaperPencil-dark-pencil",
+      "width": 1020,
+      "height": 588,
+      "pngSHA256": "9343838c68bd71b4832ad756fbadb834800981b984617357e469cc89bb1cf3fb",
+      "svgSHA256": "9a9de08c7a6c52e72bc5c847028fe941686c604822b9e804b5c6109e73c2fc7c"
+    },
+    {
+      "theme": "dark",
+      "layer": "sparkle-left",
+      "asset": "PaperPencil-dark-sparkle-left",
+      "width": 1020,
+      "height": 588,
+      "pngSHA256": "7f24466e20a6d95e50cc100a75bb0614ad91216f6bc3dbee47ac1e60abe38e9d",
+      "svgSHA256": "c733ebfcf15156a0bdb20da4123f8c8c94a67d734ac2dcdb3415864337a0eecf"
+    },
+    {
+      "theme": "dark",
+      "layer": "sparkle-right",
+      "asset": "PaperPencil-dark-sparkle-right",
+      "width": 1020,
+      "height": 588,
+      "pngSHA256": "5d673205bb0a9176125196b56ac4da13a17dfdbd1daa2121e63d7b21ea3095d5",
+      "svgSHA256": "eb5d56d3aeb1b12083424eb5e16e4305856d670738d0d92026919fdda511f488"
+    },
+    {
+      "theme": "dark",
+      "layer": "tail",
+      "asset": "PaperPencil-dark-tail",
+      "width": 1020,
+      "height": 588,
+      "pngSHA256": "80ac1e70e9b02d1b120108e1b8ec4231b9d3f9cd18785f948e85f4bd3e466f76",
+      "svgSHA256": "d128c7aac869e41b2bddbf434719ae9dbf95d9b21f552c433191af1ba4820c40"
+    }
+  ]
+}

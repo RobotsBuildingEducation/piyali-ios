@@ -1,0 +1,65 @@
+{
+  "sources": [
+    {
+      "file": "src/assets/awalk.mp3",
+      "sha256": "980ef2d8afa77b1c6a352a7ab18a802af13ec9012cfc6d54e3a6d0b8fb538ff3"
+    },
+    {
+      "file": "src/utils/tts.js",
+      "sha256": "d6b7f16803fa7c88c7e94cd05186d491e8fd7846a08940bf86bf5175a36b7c7d"
+    },
+    {
+      "file": "src/components/RPGGame/index.jsx",
+      "sha256": "f597e8f7a9296ff3f72fad4e6f24ca4a1a313fddbc87ba3cf2d128c1d6ea95a2"
+    },
+    {
+      "file": "src/components/companionCustomizeCopy.js",
+      "sha256": "c19a19833729f12bba84998c8258df86643b0d450be598aadd9e388b2f5d536a"
+    },
+    {
+      "file": "src/components/RPGGame/pixelArt.js",
+      "sha256": "22e2d4516c21cb81a48e8b24debe6394682a77ffa8cf136d8b2049f06a528c2d"
+    },
+    {
+      "file": "src/components/RPGGame/episodes/legacyScenario.js",
+      "sha256": "9030dbf6f0adfd0f1b8e592525ebee84a549849c61a4d101fbf6eb5b1e950327"
+    },
+    {
+      "file": "src/utils/gameReviewContext.js",
+      "sha256": "2dd6d2516790e17e51c533b97f89e6d9c8678f108517fe0ed7adfba1f08135df"
+    },
+    {
+      "file": "src/utils/introTutorial.js",
+      "sha256": "f45f065112f1b41df0adc2739c03bcbb1b19a8a46baf1aad01fff0d36667200f"
+    },
+    {
+      "file": "src/data/skillTreeData.js",
+      "sha256": "7bee0b9be328a4078913fb9c1e00e2ed8af348417ca4d9b8189de23fb596f729"
+    },
+    {
+      "file": "src/components/RPGGame/episodes/manifests.js",
+      "sha256": "b7b675d19004dfbcfc3f0992af24547dc8af2cb715408f5d6f053036c206139b"
+    },
+    {
+      "file": "src/components/rpgCompanionSprites.js",
+      "sha256": "9b2e8ebb287b271936959b1dcc02b2841bd92cb81c006ae4a513cefaafdae23f"
+    },
+    {
+      "file": "src/sprites/NPC_sprites.png",
+      "sha256": "f30a5fa6eca53e284e8dda7eb3ed1a7a768f7ea03d36fa22930bdb948127a9f2"
+    },
+    {
+      "file": "src/sprites/sprite_sheet_6.png",
+      "sha256": "118a63c01a6eb1e3eb4ae40920e11355512b46a16f322249d2dac8817fadd9ad"
+    },
+    {
+      "file": "src/sprites/tutor/main_character_tutor_transparent.webp",
+      "sha256": "40fbb693b98bb64b1d2843bc96673350636b461eea66833c790e776641c5a812"
+    }
+  ],
+  "seed": 1792936800000,
+  "maps": 443,
+  "knownMaps": 443,
+  "bytes": 57140297,
+  "adapters": "Original procedural ground/tile/prop/companion drawers and original player/NPC sheet extraction execute against an offline Canvas implementation. No source React, identity, provider, Firebase, relay or learner data executes. Time-varying decoration uses a fixed art seed. Ground and solid tiles are baked; props remain separate depth-sorted sprites. Ambient motion and secondary decoration are not yet exported. Pixel quick-action RGB passes through the source Three linear-to-sRGB framebuffer conversion. Help uses the original react-icons SVG, rasterized with Sharp; its currentColor is resolved explicitly."
+}

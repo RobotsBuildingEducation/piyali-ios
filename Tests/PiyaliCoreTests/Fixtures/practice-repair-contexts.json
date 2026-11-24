@@ -1,0 +1,1360 @@
+[
+  {
+    "module": "vocabulary",
+    "kind": "delight:sentence_detective",
+    "case": "delight:sentence_detective",
+    "question": {
+      "answer": "fue",
+      "correctedSentence": "Ayer ella fue al mercado.",
+      "cueTokens": [
+        "Ayer",
+        "ella"
+      ],
+      "errorCategory": "verb agreement",
+      "errorEvidence": "The verb form does not agree with the subject and time context.",
+      "explanation": "Ella takes the third-person singular past form fue.",
+      "hint": "Look for the form that fits the time cue.",
+      "incorrectIndex": 2,
+      "instruction": "Tap the broken word, then repair it.",
+      "joiner": " ",
+      "repairEvidence": "The correct form satisfies subject agreement and tense.",
+      "replacements": [
+        "fue",
+        "fui",
+        "fueron",
+        "fuimos"
+      ],
+      "sentence": "Ayer ella fuimos al mercado.",
+      "slotType": "verb",
+      "sourceEvidence": "local development fallback",
+      "targetSkill": "tense and agreement",
+      "tokens": [
+        "Ayer",
+        "ella",
+        "fuimos",
+        "al",
+        "mercado."
+      ],
+      "variant": "sentence_detective",
+      "wrongToken": "fuimos"
+    },
+    "response": {
+      "tokenIndex": 2,
+      "replacement": "fue",
+      "rejectedTokenIndices": []
+    },
+    "bank": [],
+    "order": null,
+    "expected": {
+      "concept": "Ayer ella fuimos al mercado.",
+      "userAnswer": "fuimos → fue",
+      "expectedAnswer": "fuimos → fue",
+      "sourceContext": "sentence_detective",
+      "cefrLevel": "A1",
+      "sourceMode": "vocabulary"
+    }
+  },
+  {
+    "module": "vocabulary",
+    "kind": "delight:dialogue_fork",
+    "case": "delight:dialogue_fork",
+    "question": {
+      "answerIndex": 1,
+      "explanation": "Quisiera… is a polite, natural way to order.",
+      "hint": "Look for the form that fits the time cue.",
+      "instruction": "Choose the most natural reply.",
+      "line": "¿Qué desea comer?",
+      "options": [
+        "Estoy una sopa.",
+        "Quisiera una sopa, por favor.",
+        "La sopa desea.",
+        "Soy una sopa."
+      ],
+      "reaction": "¡Claro! Enseguida. 🍲",
+      "speaker": "Server",
+      "variant": "dialogue_fork"
+    },
+    "response": {
+      "selectedIndex": 1
+    },
+    "bank": [],
+    "order": null,
+    "expected": {
+      "concept": "Missed practice item",
+      "userAnswer": "Quisiera una sopa, por favor.",
+      "expectedAnswer": "",
+      "sourceContext": "dialogue_fork",
+      "cefrLevel": "A1",
+      "sourceMode": "vocabulary"
+    }
+  },
+  {
+    "module": "vocabulary",
+    "kind": "delight:word_neighborhoods",
+    "case": "delight:word_neighborhoods",
+    "question": {
+      "explanation": "Each word now sits with others from the same family.",
+      "groups": [
+        {
+          "items": [
+            "fui",
+            "comió",
+            "hablaron"
+          ],
+          "label": "Past"
+        },
+        {
+          "items": [
+            "voy",
+            "come",
+            "hablan"
+          ],
+          "label": "Present"
+        }
+      ],
+      "hint": "Look for the form that fits the time cue.",
+      "instruction": "Move every word into its neighborhood.",
+      "variant": "word_neighborhoods"
+    },
+    "response": {
+      "assignments": {
+        "fui": 0,
+        "comió": 0,
+        "hablaron": 0,
+        "voy": 1,
+        "come": 1,
+        "hablan": 1
+      }
+    },
+    "bank": [],
+    "order": [
+      "hablan",
+      "come",
+      "voy",
+      "hablaron",
+      "comió",
+      "fui"
+    ],
+    "expected": {
+      "concept": "Past: fui, comió, hablaron | Present: voy, come, hablan",
+      "userAnswer": "{\"hablan\":1,\"come\":1,\"voy\":1,\"hablaron\":0,\"comió\":0,\"fui\":0}",
+      "expectedAnswer": "Past: fui, comió, hablaron | Present: voy, come, hablan",
+      "sourceContext": "word_neighborhoods",
+      "cefrLevel": "A1",
+      "sourceMode": "vocabulary"
+    }
+  },
+  {
+    "module": "vocabulary",
+    "kind": "delight:morphology_forge",
+    "case": "delight:morphology_forge",
+    "question": {
+      "answerPieces": [
+        "jug",
+        "ábamos"
+      ],
+      "answerWord": "jugábamos",
+      "explanation": "The stem jug- and imperfect ending -ábamos form jugábamos.",
+      "hint": "Look for the form that fits the time cue.",
+      "instruction": "Forge the word that completes the sentence.",
+      "pieces": [
+        "jug",
+        "ábamos",
+        "aron",
+        "aré"
+      ],
+      "sentence": "Cuando éramos niños, nosotros ___ en el parque.",
+      "variant": "morphology_forge"
+    },
+    "response": {
+      "pieceIndices": [
+        0,
+        1
+      ]
+    },
+    "bank": [],
+    "order": null,
+    "expected": {
+      "concept": "Cuando éramos niños, nosotros ___ en el parque.",
+      "userAnswer": "",
+      "expectedAnswer": "",
+      "sourceContext": "morphology_forge",
+      "cefrLevel": "A1",
+      "sourceMode": "vocabulary"
+    }
+  },
+  {
+    "module": "vocabulary",
+    "kind": "delight:listen_difference",
+    "case": "delight:listen_difference",
+    "question": {
+      "answerIndex": 0,
+      "audioText": "Él compró el pan.",
+      "contrast": "compró = completed action · compra = present action",
+      "explanation": "The stressed final ó signals the completed past action.",
+      "hint": "Look for the form that fits the time cue.",
+      "instruction": "Listen carefully. Which sentence did you hear?",
+      "options": [
+        "Él compró el pan.",
+        "Él compra el pan."
+      ],
+      "variant": "listen_difference"
+    },
+    "response": {
+      "selectedIndex": 0
+    },
+    "bank": [],
+    "order": null,
+    "expected": {
+      "concept": "Listening discrimination",
+      "userAnswer": "",
+      "expectedAnswer": "",
+      "sourceContext": "listen_difference",
+      "cefrLevel": "A1",
+      "sourceMode": "vocabulary"
+    }
+  },
+  {
+    "module": "vocabulary",
+    "kind": "delight:sentence_shapeshifter",
+    "case": "delight:sentence_shapeshifter",
+    "question": {
+      "acceptableAnswers": [
+        "Ella comió con su familia ayer."
+      ],
+      "answer": "Ayer ella comió con su familia.",
+      "constraint": "Make it happen yesterday.",
+      "explanation": "The completed past form of comer is comió.",
+      "hint": "Look for the form that fits the time cue.",
+      "instruction": "Transform the complete sentence.",
+      "source": "Ella come con su familia.",
+      "variant": "sentence_shapeshifter"
+    },
+    "response": {
+      "text": "Ayer ella comió con su familia."
+    },
+    "bank": [],
+    "order": null,
+    "expected": {
+      "concept": "Ella come con su familia. (Make it happen yesterday.)",
+      "userAnswer": "Ayer ella comió con su familia.",
+      "expectedAnswer": "Ayer ella comió con su familia.",
+      "sourceContext": "sentence_shapeshifter",
+      "cefrLevel": "A1",
+      "sourceMode": "vocabulary"
+    }
+  },
+  {
+    "module": "vocabulary",
+    "kind": "delight:three_clue_mystery",
+    "case": "delight:three_clue_mystery",
+    "question": {
+      "acceptableAnswers": [
+        "el paraguas"
+      ],
+      "answer": "paraguas",
+      "clues": [
+        "You often need me outside.",
+        "You use me when water falls from the sky.",
+        "I open above your head."
+      ],
+      "example": "Olvidé mi paraguas y llegué mojado.",
+      "explanation": "Paraguas means umbrella.",
+      "hint": "Look for the form that fits the time cue.",
+      "instruction": "Solve the mystery with as few clues as possible.",
+      "variant": "three_clue_mystery"
+    },
+    "response": {
+      "text": "paraguas"
+    },
+    "bank": [],
+    "order": null,
+    "expected": {
+      "concept": "You often need me outside. • You use me when water falls from the sky. • I open above your head.",
+      "userAnswer": "",
+      "expectedAnswer": "paraguas",
+      "sourceContext": "three_clue_mystery",
+      "cefrLevel": "A1",
+      "sourceMode": "vocabulary"
+    }
+  },
+  {
+    "module": "vocabulary",
+    "kind": "delight:three_word_challenge",
+    "case": "delight:three_word_challenge",
+    "question": {
+      "cues": [
+        "ayer",
+        "amigos",
+        "parque"
+      ],
+      "explanation": "Many original answers can work here.",
+      "hint": "Look for the form that fits the time cue.",
+      "instruction": "Create one sentence using all three cues.",
+      "reaction": "That sounds like a good sentence!",
+      "sampleAnswers": [
+        "Ayer fui al parque con mis amigos.",
+        "Ayer mis amigos jugaron en el parque."
+      ],
+      "variant": "three_word_challenge"
+    },
+    "response": {
+      "text": "Ayer fui al parque con mis amigos."
+    },
+    "bank": [],
+    "order": null,
+    "expected": {
+      "concept": "ayer, amigos, parque",
+      "userAnswer": "Ayer fui al parque con mis amigos.",
+      "expectedAnswer": "ayer, amigos, parque",
+      "sourceContext": "three_word_challenge",
+      "cefrLevel": "A1",
+      "sourceMode": "vocabulary"
+    }
+  },
+  {
+    "module": "vocabulary",
+    "kind": "delight:natural_or_weird",
+    "case": "delight:natural_or_weird",
+    "question": {
+      "variant": "natural_or_weird",
+      "sentence": "Yo somos Ana.",
+      "correction": "Yo soy Ana."
+    },
+    "response": {
+      "choice": false
+    },
+    "bank": [],
+    "order": null,
+    "expected": {
+      "concept": "Yo somos Ana.",
+      "userAnswer": "Sounds weird",
+      "expectedAnswer": "Sounds weird",
+      "sourceContext": "natural_or_weird",
+      "cefrLevel": "A1",
+      "sourceMode": "vocabulary"
+    }
+  },
+  {
+    "module": "vocabulary",
+    "kind": "fill",
+    "case": "fill",
+    "question": {
+      "question": "La niña come ___.",
+      "answer": "pan",
+      "hint": "A food made from flour."
+    },
+    "response": {
+      "text": "pan"
+    },
+    "bank": [],
+    "order": null,
+    "expected": {
+      "concept": "La niña come ___.",
+      "userAnswer": "pan",
+      "expectedAnswer": "A food made from flour.",
+      "sourceContext": "vocabulary",
+      "cefrLevel": "A1",
+      "sourceMode": "vocabulary"
+    }
+  },
+  {
+    "module": "vocabulary",
+    "kind": "mc",
+    "case": "mc",
+    "question": {
+      "question": "Choose the greeting.",
+      "choices": [
+        "hola",
+        "adiós",
+        "gracias"
+      ],
+      "answer": "hola"
+    },
+    "response": {
+      "indices": [
+        0
+      ]
+    },
+    "bank": [
+      "hola",
+      "adiós",
+      "gracias"
+    ],
+    "order": null,
+    "expected": {
+      "concept": "Choose the greeting.",
+      "userAnswer": "hola",
+      "expectedAnswer": "hola",
+      "sourceContext": "vocabulary",
+      "cefrLevel": "A1",
+      "sourceMode": "vocabulary"
+    }
+  },
+  {
+    "module": "vocabulary",
+    "kind": "ma",
+    "case": "ma",
+    "question": {
+      "question": "Choose the family words.",
+      "choices": [
+        "madre",
+        "padre",
+        "perro",
+        "casa"
+      ],
+      "answers": [
+        "madre",
+        "padre"
+      ]
+    },
+    "response": {
+      "indices": [
+        0,
+        1
+      ]
+    },
+    "bank": [
+      "madre",
+      "padre",
+      "perro",
+      "casa"
+    ],
+    "order": null,
+    "expected": {
+      "concept": "Choose the family words.",
+      "userAnswer": "madre, padre",
+      "expectedAnswer": "madre, padre",
+      "sourceContext": "vocabulary",
+      "cefrLevel": "A1",
+      "sourceMode": "vocabulary"
+    }
+  },
+  {
+    "module": "vocabulary",
+    "kind": "match",
+    "case": "match",
+    "question": {
+      "stem": "Match the greetings.",
+      "left": [
+        "hola",
+        "adiós",
+        "gracias"
+      ],
+      "right": [
+        "hello",
+        "goodbye",
+        "thank you"
+      ],
+      "map": [
+        0,
+        1,
+        2
+      ]
+    },
+    "response": {
+      "pairs": {
+        "0": 0,
+        "1": 1,
+        "2": 2
+      },
+      "standardState": {
+        "slots": [
+          0,
+          1,
+          2
+        ],
+        "bank": [],
+        "pick": ""
+      }
+    },
+    "bank": [],
+    "order": null,
+    "expected": {
+      "concept": "Match the greetings.",
+      "userAnswer": "hola → hello, adiós → goodbye, gracias → thank you",
+      "expectedAnswer": "Check the correct pairings",
+      "sourceContext": "vocabulary",
+      "cefrLevel": "A1",
+      "sourceMode": "vocabulary"
+    }
+  },
+  {
+    "module": "vocabulary",
+    "kind": "translate",
+    "case": "translate",
+    "question": {
+      "sentence": "Yo no digo que no",
+      "correctWords": [
+        "I",
+        "do",
+        "not",
+        "say",
+        "no"
+      ],
+      "distractors": [
+        "I",
+        "yes"
+      ],
+      "hint": "Notice the repeated negative word."
+    },
+    "response": {
+      "indices": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "wordBankOrder": [
+        5,
+        6
+      ]
+    },
+    "bank": [
+      "I",
+      "do",
+      "not",
+      "say",
+      "no",
+      "I",
+      "yes"
+    ],
+    "order": null,
+    "expected": {
+      "concept": "Yo no digo que no",
+      "userAnswer": "I do not say no",
+      "expectedAnswer": "I do not say no",
+      "sourceContext": "vocabulary",
+      "cefrLevel": "A1",
+      "sourceMode": "vocabulary"
+    }
+  },
+  {
+    "module": "vocabulary",
+    "kind": "repeat",
+    "case": "repeat",
+    "question": {
+      "sentence": "Yo no digo que no",
+      "correctWords": [
+        "I",
+        "do",
+        "not",
+        "say",
+        "no"
+      ],
+      "distractors": [
+        "I",
+        "yes"
+      ],
+      "hint": "Notice the repeated negative word."
+    },
+    "response": {
+      "indices": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "wordBankOrder": [
+        5,
+        6
+      ]
+    },
+    "bank": [
+      "I",
+      "do",
+      "not",
+      "say",
+      "no",
+      "I",
+      "yes"
+    ],
+    "order": null,
+    "expected": {
+      "concept": "Yo no digo que no",
+      "userAnswer": "I do not say no",
+      "expectedAnswer": "I do not say no",
+      "sourceContext": "vocabulary",
+      "cefrLevel": "A1",
+      "sourceMode": "vocabulary"
+    }
+  },
+  {
+    "module": "vocabulary",
+    "kind": "speak",
+    "case": "speak",
+    "question": {
+      "target": "Hola, soy Ana.",
+      "display": "Hola, soy Ana.",
+      "prompt": "Say the requested sentence.",
+      "variant": "repeat",
+      "stimulus": "Hello, I am Ana.",
+      "hint": "Use the first person.",
+      "translation": "Hello, I am Ana."
+    },
+    "response": {
+      "text": "Hola, soy Ana."
+    },
+    "bank": [],
+    "order": null,
+    "expected": {
+      "concept": "Say the requested sentence.",
+      "userAnswer": "Hola, soy Ana.",
+      "expectedAnswer": "Hola, soy Ana.",
+      "sourceContext": "vocabulary",
+      "cefrLevel": "A1",
+      "sourceMode": "vocabulary"
+    }
+  },
+  {
+    "module": "grammar",
+    "kind": "delight:sentence_detective",
+    "case": "delight:sentence_detective",
+    "question": {
+      "answer": "fue",
+      "correctedSentence": "Ayer ella fue al mercado.",
+      "cueTokens": [
+        "Ayer",
+        "ella"
+      ],
+      "errorCategory": "verb agreement",
+      "errorEvidence": "The verb form does not agree with the subject and time context.",
+      "explanation": "Ella takes the third-person singular past form fue.",
+      "hint": "Look for the form that fits the time cue.",
+      "incorrectIndex": 2,
+      "instruction": "Tap the broken word, then repair it.",
+      "joiner": " ",
+      "repairEvidence": "The correct form satisfies subject agreement and tense.",
+      "replacements": [
+        "fue",
+        "fui",
+        "fueron",
+        "fuimos"
+      ],
+      "sentence": "Ayer ella fuimos al mercado.",
+      "slotType": "verb",
+      "sourceEvidence": "local development fallback",
+      "targetSkill": "tense and agreement",
+      "tokens": [
+        "Ayer",
+        "ella",
+        "fuimos",
+        "al",
+        "mercado."
+      ],
+      "variant": "sentence_detective",
+      "wrongToken": "fuimos"
+    },
+    "response": {
+      "tokenIndex": 2,
+      "replacement": "fue",
+      "rejectedTokenIndices": []
+    },
+    "bank": [],
+    "order": null,
+    "expected": {
+      "concept": "Ayer ella fuimos al mercado.",
+      "userAnswer": "fuimos → fue",
+      "expectedAnswer": "fuimos → fue",
+      "sourceContext": "sentence_detective",
+      "cefrLevel": "A1",
+      "sourceMode": "grammar"
+    }
+  },
+  {
+    "module": "grammar",
+    "kind": "delight:dialogue_fork",
+    "case": "delight:dialogue_fork",
+    "question": {
+      "answerIndex": 1,
+      "explanation": "Quisiera… is a polite, natural way to order.",
+      "hint": "Look for the form that fits the time cue.",
+      "instruction": "Choose the most natural reply.",
+      "line": "¿Qué desea comer?",
+      "options": [
+        "Estoy una sopa.",
+        "Quisiera una sopa, por favor.",
+        "La sopa desea.",
+        "Soy una sopa."
+      ],
+      "reaction": "¡Claro! Enseguida. 🍲",
+      "speaker": "Server",
+      "variant": "dialogue_fork"
+    },
+    "response": {
+      "selectedIndex": 1
+    },
+    "bank": [],
+    "order": null,
+    "expected": {
+      "concept": "Missed practice item",
+      "userAnswer": "Quisiera una sopa, por favor.",
+      "expectedAnswer": "",
+      "sourceContext": "dialogue_fork",
+      "cefrLevel": "A1",
+      "sourceMode": "grammar"
+    }
+  },
+  {
+    "module": "grammar",
+    "kind": "delight:word_neighborhoods",
+    "case": "delight:word_neighborhoods",
+    "question": {
+      "explanation": "Each word now sits with others from the same family.",
+      "groups": [
+        {
+          "items": [
+            "fui",
+            "comió",
+            "hablaron"
+          ],
+          "label": "Past"
+        },
+        {
+          "items": [
+            "voy",
+            "come",
+            "hablan"
+          ],
+          "label": "Present"
+        }
+      ],
+      "hint": "Look for the form that fits the time cue.",
+      "instruction": "Move every word into its neighborhood.",
+      "variant": "word_neighborhoods"
+    },
+    "response": {
+      "assignments": {
+        "fui": 0,
+        "comió": 0,
+        "hablaron": 0,
+        "voy": 1,
+        "come": 1,
+        "hablan": 1
+      }
+    },
+    "bank": [],
+    "order": [
+      "hablan",
+      "come",
+      "voy",
+      "hablaron",
+      "comió",
+      "fui"
+    ],
+    "expected": {
+      "concept": "Past: fui, comió, hablaron | Present: voy, come, hablan",
+      "userAnswer": "{\"hablan\":1,\"come\":1,\"voy\":1,\"hablaron\":0,\"comió\":0,\"fui\":0}",
+      "expectedAnswer": "Past: fui, comió, hablaron | Present: voy, come, hablan",
+      "sourceContext": "word_neighborhoods",
+      "cefrLevel": "A1",
+      "sourceMode": "grammar"
+    }
+  },
+  {
+    "module": "grammar",
+    "kind": "delight:morphology_forge",
+    "case": "delight:morphology_forge",
+    "question": {
+      "answerPieces": [
+        "jug",
+        "ábamos"
+      ],
+      "answerWord": "jugábamos",
+      "explanation": "The stem jug- and imperfect ending -ábamos form jugábamos.",
+      "hint": "Look for the form that fits the time cue.",
+      "instruction": "Forge the word that completes the sentence.",
+      "pieces": [
+        "jug",
+        "ábamos",
+        "aron",
+        "aré"
+      ],
+      "sentence": "Cuando éramos niños, nosotros ___ en el parque.",
+      "variant": "morphology_forge"
+    },
+    "response": {
+      "pieceIndices": [
+        0,
+        1
+      ]
+    },
+    "bank": [],
+    "order": null,
+    "expected": {
+      "concept": "Cuando éramos niños, nosotros ___ en el parque.",
+      "userAnswer": "",
+      "expectedAnswer": "",
+      "sourceContext": "morphology_forge",
+      "cefrLevel": "A1",
+      "sourceMode": "grammar"
+    }
+  },
+  {
+    "module": "grammar",
+    "kind": "delight:listen_difference",
+    "case": "delight:listen_difference",
+    "question": {
+      "answerIndex": 0,
+      "audioText": "Él compró el pan.",
+      "contrast": "compró = completed action · compra = present action",
+      "explanation": "The stressed final ó signals the completed past action.",
+      "hint": "Look for the form that fits the time cue.",
+      "instruction": "Listen carefully. Which sentence did you hear?",
+      "options": [
+        "Él compró el pan.",
+        "Él compra el pan."
+      ],
+      "variant": "listen_difference"
+    },
+    "response": {
+      "selectedIndex": 0
+    },
+    "bank": [],
+    "order": null,
+    "expected": {
+      "concept": "Listening discrimination",
+      "userAnswer": "",
+      "expectedAnswer": "",
+      "sourceContext": "listen_difference",
+      "cefrLevel": "A1",
+      "sourceMode": "grammar"
+    }
+  },
+  {
+    "module": "grammar",
+    "kind": "delight:sentence_shapeshifter",
+    "case": "delight:sentence_shapeshifter",
+    "question": {
+      "acceptableAnswers": [
+        "Ella comió con su familia ayer."
+      ],
+      "answer": "Ayer ella comió con su familia.",
+      "constraint": "Make it happen yesterday.",
+      "explanation": "The completed past form of comer is comió.",
+      "hint": "Look for the form that fits the time cue.",
+      "instruction": "Transform the complete sentence.",
+      "source": "Ella come con su familia.",
+      "variant": "sentence_shapeshifter"
+    },
+    "response": {
+      "text": "Ayer ella comió con su familia."
+    },
+    "bank": [],
+    "order": null,
+    "expected": {
+      "concept": "Ella come con su familia. (Make it happen yesterday.)",
+      "userAnswer": "Ayer ella comió con su familia.",
+      "expectedAnswer": "Ayer ella comió con su familia.",
+      "sourceContext": "sentence_shapeshifter",
+      "cefrLevel": "A1",
+      "sourceMode": "grammar"
+    }
+  },
+  {
+    "module": "grammar",
+    "kind": "delight:three_clue_mystery",
+    "case": "delight:three_clue_mystery",
+    "question": {
+      "acceptableAnswers": [
+        "el paraguas"
+      ],
+      "answer": "paraguas",
+      "clues": [
+        "You often need me outside.",
+        "You use me when water falls from the sky.",
+        "I open above your head."
+      ],
+      "example": "Olvidé mi paraguas y llegué mojado.",
+      "explanation": "Paraguas means umbrella.",
+      "hint": "Look for the form that fits the time cue.",
+      "instruction": "Solve the mystery with as few clues as possible.",
+      "variant": "three_clue_mystery"
+    },
+    "response": {
+      "text": "paraguas"
+    },
+    "bank": [],
+    "order": null,
+    "expected": {
+      "concept": "You often need me outside. • You use me when water falls from the sky. • I open above your head.",
+      "userAnswer": "",
+      "expectedAnswer": "paraguas",
+      "sourceContext": "three_clue_mystery",
+      "cefrLevel": "A1",
+      "sourceMode": "grammar"
+    }
+  },
+  {
+    "module": "grammar",
+    "kind": "delight:three_word_challenge",
+    "case": "delight:three_word_challenge",
+    "question": {
+      "cues": [
+        "ayer",
+        "amigos",
+        "parque"
+      ],
+      "explanation": "Many original answers can work here.",
+      "hint": "Look for the form that fits the time cue.",
+      "instruction": "Create one sentence using all three cues.",
+      "reaction": "That sounds like a good sentence!",
+      "sampleAnswers": [
+        "Ayer fui al parque con mis amigos.",
+        "Ayer mis amigos jugaron en el parque."
+      ],
+      "variant": "three_word_challenge"
+    },
+    "response": {
+      "text": "Ayer fui al parque con mis amigos."
+    },
+    "bank": [],
+    "order": null,
+    "expected": {
+      "concept": "ayer, amigos, parque",
+      "userAnswer": "Ayer fui al parque con mis amigos.",
+      "expectedAnswer": "ayer, amigos, parque",
+      "sourceContext": "three_word_challenge",
+      "cefrLevel": "A1",
+      "sourceMode": "grammar"
+    }
+  },
+  {
+    "module": "grammar",
+    "kind": "delight:natural_or_weird",
+    "case": "delight:natural_or_weird",
+    "question": {
+      "variant": "natural_or_weird",
+      "sentence": "Yo somos Ana.",
+      "correction": "Yo soy Ana."
+    },
+    "response": {
+      "choice": false
+    },
+    "bank": [],
+    "order": null,
+    "expected": {
+      "concept": "Yo somos Ana.",
+      "userAnswer": "Sounds weird",
+      "expectedAnswer": "Sounds weird",
+      "sourceContext": "natural_or_weird",
+      "cefrLevel": "A1",
+      "sourceMode": "grammar"
+    }
+  },
+  {
+    "module": "grammar",
+    "kind": "fill",
+    "case": "fill",
+    "question": {
+      "question": "La niña come ___.",
+      "answer": "pan",
+      "hint": "A food made from flour."
+    },
+    "response": {
+      "text": "pan"
+    },
+    "bank": [],
+    "order": null,
+    "expected": {
+      "concept": "La niña come ___.",
+      "userAnswer": "pan",
+      "expectedAnswer": "A food made from flour.",
+      "sourceContext": "grammar",
+      "cefrLevel": "A1",
+      "sourceMode": "grammar"
+    }
+  },
+  {
+    "module": "grammar",
+    "kind": "mc",
+    "case": "mc",
+    "question": {
+      "question": "Choose the greeting.",
+      "choices": [
+        "hola",
+        "adiós",
+        "gracias"
+      ],
+      "answer": "hola"
+    },
+    "response": {
+      "indices": [
+        0
+      ]
+    },
+    "bank": [
+      "hola",
+      "adiós",
+      "gracias"
+    ],
+    "order": null,
+    "expected": {
+      "concept": "Choose the greeting.",
+      "userAnswer": "hola",
+      "expectedAnswer": "hola",
+      "sourceContext": "grammar",
+      "cefrLevel": "A1",
+      "sourceMode": "grammar"
+    }
+  },
+  {
+    "module": "grammar",
+    "kind": "ma",
+    "case": "ma",
+    "question": {
+      "question": "Choose the family words.",
+      "choices": [
+        "madre",
+        "padre",
+        "perro",
+        "casa"
+      ],
+      "answers": [
+        "madre",
+        "padre"
+      ]
+    },
+    "response": {
+      "indices": [
+        0,
+        1
+      ]
+    },
+    "bank": [
+      "madre",
+      "padre",
+      "perro",
+      "casa"
+    ],
+    "order": null,
+    "expected": {
+      "concept": "Choose the family words.",
+      "userAnswer": "madre, padre",
+      "expectedAnswer": "madre, padre",
+      "sourceContext": "grammar",
+      "cefrLevel": "A1",
+      "sourceMode": "grammar"
+    }
+  },
+  {
+    "module": "grammar",
+    "kind": "match",
+    "case": "match",
+    "question": {
+      "stem": "Match the greetings.",
+      "left": [
+        "hola",
+        "adiós",
+        "gracias"
+      ],
+      "right": [
+        "thank you",
+        "hello",
+        "goodbye"
+      ],
+      "map": [
+        1,
+        2,
+        0
+      ]
+    },
+    "response": {
+      "pairs": {
+        "0": 1,
+        "1": 2,
+        "2": 0
+      },
+      "standardState": {
+        "slots": [
+          1,
+          2,
+          0
+        ],
+        "bank": [],
+        "pick": ""
+      }
+    },
+    "bank": [],
+    "order": null,
+    "expected": {
+      "concept": "Match the greetings.",
+      "userAnswer": "hola → hello, adiós → goodbye, gracias → thank you",
+      "expectedAnswer": "Check the correct pairings",
+      "sourceContext": "grammar",
+      "cefrLevel": "A1",
+      "sourceMode": "grammar"
+    }
+  },
+  {
+    "module": "grammar",
+    "kind": "translate",
+    "case": "translate",
+    "question": {
+      "sentence": "Yo no digo que no",
+      "correctWords": [
+        "I",
+        "do",
+        "not",
+        "say",
+        "no"
+      ],
+      "distractors": [
+        "I",
+        "yes"
+      ],
+      "hint": "Notice the repeated negative word."
+    },
+    "response": {
+      "indices": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "wordBankOrder": [
+        5,
+        6
+      ]
+    },
+    "bank": [
+      "I",
+      "do",
+      "not",
+      "say",
+      "no",
+      "I",
+      "yes"
+    ],
+    "order": null,
+    "expected": {
+      "concept": "Yo no digo que no",
+      "userAnswer": "I do not say no",
+      "expectedAnswer": "I do not say no",
+      "sourceContext": "grammar",
+      "cefrLevel": "A1",
+      "sourceMode": "grammar"
+    }
+  },
+  {
+    "module": "grammar",
+    "kind": "repeat",
+    "case": "repeat",
+    "question": {
+      "sentence": "Yo no digo que no",
+      "correctWords": [
+        "I",
+        "do",
+        "not",
+        "say",
+        "no"
+      ],
+      "distractors": [
+        "I",
+        "yes"
+      ],
+      "hint": "Notice the repeated negative word."
+    },
+    "response": {
+      "indices": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "wordBankOrder": [
+        5,
+        6
+      ]
+    },
+    "bank": [
+      "I",
+      "do",
+      "not",
+      "say",
+      "no",
+      "I",
+      "yes"
+    ],
+    "order": null,
+    "expected": {
+      "concept": "Yo no digo que no",
+      "userAnswer": "I do not say no",
+      "expectedAnswer": "I do not say no",
+      "sourceContext": "grammar",
+      "cefrLevel": "A1",
+      "sourceMode": "grammar"
+    }
+  },
+  {
+    "module": "grammar",
+    "kind": "speak",
+    "case": "speak",
+    "question": {
+      "target": "Hola, soy Ana.",
+      "display": "Hola, soy Ana.",
+      "prompt": "Say the requested sentence.",
+      "variant": "repeat",
+      "stimulus": "Hello, I am Ana.",
+      "hint": "Use the first person.",
+      "translation": "Hello, I am Ana."
+    },
+    "response": {
+      "text": "Hola, soy Ana."
+    },
+    "bank": [],
+    "order": null,
+    "expected": {
+      "concept": "Say the requested sentence.",
+      "userAnswer": "Hola, soy Ana.",
+      "expectedAnswer": "Hola, soy Ana.",
+      "sourceContext": "grammar",
+      "cefrLevel": "A1",
+      "sourceMode": "grammar"
+    }
+  },
+  {
+    "module": "vocabulary",
+    "kind": "flashcard",
+    "case": "flashcard",
+    "question": {
+      "concept": "A family greeting",
+      "answer": "Hola"
+    },
+    "response": {
+      "text": "Adiós"
+    },
+    "bank": [],
+    "order": null,
+    "expected": {
+      "concept": "A family greeting",
+      "userAnswer": "Adiós",
+      "expectedAnswer": "Hola",
+      "sourceContext": "vocabulary",
+      "cefrLevel": "A1",
+      "sourceMode": "vocabulary"
+    }
+  },
+  {
+    "module": "vocabulary",
+    "kind": "match",
+    "case": "stemless-match",
+    "question": {
+      "left": [
+        "hola",
+        "adiós",
+        "gracias"
+      ],
+      "right": [
+        "hello",
+        "goodbye",
+        "thank you"
+      ],
+      "map": [
+        0,
+        1,
+        2
+      ]
+    },
+    "response": {
+      "pairs": {
+        "0": 0,
+        "1": 1,
+        "2": 2
+      },
+      "standardState": {
+        "slots": [
+          0,
+          1,
+          2
+        ],
+        "bank": [],
+        "pick": ""
+      }
+    },
+    "bank": [],
+    "order": null,
+    "expected": {
+      "concept": "Match the items:",
+      "userAnswer": "hola → hello, adiós → goodbye, gracias → thank you",
+      "expectedAnswer": "Check the correct pairings",
+      "sourceContext": "vocabulary",
+      "cefrLevel": "A1",
+      "sourceMode": "vocabulary"
+    }
+  },
+  {
+    "module": "grammar",
+    "kind": "flashcard",
+    "case": "flashcard",
+    "question": {
+      "concept": "A family greeting",
+      "answer": "Hola"
+    },
+    "response": {
+      "text": "Adiós"
+    },
+    "bank": [],
+    "order": null,
+    "expected": {
+      "concept": "A family greeting",
+      "userAnswer": "Adiós",
+      "expectedAnswer": "Hola",
+      "sourceContext": "grammar",
+      "cefrLevel": "A1",
+      "sourceMode": "grammar"
+    }
+  },
+  {
+    "module": "grammar",
+    "kind": "match",
+    "case": "stemless-match",
+    "question": {
+      "left": [
+        "hola",
+        "adiós",
+        "gracias"
+      ],
+      "right": [
+        "thank you",
+        "hello",
+        "goodbye"
+      ],
+      "map": [
+        1,
+        2,
+        0
+      ]
+    },
+    "response": {
+      "pairs": {
+        "0": 1,
+        "1": 2,
+        "2": 0
+      },
+      "standardState": {
+        "slots": [
+          1,
+          2,
+          0
+        ],
+        "bank": [],
+        "pick": ""
+      }
+    },
+    "bank": [],
+    "order": null,
+    "expected": {
+      "concept": "Match the items:",
+      "userAnswer": "hola → hello, adiós → goodbye, gracias → thank you",
+      "expectedAnswer": "Check the correct pairings",
+      "sourceContext": "grammar",
+      "cefrLevel": "A1",
+      "sourceMode": "grammar"
+    }
+  }
+]

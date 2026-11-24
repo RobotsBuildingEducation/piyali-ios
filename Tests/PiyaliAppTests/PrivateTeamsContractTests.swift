@@ -77,3 +77,23 @@ private final class PrivateTeamEmulatorProvider:NSObject,AppCheckProvider {
 private final class PrivateTeamEmulatorFactory:NSObject,AppCheckProviderFactory {
     func createProvider(with app:FirebaseApp)->AppCheckProvider? { PrivateTeamEmulatorProvider() }
 }
+
+extension PrivateTeamsContractTests {
+    func testCachedLegacyRostersAndConcurrentMemberReadsKeepEachTeamsProgressIndependent()async throws {
+        let(db,a,b,c)=try context(),service=PrivateTeamsService(database:db);defer{try? a.disconnect();try? b.disconnect();try? c.disconnect()}
+        try await service.create(name:"Cache first",members:b.npub,creatorName:"Public creator",identity:a);let first=try XCTUnwrap(service.teams.first)
+        try await service.create(name:"Cache second",members:c.npub,creatorName:"Public creator",identity:a);let second=try XCTUnwrap(service.teams.first{$0.teamID != first.teamID})
+        var learner=LearnerState();learner.name="First public snapshot";learner.xpByLanguage["es"]=11;try await service.shareProgress(learner,in:first,identity:a)
+        learner.name="Second public snapshot";learner.xpByLanguage["es"]=22;try await service.shareProgress(learner,in:second,identity:a)
+        _=try await service.readProgress(first,identity:a);_=try await service.readProgress(second,identity:a)
+        try await db.disableNetwork()
+        do{
+            try await service.refresh(identity:a);XCTAssertEqual(Set(service.teams.map(\.teamID)),Set([first.teamID,second.teamID]))
+            async let left=service.readProgress(first,identity:a)
+            async let right=service.readProgress(second,identity:a)
+            let(x,y)=try await(left,right);XCTAssertEqual(x[a.npub]?["xp"],.number(11));XCTAssertEqual(y[a.npub]?["xp"],.number(22));XCTAssertEqual(service.progressTeamID,second.id);XCTAssertEqual(service.progress[a.npub]?["name"],.string("Second public snapshot"))
+        }catch{try? await db.enableNetwork();throw error}
+        try await db.enableNetwork()
+        for team in [first,second]{try await db.collection("users").document(a.npub).collection("teams").document(team.teamID).collection("progress").document(a.npub).delete();try await service.leave(team,identity:a)}
+    }
+}

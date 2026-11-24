@@ -1,0 +1,100 @@
+{
+  "result": "PiyaliExploration7.xcresult",
+  "viewport": {
+    "width": 402,
+    "height": 874
+  },
+  "states": "Original GameRouter/legacy renderer and native SwiftUI/SpriteKit using the same public search-chapter scenario. Original source cast is randomly assigned. Native legacy cast retains saved names; exact cast/name parity and ambient decoration remain open. This is renderer evidence, not a normal root-product launch.",
+  "records": [
+    {
+      "file": "docs/reference/legacy-world-en.png",
+      "sha256": "3ad8edf43275440add77dd56a1d52d335c8710a87c1a7bd08d31784a22cfca1e",
+      "attachment": "Source legacy world en_0_440A4C9E-B893-43B2-9D90-B740ECF0B537.png"
+    },
+    {
+      "file": "docs/native/legacy-world-en.png",
+      "sha256": "349dad73349bb2704f036c19d4d8811fcef20402985de56878ce80f3877a49db",
+      "attachment": "Native legacy world en_0_3F47B8A5-C551-42A8-B1A6-D8174EEE02FD.png"
+    },
+    {
+      "file": "docs/reference/legacy-world-en-metrics.json",
+      "sha256": "e3eb4f86647a8a4813473548f7c9d6aabc173d8f38956a705a1e48650045aaba",
+      "attachment": "Source legacy world en metrics_0_CB96AA8E-4172-4895-A700-D32A4A35FEE9.json"
+    },
+    {
+      "file": "docs/reference/legacy-dialogue-en.png",
+      "sha256": "0de62a430c9f5fbda073e9b6c8346779c8f5742b5f55da79e110112cc9fb3fea",
+      "attachment": "Source legacy dialogue en_0_F109A6B5-B4F8-4D19-8728-9A5FA5FA57FA.png"
+    },
+    {
+      "file": "docs/native/legacy-dialogue-en.png",
+      "sha256": "cfa96d4efd90211de0dcbf5f920584be5f79b8281628410c7dc7beb302b95836",
+      "attachment": "Native legacy dialogue en_0_F08C3E73-C314-4FAA-A106-3E5DE2B42DE6.png"
+    },
+    {
+      "file": "docs/reference/legacy-dialogue-en-metrics.json",
+      "sha256": "761c944f5d285c34834075fda55ddd29ab7fca2059b7dd573cc52f454da6d5fe",
+      "attachment": "Source legacy dialogue en metrics_0_28F0C42B-D3D3-4B45-9552-065D1ABBCE1E.json"
+    },
+    {
+      "file": "docs/reference/legacy-inventory-en.png",
+      "sha256": "165336a29679748332f005d46de31746afa8fe5b48ca9ec4472873f3f75fc931",
+      "attachment": "Source legacy inventory en_0_69DC5F90-EF03-431D-B6B0-BC7B6B09A0B4.png"
+    },
+    {
+      "file": "docs/native/legacy-inventory-en.png",
+      "sha256": "82bb044871eac4980ae674fdd243fd403da3afce427ef93cad01608e06295769",
+      "attachment": "Native legacy inventory en_0_CC2B0591-0DF7-4E5F-8CC1-4BC65F955447.png"
+    },
+    {
+      "file": "docs/reference/legacy-inventory-en-metrics.json",
+      "sha256": "c88bb62b3ab96f36311759481f820fdc1be178c0881196b9cb8ccf0ed57d70f4",
+      "attachment": "Source legacy inventory en metrics_0_5248B32C-777F-482F-A49B-CA8761198406.json"
+    },
+    {
+      "file": "docs/reference/legacy-world-ar.png",
+      "sha256": "a6e2417d67baf0151ec9e69ffa2d65fb235908163053d144186c278abdd88ff5",
+      "attachment": "Source legacy world ar_0_32F29C09-8D2A-45CB-8854-D92DA8926796.png"
+    },
+    {
+      "file": "docs/native/legacy-world-ar.png",
+      "sha256": "35b79ec2403162ad4196d3cc4906dcce223c6460175e4ec39a385841d7aa70bc",
+      "attachment": "Native legacy world ar_0_D6E9655C-78D5-41AA-94DB-01D35172D219.png"
+    },
+    {
+      "file": "docs/reference/legacy-world-ar-metrics.json",
+      "sha256": "37d738e2c5df8008eae8c194f95189bbd42ab0c14cf6fc0aed115538fbca8d87",
+      "attachment": "Source legacy world ar metrics_0_96D4653B-7E58-4664-A901-3EEA204AC960.json"
+    },
+    {
+      "file": "docs/reference/legacy-dialogue-ar.png",
+      "sha256": "9d0ad317461243ad4eee8bf4b76a26830ddc1a9d59cf269a499e3fda7abc48d9",
+      "attachment": "Source legacy dialogue ar_0_C50711F2-86F1-4C35-B991-631B499DB6F3.png"
+    },
+    {
+      "file": "docs/native/legacy-dialogue-ar.png",
+      "sha256": "7be19aa522ab54db356e4fa509fb34fb3290c48e83f7619eab3fc4079c340b24",
+      "attachment": "Native legacy dialogue ar_0_A4A8E517-9AE2-4774-8737-7D8784E760A5.png"
+    },
+    {
+      "file": "docs/reference/legacy-dialogue-ar-metrics.json",
+      "sha256": "8c653303045eb3172805b13d4f1bb93575ed2e1a90e1b57f8d0b6309a1158a2b",
+      "attachment": "Source legacy dialogue ar metrics_0_44F004D4-9EE6-43C1-A16C-FC5221CE456A.json"
+    },
+    {
+      "file": "docs/reference/legacy-inventory-ar.png",
+      "sha256": "592026149d8643f7ca5d3a591cad49a01a8867625557c892242bb4b94af5b7cf",
+      "attachment": "Source legacy inventory ar_0_661A7D44-21C5-4557-87BF-D8441F8A9F5D.png"
+    },
+    {
+      "file": "docs/native/legacy-inventory-ar.png",
+      "sha256": "395344e6241325815414eeae8a227f56239d0b4a7aeaabbb4c23ca80a1fe648b",
+      "attachment": "Native legacy inventory ar_0_48ADA580-D265-462F-9A28-328C235D1FEB.png"
+    },
+    {
+      "file": "docs/reference/legacy-inventory-ar-metrics.json",
+      "sha256": "6dff6a30cfc21bfb96a00f4e3118c88f4fd6c00d221c56a87da0b774a9c043f6",
+      "attachment": "Source legacy inventory ar metrics_0_9A87CFB9-A0C7-495B-AAB2-B087D5CEA8C9.json"
+    }
+  ]
+}

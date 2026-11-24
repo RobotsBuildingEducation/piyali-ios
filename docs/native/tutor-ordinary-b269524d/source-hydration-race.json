@@ -1,0 +1,223 @@
+{
+  "scope": "Read-only diagnostic hooks around original refs. Late applyFreshTutorConversationSession at original line 5346 clears welcome/question after connect in Arabic. Public fixtures only; these failed frames are not final parity evidence.",
+  "bundle": "/tmp/PiyaliTutorOrdinaryPhaseDiagnostic20261105.xcresult",
+  "scenarios": [
+    {
+      "scenario": "Source pending Tutor ordinary regular trace ar",
+      "learnerJudges": 1,
+      "dailyXP": 0,
+      "sentKinds": [
+        "tutor_kickoff",
+        "tutor_kickoff",
+        "tutor_followup"
+      ],
+      "phases": [
+        {
+          "turn": 0,
+          "welcome": false,
+          "lesson": "lesson-a1-5-1",
+          "messages": [],
+          "line": 5346,
+          "statement": "tutorWelcomePendingReplyRef.current = false;"
+        },
+        {
+          "turn": 1,
+          "statement": "turnCountRef.current += 1;",
+          "lesson": "lesson-a1-5-1",
+          "messages": [
+            {
+              "text": "hola",
+              "role": "user"
+            }
+          ],
+          "line": 10577,
+          "welcome": false
+        }
+      ]
+    },
+    {
+      "scenario": "Source pending Tutor ordinary starter trace ar",
+      "learnerJudges": 1,
+      "dailyXP": 5,
+      "sentKinds": [
+        "tutor_welcome",
+        "tutor_kickoff",
+        "tutor_followup",
+        "tutor_followup"
+      ],
+      "phases": [
+        {
+          "messages": [],
+          "turn": 0,
+          "statement": "tutorWelcomePendingReplyRef.current = true;",
+          "line": 8481,
+          "lesson": "lesson-tutorial-1",
+          "welcome": true
+        },
+        {
+          "messages": [],
+          "line": 5346,
+          "statement": "tutorWelcomePendingReplyRef.current = false;",
+          "turn": 0,
+          "lesson": "lesson-tutorial-1",
+          "welcome": false
+        },
+        {
+          "welcome": false,
+          "messages": [
+            {
+              "text": "Welcome!",
+              "welcome": true,
+              "role": "assistant"
+            },
+            {
+              "text": "yes",
+              "role": "user"
+            }
+          ],
+          "statement": "turnCountRef.current += 1;",
+          "line": 10577,
+          "lesson": "lesson-tutorial-1",
+          "turn": 1
+        },
+        {
+          "messages": [
+            {
+              "role": "assistant",
+              "text": "Welcome!",
+              "welcome": true
+            },
+            {
+              "text": "yes",
+              "role": "user"
+            },
+            {
+              "welcome": false,
+              "text": "Say “hola”.",
+              "role": "assistant"
+            },
+            {
+              "text": "hola",
+              "role": "user"
+            }
+          ],
+          "line": 10577,
+          "statement": "turnCountRef.current += 1;",
+          "turn": 2,
+          "lesson": "lesson-tutorial-1",
+          "welcome": false
+        }
+      ]
+    },
+    {
+      "scenario": "Source pending Tutor ordinary regular trace en",
+      "learnerJudges": 0,
+      "dailyXP": 5,
+      "sentKinds": [
+        "tutor_kickoff",
+        "tutor_followup"
+      ],
+      "phases": [
+        {
+          "turn": 0,
+          "welcome": false,
+          "lesson": "lesson-a1-5-1",
+          "messages": [],
+          "statement": "tutorWelcomePendingReplyRef.current = false;",
+          "line": 5346
+        },
+        {
+          "turn": 1,
+          "welcome": false,
+          "messages": [
+            {
+              "role": "assistant",
+              "text": "Say “hola”.",
+              "welcome": false
+            },
+            {
+              "role": "user",
+              "text": "hola"
+            }
+          ],
+          "lesson": "lesson-a1-5-1",
+          "statement": "turnCountRef.current += 1;",
+          "line": 10577
+        }
+      ]
+    },
+    {
+      "scenario": "Source pending Tutor ordinary starter trace en",
+      "learnerJudges": 0,
+      "dailyXP": 5,
+      "sentKinds": [
+        "tutor_welcome",
+        "tutor_kickoff",
+        "tutor_followup"
+      ],
+      "phases": [
+        {
+          "statement": "tutorWelcomePendingReplyRef.current = false;",
+          "messages": [],
+          "turn": 0,
+          "lesson": "lesson-tutorial-1",
+          "line": 5346,
+          "welcome": false
+        },
+        {
+          "statement": "tutorWelcomePendingReplyRef.current = true;",
+          "line": 8481,
+          "lesson": "lesson-tutorial-1",
+          "turn": 0,
+          "messages": [],
+          "welcome": true
+        },
+        {
+          "statement": "tutorWelcomePendingReplyRef.current = false;",
+          "messages": [
+            {
+              "role": "assistant",
+              "welcome": true,
+              "text": "Welcome!"
+            },
+            {
+              "role": "user",
+              "text": "yes"
+            }
+          ],
+          "turn": 0,
+          "lesson": "lesson-tutorial-1",
+          "line": 10573,
+          "welcome": false
+        },
+        {
+          "statement": "turnCountRef.current += 1;",
+          "messages": [
+            {
+              "text": "Welcome!",
+              "welcome": true,
+              "role": "assistant"
+            },
+            {
+              "text": "yes",
+              "role": "user"
+            },
+            {
+              "text": "Say “hola”.",
+              "welcome": false,
+              "role": "assistant"
+            },
+            {
+              "text": "hola",
+              "role": "user"
+            }
+          ],
+          "turn": 1,
+          "lesson": "lesson-tutorial-1",
+          "line": 10577,
+          "welcome": false
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "qaDevice": "CE8248B6-7171-4FD4-97DE-89E499107F82",
+  "startedAt": 1793945590.3536954,
+  "kind": "memory",
+  "phase": "pending",
+  "scope": "Read-only counters of a fresh public-fixture signup and real process termination; no private identity, keys, audio, provider tokens or full profile exported.",
+  "profile": {
+    "snapshotSHA256": "d196c9cac2f119abbe39503c7fcc09f1c32ec95898f3d14ffa1fafc662928d4a",
+    "totalXP": 0,
+    "dailyXP": 0,
+    "gradedAttempts": 1,
+    "assessments": 1,
+    "turnReceipts": 0,
+    "completionReceipts": 0,
+    "lessonXP": 0,
+    "pendingWorth": 0,
+    "memoryNotes": 1,
+    "memoryCaptures": 1,
+    "memoryEnrichments": 0,
+    "pendingEnrichments": 0,
+    "repairEvidence": 1,
+    "enriched": false,
+    "noteID": "mem-1793945715645-5a88260"
+  }
+}

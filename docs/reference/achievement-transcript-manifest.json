@@ -1,0 +1,69 @@
+{
+  "catalog": 104,
+  "locales": [
+    "en",
+    "es",
+    "pt",
+    "it",
+    "fr",
+    "de",
+    "ja",
+    "hi",
+    "ar",
+    "zh"
+  ],
+  "sources": [
+    {
+      "file": "src/achievements/catalog.js",
+      "sha256": "2f8b6f62c891e691d3655f99772377014ce754c40950a1a167cee54192fce116"
+    },
+    {
+      "file": "src/achievements/copy.js",
+      "sha256": "8d033d29320c4a90dfea7381576c6702a8db7a5da94e5012bd25f9b17cc8bf40"
+    },
+    {
+      "file": "src/achievements/progressionCopy.js",
+      "sha256": "fea0718ee0f6b6114af4e757c515e44524caac4ef9e527179063b75687d546c5"
+    },
+    {
+      "file": "src/achievements/transcriptGroups.js",
+      "sha256": "c16993ea6e7548ebe48bfe3980d97d986b31010e81d8f8674c064525efdf4434"
+    },
+    {
+      "file": "src/achievements/AchievementCollection.jsx",
+      "sha256": "907e9909ed9e23464b6f4728556966f30b1a1208c79d79f8b0c75faecef42ed8"
+    },
+    {
+      "file": "src/achievements/AchievementOrb.jsx",
+      "sha256": "7e597f09151a2dfb38d57a09856c7ee83f1654bc6a7a6e5d39adc700bc3eee0f"
+    },
+    {
+      "file": "src/achievements/orbPresets.js",
+      "sha256": "6fad58c5ff7470c17306e5907a56eca581033e64a7caa994e24482438ee23204"
+    },
+    {
+      "file": "src/achievements/orbThemes.js",
+      "sha256": "8c674c06e8873d0aee4d281bd04136e2ebaa771f804ebf5e7c1ea4b5a3ecf6e9"
+    },
+    {
+      "file": "src/achievements/orbSurfaces.js",
+      "sha256": "4eac4111eb0344bf30f6448ea397972c9a061a43b3fd5fff2926d98a037a445f"
+    },
+    {
+      "file": "src/achievements/achievements.css",
+      "sha256": "adc35ad2ffffb290e752d412c01bbb3b24615c27af80deac79b88f414385d482"
+    },
+    {
+      "file": "src/theme.js",
+      "sha256": "6fe6093ecca51d0debb1314a587d6bd0927e7ac9f8c1ba2c6c744017e3be407e"
+    },
+    {
+      "file": "src/components/orbing/createOrbScene.js",
+      "sha256": "b9c6b482b78f993d158f1df4492c8aa6e08abccdd5c41f773eb9d6cf8c3022d9"
+    },
+    {
+      "file": "src/components/orbing/orbModel.js",
+      "sha256": "ec941ded136ac1a6e320a59ff118d92da5d4dbe47482331c951597ceafcb2132"
+    }
+  ]
+}

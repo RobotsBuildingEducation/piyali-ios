@@ -1,0 +1,724 @@
+[0/1] Planning build
+Building for debugging...
+[0/3] Write sources
+[1/3] Write swift-version--58304C5D6DBC2206.txt
+[3/5] Emitting module PiyaliCore
+[4/5] Compiling PiyaliCore CompanionMemory.swift
+[5/43] Compiling PiyaliCore IntroTutorial.swift
+[6/43] Compiling PiyaliCore LearnerSettings.swift
+[7/43] Compiling PiyaliCore LearningTeams.swift
+[8/43] Compiling PiyaliCore LessonAccess.swift
+[9/43] Compiling PiyaliCore TutorSourceProgress.swift
+[10/43] Compiling PiyaliCore WebProgressContract.swift
+[11/43] Compiling PiyaliCore XPActivity.swift
+[12/43] Compiling PiyaliCore Models.swift
+[13/43] Compiling PiyaliCore OnboardingDraft.swift
+[14/43] Compiling PiyaliCore PhonicsFinishIntent.swift
+[15/43] Compiling PiyaliCore PhonicsProgress.swift
+[16/43] Compiling PiyaliCore SyncChanges.swift
+[17/43] Compiling PiyaliCore TutorCourse.swift
+[18/43] Compiling PiyaliCore TutorOutcomeIntent.swift
+[19/43] Compiling PiyaliCore ConfirmedRepairProgress.swift
+[20/43] Compiling PiyaliCore ConversationPractice.swift
+[21/43] Compiling PiyaliCore CurriculumLessonProgress.swift
+[22/43] Compiling PiyaliCore DailyImmersion.swift
+[23/43] Compiling PiyaliCore Placement.swift
+[24/43] Compiling PiyaliCore PlateHeadline.swift
+[25/43] Compiling PiyaliCore PracticeRun.swift
+[26/43] Compiling PiyaliCore RPG.swift
+[27/43] Compiling PiyaliCore ReadingPractice.swift
+[28/43] Compiling PiyaliCore RealtimeLessonRun.swift
+[29/43] Compiling PiyaliCore StoryGeneration.swift
+[30/43] Compiling PiyaliCore StoryPractice.swift
+[31/43] Compiling PiyaliCore DailyPlate.swift
+[32/43] Compiling PiyaliCore Exploration.swift
+[33/43] Compiling PiyaliCore FinalQuiz.swift
+[34/43] Compiling PiyaliCore FirstRunFlow.swift
+[35/43] Compiling PiyaliCore CommunityFeed.swift
+[36/43] Compiling PiyaliCore CompanionCustomization.swift
+[37/43] Compiling PiyaliCore CompanionHealth.swift
+[38/43] Compiling PiyaliCore CompanionQuest.swift
+[39/43] Compiling PiyaliCore FocusedDeckProgress.swift
+[40/43] Compiling PiyaliCore GoalLessonProgress.swift
+[41/43] Compiling PiyaliCore GoalMemoryFocus.swift
+[42/43] Compiling PiyaliCore GoalPractice.swift
+[43/135] Compiling PiyaliCoreTests MemoryTests.swift
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/PlateHeadlineTests.swift:12:96: warning: conditional cast from '[String : Any]' to '[String : Any]' always succeeds
+10 |             XCTAssertEqual(try policy.run(row["operation"].string,row["input"]),row["expected"],row["operation"].string+" "+row["input"].json)
+11 |             if row["operation"].string == "stored" {
+12 |                 let p=row["input"];var state=WebProgressContract.imported(p["user"].foundation as? [String:Any] ?? [:]);state.target=p["targetLang"].string;state.support=p["appLanguage"].string
+   |                                                                                                `- warning: conditional cast from '[String : Any]' to '[String : Any]' always succeeds
+13 |                 XCTAssertEqual(state.plateHeadline(day:p["dayKey"].string),row["expected"] == .null ? nil : row["expected"].string,"The actual native cache getter must agree with the source too.")
+14 |             }
+[44/135] Compiling PiyaliCoreTests NostrCollectionTests.swift
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/PlateHeadlineTests.swift:12:96: warning: conditional cast from '[String : Any]' to '[String : Any]' always succeeds
+10 |             XCTAssertEqual(try policy.run(row["operation"].string,row["input"]),row["expected"],row["operation"].string+" "+row["input"].json)
+11 |             if row["operation"].string == "stored" {
+12 |                 let p=row["input"];var state=WebProgressContract.imported(p["user"].foundation as? [String:Any] ?? [:]);state.target=p["targetLang"].string;state.support=p["appLanguage"].string
+   |                                                                                                `- warning: conditional cast from '[String : Any]' to '[String : Any]' always succeeds
+13 |                 XCTAssertEqual(state.plateHeadline(day:p["dayKey"].string),row["expected"] == .null ? nil : row["expected"].string,"The actual native cache getter must agree with the source too.")
+14 |             }
+[45/135] Compiling PiyaliCoreTests OnboardingDraftTests.swift
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/PlateHeadlineTests.swift:12:96: warning: conditional cast from '[String : Any]' to '[String : Any]' always succeeds
+10 |             XCTAssertEqual(try policy.run(row["operation"].string,row["input"]),row["expected"],row["operation"].string+" "+row["input"].json)
+11 |             if row["operation"].string == "stored" {
+12 |                 let p=row["input"];var state=WebProgressContract.imported(p["user"].foundation as? [String:Any] ?? [:]);state.target=p["targetLang"].string;state.support=p["appLanguage"].string
+   |                                                                                                `- warning: conditional cast from '[String : Any]' to '[String : Any]' always succeeds
+13 |                 XCTAssertEqual(state.plateHeadline(day:p["dayKey"].string),row["expected"] == .null ? nil : row["expected"].string,"The actual native cache getter must agree with the source too.")
+14 |             }
+[46/135] Compiling PiyaliCoreTests OralAssistancePolicyTests.swift
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/PlateHeadlineTests.swift:12:96: warning: conditional cast from '[String : Any]' to '[String : Any]' always succeeds
+10 |             XCTAssertEqual(try policy.run(row["operation"].string,row["input"]),row["expected"],row["operation"].string+" "+row["input"].json)
+11 |             if row["operation"].string == "stored" {
+12 |                 let p=row["input"];var state=WebProgressContract.imported(p["user"].foundation as? [String:Any] ?? [:]);state.target=p["targetLang"].string;state.support=p["appLanguage"].string
+   |                                                                                                `- warning: conditional cast from '[String : Any]' to '[String : Any]' always succeeds
+13 |                 XCTAssertEqual(state.plateHeadline(day:p["dayKey"].string),row["expected"] == .null ? nil : row["expected"].string,"The actual native cache getter must agree with the source too.")
+14 |             }
+[47/135] Compiling PiyaliCoreTests OralQuestionRulesTests.swift
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/PlateHeadlineTests.swift:12:96: warning: conditional cast from '[String : Any]' to '[String : Any]' always succeeds
+10 |             XCTAssertEqual(try policy.run(row["operation"].string,row["input"]),row["expected"],row["operation"].string+" "+row["input"].json)
+11 |             if row["operation"].string == "stored" {
+12 |                 let p=row["input"];var state=WebProgressContract.imported(p["user"].foundation as? [String:Any] ?? [:]);state.target=p["targetLang"].string;state.support=p["appLanguage"].string
+   |                                                                                                `- warning: conditional cast from '[String : Any]' to '[String : Any]' always succeeds
+13 |                 XCTAssertEqual(state.plateHeadline(day:p["dayKey"].string),row["expected"] == .null ? nil : row["expected"].string,"The actual native cache getter must agree with the source too.")
+14 |             }
+[48/135] Compiling PiyaliCoreTests OrbVisualTests.swift
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/PlateHeadlineTests.swift:12:96: warning: conditional cast from '[String : Any]' to '[String : Any]' always succeeds
+10 |             XCTAssertEqual(try policy.run(row["operation"].string,row["input"]),row["expected"],row["operation"].string+" "+row["input"].json)
+11 |             if row["operation"].string == "stored" {
+12 |                 let p=row["input"];var state=WebProgressContract.imported(p["user"].foundation as? [String:Any] ?? [:]);state.target=p["targetLang"].string;state.support=p["appLanguage"].string
+   |                                                                                                `- warning: conditional cast from '[String : Any]' to '[String : Any]' always succeeds
+13 |                 XCTAssertEqual(state.plateHeadline(day:p["dayKey"].string),row["expected"] == .null ? nil : row["expected"].string,"The actual native cache getter must agree with the source too.")
+14 |             }
+[49/135] Compiling PiyaliCoreTests PhonicsProgressTests.swift
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/PlateHeadlineTests.swift:12:96: warning: conditional cast from '[String : Any]' to '[String : Any]' always succeeds
+10 |             XCTAssertEqual(try policy.run(row["operation"].string,row["input"]),row["expected"],row["operation"].string+" "+row["input"].json)
+11 |             if row["operation"].string == "stored" {
+12 |                 let p=row["input"];var state=WebProgressContract.imported(p["user"].foundation as? [String:Any] ?? [:]);state.target=p["targetLang"].string;state.support=p["appLanguage"].string
+   |                                                                                                `- warning: conditional cast from '[String : Any]' to '[String : Any]' always succeeds
+13 |                 XCTAssertEqual(state.plateHeadline(day:p["dayKey"].string),row["expected"] == .null ? nil : row["expected"].string,"The actual native cache getter must agree with the source too.")
+14 |             }
+[50/135] Compiling PiyaliCoreTests PlacementTests.swift
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/PlateHeadlineTests.swift:12:96: warning: conditional cast from '[String : Any]' to '[String : Any]' always succeeds
+10 |             XCTAssertEqual(try policy.run(row["operation"].string,row["input"]),row["expected"],row["operation"].string+" "+row["input"].json)
+11 |             if row["operation"].string == "stored" {
+12 |                 let p=row["input"];var state=WebProgressContract.imported(p["user"].foundation as? [String:Any] ?? [:]);state.target=p["targetLang"].string;state.support=p["appLanguage"].string
+   |                                                                                                `- warning: conditional cast from '[String : Any]' to '[String : Any]' always succeeds
+13 |                 XCTAssertEqual(state.plateHeadline(day:p["dayKey"].string),row["expected"] == .null ? nil : row["expected"].string,"The actual native cache getter must agree with the source too.")
+14 |             }
+[51/135] Compiling PiyaliCoreTests PlateHeadlineTests.swift
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/PlateHeadlineTests.swift:12:96: warning: conditional cast from '[String : Any]' to '[String : Any]' always succeeds
+10 |             XCTAssertEqual(try policy.run(row["operation"].string,row["input"]),row["expected"],row["operation"].string+" "+row["input"].json)
+11 |             if row["operation"].string == "stored" {
+12 |                 let p=row["input"];var state=WebProgressContract.imported(p["user"].foundation as? [String:Any] ?? [:]);state.target=p["targetLang"].string;state.support=p["appLanguage"].string
+   |                                                                                                `- warning: conditional cast from '[String : Any]' to '[String : Any]' always succeeds
+13 |                 XCTAssertEqual(state.plateHeadline(day:p["dayKey"].string),row["expected"] == .null ? nil : row["expected"].string,"The actual native cache getter must agree with the source too.")
+14 |             }
+[52/135] Compiling PiyaliCoreTests PracticeAssistanceTests.swift
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/PlateHeadlineTests.swift:12:96: warning: conditional cast from '[String : Any]' to '[String : Any]' always succeeds
+10 |             XCTAssertEqual(try policy.run(row["operation"].string,row["input"]),row["expected"],row["operation"].string+" "+row["input"].json)
+11 |             if row["operation"].string == "stored" {
+12 |                 let p=row["input"];var state=WebProgressContract.imported(p["user"].foundation as? [String:Any] ?? [:]);state.target=p["targetLang"].string;state.support=p["appLanguage"].string
+   |                                                                                                `- warning: conditional cast from '[String : Any]' to '[String : Any]' always succeeds
+13 |                 XCTAssertEqual(state.plateHeadline(day:p["dayKey"].string),row["expected"] == .null ? nil : row["expected"].string,"The actual native cache getter must agree with the source too.")
+14 |             }
+[53/145] Compiling PiyaliCoreTests PracticeCurriculumTests.swift
+[54/145] Compiling PiyaliCoreTests PracticeFeedbackDocumentTests.swift
+[55/145] Compiling PiyaliCoreTests PracticeQuestionTests.swift
+[56/145] Compiling PiyaliCoreTests PracticeRecipesTests.swift
+[57/145] Compiling PiyaliCoreTests PracticeRepairContextTests.swift
+[58/145] Compiling PiyaliCoreTests PracticeRunTests.swift
+[59/145] Compiling PiyaliCoreTests PrivateTeamsTests.swift
+[60/145] Compiling PiyaliCoreTests ProgressTests.swift
+[61/145] Compiling PiyaliCoreTests QuestionWorthTests.swift
+[62/145] Compiling PiyaliCoreTests RPGDialogueTests.swift
+[63/145] Compiling PiyaliCoreTests AchievementProgressTests.swift
+[64/145] Compiling PiyaliCoreTests AchievementRetryTests.swift
+[65/145] Compiling PiyaliCoreTests AchievementTranscriptTests.swift
+[66/145] Compiling PiyaliCoreTests AchievementUnlockTests.swift
+[67/145] Compiling PiyaliCoreTests AutomaticTipsTests.swift
+[68/145] Compiling PiyaliCoreTests BunkerConnectionTests.swift
+[69/145] Compiling PiyaliCoreTests CalendarDayTests.swift
+[70/145] Compiling PiyaliCoreTests CommunityFeedTests.swift
+[71/145] Compiling PiyaliCoreTests CompanionCustomizationTests.swift
+[72/145] Compiling PiyaliCoreTests CompanionHealthTests.swift
+[73/145] Compiling PiyaliCoreTests ResponsesOutputTests.swift
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:40:20: warning: result of call to 'receive(line:)' is unused [#no-usage]
+38 |         }
+39 |         var stream=ResponsesStream()
+40 |         try stream.receive(line:"data: [DONE]");try stream.receive(line:"");XCTAssertThrowsError(try stream.finish())
+   |                    `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+41 |         try stream.receive(line:"data: {broken");XCTAssertThrowsError(try stream.receive(line:""))
+42 |         XCTAssertThrowsError(try event(completed("partial",status:"incomplete"),to:&stream))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:40:60: warning: result of call to 'receive(line:)' is unused [#no-usage]
+38 |         }
+39 |         var stream=ResponsesStream()
+40 |         try stream.receive(line:"data: [DONE]");try stream.receive(line:"");XCTAssertThrowsError(try stream.finish())
+   |                                                            `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+41 |         try stream.receive(line:"data: {broken");XCTAssertThrowsError(try stream.receive(line:""))
+42 |         XCTAssertThrowsError(try event(completed("partial",status:"incomplete"),to:&stream))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:41:20: warning: result of call to 'receive(line:)' is unused [#no-usage]
+39 |         var stream=ResponsesStream()
+40 |         try stream.receive(line:"data: [DONE]");try stream.receive(line:"");XCTAssertThrowsError(try stream.finish())
+41 |         try stream.receive(line:"data: {broken");XCTAssertThrowsError(try stream.receive(line:""))
+   |                    `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+42 |         XCTAssertThrowsError(try event(completed("partial",status:"incomplete"),to:&stream))
+43 |         XCTAssertThrowsError(try event(completed(""),to:&stream))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:48:20: warning: result of call to 'receive(line:)' is unused [#no-usage]
+46 |     func testMultilineDataAndFrameLimits()throws {
+47 |         var stream=ResponsesStream()
+48 |         try stream.receive(line:"data: {\"type\":\"response.created\",")
+   |                    `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+49 |         try stream.receive(line:"data: \"response\":{}}")
+50 |         XCTAssertNil(try stream.receive(line:""))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:49:20: warning: result of call to 'receive(line:)' is unused [#no-usage]
+47 |         var stream=ResponsesStream()
+48 |         try stream.receive(line:"data: {\"type\":\"response.created\",")
+49 |         try stream.receive(line:"data: \"response\":{}}")
+   |                    `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+50 |         XCTAssertNil(try stream.receive(line:""))
+51 |         XCTAssertThrowsError(try stream.receive(line:"data: "+String(repeating:"x",count:1_048_576)))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:60:49: warning: result of call to 'receive(byte:)' is unused [#no-usage]
+58 |             XCTAssertEqual(updates,["اسأل 🌍","اسأل 🌍 بثقة"]);XCTAssertEqual(try stream.finish(),"اسأل 🌍 بثقة")
+59 |         }
+60 |         var broken=ResponsesStream();try broken.receive(byte:0xFF);XCTAssertThrowsError(try broken.receive(byte:10))
+   |                                                 `- warning: result of call to 'receive(byte:)' is unused [#no-usage]
+61 |     }
+62 | }
+[74/145] Compiling PiyaliCoreTests ResponsesStreamTests.swift
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:40:20: warning: result of call to 'receive(line:)' is unused [#no-usage]
+38 |         }
+39 |         var stream=ResponsesStream()
+40 |         try stream.receive(line:"data: [DONE]");try stream.receive(line:"");XCTAssertThrowsError(try stream.finish())
+   |                    `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+41 |         try stream.receive(line:"data: {broken");XCTAssertThrowsError(try stream.receive(line:""))
+42 |         XCTAssertThrowsError(try event(completed("partial",status:"incomplete"),to:&stream))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:40:60: warning: result of call to 'receive(line:)' is unused [#no-usage]
+38 |         }
+39 |         var stream=ResponsesStream()
+40 |         try stream.receive(line:"data: [DONE]");try stream.receive(line:"");XCTAssertThrowsError(try stream.finish())
+   |                                                            `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+41 |         try stream.receive(line:"data: {broken");XCTAssertThrowsError(try stream.receive(line:""))
+42 |         XCTAssertThrowsError(try event(completed("partial",status:"incomplete"),to:&stream))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:41:20: warning: result of call to 'receive(line:)' is unused [#no-usage]
+39 |         var stream=ResponsesStream()
+40 |         try stream.receive(line:"data: [DONE]");try stream.receive(line:"");XCTAssertThrowsError(try stream.finish())
+41 |         try stream.receive(line:"data: {broken");XCTAssertThrowsError(try stream.receive(line:""))
+   |                    `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+42 |         XCTAssertThrowsError(try event(completed("partial",status:"incomplete"),to:&stream))
+43 |         XCTAssertThrowsError(try event(completed(""),to:&stream))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:48:20: warning: result of call to 'receive(line:)' is unused [#no-usage]
+46 |     func testMultilineDataAndFrameLimits()throws {
+47 |         var stream=ResponsesStream()
+48 |         try stream.receive(line:"data: {\"type\":\"response.created\",")
+   |                    `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+49 |         try stream.receive(line:"data: \"response\":{}}")
+50 |         XCTAssertNil(try stream.receive(line:""))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:49:20: warning: result of call to 'receive(line:)' is unused [#no-usage]
+47 |         var stream=ResponsesStream()
+48 |         try stream.receive(line:"data: {\"type\":\"response.created\",")
+49 |         try stream.receive(line:"data: \"response\":{}}")
+   |                    `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+50 |         XCTAssertNil(try stream.receive(line:""))
+51 |         XCTAssertThrowsError(try stream.receive(line:"data: "+String(repeating:"x",count:1_048_576)))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:60:49: warning: result of call to 'receive(byte:)' is unused [#no-usage]
+58 |             XCTAssertEqual(updates,["اسأل 🌍","اسأل 🌍 بثقة"]);XCTAssertEqual(try stream.finish(),"اسأل 🌍 بثقة")
+59 |         }
+60 |         var broken=ResponsesStream();try broken.receive(byte:0xFF);XCTAssertThrowsError(try broken.receive(byte:10))
+   |                                                 `- warning: result of call to 'receive(byte:)' is unused [#no-usage]
+61 |     }
+62 | }
+[75/145] Compiling PiyaliCoreTests ScholarshipPromptTests.swift
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:40:20: warning: result of call to 'receive(line:)' is unused [#no-usage]
+38 |         }
+39 |         var stream=ResponsesStream()
+40 |         try stream.receive(line:"data: [DONE]");try stream.receive(line:"");XCTAssertThrowsError(try stream.finish())
+   |                    `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+41 |         try stream.receive(line:"data: {broken");XCTAssertThrowsError(try stream.receive(line:""))
+42 |         XCTAssertThrowsError(try event(completed("partial",status:"incomplete"),to:&stream))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:40:60: warning: result of call to 'receive(line:)' is unused [#no-usage]
+38 |         }
+39 |         var stream=ResponsesStream()
+40 |         try stream.receive(line:"data: [DONE]");try stream.receive(line:"");XCTAssertThrowsError(try stream.finish())
+   |                                                            `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+41 |         try stream.receive(line:"data: {broken");XCTAssertThrowsError(try stream.receive(line:""))
+42 |         XCTAssertThrowsError(try event(completed("partial",status:"incomplete"),to:&stream))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:41:20: warning: result of call to 'receive(line:)' is unused [#no-usage]
+39 |         var stream=ResponsesStream()
+40 |         try stream.receive(line:"data: [DONE]");try stream.receive(line:"");XCTAssertThrowsError(try stream.finish())
+41 |         try stream.receive(line:"data: {broken");XCTAssertThrowsError(try stream.receive(line:""))
+   |                    `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+42 |         XCTAssertThrowsError(try event(completed("partial",status:"incomplete"),to:&stream))
+43 |         XCTAssertThrowsError(try event(completed(""),to:&stream))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:48:20: warning: result of call to 'receive(line:)' is unused [#no-usage]
+46 |     func testMultilineDataAndFrameLimits()throws {
+47 |         var stream=ResponsesStream()
+48 |         try stream.receive(line:"data: {\"type\":\"response.created\",")
+   |                    `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+49 |         try stream.receive(line:"data: \"response\":{}}")
+50 |         XCTAssertNil(try stream.receive(line:""))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:49:20: warning: result of call to 'receive(line:)' is unused [#no-usage]
+47 |         var stream=ResponsesStream()
+48 |         try stream.receive(line:"data: {\"type\":\"response.created\",")
+49 |         try stream.receive(line:"data: \"response\":{}}")
+   |                    `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+50 |         XCTAssertNil(try stream.receive(line:""))
+51 |         XCTAssertThrowsError(try stream.receive(line:"data: "+String(repeating:"x",count:1_048_576)))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:60:49: warning: result of call to 'receive(byte:)' is unused [#no-usage]
+58 |             XCTAssertEqual(updates,["اسأل 🌍","اسأل 🌍 بثقة"]);XCTAssertEqual(try stream.finish(),"اسأل 🌍 بثقة")
+59 |         }
+60 |         var broken=ResponsesStream();try broken.receive(byte:0xFF);XCTAssertThrowsError(try broken.receive(byte:10))
+   |                                                 `- warning: result of call to 'receive(byte:)' is unused [#no-usage]
+61 |     }
+62 | }
+[76/145] Compiling PiyaliCoreTests SessionTimerTests.swift
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:40:20: warning: result of call to 'receive(line:)' is unused [#no-usage]
+38 |         }
+39 |         var stream=ResponsesStream()
+40 |         try stream.receive(line:"data: [DONE]");try stream.receive(line:"");XCTAssertThrowsError(try stream.finish())
+   |                    `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+41 |         try stream.receive(line:"data: {broken");XCTAssertThrowsError(try stream.receive(line:""))
+42 |         XCTAssertThrowsError(try event(completed("partial",status:"incomplete"),to:&stream))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:40:60: warning: result of call to 'receive(line:)' is unused [#no-usage]
+38 |         }
+39 |         var stream=ResponsesStream()
+40 |         try stream.receive(line:"data: [DONE]");try stream.receive(line:"");XCTAssertThrowsError(try stream.finish())
+   |                                                            `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+41 |         try stream.receive(line:"data: {broken");XCTAssertThrowsError(try stream.receive(line:""))
+42 |         XCTAssertThrowsError(try event(completed("partial",status:"incomplete"),to:&stream))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:41:20: warning: result of call to 'receive(line:)' is unused [#no-usage]
+39 |         var stream=ResponsesStream()
+40 |         try stream.receive(line:"data: [DONE]");try stream.receive(line:"");XCTAssertThrowsError(try stream.finish())
+41 |         try stream.receive(line:"data: {broken");XCTAssertThrowsError(try stream.receive(line:""))
+   |                    `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+42 |         XCTAssertThrowsError(try event(completed("partial",status:"incomplete"),to:&stream))
+43 |         XCTAssertThrowsError(try event(completed(""),to:&stream))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:48:20: warning: result of call to 'receive(line:)' is unused [#no-usage]
+46 |     func testMultilineDataAndFrameLimits()throws {
+47 |         var stream=ResponsesStream()
+48 |         try stream.receive(line:"data: {\"type\":\"response.created\",")
+   |                    `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+49 |         try stream.receive(line:"data: \"response\":{}}")
+50 |         XCTAssertNil(try stream.receive(line:""))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:49:20: warning: result of call to 'receive(line:)' is unused [#no-usage]
+47 |         var stream=ResponsesStream()
+48 |         try stream.receive(line:"data: {\"type\":\"response.created\",")
+49 |         try stream.receive(line:"data: \"response\":{}}")
+   |                    `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+50 |         XCTAssertNil(try stream.receive(line:""))
+51 |         XCTAssertThrowsError(try stream.receive(line:"data: "+String(repeating:"x",count:1_048_576)))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:60:49: warning: result of call to 'receive(byte:)' is unused [#no-usage]
+58 |             XCTAssertEqual(updates,["اسأل 🌍","اسأل 🌍 بثقة"]);XCTAssertEqual(try stream.finish(),"اسأل 🌍 بثقة")
+59 |         }
+60 |         var broken=ResponsesStream();try broken.receive(byte:0xFF);XCTAssertThrowsError(try broken.receive(byte:10))
+   |                                                 `- warning: result of call to 'receive(byte:)' is unused [#no-usage]
+61 |     }
+62 | }
+[77/145] Compiling PiyaliCoreTests SettingsSourcePolicyTests.swift
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:40:20: warning: result of call to 'receive(line:)' is unused [#no-usage]
+38 |         }
+39 |         var stream=ResponsesStream()
+40 |         try stream.receive(line:"data: [DONE]");try stream.receive(line:"");XCTAssertThrowsError(try stream.finish())
+   |                    `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+41 |         try stream.receive(line:"data: {broken");XCTAssertThrowsError(try stream.receive(line:""))
+42 |         XCTAssertThrowsError(try event(completed("partial",status:"incomplete"),to:&stream))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:40:60: warning: result of call to 'receive(line:)' is unused [#no-usage]
+38 |         }
+39 |         var stream=ResponsesStream()
+40 |         try stream.receive(line:"data: [DONE]");try stream.receive(line:"");XCTAssertThrowsError(try stream.finish())
+   |                                                            `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+41 |         try stream.receive(line:"data: {broken");XCTAssertThrowsError(try stream.receive(line:""))
+42 |         XCTAssertThrowsError(try event(completed("partial",status:"incomplete"),to:&stream))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:41:20: warning: result of call to 'receive(line:)' is unused [#no-usage]
+39 |         var stream=ResponsesStream()
+40 |         try stream.receive(line:"data: [DONE]");try stream.receive(line:"");XCTAssertThrowsError(try stream.finish())
+41 |         try stream.receive(line:"data: {broken");XCTAssertThrowsError(try stream.receive(line:""))
+   |                    `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+42 |         XCTAssertThrowsError(try event(completed("partial",status:"incomplete"),to:&stream))
+43 |         XCTAssertThrowsError(try event(completed(""),to:&stream))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:48:20: warning: result of call to 'receive(line:)' is unused [#no-usage]
+46 |     func testMultilineDataAndFrameLimits()throws {
+47 |         var stream=ResponsesStream()
+48 |         try stream.receive(line:"data: {\"type\":\"response.created\",")
+   |                    `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+49 |         try stream.receive(line:"data: \"response\":{}}")
+50 |         XCTAssertNil(try stream.receive(line:""))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:49:20: warning: result of call to 'receive(line:)' is unused [#no-usage]
+47 |         var stream=ResponsesStream()
+48 |         try stream.receive(line:"data: {\"type\":\"response.created\",")
+49 |         try stream.receive(line:"data: \"response\":{}}")
+   |                    `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+50 |         XCTAssertNil(try stream.receive(line:""))
+51 |         XCTAssertThrowsError(try stream.receive(line:"data: "+String(repeating:"x",count:1_048_576)))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:60:49: warning: result of call to 'receive(byte:)' is unused [#no-usage]
+58 |             XCTAssertEqual(updates,["اسأل 🌍","اسأل 🌍 بثقة"]);XCTAssertEqual(try stream.finish(),"اسأل 🌍 بثقة")
+59 |         }
+60 |         var broken=ResponsesStream();try broken.receive(byte:0xFF);XCTAssertThrowsError(try broken.receive(byte:10))
+   |                                                 `- warning: result of call to 'receive(byte:)' is unused [#no-usage]
+61 |     }
+62 | }
+[78/145] Compiling PiyaliCoreTests StandardAssistancePolicyTests.swift
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:40:20: warning: result of call to 'receive(line:)' is unused [#no-usage]
+38 |         }
+39 |         var stream=ResponsesStream()
+40 |         try stream.receive(line:"data: [DONE]");try stream.receive(line:"");XCTAssertThrowsError(try stream.finish())
+   |                    `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+41 |         try stream.receive(line:"data: {broken");XCTAssertThrowsError(try stream.receive(line:""))
+42 |         XCTAssertThrowsError(try event(completed("partial",status:"incomplete"),to:&stream))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:40:60: warning: result of call to 'receive(line:)' is unused [#no-usage]
+38 |         }
+39 |         var stream=ResponsesStream()
+40 |         try stream.receive(line:"data: [DONE]");try stream.receive(line:"");XCTAssertThrowsError(try stream.finish())
+   |                                                            `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+41 |         try stream.receive(line:"data: {broken");XCTAssertThrowsError(try stream.receive(line:""))
+42 |         XCTAssertThrowsError(try event(completed("partial",status:"incomplete"),to:&stream))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:41:20: warning: result of call to 'receive(line:)' is unused [#no-usage]
+39 |         var stream=ResponsesStream()
+40 |         try stream.receive(line:"data: [DONE]");try stream.receive(line:"");XCTAssertThrowsError(try stream.finish())
+41 |         try stream.receive(line:"data: {broken");XCTAssertThrowsError(try stream.receive(line:""))
+   |                    `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+42 |         XCTAssertThrowsError(try event(completed("partial",status:"incomplete"),to:&stream))
+43 |         XCTAssertThrowsError(try event(completed(""),to:&stream))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:48:20: warning: result of call to 'receive(line:)' is unused [#no-usage]
+46 |     func testMultilineDataAndFrameLimits()throws {
+47 |         var stream=ResponsesStream()
+48 |         try stream.receive(line:"data: {\"type\":\"response.created\",")
+   |                    `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+49 |         try stream.receive(line:"data: \"response\":{}}")
+50 |         XCTAssertNil(try stream.receive(line:""))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:49:20: warning: result of call to 'receive(line:)' is unused [#no-usage]
+47 |         var stream=ResponsesStream()
+48 |         try stream.receive(line:"data: {\"type\":\"response.created\",")
+49 |         try stream.receive(line:"data: \"response\":{}}")
+   |                    `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+50 |         XCTAssertNil(try stream.receive(line:""))
+51 |         XCTAssertThrowsError(try stream.receive(line:"data: "+String(repeating:"x",count:1_048_576)))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:60:49: warning: result of call to 'receive(byte:)' is unused [#no-usage]
+58 |             XCTAssertEqual(updates,["اسأل 🌍","اسأل 🌍 بثقة"]);XCTAssertEqual(try stream.finish(),"اسأل 🌍 بثقة")
+59 |         }
+60 |         var broken=ResponsesStream();try broken.receive(byte:0xFF);XCTAssertThrowsError(try broken.receive(byte:10))
+   |                                                 `- warning: result of call to 'receive(byte:)' is unused [#no-usage]
+61 |     }
+62 | }
+[79/145] Compiling PiyaliCoreTests StandardChoiceRepairTests.swift
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:40:20: warning: result of call to 'receive(line:)' is unused [#no-usage]
+38 |         }
+39 |         var stream=ResponsesStream()
+40 |         try stream.receive(line:"data: [DONE]");try stream.receive(line:"");XCTAssertThrowsError(try stream.finish())
+   |                    `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+41 |         try stream.receive(line:"data: {broken");XCTAssertThrowsError(try stream.receive(line:""))
+42 |         XCTAssertThrowsError(try event(completed("partial",status:"incomplete"),to:&stream))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:40:60: warning: result of call to 'receive(line:)' is unused [#no-usage]
+38 |         }
+39 |         var stream=ResponsesStream()
+40 |         try stream.receive(line:"data: [DONE]");try stream.receive(line:"");XCTAssertThrowsError(try stream.finish())
+   |                                                            `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+41 |         try stream.receive(line:"data: {broken");XCTAssertThrowsError(try stream.receive(line:""))
+42 |         XCTAssertThrowsError(try event(completed("partial",status:"incomplete"),to:&stream))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:41:20: warning: result of call to 'receive(line:)' is unused [#no-usage]
+39 |         var stream=ResponsesStream()
+40 |         try stream.receive(line:"data: [DONE]");try stream.receive(line:"");XCTAssertThrowsError(try stream.finish())
+41 |         try stream.receive(line:"data: {broken");XCTAssertThrowsError(try stream.receive(line:""))
+   |                    `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+42 |         XCTAssertThrowsError(try event(completed("partial",status:"incomplete"),to:&stream))
+43 |         XCTAssertThrowsError(try event(completed(""),to:&stream))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:48:20: warning: result of call to 'receive(line:)' is unused [#no-usage]
+46 |     func testMultilineDataAndFrameLimits()throws {
+47 |         var stream=ResponsesStream()
+48 |         try stream.receive(line:"data: {\"type\":\"response.created\",")
+   |                    `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+49 |         try stream.receive(line:"data: \"response\":{}}")
+50 |         XCTAssertNil(try stream.receive(line:""))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:49:20: warning: result of call to 'receive(line:)' is unused [#no-usage]
+47 |         var stream=ResponsesStream()
+48 |         try stream.receive(line:"data: {\"type\":\"response.created\",")
+49 |         try stream.receive(line:"data: \"response\":{}}")
+   |                    `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+50 |         XCTAssertNil(try stream.receive(line:""))
+51 |         XCTAssertThrowsError(try stream.receive(line:"data: "+String(repeating:"x",count:1_048_576)))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:60:49: warning: result of call to 'receive(byte:)' is unused [#no-usage]
+58 |             XCTAssertEqual(updates,["اسأل 🌍","اسأل 🌍 بثقة"]);XCTAssertEqual(try stream.finish(),"اسأل 🌍 بثقة")
+59 |         }
+60 |         var broken=ResponsesStream();try broken.receive(byte:0xFF);XCTAssertThrowsError(try broken.receive(byte:10))
+   |                                                 `- warning: result of call to 'receive(byte:)' is unused [#no-usage]
+61 |     }
+62 | }
+[80/145] Compiling PiyaliCoreTests StandardPracticeInteractionTests.swift
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:40:20: warning: result of call to 'receive(line:)' is unused [#no-usage]
+38 |         }
+39 |         var stream=ResponsesStream()
+40 |         try stream.receive(line:"data: [DONE]");try stream.receive(line:"");XCTAssertThrowsError(try stream.finish())
+   |                    `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+41 |         try stream.receive(line:"data: {broken");XCTAssertThrowsError(try stream.receive(line:""))
+42 |         XCTAssertThrowsError(try event(completed("partial",status:"incomplete"),to:&stream))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:40:60: warning: result of call to 'receive(line:)' is unused [#no-usage]
+38 |         }
+39 |         var stream=ResponsesStream()
+40 |         try stream.receive(line:"data: [DONE]");try stream.receive(line:"");XCTAssertThrowsError(try stream.finish())
+   |                                                            `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+41 |         try stream.receive(line:"data: {broken");XCTAssertThrowsError(try stream.receive(line:""))
+42 |         XCTAssertThrowsError(try event(completed("partial",status:"incomplete"),to:&stream))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:41:20: warning: result of call to 'receive(line:)' is unused [#no-usage]
+39 |         var stream=ResponsesStream()
+40 |         try stream.receive(line:"data: [DONE]");try stream.receive(line:"");XCTAssertThrowsError(try stream.finish())
+41 |         try stream.receive(line:"data: {broken");XCTAssertThrowsError(try stream.receive(line:""))
+   |                    `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+42 |         XCTAssertThrowsError(try event(completed("partial",status:"incomplete"),to:&stream))
+43 |         XCTAssertThrowsError(try event(completed(""),to:&stream))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:48:20: warning: result of call to 'receive(line:)' is unused [#no-usage]
+46 |     func testMultilineDataAndFrameLimits()throws {
+47 |         var stream=ResponsesStream()
+48 |         try stream.receive(line:"data: {\"type\":\"response.created\",")
+   |                    `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+49 |         try stream.receive(line:"data: \"response\":{}}")
+50 |         XCTAssertNil(try stream.receive(line:""))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:49:20: warning: result of call to 'receive(line:)' is unused [#no-usage]
+47 |         var stream=ResponsesStream()
+48 |         try stream.receive(line:"data: {\"type\":\"response.created\",")
+49 |         try stream.receive(line:"data: \"response\":{}}")
+   |                    `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+50 |         XCTAssertNil(try stream.receive(line:""))
+51 |         XCTAssertThrowsError(try stream.receive(line:"data: "+String(repeating:"x",count:1_048_576)))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:60:49: warning: result of call to 'receive(byte:)' is unused [#no-usage]
+58 |             XCTAssertEqual(updates,["اسأل 🌍","اسأل 🌍 بثقة"]);XCTAssertEqual(try stream.finish(),"اسأل 🌍 بثقة")
+59 |         }
+60 |         var broken=ResponsesStream();try broken.receive(byte:0xFF);XCTAssertThrowsError(try broken.receive(byte:10))
+   |                                                 `- warning: result of call to 'receive(byte:)' is unused [#no-usage]
+61 |     }
+62 | }
+[81/145] Compiling PiyaliCoreTests StoryGenerationCoordinatorTests.swift
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:40:20: warning: result of call to 'receive(line:)' is unused [#no-usage]
+38 |         }
+39 |         var stream=ResponsesStream()
+40 |         try stream.receive(line:"data: [DONE]");try stream.receive(line:"");XCTAssertThrowsError(try stream.finish())
+   |                    `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+41 |         try stream.receive(line:"data: {broken");XCTAssertThrowsError(try stream.receive(line:""))
+42 |         XCTAssertThrowsError(try event(completed("partial",status:"incomplete"),to:&stream))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:40:60: warning: result of call to 'receive(line:)' is unused [#no-usage]
+38 |         }
+39 |         var stream=ResponsesStream()
+40 |         try stream.receive(line:"data: [DONE]");try stream.receive(line:"");XCTAssertThrowsError(try stream.finish())
+   |                                                            `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+41 |         try stream.receive(line:"data: {broken");XCTAssertThrowsError(try stream.receive(line:""))
+42 |         XCTAssertThrowsError(try event(completed("partial",status:"incomplete"),to:&stream))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:41:20: warning: result of call to 'receive(line:)' is unused [#no-usage]
+39 |         var stream=ResponsesStream()
+40 |         try stream.receive(line:"data: [DONE]");try stream.receive(line:"");XCTAssertThrowsError(try stream.finish())
+41 |         try stream.receive(line:"data: {broken");XCTAssertThrowsError(try stream.receive(line:""))
+   |                    `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+42 |         XCTAssertThrowsError(try event(completed("partial",status:"incomplete"),to:&stream))
+43 |         XCTAssertThrowsError(try event(completed(""),to:&stream))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:48:20: warning: result of call to 'receive(line:)' is unused [#no-usage]
+46 |     func testMultilineDataAndFrameLimits()throws {
+47 |         var stream=ResponsesStream()
+48 |         try stream.receive(line:"data: {\"type\":\"response.created\",")
+   |                    `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+49 |         try stream.receive(line:"data: \"response\":{}}")
+50 |         XCTAssertNil(try stream.receive(line:""))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:49:20: warning: result of call to 'receive(line:)' is unused [#no-usage]
+47 |         var stream=ResponsesStream()
+48 |         try stream.receive(line:"data: {\"type\":\"response.created\",")
+49 |         try stream.receive(line:"data: \"response\":{}}")
+   |                    `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+50 |         XCTAssertNil(try stream.receive(line:""))
+51 |         XCTAssertThrowsError(try stream.receive(line:"data: "+String(repeating:"x",count:1_048_576)))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:60:49: warning: result of call to 'receive(byte:)' is unused [#no-usage]
+58 |             XCTAssertEqual(updates,["اسأل 🌍","اسأل 🌍 بثقة"]);XCTAssertEqual(try stream.finish(),"اسأل 🌍 بثقة")
+59 |         }
+60 |         var broken=ResponsesStream();try broken.receive(byte:0xFF);XCTAssertThrowsError(try broken.receive(byte:10))
+   |                                                 `- warning: result of call to 'receive(byte:)' is unused [#no-usage]
+61 |     }
+62 | }
+[82/145] Compiling PiyaliCoreTests StoryGenerationTests.swift
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:40:20: warning: result of call to 'receive(line:)' is unused [#no-usage]
+38 |         }
+39 |         var stream=ResponsesStream()
+40 |         try stream.receive(line:"data: [DONE]");try stream.receive(line:"");XCTAssertThrowsError(try stream.finish())
+   |                    `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+41 |         try stream.receive(line:"data: {broken");XCTAssertThrowsError(try stream.receive(line:""))
+42 |         XCTAssertThrowsError(try event(completed("partial",status:"incomplete"),to:&stream))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:40:60: warning: result of call to 'receive(line:)' is unused [#no-usage]
+38 |         }
+39 |         var stream=ResponsesStream()
+40 |         try stream.receive(line:"data: [DONE]");try stream.receive(line:"");XCTAssertThrowsError(try stream.finish())
+   |                                                            `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+41 |         try stream.receive(line:"data: {broken");XCTAssertThrowsError(try stream.receive(line:""))
+42 |         XCTAssertThrowsError(try event(completed("partial",status:"incomplete"),to:&stream))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:41:20: warning: result of call to 'receive(line:)' is unused [#no-usage]
+39 |         var stream=ResponsesStream()
+40 |         try stream.receive(line:"data: [DONE]");try stream.receive(line:"");XCTAssertThrowsError(try stream.finish())
+41 |         try stream.receive(line:"data: {broken");XCTAssertThrowsError(try stream.receive(line:""))
+   |                    `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+42 |         XCTAssertThrowsError(try event(completed("partial",status:"incomplete"),to:&stream))
+43 |         XCTAssertThrowsError(try event(completed(""),to:&stream))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:48:20: warning: result of call to 'receive(line:)' is unused [#no-usage]
+46 |     func testMultilineDataAndFrameLimits()throws {
+47 |         var stream=ResponsesStream()
+48 |         try stream.receive(line:"data: {\"type\":\"response.created\",")
+   |                    `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+49 |         try stream.receive(line:"data: \"response\":{}}")
+50 |         XCTAssertNil(try stream.receive(line:""))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:49:20: warning: result of call to 'receive(line:)' is unused [#no-usage]
+47 |         var stream=ResponsesStream()
+48 |         try stream.receive(line:"data: {\"type\":\"response.created\",")
+49 |         try stream.receive(line:"data: \"response\":{}}")
+   |                    `- warning: result of call to 'receive(line:)' is unused [#no-usage]
+50 |         XCTAssertNil(try stream.receive(line:""))
+51 |         XCTAssertThrowsError(try stream.receive(line:"data: "+String(repeating:"x",count:1_048_576)))
+
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/ResponsesStreamTests.swift:60:49: warning: result of call to 'receive(byte:)' is unused [#no-usage]
+58 |             XCTAssertEqual(updates,["اسأل 🌍","اسأل 🌍 بثقة"]);XCTAssertEqual(try stream.finish(),"اسأل 🌍 بثقة")
+59 |         }
+60 |         var broken=ResponsesStream();try broken.receive(byte:0xFF);XCTAssertThrowsError(try broken.receive(byte:10))
+   |                                                 `- warning: result of call to 'receive(byte:)' is unused [#no-usage]
+61 |     }
+62 | }
+[83/145] Compiling PiyaliCoreTests FinalQuizTests.swift
+[84/145] Compiling PiyaliCoreTests FirstRunFlowTests.swift
+[85/145] Compiling PiyaliCoreTests FlashcardSessionTests.swift
+[86/145] Compiling PiyaliCoreTests FocusedDeckProgressTests.swift
+[87/145] Compiling PiyaliCoreTests FocusedPhonicsPolicyTests.swift
+[88/145] Compiling PiyaliCoreTests GameLoaderTests.swift
+[89/145] Compiling PiyaliCoreTests GeminiTutorBridgeTests.swift
+[90/145] Compiling PiyaliCoreTests GoalLessonProgressTests.swift
+[91/145] Compiling PiyaliCoreTests GoalMemoryCaptureTests.swift
+[92/145] Compiling PiyaliCoreTests GoalPracticeTests.swift
+[93/145] Emitting module PiyaliCoreTests
+[94/145] Compiling PiyaliCoreTests StoryStreamTests.swift
+[95/145] Compiling PiyaliCoreTests StoryTests.swift
+[96/145] Compiling PiyaliCoreTests StudyNoteContextTests.swift
+[97/145] Compiling PiyaliCoreTests SubscriptionSourcePolicyTests.swift
+[98/145] Compiling PiyaliCoreTests SubscriptionXPTests.swift
+[99/145] Compiling PiyaliCoreTests SyncContractTests.swift
+[100/145] Compiling PiyaliCoreTests TeamsPanelPolicyTests.swift
+[101/145] Compiling PiyaliCoreTests TutorCourseTests.swift
+[102/145] Compiling PiyaliCoreTests TutorOutcomeIntentTests.swift
+[103/145] Compiling PiyaliCoreTests TutorReplyTests.swift
+[104/145] Compiling PiyaliCoreTests RPGEnvironmentTests.swift
+[105/145] Compiling PiyaliCoreTests RPGObjectPolicyTests.swift
+[106/145] Compiling PiyaliCoreTests RPGPreparationTests.swift
+[107/145] Compiling PiyaliCoreTests RPGSpatialTests.swift
+[108/145] Compiling PiyaliCoreTests RPGTests.swift
+[109/145] Compiling PiyaliCoreTests ReadingCaptureTests.swift
+[110/145] Compiling PiyaliCoreTests ReadingStreamTests.swift
+[111/145] Compiling PiyaliCoreTests ReadingTests.swift
+[112/145] Compiling PiyaliCoreTests RealtimeLessonTests.swift
+[113/145] Compiling PiyaliCoreTests RealtimeVoiceTests.swift
+[114/145] Compiling PiyaliCoreTests GuidedPracticeSessionTests.swift
+[115/145] Compiling PiyaliCoreTests HelpChatPolicyTests.swift
+[116/145] Compiling PiyaliCoreTests ImmersionTests.swift
+[117/145] Compiling PiyaliCoreTests IntroTutorialTests.swift
+[118/145] Compiling PiyaliCoreTests LandingDemoTests.swift
+[119/145] Compiling PiyaliCoreTests LearningProgressTests.swift
+[120/145] Compiling PiyaliCoreTests LearningTeamsTests.swift
+[121/145] Compiling PiyaliCoreTests LessonAccessTests.swift
+[122/145] Compiling PiyaliCoreTests LessonCardRulesTests.swift
+[123/145] Compiling PiyaliCoreTests MemorySourcePolicyTests.swift
+[124/145] Compiling PiyaliCoreTests CompanionQuestTests.swift
+[125/145] Compiling PiyaliCoreTests CompanionSaveSourceTests.swift
+[126/145] Compiling PiyaliCoreTests CompanionUnlockTests.swift
+[127/145] Compiling PiyaliCoreTests ConversationTests.swift
+[128/145] Compiling PiyaliCoreTests CoursePathTests.swift
+[129/145] Compiling PiyaliCoreTests CurriculumLessonProgressTests.swift
+[130/145] Compiling PiyaliCoreTests DailyPlateTests.swift
+[131/145] Compiling PiyaliCoreTests DelightInteractionTests.swift
+[132/145] Compiling PiyaliCoreTests EntryPolicyTests.swift
+[133/145] Compiling PiyaliCoreTests ExplorationTests.swift
+[134/145] Compiling PiyaliCoreTests TutorSourcePolicyTests.swift
+[135/145] Compiling PiyaliCoreTests TutorSourceProgressTests.swift
+[136/145] Compiling PiyaliCoreTests TypedFinalQuizTests.swift
+[137/145] Compiling PiyaliCoreTests UpcomingGameReviewTests.swift
+[138/145] Compiling PiyaliCoreTests VoiceJourneyTests.swift
+[139/145] Compiling PiyaliCoreTests WalletContractTests.swift
+[140/145] Compiling PiyaliCoreTests WalletImportTests.swift
+[141/145] Compiling PiyaliCoreTests WordBankAssistancePolicyTests.swift
+[142/145] Compiling PiyaliCoreTests WordBankPracticeInteractionTests.swift
+[143/145] Compiling PiyaliCoreTests WritingExerciseRulesTests.swift
+[143/145] Write Objects.LinkFileList
+[144/145] Linking PiyaliCorePackageTests
+Build complete! (7.34s)
+Test Suite 'Selected tests' started at 2026-11-05 22:34:27.478.
+Test Suite 'PiyaliCorePackageTests.xctest' started at 2026-11-05 22:34:27.479.
+Test Suite 'MemorySourcePolicyTests' started at 2026-11-05 22:34:27.479.
+Test Case '-[PiyaliCoreTests.MemorySourcePolicyTests testLocalizationPreservesLifecycleAndForeignFieldsAndRejectsStaleCapture]' started.
+Test Case '-[PiyaliCoreTests.MemorySourcePolicyTests testLocalizationPreservesLifecycleAndForeignFieldsAndRejectsStaleCapture]' passed (0.002 seconds).
+Test Case '-[PiyaliCoreTests.MemorySourcePolicyTests testOriginalMemoryCopyPromptsParsersLanguageGuardsAndJourneyRules]' started.
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/MemorySourcePolicyTests.swift:7: error: -[PiyaliCoreTests.MemorySourcePolicyTests testOriginalMemoryCopyPromptsParsersLanguageGuardsAndJourneyRules] : XCTAssertEqual failed: ("267") is not equal to ("64")
+Test Case '-[PiyaliCoreTests.MemorySourcePolicyTests testOriginalMemoryCopyPromptsParsersLanguageGuardsAndJourneyRules]' failed (0.400 seconds).
+Test Case '-[PiyaliCoreTests.MemorySourcePolicyTests testRepeatedSourceTutorCaptureKeepsFirstCorrectionAndLocalizesPendingSummary]' started.
+Test Case '-[PiyaliCoreTests.MemorySourcePolicyTests testRepeatedSourceTutorCaptureKeepsFirstCorrectionAndLocalizesPendingSummary]' passed (0.010 seconds).
+Test Suite 'MemorySourcePolicyTests' failed at 2026-11-05 22:34:27.892.
+	 Executed 3 tests, with 1 failure (0 unexpected) in 0.412 (0.413) seconds
+Test Suite 'MemoryTests' started at 2026-11-05 22:34:27.892.
+Test Case '-[PiyaliCoreTests.MemoryTests testOverlappingSyncDoesNotReplayAlreadyCommittedPracticeOrMemory]' started.
+Test Case '-[PiyaliCoreTests.MemoryTests testOverlappingSyncDoesNotReplayAlreadyCommittedPracticeOrMemory]' passed (0.007 seconds).
+Test Case '-[PiyaliCoreTests.MemoryTests testRepeatedSlipsStrengthenOneMemoryAndPreserveEnrichment]' started.
+Test Case '-[PiyaliCoreTests.MemoryTests testRepeatedSlipsStrengthenOneMemoryAndPreserveEnrichment]' passed (0.002 seconds).
+Test Case '-[PiyaliCoreTests.MemoryTests testSupportLanguageChangeClearsOldLocalizedTip]' started.
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliCoreTests/MemoryTests.swift:69: error: -[PiyaliCoreTests.MemoryTests testSupportLanguageChangeClearsOldLocalizedTip] : XCTAssertEqual failed: ("Optional("")") is not equal to ("Optional("Explication")")
+Test Case '-[PiyaliCoreTests.MemoryTests testSupportLanguageChangeClearsOldLocalizedTip]' failed (0.001 seconds).
+Test Case '-[PiyaliCoreTests.MemoryTests testSyncReplaysOnlyMemoryCapturedWhileRequestWasInFlight]' started.
+Test Case '-[PiyaliCoreTests.MemoryTests testSyncReplaysOnlyMemoryCapturedWhileRequestWasInFlight]' passed (0.001 seconds).
+Test Case '-[PiyaliCoreTests.MemoryTests testTargetLanguageIsolationAndReinforcementLifecycle]' started.
+Test Case '-[PiyaliCoreTests.MemoryTests testTargetLanguageIsolationAndReinforcementLifecycle]' passed (0.001 seconds).
+Test Case '-[PiyaliCoreTests.MemoryTests testWindowExpiresAtDayTwoAndLimitsRecentNotes]' started.
+Test Case '-[PiyaliCoreTests.MemoryTests testWindowExpiresAtDayTwoAndLimitsRecentNotes]' passed (0.015 seconds).
+Test Suite 'MemoryTests' failed at 2026-11-05 22:34:27.919.
+	 Executed 6 tests, with 1 failure (0 unexpected) in 0.027 (0.027) seconds
+Test Suite 'PiyaliCorePackageTests.xctest' failed at 2026-11-05 22:34:27.919.
+	 Executed 9 tests, with 2 failures (0 unexpected) in 0.439 (0.440) seconds
+Test Suite 'Selected tests' failed at 2026-11-05 22:34:27.919.
+	 Executed 9 tests, with 2 failures (0 unexpected) in 0.439 (0.441) seconds
+◇ Test run started.
+↳ Testing Library Version: 1743
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

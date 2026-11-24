@@ -1,0 +1,834 @@
+{
+  "viewport": {
+    "width": 402,
+    "height": 874,
+    "scrollY": 0
+  },
+  "fonts": [
+    {
+      "family": "DM Sans",
+      "weight": "400",
+      "status": "unloaded"
+    },
+    {
+      "family": "DM Sans",
+      "weight": "400",
+      "status": "unloaded"
+    },
+    {
+      "family": "DM Sans",
+      "weight": "700",
+      "status": "unloaded"
+    },
+    {
+      "family": "DM Sans",
+      "weight": "700",
+      "status": "loaded"
+    }
+  ],
+  "elements": [
+    {
+      "tag": "SECTION",
+      "text": "Customize companion\n\nName\n\nCompanion\n\nGhost\n\nStarter\n\nAlien\n\nLevel 2\n\nRobot\n\nLevel 5\n\nSlime\n\nLevel 10\n\nDog\n\nLevel 20\n\nAxolotl\n\nLevel 40\n\nCancel\nSave",
+      "rect": {
+        "x": 16,
+        "y": 123,
+        "width": 370,
+        "height": 628
+      },
+      "font": "",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "0px",
+      "background": "rgb(255, 253, 249)",
+      "border": "0px none rgb(47, 38, 29)",
+      "borderRadius": "48px",
+      "cornerShape": "superellipse(2)"
+    },
+    {
+      "tag": "DIV",
+      "text": "Name\n\nCompanion\n\nGhost\n\nStarter\n\nAlien\n\nLevel 2\n\nRobot\n\nLevel 5\n\nSlime\n\nLevel 10\n\nDog\n\nLevel 20\n\nAxolotl\n\nLevel 40",
+      "rect": {
+        "x": 16,
+        "y": 183,
+        "width": 370,
+        "height": 484
+      },
+      "font": "",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "8px 28px",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgb(67, 53, 40)",
+      "borderRadius": "0px",
+      "cornerShape": "superellipse(1)"
+    },
+    {
+      "tag": "P",
+      "text": "Name",
+      "rect": {
+        "x": 44,
+        "y": 191,
+        "width": 314,
+        "height": 18
+      },
+      "font": "",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "12px",
+      "fontWeight": "700",
+      "lineHeight": "18px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "0px",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgb(67, 53, 40)",
+      "borderRadius": "0px",
+      "cornerShape": "superellipse(1)",
+      "lines": [
+        {
+          "x": 44,
+          "y": 192,
+          "width": 34.703125,
+          "height": 15
+        }
+      ]
+    },
+    {
+      "tag": "P",
+      "text": "Companion",
+      "rect": {
+        "x": 44,
+        "y": 271,
+        "width": 314,
+        "height": 18
+      },
+      "font": "",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "12px",
+      "fontWeight": "700",
+      "lineHeight": "18px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "0px",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgb(67, 53, 40)",
+      "borderRadius": "0px",
+      "cornerShape": "superellipse(1)",
+      "lines": [
+        {
+          "x": 44,
+          "y": 272,
+          "width": 68.296875,
+          "height": 15
+        }
+      ]
+    },
+    {
+      "tag": "BUTTON",
+      "text": "Ghost\n\nStarter",
+      "rect": {
+        "x": 44,
+        "y": 295,
+        "width": 153,
+        "height": 116
+      },
+      "font": "600 16px / 19.2px -apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "16px",
+      "fontWeight": "600",
+      "lineHeight": "19.2px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "8px",
+      "background": "rgba(63, 159, 155, 0.12)",
+      "border": "2px solid rgb(63, 159, 155)",
+      "borderRadius": "12px",
+      "cornerShape": "superellipse(2)"
+    },
+    {
+      "tag": "CANVAS",
+      "text": "",
+      "rect": {
+        "x": 86.5,
+        "y": 300,
+        "width": 68,
+        "height": 68
+      },
+      "font": "600 16px / 19.2px -apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "16px",
+      "fontWeight": "600",
+      "lineHeight": "19.2px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "0px",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgb(67, 53, 40)",
+      "borderRadius": "0px",
+      "cornerShape": "superellipse(1)"
+    },
+    {
+      "tag": "P",
+      "text": "Ghost",
+      "rect": {
+        "x": 102.921875,
+        "y": 374,
+        "width": 35.140625,
+        "height": 12
+      },
+      "font": "600 12px / 12px -apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "12px",
+      "fontWeight": "600",
+      "lineHeight": "12px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "0px",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgb(67, 53, 40)",
+      "borderRadius": "0px",
+      "cornerShape": "superellipse(1)",
+      "lines": [
+        {
+          "x": 102.921875,
+          "y": 372,
+          "width": 35.140625,
+          "height": 15
+        }
+      ]
+    },
+    {
+      "tag": "P",
+      "text": "Starter",
+      "rect": {
+        "x": 102.234375,
+        "y": 394,
+        "width": 36.53125,
+        "height": 10
+      },
+      "font": "700 10px / 10px -apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "10px",
+      "fontWeight": "700",
+      "lineHeight": "10px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "0px",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgb(67, 53, 40)",
+      "borderRadius": "0px",
+      "cornerShape": "superellipse(1)",
+      "lines": [
+        {
+          "x": 102.234375,
+          "y": 393,
+          "width": 36.53125,
+          "height": 12
+        }
+      ]
+    },
+    {
+      "tag": "BUTTON",
+      "text": "Alien\n\nLevel 2",
+      "rect": {
+        "x": 205,
+        "y": 295,
+        "width": 153,
+        "height": 116
+      },
+      "font": "600 16px / 19.2px -apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "16px",
+      "fontWeight": "600",
+      "lineHeight": "19.2px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "8px",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "2px solid rgba(0, 0, 0, 0)",
+      "borderRadius": "12px",
+      "cornerShape": "superellipse(2)"
+    },
+    {
+      "tag": "CANVAS",
+      "text": "",
+      "rect": {
+        "x": 247.5,
+        "y": 300,
+        "width": 68,
+        "height": 68
+      },
+      "font": "600 16px / 19.2px -apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "16px",
+      "fontWeight": "600",
+      "lineHeight": "19.2px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "0px",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgb(67, 53, 40)",
+      "borderRadius": "0px",
+      "cornerShape": "superellipse(1)"
+    },
+    {
+      "tag": "P",
+      "text": "Alien",
+      "rect": {
+        "x": 266.671875,
+        "y": 374,
+        "width": 29.65625,
+        "height": 12
+      },
+      "font": "600 12px / 12px -apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "12px",
+      "fontWeight": "600",
+      "lineHeight": "12px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "0px",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgb(67, 53, 40)",
+      "borderRadius": "0px",
+      "cornerShape": "superellipse(1)",
+      "lines": [
+        {
+          "x": 266.671875,
+          "y": 372,
+          "width": 29.65625,
+          "height": 15
+        }
+      ]
+    },
+    {
+      "tag": "P",
+      "text": "Level 2",
+      "rect": {
+        "x": 270.515625,
+        "y": 394,
+        "width": 35.96875,
+        "height": 10
+      },
+      "font": "700 10px / 10px -apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "10px",
+      "fontWeight": "700",
+      "lineHeight": "10px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "0px",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgb(67, 53, 40)",
+      "borderRadius": "0px",
+      "cornerShape": "superellipse(1)",
+      "lines": [
+        {
+          "x": 270.515625,
+          "y": 393,
+          "width": 35.96875,
+          "height": 12
+        }
+      ]
+    },
+    {
+      "tag": "BUTTON",
+      "text": "Robot\n\nLevel 5",
+      "rect": {
+        "x": 44,
+        "y": 419,
+        "width": 153,
+        "height": 116
+      },
+      "font": "600 16px / 19.2px -apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "16px",
+      "fontWeight": "600",
+      "lineHeight": "19.2px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "8px",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "2px solid rgba(0, 0, 0, 0)",
+      "borderRadius": "12px",
+      "cornerShape": "superellipse(2)"
+    },
+    {
+      "tag": "CANVAS",
+      "text": "",
+      "rect": {
+        "x": 86.5,
+        "y": 424,
+        "width": 68,
+        "height": 68
+      },
+      "font": "600 16px / 19.2px -apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "16px",
+      "fontWeight": "600",
+      "lineHeight": "19.2px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "0px",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgb(67, 53, 40)",
+      "borderRadius": "0px",
+      "cornerShape": "superellipse(1)"
+    },
+    {
+      "tag": "P",
+      "text": "Robot",
+      "rect": {
+        "x": 102.984375,
+        "y": 498,
+        "width": 35.03125,
+        "height": 12
+      },
+      "font": "600 12px / 12px -apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "12px",
+      "fontWeight": "600",
+      "lineHeight": "12px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "0px",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgb(67, 53, 40)",
+      "borderRadius": "0px",
+      "cornerShape": "superellipse(1)",
+      "lines": [
+        {
+          "x": 102.984375,
+          "y": 496,
+          "width": 35.03125,
+          "height": 15
+        }
+      ]
+    },
+    {
+      "tag": "P",
+      "text": "Level 5",
+      "rect": {
+        "x": 109.40625,
+        "y": 518,
+        "width": 36.171875,
+        "height": 10
+      },
+      "font": "700 10px / 10px -apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "10px",
+      "fontWeight": "700",
+      "lineHeight": "10px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "0px",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgb(67, 53, 40)",
+      "borderRadius": "0px",
+      "cornerShape": "superellipse(1)",
+      "lines": [
+        {
+          "x": 109.40625,
+          "y": 517,
+          "width": 36.171875,
+          "height": 12
+        }
+      ]
+    },
+    {
+      "tag": "BUTTON",
+      "text": "Slime\n\nLevel 10",
+      "rect": {
+        "x": 205,
+        "y": 419,
+        "width": 153,
+        "height": 116
+      },
+      "font": "600 16px / 19.2px -apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "16px",
+      "fontWeight": "600",
+      "lineHeight": "19.2px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "8px",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "2px solid rgba(0, 0, 0, 0)",
+      "borderRadius": "12px",
+      "cornerShape": "superellipse(2)"
+    },
+    {
+      "tag": "CANVAS",
+      "text": "",
+      "rect": {
+        "x": 247.5,
+        "y": 424,
+        "width": 68,
+        "height": 68
+      },
+      "font": "600 16px / 19.2px -apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "16px",
+      "fontWeight": "600",
+      "lineHeight": "19.2px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "0px",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgb(67, 53, 40)",
+      "borderRadius": "0px",
+      "cornerShape": "superellipse(1)"
+    },
+    {
+      "tag": "P",
+      "text": "Slime",
+      "rect": {
+        "x": 265.171875,
+        "y": 498,
+        "width": 32.640625,
+        "height": 12
+      },
+      "font": "600 12px / 12px -apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "12px",
+      "fontWeight": "600",
+      "lineHeight": "12px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "0px",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgb(67, 53, 40)",
+      "borderRadius": "0px",
+      "cornerShape": "superellipse(1)",
+      "lines": [
+        {
+          "x": 265.171875,
+          "y": 496,
+          "width": 32.640625,
+          "height": 15
+        }
+      ]
+    },
+    {
+      "tag": "P",
+      "text": "Level 10",
+      "rect": {
+        "x": 267.6875,
+        "y": 518,
+        "width": 41.625,
+        "height": 10
+      },
+      "font": "700 10px / 10px -apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "10px",
+      "fontWeight": "700",
+      "lineHeight": "10px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "0px",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgb(67, 53, 40)",
+      "borderRadius": "0px",
+      "cornerShape": "superellipse(1)",
+      "lines": [
+        {
+          "x": 267.6875,
+          "y": 517,
+          "width": 41.625,
+          "height": 12
+        }
+      ]
+    },
+    {
+      "tag": "BUTTON",
+      "text": "Dog\n\nLevel 20",
+      "rect": {
+        "x": 44,
+        "y": 543,
+        "width": 153,
+        "height": 116
+      },
+      "font": "600 16px / 19.2px -apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "16px",
+      "fontWeight": "600",
+      "lineHeight": "19.2px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "8px",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "2px solid rgba(0, 0, 0, 0)",
+      "borderRadius": "12px",
+      "cornerShape": "superellipse(2)"
+    },
+    {
+      "tag": "CANVAS",
+      "text": "",
+      "rect": {
+        "x": 86.5,
+        "y": 548,
+        "width": 68,
+        "height": 68
+      },
+      "font": "600 16px / 19.2px -apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "16px",
+      "fontWeight": "600",
+      "lineHeight": "19.2px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "0px",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgb(67, 53, 40)",
+      "borderRadius": "0px",
+      "cornerShape": "superellipse(1)"
+    },
+    {
+      "tag": "P",
+      "text": "Dog",
+      "rect": {
+        "x": 108.59375,
+        "y": 622,
+        "width": 23.8125,
+        "height": 12
+      },
+      "font": "600 12px / 12px -apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "12px",
+      "fontWeight": "600",
+      "lineHeight": "12px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "0px",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgb(67, 53, 40)",
+      "borderRadius": "0px",
+      "cornerShape": "superellipse(1)",
+      "lines": [
+        {
+          "x": 108.59375,
+          "y": 620,
+          "width": 23.8125,
+          "height": 15
+        }
+      ]
+    },
+    {
+      "tag": "P",
+      "text": "Level 20",
+      "rect": {
+        "x": 106.03125,
+        "y": 642,
+        "width": 42.9375,
+        "height": 10
+      },
+      "font": "700 10px / 10px -apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "10px",
+      "fontWeight": "700",
+      "lineHeight": "10px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "0px",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgb(67, 53, 40)",
+      "borderRadius": "0px",
+      "cornerShape": "superellipse(1)",
+      "lines": [
+        {
+          "x": 106.03125,
+          "y": 641,
+          "width": 42.9375,
+          "height": 12
+        }
+      ]
+    },
+    {
+      "tag": "BUTTON",
+      "text": "Axolotl\n\nLevel 40",
+      "rect": {
+        "x": 205,
+        "y": 543,
+        "width": 153,
+        "height": 116
+      },
+      "font": "600 16px / 19.2px -apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "16px",
+      "fontWeight": "600",
+      "lineHeight": "19.2px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "8px",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "2px solid rgba(0, 0, 0, 0)",
+      "borderRadius": "12px",
+      "cornerShape": "superellipse(2)"
+    },
+    {
+      "tag": "CANVAS",
+      "text": "",
+      "rect": {
+        "x": 247.5,
+        "y": 548,
+        "width": 68,
+        "height": 68
+      },
+      "font": "600 16px / 19.2px -apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "16px",
+      "fontWeight": "600",
+      "lineHeight": "19.2px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "0px",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgb(67, 53, 40)",
+      "borderRadius": "0px",
+      "cornerShape": "superellipse(1)"
+    },
+    {
+      "tag": "P",
+      "text": "Axolotl",
+      "rect": {
+        "x": 260.984375,
+        "y": 622,
+        "width": 41.015625,
+        "height": 12
+      },
+      "font": "600 12px / 12px -apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "12px",
+      "fontWeight": "600",
+      "lineHeight": "12px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "0px",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgb(67, 53, 40)",
+      "borderRadius": "0px",
+      "cornerShape": "superellipse(1)",
+      "lines": [
+        {
+          "x": 260.984375,
+          "y": 620,
+          "width": 41.015625,
+          "height": 15
+        }
+      ]
+    },
+    {
+      "tag": "P",
+      "text": "Level 40",
+      "rect": {
+        "x": 266.8125,
+        "y": 642,
+        "width": 43.375,
+        "height": 10
+      },
+      "font": "700 10px / 10px -apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "10px",
+      "fontWeight": "700",
+      "lineHeight": "10px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "0px",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgb(67, 53, 40)",
+      "borderRadius": "0px",
+      "cornerShape": "superellipse(1)",
+      "lines": [
+        {
+          "x": 266.8125,
+          "y": 641,
+          "width": 43.375,
+          "height": 12
+        }
+      ]
+    },
+    {
+      "tag": "BUTTON",
+      "text": "Cancel",
+      "rect": {
+        "x": 189.421875,
+        "y": 683,
+        "width": 86.09375,
+        "height": 40
+      },
+      "font": "600 16px / 19.2px -apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "16px",
+      "fontWeight": "600",
+      "lineHeight": "19.2px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "0px 16px",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "1px solid rgba(0, 0, 0, 0)",
+      "borderRadius": "100px",
+      "cornerShape": "superellipse(2)"
+    },
+    {
+      "tag": "BUTTON",
+      "text": "Save",
+      "rect": {
+        "x": 287.515625,
+        "y": 683,
+        "width": 70.484375,
+        "height": 40
+      },
+      "font": "600 16px / 19.2px -apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "16px",
+      "fontWeight": "600",
+      "lineHeight": "19.2px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "0px 16px",
+      "background": "rgb(63, 159, 155)",
+      "border": "1px solid rgba(0, 0, 0, 0)",
+      "borderRadius": "100px",
+      "cornerShape": "superellipse(2)"
+    }
+  ],
+  "selection": "Companion editor dialog and descendants only."
+}

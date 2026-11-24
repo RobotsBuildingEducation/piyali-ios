@@ -1,0 +1,47 @@
+[
+  {
+    "bundle": "PiyaliStorySpeechCore2.xcresult",
+    "result": "Passed",
+    "passedTests": 14,
+    "failedTests": 0,
+    "testFailures": []
+  },
+  {
+    "bundle": "PiyaliStorySpeechFinal3.xcresult",
+    "result": "Failed",
+    "passedTests": 4,
+    "failedTests": 2,
+    "testFailures": [
+      {
+        "failureText": "XCTAssertTrue failed",
+        "targetName": "PiyaliUITests",
+        "testIdentifier": 3,
+        "testIdentifierString": "StoryPlayTests/testConnectingCaptureCanBeCancelledByBackgroundThenRetriedWithoutCredit()",
+        "testIdentifierURL": "test://com.apple.xcode/Piyali/PiyaliUITests/StoryPlayTests/testConnectingCaptureCanBeCancelledByBackgroundThenRetriedWithoutCredit",
+        "testName": "testConnectingCaptureCanBeCancelledByBackgroundThenRetriedWithoutCredit()"
+      },
+      {
+        "failureText": "XCTAssertTrue failed",
+        "targetName": "PiyaliUITests",
+        "testIdentifier": 4,
+        "testIdentifierString": "StoryPlayTests/testConversationKeepsEarlierPairsAndRequiresUserSpeechWithoutTurnXP()",
+        "testIdentifierURL": "test://com.apple.xcode/Piyali/PiyaliUITests/StoryPlayTests/testConversationKeepsEarlierPairsAndRequiresUserSpeechWithoutTurnXP",
+        "testName": "testConversationKeepsEarlierPairsAndRequiresUserSpeechWithoutTurnXP()"
+      }
+    ]
+  },
+  {
+    "bundle": "PiyaliStorySpeechFinal4.xcresult",
+    "result": "Passed",
+    "passedTests": 2,
+    "failedTests": 0,
+    "testFailures": []
+  },
+  {
+    "bundle": "PiyaliStorySpeechLive2.xcresult",
+    "result": "Passed",
+    "passedTests": 2,
+    "failedTests": 0,
+    "testFailures": []
+  }
+]

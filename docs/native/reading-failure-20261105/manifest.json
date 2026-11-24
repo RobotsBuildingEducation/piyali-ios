@@ -1,0 +1,12 @@
+{
+  "device": "CE8248B6-7171-4FD4-97DE-89E499107F82",
+  "result": "PiyaliReadingCleanupAndCard20261105.xcresult",
+  "scope": "Native Reading inside the product/intro shell. Synthetic first generation failure, explicit Retry and reviewed passage recovered after relaunch. No physical speech or complete source-shell comparison.",
+  "captures": [
+    {
+      "file": "error-en-light.png",
+      "sha256": "49e825c2bacee24e06548cdbf90442fdf3e80511bc6cf3b79048e8668653c88c",
+      "test": "ReadingPlayTests/testGenerationFailureOffersExplicitRetryAndRetainsRecoveredRewardOnRelaunch()"
+    }
+  ]
+}

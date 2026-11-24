@@ -1,0 +1,13 @@
+{
+  "run": "PiyaliOralLive1",
+  "providerAssertionsCompleted": true,
+  "runResult": "Failed on expired recent-login cleanup after 441.616 seconds; PiyaliOralCleanup2 subsequently passed fresh-authentication deletion in 2.100 seconds.",
+  "outputs": {
+    "flashcard explanation ar": "أهلاً بيك! الترجمة الصح هي \"¡Hola!\". \n\nالكلمة اللي انت كتبتها مش مظبوطة في الإسباني. كلمة \"¡Hola!\" هي التحية الأساسية والبسيطة لمعنى \"Hello\".",
+    "speak explanation ar": "معلش ولا يهمك، ساعات اللسان بيعلق! انت كنت محتاج تقول \"Hola, soy Ana\" (أهولاً، صوي أنا) عشان تقدم نفسك بالإسباني. \n\nحاول تنطق حرف الـ \"H\" في كلمة \"Hola\" كأنه مش موجود (انطقها \"أولا\")، وافتح صوتك في كلمة \"soy\". \n\nيلا جرب تاني، أنا متأكد إنك هتقولها مظبوط المرادي!",
+    "speak assistant ar": "الإجابة الصحيحة هي: **Hola, soy Ana.**\n\nاكتبها أو انطقها كده زي ما هي. \n\n**ليه؟** عشان \"Hola\" معناها أهلاً، و\"soy Ana\" معناها أنا أنا. ده بيكتب الجملة المطلوبة بالظبط.",
+    "flashcard explanation en": "1) **Correct translation:** Hola\n\n2) **Explanation:** The student's translation (\"WRONG_FIXTURE\") is a placeholder error and does not contain actual Spanish words. The correct and most common way to say \"Hello\" in Spanish is \"Hola,\" where the 'h' is always silent.",
+    "speak explanation en": "It looks like there might have been a small mix-up in how the sounds were put together, which can happen when getting used to Spanish vowels! To say \"Hola, soy Ana,\" remember that the \"h\" in *hola* is silent, and the \"y\" in *soy* sounds like an English \"ee\" sound. Take a deep breath, break it down word by word, and give it another try—you've got this!",
+    "speak assistant en": "**Hola, soy Ana.**\n\nSelect and speak: **Hola, soy Ana.**\n\nWhy it works: \"Hola\" means hello, \"soy\" means I am, and \"Ana\" is the name."
+  }
+}

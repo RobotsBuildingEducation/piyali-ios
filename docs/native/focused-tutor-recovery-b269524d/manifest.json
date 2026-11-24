@@ -1,0 +1,172 @@
+{
+  "referenceRevision": "b269524ddc578027c549616fc47f5954991d9f6f",
+  "nativeBase": "574929b904ae95ed8df05588ea382fcbb3452d99",
+  "resultBundle": "/tmp/PiyaliFocusedTutorRecoveryFinal20261106.xcresult",
+  "scope": "Current-day private focused Tutor progress and dependent finish across held original worth, real process termination, offline Retry at 300 XP, acknowledgment and two additional relaunches. Public I/O prerequisites; real local Firebase SDK receipt/result-loss and private hint rejection; actual original focused components en/light and ar/dark. No full authenticated browser, production Firebase, live provider/acoustics, paid verification or complete-shell parity claim.",
+  "records": [
+    {
+      "file": "attachment-provenance.json",
+      "sha256": "ba3df411b5172088d1a23bb9354640aa4bc2d6abbae23061661317dd8cf986a2"
+    },
+    {
+      "file": "core-tests.txt",
+      "sha256": "7c4db086879bba3a3a7acdf25e3ed1bcf00094cd991cd4249abb21352047acb3"
+    },
+    {
+      "file": "diagnostic-results.json",
+      "sha256": "91616faf29166cc19626ef76141d7d095063dff7ec1f3ea419837b4d393e34b6"
+    },
+    {
+      "file": "final-source-hashes.json",
+      "sha256": "2fb9bead8727ee55619a44110e139369aa9ed904833d4ce2cbdac7207fec0da9"
+    },
+    {
+      "file": "final-summary.json",
+      "sha256": "a1bd280bc9a5460f63b6ebd2d3b81a503670b4e768cf564f3c54adb5262e7509"
+    },
+    {
+      "file": "final-tests.json",
+      "sha256": "d314c66a75003f9385537988fd6b32d219f968a3246128de5ed6eb5a67ecdb1d"
+    },
+    {
+      "file": "firebase-focused-tutor-goal-lost-completion-response-and-private-relaunch.json",
+      "sha256": "f2cb2630df3507fed1d9712f73e6d08acab1d75cac5af3ed765917a1fc7b26dc"
+    },
+    {
+      "file": "firebase-focused-tutor-repair-lost-completion-response-and-private-relaunch.json",
+      "sha256": "c2e7d01a8a97eb830416cc6603e67cbcc3c108b3f6f4dac0e67b9a628ca78e0f"
+    },
+    {
+      "file": "native-goal-acknowledged-focused-tutor-finish-blocks-the-next-activity.png",
+      "sha256": "946c31e455690496474f4ffe88c1232c6c250cf4e7cf62a266e44de396c6ca0d"
+    },
+    {
+      "file": "native-goal-focused-tutor-earned-completion-waits-for-original-worth.png",
+      "sha256": "7168e9a73041cb1fe1fcf36dbf10fd26328afca33d2d0e0964609b16aa3be251"
+    },
+    {
+      "file": "native-goal-focused-tutor-restores-earned-save-retry-at-trial-end.png",
+      "sha256": "8c6298d2d8e141ffa3f77a495c3ffd42c51d16656cb1e8b95141de798612fd27"
+    },
+    {
+      "file": "native-goal-recovered-focused-finish-stays-gated-after-another-relaunch.png",
+      "sha256": "c226d4fb08071740e890fc69b3218817f2f6259332fba021e8280aa61f3127ae"
+    },
+    {
+      "file": "native-recovery-contact.png",
+      "sha256": "9e3593cce41de1b9339f4ffd7830d36bda99230761be15683e6b9dee731a2d2d"
+    },
+    {
+      "file": "native-repair-acknowledged-focused-tutor-finish-blocks-the-next-activity.png",
+      "sha256": "4531c2ec735a77fa28a6e711c9a898b20bf6fae5e45edcf97a18e28b6fec52fe"
+    },
+    {
+      "file": "native-repair-focused-tutor-earned-completion-waits-for-original-worth.png",
+      "sha256": "c8c5412485746c1f6d0ebd54514df0790d7ccd99eefe0708bb8fc278591ceef3"
+    },
+    {
+      "file": "native-repair-focused-tutor-restores-earned-save-retry-at-trial-end.png",
+      "sha256": "cb37a1e78f09928652952c49bfde3088619c1d0233e084486e9f2aa68ff4674f"
+    },
+    {
+      "file": "native-repair-recovered-focused-finish-stays-gated-after-another-relaunch.png",
+      "sha256": "4531c2ec735a77fa28a6e711c9a898b20bf6fae5e45edcf97a18e28b6fec52fe"
+    },
+    {
+      "file": "native-tutor-focused-goal-ar.png",
+      "sha256": "ce28a7f6b5adaea6ea144f8d258152be5498995d026ac95a8bc3a6da2c3ad2da"
+    },
+    {
+      "file": "native-tutor-focused-goal-en.png",
+      "sha256": "718cddf2ebf233d34462b24172853942ce5d82cfe47799c613ccccd62bcf860d"
+    },
+    {
+      "file": "native-tutor-focused-repair-ar.png",
+      "sha256": "ab6b9b856864e10a232fd5f016c792dd8e4d7dc4ccf1b2150940b81b41e2ce7e"
+    },
+    {
+      "file": "native-tutor-focused-repair-en.png",
+      "sha256": "7f4dd9893032282f9ba0c0f237de6b2dcbb7fcd7df3ef11de58db1d1fa9b25af"
+    },
+    {
+      "file": "pair-goal-ar.png",
+      "sha256": "6cb0c76045ba5562232cd8f11a3d8f7dc24cfde9a7e3e1a1f48e84ef803943d5"
+    },
+    {
+      "file": "pair-goal-en.png",
+      "sha256": "785842b5aeac22ce3de2fb5866f98375d265ece285bb3558f44f4fd9b8ac3f3d"
+    },
+    {
+      "file": "pair-repair-ar.png",
+      "sha256": "838cb769056eb1e6c605ac8815ca8b3f5b8561ea5791560ff2924b5fe65e3cf5"
+    },
+    {
+      "file": "pair-repair-en.png",
+      "sha256": "2d7b82879233f41e82dcf2fd3ec1c3b555022335ccca0322438e708507016b14"
+    },
+    {
+      "file": "qa-goal-save.json",
+      "sha256": "fa62b1de522a5121c06323466d8463f6df29fa67240fdb97f8792a9e445819c2"
+    },
+    {
+      "file": "qa-goal-settled.json",
+      "sha256": "5bcb01f74630bf84da1b2b2d7f48ada254b136d13c8fed8c83c4a13979d68644"
+    },
+    {
+      "file": "qa-goal-worth.json",
+      "sha256": "bbff268b8c2125aeab952cfaa466d350222c68955e9872a1fa03925c741ffa59"
+    },
+    {
+      "file": "qa-repair-save.json",
+      "sha256": "c87d94b418f17cc4660fcfac11545cf744692eaa2627a7b61011df524f85f467"
+    },
+    {
+      "file": "qa-repair-settled.json",
+      "sha256": "80c45487dfd9655ced9c672bea19620342bc9be03a2d5a96ef0c36274956481c"
+    },
+    {
+      "file": "qa-repair-worth.json",
+      "sha256": "8af3cfe0b6dc3d9f00ec11211a43dc60689ca1830789f22a8763798cef046bed"
+    },
+    {
+      "file": "source-completion-oracle.json",
+      "sha256": "355c4dab066f51caad31f929fbef0a6c2c7e2243d7b5f9301285c380fa2b5cc8"
+    },
+    {
+      "file": "source-tutor-focused-goal-ar-geometry.json",
+      "sha256": "fd6cea58f78210ee5449ae78d8adf9f4f9cefbe84f7a0c3052f99e9621186113"
+    },
+    {
+      "file": "source-tutor-focused-goal-ar.png",
+      "sha256": "91c3bb3a36551cc7711fcb942bd70de78e369a799750d0f3b83804c44456fa31"
+    },
+    {
+      "file": "source-tutor-focused-goal-en-geometry.json",
+      "sha256": "51a9e9e462458e8c3671ef6c5e74712e81c19b451987090e6a1d4af02a2dd1b0"
+    },
+    {
+      "file": "source-tutor-focused-goal-en.png",
+      "sha256": "2aad0e45a9e0d5e59466c4c83d89f3378f1b36a3c3f8a2ae5fe9cdd1660a18d3"
+    },
+    {
+      "file": "source-tutor-focused-repair-ar-geometry.json",
+      "sha256": "4fe1f180f3f4cc4d8143c70060d2a7c2d471af54c10b68bb4e0bc675ea8dc93b"
+    },
+    {
+      "file": "source-tutor-focused-repair-ar.png",
+      "sha256": "4599394a8a8395e1beef86e943ca98bf288f42b44886782eaa2b42ffeb2f49ef"
+    },
+    {
+      "file": "source-tutor-focused-repair-en-geometry.json",
+      "sha256": "aa3b6fea0f862edd966907e07dfbd623b6d4ba8db3cdedf01502e1f2bedb2299"
+    },
+    {
+      "file": "source-tutor-focused-repair-en.png",
+      "sha256": "8ccf01f1c2e5bf11940ed4a61f1d1fdddb8d3fccba0ab84e2327066bf4f383af"
+    },
+    {
+      "file": "validation-commands.json",
+      "sha256": "9d8c7075f28bc3de72be387bb176840936029c353b6766709aa68747bd15b951"
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "referenceRevision": "b269524ddc578027c549616fc47f5954991d9f6f",
+  "date": "2026-11-05",
+  "viewport": {
+    "width": 402,
+    "height": 874
+  },
+  "scope": "Current public main route in read-only local preview; English/light selected via source UI. No account creation, credentials, model call or learner progress used. Screenshots crop only the surrounding preview frame. Native captures and scoped comparison are recorded in docs/ENTRY_PARITY.md; no full design-parity claim.",
+  "sources": [
+    {
+      "file": "src/App.jsx",
+      "sha256": "9e6447368ce10a647025f76daf1b730fb20073590c586f8a3bed8a6d4f2ab948"
+    },
+    {
+      "file": "src/index.css",
+      "sha256": "79a5362dc1b189acd0d2288c0e85ff29c9cc1c8e39b8bb5cabe164ddd1c29030"
+    },
+    {
+      "file": "src/theme.js",
+      "sha256": "6fe6093ecca51d0debb1314a587d6bd0927e7ac9f8c1ba2c6c744017e3be407e"
+    }
+  ],
+  "captures": [
+    {
+      "file": "key-login-en-light.jpg",
+      "sha256": "2520340a80b452b754c42e753fc6425d4ac019e5de657cc8b7c9147c494c71a0"
+    },
+    {
+      "file": "landing-en-light.jpg",
+      "sha256": "b7904224c0f288827f899f25565d63fa64b0f62dad7d51658ec7cfc8ce487a84"
+    }
+  ]
+}

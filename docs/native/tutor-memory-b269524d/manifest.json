@@ -1,0 +1,155 @@
+{
+  "referenceRevision": "b269524ddc578027c549616fc47f5954991d9f6f",
+  "result": "/tmp/PiyaliTutorMemoryFinal20261105.xcresult",
+  "scope": "Actual source Tutor with public transcript/model/cloud I/O, original initial note builder, actual source NotesDrawer receiving the observed public capture note, native component hosts and full native signup/setup \u2192 Tutor \u2192 enriched Memory \u2192 process-relaunch journey. No source Firebase/enrichment network execution, full-shell source/native equivalence or physical speech claim. Source left, native right.",
+  "records": [
+    {
+      "file": "source-captured-en.png",
+      "sha256": "9d065b2982cfb3ec11902abbfc379e9ce5baa1a814f02de015fafcb2fa90bb66",
+      "attachment": "Source Tutor Memory captured en_0_B3F7187B-BDBC-4BF2-90BF-EAEAAE7D6BAB.png"
+    },
+    {
+      "file": "native-captured-en.png",
+      "sha256": "8d65dd16d6a99ee7b204b45462d1fc85e38ccb5f9508ef0ce409845b16af02e5",
+      "attachment": "Native Tutor Memory captured en_0_E4A20EF2-77E6-4288-80DD-CFFE6C186725.png"
+    },
+    {
+      "file": "pair-captured-en.png",
+      "sha256": "20c163bc1cbbe9257b0179a7a5534c9ba742da1c5ed096d950d7b7585dad6b1c",
+      "scope": "sRGB-managed 402\u00d7874 logical viewport, source left/native right; no whole-shell claim"
+    },
+    {
+      "file": "source-drawer-en.png",
+      "sha256": "6fd3885fbdc05c4c3942288c340d4512785ef88319a3e93786d89a8aa2736329",
+      "attachment": "Source Tutor Memory drawer en_0_AB3CB2C0-1277-4DD8-9E15-C8F61D8C888C.png"
+    },
+    {
+      "file": "native-drawer-en.png",
+      "sha256": "2cdce6e4800f4f054bcca1ddd3d59d26b7471283b3dbb6e0166b4bc23c87938f",
+      "attachment": "Native Tutor Memory drawer en_0_6E6209AC-6645-4F66-839C-308BD7242216.png"
+    },
+    {
+      "file": "pair-drawer-en.png",
+      "sha256": "15977d9814ad8e44736898392e78acfd78b192707f5f0e22f7099366a15b9b99",
+      "scope": "sRGB-managed 402\u00d7874 logical viewport, source left/native right; no whole-shell claim"
+    },
+    {
+      "file": "semantic-trace-en.json",
+      "sha256": "ae576ec93e0843d5fb2b45310ef1343c2f603634b1078ab0bb7dfc8637e0062a",
+      "attachment": "Tutor Memory semantic trace en_0_C303BA30-5660-4026-8B1C-688098BEFB68.json"
+    },
+    {
+      "file": "source-captured-ar.png",
+      "sha256": "0845c00a8095a6bc5a0d9a6d97519c0531c36b1e3401a53060ca09f91619cbfd",
+      "attachment": "Source Tutor Memory captured ar_0_DB9480F2-C5A3-4848-B139-125177100D30.png"
+    },
+    {
+      "file": "native-captured-ar.png",
+      "sha256": "f4d7c32ec266c0bd1aa25c7406986dd424f798b2ad68644fdb39210ec21dc869",
+      "attachment": "Native Tutor Memory captured ar_0_0D3F6791-A533-4AD3-A2BB-AFDDA4C4B9B4.png"
+    },
+    {
+      "file": "pair-captured-ar.png",
+      "sha256": "2db0d1f90eb9d0a437e71ea70684d72492858070b451cb985569255f82868c81",
+      "scope": "sRGB-managed 402\u00d7874 logical viewport, source left/native right; no whole-shell claim"
+    },
+    {
+      "file": "source-drawer-ar.png",
+      "sha256": "22edf0ca58ac3efad3d7d2efae641a365d1e72432469588425a952dbedfc6749",
+      "attachment": "Source Tutor Memory drawer ar_0_66831E52-EF67-4EDE-A703-FF9B9C0327EE.png"
+    },
+    {
+      "file": "native-drawer-ar.png",
+      "sha256": "9bc388eb1e3eed0adf05ed2c26bb835f599f5cc812e4aba174771e60416085da",
+      "attachment": "Native Tutor Memory drawer ar_0_3B01D64A-061D-4A30-B0A0-C2FF2A611C38.png"
+    },
+    {
+      "file": "pair-drawer-ar.png",
+      "sha256": "2d15d3aa7dbd7691394644646e434d3147d7530d0a487e7be33598bb4651e95b",
+      "scope": "sRGB-managed 402\u00d7874 logical viewport, source left/native right; no whole-shell claim"
+    },
+    {
+      "file": "semantic-trace-ar.json",
+      "sha256": "716c664fcf60f5eebf1019c29997461112f627a5d7a31f87b38f73814bb95b5d",
+      "attachment": "Tutor Memory semantic trace ar_0_E7D092F5-746F-4DD3-912B-FC0D493B5AAC.json"
+    },
+    {
+      "file": "native-product-capture.png",
+      "sha256": "c04fe75f122d4e1c5912e2fe3078b7bd6c00a51ad84023800e95c04aff0f9b26",
+      "attachment": "Native Tutor low-confidence semantic Memory capture in product shell_0_5FA68806-E9CF-4932-856B-99E710D87BBF.png"
+    },
+    {
+      "file": "native-product-enriched.png",
+      "sha256": "1e1e64cc5da0e10fdf6cced2e703f5ad6ddf68a4e7b119d44394cb721897b825",
+      "attachment": "Native captured Tutor Memory enriched after End_0_BB58706E-CEFB-49F8-A7CC-4BA5B33B14F6.png"
+    },
+    {
+      "file": "native-product-relaunch.png",
+      "sha256": "cc9e2fc4d954dca88b8d5b0c6c9fa8592a05d76963da8b3c229f60a061e90003",
+      "attachment": "Native Tutor Memory retained exactly once after process relaunch_0_7BBD372B-9134-4778-AB18-ADACF5E971F5.png"
+    },
+    {
+      "file": "broad-regression-summary.json",
+      "sha256": "164a1f353203542bd1a94cfb841c42fefcf23279b6a7949d717c4395384d981a"
+    },
+    {
+      "file": "broad-regression.txt",
+      "sha256": "4c40c4abe36c0a47f29ee1951fdbeb976cac97947e815eca941954c3bc25ae40"
+    },
+    {
+      "file": "core-tests.txt",
+      "sha256": "9c34463bc30f90a85d4230a6d8e71d3ca63162a49c37a2486914e2b37a446b9a"
+    },
+    {
+      "file": "final-test-summary.json",
+      "sha256": "376ba63531c60b3117ee7575813badccae12aaca0a2e7926b6b0fe6ff5778254"
+    },
+    {
+      "file": "final-tests.txt",
+      "sha256": "1b8dce07cfe7fbd3101f25495816b6ef0d658c3ce42153451f32588e53453f75"
+    },
+    {
+      "file": "implementation-hashes.json",
+      "sha256": "2f1f8837c2bfd905ca0ade9b482b676be9a5c5195e82ca85fa6da92ea5f76dc8"
+    },
+    {
+      "file": "qa-journey-audit.json",
+      "sha256": "7179b897bfc574f62bc4301abc3e178c5ca59e25b0e4eab024fda612ded8dd26"
+    },
+    {
+      "file": "reproduction-summary.json",
+      "sha256": "9a610f6153a63ac6bcac7caa6c1ed5fbbef6ec8f95a21fe1c22df2a63b75169f"
+    },
+    {
+      "file": "source-export.txt",
+      "sha256": "2b46bc28d98d0e95ef3780b8bc8af15d9f1099068cad66af202eadc138d0838d"
+    },
+    {
+      "file": "source-policy-audit.json",
+      "sha256": "9dbb2393b9e1fd853f31c914e26df65fcb7de899051e953e81aa7da23fa7172e"
+    },
+    {
+      "file": "source-welcome-fixture-failure-summary.json",
+      "sha256": "bd4788768f4fbc0c5fbb25162ae3f2a284a8ab6bfe094945f29e3216b08c3d1e"
+    },
+    {
+      "file": "verification-commands.txt",
+      "sha256": "c14c7510dd649f93644097db98b4e8463dcb2844e86d9517d67400f9b08b0307"
+    }
+  ],
+  "verification": {
+    "finalTests": 16,
+    "finalPassed": 16,
+    "finalFailed": 0,
+    "finalSkipped": 0,
+    "coreTests": 10,
+    "tutorSourceCases": 1215,
+    "memorySourceCases": 64,
+    "broadRegression": {
+      "tests": 59,
+      "passed": 58,
+      "failed": 1,
+      "reason": "New comparison asserted account XP/rating as soon as Memory existed. Explicitly awaited the existing deferred-outcome worker; corrected method passes in final affected run."
+    }
+  }
+}

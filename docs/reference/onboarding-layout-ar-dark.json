@@ -1,0 +1,452 @@
+{
+  "viewport": {
+    "width": 402,
+    "height": 874,
+    "scrollY": 0
+  },
+  "fonts": [],
+  "elements": [
+    {
+      "tag": "TEXTAREA",
+      "text": "",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0
+      },
+      "font": "16px / 24px -apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "0px",
+      "background": "rgb(255, 255, 255)",
+      "border": "1px solid rgb(193, 193, 193)",
+      "borderRadius": "0px",
+      "cornerShape": "superellipse(1)"
+    },
+    {
+      "tag": "DIV",
+      "text": "أهلاً بيك\n\nخلّينا نجهز تجربتك قبل ما تبدأ.\n\nلغة الدعم\n\nاللغة اللي هنستخدمها في الشرح، التلميحات، والمحتوى المساعد.\n\nالعربية المصرية\n\nلغة الممارسة\n\nاللغة اللي عايز تتعلمها وتتدرب عليها\n\nالإسبانية\nهدفك (اختياري)\n\nماذا تريد أن تفعل باللغة التي تتعلمها؟\n\nسننشئ دروسًا ونخصصها لمساعدتك على تحقيق أهدافك. يمكنك تغيير هدفك لاحقًا في  الإعدادات أو تركه فارغًا الآن.\n\nابدأ الجلسة",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 402,
+        "height": 874
+      },
+      "font": "",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "0px",
+      "background": "rgb(11, 18, 32)",
+      "border": "0px none rgb(229, 231, 235)",
+      "borderRadius": "48px 48px 0px 0px",
+      "cornerShape": "superellipse(2)"
+    },
+    {
+      "tag": "DIV",
+      "text": "أهلاً بيك\n\nخلّينا نجهز تجربتك قبل ما تبدأ.\n\nلغة الدعم\n\nاللغة اللي هنستخدمها في الشرح، التلميحات، والمحتوى المساعد.\n\nالعربية المصرية\n\nلغة الممارسة\n\nاللغة اللي عايز تتعلمها وتتدرب عليها\n\nالإسبانية\nهدفك (اختياري)\n\nماذا تريد أن تفعل باللغة التي تتعلمها؟\n\nسننشئ دروسًا ونخصصها لمساعدتك على تحقيق أهدافك. يمكنك تغيير هدفك لاحقًا في  الإعدادات أو تركه فارغًا الآن.",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 402,
+        "height": 786
+      },
+      "font": "",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "28px 28px 16px",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgb(203, 213, 225)",
+      "borderRadius": "0px",
+      "cornerShape": "superellipse(1)"
+    },
+    {
+      "tag": "IMG",
+      "text": "source character",
+      "rect": {
+        "x": 324,
+        "y": 53,
+        "width": 50,
+        "height": 50
+      },
+      "font": "",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "0px",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "0px none rgb(203, 213, 225)",
+      "borderRadius": "0px",
+      "cornerShape": "superellipse(1)"
+    },
+    {
+      "tag": "H1",
+      "text": "أهلاً بيك",
+      "rect": {
+        "x": 253.46875,
+        "y": 64.796875,
+        "width": 60.53125,
+        "height": 26.3984375
+      },
+      "font": "",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "24px",
+      "fontWeight": "700",
+      "lineHeight": "26.4px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "0px",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgb(203, 213, 225)",
+      "borderRadius": "0px",
+      "cornerShape": "superellipse(1)"
+    },
+    {
+      "tag": "P",
+      "text": "خلّينا نجهز تجربتك قبل ما تبدأ.",
+      "rect": {
+        "x": 28,
+        "y": 132,
+        "width": 346,
+        "height": 21
+      },
+      "font": "",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "14px",
+      "fontWeight": "400",
+      "lineHeight": "21px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "0px",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgb(203, 213, 225)",
+      "borderRadius": "0px",
+      "cornerShape": "superellipse(1)",
+      "lines": [
+        {
+          "x": 237.125,
+          "y": 134,
+          "width": 136.875,
+          "height": 16.5
+        }
+      ]
+    },
+    {
+      "tag": "P",
+      "text": "لغة الدعم",
+      "rect": {
+        "x": 40,
+        "y": 181,
+        "width": 322,
+        "height": 21
+      },
+      "font": "",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "14px",
+      "fontWeight": "600",
+      "lineHeight": "21px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "0px",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgb(203, 213, 225)",
+      "borderRadius": "0px",
+      "cornerShape": "superellipse(1)",
+      "lines": [
+        {
+          "x": 320.5546875,
+          "y": 183,
+          "width": 41.4453125,
+          "height": 16.5
+        }
+      ]
+    },
+    {
+      "tag": "P",
+      "text": "اللغة اللي هنستخدمها في الشرح، التلميحات، والمحتوى المساعد.",
+      "rect": {
+        "x": 40,
+        "y": 206,
+        "width": 322,
+        "height": 18
+      },
+      "font": "",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "12px",
+      "fontWeight": "400",
+      "lineHeight": "18px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "0px",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgb(203, 213, 225)",
+      "borderRadius": "0px",
+      "cornerShape": "superellipse(1)",
+      "lines": [
+        {
+          "x": 119.578125,
+          "y": 208,
+          "width": 242.421875,
+          "height": 14
+        }
+      ]
+    },
+    {
+      "tag": "BUTTON",
+      "text": "العربية المصرية",
+      "rect": {
+        "x": 40,
+        "y": 236,
+        "width": 322,
+        "height": 42
+      },
+      "font": "600 14px / 16.8px -apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "14px",
+      "fontWeight": "600",
+      "lineHeight": "16.8px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "20px",
+      "background": "rgb(17, 24, 39)",
+      "border": "1px solid rgb(31, 41, 55)",
+      "borderRadius": "100px",
+      "cornerShape": "superellipse(2)"
+    },
+    {
+      "tag": "P",
+      "text": "لغة الممارسة",
+      "rect": {
+        "x": 40,
+        "y": 318,
+        "width": 322,
+        "height": 21
+      },
+      "font": "",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "14px",
+      "fontWeight": "600",
+      "lineHeight": "21px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "0px",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgb(203, 213, 225)",
+      "borderRadius": "0px",
+      "cornerShape": "superellipse(1)",
+      "lines": [
+        {
+          "x": 302.6875,
+          "y": 320,
+          "width": 59.3125,
+          "height": 16.5
+        }
+      ]
+    },
+    {
+      "tag": "P",
+      "text": "اللغة اللي عايز تتعلمها وتتدرب عليها",
+      "rect": {
+        "x": 40,
+        "y": 343,
+        "width": 322,
+        "height": 18
+      },
+      "font": "",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "12px",
+      "fontWeight": "400",
+      "lineHeight": "18px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "0px",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgb(203, 213, 225)",
+      "borderRadius": "0px",
+      "cornerShape": "superellipse(1)",
+      "lines": [
+        {
+          "x": 222.0546875,
+          "y": 345,
+          "width": 139.9453125,
+          "height": 14
+        }
+      ]
+    },
+    {
+      "tag": "BUTTON",
+      "text": "الإسبانية",
+      "rect": {
+        "x": 40,
+        "y": 373,
+        "width": 322,
+        "height": 42
+      },
+      "font": "600 14px / 16.8px -apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "14px",
+      "fontWeight": "600",
+      "lineHeight": "16.8px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "20px",
+      "background": "rgb(17, 24, 39)",
+      "border": "1px solid rgb(31, 41, 55)",
+      "borderRadius": "100px",
+      "cornerShape": "superellipse(2)"
+    },
+    {
+      "tag": "P",
+      "text": "ماذا تريد أن تفعل باللغة التي تتعلمها؟",
+      "rect": {
+        "x": 40,
+        "y": 480,
+        "width": 322,
+        "height": 18
+      },
+      "font": "",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "12px",
+      "fontWeight": "400",
+      "lineHeight": "18px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "0px",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgb(203, 213, 225)",
+      "borderRadius": "0px",
+      "cornerShape": "superellipse(1)",
+      "lines": [
+        {
+          "x": 221.875,
+          "y": 482,
+          "width": 140.125,
+          "height": 14
+        }
+      ]
+    },
+    {
+      "tag": "TEXTAREA",
+      "text": "التحدث مع جدتي عن طفولتها",
+      "rect": {
+        "x": 40,
+        "y": 510,
+        "width": 322,
+        "height": 104
+      },
+      "font": "16px / 26px -apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "26px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "12px",
+      "background": "rgb(31, 41, 55)",
+      "border": "1px solid rgb(203, 213, 225)",
+      "borderRadius": "6px",
+      "cornerShape": "superellipse(1)"
+    },
+    {
+      "tag": "P",
+      "text": "سننشئ دروسًا ونخصصها لمساعدتك على تحقيق أهدافك. يمكنك تغيير هدفك لاحقًا في  الإعدادات أو تركه فارغًا الآن.",
+      "rect": {
+        "x": 40,
+        "y": 622,
+        "width": 322,
+        "height": 39
+      },
+      "font": "",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "12px",
+      "fontWeight": "400",
+      "lineHeight": "19.5px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "0px",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgb(203, 213, 225)",
+      "borderRadius": "0px",
+      "cornerShape": "superellipse(1)",
+      "lines": [
+        {
+          "x": 52.078125,
+          "y": 624.5,
+          "width": 309.921875,
+          "height": 14
+        },
+        {
+          "x": 348.3515625,
+          "y": 644,
+          "width": 13.6484375,
+          "height": 14
+        },
+        {
+          "x": 336.953125,
+          "y": 645.296875,
+          "width": 11.3984375,
+          "height": 11.3984375
+        },
+        {
+          "x": 217.65625,
+          "y": 644,
+          "width": 119.296875,
+          "height": 14
+        }
+      ]
+    },
+    {
+      "tag": "BUTTON",
+      "text": "ابدأ الجلسة",
+      "rect": {
+        "x": 24,
+        "y": 802,
+        "width": 354,
+        "height": 48
+      },
+      "font": "600 18px / 21.6px -apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "18px",
+      "fontWeight": "600",
+      "lineHeight": "21.6px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "0px 24px",
+      "background": "rgb(49, 151, 149)",
+      "border": "1px solid rgba(0, 0, 0, 0)",
+      "borderRadius": "100px",
+      "cornerShape": "superellipse(2)"
+    }
+  ]
+}

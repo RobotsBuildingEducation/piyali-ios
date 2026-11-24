@@ -1,0 +1,62 @@
+{
+  "viewport": {
+    "width": 402,
+    "height": 874,
+    "scrollY": 0
+  },
+  "fonts": [
+    {
+      "family": "DM Sans",
+      "weight": "400",
+      "status": "unloaded"
+    },
+    {
+      "family": "DM Sans",
+      "weight": "400",
+      "status": "unloaded"
+    },
+    {
+      "family": "DM Sans",
+      "weight": "700",
+      "status": "unloaded"
+    },
+    {
+      "family": "DM Sans",
+      "weight": "700",
+      "status": "unloaded"
+    }
+  ],
+  "elements": [
+    {
+      "tag": "P",
+      "text": "Ask about today's plans with confidence.",
+      "rect": {
+        "x": 12,
+        "y": 79.796875,
+        "width": 378,
+        "height": 19.59375
+      },
+      "font": "",
+      "fontFamily": "-apple-system, \"system-ui\", \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "fontSize": "14px",
+      "fontWeight": "500",
+      "lineHeight": "19.6px",
+      "letterSpacing": "normal",
+      "fontStretch": "100%",
+      "opticalSizing": "auto",
+      "padding": "0px 16px",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "0px solid rgb(67, 53, 40)",
+      "borderRadius": "0px",
+      "cornerShape": "superellipse(1)",
+      "lines": [
+        {
+          "x": 65.5078125,
+          "y": 81.296875,
+          "width": 270.984375,
+          "height": 16.5
+        }
+      ]
+    }
+  ]
+}

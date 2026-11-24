@@ -1,0 +1,25 @@
+{
+  "source": "src/components/Tutor.jsx",
+  "sha256": "bbe9dea6279119ecef32cb69a66a8fb40763642ca05717690dec789a72e088c3",
+  "additionalSources": [
+    {
+      "file": "src/theme.js",
+      "sha256": "6fe6093ecca51d0debb1314a587d6bd0927e7ac9f8c1ba2c6c744017e3be407e"
+    },
+    {
+      "file": "src/index.css",
+      "sha256": "79a5362dc1b189acd0d2288c0e85ff29c9cc1c8e39b8bb5cabe164ddd1c29030"
+    },
+    {
+      "file": "src/utils/bidiText.js",
+      "sha256": "0dc0959f0e58c3e715241dcd57eeab484ff55785860a1e53e7e15b79ac52aed1"
+    },
+    {
+      "file": "src/utils/documentLanguage.js",
+      "sha256": "568036a5ee21ddcd2f3585005ad467e67a059cd473c12ec17d7507b4240d3371"
+    }
+  ],
+  "runtimePolicySha256": "dadac6b9478db576e61b6a8359bd44a7a3dc387f15e1f7636bb62fdfc8f2d3d1",
+  "sourceCasesSha256": "e3713ca1019d0fd86c7f2f4159c6cf2af14bb47de2e02d0ef1a4498746bb2d4f",
+  "scope": "Original AlignedBubble JSX and phrase helpers/styles, original theme/CSS/bidi. Public response/translation/pairs, counted replay callback, shared neutral backdrop. Feedback remains empty because the main source Tutor initializes inlineFeedbackKind to null without a setter; translate action remains disabled as in main Tutor. No provider, identity, cloud or relay I/O."
+}

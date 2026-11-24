@@ -1,0 +1,10 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import {createHash} from 'node:crypto';
+const ref=path.resolve(process.cwd(),'../nosabos/nosabos'),file='src/utils/supportTranslation.js',source=await fs.readFile(path.join(ref,file),'utf8');
+const esbuild=await import(path.join(ref,'node_modules/esbuild/lib/main.js'));
+const result=await esbuild.build({stdin:{contents:`export {buildDirectTranslationPrompt} from ${JSON.stringify(path.join(ref,file))};`,resolveDir:ref},bundle:true,platform:'node',format:'esm',write:false});
+const original=await import('data:text/javascript;base64,'+Buffer.from(result.outputFiles[0].text).toString('base64'));
+const rows=['en','es','fr','ar','ja','hi','pt','de','zh','', 'unknown'].map(support=>({support,expected:original.buildDirectTranslationPrompt(support)}));
+await fs.writeFile('Tests/PiyaliCoreTests/Fixtures/conversation-translation-prompts.json',JSON.stringify(rows,null,2)+'\n');
+await fs.writeFile('docs/reference/conversation-translation-manifest.json',JSON.stringify({source:file,sha256:createHash('sha256').update(source).digest('hex'),scope:'Original buildDirectTranslationPrompt with its language helpers executed as a pure module; no provider or UI effects.',cases:rows.length},null,2)+'\n');console.log(`Exported ${rows.length} source translation prompts.`);

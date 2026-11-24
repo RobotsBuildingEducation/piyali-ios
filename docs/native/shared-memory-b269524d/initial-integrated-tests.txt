@@ -1,0 +1,87 @@
+Test Suite 'Selected tests' started at 2026-11-05 23:58:20.614.
+Test Suite 'PiyaliTests.xctest' started at 2026-11-05 23:58:20.614.
+Test Suite 'FirestoreContractTests' started at 2026-11-05 23:58:20.614.
+Test Case '-[PiyaliTests.FirestoreContractTests testCaptureLearningEvidenceUsesSourceIDsAndStableDeliveryAcrossRetryAndWindowEviction]' started.
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliAppTests/FirestoreContractTests.swift:1391: error: -[PiyaliTests.FirestoreContractTests testCaptureLearningEvidenceUsesSourceIDsAndStableDeliveryAcrossRetryAndWindowEviction] : XCTAssertEqual failed: ("null") is not equal to ("number(1.0)")
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliAppTests/FirestoreContractTests.swift:1391: error: -[PiyaliTests.FirestoreContractTests testCaptureLearningEvidenceUsesSourceIDsAndStableDeliveryAcrossRetryAndWindowEviction] : XCTAssertEqual failed: ("0") is not equal to ("3")
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliAppTests/FirestoreContractTests.swift:1391: error: -[PiyaliTests.FirestoreContractTests testCaptureLearningEvidenceUsesSourceIDsAndStableDeliveryAcrossRetryAndWindowEviction] : XCTAssertEqual failed: ("nil") is not equal to ("Optional(Piyali.JSONValue.number(3.0))")
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliAppTests/FirestoreContractTests.swift:1391: error: -[PiyaliTests.FirestoreContractTests testCaptureLearningEvidenceUsesSourceIDsAndStableDeliveryAcrossRetryAndWindowEviction] : XCTAssertEqual failed: ("nil") is not equal to ("Optional(Piyali.JSONValue.number(3.0))")
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliAppTests/FirestoreContractTests.swift:1391: error: -[PiyaliTests.FirestoreContractTests testCaptureLearningEvidenceUsesSourceIDsAndStableDeliveryAcrossRetryAndWindowEviction] : XCTAssertEqual failed: ("nil") is not equal to ("Optional(Piyali.JSONValue.string("lesson"))")
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliAppTests/FirestoreContractTests.swift:1391: error: -[PiyaliTests.FirestoreContractTests testCaptureLearningEvidenceUsesSourceIDsAndStableDeliveryAcrossRetryAndWindowEviction] : XCTAssertEqual failed: ("null") is not equal to ("number(150.0)")
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliAppTests/FirestoreContractTests.swift:1391: error: -[PiyaliTests.FirestoreContractTests testCaptureLearningEvidenceUsesSourceIDsAndStableDeliveryAcrossRetryAndWindowEviction] : XCTAssertEqual failed: ("null") is not equal to ("bool(true)")
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliAppTests/FirestoreContractTests.swift:1399: error: -[PiyaliTests.FirestoreContractTests testCaptureLearningEvidenceUsesSourceIDsAndStableDeliveryAcrossRetryAndWindowEviction] : XCTAssertEqual failed: ("0") is not equal to ("1")
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliAppTests/FirestoreContractTests.swift:1399: error: -[PiyaliTests.FirestoreContractTests testCaptureLearningEvidenceUsesSourceIDsAndStableDeliveryAcrossRetryAndWindowEviction] : XCTAssertEqual failed: ("nil") is not equal to ("Optional(Piyali.JSONValue.string("mem-1793944701309-d3dd23c:3"))")
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliAppTests/FirestoreContractTests.swift:1399: error: -[PiyaliTests.FirestoreContractTests testCaptureLearningEvidenceUsesSourceIDsAndStableDeliveryAcrossRetryAndWindowEviction] : XCTAssertEqual failed: ("nil") is not equal to ("Optional(Piyali.JSONValue.number(4.0))")
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliAppTests/FirestoreContractTests.swift:1399: error: -[PiyaliTests.FirestoreContractTests testCaptureLearningEvidenceUsesSourceIDsAndStableDeliveryAcrossRetryAndWindowEviction] : XCTAssertEqual failed: ("nil") is not equal to ("Optional(Piyali.JSONValue.string("fresh attempt"))")
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliAppTests/FirestoreContractTests.swift:1399: error: -[PiyaliTests.FirestoreContractTests testCaptureLearningEvidenceUsesSourceIDsAndStableDeliveryAcrossRetryAndWindowEviction] : XCTAssertEqual failed: ("null") is not equal to ("number(150.0)")
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliAppTests/FirestoreContractTests.swift:1400: error: -[PiyaliTests.FirestoreContractTests testCaptureLearningEvidenceUsesSourceIDsAndStableDeliveryAcrossRetryAndWindowEviction] : XCTAssertNil failed: "["fr": 0]"
+Test Case '-[PiyaliTests.FirestoreContractTests testCaptureLearningEvidenceUsesSourceIDsAndStableDeliveryAcrossRetryAndWindowEviction]' failed (7.862 seconds).
+Test Case '-[PiyaliTests.FirestoreContractTests testSourceOmittedAccountModesSaveNotesWithoutInventingCaptureLearningEvidence]' started.
+Test Case '-[PiyaliTests.FirestoreContractTests testSourceOmittedAccountModesSaveNotesWithoutInventingCaptureLearningEvidence]' passed (0.833 seconds).
+Test Suite 'FirestoreContractTests' failed at 2026-11-05 23:58:29.310.
+	 Executed 2 tests, with 13 failures (0 unexpected) in 8.695 (8.696) seconds
+Test Suite 'MemoryFlowTests' started at 2026-11-05 23:58:29.311.
+Test Case '-[PiyaliTests.MemoryFlowTests testActualFeedbackPublisherCapturesWrongOnceAndResetsForTheNextQuestion]' started.
+Test Case '-[PiyaliTests.MemoryFlowTests testActualFeedbackPublisherCapturesWrongOnceAndResetsForTheNextQuestion]' passed (0.480 seconds).
+Test Case '-[PiyaliTests.MemoryFlowTests testActualMemoryDrawerAndNativeScreens]' started.
+Test Case '-[PiyaliTests.MemoryFlowTests testActualMemoryDrawerAndNativeScreens]' passed (30.686 seconds).
+Test Case '-[PiyaliTests.MemoryFlowTests testActualSourceSharedEnrichmentAndLearningEvidenceInEnglishAndArabic]' started.
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliAppTests/MemoryFlowTests.swift:200: error: -[PiyaliTests.MemoryFlowTests testActualSourceSharedEnrichmentAndLearningEvidenceInEnglishAndArabic] : XCTAssertEqual failed: ("2") is not equal to ("0")
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliAppTests/MemoryFlowTests.swift:201: error: -[PiyaliTests.MemoryFlowTests testActualSourceSharedEnrichmentAndLearningEvidenceInEnglishAndArabic] : XCTAssertEqual failed: ("Optional(Piyali.JSONValue.string("grammar"))") is not equal to ("Optional(Piyali.JSONValue.string(""))") - sourceContext
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliAppTests/MemoryFlowTests.swift:202: error: -[PiyaliTests.MemoryFlowTests testActualSourceSharedEnrichmentAndLearningEvidenceInEnglishAndArabic] : XCTAssertEqual failed: ("0") is not equal to ("2")
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliAppTests/MemoryFlowTests.swift:202: error: -[PiyaliTests.MemoryFlowTests testActualSourceSharedEnrichmentAndLearningEvidenceInEnglishAndArabic] : XCTAssertEqual failed: ("null") is not equal to ("array([Piyali.JSONValue.object(["recurrence": Piyali.JSONValue.number(2.0), "severity": Piyali.JSONValue.number(2.0), "mode": Piyali.JSONValue.string("lesson"), "stage": Piyali.JSONValue.string("prompted"), "target": Piyali.JSONValue.string("A greeting"), "domain": Piyali.JSONValue.string("grammar"), "demonstratedStage": Piyali.JSONValue.string("production with help"), "example": Piyali.JSONValue.string("another public attempt"), "lastSeen": Piyali.JSONValue.string("2026-11-06T05:59:01.647Z")])])")
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliAppTests/MemoryFlowTests.swift:200: error: -[PiyaliTests.MemoryFlowTests testActualSourceSharedEnrichmentAndLearningEvidenceInEnglishAndArabic] : XCTAssertEqual failed: ("2") is not equal to ("0")
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliAppTests/MemoryFlowTests.swift:201: error: -[PiyaliTests.MemoryFlowTests testActualSourceSharedEnrichmentAndLearningEvidenceInEnglishAndArabic] : XCTAssertEqual failed: ("Optional(Piyali.JSONValue.string("grammar"))") is not equal to ("Optional(Piyali.JSONValue.string(""))") - sourceContext
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliAppTests/MemoryFlowTests.swift:202: error: -[PiyaliTests.MemoryFlowTests testActualSourceSharedEnrichmentAndLearningEvidenceInEnglishAndArabic] : XCTAssertEqual failed: ("0") is not equal to ("2")
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliAppTests/MemoryFlowTests.swift:202: error: -[PiyaliTests.MemoryFlowTests testActualSourceSharedEnrichmentAndLearningEvidenceInEnglishAndArabic] : XCTAssertEqual failed: ("null") is not equal to ("array([Piyali.JSONValue.object(["demonstratedStage": Piyali.JSONValue.string("production with help"), "example": Piyali.JSONValue.string("another public attempt"), "stage": Piyali.JSONValue.string("prompted"), "recurrence": Piyali.JSONValue.number(2.0), "target": Piyali.JSONValue.string("تحية"), "lastSeen": Piyali.JSONValue.string("2026-11-06T05:59:05.355Z"), "severity": Piyali.JSONValue.number(2.0), "mode": Piyali.JSONValue.string("lesson"), "domain": Piyali.JSONValue.string("grammar")])])")
+Test Case '-[PiyaliTests.MemoryFlowTests testActualSourceSharedEnrichmentAndLearningEvidenceInEnglishAndArabic]' failed (7.448 seconds).
+Test Case '-[PiyaliTests.MemoryFlowTests testActualWebNIP44WrappedKeyDecryptsWithNativeIdentity]' started.
+Test Case '-[PiyaliTests.MemoryFlowTests testActualWebNIP44WrappedKeyDecryptsWithNativeIdentity]' passed (0.107 seconds).
+Test Case '-[PiyaliTests.MemoryFlowTests testArabicLocalizationRejectsLeakedSupportTextAndPreservesRepairStatus]' started.
+Test Case '-[PiyaliTests.MemoryFlowTests testArabicLocalizationRejectsLeakedSupportTextAndPreservesRepairStatus]' passed (0.110 seconds).
+Test Case '-[PiyaliTests.MemoryFlowTests testConceptOnlyLocalizationFailurePreservesAnExistingEnrichedCorrection]' started.
+Test Case '-[PiyaliTests.MemoryFlowTests testConceptOnlyLocalizationFailurePreservesAnExistingEnrichedCorrection]' passed (0.080 seconds).
+Test Case '-[PiyaliTests.MemoryFlowTests testDigestIsCachedAndCannotLeakAcrossPracticeLanguages]' started.
+Test Case '-[PiyaliTests.MemoryFlowTests testDigestIsCachedAndCannotLeakAcrossPracticeLanguages]' passed (0.132 seconds).
+Test Case '-[PiyaliTests.MemoryFlowTests testDrawerEnrichmentCannotRetryUnderAReplacedIdentitySession]' started.
+Test Case '-[PiyaliTests.MemoryFlowTests testDrawerEnrichmentCannotRetryUnderAReplacedIdentitySession]' passed (0.104 seconds).
+Test Case '-[PiyaliTests.MemoryFlowTests testExerciseNoteFinishesAfterNextWithCapturedContextAndNoAdditionalReward]' started.
+Test Case '-[PiyaliTests.MemoryFlowTests testExerciseNoteFinishesAfterNextWithCapturedContextAndNoAdditionalReward]' passed (0.082 seconds).
+Test Case '-[PiyaliTests.MemoryFlowTests testExerciseNoteKeepsSourceGeneratedContentAndPrivateStudyMetadata]' started.
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliAppTests/MemoryFlowTests.swift:52: error: -[PiyaliTests.MemoryFlowTests testExerciseNoteKeepsSourceGeneratedContentAndPrivateStudyMetadata] : XCTAssertEqual failed: ("Example: Choose a greeting") is not equal to ("Hola, mamá.")
+/Users/sheilferzepeda/Desktop/nosabos-x/piyali-ios/Tests/PiyaliAppTests/MemoryFlowTests.swift:52: error: -[PiyaliTests.MemoryFlowTests testExerciseNoteKeepsSourceGeneratedContentAndPrivateStudyMetadata] : XCTAssertEqual failed: ("Practice this A1 vocabulary concept regularly.") is not equal to ("Use hola to greet a family member.")
+Test Case '-[PiyaliTests.MemoryFlowTests testExerciseNoteKeepsSourceGeneratedContentAndPrivateStudyMetadata]' failed (0.073 seconds).
+Test Case '-[PiyaliTests.MemoryFlowTests testExerciseNoteRejectsAccountTargetSupportReplacementAndCancellation]' started.
+Test Case '-[PiyaliTests.MemoryFlowTests testExerciseNoteRejectsAccountTargetSupportReplacementAndCancellation]' passed (0.096 seconds).
+Test Case '-[PiyaliTests.MemoryFlowTests testFailedCaptureStaysPendingAndOnlyANewSlipRetriesEnrichment]' started.
+Test Case '-[PiyaliTests.MemoryFlowTests testFailedCaptureStaysPendingAndOnlyANewSlipRetriesEnrichment]' passed (0.085 seconds).
+Test Case '-[PiyaliTests.MemoryFlowTests testLocalRepairCaptureSignalsOnceLocalizationDoesNotReplayAndScopeClearsIt]' started.
+Test Case '-[PiyaliTests.MemoryFlowTests testLocalRepairCaptureSignalsOnceLocalizationDoesNotReplayAndScopeClearsIt]' passed (0.066 seconds).
+Test Case '-[PiyaliTests.MemoryFlowTests testOpeningAnAlreadyLocalizedPendingNoteDoesNotInventEnrichmentOrRetryTheCapture]' started.
+Test Case '-[PiyaliTests.MemoryFlowTests testOpeningAnAlreadyLocalizedPendingNoteDoesNotInventEnrichmentOrRetryTheCapture]' passed (0.098 seconds).
+Test Case '-[PiyaliTests.MemoryFlowTests testRepairArrivingDuringSummaryIsLocalizedBeforeRefreshSettles]' started.
+Test Case '-[PiyaliTests.MemoryFlowTests testRepairArrivingDuringSummaryIsLocalizedBeforeRefreshSettles]' passed (0.103 seconds).
+Test Case '-[PiyaliTests.MemoryFlowTests testSharedCaptureStartsBeforeDrawerAndEnrichesOriginalBucketAcrossModes]' started.
+Test Case '-[PiyaliTests.MemoryFlowTests testSharedCaptureStartsBeforeDrawerAndEnrichesOriginalBucketAcrossModes]' passed (0.656 seconds).
+Test Suite 'MemoryFlowTests' failed at 2026-11-05 23:59:09.723.
+	 Executed 16 tests, with 10 failures (0 unexpected) in 40.407 (40.412) seconds
+Test Suite 'TutorSessionTests' started at 2026-11-05 23:59:09.723.
+Test Case '-[PiyaliTests.TutorSessionTests testActualSourceRepeatedCaptureAndNativeTutorMemoryKeepOriginalCorrectionInEnglishAndArabic]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testActualSourceRepeatedCaptureAndNativeTutorMemoryKeepOriginalCorrectionInEnglishAndArabic]' passed (19.411 seconds).
+Test Suite 'TutorSessionTests' passed at 2026-11-05 23:59:29.134.
+	 Executed 1 test, with 0 failures (0 unexpected) in 19.411 (19.412) seconds
+Test Suite 'PiyaliTests.xctest' failed at 2026-11-05 23:59:29.135.
+	 Executed 19 tests, with 23 failures (0 unexpected) in 68.512 (68.521) seconds
+Test Suite 'Selected tests' failed at 2026-11-05 23:59:29.135.
+	 Executed 19 tests, with 23 failures (0 unexpected) in 68.512 (68.521) seconds
+Test Suite 'Selected tests' started at 2026-11-05 23:59:31.187.
+Test Suite 'PiyaliUITests.xctest' started at 2026-11-05 23:59:31.188.
+Test Suite 'StandardBodyJourneyTests' started at 2026-11-05 23:59:31.188.
+Test Case '-[PiyaliUITests.StandardBodyJourneyTests testOrdinaryWrongAnswerEnrichesSharedMemoryAfterNextAndRestoresWithoutExtraReward]' started.
+Test Case '-[PiyaliUITests.StandardBodyJourneyTests testOrdinaryWrongAnswerEnrichesSharedMemoryAfterNextAndRestoresWithoutExtraReward]' passed (98.235 seconds).
+Test Suite 'StandardBodyJourneyTests' passed at 2026-11-06 00:01:09.426.
+	 Executed 1 test, with 0 failures (0 unexpected) in 98.235 (98.238) seconds
+Test Suite 'PiyaliUITests.xctest' passed at 2026-11-06 00:01:09.427.
+	 Executed 1 test, with 0 failures (0 unexpected) in 98.235 (98.239) seconds
+Test Suite 'Selected tests' passed at 2026-11-06 00:01:09.428.
+	 Executed 1 test, with 0 failures (0 unexpected) in 98.235 (98.240) seconds

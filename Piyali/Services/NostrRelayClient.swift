@@ -13,10 +13,11 @@ actor NostrRelayClient {
         for (key,values) in filter where key.hasPrefix("#") { if let values=values as? [String],!event.tags.contains(where:{ $0.count >= 2 && $0[0] == String(key.dropFirst()) && values.contains($0[1]) }) { return false } }
         return true
     }
-    func exchange(url: String, message: [Any], subscription: String? = nil, authenticate: Authenticate? = nil) async throws -> [NostrEventPayload] {
+    func exchange(url: String, message: [Any], subscription: String? = nil, authenticate: Authenticate? = nil, collectUntilDeadline:Bool=false) async throws -> [NostrEventPayload] {
         guard let endpoint=URL(string:url),endpoint.user == nil,endpoint.password == nil,endpoint.fragment == nil,endpoint.host != nil,endpoint.scheme == "wss" || endpoint.scheme == "ws" && ["localhost","127.0.0.1","::1"].contains(endpoint.host!) else { throw AppError.message("Invalid Nostr relay URL.") }
         let socket=session.webSocketTask(with:endpoint);socket.resume()
-        let deadline=Task { try? await Task.sleep(for:timeout);if !Task.isCancelled { socket.cancel(with:.goingAway,reason:nil) } }
+        let expires=ContinuousClock.now+timeout
+        let deadline=Task { try? await ContinuousClock().sleep(until:expires);if !Task.isCancelled { socket.cancel(with:.goingAway,reason:nil) } }
         defer { deadline.cancel();socket.cancel(with:.normalClosure,reason:nil) }
         return try await withTaskCancellationHandler {
             func send(_ frame: [Any]) async throws { try Task.checkCancellation();let bytes=try JSONSerialization.data(withJSONObject:frame,options:[.withoutEscapingSlashes]);try await socket.send(.string(String(decoding:bytes,as:UTF8.self))) }
@@ -26,7 +27,13 @@ actor NostrRelayClient {
             var events:[NostrEventPayload]=[],challenge:String?,authID:String?,authenticated=false,retries=0
             while true {
                 try Task.checkCancellation()
-                let received=try await socket.receive(),data:Data
+                let received:URLSessionWebSocketTask.Message,data:Data
+                do{received=try await socket.receive()}
+                catch{
+                    try Task.checkCancellation()
+                    if collectUntilDeadline,ContinuousClock.now>=expires{return events}
+                    throw error
+                }
                 switch received { case .string(let text):data=Data(text.utf8);case .data(let bytes):data=bytes;@unknown default:continue }
                 guard data.count <= 2_097_152,let parts=try? JSONSerialization.jsonObject(with:data) as? [Any],let type=parts.first as? String else { continue }
                 if type == "AUTH",parts.count == 2,let value=parts[1] as? String,!value.isEmpty,value.utf8.count <= 4096 { challenge=value;authenticated=false;continue }
@@ -53,10 +60,10 @@ actor NostrRelayClient {
         } onCancel: { socket.cancel(with:.goingAway,reason:nil) }
     }
     /// Keep all responding relay versions. Achievement collections union their records before selecting an address to publish.
-    func querySnapshots(filter: [String:Any], authenticate: Authenticate? = nil) async throws -> [NostrEventPayload] {
+    func querySnapshots(filter: [String:Any], authenticate: Authenticate? = nil, collectUntilDeadline:Bool=false) async throws -> [NostrEventPayload] {
         let id=UUID().uuidString;var events:[NostrEventPayload]=[],successes=0
         await withTaskGroup(of:[NostrEventPayload]?.self) { group in
-            for relay in relays { group.addTask { try? await self.exchange(url:relay,message:["REQ",id,filter],subscription:id,authenticate:authenticate) } }
+            for relay in relays { group.addTask { try? await self.exchange(url:relay,message:["REQ",id,filter],subscription:id,authenticate:authenticate,collectUntilDeadline:collectUntilDeadline) } }
             for await result in group { if let result { successes += 1;events += result } }
         }
         try Task.checkCancellation();guard successes > 0 else { throw AppError.message("No Nostr relay completed the request. Try again.") };return events

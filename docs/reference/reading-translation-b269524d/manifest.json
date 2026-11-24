@@ -1,0 +1,64 @@
+{
+  "sources": [
+    {
+      "file": "src/components/History.jsx",
+      "sha256": "ceca67f29b27ebc41c300c29e6ea92240bda1020fb23c3e505a06b65842832a9"
+    },
+    {
+      "file": "src/components/RandomCharacter.jsx",
+      "sha256": "caa28f8b1d25cd82aff68323eadc1a8003c93506714aff53d3cf3b079eee5db0"
+    },
+    {
+      "file": "src/components/WaveBar.jsx",
+      "sha256": "619c6d05f99488316facec96f2b35fa46544910a5b1fd0d0584e529af756c536"
+    },
+    {
+      "file": "src/components/questionUiStyles.js",
+      "sha256": "5a3389380c6df57642d750220ef6c12f64326a73de92134ea6f2b365a00e5b97"
+    },
+    {
+      "file": "src/theme.js",
+      "sha256": "6fe6093ecca51d0debb1314a587d6bd0927e7ac9f8c1ba2c6c744017e3be407e"
+    },
+    {
+      "file": "src/utils/translation.jsx",
+      "sha256": "010eb38be8f55e0509b99c209ae4042833057f3e28e0d925636dec42d7fb6fb6"
+    },
+    {
+      "file": "src/index.css",
+      "sha256": "79a5362dc1b189acd0d2288c0e85ff29c9cc1c8e39b8bb5cabe164ddd1c29030"
+    },
+    {
+      "file": "src/useThemeStore.jsx",
+      "sha256": "ff0a591e7e674099e0202c58dfdff3d663fd65297f1a9cde0e6328f9ee5e4b4e"
+    }
+  ],
+  "scope": "Original History passage JSX and translateLectureLines callback mounted with its source theme, system fonts and CSS. Public reading-test-passage input and synthetic translation chunks; first request throws after one complete line, retry completes. Browser-visible source component states, no learner/provider I/O. Excludes full product shell, footer and grading; native captures are full simulator viewports.",
+  "viewport": {
+    "width": 402,
+    "height": 874
+  },
+  "savedCaptureCrop": {
+    "width": 402,
+    "height": 700
+  },
+  "referenceCommit": "b269524ddc578027c549616fc47f5954991d9f6f",
+  "captures": [
+    {
+      "file": "arriving-en-light.jpg",
+      "sha256": "30ce6f29ee2eb54ed05673f7751dcb7bc99e049e427a259fc844a0d3cd917a6d"
+    },
+    {
+      "file": "control-en-light.json",
+      "sha256": "563031875f48222217e25f1b57a7f57b015f9d62cc5b7bf026f89814bc124d36"
+    },
+    {
+      "file": "recovered-en-light.jpg",
+      "sha256": "0159cb3ee0baa001de8009fbc1994e8512bb51c2016256720b078c0026ea5c80"
+    },
+    {
+      "file": "thrown-en-light.jpg",
+      "sha256": "5dbc5075e81b17eb13eb500bd96bb1718628db1d0e8a2045aa3486502eecdefd"
+    }
+  ]
+}

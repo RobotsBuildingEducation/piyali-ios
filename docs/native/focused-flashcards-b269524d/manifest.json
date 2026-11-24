@@ -1,0 +1,316 @@
+{
+  "reference_revision": "b269524ddc578027c549616fc47f5954991d9f6f",
+  "native_base": "a073f15ae709b857458399ed495a5882169e144f",
+  "result_bundle": "/tmp/PiyaliFocusedDeckVerified20261105.xcresult",
+  "qa_device": "CE8248B6-7171-4FD4-97DE-89E499107F82",
+  "scope": "Original web isolated card-tree renders and programmatic original tile/modal/Good handlers with recorded I/O; native content renders plus real native signup/setup/Goal and repair recall/next-lesson/relaunch UI journeys under public cached deck, provider and acknowledgment fixtures. Not production services, full browser app routing, physical device, all locales or whole-shell parity. No source file was modified.",
+  "checks": {
+    "core": {
+      "tests": 24,
+      "failures": 0,
+      "seconds": 10.438,
+      "log": "/tmp/piyali-focused-deck-final2-core-20261105.log"
+    },
+    "app_source_emulator": {
+      "tests": 8,
+      "failures": 0,
+      "seconds": 59.625
+    },
+    "ui": {
+      "tests": 2,
+      "failures": 0,
+      "goal_seconds": 140.182,
+      "repair_seconds": 89.713
+    }
+  },
+  "sources": [
+    {
+      "file": "src/utils/focusedPracticeDecks.js",
+      "sha256": "bb5f8e54a4ad8db64bfb5e725f8fec4e37f538b4aa26a20714d18e825d6ad59d"
+    },
+    {
+      "file": "src/components/FlashcardSkillTree.jsx",
+      "sha256": "953b1553e067d2cd7dfec1cb87e20798336c6a9ec78eaed0136efbbd4c1b644f"
+    },
+    {
+      "file": "src/components/FlashcardPractice.jsx",
+      "sha256": "b1da353b8d9d095030637a8e57f100d80184f69bb1e5b5f6a4c37ac3cb756a14"
+    },
+    {
+      "file": "src/components/SkillTree.jsx",
+      "sha256": "d9aa286221c8648d3a06730045d85e9ad621906f439e7255e5149bf55bdc8020"
+    },
+    {
+      "file": "src/components/CEFRLevelNavigator.jsx",
+      "sha256": "16e84a64f1fd9b25689f00042a23d92d7ebb3499122384a74b8f0a19e42a9b2f"
+    },
+    {
+      "file": "src/components/CourseProgressHeader.jsx",
+      "sha256": "c23eaebcb71807d34de16c121f06d37d06ac3b12619cc14fba4a1a60e537009c"
+    },
+    {
+      "file": "src/utils/companionMemoryCopy.js",
+      "sha256": "cdfb764934e9372e83c8e8d471d30ff8b942e50d1c29c8f98b17f96526b22777"
+    },
+    {
+      "file": "src/index.css",
+      "sha256": "79a5362dc1b189acd0d2288c0e85ff29c9cc1c8e39b8bb5cabe164ddd1c29030"
+    }
+  ],
+  "native": [
+    {
+      "file": "Piyali/Features/SourceFlashcardsView.swift",
+      "sha256": "1f59c23645a21c899de91f5a89d4fa4950bf37ea91ca5a5a00396763313788fb"
+    },
+    {
+      "file": "Piyali/Features/FlashcardAppearance.swift",
+      "sha256": "97bb46eb0726cc272f08d2cad1bb92267c1f2d41fd0d6e1690656f8af94093f6"
+    },
+    {
+      "file": "Piyali/App/AppModel.swift",
+      "sha256": "d79f7eae9e0af0b4ee01b04b37987a685fbee9844aec03378659866c2dbd5f12"
+    },
+    {
+      "file": "Piyali/App/FlashcardSessionController.swift",
+      "sha256": "62d24bca1dd6e66292d615f95c15ff0e8fc4c4c2a2ef26656a7c2210cc7c268b"
+    },
+    {
+      "file": "Piyali/Core/FocusedDeckProgress.swift",
+      "sha256": "fd6a812ce0f721f860217fee6dccac9b4792cd55fbf850e1427c55ae7e916306"
+    },
+    {
+      "file": "Piyali/Core/GoalPractice.swift",
+      "sha256": "968e1f0bf970c95526262fea62b0076fa00c263a85a9438159533dc56ac3d83e"
+    },
+    {
+      "file": "Piyali/Core/SyncChanges.swift",
+      "sha256": "07f30a47cf8a7f2491fd97fa6898bd0ec2cb14d8862e1efe75e5f28b768669c0"
+    },
+    {
+      "file": "Piyali/Services/FirebaseService.swift",
+      "sha256": "1780822d603d2045ddb8d1b9f512c64f49ab40590136fe24d731f57d10d585cd"
+    },
+    {
+      "file": "Piyali/Services/FlashcardProvider.swift",
+      "sha256": "91027d37f2ca7dc11060d9b72c0a8219db23e382565cb1146a11207f5bd1a416"
+    },
+    {
+      "file": "Piyali/Resources/companion-quest-policy.js",
+      "sha256": "12bc28d9f5e36e5a22c63a0cf72334d6d0836817544192966734d5f377d7e564"
+    },
+    {
+      "file": "Tests/PiyaliAppTests/FocusedFlashcardComparisonTests.swift",
+      "sha256": "08b31b766ba2e61f2418080a698aaaf35cf548530664c2df8ea66313dc90f50c"
+    },
+    {
+      "file": "Tests/PiyaliUITests/FocusedDeckJourneyTests.swift",
+      "sha256": "e120003cb336288dc7acc8d6fa34cb7d18cda81a1cc790bcf025991ca3c857a5"
+    }
+  ],
+  "tested_products": [
+    {
+      "file": "DerivedData/Build/Products/Debug-iphonesimulator/Piyali.app/Piyali",
+      "sha256": "cab8aded7cb684961079f867a95339e89f25e7a8615ba7a02b9c7d696f592269"
+    },
+    {
+      "file": "DerivedData/Build/Products/Debug-iphonesimulator/Piyali.app/Piyali.debug.dylib",
+      "sha256": "fcd3b14cb548f6f23865cebceb75bc086d65bba788776af161d92c4f27d676e5"
+    },
+    {
+      "file": "DerivedData/Build/Products/Debug-iphonesimulator/Piyali.app/PlugIns/PiyaliTests.xctest/PiyaliTests",
+      "sha256": "12f30690b29176358f8c984b28653b5119baee63a1829da6e9b6d6ef089f800a"
+    },
+    {
+      "file": "DerivedData/Build/Products/Debug-iphonesimulator/PiyaliUITests-Runner.app/PlugIns/PiyaliUITests.xctest/PiyaliUITests",
+      "sha256": "f63d473661e259400b7653db79d6b6e11c518d569fdd398cbce8f3c9487f2340"
+    }
+  ],
+  "artifacts": [
+    {
+      "file": "source-goal-en.png",
+      "attachment": "Source focused goal en confirmed one",
+      "sha256": "1431adad965ea69bafb26486c898eac1383c26e0c1d9c5ddc85deffd95d2f2fa",
+      "bytes": 836007
+    },
+    {
+      "file": "native-goal-en.png",
+      "attachment": "Native focused goal en confirmed one",
+      "sha256": "6c2f6100d6d8c698fa42a322bc8d97307e1cefcd69ad1b2b6f3d6ce99b1674f2",
+      "bytes": 2627291
+    },
+    {
+      "file": "goal-en-input.json",
+      "attachment": "Public focused goal en input",
+      "sha256": "1d938194dee9c7660038b1e424697065996ec1bacf9bf0687c05c0e0fdae8dae",
+      "bytes": 3050
+    },
+    {
+      "file": "goal-en-geometry.json",
+      "attachment": "Source focused goal en geometry",
+      "sha256": "14e37a47bd198d9b4bf591987cfd77a9a7bd2c66ddef344583d9884bb4bccf55",
+      "bytes": 3412
+    },
+    {
+      "file": "goal-en-source-writes.json",
+      "attachment": "Source actual focused goal en completion writes",
+      "sha256": "46310ac3bb391c4aa99f5cf49cffa33ede3cbb0fa061b3c394c356fcd0d99b74",
+      "bytes": 4000
+    },
+    {
+      "file": "goal-en-pair.png",
+      "scope": "sRGB presentation pair of original 402-point content captures; source left, native right",
+      "sha256": "0411a9f032bf93371e21809786c3f90bfd6d98c4e8873c8a3bc36b5074a8d255",
+      "bytes": 246656
+    },
+    {
+      "file": "source-goal-ar.png",
+      "attachment": "Source focused goal ar confirmed one",
+      "sha256": "5954df644f39680ffc104dc9bc33169d73c496a61fc45656e82e7b073efca94e",
+      "bytes": 737322
+    },
+    {
+      "file": "native-goal-ar.png",
+      "attachment": "Native focused goal ar confirmed one",
+      "sha256": "1ad1e0870b8995c1b8798872b952b4b36d9182285bb7941367f7db616b29f6f7",
+      "bytes": 1913937
+    },
+    {
+      "file": "goal-ar-input.json",
+      "attachment": "Public focused goal ar input",
+      "sha256": "4fa194f832cb034304896b06d910fdcb20dfdbe0d00e294aafc1428307bd3cbd",
+      "bytes": 3050
+    },
+    {
+      "file": "goal-ar-geometry.json",
+      "attachment": "Source focused goal ar geometry",
+      "sha256": "4364210fd82f28cd268c1e7af4483c3475ba8c5ba9e95daca043143f7cd258f9",
+      "bytes": 3587
+    },
+    {
+      "file": "goal-ar-source-writes.json",
+      "attachment": "Source actual focused goal ar completion writes",
+      "sha256": "507c2299a499f70541b6878f5c67db598867cffaa635edebafa33859f62848a1",
+      "bytes": 4000
+    },
+    {
+      "file": "goal-ar-pair.png",
+      "scope": "sRGB presentation pair of original 402-point content captures; source left, native right",
+      "sha256": "88df13e3e8ce57ab74ec4d1a722382de9b98853619ed4bba0eb0eaf180a02852",
+      "bytes": 191038
+    },
+    {
+      "file": "source-repair-en.png",
+      "attachment": "Source focused repair en confirmed one",
+      "sha256": "e0c7a2a0ef73db51ae6fdbb29ea2fbd485d0665206ed93c239e6543169184566",
+      "bytes": 840466
+    },
+    {
+      "file": "native-repair-en.png",
+      "attachment": "Native focused repair en confirmed one",
+      "sha256": "a3f69fd48a96e72a09f9812318efda807094281b2407060c092c4dbb49b83dad",
+      "bytes": 2634327
+    },
+    {
+      "file": "repair-en-input.json",
+      "attachment": "Public focused repair en input",
+      "sha256": "f29611047943a39ffb8e6e4dbfad1373c1db1f866a0e246acbf08e86fde1effe",
+      "bytes": 2747
+    },
+    {
+      "file": "repair-en-geometry.json",
+      "attachment": "Source focused repair en geometry",
+      "sha256": "f4d07e6ef6f8f7eba4a4fd602feaebaf0a387651e1a39305baec9efaad094c44",
+      "bytes": 3258
+    },
+    {
+      "file": "repair-en-source-writes.json",
+      "attachment": "Source actual focused repair en completion writes",
+      "sha256": "e70db29fb55c70a93f3dee950470f17ec6a25a7723e473860ee2a6fed33a135b",
+      "bytes": 1370
+    },
+    {
+      "file": "repair-en-pair.png",
+      "scope": "sRGB presentation pair of original 402-point content captures; source left, native right",
+      "sha256": "8d7a42332fd517517e62aacf2783e3957274cd33182167d29464c0449c4a6af2",
+      "bytes": 250584
+    },
+    {
+      "file": "source-repair-ar.png",
+      "attachment": "Source focused repair ar confirmed one",
+      "sha256": "a26f7c63e1e9a81d802401d9309d7261ea363a6675ce3f221f6c67a70a3ddbe6",
+      "bytes": 744140
+    },
+    {
+      "file": "native-repair-ar.png",
+      "attachment": "Native focused repair ar confirmed one",
+      "sha256": "3e65d072aab72f3562b4c5ec0d3af4a1bb5c4612ce556dd3ac6faa252bde3c40",
+      "bytes": 1923015
+    },
+    {
+      "file": "repair-ar-input.json",
+      "attachment": "Public focused repair ar input",
+      "sha256": "dc566fe40c7eceac235f08f141c18584ef025e11dd3f3a28adfaaaf17cd38b85",
+      "bytes": 2747
+    },
+    {
+      "file": "repair-ar-geometry.json",
+      "attachment": "Source focused repair ar geometry",
+      "sha256": "b9d73d41214770ecc8e90e1fe667915d17c2ab393cca9fafd764847b1935af61",
+      "bytes": 3444
+    },
+    {
+      "file": "repair-ar-source-writes.json",
+      "attachment": "Source actual focused repair ar completion writes",
+      "sha256": "d2ddfb55c44107c53d862375c6386f955e8e678eff0a94b30cba082f58e2aedd",
+      "bytes": 1370
+    },
+    {
+      "file": "repair-ar-pair.png",
+      "scope": "sRGB presentation pair of original 402-point content captures; source left, native right",
+      "sha256": "49c9cfb4d75742e5f9fdb19499e3c8cd5a1779430072186b22e14a8035de9387",
+      "bytes": 196534
+    },
+    {
+      "file": "goal-note-pending.png",
+      "attachment": "Native focused Goal note pending before final recall save",
+      "sha256": "62a432c992ba89563a5ec9f74bfee51bcea80152fe4cb27fb7c9a02aadb68dbb",
+      "bytes": 459632
+    },
+    {
+      "file": "goal-next-lesson.png",
+      "attachment": "Native completed Goal recall hands off to Goal lesson",
+      "sha256": "ff670584feda6d5b120101511acad7186e01630cdf6d451d3aeadc807afa956c",
+      "bytes": 269379
+    },
+    {
+      "file": "goal-note-after-handoff.png",
+      "attachment": "Native focused recall note completes after lesson handoff",
+      "sha256": "f99f0f804a7707122abe65c5ea809d40fb2304f1bc89be36e262996bd0463213",
+      "bytes": 301550
+    },
+    {
+      "file": "goal-note-restored.png",
+      "attachment": "Native completed Goal deck and study note restore",
+      "sha256": "da36a7aec79f80fe0c4470f9f8fba7ff5e4a87bd4b6e65f49805fcd531f6207f",
+      "bytes": 301572
+    },
+    {
+      "file": "repair-confirmed-one.png",
+      "attachment": "Native repair recall deck one confirmed answer",
+      "sha256": "5cee20b640bd6fcaec4ceca5696f505143f32451c737f14e579dc15996714dd8",
+      "bytes": 1026028
+    },
+    {
+      "file": "repair-next-lesson.png",
+      "attachment": "Native completed repair deck hands off to next repair lesson",
+      "sha256": "2e57dbbacbf0dc100a1a3b55ccb6bf01ba7dc8d5cbc1e3b547221705a8b0b683",
+      "bytes": 256748
+    },
+    {
+      "file": "repair-next-restored.png",
+      "attachment": "Native next repair lesson restores after relaunch",
+      "sha256": "fae10d79923953eda1ef2df4d70747cbf94269032019176863be85db762978e1",
+      "bytes": 256750
+    }
+  ]
+}

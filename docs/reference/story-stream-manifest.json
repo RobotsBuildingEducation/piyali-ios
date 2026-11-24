@@ -1,0 +1,6 @@
+{
+  "source": "src/components/Stories.jsx",
+  "sha256": "98a951b5e2de6f075b89da93dc99c4c8bfeee5fecd4cb365df2906be4302238c",
+  "cases": 8,
+  "scope": "Original Speak tryConsumeLine callback executed with in-memory React setters; no provider, browser, or reward assessment."
+}

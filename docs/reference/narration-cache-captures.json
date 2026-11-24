@@ -1,0 +1,27 @@
+[
+  {
+    "name": "Native completed narration replays after relaunch",
+    "file": "docs/native/narration-cache-disk-replay.png",
+    "run": "ui1"
+  },
+  {
+    "name": "Native completed narration replays from memory",
+    "file": "docs/native/narration-cache-memory-replay.png",
+    "run": "ui1"
+  },
+  {
+    "name": "Native first narration connects before reusable completion",
+    "file": "docs/native/narration-cache-first-connect.png",
+    "run": "ui1"
+  },
+  {
+    "name": "Native lesson narration loading match",
+    "file": "docs/native/narration-cache-network-match-loading.png",
+    "run": "ui2"
+  },
+  {
+    "name": "Native lesson narration loading fill",
+    "file": "docs/native/narration-cache-network-fill-loading.png",
+    "run": "ui2"
+  }
+]

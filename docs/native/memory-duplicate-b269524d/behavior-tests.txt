@@ -1,0 +1,76 @@
+Test Suite 'Selected tests' started at 2026-11-05 22:49:58.108.
+Test Suite 'PiyaliTests.xctest' started at 2026-11-05 22:49:58.108.
+Test Suite 'FirestoreContractTests' started at 2026-11-05 22:49:58.108.
+Test Case '-[PiyaliTests.FirestoreContractTests testMemoryCapturesMergeWithWebNotesAndRetryOnce]' started.
+Test Case '-[PiyaliTests.FirestoreContractTests testMemoryCapturesMergeWithWebNotesAndRetryOnce]' passed (4.952 seconds).
+Test Case '-[PiyaliTests.FirestoreContractTests testMemoryLocalizationRetainsConcurrentLifecycleForeignTimestampAndXPOnRetry]' started.
+Test Case '-[PiyaliTests.FirestoreContractTests testMemoryLocalizationRetainsConcurrentLifecycleForeignTimestampAndXPOnRetry]' passed (0.728 seconds).
+Test Case '-[PiyaliTests.FirestoreContractTests testOriginalTutorPendingMemoryAndEnrichmentPersistWithoutXPOrExtraAssessmentOnRetry]' started.
+Test Case '-[PiyaliTests.FirestoreContractTests testOriginalTutorPendingMemoryAndEnrichmentPersistWithoutXPOrExtraAssessmentOnRetry]' passed (1.041 seconds).
+Test Case '-[PiyaliTests.FirestoreContractTests testRepairReinforcementIsSharedAndDoesNotReviveOnRetry]' started.
+Test Case '-[PiyaliTests.FirestoreContractTests testRepairReinforcementIsSharedAndDoesNotReviveOnRetry]' passed (0.734 seconds).
+Test Case '-[PiyaliTests.FirestoreContractTests testRepeatedMemoryKeepsFirstCorrectionOrderAndLifecycleAcrossLanguageRetryAndStaleEnrichment]' started.
+Test Case '-[PiyaliTests.FirestoreContractTests testRepeatedMemoryKeepsFirstCorrectionOrderAndLifecycleAcrossLanguageRetryAndStaleEnrichment]' passed (0.891 seconds).
+Test Case '-[PiyaliTests.FirestoreContractTests testTwoDevicesCaptureOneConceptWithoutLosingSeverity]' started.
+Test Case '-[PiyaliTests.FirestoreContractTests testTwoDevicesCaptureOneConceptWithoutLosingSeverity]' passed (0.871 seconds).
+Test Suite 'FirestoreContractTests' passed at 2026-11-05 22:50:07.328.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 9.217 (9.220) seconds
+Test Suite 'MemoryCaptureTests' started at 2026-11-05 22:50:07.329.
+Test Case '-[PiyaliTests.MemoryCaptureTests testCaptureScopeReplacementAndActualSourceLifetime]' started.
+Test Case '-[PiyaliTests.MemoryCaptureTests testCaptureScopeReplacementAndActualSourceLifetime]' passed (3.222 seconds).
+Test Case '-[PiyaliTests.MemoryCaptureTests testRepeatedCaptureGetsNewIdentityAndOldExpiryCannotClearIt]' started.
+Test Case '-[PiyaliTests.MemoryCaptureTests testRepeatedCaptureGetsNewIdentityAndOldExpiryCannotClearIt]' passed (0.003 seconds).
+Test Suite 'MemoryCaptureTests' passed at 2026-11-05 22:50:10.555.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 3.226 (3.226) seconds
+Test Suite 'MemoryFlowTests' started at 2026-11-05 22:50:10.555.
+Test Case '-[PiyaliTests.MemoryFlowTests testArabicLocalizationRejectsLeakedSupportTextAndPreservesRepairStatus]' started.
+Test Case '-[PiyaliTests.MemoryFlowTests testArabicLocalizationRejectsLeakedSupportTextAndPreservesRepairStatus]' passed (0.174 seconds).
+Test Case '-[PiyaliTests.MemoryFlowTests testDigestIsCachedAndCannotLeakAcrossPracticeLanguages]' started.
+Test Case '-[PiyaliTests.MemoryFlowTests testDigestIsCachedAndCannotLeakAcrossPracticeLanguages]' passed (0.139 seconds).
+Test Case '-[PiyaliTests.MemoryFlowTests testDrawerEnrichmentCannotRetryUnderAReplacedIdentitySession]' started.
+Test Case '-[PiyaliTests.MemoryFlowTests testDrawerEnrichmentCannotRetryUnderAReplacedIdentitySession]' passed (0.101 seconds).
+Test Case '-[PiyaliTests.MemoryFlowTests testRepairArrivingDuringSummaryIsLocalizedBeforeRefreshSettles]' started.
+Test Case '-[PiyaliTests.MemoryFlowTests testRepairArrivingDuringSummaryIsLocalizedBeforeRefreshSettles]' passed (0.122 seconds).
+Test Suite 'MemoryFlowTests' passed at 2026-11-05 22:50:11.093.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.536 (0.538) seconds
+Test Suite 'TutorSessionTests' started at 2026-11-05 22:50:11.093.
+Test Case '-[PiyaliTests.TutorSessionTests testActualSourceOrdinarySemanticMemoryAndRenderedNativeNotesInEnglishAndArabic]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testActualSourceOrdinarySemanticMemoryAndRenderedNativeNotesInEnglishAndArabic]' passed (30.329 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testActualSourceRepeatedCaptureAndNativeTutorMemoryKeepOriginalCorrectionInEnglishAndArabic]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testActualSourceRepeatedCaptureAndNativeTutorMemoryKeepOriginalCorrectionInEnglishAndArabic]' passed (19.754 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testLateMistakesKeepOneAssessmentAndMemoryWithoutAddingChatOrAnotherReply]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testLateMistakesKeepOneAssessmentAndMemoryWithoutAddingChatOrAnotherReply]' passed (4.234 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testOrdinarySemanticSlipCaptureIsIndependentOfSuccessfulAndLowConfidenceGrades]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testOrdinarySemanticSlipCaptureIsIndependentOfSuccessfulAndLowConfidenceGrades]' passed (20.148 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testOrdinarySemanticSlipTrimsAndFallsBackToCorrectionInsteadOfDroppingIt]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testOrdinarySemanticSlipTrimsAndFallsBackToCorrectionInsteadOfDroppingIt]' passed (4.068 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testTutorEnrichmentReceivesTheFullSourceConceptBeforeNoteTruncation]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testTutorEnrichmentReceivesTheFullSourceConceptBeforeNoteTruncation]' passed (4.005 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testTutorMemoryDoesNotStartOrRetryUnderAReplacedIdentitySession]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testTutorMemoryDoesNotStartOrRetryUnderAReplacedIdentitySession]' passed (5.410 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testTutorMemoryEnrichesAfterEndAndTargetChangeWithoutASecondAssessment]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testTutorMemoryEnrichesAfterEndAndTargetChangeWithoutASecondAssessment]' passed (4.119 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testTutorMemoryLateEnrichmentRejectsReplacedAccountAndNewerCapture]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testTutorMemoryLateEnrichmentRejectsReplacedAccountAndNewerCapture]' passed (5.408 seconds).
+Test Case '-[PiyaliTests.TutorSessionTests testTutorMemoryRepeatedLocalizedSlipReusesItsEnrichment]' started.
+Test Case '-[PiyaliTests.TutorSessionTests testTutorMemoryRepeatedLocalizedSlipReusesItsEnrichment]' passed (2.716 seconds).
+Test Suite 'TutorSessionTests' passed at 2026-11-05 22:51:51.289.
+	 Executed 10 tests, with 0 failures (0 unexpected) in 100.193 (100.196) seconds
+Test Suite 'PiyaliTests.xctest' passed at 2026-11-05 22:51:51.290.
+	 Executed 22 tests, with 0 failures (0 unexpected) in 113.171 (113.182) seconds
+Test Suite 'Selected tests' passed at 2026-11-05 22:51:51.291.
+	 Executed 22 tests, with 0 failures (0 unexpected) in 113.171 (113.183) seconds
+Test Suite 'Selected tests' started at 2026-11-05 22:51:53.831.
+Test Suite 'PiyaliUITests.xctest' started at 2026-11-05 22:51:53.832.
+Test Suite 'TutorParityTests' started at 2026-11-05 22:51:53.832.
+Test Case '-[PiyaliUITests.TutorParityTests testNormalSignupTutorSemanticMemoryEnrichesWithoutXPAndSurvivesRelaunch]' started.
+Test Case '-[PiyaliUITests.TutorParityTests testNormalSignupTutorSemanticMemoryEnrichesWithoutXPAndSurvivesRelaunch]' passed (48.667 seconds).
+Test Case '-[PiyaliUITests.TutorParityTests testRepeatedTutorSlipKeepsOneOriginalCorrectionAndEnrichmentAcrossRelaunch]' started.
+Test Case '-[PiyaliUITests.TutorParityTests testRepeatedTutorSlipKeepsOneOriginalCorrectionAndEnrichmentAcrossRelaunch]' passed (57.095 seconds).
+Test Suite 'TutorParityTests' passed at 2026-11-05 22:53:39.599.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 105.762 (105.767) seconds
+Test Suite 'PiyaliUITests.xctest' passed at 2026-11-05 22:53:39.600.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 105.762 (105.769) seconds
+Test Suite 'Selected tests' passed at 2026-11-05 22:53:39.601.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 105.762 (105.770) seconds
+** TEST SUCCEEDED **

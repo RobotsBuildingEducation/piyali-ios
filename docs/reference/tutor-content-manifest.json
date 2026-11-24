@@ -1,0 +1,337 @@
+{
+  "counts": {
+    "es": {
+      "Pre-A1": 86,
+      "A1": 98,
+      "A2": 126,
+      "B1": 105,
+      "B2": 84,
+      "C1": 70,
+      "C2": 56
+    },
+    "en": {
+      "Pre-A1": 86,
+      "A1": 98,
+      "A2": 126,
+      "B1": 105,
+      "B2": 84,
+      "C1": 70,
+      "C2": 56
+    },
+    "pt": {
+      "Pre-A1": 86,
+      "A1": 98,
+      "A2": 126,
+      "B1": 105,
+      "B2": 84,
+      "C1": 70,
+      "C2": 56
+    },
+    "fr": {
+      "Pre-A1": 86,
+      "A1": 98,
+      "A2": 126,
+      "B1": 105,
+      "B2": 84,
+      "C1": 70,
+      "C2": 56
+    },
+    "it": {
+      "Pre-A1": 86,
+      "A1": 98,
+      "A2": 126,
+      "B1": 105,
+      "B2": 84,
+      "C1": 70,
+      "C2": 56
+    },
+    "nl": {
+      "Pre-A1": 86,
+      "A1": 98,
+      "A2": 126,
+      "B1": 105,
+      "B2": 84,
+      "C1": 70,
+      "C2": 56
+    },
+    "nah": {
+      "Pre-A1": 86,
+      "A1": 98,
+      "A2": 126,
+      "B1": 105,
+      "B2": 84,
+      "C1": 70,
+      "C2": 56
+    },
+    "ja": {
+      "Pre-A1": 86,
+      "A1": 98,
+      "A2": 126,
+      "B1": 105,
+      "B2": 84,
+      "C1": 70,
+      "C2": 56
+    },
+    "ru": {
+      "Pre-A1": 86,
+      "A1": 98,
+      "A2": 126,
+      "B1": 105,
+      "B2": 84,
+      "C1": 70,
+      "C2": 56
+    },
+    "de": {
+      "Pre-A1": 86,
+      "A1": 98,
+      "A2": 126,
+      "B1": 105,
+      "B2": 84,
+      "C1": 70,
+      "C2": 56
+    },
+    "el": {
+      "Pre-A1": 86,
+      "A1": 98,
+      "A2": 126,
+      "B1": 105,
+      "B2": 84,
+      "C1": 70,
+      "C2": 56
+    },
+    "pl": {
+      "Pre-A1": 86,
+      "A1": 98,
+      "A2": 126,
+      "B1": 105,
+      "B2": 84,
+      "C1": 70,
+      "C2": 56
+    },
+    "ga": {
+      "Pre-A1": 86,
+      "A1": 98,
+      "A2": 126,
+      "B1": 105,
+      "B2": 84,
+      "C1": 70,
+      "C2": 56
+    },
+    "yua": {
+      "Pre-A1": 86,
+      "A1": 98,
+      "A2": 126,
+      "B1": 105,
+      "B2": 84,
+      "C1": 70,
+      "C2": 56
+    }
+  },
+  "sources": [
+    {
+      "file": "src/data/flashcards/arabicLocalizer.js",
+      "sha256": "e907c9d134deac4627bb0b63860aeb222a71622c97f162ee8434704b60760272"
+    },
+    {
+      "file": "src/data/flashcards/japaneseLocalizer.js",
+      "sha256": "68ae7383abf5192f34a075da1f905d807c96366f88bcea8fa05c028b036993b6"
+    },
+    {
+      "file": "src/utils/hindiTransliteration.js",
+      "sha256": "6df3623f9ea6477b4391c83b9a6ed9e8c8302799e3904e30b76d35d9a55ae38a"
+    },
+    {
+      "file": "src/data/flashcards/hindiLocalizer.js",
+      "sha256": "cebdbb2ec523176e8729d7ce69d9139829cde2bac08dd41bb7d1b6f2b5e11d45"
+    },
+    {
+      "file": "src/data/flashcards/portugueseConceptMap.js",
+      "sha256": "8a38066658cebf19451960236a147a63590e37fbcff6f7f9b0caf894a227d3fb"
+    },
+    {
+      "file": "src/data/flashcards/portugueseLocalizer.js",
+      "sha256": "7e99904cd98b2f64685c9a4ff0887dce6e1fcca5ca8f953eb1f2317432b451c8"
+    },
+    {
+      "file": "src/data/flashcards/chineseLocalizer.js",
+      "sha256": "2cfcd286293b3534e83a1ba0a12c91e46fe4d0a206dbdd41cfd6167d3f89794f"
+    },
+    {
+      "file": "src/data/flashcards/germanLocalizer.js",
+      "sha256": "9bd7cd125503527d8d93f34928d24adf72a9991df0c3c77fcdbf007609244737"
+    },
+    {
+      "file": "src/data/flashcards/common.js",
+      "sha256": "e4110d661b925ecb53e3cf33c02227ea51ac0b67db9cb02a91ee71e14724a2c4"
+    },
+    {
+      "file": "src/data/skillTree/targetCurriculum/de.js",
+      "sha256": "75dd4c91e33f2e8d6890859ef412ea3209ac10ad5bebb611720ce7be66dd043c"
+    },
+    {
+      "file": "src/data/skillTree/targetCurriculum/el.js",
+      "sha256": "520e6e045c06932c51a881216c1489e9c2637c8006ba15e0e912eb0f96156c24"
+    },
+    {
+      "file": "src/data/skillTree/targetCurriculum/en.js",
+      "sha256": "c36d2d5461b4c99453c49400e2344c092d9886e419b10a539f17465ff3cd59fb"
+    },
+    {
+      "file": "src/data/skillTree/targetCurriculum/fr.js",
+      "sha256": "ab23c2b5194058583164f48ff9d79ac99934b9f52b84fba41e61fc8c51f25620"
+    },
+    {
+      "file": "src/data/skillTree/targetCurriculum/ga.js",
+      "sha256": "f43e4c4e524995dd963aaa3fd670e6a9dba25ba1ba0ee13893e9127006350b35"
+    },
+    {
+      "file": "src/data/skillTree/targetCurriculum/it.js",
+      "sha256": "41e912368b5b314403a40cc0950956953d76ab6fb2c97e4ab0a159363f325410"
+    },
+    {
+      "file": "src/data/skillTree/targetCurriculum/ja.js",
+      "sha256": "e09855d94a2f25494756e3ca49ae3f640357d4b3e1c076f96cd69ae92adf0ae9"
+    },
+    {
+      "file": "src/data/skillTree/targetCurriculum/nl.js",
+      "sha256": "2e98fa39a72c50edc38024db1ecf218704509f400c6bf095774de4b0f995cc90"
+    },
+    {
+      "file": "src/data/skillTree/targetCurriculum/pl.js",
+      "sha256": "2a0bc01a6b8cb34906e83c84e93c25c6740a668fbf594f0226ae11722d5e7557"
+    },
+    {
+      "file": "src/data/skillTree/targetCurriculum/pt.js",
+      "sha256": "5d8601c8068deb20afa4a80d061bdc68d9973f6de7ffba5534c976ebbaf24615"
+    },
+    {
+      "file": "src/data/skillTree/targetCurriculum/ru.js",
+      "sha256": "e70a9f4f583b78a20db887df26dcd554d4cfdd358c59cb2efbdc8ffead2ad0f4"
+    },
+    {
+      "file": "src/data/skillTree/targetCurriculum/alignmentOverrides.js",
+      "sha256": "27ecd0df19e9efd232a28dfd1c94d5d6c1ff3f8f73fc9735b7a7eec7c809712e"
+    },
+    {
+      "file": "src/data/skillTree/targetCurriculum/repairOverrides.js",
+      "sha256": "ecd71d4a9b14cc4d5eceed0115f1423d091f21cf7057a906b9c13ea98d8b37bc"
+    },
+    {
+      "file": "src/data/skillTree/targetCurriculum/load.js",
+      "sha256": "244641cbd5f9f2b6cc7788d63e66e20d329710377c67c6785ebf9e4081dfae38"
+    },
+    {
+      "file": "src/utils/introTutorial.js",
+      "sha256": "f45f065112f1b41df0adc2739c03bcbb1b19a8a46baf1aad01fff0d36667200f"
+    },
+    {
+      "file": "src/utils/proficiencyPlacement.js",
+      "sha256": "34f0e0f1c0879a8e36e752d813ba74927563d99c7266f1f9e35df0e364af5ff9"
+    },
+    {
+      "file": "src/data/skillTree/baseLevels/pre-a1.js",
+      "sha256": "d83568a29bba79c498d379720f2926b25fc76946fc448ac9d711e2ecb40c406d"
+    },
+    {
+      "file": "src/data/skillTree/baseLevels/a1.js",
+      "sha256": "d82a43ee3b8f8c3f6d340efff33e578c88a689a7442c84aed67d65f9f85b7e30"
+    },
+    {
+      "file": "src/data/skillTree/baseLevels/a2.js",
+      "sha256": "d854af729c5b16faf4f969234bc67503bed52a88d50642bf83b527118c4addbc"
+    },
+    {
+      "file": "src/data/skillTree/baseLevels/b1.js",
+      "sha256": "5c698abadbbe1fa187b447a6e898fbdc33d6093bdc64c57e4bf810ba9777339b"
+    },
+    {
+      "file": "src/data/skillTree/baseLevels/b2.js",
+      "sha256": "bc79282b3c7b80df05e478a72ce5fb73bb962788b0d9947a04f29ed263dead69"
+    },
+    {
+      "file": "src/data/skillTree/baseLevels/c1.js",
+      "sha256": "094fe5b813da07c19e38eae4000300c22aa62e3ff15bd1044df898ea8ca6e19b"
+    },
+    {
+      "file": "src/data/skillTree/baseLevels/c2.js",
+      "sha256": "507ff799feb18ea38481d785074323a5a22e7610f822dea74b10f445486f5cb4"
+    },
+    {
+      "file": "src/data/skillTree/italianLocalizer.js",
+      "sha256": "9b2f37827a7f93c5cf6e902556da3d7c3108450804ea98ffbae353fb7984e6e0"
+    },
+    {
+      "file": "src/data/readingCurriculum.js",
+      "sha256": "56d1184eeba77e353e36ecadf71e2d37c874755fc6e82e0d466b3a0a9f191dd8"
+    },
+    {
+      "file": "src/data/skillTree/frenchLocalizer.js",
+      "sha256": "ae05fe3c5f1de3078b69b493b84d44c8346a9313a38ffbe8e35c7dc0a8281f56"
+    },
+    {
+      "file": "src/data/skillTree/hindiLocalizer.js",
+      "sha256": "efbc2c119c15547593f727a9f19eb99e2c189bb82b6962a79a076ff6abed18cd"
+    },
+    {
+      "file": "src/data/skillTree/japaneseLocalizer.js",
+      "sha256": "9b94c18b7b783647aa14797e399bde397fd20eb96967c48add87cb06a3705848"
+    },
+    {
+      "file": "src/data/skillTree/portugueseTextMap.js",
+      "sha256": "6ddc806150ec6de830b6e1d4e56257c7c1ad52505f5639593faef6ebf7d6726d"
+    },
+    {
+      "file": "src/data/skillTree/portugueseLocalizer.js",
+      "sha256": "67408ea14837e7e5c86479bf362448bc33b9723659406c389d96a0dc184b08ad"
+    },
+    {
+      "file": "src/data/skillTree/arabicLocalizer.js",
+      "sha256": "559f1f435e78776f5bd3c0aa1951345c44e089c735179e1292276a146e01c8cb"
+    },
+    {
+      "file": "src/data/skillTree/chineseLocalizer.js",
+      "sha256": "425448ce0f6d08ae30da7b4621906279826f8da86009617f4cee7cdff35d7f33"
+    },
+    {
+      "file": "src/data/skillTree/germanLocalizer.js",
+      "sha256": "8f9a500ee8aca1ffe54ad80a473ed1a38f9b5cdf4f367448d33342752fe5ad7f"
+    },
+    {
+      "file": "src/components/RPGGame/content/buckets.js",
+      "sha256": "edce406326843f52305d1808a02444808a5a2a36250d0851f1b44f8d97a73a45"
+    },
+    {
+      "file": "src/data/manualA1Agendas.js",
+      "sha256": "c83487a99119180cc20e5f690e4e5a07f3b80209c34f7d72de158fcb908abfcc"
+    },
+    {
+      "file": "src/data/manualB1B2Agendas.js",
+      "sha256": "5803258e0d154f309b98076f558dfa2066b9d89385e3a738997a9f953d610b1a"
+    },
+    {
+      "file": "src/data/manualC1C2Agendas.js",
+      "sha256": "296264b175d3d5425e0a3b2899b8dba27db12acea8e362778f1a17b72b915300"
+    },
+    {
+      "file": "src/data/manualPreA1Agendas.js",
+      "sha256": "d3a963315ddc4cb876713ec1150aebb8a19ceaf90fba0ea46a28a3ab5e920ddf"
+    },
+    {
+      "file": "src/utils/lessonCurriculum.js",
+      "sha256": "87f94db6ecfb9fddf198f3b51fca83017e48586230c0c02eff7f49a5d49a8ad9"
+    },
+    {
+      "file": "src/data/skillTree/curriculumRepairSupportText.js",
+      "sha256": "374267b0afe640c70ec4a76c623fd174ceee2ff2b2fd2e1ffa4fdb105eaff198"
+    },
+    {
+      "file": "src/data/skillTreeLevelBuilder.js",
+      "sha256": "82e467d4360d299c6268ba3ca54505c155c14205b1a720284f4a8cb588982940"
+    },
+    {
+      "file": "src/data/skillTree/index.js",
+      "sha256": "4f7403c1017aadb112f51e4f96a4818530f6b441426788598d9584f4316bb1ad"
+    }
+  ],
+  "scope": "Actual loadLearningPath builder executed for all 14 practice languages and seven levels. Source unit/lesson fields are preserved, including tutorial, path colors/positions, tutorPurpose, game launch, target forms and capability evidence. Only plain JSON is exported; no provider, account or progress is read."
+}

@@ -1,0 +1,186 @@
+{
+  "result": "/tmp/PiyaliRPGCompletion5.xcresult",
+  "scope": "Original source authored-completion JSX and native reusable recap over a shared neutral backdrop. English/light and Arabic/dark at 375x667 and 402x874; score 0 fallback title, 700/two stars and 800/three stars. Original WaveBar, theme, CSS, fonts and bidi helpers; public prepared scenario. Does not compare maps, transition motion or whole-product parity.",
+  "records": [
+    {
+      "file": "docs/reference/rpg-completion-en-375-0.png",
+      "sha256": "df2ab305098fd6f85a1c62fa24c04ec908f1831a6f5cd942f2f66d78224bfd0c",
+      "attachment": "Source RPG recap en 375 0_0_67166456-9E9F-4429-9DA7-4C5DD5C81ECC.png"
+    },
+    {
+      "file": "docs/native/rpg-completion-en-375-0.png",
+      "sha256": "fbcd129e644e747d0293d10f8bf95e94bd4821fea8d624b999a810c31e7b75c9",
+      "attachment": "Native RPG recap en 375 0_0_619DA948-FB98-4254-AC88-107CBCE3CE5F.png"
+    },
+    {
+      "file": "docs/reference/rpg-completion-en-375-0-metrics.json",
+      "sha256": "21e7d3fe04888289ea873ce56a8efd594cc79108f7a430454e9b50123b19a95d",
+      "attachment": "Source RPG recap en 375 0 metrics_0_7DA59387-56EC-40CF-981A-B3B58F896FCE.json"
+    },
+    {
+      "file": "docs/reference/rpg-completion-en-375-700.png",
+      "sha256": "5ce7465164a088886ed3601864f77f5e8c4d503a19ca4099cff358f7068a8daa",
+      "attachment": "Source RPG recap en 375 700_0_F7E24A4F-737F-4F11-8515-A0D20E888AFF.png"
+    },
+    {
+      "file": "docs/native/rpg-completion-en-375-700.png",
+      "sha256": "91c5ccbd7956e625afa89285ad254cade33938454eadfe5e3309e2c692b99868",
+      "attachment": "Native RPG recap en 375 700_0_1323E583-24ED-474A-871B-7422CC0FA532.png"
+    },
+    {
+      "file": "docs/reference/rpg-completion-en-375-700-metrics.json",
+      "sha256": "27be1e2173f2e04a966a82687f9d8dc50c124ce54d86d47801a161c51aa5e545",
+      "attachment": "Source RPG recap en 375 700 metrics_0_0C3091B7-D1FB-45A4-A1A4-2F69D62D3054.json"
+    },
+    {
+      "file": "docs/reference/rpg-completion-en-375-800.png",
+      "sha256": "9cf0ce9a08fe31a6e303b2070cc54709d218fc66502906bb61a80e9535a3bf3d",
+      "attachment": "Source RPG recap en 375 800_0_49406C43-E78E-421A-8BE2-DFC68077926E.png"
+    },
+    {
+      "file": "docs/native/rpg-completion-en-375-800.png",
+      "sha256": "2ef5541d7389ac49f1a6790fd922a01025a00a09d98b558a1c925486965a338d",
+      "attachment": "Native RPG recap en 375 800_0_834C36DF-E088-4828-B810-26CAEE081BC0.png"
+    },
+    {
+      "file": "docs/reference/rpg-completion-en-375-800-metrics.json",
+      "sha256": "24bb541b4228f7e14465e63c03e83c7cddb32bf6958aa8ac87b07905fcf7ccd4",
+      "attachment": "Source RPG recap en 375 800 metrics_0_DCF86F1F-69B5-4C6D-91C1-F6B04966F684.json"
+    },
+    {
+      "file": "docs/reference/rpg-completion-ar-375-0.png",
+      "sha256": "09f14a53ebcdca0bbb04c110719c058dd46bce1df8e6f1f68ec631f0a108ec88",
+      "attachment": "Source RPG recap ar 375 0_0_FAB2FB07-A3C0-4D48-BC71-8D2534C504E9.png"
+    },
+    {
+      "file": "docs/native/rpg-completion-ar-375-0.png",
+      "sha256": "5bade4d3a8ef8c72202840dd7c42fcf854d88f5bb824820ce3f46319a11ae31d",
+      "attachment": "Native RPG recap ar 375 0_0_5B8AC0EB-6939-419A-94BA-DEE54E66F320.png"
+    },
+    {
+      "file": "docs/reference/rpg-completion-ar-375-0-metrics.json",
+      "sha256": "7c1e1642abcfce445a72f67dfd3f1929a2868148be648d7c3e8db99858b107b0",
+      "attachment": "Source RPG recap ar 375 0 metrics_0_693EA44E-5233-4CBF-B85A-F81EC71E7F5A.json"
+    },
+    {
+      "file": "docs/reference/rpg-completion-ar-375-700.png",
+      "sha256": "33bb8cc5e26ee2b477be7898292e29d09ea9ab29348e689c54a145844a74de6c",
+      "attachment": "Source RPG recap ar 375 700_0_4A33EE7A-3DA4-4FD3-B043-C65EDE28E4D9.png"
+    },
+    {
+      "file": "docs/native/rpg-completion-ar-375-700.png",
+      "sha256": "a07aaf389750472a298271a03c39443c44266dec054da6c93400c6711519ba2f",
+      "attachment": "Native RPG recap ar 375 700_0_95C005D4-0317-4DBF-9C8B-E60B75CB8CE3.png"
+    },
+    {
+      "file": "docs/reference/rpg-completion-ar-375-700-metrics.json",
+      "sha256": "d3f7fdd7e7948b10145203931121ae96458486eb4bbc163d80a0eda9306104a0",
+      "attachment": "Source RPG recap ar 375 700 metrics_0_B01A5186-F888-4C52-88AA-F22BA02346B8.json"
+    },
+    {
+      "file": "docs/reference/rpg-completion-ar-375-800.png",
+      "sha256": "088597983a473b1963200492464bd0466d1c9d7430366e9c02383aaa80874cc1",
+      "attachment": "Source RPG recap ar 375 800_0_994551FF-DDD4-4343-9570-894EC6F2912F.png"
+    },
+    {
+      "file": "docs/native/rpg-completion-ar-375-800.png",
+      "sha256": "09f96e3198fdb6c4aad540d7e801b3659d2146b38fbab5839e7ef89edac64098",
+      "attachment": "Native RPG recap ar 375 800_0_A88C5E6C-D3D3-4676-8454-F84BB7A4ACB4.png"
+    },
+    {
+      "file": "docs/reference/rpg-completion-ar-375-800-metrics.json",
+      "sha256": "8fe9eb9c1cad7a5a8613dee296080cbc21d4c7ecb6661d156d657e49e3cc6a8d",
+      "attachment": "Source RPG recap ar 375 800 metrics_0_3B7E8040-2EEA-4DA1-A46A-8F6DD5DD1E09.json"
+    },
+    {
+      "file": "docs/reference/rpg-completion-en-402-0.png",
+      "sha256": "30f8d11807c5defcb61006e14542d2993d4faab59e0bb986194cfeb72bed11d6",
+      "attachment": "Source RPG recap en 402 0_0_74E3B032-7F96-4B32-9E6A-01A22B331ACE.png"
+    },
+    {
+      "file": "docs/native/rpg-completion-en-402-0.png",
+      "sha256": "ff0f6fb75901f000330b307164f199a4d9e859ed8d5d23d554274e0e59a24ec5",
+      "attachment": "Native RPG recap en 402 0_0_82BC7C82-9D4E-491E-844C-B1608B5AE28A.png"
+    },
+    {
+      "file": "docs/reference/rpg-completion-en-402-0-metrics.json",
+      "sha256": "125701131f5e77033b4ff4d590214ff7e0de18d6f8540069cc85e6f111bb07ec",
+      "attachment": "Source RPG recap en 402 0 metrics_0_FB0A86E4-18ED-4714-B539-52F10C4E5142.json"
+    },
+    {
+      "file": "docs/reference/rpg-completion-en-402-700.png",
+      "sha256": "d8dfb9d9a192d320d3c964133726a209b2408ca924b9aa0ec56c8871262762e0",
+      "attachment": "Source RPG recap en 402 700_0_AD8110D0-E49A-44E3-946E-52260A0FA4DC.png"
+    },
+    {
+      "file": "docs/native/rpg-completion-en-402-700.png",
+      "sha256": "521ae5d9a6b6989469561040bec004ffc2de164bc037b861d381c09d22d9a8e3",
+      "attachment": "Native RPG recap en 402 700_0_B1C3EEF4-4C14-4BBA-B629-B37FB30903B3.png"
+    },
+    {
+      "file": "docs/reference/rpg-completion-en-402-700-metrics.json",
+      "sha256": "07d0c1058450179d1f17361c2d01edd6a75c823c3c5ab06743501b6cc67b59d2",
+      "attachment": "Source RPG recap en 402 700 metrics_0_AF26AF76-34F4-49A2-9105-22F5EFD2602E.json"
+    },
+    {
+      "file": "docs/reference/rpg-completion-en-402-800.png",
+      "sha256": "87430fe7f58607d2550921f7207c73c02e7340ef0e6c7f42a3b7e4f683fd46ad",
+      "attachment": "Source RPG recap en 402 800_0_AFE300AE-104C-457B-9A06-4FCE302BF3D8.png"
+    },
+    {
+      "file": "docs/native/rpg-completion-en-402-800.png",
+      "sha256": "b1bc38a141cef8f0b4cfea48bb3ecf9aa71f38ebd70327853e52faf9f3075057",
+      "attachment": "Native RPG recap en 402 800_0_69CFA6A5-38E7-44D8-ACB8-FD662B5CDD58.png"
+    },
+    {
+      "file": "docs/reference/rpg-completion-en-402-800-metrics.json",
+      "sha256": "c668e3432c7692407d0a0caa41cca20e135212b40d735a77e48bd2cb9ec76f7c",
+      "attachment": "Source RPG recap en 402 800 metrics_0_DB08E514-33ED-4AF7-8F98-FB5173D03BC9.json"
+    },
+    {
+      "file": "docs/reference/rpg-completion-ar-402-0.png",
+      "sha256": "c9924d773250e00b680b41e734f2bee2e5f6fcd2f99296dae1c8bdcb2f5ed426",
+      "attachment": "Source RPG recap ar 402 0_0_88B625E1-068C-4D43-B56E-C42035836F65.png"
+    },
+    {
+      "file": "docs/native/rpg-completion-ar-402-0.png",
+      "sha256": "ebf63c0dad3a12ec4157b937ac649593e697dbc367bffa78650e2e84a817072c",
+      "attachment": "Native RPG recap ar 402 0_0_C2EAF8D0-BE13-471B-AB48-C02281A99EF6.png"
+    },
+    {
+      "file": "docs/reference/rpg-completion-ar-402-0-metrics.json",
+      "sha256": "5f0f064fe26c0f9baf697ebe86818e436e9f9010345b8851fdac59dc2c7baf35",
+      "attachment": "Source RPG recap ar 402 0 metrics_0_4E899670-4330-4936-B05F-FC7FF7F601DC.json"
+    },
+    {
+      "file": "docs/reference/rpg-completion-ar-402-700.png",
+      "sha256": "5a3162bd123668ecf5064953f49dd4cdee5a1e72a08cb8e58a57dbf236f5714c",
+      "attachment": "Source RPG recap ar 402 700_0_4F38E7AA-71DF-4B5A-B96F-B9A094130781.png"
+    },
+    {
+      "file": "docs/native/rpg-completion-ar-402-700.png",
+      "sha256": "b9c620ddf2176a8817a3372f34f745cc78a4e551a736c918a92371247648f2c5",
+      "attachment": "Native RPG recap ar 402 700_0_2D5C836E-750B-4424-9270-E40826DF0F13.png"
+    },
+    {
+      "file": "docs/reference/rpg-completion-ar-402-700-metrics.json",
+      "sha256": "333fa7987e7171ed2ab14fdd54175c13e786122e52cec8e5a27f4e14675c3fa0",
+      "attachment": "Source RPG recap ar 402 700 metrics_0_896C099E-F7F3-478B-9F89-AA053764F89A.json"
+    },
+    {
+      "file": "docs/reference/rpg-completion-ar-402-800.png",
+      "sha256": "50141d0af9e764cc329aa9d7481165750e8df29f93df98cb4384b644decbd093",
+      "attachment": "Source RPG recap ar 402 800_0_FF4FA678-8471-42E0-B243-0E62E0DF2A44.png"
+    },
+    {
+      "file": "docs/native/rpg-completion-ar-402-800.png",
+      "sha256": "af35037cbbf171532b647d45a8c0247dde2da9431d0256440398463c91cbfb84",
+      "attachment": "Native RPG recap ar 402 800_0_B1997117-4AAA-42BF-8A33-D450A6644870.png"
+    },
+    {
+      "file": "docs/reference/rpg-completion-ar-402-800-metrics.json",
+      "sha256": "faf788e03200a0136e34d61cbf0158f6006dbeb6983281da1ffb59e79da1f378",
+      "attachment": "Source RPG recap ar 402 800 metrics_0_900DDEE3-F8A4-4D8D-A8EA-4B13CBBEC9BF.json"
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "elements": [
+    {
+      "lineHeight": 28.799999,
+      "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+      "y": 16,
+      "height": 28,
+      "glyphHeight": 29,
+      "width": 378,
+      "glyphWidth": 106.51705932617188,
+      "fontWeight": 900,
+      "text": "تركيز اليوم",
+      "letterSpacing": "normal",
+      "fontSize": 24,
+      "x": 12
+    },
+    {
+      "glyphHeight": 18,
+      "fontSize": 14,
+      "text": "الجمعة، 23 أكتوبر",
+      "glyphWidth": 98.642578125,
+      "x": 12,
+      "y": 46,
+      "height": 21,
+      "lineHeight": 21,
+      "width": 378,
+      "letterSpacing": "normal",
+      "fontWeight": 400,
+      "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\""
+    },
+    {
+      "text": "تحدث بثقة عن خططك لهذا اليوم.",
+      "glyphHeight": 18,
+      "fontSize": 14,
+      "x": 12,
+      "y": 79,
+      "glyphWidth": 188.97659301757812,
+      "height": 19,
+      "lineHeight": 19.6,
+      "letterSpacing": "normal",
+      "width": 378,
+      "fontWeight": 500,
+      "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\""
+    }
+  ],
+  "native": [
+    {
+      "glyphWidth": 109.47231531143188,
+      "fontName": ".SFUI-Black",
+      "lineBoxHeight": 29,
+      "text": "تركيز اليوم"
+    },
+    {
+      "text": "تحدث بثقة عن خططك لهذا اليوم.",
+      "fontName": ".SFUI-Medium",
+      "lineBoxHeight": 20,
+      "glyphWidth": 189.45825731754303
+    }
+  ],
+  "height": 874,
+  "direction": "rtl",
+  "language": "ar-EG",
+  "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148",
+  "width": 402
+}
